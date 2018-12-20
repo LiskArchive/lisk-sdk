@@ -472,7 +472,7 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
 	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
-	self.consensus = isNaN(consensus) ? 0 : consensus;
+	self.consensus = Number.isNaN(consensus) ? 0 : consensus;
 	return self.consensus;
 };
 
