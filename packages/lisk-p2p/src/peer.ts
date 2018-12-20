@@ -52,7 +52,6 @@ export class Peer {
 	private _inboundSocket: any;
 	private _outboundSocket: any;
 	private readonly _ipAddress: string;
-	private readonly _outboundSocket: any;
 	private readonly _wsPort: number;
 	private _nodeStatus: P2PNodeStatus | undefined;
 

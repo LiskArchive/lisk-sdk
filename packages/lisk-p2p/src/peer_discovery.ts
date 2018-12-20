@@ -13,47 +13,24 @@
  *
  */
 import { RPCResponseError } from './errors';
-import { P2PResponsePacket, Peer } from './peer';
-import { getPeersRPCHandler } from './rpc_handler';
+import { Peer, PeerConfig } from './peer';
+import { getAllPeers } from './rpc_handler';
 
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
 	readonly blacklist: ReadonlyArray<string>;
 }
 
-export const rpcRequestHandler = async (
-	peers: ReadonlyArray<Peer>,
-	procedure: string,
-) =>
-	Promise.all(
-		peers.map(async peer =>
-			peer
-				.request<void>({ procedure })
-				.then((response: P2PResponsePacket) =>
-					getPeersRPCHandler(response.data),
-				)
-				// This will be used to log errors
-				.catch(
-					(error: Error) =>
-						new RPCResponseError(
-							`Error when fetching peerlist of peer with peer id ${peer.id}`,
-							error,
-							peer.id,
-						),
-				),
-		),
-	);
-
 export const discoverPeers = async (
 	peers: ReadonlyArray<Peer>,
 	filterPeerOptions: FilterPeerOptions = { blacklist: [] },
-): Promise<ReadonlyArray<Peer>> => {
+): Promise<ReadonlyArray<PeerConfig>> => {
 	const peersOfPeer: ReadonlyArray<
-		ReadonlyArray<Peer> | RPCResponseError
-	> = await rpcRequestHandler(peers, 'getPeers');
+		ReadonlyArray<PeerConfig> | RPCResponseError
+	> = await getAllPeers(peers);
 	// Flatten 2-d array of peerlists and ignore errors
-	const peersOfPeerFlat: ReadonlyArray<Peer> = peersOfPeer.reduce(
-		(flattenedPeersList: ReadonlyArray<Peer>, peersList) =>
+	const peersOfPeerFlat: ReadonlyArray<PeerConfig> = peersOfPeer.reduce(
+		(flattenedPeersList: ReadonlyArray<PeerConfig>, peersList) =>
 			Array.isArray(peersList)
 				? [...flattenedPeersList, ...peersList]
 				: flattenedPeersList,
@@ -61,8 +38,10 @@ export const discoverPeers = async (
 	);
 	// Remove duplicates
 	const discoveredPeers = peersOfPeerFlat.reduce(
-		(uniquePeersArray: ReadonlyArray<Peer>, peer: Peer) => {
-			const found = uniquePeersArray.find(findPeer => findPeer.id === peer.id);
+		(uniquePeersArray: ReadonlyArray<PeerConfig>, peer: PeerConfig) => {
+			const found = uniquePeersArray.find(
+				findPeer => findPeer.ipAddress === peer.ipAddress,
+			);
 
 			return found ? uniquePeersArray : [...uniquePeersArray, peer];
 		},
@@ -74,7 +53,7 @@ export const discoverPeers = async (
 	}
 	// Remove blacklist ids
 	const discoveredPeersFiltered = discoveredPeers.filter(
-		(peer: Peer) => !filterPeerOptions.blacklist.includes(peer.id),
+		(peer: PeerConfig) => !filterPeerOptions.blacklist.includes(peer.ipAddress),
 	);
 
 	return discoveredPeersFiltered;
