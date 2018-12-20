@@ -16,8 +16,8 @@
 
 const isSortOptionValid = (sortOption, fields) => {
 	if (!sortOption) return true;
-	sortOption = Array.isArray(sortOption) ? sortOption : [sortOption];
-	return sortOption.reduce((acc, curr) => {
+	const sortArray = Array.isArray(sortOption) ? sortOption : [sortOption];
+	return sortArray.reduce((acc, curr) => {
 		const { field, method } = parseSortStringToObject(curr);
 		return acc && fields.includes(field) && ['ASC', 'DESC'].includes(method);
 	}, true);
