@@ -124,10 +124,6 @@ class BaseEntity {
 		throw new ImplementationPendingError();
 	}
 
-	getFields() {
-		return Object.keys(this.fields);
-	}
-
 	getFilters() {
 		return Object.keys(this.filters);
 	}
@@ -293,7 +289,7 @@ class BaseEntity {
 			);
 		}
 
-		if (!isSortOptionValid(options.sort, this.getFields())) {
+		if (!isSortOptionValid(options.sort, Object.keys(this.fields))) {
 			throw new NonSupportedOptionError('Invalid sort option.', options);
 		}
 
