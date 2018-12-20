@@ -90,6 +90,7 @@ class StorageSandbox {
 			await this.createDB();
 			const storageSandbox = storage(this.dbConfig, this.dbConfig.logger);
 			await storageSandbox.bootstrap();
+			await this.createSchema(storageSandbox.adapter.db);
 			return storageSandbox;
 		} catch (err) {
 			return new Error(err);
@@ -97,8 +98,17 @@ class StorageSandbox {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	async createSchema() {
-		// run migrations for creating db tables
+	async createSchema(db) {
+		return new Promise((resolve, reject) => {
+			db.migrations
+				.applyAll()
+				.then(() => {
+					return resolve();
+				})
+				.catch(err => {
+					return reject(err);
+				});
+		});
 	}
 
 	destroy(logger) {

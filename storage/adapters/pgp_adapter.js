@@ -19,6 +19,7 @@ const Promise = require('bluebird');
 const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');
 const QueryFile = require('pg-promise').QueryFile;
+const MigrationsRepo = require('../../db/repos/migrations.js');
 const BaseAdapter = require('./base_adapter');
 
 // ToDo: Shall be converted to `Enum` type after TS migration.
@@ -62,6 +63,13 @@ class PgpAdapter extends BaseAdapter {
 			},
 		};
 
+		// This is only for being able to re-use existing migrations
+		if (this.inTest) {
+			this.pgpOptions.extend = object => {
+				object.migrations = new MigrationsRepo(object, this.pgp);
+			};
+		}
+
 		this.pgp = pgpLib(this.pgpOptions);
 		this.db = undefined;
 	}
@@ -97,7 +105,7 @@ class PgpAdapter extends BaseAdapter {
 
 		this.options.user = this.options.user || process.env.USER;
 
-		this.pgp.end();
+		// this.pgp.end();
 		this.db = this.pgp(this.options);
 
 		// As of the nature of pg-promise the connection is acquired either a query is started to execute.
