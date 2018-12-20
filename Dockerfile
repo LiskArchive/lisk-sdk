@@ -1,4 +1,4 @@
-FROM node:8-alpine AS builder
+FROM node:10-alpine AS builder
 
 ENV NODE_ENV=production
 
@@ -18,7 +18,7 @@ RUN npm install && \
     date --utc "+%Y-%m-%dT%H:%M:%S.000Z" >.build
 
 
-FROM node:8-alpine
+FROM node:10-alpine
 
 ENV NODE_ENV=production
 ENV WFI_COMMIT=e34c502a3efe0e8b8166ea6148d55b73da5c8401
