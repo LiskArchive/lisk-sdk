@@ -426,7 +426,21 @@ describe('Peer', () => {
 				)
 			).to.be.true;
 		});
-		it('should update all peers object successfully with matching condition');
+
+		it('should update all peers object successfully with matching condition', async () => {
+			const validPeerTwo = Object.assign({}, validPeer);
+			const oldOS = 'linux2.6.32-042stab127.2';
+			const newOS = 'Open BSD';
+			validPeerTwo.ip = '90.1.32.34';
+			await storage.entities.Peer.create(validPeer);
+			await storage.entities.Peer.create(validPeerTwo);
+
+			await storage.entities.Peer.update({ os: oldOS }, { os: newOS });
+			const res = await storage.entities.Peer.get({ os: newOS });
+			const updatedValues = res.filter(aPeer => aPeer.os === newOS);
+			expect(updatedValues.length).to.be.eql(2);
+		});
+
 		it('should skip if any invalid attribute is provided');
 		it('should not throw error if no matching record found');
 	});
