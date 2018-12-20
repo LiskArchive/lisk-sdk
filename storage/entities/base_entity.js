@@ -341,7 +341,7 @@ class BaseEntity {
 	/**
 	 * Parse sort option
 	 * @param {Array.<String>|String} sortOption
-	 * @return {String}
+	 * @return {string}
 	 */
 	parseSort(sortOption = this.defaultOptions.sort) {
 		const sortString = Array.isArray(sortOption)
