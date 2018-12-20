@@ -130,15 +130,26 @@ class Transaction extends BaseEntity {
 		super(adapter, defaultFilters);
 
 		this.addField('id', 'string', { filter: ft.TEXT, fieldName: 't_id' });
-		this.addField('blockId', 'string', { filter: ft.TEXT });
-		this.addField('type', 'number', { filter: ft.NUMBER });
-		this.addField('timestamp', 'number', { filter: ft.NUMBER });
+		this.addField('blockId', 'string', {
+			filter: ft.TEXT,
+			fieldName: 't_blockId',
+		});
+		this.addField('blockHeight', 'string', {
+			filter: ft.NUMBER,
+			fieldName: 'b_height',
+		});
+		this.addField('type', 'number', { filter: ft.NUMBER, fieldName: 't_type' });
+		this.addField('timestamp', 'number', {
+			filter: ft.NUMBER,
+			fieldName: 't_timestamp',
+		});
 		this.addField(
 			'senderPublicKey',
 			'string',
 			{
 				filter: ft.NUMBER,
 				format: 'publicKey',
+				fieldName: 't_senderPublicKey',
 			},
 			stringToByte
 		);
@@ -148,20 +159,25 @@ class Transaction extends BaseEntity {
 			{
 				filter: ft.NUMBER,
 				format: 'publicKey',
+				fieldName: 'm_recipientPublicKey',
 			},
 			stringToByte
 		);
-		this.addField('senderId', 'string', { filter: ft.TEXT });
-		this.addField('recipientId', 'string', { filter: ft.TEXT });
-		this.addField('amount', 'string', { filter: ft.NUMBER });
-		this.addField('fee', 'string', { filter: ft.NUMBER });
-		this.addField('signature', 'string');
-		this.addField('signSignature', 'string');
-
-		this.addFilter('signatures_in', ft.CUSTOM, {
-			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" = ${votedFor})',
+		this.addField('senderId', 'string', {
+			filter: ft.TEXT,
+			fieldName: 't_senderId',
 		});
+		this.addField('recipientId', 'string', {
+			filter: ft.TEXT,
+			fieldName: 't_recipientId',
+		});
+		this.addField('amount', 'string', {
+			filter: ft.NUMBER,
+			fieldName: 't_amount',
+		});
+		this.addField('fee', 'string', { filter: ft.NUMBER, fieldName: 't_fee' });
+		this.addField('signature', 'string', { fieldName: 't_signature' });
+		this.addField('signSignature', 'string', { fieldName: 't_SignSignature' });
 
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('transactions/get.sql'),
