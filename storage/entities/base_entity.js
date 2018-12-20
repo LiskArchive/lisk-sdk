@@ -290,7 +290,7 @@ class BaseEntity {
 		}
 
 		if (!isSortOptionValid(options.sort, Object.keys(this.fields))) {
-			throw new NonSupportedOptionError('Invalid sort option.', options);
+			throw new NonSupportedOptionError('Invalid sort option.', options.sort);
 		}
 
 		return true;
