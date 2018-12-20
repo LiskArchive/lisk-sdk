@@ -59,7 +59,6 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
 	const version = rawPeer.version;
 	const wsPort = +rawPeer.wsPort;
 	const os = rawPeer.os && isAlpha(rawPeer.os.toString()) ? rawPeer.os : '';
-	const id = `${rawPeer.ip}:${rawPeer.wsPort}`;
 	const height =
 		rawPeer.height && isNumeric(rawPeer.height.toString())
 			? +rawPeer.height
@@ -69,7 +68,6 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
 		ipAddress: rawPeer.ip,
 		wsPort,
 		height,
-		id,
 		os,
 		version,
 	};
