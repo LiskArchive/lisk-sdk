@@ -571,9 +571,7 @@ d.run(() => {
 					scope.socketCluster.on('fail', err => {
 						scope.logger.error(err);
 						if (err.name === 'WSEngineInitError') {
-							const extendedError =
-								'If you are not able to install sc-uws, you can try setting the wsEngine property in config.json to "ws" before starting the node';
-							scope.logger.error(extendedError);
+							const extendedError = scope.logger.error(extendedError);
 						}
 					});
 
