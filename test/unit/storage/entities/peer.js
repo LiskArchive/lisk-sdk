@@ -16,6 +16,7 @@
 'use strict';
 
 const { BaseEntity, Peer } = require('../../../../storage/entities');
+const storageSandbox = require('../../../common/storage_sandbox');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
@@ -33,8 +34,15 @@ describe('Peer', () => {
 	let validOptions;
 	let validPeer;
 	let validFilterGetOneExecuteArgs;
+	let storage;
 
 	before(async () => {
+		const dbSandbox = new storageSandbox.StorageSandbox(
+			__testContext.config.db,
+			'lisk_test_peers'
+		);
+		storage = await dbSandbox.create();
+
 		validPeerFields = [
 			'id',
 			'ip',
@@ -129,8 +137,15 @@ describe('Peer', () => {
 		];
 
 		validPeer = {
-			id: 20,
-			wsPort: 50000,
+			ip: '100.187.70.20',
+			wsPort: 7001,
+			state: 1,
+			os: 'linux2.6.32-042stab127.2',
+			version: '1.1.1-rc.1',
+			broadhash:
+				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
+			height: 6857664,
+			clock: null,
 		};
 
 		invalidOptions = {
@@ -289,12 +304,35 @@ describe('Peer', () => {
 	});
 
 	describe('create()', () => {
-		it('should call getValuesSet with proper params');
-		it('should call adapter.executeFile with proper params');
-		it('should create a peer object successfully');
+		afterEach(async () => {
+			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
+		});
+
+		it('should call getValuesSet with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.getValuesSet = sinonSandbox.stub();
+			peer.create(validPeer);
+			expect(peer.getValuesSet.calledWith(validPeer)).to.be.true;
+		});
+
+		it('should create a peer object successfully', async () => {
+			await storage.entities.Peer.create(validPeer);
+			const result = await storage.entities.Peer.getOne({ ip: validPeer.ip });
+			const found = result[0];
+			delete found.id;
+			expect(found).to.be.eql(validPeer);
+		});
+
 		it('should skip if any invalid attribute is provided');
+
 		it('should reject with invalid data provided');
-		it('should populate peer object with default values');
 	});
 
 	describe('update()', () => {
@@ -325,16 +363,81 @@ describe('Peer', () => {
 				peer.update(validFilter, validPeer, invalidOptions);
 			}).to.throw(NonSupportedOptionError);
 		});
-		it('should call mergeFilters with proper params');
-		it('should call parseFilters with proper params');
-		it('should call getUpdateSet with proper params');
-		it('should call adapter.executeFile with proper params');
+
+		it('should call mergeFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub();
+			peer.parseFilters = sinonSandbox.stub();
+			peer.update(validFilter);
+			expect(peer.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.update(validFilter);
+			expect(peer.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call getUpdateSet with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.getUpdateSet = sinonSandbox.stub();
+			peer.update(validFilter, validPeer);
+			expect(peer.getUpdateSet.calledWith(validPeer)).to.be.true;
+		});
+
+		it('should call adapter.executeFile with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.getUpdateSet = sinonSandbox.stub();
+			peer.update(validFilter, validPeer);
+			expect(
+				localAdapter.executeFile.calledWith(
+					'loadSQLFile',
+					{
+						...validPeer,
+						parsedFilters: undefined,
+						updateSet: undefined,
+					},
+					{ expectedResultCount: 0 },
+					null
+				)
+			).to.be.true;
+		});
 		it('should update all peers object successfully with matching condition');
 		it('should skip if any invalid attribute is provided');
 		it('should not throw error if no matching record found');
 	});
 
 	describe('updateOne()', () => {
+		afterEach(async () => {
+			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
+		});
+
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -362,13 +465,87 @@ describe('Peer', () => {
 				peer.updateOne(validFilter, validPeer, invalidOptions);
 			}).to.throw(NonSupportedOptionError);
 		});
-		it('should call mergeFilters with proper params');
-		it('should call parseFilters with proper params');
-		it('should call getUpdateSet with proper params');
-		it('should call adapter.executeFile with proper params');
-		it(
-			'should update only one peer object successfully with matching condition'
-		);
+
+		it('should call mergeFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub();
+			peer.parseFilters = sinonSandbox.stub();
+			peer.updateOne(validFilter);
+			expect(peer.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.updateOne(validFilter);
+			expect(peer.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call getUpdateSet with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.getUpdateSet = sinonSandbox.stub();
+			peer.updateOne(validFilter, validPeer);
+			expect(peer.getUpdateSet.calledWith(validPeer)).to.be.true;
+		});
+
+		it('should call adapter.executeFile with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.getUpdateSet = sinonSandbox.stub();
+			peer.updateOne(validFilter, validPeer);
+			expect(
+				localAdapter.executeFile.calledWith(
+					'loadSQLFile',
+					{
+						...validPeer,
+						parsedFilters: undefined,
+						updateSet: undefined,
+					},
+					{ expectedResultCount: 0 },
+					null
+				)
+			).to.be.true;
+		});
+
+		it('should update only one peer object successfully with matching condition', async () => {
+			const validPeerTwo = Object.assign({}, validPeer);
+			validPeerTwo.ip = '90.1.32.34';
+			await storage.entities.Peer.create(validPeer);
+			await storage.entities.Peer.create(validPeerTwo);
+			const allPeers = await storage.entities.Peer.get();
+			const peerToUpdateId = allPeers[0].id;
+
+			await storage.entities.Peer.updateOne(
+				{ id: peerToUpdateId },
+				{ ip: '127.0.0.1' }
+			);
+			const res = await storage.entities.Peer.getOne({ ip: '127.0.0.1' });
+			expect(res.length).to.be.eql(1);
+		});
 		it('should skip if any invalid attribute is provided');
 		it('should not throw error if no matching record found');
 	});
@@ -401,18 +578,81 @@ describe('Peer', () => {
 				peer.isPersisted(validFilter, invalidOptions);
 			}).to.throw(NonSupportedOptionError);
 		});
-		it('should call mergeFilters with proper params');
-		it('should call parseFilters with proper params');
-		it('should call adapter.executeFile with proper params');
+
+		it('should call mergeFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub();
+			peer.parseFilters = sinonSandbox.stub();
+			peer.isPersisted(validFilter);
+			expect(peer.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.isPersisted(validFilter);
+			expect(peer.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call adapter.executeFile with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.getUpdateSet = sinonSandbox.stub();
+			peer.isPersisted(validFilter);
+			expect(
+				localAdapter.executeFile.calledWith(
+					'loadSQLFile',
+					{
+						parsedFilters: undefined,
+					},
+					{},
+					null
+				)
+			).to.be.true;
+		});
+
 		it('should resolve with true if matching record found');
 		it('should resolve with false if matching record not found');
 	});
 
 	describe('mergeFilters()', () => {
-		it('should accept filters as single object');
-		it('should accept filters as array of objects');
+		it('should accept filters as single object', async () => {
+			const peer = new Peer(adapter);
+			const mergeFiltersSpy = sinonSandbox.spy(peer, 'mergeFilters');
+			expect(() => {
+				peer.get(validFilter);
+			}).not.to.throw(NonSupportedFilterTypeError);
+			expect(mergeFiltersSpy.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should accept filters as array of objects', async () => {
+			const peer = new Peer(adapter);
+			const mergeFiltersSpy = sinonSandbox.spy(peer, 'mergeFilters');
+			expect(() => {
+				peer.get([validFilter, validFilter]);
+			}).not.to.throw(NonSupportedFilterTypeError);
+			expect(mergeFiltersSpy.calledWith([validFilter, validFilter])).to.be.true;
+		});
+
 		it(
-			'should merge provided filter with default filters by preserving default filters values '
+			'should merge provided filter with default filters by preserving default filters values'
 		);
 	});
 });

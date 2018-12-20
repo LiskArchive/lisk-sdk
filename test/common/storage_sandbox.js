@@ -48,6 +48,12 @@ function clearDatabaseTable(storageInstance, logger, table) {
 
 class StorageSandbox {
 	constructor(dbConfig, dbName) {
+		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test')
+			throw new Error(
+				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
+					process.env.NODE_ENV
+				}`
+			);
 		this.dbConfig = dbConfig;
 		this.originalDbName = dbConfig.database;
 		this.dbName = dbName || this.originalDbName;
