@@ -19,7 +19,7 @@ const Field = require('../../../../storage/utils/field');
 const inputSerializers = require('../../../../storage/utils/inputSerializers');
 
 describe('Field', () => {
-	beforeEach(done => {
+	beforeEach(async () => {
 		sinonSandbox
 			.stub(Field.prototype, 'generateFilters')
 			.returns({ key: { filter: '' } });
@@ -27,8 +27,6 @@ describe('Field', () => {
 		sinonSandbox
 			.stub(inputSerializers, 'defaultInput')
 			.returns('serialized value');
-
-		done();
 	});
 
 	afterEach(() => {

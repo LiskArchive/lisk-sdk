@@ -37,6 +37,7 @@ class BaseEntity {
 		this.defaultOptions = {
 			limit: 10,
 			offset: 0,
+			extended: false,
 		};
 	}
 
@@ -45,7 +46,6 @@ class BaseEntity {
 	 *
 	 * @param {string | Object} filters - Multiple filters or just primary key
 	 * @param {Object} options - Extended options
-	 * @param {string} options.fieldSet - Fieldset to get
 	 * @param {Object} tx - transaction object
 	 *
 	 * @return {Promise}
@@ -60,7 +60,6 @@ class BaseEntity {
 	 *
 	 * @param {string | Object} filters - Multiple filters or just primary key
 	 * @param {Object} options - Extended options
-	 * @param {string} options.fieldSet - Field set to get for object
 	 * @param {Object} tx - transaction object
 	 *
 	 * @return {Promise}
@@ -124,15 +123,6 @@ class BaseEntity {
 		throw new ImplementationPendingError();
 	}
 
-	/**
-	 * Returns the available fields sets
-	 * @return Array
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	getFieldSets() {
-		throw new ImplementationPendingError();
-	}
-
 	getFilters() {
 		return Object.keys(this.filters);
 	}
@@ -142,8 +132,8 @@ class BaseEntity {
 	 *
 	 * @param {Object} options - Options object
 	 */
-	overrideDefaultOptions(options) {
-		this.defaultOptions = Object.assign({}, this.defaultOptions, options);
+	extendDefaultOptions(options) {
+		this.defaultOptions = { ...this.defaultOptions, ...options };
 	}
 
 	/**
@@ -164,11 +154,10 @@ class BaseEntity {
 
 		this.fields[name] = new Field(name, type, options, writer);
 
-		this.filters = Object.assign(
-			{},
-			this.filters,
-			this.fields[name].getFilters()
-		);
+		this.filters = {
+			...this.filters,
+			...this.fields[name].getFilters(),
+		};
 	}
 
 	getUpdateSet(data) {
@@ -224,16 +213,16 @@ class BaseEntity {
 	addFilter(filterName, filterType = filterTypes.NUMBER, options = {}) {
 		// TODO: The dynamic generated json-schema for filters should be implemented for validation
 
-		this.filters = Object.assign(
-			this.filters,
-			filterGenerator(
+		this.filters = {
+			...this.filters,
+			...filterGenerator(
 				filterType,
 				filterName,
 				options.fieldName || filterName,
 				options.inputSerializer,
 				options.condition
-			)
-		);
+			),
+		};
 	}
 
 	/**
@@ -254,7 +243,7 @@ class BaseEntity {
 
 		if (Array.isArray(filters)) {
 			flattenedFilters = filters.reduce(
-				(acc, curr) => Object.assign(acc, curr),
+				(acc, curr) => ({ ...acc, ...curr }),
 				{}
 			);
 		} else {
@@ -305,44 +294,31 @@ class BaseEntity {
 	parseFilters(filters) {
 		let filterString = null;
 
+		const parseFilterObject = object =>
+			Object.keys(object)
+				.map(key => this.filters[key])
+				.join(' AND ');
+
 		if (Array.isArray(filters)) {
-			filterString = this._parseArrayFilter(filters);
-		} else if (Object.keys(filters).length > 0) {
-			filterString = this._parseObjectFilter(filters);
+			filterString = filters
+				.map(filterObject => parseFilterObject(filterObject))
+				.join(' OR ');
+		} else if (typeof filters === 'object') {
+			filterString = parseFilterObject(filters);
 		}
 
-		const filtersObject = this._filtersToObject(filters);
+		const filtersObject = Array.isArray(filters)
+			? filters.reduce((acc, curr) => ({ ...acc, ...curr }), {})
+			: filters;
 
-		return this._filterClause(filterString, filtersObject);
-	}
-
-	_filterClause(filterString, filtersObject) {
-		let filterClause;
 		if (filterString) {
-			filterClause = `WHERE ${this.adapter.parseQueryComponent(
+			return `WHERE ${this.adapter.parseQueryComponent(
 				filterString,
 				filtersObject
 			)}`;
 		}
 
-		return filterClause || '';
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	_filtersToObject(filters) {
-		return Array.isArray(filters) ? Object.assign({}, ...filters) : filters;
-	}
-
-	_parseArrayFilter(filters) {
-		return filters
-			.map(filterObject => this._parseObjectFilter(filterObject))
-			.join(' OR ');
-	}
-
-	_parseObjectFilter(object) {
-		return `(${Object.keys(object)
-			.map(key => this.filters[key])
-			.join(' AND ')})`;
+		return '';
 	}
 
 	/**
@@ -352,9 +328,9 @@ class BaseEntity {
 	 */
 	mergeFilters(filters) {
 		if (Array.isArray(filters)) {
-			return filters.map(item => Object.assign({}, item, this.defaultFilters));
+			return filters.map(item => ({ ...item, ...this.defaultFilters }));
 		}
-		return Object.assign({}, filters, this.defaultFilters);
+		return { ...filters, ...this.defaultFilters };
 	}
 }
 

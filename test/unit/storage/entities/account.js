@@ -18,8 +18,6 @@
 describe('Account', () => {
 	it('should be a constructable function');
 	it('should be be inherited by BaseEntity');
-	it('should assign a prototype property FIELD_SET_SIMPLE');
-	it('should assign a prototype property FIELD_SET_FULL');
 	it('should assign a prototype property defaultOptions');
 
 	describe('constructor()', () => {
@@ -34,16 +32,14 @@ describe('Account', () => {
 		it('should throw error for in-valid filters');
 		it('should accept only valid options');
 		it('should throw error for in-valid options');
-		it(
-			'should call adapter.executeFile with proper param for FIELD_SET_SIMPLE'
-		);
-		it('should call adapter.executeFile with proper param for FIELD_SET_FULL');
+		it('should call adapter.executeFile with proper param for extended=false');
+		it('should call adapter.executeFile with proper param for extended=true');
 		it('should accept "tx" as last parameter and pass to adapter.executeFile');
 		it(
-			'should resolve with one object matching specification of type definition for FIELD_SET_SIMPLE'
+			'should resolve with one object matching specification of type definition of simple object'
 		);
 		it(
-			'should resolve with one object matching specification of type definition for FIELD_SET_FULL'
+			'should resolve with one object matching specification of type definition of full object'
 		);
 		it(
 			'should reject with error if matched with multiple records for provided filters'
@@ -63,16 +59,14 @@ describe('Account', () => {
 		it('should throw error for in-valid filters');
 		it('should accept only valid options');
 		it('should throw error for in-valid options');
-		it(
-			'should call adapter.executeFile with proper param for FIELD_SET_SIMPLE'
-		);
-		it('should call adapter.executeFile with proper param for FIELD_SET_FULL');
+		it('should call adapter.executeFile with proper param for extended=false');
+		it('should call adapter.executeFile with proper param for extended=true');
 		it('should accept "tx" as last parameter and pass to adapter.executeFile');
 		it(
-			'should resolve with array of objects matching specification of type definition for FIELD_SET_SIMPLE'
+			'should resolve with one object matching specification of type definition of simple object'
 		);
 		it(
-			'should resolve with array of objects matching specification of type definition for FIELD_SET_FULL'
+			'should resolve with one object matching specification of type definition of full object'
 		);
 		it('should not change any of the provided parameter');
 
@@ -137,10 +131,6 @@ describe('Account', () => {
 		it('should call adapter.executeFile with proper params');
 		it('should resolve with true if matching record found');
 		it('should resolve with false if matching record not found');
-	});
-
-	describe('getFieldSets()', () => {
-		it('should return FIELD_SET_SIMPLE, FIELD_SET_FULL');
 	});
 
 	describe('mergeFilters()', () => {

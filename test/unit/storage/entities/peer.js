@@ -193,7 +193,6 @@ describe('Peer', () => {
 			expect(typeof peer.addFilter).to.be.eql('function');
 			expect(typeof peer.addField).to.be.eql('function');
 			expect(typeof peer.getFilters).to.be.eql('function');
-			expect(typeof peer.overrideDefaultOptions).to.be.eql('function');
 			expect(typeof peer.getUpdateSet).to.be.eql('function');
 			expect(typeof peer.getValuesSet).to.be.eql('function');
 			expect(typeof peer.begin).to.be.eql('function');
@@ -325,9 +324,8 @@ describe('Peer', () => {
 		it('should create a peer object successfully', async () => {
 			await storage.entities.Peer.create(validPeer);
 			const result = await storage.entities.Peer.getOne({ ip: validPeer.ip });
-			const found = result[0];
-			delete found.id;
-			expect(found).to.be.eql(validPeer);
+			delete result.id;
+			expect(result).to.be.eql(validPeer);
 		});
 
 		it('should skip if any invalid attribute is provided');
@@ -533,6 +531,7 @@ describe('Peer', () => {
 
 		it('should update only one peer object successfully with matching condition', async () => {
 			const validPeerTwo = Object.assign({}, validPeer);
+			const updatedIp = '127.0.0.1';
 			validPeerTwo.ip = '90.1.32.34';
 			await storage.entities.Peer.create(validPeer);
 			await storage.entities.Peer.create(validPeerTwo);
@@ -541,11 +540,12 @@ describe('Peer', () => {
 
 			await storage.entities.Peer.updateOne(
 				{ id: peerToUpdateId },
-				{ ip: '127.0.0.1' }
+				{ ip: updatedIp }
 			);
-			const res = await storage.entities.Peer.getOne({ ip: '127.0.0.1' });
-			expect(res.length).to.be.eql(1);
+			const res = await storage.entities.Peer.getOne({ ip: updatedIp });
+			expect(res.ip).to.be.eql(updatedIp);
 		});
+
 		it('should skip if any invalid attribute is provided');
 		it('should not throw error if no matching record found');
 	});
