@@ -281,13 +281,8 @@ class Account extends BaseEntity {
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${votedFor_in:csv}))',
 		});
 
-		const defaultOrderBy = {
-			orderBy: {
-				field: 'balance',
-				method: 'ASC',
-			},
-		};
-		this.extendDefaultOptions(defaultOrderBy);
+		const defaultSort = { sort: 'balance:asc' };
+		this.extendDefaultOptions(defaultSort);
 
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('accounts/get.sql'),
@@ -424,16 +419,17 @@ class Account extends BaseEntity {
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
+		const parsedSort = this.parseSort(options.sort || this.defaultOptions.sort);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset', 'orderBy', 'extended']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'orderBy', 'extended'])
+			_.pick(options, ['limit', 'offset', 'extended']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'extended'])
 		);
 
 		const params = {
 			limit: parsedOptions.limit,
 			offset: parsedOptions.offset,
-			orderBy: parsedOptions.offset,
+			parsedSort,
 			parsedFilters,
 		};
 

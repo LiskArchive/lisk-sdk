@@ -31,6 +31,7 @@ FROM
 
 ${parsedFilters:raw}
 
-ORDER BY ${orderBy.field:raw} ${orderBy.method:raw}
+${parsedSort:raw}
+
 LIMIT ${limit}
 OFFSET ${offset}

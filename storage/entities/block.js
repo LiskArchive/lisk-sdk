@@ -178,13 +178,8 @@ class Block extends BaseEntity {
 		this.addField('reward', 'string', { filter: filterType.NUMBER });
 		this.addField('version', 'number', { filter: filterType.NUMBER });
 
-		const defaultOrderBy = {
-			orderBy: {
-				field: 'height',
-				method: 'DESC',
-			},
-		};
-		this.extendDefaultOptions(defaultOrderBy);
+		const defaultSort = { sort: 'height:desc' };
+		this.extendDefaultOptions(defaultSort);
 
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('blocks/get.sql'),
@@ -293,16 +288,17 @@ class Block extends BaseEntity {
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
+		const parsedSort = this.parseSort(options.sort || this.defaultOptions.sort);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset', 'orderBy']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'orderBy'])
+			_.pick(options, ['limit', 'offset']),
+			_.pick(this.defaultOptions, ['limit', 'offset'])
 		);
 
 		const params = {
 			limit: parsedOptions.limit,
 			offset: parsedOptions.offset,
-			orderBy: parsedOptions.orderBy,
+			parsedSort,
 			parsedFilters,
 		};
 

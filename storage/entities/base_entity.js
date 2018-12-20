@@ -332,6 +332,29 @@ class BaseEntity {
 		}
 		return { ...filters, ...this.defaultFilters };
 	}
+
+	/**
+	 * Parse sort option
+	 * @param {Array.<String>|String} sortOption
+	 * @return {String}
+	 */
+	parseSort(sortOption) {
+		const sortString = Array.isArray(sortOption)
+			? sortOption.map(this._parseSortString).join(', ')
+			: this._parseSortString(sortOption);
+
+		if (sortString) {
+			return `ORDER BY ${sortString}`;
+		}
+
+		return '';
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	_parseSortString(item) {
+		const [field, method = 'ASC'] = item.split(':');
+		return `"${field}" ${method.toUpperCase()}`;
+	}
 }
 
 module.exports = BaseEntity;
