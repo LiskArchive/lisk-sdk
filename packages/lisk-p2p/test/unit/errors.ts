@@ -89,17 +89,19 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#RPCGetPeersFailed', () => {
+	describe('#RPCResponseError', () => {
 		let rpcGetPeersFailed: RPCResponseError;
-		const peerId = '127.0.0.1:5001';
-		const defaultMessage = `Error when fetching peerlist of peer with peer id ${peerId}`;
+		const peerIp = '127.0.0.1:5001';
+		const peerPort = 5001;
+		const defaultMessage = `Error when fetching peerlist of peer with peer ip ${peerIp} and port ${peerPort}`;
 		const defaultError = new Error('Peer not available');
 
 		beforeEach(() => {
 			rpcGetPeersFailed = new RPCResponseError(
 				defaultMessage,
 				defaultError,
-				peerId,
+				peerIp,
+				peerPort,
 			);
 			return Promise.resolve();
 		});
@@ -121,15 +123,22 @@ describe('errors', () => {
 				rpcGetPeersFailed = new RPCResponseError(
 					defaultMessage,
 					defaultError,
-					peerId,
+					peerIp,
+					peerPort,
 				);
 				return Promise.resolve();
 			});
 
-			it('should set error property peerId when passed as an argument', () => {
+			it('should set error property peer ip when passed as an argument', () => {
 				return expect(rpcGetPeersFailed)
-					.and.to.have.property('peerId')
-					.which.is.eql(peerId);
+					.and.to.have.property('peerIp')
+					.which.is.eql(peerIp);
+			});
+
+			it('should set error property peer port when passed as an argument', () => {
+				return expect(rpcGetPeersFailed)
+					.and.to.have.property('peerPort')
+					.which.is.eql(peerPort);
 			});
 
 			it('should set error property cause when passed as an argument', () => {
@@ -145,7 +154,7 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#InValidPeerAddress', () => {
+	describe('#InvalidPeer', () => {
 		let invalidPeer: InvalidPeer;
 		const defaultMessage = 'Invalid peer ip or port';
 

@@ -16,6 +16,7 @@ import { expect } from 'chai';
 import { PeerConfig, Peer } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
 import * as discoverPeersModule from '../../src/peer_discovery';
+import * as rpcHandler from '../../src/rpc_handler';
 
 describe('peer discovery', () => {
 	describe('#discoverPeer', () => {
@@ -23,13 +24,13 @@ describe('peer discovery', () => {
 			ipAddress: '12.13.12.12',
 			wsPort: 5001,
 			height: 545776,
-			id: '12.13.12.12:5001',
+			version: '1.2.1',
 		};
 		const peerOptionDuplicate: PeerConfig = {
 			ipAddress: '12.13.12.12',
 			wsPort: 5001,
 			height: 545981,
-			id: '12.13.12.12:5001',
+			version: '1.3.1',
 		};
 		// TODO cover rpcRequesthandler
 		const newPeer = new Peer(peerOption);
@@ -38,7 +39,7 @@ describe('peer discovery', () => {
 		const blacklist = [peers[4].id];
 
 		describe('return an array with all the peers of input peers', () => {
-			let discoveredPeers: ReadonlyArray<Peer>;
+			let discoveredPeers: ReadonlyArray<PeerConfig>;
 			const peerList1 = [newPeer];
 			const peerList2 = [newPeer, peerDuplicate];
 			const peerList3 = [newPeer, peers[2]];
@@ -46,7 +47,7 @@ describe('peer discovery', () => {
 
 			beforeEach(async () => {
 				sandbox
-					.stub(discoverPeersModule, 'rpcRequestHandler')
+					.stub(rpcHandler, 'getAllPeers')
 					.resolves([peerList1, peerList2, peerList3]);
 
 				discoveredPeers = await discoverPeersModule.discoverPeers(peers, {
@@ -55,19 +56,13 @@ describe('peer discovery', () => {
 			});
 
 			it('should return an array', () => {
-				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
-					peers,
-					'getPeers',
-				);
+				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers).to.be.an('array');
 			});
 
 			it('should return an array with length of 2', () => {
-				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
-					peers,
-					'getPeers',
-				);
+				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers)
 					.to.be.an('array')
@@ -75,10 +70,7 @@ describe('peer discovery', () => {
 			});
 
 			it('should return an array with discovered peers', () => {
-				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
-					peers,
-					'getPeers',
-				);
+				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers)
 					.to.be.an('array')
@@ -89,10 +81,7 @@ describe('peer discovery', () => {
 				discoveredPeers = await discoverPeersModule.discoverPeers(peers, {
 					blacklist: [],
 				});
-				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
-					peers,
-					'getPeers',
-				);
+				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers)
 					.to.be.an('array')
