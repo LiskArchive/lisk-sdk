@@ -58,6 +58,10 @@ describe('Block', () => {
 				extended: false,
 				limit: 10,
 				offset: 0,
+				orderBy: {
+					field: 'height',
+					method: 'DESC',
+				},
 			});
 		});
 
