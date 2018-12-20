@@ -27,7 +27,7 @@ class BaseEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
-	 * @param {filters.BaseEntity} defaultFilters - Set of default filters applied on every query
+	 * @param {Object} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
 		this.adapter = adapter;

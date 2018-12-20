@@ -14,6 +14,9 @@
 
 'use strict';
 
+const _ = require('lodash');
+const { stringToByte } = require('../utils/inputSerializers');
+const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
 /**
@@ -21,6 +24,8 @@ const BaseEntity = require('./base_entity');
  * @typedef {Object} BasicTransaction
  * @property {string} id
  * @property {string} blockId
+ * @property {Integer} [blockHeight]
+ * @property {Integer} [confirmations]
  * @property {Integer} type
  * @property {Number} timestamp
  * @property {string} senderPublicKey
@@ -98,13 +103,125 @@ const BaseEntity = require('./base_entity');
 
 /**
  * OutTransfer Transaction
- * @typedef {BasicTransaction} OutTransfer
+ * @typedef {BasicTransaction} OutTransferTransaction
  * @property {Object} asset
  * @property {Object} asset.outTransfer
  * @property {string} asset.outTransfer.dappId
  * @property {string} asset.outTransfer.transactionId
  */
 
-class Transaction extends BaseEntity {}
+/**
+ * Transaction
+ * @typedef {(TransferTransaction|SecondPassphraseTransaction|DelegateTransaction|VoteTransaction|MultisigRegistrationTransaction|DappRegistrationTransaction|InTransferTransaction|OutTransferTransaction)} Transaction
+ */
+
+/**
+ * Transaction Filters
+ * @typedef {Object} filters.Transaction
+ */
+
+class Transaction extends BaseEntity {
+	/**
+	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
+	 * @param {filters.Transaction} defaultFilters - Set of default filters applied on every query
+	 */
+	constructor(adapter, defaultFilters = {}) {
+		super(adapter, defaultFilters);
+
+		this.addField('id', 'string', { filter: ft.TEXT, fieldName: 't_id' });
+		this.addField('blockId', 'string', { filter: ft.TEXT });
+		this.addField('type', 'number', { filter: ft.NUMBER });
+		this.addField('timestamp', 'number', { filter: ft.NUMBER });
+		this.addField(
+			'senderPublicKey',
+			'string',
+			{
+				filter: ft.NUMBER,
+				format: 'publicKey',
+			},
+			stringToByte
+		);
+		this.addField(
+			'requesterPublicKey',
+			'string',
+			{
+				filter: ft.NUMBER,
+				format: 'publicKey',
+			},
+			stringToByte
+		);
+		this.addField('senderId', 'string', { filter: ft.TEXT });
+		this.addField('recipientId', 'string', { filter: ft.TEXT });
+		this.addField('amount', 'string', { filter: ft.NUMBER });
+		this.addField('fee', 'string', { filter: ft.NUMBER });
+		this.addField('signature', 'string');
+		this.addField('signSignature', 'string');
+
+		this.addFilter('signatures_in', ft.CUSTOM, {
+			condition:
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" = ${votedFor})',
+		});
+
+		this.SQLs = {
+			select: this.adapter.loadSQLFile('transactions/get.sql'),
+			selectExtended: this.adapter.loadSQLFile('transactions/get_extended.sql'),
+		};
+	}
+
+	/**
+	 * Get one account
+	 *
+	 * @param {filters.Transaction|filters.Transaction[]} [filters = {}]
+	 * @param {Object} [options = {}] - Options to filter data
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
+	 * @param {Object} tx - Database transaction object
+	 * @return {Promise.<Transaction, Error>}
+	 */
+	getOne(filters, options = {}, tx) {
+		const expectedResultCount = 1;
+		return this._getResults(filters, options, tx, expectedResultCount);
+	}
+
+	/**
+	 * Get one account
+	 *
+	 * @param {filters.Transaction|filters.Transaction[]} [filters = {}]
+	 * @param {Object} [options = {}] - Options to filter data
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
+	 * @param {Object} tx - Database transaction object
+	 * @return {Promise.<Transaction[], Error>}
+	 */
+	get(filters, options = {}, tx) {
+		return this._getResults(filters, options, tx);
+	}
+
+	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const parsedOptions = _.defaults(
+			{},
+			_.pick(options, ['limit', 'offset', 'extended']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'extended'])
+		);
+
+		const params = {
+			limit: parsedOptions.limit,
+			offset: parsedOptions.offset,
+			parsedFilters,
+		};
+
+		return this.adapter.executeFile(
+			parsedOptions.extended ? this.SQLs.selectExtended : this.SQLs.select,
+			params,
+			{ expectedResultCount },
+			tx
+		);
+	}
+}
 
 module.exports = Transaction;
