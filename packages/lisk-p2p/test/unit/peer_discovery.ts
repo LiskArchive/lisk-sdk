@@ -13,56 +13,86 @@
  *
  */
 import { expect } from 'chai';
-import { PeerConfig, Peer } from '../../src/peer';
+import { PeerConfig } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
 import * as discoverPeersModule from '../../src/peer_discovery';
-import * as rpcHandler from '../../src/rpc_handler';
 
 describe('peer discovery', () => {
+	const peerFromResponse1 = {
+		ip: '196.34.89.90',
+		wsPort: '5393',
+		os: 'darwin',
+		height: '23232',
+		version: '1.1.2',
+	};
+
+	const peerFromResponse2 = {
+		ip: '128.38.75.9',
+		wsPort: '5393',
+		os: 'darwin',
+		height: '23232',
+		version: '1.1.2',
+	};
+
+	const peerFromResponse3 = {
+		ip: '12.23.11.31',
+		wsPort: '5393',
+		os: 'darwin',
+		height: '23232',
+		version: '1.1.2',
+	};
+
 	describe('#discoverPeer', () => {
-		const peerOption: PeerConfig = {
-			ipAddress: '12.13.12.12',
-			wsPort: 5001,
-			height: 545776,
-			version: '1.2.1',
+		const samplePeers = initializePeerList();
+		const seedPeer1 = samplePeers[0];
+		const seedPeer2 = samplePeers[1];
+		const peerList1 = [peerFromResponse1, peerFromResponse2];
+		const peerList2 = [peerFromResponse1, peerFromResponse3];
+		const seedList = [seedPeer1, seedPeer2];
+
+		const validatedPeer1: PeerConfig = {
+			ipAddress: '196.34.89.90',
+			wsPort: 5393,
+			os: 'darwin',
+			height: 23232,
+			version: '1.1.2',
 		};
-		const peerOptionDuplicate: PeerConfig = {
-			ipAddress: '12.13.12.12',
-			wsPort: 5001,
-			height: 545981,
-			version: '1.3.1',
+
+		const validatedPeer2: PeerConfig = {
+			ipAddress: '128.38.75.9',
+			wsPort: 5393,
+			os: 'darwin',
+			height: 23232,
+			version: '1.1.2',
 		};
-		// TODO cover rpcRequesthandler
-		const newPeer = new Peer(peerOption);
-		const peerDuplicate = new Peer(peerOptionDuplicate);
-		const peers = [...initializePeerList(), newPeer, peerDuplicate];
-		const blacklist = [peers[4].id];
+
+		const expectedResult = [
+			validatedPeer1,
+			validatedPeer2,
+		];
 
 		describe('return an array with all the peers of input peers', () => {
 			let discoveredPeers: ReadonlyArray<PeerConfig>;
-			const peerList1 = [newPeer];
-			const peerList2 = [newPeer, peerDuplicate];
-			const peerList3 = [newPeer, peers[2]];
-			const discoveredPeersResult = [newPeer, peers[2]];
-
+			const blacklist = ['12.23.11.31'];
 			beforeEach(async () => {
 				sandbox
-					.stub(rpcHandler, 'getAllPeers')
-					.resolves([peerList1, peerList2, peerList3]);
+					.stub(seedPeer1, 'fetchPeers')
+					.resolves(peerList1);
+				sandbox
+					.stub(seedPeer2, 'fetchPeers')
+					.resolves(peerList2);
 
-				discoveredPeers = await discoverPeersModule.discoverPeers(peers, {
-					blacklist,
-				});
+				discoveredPeers = await discoverPeersModule.discoverPeers(seedList, {
+					blacklist
+				})
 			});
 
 			it('should return an array for a given seed list', () => {
-				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers).to.be.an('array');
 			});
 
 			it('should return an array with length of [2]', () => {
-				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers)
 					.to.be.an('array')
@@ -70,22 +100,20 @@ describe('peer discovery', () => {
 			});
 
 			it('should return an array with discovered peers', () => {
-				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers)
 					.to.be.an('array')
-					.and.eql(discoveredPeersResult);
+					.and.eql(expectedResult);
 			});
 
 			it('should return an array with discovered peers for blank blacklist', async () => {
-				discoveredPeers = await discoverPeersModule.discoverPeers(peers, {
+				discoveredPeers = await discoverPeersModule.discoverPeers(seedList, {
 					blacklist: [],
 				});
-				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers)
 					.to.be.an('array')
-					.and.eql(discoveredPeers);
+					.and.eql(expectedResult);
 			});
 		});
 	});

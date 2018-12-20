@@ -13,11 +13,9 @@
  *
  */
 import { expect } from 'chai';
-import { PeerConfig } from '../../src/peer';
 import {
 	validatePeerAddress,
 	instantiatePeerFromResponse,
-	processPeerListFromResponse,
 } from '../../src/response_handler';
 
 describe('response handlers', () => {
@@ -164,62 +162,6 @@ describe('response handlers', () => {
 					peerWithIncorrectPort.wsPort,
 				),
 			).to.be.false;
-		});
-	});
-
-	describe('#processPeerListFromResponse', () => {
-		let peersRPCHandler: ReadonlyArray<PeerConfig>;
-		let response: unknown;
-
-		beforeEach(async () => {
-			response = { peers: peersFromResponse };
-			peersRPCHandler = processPeerListFromResponse(response);
-		});
-
-		it('should return an array of length [3] for a valid response', () => {
-			return expect(peersRPCHandler)
-				.to.be.an('array')
-				.and.of.length(3);
-		});
-
-		it('should return an array of instantiated peers for a valid response', () => {
-			return expect(peersRPCHandler)
-				.to.be.an('array')
-				.eql(newlyCreatedPeers);
-		});
-
-		it('should return a blank array of instantiated peers for undefined response', () => {
-			peersRPCHandler = processPeerListFromResponse(undefined);
-
-			return expect(peersRPCHandler)
-				.to.be.an('array')
-				.eql([]);
-		});
-
-		it('should return a blank array of instantiated peers for string type response', () => {
-			peersRPCHandler = processPeerListFromResponse('string value');
-
-			return expect(peersRPCHandler)
-				.to.be.an('array')
-				.eql([]);
-		});
-
-		it('should throw an error for invalid version', () => {
-			const badResponse = {
-				peers: [
-					{
-						ip: '127.34.00.78',
-						wsPort: '5001',
-						height: '453453',
-						os: 'windows',
-						version: '1.2.187hhjbv',
-					},
-				],
-			};
-
-			return expect(
-				processPeerListFromResponse.bind(null, badResponse),
-			).to.throw('Invalid peer version');
 		});
 	});
 });
