@@ -325,22 +325,30 @@ class Account extends BaseEntity {
 	/**
 	 * Create account object
 	 *
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
+	 * @param {Object|Array.<Object>} data
+	 * @param {Object} [_options]
+	 * @param {Object} [tx] - Transaction object
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
-		const objectData = _.defaults(data, defaultCreateValues);
-		const createSet = this.getValuesSet(objectData);
-		const attributes = Object.keys(data)
+		let values;
+
+		if (Array.isArray(data)) {
+			values = data;
+		} else if (typeof data === 'object') {
+			values = [data];
+		}
+
+		values = values.map(v => _.defaults(v, defaultCreateValues));
+		const createSet = this.getValuesSet(values);
+		const attributes = Object.keys(values[0])
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
 		return this.adapter.executeFile(
 			this.SQLs.create,
 			{ createSet, attributes },
-			{},
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}

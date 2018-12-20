@@ -176,12 +176,11 @@ class BaseEntity {
 	}
 
 	getValuesSet(data) {
-		return `(${this.adapter.parseQueryComponent(
-			Object.keys(data)
-				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
-				.join(','),
-			data
-		)})`;
+		if (Array.isArray(data)) {
+			return data.map(d => this._getValueSetForObject(d)).join(',');
+		}
+
+		return this._getValueSetForObject(data);
 	}
 
 	/**
@@ -331,6 +330,15 @@ class BaseEntity {
 			return filters.map(item => ({ ...item, ...this.defaultFilters }));
 		}
 		return { ...filters, ...this.defaultFilters };
+	}
+
+	_getValueSetForObject(data) {
+		return `(${this.adapter.parseQueryComponent(
+			Object.keys(data)
+				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
+				.join(','),
+			data
+		)})`;
 	}
 }
 

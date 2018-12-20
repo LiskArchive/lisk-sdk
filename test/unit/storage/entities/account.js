@@ -84,6 +84,7 @@ describe('Account', () => {
 		it('should call getValuesSet with proper params');
 		it('should call adapter.executeFile with proper params');
 		it('should create an account object successfully');
+		it('should create multiple account objects successfully');
 		it('should skip if any invalid attribute is provided');
 		it('should reject with invalid data provided');
 		it('should populate account object with default values');
