@@ -55,13 +55,13 @@ describe('peer discovery', () => {
 				});
 			});
 
-			it('should return an array', () => {
+			it('should return an array for a given seed list', () => {
 				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers).to.be.an('array');
 			});
 
-			it('should return an array with length of 2', () => {
+			it('should return an array with length of [2]', () => {
 				expect(rpcHandler.getAllPeers).to.be.calledWithExactly(peers);
 
 				return expect(discoveredPeers)

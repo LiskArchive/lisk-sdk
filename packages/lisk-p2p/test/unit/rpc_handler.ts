@@ -71,19 +71,19 @@ describe('rpc handler', () => {
 			peersRPCHandler = processPeerListFromResponse(response);
 		});
 
-		it('should return an array', () => {
+		it('should return an array of length [3] for a valid response', () => {
 			return expect(peersRPCHandler)
 				.to.be.an('array')
 				.and.of.length(3);
 		});
 
-		it('should return an array of instantiated peers', () => {
+		it('should return an array of instantiated peers for a valid response', () => {
 			return expect(peersRPCHandler)
 				.to.be.an('array')
 				.eql(newlyCreatedPeers);
 		});
 
-		it('should return an array of instantiated peers', () => {
+		it('should return a blank array of instantiated peers for undefined response', () => {
 			peersRPCHandler = processPeerListFromResponse(undefined);
 
 			return expect(peersRPCHandler)
@@ -91,7 +91,7 @@ describe('rpc handler', () => {
 				.eql([]);
 		});
 
-		it('should return an array of instantiated peers', () => {
+		it('should return a blank array of instantiated peers for string type response', () => {
 			peersRPCHandler = processPeerListFromResponse('string value');
 
 			return expect(peersRPCHandler)
@@ -166,13 +166,13 @@ describe('rpc handler', () => {
 			getallPeersFunc = await getAllPeers(seedList);
 		});
 
-		it('return a list of peers from the given seed list', async () => {
+		it('return a list of peers with array length of [2] from the given seed list', async () => {
 			return expect(getallPeersFunc)
 				.to.be.an('array')
 				.of.length(2);
 		});
 
-		it('return a list of peers from the given seed list', async () => {
+		it('return a list of peers from the given seed list with expected array of peerlist', async () => {
 			return expect(getallPeersFunc)
 				.to.be.an('array')
 				.and.eql(expectedResult);

@@ -30,7 +30,6 @@ export interface PeerConfig {
 	readonly height?: number;
 	readonly inboundSocket?: any; // TODO: Type SCServerSocket
 	readonly os?: string;
-	readonly outboundSocket?: any; // TODO: Type SCServerSocket
 	readonly version?: string;
 }
 
