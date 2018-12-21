@@ -402,6 +402,7 @@ describe('Block', () => {
 		it('should call mergeFilters with proper params', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			block.mergeFilters = sinonSandbox.stub();
+			block.parseFilters = sinonSandbox.stub();
 			block.isPersisted(filters);
 			expect(block.mergeFilters.calledWith(filters)).to.be.true;
 		});

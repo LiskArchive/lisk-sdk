@@ -12,13 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = {
-	Account: require('./account'),
-	BaseEntity: require('./base_entity'),
-	Block: require('./block'),
-	Delegate: require('./delegate'),
-	Peer: require('./peer'),
-	Transaction: require('./transaction'),
-};
+SELECT EXISTS (
+	SELECT 1 FROM peers ${parsedFilters:raw}
+);
