@@ -21,7 +21,6 @@ export class TestTransaction extends BaseTransaction {
 	public getBytes() {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			this.getAssetBytes(),
 			this.signature
 				? cryptography.hexToBuffer(this.signature)
 				: Buffer.alloc(0),

@@ -26,9 +26,10 @@ import { TransactionError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import fixtureTransactions from '../../fixtures/transactions.json';
-import { TransactionJSON } from '../../src/transaction_types';
+import { Account, TransactionJSON } from '../../src/transaction_types';
 import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
 import {
+	validMultisignatureAccount as defaultMultisignatureAccount,
 	validMultisignatureTransaction,
 	validSecondSignatureTransaction,
 } from '../../fixtures';
@@ -57,24 +58,32 @@ describe('signAndVerify module', () => {
 		it('should call cryptography hash', async () => {
 			const cryptographyHashStub = sandbox
 				.stub(cryptography, 'hash')
-				.callThrough();
+				.returns(
+					Buffer.from(
+						'62b13b81836f3f1e371eba2f7f8306ff23d00a87d9473793eda7f742f4cfc21c',
+					),
+				);
+
 			verifySignature(
 				defaultSecondSignatureTransaction.senderPublicKey,
 				defaultSecondSignatureTransaction.signature,
 				defaultTransactionBytes,
 			);
+
 			expect(cryptographyHashStub).to.be.calledOnce;
 		});
 
 		it('should call cryptography verifyData', async () => {
 			const cryptographyVerifyDataStub = sandbox
-				.stub(cryptography, 'hash')
-				.callThrough();
+				.stub(cryptography, 'verifyData')
+				.returns(true);
+
 			verifySignature(
 				defaultSecondSignatureTransaction.senderPublicKey,
 				defaultSecondSignatureTransaction.signature,
 				defaultTransactionBytes,
 			);
+
 			expect(cryptographyVerifyDataStub).to.be.calledOnce;
 		});
 
@@ -145,17 +154,13 @@ describe('signAndVerify module', () => {
 			'00de46a00424193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d3c9ea25a6b7c648f00e1f50500000000746865207265616c2074657374',
 			'hex',
 		);
-		const memberKeys = [
-			'c44a88e68196e4d2f608873467c7350fb92b954eb7c3b31a989b1afd8d55ebdb',
-			'2eca11a4786f35f367299e1defd6a22ac4eb25d2552325d6c5126583a3bdd0fb',
-			'a17e03f21bfa187d2a30fe389aa78431c587bf850e9fa851b3841274fc9f100f',
-			'758fc45791faf5796e8201e49950a9ee1ee788192714b935be982f315b1af8cd',
-			'9af12d260cf5fcc49bf8e8fce2880b34268c7a4ac8915e549c07429a01f2e4a5',
-		];
+		const {
+			multisignatures: memberPublicKeys,
+		} = defaultMultisignatureAccount as Account;
 
 		it('should return a verified response with valid signatures', async () => {
 			const { verified } = verifyMultisignatures(
-				memberKeys,
+				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures,
 				3,
 				defaultTransactionBytes,
@@ -164,9 +169,9 @@ describe('signAndVerify module', () => {
 			expect(verified).to.be.true;
 		});
 
-		it('should return a verification fail response with invalid multimin', () => {
+		it('should return a verification fail response with invalid multimin', async () => {
 			const { verified, errors } = verifyMultisignatures(
-				memberKeys,
+				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures,
 				'3' as any,
 				defaultTransactionBytes,
@@ -178,9 +183,9 @@ describe('signAndVerify module', () => {
 				.and.have.property('message', `Sender does not have valid multimin`);
 		});
 
-		it('should return a verification fail response with invalid signatures', () => {
+		it('should return a verification fail response with invalid signatures', async () => {
 			const { verified, errors } = verifyMultisignatures(
-				memberKeys,
+				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures.map((signature: string) =>
 					signature.replace('1', '0'),
 				),
@@ -203,7 +208,7 @@ describe('signAndVerify module', () => {
 
 		it('should return a verification fail response when missing signatures', async () => {
 			const { verified, errors } = verifyMultisignatures(
-				memberKeys,
+				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures.slice(0, 1),
 				3,
 				defaultTransactionBytes,

@@ -144,11 +144,11 @@ describe('Base transaction class', () => {
 			expect(baseTransaction.isMultisignature).to.be.false;
 		});
 
-		it('should throw a transaction multierror with an invalid typed transaction', async () => {
+		it('should throw a transaction multierror with an incorrectly typed transaction', async () => {
 			const invalidTransaction = {
 				...defaultTransaction,
 				amount: 0,
-				fee: 'fee',
+				fee: 10,
 			};
 			try {
 				new TestTransaction((invalidTransaction as unknown) as TransactionJSON);
@@ -159,7 +159,7 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#assetToJSON', async () => {
-		it('should return an object of type transaction asset', () => {
+		it('should return an object of type transaction asset', async () => {
 			expect(baseTransaction.assetToJSON()).to.be.an('object');
 		});
 	});
@@ -206,10 +206,12 @@ describe('Base transaction class', () => {
 				signature: '1111111111',
 				id: '1',
 			};
-			baseTransaction = new TestTransaction(invalidTransaction as any);
-			const { id, status, errors } = baseTransaction.checkSchema();
+			const invalidTestTransaction = new TestTransaction(
+				invalidTransaction as any,
+			);
+			const { id, status, errors } = invalidTestTransaction.checkSchema();
 
-			expect(id).to.be.eql(baseTransaction.id);
+			expect(id).to.be.eql(invalidTestTransaction.id);
 			(errors as ReadonlyArray<TransactionError>).forEach(error =>
 				expect(error).to.be.instanceof(TransactionError),
 			);
@@ -217,14 +219,20 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response with unmatching senderId and senderPublicKey', async () => {
-			const invalidIdTransaction = {
+			const invalidSenderIdTransaction = {
 				...defaultTransaction,
 				senderId: defaultTransaction.senderId.replace('1', '0'),
 			};
-			baseTransaction = new TestTransaction(invalidIdTransaction as any);
-			const { id, status, errors } = baseTransaction.checkSchema();
+			const invalidSenderIdTestTransaction = new TestTransaction(
+				invalidSenderIdTransaction as any,
+			);
+			const {
+				id,
+				status,
+				errors,
+			} = invalidSenderIdTestTransaction.checkSchema();
 
-			expect(id).to.be.eql(baseTransaction.id);
+			expect(id).to.be.eql(invalidSenderIdTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[1])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
@@ -377,14 +385,18 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response when account is missing secondPublicKey', async () => {
-			baseTransaction = new TestTransaction(defaultSecondSignatureTransaction);
+			const secondSignatureTestTransaction = new TestTransaction(
+				defaultSecondSignatureTransaction,
+			);
 			const {
 				secondPublicKey,
-				...senderAccount
+				...invalidSecondPublicKeySenderAccount
 			} = defaultSecondSignatureAccount;
-			const { id, status, errors } = baseTransaction.verify(senderAccount);
+			const { id, status, errors } = secondSignatureTestTransaction.verify(
+				invalidSecondPublicKeySenderAccount,
+			);
 
-			expect(id).to.be.eql(baseTransaction.id);
+			expect(id).to.be.eql(secondSignatureTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
@@ -394,44 +406,14 @@ describe('Base transaction class', () => {
 			expect(status).to.eql(Status.FAIL);
 		});
 
-		it('should return a success transaction response when transaction signSignature is valid', async () => {
-			baseTransaction = new TestTransaction(defaultSecondSignatureTransaction);
-			const { id, status } = baseTransaction.verify(
-				defaultSecondSignatureAccount,
-			);
-			expect(id).to.be.eql(baseTransaction.id);
-			expect(status).to.eql(Status.OK);
-		});
-
-		it('should return a failed transaction response when transaction signSignature is invalid', async () => {
-			const invalidTransaction = {
-				...defaultSecondSignatureTransaction,
-				signSignature: defaultSecondSignatureTransaction.signSignature.replace(
-					'0',
-					'1',
-				),
-			};
-			baseTransaction = new TestTransaction(invalidTransaction);
-			const { id, status, errors } = baseTransaction.verify(
-				defaultSecondSignatureAccount,
-			);
-
-			expect(id).to.be.eql(baseTransaction.id);
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					'Failed to verify signature 11f77b8596df14410f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
-				);
-			expect(status).to.eql(Status.FAIL);
-		});
-
 		it('should return a failed transaction response when account has insufficient balance', async () => {
-			const senderAccount = {
+			const insufficientBalanceAccount = {
 				...defaultSenderAccount,
 				balance: '0',
 			};
-			const { id, status, errors } = baseTransaction.verify(senderAccount);
+			const { id, status, errors } = baseTransaction.verify(
+				insufficientBalanceAccount,
+			);
 
 			expect(id).to.be.eql(baseTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
@@ -444,37 +426,75 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response when transaction is missing signSignature', async () => {
-			const senderAccount = {
-				...defaultSenderAccount,
-				secondPublicKey: defaultTransaction.senderPublicKey,
-			};
-			const { id, status, errors } = baseTransaction.verify(senderAccount);
+			const {
+				signSignature,
+				...invalidSignSignatureTransaction
+			} = defaultSecondSignatureTransaction;
 
-			expect(id).to.be.eql(baseTransaction.id);
+			const invalidSecondSignatureTestTransaction = new TestTransaction(
+				invalidSignSignatureTransaction,
+			);
+
+			const {
+				id,
+				status,
+				errors,
+			} = invalidSecondSignatureTestTransaction.verify(
+				defaultSecondSignatureAccount,
+			);
+
+			expect(id).to.be.eql(invalidSecondSignatureTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property('message', 'Missing signSignature');
 			expect(status).to.eql(Status.FAIL);
 		});
 
-		it('should return a failed transaction response with an invalid secondPublicKey', async () => {
-			const signedTransaction = {
-				...defaultTransaction,
-				signSignature: defaultTransaction.signature,
+		it('should return a failed transaction response when transaction signSignature is invalid', async () => {
+			const invalidSignSignatureTransaction = {
+				...defaultSecondSignatureTransaction,
+				signSignature: defaultSecondSignatureTransaction.signSignature.replace(
+					'0',
+					'1',
+				),
 			};
-			baseTransaction = new TestTransaction(signedTransaction);
-			const senderAccount = {
-				...defaultSenderAccount,
-				secondPublicKey: defaultTransaction.senderPublicKey.replace('1', '0'),
-			};
-			const { id, status, errors } = baseTransaction.verify(senderAccount);
+			const invalidSignSignatureTestTransaction = new TestTransaction(
+				invalidSignSignatureTransaction,
+			);
+			const { id, status, errors } = invalidSignSignatureTestTransaction.verify(
+				defaultSecondSignatureAccount,
+			);
 
-			expect(id).to.be.eql(baseTransaction.id);
+			expect(id).to.be.eql(invalidSignSignatureTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
-					`Failed to verify signature ${baseTransaction.signSignature}`,
+					'Failed to verify signature 11f77b8596df14410f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
+				);
+			expect(status).to.eql(Status.FAIL);
+		});
+
+		it('should return a failed transaction response with an invalid secondPublicKey', async () => {
+			const secondSignatureTestTransaction = new TestTransaction(
+				defaultSecondSignatureTransaction,
+			);
+			const senderAccount = {
+				...defaultSecondSignatureAccount,
+				secondPublicKey: defaultTransaction.senderPublicKey.replace('1', '0'),
+			};
+			const { id, status, errors } = secondSignatureTestTransaction.verify(
+				senderAccount,
+			);
+
+			expect(id).to.be.eql(secondSignatureTestTransaction.id);
+			expect((errors as ReadonlyArray<TransactionError>)[0])
+				.to.be.instanceof(TransactionError)
+				.and.to.have.property(
+					'message',
+					`Failed to verify signature ${
+						secondSignatureTestTransaction.signSignature
+					}`,
 				);
 			expect(status).to.eql(Status.FAIL);
 		});

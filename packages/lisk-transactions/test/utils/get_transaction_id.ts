@@ -35,7 +35,13 @@ describe('#getId', () => {
 	it('should call cryptography hash', async () => {
 		const cryptographyHashStub = sandbox
 			.stub(cryptography, 'hash')
-			.callThrough();
+			.returns(
+				Buffer.from(
+					'da63e78daf2096db8316a157a839c8b9a616d3ce6692cfe61d6d380a623a1902',
+					'hex',
+				),
+			);
+
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
 		expect(cryptographyHashStub).to.be.calledOnce;
 	});
@@ -43,7 +49,8 @@ describe('#getId', () => {
 	it('should call cryptography getFirstEightBytesReversed', async () => {
 		const cryptographygetFirstEightBytesReversedStub = sandbox
 			.stub(cryptography, 'getFirstEightBytesReversed')
-			.callThrough();
+			.returns('db9620af8de763da');
+
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
 		expect(cryptographygetFirstEightBytesReversedStub).to.be.calledOnce;
 	});
@@ -51,7 +58,8 @@ describe('#getId', () => {
 	it('should call cryptography bufferToBigNumberString', async () => {
 		const cryptographyBufferToBigNumberStringStub = sandbox
 			.stub(cryptography, 'bufferToBigNumberString')
-			.callThrough();
+			.returns('15822870279184933850');
+
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
 		expect(cryptographyBufferToBigNumberStringStub).to.be.calledOnce;
 	});

@@ -14,10 +14,10 @@
  */
 import validAccount from './valid_account.json';
 import validMultisignatureAccount from './valid_multisignature_account.json';
-import validMultisignatureTransaction from './valid_multisignature_transaction.json';
 import validSecondSignatureAccount from './valid_second_signature_account.json';
-import validSecondSignatureTransaction from './valid_second_signature_transaction.json';
 import validTransaction from './valid_transaction.json';
+import validMultisignatureTransaction from './valid_transaction_from_multisignature_account.json';
+import validSecondSignatureTransaction from './valid_transaction_from_second_signature_account.json';
 
 export {
 	validAccount,

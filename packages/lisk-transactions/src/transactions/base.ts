@@ -116,12 +116,12 @@ export abstract class BaseTransaction {
 			return transaction;
 		}
 
-		const signedTransaction = {
+		const secondSignedTransaction = {
 			...transaction,
 			signSignature: this.signSignature,
 		};
 
-		return signedTransaction;
+		return secondSignedTransaction;
 	}
 
 	protected abstract getAssetBytes(): Buffer;
