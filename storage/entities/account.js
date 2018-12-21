@@ -341,9 +341,9 @@ class Account extends BaseEntity {
 		let values;
 
 		if (Array.isArray(data)) {
-			values = data;
+			values = data.map(item => ({ ...item }));
 		} else if (typeof data === 'object') {
-			values = [data];
+			values = [{ ...data }];
 		}
 
 		values = values.map(v => _.defaults(v, defaultCreateValues));
