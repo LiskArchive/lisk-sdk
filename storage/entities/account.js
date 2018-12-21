@@ -340,14 +340,18 @@ class Account extends BaseEntity {
 		}
 
 		values = values.map(v => _.defaults(v, defaultCreateValues));
-		const createSet = this.getValuesSet(values);
-		const attributes = Object.keys(values[0])
+
+		// We assume that all accounts have same attributes
+		// and pick first account attributes as template
+		const attributes = Object.keys(values[0]);
+		const createSet = this.getValuesSet(values, attributes);
+		const fields = attributes
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
 		return this.adapter.executeFile(
 			this.SQLs.create,
-			{ createSet, attributes },
+			{ createSet, fields },
 			{ expectedResultCount: 0 },
 			tx
 		);

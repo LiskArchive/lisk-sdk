@@ -175,12 +175,12 @@ class BaseEntity {
 		);
 	}
 
-	getValuesSet(data) {
+	getValuesSet(data, attributes = []) {
 		if (Array.isArray(data)) {
-			return data.map(d => this._getValueSetForObject(d)).join(',');
+			return data.map(d => this._getValueSetForObject(d, attributes)).join(',');
 		}
 
-		return this._getValueSetForObject(data);
+		return this._getValueSetForObject(data, attributes);
 	}
 
 	/**
@@ -332,9 +332,9 @@ class BaseEntity {
 		return { ...filters, ...this.defaultFilters };
 	}
 
-	_getValueSetForObject(data) {
+	_getValueSetForObject(data, attributes = []) {
 		return `(${this.adapter.parseQueryComponent(
-			Object.keys(data)
+			(attributes || Object.keys(data))
 				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
 				.join(','),
 			data
