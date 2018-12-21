@@ -240,9 +240,9 @@ const liskFormats = {
 	 */
 	parsedInt(value) {
 		if (
-			isNaN(value) ||
+			Number.isNaN(value) ||
 			parseInt(value).toString() !== String(value) ||
-			isNaN(parseInt(value, 10))
+			Number.isNaN(parseInt(value, 10))
 		) {
 			return false;
 		}

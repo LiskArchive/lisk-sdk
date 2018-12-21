@@ -171,10 +171,10 @@ describe('blocks/utils', () => {
 
 			blocksUtilsModule.readDbRows(fullBlocksListRows);
 
-			for (const block of fullBlocksListRows) {
+			fullBlocksListRows.forEach(block => {
 				expect(library.logic.block.dbRead).to.have.callCount(4);
 				expect(library.logic.block.dbRead).to.have.been.calledWith(block);
-			}
+			});
 			done();
 		});
 
@@ -183,10 +183,10 @@ describe('blocks/utils', () => {
 
 			blocksUtilsModule.readDbRows(fullBlocksListRows);
 
-			for (const block of fullBlocksListRows) {
+			fullBlocksListRows.forEach(block => {
 				expect(library.logic.transaction.dbRead).to.have.callCount(4);
 				expect(library.logic.transaction.dbRead).to.have.been.calledWith(block);
-			}
+			});
 			done();
 		});
 
