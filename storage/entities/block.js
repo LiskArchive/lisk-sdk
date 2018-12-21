@@ -153,7 +153,6 @@ class Block extends BaseEntity {
 			'generatorPublicKey',
 			'string',
 			{
-				format: 'publicKey',
 				filter: filterType.TEXT,
 			},
 			stringToByte
