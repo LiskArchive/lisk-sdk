@@ -519,10 +519,9 @@ describe('Peer', () => {
 			const validPeerTwo = Object.assign({}, validPeer);
 			const updatedIp = '127.0.0.1';
 			validPeerTwo.ip = '90.1.32.34';
-			await Promise.all([
-				storage.entities.Peer.create(validPeer),
-				storage.entities.Peer.create(validPeerTwo),
-			]);
+			await storage.entities.Peer.create(validPeer);
+			await storage.entities.Peer.create(validPeerTwo);
+
 			const allPeers = await storage.entities.Peer.get();
 			const peerToUpdateId = allPeers[0].id;
 
