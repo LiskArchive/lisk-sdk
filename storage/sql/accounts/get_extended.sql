@@ -56,4 +56,7 @@ FROM
 
 ${parsedFilters:raw}
 
-LIMIT ${limit} OFFSET ${offset}
+${parsedSort:raw}
+
+LIMIT ${limit}
+OFFSET ${offset}

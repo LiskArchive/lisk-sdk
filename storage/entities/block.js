@@ -178,8 +178,12 @@ class Block extends BaseEntity {
 		this.addField('reward', 'string', { filter: filterType.NUMBER });
 		this.addField('version', 'number', { filter: filterType.NUMBER });
 
+		const defaultSort = { sort: 'height:desc' };
+		this.extendDefaultOptions(defaultSort);
+
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('blocks/get.sql'),
+			count: this.adapter.loadSQLFile('blocks/count.sql'),
 			create: this.adapter.loadSQLFile('blocks/create.sql'),
 			isPersisted: this.adapter.loadSQLFile('blocks/is_persisted.sql'),
 		};
@@ -212,6 +216,24 @@ class Block extends BaseEntity {
 	getOne(filters, options = {}, tx) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
+	}
+
+	/**
+	 * Count total entries based on filters
+	 *
+	 * @param {filters.Block|filters.Block[]} [filters = {}]
+	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
+	 */
+	count(filters = {}) {
+		this.validateFilters(filters);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const expectedResultCount = 1;
+
+		return this.adapter
+			.executeFile(this.SQLs.count, { parsedFilters }, { expectedResultCount })
+			.then(result => +result.count);
 	}
 
 	/**
@@ -287,13 +309,15 @@ class Block extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset']),
-			_.pick(this.defaultOptions, ['limit', 'offset'])
+			_.pick(options, ['limit', 'offset', 'sort']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'sort'])
 		);
+		const parsedSort = this.parseSort(parsedOptions.sort);
 
 		const params = {
 			limit: parsedOptions.limit,
 			offset: parsedOptions.offset,
+			parsedSort,
 			parsedFilters,
 		};
 

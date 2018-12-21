@@ -19,6 +19,7 @@ const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 } = require('../errors');
+const { isSortOptionValid, parseSortString } = require('../utils/sort_option');
 const filterTypes = require('../utils/filter_types');
 const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
@@ -69,8 +70,8 @@ class BaseEntity {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	count() {
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	count(filters) {
 		throw new ImplementationPendingError();
 	}
 
@@ -287,6 +288,10 @@ class BaseEntity {
 			);
 		}
 
+		if (!isSortOptionValid(options.sort, Object.keys(this.fields))) {
+			throw new NonSupportedOptionError('Invalid sort option.', options.sort);
+		}
+
 		return true;
 	}
 
@@ -294,9 +299,9 @@ class BaseEntity {
 		let filterString = null;
 
 		const parseFilterObject = object =>
-			Object.keys(object)
+			`(${Object.keys(object)
 				.map(key => this.filters[key])
-				.join(' AND ');
+				.join(' AND ')})`;
 
 		if (Array.isArray(filters)) {
 			filterString = filters
@@ -332,6 +337,7 @@ class BaseEntity {
 		return { ...filters, ...this.defaultFilters };
 	}
 
+
 	_getValueSetForObject(data, attributes = undefined) {
 		return `(${this.adapter.parseQueryComponent(
 			(attributes || Object.keys(data))
@@ -339,6 +345,23 @@ class BaseEntity {
 				.join(','),
 			data
 		)})`;
+  }
+
+	/**
+	 * Parse sort option
+	 * @param {Array.<String>|String} sortOption
+	 * @return {string}
+	 */
+	parseSort(sortOption = this.defaultOptions.sort) {
+		const sortString = Array.isArray(sortOption)
+			? sortOption.map(parseSortString).join(', ')
+			: parseSortString(sortOption);
+
+		if (sortString) {
+			return `ORDER BY ${sortString}`;
+		}
+
+		return '';
 	}
 }
 
