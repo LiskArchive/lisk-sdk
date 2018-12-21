@@ -18,89 +18,64 @@ import { initializePeerList } from '../utils/peers';
 import * as discoverPeersModule from '../../src/peer_discovery';
 
 describe('peer discovery', () => {
-	const peerFromResponse1 = {
-		ip: '196.34.89.90',
-		wsPort: '5393',
+	const samplePeers = initializePeerList();
+	const seedPeer1 = samplePeers[0];
+	const seedPeer2 = samplePeers[1];
+	const seedList = [seedPeer1, seedPeer2];
+
+	const validatedPeer1: PeerConfig = {
+		ipAddress: '196.34.89.90',
+		wsPort: 5393,
 		os: 'darwin',
-		height: '23232',
+		height: 23232,
 		version: '1.1.2',
 	};
 
-	const peerFromResponse2 = {
-		ip: '128.38.75.9',
-		wsPort: '5393',
+	const validatedPeer2: PeerConfig = {
+		ipAddress: '128.38.75.9',
+		wsPort: 5393,
 		os: 'darwin',
-		height: '23232',
+		height: 23232,
 		version: '1.1.2',
 	};
 
-	const peerFromResponse3 = {
-		ip: '12.23.11.31',
-		wsPort: '5393',
+	const validatedPeer3: PeerConfig = {
+		ipAddress: '12.23.11.31',
+		wsPort: 5393,
 		os: 'darwin',
-		height: '23232',
+		height: 23232,
 		version: '1.1.2',
 	};
 
 	describe('#discoverPeer', () => {
-		const samplePeers = initializePeerList();
-		const seedPeer1 = samplePeers[0];
-		const seedPeer2 = samplePeers[1];
-		const peerList1 = [peerFromResponse1, peerFromResponse2];
-		const peerList2 = [peerFromResponse1, peerFromResponse3];
-		const seedList = [seedPeer1, seedPeer2];
+		const peerList1 = [validatedPeer1, validatedPeer2];
+		const peerList2 = [validatedPeer1, validatedPeer3];
 
-		const validatedPeer1: PeerConfig = {
-			ipAddress: '196.34.89.90',
-			wsPort: 5393,
-			os: 'darwin',
-			height: 23232,
-			version: '1.1.2',
-		};
-
-		const validatedPeer2: PeerConfig = {
-			ipAddress: '128.38.75.9',
-			wsPort: 5393,
-			os: 'darwin',
-			height: 23232,
-			version: '1.1.2',
-		};
-
-		const expectedResult = [
-			validatedPeer1,
-			validatedPeer2,
-		];
+		const expectedResult = [validatedPeer1, validatedPeer2];
 
 		describe('return an array with all the peers of input peers', () => {
 			let discoveredPeers: ReadonlyArray<PeerConfig>;
 			const blacklist = ['12.23.11.31'];
 			beforeEach(async () => {
-				sandbox
-					.stub(seedPeer1, 'fetchPeers')
-					.resolves(peerList1);
-				sandbox
-					.stub(seedPeer2, 'fetchPeers')
-					.resolves(peerList2);
+				sandbox.stub(seedPeer1, 'fetchPeers').resolves(peerList1);
+				sandbox.stub(seedPeer2, 'fetchPeers').resolves(peerList2);
 
 				discoveredPeers = await discoverPeersModule.discoverPeers(seedList, {
-					blacklist
-				})
+					blacklist,
+				});
 			});
 
 			it('should return an array for a given seed list', () => {
-
 				return expect(discoveredPeers).to.be.an('array');
 			});
 
 			it('should return an array with length of [2]', () => {
-
 				return expect(discoveredPeers)
 					.to.be.an('array')
 					.of.length(2);
 			});
 
 			it('should return an array with discovered peers', () => {
-
 				return expect(discoveredPeers)
 					.to.be.an('array')
 					.and.eql(expectedResult);
@@ -111,9 +86,15 @@ describe('peer discovery', () => {
 					blacklist: [],
 				});
 
+				const withoutBlacklistResult = [
+					validatedPeer1,
+					validatedPeer2,
+					validatedPeer3,
+				];
+
 				return expect(discoveredPeers)
 					.to.be.an('array')
-					.and.eql(expectedResult);
+					.and.eql(withoutBlacklistResult);
 			});
 		});
 	});

@@ -18,6 +18,7 @@ import {
 	NotEnoughPeersError,
 	PeerTransportError,
 	RPCResponseError,
+	InvalidRPCResponse,
 } from '../../src';
 
 describe('errors', () => {
@@ -183,6 +184,39 @@ describe('errors', () => {
 
 			it('should set error message when passed an argument', () => {
 				return expect(invalidPeer.message).to.eql(defaultMessage);
+			});
+		});
+	});
+
+	describe('#InvalidRPCResponse', () => {
+		let invalidRPCResponse: InvalidRPCResponse;
+		const defaultMessage = 'Invalid response type';
+
+		beforeEach(() => {
+			invalidRPCResponse = new InvalidRPCResponse(defaultMessage);
+			return Promise.resolve();
+		});
+
+		describe('should create an error object instance of InvalidRPCResponse', () => {
+			it('should create a new instance of InvalidRPCResponse', () => {
+				return expect(invalidRPCResponse)
+					.to.be.an('object')
+					.and.be.instanceof(InvalidRPCResponse);
+			});
+
+			it('should set error name to `InvalidRPCResponse`', () => {
+				return expect(invalidRPCResponse.name).to.eql('InvalidRPCResponse');
+			});
+		});
+
+		describe('should set error object properties', () => {
+			beforeEach(() => {
+				invalidRPCResponse = new InvalidRPCResponse(defaultMessage);
+				return Promise.resolve();
+			});
+
+			it('should set error message when passed an argument', () => {
+				return expect(invalidRPCResponse.message).to.eql(defaultMessage);
 			});
 		});
 	});

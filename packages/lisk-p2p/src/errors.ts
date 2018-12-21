@@ -49,16 +49,16 @@ export class RPCResponseError extends VError {
 	}
 }
 
+export class InvalidRPCResponse extends VError {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidRPCResponse';
+	}
+}
+
 export class InvalidPeer extends VError {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'InvalidPeer';
-	}
-}
-
-export class DiscoveryError extends VError {
-	public constructor(message: string, cause: Error) {
-		super(cause, message);
-		this.name = 'DiscoveryError';
 	}
 }

@@ -141,9 +141,7 @@ export class Peer {
 			return processPeerListFromResponse(response.data);
 		} catch (error) {
 			throw new RPCResponseError(
-				`Error when fetching peerlist of peer with peer ip ${
-					this.ipAddress
-				} and port ${this.wsPort}`,
+				`Error when fetching peerlist of a peer`,
 				error,
 				this.ipAddress,
 				this.wsPort,
