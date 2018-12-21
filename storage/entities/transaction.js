@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
+const { NonSupportedOperationError } = require('../errors');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
@@ -205,6 +206,7 @@ class Transaction extends BaseEntity {
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('transactions/get.sql'),
 			selectExtended: this.adapter.loadSQLFile('transactions/get_extended.sql'),
+			isPersisted: this.adapter.loadSQLFile('transactions/is_persisted.sql'),
 		};
 	}
 
@@ -237,6 +239,57 @@ class Transaction extends BaseEntity {
 	 */
 	get(filters, options = {}, tx) {
 		return this._getResults(filters, options, tx);
+	}
+
+	/**
+	 * Update the records based on given condition
+	 *
+	 * @param {filters.Account} [filters]
+	 * @param {Object} data
+	 * @param {Object} [options]
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	update(filters, data, options, tx) {
+		throw new NonSupportedOperationError(
+			'Updating transaction is not supported.'
+		);
+	}
+
+	/**
+	 * Update one record based on the condition given
+	 *
+	 * @param {filters.Account} filters
+	 * @param {Object} data
+	 * @param {Object} [options]
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	updateOne(filters, data, options, tx) {
+		throw new NonSupportedOperationError(
+			'Updating transaction is not supported.'
+		);
+	}
+
+	/**
+	 * Check if the record exists with following conditions
+	 *
+	 * @param {filters.Account} filters
+	 * @param {Object} [_options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	isPersisted(filters, _options, tx) {
+		const atLeastOneRequired = true;
+		this.validateFilters(filters, atLeastOneRequired);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
+			.then(result => result[0].exists);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
