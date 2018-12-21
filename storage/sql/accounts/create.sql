@@ -13,7 +13,7 @@
  */
 
 INSERT INTO mem_accounts (
-	${attributes:raw}
+	${fields:raw}
 ) VALUES
 	${createSet:raw}
 ;
