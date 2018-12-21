@@ -14,13 +14,15 @@
 
 'use strict';
 
+const fs = require('fs');
 const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
 const DBSandbox = require('../common/db_sandbox').DBSandbox;
 
 describe('Dependency versions', () => {
 	describe('node version', () => {
-		it('should be v8.x.x', () => {
-			return expect(process.version).to.contain('v8');
+		it('should be the same as the one inside .nvmrc file', () => {
+			const nvmrc = fs.readFileSync('.nvmrc', 'utf8').trim();
+			return expect(process.version).to.contain(nvmrc);
 		});
 	});
 

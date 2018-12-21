@@ -49,8 +49,8 @@ const modulesLoader = new function() {
 		ed,
 		bus: {
 			argsMessages: [],
-			message() {
-				Array.prototype.push.apply(this.argsMessages, arguments);
+			message(...args) {
+				Array.prototype.push.apply(this.argsMessages, ...args);
 			},
 			getMessages() {
 				return this.argsMessages;

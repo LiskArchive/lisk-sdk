@@ -12,8 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO mem_accounts (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+SELECT
+	"id",
+	"ip",
+	"wsPort",
+	"state",
+	"os",
+	"version",
+	"clock",
+	ENCODE("broadhash", 'hex') as "broadhash",
+	"height"
+FROM
+	peers
+
+${parsedFilters:raw}
+
+LIMIT ${limit} OFFSET ${offset}

@@ -16,10 +16,11 @@
 
 const path = require('path');
 const {
-	BaseEntity,
 	Account,
-	Delegate,
+	BaseEntity,
 	Block,
+	Delegate,
+	Peer,
 	Transaction,
 	Migration,
 } = require('./entities');
@@ -56,11 +57,12 @@ class Storage {
 				Storage.instance.adapter = adapter;
 
 				Storage.instance.entities = {
-					Transaction: new Transaction(adapter),
-					Block: new Block(adapter),
 					Account: new Account(adapter),
+					Block: new Block(adapter),
 					Delegate: new Delegate(adapter),
 					Migration: new Migration(adapter),
+					Peer: new Peer(adapter),
+					Transaction: new Transaction(adapter),
 				};
 			}
 

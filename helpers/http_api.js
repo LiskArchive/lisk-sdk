@@ -181,9 +181,9 @@ const middleware = {
 				}
 
 				if (
-					isNaN(value) ||
+					Number.isNaN(value) ||
 					parseInt(value).toString() !== String(value) ||
-					isNaN(parseInt(value, radix))
+					Number.isNaN(parseInt(value, radix))
 				) {
 					return value;
 				}

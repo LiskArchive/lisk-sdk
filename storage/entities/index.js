@@ -15,10 +15,11 @@
 'use strict';
 
 module.exports = {
-	Block: require('./block'),
 	Account: require('./account'),
-	Delegate: require('./delegate'),
-	Transaction: require('./transaction'),
 	BaseEntity: require('./base_entity'),
+	Block: require('./block'),
+	Delegate: require('./delegate'),
 	Migration: require('./migration'),
+	Peer: require('./peer'),
+	Transaction: require('./transaction'),
 };

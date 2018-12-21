@@ -31,8 +31,8 @@ Session.vim
 # Config files
 sftp-config.json
 test/network/pm2.network.json
-!test/network/configs/config.non-forge.json
 test/network/configs/
+test/network/networkTestsLogger.logs
 
 # Coverage directory used by tools like istanbul
 test/.coverage-unit/

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO mem_accounts (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+SELECT EXISTS (
+	SELECT 1 FROM peers ${parsedFilters:raw}
+);
