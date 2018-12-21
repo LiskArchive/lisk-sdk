@@ -12,47 +12,54 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { PeerConfig, Peer } from '../../src/peer';
+import { PeerInfo, Peer } from '../../src/peer';
 
-export const initializePeerConfigList = (): ReadonlyArray<PeerConfig> => {
-	const peerOption1: PeerConfig = {
+export const initializePeerConfigList = (): ReadonlyArray<PeerInfo> => {
+	const peerOption1: PeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
 		inboundSocket: undefined,
 		version: '1.0.1',
+		os: 'darwin',
 	};
-	const peerOption2: PeerConfig = {
+	const peerOption2: PeerInfo = {
 		ipAddress: '127.0.0.1',
 		wsPort: 5002,
 		height: 545981,
 		inboundSocket: undefined,
 		version: '1.0.1',
+		os: 'darwin',
 	};
-	const peerOption3: PeerConfig = {
+	const peerOption3: PeerInfo = {
 		ipAddress: '18.28.48.1',
 		wsPort: 5008,
 		height: 645980,
 		inboundSocket: undefined,
 		version: '1.4.1',
+		os: 'darwin',
 	};
-	const peerOption4: PeerConfig = {
+	const peerOption4: PeerInfo = {
 		ipAddress: '192.28.138.1',
 		wsPort: 5006,
 		height: 645982,
 		inboundSocket: undefined,
 		version: '1.0.1',
+		os: 'darwin',
 	};
-	const peerOption5: PeerConfig = {
+	const peerOption5: PeerInfo = {
 		ipAddress: '178.21.90.199',
 		wsPort: 5001,
 		height: 645980,
 		inboundSocket: undefined,
-		version: '1.2.1',
+		version: '1.0.1',
+		os: 'darwin',
 	};
 
 	return [peerOption1, peerOption2, peerOption3, peerOption4, peerOption5];
 };
 
 export const initializePeerList = (): ReadonlyArray<Peer> =>
-	initializePeerConfigList().map((peerConfig: PeerConfig) => new Peer(peerConfig))
+	initializePeerConfigList().map(
+		(peerConfig: PeerInfo) => new Peer(peerConfig),
+	);

@@ -25,15 +25,15 @@ import socketClusterClient from 'socketcluster-client';
 import { processPeerListFromResponse } from './response_handler';
 import { RPCResponseError } from './errors';
 
-export interface PeerConfig {
+export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
 	readonly nodeStatus?: P2PNodeStatus; // TODO DELEEETETETE
 	readonly clock?: Date;
-	readonly height?: number;
+	readonly height: number;
 	readonly inboundSocket?: any; // TODO: Type SCServerSocket
-	readonly os?: string;
-	readonly version?: string;
+	readonly os: string;
+	readonly version: string;
 }
 
 export enum ConnectionState {
@@ -51,7 +51,7 @@ const GET_ALL_PEERS_LIST_RPC = 'list';
 
 export class Peer {
 	private readonly _id: string;
-	private readonly _peerConfig: PeerConfig;
+	private readonly _peerConfig: PeerInfo;
 	private readonly _height: number;
 	private _inboundSocket: any;
 	private _outboundSocket: any;
@@ -59,7 +59,7 @@ export class Peer {
 	private readonly _wsPort: number;
 	private _nodeStatus: P2PNodeStatus | undefined;
 
-	public constructor(peerConfig: PeerConfig) {
+	public constructor(peerConfig: PeerInfo) {
 		this._peerConfig = peerConfig;
 		this._ipAddress = peerConfig.ipAddress;
 		this._wsPort = peerConfig.wsPort;
@@ -132,7 +132,7 @@ export class Peer {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<PeerConfig>> {
+	public async fetchPeers(): Promise<ReadonlyArray<PeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request<void>({
 				procedure: GET_ALL_PEERS_LIST_RPC,
@@ -156,7 +156,7 @@ export class Peer {
 		});
 	}
 
-	public get peerConfig(): PeerConfig {
+	public get peerConfig(): PeerInfo {
 		return this._peerConfig;
 	}
 

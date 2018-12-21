@@ -19,7 +19,7 @@ import { platform } from 'os';
 import querystring from 'querystring';
 import socketClusterServer from 'socketcluster-server';
 
-import { Peer, PeerConfig } from './peer';
+import { Peer, PeerInfo } from './peer';
 
 import {
 	// TODO ASAP: NetworkStatus,
@@ -46,7 +46,7 @@ export class P2P extends EventEmitter {
 	private readonly _peerPool: PeerPool;
 	private readonly _httpServer: Server;
 	private readonly _scServer: any;
-	private readonly _newPeers: Set<PeerConfig>;
+	private readonly _newPeers: Set<PeerInfo>;
 	// TODO ASAP: private readonly _triedPeers: Set<PeerConfig>;
 	private _nodeStatus: P2PNodeStatus;
 
@@ -120,6 +120,7 @@ export class P2P extends EventEmitter {
 							version: queryObject.version,
 							wsPort,
 							nodeStatus: this._nodeStatus,
+							height: queryObject.height ? +queryObject.height : 0,
 						});
 						this._peerPool.addPeer(peer);
 						super.emit(EVENT_NEW_INBOUND_PEER, peer);
@@ -151,14 +152,17 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _loadListOfPeerListsFromSeeds(
-		seedList: ReadonlyArray<PeerConfig>,
+		seedList: ReadonlyArray<PeerInfo>,
 	): Promise<ReadonlyArray<ReadonlyArray<Peer>>> {
 		return Promise.all(
-			seedList.map(async (seedPeer: PeerConfig) => {
+			seedList.map(async (seedPeer: PeerInfo) => {
 				const peer = new Peer({
 					ipAddress: seedPeer.ipAddress,
 					wsPort: seedPeer.wsPort,
 					nodeStatus: this._nodeStatus,
+					height: seedPeer.height,
+					os: seedPeer.os,
+					version: seedPeer.version,
 				});
 				this._newPeers.add(peer.peerConfig);
 				/**
@@ -178,6 +182,9 @@ export class P2P extends EventEmitter {
 						ipAddress: peerObject.ip,
 						wsPort: peerObject.wsPort, // TODO ASAP: Add more properties
 						nodeStatus: this._nodeStatus,
+						height: seedPeer.height,
+						os: seedPeer.os,
+						version: seedPeer.version,
 					});
 				});
 			}),

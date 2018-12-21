@@ -14,7 +14,7 @@
  */
 /* tslint:disable:no-empty-interface*/
 
-import { PeerConfig } from './peer';
+import { PeerInfo } from './peer';
 
 export interface P2PRequestPacket<T> {
 	readonly procedure: string;
@@ -40,10 +40,10 @@ export interface P2PNodeStatus {
 export interface P2PPenalty {}
 
 export interface P2PConfig {
-	readonly blacklistedPeers: ReadonlyArray<PeerConfig>;
+	readonly blacklistedPeers: ReadonlyArray<PeerInfo>;
 	readonly connectTimeout: number;
 	readonly ipAddress?: string;
-	readonly seedPeers: ReadonlyArray<PeerConfig>;
+	readonly seedPeers: ReadonlyArray<PeerInfo>;
 	readonly wsEngine?: string;
 	readonly wsPort: number;
 	readonly version: string;

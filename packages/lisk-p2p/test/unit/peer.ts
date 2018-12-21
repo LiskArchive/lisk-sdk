@@ -14,14 +14,16 @@
  */
 import { expect } from 'chai';
 
-import { PeerConfig, Peer } from '../../src/peer';
+import { PeerInfo, Peer } from '../../src/peer';
 
 describe('peer', () => {
-	const defaultPeerConfig: PeerConfig = {
+	const defaultPeerConfig: PeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
 		inboundSocket: undefined,
+		os: 'darwin',
+		version: '1.1.0',
 	};
 
 	const defaultPeer = new Peer(defaultPeerConfig);
