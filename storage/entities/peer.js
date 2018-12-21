@@ -225,7 +225,6 @@ class Peer extends BaseEntity {
 	 */
 	update(filters, data, options = {}, tx = null) {
 		this.validateFilters(filters);
-		this.validateOptions(options);
 		const objectData = omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -258,7 +257,6 @@ class Peer extends BaseEntity {
 	 */
 	updateOne(filters, data, options = {}, tx = null) {
 		this.validateFilters(filters);
-		this.validateOptions(options);
 		const objectData = omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -291,7 +289,6 @@ class Peer extends BaseEntity {
 	isPersisted(filters, options = {}, tx = null) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
-		this.validateOptions(options);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 
