@@ -140,7 +140,7 @@ class BlockReward {
  * @todo Add description for the params and the return value
  */
 __private.parseHeight = function(height) {
-	if (isNaN(height)) {
+	if (Number.isNaN(height)) {
 		throw 'Invalid block height';
 	} else {
 		return Math.abs(height);

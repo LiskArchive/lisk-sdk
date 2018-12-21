@@ -225,8 +225,8 @@ d.run(() => {
 				}
 
 				// In case domain names are used, resolve those to IP addresses.
-				const peerDomainLookupTasks = appConfig.peers.list.map(
-					peer => callback => {
+				const peerDomainLookupTasks = appConfig.peers.list.map(peer =>
+					async.reflect(callback => {
 						if (net.isIPv4(peer.ip)) {
 							return setImmediate(() => callback(null, peer));
 						}
@@ -241,14 +241,15 @@ d.run(() => {
 							}
 							return callback(null, Object.assign({}, peer, { ip: address }));
 						});
-					}
+					})
 				);
 
-				return async.parallel(peerDomainLookupTasks, (err, results) => {
-					if (err) {
-						return cb(err, appConfig);
-					}
-					appConfig.peers.list = results;
+				return async.parallel(peerDomainLookupTasks, (_, results) => {
+					appConfig.peers.list = results
+						.filter(result =>
+							Object.prototype.hasOwnProperty.call(result, 'value')
+						)
+						.map(result => result.value);
 					return cb(null, appConfig);
 				});
 			},
@@ -438,9 +439,7 @@ d.run(() => {
 				function(scope, cb) {
 					const changeCase = require('change-case');
 					const Bus = function() {
-						this.message = function() {
-							const args = [];
-							Array.prototype.push.apply(args, arguments);
+						this.message = function(...args) {
 							const topic = args.shift();
 							const eventName = `on${changeCase.pascalCase(topic)}`;
 
@@ -586,9 +585,7 @@ d.run(() => {
 					scope.socketCluster.on('fail', err => {
 						scope.logger.error(err);
 						if (err.name === 'WSEngineInitError') {
-							const extendedError =
-								'If you are not able to install sc-uws, you can try setting the wsEngine property in config.json to "ws" before starting the node';
-							scope.logger.error(extendedError);
+							const extendedError = scope.logger.error(extendedError);
 						}
 					});
 

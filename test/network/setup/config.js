@@ -182,12 +182,10 @@ const config = {
 				}
 				configurations.forEach((configuration, index) => {
 					if (syncModeArgs.indices.indexOf(index) !== -1) {
-						if (!(configuration.wsPort === currentPeer)) {
-							peersList.push({
-								ip: configuration.ip,
-								wsPort: configuration.wsPort,
-							});
-						}
+						peersList.push({
+							ip: configuration.ip,
+							wsPort: configuration.wsPort,
+						});
 					}
 				});
 			// no default

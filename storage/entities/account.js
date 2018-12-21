@@ -14,6 +14,7 @@
 
 'use strict';
 
+const assert = require('assert');
 const _ = require('lodash');
 const { stringToByte, booleanToInt } = require('../utils/inputSerializers');
 const ft = require('../utils/filter_types');
@@ -281,9 +282,13 @@ class Account extends BaseEntity {
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${votedFor_in:csv}))',
 		});
 
+		const defaultSort = { sort: 'balance:asc' };
+		this.extendDefaultOptions(defaultSort);
+
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('accounts/get.sql'),
 			selectFull: this.adapter.loadSQLFile('accounts/get_extended.sql'),
+			count: this.adapter.loadSQLFile('accounts/count.sql'),
 			create: this.adapter.loadSQLFile('accounts/create.sql'),
 			update: this.adapter.loadSQLFile('accounts/update.sql'),
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
@@ -323,24 +328,60 @@ class Account extends BaseEntity {
 	}
 
 	/**
+	 * Count total entries based on filters
+	 *
+	 * @param {filters.Account|filters.Account[]} [filters = {}]
+	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
+	 */
+	count(filters = {}) {
+		this.validateFilters(filters);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const expectedResultCount = 1;
+
+		return this.adapter
+			.executeFile(this.SQLs.count, { parsedFilters }, { expectedResultCount })
+			.then(result => +result.count);
+	}
+
+	/**
 	 * Create account object
 	 *
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
+	 * @param {Object|Array.<Object>} data
+	 * @param {Object} [_options]
+	 * @param {Object} [tx] - Transaction object
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
-		const objectData = _.defaults(data, defaultCreateValues);
-		const createSet = this.getValuesSet(objectData);
-		const attributes = Object.keys(data)
+		assert(data, 'Must provide data to create account');
+		assert(
+			typeof data === 'object' || Array.isArray(data),
+			'Data must be an object or array of objects'
+		);
+
+		let values;
+
+		if (Array.isArray(data)) {
+			values = data.map(item => ({ ...item }));
+		} else if (typeof data === 'object') {
+			values = [{ ...data }];
+		}
+
+		values = values.map(v => _.defaults(v, defaultCreateValues));
+
+		// We assume that all accounts have same attributes
+		// and pick defined fields as template
+		const attributes = Object.keys(this.fields);
+		const createSet = this.getValuesSet(values, attributes);
+		const fields = attributes
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
 		return this.adapter.executeFile(
 			this.SQLs.create,
-			{ createSet, attributes },
-			{},
+			{ createSet, fields },
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}
@@ -418,13 +459,15 @@ class Account extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset', 'extended']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'extended'])
+			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
 		);
+		const parsedSort = this.parseSort(parsedOptions.sort);
 
 		const params = {
 			limit: parsedOptions.limit,
 			offset: parsedOptions.offset,
+			parsedSort,
 			parsedFilters,
 		};
 
