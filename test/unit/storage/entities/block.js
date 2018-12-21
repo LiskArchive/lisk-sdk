@@ -59,6 +59,7 @@ describe('Block', () => {
 				extended: false,
 				limit: 10,
 				offset: 0,
+				sort: 'height:desc',
 			});
 		});
 
@@ -216,6 +217,27 @@ describe('Block', () => {
 			const options = { invalid_option: 1, offset: 0 };
 			expect(() => {
 				block.get({}, options);
+			}).to.throw(NonSupportedOptionError);
+		});
+
+		it('should accept valid sorting option', async () => {
+			const sortOption = { sort: 'height:asc' };
+			expect(() => {
+				block.get({}, sortOption);
+			}).to.not.throw(NonSupportedOptionError);
+		});
+
+		it('should throw error for invalid field sorting option', async () => {
+			const sortOption = { sort: 'invalid:asc' };
+			expect(() => {
+				block.get({}, sortOption);
+			}).to.throw(NonSupportedOptionError);
+		});
+
+		it('should throw error for invalid method sorting option', async () => {
+			const sortOption = { sort: 'height:invalid' };
+			expect(() => {
+				block.get({}, sortOption);
 			}).to.throw(NonSupportedOptionError);
 		});
 

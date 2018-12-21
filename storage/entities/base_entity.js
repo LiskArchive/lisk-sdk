@@ -19,6 +19,7 @@ const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 } = require('../errors');
+const { isSortOptionValid, parseSortString } = require('../utils/sort_option');
 const filterTypes = require('../utils/filter_types');
 const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
@@ -288,6 +289,10 @@ class BaseEntity {
 			);
 		}
 
+		if (!isSortOptionValid(options.sort, Object.keys(this.fields))) {
+			throw new NonSupportedOptionError('Invalid sort option.', options.sort);
+		}
+
 		return true;
 	}
 
@@ -331,6 +336,23 @@ class BaseEntity {
 			return filters.map(item => ({ ...item, ...this.defaultFilters }));
 		}
 		return { ...filters, ...this.defaultFilters };
+	}
+
+	/**
+	 * Parse sort option
+	 * @param {Array.<String>|String} sortOption
+	 * @return {string}
+	 */
+	parseSort(sortOption = this.defaultOptions.sort) {
+		const sortString = Array.isArray(sortOption)
+			? sortOption.map(parseSortString).join(', ')
+			: parseSortString(sortOption);
+
+		if (sortString) {
+			return `ORDER BY ${sortString}`;
+		}
+
+		return '';
 	}
 }
 
