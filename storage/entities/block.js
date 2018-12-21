@@ -130,6 +130,14 @@ const BaseEntity = require('./base_entity');
  * @property {string} [version_lt]
  * @property {string} [version_lte]
  * @property {string} [version_in]
+ * @property {string} [confirmations]
+ * @property {string} [confirmations_eql]
+ * @property {string} [confirmations_ne]
+ * @property {string} [confirmations_gt]
+ * @property {string} [confirmations_gte]
+ * @property {string} [confirmations_lt]
+ * @property {string} [confirmations_lte]
+ * @property {string} [confirmations_in]
  */
 
 class Block extends BaseEntity {
@@ -176,6 +184,7 @@ class Block extends BaseEntity {
 		this.addField('totalFee', 'string', { filter: filterType.NUMBER });
 		this.addField('reward', 'string', { filter: filterType.NUMBER });
 		this.addField('version', 'number', { filter: filterType.NUMBER });
+		this.addField('confirmations', 'number', { filter: filterType.NUMBER });
 
 		const defaultSort = { sort: 'height:desc' };
 		this.extendDefaultOptions(defaultSort);

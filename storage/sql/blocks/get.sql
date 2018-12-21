@@ -25,7 +25,8 @@ SELECT
 	"numberOfTransactions",
 	"totalAmount",
 	"timestamp",
-	"version"::text
+	"version"::text,
+	( SELECT max(b.height) + 1 FROM blocks AS b ) - blocks.height AS "confirmations"
 FROM
 	blocks
 
