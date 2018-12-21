@@ -142,7 +142,7 @@ class Peer extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} tx - Database transaction object
+	 * @param {Object} [tx] - Database transaction object
 	 * @return {Promise.<Peer, Error>}
 	 */
 	getOne(filters, options = {}, tx = null) {
@@ -157,7 +157,7 @@ class Peer extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} tx - Database transaction object
+	 * @param {Object} [tx] - Database transaction object
 	 * @return {Promise.<Peer[], Error>}
 	 */
 	get(filters = {}, options = {}, tx = null) {
@@ -195,7 +195,7 @@ class Peer extends BaseEntity {
 	 *
 	 * @param {Object} data
 	 * @param {Object} [_options]
-	 * @param {Object} tx - Transaction object
+	 * @param {Object} [tx] - Transaction object
 	 * @return {null}
 	 */
 	// eslint-disable-next-line no-unused-vars
@@ -220,7 +220,7 @@ class Peer extends BaseEntity {
 	 * @param {filters.Peer} [filters]
 	 * @param {Object} data
 	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
+	 * @param {Object} [tx] - Transaction object
 	 * @return {null}
 	 */
 	update(filters, data, options = {}, tx = null) {
@@ -253,7 +253,7 @@ class Peer extends BaseEntity {
 	 * @param {filters.Peer} filters
 	 * @param {Object} data
 	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
+	 * @param {Object} [tx] - Transaction object
 	 * @return {null}
 	 */
 	updateOne(filters, data, options = {}, tx = null) {
@@ -296,8 +296,13 @@ class Peer extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 
 		return this.adapter
-			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
-			.then(result => result[0].exists);
+			.executeFile(
+				this.SQLs.isPersisted,
+				{ parsedFilters },
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(result => result.exists);
 	}
 }
 

@@ -424,6 +424,7 @@ describe('Peer', () => {
 			peer.parseFilters = sinonSandbox.stub();
 			peer.getUpdateSet = sinonSandbox.stub();
 			peer.update(validFilter, validPeer);
+
 			expect(
 				localAdapter.executeFile.calledWith(
 					'loadSQLFile',
@@ -545,6 +546,7 @@ describe('Peer', () => {
 			peer.parseFilters = sinonSandbox.stub();
 			peer.getUpdateSet = sinonSandbox.stub();
 			peer.updateOne(validFilter, validPeer);
+
 			expect(
 				localAdapter.executeFile.calledWith(
 					'loadSQLFile',
@@ -660,7 +662,7 @@ describe('Peer', () => {
 					{
 						parsedFilters: undefined,
 					},
-					{},
+					{ expectedResultCount: 1 },
 					null
 				)
 			).to.be.true;
