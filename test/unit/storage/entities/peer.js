@@ -33,6 +33,7 @@ describe('Peer', () => {
 	let invalidOptions;
 	let validOptions;
 	let validPeer;
+	let invalidPeer;
 	let validFilterGetOneExecuteArgs;
 	let storage;
 
@@ -148,6 +149,18 @@ describe('Peer', () => {
 			clock: null,
 		};
 
+		invalidPeer = {
+			ip: 'a.b.c.d',
+			wsPort: 7001,
+			state: 1,
+			os: 123123,
+			version: 1233,
+			broadhash:
+				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
+			height: 'foo',
+			clock: 'bar',
+		};
+
 		invalidOptions = {
 			foo: true,
 			bar: true,
@@ -215,7 +228,7 @@ describe('Peer', () => {
 			expect(peer.fields).to.include.all.keys(validPeerFields);
 		});
 
-		it('should setup specific filters', async () => {});
+		it('should setup specific filters');
 	});
 
 	describe('getOne()', () => {
@@ -285,10 +298,6 @@ describe('Peer', () => {
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile');
 
-		it(
-			'should resolve with one object matching specification of type definition for FIELD_SET_SIMPLE'
-		);
-
 		it('should not change any of the provided parameter');
 
 		describe('filters', () => {
@@ -330,7 +339,9 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should reject with invalid data provided');
+		it('should reject with invalid data provided', async () => {
+			return expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected;
+		});
 	});
 
 	describe('update()', () => {
@@ -442,7 +453,12 @@ describe('Peer', () => {
 		});
 
 		it('should skip if any invalid attribute is provided');
-		it('should not throw error if no matching record found');
+
+		it('should not throw error if no matching record found', async () => {
+			return expect(
+				storage.entities.Peer.update({ ip: '1.1.1.1' }, { ip: '2.2.2.2' })
+			).not.to.be.rejected;
+		});
 	});
 
 	describe('updateOne()', () => {
@@ -561,10 +577,18 @@ describe('Peer', () => {
 		});
 
 		it('should skip if any invalid attribute is provided');
-		it('should not throw error if no matching record found');
+
+		it('should not throw error if no matching record found', async () => {
+			return expect(
+				storage.entities.Peer.updateOne({ ip: '1.1.1.1' }, { ip: '2.2.2.2' })
+			).not.to.be.rejected;
+		});
 	});
 
 	describe('isPersisted()', () => {
+		afterEach(async () => {
+			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
+		});
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -642,8 +666,19 @@ describe('Peer', () => {
 			).to.be.true;
 		});
 
-		it('should resolve with true if matching record found');
-		it('should resolve with false if matching record not found');
+		it('should resolve with true if matching record found', async () => {
+			const localPeer = { ...validPeer };
+			localPeer.ip = '1.1.1.1';
+			await storage.entities.Peer.create(localPeer);
+			const res = await storage.entities.Peer.isPersisted({ ip: '1.1.1.1' });
+			expect(res).to.be.true;
+		});
+
+		it('should resolve with false if matching record not found', async () => {
+			await storage.entities.Peer.create(validPeer);
+			const res = await storage.entities.Peer.isPersisted({ ip: '1.1.1.1' });
+			expect(res).to.be.false;
+		});
 	});
 
 	describe('mergeFilters()', () => {
