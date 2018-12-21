@@ -14,7 +14,7 @@
 
 SELECT
 	"t_id" as "id",
-	"t_blockId" as "blockId",
+	"b_id" as "blockId",
 	"b_height" as "blockHeight",
 	"t_type" as "type",
 	"t_timestamp" as "timestamp",
@@ -23,13 +23,34 @@ SELECT
 	"t_amount" as "amount",
 	"t_fee" as "fee",
 	"t_signature" as "signature",
-	"t_SignSignature" as "signSignature",
+	"t_signSignature" as "signSignature",
 	"t_signatures" as "signatures",
-	"confirmations" as "confirmations",
-	ENCODE("t_senderPublicKey", 'hex') as "senderPublicKey",
-	ENCODE("m_recipientPublicKey", 'hex') as "requesterPublicKey"
+	"t_senderPublicKey" as "senderPublicKey",
+	"t_requesterPublicKey" as "requesterPublicKey",
+	(( SELECT (blocks.height + 1)
+           FROM blocks
+          ORDER BY blocks.height DESC
+         LIMIT 1) - b.height) AS confirmations,
+ 	"tf_data" as "asset.data",
+ 	"s_publicKey" as "asset.signature.publicKey",
+ 	"d_username" as "asset.delegate.username",
+ 	"v_votes" as "asset.votes",
+ 	"m_min" as "asset.multisignature.min",
+ 	"m_lifetime" as "asset.multisignature.lifetime",
+ 	"m_keysgroup" as "asset.multisignature.keysgroup",
+ 	"dapp_type" as "asset.dapp.type",
+ 	"dapp_name" as "asset.dapp.name",
+ 	"dapp_description" as "asset.dapp.description",
+ 	"dapp_tags" as "asset.dapp.tags",
+ 	"dapp_link" as "asset.dapp.link",
+ 	"dapp_icon" as "asset.dapp.icon",
+ 	"dapp_category" as "asset.dapp.category",
+ 	"in_dappId" as "asset.inTransfer.dappId",
+ 	"ot_dappId" as "asset.outTransfer.dappId",
+ 	"ot_outTransactionId" as "asset.outTransfer.transactionId"
 FROM
-	trs_list
+	(full_blocks_list fbl
+	LEFT JOIN blocks b ON (((fbl."b_id")::text = (b.id)::text)))
 
 ${parsedFilters:raw}
 
