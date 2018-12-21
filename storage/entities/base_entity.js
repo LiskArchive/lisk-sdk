@@ -300,9 +300,9 @@ class BaseEntity {
 		let filterString = null;
 
 		const parseFilterObject = object =>
-			Object.keys(object)
+			`(${Object.keys(object)
 				.map(key => this.filters[key])
-				.join(' AND ');
+				.join(' AND ')})`;
 
 		if (Array.isArray(filters)) {
 			filterString = filters
