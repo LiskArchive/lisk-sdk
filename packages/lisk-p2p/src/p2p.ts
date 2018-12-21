@@ -47,7 +47,7 @@ export class P2P extends EventEmitter {
 	private readonly _httpServer: Server;
 	private readonly _scServer: any;
 	private readonly _newPeers: Set<PeerInfo>;
-	// TODO ASAP: private readonly _triedPeers: Set<PeerConfig>;
+	// TODO ASAP: private readonly _triedPeers: Set<PeerInfo>;
 	private _nodeStatus: P2PNodeStatus;
 
 	public constructor(config: P2PConfig) {
@@ -125,10 +125,10 @@ export class P2P extends EventEmitter {
 						this._peerPool.addPeer(peer);
 						super.emit(EVENT_NEW_INBOUND_PEER, peer);
 						super.emit(EVENT_NEW_PEER, peer);
-						this._newPeers.add(peer.peerConfig);
+						this._newPeers.add(peer.peerInfo);
 					} else {
 						existingPeer.inboundSocket = socket;
-						this._newPeers.add(existingPeer.peerConfig);
+						this._newPeers.add(existingPeer.peerInfo);
 					}
 				}
 			},
@@ -164,7 +164,7 @@ export class P2P extends EventEmitter {
 					os: seedPeer.os,
 					version: seedPeer.version,
 				});
-				this._newPeers.add(peer.peerConfig);
+				this._newPeers.add(peer.peerInfo);
 				/**
 				 * TODO LATER: For the LIP phase, we shouldn't add the seed peers to our
 				 * _peerPool and we should disconnect from them as soon as we've loaded their peer lists.

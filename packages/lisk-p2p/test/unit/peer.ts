@@ -17,7 +17,7 @@ import { expect } from 'chai';
 import { PeerInfo, Peer } from '../../src/peer';
 
 describe('peer', () => {
-	const defaultPeerConfig: PeerInfo = {
+	const defaultPeerInfo: PeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
@@ -26,7 +26,7 @@ describe('peer', () => {
 		version: '1.1.0',
 	};
 
-	const defaultPeer = new Peer(defaultPeerConfig);
+	const defaultPeer = new Peer(defaultPeerInfo);
 
 	describe('#constructor', () => {
 		it('should be an object', () => {

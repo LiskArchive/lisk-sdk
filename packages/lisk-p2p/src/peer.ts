@@ -51,7 +51,7 @@ const GET_ALL_PEERS_LIST_RPC = 'list';
 
 export class Peer {
 	private readonly _id: string;
-	private readonly _peerConfig: PeerInfo;
+	private readonly _peerInfo: PeerInfo;
 	private readonly _height: number;
 	private _inboundSocket: any;
 	private _outboundSocket: any;
@@ -59,13 +59,13 @@ export class Peer {
 	private readonly _wsPort: number;
 	private _nodeStatus: P2PNodeStatus | undefined;
 
-	public constructor(peerConfig: PeerInfo) {
-		this._peerConfig = peerConfig;
-		this._ipAddress = peerConfig.ipAddress;
-		this._wsPort = peerConfig.wsPort;
+	public constructor(peerInfo: PeerInfo) {
+		this._peerInfo = peerInfo;
+		this._ipAddress = peerInfo.ipAddress;
+		this._wsPort = peerInfo.wsPort;
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
-		this._inboundSocket = peerConfig.inboundSocket;
-		this._height = peerConfig.height ? peerConfig.height : 0;
+		this._inboundSocket = peerInfo.inboundSocket;
+		this._height = peerInfo.height ? peerInfo.height : 0;
 	}
 
 	private _createOutboundSocket(): any {
@@ -156,8 +156,8 @@ export class Peer {
 		});
 	}
 
-	public get peerConfig(): PeerInfo {
-		return this._peerConfig;
+	public get peerInfo(): PeerInfo {
+		return this._peerInfo;
 	}
 
 	public get id(): string {

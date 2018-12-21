@@ -69,7 +69,7 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerInfo => {
 			? +rawPeer.height
 			: 0;
 
-	const peerConfig: PeerInfo = {
+	const peerInfo: PeerInfo = {
 		ipAddress: rawPeer.ip,
 		wsPort,
 		height,
@@ -77,7 +77,7 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerInfo => {
 		version,
 	};
 
-	return peerConfig;
+	return peerInfo;
 };
 
 export const processPeerListFromResponse = (

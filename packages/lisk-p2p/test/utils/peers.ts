@@ -14,7 +14,7 @@
  */
 import { PeerInfo, Peer } from '../../src/peer';
 
-export const initializePeerConfigList = (): ReadonlyArray<PeerInfo> => {
+export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 	const peerOption1: PeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
@@ -60,6 +60,4 @@ export const initializePeerConfigList = (): ReadonlyArray<PeerInfo> => {
 };
 
 export const initializePeerList = (): ReadonlyArray<Peer> =>
-	initializePeerConfigList().map(
-		(peerConfig: PeerInfo) => new Peer(peerConfig),
-	);
+	initializePeerInfoList().map((peerInfo: PeerInfo) => new Peer(peerInfo));
