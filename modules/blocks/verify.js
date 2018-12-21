@@ -318,8 +318,7 @@ __private.verifyPayload = function(block, result) {
 	const payloadHash = crypto.createHash('sha256');
 	const appliedTransactions = {};
 
-	for (const i in block.transactions) {
-		const transaction = block.transactions[i];
+	block.transactions.forEach(transaction => {
 		let bytes;
 
 		try {
@@ -340,7 +339,7 @@ __private.verifyPayload = function(block, result) {
 		}
 		totalAmount = totalAmount.plus(transaction.amount);
 		totalFee = totalFee.plus(transaction.fee);
-	}
+	});
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
 		result.errors.push('Invalid payload hash');

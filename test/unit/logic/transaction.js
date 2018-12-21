@@ -415,7 +415,7 @@ describe('transaction', () => {
 		it('should throw an error with no param', () => {
 			return expect(
 				transactionLogic.checkConfirmed.bind(transactionLogic)
-			).to.throw('"callback" argument must be a function');
+			).to.throw('Callback must be a function');
 		});
 
 		it('should return an error with no transaction', done => {
@@ -579,6 +579,22 @@ describe('transaction', () => {
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include('Unknown transaction type');
+				done();
+			});
+		});
+
+		it('should return error when transaction is type 1 and sender already has second signature enabled', done => {
+			const transaction = _.cloneDeep(validTransaction);
+			transaction.type = 1;
+			transaction.asset = {
+				signature: validKeypair.publicKey,
+			};
+
+			const vs = _.cloneDeep(sender);
+			vs.secondSignature = true;
+
+			transactionLogic.verify(transaction, vs, null, null, err => {
+				expect(err).to.equal('Sender already has second signature enabled');
 				done();
 			});
 		});

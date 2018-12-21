@@ -11,9 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-node {
-	stage('Build extensive test suite') {
-		build job: "lisk-core/${env.BRANCH_NAME}", parameters: [string(name: 'JENKINS_PROFILE', value: 'jenkins-extensive')]
-		build job: "lisk-core-network/${env.BRANCH_NAME}", parameters: [string(name: 'JENKINS_PROFILE', value: 'jenkins-extensive')]
+
+pipeline {
+	agent any
+	stages {
+		stage('Build extensive test suite') {
+			steps {
+				build job: "lisk-core/${env.BRANCH_NAME}", parameters: [string(name: 'JENKINS_PROFILE', value: 'extensive')]
+				build job: "lisk-core-network/${env.BRANCH_NAME}"
+			}
+		}
 	}
 }

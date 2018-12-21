@@ -776,7 +776,7 @@ __private.createSnapshot = height => {
 
 	const snapshotRound = library.config.loading.snapshotRound;
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound = isNaN(snapshotRound)
+	const targetRound = Number.isNaN(snapshotRound)
 		? totalRounds
 		: Math.min(totalRounds, snapshotRound);
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
@@ -1022,15 +1022,15 @@ Loader.prototype.findGoodPeers = function(peers) {
 	const aggregation = 2;
 
 	// Perform histogram calculation, together with histogram maximum
-	for (const i in peers) {
-		const val = parseInt(peers[i].height / aggregation) * aggregation;
+	Object.keys(peers).forEach(key => {
+		const val = parseInt(peers[key].height / aggregation) * aggregation;
 		histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
 
 		if (histogram[val] > max) {
 			max = histogram[val];
 			height = val;
 		}
-	}
+	});
 
 	// Perform histogram cut of peers too far from histogram maximum
 	peers = peers

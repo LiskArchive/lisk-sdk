@@ -227,11 +227,11 @@ class Block {
 	 * @todo Add description for the function and the params
 	 */
 	objectNormalize(block) {
-		for (const i of Object.keys(block)) {
-			if (block[i] === null || typeof block[i] === 'undefined') {
-				delete block[i];
+		Object.keys(block).forEach(key => {
+			if (block[key] === null || typeof block[key] === 'undefined') {
+				delete block[key];
 			}
-		}
+		});
 
 		const report = this.scope.schema.validate(block, Block.prototype.schema);
 

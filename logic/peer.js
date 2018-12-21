@@ -202,7 +202,7 @@ Peer.STATE = {
  */
 Peer.prototype.parseInt = function(integer, fallback) {
 	integer = parseInt(integer);
-	integer = isNaN(integer) ? fallback : integer;
+	integer = Number.isNaN(integer) ? fallback : integer;
 
 	return integer;
 };

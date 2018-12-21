@@ -176,13 +176,12 @@ class BaseEntity {
 		);
 	}
 
-	getValuesSet(data) {
-		return `(${this.adapter.parseQueryComponent(
-			Object.keys(data)
-				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
-				.join(','),
-			data
-		)})`;
+	getValuesSet(data, attributes = undefined) {
+		if (Array.isArray(data)) {
+			return data.map(d => this._getValueSetForObject(d, attributes)).join(',');
+		}
+
+		return this._getValueSetForObject(data, attributes);
 	}
 
 	/**
@@ -300,9 +299,9 @@ class BaseEntity {
 		let filterString = null;
 
 		const parseFilterObject = object =>
-			Object.keys(object)
+			`(${Object.keys(object)
 				.map(key => this.filters[key])
-				.join(' AND ');
+				.join(' AND ')})`;
 
 		if (Array.isArray(filters)) {
 			filterString = filters
@@ -337,6 +336,16 @@ class BaseEntity {
 		}
 		return { ...filters, ...this.defaultFilters };
 	}
+
+
+	_getValueSetForObject(data, attributes = undefined) {
+		return `(${this.adapter.parseQueryComponent(
+			(attributes || Object.keys(data))
+				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
+				.join(','),
+			data
+		)})`;
+  }
 
 	/**
 	 * Parse sort option

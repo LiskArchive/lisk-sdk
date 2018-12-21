@@ -16,7 +16,7 @@
 		"url": "https://github.com/LiskHQ/lisk/issues"
 	},
 	"engines": {
-		"node": "8.14.0",
+		"node": "10.14.1",
 		"npm": "6.4.1"
 	},
 	"main": "app.js",
@@ -27,8 +27,6 @@
 		"lint:fix": "./node_modules/.bin/eslint --fix .",
 		"format":
 			"prettier --write \"./*.{js,json,md}\" \"{api,config,db,docs,helpers,logic,modules,schema,scripts,tasks,test}{,/**}/*.{js,json,md}\"",
-		"cover:fetch": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
-		"cover:report": "./node_modules/.bin/grunt coverageReport --verbose",
 		"test": "./node_modules/.bin/grunt",
 		"grunt": "./node_modules/.bin/grunt",
 		"mocha": "./node_modules/.bin/mocha",

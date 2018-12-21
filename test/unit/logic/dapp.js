@@ -141,7 +141,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp cateogry is undefined', () => {
+				describe('when dapp category is undefined', () => {
 					it('should call callback with error "Invalid application category"', done => {
 						transaction.asset.dapp.category = undefined;
 
@@ -152,7 +152,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp cateogry not found', () => {
+				describe('when dapp category not found', () => {
 					it('should call callback with error "Application category not found"', done => {
 						transaction.asset.dapp.category = 9;
 

@@ -15,15 +15,18 @@
 'use strict';
 
 const fs = require('fs');
+const util = require('util');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
+
+const fs_writeFile = util.promisify(fs.writeFile);
 
 module.exports = function(
 	configurations,
 	network,
+	WSPORTS,
 	TOTAL_PEERS,
 	EXPECTED_TOTAL_CONNECTIONS,
-	NUMBER_OF_TRANSACTIONS,
 	NUMBER_OF_MONITORING_CONNECTIONS
 ) {
 	// One of the bi-directional monitoring connections should be down so
@@ -36,169 +39,134 @@ module.exports = function(
 		(TOTAL_PEERS - 2) * (TOTAL_PEERS - 1) * 2;
 
 	describe('@network : peer Blacklisted', () => {
-		const wsPorts = new Set();
+		describe('when a node blacklists an ip', () => {
+			before(() => {
+				configurations[0].peers.access.blackList.push('127.0.0.1');
+				return fs_writeFile(
+					`${__dirname}/../../configs/config.node-0.json`,
+					JSON.stringify(configurations[0], null, 4)
+				)
+					.then(() => {
+						// Restart the node to load the just changed configuration
+						return network.restartNode('node_0', true);
+					})
+					.then(() => {
+						// Make sure that there is enough time for monitoring connection
+						// to be re-established after restart.
+						return network.waitForBlocksOnNode('node_1', 3);
+					});
+			});
 
-		before(() => {
-			return network.waitForAllNodesToBeReady();
+			it(`there should be ${TOTAL_PEERS - 1} peers holding ${TOTAL_PEERS -
+				2} active connections each one`, () => {
+				return network.getAllPeersLists().then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS - 1);
+					return peers.map(peer => {
+						expect(peer.peers.length).to.equal(TOTAL_PEERS - 2);
+						return peer.peers.map(peerFromPeer => {
+							return expect(peerFromPeer.state).to.equal(Peer.STATE.CONNECTED);
+						});
+					});
+				});
+			});
+
+			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, () => {
+				return utils
+					.getEstablishedConnections(WSPORTS)
+					.then(establishedConnections => {
+						return expect(
+							establishedConnections -
+								EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING
+						).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING);
+					});
+			});
+
+			it(`node_0 should have ${TOTAL_PEERS} peers banned`, () => {
+				return utils.http.getPeers().then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
+					return peers.map(peer => {
+						return expect(peer.state).to.equal(Peer.STATE.BANNED);
+					});
+				});
+			});
+
+			it('node_1 should have only himself and node_0 disconnected', () => {
+				return utils.http.getPeers(4001).then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
+					return peers.map(peer => {
+						if (peer.wsPort === 5000 || peer.wsPort === 5001) {
+							return expect(peer.state).to.equal(Peer.STATE.DISCONNECTED);
+						}
+						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);
+					});
+				});
+			});
 		});
 
-		describe('when peers are mutually connected in the network', () => {
+		describe('when the node remove the just blacklisted ip', () => {
 			before(() => {
-				return network.getAllPeersLists().then(mutualPeers => {
-					mutualPeers.forEach(mutualPeer => {
-						if (mutualPeer) {
-							mutualPeer.peers.map(peer => {
-								wsPorts.add(peer.wsPort);
-								return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
-							});
-						}
+				configurations[0].peers.access.blackList = [];
+				return fs_writeFile(
+					`${__dirname}/../../configs/config.node-0.json`,
+					JSON.stringify(configurations[0], null, 4)
+				)
+					.then(() => {
+						// Restart the node to load the just changed configuration
+						return network.restartNode('node_0', true);
+					})
+					.then(() => {
+						return network.enableForgingForDelegates();
+					})
+					.then(() => {
+						// Make sure that there is enough time for monitoring connection
+						// to be re-established after restart.
+						return network.waitForBlocksOnNode('node_0', 3);
 					});
-				});
 			});
 
-			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-				utils.getEstablishedConnections(
-					Array.from(wsPorts),
-					(err, numOfConnections) => {
-						if (err) {
-							return done(err);
-						}
-
-						if (
-							numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
-							EXPECTED_TOTAL_CONNECTIONS
-						) {
-							return done();
-						}
-						return done(
-							`There are ${numOfConnections} established connections on web socket ports.`
-						);
-					}
-				);
-			});
-
-			describe('when a node blacklists an ip', () => {
-				before(done => {
-					configurations[0].peers.access.blackList.push('127.0.0.1');
-					fs.writeFileSync(
-						`${__dirname}/../../configs/config.node-0.json`,
-						JSON.stringify(configurations[0], null, 4)
-					);
-					// Restart the node to load the just changed configuration
-					network
-						.restartNode('node_0', true)
-						.then(done)
-						.catch(err => {
-							done(err.message);
-						});
-				});
-
-				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
-					utils.getEstablishedConnections(
-						Array.from(wsPorts),
-						(err, numOfConnections) => {
-							if (err) {
-								return done(err);
-							}
-
-							if (
-								numOfConnections -
-									EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING ===
-								EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING
-							) {
-								return done();
-							}
-							return done(
-								`There are ${numOfConnections} established connections on web socket ports.`
-							);
-						}
-					);
-				});
-
-				it(`peers manager should contain ${TOTAL_PEERS -
-					2} active connections`, () => {
-					return network.getAllPeersLists().then(mutualPeers => {
-						mutualPeers.forEach(mutualPeer => {
-							if (mutualPeer) {
-								expect(mutualPeer.peers.length).to.be.eql(TOTAL_PEERS - 2);
-								mutualPeer.peers.map(peer => {
-									return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
-								});
-							}
-						});
-					});
-				});
-
-				it('node_0 should have every peer banned', () => {
-					return utils.http.getPeers().then(peers => {
-						peers.map(peer => {
-							return expect(peer.state).to.be.eql(Peer.STATE.BANNED);
-						});
-					});
-				});
-
-				it('node_1 should have only himself and node_0 disconnected', () => {
-					return utils.http.getPeers(4001).then(peers => {
-						peers.map(peer => {
-							if (peer.wsPort === 5000 || peer.wsPort === 5001) {
-								return expect(peer.state).to.be.eql(Peer.STATE.DISCONNECTED);
-							}
-							return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+			it(`there should be ${TOTAL_PEERS} peers holding ${TOTAL_PEERS -
+				1} active connections each one`, () => {
+				return network.getAllPeersLists().then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
+					return peers.map(peer => {
+						expect(peer.peers.length).to.equal(TOTAL_PEERS - 1);
+						return peer.peers.map(peerFromPeer => {
+							return expect(peerFromPeer.state).to.equal(Peer.STATE.CONNECTED);
 						});
 					});
 				});
 			});
 
-			describe('when a node remove the just blacklisted ip', () => {
-				before(done => {
-					configurations[0].peers.access.blackList = [];
-					fs.writeFileSync(
-						`${__dirname}/../../configs/config.node-0.json`,
-						JSON.stringify(configurations[0], null, 4)
-					);
-					// Restart the node to load the just changed configuration
-					network
-						.restartNode('node_0', true)
-						.then(() => {
-							// Make sure that there is enough time for monitoring connection
-							// to be re-established after restart.
-							return network.waitForBlocksOnNode('node_0', 2);
-						})
-						.then(done)
-						.catch(err => {
-							done(err.message);
-						});
-				});
+			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, () => {
+				return utils
+					.getEstablishedConnections(WSPORTS)
+					.then(establishedConnections => {
+						return expect(
+							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
+						).to.equal(EXPECTED_TOTAL_CONNECTIONS);
+					});
+			});
 
-				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-					utils.getEstablishedConnections(
-						Array.from(wsPorts),
-						(err, numOfConnections) => {
-							if (err) {
-								return done(err);
-							}
-
-							if (
-								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
-								EXPECTED_TOTAL_CONNECTIONS
-							) {
-								return done();
-							}
-							return done(
-								`There are ${numOfConnections} established connections on web socket ports.`
-							);
+			it('node_0 should have every peer connected but himself', () => {
+				return utils.http.getPeers().then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
+					return peers.map(peer => {
+						if (peer.wsPort === 5000) {
+							return expect(peer.state).to.not.equal(Peer.STATE.CONNECTED);
 						}
-					);
+						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);
+					});
 				});
+			});
 
-				it('node_0 should have every peer connected but himself', () => {
-					return utils.http.getPeers().then(peers => {
-						peers.map(peer => {
-							if (peer.wsPort === 5000) {
-								return expect(peer.state).to.be.not.eql(Peer.STATE.CONNECTED);
-							}
-							return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
-						});
+			it('node_1 should have every peer connected but himself', () => {
+				return utils.http.getPeers(4001).then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
+					return peers.map(peer => {
+						if (peer.wsPort === 5001) {
+							return expect(peer.state).to.not.equal(Peer.STATE.CONNECTED);
+						}
+						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);
 					});
 				});
 			});
