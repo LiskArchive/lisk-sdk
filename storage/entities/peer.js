@@ -223,7 +223,7 @@ class Peer extends BaseEntity {
 	 * @param {Object} [tx] - Transaction object
 	 * @return {null}
 	 */
-	update(filters, data, options = {}, tx = null) {
+	update(filters, data, _options, tx = null) {
 		this.validateFilters(filters);
 		const objectData = omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
@@ -232,10 +232,8 @@ class Peer extends BaseEntity {
 
 		const params = {
 			...objectData,
-			...{
-				parsedFilters,
-				updateSet,
-			},
+			parsedFilters,
+			updateSet,
 		};
 
 		return this.adapter.executeFile(
@@ -255,7 +253,7 @@ class Peer extends BaseEntity {
 	 * @param {Object} [tx] - Transaction object
 	 * @return {null}
 	 */
-	updateOne(filters, data, options = {}, tx = null) {
+	updateOne(filters, data, _options, tx = null) {
 		this.validateFilters(filters);
 		const objectData = omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
@@ -264,10 +262,8 @@ class Peer extends BaseEntity {
 
 		const params = {
 			...objectData,
-			...{
-				parsedFilters,
-				updateSet,
-			},
+			parsedFilters,
+			updateSet,
 		};
 
 		return this.adapter.executeFile(
@@ -286,7 +282,7 @@ class Peer extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	isPersisted(filters, options = {}, tx = null) {
+	isPersisted(filters, _options, tx = null) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
 		const mergedFilters = this.mergeFilters(filters);

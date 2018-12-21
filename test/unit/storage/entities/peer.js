@@ -34,7 +34,6 @@ describe('Peer', () => {
 	let validOptions;
 	let validPeer;
 	let invalidPeer;
-	let validFilterGetOneExecuteArgs;
 	let storage;
 
 	before(async () => {
@@ -129,13 +128,6 @@ describe('Peer', () => {
 		validFilter = {
 			id: 20,
 		};
-
-		validFilterGetOneExecuteArgs = [
-			'loadSQLFile',
-			{ limit: 10, offset: 0, parsedFilters: 'WHERE undefined' },
-			{ expectedResultCount: 1 },
-			null,
-		];
 
 		validPeer = {
 			ip: '100.187.70.20',
@@ -284,18 +276,6 @@ describe('Peer', () => {
 			}).to.throw(NonSupportedOptionError);
 		});
 
-		it('should call adapter.executeFile with proper param for FIELD_SET_SIMPLE', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().returns(validPeer),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
-			const peer = new Peer(localAdapter);
-			peer.getOne(validFilter);
-			const executeFileCall = localAdapter.executeFile.firstCall.args;
-			expect(executeFileCall).to.eql(validFilterGetOneExecuteArgs);
-		});
-
 		it('should accept "tx" as last parameter and pass to adapter.executeFile');
 
 		it('should not change any of the provided parameter');
@@ -357,20 +337,6 @@ describe('Peer', () => {
 			expect(() => {
 				peer.update(invalidFilter, validPeer);
 			}).to.throw(NonSupportedFilterTypeError);
-		});
-
-		it('should accept only valid options', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.update(validFilter, validPeer, validOptions);
-			}).not.to.throw(NonSupportedOptionError);
-		});
-
-		it('should throw error for invalid options', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.update(validFilter, validPeer, invalidOptions);
-			}).to.throw(NonSupportedOptionError);
 		});
 
 		it('should call mergeFilters with proper params', async () => {
@@ -444,8 +410,10 @@ describe('Peer', () => {
 			const oldOS = 'linux2.6.32-042stab127.2';
 			const newOS = 'Open BSD';
 			validPeerTwo.ip = '90.1.32.34';
-			await storage.entities.Peer.create(validPeer);
-			await storage.entities.Peer.create(validPeerTwo);
+			await Promise.all([
+				storage.entities.Peer.create(validPeer),
+				storage.entities.Peer.create(validPeerTwo),
+			]);
 
 			await storage.entities.Peer.update({ os: oldOS }, { os: newOS });
 			const res = await storage.entities.Peer.get({ os: newOS });
@@ -479,20 +447,6 @@ describe('Peer', () => {
 			expect(() => {
 				peer.updateOne(invalidFilter, validPeer);
 			}).to.throw(NonSupportedFilterTypeError);
-		});
-
-		it('should accept only valid options', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.updateOne(validFilter, validPeer, validOptions);
-			}).not.to.throw(NonSupportedOptionError);
-		});
-
-		it('should throw error for invalid options', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.updateOne(validFilter, validPeer, invalidOptions);
-			}).to.throw(NonSupportedOptionError);
 		});
 
 		it('should call mergeFilters with proper params', async () => {
@@ -565,8 +519,10 @@ describe('Peer', () => {
 			const validPeerTwo = Object.assign({}, validPeer);
 			const updatedIp = '127.0.0.1';
 			validPeerTwo.ip = '90.1.32.34';
-			await storage.entities.Peer.create(validPeer);
-			await storage.entities.Peer.create(validPeerTwo);
+			await Promise.all([
+				storage.entities.Peer.create(validPeer),
+				storage.entities.Peer.create(validPeerTwo),
+			]);
 			const allPeers = await storage.entities.Peer.get();
 			const peerToUpdateId = allPeers[0].id;
 
@@ -603,20 +559,6 @@ describe('Peer', () => {
 			expect(() => {
 				peer.isPersisted(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
-		});
-
-		it('should accept only valid options', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.isPersisted(validFilter, validOptions);
-			}).not.to.throw(NonSupportedOptionError);
-		});
-
-		it('should throw error for invalid options', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.isPersisted(validFilter, invalidOptions);
-			}).to.throw(NonSupportedOptionError);
 		});
 
 		it('should call mergeFilters with proper params', async () => {
