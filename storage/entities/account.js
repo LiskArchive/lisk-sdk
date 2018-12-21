@@ -14,6 +14,7 @@
 
 'use strict';
 
+const assert = require('assert');
 const _ = require('lodash');
 const { stringToByte, booleanToInt } = require('../utils/inputSerializers');
 const ft = require('../utils/filter_types');
@@ -331,6 +332,12 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
+		assert(data, 'Must provide data to create account.');
+		assert(
+			typeof data === 'object' || Array.isArray(data),
+			'Data must be an object or array of objects'
+		);
+
 		let values;
 
 		if (Array.isArray(data)) {
@@ -342,8 +349,8 @@ class Account extends BaseEntity {
 		values = values.map(v => _.defaults(v, defaultCreateValues));
 
 		// We assume that all accounts have same attributes
-		// and pick first account attributes as template
-		const attributes = Object.keys(values[0]);
+		// and pick defined fields as template
+		const attributes = Object.keys(this.fields);
 		const createSet = this.getValuesSet(values, attributes);
 		const fields = attributes
 			.map(k => `"${this.fields[k].fieldName}"`)
