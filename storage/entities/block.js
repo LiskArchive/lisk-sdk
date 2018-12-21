@@ -296,8 +296,13 @@ class Block extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 
 		return this.adapter
-			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
-			.then(result => !!result[0]);
+			.executeFile(
+				this.SQLs.isPersisted,
+				{ parsedFilters },
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(result => result.exists);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
