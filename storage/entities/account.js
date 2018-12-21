@@ -354,7 +354,7 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
- 		assert(data, 'Must provide data to create account');
+		assert(data, 'Must provide data to create account');
 		assert(
 			typeof data === 'object' || Array.isArray(data),
 			'Data must be an object or array of objects'
