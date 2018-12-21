@@ -14,6 +14,7 @@
 
 'use strict';
 
+const assert = require('assert');
 const _ = require('lodash');
 const { stringToByte, booleanToInt } = require('../utils/inputSerializers');
 const ft = require('../utils/filter_types');
@@ -347,22 +348,40 @@ class Account extends BaseEntity {
 	/**
 	 * Create account object
 	 *
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
+	 * @param {Object|Array.<Object>} data
+	 * @param {Object} [_options]
+	 * @param {Object} [tx] - Transaction object
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
-		const objectData = _.defaults(data, defaultCreateValues);
-		const createSet = this.getValuesSet(objectData);
-		const attributes = Object.keys(data)
+		assert(data, 'Must provide data to create account');
+		assert(
+			typeof data === 'object' || Array.isArray(data),
+			'Data must be an object or array of objects'
+		);
+
+		let values;
+
+		if (Array.isArray(data)) {
+			values = data.map(item => ({ ...item }));
+		} else if (typeof data === 'object') {
+			values = [{ ...data }];
+		}
+
+		values = values.map(v => _.defaults(v, defaultCreateValues));
+
+		// We assume that all accounts have same attributes
+		// and pick defined fields as template
+		const attributes = Object.keys(this.fields);
+		const createSet = this.getValuesSet(values, attributes);
+		const fields = attributes
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
 		return this.adapter.executeFile(
 			this.SQLs.create,
-			{ createSet, attributes },
-			{},
+			{ createSet, fields },
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}

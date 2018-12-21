@@ -176,13 +176,12 @@ class BaseEntity {
 		);
 	}
 
-	getValuesSet(data) {
-		return `(${this.adapter.parseQueryComponent(
-			Object.keys(data)
-				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
-				.join(','),
-			data
-		)})`;
+	getValuesSet(data, attributes = undefined) {
+		if (Array.isArray(data)) {
+			return data.map(d => this._getValueSetForObject(d, attributes)).join(',');
+		}
+
+		return this._getValueSetForObject(data, attributes);
 	}
 
 	/**
@@ -337,6 +336,16 @@ class BaseEntity {
 		}
 		return { ...filters, ...this.defaultFilters };
 	}
+
+
+	_getValueSetForObject(data, attributes = undefined) {
+		return `(${this.adapter.parseQueryComponent(
+			(attributes || Object.keys(data))
+				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
+				.join(','),
+			data
+		)})`;
+  }
 
 	/**
 	 * Parse sort option
