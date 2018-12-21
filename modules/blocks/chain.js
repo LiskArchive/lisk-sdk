@@ -82,20 +82,20 @@ class Chain {
 Chain.prototype.saveGenesisBlock = function(cb) {
 	// Check if genesis block ID already exists in the database
 	// FIXME: Duplicated, there is another SQL query that we can use for that
-	library.db.blocks
-		.getGenesisBlockId(library.genesisBlock.block.id)
-		.then(rows => {
-			const blockId = rows.length && rows[0].id;
-
-			if (!blockId) {
-				// If there is no block with genesis ID - save to database
-				// WARNING: DB_WRITE
-				// FIXME: This will fail if we already have genesis block in database, but with different ID
-				return self.saveBlock(library.genesisBlock.block, err =>
-					setImmediate(cb, err)
-				);
+	library.storage.entities.Block.isPersisted({
+		id: library.genesisBlock.block.id,
+	})
+		.then(isPersisted => {
+			if (isPersisted) {
+				return setImmediate(cb);
 			}
-			return setImmediate(cb);
+
+			// If there is no block with genesis ID - save to database
+			// WARNING: DB_WRITE
+			// FIXME: This will fail if we already have genesis block in database, but with different ID
+			return self.saveBlock(library.genesisBlock.block, err =>
+				setImmediate(cb, err)
+			);
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -196,6 +196,7 @@ Chain.prototype.deleteBlock = function(blockId, cb, tx) {
  * @returns {Object} cb.res - SQL response
  */
 Chain.prototype.deleteAfterBlock = function(blockId, cb) {
+	// TODO: REPLACE BY STORAGE WHEN DELETE IS IMPLEMENTED
 	library.db.blocks
 		.deleteAfterBlock(blockId)
 		.then(res => setImmediate(cb, null, res))
