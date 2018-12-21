@@ -23,32 +23,7 @@ describe('peer selector', () => {
 			lastBlockHeight: 545777,
 			netHash: '73458irc3yb7rg37r7326dbt7236',
 		};
-		const goodPeers = [
-			{
-				_ipAddress: '192.28.138.1',
-				_wsPort: 5006,
-				_height: 645982,
-				_id: '192.28.138.1:5006',
-				_inboundSocket: undefined,
-				_outboundSocket: undefined,
-			},
-			{
-				_ipAddress: '18.28.48.1',
-				_wsPort: 5008,
-				_height: 645980,
-				_id: '18.28.48.1:5008',
-				_inboundSocket: undefined,
-				_outboundSocket: undefined,
-			},
-			{
-				_ipAddress: '178.21.90.199',
-				_wsPort: 5001,
-				_height: 645980,
-				_id: '178.21.90.199:5001',
-				_inboundSocket: undefined,
-				_outboundSocket: undefined,
-			},
-		];
+		const goodPeers = [peerList[3], peerList[2], peerList[4]];
 
 		describe('get list of n number of good peers', () => {
 			beforeEach(async () => {
