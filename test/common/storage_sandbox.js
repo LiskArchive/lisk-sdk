@@ -25,13 +25,6 @@ const dbNames = [];
  * @param {Object} db
  * @param {function} cb
  */
-
-/**
- * @param {string} table
- * @param {Logger} logger
- * @param {Object} db
- * @param {function} cb
- */
 function clearDatabaseTable(storageInstance, logger, table) {
 	return new Promise((resolve, reject) => {
 		storageInstance.adapter.db
