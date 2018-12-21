@@ -266,6 +266,53 @@ class Transaction extends BaseEntity {
 	}
 
 	/**
+	 * Create transactions object
+	 *
+	 * @param {Transaction|Array.<Transaction>} data
+	 * @param {Object} [_options]
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	create(data, _options, tx) {
+		let transactions = _.cloneDeep(data);
+
+		if (!Array.isArray(transactions)) {
+			transactions = [transactions];
+		}
+
+		transactions.forEach(t => {
+			t.signatures = t.signatures ? t.signatures.join() : null;
+			t.amount = t.amount.toString();
+			t.fee = t.fee.toString();
+		});
+
+		const trsFields = [
+			'id',
+			'blockId',
+			'type',
+			'timestamp',
+			'senderPublicKey',
+			'requesterPublicKey',
+			'senderId',
+			'recipientId',
+			'amount',
+			'fee',
+			'signature',
+			'signSignature',
+			'signatures',
+		];
+
+		const createSet = this.getValuesSet(transactions, trsFields);
+
+		return this.adapter.executeFile(
+			this.SQLs.create,
+			{ createSet, trsFields },
+			{ expectedResultCount: 0 },
+			tx
+		);
+	}
+
+	/**
 	 * Update the records based on given condition
 	 *
 	 * @param {filters.Account} [filters]
