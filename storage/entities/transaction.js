@@ -207,6 +207,7 @@ class Transaction extends BaseEntity {
 			select: this.adapter.loadSQLFile('transactions/get.sql'),
 			selectExtended: this.adapter.loadSQLFile('transactions/get_extended.sql'),
 			isPersisted: this.adapter.loadSQLFile('transactions/is_persisted.sql'),
+			count: this.adapter.loadSQLFile('transactions/count.sql'),
 		};
 	}
 
@@ -239,6 +240,29 @@ class Transaction extends BaseEntity {
 	 */
 	get(filters, options = {}, tx) {
 		return this._getResults(filters, options, tx);
+	}
+
+	/**
+	 * Count transactions
+	 *
+	 * @param {filters.Transaction|filters.Transaction[]} [filters = {}]
+	 * @param {Object} [_options = {}] - Options to filter data
+	 * @param {Object} [tx] - Database transaction object
+	 * @return {Promise.<Transaction[], Error>}
+	 */
+	// eslint-disable-next-line no-unused-vars
+	count(filters, _options = {}, tx) {
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		const params = {
+			parsedFilters,
+		};
+		const expectedResultCount = 1;
+
+		return this.adapter
+			.executeFile(this.SQLs.count, params, { expectedResultCount }, tx)
+			.then(data => +data.count);
 	}
 
 	/**
