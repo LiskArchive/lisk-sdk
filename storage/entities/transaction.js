@@ -120,6 +120,29 @@ const BaseEntity = require('./base_entity');
  * @typedef {Object} filters.Transaction
  */
 
+const assetAttributesMap = {
+	0: ['asset.data'],
+	1: ['asset.signature.publicKey'],
+	2: ['asset.delegate.username'],
+	3: ['asset.votes'],
+	4: [
+		'asset.multisignature.min',
+		'asset.multisignature.lifetime',
+		'asset.multisignature.keysgroup',
+	],
+	5: [
+		'asset.dapp.type',
+		'asset.dapp.name',
+		'asset.dapp.description',
+		'asset.dapp.tags',
+		'asset.dapp.link',
+		'asset.dapp.icon',
+		'asset.dapp.category',
+	],
+	6: ['asset.inTransfer.dappId'],
+	7: ['asset.outTransfer.dappId', ' asset.outTransfer.transactionId'],
+};
+
 class Transaction extends BaseEntity {
 	/**
 	 * Constructor
@@ -132,7 +155,7 @@ class Transaction extends BaseEntity {
 		this.addField('id', 'string', { filter: ft.TEXT, fieldName: 't_id' });
 		this.addField('blockId', 'string', {
 			filter: ft.TEXT,
-			fieldName: 't_blockId',
+			fieldName: 'b_id',
 		});
 		this.addField('blockHeight', 'string', {
 			filter: ft.NUMBER,
@@ -231,12 +254,40 @@ class Transaction extends BaseEntity {
 			parsedFilters,
 		};
 
-		return this.adapter.executeFile(
-			parsedOptions.extended ? this.SQLs.selectExtended : this.SQLs.select,
-			params,
-			{ expectedResultCount },
-			tx
-		);
+		return this.adapter
+			.executeFile(
+				parsedOptions.extended ? this.SQLs.selectExtended : this.SQLs.select,
+				params,
+				{ expectedResultCount },
+				tx
+			)
+			.then(data => {
+				if (!parsedOptions.extended) {
+					return data;
+				}
+
+				if (expectedResultCount === 1) {
+					return Transaction._formatTransactionResult(data);
+				}
+
+				return data.map(row => Transaction._formatTransactionResult(row));
+			});
+	}
+
+	static _formatTransactionResult(row) {
+		const t = {};
+
+		Object.keys(row).forEach(k => {
+			if (!k.match(/^asset./)) {
+				t[k] = row[k];
+			}
+		});
+
+		(assetAttributesMap[t.type] || []).forEach(assetKey => {
+			_.set(t, assetKey, row[assetKey]);
+		});
+
+		return t;
 	}
 }
 
