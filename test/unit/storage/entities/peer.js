@@ -515,23 +515,9 @@ describe('Peer', () => {
 			).to.be.true;
 		});
 
-		it('should update only one peer object successfully with matching condition', async () => {
-			const validPeerTwo = Object.assign({}, validPeer);
-			const updatedIp = '127.0.0.1';
-			validPeerTwo.ip = '90.1.32.34';
-			await storage.entities.Peer.create(validPeer);
-			await storage.entities.Peer.create(validPeerTwo);
-
-			const allPeers = await storage.entities.Peer.get();
-			const peerToUpdateId = allPeers[0].id;
-
-			await storage.entities.Peer.updateOne(
-				{ id: peerToUpdateId },
-				{ ip: updatedIp }
-			);
-			const res = await storage.entities.Peer.getOne({ ip: updatedIp });
-			expect(res.ip).to.be.eql(updatedIp);
-		});
+		it(
+			'should update only one peer object successfully with matching condition'
+		);
 
 		it('should skip if any invalid attribute is provided');
 
