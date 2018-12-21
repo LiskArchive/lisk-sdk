@@ -155,6 +155,7 @@ Utils.prototype.loadLastBlock = function(cb) {
 	// Get full last block from database
 	// FIXME: Review SQL order by clause
 	library.db.blocks
+		// TODO: REPLACE BY STORAGE WHEN EXTENDED BLOCK IS IMPLEMENTED
 		.loadLastBlock()
 		.then(rows => {
 			// Normalize block
@@ -186,6 +187,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	library.db.blocks
+		// TODO: REPLACE BY STORAGE
 		.getIdSequence({
 			height,
 			limit: 5,
@@ -424,6 +426,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		}
 
 		// Get calculated rewards
+		// TODO: REPLACE BY STORAGE
 		return library.db.blocks
 			.aggregateBlocksReward(params)
 			.then(rows => {
