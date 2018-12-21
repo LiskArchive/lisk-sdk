@@ -175,7 +175,7 @@ class BaseEntity {
 		);
 	}
 
-	getValuesSet(data, attributes = []) {
+	getValuesSet(data, attributes = undefined) {
 		if (Array.isArray(data)) {
 			return data.map(d => this._getValueSetForObject(d, attributes)).join(',');
 		}
@@ -332,7 +332,7 @@ class BaseEntity {
 		return { ...filters, ...this.defaultFilters };
 	}
 
-	_getValueSetForObject(data, attributes = []) {
+	_getValueSetForObject(data, attributes = undefined) {
 		return `(${this.adapter.parseQueryComponent(
 			(attributes || Object.keys(data))
 				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
