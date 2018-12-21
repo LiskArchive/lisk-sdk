@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+SELECT
+	"id",
+	"name"
+FROM
+	migrations
 
-module.exports = {
-	Block: require('./block'),
-	Account: require('./account'),
-	Delegate: require('./delegate'),
-	Transaction: require('./transaction'),
-	BaseEntity: require('./base_entity'),
-	Migration: require('./migration'),
-};
+${parsedFilters:raw}
+
+${parsedSort:raw}
+
+LIMIT ${limit}
+OFFSET ${offset}

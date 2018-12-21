@@ -12,13 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = {
-	Block: require('./block'),
-	Account: require('./account'),
-	Delegate: require('./delegate'),
-	Transaction: require('./transaction'),
-	BaseEntity: require('./base_entity'),
-	Migration: require('./migration'),
-};
+SELECT EXISTS (
+	SELECT 1 FROM migrations ${parsedFilters:raw}
+);

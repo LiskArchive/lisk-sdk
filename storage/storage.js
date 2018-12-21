@@ -21,6 +21,7 @@ const {
 	Delegate,
 	Block,
 	Transaction,
+	Migration,
 } = require('./entities');
 const PgpAdapter = require('./adapters/pgp_adapter');
 
@@ -59,6 +60,7 @@ class Storage {
 					Block: new Block(adapter),
 					Account: new Account(adapter),
 					Delegate: new Delegate(adapter),
+					Migration: new Migration(adapter),
 				};
 			}
 
