@@ -23,7 +23,7 @@ export const discoverPeers = async (
 	filterPeerOptions: FilterPeerOptions = { blacklist: [] },
 ): Promise<ReadonlyArray<PeerInfo>> => {
 	const peersOfPeer: ReadonlyArray<ReadonlyArray<PeerInfo>> = await Promise.all(
-		peers.map(peer => peer.fetchPeers()),
+		peers.map(async peer => peer.fetchPeers()),
 	);
 
 	const peersOfPeerFlat = peersOfPeer.reduce(

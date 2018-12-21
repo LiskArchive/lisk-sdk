@@ -23,14 +23,14 @@ import { Peer, PeerInfo } from './peer';
 
 import {
 	// TODO ASAP: NetworkStatus,
+	P2PConfig,
 	P2PMessagePacket,
+	P2PNodeStatus,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	P2PConfig,
-	ProtocolPeerList,
 	ProtocolPeerInfo,
-	P2PNodeStatus,
+	ProtocolPeerList,
 } from './p2p_types';
 
 import { PeerPool } from './peer_pool';
@@ -67,18 +67,20 @@ export class P2P extends EventEmitter {
 		this._scServer = socketClusterServer.attach(this._httpServer);
 	}
 
+	/* tslint:disable:next-line: prefer-function-over-method */
 	public applyPenalty(penalty: P2PPenalty): void {
 		penalty;
 	}
 
 	// TODO ASAP: public getNetworkStatus(): NetworkStatus {};
-
+	/* tslint:disable:next-line: prefer-function-over-method */
 	public async request<T>(
 		packet: P2PRequestPacket<T>,
 	): Promise<P2PResponsePacket> {
 		return Promise.resolve({ data: packet });
 	}
 
+	/* tslint:disable:next-line: prefer-function-over-method */
 	public send<T>(message: P2PMessagePacket<T>): void {
 		message;
 		// TODO ASAP
@@ -177,16 +179,17 @@ export class P2P extends EventEmitter {
 				const peerListResponse = seedNodePeerListResponse.data as ProtocolPeerList;
 				// TODO ASAP: Validate the response before returning. Check that seedNodePeerListResponse.data.peers exists.
 
-				return peerListResponse.peers.map((peerObject: ProtocolPeerInfo) => {
-					return new Peer({
-						ipAddress: peerObject.ip,
-						wsPort: peerObject.wsPort, // TODO ASAP: Add more properties
-						nodeStatus: this._nodeStatus,
-						height: seedPeer.height,
-						os: seedPeer.os,
-						version: seedPeer.version,
-					});
-				});
+				return peerListResponse.peers.map(
+					(peerObject: ProtocolPeerInfo) =>
+						new Peer({
+							ipAddress: peerObject.ip,
+							wsPort: peerObject.wsPort, // TODO ASAP: Add more properties
+							nodeStatus: this._nodeStatus,
+							height: seedPeer.height,
+							os: seedPeer.os,
+							version: seedPeer.version,
+						}),
+				);
 			}),
 		);
 	}

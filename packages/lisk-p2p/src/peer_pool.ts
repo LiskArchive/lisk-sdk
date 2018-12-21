@@ -29,6 +29,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap = new Map();
 	}
 
+	/* tslint:disable:next-line: prefer-function-over-method */
 	// TODO ASAP: Implement. Use PeerOptions type instead of any for selectionParams.
 	public selectPeers(
 		selectionParams: any,

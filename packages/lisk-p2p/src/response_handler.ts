@@ -91,6 +91,7 @@ export const processPeerListFromResponse = (
 
 	if (Array.isArray(peers)) {
 		const peerList = peers.map<PeerInfo>(instantiatePeerFromResponse);
+
 		return peerList;
 	} else {
 		throw new InvalidRPCResponse('Invalid response type');

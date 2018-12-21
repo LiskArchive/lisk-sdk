@@ -13,17 +13,17 @@
  *
  */
 
+import { RPCResponseError } from './errors';
 import {
-	P2PRequestPacket,
 	P2PMessagePacket,
-	P2PResponsePacket,
 	P2PNodeStatus,
+	P2PRequestPacket,
+	P2PResponsePacket,
 } from './p2p_types';
 
 import socketClusterClient from 'socketcluster-client';
 
 import { processPeerListFromResponse } from './response_handler';
-import { RPCResponseError } from './errors';
 
 export interface PeerInfo {
 	readonly ipAddress: string;
