@@ -69,8 +69,8 @@ class BaseEntity {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	count() {
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	count(filters) {
 		throw new ImplementationPendingError();
 	}
 

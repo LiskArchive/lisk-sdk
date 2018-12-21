@@ -51,6 +51,7 @@ describe('Block', () => {
 			expect(block.defaultFilters).to.be.eq(defaultFilters);
 			expect(block.SQLs).to.be.eql({
 				select: 'loadSQLFile',
+				count: 'loadSQLFile',
 				create: 'loadSQLFile',
 				isPersisted: 'loadSQLFile',
 			});
@@ -288,6 +289,29 @@ describe('Block', () => {
 			it('should have only specific filters');
 			// For each filter type
 			it('should return matching result for provided filter');
+		});
+	});
+
+	describe('count()', () => {
+		let block;
+
+		before(async () => {
+			const adapter = { loadSQLFile: sinonSandbox.stub() };
+			block = new Block(adapter);
+		});
+
+		it('should accept valid filters', async () => {
+			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
+			expect(() => {
+				block.count(filters);
+			}).to.not.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should throw error for invalid filters', async () => {
+			const filters = [{ invalid_filter: 1 }, { timestamp_gte: 1234567890 }];
+			expect(() => {
+				block.count(filters);
+			}).to.throw(NonSupportedFilterTypeError);
 		});
 	});
 
