@@ -16,10 +16,11 @@
 
 const path = require('path');
 const {
-	BaseEntity,
 	Account,
-	Delegate,
+	BaseEntity,
 	Block,
+	Delegate,
+	Peer,
 	Transaction,
 } = require('./entities');
 const PgpAdapter = require('./adapters/pgp_adapter');
@@ -55,10 +56,11 @@ class Storage {
 				Storage.instance.adapter = adapter;
 
 				Storage.instance.entities = {
-					Transaction: new Transaction(adapter),
-					Block: new Block(adapter),
 					Account: new Account(adapter),
+					Block: new Block(adapter),
 					Delegate: new Delegate(adapter),
+					Peer: new Peer(adapter),
+					Transaction: new Transaction(adapter),
 				};
 			}
 

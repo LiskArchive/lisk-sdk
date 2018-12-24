@@ -296,7 +296,7 @@ class BaseEntity {
 	}
 
 	parseFilters(filters) {
-		let filterString = null;
+		let filterString = '';
 
 		const parseFilterObject = object =>
 			`(${Object.keys(object)
@@ -315,7 +315,8 @@ class BaseEntity {
 			? filters.reduce((acc, curr) => ({ ...acc, ...curr }), {})
 			: filters;
 
-		if (filterString) {
+		// TODO: refactor this logic
+		if (filterString !== '()') {
 			return `WHERE ${this.adapter.parseQueryComponent(
 				filterString,
 				filtersObject
@@ -337,7 +338,6 @@ class BaseEntity {
 		return { ...filters, ...this.defaultFilters };
 	}
 
-
 	_getValueSetForObject(data, attributes = undefined) {
 		return `(${this.adapter.parseQueryComponent(
 			(attributes || Object.keys(data))
@@ -345,7 +345,7 @@ class BaseEntity {
 				.join(','),
 			data
 		)})`;
-  }
+	}
 
 	/**
 	 * Parse sort option

@@ -12,13 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+SELECT
+	"id",
+	"ip",
+	"wsPort",
+	"state",
+	"os",
+	"version",
+	"clock",
+	ENCODE("broadhash", 'hex') as "broadhash",
+	"height"
+FROM
+	peers
 
-module.exports = {
-	Account: require('./account'),
-	BaseEntity: require('./base_entity'),
-	Block: require('./block'),
-	Delegate: require('./delegate'),
-	Peer: require('./peer'),
-	Transaction: require('./transaction'),
-};
+${parsedFilters:raw}
+
+LIMIT ${limit} OFFSET ${offset}
