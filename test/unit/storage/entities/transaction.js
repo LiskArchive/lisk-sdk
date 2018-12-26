@@ -21,6 +21,8 @@ const seeder = require('../../../common/storage_seed');
 const transactionsFixtures = require('../../../fixtures').transactions;
 const transactionTypes = require('../../../../helpers/transaction_types');
 
+const numSeedRecords = 5;
+
 const expectValidTransactionRow = (row, transaction) => {
 	expect(row.id).to.be.eql(transaction.id);
 	expect(row.blockId).to.be.eql(transaction.blockId);
@@ -129,7 +131,7 @@ describe('Transaction', () => {
 			});
 			let result = await storage.entities.Transaction.create(transaction);
 
-			expect(result).to.be.eql(undefined);
+			expect(result).to.be.eql(true);
 
 			result = await storage.adapter.execute('SELECT * from trs');
 
@@ -151,7 +153,7 @@ describe('Transaction', () => {
 				transaction2,
 			]);
 
-			expect(result).to.be.eql(undefined);
+			expect(result).to.be.eql(true);
 
 			result = await storage.adapter.execute('SELECT * from trs');
 
@@ -217,7 +219,6 @@ describe('Transaction', () => {
 			//  save function called once for both transactions
 
 			Object.keys(transactionTypes).forEach(type => {
-				// if (['IN_TRANSFER', 'DAPP', 'MULTI', 'VOTE', 'DELEGATE', 'SIGNATURE', 'SEND'].includes(type) ) return;
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
@@ -253,6 +254,218 @@ describe('Transaction', () => {
 					.getCall(i)
 					.args[1].forEach(t => expect(t.type).to.be.eql(i));
 			});
+		});
+
+		it('should insert entry into "transfer" table for type 0 transactions', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionTypes.SEND,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.adapter.execute('SELECT * FROM transfer');
+
+			expect(result).to.not.empty;
+			expect(result).to.have.lengthOf(numSeedRecords);
+			expect(result.map(r => Buffer.from(r.data).toString())).to.be.eql(
+				transactions.map(t => t.asset.data)
+			);
+			expect(result.map(r => r.transactionId)).to.be.eql(
+				transactions.map(t => t.id)
+			);
+		});
+
+		it('should insert entry into "signatures" table for type 1 transactions', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionTypes.SIGNATURE,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.adapter.execute('SELECT * FROM signatures');
+
+			expect(result).to.not.empty;
+			expect(result).to.have.lengthOf(numSeedRecords);
+			expect(
+				result.map(r => Buffer.from(r.publicKey).toString('hex'))
+			).to.be.eql(transactions.map(t => t.asset.signature.publicKey));
+			expect(result.map(r => r.transactionId)).to.be.eql(
+				transactions.map(t => t.id)
+			);
+		});
+
+		it('should insert entry into "delegates" table for type 2 transactions', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionTypes.DELEGATE,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.adapter.execute('SELECT * FROM delegates');
+
+			expect(result).to.not.empty;
+			expect(result).to.have.lengthOf(numSeedRecords);
+			expect(result.map(r => r.transactionId)).to.be.eql(
+				transactions.map(t => t.id)
+			);
+			expect(
+				result.map(r => {
+					delete r.transactionId;
+					return r;
+				})
+			).to.be.eql(transactions.map(t => t.asset.delegate));
+		});
+
+		it('should insert entry into "votes" table for type 3 transactions', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionTypes.VOTE,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.adapter.execute('SELECT * FROM votes');
+
+			expect(result).to.not.empty;
+			expect(result).to.have.lengthOf(numSeedRecords);
+			expect(result.map(r => r.votes)).to.be.eql(
+				transactions.map(t => t.asset.votes.join())
+			);
+			expect(result.map(r => r.transactionId)).to.be.eql(
+				transactions.map(t => t.id)
+			);
+		});
+
+		it('should insert entry into "multisignatures" table for type 4 transactions', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionTypes.MULTI,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.adapter.execute(
+				'SELECT * FROM multisignatures'
+			);
+
+			expect(result).to.not.empty;
+			expect(result).to.have.lengthOf(numSeedRecords);
+			expect(result.map(r => r.min)).to.be.eql(
+				transactions.map(t => t.asset.multisignature.min)
+			);
+			expect(result.map(r => r.lifetime)).to.be.eql(
+				transactions.map(t => t.asset.multisignature.lifetime)
+			);
+			expect(result.map(r => r.keysgroup)).to.be.eql(
+				transactions.map(t => t.asset.multisignature.keysgroup.join())
+			);
+			expect(result.map(r => r.transactionId)).to.be.eql(
+				transactions.map(t => t.id)
+			);
+		});
+
+		it('should insert entry into "dapps" table for type 5 transactions', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionTypes.DAPP,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.adapter.execute('SELECT * FROM dapps');
+
+			expect(result).to.not.empty;
+			expect(result).to.have.lengthOf(numSeedRecords);
+			expect(result.map(r => r.transactionId)).to.be.eql(
+				transactions.map(t => t.id)
+			);
+			expect(result).to.be.eql(transactions.map(t => t.asset.dapp));
+		});
+
+		it('should insert entry into "intransfer" table for type 6 transactions', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionTypes.IN_TRANSFER,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.adapter.execute('SELECT * FROM intransfer');
+
+			expect(result).to.not.empty;
+			expect(result).to.have.lengthOf(numSeedRecords);
+			expect(result.map(r => r.transactionId)).to.be.eql(
+				transactions.map(t => t.id)
+			);
+			expect(result.map(r => r.dappId)).to.be.eql(
+				transactions.map(t => t.asset.inTransfer.dappId)
+			);
+		});
+
+		it('should insert entry into "outtransfer" table for type 7 transactions', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionTypes.OUT_TRANSFER,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.adapter.execute('SELECT * FROM outtransfer');
+
+			expect(result).to.not.empty;
+			expect(result).to.have.lengthOf(numSeedRecords);
+			expect(result.map(r => r.transactionId)).to.be.eql(
+				transactions.map(t => t.id)
+			);
+			expect(result.map(r => r.dappId)).to.be.eql(
+				transactions.map(t => t.asset.outTransfer.dappId)
+			);
+			expect(result.map(r => r.outTransactionId)).to.be.eql(
+				transactions.map(t => t.asset.outTransfer.transactionId)
+			);
 		});
 	});
 });

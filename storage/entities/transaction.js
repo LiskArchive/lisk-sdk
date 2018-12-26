@@ -347,7 +347,7 @@ class Transaction extends BaseEntity {
 				);
 			});
 
-			return t.batch(batch);
+			return t.batch(batch).then(() => true);
 		};
 
 		if (tx) {
@@ -375,7 +375,7 @@ class Transaction extends BaseEntity {
 				fields = ['transactionId', 'publicKey'];
 				values = transactions.map(transaction => ({
 					transactionId: transaction.id,
-					publicKey: transaction.asset.signature.publicKey,
+					publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex'),
 				}));
 				break;
 			case 2:
