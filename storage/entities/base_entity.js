@@ -23,6 +23,7 @@ const { isSortOptionValid, parseSortString } = require('../utils/sort_option');
 const filterTypes = require('../utils/filter_types');
 const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
+const { defaultInput } = require('../utils/inputSerializers');
 
 class BaseEntity {
 	/**
@@ -176,9 +177,20 @@ class BaseEntity {
 		);
 	}
 
-	getValuesSet(data, attributes = undefined) {
+	/**
+	 * Generate value set
+	 *
+	 * @param {Array.<Object>} data - Data objects
+	 * @param {Array.<string>} [attributes] - Attributes to save from objects
+	 * @param {Object} [options] - Options object
+	 * @param {Boolean} [options.useRawObject] - Use raw object instead of fields
+	 * @return {*}
+	 */
+	getValuesSet(data, attributes = undefined, options = {}) {
 		if (Array.isArray(data)) {
-			return data.map(d => this._getValueSetForObject(d, attributes)).join(',');
+			return data
+				.map(d => this._getValueSetForObject(d, attributes, options))
+				.join(',');
 		}
 
 		return this._getValueSetForObject(data, attributes);
@@ -189,9 +201,9 @@ class BaseEntity {
 	 *
 	 * @param {string} transactionName - Name of the transaction
 	 * @param {function} cb - Callback function transaction
-	 * @param {Object} options
-	 * @param {Boolean} options.noTransaction - Don't use begin/commit block
-	 * @param {Object} tx - A parent transaction object
+	 * @param {Object} [options]
+	 * @param {Boolean} [options.noTransaction] - Don't use begin/commit block
+	 * @param {Object} [tx] - A parent transaction object
 	 * @return {*}
 	 */
 	begin(transactionName, cb, options = {}, tx) {
@@ -338,10 +350,15 @@ class BaseEntity {
 		return { ...filters, ...this.defaultFilters };
 	}
 
-	_getValueSetForObject(data, attributes = undefined) {
+	_getValueSetForObject(data, attributes = undefined, options = {}) {
 		return `(${this.adapter.parseQueryComponent(
 			(attributes || Object.keys(data))
-				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
+				.map(key => {
+					if (options.useRawObject) {
+						return defaultInput.call(this, data[key], 'insert', key, key);
+					}
+					return this.fields[key].serializeValue(data[key], 'insert');
+				})
 				.join(','),
 			data
 		)})`;
