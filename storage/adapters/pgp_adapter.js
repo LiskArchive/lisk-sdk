@@ -151,10 +151,10 @@ class PgpAdapter extends BaseAdapter {
 	 * Execute an SQL file
 	 *
 	 * @param {string} sql
-	 * @param {Object} params
-	 * @param {Object} options
+	 * @param {Object} [params]
+	 * @param {Object} [options]
 	 * @param {Number} [options.expectedResultCount]
-	 * @param {Object} tx
+	 * @param {Object} [tx]
 	 * @return {*}
 	 */
 	execute(sql, params = {}, options = {}, tx) {
