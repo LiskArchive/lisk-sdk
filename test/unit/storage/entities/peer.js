@@ -37,11 +37,11 @@ describe('Peer', () => {
 	let storage;
 
 	before(async () => {
-		const dbSandbox = new storageSandbox.StorageSandbox(
+		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.db,
 			'lisk_test_peers'
 		);
-		storage = await dbSandbox.create();
+		await storage.bootstrap();
 
 		validPeerFields = [
 			'id',
@@ -174,6 +174,7 @@ describe('Peer', () => {
 
 	afterEach(async () => {
 		sinonSandbox.reset();
+		await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
 	});
 
 	it('should be a constructable function', async () => {
@@ -292,10 +293,6 @@ describe('Peer', () => {
 	});
 
 	describe('create()', () => {
-		afterEach(async () => {
-			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
-		});
-
 		it('should call getValuesSet with proper params', async () => {
 			const localAdapter = {
 				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
