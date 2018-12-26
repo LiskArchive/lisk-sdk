@@ -123,6 +123,69 @@ describe('Transaction', () => {
 		it('should setup specific filters');
 	});
 
+	describe('getOne()', () => {
+		it('should accept only valid filters');
+		it('should throw error for in-valid filters');
+		it('should accept only valid options');
+		it('should throw error for in-valid options');
+		it(
+			'should resolve with one object matching specification of type definition of simple object'
+		);
+		it(
+			'should reject with error if matched with multiple records for provided filters'
+		);
+
+		describe('filters', () => {
+			// To make add/remove filters we add their tests.
+			it('should have only specific filters');
+			// For each filter type
+			it('should return matching result for provided filter');
+		});
+	});
+
+	describe('get()', () => {
+		it('should accept only valid filters');
+		it('should throw error for in-valid filters');
+		it('should accept only valid options');
+		it('should throw error for in-valid options');
+		it('should call adapter.executeFile with proper param for extended=false');
+		it('should call adapter.executeFile with proper param for extended=true');
+		it('should accept "tx" as last parameter and pass to adapter.executeFile');
+		it(
+			'should resolve with one object matching specification of type definition of simple object'
+		);
+		it(
+			'should resolve with one object matching specification of type definition of full object'
+		);
+		it('should not change any of the provided parameter');
+
+		describe('filters', () => {
+			// To make add/remove filters we add their tests.
+			it('should have only specific filters');
+			// For each filter type
+			it('should return matching result for provided filter');
+		});
+	});
+
+	describe('isPersisted()', () => {
+		it('should accept only valid filters');
+		it('should throw error for in-valid filters');
+		it('should accept only valid options');
+		it('should throw error for in-valid options');
+		it('should call mergeFilters with proper params');
+		it('should call parseFilters with proper params');
+		it('should call adapter.executeFile with proper params');
+		it('should resolve with true if matching record found');
+		it('should resolve with false if matching record not found');
+	});
+
+	describe('count()', () => {
+		it('should accept only valid filters');
+		it('should throw error for in-valid filters');
+		it('should resolve with integer value if matching record found');
+		it('should resolve with zero if matching record not found');
+	});
+
 	describe('create()', () => {
 		it('should save single transaction', async () => {
 			const block = seeder.getLastBlock();
