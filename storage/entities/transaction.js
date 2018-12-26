@@ -200,14 +200,34 @@ class Transaction extends BaseEntity {
 			fieldName: 't_amount',
 		});
 		this.addField('fee', 'string', { filter: ft.NUMBER, fieldName: 't_fee' });
-		this.addField('signature', 'string', { fieldName: 't_signature' });
-		this.addField('signSignature', 'string', { fieldName: 't_SignSignature' });
+		this.addField(
+			'signature',
+			'string',
+			{ fieldName: 't_signature' },
+			stringToByte
+		);
+		this.addField(
+			'signSignature',
+			'string',
+			{ fieldName: 't_SignSignature' },
+			stringToByte
+		);
+		this.addField('signatures', 'string', { fieldName: 't_signatures' });
 
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('transactions/get.sql'),
 			selectExtended: this.adapter.loadSQLFile('transactions/get_extended.sql'),
 			isPersisted: this.adapter.loadSQLFile('transactions/is_persisted.sql'),
 			count: this.adapter.loadSQLFile('transactions/count.sql'),
+			create: this.adapter.loadSQLFile('transactions/create.sql'),
+			createType0: this.adapter.loadSQLFile('transactions/create_type_0.sql'),
+			createType1: this.adapter.loadSQLFile('transactions/create_type_1.sql'),
+			createType2: this.adapter.loadSQLFile('transactions/create_type_2.sql'),
+			createType3: this.adapter.loadSQLFile('transactions/create_type_3.sql'),
+			createType4: this.adapter.loadSQLFile('transactions/create_type_4.sql'),
+			createType5: this.adapter.loadSQLFile('transactions/create_type_5.sql'),
+			createType6: this.adapter.loadSQLFile('transactions/create_type_6.sql'),
+			createType7: this.adapter.loadSQLFile('transactions/create_type_7.sql'),
 		};
 	}
 
@@ -304,9 +324,129 @@ class Transaction extends BaseEntity {
 
 		const createSet = this.getValuesSet(transactions, trsFields);
 
+		const task = t => {
+			const batch = [];
+
+			batch.push(
+				this.adapter.executeFile(
+					this.SQLs.create,
+					{ values: createSet, attributes: trsFields },
+					{ expectedResultCount: 0 },
+					t
+				)
+			);
+
+			const groupedTransactions = _.groupBy(transactions, 'type');
+			Object.keys(groupedTransactions).forEach(type => {
+				batch.push(
+					this._createSubTransactions(
+						parseInt(type),
+						groupedTransactions[type],
+						t
+					)
+				);
+			});
+
+			return t.batch(batch);
+		};
+
+		if (tx) {
+			return task(tx);
+		}
+
+		return this.begin('transactions:create', task);
+	}
+
+	_createSubTransactions(type, transactions, tx) {
+		let fields;
+		let values;
+
+		switch (type) {
+			case 0:
+				fields = ['transactionId', 'data'];
+				values = transactions
+					.filter(transaction => transaction.asset && transaction.asset.data)
+					.map(transaction => ({
+						transactionId: transaction.id,
+						data: Buffer.from(transaction.asset.data, 'utf8'),
+					}));
+				break;
+			case 1:
+				fields = ['transactionId', 'publicKey'];
+				values = transactions.map(transaction => ({
+					transactionId: transaction.id,
+					publicKey: transaction.asset.signature.publicKey,
+				}));
+				break;
+			case 2:
+				fields = ['transactionId', 'username'];
+				values = transactions.map(transaction => ({
+					transactionId: transaction.id,
+					username: transaction.asset.delegate.username,
+				}));
+				break;
+			case 3:
+				fields = ['transactionId', 'votes'];
+				values = transactions.map(transaction => ({
+					votes: Array.isArray(transaction.asset.votes)
+						? transaction.asset.votes.join()
+						: null,
+					transactionId: transaction.id,
+				}));
+				break;
+			case 4:
+				fields = ['transactionId', 'min', 'lifetime', 'keysgroup'];
+				values = transactions.map(transaction => ({
+					min: transaction.asset.multisignature.min,
+					lifetime: transaction.asset.multisignature.lifetime,
+					keysgroup: transaction.asset.multisignature.keysgroup.join(),
+					transactionId: transaction.id,
+				}));
+				break;
+			case 5:
+				fields = [
+					'transactionId',
+					'type',
+					'name',
+					'description',
+					'tags',
+					'link',
+					'icon',
+					'category',
+				];
+				values = transactions.map(transaction => ({
+					type: transaction.asset.dapp.type,
+					name: transaction.asset.dapp.name,
+					description: transaction.asset.dapp.description || null,
+					tags: transaction.asset.dapp.tags || null,
+					link: transaction.asset.dapp.link || null,
+					icon: transaction.asset.dapp.icon || null,
+					category: transaction.asset.dapp.category,
+					transactionId: transaction.id,
+				}));
+				break;
+			case 6:
+				fields = ['transactionId', 'dappId'];
+				values = transactions.map(transaction => ({
+					dappId: transaction.asset.inTransfer.dappId,
+					transactionId: transaction.id,
+				}));
+				break;
+			case 7:
+				fields = ['transactionId', 'dappId', 'outTransactionId'];
+				values = transactions.map(transaction => ({
+					dappId: transaction.asset.outTransfer.dappId,
+					outTransactionId: transaction.asset.outTransfer.transactionId,
+					transactionId: transaction.id,
+				}));
+				break;
+			default:
+				throw new Error(`Unsupported transaction type: ${type}`);
+		}
+
 		return this.adapter.executeFile(
-			this.SQLs.create,
-			{ createSet, trsFields },
+			this.SQLs[`createType${type}`],
+			{ values: this.getValuesSet(values, fields, { useRawObject: true }) },
 			{ expectedResultCount: 0 },
 			tx
 		);

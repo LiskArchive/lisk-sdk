@@ -12,4 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO trs (${attributes:name}) VALUES ${values:raw};
+INSERT INTO "outtransfer" ("transactionId", "dappId", "outTransactionId") VALUES ${values:raw};
