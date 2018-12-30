@@ -15,7 +15,7 @@
 SELECT
 	"address",
 	ENCODE("publicKey", 'hex') as "publicKey",
-	ENCODE("secondPublicKey", 'hex') as "publicKey",
+	ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 	"username",
 	"isDelegate",
 	"secondSignature",
@@ -25,6 +25,7 @@ SELECT
 	"nameexist" as "nameExist",
 	"fees",
 	"rewards",
+	"vote",
 	"producedBlocks",
 	"missedBlocks",
 	"rank"

@@ -15,7 +15,7 @@
 SELECT
 	"address",
 	ENCODE("publicKey", 'hex') as "publicKey",
-	ENCODE("secondPublicKey", 'hex') as "publicKey",
+	ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 	"username",
 	"isDelegate",
 	"secondSignature",
@@ -25,8 +25,15 @@ SELECT
 	"nameexist" as "nameExist",
 	"fees",
 	"rewards",
+	"vote",
 	"producedBlocks",
 	"missedBlocks",
+	case
+    when
+    	"producedBlocks" + "missedBlocks" = 0 then 0
+    else
+		(("producedBlocks" / ("producedBlocks" + "missedBlocks")) * 100.0)::integer
+	end AS productivity,
 	"rank",
 	"u_isDelegate",
 	"u_secondSignature",
