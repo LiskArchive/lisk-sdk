@@ -102,9 +102,11 @@ const readOnlyFields = ['address'];
  * @property {string} [publicKey]
  * @property {string} [publicKey_eql]
  * @property {string} [publicKey_ne]
+ * @property {Array.<string>} [publicKey_in]
  * @property {string} [secondPublicKey]
  * @property {string} [secondPublicKey_eql]
  * @property {string} [secondPublicKey_ne]
+ * @property {Array.<string>} [secondPublicKey_in]
  * @property {string} [username]
  * @property {string} [username_eql]
  * @property {string} [username_ne]
@@ -202,7 +204,7 @@ class Account extends BaseEntity {
 			'string',
 			{
 				format: 'publicKey',
-				filter: ft.TEXT,
+				filter: ft.BINARY,
 			},
 			stringToByte
 		);
@@ -211,7 +213,7 @@ class Account extends BaseEntity {
 			'string',
 			{
 				format: 'publicKey',
-				filter: ft.TEXT,
+				filter: ft.BINARY,
 			},
 			stringToByte
 		);
@@ -304,6 +306,7 @@ class Account extends BaseEntity {
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
+	 * @param {string | Array.<string>} [options.sort] - Sort keys for results
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
 	 */
@@ -320,6 +323,7 @@ class Account extends BaseEntity {
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
+	 * @param {string | Array.<string>} [options.sort] - Sort keys for results
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount[]|ExtendedAccount[], Error>}
 	 */

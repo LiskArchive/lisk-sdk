@@ -124,7 +124,7 @@ describe('filters', () => {
 				return expect(() =>
 					filterGenerator('invalidType', 'alias', 'name')
 				).to.throw(
-					'"invalidType" not supported filter type. Supported types are: TEXT,NUMBER,BOOLEAN,CUSTOM.'
+					'"invalidType" not supported filter type. Supported types are: TEXT,BINARY,NUMBER,BOOLEAN,CUSTOM.'
 				);
 			});
 		});

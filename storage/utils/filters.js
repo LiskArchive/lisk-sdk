@@ -46,6 +46,17 @@ function filterGenerator(
 			filters[`${alias}_like`] = `"${fieldName}" LIKE ($\{${alias}_like})`;
 			break;
 
+		case filterTypes.BINARY:
+			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
+			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+
+			filters[
+				`${alias}_in`
+			] = `ENCODE("${fieldName}", 'hex') IN ($\{${alias}_in:csv})`;
+			filters[`${alias}_like`] = `"${fieldName}" LIKE ($\{${alias}_like})`;
+			break;
+
 		case filterTypes.NUMBER:
 			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
 			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
