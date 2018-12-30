@@ -487,6 +487,10 @@ d.run(() => {
 				storage
 					.bootstrap()
 					.then(status => {
+						storage.entities.Account.extendDefaultOptions({
+							limit: global.constants.ACTIVE_DELEGATES,
+						});
+
 						cb(!status, storage);
 					})
 					.catch(err => {
