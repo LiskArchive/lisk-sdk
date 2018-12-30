@@ -19,6 +19,11 @@
 module.exports = {
 	defaultInput: (value, mode, alias, fieldName) => `$\{${alias}}`,
 	booleanToInt: (value, mode, alias, fieldName) => `$\{${alias}}::int`,
-	stringToByte: (value, mode, alias, fieldName) =>
-		value ? `DECODE($\{${alias}}, 'hex')` : 'NULL',
+	stringToByte: (value, mode, alias, fieldName) => {
+		if (mode === 'select') {
+			return `DECODE($\{${alias}}, 'hex')`;
+		}
+
+		return value ? `DECODE($\{${alias}}, 'hex')` : 'NULL';
+	},
 };
