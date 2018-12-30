@@ -15,11 +15,15 @@
 'use strict';
 
 const _ = require('lodash');
+const Bignum = require('bignumber.js');
 const ApiError = require('../../helpers/api_error');
 const swaggerHelper = require('../../helpers/swagger');
+const BlockReward = require('../../logic/block_reward');
 
 // Private Fields
 let modules;
+let storage;
+let blockReward;
 
 /**
  * Description of the function.
@@ -34,6 +38,58 @@ let modules;
  */
 function AccountsController(scope) {
 	modules = scope.modules;
+	storage = scope.storage;
+	blockReward = new BlockReward();
+}
+
+function calculateApproval(votersBalance, totalSupply) {
+	// votersBalance and totalSupply are sent as strings,
+	// we convert them into bignum and send the response as number as well
+	const votersBalanceBignum = new Bignum(votersBalance || 0);
+	const totalSupplyBignum = new Bignum(totalSupply);
+	const approvalBignum = votersBalanceBignum
+		.dividedBy(totalSupplyBignum)
+		.multipliedBy(100)
+		.decimalPlaces(2);
+
+	return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
+}
+
+function accountFormatter(account, totalSupply) {
+	const object = _.pick(account, [
+		'address',
+		'publicKey',
+		'balance',
+		'u_balance',
+		'secondPublicKey',
+	]);
+	object.unconfirmedBalance = object.u_balance;
+	delete object.u_balance;
+
+	if (account.isDelegate) {
+		object.delegate = _.pick(account, [
+			'username',
+			'vote',
+			'rewards',
+			'producedBlocks',
+			'missedBlocks',
+			'rank',
+			'productivity',
+		]);
+
+		object.delegate.rank = parseInt(object.delegate.rank);
+
+		// Computed fields
+		object.delegate.approval = calculateApproval(object.vote, totalSupply);
+	}
+
+	if (_.isNull(object.publicKey)) {
+		object.publicKey = '';
+	}
+	if (_.isNull(object.secondPublicKey)) {
+		object.secondPublicKey = '';
+	}
+	return object;
 }
 
 /**
@@ -43,54 +99,49 @@ function AccountsController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-AccountsController.getAccounts = function(context, next) {
+AccountsController.getAccounts = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	let filters = {
-		address: params.address.value,
-		publicKey: params.publicKey.value,
-		secondPublicKey: params.secondPublicKey.value,
-		username: params.username.value,
+		address_eql: params.address.value,
+		publicKey_eql: params.publicKey.value,
+		secondPublicKey_eql: params.secondPublicKey.value,
+		username_like: params.username.value,
+	};
+
+	const options = {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
+		extended: true,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.accounts.shared.getAccounts(_.clone(filters), (err, data) => {
-		if (err) {
-			return next(err);
-		}
+	try {
+		let lastBlock = await storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1 }
+		);
+		lastBlock = lastBlock[0];
 
-		data = _.cloneDeep(data);
-
-		data = _.map(data, account => {
-			if (_.isEmpty(account.delegate)) {
-				delete account.delegate;
-			} else {
-				account.delegate.rank = parseInt(account.delegate.rank);
-			}
-			if (_.isNull(account.publicKey)) {
-				account.publicKey = '';
-			}
-			if (_.isNull(account.secondPublicKey)) {
-				account.secondPublicKey = '';
-			}
-			delete account.secondSignature;
-			delete account.unconfirmedSignature;
-			return account;
-		});
+		const data = await storage.entities.Account.get(filters, options).map(
+			accountFormatter.bind(
+				lastBlock.height ? blockReward.calcSupply(lastBlock.height) : 0
+			)
+		);
 
 		return next(null, {
 			data,
 			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
+				offset: options.offset,
+				limit: options.limit,
 			},
 		});
-	});
+	} catch (err) {
+		return next(err);
+	}
 };
 
 /**
