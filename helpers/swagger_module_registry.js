@@ -35,6 +35,7 @@ function bind(scope) {
 		config: scope.config,
 		cache: scope.modules.cache,
 		logger: scope.logger,
+		storage: scope.storage,
 	};
 }
 
@@ -68,9 +69,18 @@ function getConfig() {
 	return __private.config;
 }
 
+/**
+ * Get system storage component
+ * @return {Object}
+ */
+function getStorage() {
+	return __private.storage;
+}
+
 module.exports = {
 	bind,
 	getCache,
 	getLogger,
 	getConfig,
+	getStorage,
 };
