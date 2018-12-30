@@ -35,10 +35,6 @@ const modulesToInstrument = {
 		identifier: 'modules.node',
 		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
 	},
-	'./modules/accounts.js': {
-		identifier: 'modules.accounts',
-		callbackMethods: ['shared.getAccounts'],
-	},
 	'./modules/blocks.js': {
 		identifier: 'modules.blocks',
 		callbackMethods: ['shared.getBlocks'],
