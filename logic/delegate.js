@@ -192,7 +192,7 @@ Delegate.prototype.checkDuplicates = function(
 		{
 			duplicatedDelegate(eachCb) {
 				const query = {};
-				query[isDelegate] = 1;
+				query[isDelegate] = true;
 				query.publicKey = transaction.senderPublicKey;
 				return modules.accounts.getAccount(query, [username], eachCb, tx);
 			},

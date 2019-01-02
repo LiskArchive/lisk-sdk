@@ -372,7 +372,7 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 						});
 
 						modules.accounts.getAccounts(
-							{ address: addresses },
+							{ address_in: addresses },
 							['address', 'publicKey', 'secondPublicKey'],
 							(err, accounts) => {
 								accounts.forEach(account => {

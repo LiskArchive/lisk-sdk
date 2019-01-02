@@ -143,8 +143,8 @@ Delegates.prototype.clearDelegateListCache = function() {
 __private.getKeysSortByVote = function(cb, tx) {
 	modules.accounts.getAccounts(
 		{
-			isDelegate: 1,
-			sort: { vote: -1, publicKey: 1 },
+			isDelegate: true,
+			sort: ['vote:desc', 'publicKey:asc'],
 			limit: ACTIVE_DELEGATES,
 		},
 		['publicKey'],
@@ -447,8 +447,8 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 			function validateVotes(existingVotedPublicKeys, waterfallCb) {
 				modules.accounts.getAccounts(
 					{
-						publicKey: votesWithAction.map(({ publicKey }) => publicKey),
-						isDelegate: 1,
+						publicKey_in: votesWithAction.map(({ publicKey }) => publicKey),
+						isDelegate: true,
 						sort: 'address:desc',
 					},
 					(err, votesAccounts) => {
@@ -618,7 +618,6 @@ __private.loadDelegates = function(cb) {
 							)} not found`
 						);
 					}
-
 					if (account.isDelegate) {
 						__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 						library.logger.info(
@@ -814,10 +813,10 @@ Delegates.prototype.getDelegates = function(query, cb) {
 		throw 'Invalid query argument, expected object';
 	}
 	if (query.search) {
-		query.username = { $like: `%${query.search}%` };
+		query.username_like = `%${query.search}%`;
 		delete query.search;
 	}
-	query.isDelegate = 1;
+	query.isDelegate = true;
 	modules.accounts.getAccounts(
 		query,
 		[

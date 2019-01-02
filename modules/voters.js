@@ -60,7 +60,7 @@ class Voters {
  * @todo Add description of the function
  */
 const getDelegate = function(query, cb) {
-	const dbQuery = _.assign({}, query, { sort: {} });
+	const dbQuery = _.assign({}, query);
 
 	delete dbQuery.limit;
 	delete dbQuery.offset;
@@ -200,7 +200,7 @@ const getVotesForDelegates = function(filters, delegate, cb) {
  */
 const populateVotes = function(sort, addresses, cb) {
 	modules.accounts.getAccounts(
-		{ address: addresses, sort },
+		{ address_in: addresses, sort },
 		['address', 'balance', 'publicKey', 'username'],
 		cb
 	);
