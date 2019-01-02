@@ -633,6 +633,9 @@ d.run(() => {
 							db(dbCb) {
 								dbCb(null, scope.db);
 							},
+							storage(dbCb) {
+								dbCb(null, scope.storage);
+							},
 							ed(edCb) {
 								edCb(null, scope.ed);
 							},
@@ -655,6 +658,7 @@ d.run(() => {
 								function(accountScope, accountCb) {
 									new Account(
 										accountScope.db,
+										accountScope.storage,
 										accountScope.schema,
 										accountScope.logger,
 										accountCb
