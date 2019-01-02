@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import {
 	validatePeerAddress,
 	instantiatePeerFromResponse,
-} from '../../src/response_handler';
+} from '../../src/response_handler_sanitization';
 
 describe('response handlers', () => {
 	describe('#instantiatePeerFromResponse', () => {

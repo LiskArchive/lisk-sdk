@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { initializePeerList } from '../utils/peers';
-import { PeerOptions, selectPeers } from '../../src/peer_selector';
+import { PeerOptions, selectPeers } from '../../src/peer_selection';
 
 describe('peer selector', () => {
 	describe('#selectPeer', () => {

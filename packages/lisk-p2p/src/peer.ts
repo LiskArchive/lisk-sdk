@@ -23,7 +23,7 @@ import {
 
 import socketClusterClient from 'socketcluster-client';
 
-import { processPeerListFromResponse } from './response_handler';
+import { processPeerListFromResponse } from './response_handler_sanitization';
 
 export interface PeerInfo {
 	readonly ipAddress: string;
