@@ -21,7 +21,7 @@ const BaseEntity = require('./base_entity');
 /**
  * Migration
  * @typedef {Object} Migration
- * @property {number} id
+ * @property {string} id
  * @property {string} name
  */
 
@@ -31,11 +31,8 @@ const BaseEntity = require('./base_entity');
  * @property {number} [id]
  * @property {number} [id_eql]
  * @property {number} [id_ne]
- * @property {number} [id_gt]
- * @property {number} [id_gte]
- * @property {number} [id_lt]
- * @property {number} [id_lte]
  * @property {number} [id_in]
+ * @property {number} [id_like]
  * @property {string} [name]
  * @property {string} [name_eql]
  * @property {string} [name_ne]
