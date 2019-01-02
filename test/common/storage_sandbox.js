@@ -15,7 +15,7 @@
 'use strict';
 
 const child_process = require('child_process');
-const storage = require('../../storage');
+const Storage = require('../../storage/storage');
 
 const dbNames = [];
 
@@ -39,7 +39,7 @@ function clearDatabaseTable(storageInstance, logger, table) {
 	});
 }
 
-class StorageSandbox {
+class StorageSandbox extends Storage {
 	constructor(dbConfig, dbName) {
 		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test')
 			throw new Error(
@@ -47,11 +47,9 @@ class StorageSandbox {
 					process.env.NODE_ENV
 				}`
 			);
-		this.dbConfig = dbConfig;
-		this.originalDbName = dbConfig.database;
-		this.dbName = dbName || this.originalDbName;
-		this.dbConfig.database = this.dbName;
-		dbNames.push(this.dbName);
+
+		dbNames.push(dbName);
+		dbConfig.database = dbName;
 
 		const dropCreatedDatabases = function() {
 			dbNames.forEach(aDbName => {
@@ -62,19 +60,35 @@ class StorageSandbox {
 		process.on('exit', () => {
 			dropCreatedDatabases();
 		});
+
+		super(dbConfig, console);
+		this.originalDbName = dbConfig.database;
 	}
 
-	dropDB() {
+	async bootstrap() {
+		await this._dropDB();
+		await this._createDB();
+		await super.bootstrap();
+		await this._createSchema(this.adapter.db);
+		return true;
+	}
+
+	cleanup() {
+		this.options.database = this.originalDbName;
+		super.cleanup();
+	}
+
+	_dropDB() {
 		return new Promise(resolve => {
-			child_process.exec(`dropdb ${this.dbConfig.database}`, () => {
+			child_process.exec(`dropdb ${this.options.database}`, () => {
 				return resolve();
 			});
 		});
 	}
 
-	createDB() {
+	_createDB() {
 		return new Promise((resolve, reject) => {
-			child_process.exec(`createdb ${this.dbConfig.database}`, error => {
+			child_process.exec(`createdb ${this.options.database}`, error => {
 				if (error) {
 					return reject(error);
 				}
@@ -83,21 +97,8 @@ class StorageSandbox {
 		});
 	}
 
-	async create() {
-		try {
-			await this.dropDB();
-			await this.createDB();
-			const storageSandbox = storage(this.dbConfig, this.dbConfig.logger);
-			await storageSandbox.bootstrap();
-			await this.createSchema(storageSandbox.adapter.db);
-			return storageSandbox;
-		} catch (err) {
-			return new Error(err);
-		}
-	}
-
 	// eslint-disable-next-line class-methods-use-this
-	async createSchema(db) {
+	async _createSchema(db) {
 		return new Promise((resolve, reject) => {
 			db.migrations
 				.applyAll()
@@ -108,11 +109,6 @@ class StorageSandbox {
 					return reject(err);
 				});
 		});
-	}
-
-	destroy(logger) {
-		storage.disconnect(logger);
-		this.dbConfig.database = this.originalDbName;
 	}
 }
 
