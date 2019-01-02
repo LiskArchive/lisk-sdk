@@ -653,4 +653,49 @@ describe('Peer', () => {
 			'should merge provided filter with default filters by preserving default filters values'
 		);
 	});
+
+	describe('delete', () => {
+		it('should accept only valid filters', async () => {
+			const peer = new Peer(adapter);
+			expect(() => {
+				peer.delete(validFilter, validPeer);
+			}).not.to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should throw error for invalid filters', async () => {
+			const peer = new Peer(adapter);
+			expect(() => {
+				peer.delete(invalidFilter, validPeer);
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should call mergeFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub();
+			peer.parseFilters = sinonSandbox.stub();
+			peer.delete(validFilter);
+			expect(peer.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.delete(validFilter);
+			expect(peer.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should only delete records specified by filter');
+		it('should delete all records if no filter is specified');
+	});
 });
