@@ -151,7 +151,7 @@ AccountsController.getAccounts = async function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-AccountsController.getMultisignatureGroups = function(context, next) {
+AccountsController.getMultisignatureGroups = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	let filters = {
@@ -170,27 +170,62 @@ AccountsController.getMultisignatureGroups = function(context, next) {
 		);
 	}
 
-	return modules.multisignatures.shared.getGroups(
-		_.clone(filters),
-		(err, data) => {
-			if (err) {
-				if (err instanceof ApiError) {
-					context.statusCode = err.code;
-					delete err.code;
-				}
+	filters.multiMin_gt = 0;
 
-				return next(err);
-			}
+	try {
+		let account = await storage.entities.Account.getOne(filters, {
+			extended: true,
+		});
 
-			return next(null, {
-				data,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-				},
-			});
+		account.min = account.multiMin;
+		account.lifetime = account.multiLifetime;
+		account.unconfirmedBalance = account.u_balance;
+		account = _.pick(account, [
+			'address',
+			'publicKey',
+			'balance',
+			'unconfirmedBalance',
+			'secondPublicKey',
+			'members',
+			'min',
+			'lifetime',
+		]);
+
+		if (account.secondPublicKey === null) {
+			account.secondPublicKey = '';
 		}
-	);
+
+		const members = await storage.entities.Account.get({
+			publicKey_in: account.members,
+		});
+
+		account.members = members.map(member => {
+			member = _.pick(member, ['address', 'publicKey', 'secondPublicKey']);
+			if (member.secondPublicKey === null) {
+				member.secondPublicKey = '';
+			}
+			return member;
+		});
+
+		return next(null, {
+			data: [account],
+			meta: {
+				offset: filters.offset,
+				limit: filters.limit,
+			},
+		});
+	} catch (error) {
+		// TODO: Improve it later by having custom error class from storage
+		// https://github.com/vitaly-t/pg-promise/blob/master/lib/errors/queryResult.js#L29
+		// code(0) == queryResultErrorCode.noData
+
+		if (error.code === 0) {
+			context.statusCode = 404;
+			return next(new Error('Multisignature account not found'));
+		}
+
+		return next(error);
+	}
 };
 
 /**
