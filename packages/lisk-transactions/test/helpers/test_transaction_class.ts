@@ -18,6 +18,10 @@ export class TestTransaction extends BaseTransaction {
 		return Buffer.alloc(0);
 	}
 
+	public testGetBasicBytes() {
+		return this.getBasicBytes();
+	} 
+
 	public getBytes() {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
