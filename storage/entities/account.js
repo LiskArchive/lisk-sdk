@@ -218,16 +218,31 @@ class Account extends BaseEntity {
 			stringToByte
 		);
 		this.addField('username', 'string', { filter: ft.TEXT });
-		this.addField('u_username', 'string');
+		this.addField('u_username', 'string', { filter: ft.TEXT });
 		this.addField(
 			'isDelegate',
 			'boolean',
 			{ filter: ft.BOOLEAN },
 			booleanToInt
 		);
-		this.addField('u_isDelegate', 'boolean', {}, booleanToInt);
-		this.addField('secondSignature', 'boolean', { filter: ft.BOOLEAN });
-		this.addField('u_secondSignature', 'boolean');
+		this.addField(
+			'u_isDelegate',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt
+		);
+		this.addField(
+			'secondSignature',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt
+		);
+		this.addField(
+			'u_secondSignature',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt
+		);
 		this.addField('balance', 'string', { filter: ft.NUMBER });
 		this.addField('u_balance', 'string');
 		this.addField('multiMin', 'number', {

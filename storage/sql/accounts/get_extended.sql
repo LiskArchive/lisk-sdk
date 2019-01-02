@@ -17,8 +17,8 @@ SELECT
 	ENCODE("publicKey", 'hex') as "publicKey",
 	ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 	"username",
-	"isDelegate",
-	"secondSignature",
+	"isDelegate"::int::boolean,
+	"secondSignature"::int::boolean,
 	"balance",
 	"multimin" as "multiMin",
 	"multilifetime" as "multiLifetime",
@@ -35,8 +35,8 @@ SELECT
 		(("producedBlocks" / ("producedBlocks" + "missedBlocks")) * 100.0)::integer
 	end AS productivity,
 	"rank",
-	"u_isDelegate",
-	"u_secondSignature",
+	"u_isDelegate"::int::boolean,
+	"u_secondSignature"::int::boolean,
 	"u_balance",
 	"u_multimin" as "u_multiMin",
 	"u_multilifetime" as "u_multiLifetime",
@@ -49,7 +49,7 @@ SELECT
 	(SELECT array_agg("dependentId")
 		FROM mem_accounts2u_delegates
 		WHERE "accountId" = mem_accounts.address
-	) as "votes",
+	) as "u_votes",
 	(SELECT array_agg("dependentId")
   		FROM mem_accounts2multisignatures
   		WHERE "accountId" = mem_accounts.address
