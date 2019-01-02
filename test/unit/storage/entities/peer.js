@@ -37,11 +37,11 @@ describe('Peer', () => {
 	let storage;
 
 	before(async () => {
-		const dbSandbox = new storageSandbox.StorageSandbox(
+		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.db,
 			'lisk_test_peers'
 		);
-		storage = await dbSandbox.create();
+		await storage.bootstrap();
 
 		validPeerFields = [
 			'id',
@@ -163,12 +163,7 @@ describe('Peer', () => {
 			offset: 0,
 		};
 
-		adapter = {
-			loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-			executeFile: sinonSandbox.stub().returns(validPeer),
-			parseQueryComponent: sinonSandbox.stub(),
-		};
-
+		adapter = storage.adapter;
 		addFieldSpy = sinonSandbox.spy(Peer.prototype, 'addField');
 	});
 
