@@ -84,13 +84,19 @@ const modulesLoader = new function() {
 		scope = _.assign({}, this.scope, scope);
 		switch (Logic.name) {
 			case 'Account':
-				new Logic(scope.db, scope.schema, scope.logger, cb);
+				new Logic(scope.db, scope.storage, scope.schema, scope.logger, cb);
 				break;
 			case 'Transaction':
 				async.series(
 					{
 						account(accountCb) {
-							new Account(scope.db, scope.schema, scope.logger, accountCb);
+							new Account(
+								scope.db,
+								scope.storage,
+								scope.schema,
+								scope.logger,
+								accountCb
+							);
 						},
 					},
 					(err, result) => {

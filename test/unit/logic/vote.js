@@ -113,8 +113,7 @@ describe('vote', () => {
 			{ publicKey: senderPublicKey },
 			(err, account) => {
 				const delegates =
-					(state === 'confirmed' ? account.delegates : account.u_delegates) ||
-					[];
+					(state === 'confirmed' ? account.votes : account.u_votes) || [];
 				const groupedVotes = _.groupBy(votes, v => {
 					return v[0];
 				});

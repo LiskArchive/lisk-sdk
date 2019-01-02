@@ -341,7 +341,10 @@ describe('delegate', () => {
 						.yields(null, null);
 					return accountsMock.getAccount
 						.withArgs(
-							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
+							{
+								publicKey: accounts.existingDelegate.publicKey,
+								isDelegate: true,
+							},
 							['username'],
 							sinonSandbox.match.any
 						)
@@ -385,7 +388,10 @@ describe('delegate', () => {
 						.yields(null, null);
 					return accountsMock.getAccount
 						.withArgs(
-							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
+							{
+								publicKey: accounts.existingDelegate.publicKey,
+								isDelegate: true,
+							},
 							['username'],
 							sinonSandbox.match.any
 						)
@@ -433,7 +439,10 @@ describe('delegate', () => {
 						.yields(null, accounts.existingDelegate);
 					return accountsMock.getAccount
 						.withArgs(
-							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
+							{
+								publicKey: accounts.existingDelegate.publicKey,
+								isDelegate: true,
+							},
 							['username'],
 							sinonSandbox.match.any
 						)
@@ -477,7 +486,10 @@ describe('delegate', () => {
 						.yields(null, null);
 					return accountsMock.getAccount
 						.withArgs(
-							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
+							{
+								publicKey: accounts.existingDelegate.publicKey,
+								isDelegate: true,
+							},
 							['username'],
 							sinonSandbox.match.any
 						)
@@ -545,7 +557,7 @@ describe('delegate', () => {
 			return expect(
 				accountsMock.getAccount.calledWith({
 					publicKey: accounts.existingDelegate.publicKey,
-					u_isDelegate: 1,
+					u_isDelegate: true,
 				})
 			).to.be.true;
 		});
@@ -590,7 +602,10 @@ describe('delegate', () => {
 			beforeEach(done => {
 				accountsMock.getAccount
 					.withArgs(
-						{ publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1 },
+						{
+							publicKey: accounts.existingDelegate.publicKey,
+							u_isDelegate: true,
+						},
 						['u_username'],
 						sinonSandbox.match.any
 					)

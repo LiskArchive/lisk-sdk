@@ -122,7 +122,7 @@ describe('accounts', () => {
 
 	describe('getAccounts', () => {
 		it('should get accounts for the filter provided', done => {
-			accounts.getAccounts({ secondSignature: 0 }, (err, res) => {
+			accounts.getAccounts({ secondSignature: false }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
 				expect(res.filter(a => a.secondSignature !== false).length).to.equal(0);

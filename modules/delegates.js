@@ -433,7 +433,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 						}
 
 						const delegates =
-							state === 'confirmed' ? account.delegates : account.u_delegates;
+							state === 'confirmed' ? account.votes : account.u_votes;
 						const existingVotedPublicKeys = Array.isArray(delegates)
 							? delegates
 							: [];

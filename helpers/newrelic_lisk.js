@@ -63,10 +63,6 @@ const modulesToInstrument = {
 		identifier: 'modules.loader',
 		callbackMethods: ['getNetwork'],
 	},
-	'./modules/multisignatures.js': {
-		identifier: 'modules.multisignatures',
-		callbackMethods: ['shared.getGroups', 'shared.getMemberships'],
-	},
 	'./modules/peers.js': {
 		identifier: 'modules.peers',
 		callbackMethods: ['shared.getPeers'],

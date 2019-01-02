@@ -24,6 +24,7 @@ const dbRepos = require('../../db/repos');
 const httpApi = require('../../helpers/http_api');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Sequence = require('../../helpers/sequence');
+const createStorage = require('../../storage');
 const DBSandbox = require('./db_sandbox').DBSandbox;
 
 let dbSandbox;
@@ -292,8 +293,25 @@ function __init(initScope, done) {
 							cb(null, bus);
 						},
 					],
-					db: [
+					storage: [
 						'config',
+						function(scope, cb) {
+							const storage = createStorage(scope.config.db, logger);
+							storage
+								.bootstrap()
+								.then(status => {
+									storage.entities.Account.extendDefaultOptions({
+										limit: global.constants.ACTIVE_DELEGATES,
+									});
+									return cb(!status, storage);
+								})
+								.catch(err => {
+									return cb(err);
+								});
+						},
+					],
+					db: [
+						'storage',
 						function(scope, cb) {
 							cb(null, db);
 						},
@@ -342,6 +360,9 @@ function __init(initScope, done) {
 									db(dbCb) {
 										dbCb(null, scope.db);
 									},
+									storage(dbCb) {
+										dbCb(null, scope.storage);
+									},
 									ed(edCb) {
 										edCb(null, scope.ed);
 									},
@@ -364,6 +385,7 @@ function __init(initScope, done) {
 										function(accountScope, accountCb) {
 											new Account(
 												accountScope.db,
+												accountScope.storage,
 												accountScope.schema,
 												accountScope.logger,
 												accountCb
