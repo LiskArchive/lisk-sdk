@@ -15,13 +15,12 @@
 'use strict';
 
 const _ = require('lodash');
+const Promise = require('bluebird');
 const Bignum = require('bignumber.js');
-const ApiError = require('../../helpers/api_error');
 const swaggerHelper = require('../../helpers/swagger');
 const BlockReward = require('../../logic/block_reward');
 
 // Private Fields
-let modules;
 let storage;
 let blockReward;
 
@@ -37,7 +36,6 @@ let blockReward;
  * @todo Add description of AccountsController
  */
 function AccountsController(scope) {
-	modules = scope.modules;
 	storage = scope.storage;
 	blockReward = new BlockReward();
 }
@@ -144,6 +142,40 @@ AccountsController.getAccounts = async function(context, next) {
 	}
 };
 
+async function multiSigAccountFormatter(account) {
+	account.min = account.multiMin;
+	account.lifetime = account.multiLifetime;
+	account.unconfirmedBalance = account.u_balance;
+	account = _.pick(account, [
+		'address',
+		'publicKey',
+		'balance',
+		'unconfirmedBalance',
+		'secondPublicKey',
+		'members',
+		'min',
+		'lifetime',
+	]);
+
+	if (account.secondPublicKey === null) {
+		account.secondPublicKey = '';
+	}
+
+	const members = await storage.entities.Account.get({
+		publicKey_in: account.members,
+	});
+
+	account.members = members.map(member => {
+		member = _.pick(member, ['address', 'publicKey', 'secondPublicKey']);
+		if (member.secondPublicKey === null) {
+			member.secondPublicKey = '';
+		}
+		return member;
+	});
+
+	return account;
+}
+
 /**
  * Description of the function.
  *
@@ -152,16 +184,9 @@ AccountsController.getAccounts = async function(context, next) {
  * @todo Add description for the function and the params
  */
 AccountsController.getMultisignatureGroups = async function(context, next) {
-	const params = context.request.swagger.params;
+	const address = context.request.swagger.params.address.value;
 
-	let filters = {
-		address: params.address.value,
-	};
-
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
-
-	if (!filters.address) {
+	if (!address) {
 		return next(
 			swaggerHelper.generateParamsErrorObject(
 				['address'],
@@ -170,42 +195,16 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
 		);
 	}
 
-	filters.multiMin_gt = 0;
+	const filters = {
+		address,
+		multiMin_gt: 0,
+	};
 
 	try {
 		let account = await storage.entities.Account.getOne(filters, {
 			extended: true,
 		});
-
-		account.min = account.multiMin;
-		account.lifetime = account.multiLifetime;
-		account.unconfirmedBalance = account.u_balance;
-		account = _.pick(account, [
-			'address',
-			'publicKey',
-			'balance',
-			'unconfirmedBalance',
-			'secondPublicKey',
-			'members',
-			'min',
-			'lifetime',
-		]);
-
-		if (account.secondPublicKey === null) {
-			account.secondPublicKey = '';
-		}
-
-		const members = await storage.entities.Account.get({
-			publicKey_in: account.members,
-		});
-
-		account.members = members.map(member => {
-			member = _.pick(member, ['address', 'publicKey', 'secondPublicKey']);
-			if (member.secondPublicKey === null) {
-				member.secondPublicKey = '';
-			}
-			return member;
-		});
+		account = await multiSigAccountFormatter(account);
 
 		return next(null, {
 			data: [account],
@@ -235,17 +234,13 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-AccountsController.getMultisignatureMemberships = function(context, next) {
-	const params = context.request.swagger.params;
+AccountsController.getMultisignatureMemberships = async function(
+	context,
+	next
+) {
+	const address = context.request.swagger.params.address.value;
 
-	let filters = {
-		address: params.address.value,
-	};
-
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
-
-	if (!filters.address) {
+	if (!address) {
 		return next(
 			swaggerHelper.generateParamsErrorObject(
 				['address'],
@@ -254,27 +249,36 @@ AccountsController.getMultisignatureMemberships = function(context, next) {
 		);
 	}
 
-	return modules.multisignatures.shared.getMemberships(
-		_.clone(filters),
-		(err, data) => {
-			if (err) {
-				if (err instanceof ApiError) {
-					context.statusCode = err.code;
-					delete err.code;
-				}
+	let account;
 
-				return next(err);
-			}
-
-			return next(null, {
-				data,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-				},
-			});
+	try {
+		account = await storage.entities.Account.getOne(
+			{ address },
+			{ extended: true }
+		);
+	} catch (error) {
+		if (error.code === 0) {
+			context.statusCode = 404;
+			return next(new Error('Multisignature membership account not found'));
 		}
-	);
+		return next(error);
+	}
+
+	try {
+		let groups = await storage.entities.Account.get(
+			{ members_in: [account.publicKey] },
+			{ extended: true }
+		);
+
+		groups = await Promise.map(groups, multiSigAccountFormatter);
+
+		return next(null, {
+			data: groups,
+			meta: {},
+		});
+	} catch (error) {
+		return next(error);
+	}
 };
 
 module.exports = AccountsController;
