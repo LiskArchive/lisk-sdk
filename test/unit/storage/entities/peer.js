@@ -302,12 +302,16 @@ describe('Peer', () => {
 				executeFile: sinonSandbox.stub().resolves([validPeer]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
+
+			const localFields = [...validPeerFields].filter(
+				fieldName => fieldName !== 'id'
+			);
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
 			peer.getValuesSet = sinonSandbox.stub();
 			peer.create(validPeer);
-			expect(peer.getValuesSet.calledWith(validPeer)).to.be.true;
+			expect(peer.getValuesSet.calledWith([validPeer], localFields)).to.be.true;
 		});
 
 		it('should create a peer object successfully', async () => {
@@ -322,6 +326,8 @@ describe('Peer', () => {
 		it('should reject with invalid data provided', async () => {
 			return expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected;
 		});
+
+		it('should create multiple account objects successfully');
 	});
 
 	describe('update()', () => {

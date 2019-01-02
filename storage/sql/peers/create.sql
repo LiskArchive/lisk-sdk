@@ -13,7 +13,7 @@
  */
 
 INSERT INTO peers (
-	${attributes:raw}
+	${fields:raw}
 ) VALUES
 	${createSet:raw}
 ;
