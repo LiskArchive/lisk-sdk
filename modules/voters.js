@@ -199,7 +199,11 @@ const getVotesForDelegates = function(filters, delegate, cb) {
  * @todo Add description of the function
  */
 const populateVotes = function(sort, addresses, cb) {
-	modules.accounts.getAccounts(
+	if (addresses.length === 0) {
+		return cb(null, []);
+	}
+
+	return modules.accounts.getAccounts(
 		{ address_in: addresses, sort },
 		['address', 'balance', 'publicKey', 'username'],
 		cb
