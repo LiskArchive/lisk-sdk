@@ -15,8 +15,11 @@
 'use strict';
 
 const { defaults, pick } = require('lodash');
+const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
+
+const defaultCreateValues = {};
 
 /**
  * Migration
@@ -58,6 +61,7 @@ class Migration extends BaseEntity {
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('migrations/get.sql'),
 			isPersisted: this.adapter.loadSQLFile('migrations/is_persisted.sql'),
+			create: this.adapter.loadSQLFile('migrations/create.sql'),
 		};
 	}
 
@@ -116,6 +120,52 @@ class Migration extends BaseEntity {
 			{ expectedResultCount },
 			tx
 		);
+	}
+
+	/**
+	 * Create migration object
+	 *
+	 * @param {Object} data
+	 * @param {Object} [_options]
+	 * @param {Object} [tx] - Transaction object
+	 * @return {null}
+	 */
+	// eslint-disable-next-line no-unused-vars
+	create(data, _options = {}, tx = null) {
+		const objectData = defaults(data, defaultCreateValues);
+		const createSet = this.getValuesSet(objectData);
+		const attributes = Object.keys(data)
+			.map(k => `"${this.fields[k].fieldName}"`)
+			.join(',');
+
+		return this.adapter.executeFile(
+			this.SQLs.create,
+			{ createSet, attributes },
+			{ expectedResultCount: 0 },
+			tx
+		);
+	}
+
+	/**
+	 * Update operation is not supported for Migrations
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	update() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
+	 * UpdateOne operation is not supported for Migrations
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	updateOne() {
+		throw new NonSupportedOperationError();
 	}
 
 	/**
