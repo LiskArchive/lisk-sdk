@@ -283,20 +283,20 @@ class Account extends BaseEntity {
 
 		this.addFilter('votes', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor})',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votes})',
 		});
 		this.addFilter('votes_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedFor_in:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votes_in:csv}))',
 		});
 
 		this.addFilter('members', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" = ${votedFor})',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" = ${members})',
 		});
 		this.addFilter('members_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${votedFor_in:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${members_in:csv}))',
 		});
 
 		const defaultSort = { sort: 'balance:asc' };
