@@ -74,7 +74,6 @@ describe('db', () => {
 					'height',
 					'os',
 					'version',
-					'clock',
 					'broadhash',
 				]);
 			});
@@ -114,8 +113,7 @@ describe('db', () => {
 					'os',
 					'version',
 					'broadhash',
-					'height',
-					'clock'
+					'height'
 				);
 				return expect(result).to.be.eql(peers);
 			});

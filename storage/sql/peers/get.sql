@@ -19,7 +19,6 @@ SELECT
 	"state",
 	"os",
 	"version",
-	"clock",
 	ENCODE("broadhash", 'hex') as "broadhash",
 	"height"
 FROM

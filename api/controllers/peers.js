@@ -68,7 +68,6 @@ PeersController.getPeers = function(context, next) {
 
 		data = _.map(data, peer => {
 			delete peer.updated;
-			delete peer.clock;
 			return peer;
 		});
 
