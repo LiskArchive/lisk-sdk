@@ -14,10 +14,9 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: clock column not in use should be removed
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height
-FROM peers
+ALTER TABLE peers DROP COLUMN clock;

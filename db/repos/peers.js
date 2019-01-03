@@ -45,7 +45,6 @@ class PeersRepository {
 					'height',
 					'os',
 					'version',
-					'clock',
 					{
 						name: 'broadhash',
 						init: c => (c.value ? ed.hexToBuffer(c.value) : null),

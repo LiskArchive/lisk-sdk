@@ -71,11 +71,7 @@ const Peer = stampit({
 });
 
 const DBPeer = stampit(Peer, {
-	props: {
-		clock: '',
-	},
 	init() {
-		this.clock = (+new Date() / 1000).toFixed();
 		delete this.dappid;
 		delete this.httpPort;
 		delete this.nonce;

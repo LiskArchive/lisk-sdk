@@ -415,7 +415,7 @@ describe('transaction', () => {
 		it('should throw an error with no param', () => {
 			return expect(
 				transactionLogic.checkConfirmed.bind(transactionLogic)
-			).to.throw('Callback must be a function');
+			).to.throw('"callback" argument must be a function');
 		});
 
 		it('should return an error with no transaction', done => {
