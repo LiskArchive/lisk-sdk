@@ -50,10 +50,10 @@ const validAccount = {
 	missedBlocks: 0,
 	approval: 100,
 	productivity: 0,
-	members: null,
-	u_members: null,
-	votes: null,
-	u_votes: null,
+	membersPublicKeys: null,
+	u_membersPublicKeys: null,
+	votedDelegatesPublicKeys: null,
+	u_votedDelegatesPublicKeys: null,
 };
 
 describe('account', () => {
@@ -636,8 +636,8 @@ describe('account', () => {
 				{ multisignatures: ['MS1'], delegates: ['DLG1'] },
 				(err, res) => {
 					expect(err).to.not.exist;
-					expect(res.votes).to.deep.equal(['DLG1']);
-					expect(res.members).to.deep.equal(['MS1']);
+					expect(res.votedDelegatesPublicKeys).to.deep.equal(['DLG1']);
+					expect(res.membersPublicKeys).to.deep.equal(['MS1']);
 					done();
 				}
 			);

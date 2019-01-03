@@ -55,40 +55,38 @@ const readOnlyFields = ['address'];
  * Basic Account
  * @typedef {Object} BasicAccount
  * @property {string} address
+ * @property {string} publicKey
+ * @property {string} secondPublicKey
  * @property {string} username
  * @property {Boolean} isDelegate
+ * @property {Boolean} secondSignature
  * @property {string} balance
+ * @property {number} multiMin
+ * @property {number} multiLifetime
+ * @property {Boolean} nameExist
  * @property {number} missedBlocks
  * @property {number} producedBlocks
  * @property {string} rank
  * @property {string} fees
  * @property {string} rewards
  * @property {string} vote
- * @property {Boolean} nameExist
- * @property {string} delegates
- * @property {number} multiMin
- * @property {number} multiLifetime
- * @property {string} secondPublicKey
- * @property {string} secondSignature
  */
 
 /**
  * Extended Account
  * @typedef {BasicAccount} ExtendedAccount
- * @property {string} u_secondSignature
  * @property {string} u_username
  * @property {Boolean} u_isDelegate
- * @property {string} u_balance
- * @property {string} u_delegates
- * @property {string} u_delegates
+ * @property {Boolean} u_secondSignature
  * @property {Boolean} u_nameExist
  * @property {number} u_multiMin
  * @property {number} u_multiLifetime
- * @property {string} u_multiSignatures
- * @property {Array.<string>} members - Public keys of all members if its a multi-signature account
- * @property {Array.<string>} u_members - Public keys of all members including unconfirmed if its a multi-signature account
- * @property {Array.<string>} votes - Public keys of all delegates for which this account voted for
- * @property {Array.<string>} u_votes - Public keys of all delegates including unconfirmed for which this account voted for
+ * @property {string} u_balance
+ * @property {number} productivity
+ * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
+ * @property {Array.<string>} u_membersPublicKeys - Public keys of all members including unconfirmed if its a multi-signature account
+ * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
+ * @property {Array.<string>} u_votedDelegatesPublicKeys - Public keys of all delegates including unconfirmed for which this account voted for
  */
 
 /**
@@ -272,31 +270,22 @@ class Account extends BaseEntity {
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('rank', 'string', { filter: ft.NUMBER });
 		this.addField('vote', 'string', { filter: ft.NUMBER });
-		this.addField('delegates', 'string');
-		this.addField('u_delegates', 'string');
-		this.addField('multiSignatures', 'string', {
-			fieldName: 'multisignatures',
-		});
-		this.addField('u_multiSignatures', 'string', {
-			fieldName: 'u_multisignatures',
-		});
 
-		this.addFilter('votes', ft.CUSTOM, {
-			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votes})',
-		});
-		this.addFilter('votes_in', ft.CUSTOM, {
+		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votes_in:csv}))',
 		});
-
-		this.addFilter('members', ft.CUSTOM, {
+		this.addFilter('u_votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" = ${members})',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_delegates WHERE "dependentId" IN (${votes_in:csv}))',
 		});
-		this.addFilter('members_in', ft.CUSTOM, {
+		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${members_in:csv}))',
+		});
+		this.addFilter('u_membersPublicKeys_in', ft.CUSTOM, {
+			condition:
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_multisignatures WHERE "dependentId" IN (${members_in:csv}))',
 		});
 
 		const defaultSort = { sort: 'balance:asc' };

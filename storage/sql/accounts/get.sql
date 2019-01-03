@@ -22,13 +22,13 @@ SELECT
 	"balance",
 	"multimin" as "multiMin",
 	"multilifetime" as "multiLifetime",
-	"nameexist" as "nameExist",
+	"nameexist"::int::boolean as "nameExist",
+	"missedBlocks",
+	"producedBlocks",
+	"rank",
 	"fees",
 	"rewards",
-	"vote",
-	"producedBlocks",
-	"missedBlocks",
-	"rank"
+	"vote"
 FROM
 	mem_accounts
 

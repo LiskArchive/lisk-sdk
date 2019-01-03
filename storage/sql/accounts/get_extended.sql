@@ -22,42 +22,42 @@ SELECT
 	"balance",
 	"multimin" as "multiMin",
 	"multilifetime" as "multiLifetime",
-	"nameexist" as "nameExist",
+	"nameexist"::int::boolean as "nameExist",
+	"missedBlocks",
+	"producedBlocks",
+	"rank",
 	"fees",
 	"rewards",
 	"vote",
-	"producedBlocks",
-	"missedBlocks",
+	"u_username",
+	"u_isDelegate"::int::boolean,
+	"u_secondSignature"::int::boolean,
+	"u_nameexist"::int::boolean as "u_nameExist",
+	"u_multimin" as "u_multiMin",
+	"u_multilifetime" as "u_multiLifetime",
+	"u_balance",
 	case
     when
     	"producedBlocks" + "missedBlocks" = 0 then 0
     else
 		(("producedBlocks" / ("producedBlocks" + "missedBlocks")) * 100.0)::integer
 	end AS productivity,
-	"rank",
-	"u_isDelegate"::int::boolean,
-	"u_secondSignature"::int::boolean,
-	"u_balance",
-	"u_multimin" as "u_multiMin",
-	"u_multilifetime" as "u_multiLifetime",
-	"u_nameexist" as "u_nameExist",
-	"u_username",
 	(SELECT array_agg("dependentId")
 		FROM mem_accounts2delegates
 		WHERE "accountId" = mem_accounts.address
-	) as "votes",
+	) as "votedDelegatesPublicKeys",
 	(SELECT array_agg("dependentId")
 		FROM mem_accounts2u_delegates
 		WHERE "accountId" = mem_accounts.address
-	) as "u_votes",
+	) as "u_votedDelegatesPublicKeys",
 	(SELECT array_agg("dependentId")
   		FROM mem_accounts2multisignatures
   		WHERE "accountId" = mem_accounts.address
-	) as "members",
+	) as "membersPublicKeys",
 	(SELECT array_agg("dependentId")
   		FROM mem_accounts2u_multisignatures
   		WHERE "accountId" = mem_accounts.address
-	) as "u_members"
+	) as "u_membersPublicKeys"
 FROM
 	mem_accounts
 
