@@ -31,11 +31,11 @@ const defaultCreateValues = {};
 /**
  * Migration Filters
  * @typedef {Object} filters.Migration
- * @property {number} [id]
- * @property {number} [id_eql]
- * @property {number} [id_ne]
- * @property {number} [id_in]
- * @property {number} [id_like]
+ * @property {string} [id]
+ * @property {string} [id_eql]
+ * @property {string} [id_ne]
+ * @property {string} [id_in]
+ * @property {string} [id_like]
  * @property {string} [name]
  * @property {string} [name_eql]
  * @property {string} [name_ne]
