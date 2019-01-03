@@ -1085,35 +1085,6 @@ Delegates.prototype.shared = {
 	},
 
 	/**
-	 * Search accounts based on the query parameters passed.
-	 *
-	 * @param {Object} filters - Filters applied to results
-	 * @param {string} filters.address - Account address
-	 * @param {string} filters.publicKey - Public key associated to account
-	 * @param {string} filters.secondPublicKey - Second public key associated to account
-	 * @param {string} filters.username - Username associated to account
-	 * @param {string} filters.sort - Field to sort results by
-	 * @param {string} filters.search - Field to sort results by
-	 * @param {string} filters.rank - Field to sort results by
-	 * @param {int} filters.limit - Limit applied to results
-	 * @param {int} filters.offset - Offset value for results
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the return value
-	 */
-	getDelegates(filters, cb) {
-		modules.delegates.getDelegates(filters, (err, delegates) => {
-			if (err) {
-				return setImmediate(
-					cb,
-					new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR)
-				);
-			}
-			return setImmediate(cb, null, delegates);
-		});
-	},
-
-	/**
 	 *
 	 * @param {Object} filters - Filters applied to results
 	 * @param {string} filters.address - Address of the delegate
