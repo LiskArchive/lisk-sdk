@@ -815,7 +815,7 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		multisignatures: {
+		membersPublicKeys: {
 			anyOf: [
 				{
 					type: 'array',
@@ -827,7 +827,7 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		u_multisignatures: {
+		u_membersPublicKeys: {
 			anyOf: [
 				{
 					type: 'array',
@@ -839,31 +839,31 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		multimin: {
+		multiMin: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
-		u_multimin: {
+		u_multiMin: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
-		multilifetime: {
+		multiLifetime: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
-		u_multilifetime: {
+		u_multiLifetime: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
-		nameexist: {
+		nameExist: {
 			type: 'integer',
 			maximum: 32767,
 		},
-		u_nameexist: {
+		u_nameExist: {
 			type: 'integer',
 			maximum: 32767,
 		},

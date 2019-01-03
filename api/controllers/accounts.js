@@ -143,29 +143,25 @@ AccountsController.getAccounts = async function(context, next) {
 };
 
 async function multiSigAccountFormatter(account) {
-	account.min = account.multiMin;
-	account.lifetime = account.multiLifetime;
-	account.unconfirmedBalance = account.u_balance;
-	account = _.pick(account, [
+	const result = _.pick(account, [
 		'address',
 		'publicKey',
 		'balance',
-		'unconfirmedBalance',
 		'secondPublicKey',
-		'members',
-		'min',
-		'lifetime',
 	]);
+	result.min = account.multiMin;
+	result.lifetime = account.multiLifetime;
+	result.unconfirmedBalance = account.u_balance;
 
-	if (account.secondPublicKey === null) {
-		account.secondPublicKey = '';
+	if (result.secondPublicKey === null) {
+		result.secondPublicKey = '';
 	}
 
 	const members = await storage.entities.Account.get({
-		publicKey_in: account.members,
+		publicKey_in: account.membersPublicKeys,
 	});
 
-	account.members = members.map(member => {
+	result.members = members.map(member => {
 		member = _.pick(member, ['address', 'publicKey', 'secondPublicKey']);
 		if (member.secondPublicKey === null) {
 			member.secondPublicKey = '';
@@ -173,7 +169,7 @@ async function multiSigAccountFormatter(account) {
 		return member;
 	});
 
-	return account;
+	return result;
 }
 
 /**
@@ -266,7 +262,7 @@ AccountsController.getMultisignatureMemberships = async function(
 
 	try {
 		let groups = await storage.entities.Account.get(
-			{ members_in: [account.publicKey] },
+			{ membersPublicKeys_in: [account.publicKey] },
 			{ extended: true }
 		);
 

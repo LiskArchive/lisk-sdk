@@ -474,11 +474,14 @@ Vote.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Vote.prototype.ready = function(transaction, sender) {
-	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+	if (
+		Array.isArray(sender.membersPublicKeys) &&
+		sender.membersPublicKeys.length
+	) {
 		if (!Array.isArray(transaction.signatures)) {
 			return false;
 		}
-		return transaction.signatures.length >= sender.multimin;
+		return transaction.signatures.length >= sender.multiMin;
 	}
 	return true;
 };

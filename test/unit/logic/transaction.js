@@ -734,7 +734,7 @@ describe('transaction', () => {
 		it('should be okay with valid multisignature', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(sender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.signatures = [

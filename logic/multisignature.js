@@ -161,7 +161,10 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 		);
 	}
 
-	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+	if (
+		Array.isArray(sender.membersPublicKeys) &&
+		sender.membersPublicKeys.length
+	) {
 		return setImmediate(cb, 'Account already has multisignatures enabled');
 	}
 
@@ -588,15 +591,15 @@ Multisignature.prototype.ready = function(transaction, sender) {
 	}
 
 	if (
-		!Array.isArray(sender.multisignatures) ||
-		!sender.multisignatures.length
+		!Array.isArray(sender.membersPublicKeys) ||
+		!sender.membersPublicKeys.length
 	) {
 		return (
 			transaction.signatures.length ===
 			transaction.asset.multisignature.keysgroup.length
 		);
 	}
-	return transaction.signatures.length >= sender.multimin;
+	return transaction.signatures.length >= sender.multiMin;
 };
 
 module.exports = Multisignature;

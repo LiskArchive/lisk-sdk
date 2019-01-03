@@ -244,7 +244,7 @@ __private.processSignatureFromMultisignatureAccount = (
 			}
 
 			// Assign members of multisignature account from transaction
-			const membersPublicKeys = sender.multisignatures;
+			const membersPublicKeys = sender.membersPublicKeys;
 
 			return __private.validateSignature(
 				signature,
@@ -353,8 +353,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 						secondPublicKey: account.secondPublicKey || '',
 						balance: account.balance,
 						unconfirmedBalance: account.u_balance,
-						min: account.multimin,
-						lifetime: account.multilifetime,
+						min: account.multiMin,
+						lifetime: account.multiLifetime,
 						members: [],
 					};
 

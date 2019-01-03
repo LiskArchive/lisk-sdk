@@ -273,19 +273,19 @@ class Account extends BaseEntity {
 
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votes_in:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
 		});
 		this.addFilter('u_votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_delegates WHERE "dependentId" IN (${votes_in:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_delegates WHERE "dependentId" IN (${u_votedDelegatesPublicKeys_in:csv}))',
 		});
 		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${members_in:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${membersPublicKeys_in:csv}))',
 		});
 		this.addFilter('u_membersPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_multisignatures WHERE "dependentId" IN (${members_in:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_multisignatures WHERE "dependentId" IN (${u_membersPublicKeys_in:csv}))',
 		});
 
 		const defaultSort = { sort: 'balance:asc' };
