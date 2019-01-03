@@ -224,8 +224,13 @@ class Account extends BaseEntity {
 			booleanToInt
 		);
 		this.addField('u_isDelegate', 'boolean', {}, booleanToInt);
-		this.addField('secondSignature', 'boolean', { filter: ft.BOOLEAN });
-		this.addField('u_secondSignature', 'boolean');
+		this.addField(
+			'secondSignature',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt
+		);
+		this.addField('u_secondSignature', 'boolean', {}, booleanToInt);
 		this.addField('balance', 'string', { filter: ft.NUMBER });
 		this.addField('u_balance', 'string');
 		this.addField('multiMin', 'number', {
