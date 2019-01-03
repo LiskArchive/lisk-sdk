@@ -16,13 +16,12 @@
 
 const _ = require('lodash');
 const apiCodes = require('../../helpers/api_codes');
-const ApiError = require('../../helpers/api_error');
 const swaggerHelper = require('../../helpers/swagger');
 
+const { MAX_VOTES_PER_ACCOUNT } = global.constants;
 const generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
 
 // Private Fields
-let modules;
 let storage;
 
 /**
@@ -39,7 +38,6 @@ let storage;
  */
 function VotersController(scope) {
 	storage = scope.storage;
-	modules = scope.modules;
 }
 
 /**
@@ -153,7 +151,7 @@ VotersController.getVoters = async function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-VotersController.getVotes = function(context, next) {
+VotersController.getVotes = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	let filters = {
@@ -161,13 +159,18 @@ VotersController.getVotes = function(context, next) {
 		publicKey: params.publicKey.value,
 		secondPublicKey: params.secondPublicKey.value,
 		username: params.username.value,
+	};
+
+	let options = {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
+		extended: true,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
+	options = _.pickBy(options, v => !(v === undefined || v === null));
 
 	if (
 		!(
@@ -195,16 +198,34 @@ VotersController.getVotes = function(context, next) {
 		return next(error);
 	}
 
-	return modules.voters.shared.getVotes(_.clone(filters), (err, data) => {
-		if (err) {
-			if (err instanceof ApiError) {
-				context.statusCode = apiCodes.NOT_FOUND;
-				return next('Delegate not found');
-			}
-			return next(err);
-		}
+	try {
+		// TODO: To keep the consistent behavior of functional tests
+		// not test the account for being a delegate
+		// const delegateFilters = { isDelegate: true, ...filters };
+		const delegateFilters = { ...filters };
 
-		data = _.cloneDeep(data);
+		const delegate = await storage.entities.Account.getOne(delegateFilters, {
+			extended: true,
+		});
+
+		const data = _.pick(delegate, [
+			'address',
+			'balance',
+			'username',
+			'publicKey',
+		]);
+		const votes = await storage.entities.Account.get(
+			{ publicKey_in: delegate.votedDelegatesPublicKeys },
+			options
+		);
+
+		data.votesUsed = await storage.entities.Account.count({
+			publicKey_in: delegate.votedDelegatesPublicKeys,
+		});
+		data.votesAvailable = MAX_VOTES_PER_ACCOUNT - data.votesUsed;
+		data.votes = votes.map(vote =>
+			_.pick(vote, ['address', 'publicKey', 'balance', 'username'])
+		);
 
 		data.votes.concat(data).forEach(entity => {
 			if (_.isNull(entity.username)) {
@@ -215,11 +236,17 @@ VotersController.getVotes = function(context, next) {
 		return next(null, {
 			data,
 			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
+				offset: options.offset,
+				limit: options.limit,
 			},
 		});
-	});
+	} catch (error) {
+		if (error.code === 0) {
+			context.statusCode = apiCodes.NOT_FOUND;
+			return next(new Error('Delegate not found'));
+		}
+		return next(error);
+	}
 };
 
 module.exports = VotersController;
