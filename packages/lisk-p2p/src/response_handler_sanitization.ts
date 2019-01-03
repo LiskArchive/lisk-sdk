@@ -14,8 +14,8 @@
  */
 import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
-import { InvalidPeer } from './errors';
-import { PeerConfig } from './peer';
+import { InvalidPeer, InvalidRPCResponse } from './errors';
+import { PeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
@@ -28,6 +28,11 @@ interface RawPeerObject {
 	readonly wsPort: string;
 }
 
+interface RPCPeerListResponse {
+	readonly peers: ReadonlyArray<object>;
+	readonly success?: boolean; // Could be used in future
+}
+
 export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	if ((!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) || !isPort(wsPort)) {
 		return false;
@@ -36,7 +41,7 @@ export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	return true;
 };
 
-export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
+export const instantiatePeerFromResponse = (peer: unknown): PeerInfo => {
 	if (!peer) {
 		throw new InvalidPeer(`Invalid peer object`);
 	}
@@ -59,20 +64,36 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
 	const version = rawPeer.version;
 	const wsPort = +rawPeer.wsPort;
 	const os = rawPeer.os && isAlpha(rawPeer.os.toString()) ? rawPeer.os : '';
-	const id = `${rawPeer.ip}:${rawPeer.wsPort}`;
 	const height =
 		rawPeer.height && isNumeric(rawPeer.height.toString())
 			? +rawPeer.height
 			: 0;
 
-	const peerConfig: PeerConfig = {
+	const peerInfo: PeerInfo = {
 		ipAddress: rawPeer.ip,
 		wsPort,
 		height,
-		id,
 		os,
 		version,
 	};
 
-	return peerConfig;
+	return peerInfo;
+};
+
+export const processPeerListFromResponse = (
+	response: unknown,
+): ReadonlyArray<PeerInfo> => {
+	if (!response) {
+		throw new InvalidRPCResponse('Invalid response type');
+	}
+
+	const { peers } = response as RPCPeerListResponse;
+
+	if (Array.isArray(peers)) {
+		const peerList = peers.map<PeerInfo>(instantiatePeerFromResponse);
+
+		return peerList;
+	} else {
+		throw new InvalidRPCResponse('Invalid response type');
+	}
 };

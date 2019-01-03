@@ -12,16 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import 'chai/register-expect';
-import sinonChai from 'sinon-chai';
-import sinon from 'sinon';
-
-process.env.NODE_ENV = 'test';
-
-[sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
-
-global.sandbox = sinon.createSandbox({
-	useFakeTimers: true,
+afterEach(() => {
+	return sandbox.restore();
 });

@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import {
 	validatePeerAddress,
 	instantiatePeerFromResponse,
-} from '../../src/response_handler';
+} from '../../src/response_handler_sanitization';
 
 describe('response handlers', () => {
 	describe('#instantiatePeerFromResponse', () => {
@@ -45,7 +45,7 @@ describe('response handlers', () => {
 				version: '3.4.5-alpha.9',
 			};
 
-			it('should return PeerConfig object', () => {
+			it('should return PeerInfo object', () => {
 				return expect(instantiatePeerFromResponse(peer))
 					.to.be.an('object')
 					.include({
@@ -57,7 +57,7 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return PeerConfig object with height value set to 0', () => {
+			it('should return PeerInfo object with height value set to 0', () => {
 				return expect(instantiatePeerFromResponse(peerWithInvalidHeightValue))
 					.to.be.an('object')
 					.include({
@@ -69,7 +69,7 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return peerConfig and instance of Peer sets blank for invalid value of os', () => {
+			it('should return PeerInfo and instance of Peer sets blank for invalid value of os', () => {
 				return expect(instantiatePeerFromResponse(peerWithInvalidOsValue))
 					.to.be.an('object')
 					.include({
@@ -146,10 +146,7 @@ describe('response handlers', () => {
 			};
 
 			return expect(
-				validatePeerAddress(
-					peerWithIncorrectIp.ip,
-					peerWithIncorrectIp.wsPort,
-				),
+				validatePeerAddress(peerWithIncorrectIp.ip, peerWithIncorrectIp.wsPort),
 			).to.be.false;
 		});
 

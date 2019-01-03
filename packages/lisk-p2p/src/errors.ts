@@ -33,12 +33,26 @@ export class NotEnoughPeersError extends VError {
 }
 
 export class RPCResponseError extends VError {
-	public peerId: string;
+	public peerIp: string;
+	public peerPort: number;
 
-	public constructor(message: string, cause: Error, peerId: string) {
+	public constructor(
+		message: string,
+		cause: Error,
+		peerIp: string,
+		peerPort: number,
+	) {
 		super(cause, message);
 		this.name = 'RPCResponseError';
-		this.peerId = peerId;
+		this.peerIp = peerIp;
+		this.peerPort = peerPort;
+	}
+}
+
+export class InvalidRPCResponse extends VError {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidRPCResponse';
 	}
 }
 

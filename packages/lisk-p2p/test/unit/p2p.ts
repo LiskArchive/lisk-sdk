@@ -23,6 +23,7 @@ describe('p2p', () => {
 			seedPeers: [],
 			wsEngine: 'ws',
 			wsPort: 5000,
+			version: '1.1.1'
 		});
 
 		it('should be an object', () => {
