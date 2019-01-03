@@ -1811,7 +1811,7 @@ describe('transactionPool', () => {
 
 			it('should process when requester is available', done => {
 				const sender = _.cloneDeep(transaction);
-				sender.multisignatures = [{ id: '23423' }];
+				sender.membersPublicKeys = [{ id: '23423' }];
 				sender.signatures = [{ id: '11999' }];
 				accountsStub.setAccountAndGet.callsArgWith(1, null, sender);
 				accountsStub.getAccount.callsArgWith(1, null, sender);

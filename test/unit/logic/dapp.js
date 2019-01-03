@@ -1138,14 +1138,14 @@ describe('dapp', () => {
 			});
 
 			it('should return false for multi signature transaction with less signatures', () => {
-				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
+				sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 
 				return expect(dapp.ready(transaction, sender)).to.equal(false);
 			});
 
 			it('should return true for multi signature transaction with alteast min signatures', () => {
-				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
-				sender.multimin = 1;
+				sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
+				sender.multiMin = 1;
 
 				delete transaction.signature;
 				// Not really correct signature, but we are not testing that over here

@@ -113,7 +113,9 @@ describe('vote', () => {
 			{ publicKey: senderPublicKey },
 			(err, account) => {
 				const delegates =
-					(state === 'confirmed' ? account.votes : account.u_votes) || [];
+					(state === 'confirmed'
+						? account.votedDelegatesPublicKeys
+						: account.u_votedDelegatesPublicKeys) || [];
 				const groupedVotes = _.groupBy(votes, v => {
 					return v[0];
 				});
@@ -774,15 +776,15 @@ describe('vote', () => {
 		it('should return false for multi signature transaction with less signatures', () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(validSender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 			return expect(transactionLogic.ready(transaction, vs)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(validSender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-			vs.multimin = 1;
+			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
+			vs.multiMin = 1;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 			transaction.signatures = [

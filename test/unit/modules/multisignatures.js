@@ -692,7 +692,7 @@ describe('multisignatures', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
 			data.sender = new accountsFixtures.Account();
-			data.sender.multisignatures = ['publicKey1', 'publicKey2'];
+			data.sender.membersPublicKeys = ['publicKey1', 'publicKey2'];
 
 			data.transaction = new transactionsFixtures.Transaction({
 				type: transactionTypes.MULTI,
@@ -789,7 +789,7 @@ describe('multisignatures', () => {
 							expect(err).to.not.exist;
 							expect(stubs.validateSignature).to.have.been.calledWith(
 								data.signature,
-								data.sender.multisignatures,
+								data.sender.membersPublicKeys,
 								data.transaction,
 								data.sender
 							);

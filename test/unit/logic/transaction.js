@@ -694,7 +694,7 @@ describe('transaction', () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(sender);
 			// Different publicKey for multisignature account
-			vs.multisignatures = [accountFixtures.existingDelegate.publicKey];
+			vs.membersPublicKeys = [accountFixtures.existingDelegate.publicKey];
 			transaction.requesterPublicKey = validKeypair.publicKey.toString('hex');
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(validKeypair, transaction);
@@ -719,7 +719,7 @@ describe('transaction', () => {
 		it('should return error when duplicate signature in transaction', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(sender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
 			transaction.signatures = Array(...Array(2)).map(() => {
 				return transactionLogic.sign(validKeypair, transaction);
