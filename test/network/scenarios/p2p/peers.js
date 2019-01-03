@@ -69,7 +69,6 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 						// delete the not required properties from ws peer list call
 						// to keep consistency with api/controllers/peers.js/getPeers
 						delete peer.updated;
-						delete peer.clock;
 						return expect(peer).to.have.all.keys(peerProps);
 					});
 				});

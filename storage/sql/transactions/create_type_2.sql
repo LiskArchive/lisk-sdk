@@ -12,8 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO peers (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+INSERT INTO "delegates" ("transactionId", "username") VALUES ${values:raw};

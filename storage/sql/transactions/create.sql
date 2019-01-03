@@ -12,11 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-/*
-  DESCRIPTION: Clears all peers from database
-
-  PARAMETERS: None
-*/
-
-DELETE FROM peers
+INSERT INTO trs (${attributes:name}) VALUES ${values:raw};

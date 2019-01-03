@@ -12,12 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-/*
-  DESCRIPTION: Gets all peers from database
-
-  PARAMETERS: None
-*/
-
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+INSERT INTO "dapps" ("transactionId", "type", "name", "description", "tags", "link", "icon", "category") VALUES ${values:raw};

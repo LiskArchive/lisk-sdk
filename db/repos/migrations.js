@@ -65,7 +65,7 @@ class MigrationsRepository {
 	}
 
 	/**
-	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
+	 * Executes 'migrations/runtime.sql' file to set state to 1.
 	 *
 	 * @returns {Promise<null>} Promise object that resolves with `null`.
 	 */

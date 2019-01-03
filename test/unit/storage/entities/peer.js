@@ -50,7 +50,6 @@ describe('Peer', () => {
 			'state',
 			'os',
 			'version',
-			'clock',
 			'broadhash',
 			'height',
 		];
@@ -97,14 +96,6 @@ describe('Peer', () => {
 			'version_ne',
 			'version_in',
 			'version_like',
-			'clock',
-			'clock_eql',
-			'clock_ne',
-			'clock_gt',
-			'clock_gte',
-			'clock_lt',
-			'clock_lte',
-			'clock_in',
 			'broadhash',
 			'broadhash_eql',
 			'broadhash_ne',
@@ -138,7 +129,6 @@ describe('Peer', () => {
 			broadhash:
 				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
 			height: 6857664,
-			clock: null,
 		};
 
 		invalidPeer = {
@@ -150,7 +140,6 @@ describe('Peer', () => {
 			broadhash:
 				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
 			height: 'foo',
-			clock: 'bar',
 		};
 
 		invalidOptions = {
@@ -164,12 +153,12 @@ describe('Peer', () => {
 		};
 
 		adapter = storage.adapter;
-
 		addFieldSpy = sinonSandbox.spy(Peer.prototype, 'addField');
 	});
 
 	afterEach(async () => {
 		sinonSandbox.reset();
+		await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
 	});
 
 	it('should be a constructable function', async () => {
@@ -288,22 +277,22 @@ describe('Peer', () => {
 	});
 
 	describe('create()', () => {
-		afterEach(async () => {
-			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
-		});
-
 		it('should call getValuesSet with proper params', async () => {
 			const localAdapter = {
 				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
 				executeFile: sinonSandbox.stub().resolves([validPeer]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
+
+			const localFields = validPeerFields.filter(
+				fieldName => fieldName !== 'id'
+			);
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
 			peer.getValuesSet = sinonSandbox.stub();
 			peer.create(validPeer);
-			expect(peer.getValuesSet.calledWith(validPeer)).to.be.true;
+			expect(peer.getValuesSet.calledWith([validPeer], localFields)).to.be.true;
 		});
 
 		it('should create a peer object successfully', async () => {
@@ -318,6 +307,8 @@ describe('Peer', () => {
 		it('should reject with invalid data provided', async () => {
 			return expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected;
 		});
+
+		it('should create multiple account objects successfully');
 	});
 
 	describe('update()', () => {
@@ -642,5 +633,50 @@ describe('Peer', () => {
 		it(
 			'should merge provided filter with default filters by preserving default filters values'
 		);
+	});
+
+	describe('delete', () => {
+		it('should accept only valid filters', async () => {
+			const peer = new Peer(adapter);
+			expect(() => {
+				peer.delete(validFilter, validPeer);
+			}).not.to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should throw error for invalid filters', async () => {
+			const peer = new Peer(adapter);
+			expect(() => {
+				peer.delete(invalidFilter, validPeer);
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should call mergeFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub();
+			peer.parseFilters = sinonSandbox.stub();
+			peer.delete(validFilter);
+			expect(peer.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			peer.parseFilters = sinonSandbox.stub();
+			peer.delete(validFilter);
+			expect(peer.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should only delete records specified by filter');
+		it('should delete all records if no filter is specified');
 	});
 });

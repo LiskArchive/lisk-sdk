@@ -49,6 +49,7 @@ describe('peers', () => {
 				list: sinonSandbox.stub().resolves(),
 			},
 		};
+
 		PeersRewired = rewire('../../../modules/peers');
 		peersLogicMock = {
 			create: sinonSandbox.spy(),
@@ -72,6 +73,15 @@ describe('peers', () => {
 		});
 
 		modulesLoader.scope.nonce = NONCE;
+
+		modulesLoader.scope.storage = {
+			entities: {
+				Peer: {
+					get: sinonSandbox.stub().resolves([prefixedPeer]),
+				},
+			},
+		};
+
 		new PeersRewired((err, peersModule) => {
 			peers = peersModule;
 			peers.onBind(modules);

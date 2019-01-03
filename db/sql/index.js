@@ -82,10 +82,6 @@ module.exports = {
 		add: link('migrations/add.sql'),
 		runtime: link('migrations/runtime.sql'),
 	},
-	peers: {
-		list: link('peers/list.sql'),
-		clear: link('peers/clear.sql'),
-	},
 	rounds: {
 		updateDelegatesRanks: link('rounds/update_delegates_ranks.sql'),
 		getVotes: link('rounds/get_votes.sql'),

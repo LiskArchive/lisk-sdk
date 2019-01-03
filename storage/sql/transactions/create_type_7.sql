@@ -12,8 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO peers (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+INSERT INTO "outtransfer" ("transactionId", "dappId", "outTransactionId") VALUES ${values:raw};
