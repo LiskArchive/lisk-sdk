@@ -38,11 +38,11 @@ describe('Migration', () => {
 	let validMigration;
 
 	before(async () => {
-		const dbSandbox = new storageSandbox.StorageSandbox(
+		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.db,
 			'lisk_test_migrations'
 		);
-		storage = await dbSandbox.create();
+		await storage.bootstrap();
 
 		validMigrationFields = ['id', 'name'];
 
@@ -89,11 +89,7 @@ describe('Migration', () => {
 			name: 'create_schema',
 		};
 
-		adapter = {
-			loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-			executeFile: sinonSandbox.stub().returns(validMigration),
-			parseQueryComponent: sinonSandbox.stub(),
-		};
+		adapter = storage.adapter;
 
 		addFieldSpy = sinonSandbox.spy(Migration.prototype, 'addField');
 	});
