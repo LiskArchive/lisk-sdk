@@ -14,6 +14,8 @@
 
 'use strict';
 
+const assert = require('assert');
+const _ = require('lodash');
 const { defaults, omit, pick } = require('lodash');
 const filterType = require('../utils/filter_types');
 const { stringToByte } = require('../utils/inputSerializers');
@@ -122,6 +124,7 @@ class Peer extends BaseEntity {
 			update: this.adapter.loadSQLFile('peers/update.sql'),
 			updateOne: this.adapter.loadSQLFile('peers/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('peers/is_persisted.sql'),
+			delete: this.adapter.loadSQLFile('peers/delete.sql'),
 		};
 	}
 
@@ -183,22 +186,39 @@ class Peer extends BaseEntity {
 	/**
 	 * Create peer object
 	 *
-	 * @param {Object} data
+	 * @param {Object|Array.<Object>} data
 	 * @param {Object} [_options]
 	 * @param {Object} [tx] - Transaction object
 	 * @return {null}
 	 */
 	// eslint-disable-next-line no-unused-vars
 	create(data, _options = {}, tx = null) {
-		const objectData = defaults(data, defaultCreateValues);
-		const createSet = this.getValuesSet(objectData);
-		const attributes = Object.keys(data)
+		assert(data, 'Must provide data to create account');
+		assert(
+			typeof data === 'object' || Array.isArray(data),
+			'Data must be an object or array of objects'
+		);
+
+		let values;
+
+		if (Array.isArray(data)) {
+			values = data.map(item => ({ ...item }));
+		} else if (typeof data === 'object') {
+			values = [{ ...data }];
+		}
+
+		values = values.map(v => _.defaults(v, defaultCreateValues));
+		const attributes = Object.keys(this.fields).filter(
+			fieldname => fieldname !== 'id'
+		);
+		const createSet = this.getValuesSet(values, attributes);
+		const fields = attributes
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
 		return this.adapter.executeFile(
 			this.SQLs.create,
-			{ createSet, attributes },
+			{ createSet, fields },
 			{ expectedResultCount: 0 },
 			tx
 		);
@@ -286,6 +306,29 @@ class Peer extends BaseEntity {
 				tx
 			)
 			.then(result => result.exists);
+	}
+
+	/**
+	 * Delete records with following conditions
+	 *
+	 * @param {filters.Peer} filters
+	 * @param {Object} [options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	delete(filters, _options, tx = null) {
+		this.validateFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(
+				this.SQLs.delete,
+				{ parsedFilters },
+				{ expectedResultCount: 0 },
+				tx
+			)
+			.then(result => result);
 	}
 }
 

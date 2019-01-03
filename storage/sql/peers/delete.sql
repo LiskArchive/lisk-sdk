@@ -13,11 +13,4 @@
  */
 
 
-/*
-  DESCRIPTION: Gets all peers from database
-
-  PARAMETERS: None
-*/
-
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height
-FROM peers
+DELETE FROM peers ${parsedFilters:raw}
