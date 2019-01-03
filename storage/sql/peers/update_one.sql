@@ -12,13 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = {
-	Account: require('./account'),
-	BaseEntity: require('./base_entity'),
-	Block: require('./block'),
-	Delegate: require('./delegate'),
-	Peer: require('./peer'),
-	Transaction: require('./transaction'),
-};
+UPDATE peers SET ${updateSet:raw} WHERE id = (SELECT id FROM peers ${parsedFilters:raw} LIMIT 1);
