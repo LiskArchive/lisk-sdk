@@ -162,7 +162,19 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public abstract getBytes(): Buffer;
+	public getBytes(): Buffer {
+		const transactionBytes = Buffer.concat([
+			this.getBasicBytes(),
+			this.signature
+				? cryptography.hexToBuffer(this.signature)
+				: Buffer.alloc(0),
+			this.signSignature
+				? cryptography.hexToBuffer(this.signSignature)
+				: Buffer.alloc(0),
+		]);
+
+		return transactionBytes;
+	}
 
 	public abstract containsUniqueData(): boolean;
 

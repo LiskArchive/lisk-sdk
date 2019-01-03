@@ -60,7 +60,7 @@ describe('signAndVerify module', () => {
 				.stub(cryptography, 'hash')
 				.returns(
 					Buffer.from(
-						'62b13b81836f3f1e371eba2f7f8306ff23d00a87d9473793eda7f742f4cfc21c',
+						'62b13b81836f3f1e371eba2f7f8306ff23d00a87d9473793eda7f742f4cfc21c', 'hex'
 					),
 				);
 

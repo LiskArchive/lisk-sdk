@@ -1,4 +1,3 @@
-import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
 	TransactionResponse,
@@ -6,34 +5,21 @@ import {
 import { TransactionJSON, Status } from '../../src/transaction_types';
 
 export class TestTransaction extends BaseTransaction {
-	public containsUniqueData() {
+	public containsUniqueData(): boolean {
 		return true;
 	}
 
-	public assetToJSON() {
+	public assetToJSON(): object {
 		return {};
 	}
 
-	public getAssetBytes() {
+	public getAssetBytes(): Buffer {
 		return Buffer.alloc(0);
 	}
 
-	public testGetBasicBytes() {
+	public testGetBasicBytes(): Buffer {
 		return this.getBasicBytes();
 	} 
-
-	public getBytes() {
-		const transactionBytes = Buffer.concat([
-			this.getBasicBytes(),
-			this.signature
-				? cryptography.hexToBuffer(this.signature)
-				: Buffer.alloc(0),
-			this.signSignature
-				? cryptography.hexToBuffer(this.signSignature)
-				: Buffer.alloc(0),
-		]);
-		return transactionBytes;
-	}
 
 	public verifyAgainstOtherTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
