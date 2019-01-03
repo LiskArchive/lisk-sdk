@@ -150,7 +150,6 @@ const config = {
 		signatures: './modules/signatures.js',
 		transactions: './modules/transactions.js',
 		transport: './modules/transport.js',
-		voters: './modules/voters',
 	},
 };
 
