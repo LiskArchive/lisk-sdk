@@ -298,7 +298,7 @@ describe('Peer', () => {
 				parseQueryComponent: sinonSandbox.stub(),
 			};
 
-			const localFields = [...validPeerFields].filter(
+			const localFields = validPeerFields.filter(
 				fieldName => fieldName !== 'id'
 			);
 			const peer = new Peer(localAdapter);
