@@ -16,9 +16,9 @@
 
 const _ = require('lodash');
 const Promise = require('bluebird');
-const Bignum = require('bignumber.js');
 const swaggerHelper = require('../../helpers/swagger');
 const BlockReward = require('../../logic/block_reward');
+const { calculateApproval } = require('../../helpers/http_api');
 
 // Private Fields
 let storage;
@@ -40,20 +40,7 @@ function AccountsController(scope) {
 	blockReward = new BlockReward();
 }
 
-function calculateApproval(votersBalance, totalSupply) {
-	// votersBalance and totalSupply are sent as strings,
-	// we convert them into bignum and send the response as number as well
-	const votersBalanceBignum = new Bignum(votersBalance || 0);
-	const totalSupplyBignum = new Bignum(totalSupply);
-	const approvalBignum = votersBalanceBignum
-		.dividedBy(totalSupplyBignum)
-		.multipliedBy(100)
-		.decimalPlaces(2);
-
-	return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
-}
-
-function accountFormatter(account, totalSupply) {
+function accountFormatter(totalSupply, account) {
 	const object = _.pick(account, [
 		'address',
 		'publicKey',
@@ -126,6 +113,7 @@ AccountsController.getAccounts = async function(context, next) {
 
 		const data = await storage.entities.Account.get(filters, options).map(
 			accountFormatter.bind(
+				null,
 				lastBlock.height ? blockReward.calcSupply(lastBlock.height) : 0
 			)
 		);
