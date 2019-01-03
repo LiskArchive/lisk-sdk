@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
 const { NonSupportedOperationError } = require('../errors');
-const ft = require('../utils/filter_types');
+const filterTypes = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
 /**
@@ -89,8 +89,8 @@ const BaseEntity = require('./base_entity');
  * @property {string} asset.dapp.name
  * @property {string} asset.dapp.description
  * @property {string} asset.dapp.tags
- * @property {text} asset.dapp.link
- * @property {text} asset.dapp.icon
+ * @property {string} asset.dapp.link
+ * @property {string} asset.dapp.icon
  * @property {Integer} asset.dapp.category
  */
 
@@ -153,25 +153,31 @@ class Transaction extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
-		this.addField('id', 'string', { filter: ft.TEXT, fieldName: 't_id' });
+		this.addField('id', 'string', {
+			filter: filterTypes.TEXT,
+			fieldName: 't_id',
+		});
 		this.addField('blockId', 'string', {
-			filter: ft.TEXT,
+			filter: filterTypes.TEXT,
 			fieldName: 'b_id',
 		});
 		this.addField('blockHeight', 'string', {
-			filter: ft.NUMBER,
+			filter: filterTypes.NUMBER,
 			fieldName: 'b_height',
 		});
-		this.addField('type', 'number', { filter: ft.NUMBER, fieldName: 't_type' });
+		this.addField('type', 'number', {
+			filter: filterTypes.NUMBER,
+			fieldName: 't_type',
+		});
 		this.addField('timestamp', 'number', {
-			filter: ft.NUMBER,
+			filter: filterTypes.NUMBER,
 			fieldName: 't_timestamp',
 		});
 		this.addField(
 			'senderPublicKey',
 			'string',
 			{
-				filter: ft.NUMBER,
+				filter: filterTypes.TEXT,
 				format: 'publicKey',
 				fieldName: 't_senderPublicKey',
 			},
@@ -181,25 +187,28 @@ class Transaction extends BaseEntity {
 			'requesterPublicKey',
 			'string',
 			{
-				filter: ft.NUMBER,
+				filter: filterTypes.TEXT,
 				format: 'publicKey',
 				fieldName: 'm_recipientPublicKey',
 			},
 			stringToByte
 		);
 		this.addField('senderId', 'string', {
-			filter: ft.TEXT,
+			filter: filterTypes.TEXT,
 			fieldName: 't_senderId',
 		});
 		this.addField('recipientId', 'string', {
-			filter: ft.TEXT,
+			filter: filterTypes.TEXT,
 			fieldName: 't_recipientId',
 		});
 		this.addField('amount', 'string', {
-			filter: ft.NUMBER,
+			filter: filterTypes.NUMBER,
 			fieldName: 't_amount',
 		});
-		this.addField('fee', 'string', { filter: ft.NUMBER, fieldName: 't_fee' });
+		this.addField('fee', 'string', {
+			filter: filterTypes.NUMBER,
+			fieldName: 't_fee',
+		});
 		this.addField(
 			'signature',
 			'string',
@@ -238,6 +247,7 @@ class Transaction extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {string} [options.sort] - Sort key for transaction e.g. amount:asc, amount:desc
 	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<Transaction, Error>}
@@ -254,6 +264,7 @@ class Transaction extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {string} [options.sort] - Sort key for transaction e.g. amount:asc, amount:desc
 	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<Transaction[], Error>}
@@ -324,7 +335,7 @@ class Transaction extends BaseEntity {
 
 		const createSet = this.getValuesSet(transactions, trsFields);
 
-		const task = t => {
+		const task = dbTx => {
 			const batch = [];
 
 			batch.push(
@@ -332,7 +343,7 @@ class Transaction extends BaseEntity {
 					this.SQLs.create,
 					{ values: createSet, attributes: trsFields },
 					{ expectedResultCount: 0 },
-					t
+					dbTx
 				)
 			);
 
@@ -342,12 +353,12 @@ class Transaction extends BaseEntity {
 					this._createSubTransactions(
 						parseInt(type),
 						groupedTransactions[type],
-						t
+						dbTx
 					)
 				);
 			});
 
-			return t.batch(batch).then(() => true);
+			return dbTx.batch(batch).then(() => true);
 		};
 
 		if (tx) {
@@ -499,8 +510,13 @@ class Transaction extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 
 		return this.adapter
-			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
-			.then(result => result[0].exists);
+			.executeFile(
+				this.SQLs.isPersisted,
+				{ parsedFilters },
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(result => result.exists);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
@@ -508,13 +524,15 @@ class Transaction extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset', 'extended']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'extended'])
+			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
 		);
+		const parsedSort = this.parseSort(parsedOptions.sort);
 
 		const params = {
 			limit: parsedOptions.limit,
 			offset: parsedOptions.offset,
+			parsedSort,
 			parsedFilters,
 		};
 
@@ -539,19 +557,22 @@ class Transaction extends BaseEntity {
 	}
 
 	static _formatTransactionResult(row) {
-		const t = {};
+		const transaction = {};
 
 		Object.keys(row).forEach(k => {
 			if (!k.match(/^asset./)) {
-				t[k] = row[k];
+				transaction[k] = row[k];
 			}
 		});
 
-		(assetAttributesMap[t.type] || []).forEach(assetKey => {
-			_.set(t, assetKey, row[assetKey]);
+		const transactionAssetAttributes =
+			assetAttributesMap[transaction.type] || [];
+
+		transactionAssetAttributes.forEach(assetKey => {
+			_.set(transaction, assetKey, row[assetKey]);
 		});
 
-		return t;
+		return transaction;
 	}
 }
 

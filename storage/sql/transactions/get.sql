@@ -37,5 +37,7 @@ FROM
 
 ${parsedFilters:raw}
 
+${parsedSort:raw}
+
 LIMIT ${limit} OFFSET ${offset}
 
