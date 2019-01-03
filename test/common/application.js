@@ -431,6 +431,7 @@ function __init(initScope, done) {
 									peers: [
 										'logger',
 										'config',
+										'storage',
 										function(peersScope, peerscb) {
 											new Peers(peersScope.logger, peersScope.config, peerscb);
 										},
@@ -470,7 +471,6 @@ function __init(initScope, done) {
 						function(scope, cb) {
 							const tasks = {};
 							scope.rewiredModules = {};
-
 							Object.keys(modulesInit).forEach(name => {
 								tasks[name] = function(tasksCb) {
 									const Instance = rewire(modulesInit[name]);

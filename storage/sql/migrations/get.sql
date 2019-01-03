@@ -12,8 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO peers (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+SELECT
+	"id",
+	"name"
+FROM
+	migrations
+
+${parsedFilters:raw}
+
+${parsedSort:raw}
+
+LIMIT ${limit}
+OFFSET ${offset}

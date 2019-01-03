@@ -12,8 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO peers (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+
+DELETE FROM peers ${parsedFilters:raw}

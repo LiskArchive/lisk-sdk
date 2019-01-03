@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO peers (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+
+/*
+  DESCRIPTION: clock column not in use should be removed
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE peers DROP COLUMN clock;

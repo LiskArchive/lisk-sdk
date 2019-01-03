@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO peers (
-	${fields:raw}
+INSERT INTO migrations (
+	${attributes:raw}
 ) VALUES
 	${createSet:raw}
 ;

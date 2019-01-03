@@ -19,6 +19,7 @@ module.exports = {
 	BaseEntity: require('./base_entity'),
 	Block: require('./block'),
 	Delegate: require('./delegate'),
+	Migration: require('./migration'),
 	Peer: require('./peer'),
 	Transaction: require('./transaction'),
 };

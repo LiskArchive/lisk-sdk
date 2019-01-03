@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO peers (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+SELECT EXISTS (
+	SELECT 1 FROM full_blocks_list ${parsedFilters:raw}
+);

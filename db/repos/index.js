@@ -23,7 +23,6 @@ module.exports = {
 	delegates: require('./delegates'),
 	migrations: require('./migrations'),
 	multisignatures: require('./multisignatures'),
-	peers: require('./peers'),
 	rounds: require('./rounds'),
 	voters: require('./voters'),
 	votes: require('./votes'),
