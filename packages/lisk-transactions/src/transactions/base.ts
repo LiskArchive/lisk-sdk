@@ -61,7 +61,7 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
 	public readonly receivedAt: Date = new Date();
-	public readonly isMultisignature?: boolean = false;
+	public isMultisignature? = false;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		const { valid, errors } = checkTypes(rawTransaction);
@@ -350,6 +350,8 @@ export abstract class BaseTransaction {
 			sender.multisignatures.length > 0 &&
 			sender.multimin
 		) {
+			// Ensure boolean is set correctly to calculate valid multisig expiry time
+			this.isMultisignature = true;
 			const transactionBytes = this.signSignature
 				? Buffer.concat([
 						this.getBasicBytes(),
