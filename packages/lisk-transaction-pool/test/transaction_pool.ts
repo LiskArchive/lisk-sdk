@@ -481,7 +481,7 @@ describe('transaction pool', () => {
 			checkTransactionsStub.resolves(checkTransactionsResponse);
 		});
 
-		it('should remove unverifialbe transactions from the validated queue', async () => {
+		it('should remove unverifiable transactions from the validated queue', async () => {
 			checkerStubs.checkTransactionForId
 				.onFirstCall()
 				.returns(checkForTransactionUnverifiableTransactionId);
