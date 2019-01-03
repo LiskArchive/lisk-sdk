@@ -16,8 +16,8 @@ export interface TransactionResponse {
 }
 
 export enum Status {
+	OK = 1,
 	FAIL,
-	OK,
 }
 
 export interface CheckTransactionsResponse {
