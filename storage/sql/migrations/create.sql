@@ -12,14 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = {
-	Account: require('./account'),
-	BaseEntity: require('./base_entity'),
-	Block: require('./block'),
-	Delegate: require('./delegate'),
-	Migration: require('./migration'),
-	Peer: require('./peer'),
-	Transaction: require('./transaction'),
-};
+INSERT INTO migrations (
+	${attributes:raw}
+) VALUES
+	${createSet:raw}
+;

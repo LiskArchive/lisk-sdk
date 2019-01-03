@@ -50,7 +50,6 @@ describe('Peer', () => {
 			'state',
 			'os',
 			'version',
-			'clock',
 			'broadhash',
 			'height',
 		];
@@ -97,14 +96,6 @@ describe('Peer', () => {
 			'version_ne',
 			'version_in',
 			'version_like',
-			'clock',
-			'clock_eql',
-			'clock_ne',
-			'clock_gt',
-			'clock_gte',
-			'clock_lt',
-			'clock_lte',
-			'clock_in',
 			'broadhash',
 			'broadhash_eql',
 			'broadhash_ne',
@@ -138,7 +129,6 @@ describe('Peer', () => {
 			broadhash:
 				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
 			height: 6857664,
-			clock: null,
 		};
 
 		invalidPeer = {
@@ -150,7 +140,6 @@ describe('Peer', () => {
 			broadhash:
 				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
 			height: 'foo',
-			clock: 'bar',
 		};
 
 		invalidOptions = {

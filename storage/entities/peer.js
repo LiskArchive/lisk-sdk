@@ -34,7 +34,6 @@ const readOnlyFields = [];
  * @property {number} state
  * @property {string} os
  * @property {string} version
- * @property {number} clock
  * @property {string} broadhash
  * @property {number} height
  */
@@ -81,14 +80,6 @@ const readOnlyFields = [];
  * @property {string} [version_ne]
  * @property {string} [version_in]
  * @property {string} [version_like]
- * @property {number} [clock]
- * @property {number} [clock_eql]
- * @property {number} [clock_ne]
- * @property {number} [clock_gt]
- * @property {number} [clock_gte]
- * @property {number} [clock_lt]
- * @property {number} [clock_lte]
- * @property {number} [clock_in]
  * @property {string} [broadhash]
  * @property {string} [broadhash_eql]
  * @property {string} [broadhash_ne]
@@ -119,7 +110,6 @@ class Peer extends BaseEntity {
 		this.addField('state', 'number', { filter: filterType.NUMBER });
 		this.addField('os', 'string', { filter: filterType.TEXT });
 		this.addField('version', 'string', { filter: filterType.TEXT });
-		this.addField('clock', 'number', { filter: filterType.NUMBER });
 		this.addField(
 			'broadhash',
 			'string',

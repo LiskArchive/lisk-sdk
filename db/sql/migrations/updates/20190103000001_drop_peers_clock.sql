@@ -12,14 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Account: require('./account'),
-	BaseEntity: require('./base_entity'),
-	Block: require('./block'),
-	Delegate: require('./delegate'),
-	Migration: require('./migration'),
-	Peer: require('./peer'),
-	Transaction: require('./transaction'),
-};
+/*
+  DESCRIPTION: clock column not in use should be removed
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE peers DROP COLUMN clock;
