@@ -1799,7 +1799,7 @@ describe('transactionPool', () => {
 
 			it('should return error when requester not found', done => {
 				const sender = _.cloneDeep(transaction);
-				sender.multisignatures = [{ id: '23423' }];
+				sender.membersPublicKeys = [{ id: '23423' }];
 				sender.signatures = [{ id: '11999' }];
 				accountsStub.setAccountAndGet.callsArgWith(1, null, sender);
 				accountsStub.getAccount.callsArgWith(1, 'Requester not found', null);
