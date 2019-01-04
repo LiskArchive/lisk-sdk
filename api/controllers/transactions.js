@@ -20,6 +20,7 @@ const ApiError = require('../../helpers/api_error');
 
 // Private Fields
 let modules;
+let storage;
 
 /**
  * Description of the function.
@@ -35,6 +36,21 @@ let modules;
  */
 function TransactionsController(scope) {
 	modules = scope.modules;
+	storage = scope.storage;
+}
+
+function transactionFormatter(transaction) {
+	const result = _.omit(transaction, ['requesterPublicKey']);
+	result.senderId = result.senderId || '';
+	result.recipientId = result.recipientId || '';
+	result.recipientPublicKey = result.recipientPublicKey || '';
+	result.signSignature = result.signSignature || '';
+	result.signatures = result.signatures || [];
+
+	// result.amount = result.amount.toString();
+	// result.fee = result.fee.toString();
+
+	return result;
 }
 
 /**
@@ -44,7 +60,7 @@ function TransactionsController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-TransactionsController.getTransactions = function(context, next) {
+TransactionsController.getTransactions = async function(context, next) {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -54,7 +70,6 @@ TransactionsController.getTransactions = function(context, next) {
 	const params = context.request.swagger.params;
 
 	let filters = {
-		senderIdOrRecipientId: params.senderIdOrRecipientId.value,
 		id: params.id.value,
 		blockId: params.blockId.value,
 		recipientId: params.recipientId.value,
@@ -62,52 +77,49 @@ TransactionsController.getTransactions = function(context, next) {
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
-		fromHeight: params.height.value,
-		toHeight: params.height.value,
-		fromTimestamp: params.fromTimestamp.value,
-		toTimestamp: params.toTimestamp.value,
-		minAmount: params.minAmount.value,
-		maxAmount: params.maxAmount.value,
-		data: params.data.value,
+		blockHeight: params.height.value,
+		timestamp_gte: params.fromTimestamp.value,
+		timestamp_let: params.toTimestamp.value,
+		amount_gte: params.minAmount.value,
+		amount_lte: params.maxAmount.value,
+		data_like: params.data.value,
+	};
+
+	let options = {
 		sort: params.sort.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
+		extended: true,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
+	options = _.pickBy(options, v => !(v === undefined || v === null));
 
-	return modules.transactions.shared.getTransactions(
-		_.clone(filters),
-		(err, data) => {
-			if (err) {
-				return next(err);
-			}
+	if (params.senderIdOrRecipientId.value) {
+		filters = [
+			{ ...filters, senderId: params.senderIdOrRecipientId.value },
+			{ ...filters, recipientId: params.senderIdOrRecipientId.value },
+		];
+	}
 
-			const transactions = _.map(
-				_.cloneDeep(data.transactions),
-				transaction => {
-					transaction.senderId = transaction.senderId || '';
-					transaction.recipientId = transaction.recipientId || '';
-					transaction.recipientPublicKey = transaction.recipientPublicKey || '';
+	try {
+		const data = await storage.entities.Transaction.get(filters, options).map(
+			transactionFormatter
+		);
+		const count = await storage.entities.Transaction.count(filters);
 
-					transaction.amount = transaction.amount.toString();
-					transaction.fee = transaction.fee.toString();
-
-					return transaction;
-				}
-			);
-
-			return next(null, {
-				data: transactions,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-					count: parseInt(data.count),
-				},
-			});
-		}
-	);
+		return next(null, {
+			data,
+			meta: {
+				offset: options.offset,
+				limit: options.limit,
+				count,
+			},
+		});
+	} catch (error) {
+		return next(error);
+	}
 };
 
 /**
