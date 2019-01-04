@@ -21,6 +21,7 @@ const {
 	Block,
 	Delegate,
 	Peer,
+	Round,
 	Transaction,
 	Migration,
 } = require('./entities');
@@ -62,6 +63,7 @@ class Storage {
 					Delegate: new Delegate(adapter),
 					Migration: new Migration(adapter),
 					Peer: new Peer(adapter),
+					Round: new Round(adapter),
 					Transaction: new Transaction(adapter),
 				};
 			}

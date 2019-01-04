@@ -12,15 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = {
-	Account: require('./account'),
-	BaseEntity: require('./base_entity'),
-	Block: require('./block'),
-	Delegate: require('./delegate'),
-	Migration: require('./migration'),
-	Peer: require('./peer'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-};
+SELECT EXISTS (
+	SELECT 1 FROM mem_round ${parsedFilters:raw}
+);
