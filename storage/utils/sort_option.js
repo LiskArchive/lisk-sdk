@@ -24,8 +24,12 @@ const isSortOptionValid = (sortOption, fields) => {
 };
 
 const parseSortString = sortString => {
-	const { field, method } = parseSortStringToObject(sortString);
-	return `"${field}" ${method.toUpperCase()}`;
+	let sortClause = '';
+	if (sortString) {
+		const { field, method } = parseSortStringToObject(sortString);
+		sortClause = `"${field}" ${method.toUpperCase()}`;
+	}
+	return sortClause;
 };
 
 const parseSortStringToObject = sortString => {
