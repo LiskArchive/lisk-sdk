@@ -600,7 +600,7 @@ class Transaction extends BaseEntity {
 		return transaction;
 	}
 
-	static _sanitizeFilters(filters) {
+	static _sanitizeFilters(filters = {}) {
 		const sanitizeFilterObject = filterObject => {
 			if (filterObject.data_like) {
 				filterObject.data_like = Buffer.from(filterObject.data_like, 'utf8');

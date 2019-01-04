@@ -77,7 +77,7 @@ TransactionsController.getTransactions = async function(context, next) {
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
-		blockHeight: params.height.value,
+		height: params.height.value,
 		timestamp_gte: params.fromTimestamp.value,
 		timestamp_let: params.toTimestamp.value,
 		amount_gte: params.minAmount.value,

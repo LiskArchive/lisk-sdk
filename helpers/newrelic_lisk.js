@@ -90,7 +90,6 @@ const modulesToInstrument = {
 	'./modules/transactions.js': {
 		identifier: 'modules.transactions',
 		callbackMethods: [
-			'shared.getTransactions',
 			'shared.getTransactionsCount',
 			'shared.getUnProcessedTransactions',
 			'shared.getMultisignatureTransactions',
