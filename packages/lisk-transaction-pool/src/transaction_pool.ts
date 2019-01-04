@@ -311,24 +311,31 @@ export class TransactionPool {
 		);
 	}
 
-	private async processVerifiedTransactions(): Promise<
-		CheckTransactionsResponse | void
-	> {
+	private async processVerifiedTransactions(): Promise<CheckTransactionsResponse | void> {
 		const transactionsInReadyQueue = this._queues.ready.size();
 		const transactionsInVerifiedQueue = this._queues.verified.size();
-		if (this._verifiedTransactionsProcessingLimitPerInterval > transactionsInReadyQueue && transactionsInVerifiedQueue > 0) {
+		if (
+			this._verifiedTransactionsProcessingLimitPerInterval >
+				transactionsInReadyQueue &&
+			transactionsInVerifiedQueue > 0
+		) {
 			const transactionsFromVerifiedQueue = this._queues.verified.peekUntil(
 				queueCheckers.returnTrueUntilLimit(
-					this._verifiedTransactionsProcessingInterval - transactionsInReadyQueue,
+					this._verifiedTransactionsProcessingInterval -
+						transactionsInReadyQueue,
 				),
 			);
 			const transactionsFromReadyQueue = this._queues.ready.peekUntil(
-				queueCheckers.returnTrueUntilLimit(
-					transactionsInReadyQueue
-				)
+				queueCheckers.returnTrueUntilLimit(transactionsInReadyQueue),
 			);
-			const toProcessTransactions = [...transactionsFromReadyQueue, ...transactionsFromVerifiedQueue];
-			const { passedTransactions, failedTransactions } = await checkTransactions(
+			const toProcessTransactions = [
+				...transactionsFromReadyQueue,
+				...transactionsFromVerifiedQueue,
+			];
+			const {
+				passedTransactions,
+				failedTransactions,
+			} = await checkTransactions(
 				toProcessTransactions,
 				this._processTransactions,
 			);
@@ -341,14 +348,18 @@ export class TransactionPool {
 				queueCheckers.checkTransactionForId(failedTransactions),
 			);
 			// Keep transactions in the ready queue which still exist
-			this._queues.ready.enqueueMany(this._queues.ready.removeFor(
-				queueCheckers.checkTransactionForId(passedTransactions),
-			));
+			this._queues.ready.enqueueMany(
+				this._queues.ready.removeFor(
+					queueCheckers.checkTransactionForId(passedTransactions),
+				),
+			);
 
 			// Move processeable transactions from the verified queue to the ready queue
-			this._queues.ready.enqueueMany(this._queues.verified.removeFor(
-				queueCheckers.checkTransactionForId(passedTransactions),
-			));
+			this._queues.ready.enqueueMany(
+				this._queues.verified.removeFor(
+					queueCheckers.checkTransactionForId(passedTransactions),
+				),
+			);
 
 			return {
 				passedTransactions,
