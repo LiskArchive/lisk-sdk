@@ -1045,9 +1045,11 @@ describe('transport', () => {
 							objectNormalize: sinonSandbox.stub().returns(new Block()),
 						},
 					},
-					db: {
-						blocks: {
-							getBlockForTransport: sinonSandbox.stub().resolves(blocksList),
+					storage: {
+						entities: {
+							Block: {
+								get: sinonSandbox.stub().resolves(blocksList),
+							},
 						},
 					},
 				};
