@@ -560,7 +560,7 @@ describe('Base transaction class', () => {
 			).to.have.been.calledWithExactly(validTestTransaction.senderPublicKey);
 		});
 
-		it('should return an object with property `ACCOUNTS` containing address of sender', async () => {
+		it('should return an object with property `ACCOUNTS` containing an array with address of sender', async () => {
 			const expectedAddressArray = ['18278674964748191682L'];
 			const requiredAttributes: any = validTestTransaction.getRequiredAttributes();
 			expect(requiredAttributes)
@@ -636,6 +636,13 @@ describe('Base transaction class', () => {
 				),
 				validMultisignatureTestTransaction.id,
 			);
+		});
+
+		it('should set isMultisignature to true for multisignature account', async () => {
+			validTestTransaction.verify(
+				defaultMultisignatureAccount,
+			);
+			expect(validTestTransaction.isMultisignature).to.be.true;
 		});
 
 		it('should return a successful transaction response with valid transaction', async () => {
