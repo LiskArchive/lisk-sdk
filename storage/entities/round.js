@@ -86,6 +86,7 @@ class Round extends BaseEntity {
 			update: this.adapter.loadSQLFile('rounds/update.sql'),
 			updateOne: this.adapter.loadSQLFile('rounds/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('rounds/is_persisted.sql'),
+			delete: this.adapter.loadSQLFile('rounds/delete.sql'),
 		};
 	}
 
@@ -269,6 +270,29 @@ class Round extends BaseEntity {
 				tx
 			)
 			.then(result => result.exists);
+	}
+
+	/**
+	 * Delete records with following conditions
+	 *
+	 * @param {filters.Round} filters
+	 * @param {Object} [options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	delete(filters, _options, tx = null) {
+		this.validateFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(
+				this.SQLs.delete,
+				{ parsedFilters },
+				{ expectedResultCount: 0 },
+				tx
+			)
+			.then(result => result);
 	}
 }
 
