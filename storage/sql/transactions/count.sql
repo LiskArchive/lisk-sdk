@@ -16,5 +16,5 @@ SELECT count(*)
 FROM
 	full_blocks_list
 
-${parsedFilters:raw}
+WHERE "t_rowId" IS NOT NULL  ${parsedFilters:raw}
 

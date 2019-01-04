@@ -25,11 +25,12 @@ const BaseEntity = require('./base_entity');
  * @typedef {Object} BasicTransaction
  * @property {string} id
  * @property {string} blockId
- * @property {Integer} [blockHeight]
+ * @property {Integer} [height]
  * @property {Integer} [confirmations]
  * @property {Integer} type
  * @property {Number} timestamp
  * @property {string} senderPublicKey
+ * @property {string} [recipientPublicKey]
  * @property {string} requesterPublicKey
  * @property {string} senderId
  * @property {string} recipientId
@@ -173,26 +174,21 @@ class Transaction extends BaseEntity {
 			filter: filterTypes.NUMBER,
 			fieldName: 't_timestamp',
 		});
-		this.addField(
-			'senderPublicKey',
-			'string',
-			{
-				filter: filterTypes.TEXT,
-				format: 'publicKey',
-				fieldName: 't_senderPublicKey',
-			},
-			stringToByte
-		);
-		this.addField(
-			'requesterPublicKey',
-			'string',
-			{
-				filter: filterTypes.TEXT,
-				format: 'publicKey',
-				fieldName: 'm_recipientPublicKey',
-			},
-			stringToByte
-		);
+		this.addField('senderPublicKey', 'string', {
+			filter: filterTypes.TEXT,
+			format: 'publicKey',
+			fieldName: 't_senderPublicKey',
+		});
+		this.addField('recipientPublicKey', 'string', {
+			filter: filterTypes.TEXT,
+			format: 'publicKey',
+			fieldName: 't_recipientPublicKey',
+		});
+		this.addField('requesterPublicKey', 'string', {
+			filter: filterTypes.TEXT,
+			format: 'publicKey',
+			fieldName: 't_requesterPublicKey',
+		});
 		this.addField('senderId', 'string', {
 			filter: filterTypes.TEXT,
 			fieldName: 't_senderId',
@@ -222,6 +218,10 @@ class Transaction extends BaseEntity {
 			stringToByte
 		);
 		this.addField('signatures', 'string', { fieldName: 't_signatures' });
+
+		this.addFilter('data_like', filterTypes.CUSTOM, {
+			condition: '"tf_data" LIKE ${data_like}',
+		});
 
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('transactions/get.sql'),
@@ -283,8 +283,11 @@ class Transaction extends BaseEntity {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	count(filters, _options = {}, tx) {
+		filters = Transaction._sanitizeFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
+		const parsedFilters = this.parseFilters(mergedFilters, {
+			filterPrefix: 'AND',
+		});
 
 		const params = {
 			parsedFilters,
@@ -520,13 +523,23 @@ class Transaction extends BaseEntity {
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		filters = Transaction._sanitizeFilters(filters);
+
 		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
+		const parsedFilters = this.parseFilters(mergedFilters, {
+			filterPrefix: 'AND',
+		});
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
 			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
 		);
+
+		// To have deterministic pagination add extra sorting
+		if (parsedOptions.sort) {
+			parsedOptions.sort = _.flatten([parsedOptions.sort, 't_rowId:asc']);
+		}
+
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
 		const params = {
@@ -557,7 +570,7 @@ class Transaction extends BaseEntity {
 	}
 
 	static _formatTransactionResult(row) {
-		const transaction = {};
+		const transaction = { asset: {} };
 
 		Object.keys(row).forEach(k => {
 			if (!k.match(/^asset./)) {
@@ -572,7 +585,37 @@ class Transaction extends BaseEntity {
 			_.set(transaction, assetKey, row[assetKey]);
 		});
 
+		if (transaction.asset.data) {
+			try {
+				transaction.asset.data = transaction.asset.data.toString('utf8');
+			} catch (e) {
+				// TODO: Add logging support
+				// library.logger.error(
+				// 	'Logic-Transfer-dbRead: Failed to convert data field into utf8'
+				// );
+				transaction.asset.data = null;
+			}
+		}
+
 		return transaction;
+	}
+
+	static _sanitizeFilters(filters) {
+		const sanitizeFilterObject = filterObject => {
+			if (filterObject.data_like) {
+				filterObject.data_like = Buffer.from(filterObject.data_like, 'utf8');
+			}
+			return filterObject;
+		};
+
+		// PostgresSQL does not support null byte buffer so have to parse in javascript
+		if (Array.isArray(filters)) {
+			filters = filters.map(sanitizeFilterObject);
+		} else {
+			filters = sanitizeFilterObject(filters);
+		}
+
+		return filters;
 	}
 }
 
