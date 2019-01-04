@@ -17,10 +17,6 @@ export class TestTransaction extends BaseTransaction {
 		return Buffer.alloc(0);
 	}
 
-	public testGetBasicBytes(): Buffer {
-		return this.getBasicBytes();
-	} 
-
 	public verifyAgainstOtherTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): TransactionResponse {

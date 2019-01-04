@@ -207,7 +207,7 @@ describe('Base transaction class', () => {
 						'hex',
 					),
 				);
-			(validTestTransaction as TestTransaction).testGetBasicBytes();
+			(validTestTransaction as any).getBasicBytes();
 
 			expect(cryptographyHexToBufferStub).to.be.calledWithExactly(
 				defaultTransaction.senderPublicKey,
@@ -220,7 +220,7 @@ describe('Base transaction class', () => {
 				.returns(
 					Buffer.from(defaultTransaction.recipientId.slice(0, -1), 'hex'),
 				);
-			(validTestTransaction as TestTransaction).testGetBasicBytes();
+			(validTestTransaction as any).getBasicBytes();
 
 			expect(cryptographyBigNumberToBufferStub).to.be.calledWithExactly(
 				defaultTransaction.recipientId.slice(0, -1),
@@ -239,7 +239,7 @@ describe('Base transaction class', () => {
 			const getAssetBytesStub = sandbox
 				.stub(testTransactionWithAsset, 'getAssetBytes')
 				.returns(Buffer.from('data'));
-			(testTransactionWithAsset as TestTransaction).testGetBasicBytes();
+			(testTransactionWithAsset as any).getBasicBytes();
 
 			expect(getAssetBytesStub).to.be.calledOnce;
 		});
@@ -251,7 +251,7 @@ describe('Base transaction class', () => {
 			);
 
 			expect(
-				(validTestTransaction as TestTransaction).testGetBasicBytes(),
+				(validTestTransaction as any).getBasicBytes(),
 			).to.eql(expectedBuffer);
 		});
 	});
