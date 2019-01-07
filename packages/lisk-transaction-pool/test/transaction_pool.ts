@@ -440,6 +440,13 @@ describe('transaction pool', () => {
 			expect(checkTransactionsStub).to.not.be.called;
 		});
 
+		it('should return empty passedTransactions, failedTransactions arrays if checkTransactions is not called', async () => {
+			(transactionPool.queues.verified.size as sinon.SinonStub).returns(0);
+			const {passedTransactions, failedTransactions} = await processVerifiedTransactions();
+			expect(passedTransactions).to.deep.equal([]);
+			expect(failedTransactions).to.deep.equal([]);
+		});
+
 		it('should remove unprocessable transactions from the verified and ready queues', async () => {
 			checkerStubs.checkTransactionForId
 				.onCall(0)
