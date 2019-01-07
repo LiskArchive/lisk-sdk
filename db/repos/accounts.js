@@ -160,16 +160,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Get delegates.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getDelegates() {
-		return this.db.any(sql.getDelegates);
-	}
-
-	/**
 	 * Update or insert into mem_accounts.
 	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}

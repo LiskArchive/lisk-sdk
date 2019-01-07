@@ -306,42 +306,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('getDelegates()', () => {
-			let delegateAccount;
-
-			beforeEach(function*() {
-				delegateAccount = new accountFixtures.Account({
-					isDelegate: true,
-				});
-				return yield db.accounts.insert(delegateAccount);
-			});
-
-			it('should use the correct SQL', function*() {
-				sinonSandbox.spy(db, 'any');
-				yield db.accounts.getDelegates();
-
-				return expect(db.any.firstCall.args[0]).to.eql(
-					accountsSQL.getDelegates
-				);
-			});
-
-			it('should return db.accounts with isDelegate set to true ', function*() {
-				const delegates = yield db.accounts.getDelegates();
-
-				// Check there are some accounts to test
-				expect(delegates).to.lengthOf(1);
-				return expect(delegates[0].publicKey).to.eql(delegateAccount.publicKey);
-			});
-
-			it('should only return "publicKey" of delegate db.accounts', function*() {
-				const delegates = yield db.accounts.getDelegates();
-
-				return delegates.forEach(delegate => {
-					expect(delegate).to.have.all.keys('publicKey');
-				});
-			});
-		});
-
 		describe('upsert()', () => {
 			it('should throw error if no conflict field is specified', done => {
 				const account = new accountFixtures.Account();

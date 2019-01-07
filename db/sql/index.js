@@ -33,7 +33,6 @@ module.exports = {
 	accounts: {
 		resetMemoryTables: link('accounts/reset_memory_tables.sql'),
 		updateMemAccounts: link('accounts/update_mem_accounts.sql'),
-		getDelegates: link('accounts/get_delegates.sql'),
 		incrementAccount: link('accounts/increment_account.sql'),
 		decrementAccount: link('accounts/decrement_account.sql'),
 		removeAccountDependencies: link('accounts/remove_account_dependencies.sql'),

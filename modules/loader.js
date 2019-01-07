@@ -535,15 +535,19 @@ __private.loadBlockChain = function() {
 				function updateMemAccounts(t) {
 					const promises = [
 						t.accounts.updateMemAccounts(),
-						t.accounts.getDelegates(),
+						library.storage.entities.Account.get(
+							{ isDelegate: true },
+							{ limit: null, offset: null },
+							t
+						).then(accounts => accounts.map(account => account.publicKey)),
 					];
 					return t.batch(promises);
 				}
 
 				return library.db
 					.task(updateMemAccounts)
-					.spread((_updateMemAccounts, getDelegates) => {
-						if (getDelegates.length === 0) {
+					.spread((_updateMemAccounts, delegatesPublicKeys) => {
+						if (delegatesPublicKeys.length === 0) {
 							return reload(blocksCount, 'No delegates found');
 						}
 
