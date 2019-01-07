@@ -26,6 +26,7 @@ describe('blocks/verify', () => {
 	let __private;
 	let loggerStub;
 	let dbStub;
+	let storageStub;
 	let logicBlockStub;
 	let logicTransactionStub;
 	let configMock;
@@ -43,10 +44,12 @@ describe('blocks/verify', () => {
 			debug: sinonSandbox.spy(),
 		};
 
-		dbStub = {
-			blocks: {
-				loadLastNBlockIds: sinonSandbox.stub(),
-				blockExists: sinonSandbox.stub(),
+		storageStub = {
+			entities: {
+				Block: {
+					get: sinonSandbox.stub(),
+					isPersisted: sinonSandbox.stub(),
+				},
 			},
 		};
 
@@ -74,6 +77,7 @@ describe('blocks/verify', () => {
 			logicBlockStub,
 			logicTransactionStub,
 			dbStub,
+			storageStub,
 			configMock
 		);
 
@@ -1178,9 +1182,9 @@ describe('blocks/verify', () => {
 	});
 
 	describe('onBlockchainReady', () => {
-		describe('when library.db.blocks.loadLastNBlockIds fails', () => {
+		describe('when library.storage.entities.Block.get fails', () => {
 			beforeEach(() => {
-				return library.db.blocks.loadLastNBlockIds.rejects(
+				return library.storage.entities.Block.get.rejects(
 					'loadLastNBlockIds-ERR'
 				);
 			});
@@ -1199,9 +1203,9 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when library.db.blocks.loadLastNBlockIds succeeds', () => {
+		describe('when library.storage.entities.Block.get succeeds', () => {
 			beforeEach(() => {
-				return library.db.blocks.loadLastNBlockIds.resolves([
+				return library.storage.entities.Block.get.resolves([
 					{ id: 1 },
 					{ id: 2 },
 					{ id: 3 },
@@ -1861,9 +1865,11 @@ describe('blocks/verify', () => {
 	describe('__private.checkExists', () => {
 		const dummyBlock = { id: 1 };
 
-		describe('when library.db.blocks.blockExists fails', () => {
+		describe('when library.storage.entities.Block.isPersisted fails', () => {
 			beforeEach(() => {
-				return library.db.blocks.blockExists.rejects('blockExists-ERR');
+				return library.storage.entities.Block.isPersisted.rejects(
+					'blockExists-ERR'
+				);
 			});
 
 			afterEach(() => {
@@ -1880,10 +1886,10 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when library.db.blocks.blockExists succeeds', () => {
+		describe('when library.storage.entities.Block.isPersisted succeeds', () => {
 			describe('if rows = true', () => {
 				beforeEach(() => {
-					return library.db.blocks.blockExists.resolves(true);
+					return library.storage.entities.Block.isPersisted.resolves(true);
 				});
 
 				it('should call a callback with error', done => {
@@ -1896,7 +1902,7 @@ describe('blocks/verify', () => {
 
 			describe('if rows = false', () => {
 				beforeEach(() => {
-					return library.db.blocks.blockExists.resolves(false);
+					return library.storage.entities.Block.isPersisted.resolves(false);
 				});
 
 				it('should call a callback with no error', done => {
@@ -2094,6 +2100,7 @@ describe('blocks/verify', () => {
 					logicBlockStub,
 					logicTransactionStub,
 					dbStub,
+					storageStub,
 					{
 						loading: { snapshotRound: 123 },
 					}

@@ -27,6 +27,7 @@ describe('blocks', () => {
 	let modules;
 	let __private;
 	let dbStub;
+	let storageStub;
 	let loggerStub;
 	let logicBlockStub;
 	let logicTransactionStub;
@@ -55,13 +56,17 @@ describe('blocks', () => {
 		};
 		dbStub = {
 			blocks: {
-				getGenesisBlockId: sinonSandbox
-					.stub()
-					.resolves([{ id: '6524861224470851795' }]),
 				deleteBlock: sinonSandbox.stub(),
 				deleteAfterBlock: sinonSandbox.stub(),
 			},
 			tx: sinonSandbox.stub(),
+		};
+		storageStub = {
+			entities: {
+				Block: {
+					isPersisted: sinonSandbox.stub().resolves(true),
+				},
+			},
 		};
 		logicBlockStub = sinonSandbox.stub();
 		logicTransactionStub = sinonSandbox.stub();
@@ -74,6 +79,7 @@ describe('blocks', () => {
 		scope = {
 			logger: loggerStub,
 			db: dbStub,
+			storage: storageStub,
 			logic: {
 				account: accountStub,
 				block: logicBlockStub,
@@ -136,7 +142,7 @@ describe('blocks', () => {
 
 		describe('when this.submodules.chain.saveGenesisBlock fails', () => {
 			it('should call callback with error', done => {
-				dbStub.blocks.getGenesisBlockId.resolves([]);
+				storageStub.entities.Block.isPersisted.resolves(false);
 				blocksInstance = new Blocks((err, cbSelf) => {
 					self = cbSelf;
 					library = Blocks.__get__('library');

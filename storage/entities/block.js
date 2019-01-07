@@ -130,6 +130,14 @@ const BaseEntity = require('./base_entity');
  * @property {string} [version_lt]
  * @property {string} [version_lte]
  * @property {string} [version_in]
+ * @property {string} [confirmations]
+ * @property {string} [confirmations_eql]
+ * @property {string} [confirmations_ne]
+ * @property {string} [confirmations_gt]
+ * @property {string} [confirmations_gte]
+ * @property {string} [confirmations_lt]
+ * @property {string} [confirmations_lte]
+ * @property {string} [confirmations_in]
  */
 
 class Block extends BaseEntity {
@@ -153,7 +161,6 @@ class Block extends BaseEntity {
 			'generatorPublicKey',
 			'string',
 			{
-				format: 'publicKey',
 				filter: filterType.TEXT,
 			},
 			stringToByte
@@ -177,6 +184,7 @@ class Block extends BaseEntity {
 		this.addField('totalFee', 'string', { filter: filterType.NUMBER });
 		this.addField('reward', 'string', { filter: filterType.NUMBER });
 		this.addField('version', 'number', { filter: filterType.NUMBER });
+		this.addField('confirmations', 'number', { filter: filterType.NUMBER });
 
 		const defaultSort = { sort: 'height:desc' };
 		this.extendDefaultOptions(defaultSort);
@@ -297,8 +305,13 @@ class Block extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 
 		return this.adapter
-			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
-			.then(result => !!result[0]);
+			.executeFile(
+				this.SQLs.isPersisted,
+				{ parsedFilters },
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(result => result.exists);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {

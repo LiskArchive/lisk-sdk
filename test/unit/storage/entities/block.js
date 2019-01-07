@@ -71,6 +71,7 @@ describe('Block', () => {
 			expect(addFieldSpy.callCount).to.eql(Object.keys(block.fields).length);
 			expect(block.fields).to.have.all.keys([
 				'blockSignature',
+				'confirmations',
 				'generatorPublicKey',
 				'height',
 				'id',
@@ -96,6 +97,14 @@ describe('Block', () => {
 				'blockSignature_in',
 				'blockSignature_like',
 				'blockSignature_ne',
+				'confirmations',
+				'confirmations_eql',
+				'confirmations_gt',
+				'confirmations_gte',
+				'confirmations_in',
+				'confirmations_lt',
+				'confirmations_lte',
+				'confirmations_ne',
 				'generatorPublicKey',
 				'generatorPublicKey_eql',
 				'generatorPublicKey_in',
@@ -366,7 +375,7 @@ describe('Block', () => {
 		before(async () => {
 			const adapter = {
 				loadSQLFile: sinonSandbox.stub(),
-				executeFile: sinonSandbox.stub().resolves([]),
+				executeFile: sinonSandbox.stub().resolves(),
 			};
 			block = new Block(adapter);
 		});
@@ -418,7 +427,7 @@ describe('Block', () => {
 		it('should call adapter.executeFile with proper params', async () => {
 			const adapter = {
 				loadSQLFile: sinonSandbox.stub(),
-				executeFile: sinonSandbox.stub().resolves([]),
+				executeFile: sinonSandbox.stub().resolves(),
 			};
 			block = new Block(adapter);
 
@@ -435,14 +444,14 @@ describe('Block', () => {
 				adapter.executeFile.calledWith(
 					block.SQLs.isPersisted,
 					params,
-					{},
+					{ expectedResultCount: 1 },
 					undefined
 				)
 			).to.be.true;
 		});
 
 		it('should resolve with true if matching record found', async () => {
-			const executeFileResponse = [{}];
+			const executeFileResponse = { exists: true };
 			const adapter = {
 				loadSQLFile: sinonSandbox.stub(),
 				executeFile: sinonSandbox.stub().resolves(executeFileResponse),
@@ -457,7 +466,7 @@ describe('Block', () => {
 		});
 
 		it('should resolve with false if matching record not found', async () => {
-			const executeFileResponse = [];
+			const executeFileResponse = { exists: false };
 			const adapter = {
 				loadSQLFile: sinonSandbox.stub(),
 				executeFile: sinonSandbox.stub().resolves(executeFileResponse),

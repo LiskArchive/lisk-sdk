@@ -65,6 +65,7 @@ class Blocks {
 			api: new BlocksAPI(
 				scope.logger,
 				scope.db,
+				scope.storage,
 				scope.logic.block,
 				scope.schema
 			),
@@ -73,6 +74,7 @@ class Blocks {
 				scope.logic.block,
 				scope.logic.transaction,
 				scope.db,
+				scope.storage,
 				scope.config
 			),
 			process: new BlocksProcess(
@@ -82,6 +84,7 @@ class Blocks {
 				scope.logic.transaction,
 				scope.schema,
 				scope.db,
+				scope.storage,
 				scope.sequence,
 				scope.genesisBlock
 			),
@@ -91,6 +94,7 @@ class Blocks {
 				scope.logic.block,
 				scope.logic.transaction,
 				scope.db,
+				scope.storage,
 				scope.genesisBlock
 			),
 			chain: new BlocksChain(
@@ -98,6 +102,7 @@ class Blocks {
 				scope.logic.block,
 				scope.logic.transaction,
 				scope.db,
+				scope.storage,
 				scope.genesisBlock,
 				scope.bus,
 				scope.balancesSequence
