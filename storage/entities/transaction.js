@@ -145,6 +145,15 @@ const assetAttributesMap = {
 	7: ['asset.outTransfer.dappId', ' asset.outTransfer.transactionId'],
 };
 
+// eslint-disable-next-line no-unused-vars
+const stringToByteOnlyInsert = (value, mode, alias, fieldName) => {
+	if (mode === 'select') {
+		return `$\{${alias}}`;
+	}
+
+	return value ? `DECODE($\{${alias}}, 'hex')` : 'NULL';
+};
+
 class Transaction extends BaseEntity {
 	/**
 	 * Constructor
@@ -182,7 +191,7 @@ class Transaction extends BaseEntity {
 				format: 'publicKey',
 				fieldName: 't_senderPublicKey',
 			},
-			stringToByte
+			stringToByteOnlyInsert
 		);
 		this.addField(
 			'recipientPublicKey',
@@ -192,7 +201,7 @@ class Transaction extends BaseEntity {
 				format: 'publicKey',
 				fieldName: 't_recipientPublicKey',
 			},
-			stringToByte
+			stringToByteOnlyInsert
 		);
 		this.addField(
 			'requesterPublicKey',
@@ -202,7 +211,7 @@ class Transaction extends BaseEntity {
 				format: 'publicKey',
 				fieldName: 't_requesterPublicKey',
 			},
-			stringToByte
+			stringToByteOnlyInsert
 		);
 		this.addField('senderId', 'string', {
 			filter: filterTypes.TEXT,
