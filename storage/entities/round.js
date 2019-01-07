@@ -74,7 +74,10 @@ class Round extends BaseEntity {
 
 		this.addField('address', 'string', { filter: filterType.TEXT });
 		this.addField('amount', 'number', { filter: filterType.NUMBER });
-		this.addField('delegate', 'string', { filter: filterType.TEXT });
+		this.addField('delegatePublicKey', 'string', {
+			filter: filterType.TEXT,
+			fieldName: 'delegate',
+		});
 		this.addField('round', 'number', { filter: filterType.NUMBER });
 
 		const defaultSort = { sort: '' };

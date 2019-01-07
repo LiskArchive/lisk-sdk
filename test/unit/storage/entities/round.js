@@ -18,7 +18,7 @@
 const { BaseEntity, Round } = require('../../../../storage/entities');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
-const roundsFixtures = require('../../../fixtures').rounds;
+const roundsFixtures = require('../../../fixtures').storageRounds;
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
@@ -68,11 +68,11 @@ describe('Round', () => {
 			'amount_lt',
 			'amount_lte',
 			'amount_in',
-			'delegate',
-			'delegate_eql',
-			'delegate_ne',
-			'delegate_in',
-			'delegate_like',
+			'delegatePublicKey',
+			'delegatePublicKey_eql',
+			'delegatePublicKey_ne',
+			'delegatePublicKey_in',
+			'delegatePublicKey_like',
 			'round',
 			'round_eql',
 			'round_ne',
@@ -85,7 +85,7 @@ describe('Round', () => {
 
 		validRoundSQLs = ['select', 'create', 'isPersisted', 'update', 'updateOne'];
 
-		validRoundFields = ['address', 'amount', 'delegate', 'round'];
+		validRoundFields = ['address', 'amount', 'delegatePublicKey', 'round'];
 
 		validOptions = {
 			sort: 'round:asc',

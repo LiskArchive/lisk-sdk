@@ -15,7 +15,7 @@
 SELECT
 	"address",
 	"amount",
-	"delegate",
+	"delegate" as "delegatePublicKey",
 	"round"
 FROM
 	mem_round
