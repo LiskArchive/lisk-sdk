@@ -16,10 +16,12 @@
 
 properties([
 	parameters([
+		string(name: 'JENKINS_PROFILE', defaultValue: '', description: 'To build cache dependencies and run slow tests, change this value to "extensive".', ),
+		// read by the application
 		string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
-		string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', ),
 		string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', ),
-		string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', ),
+		// used by tests
+		string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
 	 ])
 ])
 
@@ -29,11 +31,9 @@ pipeline {
 		stage('Build') {
 			steps {
 				ansiColor('xterm') {
+					sh 'sudo service postgresql restart'
 					nvm(getNodejsVersion()) {
-						sh '''
-						sudo service postgresql restart
-						npm ci
-						'''
+						sh 'npm ci'
 					}
 				}
 			}
@@ -42,14 +42,7 @@ pipeline {
 			steps {
 				ansiColor('xterm') {
 					nvm(getNodejsVersion()) {
-						sh '''#!/bin/bash -xe
-						set -o pipefail
-						if [ params.JENKINS_PROFILE == 'jenkins-extensive' ]; then
-							npm test -- mocha:extensive:network |& tee networkTests.logs
-						else
-							npm test -- mocha:default:network |& tee networkTests.logs
-						fi
-						'''
+						sh 'npm test -- mocha:${JENKINS_PROFILE:-default}:network'
 					}
 				}
 			}
@@ -57,9 +50,7 @@ pipeline {
 	}
 	post {
 		always {
-			nvm(getNodejsVersion()) {
-				sh './node_modules/.bin/pm2 kill || true'
-			}
+			archiveArtifacts artifacts: 'test/network/logs/*.log', allowEmptyArchive: true
 		}
 		failure {
 			script {
@@ -71,6 +62,11 @@ pipeline {
 			script {
 				build_info = getBuildInfo()
 				liskSlackSend('good', "Job ${build_info} was successful.", 'lisk-ci-core')
+			}
+		}
+		cleanup {
+			nvm(getNodejsVersion()) {
+				sh './node_modules/.bin/pm2 kill || true'
 			}
 		}
 	}
