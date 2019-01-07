@@ -19,6 +19,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
 	BYTESIZES,
+	MAX_TRANSACTION_AMOUNT,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from '../constants';
@@ -43,7 +44,17 @@ export interface TransactionResponse {
 	readonly id: string;
 	readonly status: Status;
 	readonly errors: ReadonlyArray<TransactionError>;
-	readonly state?: ReadonlyArray<Account>;
+	readonly state?: { readonly sender: Account; readonly recipient?: Account };
+}
+
+export interface Attributes {
+	readonly [attribute: string]: string[];
+}
+
+export enum MultisignatureStatus {
+	TRUE = 1,
+	FALSE,
+	UNKNOWN,
 }
 
 export abstract class BaseTransaction {
@@ -61,7 +72,7 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
 	public readonly receivedAt: Date = new Date();
-	public isMultisignature? = false;
+	public isMultisignature?: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		const { valid, errors } = checkTypes(rawTransaction);
@@ -87,10 +98,6 @@ export abstract class BaseTransaction {
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
 		this.receivedAt = rawTransaction.receivedAt;
-		this.isMultisignature =
-			rawTransaction.signatures && rawTransaction.signatures.length > 0
-				? true
-				: false;
 	}
 
 	public abstract assetToJSON(): TransactionAsset;
@@ -107,21 +114,13 @@ export abstract class BaseTransaction {
 			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
 			signature: this.signature,
+			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
 			receivedAt: this.receivedAt,
 		};
 
-		if (!this.signSignature) {
-			return transaction;
-		}
-
-		const secondSignedTransaction = {
-			...transaction,
-			signSignature: this.signSignature,
-		};
-
-		return secondSignedTransaction;
+		return transaction;
 	}
 
 	protected abstract getAssetBytes(): Buffer;
@@ -263,7 +262,7 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public getRequiredAttributes(): object {
+	public getRequiredAttributes(): Attributes {
 		return {
 			ACCOUNTS: [cryptography.getAddressFromPublicKey(this.senderPublicKey)],
 		};
@@ -325,7 +324,7 @@ export abstract class BaseTransaction {
 			} else {
 				const transactionBytes = Buffer.concat([
 					this.getBasicBytes(),
-					Buffer.from(this.signature, 'hex'),
+					cryptography.hexToBuffer(this.signature),
 				]);
 
 				const {
@@ -350,8 +349,7 @@ export abstract class BaseTransaction {
 			sender.multisignatures.length > 0 &&
 			sender.multimin
 		) {
-			// Ensure boolean is set correctly to calculate valid multisig expiry time
-			this.isMultisignature = true;
+			this.isMultisignature = MultisignatureStatus.TRUE;
 			const transactionBytes = this.signSignature
 				? Buffer.concat([
 						this.getBasicBytes(),
@@ -379,6 +377,8 @@ export abstract class BaseTransaction {
 					errors.push(error);
 				});
 			}
+		} else {
+			this.isMultisignature = MultisignatureStatus.FALSE;
 		}
 
 		return {
@@ -395,33 +395,52 @@ export abstract class BaseTransaction {
 	public apply(sender: Account): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
-
+		const errors = updatedBalance.gte(0)
+			? []
+			: [
+					new TransactionError(
+						`Account does not have enough LSK: ${sender.address}, balance: ${
+							sender.balance
+						}`,
+						this.id,
+					),
+			  ];
+		
 		return {
 			id: this.id,
-			status: Status.OK,
-			state: [updatedAccount],
-			errors: [],
+			status: errors.length > 0 ? Status.FAIL : Status.OK,
+			state: errors.length > 0 ? { sender } : { sender: updatedAccount },
+			errors,
 		};
 	}
 
 	public undo(sender: Account): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
+		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
+			? []
+			: [
+					new TransactionError(
+						'Invalid balance amount',
+						this.id,
+					),
+			  ];
 
 		return {
 			id: this.id,
-			status: Status.OK,
-			state: [updatedAccount],
-			errors: [],
+			status: errors.length > 0 ? Status.FAIL : Status.OK,
+			state: errors.length > 0 ? { sender } : { sender: updatedAccount },
+			errors,
 		};
 	}
 
 	public isExpired(date: Date = new Date()): boolean {
 		// tslint:disable-next-line no-magic-numbers
 		const timeNow = Math.floor(date.getTime() / 1000);
-		const timeOut = this.isMultisignature
-			? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
-			: UNCONFIRMED_TRANSACTION_TIMEOUT;
+		const timeOut =
+			this.isMultisignature === MultisignatureStatus.TRUE
+				? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
+				: UNCONFIRMED_TRANSACTION_TIMEOUT;
 		const timeElapsed =
 			// tslint:disable-next-line no-magic-numbers
 			timeNow - Math.floor(this.receivedAt.getTime() / 1000);

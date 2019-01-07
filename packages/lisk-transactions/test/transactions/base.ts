@@ -14,12 +14,15 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BYTESIZES } from '../../src/constants';
-import { BaseTransaction } from '../../src/transactions/base';
-import { TransactionJSON, Status, Account } from '../../src/transaction_types';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../../src/constants';
+import {
+	BaseTransaction,
+	MultisignatureStatus,
+} from '../../src/transactions/base';
+import { TransactionJSON, Status } from '../../src/transaction_types';
 import { TransactionError, TransactionMultiError } from '../../src/errors';
 import BigNum from 'browserify-bignum';
-import { addDate, TestTransaction } from '../helpers';
+import { addFields, TestTransaction } from '../helpers';
 import {
 	validAccount as defaultSenderAccount,
 	validMultisignatureAccount as defaultMultisignatureAccount,
@@ -31,11 +34,11 @@ import {
 import * as utils from '../../src/utils';
 
 describe('Base transaction class', () => {
-	const defaultTransaction = addDate(validTransaction);
-	const defaultSecondSignatureTransaction = addDate(
+	const defaultTransaction = addFields(validTransaction);
+	const defaultSecondSignatureTransaction = addFields(
 		validSecondSignatureTransaction,
 	);
-	const defaultMultisignatureTransaction = addDate(
+	const defaultMultisignatureTransaction = addFields(
 		validMultisignatureTransaction,
 	);
 
@@ -139,17 +142,13 @@ describe('Base transaction class', () => {
 		});
 
 		it('should have isMultisignature boolean', async () => {
-			expect(validTestTransaction)
-				.to.have.property('isMultisignature')
-				.and.be.a('boolean');
+			expect(validTestTransaction).to.have.property('isMultisignature');
 		});
 
-		it('should set isMultisignature to true with a multisignature transaction', async () => {
-			expect(validMultisignatureTestTransaction.isMultisignature).to.be.true;
-		});
-
-		it('should set isMultisignature to false with non-multisignature transaction', async () => {
-			expect(validTestTransaction.isMultisignature).to.be.false;
+		it('should set isMultisignature to unknown', async () => {
+			expect(validMultisignatureTestTransaction.isMultisignature).to.eql(
+				MultisignatureStatus.UNKNOWN,
+			);
 		});
 
 		it('should throw a transaction multierror with incorrectly typed transaction properties', async () => {
@@ -250,9 +249,9 @@ describe('Base transaction class', () => {
 				'hex',
 			);
 
-			expect(
-				(validTestTransaction as any).getBasicBytes(),
-			).to.eql(expectedBuffer);
+			expect((validTestTransaction as any).getBasicBytes()).to.eql(
+				expectedBuffer,
+			);
 		});
 	});
 
@@ -639,10 +638,17 @@ describe('Base transaction class', () => {
 		});
 
 		it('should set isMultisignature to true for multisignature account', async () => {
-			validTestTransaction.verify(
-				defaultMultisignatureAccount,
+			validTestTransaction.verify(defaultMultisignatureAccount);
+			expect(validTestTransaction.isMultisignature).to.eql(
+				MultisignatureStatus.TRUE,
 			);
-			expect(validTestTransaction.isMultisignature).to.be.true;
+		});
+
+		it('should set isMultisignature to false for non-multisignature account', async () => {
+			validTestTransaction.verify(defaultSenderAccount);
+			expect(validTestTransaction.isMultisignature).to.eql(
+				MultisignatureStatus.FALSE,
+			);
 		});
 
 		it('should return a successful transaction response with valid transaction', async () => {
@@ -842,31 +848,72 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#apply', () => {
-		it('should return an updated sender account with balance minus transaction fee', async () => {
-			const { state } = validTestTransaction.apply(defaultSenderAccount);
-			expect(state).to.be.an('array');
-			const appliedState = state as ReadonlyArray<Account>;
-			expect(appliedState[0])
+		it('should return a successful transaction response with an updated sender account', async () => {
+			const { id, status, state, errors } = validTestTransaction.apply(
+				defaultSenderAccount,
+			);
+			expect(id).to.be.eql(validTestTransaction.id);
+			expect(status).to.eql(Status.OK);
+			expect(state)
 				.to.be.an('object')
-				.and.to.have.property('balance', '0');
+				.and.to.have.property('sender');
+			expect((state as any).sender).to.have.property('balance', '0');
+			expect(errors).to.be.eql([]);
+		});
+
+		it('should return a failed transaction response with insufficient account balance', async () => {
+			const { id, status, state, errors } = validTestTransaction.apply({
+				...defaultSenderAccount,
+				balance: '0',
+			});
+			expect(id).to.be.eql(validTestTransaction.id);
+			expect(status).to.eql(Status.FAIL);
+			expect(state)
+				.to.be.an('object')
+				.and.to.have.property('sender');
+			expect((state as any).sender).to.have.property('balance', '0');
+			expect((errors as ReadonlyArray<TransactionError>)[0])
+				.to.be.instanceof(TransactionError)
+				.and.to.have.property(
+					'message',
+					`Account does not have enough LSK: ${
+						defaultSenderAccount.address
+					}, balance: 0`,
+				);
 		});
 	});
 
 	describe('#undo', () => {
-		it('should return sender account with original balance', async () => {
-			const { state: returnedState } = validTestTransaction.apply(
+		it('should return a successful transaction response with an updated sender account', async () => {
+			const { id, status, state, errors } = validTestTransaction.undo(
 				defaultSenderAccount,
 			);
-			const appliedStateArray = returnedState as ReadonlyArray<Account>;
-			const appliedState = appliedStateArray[0];
-			const { state: secondReturnedState } = validTestTransaction.undo(
-				appliedState as Account,
-			);
-			const undoneState = secondReturnedState as ReadonlyArray<Account>;
-			expect(undoneState).to.be.an('array');
-			expect(undoneState[0])
+			expect(id).to.be.eql(validTestTransaction.id);
+			expect(status).to.eql(Status.OK);
+			expect(state)
 				.to.be.an('object')
-				.and.to.have.property('balance', '10000000');
+				.and.to.have.property('sender');
+			expect((state as any).sender).to.have.property('balance', '20000000');
+			expect(errors).to.be.eql([]);
+		});
+
+		it('should return a failed transaction response with account balance exceeding max amount', async () => {
+			const { id, status, state, errors } = validTestTransaction.undo({
+				...defaultSenderAccount,
+				balance: MAX_TRANSACTION_AMOUNT.toString(),
+			});
+			expect(id).to.be.eql(validTestTransaction.id);
+			expect(status).to.eql(Status.FAIL);
+			expect(state)
+				.to.be.an('object')
+				.and.to.have.property('sender');
+			expect((state as any).sender).to.have.property('balance', MAX_TRANSACTION_AMOUNT.toString());
+			expect((errors as ReadonlyArray<TransactionError>)[0])
+				.to.be.instanceof(TransactionError)
+				.and.to.have.property(
+					'message',
+					'Invalid balance amount',
+				);
 		});
 	});
 
