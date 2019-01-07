@@ -120,51 +120,6 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * Count transactions with extended params.
-	 * The params to this method comes in this format
-	 *
-	 * { where:
-	 *   [ '"t_recipientId" IN (${recipientId:csv})',
-	 *     'AND "t_senderId" IN (${senderId:csv})' ],
-	 *  owner: '',
-	 *  recipientId: '1253213165192941997L',
-	 *  senderId: '16313739661670634666L',
-	 *  limit: 10,
-	 *  offset: 0 }
-	 *
-	 *   @todo Simplify the usage and pass direct params to the method
-	 *
-	 * @param {Object} params
-	 * @param {Array} params.where
-	 * @param {string} params.owner
-	 * @returns {Promise<number>}
-	 * Transactions counter.
-	 */
-	countList(params) {
-		// Add dummy condition in case of blank to avoid conditional where clause
-		let conditions =
-			params && params.where && params.where.length ? params.where : [];
-
-		// Handle the case if single condition is provided
-		if (typeof conditions === 'string') {
-			conditions = [conditions];
-		}
-
-		// FIXME: Backward compatibility, should be removed after transitional period
-		if (params && params.owner) {
-			conditions.push(`AND ${params.owner}`);
-		}
-
-		if (conditions.length) {
-			conditions = `WHERE ${this.pgp.as.format(conditions.join(' '), params)}`;
-		} else {
-			conditions = '';
-		}
-
-		return this.db.one(sql.countList, { conditions }, a => +a.count);
-	}
-
-	/**
 	 * Gets transfer transactions from a list of id-s.
 	 *
 	 * @param {Array.<string>} ids

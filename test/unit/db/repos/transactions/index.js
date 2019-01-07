@@ -203,52 +203,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('countList()', () => {
-			it('should fulfil with zero if no parameter provided', () => {
-				return expect(db.transactions.countList()).to.be.eventually.eql(0);
-			});
-
-			it('should use the correct SQL with correct parameters', function*() {
-				sinonSandbox.spy(db, 'one');
-				const params = {
-					where: ['t_id = ${id}'],
-					owner: '"t_blockId" = \'1111\'',
-					id: '123',
-				};
-				yield db.transactions.countList(params);
-
-				expect(db.one.firstCall.args[0]).to.eql(transactionsSQL.countList);
-				expect(db.one.firstCall.args[1]).to.eql({
-					conditions: "WHERE t_id = '123' AND \"t_blockId\" = '1111'",
-				});
-				return expect(db.one.firstCall.args[2]).to.be.a('function');
-			});
-
-			it('should return integer type count of transactions matching the particular id', function*() {
-				let transaction = null;
-
-				for (let i = 0; i < numSeedRecords; i++) {
-					transaction = new transactionsFixtures.Transaction({
-						blockId: seeder.getLastBlock().id,
-					});
-					yield db.transactions.save(transaction);
-				}
-				// Check for last transaction
-				const result = yield db.transactions.countList({
-					where: [`t_id = '${transaction.id}'`],
-				});
-
-				expect(result).to.be.a('number');
-				return expect(result).to.be.eql(1);
-			});
-
-			it('should be fulfilled if parameter "where" is provided as string', () => {
-				return expect(
-					db.transactions.countList({ where: "t_id = '1233'" })
-				).to.be.eventually.eql(0);
-			});
-		});
-
 		describe('getTransferByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
