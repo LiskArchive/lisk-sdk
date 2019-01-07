@@ -174,21 +174,36 @@ class Transaction extends BaseEntity {
 			filter: filterTypes.NUMBER,
 			fieldName: 't_timestamp',
 		});
-		this.addField('senderPublicKey', 'string', {
-			filter: filterTypes.TEXT,
-			format: 'publicKey',
-			fieldName: 't_senderPublicKey',
-		});
-		this.addField('recipientPublicKey', 'string', {
-			filter: filterTypes.TEXT,
-			format: 'publicKey',
-			fieldName: 't_recipientPublicKey',
-		});
-		this.addField('requesterPublicKey', 'string', {
-			filter: filterTypes.TEXT,
-			format: 'publicKey',
-			fieldName: 't_requesterPublicKey',
-		});
+		this.addField(
+			'senderPublicKey',
+			'string',
+			{
+				filter: filterTypes.TEXT,
+				format: 'publicKey',
+				fieldName: 't_senderPublicKey',
+			},
+			stringToByte
+		);
+		this.addField(
+			'recipientPublicKey',
+			'string',
+			{
+				filter: filterTypes.TEXT,
+				format: 'publicKey',
+				fieldName: 't_recipientPublicKey',
+			},
+			stringToByte
+		);
+		this.addField(
+			'requesterPublicKey',
+			'string',
+			{
+				filter: filterTypes.TEXT,
+				format: 'publicKey',
+				fieldName: 't_requesterPublicKey',
+			},
+			stringToByte
+		);
 		this.addField('senderId', 'string', {
 			filter: filterTypes.TEXT,
 			fieldName: 't_senderId',
@@ -537,7 +552,12 @@ class Transaction extends BaseEntity {
 
 		// To have deterministic pagination add extra sorting
 		if (parsedOptions.sort) {
-			parsedOptions.sort = _.flatten([parsedOptions.sort, 't_rowId:asc']);
+			parsedOptions.sort = _.flatten([
+				parsedOptions.sort,
+				't_rowId:asc',
+			]).filter(Boolean);
+		} else {
+			parsedOptions.sort = ['t_rowId:asc'];
 		}
 
 		const parsedSort = this.parseSort(parsedOptions.sort);
@@ -557,20 +577,21 @@ class Transaction extends BaseEntity {
 				tx
 			)
 			.then(data => {
-				if (!parsedOptions.extended) {
-					return data;
-				}
-
 				if (expectedResultCount === 1) {
-					return Transaction._formatTransactionResult(data);
+					return Transaction._formatTransactionResult(
+						data,
+						parsedOptions.extended
+					);
 				}
 
-				return data.map(row => Transaction._formatTransactionResult(row));
+				return data.map(row =>
+					Transaction._formatTransactionResult(row, parsedOptions.extended)
+				);
 			});
 	}
 
-	static _formatTransactionResult(row) {
-		const transaction = { asset: {} };
+	static _formatTransactionResult(row, extended) {
+		const transaction = extended ? { asset: {} } : {};
 
 		Object.keys(row).forEach(k => {
 			if (!k.match(/^asset./)) {
@@ -596,6 +617,8 @@ class Transaction extends BaseEntity {
 				transaction.asset.data = null;
 			}
 		}
+
+		transaction.signatures = transaction.signatures.filter(Boolean);
 
 		return transaction;
 	}

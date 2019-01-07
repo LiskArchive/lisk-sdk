@@ -45,6 +45,29 @@ const expectValidTransactionRow = (row, transaction) => {
 	expect(row.signatures).to.be.eql(transaction.signatures.join());
 };
 
+const expectValidTransaction = (result, transaction, extended = true) => {
+	expect(result.id).to.be.eql(transaction.id);
+	expect(result.senderId).to.be.eql(transaction.senderId);
+	expect(result.recipientId).to.be.eql(transaction.recipientId);
+	expect(result.senderPublicKey).to.be.eql(transaction.senderPublicKey);
+
+	// As we directly saved the transaction and not applied the account
+	// So the recipientPublicKey for the account is not updated
+	// expect(result.recipientPublicKey).to.be.eql(transaction.recipientPublicKey);
+
+	expect(result.requesterPublicKey).to.be.eql(transaction.requesterPublicKey);
+	expect(result.signature).to.be.eql(transaction.signature);
+	expect(result.signatures).to.be.eql(transaction.signatures);
+	expect(result.amount).to.be.eql(transaction.amount);
+	expect(result.fee).to.be.eql(transaction.fee);
+	expect(result.timestamp).to.be.eql(transaction.timestamp);
+	expect(result.type).to.be.eql(transaction.type);
+
+	if (extended) {
+		expect(result.asset).to.be.eql(transaction.asset);
+	}
+};
+
 describe('Transaction', () => {
 	let adapter;
 	let storage;
@@ -158,6 +181,125 @@ describe('Transaction', () => {
 			'should resolve with one object matching specification of type definition of full object'
 		);
 		it('should not change any of the provided parameter');
+
+		it('should return result in valid format', async () => {
+			let transaction = null;
+			const transactions = [];
+
+			for (let i = 0; i < numSeedRecords; i++) {
+				transaction = new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				});
+				transactions.push(transaction);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			// Check for last transaction
+			const result = await storage.entities.Transaction.get({
+				id: transaction.id,
+			});
+
+			expect(result).to.not.empty;
+			expect(result).to.be.lengthOf(1);
+			expect(result[0].id).to.be.eql(transaction.id);
+			expectValidTransaction(result[0], transaction, false);
+		});
+
+		it('should return result in valid format for extended version', async () => {
+			let transaction = null;
+			const transactions = [];
+
+			for (let i = 0; i < numSeedRecords; i++) {
+				transaction = new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				});
+				transactions.push(transaction);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			// Check for last transaction
+			const result = await storage.entities.Transaction.get(
+				{
+					id: transaction.id,
+				},
+				{
+					limit: 10,
+					offset: 0,
+					extended: true,
+				}
+			);
+
+			expect(result).to.not.empty;
+			expect(result).to.be.lengthOf(1);
+			expect(result[0].id).to.be.eql(transaction.id);
+			expectValidTransaction(result[0], transaction);
+		});
+
+		it('should paginate the results properly', async () => {
+			const block = seeder.getLastBlock();
+			let transaction = null;
+			const transactions = [];
+
+			for (let i = 0; i < numSeedRecords; i++) {
+				transaction = new transactionsFixtures.Transaction({
+					blockId: block.id,
+				});
+				transactions.push(transaction);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result1 = await storage.entities.Transaction.get(
+				{
+					blockId: block.id,
+				},
+				{
+					limit: 2,
+					offset: 0,
+				}
+			);
+
+			const result2 = await storage.entities.Transaction.get(
+				{
+					blockId: block.id,
+				},
+				{
+					limit: 2,
+					offset: 1,
+				}
+			);
+			expect(result1).to.not.empty;
+			expect(result2).to.not.empty;
+			expect(result1).to.be.lengthOf(2);
+			expect(result2).to.be.lengthOf(2);
+			return expect(result1[1]).to.be.eql(result2[0]);
+		});
+
+		it('should sort the results for provided "sortField"', async () => {
+			const block = seeder.getLastBlock();
+			const transactions = [];
+
+			for (let i = 0; i < numSeedRecords; i++) {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+					})
+				);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			const result = await storage.entities.Transaction.get(
+				{
+					blockId: block.id,
+				},
+				{
+					sort: 'id:desc',
+					limit: 20,
+					offset: 0,
+				}
+			);
+
+			expect(result).to.be.eql(_.orderBy(result, 'id', 'desc'));
+		});
 
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
