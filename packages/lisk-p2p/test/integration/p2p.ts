@@ -1,6 +1,6 @@
 import { P2P } from '../../src/index';
 
-describe('Integration tests for P2P library', () => {
+describe.skip('Integration tests for P2P library', () => {
 	const NETWORK_PEER_COUNT = 10;
 	let blockchainP2PList: ReadonlyArray<P2P> = [];
 
