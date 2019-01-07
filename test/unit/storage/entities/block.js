@@ -203,51 +203,51 @@ describe('Block', () => {
 
 		it('should accept valid filters', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
-			expect(() => {
-				block.get(filters);
-			}).to.not.throw(NonSupportedFilterTypeError);
+			return expect(block.get(filters)).to.not.be.rejectedWith(
+				NonSupportedFilterTypeError
+			);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const filters = [{ invalid_filter: 1 }, { timestamp_gte: 1234567890 }];
-			expect(() => {
-				block.get(filters);
-			}).to.throw(NonSupportedFilterTypeError);
+			return expect(block.get(filters)).to.be.rejectedWith(
+				NonSupportedFilterTypeError
+			);
 		});
 
 		it('should accept valid options', async () => {
 			const options = { limit: 100, offset: 0 };
-			expect(() => {
-				block.get({}, options);
-			}).to.not.throw(NonSupportedOptionError);
+			return expect(block.get({}, options)).to.not.be.rejectedWith(
+				NonSupportedOptionError
+			);
 		});
 
 		it('should throw error for invalid options', async () => {
 			const options = { invalid_option: 1, offset: 0 };
-			expect(() => {
-				block.get({}, options);
-			}).to.throw(NonSupportedOptionError);
+			return expect(block.get({}, options)).to.be.rejectedWith(
+				NonSupportedOptionError
+			);
 		});
 
 		it('should accept valid sorting option', async () => {
 			const sortOption = { sort: 'height:asc' };
-			expect(() => {
-				block.get({}, sortOption);
-			}).to.not.throw(NonSupportedOptionError);
+			return expect(block.get({}, sortOption)).to.not.be.rejectedWith(
+				NonSupportedOptionError
+			);
 		});
 
 		it('should throw error for invalid field sorting option', async () => {
 			const sortOption = { sort: 'invalid:asc' };
-			expect(() => {
-				block.get({}, sortOption);
-			}).to.throw(NonSupportedOptionError);
+			return expect(block.get({}, sortOption)).to.be.rejectedWith(
+				NonSupportedOptionError
+			);
 		});
 
 		it('should throw error for invalid method sorting option', async () => {
 			const sortOption = { sort: 'height:invalid' };
-			expect(() => {
-				block.get({}, sortOption);
-			}).to.throw(NonSupportedOptionError);
+			return expect(block.get({}, sortOption)).to.be.rejectedWith(
+				NonSupportedOptionError
+			);
 		});
 
 		it(
@@ -277,30 +277,30 @@ describe('Block', () => {
 
 		it('should accept valid filters', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
-			expect(() => {
-				block.getOne(filters);
-			}).to.not.throw(NonSupportedFilterTypeError);
+			return expect(block.getOne(filters)).to.not.be.rejectedWith(
+				NonSupportedFilterTypeError
+			);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const filters = [{ invalid_filter: 1 }, { timestamp_gte: 1234567890 }];
-			expect(() => {
-				block.getOne(filters);
-			}).to.throw(NonSupportedFilterTypeError);
+			return expect(block.getOne(filters)).to.be.rejectedWith(
+				NonSupportedFilterTypeError
+			);
 		});
 
 		it('should accept valid options', async () => {
 			const options = { limit: 100, offset: 0 };
-			expect(() => {
-				block.getOne({}, options);
-			}).to.not.throw(NonSupportedOptionError);
+			return expect(block.getOne({}, options)).to.not.be.rejectedWith(
+				NonSupportedOptionError
+			);
 		});
 
 		it('should throw error for invalid options', async () => {
 			const options = { invalid_option: 1, offset: 0 };
-			expect(() => {
-				block.getOne({}, options);
-			}).to.throw(NonSupportedOptionError);
+			return expect(block.getOne({}, options)).to.be.rejectedWith(
+				NonSupportedOptionError
+			);
 		});
 
 		it(
