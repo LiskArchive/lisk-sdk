@@ -603,6 +603,7 @@ d.run(() => {
 			],
 
 			logic: [
+				'storage',
 				'db',
 				'bus',
 				'schema',
