@@ -117,3 +117,5 @@ export const selectPeers = (
 
 	return peerList;
 };
+
+export const selectForConnection = (peers: ReadonlyArray<Peer>) => peers;
