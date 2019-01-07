@@ -58,6 +58,7 @@ class Loader {
 		library = {
 			logger: scope.logger,
 			db: scope.db,
+			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,
 			sequence: scope.sequence,
@@ -813,6 +814,7 @@ __private.createSnapshot = height => {
 			},
 			truncateBlocks(seriesCb) {
 				library.db.blocks
+					// TODO: REPLACE BY STORAGE WHEN DELETE IS IMPLEMENTED
 					.deleteBlocksAfterHeight(targetHeight)
 					.then(() => setImmediate(seriesCb))
 					.catch(err => setImmediate(seriesCb, err));

@@ -26,6 +26,7 @@ describe('blocks/process', () => {
 	let modules;
 	let blocksProcessModule;
 	let dbStub;
+	let storageStub;
 	let loggerStub;
 	let dummyBlock;
 	let dummyCommonBlock;
@@ -42,8 +43,15 @@ describe('blocks/process', () => {
 		// Logic
 		dbStub = {
 			blocks: {
-				getCommonBlock: sinonSandbox.stub(),
 				loadBlocksOffset: sinonSandbox.stub(),
+			},
+		};
+
+		storageStub = {
+			entities: {
+				Block: {
+					isPersisted: sinonSandbox.stub(),
+				},
 			},
 		};
 
@@ -139,6 +147,7 @@ describe('blocks/process', () => {
 			transactionStub,
 			schemaStub,
 			dbStub,
+			storageStub,
 			sequenceStub,
 			genesisBlockStub
 		);
@@ -246,6 +255,7 @@ describe('blocks/process', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.schema).to.eql(schemaStub);
 			expect(library.db).to.eql(dbStub);
+			expect(library.storage).to.eql(storageStub);
 			expect(library.sequence).to.eql(sequenceStub);
 			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.logic.block).to.eql(blockStub);
@@ -1055,10 +1065,10 @@ describe('blocks/process', () => {
 									});
 								});
 
-								describe('library.db.blocks.getCommonBlock', () => {
+								describe('library.storage.entities.Block.isPersisted', () => {
 									describe('when fails', () => {
 										beforeEach(() => {
-											return library.db.blocks.getCommonBlock.rejects(
+											return library.storage.entities.Block.isPersisted.rejects(
 												new Error('blocks.getCommonBlock-REJECTS')
 											);
 										});
@@ -1081,7 +1091,9 @@ describe('blocks/process', () => {
 
 									describe('when comparison failed', () => {
 										beforeEach(() => {
-											library.db.blocks.getCommonBlock.resolves([]);
+											library.storage.entities.Block.isPersisted.resolves(
+												false
+											);
 											return modules.blocks.chain.recoverChain.callsArgWith(
 												0,
 												null,
@@ -1134,9 +1146,9 @@ describe('blocks/process', () => {
 
 									describe('when succeeds', () => {
 										beforeEach(() => {
-											return library.db.blocks.getCommonBlock.resolves([
-												{ count: 1 },
-											]);
+											return library.storage.entities.Block.isPersisted.resolves(
+												true
+											);
 										});
 
 										it('should return common block', done => {

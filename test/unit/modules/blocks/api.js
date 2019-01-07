@@ -24,6 +24,7 @@ describe('blocks/api', () => {
 	let library;
 	let loggerSpy;
 	let dbStub;
+	let storageStub;
 	let blockStub;
 	let schemaStub;
 
@@ -45,6 +46,14 @@ describe('blocks/api', () => {
 			},
 		};
 
+		storageStub = {
+			entities: {
+				Block: {
+					get: sinonSandbox.stub().resolves([]),
+				},
+			},
+		};
+
 		loggerSpy = {
 			trace: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
@@ -57,7 +66,13 @@ describe('blocks/api', () => {
 
 		schemaStub = sinonSandbox.stub();
 
-		blocksApiModule = new BlocksApi(loggerSpy, dbStub, blockStub, schemaStub);
+		blocksApiModule = new BlocksApi(
+			loggerSpy,
+			dbStub,
+			storageStub,
+			blockStub,
+			schemaStub
+		);
 		library = BlocksApi.__get__('library');
 		__private = BlocksApi.__get__('__private');
 
@@ -73,6 +88,7 @@ describe('blocks/api', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerSpy);
 			expect(library.db).to.eql(dbStub);
+			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.block).to.eql(blockStub);
 			return expect(library.schema).to.eql(schemaStub);
 		});
@@ -81,96 +97,84 @@ describe('blocks/api', () => {
 	describe('__private', () => {
 		describe('list', () => {
 			afterEach(done => {
-				dbStub.blocks.list = sinonSandbox.stub().resolves([]);
+				storageStub.entities.Block.get = sinonSandbox.stub().resolves([]);
 				done();
 			});
 
 			describe('filters with where clauses', () => {
-				it('should query db with id param and "b_id" = ${id} where clause when filter.id exists', done => {
+				it('should query storage with id param when filter.id exists', done => {
 					__private.list({ id: 1 }, () => {
-						expect(dbStub.blocks.list.args[0][0].id).to.equal(1);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
-							'"b_id" = ${id}'
-						);
+						expect(storageStub.entities.Block.get.args[0][0].id).to.equal(1);
 						done();
 					});
 				});
 
-				it('should query db with generatorPublicKey param and "b_generatorPublicKey"::bytea = ${generatorPublicKey} where clause when filter.generatorPublicKey exists', done => {
+				it('should query storage with generatorPublicKey param when filter.generatorPublicKey exists', done => {
 					__private.list(
 						{
 							generatorPublicKey:
 								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 						},
 						() => {
-							expect(dbStub.blocks.list.args[0][0].generatorPublicKey).to.equal(
+							expect(
+								storageStub.entities.Block.get.args[0][0].generatorPublicKey
+							).to.equal(
 								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f'
-							);
-							expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
-								'"b_generatorPublicKey"::bytea = ${generatorPublicKey}'
 							);
 							done();
 						}
 					);
 				});
 
-				it('should query db with numberOfTransactions param and "b_numberOfTransactions" = ${numberOfTransactions} where clause when filter.numberOfTransactions exists', done => {
+				it('should query storage with numberOfTransactions param when filter.numberOfTransactions exists', done => {
 					__private.list({ numberOfTransactions: 2 }, () => {
-						expect(dbStub.blocks.list.args[0][0].numberOfTransactions).to.equal(
-							2
-						);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
-							'"b_numberOfTransactions" = ${numberOfTransactions}'
-						);
+						expect(
+							storageStub.entities.Block.get.args[0][0].numberOfTransactions
+						).to.equal(2);
 						done();
 					});
 				});
 
-				it('should query db with previousBlock param and "b_previousBlock" = ${previousBlock} where clause when filter.previousBlock exists', done => {
+				it('should query storage with previousBlockId param when filter.previousBlock exists', done => {
 					__private.list({ previousBlock: 12345 }, () => {
-						expect(dbStub.blocks.list.args[0][0].previousBlock).to.equal(12345);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
-							'"b_previousBlock" = ${previousBlock}'
-						);
+						expect(
+							storageStub.entities.Block.get.args[0][0].previousBlockId
+						).to.equal(12345);
 						done();
 					});
 				});
 
-				it('should query db with height param and "b_height" = ${height} where clause when filter.height >= 0', done => {
+				it('should query storage with height param when filter.height >= 0', done => {
 					__private.list({ height: 3 }, () => {
-						expect(dbStub.blocks.list.args[0][0].height).to.equal(3);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
-							'"b_height" = ${height}'
+						expect(storageStub.entities.Block.get.args[0][0].height).to.equal(
+							3
 						);
 						done();
 					});
 				});
 
-				it('should query db with totalAmount param and "b_totalAmount" = ${totalAmount} where clause when filter.totalAmount >= 0', done => {
+				it('should query storage with totalAmount param when filter.totalAmount >= 0', done => {
 					__private.list({ totalAmount: 4 }, () => {
-						expect(dbStub.blocks.list.args[0][0].totalAmount).to.equal(4);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
-							'"b_totalAmount" = ${totalAmount}'
-						);
+						expect(
+							storageStub.entities.Block.get.args[0][0].totalAmount
+						).to.equal(4);
 						done();
 					});
 				});
 
-				it('should query db with totalFee param and "b_totalFee" = ${totalFee} where clause when filter.totalFee >= 0', done => {
+				it('should query storage with totalFee param when filter.totalFee >= 0', done => {
 					__private.list({ totalFee: 5 }, () => {
-						expect(dbStub.blocks.list.args[0][0].totalFee).to.equal(5);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
-							'"b_totalFee" = ${totalFee}'
+						expect(storageStub.entities.Block.get.args[0][0].totalFee).to.equal(
+							5
 						);
 						done();
 					});
 				});
 
-				it('should query db with reward param and "b_reward" = ${reward} where clause when filter.reward >= 0', done => {
+				it('should query storage with reward param when filter.reward >= 0', done => {
 					__private.list({ reward: 6 }, () => {
-						expect(dbStub.blocks.list.args[0][0].reward).to.equal(6);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
-							'"b_reward" = ${reward}'
+						expect(storageStub.entities.Block.get.args[0][0].reward).to.equal(
+							6
 						);
 						done();
 					});
@@ -179,23 +183,27 @@ describe('blocks/api', () => {
 
 			describe('filters without where clauses', () => {
 				describe('limit', () => {
-					it('should query db with limit param when filter.limit exists and is number', done => {
+					it('should query storage with limit param when filter.limit exists and is number', done => {
 						__private.list({ limit: 1 }, () => {
-							expect(dbStub.blocks.list.args[0][0].limit).to.equal(1);
+							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
+								1
+							);
 							done();
 						});
 					});
 
-					it('should query db with limit NaN when filter.limit exists and is not a number', done => {
+					it('should query storage with limit NaN when filter.limit exists and is not a number', done => {
 						__private.list({ limit: 'test' }, () => {
-							expect(dbStub.blocks.list.args[0][0].limit).to.be.NaN;
+							expect(storageStub.entities.Block.get.args[0][1].limit).to.be.NaN;
 							done();
 						});
 					});
 
-					it('should query db with limit 100 when filter.limit does not exists', done => {
+					it('should query storage with limit 100 when filter.limit does not exists', done => {
 						__private.list({}, () => {
-							expect(dbStub.blocks.list.args[0][0].limit).to.equal(100);
+							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
+								100
+							);
 							done();
 						});
 					});
@@ -209,45 +217,48 @@ describe('blocks/api', () => {
 				});
 
 				describe('offset', () => {
-					it('should query db with offset param when filter.offset exists and is number', done => {
+					it('should query storage with offset param when filter.offset exists and is number', done => {
 						__private.list({ offset: 10 }, () => {
-							expect(dbStub.blocks.list.args[0][0].offset).to.equal(10);
+							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
+								10
+							);
 							done();
 						});
 					});
 
-					it('should query db with offset NaN when filter.offset exists and is not a number', done => {
+					it('should query storage with offset NaN when filter.offset exists and is not a number', done => {
 						__private.list({ offset: 'test' }, () => {
-							expect(dbStub.blocks.list.args[0][0].offset).to.be.NaN;
+							expect(storageStub.entities.Block.get.args[0][1].offset).to.be
+								.NaN;
 							done();
 						});
 					});
 
-					it('should query db with offset 0 when filter.offset does not exist', done => {
+					it('should query storage with offset 0 when filter.offset does not exist', done => {
 						__private.list({}, () => {
-							expect(dbStub.blocks.list.args[0][0].offset).to.equal(0);
+							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
+								0
+							);
 							done();
 						});
 					});
 				});
 
 				describe('sort', () => {
-					it('should query db with sort param when filter.sort exists', done => {
+					it('should query storage with sort param when filter.sort exists', done => {
 						__private.list({ sort: 'numberOfTransactions:desc' }, () => {
-							expect(dbStub.blocks.list.args[0][0].sortField).to.equal(
-								'"b_numberOfTransactions"'
+							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
+								'numberOfTransactions:desc'
 							);
-							expect(dbStub.blocks.list.args[0][0].sortMethod).to.equal('DESC');
 							done();
 						});
 					});
 
-					it('should query db with sort height:desc when filter.sort does not exist', done => {
+					it('should query storage with sort height:desc when filter.sort does not exist', done => {
 						__private.list({}, () => {
-							expect(dbStub.blocks.list.args[0][0].sortField).to.equal(
-								'"b_height"'
+							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
+								'height:desc'
 							);
-							expect(dbStub.blocks.list.args[0][0].sortMethod).to.equal('DESC');
 							done();
 						});
 					});
@@ -263,7 +274,7 @@ describe('blocks/api', () => {
 
 			describe('when db.query fails', () => {
 				it('should call callback with Blocks#list error', done => {
-					dbStub.blocks.list = sinonSandbox.stub().resolves();
+					storageStub.entities.Block.get = sinonSandbox.stub().resolves();
 					__private.list({ limit: 1 }, err => {
 						expect(err).to.equal('Blocks#list error');
 						done();

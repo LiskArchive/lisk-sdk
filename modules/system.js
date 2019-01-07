@@ -49,6 +49,7 @@ class System {
 		library = {
 			logger: scope.logger,
 			db: scope.db,
+			storage: scope.storage,
 			config: {
 				version: scope.config.version,
 				wsPort: scope.config.wsPort,
@@ -180,8 +181,10 @@ System.prototype.getBroadhash = function(cb) {
 		return __private.broadhash;
 	}
 
-	return library.db.blocks
-		.list({ offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC' })
+	return library.storage.entities.Block.get(
+		{},
+		{ limit: 5, sort: 'height:desc' }
+	)
 		.then(rows => {
 			if (rows.length <= 1) {
 				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update

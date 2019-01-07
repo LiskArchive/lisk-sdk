@@ -54,6 +54,7 @@ class Process {
 		transaction,
 		schema,
 		db,
+		storage,
 		sequence,
 		genesisBlock
 	) {
@@ -61,6 +62,7 @@ class Process {
 			logger,
 			schema,
 			db,
+			storage,
 			sequence,
 			genesisBlock,
 			logic: {
@@ -312,28 +314,28 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 			},
 			function(common, waterCb) {
 				// Check that block with ID, previousBlock and height exists in database
-				library.db.blocks
-					.getCommonBlock({
-						id: common.id,
-						previousBlock: common.previousBlock,
-						height: common.height,
-					})
-					.then(rows => {
-						if (!rows.length || !rows[0].count) {
-							// Block doesn't exists - comparison failed
-							comparisonFailed = true;
-							return setImmediate(
-								waterCb,
-								[
-									'Chain comparison failed with peer:',
-									peer.string,
-									'using block:',
-									JSON.stringify(common),
-								].join(' ')
-							);
+				library.storage.entities.Block.isPersisted({
+					id: common.id,
+					previousBlockId: common.previousBlock,
+					height: common.height,
+				})
+					.then(isPersisted => {
+						if (isPersisted) {
+							// Block exists - it's common between our node and remote peer
+							return setImmediate(waterCb, null, common);
 						}
-						// Block exists - it's common between our node and remote peer
-						return setImmediate(waterCb, null, common);
+
+						// Block doesn't exists - comparison failed
+						comparisonFailed = true;
+						return setImmediate(
+							waterCb,
+							[
+								'Chain comparison failed with peer:',
+								peer.string,
+								'using block:',
+								JSON.stringify(common),
+							].join(' ')
+						);
 					})
 					.catch(err => {
 						// SQL error occurred
@@ -376,6 +378,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 	// Loads full blocks from database
 	// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
 	library.db.blocks
+		// TODO: REPLACE BY STORAGE WHEN EXTENDED BLOCK IS IMPLEMENTED
 		.loadBlocksOffset(params.offset, params.limit)
 		.then(rows => {
 			// Normalize blocks

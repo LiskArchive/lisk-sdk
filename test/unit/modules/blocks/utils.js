@@ -48,6 +48,7 @@ const fullBlocksListRows = [
 
 describe('blocks/utils', () => {
 	let dbStub;
+	let storageStub;
 	let loggerStub;
 	let blockMock;
 	let transactionMock;
@@ -66,6 +67,14 @@ describe('blocks/utils', () => {
 				loadLastBlock: sinonSandbox.stub().resolves(fullBlocksListRows),
 				loadBlocksData: sinonSandbox.stub(),
 				aggregateBlocksReward: sinonSandbox.stub().resolves(),
+			},
+		};
+
+		storageStub = {
+			entities: {
+				Block: {
+					get: sinonSandbox.stub(),
+				},
 			},
 		};
 
@@ -111,6 +120,7 @@ describe('blocks/utils', () => {
 			blockMock,
 			transactionMock,
 			dbStub,
+			storageStub,
 			modulesLoader.scope.genesisBlock
 		);
 

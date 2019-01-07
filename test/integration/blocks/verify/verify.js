@@ -183,6 +183,7 @@ describe('blocks/verify', () => {
 	let blockLogic;
 	let delegates;
 	let db;
+	let storage;
 	let results;
 
 	before(done => {
@@ -199,6 +200,7 @@ describe('blocks/verify', () => {
 				blocks = scope.modules.blocks;
 				delegates = scope.modules.delegates;
 				db = scope.db;
+				storage = scope.storage;
 
 				// Set current block version to 0
 				blockVersion.currentBlockVersion = 0;
@@ -239,6 +241,7 @@ describe('blocks/verify', () => {
 				library.logic.block,
 				library.logic.transaction,
 				library.db,
+				library.storage,
 				library.config
 			);
 			verify.onBind(library.modules);
@@ -697,6 +700,7 @@ describe('blocks/verify', () => {
 			before(done => {
 				RewiredVerify.__set__('library', {
 					db,
+					storage,
 					logger: library.logger,
 				});
 				onBlockchainReady = RewiredVerify.prototype.onBlockchainReady;

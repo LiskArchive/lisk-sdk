@@ -24,6 +24,7 @@ describe('blocks/chain', () => {
 	let modules;
 	let blocksChainModule;
 	let dbStub;
+	let storageStub;
 	let loggerStub;
 	let blockStub;
 	let transactionStub;
@@ -66,11 +67,18 @@ describe('blocks/chain', () => {
 		// Logic
 		dbStub = {
 			blocks: {
-				getGenesisBlockId: sinonSandbox.stub(),
 				deleteBlock: sinonSandbox.stub(),
 				deleteAfterBlock: sinonSandbox.stub(),
 			},
 			tx: sinonSandbox.stub(),
+		};
+
+		storageStub = {
+			entities: {
+				Block: {
+					isPersisted: sinonSandbox.stub(),
+				},
+			},
 		};
 
 		blockStub = sinonSandbox.stub();
@@ -110,6 +118,7 @@ describe('blocks/chain', () => {
 			blockStub,
 			transactionStub,
 			dbStub,
+			storageStub,
 			genesisBlockStub,
 			busStub,
 			balancesSequenceStub
@@ -189,6 +198,7 @@ describe('blocks/chain', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
+			expect(library.storage).to.eql(storageStub);
 			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.bus).to.eql(busStub);
 			expect(library.balancesSequence).to.eql(balancesSequenceStub);
@@ -219,9 +229,9 @@ describe('blocks/chain', () => {
 
 	describe('saveGenesisBlock', () => {
 		let saveBlockTemp;
-		describe('when library.db.blocks.getGenesisBlockId fails', () => {
+		describe('when library.storage.entities.Block.isPersisted fails', () => {
 			beforeEach(() => {
-				return library.db.blocks.getGenesisBlockId.rejects(
+				return library.storage.entities.Block.isPersisted.rejects(
 					'getGenesisBlockId-ERR'
 				);
 			});
@@ -238,9 +248,9 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when library.db.blocks.getGenesisBlockId succeeds', () => {
-			describe('if returns empty row (genesis block is not in database)', () => {
+			describe('if returns false (genesis block is not in database)', () => {
 				beforeEach(done => {
-					library.db.blocks.getGenesisBlockId.resolves([]);
+					library.storage.entities.Block.isPersisted.resolves(false);
 					saveBlockTemp = blocksChainModule.saveBlock;
 					blocksChainModule.saveBlock = sinonSandbox.stub();
 					done();
@@ -282,9 +292,9 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('if returns row', () => {
+			describe('if returns true', () => {
 				beforeEach(() => {
-					return library.db.blocks.getGenesisBlockId.resolves([{ id: 1 }]);
+					return library.storage.entities.Block.isPersisted.resolves(true);
 				});
 
 				it('should call a callback with no error', done => {

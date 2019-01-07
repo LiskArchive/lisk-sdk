@@ -16,7 +16,6 @@
 
 const apiCodes = require('../../helpers/api_codes.js');
 const ApiError = require('../../helpers/api_error.js');
-const sortBy = require('../../helpers/sort_by.js').sortBy;
 
 let library;
 let self;
@@ -39,10 +38,11 @@ var modules;
  * @todo Add description for the params
  */
 class API {
-	constructor(logger, db, block, schema) {
+	constructor(logger, db, storage, block, schema) {
 		library = {
 			logger,
 			db,
+			storage,
 			schema,
 			logic: {
 				block,
@@ -77,107 +77,61 @@ class API {
  * @returns {Object} cb.data - List of normalized blocks
  */
 __private.list = function(filter, cb) {
-	const params = {};
-	const where = [];
+	const options = {};
 
-	if (filter.id) {
-		where.push('"b_id" = ${id}');
-		params.id = filter.id;
-	}
+	const filters = {
+		id: filter.id,
+		generatorPublicKey: filter.generatorPublicKey,
+		numberOfTransactions: filter.numberOfTransactions,
+		previousBlockId: filter.previousBlock,
+		height: filter.height,
+		timestamp_gte: filter.fromTimestamp,
+		timestamp_lte: filter.toTimestamp,
+		totalAmount: filter.totalAmount,
+		totalFee: filter.totalFee,
+		reward: filter.reward,
+	};
 
-	if (filter.generatorPublicKey) {
-		where.push('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
-		params.generatorPublicKey = filter.generatorPublicKey;
-	}
-
-	// FIXME: Useless condition
-	if (filter.numberOfTransactions) {
-		where.push('"b_numberOfTransactions" = ${numberOfTransactions}');
-		params.numberOfTransactions = filter.numberOfTransactions;
-	}
-
-	if (filter.previousBlock) {
-		where.push('"b_previousBlock" = ${previousBlock}');
-		params.previousBlock = filter.previousBlock;
-	}
-
-	if (filter.height === 0 || filter.height > 0) {
-		where.push('"b_height" = ${height}');
-		params.height = filter.height;
-	}
-
-	if (filter.fromTimestamp >= 0) {
-		where.push('"b_timestamp" >= ${fromTimestamp}');
-		params.fromTimestamp = filter.fromTimestamp;
-	}
-
-	if (filter.toTimestamp >= 1) {
-		where.push('"b_timestamp" <= ${toTimestamp}');
-		params.toTimestamp = filter.toTimestamp;
-	}
-
-	// FIXME: Useless condition
-	if (filter.totalAmount >= 0) {
-		where.push('"b_totalAmount" = ${totalAmount}');
-		params.totalAmount = filter.totalAmount;
-	}
-
-	// FIXME: Useless condition
-	if (filter.totalFee >= 0) {
-		where.push('"b_totalFee" = ${totalFee}');
-		params.totalFee = filter.totalFee;
-	}
-
-	// FIXME: Useless condition
-	if (filter.reward >= 0) {
-		where.push('"b_reward" = ${reward}');
-		params.reward = filter.reward;
-	}
+	Object.keys(filters).forEach(key => {
+		if (!filters[key]) {
+			delete filters[key];
+		}
+	});
 
 	if (!filter.limit) {
-		params.limit = 100;
+		options.limit = 100;
 	} else {
-		params.limit = Math.abs(filter.limit);
+		options.limit = Math.abs(filter.limit);
 	}
 
 	if (!filter.offset) {
-		params.offset = 0;
+		options.offset = 0;
 	} else {
-		params.offset = Math.abs(filter.offset);
+		options.offset = Math.abs(filter.offset);
 	}
 
-	if (params.limit > 100) {
+	if (options.limit > 100) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	const sort = sortBy(filter.sort || 'height:desc', {
-		sortFields: library.db.blocks.sortFields,
-		fieldPrefix: 'b_',
-	});
+	options.sort = filter.sort || 'height:desc';
+	const [sortField, sortMethod = 'ASC'] = options.sort.split(':');
 
-	if (sort.error) {
-		return setImmediate(cb, sort.error);
+	if (
+		!library.db.blocks.sortFields.includes(sortField) ||
+		!['ASC', 'DESC'].includes(sortMethod.toUpperCase())
+	) {
+		return setImmediate(cb, 'Invalid sort field');
 	}
 
-	return library.db.blocks
-		.list(
-			Object.assign(
-				{},
-				{
-					where,
-					sortField: sort.sortField,
-					sortMethod: sort.sortMethod,
-				},
-				params
-			)
-		)
+	return library.storage.entities.Block.get(filters, options)
 		.then(rows => {
 			const blocks = [];
 			const rowCount = rows.length;
 			// Normalize blocks
 			for (let i = 0; i < rowCount; i++) {
 				// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-				const block = library.logic.block.dbRead(rows[i]);
+				const block = library.logic.block.storageRead(rows[i]);
 				blocks.push(block);
 			}
 			return setImmediate(cb, null, blocks);
