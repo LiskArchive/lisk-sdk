@@ -12,15 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+SELECT
+	"address",
+	"amount",
+	"delegate" as "delegatePublicKey",
+	"round"
+FROM
+	mem_round
 
-module.exports = {
-	accounts: require('./accounts'),
-	peers: require('./peers'),
-	blocks: require('./blocks'),
-	forks: require('./forks'),
-	dapps: require('./dapps'),
-	transactions: require('./transactions'),
-	rounds: require('./rounds'),
-	storageRounds: require('./storage/rounds'),
-};
+${parsedFilters:raw}
+
+${parsedSort:raw}
+
+LIMIT ${limit} OFFSET ${offset}

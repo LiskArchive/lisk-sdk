@@ -12,15 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	accounts: require('./accounts'),
-	peers: require('./peers'),
-	blocks: require('./blocks'),
-	forks: require('./forks'),
-	dapps: require('./dapps'),
-	transactions: require('./transactions'),
-	rounds: require('./rounds'),
-	storageRounds: require('./storage/rounds'),
-};
+DELETE FROM mem_round ${parsedFilters:raw}

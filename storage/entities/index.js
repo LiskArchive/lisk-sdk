@@ -21,5 +21,6 @@ module.exports = {
 	Delegate: require('./delegate'),
 	Migration: require('./migration'),
 	Peer: require('./peer'),
+	Round: require('./round'),
 	Transaction: require('./transaction'),
 };
