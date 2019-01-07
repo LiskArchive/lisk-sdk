@@ -285,18 +285,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Delete an account from mem_accounts.
-	 *
-	 * @param {string} address - Address of the account to be updated
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	remove(address) {
-		const removeSql = 'DELETE FROM $1:name WHERE $2:name = $3';
-		return this.db.none(removeSql, [this.dbTable, 'address', address]);
-	}
-
-	/**
 	 * Search account based on generic conditions.
 	 *
 	 * For filters you can pass additional attribute "multisig: true" to fetch only multisig accounts.

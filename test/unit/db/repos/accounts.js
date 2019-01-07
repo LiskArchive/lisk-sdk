@@ -655,22 +655,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('remove()', () => {
-			it('should remove an existing account', function*() {
-				const account = (yield db.accounts.list({}, ['address'], {
-					limit: 1,
-				}))[0];
-
-				yield db.accounts.remove(account.address);
-
-				const result = yield db.accounts.list({ address: account.address }, [
-					'address',
-				]);
-
-				return expect(result).to.be.empty;
-			});
-		});
-
 		describe('list()', () => {
 			before(() => {
 				return createAccount().then(account => {

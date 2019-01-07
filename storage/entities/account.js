@@ -299,6 +299,7 @@ class Account extends BaseEntity {
 			update: this.adapter.loadSQLFile('accounts/update.sql'),
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('accounts/is_persisted.sql'),
+			delete: this.adapter.loadSQLFile('accounts/delete.sql'),
 			resetUnconfirmedState: this.adapter.loadSQLFile(
 				'accounts/reset_unconfirmed_state.sql'
 			),
@@ -464,6 +465,29 @@ class Account extends BaseEntity {
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => result[0].exists);
+	}
+
+	/**
+	 * Delete records with following conditions
+	 *
+	 * @param {filters.Account} filters
+	 * @param {Object} [_options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	delete(filters, _options, tx = null) {
+		this.validateFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(
+				this.SQLs.delete,
+				{ parsedFilters },
+				{ expectedResultCount: 0 },
+				tx
+			)
+			.then(result => result);
 	}
 
 	resetUnconfirmedState(tx) {

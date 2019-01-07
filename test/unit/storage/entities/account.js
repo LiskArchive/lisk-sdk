@@ -178,6 +178,23 @@ describe('Account', () => {
 		it('should resolve with false if matching record not found');
 	});
 
+	describe('delete()', () => {
+		it('should remove an existing account', async () => {
+			const account = await adapter.execute(
+				'SELECT * FROM mem_accounts LIMIT 1'
+			);
+
+			await AccountEntity.delete({ address: account[0].address });
+
+			const result = await adapter.execute(
+				'SELECT * FROM mem_accounts WHERE "address" = ${address}',
+				{ address: account[0].address }
+			);
+
+			expect(result).to.be.empty;
+		});
+	});
+
 	describe('mergeFilters()', () => {
 		it('should accept filters as single object');
 		it('should accept filters as array of objects');

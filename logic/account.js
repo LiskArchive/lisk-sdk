@@ -529,8 +529,7 @@ class Account {
 	 * @returns {setImmediate} error, address
 	 */
 	remove(address, cb) {
-		this.scope.db.accounts
-			.remove(address)
+		this.scope.storage.entities.Account.delete({ address })
 			.then(() => setImmediate(cb, null, address))
 			.catch(err => {
 				library.logger.error(err.stack);
