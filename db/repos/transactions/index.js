@@ -165,23 +165,6 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * Search transactions.
-	 *
-	 * @param {Object} params
-	 * @param {Array} params.where
-	 * @param {string} params.owner
-	 * @param {string} params.sortField
-	 * @param {string} params.sortMethod
-	 * @param {int} params.limit
-	 * @param {int} params.offset
-	 * @returns {Promise<[]>}
-	 * List of transactions.
-	 */
-	list(params) {
-		return this.db.any(Queries.list, params);
-	}
-
-	/**
 	 * Gets transfer transactions from a list of id-s.
 	 *
 	 * @param {Array.<string>} ids
@@ -321,30 +304,5 @@ class TransactionsRepository {
 			: this.db.tx('transactions:save', job);
 	}
 }
-
-// TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
-const Queries = {
-	list: params =>
-		[
-			'SELECT t_id, b_height, "t_blockId", t_type, t_timestamp, "t_senderId", "t_recipientId",',
-			't_amount, t_fee, t_signature, "t_SignSignature", t_signatures, confirmations,',
-			'encode("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", encode("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey"',
-			'FROM trs_list',
-			params.where.length || params.owner ? 'WHERE' : '',
-			params.where.length ? `(${params.where.join(' ')})` : '',
-			// FIXME: Backward compatibility, should be removed after transitional period
-			params.where.length && params.owner
-				? ` AND ${params.owner}`
-				: params.owner,
-			params.sortField
-				? `ORDER BY ${[params.sortField, params.sortMethod].join(
-						' '
-					)}, "t_rowId" ASC`
-				: '',
-			'LIMIT ${limit} OFFSET ${offset}',
-		]
-			.filter(Boolean)
-			.join(' '),
-};
 
 module.exports = TransactionsRepository;
