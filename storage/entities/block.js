@@ -19,10 +19,11 @@ const { stringToByte } = require('../utils/inputSerializers');
 const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
+const Transaction = require('./transaction');
 
 /**
- * Block
- * @typedef {Object} Block
+ * Basic Block
+ * @typedef {Object} BasicBlock
  * @property {string} id
  * @property {string} payloadHash
  * @property {string} generatorPublicKey
@@ -36,6 +37,12 @@ const BaseEntity = require('./base_entity');
  * @property {string} totalAmount
  * @property {number} timestamp
  * @property {string} version
+ */
+
+/**
+ * Extended Block
+ * @typedef {BasicBlock} ExtendedBlock
+ * @property {Array.<Transaction>} transactions - All transactions included in the Block
  */
 
 /**
@@ -204,8 +211,9 @@ class Block extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicBlock[], NonSupportedFilterTypeError|NonSupportedOptionError>}
+	 * @return {Promise.<BasicBlock[]|ExtendedBlock[], NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	get(filters = {}, options = {}, tx) {
 		return this._getResults(filters, options, tx);
@@ -218,8 +226,9 @@ class Block extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
+	 * @return {Promise.<BasicBlock|ExtendedBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	getOne(filters, options = {}, tx) {
 		const expectedResultCount = 1;
@@ -314,7 +323,7 @@ class Block extends BaseEntity {
 			.then(result => result.exists);
 	}
 
-	_getResults(filters, options, tx, expectedResultCount = undefined) {
+	async _getResults(filters, options, tx, expectedResultCount = undefined) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
 
@@ -322,8 +331,8 @@ class Block extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset', 'sort']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'sort'])
+			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
 		);
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
@@ -334,12 +343,33 @@ class Block extends BaseEntity {
 			parsedFilters,
 		};
 
-		return this.adapter.executeFile(
+		const result = await this.adapter.executeFile(
 			this.SQLs.select,
 			params,
 			{ expectedResultCount },
 			tx
 		);
+
+		if (parsedOptions.extended) {
+			const transactionStorage = new Transaction(this.adapter);
+			const blockIds =
+				expectedResultCount === 1 ? [result.id] : result.map(({ id }) => id);
+			const trxFilters = { blockId_in: blockIds };
+			const trxOptions = { limit: null, extended: true };
+			const transactions = await transactionStorage.get(trxFilters, trxOptions);
+
+			if (expectedResultCount === 1) {
+				result.transactions = transactions;
+			} else {
+				result.forEach(block => {
+					block.transactions = transactions.filter(
+						({ blockId }) => blockId === block.id
+					);
+				});
+			}
+		}
+
+		return result;
 	}
 }
 
