@@ -297,21 +297,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Clear data in memory tables:
-	 * - mem_round
-	 * - mem_accounts2delegates
-	 * - mem_accounts2u_delegates
-	 * - mem_accounts2multisignatures
-	 * - mem_accounts2u_multisignatures
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	resetMemTables() {
-		return this.db.none(sql.resetMemoryTables);
-	}
-
-	/**
 	 * Search account based on generic conditions.
 	 *
 	 * For filters you can pass additional attribute "multisig: true" to fetch only multisig accounts.

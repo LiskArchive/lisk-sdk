@@ -302,6 +302,7 @@ class Account extends BaseEntity {
 			resetUnconfirmedState: this.adapter.loadSQLFile(
 				'accounts/reset_unconfirmed_state.sql'
 			),
+			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
 		};
 	}
 
@@ -472,6 +473,21 @@ class Account extends BaseEntity {
 			{},
 			tx
 		);
+	}
+
+	/**
+	 * Clear data in memory tables:
+	 * - mem_round
+	 * - mem_accounts2delegates
+	 * - mem_accounts2u_delegates
+	 * - mem_accounts2multisignatures
+	 * - mem_accounts2u_multisignatures
+	 *
+	 * @param {Object} tx - DB transaction object
+	 * @returns {Promise}
+	 */
+	resetMemTables(tx) {
+		return this.adapter.executeFile(this.SQLs.resetMemTables, {}, {}, tx);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {

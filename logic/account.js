@@ -132,8 +132,7 @@ class Account {
 	 * @returns {setImmediate} error
 	 */
 	resetMemTables(cb) {
-		this.scope.db.accounts
-			.resetMemTables()
+		this.scope.storage.entities.Account.resetMemTables()
 			.then(() => setImmediate(cb))
 			.catch(err => {
 				library.logger.error(err.stack);

@@ -308,4 +308,73 @@ describe('Account', () => {
 			expect(result[0].count).to.be.equal('0');
 		});
 	});
+
+	describe('resetMemTables()', () => {
+		it('should use the correct SQL', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await AccountEntity.resetMemTables();
+
+			expect(adapter.executeFile.firstCall.args[0]).to.eql(SQLs.resetMemTables);
+		});
+
+		it('should process without any error', async () => {
+			await AccountEntity.resetMemTables();
+		});
+
+		it('should empty the table "mem_accounts"', async () => {
+			await AccountEntity.resetMemTables();
+			const result = await adapter.execute(
+				'SELECT COUNT(*)::int AS count FROM mem_accounts'
+			);
+			expect(result[0].count).to.equal(0);
+		});
+
+		it('should empty the table "mem_round"', async () => {
+			await AccountEntity.resetMemTables();
+			const result = await adapter.execute(
+				'SELECT COUNT(*)::int AS count FROM mem_round'
+			);
+			expect(result[0].count).to.equal(0);
+		});
+
+		it('should empty the table "mem_accounts2delegates"', async () => {
+			await AccountEntity.resetMemTables();
+			const result = await adapter.execute(
+				'SELECT COUNT(*)::int AS count FROM mem_accounts2delegates'
+			);
+			expect(result[0].count).to.equal(0);
+		});
+
+		it('should empty the table "mem_accounts2u_delegates"', async () => {
+			await AccountEntity.resetMemTables();
+			const result = await adapter.execute(
+				'SELECT COUNT(*)::int AS count FROM mem_accounts2u_delegates'
+			);
+			expect(result[0].count).to.equal(0);
+		});
+
+		it('should empty the table "mem_accounts2multisignatures"', async () => {
+			await AccountEntity.resetMemTables();
+			const result = await adapter.execute(
+				'SELECT COUNT(*)::int AS count FROM mem_accounts2multisignatures'
+			);
+			expect(result[0].count).to.equal(0);
+		});
+
+		it('should empty the table "mem_accounts2u_multisignatures"', async () => {
+			await AccountEntity.resetMemTables();
+			const result = await adapter.execute(
+				'SELECT COUNT(*)::int AS count FROM mem_accounts2u_multisignatures'
+			);
+			expect(result[0].count).to.equal(0);
+		});
+
+		it('should empty the table "rounds_rewards"', async () => {
+			await AccountEntity.resetMemTables();
+			const result = await adapter.execute(
+				'SELECT COUNT(*)::int AS count FROM rounds_rewards'
+			);
+			expect(result[0].count).to.equal(0);
+		});
+	});
 });
