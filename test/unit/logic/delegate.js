@@ -341,7 +341,10 @@ describe('delegate', () => {
 						.yields(null, null);
 					return accountsMock.getAccount
 						.withArgs(
-							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
+							{
+								publicKey: accounts.existingDelegate.publicKey,
+								isDelegate: true,
+							},
 							['username'],
 							sinonSandbox.match.any
 						)
@@ -385,7 +388,10 @@ describe('delegate', () => {
 						.yields(null, null);
 					return accountsMock.getAccount
 						.withArgs(
-							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
+							{
+								publicKey: accounts.existingDelegate.publicKey,
+								isDelegate: true,
+							},
 							['username'],
 							sinonSandbox.match.any
 						)
@@ -433,7 +439,10 @@ describe('delegate', () => {
 						.yields(null, accounts.existingDelegate);
 					return accountsMock.getAccount
 						.withArgs(
-							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
+							{
+								publicKey: accounts.existingDelegate.publicKey,
+								isDelegate: true,
+							},
 							['username'],
 							sinonSandbox.match.any
 						)
@@ -477,7 +486,10 @@ describe('delegate', () => {
 						.yields(null, null);
 					return accountsMock.getAccount
 						.withArgs(
-							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
+							{
+								publicKey: accounts.existingDelegate.publicKey,
+								isDelegate: true,
+							},
 							['username'],
 							sinonSandbox.match.any
 						)
@@ -545,7 +557,7 @@ describe('delegate', () => {
 			return expect(
 				accountsMock.getAccount.calledWith({
 					publicKey: accounts.existingDelegate.publicKey,
-					u_isDelegate: 1,
+					u_isDelegate: true,
 				})
 			).to.be.true;
 		});
@@ -590,7 +602,10 @@ describe('delegate', () => {
 			beforeEach(done => {
 				accountsMock.getAccount
 					.withArgs(
-						{ publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1 },
+						{
+							publicKey: accounts.existingDelegate.publicKey,
+							u_isDelegate: true,
+						},
 						['u_username'],
 						sinonSandbox.match.any
 					)
@@ -1041,14 +1056,14 @@ describe('delegate', () => {
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {
-			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
+			sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 
 			return expect(delegate.ready(transaction, sender)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with at least min signatures', () => {
-			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
-			sender.multimin = 1;
+			sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
+			sender.multiMin = 1;
 
 			delete transaction.signature;
 			// Not really correct signature, but we are not testing that over here

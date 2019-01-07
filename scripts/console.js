@@ -69,7 +69,6 @@ application.init(
 		replServer.context.helpers = helpers;
 
 		// A dummy callback method to be utilized in repl
-		// e.g. modules.accounts.shared.getAccount({body: {}}, cb)
 		replServer.context.cb = function(replServerErr, data) {
 			// Make sure cab response showed in terminal
 			console.info(data);

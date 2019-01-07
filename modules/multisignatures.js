@@ -244,7 +244,7 @@ __private.processSignatureFromMultisignatureAccount = (
 			}
 
 			// Assign members of multisignature account from transaction
-			const membersPublicKeys = sender.multisignatures;
+			const membersPublicKeys = sender.membersPublicKeys;
 
 			return __private.validateSignature(
 				signature,
@@ -353,8 +353,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 						secondPublicKey: account.secondPublicKey || '',
 						balance: account.balance,
 						unconfirmedBalance: account.u_balance,
-						min: account.multimin,
-						lifetime: account.multilifetime,
+						min: account.multiMin,
+						lifetime: account.multiLifetime,
 						members: [],
 					};
 
@@ -372,7 +372,7 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 						});
 
 						modules.accounts.getAccounts(
-							{ address: addresses },
+							{ address_in: addresses },
 							['address', 'publicKey', 'secondPublicKey'],
 							(err, accounts) => {
 								accounts.forEach(account => {
@@ -420,95 +420,6 @@ Multisignatures.prototype.onBind = function(scope) {
  */
 Multisignatures.prototype.isLoaded = function() {
 	return !!modules;
-};
-
-// Shared API
-/**
- * @todo Implement API comments with apidoc
- * @see {@link http://apidocjs.com/}
- */
-Multisignatures.prototype.shared = {
-	/**
-	 * Search accounts based on the query parameter passed.
-	 *
-	 * @param {Object} filters - Filters applied to results
-	 * @param {string} filters.address - Account address
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 */
-	getGroups(filters, cb) {
-		self.getGroup(filters.address, (err, group) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb, null, [group]);
-		});
-	},
-
-	/**
-	 * Search accounts based on the query parameter passed.
-	 * @param {Object} filters - Filters applied to results.
-	 * @param {string} filters.address - Account address.
-	 * @param {function} cb - Callback function.
-	 * @returns {setImmediateCallback} cb
-	 */
-	getMemberships(filters, cb) {
-		const scope = {};
-
-		async.series(
-			{
-				getAccount(seriesCb) {
-					library.logic.account.get(
-						{ address: filters.address },
-						(err, account) => {
-							if (err) {
-								return setImmediate(seriesCb, err);
-							}
-
-							if (!account) {
-								return setImmediate(
-									seriesCb,
-									new ApiError(
-										'Multisignature membership account not found',
-										errorCodes.NOT_FOUND
-									)
-								);
-							}
-
-							scope.targetAccount = account;
-
-							return setImmediate(seriesCb);
-						}
-					);
-				},
-				getGroupAccountIds(seriesCb) {
-					library.db.multisignatures
-						.getGroupIds(scope.targetAccount.publicKey)
-						.then(groupAccountIds => {
-							scope.groups = [];
-
-							async.each(
-								groupAccountIds,
-								(groupId, callback) => {
-									self.getGroup(groupId, (err, group) => {
-										scope.groups.push(group);
-
-										return setImmediate(callback);
-									});
-								},
-								err => setImmediate(seriesCb, err)
-							);
-						});
-				},
-			},
-			err => {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				return setImmediate(cb, null, scope.groups);
-			}
-		);
-	},
 };
 
 // Export

@@ -22,6 +22,7 @@ const {
 	NonSupportedOptionError,
 } = require('../../../../storage/errors');
 
+// eslint-disable-next-line mocha/no-skipped-tests
 describe('Peer', () => {
 	let adapter;
 	let validPeerFields;

@@ -150,7 +150,6 @@ const config = {
 		signatures: './modules/signatures.js',
 		transactions: './modules/transactions.js',
 		transport: './modules/transport.js',
-		voters: './modules/voters',
 	},
 };
 
@@ -487,6 +486,10 @@ d.run(() => {
 				storage
 					.bootstrap()
 					.then(status => {
+						storage.entities.Account.extendDefaultOptions({
+							limit: global.constants.ACTIVE_DELEGATES,
+						});
+
 						cb(!status, storage);
 					})
 					.catch(err => {
@@ -600,6 +603,7 @@ d.run(() => {
 			],
 
 			logic: [
+				'storage',
 				'db',
 				'bus',
 				'schema',
@@ -629,6 +633,9 @@ d.run(() => {
 							db(dbCb) {
 								dbCb(null, scope.db);
 							},
+							storage(storageCb) {
+								storageCb(null, scope.storage);
+							},
 							ed(edCb) {
 								edCb(null, scope.ed);
 							},
@@ -643,6 +650,7 @@ d.run(() => {
 							},
 							account: [
 								'db',
+								'storage',
 								'bus',
 								'ed',
 								'schema',
@@ -651,6 +659,7 @@ d.run(() => {
 								function(accountScope, accountCb) {
 									new Account(
 										accountScope.db,
+										accountScope.storage,
 										accountScope.schema,
 										accountScope.logger,
 										accountCb

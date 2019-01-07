@@ -55,40 +55,38 @@ const readOnlyFields = ['address'];
  * Basic Account
  * @typedef {Object} BasicAccount
  * @property {string} address
+ * @property {string} publicKey
+ * @property {string} secondPublicKey
  * @property {string} username
  * @property {Boolean} isDelegate
+ * @property {Boolean} secondSignature
  * @property {string} balance
+ * @property {number} multiMin
+ * @property {number} multiLifetime
+ * @property {Boolean} nameExist
  * @property {number} missedBlocks
  * @property {number} producedBlocks
  * @property {string} rank
  * @property {string} fees
  * @property {string} rewards
  * @property {string} vote
- * @property {Boolean} nameExist
- * @property {string} delegates
- * @property {number} multiMin
- * @property {number} multiLifetime
- * @property {string} secondPublicKey
- * @property {string} secondSignature
  */
 
 /**
  * Extended Account
  * @typedef {BasicAccount} ExtendedAccount
- * @property {string} u_secondSignature
  * @property {string} u_username
  * @property {Boolean} u_isDelegate
- * @property {string} u_balance
- * @property {string} u_delegates
- * @property {string} u_delegates
+ * @property {Boolean} u_secondSignature
  * @property {Boolean} u_nameExist
  * @property {number} u_multiMin
  * @property {number} u_multiLifetime
- * @property {string} u_multiSignatures
- * @property {Array.<string>} members - Public keys of all members if its a multi-signature account
- * @property {Array.<string>} u_members - Public keys of all members including unconfirmed if its a multi-signature account
- * @property {Array.<string>} votes - Public keys of all delegates for which this account voted for
- * @property {Array.<string>} u_votes - Public keys of all delegates including unconfirmed for which this account voted for
+ * @property {string} u_balance
+ * @property {number} productivity
+ * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
+ * @property {Array.<string>} u_membersPublicKeys - Public keys of all members including unconfirmed if its a multi-signature account
+ * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
+ * @property {Array.<string>} u_votedDelegatesPublicKeys - Public keys of all delegates including unconfirmed for which this account voted for
  */
 
 /**
@@ -102,9 +100,11 @@ const readOnlyFields = ['address'];
  * @property {string} [publicKey]
  * @property {string} [publicKey_eql]
  * @property {string} [publicKey_ne]
+ * @property {Array.<string>} [publicKey_in]
  * @property {string} [secondPublicKey]
  * @property {string} [secondPublicKey_eql]
  * @property {string} [secondPublicKey_ne]
+ * @property {Array.<string>} [secondPublicKey_in]
  * @property {string} [username]
  * @property {string} [username_eql]
  * @property {string} [username_ne]
@@ -202,7 +202,7 @@ class Account extends BaseEntity {
 			'string',
 			{
 				format: 'publicKey',
-				filter: ft.TEXT,
+				filter: ft.BINARY,
 			},
 			stringToByte
 		);
@@ -211,26 +211,36 @@ class Account extends BaseEntity {
 			'string',
 			{
 				format: 'publicKey',
-				filter: ft.TEXT,
+				filter: ft.BINARY,
 			},
 			stringToByte
 		);
 		this.addField('username', 'string', { filter: ft.TEXT });
-		this.addField('u_username', 'string');
+		this.addField('u_username', 'string', { filter: ft.TEXT });
 		this.addField(
 			'isDelegate',
 			'boolean',
 			{ filter: ft.BOOLEAN },
 			booleanToInt
 		);
-		this.addField('u_isDelegate', 'boolean', {}, booleanToInt);
+		this.addField(
+			'u_isDelegate',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt
+		);
 		this.addField(
 			'secondSignature',
 			'boolean',
 			{ filter: ft.BOOLEAN },
 			booleanToInt
 		);
-		this.addField('u_secondSignature', 'boolean', {}, booleanToInt);
+		this.addField(
+			'u_secondSignature',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt
+		);
 		this.addField('balance', 'string', { filter: ft.NUMBER });
 		this.addField('u_balance', 'string');
 		this.addField('multiMin', 'number', {
@@ -260,31 +270,22 @@ class Account extends BaseEntity {
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('rank', 'string', { filter: ft.NUMBER });
 		this.addField('vote', 'string', { filter: ft.NUMBER });
-		this.addField('delegates', 'string');
-		this.addField('u_delegates', 'string');
-		this.addField('multiSignatures', 'string', {
-			fieldName: 'multisignatures',
-		});
-		this.addField('u_multiSignatures', 'string', {
-			fieldName: 'u_multisignatures',
-		});
 
-		this.addFilter('votes', ft.CUSTOM, {
+		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor})',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
 		});
-		this.addFilter('votes_in', ft.CUSTOM, {
+		this.addFilter('u_votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedFor_in:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_delegates WHERE "dependentId" IN (${u_votedDelegatesPublicKeys_in:csv}))',
 		});
-
-		this.addFilter('members', ft.CUSTOM, {
+		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" = ${votedFor})',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${membersPublicKeys_in:csv}))',
 		});
-		this.addFilter('members_in', ft.CUSTOM, {
+		this.addFilter('u_membersPublicKeys_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${votedFor_in:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_multisignatures WHERE "dependentId" IN (${u_membersPublicKeys_in:csv}))',
 		});
 
 		const defaultSort = { sort: 'balance:asc' };
@@ -309,6 +310,7 @@ class Account extends BaseEntity {
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
+	 * @param {string | Array.<string>} [options.sort] - Sort keys for results
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
 	 */
@@ -325,6 +327,7 @@ class Account extends BaseEntity {
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
+	 * @param {string | Array.<string>} [options.sort] - Sort keys for results
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount[]|ExtendedAccount[], Error>}
 	 */

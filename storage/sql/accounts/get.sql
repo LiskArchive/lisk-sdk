@@ -15,19 +15,20 @@
 SELECT
 	"address",
 	ENCODE("publicKey", 'hex') as "publicKey",
-	ENCODE("secondPublicKey", 'hex') as "publicKey",
+	ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 	"username",
-	"isDelegate",
-	"secondSignature",
+	"isDelegate"::int::boolean,
+	"secondSignature"::int::boolean,
 	"balance",
 	"multimin" as "multiMin",
 	"multilifetime" as "multiLifetime",
-	"nameexist" as "nameExist",
+	"nameexist"::int::boolean as "nameExist",
+	"missedBlocks",
+	"producedBlocks",
+	"rank",
 	"fees",
 	"rewards",
-	"producedBlocks",
-	"missedBlocks",
-	"rank"
+	"vote"
 FROM
 	mem_accounts
 

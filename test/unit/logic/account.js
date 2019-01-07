@@ -36,16 +36,12 @@ const validAccount = {
 	secondPublicKey: null,
 	balance: new Bignum('0'),
 	u_balance: new Bignum('0'),
-	delegates: null,
-	u_delegates: null,
-	multisignatures: null,
-	u_multisignatures: null,
-	multimin: 0,
-	u_multimin: 0,
-	multilifetime: 1,
-	u_multilifetime: 1,
-	nameexist: 0,
-	u_nameexist: 0,
+	multiMin: 0,
+	u_multiMin: 0,
+	multiLifetime: 1,
+	u_multiLifetime: 1,
+	nameExist: 0,
+	u_nameExist: 0,
 	fees: new Bignum('0'),
 	rank: '70',
 	rewards: new Bignum('0'),
@@ -54,6 +50,10 @@ const validAccount = {
 	missedBlocks: 0,
 	approval: 100,
 	productivity: 0,
+	membersPublicKeys: null,
+	u_membersPublicKeys: null,
+	votedDelegatesPublicKeys: null,
+	u_votedDelegatesPublicKeys: null,
 };
 
 describe('account', () => {
@@ -77,14 +77,24 @@ describe('account', () => {
 	describe('constructor', () => {
 		let library;
 		let dbStub;
+		let storageStub;
 
 		before(done => {
 			dbStub = {
 				query: sinonSandbox.stub().resolves(),
 			};
 
+			storageStub = {
+				entities: {
+					Account: {
+						get: sinonSandbox.stub().resolves(),
+					},
+				},
+			};
+
 			new Account(
 				dbStub,
+				storageStub,
 				modulesLoader.scope.schema,
 				modulesLoader.scope.logger,
 				(err, lgAccount) => {
@@ -103,6 +113,10 @@ describe('account', () => {
 
 		it('should attach db to scope variable', () => {
 			return expect(accountLogic.scope.db).to.eql(dbStub);
+		});
+
+		it('should attach storage to scope variable', () => {
+			return expect(accountLogic.scope.storage).to.eql(storageStub);
 		});
 
 		it('should attach logger to library variable', () => {
@@ -528,7 +542,7 @@ describe('account', () => {
 
 		describe('sort using object as argument', () => {
 			it('should sort the result according to field type in ascending order', done => {
-				account.getAll({ sort: { username: 1 } }, ['username'], (err, res) => {
+				account.getAll({ sort: 'username:asc' }, ['username'], (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.eql(_.sortBy(res, 'username'));
 					done();
@@ -536,7 +550,7 @@ describe('account', () => {
 			});
 
 			it('should sort the result according to field type in descending order', done => {
-				account.getAll({ sort: { username: -1 } }, ['username'], (err, res) => {
+				account.getAll({ sort: 'username:desc' }, ['username'], (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.eql(_.sortBy(res, 'username').reverse());
 					done();
@@ -582,36 +596,6 @@ describe('account', () => {
 		});
 	});
 
-	describe('calculateProductivity', () => {
-		it('when missedBlocks = 0 and producedBlocks = 0, it should return 0', () => {
-			return expect(account.calculateProductivity(0, 0)).to.equal(0);
-		});
-
-		it('when missedBlocks = producedBlocks, it should return 50', () => {
-			const producedBlocks = Math.floor(Math.random() * 1000000000);
-			const missedBlocks = producedBlocks;
-			return expect(
-				account.calculateProductivity(producedBlocks, missedBlocks)
-			).to.equal(50);
-		});
-
-		it('when missedBlocks = 5 and producedBlocks = 15, it should return 75', () => {
-			const missedBlocks = 5;
-			const producedBlocks = 15;
-			return expect(
-				account.calculateProductivity(producedBlocks, missedBlocks)
-			).to.equal(75);
-		});
-
-		it('with random values, it should return approval between 0 and 100', () => {
-			const missedBlocks = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-			const producedBlocks = Math.floor(Math.random() * missedBlocks);
-			return expect(account.calculateProductivity(producedBlocks, missedBlocks))
-				.to.be.least(0)
-				.and.be.at.most(100);
-		});
-	});
-
 	describe('set', () => {
 		it('should insert an account', done => {
 			account.set('123L', { u_username: 'test_set_insert' }, (err, res) => {
@@ -652,8 +636,8 @@ describe('account', () => {
 				{ multisignatures: ['MS1'], delegates: ['DLG1'] },
 				(err, res) => {
 					expect(err).to.not.exist;
-					expect(res.delegates).to.deep.equal(['DLG1']);
-					expect(res.multisignatures).to.deep.equal(['MS1']);
+					expect(res.votedDelegatesPublicKeys).to.deep.equal(['DLG1']);
+					expect(res.membersPublicKeys).to.deep.equal(['MS1']);
 					done();
 				}
 			);

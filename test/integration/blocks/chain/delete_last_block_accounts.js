@@ -432,8 +432,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						'balance',
 						'u_balance',
 						'publicKey',
-						'delegates',
-						'u_delegates',
+						'votedDelegatesPublicKeys',
+						'u_votedDelegatesPublicKeys',
 					];
 				});
 
@@ -444,8 +444,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						(err, res) => {
 							testAccountData = res;
 							expect(res.publicKey).to.be.null;
-							expect(res.delegates).to.be.null;
-							expect(res.u_delegates).to.be.null;
+							expect(res.votedDelegatesPublicKeys).to.be.null;
+							expect(res.u_votedDelegatesPublicKeys).to.be.null;
 							done();
 						}
 					);
@@ -466,10 +466,10 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						(err, res) => {
 							testAccountDataAfterBlock = res;
 							expect(res.publicKey).to.not.be.null;
-							expect(res.delegates[0]).to.equal(
+							expect(res.votedDelegatesPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
-							expect(res.u_delegates[0]).to.equal(
+							expect(res.u_votedDelegatesPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
 							done();
@@ -492,8 +492,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
-							expect(res.delegates).to.be.null;
-							expect(res.u_delegates).to.be.null;
+							expect(res.votedDelegatesPublicKeys).to.be.null;
+							expect(res.u_votedDelegatesPublicKeys).to.be.null;
 							// CHECKME: publicKey should be null
 							done();
 						}
@@ -516,10 +516,10 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.publicKey).to.equal(
 								testAccountDataAfterBlock.publicKey
 							);
-							expect(res.delegates[0]).to.equal(
+							expect(res.votedDelegatesPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
-							expect(res.u_delegates[0]).to.equal(
+							expect(res.u_votedDelegatesPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
 							done();
@@ -535,12 +535,12 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						'balance',
 						'u_balance',
 						'publicKey',
-						'multilifetime',
-						'u_multilifetime',
-						'multimin',
-						'u_multimin',
-						'multisignatures',
-						'u_multisignatures',
+						'multiLifetime',
+						'u_multiLifetime',
+						'multiMin',
+						'u_multiMin',
+						'membersPublicKeys',
+						'u_membersPublicKeys',
 					];
 				});
 
@@ -551,12 +551,12 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						(err, res) => {
 							testAccountData = res;
 							expect(res.publicKey).to.be.null;
-							expect(res.multilifetime).to.equal(0);
-							expect(res.u_multilifetime).to.equal(0);
-							expect(res.multimin).to.equal(0);
-							expect(res.u_multimin).to.equal(0);
-							expect(res.multisignatures).to.be.null;
-							expect(res.u_multisignatures).to.be.null;
+							expect(res.multiLifetime).to.equal(0);
+							expect(res.u_multiLifetime).to.equal(0);
+							expect(res.multiMin).to.equal(0);
+							expect(res.u_multiMin).to.equal(0);
+							expect(res.membersPublicKeys).to.be.null;
+							expect(res.u_membersPublicKeys).to.be.null;
 							done();
 						}
 					);
@@ -590,14 +590,14 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						(err, res) => {
 							testAccountDataAfterBlock = res;
 							expect(res.publicKey).to.not.be.null;
-							expect(res.multilifetime).to.equal(1);
-							expect(res.u_multilifetime).to.equal(1);
-							expect(res.multimin).to.equal(1);
-							expect(res.u_multimin).to.equal(1);
-							expect(res.multisignatures[0]).to.equal(
+							expect(res.multiLifetime).to.equal(1);
+							expect(res.u_multiLifetime).to.equal(1);
+							expect(res.multiMin).to.equal(1);
+							expect(res.u_multiMin).to.equal(1);
+							expect(res.membersPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
-							expect(res.u_multisignatures[0]).to.equal(
+							expect(res.u_membersPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
 							done();
@@ -620,12 +620,12 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
-							expect(res.multilifetime).to.equal(0);
-							expect(res.u_multilifetime).to.equal(0);
-							expect(res.multimin).to.equal(0);
-							expect(res.u_multimin).to.equal(0);
-							expect(res.multisignatures).to.be.null;
-							expect(res.u_multisignatures).to.be.null;
+							expect(res.multiLifetime).to.equal(0);
+							expect(res.u_multiLifetime).to.equal(0);
+							expect(res.multiMin).to.equal(0);
+							expect(res.u_multiMin).to.equal(0);
+							expect(res.membersPublicKeys).to.be.null;
+							expect(res.u_membersPublicKeys).to.be.null;
 							// CHECKME: publicKey should be null
 							done();
 						}
@@ -648,14 +648,14 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.publicKey).to.equal(
 								testAccountDataAfterBlock.publicKey
 							);
-							expect(res.multilifetime).to.equal(1);
-							expect(res.u_multilifetime).to.equal(1);
-							expect(res.multimin).to.equal(1);
-							expect(res.u_multimin).to.equal(1);
-							expect(res.multisignatures[0]).to.equal(
+							expect(res.multiLifetime).to.equal(1);
+							expect(res.u_multiLifetime).to.equal(1);
+							expect(res.multiMin).to.equal(1);
+							expect(res.u_multiMin).to.equal(1);
+							expect(res.membersPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
-							expect(res.u_multisignatures[0]).to.equal(
+							expect(res.u_membersPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
 							done();

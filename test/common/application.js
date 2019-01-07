@@ -120,7 +120,6 @@ function __init(initScope, done) {
 				system: '../../modules/system.js',
 				transactions: '../../modules/transactions.js',
 				transport: '../../modules/transport.js',
-				voters: '../../modules/voters.js',
 			};
 
 			// Init limited application layer
@@ -385,6 +384,7 @@ function __init(initScope, done) {
 										function(accountScope, accountCb) {
 											new Account(
 												accountScope.db,
+												accountScope.storage,
 												accountScope.schema,
 												accountScope.logger,
 												accountCb

@@ -35,10 +35,6 @@ const modulesToInstrument = {
 		identifier: 'modules.node',
 		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
 	},
-	'./modules/accounts.js': {
-		identifier: 'modules.accounts',
-		callbackMethods: ['shared.getAccounts'],
-	},
 	'./modules/blocks.js': {
 		identifier: 'modules.blocks',
 		callbackMethods: ['shared.getBlocks'],
@@ -66,10 +62,6 @@ const modulesToInstrument = {
 	'./modules/loader.js': {
 		identifier: 'modules.loader',
 		callbackMethods: ['getNetwork'],
-	},
-	'./modules/multisignatures.js': {
-		identifier: 'modules.multisignatures',
-		callbackMethods: ['shared.getGroups', 'shared.getMemberships'],
 	},
 	'./modules/peers.js': {
 		identifier: 'modules.peers',

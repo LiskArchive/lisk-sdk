@@ -511,7 +511,7 @@ class Transaction {
 		}
 
 		// Determine multisignatures from sender or transaction asset
-		const multisignatures = sender.multisignatures || [];
+		const multisignatures = sender.membersPublicKeys || [];
 
 		if (multisignatures.length === 0) {
 			if (
@@ -727,7 +727,10 @@ class Transaction {
 		// Sanitize ready property
 		transaction.ready = this.ready(transaction, sender);
 		// Sanitize signatures property
-		if (sender.multisignatures) {
+		if (
+			Array.isArray(sender.membersPublicKeys) &&
+			sender.membersPublicKeys.length
+		) {
 			transaction.signatures = Array.isArray(transaction.signatures)
 				? transaction.signatures
 				: [];

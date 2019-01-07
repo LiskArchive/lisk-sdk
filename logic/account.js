@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const ed = require('../helpers/ed.js');
-const sortBy = require('../helpers/sort_by.js');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('./block_reward.js');
 
@@ -48,10 +47,11 @@ const __private = {};
  * @todo Add description for the params
  */
 class Account {
-	constructor(db, schema, logger, cb) {
+	constructor(db, storage, schema, logger, cb) {
 		this.scope = {
 			db,
 			schema,
+			storage,
 		};
 
 		__private.blockReward = new BlockReward();
@@ -59,8 +59,6 @@ class Account {
 		library = {
 			logger,
 		};
-
-		this.computedFields = this.model.filter(field => field.computedField);
 
 		// Obtains fields from model
 		this.fields = this.model.map(field => {
@@ -227,7 +225,7 @@ class Account {
 			fields = null;
 		}
 
-		filter.multisig = true;
+		filter.multiMin_gt = 0;
 
 		this.get(filter, fields, cb, tx);
 	}
@@ -272,79 +270,23 @@ class Account {
 			fields = null;
 		}
 
-		const computedFieldsMap = {};
-		this.computedFields.forEach(field => {
-			computedFieldsMap[field.name] = field.dependentFields;
-		});
+		const options = {
+			limit: filter.limit || ACTIVE_DELEGATES,
+			offset: filter.offset || 0,
+			sort: filter.sort || 'balance:asc',
+			extended: true,
+		};
 
-		// If fields are not provided append computed fields
-		if (!fields) {
-			fields = this.scope.db.accounts.getDBFields();
-			fields = fields.concat(Object.keys(computedFieldsMap));
+		if (options.limit < 0) {
+			options.limit = ACTIVE_DELEGATES;
 		}
 
-		let fieldsAddedForComputation = [];
-		const performComputationFor = [];
-
-		Object.keys(computedFieldsMap).forEach(computedField => {
-			if (fields.includes(computedField)) {
-				// Add computed field to list to process later
-				performComputationFor.push(computedField);
-
-				// Remove computed field from the db fields list
-				fields.splice(fields.indexOf(computedField), 1);
-
-				// Marks fields which are explicitly added due to computation
-				fieldsAddedForComputation = fieldsAddedForComputation.concat(
-					_.difference(computedFieldsMap[computedField], fields)
-				);
-
-				// Add computation dependant fields to db fields list
-				fields = fields.concat(computedFieldsMap[computedField]);
-			}
-		});
-
-		let limit = ACTIVE_DELEGATES;
-		let offset = 0;
-		let sort = { sortField: '', sortMethod: '' };
-
-		if (filter.offset > 0) {
-			offset = filter.offset;
-		}
-		delete filter.offset;
-
-		if (filter.limit > 0) {
-			limit = filter.limit;
-		}
-		delete filter.limit;
-
-		if (filter.sort) {
-			const allowedSortFields = [
-				'username',
-				'balance',
-				'rank',
-				'missedBlocks',
-				'vote',
-				'publicKey',
-				'address',
-			];
-			sort = sortBy.sortBy(filter.sort, {
-				sortFields: allowedSortFields,
-				quoteField: false,
-			});
-		}
-		delete filter.sort;
+		const filters = _.omit(filter, ['limit', 'offset', 'sort']);
 
 		const self = this;
 
-		(tx || this.scope.db).accounts
-			.list(filter, fields, {
-				limit,
-				offset,
-				sortField: sort.sortField,
-				sortMethod: sort.sortMethod,
-			})
-			.then(rows => {
+		this.scope.storage.entities.Account.get(filters, options, tx)
+			.then(accounts => {
 				const lastBlock = modules.blocks.lastBlock.get();
 				// If the last block height is undefined, it means it's a genesis block with height = 1
 				// look for a constant for total supply
@@ -352,34 +294,18 @@ class Account {
 					? __private.blockReward.calcSupply(lastBlock.height)
 					: 0;
 
-				if (performComputationFor.includes('approval')) {
-					rows.forEach(accountRow => {
-						accountRow.approval = self.calculateApproval(
-							accountRow.vote,
-							totalSupply
-						);
-					});
-				}
+				accounts.forEach(accountRow => {
+					accountRow.approval = self.calculateApproval(
+						accountRow.vote,
+						totalSupply
+					);
+				});
 
-				if (performComputationFor.includes('productivity')) {
-					rows.forEach(accountRow => {
-						accountRow.productivity = self.calculateProductivity(
-							accountRow.producedBlocks,
-							accountRow.missedBlocks
-						);
-					});
-				}
+				const result = fields
+					? accounts.map(account => _.pick(account, fields))
+					: accounts;
 
-				if (fieldsAddedForComputation.length > 0) {
-					// Remove the fields which were only added for computation
-					rows.forEach(accountRow => {
-						fieldsAddedForComputation.forEach(field => {
-							delete accountRow[field];
-						});
-					});
-				}
-
-				return setImmediate(cb, null, rows);
+				return setImmediate(cb, null, result);
 			})
 			.catch(err => {
 				library.logger.error(err.stack);
@@ -406,25 +332,6 @@ class Account {
 			.decimalPlaces(2);
 
 		return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
-	}
-
-	/**
-	 * Calculates productivity of a delegate account.
-	 *
-	 * @param {number} producedBlocks
-	 * @param {number} missedBlocks
-	 * @returns {number}
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	calculateProductivity(producedBlocks, missedBlocks) {
-		const producedBlocksBignum = new Bignum(producedBlocks || 0);
-		const missedBlocksBignum = new Bignum(missedBlocks || 0);
-		const percent = producedBlocksBignum
-			.dividedBy(producedBlocksBignum.plus(missedBlocksBignum))
-			.multipliedBy(100)
-			.decimalPlaces(2);
-
-		return !percent.isNaN() ? percent.toNumber() : 0;
 	}
 
 	/**
@@ -815,14 +722,10 @@ Account.prototype.model = [
 	{
 		name: 'approval',
 		type: 'integer',
-		dependentFields: ['vote'],
-		computedField: true,
 	},
 	{
 		name: 'productivity',
 		type: 'integer',
-		dependentFields: ['producedBlocks', 'missedBlocks', 'rank'],
-		computedField: true,
 	},
 ];
 
@@ -912,7 +815,7 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		multisignatures: {
+		membersPublicKeys: {
 			anyOf: [
 				{
 					type: 'array',
@@ -924,7 +827,7 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		u_multisignatures: {
+		u_membersPublicKeys: {
 			anyOf: [
 				{
 					type: 'array',
@@ -936,31 +839,31 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		multimin: {
+		multiMin: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
-		u_multimin: {
+		u_multiMin: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
-		multilifetime: {
+		multiLifetime: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
-		u_multilifetime: {
+		u_multiLifetime: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
-		nameexist: {
+		nameExist: {
 			type: 'integer',
 			maximum: 32767,
 		},
-		u_nameexist: {
+		u_nameExist: {
 			type: 'integer',
 			maximum: 32767,
 		},
