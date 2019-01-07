@@ -31,10 +31,7 @@ export interface P2PMessagePacket<T> {
 }
 
 export interface P2PNodeStatus {
-	readonly wsPort: number;
-	readonly os: string;
-	readonly version: string;
-	readonly height: number;
+	readonly [key: string]: string;
 }
 
 export interface P2PPenalty {}

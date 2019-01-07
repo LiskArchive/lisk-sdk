@@ -17,7 +17,7 @@ import { EventEmitter } from 'events';
 import http, { Server } from 'http';
 import { platform } from 'os';
 import querystring from 'querystring';
-import socketClusterServer from 'socketcluster-server';
+import { attach } from 'socketcluster-server';
 
 import { Peer, PeerInfo } from './peer';
 
@@ -54,17 +54,17 @@ export class P2P extends EventEmitter {
 		super();
 		this._config = config;
 		this._nodeStatus = {
-			wsPort: config.wsPort,
+			wsPort: config.wsPort.toString(),
 			os: platform(),
 			version: config.version,
-			height: 0,
+			height: '0',
 		};
 		this._newPeers = new Set();
 		// TODO ASAP: this._triedPeers = new Set();
 
 		this._peerPool = new PeerPool();
 		this._httpServer = http.createServer();
-		this._scServer = socketClusterServer.attach(this._httpServer);
+		this._scServer = attach(this._httpServer);
 	}
 
 	/* tslint:disable:next-line: prefer-function-over-method */

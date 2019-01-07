@@ -21,7 +21,7 @@ import {
 	P2PResponsePacket,
 } from './p2p_types';
 
-import socketClusterClient from 'socketcluster-client';
+import { create } from 'socketcluster-client';
 
 import { processPeerListFromResponse } from './response_handler_sanitization';
 
@@ -70,7 +70,7 @@ export class Peer {
 
 	private _createOutboundSocket(): any {
 		if (!this._outboundSocket) {
-			this._outboundSocket = socketClusterClient.create({
+			this._outboundSocket = create({
 				hostname: this._ipAddress,
 				port: this._wsPort,
 				query: this._nodeStatus,
