@@ -632,8 +632,8 @@ d.run(() => {
 							db(dbCb) {
 								dbCb(null, scope.db);
 							},
-							storage(dbCb) {
-								dbCb(null, scope.storage);
+							storage(storageCb) {
+								storageCb(null, scope.storage);
 							},
 							ed(edCb) {
 								edCb(null, scope.ed);
@@ -649,6 +649,7 @@ d.run(() => {
 							},
 							account: [
 								'db',
+								'storage',
 								'bus',
 								'ed',
 								'schema',

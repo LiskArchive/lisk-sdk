@@ -115,9 +115,7 @@ VotersController.getVoters = async function(context, next) {
 
 		// TODO: Make sure we return empty string in case of null username
 		// This can be avoided when we fix the `isDelegate` inconsistency mentioned above.
-		if (_.isNull(data.username)) {
-			data.username = '';
-		}
+		data.username = data.username || '';
 
 		const voters = await storage.entities.Account.get(
 			{ votedDelegatesPublicKeys_in: [delegate.publicKey] },

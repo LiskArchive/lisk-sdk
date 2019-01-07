@@ -195,6 +195,7 @@ const middleware = {
 	},
 };
 
+// TODO: Move this method to better directory structure, as its not directly related to HTTP
 function calculateApproval(votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings,
 	// we convert them into bignum and send the response as number as well

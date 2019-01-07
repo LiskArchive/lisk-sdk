@@ -68,12 +68,9 @@ function accountFormatter(totalSupply, account) {
 		object.delegate.approval = calculateApproval(object.vote, totalSupply);
 	}
 
-	if (_.isNull(object.publicKey)) {
-		object.publicKey = '';
-	}
-	if (_.isNull(object.secondPublicKey)) {
-		object.secondPublicKey = '';
-	}
+	object.publicKey = object.publicKey || '';
+	object.secondPublicKey = object.secondPublicKey || '';
+
 	return object;
 }
 

@@ -23,7 +23,7 @@ const {
 } = require('../../../../storage/errors');
 
 // eslint-disable-next-line mocha/no-skipped-tests
-describe.skip('Peer', () => {
+describe('Peer', () => {
 	let adapter;
 	let validPeerFields;
 	let validPeerSQLs;
