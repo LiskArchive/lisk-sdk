@@ -20,12 +20,16 @@ const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;
 const TransactionPool = require('../logic/transaction_pool.js');
+const transactionTypes = require('../helpers/transaction_types.js');
+const Transfer = require('../logic/transfer.js');
 
 // Private fields
 const __private = {};
 let modules;
 let library;
 let self;
+
+__private.assetTypes = {};
 
 /**
  * Main transactions methods. Initializes library with scope content and generates a Transfer instance
@@ -71,6 +75,13 @@ class Transactions {
 			scope.logger,
 			scope.balancesSequence,
 			scope.config
+		);
+
+		__private.assetTypes[
+			transactionTypes.SEND
+		] = library.logic.transaction.attachAssetType(
+			transactionTypes.SEND,
+			new Transfer(library.logger, library.schema)
 		);
 
 		setImmediate(cb, null, self);
@@ -588,6 +599,8 @@ Transactions.prototype.onBind = function(scope) {
 		scope.transactions,
 		scope.loader
 	);
+
+	__private.assetTypes[transactionTypes.SEND].bind(scope.accounts);
 };
 
 /**
