@@ -618,7 +618,9 @@ class Transaction extends BaseEntity {
 			}
 		}
 
-		transaction.signatures = transaction.signatures.filter(Boolean);
+		if (transaction.signatures) {
+			transaction.signatures = transaction.signatures.filter(Boolean);
+		}
 
 		return transaction;
 	}
