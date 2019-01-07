@@ -324,8 +324,35 @@ describe('Transaction', () => {
 	describe('count()', () => {
 		it('should accept only valid filters');
 		it('should throw error for in-valid filters');
-		it('should resolve with integer value if matching record found');
-		it('should resolve with zero if matching record not found');
+		it('should resolve with integer value if matching record found', async () => {
+			let transaction = null;
+			const transactions = [];
+
+			for (let i = 0; i < numSeedRecords; i++) {
+				transaction = new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				});
+				transactions.push(transaction);
+			}
+			await storage.entities.Transaction.create(transactions);
+
+			// Check for last transaction
+			const result = await storage.entities.Transaction.count({
+				id: transaction.id,
+			});
+
+			expect(result).to.be.a('number');
+			return expect(result).to.be.eql(1);
+		});
+
+		it('should resolve with zero if matching record not found', async () => {
+			const result = await storage.entities.Transaction.count({
+				id: '1234',
+			});
+
+			expect(result).to.be.a('number');
+			return expect(result).to.be.eql(0);
+		});
 	});
 
 	describe('create()', () => {
