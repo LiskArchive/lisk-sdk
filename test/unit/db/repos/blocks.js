@@ -59,6 +59,7 @@ const blockListFields = [
 	't_fee',
 	't_id',
 	't_recipientId',
+	't_recipientPublicKey',
 	't_requesterPublicKey',
 	't_rowId',
 	't_senderId',
