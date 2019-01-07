@@ -299,6 +299,9 @@ class Account extends BaseEntity {
 			update: this.adapter.loadSQLFile('accounts/update.sql'),
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('accounts/is_persisted.sql'),
+			resetUnconfirmedState: this.adapter.loadSQLFile(
+				'accounts/reset_unconfirmed_state.sql'
+			),
 		};
 	}
 
@@ -460,6 +463,15 @@ class Account extends BaseEntity {
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => result[0].exists);
+	}
+
+	resetUnconfirmedState(tx) {
+		return this.adapter.executeFile(
+			this.SQLs.resetUnconfirmedState,
+			{},
+			{},
+			tx
+		);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {

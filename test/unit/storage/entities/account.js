@@ -15,10 +15,54 @@
 
 'use strict';
 
+const { BaseEntity, Account } = require('../../../../storage/entities');
+const storageSandbox = require('../../../common/storage_sandbox');
+const seeder = require('../../../common/storage_seed');
+
 describe('Account', () => {
-	it('should be a constructable function');
-	it('should be be inherited by BaseEntity');
-	it('should assign a prototype property defaultOptions');
+	let adapter;
+	let storage;
+	let AccountEntity;
+	let SQLs;
+
+	before(async () => {
+		storage = new storageSandbox.StorageSandbox(
+			__testContext.config.db,
+			'lisk_test_storage_accounts'
+		);
+		await storage.bootstrap();
+
+		adapter = storage.adapter;
+
+		AccountEntity = storage.entities.Account;
+		SQLs = AccountEntity.SQLs;
+	});
+
+	beforeEach(() => {
+		return seeder.seed(storage);
+	});
+
+	afterEach(done => {
+		sinonSandbox.restore();
+		seeder
+			.reset(storage)
+			.then(() => done(null))
+			.catch(done);
+	});
+
+	it('should be a constructable function', async () => {
+		expect(Account.prototype.constructor).not.to.be.null;
+		expect(Account.prototype.constructor.name).to.be.eql('Account');
+	});
+
+	it('should extend BaseEntity', async () => {
+		expect(Account.prototype instanceof BaseEntity).to.be.true;
+	});
+
+	it('should assign a prototype property defaultOptions', async () => {
+		const account = new Account(adapter);
+		expect(account.defaultOptions.sort).to.be.eql('balance:asc');
+	});
 
 	describe('constructor()', () => {
 		it('should accept only one parameter');
@@ -140,5 +184,128 @@ describe('Account', () => {
 		it(
 			'should merge provided filter with default filters by preserving default filters values '
 		);
+	});
+
+	describe('resetUnconfirmedState()', () => {
+		it('should use the correct SQL to fetch the count', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await AccountEntity.resetUnconfirmedState();
+
+			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
+				SQLs.resetUnconfirmedState
+			);
+		});
+
+		it('should pass no params to the SQL file', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await AccountEntity.resetUnconfirmedState();
+
+			return expect(adapter.executeFile.args[1]).to.eql(undefined);
+		});
+
+		it('should execute only one query', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await AccountEntity.resetUnconfirmedState();
+
+			expect(adapter.executeFile.calledOnce).to.be.true;
+		});
+
+		it('should throw error if something wrong in the SQL execution', async () => {
+			sinonSandbox.stub(adapter, 'executeFile').rejects();
+
+			expect(AccountEntity.resetUnconfirmedState()).to.be.rejected;
+		});
+
+		it('should update all accounts which have different unconfirmed state for u_isDelegate', async () => {
+			await adapter.execute(
+				'UPDATE mem_accounts SET "isDelegate" = 1, "u_isDelegate" = 0'
+			);
+			await AccountEntity.resetUnconfirmedState();
+			const result = await adapter.execute(
+				'SELECT count(*) FROM mem_accounts WHERE "isDelegate" <> "u_isDelegate"'
+			);
+			expect(result[0].count).to.be.equal('0');
+		});
+
+		it('should update all accounts which have different unconfirmed state for u_secondSignature', async () => {
+			await adapter.execute(
+				'UPDATE mem_accounts SET "secondSignature" = 1, "u_secondSignature" = 0'
+			);
+			await AccountEntity.resetUnconfirmedState();
+			const result = await adapter.execute(
+				'SELECT count(*) FROM mem_accounts WHERE "secondSignature" <> "u_secondSignature"'
+			);
+
+			expect(result[0].count).to.be.equal('0');
+		});
+
+		it('should update all accounts which have different unconfirmed state for u_username', async () => {
+			await AccountEntity.resetUnconfirmedState();
+			const result = await adapter.execute(
+				'SELECT count(*) FROM mem_accounts WHERE "username" <> "u_username"'
+			);
+
+			return expect(result[0].count).to.be.equal('0');
+		});
+
+		it('should update all accounts which have different unconfirmed state for u_balance', async () => {
+			await adapter.execute(
+				'UPDATE mem_accounts SET "balance" = 123, "u_balance" = 124'
+			);
+			await AccountEntity.resetUnconfirmedState();
+			const result = await adapter.execute(
+				'SELECT count(*) FROM mem_accounts WHERE "balance" <> "u_balance"'
+			);
+
+			expect(result[0].count).to.be.equal('0');
+		});
+
+		it('should update all accounts which have different unconfirmed state for u_delegates', async () => {
+			await adapter.execute(
+				'UPDATE mem_accounts SET "delegates" = \'Alpha\', "u_delegates" = \'Beta\' '
+			);
+			await AccountEntity.resetUnconfirmedState();
+			const result = await adapter.execute(
+				'SELECT count(*) FROM mem_accounts WHERE "delegates" <> "u_delegates"'
+			);
+
+			expect(result[0].count).to.be.equal('0');
+		});
+
+		it('should update all accounts which have different unconfirmed state for u_multisignatures', async () => {
+			await adapter.execute(
+				'UPDATE mem_accounts SET "multisignatures" = \'Alpha\', "u_multisignatures" = \'Beta\' '
+			);
+			await AccountEntity.resetUnconfirmedState();
+			const result = await adapter.execute(
+				'SELECT count(*) FROM mem_accounts WHERE "multisignatures" <> "u_multisignatures"'
+			);
+
+			expect(result[0].count).to.be.equal('0');
+		});
+
+		it('should update all accounts which have different unconfirmed state for u_multimin', async () => {
+			await adapter.execute(
+				'UPDATE mem_accounts SET "multimin" = 1, "u_multimin" = 0'
+			);
+			await AccountEntity.resetUnconfirmedState();
+			const result = await adapter.execute(
+				'SELECT count(*) FROM mem_accounts WHERE "multimin" <> "u_multimin"'
+			);
+
+			expect(result[0].count).to.be.equal('0');
+		});
+
+		it('should update all db.accounts which have different unconfirmed state for u_multilifetime', async () => {
+			await adapter.execute(
+				'UPDATE mem_accounts SET "multilifetime" = 1, "u_multilifetime" = 0'
+			);
+			await AccountEntity.resetUnconfirmedState();
+			const result = await adapter.execute(
+				'SELECT count(*) FROM mem_accounts WHERE "multilifetime" <> "u_multilifetime"'
+			);
+
+			expect(result[0].count).to.be.equal('0');
+		});
 	});
 });

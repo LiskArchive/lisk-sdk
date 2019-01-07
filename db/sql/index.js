@@ -32,7 +32,6 @@ const { link } = require('./config');
 module.exports = {
 	accounts: {
 		resetMemoryTables: link('accounts/reset_memory_tables.sql'),
-		updateMemAccounts: link('accounts/update_mem_accounts.sql'),
 		incrementAccount: link('accounts/increment_account.sql'),
 		decrementAccount: link('accounts/decrement_account.sql'),
 		removeAccountDependencies: link('accounts/remove_account_dependencies.sql'),

@@ -150,16 +150,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Update mem_accounts.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	updateMemAccounts() {
-		return this.db.none(sql.updateMemAccounts);
-	}
-
-	/**
 	 * Update or insert into mem_accounts.
 	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
