@@ -14,7 +14,11 @@
  */
 import { expect } from 'chai';
 import { initializePeerList } from '../utils/peers';
-import { PeerOptions, selectPeers } from '../../src/peer_selection';
+import {
+	PeerOptions,
+	selectForConnection,
+	selectPeers,
+} from '../../src/peer_selection';
 
 describe('peer selector', () => {
 	describe('#selectPeer', () => {
@@ -104,6 +108,20 @@ describe('peer selector', () => {
 				return expect(selectPeers(lowHeightPeers, selectionParams, 2))
 					.and.be.an('array')
 					.and.of.length(0);
+			});
+		});
+	});
+
+	describe('#selectForConnection', () => {
+		const peerList = initializePeerList();
+		const numberOfPeers = peerList.length;
+
+		describe('get all the peers for selection', () => {
+			it('should return all the peers given as argument for connection', () => {
+				return expect(selectForConnection(peerList))
+					.be.an('array')
+					.and.is.eql(peerList)
+					.of.length(numberOfPeers);
 			});
 		});
 	});
