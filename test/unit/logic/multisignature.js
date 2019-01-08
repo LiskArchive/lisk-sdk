@@ -528,9 +528,9 @@ describe('multisignature', () => {
 
 		it('should call library.logic.account.merge with expected params', () => {
 			const expectedParams = {
-				multisignatures: transaction.asset.multisignature.keysgroup,
-				multimin: transaction.asset.multisignature.min,
-				multilifetime: transaction.asset.multisignature.lifetime,
+				membersPublicKeys: transaction.asset.multisignature.keysgroup,
+				multiMin: transaction.asset.multisignature.min,
+				multiLifetime: transaction.asset.multisignature.lifetime,
 				round: slots.calcRound(dummyBlock.height),
 			};
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
@@ -679,11 +679,11 @@ describe('multisignature', () => {
 
 		it('should call library.logic.account.merge with expected params', () => {
 			const expectedParams = {
-				multisignatures: Diff.reverse(
+				membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
-				multimin: -transaction.asset.multisignature.min,
-				multilifetime: -transaction.asset.multisignature.lifetime,
+				multiMin: -transaction.asset.multisignature.min,
+				multiLifetime: -transaction.asset.multisignature.lifetime,
 				round: slots.calcRound(dummyBlock.height),
 			};
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
@@ -790,9 +790,9 @@ describe('multisignature', () => {
 
 			it('should call library.logic.account.merge with expected params', done => {
 				const expectedParams = {
-					u_multisignatures: transaction.asset.multisignature.keysgroup,
-					u_multimin: transaction.asset.multisignature.min,
-					u_multilifetime: transaction.asset.multisignature.lifetime,
+					u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
+					u_multiMin: transaction.asset.multisignature.min,
+					u_multiLifetime: transaction.asset.multisignature.lifetime,
 				};
 				multisignature.applyUnconfirmed(transaction, sender, () => {
 					expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
@@ -861,11 +861,11 @@ describe('multisignature', () => {
 
 		it('should call library.logic.account.merge with expected params', () => {
 			const expectedParams = {
-				u_multisignatures: Diff.reverse(
+				u_membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
-				u_multimin: -transaction.asset.multisignature.min,
-				u_multilifetime: -transaction.asset.multisignature.lifetime,
+				u_multiMin: -transaction.asset.multisignature.min,
+				u_multiLifetime: -transaction.asset.multisignature.lifetime,
 			};
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
