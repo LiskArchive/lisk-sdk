@@ -5,10 +5,6 @@ import {
 import { TransactionJSON, Status } from '../../src/transaction_types';
 
 export class TestTransaction extends BaseTransaction {
-	public containsUniqueData(): boolean {
-		return true;
-	}
-
 	public assetToJSON(): object {
 		return {};
 	}

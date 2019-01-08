@@ -323,12 +323,6 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe('#containsUniqueData', () => {
-		it('should return a boolean', async () => {
-			expect(validTestTransaction.containsUniqueData()).to.be.a('boolean');
-		});
-	});
-
 	describe('#checkSchema', () => {
 		it('should call toJSON', async () => {
 			const toJSONStub = sandbox
@@ -866,12 +860,13 @@ describe('Base transaction class', () => {
 				...defaultSenderAccount,
 				balance: '0',
 			});
+
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);
 			expect(state)
 				.to.be.an('object')
 				.and.to.have.property('sender');
-			expect((state as any).sender).to.have.property('balance', '0');
+			expect((state as any).sender).to.have.property('balance', '-10000000');
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
@@ -907,7 +902,7 @@ describe('Base transaction class', () => {
 			expect(state)
 				.to.be.an('object')
 				.and.to.have.property('sender');
-			expect((state as any).sender).to.have.property('balance', MAX_TRANSACTION_AMOUNT.toString());
+			expect((state as any).sender).to.have.property('balance', new BigNum(MAX_TRANSACTION_AMOUNT).add(validTestTransaction.fee).toString());
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(

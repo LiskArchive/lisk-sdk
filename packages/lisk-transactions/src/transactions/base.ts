@@ -72,6 +72,7 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
 	public readonly receivedAt: Date = new Date();
+	public readonly containsUniqueData?: boolean;
 	public isMultisignature?: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
 
 	public constructor(rawTransaction: TransactionJSON) {
@@ -174,8 +175,6 @@ export abstract class BaseTransaction {
 
 		return transactionBytes;
 	}
-
-	public abstract containsUniqueData(): boolean;
 
 	public checkSchema(): TransactionResponse {
 		const transaction = this.toJSON();
@@ -399,7 +398,8 @@ export abstract class BaseTransaction {
 			: [
 					new TransactionError(
 						`Account does not have enough LSK: ${sender.address}, balance: ${
-							sender.balance
+							// tslint:disable-next-line no-magic-numbers
+							new BigNum(sender.balance.toString() || '0').div(Math.pow(10, 8))
 						}`,
 						this.id,
 					),
@@ -408,7 +408,7 @@ export abstract class BaseTransaction {
 		return {
 			id: this.id,
 			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			state: errors.length > 0 ? { sender } : { sender: updatedAccount },
+			state: { sender: updatedAccount },
 			errors,
 		};
 	}
@@ -423,7 +423,7 @@ export abstract class BaseTransaction {
 		return {
 			id: this.id,
 			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			state: errors.length > 0 ? { sender } : { sender: updatedAccount },
+			state: { sender: updatedAccount },
 			errors,
 		};
 	}
