@@ -46,6 +46,12 @@ const defaultCreateValues = {
 };
 
 const readOnlyFields = ['address'];
+const dependentTables = [
+	'delegates',
+	'u_delegates',
+	'multisignatures',
+	'u_multisignatures',
+];
 
 /**
  * Basic Account
@@ -312,6 +318,12 @@ class Account extends BaseEntity {
 			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
 			increment: this.adapter.loadSQLFile('accounts/increment.sql'),
 			decrement: this.adapter.loadSQLFile('accounts/decrement.sql'),
+			createDependentRecord: this.adapter.loadSQLFile(
+				'accounts/create_dependent_record.sql'
+			),
+			deleteDependentRecord: this.adapter.loadSQLFile(
+				'accounts/delete_dependent_record.sql'
+			),
 		};
 	}
 
@@ -582,6 +594,73 @@ class Account extends BaseEntity {
 	 */
 	decrement(filters, field, value, tx) {
 		return this._updateField(filters, field, value, '-', tx);
+	}
+
+	/**
+	 * Create dependent record for the account
+	 *
+	 * @param {string} dependencyName - Name of the dependent table
+	 * @param {string} address - Address of the account
+	 * @param {string} dependentPublicKey - Dependent public id
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	createDependentRecord(dependencyName, address, dependentPublicKey, tx) {
+		return this._updateDepdendentRecord(
+			dependencyName,
+			address,
+			dependentPublicKey,
+			'+',
+			tx
+		);
+	}
+
+	/**
+	 * Delete dependent record for the account
+	 *
+	 * @param {string} dependencyName - Name of the dependent table
+	 * @param {string} address - Address of the account
+	 * @param {string} dependentPublicKey - Dependent public id
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	deleteDependentRecord(dependencyName, address, dependentPublicKey, tx) {
+		return this._updateDepdendentRecord(
+			dependencyName,
+			address,
+			dependentPublicKey,
+			'-',
+			tx
+		);
+	}
+
+	_updateDepdendentRecord(
+		dependencyName,
+		address,
+		dependentPublicKey,
+		mode = '+',
+		tx
+	) {
+		assert(
+			dependentTables.includes(dependencyName),
+			`Invalid dependency name "${dependencyName}" provided.`
+		);
+		const params = {
+			tableName: `mem_accounts2${dependencyName}`,
+			accountId: address,
+			dependentId: dependentPublicKey,
+		};
+		const SQL =
+			mode === '+'
+				? this.SQLs.createDependentRecord
+				: this.SQLs.deleteDependentRecord;
+
+		return this.adapter.executeFile(
+			SQL,
+			params,
+			{ expectedResultCount: 0 },
+			tx
+		);
 	}
 
 	_updateField(filters, field, value, mode = '+', tx) {

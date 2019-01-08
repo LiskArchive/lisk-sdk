@@ -705,4 +705,103 @@ describe('Account', () => {
 			expect(updatedAccount.balance).to.eql('14000');
 		});
 	});
+
+	describe('createDependentRecord()', () => {
+		it('should throw error if wrong dependency is passed', async () => {
+			expect(() =>
+				AccountEntity.createDependentRecord('unknown', '12L', '12345')
+			).to.throw('Invalid dependency name "unknown" provided.');
+		});
+
+		[
+			'delegates',
+			'u_delegates',
+			'multisignatures',
+			'u_multisignatures',
+		].forEach(dependentTable => {
+			describe(`${dependentTable}`, () => {
+				it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
+					const accounts = await AccountEntity.get({}, { limit: 2 });
+
+					sinonSandbox.spy(adapter, 'executeFile');
+					await AccountEntity.createDependentRecord(
+						dependentTable,
+						accounts[0].address,
+						accounts[1].publicKey
+					);
+
+					return expect(adapter.executeFile).to.be.calledWith(
+						SQLs.createDependentRecord,
+						{
+							tableName: `mem_accounts2${dependentTable}`,
+							accountId: accounts[0].address,
+							dependentId: accounts[1].publicKey,
+						},
+						{ expectedResultCount: 0 }
+					);
+				});
+
+				it(`should insert dependent account from ${dependentTable}`, async () => {
+					const accounts = await AccountEntity.get({}, { limit: 2 });
+
+					const before = await adapter.execute(
+						`SELECT count(*) from mem_accounts2${dependentTable}`
+					);
+
+					await AccountEntity.createDependentRecord(
+						dependentTable,
+						accounts[0].address,
+						accounts[1].publicKey
+					);
+					const after = await adapter.execute(
+						`SELECT count(*) from mem_accounts2${dependentTable}`
+					);
+
+					expect(before[0].count).to.eql('0');
+					expect(after[0].count).to.eql('1');
+				});
+			});
+		});
+	});
+
+	describe('deleteDependentRecord()', () => {
+		it('should throw error if wrong dependency is passed', async () => {
+			expect(() =>
+				AccountEntity.deleteDependentRecord('unknown', '12L', '12345')
+			).to.throw('Invalid dependency name "unknown" provided.');
+		});
+
+		[
+			'delegates',
+			'u_delegates',
+			'multisignatures',
+			'u_multisignatures',
+		].forEach(dependentTable => {
+			it(`should remove dependent account from ${dependentTable}`, async () => {
+				const accounts = await AccountEntity.get({}, { limit: 2 });
+
+				await adapter.execute(
+					`INSERT INTO mem_accounts2${dependentTable} ("accountId", "dependentId") VALUES('${
+						accounts[0].address
+					}', '${accounts[1].publicKey}')`
+				);
+
+				const before = await adapter.execute(
+					`SELECT count(*) from mem_accounts2${dependentTable}`
+				);
+
+				await AccountEntity.deleteDependentRecord(
+					dependentTable,
+					accounts[0].address,
+					accounts[1].publicKey
+				);
+				const after = await adapter.execute(
+					`SELECT count(*) from mem_accounts2${dependentTable}`
+				);
+
+				expect(before[0].count).to.eql('1');
+				expect(after[0].count).to.eql('0');
+			});
+		});
+	});
 });
