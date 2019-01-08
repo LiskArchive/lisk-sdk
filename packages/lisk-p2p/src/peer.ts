@@ -154,16 +154,17 @@ export class Peer {
 	}
 
 	public send<T>(packet: P2PMessagePacket<T>): void {
-		if (this.outboundSocket) {
-			this.outboundSocket.emit(packet.event, {
-				data: packet.data,
-			});
-		} else {
+		if (!this.outboundSocket) {
 			this.outboundSocket = this._createOutboundSocket();
 			this.outboundSocket.emit(packet.event, {
 				data: packet.data,
 			});
+
+			return;
 		}
+		this.outboundSocket.emit(packet.event, {
+			data: packet.data,
+		});
 	}
 
 	public get peerInfo(): PeerInfo {

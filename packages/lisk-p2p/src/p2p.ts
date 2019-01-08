@@ -103,41 +103,42 @@ export class P2P extends EventEmitter {
 		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
-				if (socket.request.url) {
-					const queryObject = querystring.parse(socket.request.url);
-					if (
-						typeof queryObject.wsPort !== 'string' ||
-						typeof queryObject.os !== 'string' ||
-						typeof queryObject.version !== 'string'
-					) {
-						super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
-					} else {
-						const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-						const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
-						const existingPeer = this._peerPool.getPeer(peerId);
-						if (existingPeer === undefined) {
-							const peer = new Peer(
-								{
-									ipAddress: socket.remoteAddress,
-									os: queryObject.os,
-									version: queryObject.version,
-									wsPort,
-									nodeStatus: this._nodeStatus,
-									height: queryObject.height ? +queryObject.height : 0,
-								},
-								socket,
-							);
-							this._peerPool.addPeer(peer);
-							super.emit(EVENT_NEW_INBOUND_PEER, peer);
-							super.emit(EVENT_NEW_PEER, peer);
-							this._newPeers.add(peer.peerInfo);
-						} else {
-							existingPeer.inboundSocket = socket;
-							this._newPeers.add(existingPeer.peerInfo);
-						}
-					}
-				} else {
+				if (!socket.request.url) {
 					super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
+
+					return;
+				}
+				const queryObject = querystring.parse(socket.request.url);
+				if (
+					typeof queryObject.wsPort !== 'string' ||
+					typeof queryObject.os !== 'string' ||
+					typeof queryObject.version !== 'string'
+				) {
+					super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
+				} else {
+					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
+					const existingPeer = this._peerPool.getPeer(peerId);
+					if (existingPeer === undefined) {
+						const peer = new Peer(
+							{
+								ipAddress: socket.remoteAddress,
+								os: queryObject.os,
+								version: queryObject.version,
+								wsPort,
+								nodeStatus: this._nodeStatus,
+								height: queryObject.height ? +queryObject.height : 0,
+							},
+							socket,
+						);
+						this._peerPool.addPeer(peer);
+						super.emit(EVENT_NEW_INBOUND_PEER, peer);
+						super.emit(EVENT_NEW_PEER, peer);
+						this._newPeers.add(peer.peerInfo);
+					} else {
+						existingPeer.inboundSocket = socket;
+						this._newPeers.add(existingPeer.peerInfo);
+					}
 				}
 			},
 		);
