@@ -17,8 +17,8 @@
 import { PeerInfo } from './peer';
 
 export interface P2PRequestPacket<T> {
-	readonly procedure: string;
 	readonly params?: T;
+	readonly procedure: string;
 }
 
 export interface P2PResponsePacket {
@@ -26,15 +26,15 @@ export interface P2PResponsePacket {
 }
 
 export interface P2PMessagePacket<T> {
-	readonly event: string;
 	readonly data: T;
+	readonly event: string;
 }
 
-export interface P2PNodeStatus {
-	readonly wsPort: number;
+export interface P2PNodeInfo {
+	readonly height: number;
 	readonly os: string;
 	readonly version: string;
-	readonly height: number;
+	readonly wsPort: number;
 }
 
 export interface P2PPenalty {}
@@ -44,28 +44,38 @@ export interface P2PConfig {
 	readonly connectTimeout: number;
 	readonly ipAddress?: string;
 	readonly seedPeers: ReadonlyArray<PeerInfo>;
+	readonly version: string;
 	readonly wsEngine?: string;
 	readonly wsPort: number;
-	readonly version: string;
 }
 
-export interface NetworkStatus {}
+// Network info exposed by the P2P library.
+export interface P2PNetworkStatus {
+	readonly peers: ReadonlyArray<PeerInfo>;
+}
 
 // This is a representation of the peer object according to the current protocol.
 // TODO later: Switch to LIP protocol format.
 export interface ProtocolPeerInfo {
-	readonly ip: string;
-	readonly wsPort: number;
-	readonly os: string;
-	readonly version: string;
 	readonly broadhash: string;
 	readonly height: number;
+	readonly ip: string;
 	readonly nonce: string;
+	readonly os: string;
+	readonly version: string;
+	readonly wsPort: number;
 }
 
 // This is a representation of the peer list according to the current protocol.
 // TODO later: Switch to LIP protocol format.
 export interface ProtocolPeerList {
-	readonly success: boolean;
 	readonly peers: ReadonlyArray<ProtocolPeerInfo>;
+	readonly success: boolean;
+}
+
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolInboundRPCRequest {
+	readonly data: unknown;
+	readonly procedure: string;
+	readonly type: string;
 }
