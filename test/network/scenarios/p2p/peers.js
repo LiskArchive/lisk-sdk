@@ -15,7 +15,7 @@
 'use strict';
 
 module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
-	describe('@network : peers', () => {
+	describe('@p2p : peers', () => {
 		before(() => {
 			return network.waitForBlocksOnAllNodes(2);
 		});
