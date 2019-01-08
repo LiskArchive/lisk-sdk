@@ -406,7 +406,12 @@ class Account {
 					// blockId
 					case String:
 						promises.push(
-							dbTx.accounts.update(address, _.pick(diff, [updatedField]))
+							self.scope.storage.entities.Account.update(
+								{ address },
+								_.pick(diff, [updatedField]),
+								{},
+								dbTx
+							)
 						);
 						break;
 

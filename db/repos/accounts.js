@@ -149,6 +149,7 @@ class AccountsRepository {
 		);
 	}
 
+	// TODO: Only used in tests, should be removed later at the end
 	/**
 	 * Create the record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
@@ -158,36 +159,6 @@ class AccountsRepository {
 	 */
 	insert(data) {
 		const query = () => this.pgp.helpers.insert(data, this.cs.insert);
-		return this.db.none(query);
-	}
-
-	/**
-	 * Update record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
-	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
-	 * @param {string} address - Address of the account to be updated
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	update(address, data) {
-		if (!address) {
-			return Promise.reject(
-				new TypeError('Error: db.accounts.update - invalid address argument.')
-			);
-		}
-
-		this.getImmutableFields().map(field => delete data[field]);
-
-		// To avoid Error: Cannot generate an UPDATE without any columns.
-		// If there is nothing to update, return else pg-promise will fail
-		if (Object.keys(data).length === 0) {
-			return Promise.resolve();
-		}
-
-		const query = () =>
-			this.pgp.helpers.update(data, this.cs.update) +
-			this.pgp.as.format(' WHERE $1:name = $2', ['address', address]);
-
 		return this.db.none(query);
 	}
 
