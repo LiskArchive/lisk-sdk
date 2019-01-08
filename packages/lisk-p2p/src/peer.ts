@@ -77,6 +77,7 @@ export class Peer extends EventEmitter {
 		}
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
+		// This function needs to be defined as an arrow function inside the constructor in order to allow it to be added and removed as an event handler.
 		this._handlePeerInfo = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
 			// TODO ASAP: Move validation/sanitization to a separate file with other validation logic.
