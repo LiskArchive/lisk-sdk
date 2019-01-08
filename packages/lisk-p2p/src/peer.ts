@@ -14,25 +14,33 @@
  */
 
 import { RPCResponseError } from './errors';
+import { EventEmitter } from 'events';
+
 import {
 	P2PMessagePacket,
-	P2PNodeStatus,
+	P2PNodeInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolInboundRPCRequest,
 } from './p2p_types';
 
-import { create, SCClientSocket } from 'socketcluster-client';
+import socketClusterClient, { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { processPeerListFromResponse } from './response_handler_sanitization';
+
+// Local emitted events.
+export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
+
+// Remote events sent to peers as messages.
+export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
 
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
-	readonly nodeStatus?: P2PNodeStatus; // TODO DELEEETETETE
 	readonly clock?: Date;
 	readonly height: number;
-	readonly os: string;
-	readonly version: string;
+	readonly os?: string;
+	readonly version?: string;
 }
 
 export enum ConnectionState {
@@ -46,36 +54,113 @@ export interface PeerConnectionState {
 	readonly outbound: ConnectionState;
 }
 
-const GET_ALL_PEERS_LIST_RPC = 'list';
-
-export class Peer {
+export class Peer extends EventEmitter {
 	private readonly _id: string;
-	private readonly _peerInfo: PeerInfo;
-	private readonly _height: number;
-	private _inboundSocket: SCServerSocket | undefined;
-	private _outboundSocket: SCClientSocket | undefined;
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
-	private _nodeStatus: P2PNodeStatus | undefined;
+	private readonly _height: number;
+	private readonly _peerInfo: PeerInfo;
+	private readonly _handlePeerInfo: (packet: unknown) => void;
+	private _nodeInfo: P2PNodeInfo | undefined;
+	private _inboundSocket: SCServerSocket | undefined;
+	private _outboundSocket: SCClientSocket | undefined;
 
 	public constructor(peerInfo: PeerInfo, inboundSocket?: SCServerSocket) {
+		super();
 		this._peerInfo = peerInfo;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
 		this._inboundSocket = inboundSocket;
+		if (this._inboundSocket) {
+			this._startListeningForPeerInfo(this._inboundSocket);
+		}
 		this._height = peerInfo.height ? peerInfo.height : 0;
+
+		this._handlePeerInfo = (packet: unknown) => {
+			// TODO later: Switch to LIP protocol format.
+			// TODO ASAP: Move validation/sanitization to a separate file with other validation logic.
+			const rpcPacket = packet as ProtocolInboundRPCRequest;
+			if (
+				rpcPacket &&
+				rpcPacket.procedure === 'updateMyself' &&
+				typeof rpcPacket.data === 'object'
+			) {
+				// Update peerInfo with the latest values from the remote peer.
+				Object.assign(this._peerInfo, rpcPacket.data as PeerInfo);
+				this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+			}
+		};
 	}
 
-	private _createOutboundSocket(): SCClientSocket {
-		const query = JSON.stringify(this._nodeStatus);
+	public get height(): number {
+		return this._height;
+	}
 
-		return create({
-			hostname: this._ipAddress,
-			port: this._wsPort,
-			query,
-			autoConnect: false,
+	public get id(): string {
+		return this._id;
+	}
+
+	public set inboundSocket(value: any) {
+		if (this._inboundSocket) {
+			this._stopListeningForPeerInfo(this._inboundSocket);
+		}
+		this._inboundSocket = value;
+		this._startListeningForPeerInfo(this._inboundSocket);
+	}
+
+	public get ipAddress(): string {
+		return this._ipAddress;
+	}
+
+	public set outboundSocket(value: any) {
+		this._outboundSocket = value;
+	}
+
+	public get peerInfo(): PeerInfo {
+		return this._peerInfo;
+	}
+
+	public get state(): PeerConnectionState {
+		const inbound = this._inboundSocket
+			? this._inboundSocket.state === this._inboundSocket.OPEN
+				? ConnectionState.CONNECTED
+				: ConnectionState.DISCONNECTED
+			: ConnectionState.DISCONNECTED;
+		const outbound = this._outboundSocket
+			? this._outboundSocket.state === this._outboundSocket.OPEN
+				? ConnectionState.CONNECTED
+				: ConnectionState.DISCONNECTED
+			: ConnectionState.DISCONNECTED;
+
+		return {
+			inbound,
+			outbound,
+		};
+	}
+
+	public get wsPort(): number {
+		return this._wsPort;
+	}
+
+	public static constructPeerId(ipAddress: string, port: number): string {
+		return `${ipAddress}:${port}`;
+	}
+
+	/**
+	 * This is not a declared as a setter because this method will need
+	 * invoke an async RPC on the socket to pass it the new node status.
+	 */
+	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
+		this._nodeInfo = nodeInfo;
+		this.send<P2PNodeInfo>({
+			event: REMOTE_EVENT_SEND_NODE_INFO,
+			data: nodeInfo,
 		});
+	}
+
+	public get nodeInfo(): P2PNodeInfo | undefined {
+		return this._nodeInfo;
 	}
 
 	public connect(): void {
@@ -87,8 +172,9 @@ export class Peer {
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
-		if (this.inboundSocket) {
-			this.inboundSocket.disconnect(code, reason);
+		if (this._inboundSocket) {
+			this._inboundSocket.disconnect(code, reason);
+			this._stopListeningForPeerInfo(this._inboundSocket);
 		}
 		if (this.outboundSocket) {
 			this.outboundSocket.disconnect(code, reason);
@@ -167,65 +253,22 @@ export class Peer {
 		});
 	}
 
-	public get peerInfo(): PeerInfo {
-		return this._peerInfo;
+	private _createOutboundSocket(): SCClientSocket {
+		return socketClusterClient.create({
+			hostname: this._ipAddress,
+			port: this._wsPort,
+			query: this._nodeInfo,
+			autoConnect: false,
+		});
 	}
 
-	public get id(): string {
-		return this._id;
+	private _startListeningForPeerInfo(socket: any): void {
+		// If an existing listener is bound, remove it.
+		socket.removeListener('rpc-request', this._handlePeerInfo);
+		socket.on('rpc-request', this._handlePeerInfo);
 	}
 
-	/**
-	 * This is not a declared as a setter because this method will need
-	 * invoke an async RPC on the socket to pass it the new node status.
-	 */
-	public applyNodeStatus(value: P2PNodeStatus | undefined): void {
-		this._nodeStatus = value;
-	}
-
-	public get nodeStatus(): P2PNodeStatus | undefined {
-		return this._nodeStatus;
-	}
-
-	public set inboundSocket(value: SCServerSocket) {
-		this._inboundSocket = value;
-	}
-
-	public set outboundSocket(value: SCClientSocket) {
-		this._outboundSocket = value;
-	}
-
-	public get height(): number {
-		return this._height;
-	}
-
-	public get state(): PeerConnectionState {
-		const inbound = this._inboundSocket
-			? this._inboundSocket.state === this._inboundSocket.OPEN
-				? ConnectionState.CONNECTED
-				: ConnectionState.DISCONNECTED
-			: ConnectionState.DISCONNECTED;
-		const outbound = this._outboundSocket
-			? this._outboundSocket.state === this._outboundSocket.OPEN
-				? ConnectionState.CONNECTED
-				: ConnectionState.DISCONNECTED
-			: ConnectionState.DISCONNECTED;
-
-		return {
-			inbound,
-			outbound,
-		};
-	}
-
-	public get ipAddress(): string {
-		return this._ipAddress;
-	}
-
-	public get wsPort(): number {
-		return this._wsPort;
-	}
-
-	public static constructPeerId(ipAddress: string, port: number): string {
-		return `${ipAddress}:${port}`;
+	private _stopListeningForPeerInfo(socket: any): void {
+		socket.removeListener('rpc-request', this._handlePeerInfo);
 	}
 }
