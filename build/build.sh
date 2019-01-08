@@ -137,12 +137,7 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	# shellcheck disable=SC1090
 	. "$(pwd)/env.sh"
 	set -u
-	npm install --production
-
-	echo "Installing pm2 and lisk-commander..."
-	echo "--------------------------------------------------------------------------"
-	npm install --production --global "pm2@$PM2_VERSION"
-	npm install --production --global "lisk-commander@$LISK_COMMANDER_VERSION"
+	npm ci --production
 
 	date --utc "+%Y-%m-%dT%H:%M:%S.000Z" >.build
 	date >finished

@@ -279,7 +279,7 @@ Clone the Lisk Core repository using Git and initialize the modules.
 git clone https://github.com/LiskHQ/lisk.git
 cd lisk
 git checkout master
-npm install
+npm ci
 ```
 
 ## Managing Lisk

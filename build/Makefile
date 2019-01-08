@@ -1,7 +1,7 @@
 lisk_version := $(shell jq --raw-output .version ../package.json)
 nodejs_version := $(shell cat ../.nvmrc)
 
-release/lisk-$(lisk_version)-Linux-x86_64.tar.gz: check ../REVISION src/node-v$(nodejs_version)-linux-x64
+release/lisk-$(lisk_version)-Linux-x86_64.tar.gz: check ../REVISION ../npm-shrinkwrap.json src/node-v$(nodejs_version)-linux-x64
 	LISK_NETWORK=$(LISK_NETWORK) LISK_VERSION=$(lisk_version) NODE_VERSION=$(nodejs_version) bash ./build.sh
 
 .PHONY: check
@@ -16,9 +16,11 @@ ifndef nodejs_version
 	$(error nodejs_version could not be read from ../.nvmrc.)
 endif
 
-.PHONY: ../REVISION
 ../REVISION:
 	git rev-parse HEAD >../REVISION
+
+../npm-shrinkwrap.json:
+	cp ../package-lock.json $@
 
 src/node-v$(nodejs_version)-linux-x64: src/node-v$(nodejs_version)-linux-x64.tar.xz src/node-v$(nodejs_version)-linux-x64.tar.xz.sha256sum
 	cd src/ && sha256sum --check node-v$(nodejs_version)-linux-x64.tar.xz.sha256sum

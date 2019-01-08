@@ -12,7 +12,7 @@ COPY --chown=lisk:lisk . /home/lisk/lisk/
 USER lisk
 WORKDIR /home/lisk/lisk
 
-RUN npm install && \
+RUN npm ci && \
     git rev-parse HEAD >REVISION && \
     rm -rf .git && \
     date --utc "+%Y-%m-%dT%H:%M:%S.000Z" >.build
