@@ -33,6 +33,11 @@ module.exports = function(configurations, network) {
 		let transactions = [];
 		const accounts = [];
 		const numberOfTransactions = 3;
+		const signatures = [];
+		const numbers = _.range(numberOfTransactions);
+		// Adding two extra blocks as a safety timeframe
+		const blocksToWait =
+			Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 4;
 
 		const postSignatures = signature => {
 			const signaturesToPost = {
@@ -65,26 +70,20 @@ module.exports = function(configurations, network) {
 						transactions.push(transaction);
 						return sendTransactionPromise(transaction);
 					})
-				);
+				).then(() => {
+					return network.waitForBlocksOnAllNodes(blocksToWait);
+				});
 			});
 
 			it('should confirm all transactions on all nodes', () => {
-				// Adding two extra blocks as a safety timeframe
-				const blocksToWait =
-					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
-				return network.waitForBlocksOnAllNodes(blocksToWait).then(() => {
-					return confirmTransactionsOnAllNodes(transactions, configurations);
-				});
+				return confirmTransactionsOnAllNodes(transactions, configurations);
 			});
 		});
 
 		describe('sending multisignature registrations', () => {
-			const signatures = [];
-			const numbers = _.range(numberOfTransactions);
-			let i = 0;
-			let j = 0;
-
 			before(() => {
+				let i = 0;
+				let j = 0;
 				transactions = [];
 				return Promise.all(
 					numbers.map(num => {
@@ -118,24 +117,23 @@ module.exports = function(configurations, network) {
 					});
 				});
 			});
+		});
 
-			it('sending the required signatures in the keysgroup agreement', () => {
+		describe('sending signatures for the multisig registration', () => {
+			before(() => {
 				return Promise.all(
 					numbers.map(member => {
 						return postSignatures(signatures[member][0]).then(() => {
 							return postSignatures(signatures[member][1]);
 						});
 					})
-				);
+				).then(() => {
+					return network.waitForBlocksOnAllNodes(blocksToWait);
+				});
 			});
 
 			it('check all the nodes received the transactions', () => {
-				// Adding three extra blocks as a safety timeframe
-				const blocksToWait =
-					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 3;
-				return network.waitForBlocksOnAllNodes(blocksToWait).then(() => {
-					return confirmTransactionsOnAllNodes(transactions, configurations);
-				});
+				return confirmTransactionsOnAllNodes(transactions, configurations);
 			});
 		});
 	});
