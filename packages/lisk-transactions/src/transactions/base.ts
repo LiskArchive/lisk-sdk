@@ -359,9 +359,11 @@ export abstract class BaseTransaction {
 						Buffer.from(this.signature, 'hex'),
 				  ])
 				: this.getBasicBytes();
+
 			const {
 				verified: multisignaturesVerified,
 				errors: multisignatureErrors,
+				pending,
 			} = verifyMultisignatures(
 				sender.multisignatures,
 				this.signatures,
@@ -369,6 +371,16 @@ export abstract class BaseTransaction {
 				transactionBytes,
 				this.id,
 			);
+
+			if (pending) {
+				return {
+					id: this.id,
+					status: Status.PENDING,
+					errors: [
+						new TransactionError(`Missing signatures`, this.id, '.signatures'),
+					],
+				};
+			}
 
 			if (
 				!multisignaturesVerified &&

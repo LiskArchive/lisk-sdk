@@ -13,6 +13,7 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { MAX_MULTISIG_SIGNATURES } from '../constants';
 import { TransactionError } from '../errors';
 import { IsVerifiedResponse, TransactionJSON } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
@@ -84,51 +85,76 @@ export const verifyMultisignatures = (
 			errors: [new TransactionError('Sender does not have valid multimin', id)],
 		};
 	}
-	if (!signatures || (signatures && signatures.length < minimumValidations)) {
+	if (!signatures) {
 		return {
 			verified: false,
 			errors: [new TransactionError('Missing signatures', id, '.signatures')],
 		};
 	}
 
-	const verifiedSignatures: string[] = [];
-	const checkedPublicKeys: string[] = [];
+	if (signatures.length > MAX_MULTISIG_SIGNATURES) {
+		return {
+			verified: false,
+			errors: [
+				new TransactionError(
+					'Exceeds maximum of 15 signatures.',
+					id,
+					'.signatures',
+				),
+			],
+		};
+	}
+
+	const checkedPublicKeys = new Map();
+	const verifiedSignatures = new Map();
 
 	memberPublicKeys.forEach(publicKey => {
-		if (checkedPublicKeys.includes(publicKey)) {
+		if (checkedPublicKeys.has(publicKey)) {
 			return;
 		}
 
 		signatures.forEach((signature: string) => {
-			if (verifiedSignatures.includes(signature)) {
+			if (verifiedSignatures.has(signature)) {
 				return;
 			}
 			const { verified: signatureVerified } = verifySignature(
 				publicKey,
 				signature,
 				transactionBytes,
+				id,
 			);
 			if (signatureVerified) {
-				checkedPublicKeys.push(publicKey);
-				verifiedSignatures.push(signature);
+				checkedPublicKeys.set(publicKey, true);
+				verifiedSignatures.set(signature, true);
 			}
 		});
 	});
 
-	const unverifiedSignatures = signatures.filter(
+	const invalidSignatures: ReadonlyArray<string> = signatures.filter(
 		signature =>
-			!verifiedSignatures.find(
+			!Array.from(verifiedSignatures.keys()).find(
 				verifiedSignature => signature === verifiedSignature,
 			),
 	);
 
+	// Transaction is waiting for more signatures
+	if (
+		signatures.length < minimumValidations &&
+		invalidSignatures.length === 0
+	) {
+		return {
+			verified: false,
+			pending: true,
+		};
+	}
+
 	return {
 		verified:
-			verifiedSignatures.length >= minimumValidations &&
-			unverifiedSignatures.length === 0,
+			verifiedSignatures.size >= minimumValidations &&
+			verifiedSignatures.size === signatures.length,
 		errors:
-			unverifiedSignatures.length > 0
-				? unverifiedSignatures.map(
+			invalidSignatures.length > 0
+				? invalidSignatures.map(
 						signature =>
 							new TransactionError(
 								`Failed to verify signature ${signature}`,

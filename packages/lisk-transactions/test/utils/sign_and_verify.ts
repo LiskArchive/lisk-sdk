@@ -207,18 +207,32 @@ describe('signAndVerify module', () => {
 			});
 		});
 
-		it('should return a verification fail response when missing signatures', async () => {
+		it('should return a verification fail response with over max amount of signatures', async () => {
 			const { verified, errors } = verifyMultisignatures(
 				memberPublicKeys,
-				defaultMultisignatureTransaction.signatures.slice(0, 1),
+				new Array(16).fill(0),
 				3,
 				defaultTransactionBytes,
 			);
 
 			expect(verified).to.be.false;
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.have.property('message', 'Missing signatures');
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error)
+					.to.be.instanceof(TransactionError)
+					.and.have.property('message', 'Exceeds maximum of 15 signatures.');
+			});
+		});
+
+		it('should return a verification pending response when missing signatures', async () => {
+			const { verified, pending } = verifyMultisignatures(
+				memberPublicKeys,
+				defaultMultisignatureTransaction.signatures.slice(0, 2),
+				3,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			expect(pending).to.be.true;
 		});
 	});
 

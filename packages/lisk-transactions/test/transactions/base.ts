@@ -818,6 +818,7 @@ describe('Base transaction class', () => {
 			});
 
 			expect(id).to.be.eql(invalidSignaturesTransaction.id);
+			expect(status).to.eql(Status.FAIL);
 			(errors as ReadonlyArray<TransactionError>).forEach((error, i) =>
 				expect(error)
 					.to.be.instanceof(TransactionError)
@@ -828,7 +829,29 @@ describe('Base transaction class', () => {
 						].replace('1', '0')}`,
 					),
 			);
-			expect(status).to.eql(Status.FAIL);
+		});
+
+		it('should return a pending transaction response with missing signatures', async () => {
+			sandbox
+				.stub(utils, 'verifyMultisignatures')
+				.returns({ verified: false, pending: true });
+
+			const multisignaturesTransaction = new TestTransaction(
+				defaultMultisignatureTransaction,
+			);
+			const multisignatureAccount = {
+				...defaultMultisignatureAccount,
+				multimin: 5,
+			}
+			const { id, status, errors } = multisignaturesTransaction.verify(multisignatureAccount);
+
+			expect(id).to.be.eql(multisignaturesTransaction.id);
+			expect(status).to.eql(Status.PENDING);
+			(errors as ReadonlyArray<TransactionError>).forEach(error =>
+				expect(error)
+					.to.be.instanceof(TransactionError)
+					.and.to.have.property('message', 'Missing signatures'),
+			);
 		});
 	});
 
