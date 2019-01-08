@@ -30,7 +30,7 @@ src/node-v$(nodejs_version)-linux-x64.tar.xz:
 	wget --no-verbose https://nodejs.org/dist/v$(nodejs_version)/node-v$(nodejs_version)-linux-x64.tar.xz --output-document=$@
 
 src/node-v$(nodejs_version)-linux-x64.tar.xz.sha256sum: src/node-v$(nodejs_version)_SHASUMS256.txt src/node-v$(nodejs_version)_SHASUMS256.txt.sig
-	gpg --no-default-keyring --keyring ./nodejs-keyring.gpg --verify src/node-v$(nodejs_version)_SHASUMS256.txt.sig src/node-v$(nodejs_version)_SHASUMS256.txt
+	gpg2 --no-default-keyring --keyring ./nodejs-keyring.gpg --verify src/node-v$(nodejs_version)_SHASUMS256.txt.sig src/node-v$(nodejs_version)_SHASUMS256.txt
 	grep node-v$(nodejs_version)-linux-x64.tar.xz src/node-v$(nodejs_version)_SHASUMS256.txt |tee $@
 
 src/node-v$(nodejs_version)_SHASUMS256.txt:
