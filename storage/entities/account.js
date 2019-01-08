@@ -607,7 +607,7 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	createDependentRecord(dependencyName, address, dependentPublicKey, tx) {
-		return this._updateDepdendentRecord(
+		return this._updateDependentRecord(
 			dependencyName,
 			address,
 			dependentPublicKey,
@@ -626,7 +626,7 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	deleteDependentRecord(dependencyName, address, dependentPublicKey, tx) {
-		return this._updateDepdendentRecord(
+		return this._updateDependentRecord(
 			dependencyName,
 			address,
 			dependentPublicKey,
@@ -635,7 +635,7 @@ class Account extends BaseEntity {
 		);
 	}
 
-	_updateDepdendentRecord(
+	_updateDependentRecord(
 		dependencyName,
 		address,
 		dependentPublicKey,

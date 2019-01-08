@@ -46,6 +46,13 @@ const defaultCreateValues = {
 	u_multiLifetime: 0,
 };
 
+const dependentFieldsTableMap = {
+	membersPublicKeys: 'mem_accounts2multisignatures',
+	u_membersPublicKeys: 'mem_accounts2u_multisignatures',
+	votedDelegatesPublicKeys: 'mem_accounts2delegates',
+	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
+};
+
 describe('Account', () => {
 	let adapter;
 	let storage;
@@ -714,10 +721,10 @@ describe('Account', () => {
 		});
 
 		[
-			'delegates',
-			'u_delegates',
-			'multisignatures',
-			'u_multisignatures',
+			'votedDelegatesPublicKeys',
+			'u_votedDelegatesPublicKeys',
+			'membersPublicKeys',
+			'u_membersPublicKeys',
 		].forEach(dependentTable => {
 			describe(`${dependentTable}`, () => {
 				it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
@@ -733,7 +740,7 @@ describe('Account', () => {
 					return expect(adapter.executeFile).to.be.calledWith(
 						SQLs.createDependentRecord,
 						{
-							tableName: `mem_accounts2${dependentTable}`,
+							tableName: dependentFieldsTableMap[dependentTable],
 							accountId: accounts[0].address,
 							dependentId: accounts[1].publicKey,
 						},
@@ -745,7 +752,7 @@ describe('Account', () => {
 					const accounts = await AccountEntity.get({}, { limit: 2 });
 
 					const before = await adapter.execute(
-						`SELECT count(*) from mem_accounts2${dependentTable}`
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
 					);
 
 					await AccountEntity.createDependentRecord(
@@ -754,7 +761,7 @@ describe('Account', () => {
 						accounts[1].publicKey
 					);
 					const after = await adapter.execute(
-						`SELECT count(*) from mem_accounts2${dependentTable}`
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
 					);
 
 					expect(before[0].count).to.eql('0');
@@ -772,22 +779,24 @@ describe('Account', () => {
 		});
 
 		[
-			'delegates',
-			'u_delegates',
-			'multisignatures',
-			'u_multisignatures',
+			'votedDelegatesPublicKeys',
+			'u_votedDelegatesPublicKeys',
+			'membersPublicKeys',
+			'u_membersPublicKeys',
 		].forEach(dependentTable => {
 			it(`should remove dependent account from ${dependentTable}`, async () => {
 				const accounts = await AccountEntity.get({}, { limit: 2 });
 
 				await adapter.execute(
-					`INSERT INTO mem_accounts2${dependentTable} ("accountId", "dependentId") VALUES('${
-						accounts[0].address
-					}', '${accounts[1].publicKey}')`
+					`INSERT INTO ${
+						dependentFieldsTableMap[dependentTable]
+					} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
+						accounts[1].publicKey
+					}')`
 				);
 
 				const before = await adapter.execute(
-					`SELECT count(*) from mem_accounts2${dependentTable}`
+					`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
 				);
 
 				await AccountEntity.deleteDependentRecord(
@@ -796,7 +805,7 @@ describe('Account', () => {
 					accounts[1].publicKey
 				);
 				const after = await adapter.execute(
-					`SELECT count(*) from mem_accounts2${dependentTable}`
+					`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
 				);
 
 				expect(before[0].count).to.eql('1');
