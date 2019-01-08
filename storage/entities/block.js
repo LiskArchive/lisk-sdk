@@ -156,6 +156,8 @@ class Block extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
+		this.transactionEntity = new Transaction(adapter);
+
 		this.addField('id', 'string', { filter: filterType.TEXT });
 		this.addField('height', 'number', { filter: filterType.NUMBER });
 		this.addField(
@@ -354,12 +356,14 @@ class Block extends BaseEntity {
 		const hasResult = expectedResultCount === 1 ? true : result.length > 0;
 
 		if (parsedOptions.extended && hasResult) {
-			const transactionStorage = new Transaction(this.adapter);
 			const blockIds =
 				expectedResultCount === 1 ? [result.id] : result.map(({ id }) => id);
 			const trxFilters = { blockId_in: blockIds };
 			const trxOptions = { limit: null, extended: true };
-			const transactions = await transactionStorage.get(trxFilters, trxOptions);
+			const transactions = await this.transactionEntity.get(
+				trxFilters,
+				trxOptions
+			);
 
 			if (expectedResultCount === 1) {
 				result.transactions = transactions;
