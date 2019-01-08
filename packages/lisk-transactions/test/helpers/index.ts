@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { addTransactionFields } from './add_fields';
+import { addTransactionFields } from './add_transaction_fields';
 import { TestTransaction } from './test_transaction_class';
 
 export { addTransactionFields, TestTransaction };
