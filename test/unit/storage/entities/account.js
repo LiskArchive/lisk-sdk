@@ -16,8 +16,35 @@
 'use strict';
 
 const { BaseEntity, Account } = require('../../../../storage/entities');
+const { NonSupportedFilterTypeError } = require('../../../../storage/errors');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
+const accountFixtures = require('../../../fixtures').accounts;
+
+const defaultCreateValues = {
+	publicKey: null,
+	secondPublicKey: null,
+	secondSignature: 0,
+	u_secondSignature: 0,
+	username: null,
+	u_username: null,
+	isDelegate: false,
+	u_isDelegate: false,
+	balance: '0',
+	u_balance: '0',
+	missedBlocks: 0,
+	producedBlocks: 0,
+	rank: null,
+	fees: '0',
+	rewards: '0',
+	vote: '0',
+	nameExist: false,
+	u_nameExist: false,
+	multiMin: 0,
+	u_multiMin: 0,
+	multiLifetime: 0,
+	u_multiLifetime: 0,
+};
 
 describe('Account', () => {
 	let adapter;
@@ -125,10 +152,58 @@ describe('Account', () => {
 	describe('create()', () => {
 		it('should accept only valid options');
 		it('should throw error for in-valid options');
-		it('should call getValuesSet with proper params');
-		it('should call adapter.executeFile with proper params');
-		it('should create an account object successfully');
-		it('should create multiple account objects successfully');
+
+		it('should merge default values to the provided account object', async () => {
+			sinonSandbox.spy(AccountEntity, 'getValuesSet');
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+
+			const mergedObject = Object.assign({}, defaultCreateValues, account);
+
+			expect(AccountEntity.getValuesSet.firstCall.args[0]).to.be.eql([
+				mergedObject,
+			]);
+		});
+
+		it('should call adapter.executeFile with proper params', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.create);
+		});
+
+		it('should create an account object successfully', async () => {
+			const account = new accountFixtures.Account();
+
+			expect(AccountEntity.create(account)).to.be.fulfilled;
+
+			const accountResult = await AccountEntity.getOne(
+				{ address: account.address },
+				{ extended: true }
+			);
+			const mergedObject = Object.assign({}, defaultCreateValues, account);
+
+			expect(mergedObject).to.be.eql(accountResult);
+		});
+		it('should create multiple account objects successfully', async () => {
+			const accounts = [
+				new accountFixtures.Account(),
+				new accountFixtures.Account(),
+			];
+
+			expect(AccountEntity.create(accounts)).to.be.fulfilled;
+
+			accounts.forEach(async account => {
+				const accountResult = await AccountEntity.getOne(
+					{ address: account.address },
+					{ extended: true }
+				);
+				const mergedObject = Object.assign({}, defaultCreateValues, account);
+
+				expect(mergedObject).to.be.eql(accountResult);
+			});
+		});
 		it('should skip if any invalid attribute is provided');
 		it('should reject with invalid data provided');
 		it('should populate account object with default values');
@@ -136,18 +211,160 @@ describe('Account', () => {
 
 	describe('update()', () => {
 		it('should accept only valid filters');
-		it('should throw error for in-valid filters');
-		it('should accept only valid options');
-		it('should throw error for in-valid options');
+		it('should throw error for in-valid filters', async () => {
+			const account = new accountFixtures.Account();
+
+			expect(() => {
+				AccountEntity.update({ myAddress: '123' }, account);
+			}).to.throw(
+				NonSupportedFilterTypeError,
+				'One or more filters are not supported.'
+			);
+		});
+		it('should update account without any error', async () => {
+			const account = new accountFixtures.Account();
+
+			await AccountEntity.create(account);
+
+			expect(AccountEntity.update({ address: account.address }, account)).to.be
+				.fulfilled;
+		});
 		it('should call mergeFilters with proper params');
 		it('should call parseFilters with proper params');
 		it('should call getUpdateSet with proper params');
-		it('should call adapter.executeFile with proper params');
-		it(
-			'should update all accounts object successfully with matching condition'
-		);
+		it('should call adapter.executeFile with proper params', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const account = new accountFixtures.Account();
+
+			await AccountEntity.update({ address: account.address }, account);
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.update);
+		});
+		it('should update all accounts successfully with matching condition', async () => {
+			const account = new accountFixtures.Account();
+			const delegate = new accountFixtures.Delegate();
+
+			await AccountEntity.create(account);
+			await AccountEntity.create(delegate);
+
+			await AccountEntity.update({ isDelegate: true }, { balance: '1234' });
+			await AccountEntity.update({ isDelegate: false }, { balance: '5678' });
+
+			const result1 = await AccountEntity.getOne({ address: delegate.address });
+			const result2 = await AccountEntity.getOne({ address: account.address });
+
+			expect(result1.balance).to.be.eql('1234');
+			expect(result2.balance).to.be.eql('5678');
+		});
+		it('should not pass the readonly fields to update set', async () => {
+			sinonSandbox.spy(AccountEntity, 'getUpdateSet');
+			const account = new accountFixtures.Account();
+
+			await AccountEntity.update({ address: account.address }, account);
+
+			expect(AccountEntity.getUpdateSet).to.be.calledOnce;
+			expect(AccountEntity.getUpdateSet.firstCall.args[0]).to.not.have.keys([
+				'address',
+			]);
+		});
+
+		it('should skip the readonly fields to update', async () => {
+			const account = new accountFixtures.Account();
+			const address = account.address;
+
+			await AccountEntity.create(account);
+			await AccountEntity.update(
+				{ address },
+				{ balance: '1234', address: '1234L' }
+			);
+			const result = await AccountEntity.getOne({ address });
+
+			expect(result.balance).to.be.eql('1234');
+			expect(result.address).to.not.eql('1234L');
+			expect(result.address).to.be.eql(address);
+		});
+		it('should resolve promise without any error if no data is passed', async () => {
+			expect(AccountEntity.update({ address: '123L' }, {})).to.be.fulfilled;
+		});
 		it('should skip if any invalid attribute is provided');
 		it('should not throw error if no matching record found');
+	});
+
+	describe('upsert', () => {
+		it('should throw error if no filter specified', async () => {
+			const account = new accountFixtures.Account();
+
+			expect(AccountEntity.upsert({}, account)).to.be.rejectedWith(
+				NonSupportedFilterTypeError,
+				'One or more filters are required for this operation.'
+			);
+		});
+
+		it('should succeed updating or insert object', async () => {
+			const account = new accountFixtures.Account();
+
+			expect(AccountEntity.upsert({ address: account.address }, account)).to.be
+				.fulfilled;
+		});
+
+		it('should insert account if matching filters not found', async () => {
+			const account = new accountFixtures.Account();
+			const filters = { address: account.address };
+
+			await AccountEntity.upsert(filters, account);
+			const result = await AccountEntity.getOne(filters);
+
+			expect(result).to.be.not.null;
+		});
+
+		it('should update account if matching filters found', async () => {
+			const account1 = new accountFixtures.Account();
+			const filters = { address: account1.address };
+
+			// Since DB trigger protects from updating username only if it was null before
+			delete account1.username;
+			delete account1.u_username;
+
+			await AccountEntity.create(account1);
+			await AccountEntity.upsert(filters, {
+				username: 'my-user',
+				balance: '1234',
+			});
+
+			const result = await AccountEntity.getOne(filters);
+
+			expect(result.username).to.be.eql('my-user');
+			expect(result.balance).to.be.eql('1234');
+		});
+
+		it('should execute all queries in one database transaction (txLevel = 0) tagged as `db:accounts:upsert`', async () => {
+			const account = new accountFixtures.Account();
+			let eventCtx;
+
+			adapter.db.$config.options.query = function(event) {
+				eventCtx = event.ctx;
+			};
+
+			const connect = sinonSandbox.stub();
+			const disconnect = sinonSandbox.stub();
+
+			adapter.db.$config.options.connect = connect;
+			adapter.db.$config.options.disconnect = disconnect;
+
+			await AccountEntity.upsert({ address: account.address }, account);
+
+			expect(eventCtx).to.not.null;
+			expect(eventCtx.isTX).to.be.true;
+			expect(eventCtx.txLevel).to.be.eql(0);
+			expect(eventCtx.tag).to.be.eql('storage:account:upsert');
+			expect(connect.calledOnce).to.be.true;
+			expect(disconnect.calledOnce).to.be.true;
+
+			delete adapter.db.$config.options.connect;
+			delete adapter.db.$config.options.disconnect;
+			delete adapter.db.$config.options.query;
+		});
 	});
 
 	describe('updateOne()', () => {
