@@ -148,13 +148,15 @@ npm install -g pm2
 
 * Ubuntu:
 
-Firstly, download and install postgreSQL 9.6:
+Firstly, download and install postgreSQL 10:
 
 ```
+sudo apt-get purge -y postgres* # remove all already installed postgres versions
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+sudo apt install wget ca-certificates
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-echo "deb http://apt.postgresql.org/pub/repos/apt/ $( lsb_release -cs )-pgdg main" |sudo tee /etc/apt/sources.list.d/pgdg.list
-sudo apt-get update
-sudo apt-get install --assume-yes postgresql-9.6 postgresql-contrib-9.6 libpq-dev
+sudo apt update
+sudo apt install postgresql-10
 ```
 
 After installation, you should see the postgres database cluster, by running
@@ -166,8 +168,8 @@ After installation, you should see the postgres database cluster, by running
 Drop the existing database cluster, and replace it with a cluster with the locale `en_US.UTF-8`:
 
 ```
-  sudo pg_dropcluster --stop 9.6 main
-  sudo pg_createcluster --locale en_US.UTF-8 --start 9.6 main
+  sudo pg_dropcluster --stop 10 main
+  sudo pg_createcluster --locale en_US.UTF-8 --start 10 main
 ```
 
 Create a new database user called `lisk` and grant it rights to create databases:
@@ -193,9 +195,9 @@ sudo -u postgres psql -d lisk_main -c "alter user lisk with password 'password';
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
 ```
-brew install postgresql@9.6
+brew install postgresql@10
 initdb /usr/local/var/postgres --encoding utf8 --locale=en_US.UTF-8
-brew services start postgresql@9.6
+brew services start postgresql@10
 createdb lisk_test
 createdb lisk_main
 ```
