@@ -130,9 +130,9 @@ module.exports = function(configurations, network) {
 			});
 
 			it('check all the nodes received the transactions', () => {
-				// Adding two extra blocks as a safety timeframe
+				// Adding three extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
+					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 3;
 				return network.waitForBlocksOnAllNodes(blocksToWait).then(() => {
 					return confirmTransactionsOnAllNodes(transactions, configurations);
 				});
