@@ -17,7 +17,7 @@ import { EventEmitter } from 'events';
 import http, { Server } from 'http';
 import { platform } from 'os';
 import querystring from 'querystring';
-import { attach } from 'socketcluster-server';
+import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 
 import { Peer, PeerInfo } from './peer';
 
@@ -45,7 +45,7 @@ export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _peerPool: PeerPool;
 	private readonly _httpServer: Server;
-	private readonly _scServer: any;
+	private readonly _scServer: SCServer;
 	private readonly _newPeers: Set<PeerInfo>;
 	// TODO ASAP: private readonly _triedPeers: Set<PeerInfo>;
 	private _nodeStatus: P2PNodeStatus;
@@ -54,10 +54,10 @@ export class P2P extends EventEmitter {
 		super();
 		this._config = config;
 		this._nodeStatus = {
-			wsPort: config.wsPort.toString(),
+			wsPort: config.wsPort,
 			os: platform(),
 			version: config.version,
-			height: '0',
+			height: 0,
 		};
 		this._newPeers = new Set();
 		// TODO ASAP: this._triedPeers = new Set();
@@ -102,36 +102,40 @@ export class P2P extends EventEmitter {
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
 			'connection',
-			(socket: any): void => {
-				const queryObject = querystring.parse(socket.request.url);
-				if (
-					typeof queryObject.wsPort !== 'string' ||
-					typeof queryObject.os !== 'string' ||
-					typeof queryObject.version !== 'string'
-				) {
-					super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
-				} else {
-					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
-					const existingPeer = this._peerPool.getPeer(peerId);
-					if (existingPeer === undefined) {
-						const peer = new Peer({
-							inboundSocket: socket,
-							ipAddress: socket.remoteAddress,
-							os: queryObject.os,
-							version: queryObject.version,
-							wsPort,
-							nodeStatus: this._nodeStatus,
-							height: queryObject.height ? +queryObject.height : 0,
-						});
-						this._peerPool.addPeer(peer);
-						super.emit(EVENT_NEW_INBOUND_PEER, peer);
-						super.emit(EVENT_NEW_PEER, peer);
-						this._newPeers.add(peer.peerInfo);
+			(socket: SCServerSocket): void => {
+				if (socket.request.url) {
+					const queryObject = querystring.parse(socket.request.url);
+					if (
+						typeof queryObject.wsPort !== 'string' ||
+						typeof queryObject.os !== 'string' ||
+						typeof queryObject.version !== 'string'
+					) {
+						super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
 					} else {
-						existingPeer.inboundSocket = socket;
-						this._newPeers.add(existingPeer.peerInfo);
+						const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+						const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
+						const existingPeer = this._peerPool.getPeer(peerId);
+						if (existingPeer === undefined) {
+							const peer = new Peer({
+								inboundSocket: socket,
+								ipAddress: socket.remoteAddress,
+								os: queryObject.os,
+								version: queryObject.version,
+								wsPort,
+								nodeStatus: this._nodeStatus,
+								height: queryObject.height ? +queryObject.height : 0,
+							});
+							this._peerPool.addPeer(peer);
+							super.emit(EVENT_NEW_INBOUND_PEER, peer);
+							super.emit(EVENT_NEW_PEER, peer);
+							this._newPeers.add(peer.peerInfo);
+						} else {
+							existingPeer.inboundSocket = socket;
+							this._newPeers.add(existingPeer.peerInfo);
+						}
 					}
+				} else {
+					super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
 				}
 			},
 		);

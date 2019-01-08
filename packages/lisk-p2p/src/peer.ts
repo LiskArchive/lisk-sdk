@@ -21,8 +21,8 @@ import {
 	P2PResponsePacket,
 } from './p2p_types';
 
-import { create } from 'socketcluster-client';
-
+import { create, SCClientSocket } from 'socketcluster-client';
+import { SCServerSocket } from 'socketcluster-server';
 import { processPeerListFromResponse } from './response_handler_sanitization';
 
 export interface PeerInfo {
@@ -31,7 +31,7 @@ export interface PeerInfo {
 	readonly nodeStatus?: P2PNodeStatus; // TODO DELEEETETETE
 	readonly clock?: Date;
 	readonly height: number;
-	readonly inboundSocket?: any; // TODO: Type SCServerSocket
+	readonly inboundSocket?: SCServerSocket; // TODO: Type SCServerSocket
 	readonly os: string;
 	readonly version: string;
 }
@@ -53,8 +53,8 @@ export class Peer {
 	private readonly _id: string;
 	private readonly _peerInfo: PeerInfo;
 	private readonly _height: number;
-	private _inboundSocket: any;
-	private _outboundSocket: any;
+	private _inboundSocket: SCServerSocket | undefined;
+	private _outboundSocket: SCClientSocket | undefined;
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private _nodeStatus: P2PNodeStatus | undefined;
@@ -69,11 +69,13 @@ export class Peer {
 	}
 
 	private _createOutboundSocket(): any {
-		if (!this._outboundSocket) {
-			this._outboundSocket = create({
+		const query = JSON.stringify(this._nodeStatus);
+
+		if (!this.outboundSocket) {
+			this.outboundSocket = create({
 				hostname: this._ipAddress,
 				port: this._wsPort,
-				query: this._nodeStatus,
+				query,
 				autoConnect: false,
 			});
 		}
@@ -81,7 +83,7 @@ export class Peer {
 
 	public connect(): void {
 		this._createOutboundSocket();
-		this._outboundSocket.connect();
+		this.outboundSocket.connect();
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
@@ -101,8 +103,10 @@ export class Peer {
 				resolve: (result: P2PResponsePacket) => void,
 				reject: (result: Error) => void,
 			): void => {
-				this._createOutboundSocket();
-				this._outboundSocket.emit(
+				if (!this.outboundSocket) {
+					this._createOutboundSocket();
+				}
+				this.outboundSocket.emit(
 					'rpc-request',
 					{
 						type: '/RPCRequest',
@@ -151,7 +155,7 @@ export class Peer {
 
 	public send<T>(packet: P2PMessagePacket<T>): void {
 		this._createOutboundSocket();
-		this._outboundSocket.emit(packet.event, {
+		this.outboundSocket.emit(packet.event, {
 			data: packet.data,
 		});
 	}
