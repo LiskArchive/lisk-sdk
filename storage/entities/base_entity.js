@@ -14,6 +14,7 @@
 
 'use strict';
 
+const debug = require('debug')('lisk:storage:base_entity');
 const {
 	ImplementationPendingError,
 	NonSupportedFilterTypeError,
@@ -163,15 +164,22 @@ class BaseEntity {
 	}
 
 	getUpdateSet(data) {
+		debug('started: getUpdateSet');
 		return this.adapter.parseQueryComponent(
 			Object.keys(data)
 				.map(key => {
+					debug('key %s', key);
 					const field = this.fields[key];
+
+					// To avoid any dynamic field which is not specified through field set
+					if (!field) return '';
+
 					return `"${field.fieldName}" = ${field.serializeValue(
 						data[key],
 						'update'
 					)}`;
 				})
+				.filter(Boolean)
 				.join(','),
 			data
 		);

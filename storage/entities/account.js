@@ -23,30 +23,26 @@ const BaseEntity = require('./base_entity');
 const defaultCreateValues = {
 	publicKey: null,
 	secondPublicKey: null,
-	secondSignature: 0,
-	u_secondSignature: 0,
+	secondSignature: false,
+	u_secondSignature: false,
 	username: null,
 	u_username: null,
 	isDelegate: false,
 	u_isDelegate: false,
 	balance: '0',
 	u_balance: '0',
-	delegates: null,
-	u_delegates: null,
 	missedBlocks: 0,
 	producedBlocks: 0,
 	rank: null,
 	fees: '0',
 	rewards: '0',
 	vote: '0',
-	nameExist: 0,
-	u_nameExist: 0,
+	nameExist: false,
+	u_nameExist: false,
 	multiMin: 0,
 	u_multiMin: 0,
 	multiLifetime: 0,
 	u_multiLifetime: 0,
-	multiSignatures: null,
-	u_multiSignatures: null,
 };
 
 const readOnlyFields = ['address'];
@@ -257,13 +253,23 @@ class Account extends BaseEntity {
 		this.addField('u_multiLifetime', 'number', {
 			fieldName: 'u_multilifetime',
 		});
-		this.addField('nameExist', 'boolean', {
-			filter: ft.BOOLEAN,
-			fieldName: 'nameexist',
-		});
-		this.addField('u_nameExist', 'boolean', {
-			fieldName: 'u_nameexist',
-		});
+		this.addField(
+			'nameExist',
+			'boolean',
+			{
+				filter: ft.BOOLEAN,
+				fieldName: 'nameexist',
+			},
+			booleanToInt
+		);
+		this.addField(
+			'u_nameExist',
+			'boolean',
+			{
+				fieldName: 'u_nameexist',
+			},
+			booleanToInt
+		);
 		this.addField('fees', 'string', { filter: ft.NUMBER });
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
 		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
@@ -409,6 +415,10 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	update(filters, data, _options, tx) {
+		const atLeastOneRequired = true;
+
+		this.validateFilters(filters, atLeastOneRequired);
+
 		const objectData = _.omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -488,6 +498,33 @@ class Account extends BaseEntity {
 				tx
 			)
 			.then(result => result);
+	}
+
+	/**
+	 * Update data based on filters or insert data if no matching record found
+	 *
+	 * @param {filters.Account} filters - Filters to match the object
+	 * @param {Object} data - Object data to be inserted
+	 * @param {Object} [updateData] - If provided will be used for update, otherwise default data will be updated
+	 * @param {Object} [tx] - DB transaction object
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	upsert(filters, data, updateData = {}, tx = null) {
+		const task = t =>
+			this.isPersisted(filters, {}, t).then(dataFound => {
+				if (dataFound) {
+					const dataToUpdate = _.isEmpty(updateData) ? data : updateData;
+					return this.update(filters, dataToUpdate, {}, t);
+				}
+
+				return this.create(data, {}, t);
+			});
+
+		if (tx) {
+			return task(tx);
+		}
+
+		return this.begin('storage:account:upsert', task);
 	}
 
 	resetUnconfirmedState(tx) {
