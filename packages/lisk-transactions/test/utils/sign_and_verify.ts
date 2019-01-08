@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { addFields } from '../helpers';
+import { addTransactionFields } from '../helpers';
 import {
 	signTransaction,
 	multiSignTransaction,
@@ -41,7 +41,7 @@ const validTransactions = (fixtureTransactions as unknown) as ReadonlyArray<
 
 describe('signAndVerify module', () => {
 	describe('#verifySignature', () => {
-		const defaultSecondSignatureTransaction = addFields(
+		const defaultSecondSignatureTransaction = addTransactionFields(
 			validSecondSignatureTransaction,
 		);
 		const defaultSecondSignatureTransactionBytes = Buffer.from(
@@ -147,7 +147,7 @@ describe('signAndVerify module', () => {
 	});
 
 	describe('#verifyMultisignatures', () => {
-		const defaultMultisignatureTransaction = addFields(
+		const defaultMultisignatureTransaction = addTransactionFields(
 			validMultisignatureTransaction,
 		);
 		const defaultTransactionBytes = Buffer.from(

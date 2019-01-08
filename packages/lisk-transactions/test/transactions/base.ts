@@ -22,7 +22,7 @@ import {
 import { TransactionJSON, Status } from '../../src/transaction_types';
 import { TransactionError, TransactionMultiError } from '../../src/errors';
 import BigNum from 'browserify-bignum';
-import { addFields, TestTransaction } from '../helpers';
+import { addTransactionFields, TestTransaction } from '../helpers';
 import {
 	validAccount as defaultSenderAccount,
 	validMultisignatureAccount as defaultMultisignatureAccount,
@@ -34,11 +34,11 @@ import {
 import * as utils from '../../src/utils';
 
 describe('Base transaction class', () => {
-	const defaultTransaction = addFields(validTransaction);
-	const defaultSecondSignatureTransaction = addFields(
+	const defaultTransaction = addTransactionFields(validTransaction);
+	const defaultSecondSignatureTransaction = addTransactionFields(
 		validSecondSignatureTransaction,
 	);
-	const defaultMultisignatureTransaction = addFields(
+	const defaultMultisignatureTransaction = addTransactionFields(
 		validMultisignatureTransaction,
 	);
 

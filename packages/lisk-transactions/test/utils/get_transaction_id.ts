@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { addFields } from '../helpers';
+import { addTransactionFields } from '../helpers';
 import { getId, getTransactionId } from '../../src/utils';
 import { TransactionJSON } from '../../src/transaction_types';
 import { validTransaction } from '../../fixtures';
@@ -22,7 +22,7 @@ import { validTransaction } from '../../fixtures';
 const utils = require('../../src/utils');
 
 describe('#getId', () => {
-	const defaultTransaction = addFields(validTransaction);
+	const defaultTransaction = addTransactionFields(validTransaction);
 	const defaultTransactionBytes =
 		'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309';
 

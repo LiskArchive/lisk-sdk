@@ -15,11 +15,11 @@
 import { expect } from 'chai';
 import { checkTypes } from '../../../src/utils';
 import { TransactionError } from '../../../src/errors';
-import { addFields } from '../../helpers';
+import { addTransactionFields } from '../../helpers';
 import { validTransaction } from '../../../fixtures';
 
 describe('#checkTypes', () => {
-	const defaultTransaction = addFields(validTransaction);
+	const defaultTransaction = addTransactionFields(validTransaction);
 
 	it('should return a valid response with a valid transaction', () => {
 		const { valid } = checkTypes(defaultTransaction);
