@@ -54,7 +54,7 @@ module.exports = function(
 					.then(() => {
 						// Make sure that there is enough time for monitoring connection
 						// to be re-established after restart.
-						return network.waitForBlocksOnNode('node_0', 3);
+						return network.waitForBlocksOnNode('node_0', 4);
 					});
 			});
 
@@ -118,7 +118,7 @@ module.exports = function(
 					.then(() => {
 						// Make sure that there is enough time for monitoring connection
 						// to be re-established after restart.
-						return network.waitForBlocksOnNode('node_0', 3);
+						return network.waitForBlocksOnNode('node_0', 4);
 					});
 			});
 
