@@ -150,63 +150,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Update or insert into mem_accounts.
-	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
-	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#dbFields}
-	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.update}
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	upsert(data, conflictingFields, updateData) {
-		// If single field is specified as conflict field
-		if (typeof conflictingFields === 'string') {
-			conflictingFields = [conflictingFields];
-		}
-
-		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
-			return Promise.reject(
-				new TypeError(
-					'Error: db.accounts.upsert - invalid "conflictingFields" argument.'
-				)
-			);
-		}
-
-		if (!updateData) {
-			updateData = Object.assign({}, data);
-		}
-
-		if (
-			_.difference(
-				_.union(Object.keys(data), Object.keys(updateData)),
-				this.getDBFields()
-			).length
-		) {
-			return Promise.reject(
-				new Error('Unknown field provided to db.accounts.upsert')
-			);
-		}
-
-		const conditionObject = {};
-		conflictingFields.forEach(field => {
-			conditionObject[field] = data[field];
-		});
-
-		const task = t =>
-			t.accounts.list(conditionObject, ['address']).then(result => {
-				if (result.length) {
-					return t.accounts.update(result[0].address, updateData);
-				}
-				return t.accounts.insert(data);
-			});
-
-		// To avoid nested transactions a.k.a. save points
-		return this.inTransaction
-			? task(this.db)
-			: this.db.tx('db:accounts:upsert', task);
-	}
-
-	/**
 	 * Create the record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}

@@ -349,8 +349,7 @@ class Account {
 		// Normalize address
 		fields.address = address;
 
-		(tx || this.scope.db).accounts
-			.upsert(fields, ['address'])
+		this.scope.storage.entities.Account.upsert({ address }, fields, {}, tx)
 			.then(() => setImmediate(cb))
 			.catch(err => {
 				library.logger.error(err.stack);
