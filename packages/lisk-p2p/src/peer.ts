@@ -31,7 +31,6 @@ export interface PeerInfo {
 	readonly nodeStatus?: P2PNodeStatus; // TODO DELEEETETETE
 	readonly clock?: Date;
 	readonly height: number;
-	readonly inboundSocket?: SCServerSocket; // TODO: Type SCServerSocket
 	readonly os: string;
 	readonly version: string;
 }
@@ -59,39 +58,40 @@ export class Peer {
 	private readonly _wsPort: number;
 	private _nodeStatus: P2PNodeStatus | undefined;
 
-	public constructor(peerInfo: PeerInfo) {
+	public constructor(peerInfo: PeerInfo, inboundSocket?: SCServerSocket) {
 		this._peerInfo = peerInfo;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
-		this._inboundSocket = peerInfo.inboundSocket;
+		this._inboundSocket = inboundSocket;
 		this._height = peerInfo.height ? peerInfo.height : 0;
 	}
 
-	private _createOutboundSocket(): any {
+	private _createOutboundSocket(): SCClientSocket {
 		const query = JSON.stringify(this._nodeStatus);
 
-		if (!this.outboundSocket) {
-			this.outboundSocket = create({
-				hostname: this._ipAddress,
-				port: this._wsPort,
-				query,
-				autoConnect: false,
-			});
-		}
+		return create({
+			hostname: this._ipAddress,
+			port: this._wsPort,
+			query,
+			autoConnect: false,
+		});
 	}
 
 	public connect(): void {
-		this._createOutboundSocket();
+		if (!this.outboundSocket) {
+			this.outboundSocket = this._createOutboundSocket();
+		}
+
 		this.outboundSocket.connect();
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
-		if (this._inboundSocket) {
-			this._inboundSocket.disconnect(code, reason);
+		if (this.inboundSocket) {
+			this.inboundSocket.disconnect(code, reason);
 		}
-		if (this._outboundSocket) {
-			this._outboundSocket.disconnect(code, reason);
+		if (this.outboundSocket) {
+			this.outboundSocket.disconnect(code, reason);
 		}
 	}
 
@@ -104,7 +104,7 @@ export class Peer {
 				reject: (result: Error) => void,
 			): void => {
 				if (!this.outboundSocket) {
-					this._createOutboundSocket();
+					this.outboundSocket = this._createOutboundSocket();
 				}
 				this.outboundSocket.emit(
 					'rpc-request',
@@ -154,10 +154,16 @@ export class Peer {
 	}
 
 	public send<T>(packet: P2PMessagePacket<T>): void {
-		this._createOutboundSocket();
-		this.outboundSocket.emit(packet.event, {
-			data: packet.data,
-		});
+		if (this.outboundSocket) {
+			this.outboundSocket.emit(packet.event, {
+				data: packet.data,
+			});
+		} else {
+			this.outboundSocket = this._createOutboundSocket();
+			this.outboundSocket.emit(packet.event, {
+				data: packet.data,
+			});
+		}
 	}
 
 	public get peerInfo(): PeerInfo {
@@ -180,19 +186,19 @@ export class Peer {
 		return this._nodeStatus;
 	}
 
-	public set inboundSocket(value: any) {
+	public set inboundSocket(value: SCServerSocket | undefined) {
 		this._inboundSocket = value;
 	}
 
-	public get inboundSocket(): any {
+	public get inboundSocket(): SCServerSocket | undefined {
 		return this._inboundSocket;
 	}
 
-	public set outboundSocket(value: any) {
+	public set outboundSocket(value: SCClientSocket | undefined) {
 		this._outboundSocket = value;
 	}
 
-	public get outboundSocket(): any {
+	public get outboundSocket(): SCClientSocket | undefined {
 		return this._outboundSocket;
 	}
 
@@ -201,13 +207,13 @@ export class Peer {
 	}
 
 	public get state(): PeerConnectionState {
-		const inbound = this._inboundSocket
-			? this._inboundSocket.state === this._inboundSocket.OPEN
+		const inbound = this.inboundSocket
+			? this.inboundSocket.state === this.inboundSocket.OPEN
 				? ConnectionState.CONNECTED
 				: ConnectionState.DISCONNECTED
 			: ConnectionState.DISCONNECTED;
-		const outbound = this._outboundSocket
-			? this._outboundSocket.state === this._outboundSocket.OPEN
+		const outbound = this.outboundSocket
+			? this.outboundSocket.state === this.outboundSocket.OPEN
 				? ConnectionState.CONNECTED
 				: ConnectionState.DISCONNECTED
 			: ConnectionState.DISCONNECTED;

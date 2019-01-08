@@ -17,7 +17,7 @@ import { EventEmitter } from 'events';
 import http, { Server } from 'http';
 import { platform } from 'os';
 import querystring from 'querystring';
-import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
+import { attach, SCServerSocket } from 'socketcluster-server';
 
 import { Peer, PeerInfo } from './peer';
 
@@ -45,7 +45,7 @@ export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _peerPool: PeerPool;
 	private readonly _httpServer: Server;
-	private readonly _scServer: SCServer;
+	private readonly _scServer: any; // Until we get comeplete definition for SCServer
 	private readonly _newPeers: Set<PeerInfo>;
 	// TODO ASAP: private readonly _triedPeers: Set<PeerInfo>;
 	private _nodeStatus: P2PNodeStatus;
@@ -116,15 +116,17 @@ export class P2P extends EventEmitter {
 						const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
 						const existingPeer = this._peerPool.getPeer(peerId);
 						if (existingPeer === undefined) {
-							const peer = new Peer({
-								inboundSocket: socket,
-								ipAddress: socket.remoteAddress,
-								os: queryObject.os,
-								version: queryObject.version,
-								wsPort,
-								nodeStatus: this._nodeStatus,
-								height: queryObject.height ? +queryObject.height : 0,
-							});
+							const peer = new Peer(
+								{
+									ipAddress: socket.remoteAddress,
+									os: queryObject.os,
+									version: queryObject.version,
+									wsPort,
+									nodeStatus: this._nodeStatus,
+									height: queryObject.height ? +queryObject.height : 0,
+								},
+								socket,
+							);
 							this._peerPool.addPeer(peer);
 							super.emit(EVENT_NEW_INBOUND_PEER, peer);
 							super.emit(EVENT_NEW_PEER, peer);
