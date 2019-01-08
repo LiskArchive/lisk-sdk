@@ -426,16 +426,22 @@ class Account {
 						// If updated value is positive number
 						if (value.isGreaterThan(0)) {
 							promises.push(
-								dbTx.accounts.increment(address, updatedField, value.toString())
+								self.scope.storage.entities.Account.increment(
+									{ address },
+									updatedField,
+									value.toString(),
+									dbTx
+								)
 							);
 
 							// If updated value is negative number
 						} else if (value.isLessThan(0)) {
 							promises.push(
-								dbTx.accounts.decrement(
-									address,
+								self.scope.storage.entities.Account.decrement(
+									{ address },
 									updatedField,
-									value.abs().toString()
+									value.abs().toString(),
+									dbTx
 								)
 							);
 						}

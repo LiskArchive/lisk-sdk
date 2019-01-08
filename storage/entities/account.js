@@ -563,7 +563,7 @@ class Account extends BaseEntity {
 	 *
 	 * @param {filters.Account} [filters] - Filters to match the objects
 	 * @param {string} field - Name of the field to increment
-	 * @param {Number} value - Value to be incremented
+	 * @param {Number|string} value - Value to be incremented
 	 * @param {Object} [tx] - Transaction object
 	 * @return {*}
 	 */
@@ -576,7 +576,7 @@ class Account extends BaseEntity {
 	 *
 	 * @param {filters.Account} [filters] - Filters to match the objects
 	 * @param {string} field - Name of the field to increment
-	 * @param {Number} value - Value to be incremented
+	 * @param {Number|string} value - Value to be incremented
 	 * @param {Object} [tx] - Transaction object
 	 * @return {*}
 	 */

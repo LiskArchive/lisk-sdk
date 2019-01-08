@@ -163,42 +163,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Increment a field value in mem_accounts.
-	 *
-	 * @param {string} address - Address of the account to increment
-	 * @param {string} field - Name of the field to increment
-	 * @param {Number} value - Value to be incremented
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	increment(address, field, value) {
-		return this.db.none(sql.incrementAccount, {
-			table: this.dbTable,
-			field,
-			value,
-			address,
-		});
-	}
-
-	/**
-	 * Decrement a field value in mem_accounts.
-	 *
-	 * @param {string} address - Address of the account to decrement
-	 * @param {string} field - Name of the field to decrement
-	 * @param {Number} value - Value to be decremented
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	decrement(address, field, value) {
-		return this.db.none(sql.decrementAccount, {
-			table: this.dbTable,
-			field,
-			value,
-			address,
-		});
-	}
-
-	/**
 	 * Search account based on generic conditions.
 	 *
 	 * For filters you can pass additional attribute "multisig: true" to fetch only multisig accounts.
