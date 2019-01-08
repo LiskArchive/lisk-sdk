@@ -46,12 +46,13 @@ const defaultCreateValues = {
 };
 
 const readOnlyFields = ['address'];
-const dependentTables = [
-	'delegates',
-	'u_delegates',
-	'multisignatures',
-	'u_multisignatures',
-];
+
+const dependentFieldsTableMap = {
+	membersPublicKeys: 'mem_accounts2multisignatures',
+	u_membersPublicKeys: 'mem_accounts2u_multisignatures',
+	votedDelegatesPublicKeys: 'mem_accounts2delegates',
+	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
+};
 
 /**
  * Basic Account
@@ -642,11 +643,11 @@ class Account extends BaseEntity {
 		tx
 	) {
 		assert(
-			dependentTables.includes(dependencyName),
+			Object.keys(dependentFieldsTableMap).includes(dependencyName),
 			`Invalid dependency name "${dependencyName}" provided.`
 		);
 		const params = {
-			tableName: `mem_accounts2${dependencyName}`,
+			tableName: dependentFieldsTableMap[dependencyName],
 			accountId: address,
 			dependentId: dependentPublicKey,
 		};
