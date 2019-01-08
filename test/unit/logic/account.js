@@ -633,7 +633,7 @@ describe('account', () => {
 		it('should merge diff when values are correct', done => {
 			account.merge(
 				validAccount.address,
-				{ multisignatures: ['MS1'], delegates: ['DLG1'] },
+				{ membersPublicKeys: ['MS1'], votedDelegatesPublicKeys: ['DLG1'] },
 				(err, res) => {
 					expect(err).to.not.exist;
 					expect(res.votedDelegatesPublicKeys).to.deep.equal(['DLG1']);
@@ -675,23 +675,31 @@ describe('account', () => {
 
 		describe('check database constraints', () => {
 			it('should throw error when address does not exist for u_delegates', done => {
-				account.merge('1L', { u_delegates: [validAccount.publicKey] }, err => {
-					expect(err).to.equal('Account#merge error');
-					done();
-				});
+				account.merge(
+					'1L',
+					{ u_votedDelegatesPublicKeys: [validAccount.publicKey] },
+					err => {
+						expect(err).to.equal('Account#merge error');
+						done();
+					}
+				);
 			});
 
 			it('should throw error when address does not exist for delegates', done => {
-				account.merge('1L', { delegates: [validAccount.publicKey] }, err => {
-					expect(err).to.equal('Account#merge error');
-					done();
-				});
+				account.merge(
+					'1L',
+					{ votedDelegatesPublicKeys: [validAccount.publicKey] },
+					err => {
+						expect(err).to.equal('Account#merge error');
+						done();
+					}
+				);
 			});
 
 			it('should throw error when address does not exist for u_multisignatures', done => {
 				account.merge(
 					'1L',
-					{ u_multisignatures: [validAccount.publicKey] },
+					{ u_membersPublicKeys: [validAccount.publicKey] },
 					err => {
 						expect(err).to.equal('Account#merge error');
 						done();
@@ -702,7 +710,7 @@ describe('account', () => {
 			it('should throw error when address does not exist for multisignatures', done => {
 				account.merge(
 					'1L',
-					{ multisignatures: [validAccount.publicKey] },
+					{ membersPublicKeys: [validAccount.publicKey] },
 					err => {
 						expect(err).to.equal('Account#merge error');
 						done();
