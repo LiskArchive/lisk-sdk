@@ -17,6 +17,8 @@
 
 const { BaseEntity, Block } = require('../../../../storage/entities');
 const storageSandbox = require('../../../common/storage_sandbox');
+const transactionsFixtures = require('../../../fixtures').transactions;
+const blocksFixtures = require('../../../fixtures/storage/blocks');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
@@ -284,6 +286,35 @@ describe('Block', () => {
 			const _getResultsCall = _getResultsStub.firstCall.args;
 			expect(_getResultsCall).to.be.eql([validFilter, validOptions, null, 1]);
 		});
+
+		it('should return transactions array when extended=true', async () => {
+			// Arrange
+			await storage.entities.Block.create(validBlock);
+			const trxParams = { blockId: validBlock.id };
+			const transaction1 = new transactionsFixtures.Transaction(trxParams);
+			const transaction2 = new transactionsFixtures.Transaction(trxParams);
+			const transaction3 = new transactionsFixtures.Transaction(trxParams);
+
+			await Promise.all([
+				storage.entities.Transaction.create(transaction1),
+				storage.entities.Transaction.create(transaction2),
+				storage.entities.Transaction.create(transaction3),
+			]);
+
+			// Act
+			const result = await storage.entities.Block.getOne(
+				{ id: validBlock.id },
+				{ extended: true }
+			);
+			const trxIdsResult = result.transactions.map(({ id }) => id);
+
+			// Assert
+			expect(trxIdsResult).to.have.members([
+				transaction1.id,
+				transaction2.id,
+				transaction3.id,
+			]);
+		});
 	});
 
 	describe('get()', () => {
@@ -295,6 +326,55 @@ describe('Block', () => {
 			block.get(validFilter, validOptions, null);
 			const _getResultsCall = _getResultsStub.firstCall.args;
 			expect(_getResultsCall).to.be.eql([validFilter, validOptions, null]);
+		});
+
+		it('should group transactions by block when getting multiple blocks with extended=true', async () => {
+			// Arrange
+			const block1 = new blocksFixtures.Block();
+			const block2 = new blocksFixtures.Block({ previousBlockId: block1.id });
+			const block3 = new blocksFixtures.Block({ previousBlockId: block2.id });
+
+			await storage.entities.Block.create(block1);
+			const b1t1 = new transactionsFixtures.Transaction({ blockId: block1.id });
+			await Promise.all([storage.entities.Transaction.create(b1t1)]);
+
+			await storage.entities.Block.create(block2);
+			const b2t1 = new transactionsFixtures.Transaction({ blockId: block2.id });
+			const b2t2 = new transactionsFixtures.Transaction({ blockId: block2.id });
+			await Promise.all([
+				storage.entities.Transaction.create(b2t1),
+				storage.entities.Transaction.create(b2t2),
+			]);
+
+			await storage.entities.Block.create(block3);
+			const b3t1 = new transactionsFixtures.Transaction({ blockId: block3.id });
+			const b3t2 = new transactionsFixtures.Transaction({ blockId: block3.id });
+			const b3t3 = new transactionsFixtures.Transaction({ blockId: block3.id });
+			await Promise.all([
+				storage.entities.Transaction.create(b3t1),
+				storage.entities.Transaction.create(b3t2),
+				storage.entities.Transaction.create(b3t3),
+			]);
+
+			// Act
+			const result = await storage.entities.Block.get({}, { extended: true });
+			const result1 = result.find(({ id }) => id === block1.id);
+			const result2 = result.find(({ id }) => id === block2.id);
+			const result3 = result.find(({ id }) => id === block3.id);
+
+			// Assert
+			expect(result1.transactions.map(({ id }) => id)).to.have.members([
+				b1t1.id,
+			]);
+			expect(result2.transactions.map(({ id }) => id)).to.have.members([
+				b2t1.id,
+				b2t2.id,
+			]);
+			expect(result3.transactions.map(({ id }) => id)).to.have.members([
+				b3t1.id,
+				b3t2.id,
+				b3t3.id,
+			]);
 		});
 	});
 
