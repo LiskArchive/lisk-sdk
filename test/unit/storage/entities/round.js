@@ -437,4 +437,29 @@ describe('Round', () => {
 			expect(found.length).to.eql(0);
 		});
 	});
+
+	describe('getMemRounds()', () => {
+		it('should return unique round numbers', async () => {
+			const round1 = new roundsFixtures.Round({
+				round: 1,
+			});
+			const round2 = new roundsFixtures.Round({
+				round: 2,
+			});
+			const round3 = new roundsFixtures.Round({
+				round: 1,
+			});
+
+			await storage.entities.Round.create([round1, round2, round3]);
+
+			const result1 = await storage.entities.Round.get();
+			const result2 = await storage.entities.Round.getMemRounds();
+
+			// Actually there are three records but getMemRounds return unique round
+			expect(result1).to.have.lengthOf(3);
+			expect(result2).to.have.lengthOf(2);
+			expect(result2[0]).to.have.all.keys('round');
+			return expect(result2.map(r => r.round)).to.have.all.members([1, 2]);
+		});
+	});
 });

@@ -34,17 +34,6 @@ class RoundsRepository {
 	}
 
 	/**
-	 * Get round information from mem tables.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getMemRounds() {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getMemRounds);
-	}
-
-	/**
 	 * Remove a particular round from database.
 	 *
 	 * @param {string} round - Id of the round

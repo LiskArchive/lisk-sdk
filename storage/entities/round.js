@@ -297,6 +297,18 @@ class Round extends BaseEntity {
 			)
 			.then(result => result);
 	}
+
+	// Custom methods imported from db/repos/round.js
+
+	/**
+	 * Get round information from mem tables.
+	 *
+	 * @returns {Promise}
+	 */
+	async getMemRounds() {
+		const sql = 'SELECT round FROM mem_round GROUP BY round';
+		return this.adapter.execute(sql);
+	}
 }
 
 module.exports = Round;

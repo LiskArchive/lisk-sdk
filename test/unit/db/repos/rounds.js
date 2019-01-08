@@ -68,48 +68,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('getMemRounds()', () => {
-			it('should use the correct SQL file with no parameters', function*() {
-				sinonSandbox.spy(db, 'query');
-				yield db.rounds.getMemRounds();
-
-				expect(db.query.firstCall.args[0]).to.eql(roundsSQL.getMemRounds);
-				expect(db.query.firstCall.args[1]).to.eql(undefined);
-				return expect(db.query).to.be.calledOnce;
-			});
-
-			it('should return unique round numbers', function*() {
-				const round1 = new roundsFixtures.Round({
-					round: 1,
-				});
-				const round2 = new roundsFixtures.Round({
-					round: 2,
-				});
-				const round3 = new roundsFixtures.Round({
-					round: 1,
-				});
-
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
-				);
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round2, null, { table: 'mem_round' })
-				);
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round3, null, { table: 'mem_round' })
-				);
-
-				const result1 = yield db.query('SELECT * FROM mem_round;');
-				const result2 = yield db.rounds.getMemRounds();
-
-				// Actually there are three records but getMemRounds return unique round
-				expect(result1).to.have.lengthOf(3);
-				expect(result2).to.have.lengthOf(2);
-				expect(result2[0]).to.have.all.keys('round');
-				return expect(result2.map(r => r.round)).to.have.all.members([1, 2]);
-			});
-		});
-
 		describe('flush()', () => {
 			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'none');
