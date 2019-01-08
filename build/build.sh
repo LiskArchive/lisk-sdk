@@ -138,6 +138,8 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	. "$(pwd)/env.sh"
 	set -u
 	npm ci --production
+	ln --symbolic ../node_modules/lisk-commander/bin/run bin/lisk
+	ln --symbolic ../node_modules/pm2/bin/pm2 bin/pm2
 
 	date --utc "+%Y-%m-%dT%H:%M:%S.000Z" >.build
 	date >finished
