@@ -350,7 +350,10 @@ class Block extends BaseEntity {
 			tx
 		);
 
-		if (parsedOptions.extended) {
+		// hasResult is always true when expectedResultCount == 1 because `executeFile` will throw an error otherwise
+		const hasResult = expectedResultCount === 1 ? true : result.length > 0;
+
+		if (parsedOptions.extended && hasResult) {
 			const transactionStorage = new Transaction(this.adapter);
 			const blockIds =
 				expectedResultCount === 1 ? [result.id] : result.map(({ id }) => id);
