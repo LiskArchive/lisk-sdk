@@ -422,6 +422,11 @@ class Account extends BaseEntity {
 		this.validateFilters(filters, atLeastOneRequired);
 
 		const objectData = _.omit(data, readOnlyFields);
+
+		if (_.isEmpty(objectData)) {
+			return Promise.resolve();
+		}
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
