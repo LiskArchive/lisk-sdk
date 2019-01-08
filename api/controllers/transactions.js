@@ -47,9 +47,6 @@ function transactionFormatter(transaction) {
 	result.signSignature = result.signSignature || '';
 	result.signatures = result.signatures || [];
 
-	// result.amount = result.amount.toString();
-	// result.fee = result.fee.toString();
-
 	return result;
 }
 
@@ -79,7 +76,7 @@ TransactionsController.getTransactions = async function(context, next) {
 		type: params.type.value,
 		height: params.height.value,
 		timestamp_gte: params.fromTimestamp.value,
-		timestamp_let: params.toTimestamp.value,
+		timestamp_lte: params.toTimestamp.value,
 		amount_gte: params.minAmount.value,
 		amount_lte: params.maxAmount.value,
 		data_like: params.data.value,
@@ -104,13 +101,13 @@ TransactionsController.getTransactions = async function(context, next) {
 	}
 
 	try {
-		const data = await storage.entities.Transaction.get(filters, options).map(
-			transactionFormatter
-		);
-		const count = await storage.entities.Transaction.count(filters);
+		const [data, count] = await Promise.all([
+			storage.entities.Transaction.get(filters, options),
+			storage.entities.Transaction.count(filters),
+		]);
 
 		return next(null, {
-			data,
+			data: data.map(transactionFormatter),
 			meta: {
 				offset: options.offset,
 				limit: options.limit,

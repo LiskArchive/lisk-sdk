@@ -22,6 +22,7 @@ const transactionsFixtures = require('../../../fixtures').transactions;
 const transactionTypes = require('../../../../helpers/transaction_types');
 
 const numSeedRecords = 5;
+const NON_EXISTENT_ID = '1234';
 
 const expectValidTransactionRow = (row, transaction) => {
 	expect(row.id).to.be.eql(transaction.id);
@@ -347,7 +348,7 @@ describe('Transaction', () => {
 
 		it('should resolve with zero if matching record not found', async () => {
 			const result = await storage.entities.Transaction.count({
-				id: '1234',
+				id: NON_EXISTENT_ID,
 			});
 
 			expect(result).to.be.a('number');
