@@ -32,7 +32,7 @@ module.exports = function(
 	const EXPECTED_MONITORING_CONNECTIONS_AFTER_STOPPING_A_NODE =
 		NUMBER_OF_MONITORING_CONNECTIONS - 2;
 
-	describe('@network : peer Disconnect', () => {
+	describe('@p2p : peer Disconnect', () => {
 		describe('when a node is stopped', () => {
 			before(() => {
 				// Disconnecting the node number 9 which is not producing any blocks
