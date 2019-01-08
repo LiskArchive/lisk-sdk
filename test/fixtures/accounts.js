@@ -108,6 +108,7 @@ const Account = stampit({
 		u_username,
 		address,
 		publicKey,
+		secondPublicKey,
 		producedBlocks,
 		missedBlocks,
 		balance,
@@ -123,9 +124,8 @@ const Account = stampit({
 			randomstring
 				.generate({ charset: '0123456789ABCDEF', length: 64 })
 				.toLowerCase();
-
+		this.secondPublicKey = secondPublicKey || null;
 		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
-
 		this.producedBlocks = producedBlocks || 0;
 		this.missedBlocks = missedBlocks || 0;
 		this.productivity =

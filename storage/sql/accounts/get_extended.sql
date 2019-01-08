@@ -40,7 +40,7 @@ SELECT
     when
     	"producedBlocks" + "missedBlocks" = 0 then 0
     else
-		(("producedBlocks" / ("producedBlocks" + "missedBlocks")) * 100.0)::integer
+		(("producedBlocks"::float / ("producedBlocks" + "missedBlocks")) * 100.0)::integer
 	end AS productivity,
 	(SELECT array_agg("dependentId")
 		FROM mem_accounts2delegates

@@ -15,6 +15,7 @@
 
 'use strict';
 
+const randomstring = require('randomstring');
 const { BaseEntity, Account } = require('../../../../storage/entities');
 const { NonSupportedFilterTypeError } = require('../../../../storage/errors');
 const storageSandbox = require('../../../common/storage_sandbox');
@@ -133,6 +134,10 @@ describe('Account', () => {
 	});
 
 	describe('get()', () => {
+		it('should return data without any error', async () => {
+			expect(AccountEntity.get()).to.be.fulfilled;
+		});
+
 		it('should accept only valid filters');
 		it('should throw error for in-valid filters');
 		it('should accept only valid options');
@@ -148,11 +153,297 @@ describe('Account', () => {
 		);
 		it('should not change any of the provided parameter');
 
+		describe('dynamic fields', () => {
+			it('should fetch "votedDelegatesPublicKeys" with correct query', async () => {
+				const accounts = await AccountEntity.get({}, { extended: true });
+
+				await Promise.all(
+					accounts.map(async account => {
+						const keys = await adapter.execute(
+							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2delegates WHERE "accountId" = '${
+								account.address
+							}'`
+						);
+						expect(account.votedDelegatesPublicKeys).to.be.eql(keys[0].keys);
+					})
+				);
+			});
+
+			it('should fetch "u_votedDelegatesPublicKeys" with correct query', async () => {
+				const accounts = await AccountEntity.get({}, { extended: true });
+
+				await Promise.all(
+					accounts.map(async account => {
+						const keys = await adapter.execute(
+							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2u_delegates WHERE "accountId" = '${
+								account.address
+							}'`
+						);
+						expect(account.u_votedDelegatesPublicKeys).to.be.eql(keys[0].keys);
+					})
+				);
+			});
+
+			it('should fetch "membersPublicKeys" with correct query', async () => {
+				const accounts = await AccountEntity.get({}, { extended: true });
+
+				await Promise.all(
+					accounts.map(async account => {
+						const keys = await adapter.execute(
+							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2multisignatures WHERE "accountId" = '${
+								account.address
+							}'`
+						);
+						expect(account.membersPublicKeys).to.be.eql(keys[0].keys);
+					})
+				);
+			});
+
+			it('should fetch "u_membersPublicKeys" with correct query', async () => {
+				const accounts = await AccountEntity.get({}, { extended: true });
+
+				await Promise.all(
+					accounts.map(async account => {
+						const keys = await adapter.execute(
+							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2u_multisignatures WHERE "accountId" = '${
+								account.address
+							}'`
+						);
+						expect(account.u_membersPublicKeys).to.be.eql(keys[0].keys);
+					})
+				);
+			});
+
+			it('should fetch "productivity" with correct query', async () => {
+				const producedBlocks = 5;
+				const missedBlocks = 3;
+				const validAccount = new accountFixtures.Account({
+					producedBlocks,
+					missedBlocks,
+				});
+				await AccountEntity.create(validAccount);
+				const productivity = parseInt(
+					producedBlocks / (producedBlocks + missedBlocks) * 100.0
+				);
+
+				const account = await AccountEntity.getOne(
+					{ address: validAccount.address },
+					{ extended: true }
+				);
+
+				expect(account.productivity).to.be.eql(productivity);
+			});
+
+			it('should fetch "productivity" with correct query when base values are zero', async () => {
+				const producedBlocks = 0;
+				const missedBlocks = 0;
+				const validAccount = new accountFixtures.Account({
+					producedBlocks,
+					missedBlocks,
+				});
+				await AccountEntity.create(validAccount);
+				const productivity = 0;
+
+				const account = await AccountEntity.getOne(
+					{ address: validAccount.address },
+					{ extended: true }
+				);
+
+				expect(account.productivity).to.be.eql(productivity);
+			});
+		});
+
+		describe('data casting', () => {
+			const options = { extended: true, limit: 1 };
+			const filters = {};
+
+			it('should return "isDelegate" as "boolean"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].isDelegate).to.be.a('boolean');
+			});
+
+			it('should return "u_isDelegate" as "boolean"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].u_isDelegate).to.be.a('boolean');
+			});
+
+			it('should return "secondSignature" as "boolean"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].secondSignature).to.be.a('boolean');
+			});
+
+			it('should return "u_secondSignature" as "boolean"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].u_secondSignature).to.be.a('boolean');
+			});
+
+			it('should return "rank" as null', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].rank).to.be.eql(null);
+			});
+
+			it('should return "fees" as "bigint"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].fees).to.be.a('string');
+			});
+
+			it('should return "rewards" as "bigint"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].rewards).to.be.a('string');
+			});
+
+			it('should return "vote" as "bigint"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].vote).to.be.a('string');
+			});
+
+			it('should return "producedBlocks" as "number"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].producedBlocks).to.be.a('number');
+			});
+
+			it('should return "missedBlocks" as "number"', async () => {
+				const data = await AccountEntity.get(filters, options);
+				expect(data[0].missedBlocks).to.be.a('number');
+			});
+		});
+
+		describe('functions', () => {
+			const options = { extended: true, limit: 1 };
+			let filters = null;
+			let validAccount = null;
+
+			beforeEach(async () => {
+				validAccount = new accountFixtures.Account({
+					secondPublicKey: randomstring
+						.generate({ charset: '0123456789ABCDEF', length: 64 })
+						.toLowerCase(),
+				});
+				await AccountEntity.create(validAccount);
+				filters = { address: validAccount.address };
+			});
+
+			it('should always return "publicKey" as "encode(publicKey, \'hex\')"', async () => {
+				const accounts = await AccountEntity.get(filters, options);
+				const rawKey = await adapter.execute(
+					`SELECT "publicKey" FROM mem_accounts WHERE "address" = '${
+						validAccount.address
+					}'`
+				);
+
+				expect(accounts[0].publicKey).to.be.eql(
+					rawKey[0].publicKey.toString('hex')
+				);
+			});
+
+			it('should always return "secondPublicKey" as "encode(secondPublicKey, \'hex\')"', async () => {
+				const accounts = await AccountEntity.get(filters, options);
+				const rawKey = await adapter.execute(
+					`SELECT "secondPublicKey" FROM mem_accounts WHERE "address" = '${
+						validAccount.address
+					}'`
+				);
+
+				expect(accounts[0].secondPublicKey).to.be.eql(
+					rawKey[0].secondPublicKey.toString('hex')
+				);
+			});
+		});
+
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters');
 			// For each filter type
 			it('should return matching result for provided filter');
+		});
+
+		describe('options', () => {
+			describe('sort', () => {
+				it('should sort by address in ascending if sort="address"', async () => {
+					const data = await AccountEntity.get(
+						{},
+						{ sort: 'address', limit: 10 }
+					);
+					const actualData = _.map(data, 'address');
+					expect(actualData).to.be.eql(_(actualData).dbSort('asc'));
+				});
+
+				it('should sort by address in ascending if sort="address:asc"', async () => {
+					const data = await AccountEntity.get(
+						{},
+						{ sort: 'address:asc', limit: 10 }
+					);
+					const actualData = _.map(data, 'address');
+					expect(actualData).to.be.eql(_(actualData).dbSort('asc'));
+				});
+
+				it('should sort by address in descending if sort="address:desc"', async () => {
+					const data = await AccountEntity.get(
+						{},
+						{ sort: 'address:desc', limit: 10 }
+					);
+					const actualData = _.map(data, 'address');
+					expect(actualData).to.be.eql(_(actualData).dbSort('desc'));
+				});
+
+				it('should sort by multiple keys if sort is provided as array', async () => {
+					const accounts = await AccountEntity.get(
+						{},
+						{
+							sort: ['username:desc', 'address:asc'],
+							limit: 10,
+						}
+					);
+
+					const sortedAccounts = _.orderBy(
+						Object.assign({}, accounts),
+						['username', 'address'],
+						['desc', 'asc']
+					);
+
+					expect(accounts).to.lengthOf.above(0);
+					return expect(accounts).to.eql(sortedAccounts);
+				});
+
+				it('should fail if unknown sort field is specified', async () => {
+					return expect(
+						AccountEntity.get({}, { sort: 'unknownField', limit: 10 })
+					).to.be.rejectedWith('column "unknownField" does not exist');
+				});
+			});
+
+			describe('limit & offset', () => {
+				it('should return default limit results if no limit is specified', async () => {
+					AccountEntity.extendDefaultOptions({ limit: 2 });
+					const accounts = await AccountEntity.get({});
+
+					expect(AccountEntity.defaultOptions.limit).to.be.eql(2);
+					expect(accounts).to.have.lengthOf(2);
+				});
+
+				it('should return all results if limit is set to null is specified', async () => {
+					const accounts = await AccountEntity.get({}, { limit: null });
+					const result = await adapter.execute(
+						'SELECT COUNT(*)::int as count from mem_accounts'
+					);
+
+					expect(accounts).to.have.lengthOf(result[0].count);
+				});
+
+				it('should return 1 result if options.limit=1', async () => {
+					const accounts = await AccountEntity.get({}, { limit: 1 });
+					expect(accounts).to.have.lengthOf(1);
+				});
+
+				it('should skip first result if options.offset=1', async () => {
+					const data1 = await AccountEntity.get({}, { limit: 2 });
+					const data2 = await AccountEntity.get({}, { limit: 1, offset: 1 });
+
+					expect(data1.length).to.eql(2);
+					expect(data2.length).to.eql(1);
+					expect(data2[0]).to.eql(data1[1]);
+				});
+			});
 		});
 	});
 
