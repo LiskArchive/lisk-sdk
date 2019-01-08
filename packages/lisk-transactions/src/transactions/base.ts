@@ -356,7 +356,6 @@ export abstract class BaseTransaction {
 						Buffer.from(this.signature, 'hex'),
 				  ])
 				: this.getBasicBytes();
-
 			const {
 				verified: multisignaturesVerified,
 				errors: multisignatureErrors,
@@ -405,7 +404,7 @@ export abstract class BaseTransaction {
 						this.id,
 					),
 			  ];
-		
+
 		return {
 			id: this.id,
 			status: errors.length > 0 ? Status.FAIL : Status.OK,
@@ -419,12 +418,7 @@ export abstract class BaseTransaction {
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
 			? []
-			: [
-					new TransactionError(
-						'Invalid balance amount',
-						this.id,
-					),
-			  ];
+			: [new TransactionError('Invalid balance amount', this.id)];
 
 		return {
 			id: this.id,

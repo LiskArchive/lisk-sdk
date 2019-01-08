@@ -16,7 +16,7 @@ import { TransactionError } from './errors';
 
 export enum Status {
 	OK = 1,
-	FAIL,
+	FAIL = 0,
 }
 export interface Account {
 	readonly address: string;
