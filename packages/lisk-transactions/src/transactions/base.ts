@@ -52,9 +52,9 @@ export interface Attributes {
 }
 
 export enum MultisignatureStatus {
+	FALSE = 0,
 	TRUE = 1,
-	FALSE,
-	UNKNOWN,
+	UNKNOWN = 2,
 }
 
 export abstract class BaseTransaction {
