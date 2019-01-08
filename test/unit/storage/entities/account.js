@@ -611,4 +611,98 @@ describe('Account', () => {
 			expect(result[0].count).to.equal(0);
 		});
 	});
+
+	describe('increment()', () => {
+		it('should use the correct SQL', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const address = '12L';
+
+			await AccountEntity.increment({ address }, 'balance', 123);
+
+			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
+				SQLs.increment
+			);
+		});
+
+		it('should increment account attribute', async () => {
+			const account = new accountFixtures.Account();
+			const address = account.address;
+
+			account.balance = 15000;
+
+			await AccountEntity.create(account);
+			await AccountEntity.increment({ address }, 'balance', 1000);
+
+			const updatedAccount = await AccountEntity.getOne({ address });
+
+			expect(updatedAccount.balance).to.eql('16000');
+		});
+
+		it('should throw error if unknown field is provided', async () => {
+			expect(() =>
+				AccountEntity.increment({ address: '12L' }, 'unknown', 1000)
+			).to.throw('Field name "unknown" is not valid.');
+		});
+
+		it('should increment balance with string data', async () => {
+			const account = new accountFixtures.Account();
+			const address = account.address;
+
+			account.balance = '15000';
+
+			await AccountEntity.create(account);
+			await AccountEntity.increment({ address }, 'balance', 1000);
+
+			const updatedAccount = await AccountEntity.getOne({ address });
+
+			expect(updatedAccount.balance).to.eql('16000');
+		});
+	});
+
+	describe('decrement()', () => {
+		it('should use the correct SQL', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const address = '12L';
+
+			await AccountEntity.decrement({ address }, 'balance', 123);
+
+			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
+				SQLs.decrement
+			);
+		});
+
+		it('should decrement account attribute', async () => {
+			const account = new accountFixtures.Account();
+			const address = account.address;
+
+			account.balance = 15000;
+
+			await AccountEntity.create(account);
+			await AccountEntity.decrement({ address }, 'balance', 1000);
+
+			const updatedAccount = await AccountEntity.getOne({ address });
+
+			expect(updatedAccount.balance).to.eql('14000');
+		});
+
+		it('should throw error if unknown field is provided', async () => {
+			expect(() =>
+				AccountEntity.decrement({ address: '12L' }, 'unknown', 1000)
+			).to.throw('Field name "unknown" is not valid.');
+		});
+
+		it('should decrement balance with string data', async () => {
+			const account = new accountFixtures.Account();
+			const address = account.address;
+
+			account.balance = '15000';
+
+			await AccountEntity.create(account);
+			await AccountEntity.decrement({ address }, 'balance', 1000);
+
+			const updatedAccount = await AccountEntity.getOne({ address });
+
+			expect(updatedAccount.balance).to.eql('14000');
+		});
+	});
 });

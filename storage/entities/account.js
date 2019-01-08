@@ -310,6 +310,8 @@ class Account extends BaseEntity {
 				'accounts/reset_unconfirmed_state.sql'
 			),
 			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
+			increment: this.adapter.loadSQLFile('accounts/increment.sql'),
+			decrement: this.adapter.loadSQLFile('accounts/decrement.sql'),
 		};
 	}
 
@@ -549,6 +551,59 @@ class Account extends BaseEntity {
 	 */
 	resetMemTables(tx) {
 		return this.adapter.executeFile(this.SQLs.resetMemTables, {}, {}, tx);
+	}
+
+	/**
+	 * Increment a field value in mem_accounts.
+	 *
+	 * @param {filters.Account} [filters] - Filters to match the objects
+	 * @param {string} field - Name of the field to increment
+	 * @param {Number} value - Value to be incremented
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	increment(filters, field, value, tx) {
+		return this._updateField(filters, field, value, '+', tx);
+	}
+
+	/**
+	 * Decrement a field value in mem_accounts.
+	 *
+	 * @param {filters.Account} [filters] - Filters to match the objects
+	 * @param {string} field - Name of the field to increment
+	 * @param {Number} value - Value to be incremented
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	decrement(filters, field, value, tx) {
+		return this._updateField(filters, field, value, '-', tx);
+	}
+
+	_updateField(filters, field, value, mode = '+', tx) {
+		const atLeastOneRequired = true;
+		const validFieldName = Object.keys(this.fields).includes(field);
+		assert(validFieldName, `Field name "${field}" is not valid.`);
+
+		this.validateFilters(filters, atLeastOneRequired);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const filedName = this.fields[field].fieldName;
+
+		const params = {
+			parsedFilters,
+			field: filedName,
+			value,
+		};
+
+		const SQL = mode === '+' ? this.SQLs.increment : this.SQLs.decrement;
+
+		return this.adapter.executeFile(
+			SQL,
+			params,
+			{ expectedResultCount: 0 },
+			tx
+		);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
