@@ -475,18 +475,20 @@ class Account {
 
 								if (mode === '-') {
 									promises.push(
-										dbTx.accounts.removeDependencies(
+										self.scope.storage.entities.Account.deleteDependentRecord(
+											updatedField,
 											address,
 											dependentId,
-											updatedField
+											dbTx
 										)
 									);
 								} else {
 									promises.push(
-										dbTx.accounts.insertDependencies(
+										self.scope.storage.entities.Account.createDependentRecord(
+											updatedField,
 											address,
 											dependentId,
-											updatedField
+											dbTx
 										)
 									);
 								}
@@ -648,52 +650,52 @@ Account.prototype.model = [
 		conv: String,
 	},
 	{
-		name: 'delegates',
+		name: 'votedDelegatesPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'u_delegates',
+		name: 'u_votedDelegatesPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'multisignatures',
+		name: 'membersPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'u_multisignatures',
+		name: 'u_membersPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'multimin',
+		name: 'multiMin',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'u_multimin',
+		name: 'u_multiMin',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'multilifetime',
+		name: 'multiLifetime',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'u_multilifetime',
+		name: 'u_multiLifetime',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'nameexist',
+		name: 'nameExist',
 		type: 'SmallInt',
 		conv: Boolean,
 	},
 	{
-		name: 'u_nameexist',
+		name: 'u_nameExist',
 		type: 'SmallInt',
 		conv: Boolean,
 	},
