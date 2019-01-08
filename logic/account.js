@@ -493,7 +493,7 @@ class Account {
 									);
 								}
 
-								if (updatedField === 'delegates') {
+								if (updatedField === 'votedDelegatesPublicKeys') {
 									promises.push(
 										dbTx.rounds.insertRoundInformationWithDelegate(
 											address,
