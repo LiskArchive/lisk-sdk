@@ -362,7 +362,8 @@ class Block extends BaseEntity {
 			const trxOptions = { limit: null, extended: true };
 			const transactions = await this.transactionEntity.get(
 				trxFilters,
-				trxOptions
+				trxOptions,
+				tx
 			);
 
 			if (expectedResultCount === 1) {
