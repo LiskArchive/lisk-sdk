@@ -19,7 +19,6 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
-		inboundSocket: undefined,
 		version: '1.0.1',
 		os: 'darwin',
 	};
@@ -27,7 +26,6 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		ipAddress: '127.0.0.1',
 		wsPort: 5002,
 		height: 545981,
-		inboundSocket: undefined,
 		version: '1.0.1',
 		os: 'darwin',
 	};
@@ -35,7 +33,6 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		ipAddress: '18.28.48.1',
 		wsPort: 5008,
 		height: 645980,
-		inboundSocket: undefined,
 		version: '1.4.1',
 		os: 'darwin',
 	};
@@ -43,7 +40,6 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		ipAddress: '192.28.138.1',
 		wsPort: 5006,
 		height: 645982,
-		inboundSocket: undefined,
 		version: '1.0.1',
 		os: 'darwin',
 	};
@@ -51,7 +47,6 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		ipAddress: '178.21.90.199',
 		wsPort: 5001,
 		height: 645980,
-		inboundSocket: undefined,
 		version: '1.0.1',
 		os: 'darwin',
 	};
