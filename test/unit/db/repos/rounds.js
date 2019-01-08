@@ -937,10 +937,10 @@ describe('db', () => {
 				});
 				const delegate = '12345678';
 				yield db.accounts.insert(account);
-				yield db.accounts.insertDependencies(
-					account.address,
-					delegate,
-					'delegates'
+				yield db.query(
+					`INSERT INTO mem_accounts2delegates ("accountId", "dependentId") VALUES('${
+						account.address
+					}', '${delegate}')`
 				);
 
 				const params = {
