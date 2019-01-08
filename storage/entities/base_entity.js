@@ -307,7 +307,7 @@ class BaseEntity {
 		return true;
 	}
 
-	parseFilters(filters) {
+	parseFilters(filters, options = { filterPrefix: 'WHERE' }) {
 		let filterString = '';
 
 		const parseFilterObject = object =>
@@ -329,7 +329,7 @@ class BaseEntity {
 
 		// TODO: refactor this logic
 		if (filterString !== '()') {
-			return `WHERE ${this.adapter.parseQueryComponent(
+			return `${options.filterPrefix} ${this.adapter.parseQueryComponent(
 				filterString,
 				filtersObject
 			)}`;

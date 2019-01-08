@@ -15,7 +15,7 @@
 SELECT
 	"t_id" as "id",
 	"b_id" as "blockId",
-	"b_height" as "blockHeight",
+	"b_height" as "height",
 	"t_type" as "type",
 	"t_timestamp" as "timestamp",
 	"t_senderId" as "senderId",
@@ -24,8 +24,9 @@ SELECT
 	"t_fee" as "fee",
 	"t_signature" as "signature",
 	"t_signSignature" as "signSignature",
-	"t_signatures" as "signatures",
+	regexp_split_to_array("t_signatures", ',') as "signatures",
 	"t_senderPublicKey" as "senderPublicKey",
+	"t_recipientPublicKey" as "recipientPublicKey",
 	"t_requesterPublicKey" as "requesterPublicKey",
 	(( SELECT (blocks.height + 1)
            FROM blocks
@@ -34,7 +35,7 @@ SELECT
  	"tf_data" as "asset.data",
  	"s_publicKey" as "asset.signature.publicKey",
  	"d_username" as "asset.delegate.username",
- 	"v_votes" as "asset.votes",
+ 	regexp_split_to_array("v_votes", ',') as "asset.votes",
  	"m_min" as "asset.multisignature.min",
  	"m_lifetime" as "asset.multisignature.lifetime",
  	"m_keysgroup" as "asset.multisignature.keysgroup",
@@ -52,7 +53,7 @@ FROM
 	(full_blocks_list fbl
 	LEFT JOIN blocks b ON (((fbl."b_id")::text = (b.id)::text)))
 
-${parsedFilters:raw}
+WHERE "t_rowId" IS NOT NULL ${parsedFilters:raw}
 
 ${parsedSort:raw}
 

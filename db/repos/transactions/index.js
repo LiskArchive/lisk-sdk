@@ -120,68 +120,6 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * Count transactions with extended params.
-	 * The params to this method comes in this format
-	 *
-	 * { where:
-	 *   [ '"t_recipientId" IN (${recipientId:csv})',
-	 *     'AND "t_senderId" IN (${senderId:csv})' ],
-	 *  owner: '',
-	 *  recipientId: '1253213165192941997L',
-	 *  senderId: '16313739661670634666L',
-	 *  limit: 10,
-	 *  offset: 0 }
-	 *
-	 *   @todo Simplify the usage and pass direct params to the method
-	 *
-	 * @param {Object} params
-	 * @param {Array} params.where
-	 * @param {string} params.owner
-	 * @returns {Promise<number>}
-	 * Transactions counter.
-	 */
-	countList(params) {
-		// Add dummy condition in case of blank to avoid conditional where clause
-		let conditions =
-			params && params.where && params.where.length ? params.where : [];
-
-		// Handle the case if single condition is provided
-		if (typeof conditions === 'string') {
-			conditions = [conditions];
-		}
-
-		// FIXME: Backward compatibility, should be removed after transitional period
-		if (params && params.owner) {
-			conditions.push(`AND ${params.owner}`);
-		}
-
-		if (conditions.length) {
-			conditions = `WHERE ${this.pgp.as.format(conditions.join(' '), params)}`;
-		} else {
-			conditions = '';
-		}
-
-		return this.db.one(sql.countList, { conditions }, a => +a.count);
-	}
-
-	/**
-	 * Search transactions.
-	 *
-	 * @param {Object} params
-	 * @param {Array} params.where
-	 * @param {string} params.owner
-	 * @param {string} params.sortField
-	 * @param {string} params.sortMethod
-	 * @param {int} params.limit
-	 * @param {int} params.offset
-	 * @returns {Promise<[]>}
-	 * List of transactions.
-	 */
-	list(params) {
-		return this.db.any(Queries.list, params);
-	}
-
-	/**
 	 * Gets transfer transactions from a list of id-s.
 	 *
 	 * @param {Array.<string>} ids
@@ -321,30 +259,5 @@ class TransactionsRepository {
 			: this.db.tx('transactions:save', job);
 	}
 }
-
-// TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
-const Queries = {
-	list: params =>
-		[
-			'SELECT t_id, b_height, "t_blockId", t_type, t_timestamp, "t_senderId", "t_recipientId",',
-			't_amount, t_fee, t_signature, "t_SignSignature", t_signatures, confirmations,',
-			'encode("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", encode("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey"',
-			'FROM trs_list',
-			params.where.length || params.owner ? 'WHERE' : '',
-			params.where.length ? `(${params.where.join(' ')})` : '',
-			// FIXME: Backward compatibility, should be removed after transitional period
-			params.where.length && params.owner
-				? ` AND ${params.owner}`
-				: params.owner,
-			params.sortField
-				? `ORDER BY ${[params.sortField, params.sortMethod].join(
-						' '
-					)}, "t_rowId" ASC`
-				: '',
-			'LIMIT ${limit} OFFSET ${offset}',
-		]
-			.filter(Boolean)
-			.join(' '),
-};
 
 module.exports = TransactionsRepository;

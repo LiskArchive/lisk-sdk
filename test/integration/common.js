@@ -249,7 +249,7 @@ function getAccountFromDb(library, address) {
 }
 
 function getTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.shared.getTransactions(filter, (err, res) => {
+	library.modules.transactions.getTransactions(filter, (err, res) => {
 		cb(err, res);
 	});
 }

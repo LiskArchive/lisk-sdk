@@ -14,7 +14,6 @@
 
 'use strict';
 
-const Promise = require('bluebird');
 const _ = require('lodash');
 const async = require('async');
 const apiCodes = require('../helpers/api_codes.js');
@@ -25,7 +24,6 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const Transfer = require('../logic/transfer.js');
 
 // Private fields
-const { EPOCH_TIME } = global.constants;
 const __private = {};
 let modules;
 let library;
@@ -57,6 +55,7 @@ class Transactions {
 		library = {
 			logger: scope.logger,
 			db: scope.db,
+			storage: scope.storage,
 			schema: scope.schema,
 			ed: scope.ed,
 			balancesSequence: scope.balancesSequence,
@@ -94,266 +93,64 @@ class Transactions {
  * Counts totals and gets transaction list from `trs_list` view.
  *
  * @private
- * @param {Object} filter
+ * @param {Object} params
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, {transactions, count}
  * @todo Add description for the params
  */
-__private.list = function(filter, cb) {
-	const params = {};
-	const where = [];
-
-	if (filter.data) {
-		filter.data = Buffer.from(filter.data, 'utf8');
-	}
-
-	const allowedFieldsMap = {
-		senderIdOrRecipientId:
-			'("t_senderId" = ${senderIdOrRecipientId} OR "t_recipientId" = ${senderIdOrRecipientId})',
-		id: '"t_id" = ${id}',
-		blockId: '"t_blockId" = ${blockId}',
-		fromHeight: '"b_height" >= ${fromHeight}',
-		toHeight: '"b_height" <= ${toHeight}',
-		fromTimestamp: '"t_timestamp" >= ${fromTimestamp}',
-		toTimestamp: '"t_timestamp" <= ${toTimestamp}',
-		senderId: '"t_senderId" IN (${senderId:csv})',
-		recipientId: '"t_recipientId" IN (${recipientId:csv})',
-		senderPublicKey:
-			'ENCODE ("t_senderPublicKey", \'hex\') IN (${senderPublicKey:csv})',
-		recipientPublicKey:
-			'ENCODE ("m_recipientPublicKey", \'hex\') IN (${recipientPublicKey:csv})',
-		minAmount: '"t_amount" >= ${minAmount}',
-		maxAmount: '"t_amount" <= ${maxAmount}',
-		type: '"t_type" = ${type}',
-		minConfirmations: 'confirmations >= ${minConfirmations}',
-		data:
-			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data LIKE ${data})',
-		limit: null,
-		offset: null,
-		sort: null,
-		// FIXME: Backward compatibility, should be removed after transitional period
-		ownerAddress: null,
-		ownerPublicKey: null,
-	};
-	let owner = '';
-	let isFirstWhere = true;
-
-	/**
-	 * Description of processParams.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	const processParams = function(value, field) {
-		// Mutating parametres when unix timestamp is supplied
-		if (_.includes(['fromUnixTime', 'toUnixTime'], field)) {
-			// Lisk epoch is 1464109200 as unix timestamp
-			value -= EPOCH_TIME.getTime() / 1000;
-			field = field.replace('UnixTime', 'Timestamp');
-		}
-
-		if (!_.includes(_.keys(allowedFieldsMap), field)) {
-			throw new Error(`Parameter is not supported: ${field}`);
-		}
-
-		// Checking for empty parameters, 0 is allowed for few
-		if (
-			!value &&
-			!(
-				value === 0 &&
-				_.includes(
-					['fromTimestamp', 'minAmount', 'minConfirmations', 'type', 'offset'],
-					field
-				)
-			)
-		) {
-			throw new Error(`Value for parameter [${field}] cannot be empty`);
-		}
-
-		if (allowedFieldsMap[field]) {
-			where.push((!isFirstWhere ? 'AND ' : '') + allowedFieldsMap[field]);
-			params[field] = value;
-			isFirstWhere = false;
-		}
+__private.list = async function(params = {}, cb) {
+	let filters = {
+		id: params.id,
+		blockId: params.blockId,
+		recipientId: params.recipientId,
+		recipientPublicKey: params.recipientPublicKey,
+		senderId: params.senderId,
+		senderPublicKey: params.senderPublicKey,
+		type: params.type,
+		height: params.height,
+		height_gte: params.fromHeight,
+		height_lte: params.toHeight,
+		timestamp_gte: params.fromTimestamp,
+		timestamp_lte: params.toTimestamp,
+		amount_gte: params.minAmount,
+		amount_lte: params.maxAmount,
 	};
 
-	// Generate list of fields with conditions
-	try {
-		_.each(filter, processParams);
-	} catch (err) {
-		return setImmediate(cb, err.message);
+	let options = {
+		sort: params.sort,
+		limit: params.limit || 100,
+		offset: params.offset || 0,
+		extended: true,
+	};
+
+	if (params.data) {
+		filters.data_like = Buffer.from(params.data, 'utf8');
 	}
 
-	// FIXME: Backward compatibility, should be removed after transitional period
-	if (filter.ownerAddress && filter.ownerPublicKey) {
-		owner =
-			'("t_senderPublicKey" = DECODE (${ownerPublicKey}, \'hex\') OR "t_recipientId" = ${ownerAddress})';
-		params.ownerPublicKey = filter.ownerPublicKey;
-		params.ownerAddress = filter.ownerAddress;
-	}
-
-	if (!filter.limit) {
-		params.limit = 100;
-	} else {
-		params.limit = Math.abs(filter.limit);
-	}
-
-	if (!filter.offset) {
-		params.offset = 0;
-	} else {
-		params.offset = Math.abs(filter.offset);
-	}
+	// Remove filters with null values
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
+	options = _.pickBy(options, v => !(v === undefined || v === null));
 
 	if (params.limit > 1000) {
 		return setImmediate(cb, 'Invalid limit, maximum is 1000');
 	}
 
-	const sort = sortBy(filter.sort, {
-		sortFields: library.db.transactions.sortFields,
-		fieldPrefix(sortField) {
-			if (['height'].indexOf(sortField) > -1) {
-				return `b_${sortField}`;
-			} else if (['confirmations'].indexOf(sortField) > -1) {
-				return sortField;
-			}
-			return `t_${sortField}`;
-		},
-	});
+	try {
+		const count = await library.storage.entities.Transaction.count(filters);
+		const transactions = await library.storage.entities.Transaction.get(
+			filters,
+			options
+		);
+		const data = {
+			transactions,
+			count,
+		};
 
-	if (sort.error) {
-		return setImmediate(cb, sort.error);
+		return setImmediate(cb, null, data);
+	} catch (error) {
+		library.logger.error(error.stack);
+		return setImmediate(cb, 'Transactions#list error');
 	}
-
-	let rawTransactionRows;
-	let count;
-
-	return library.db.transactions
-		.countList(
-			Object.assign(
-				{},
-				{
-					where,
-					owner,
-				},
-				params
-			)
-		)
-		.then(data => {
-			count = data;
-			return library.db.transactions.list(
-				Object.assign(
-					{},
-					{
-						where,
-						owner,
-						sortField: sort.sortField,
-						sortMethod: sort.sortMethod,
-					},
-					params
-				)
-			);
-		})
-		.then(rows => {
-			rawTransactionRows = rows;
-			return __private.getAssetForIds(groupTransactionIdsByType(rows));
-		})
-		.then(rows => {
-			const assetRowsByTransactionId = {};
-			_.each(rows, row => {
-				assetRowsByTransactionId[row.transaction_id] = row;
-			});
-
-			const transactions = rawTransactionRows.map(rawTransactionRow =>
-				library.logic.transaction.dbRead(
-					_.merge(
-						rawTransactionRow,
-						assetRowsByTransactionId[rawTransactionRow.t_id]
-					)
-				)
-			);
-
-			const data = {
-				transactions,
-				count,
-			};
-
-			return setImmediate(cb, null, data);
-		})
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Transactions#list error');
-		});
-};
-
-/**
- * Description of groupTransactionIdsByType.
- *
- * @todo Add @param tags
- * @todo Add @returns tag
- * @todo Add description of the function
- */
-function groupTransactionIdsByType(rawTransactions) {
-	const groupedTransactions = _.groupBy(rawTransactions, 't_type');
-	const transactionIdsByType = _.map(_.keys(groupedTransactions), type => {
-		const groupedTransactionsId = {};
-		groupedTransactionsId[type] = _.map(groupedTransactions[type], 't_id');
-		return groupedTransactionsId;
-	});
-
-	return _.assign.apply(null, transactionIdsByType);
-}
-
-/**
- * Description of getAssetForIds.
- *
- * @private
- * @todo Add @param tags
- * @todo Add @returns tag
- * @todo Add description of the function
- */
-__private.getAssetForIds = function(idsByType) {
-	const assetRawRows = _.values(
-		_.mapValues(idsByType, __private.getAssetForIdsBasedOnType)
-	);
-	return Promise.all(assetRawRows).then(_.flatMap);
-};
-
-/**
- * Description of getQueryNameByType.
- *
- * @private
- * @todo Add @param tags
- * @todo Add @returns tag
- * @todo Add description of the function
- */
-__private.getQueryNameByType = function(type) {
-	const queryNames = {};
-	queryNames[transactionTypes.SEND] = 'getTransferByIds';
-	queryNames[transactionTypes.SIGNATURE] = 'getSignatureByIds';
-	queryNames[transactionTypes.DELEGATE] = 'getDelegateByIds';
-	queryNames[transactionTypes.VOTE] = 'getVotesByIds';
-	queryNames[transactionTypes.MULTI] = 'getMultiByIds';
-	queryNames[transactionTypes.DAPP] = 'getDappByIds';
-	queryNames[transactionTypes.IN_TRANSFER] = 'getInTransferByIds';
-	queryNames[transactionTypes.OUT_TRANSFER] = 'getOutTransferByIds';
-
-	const queryName = queryNames[type];
-	return queryName;
-};
-
-/**
- * Description of getAssetForIdsBasedOnType.
- *
- * @private
- * @todo Add @param tags
- * @todo Add @returns tag
- * @todo Add description of the function
- */
-__private.getAssetForIdsBasedOnType = function(ids, type) {
-	const queryName = __private.getQueryNameByType(type);
-
-	return library.db.transactions[queryName](ids);
 };
 
 /**
@@ -545,6 +342,42 @@ Transactions.prototype.getMultisignatureTransactionList = function(
  */
 Transactions.prototype.getMergedTransactionList = function(reverse, limit) {
 	return __private.transactionPool.getMergedTransactionList(reverse, limit);
+};
+
+/**
+ * Search transactions based on the query parameter passed.
+ *
+ * @param {Object} filters - Filters applied to results
+ * @param {string} filters.id - Transaction id
+ * @param {string} filters.blockId - Block id
+ * @param {string} filters.recipientId - Recipient id
+ * @param {string} filters.recipientPublicKey - Recipient public key
+ * @param {string} filters.senderId - Sender id
+ * @param {string} filters.senderPublicKey - Sender public key
+ * @param {int} filters.transactionType - Transaction type
+ * @param {int} filters.fromHeight - From block height
+ * @param {int} filters.toHeight - To block height
+ * @param {string} filters.minAmount - Minimum amount
+ * @param {string} filters.maxAmount - Maximum amount
+ * @param {int} filters.fromTimestamp - From transaction timestamp
+ * @param {int} filters.toTimestamp - To transaction timestamp
+ * @param {string} filters.sort - Field to sort results by
+ * @param {int} filters.limit - Limit applied to results
+ * @param {int} filters.offset - Offset value for results
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the return value
+ */
+Transactions.prototype.getTransactions = function(filters, cb) {
+	__private.list(filters, (err, data) => {
+		if (err) {
+			return setImmediate(cb, `Failed to get transactions: ${err}`);
+		}
+		return setImmediate(cb, null, {
+			transactions: data.transactions,
+			count: data.count,
+		});
+	});
 };
 
 /**
@@ -766,6 +599,7 @@ Transactions.prototype.onBind = function(scope) {
 		scope.transactions,
 		scope.loader
 	);
+
 	__private.assetTypes[transactionTypes.SEND].bind(scope.accounts);
 };
 
@@ -806,42 +640,6 @@ __private.processPostResult = function(err, res, cb) {
  */
 Transactions.prototype.shared = {
 	/**
-	 * Search transactions based on the query parameter passed.
-	 *
-	 * @param {Object} filters - Filters applied to results
-	 * @param {string} filters.id - Transaction id
-	 * @param {string} filters.blockId - Block id
-	 * @param {string} filters.recipientId - Recipient id
-	 * @param {string} filters.recipientPublicKey - Recipient public key
-	 * @param {string} filters.senderId - Sender id
-	 * @param {string} filters.senderPublicKey - Sender public key
-	 * @param {int} filters.transactionType - Transaction type
-	 * @param {int} filters.fromHeight - From block height
-	 * @param {int} filters.toHeight - To block height
-	 * @param {string} filters.minAmount - Minimum amount
-	 * @param {string} filters.maxAmount - Maximum amount
-	 * @param {int} filters.fromTimestamp - From transaction timestamp
-	 * @param {int} filters.toTimestamp - To transaction timestamp
-	 * @param {string} filters.sort - Field to sort results by
-	 * @param {int} filters.limit - Limit applied to results
-	 * @param {int} filters.offset - Offset value for results
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the return value
-	 */
-	getTransactions(filters, cb) {
-		__private.list(filters, (err, data) => {
-			if (err) {
-				return setImmediate(cb, `Failed to get transactions: ${err}`);
-			}
-			return setImmediate(cb, null, {
-				transactions: data.transactions,
-				count: data.count,
-			});
-		});
-	},
-
-	/**
 	 * Description of getTransactionsCount.
 	 *
 	 * @param {function} cb - Callback function
@@ -869,11 +667,10 @@ Transactions.prototype.shared = {
 						return setImmediate(waterCb, null, cachedCount, null);
 					}
 
-					return library.db.transactions
-						.count()
-						.then(transactionsCount =>
+					return library.storage.entities.Transaction.count().then(
+						transactionsCount =>
 							setImmediate(waterCb, null, null, transactionsCount)
-						);
+					);
 				},
 
 				function updateConfirmedCountToCache(cachedCount, dbCount, waterCb) {
