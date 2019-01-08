@@ -79,3 +79,9 @@ export interface ProtocolInboundRPCRequest {
 	readonly procedure: string;
 	readonly type: string;
 }
+
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolInboundMessage {
+	readonly data: unknown;
+	readonly event: string;
+}

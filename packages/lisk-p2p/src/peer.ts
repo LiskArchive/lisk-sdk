@@ -21,6 +21,7 @@ import {
 	P2PNodeInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolInboundMessage,
 	ProtocolInboundRPCRequest,
 } from './p2p_types';
 
@@ -30,9 +31,14 @@ import { processPeerListFromResponse } from './response_handler_sanitization';
 
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
+export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
+export const EVENT_REQUEST_RECEIVED = 'requestReceived';
+export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
+export const EVENT_MESSAGE_RECEIVED = 'requestReceived';
 
-// Remote events sent to peers as messages.
+// Remote event names sent to or received from peers.
 export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
+export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
 
 export interface PeerInfo {
 	readonly ipAddress: string;
@@ -60,10 +66,11 @@ export class Peer extends EventEmitter {
 	private readonly _wsPort: number;
 	private readonly _height: number;
 	private readonly _peerInfo: PeerInfo;
-	private readonly _handlePeerInfo: (packet: unknown) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocket | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
+	private readonly _handleRPC: (packet: unknown) => void;
+	private readonly _handleMessage: (packet: unknown) => void;
 
 	public constructor(peerInfo: PeerInfo, inboundSocket?: SCServerSocket) {
 		super();
@@ -73,24 +80,43 @@ export class Peer extends EventEmitter {
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
 		this._inboundSocket = inboundSocket;
 		if (this._inboundSocket) {
-			this._startListeningForPeerInfo(this._inboundSocket);
+			this._startListeningForRPCs(this._inboundSocket);
+			this._startListeningForMessages(this._inboundSocket);
 		}
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
-		// This function needs to be defined as an arrow function inside the constructor in order to allow it to be added and removed as an event handler.
-		this._handlePeerInfo = (packet: unknown) => {
+		// This needs to be an arrow function so that it can be used as a listener.
+		this._handleRPC = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
 			// TODO ASAP: Move validation/sanitization to a separate file with other validation logic.
-			const rpcPacket = packet as ProtocolInboundRPCRequest;
-			if (
-				rpcPacket &&
-				rpcPacket.procedure === 'updateMyself' &&
-				typeof rpcPacket.data === 'object'
-			) {
-				// Update peerInfo with the latest values from the remote peer.
-				Object.assign(this._peerInfo, rpcPacket.data as PeerInfo);
-				this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+			const request = packet as ProtocolInboundRPCRequest;
+			if (!request || typeof request.procedure !== 'string') {
+				this.emit(EVENT_INVALID_REQUEST_RECEIVED, request);
+
+				return;
 			}
+			if (
+				request.procedure === 'updateMyself' &&
+				typeof request.data === 'object'
+			) {
+				// Internal handling of request to extract the PeerInfo.
+				this._handlePeerInfo(request);
+			}
+			// Emit request for external use.
+			this.emit(EVENT_REQUEST_RECEIVED, request);
+		};
+
+		// This needs to be an arrow function so that it can be used as a listener.
+		this._handleMessage = (packet: unknown) => {
+			// TODO later: Switch to LIP protocol format.
+			// TODO ASAP: Move validation/sanitization to a separate file with other validation logic.
+			const message = packet as ProtocolInboundMessage;
+			if (!message || typeof message.event !== 'string') {
+				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, message);
+
+				return;
+			}
+			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 	}
 
@@ -104,10 +130,12 @@ export class Peer extends EventEmitter {
 
 	public set inboundSocket(value: any) {
 		if (this._inboundSocket) {
-			this._stopListeningForPeerInfo(this._inboundSocket);
+			this._stopListeningForRPCs(this._inboundSocket);
+			this._stopListeningForMessages(this._inboundSocket);
 		}
 		this._inboundSocket = value;
-		this._startListeningForPeerInfo(this._inboundSocket);
+		this._startListeningForRPCs(this._inboundSocket);
+		this._startListeningForMessages(this._inboundSocket);
 	}
 
 	public get ipAddress(): string {
@@ -175,7 +203,7 @@ export class Peer extends EventEmitter {
 	public disconnect(code: number = 1000, reason?: string): void {
 		if (this._inboundSocket) {
 			this._inboundSocket.disconnect(code, reason);
-			this._stopListeningForPeerInfo(this._inboundSocket);
+			this._stopListeningForRPCs(this._inboundSocket);
 		}
 		if (this.outboundSocket) {
 			this.outboundSocket.disconnect(code, reason);
@@ -194,7 +222,7 @@ export class Peer extends EventEmitter {
 					this.outboundSocket = this._createOutboundSocket();
 				}
 				this.outboundSocket.emit(
-					'rpc-request',
+					REMOTE_EVENT_RPC_REQUEST,
 					{
 						type: '/RPCRequest',
 						procedure: packet.procedure,
@@ -243,11 +271,6 @@ export class Peer extends EventEmitter {
 	public send<T>(packet: P2PMessagePacket<T>): void {
 		if (!this.outboundSocket) {
 			this.outboundSocket = this._createOutboundSocket();
-			this.outboundSocket.emit(packet.event, {
-				data: packet.data,
-			});
-
-			return;
 		}
 		this.outboundSocket.emit(packet.event, {
 			data: packet.data,
@@ -263,13 +286,29 @@ export class Peer extends EventEmitter {
 		});
 	}
 
-	private _startListeningForPeerInfo(socket: any): void {
-		// If an existing listener is bound, remove it.
-		socket.removeListener('rpc-request', this._handlePeerInfo);
-		socket.on('rpc-request', this._handlePeerInfo);
+	private _handlePeerInfo(request: ProtocolInboundRPCRequest): void {
+		// Update peerInfo with the latest values from the remote peer.
+		Object.assign(this._peerInfo, request.data as PeerInfo);
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 	}
 
-	private _stopListeningForPeerInfo(socket: any): void {
-		socket.removeListener('rpc-request', this._handlePeerInfo);
+	private _startListeningForRPCs(socket: any): void {
+		// If an existing listener is bound, remove it.
+		socket.removeListener(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+		socket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+	}
+
+	private _stopListeningForRPCs(socket: any): void {
+		socket.removeListener(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+	}
+
+	private _startListeningForMessages(socket: any): void {
+		// If an existing listener is bound, remove it.
+		socket.removeListener(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
+		socket.on(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
+	}
+
+	private _stopListeningForMessages(socket: any): void {
+		socket.removeListener(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
 	}
 }
