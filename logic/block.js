@@ -527,6 +527,7 @@ Block.prototype.storageRead = function(raw) {
 	if (!raw.id) {
 		return null;
 	}
+
 	const block = {
 		id: raw.id,
 		version: parseInt(raw.version),
@@ -544,7 +545,13 @@ Block.prototype.storageRead = function(raw) {
 		blockSignature: raw.blockSignature,
 		confirmations: parseInt(raw.confirmations),
 	};
+
+	if (raw.transactions) {
+		block.transactions = raw.transactions;
+	}
+
 	block.totalForged = block.totalFee.plus(block.reward).toString();
+
 	return block;
 };
 
