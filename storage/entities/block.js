@@ -345,19 +345,17 @@ class Block extends BaseEntity {
 			parsedFilters,
 		};
 
-		const result = await this.adapter.executeFile(
+		let result = await this.adapter.executeFile(
 			this.SQLs.select,
 			params,
 			{ expectedResultCount },
 			tx
 		);
 
-		// hasResult is always true when expectedResultCount == 1 because `executeFile` will throw an error otherwise
-		const hasResult = expectedResultCount === 1 ? true : result.length > 0;
+		result = Array.isArray(result) ? result : [result];
 
-		if (parsedOptions.extended && hasResult) {
-			const blockIds =
-				expectedResultCount === 1 ? [result.id] : result.map(({ id }) => id);
+		if (parsedOptions.extended && result.length > 0) {
+			const blockIds = result.map(({ id }) => id);
 			const trxFilters = { blockId_in: blockIds };
 			const trxOptions = { limit: null, extended: true };
 			const transactions = await this.transactionEntity.get(
@@ -366,18 +364,14 @@ class Block extends BaseEntity {
 				tx
 			);
 
-			if (expectedResultCount === 1) {
-				result.transactions = transactions;
-			} else {
-				result.forEach(block => {
-					block.transactions = transactions.filter(
-						({ blockId }) => blockId === block.id
-					);
-				});
-			}
+			result.forEach(block => {
+				block.transactions = transactions.filter(
+					({ blockId }) => blockId === block.id
+				);
+			});
 		}
 
-		return result;
+		return expectedResultCount === 1 ? result[0] : result;
 	}
 }
 
