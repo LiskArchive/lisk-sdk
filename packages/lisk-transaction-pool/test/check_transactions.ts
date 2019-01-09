@@ -27,8 +27,6 @@ describe('#checkTransactions', () => {
 	const passedTransactions = transactions.slice(0, 2);
 	const failedTransactions = transactions.slice(2, 5);
 	const transactionsToCheck = [...passedTransactions, ...failedTransactions];
-	let checkerFunction: sinon.SinonStub;
-
 	const checkerFunctionResponse: CheckerFunctionResponse = {
 		status: Status.FAIL,
 		transactionsResponses: [
@@ -59,6 +57,8 @@ describe('#checkTransactions', () => {
 			},
 		],
 	};
+
+	let checkerFunction: sinon.SinonStub;
 
 	beforeEach(async () => {
 		checkerFunction = sandbox.stub().resolves(checkerFunctionResponse);

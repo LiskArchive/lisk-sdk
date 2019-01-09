@@ -33,7 +33,7 @@ export interface TransactionObject {
 export interface TransactionFunctions {
 	containsUniqueData(): boolean;
 	isExpired(date: Date): boolean;
-	verifyTransactionAgainstOtherTransactions(
+	verifyAgainstOtherTransactions(
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
 }
@@ -269,7 +269,7 @@ export class TransactionPool {
 	public validateTransactionAgainstTransactionsInPool(
 		transaction: Transaction,
 	): boolean {
-		return transaction.verifyTransactionAgainstOtherTransactions([
+		return transaction.verifyAgainstOtherTransactions([
 			...this.queues.ready.transactions,
 			...this.queues.pending.transactions,
 			...this.queues.verified.transactions,

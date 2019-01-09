@@ -17,7 +17,7 @@ export interface TransactionResponse {
 
 export enum Status {
 	OK = 1,
-	FAIL,
+	FAIL = 2,
 }
 
 export interface CheckTransactionsResponse {
@@ -35,7 +35,7 @@ export const checkTransactions = async (
 	// Get ids of failed transactions from the response
 	const failedTransactionIds = transactionsResponses
 		.filter(transactionResponse => transactionResponse.status === Status.FAIL)
-		.map(transationStatus => transationStatus.id);
+		.map(transactionStatus => transactionStatus.id);
 
 	// Filter transactions which were failed
 	const failedTransactions = transactions.filter(transaction =>

@@ -20,11 +20,11 @@ describe('transaction pool', () => {
 	const receivedTransactionsLimitPerProcessing = 100;
 	const validatedTransactionsProcessingInterval = 100;
 	const validatedTransactionsLimitPerProcessing = 100;
+	const transactions = transactionObjects.map(wrapTransferTransaction);
 	const verifiedTransactionsProcessingInterval = 100;
 	const verifiedTransactionsLimitPerProcessing = 100;
 
 	let transactionPool: TransactionPool;
-	const transactions = transactionObjects.map(wrapTransferTransaction);
 
 	let checkerStubs: {
 		[key: string]: sinon.SinonStub;
@@ -99,13 +99,13 @@ describe('transaction pool', () => {
 	});
 
 	describe('#addTransactionToQueue', () => {
+		const queueName = 'received';
 		let existsInPoolStub: sinon.SinonStub;
 		let receviedQueueSizeStub: sinon.SinonStub;
 		let addTransactionToQueue: (
 			queueName: string,
 			transaction: Transaction,
 		) => AddTransactionResult;
-		const queueName = 'received';
 
 		beforeEach(async () => {
 			existsInPoolStub = sandbox.stub(
@@ -566,9 +566,6 @@ describe('transaction pool', () => {
 			...validTransactions,
 			...invalidTransactions,
 		];
-		let validateReceivedTransactions: () => Promise<
-			checkTransactions.CheckTransactionsResponse
-		>;
 		// Dummy functions to check used for assertions in tests
 		const checkForTransactionInvalidTransactionId = sandbox.stub();
 		const checkForTransactionValidTransactionId = sandbox.stub();
@@ -577,6 +574,9 @@ describe('transaction pool', () => {
 			passedTransactions: validTransactions,
 			failedTransactions: invalidTransactions,
 		};
+		let validateReceivedTransactions: () => Promise<
+			checkTransactions.CheckTransactionsResponse
+		>;
 
 		beforeEach(async () => {
 			(transactionPool.queues.received.peekUntil as sinon.SinonStub).returns(
@@ -661,9 +661,6 @@ describe('transaction pool', () => {
 			...verifiableTransactions,
 			...unverifiableTransactions,
 		];
-		let verifyValidatedTransactions: () => Promise<
-			checkTransactions.CheckTransactionsResponse
-		>;
 		// Dummy functions to check used for assertions in tests
 		const checkForTransactionUnverifiableTransactionId = sandbox.stub();
 		const checkForTransactionVerifiableTransactionId = sandbox.stub();
@@ -672,6 +669,9 @@ describe('transaction pool', () => {
 			passedTransactions: verifiableTransactions,
 			failedTransactions: unverifiableTransactions,
 		};
+		let verifyValidatedTransactions: () => Promise<
+			checkTransactions.CheckTransactionsResponse
+		>;
 
 		beforeEach(async () => {
 			(transactionPool.queues.validated.peekUntil as sinon.SinonStub).returns(
