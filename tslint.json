@@ -28,6 +28,7 @@
 		"readonly-array": false,
 		"readonly-keyword": [true, "ignore-class"],
 		"strict-boolean-expressions": false,
-		"strict-type-predicates": false
+		"strict-type-predicates": false,
+		"member-ordering": false
 	}
 }
