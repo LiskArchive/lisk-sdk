@@ -373,8 +373,15 @@ class Transaction extends BaseEntity {
 					dbTx
 				)
 			);
+			// Not all transactions of type 0 might have an `asset` so remove the ones without `asset` before storing related data
+			const needSubtransactions = transactions.filter(
+				transaction =>
+					transaction.type !== 0 ||
+					(transaction.type === 0 && transaction.asset)
+			);
 
-			const groupedTransactions = _.groupBy(transactions, 'type');
+			const groupedTransactions = _.groupBy(needSubtransactions, 'type');
+
 			Object.keys(groupedTransactions).forEach(type => {
 				batch.push(
 					this._createSubTransactions(
@@ -402,12 +409,10 @@ class Transaction extends BaseEntity {
 		switch (type) {
 			case 0:
 				fields = ['transactionId', 'data'];
-				values = transactions
-					.filter(transaction => transaction.asset && transaction.asset.data)
-					.map(transaction => ({
-						transactionId: transaction.id,
-						data: Buffer.from(transaction.asset.data, 'utf8'),
-					}));
+				values = transactions.map(transaction => ({
+					transactionId: transaction.id,
+					data: Buffer.from(transaction.asset.data, 'utf8'),
+				}));
 				break;
 			case 1:
 				fields = ['transactionId', 'publicKey'];
