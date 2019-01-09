@@ -88,7 +88,9 @@ export class Queue {
 		return !!this._index[transaction.id];
 	}
 
-	public filter(condition: (transaction: Transaction) => boolean):  ReadonlyArray<Transaction> {
+	public filter(
+		condition: (transaction: Transaction) => boolean,
+	): ReadonlyArray<Transaction> {
 		return this._transactions.filter(condition);
 	}
 
@@ -152,6 +154,6 @@ export class Queue {
 	}
 
 	public sizeBy(condition: (transaction: Transaction) => boolean): number {
-		return this._transactions.filter(condition).length
+		return this._transactions.filter(condition).length;
 	}
 }
