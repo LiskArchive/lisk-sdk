@@ -21,7 +21,6 @@ describe('peer', () => {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
-		inboundSocket: undefined,
 		os: 'darwin',
 		version: '1.1.0',
 	};
