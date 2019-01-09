@@ -158,6 +158,7 @@ class Block extends BaseEntity {
 
 		this.transactionEntity = new Transaction(adapter);
 
+		this.addField('rowId', 'number');
 		this.addField('id', 'string', { filter: filterType.TEXT });
 		this.addField('height', 'number', { filter: filterType.NUMBER });
 		this.addField(
