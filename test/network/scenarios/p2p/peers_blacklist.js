@@ -59,11 +59,11 @@ module.exports = function(
 			});
 
 			it(`there should be ${TOTAL_PEERS - 1} peers holding ${TOTAL_PEERS -
-				2} active connections each one`, () => {
+				2} or less active connections each one`, () => {
 				return network.getAllPeersLists().then(peers => {
 					expect(peers.length).to.equal(TOTAL_PEERS - 1);
 					return peers.map(peer => {
-						expect(peer.peers.length).to.equal(TOTAL_PEERS - 2);
+						expect(peer.peers.length).to.be.below(TOTAL_PEERS - 1);
 						return peer.peers.map(peerFromPeer => {
 							return expect(peerFromPeer.state).to.equal(Peer.STATE.CONNECTED);
 						});
@@ -122,12 +122,12 @@ module.exports = function(
 					});
 			});
 
-			it(`there should be ${TOTAL_PEERS} peers holding ${TOTAL_PEERS -
-				1} active connections each one`, () => {
+			it(`there should be ${TOTAL_PEERS} peers holding above ${TOTAL_PEERS -
+				3} active connections each one`, () => {
 				return network.getAllPeersLists().then(peers => {
 					expect(peers.length).to.equal(TOTAL_PEERS);
 					return peers.map(peer => {
-						expect(peer.peers.length).to.equal(TOTAL_PEERS - 1);
+						expect(peer.peers.length).to.be.above(TOTAL_PEERS - 3);
 						return peer.peers.map(peerFromPeer => {
 							return expect(peerFromPeer.state).to.equal(Peer.STATE.CONNECTED);
 						});
