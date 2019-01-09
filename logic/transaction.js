@@ -1277,7 +1277,7 @@ class Transaction {
 
 		const transaction = {
 			id: raw.id,
-			height: raw.blockHeight,
+			height: raw.height,
 			blockId: raw.blockId,
 			type: parseInt(raw.type),
 			timestamp: parseInt(raw.timestamp),
@@ -1292,17 +1292,11 @@ class Transaction {
 			signSignature: raw.signSignature,
 			signatures: raw.signatures ? raw.signatures.split(',') : [],
 			confirmations: parseInt(raw.confirmations),
-			asset: {},
+			asset: raw.asset || {},
 		};
 
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
-		}
-
-		const asset = __private.types[transaction.type].dbRead(raw);
-
-		if (asset) {
-			transaction.asset = Object.assign(transaction.asset, asset);
 		}
 
 		return transaction;
