@@ -375,14 +375,14 @@ Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 		offset,
 	});
 
-	// Loads full blocks from database
-	// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
-	library.db.blocks
-		// TODO: REPLACE BY STORAGE WHEN EXTENDED BLOCK IS IMPLEMENTED
-		.loadBlocksOffset(params.offset, params.limit)
+	// Loads extended blocks from storage
+	library.storage.entities.Block.get(
+		{ height_gte: params.offset, height_lt: params.limit },
+		{ limit: null, sort: ['height:asc', 'rowId:asc'], extended: true }
+	)
 		.then(rows => {
 			// Normalize blocks
-			const blocks = modules.blocks.utils.readDbRows(rows);
+			const blocks = modules.blocks.utils.readStorageRows(rows);
 
 			async.eachSeries(
 				blocks,
@@ -400,6 +400,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 							setImmediate(eachBlockSeriesCb, err)
 						);
 					}
+
 					// Process block - broadcast: false, saveBlock: false
 					return modules.blocks.verify.processBlock(
 						block,
