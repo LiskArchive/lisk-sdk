@@ -15,9 +15,11 @@
 
 'use strict';
 
+const BigNumber = require('bignumber.js');
 const { BaseEntity, Round } = require('../../../../storage/entities');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
+const accountsFixtures = require('../../../fixtures').accounts;
 const roundsFixtures = require('../../../fixtures').storageRounds;
 const {
 	NonSupportedFilterTypeError,
@@ -26,14 +28,61 @@ const {
 
 describe('Round', () => {
 	let adapter;
-	let addFieldSpy;
-	let invalidFilter;
-	let invalidOptions;
 	let storage;
-	let validFilters;
-	let validOptions;
-	let validRoundSQLs;
-	let validRoundFields;
+	let RoundEntity;
+	let SQLs;
+
+	const invalidFilter = {
+		foo: 'bar',
+	};
+
+	const invalidOptions = {
+		foo: true,
+		bar: true,
+	};
+
+	const validFilters = [
+		'address',
+		'address_eql',
+		'address_ne',
+		'address_in',
+		'address_like',
+		'amount',
+		'amount_eql',
+		'amount_ne',
+		'amount_gt',
+		'amount_gte',
+		'amount_lt',
+		'amount_lte',
+		'amount_in',
+		'delegatePublicKey',
+		'delegatePublicKey_eql',
+		'delegatePublicKey_ne',
+		'delegatePublicKey_in',
+		'delegatePublicKey_like',
+		'round',
+		'round_eql',
+		'round_ne',
+		'round_gt',
+		'round_gte',
+		'round_lt',
+		'round_lte',
+		'round_in',
+	];
+
+	const validRoundSQLs = [
+		'select',
+		'create',
+		'isPersisted',
+		'update',
+		'updateOne',
+	];
+
+	const validRoundFields = ['address', 'amount', 'delegatePublicKey', 'round'];
+
+	const validOptions = {
+		sort: 'round:asc',
+	};
 
 	const validRound = new roundsFixtures.Round();
 	const validFilter = { round: validRound.round };
@@ -45,54 +94,9 @@ describe('Round', () => {
 		);
 		await storage.bootstrap();
 
-		invalidFilter = {
-			foo: 'bar',
-		};
-
-		invalidOptions = {
-			foo: true,
-			bar: true,
-		};
-
-		validFilters = [
-			'address',
-			'address_eql',
-			'address_ne',
-			'address_in',
-			'address_like',
-			'amount',
-			'amount_eql',
-			'amount_ne',
-			'amount_gt',
-			'amount_gte',
-			'amount_lt',
-			'amount_lte',
-			'amount_in',
-			'delegatePublicKey',
-			'delegatePublicKey_eql',
-			'delegatePublicKey_ne',
-			'delegatePublicKey_in',
-			'delegatePublicKey_like',
-			'round',
-			'round_eql',
-			'round_ne',
-			'round_gt',
-			'round_gte',
-			'round_lt',
-			'round_lte',
-			'round_in',
-		];
-
-		validRoundSQLs = ['select', 'create', 'isPersisted', 'update', 'updateOne'];
-
-		validRoundFields = ['address', 'amount', 'delegatePublicKey', 'round'];
-
-		validOptions = {
-			sort: 'round:asc',
-		};
-
 		adapter = storage.adapter;
-		addFieldSpy = sinonSandbox.spy(Round.prototype, 'addField');
+		RoundEntity = storage.entities.Round;
+		SQLs = RoundEntity.SQLs;
 	});
 
 	beforeEach(() => {
@@ -121,31 +125,32 @@ describe('Round', () => {
 		it('should have called super', async () => {
 			// The reasoning here is that if the parent's contstructor was called
 			// the properties from the parent are present in the extending object
-			const round = new Round(adapter);
-			expect(typeof round.parseFilters).to.be.eql('function');
-			expect(typeof round.addFilter).to.be.eql('function');
-			expect(typeof round.addField).to.be.eql('function');
-			expect(typeof round.getFilters).to.be.eql('function');
-			expect(typeof round.getUpdateSet).to.be.eql('function');
-			expect(typeof round.getValuesSet).to.be.eql('function');
-			expect(typeof round.begin).to.be.eql('function');
-			expect(typeof round.validateFilters).to.be.eql('function');
-			expect(typeof round.validateOptions).to.be.eql('function');
+			expect(typeof RoundEntity.parseFilters).to.be.eql('function');
+			expect(typeof RoundEntity.addFilter).to.be.eql('function');
+			expect(typeof RoundEntity.addField).to.be.eql('function');
+			expect(typeof RoundEntity.getFilters).to.be.eql('function');
+			expect(typeof RoundEntity.getUpdateSet).to.be.eql('function');
+			expect(typeof RoundEntity.getValuesSet).to.be.eql('function');
+			expect(typeof RoundEntity.begin).to.be.eql('function');
+			expect(typeof RoundEntity.validateFilters).to.be.eql('function');
+			expect(typeof RoundEntity.validateOptions).to.be.eql('function');
 		});
 
 		it('should assign proper sql', async () => {
-			const round = new Round(adapter);
-			expect(round.SQLs).to.include.all.keys(validRoundSQLs);
+			expect(RoundEntity.SQLs).to.include.all.keys(validRoundSQLs);
 		});
 
 		it('should call addField the exact number of times', async () => {
-			const round = new Round(adapter);
-			expect(addFieldSpy.callCount).to.eql(Object.keys(round.fields).length);
+			const addFieldSpy = sinonSandbox.spy(Round.prototype, 'addField');
+			new Round(adapter);
+
+			expect(addFieldSpy.callCount).to.eql(
+				Object.keys(RoundEntity.fields).length
+			);
 		});
 
 		it('should setup correct fields', async () => {
-			const round = new Round(adapter);
-			expect(round.fields).to.include.all.keys(validRoundFields);
+			expect(RoundEntity.fields).to.include.all.keys(validRoundFields);
 		});
 
 		it('should setup specific filters');
@@ -211,30 +216,26 @@ describe('Round', () => {
 		});
 
 		it('should accept only valid filters', async () => {
-			const round = new Round(adapter);
 			expect(() => {
-				round.getOne(validFilter, { sort: 'round:desc' });
+				RoundEntity.getOne(validFilter, { sort: 'round:desc' });
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
-			const round = new Round(adapter);
 			expect(() => {
-				round.getOne(invalidFilter);
+				RoundEntity.getOne(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should accept only valid options', async () => {
-			const round = new Round(adapter);
 			expect(() => {
-				round.getOne(validFilter, validOptions);
+				RoundEntity.getOne(validFilter, validOptions);
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
 		it('should throw error for invalid options', async () => {
-			const round = new Round(adapter);
 			expect(() => {
-				round.getOne(validFilter, invalidOptions);
+				RoundEntity.getOne(validFilter, invalidOptions);
 			}).to.throw(NonSupportedOptionError);
 		});
 
@@ -245,8 +246,7 @@ describe('Round', () => {
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
-				const round = new Round(adapter);
-				expect(round.getFilters()).to.eql(validFilters);
+				expect(RoundEntity.getFilters()).to.eql(validFilters);
 			});
 			// For each filter type
 			it('should return matching result for provided filter');
@@ -255,24 +255,22 @@ describe('Round', () => {
 
 	describe('isPersisted()', () => {
 		beforeEach(async () => {
-			await storage.entities.Round.create(validRound);
+			await RoundEntity.create(validRound);
 		});
 
 		afterEach(async () => {
-			await storage.entities.Round.delete(validFilter);
+			await RoundEntity.delete(validFilter);
 		});
 
 		it('should accept only valid filters', async () => {
-			const round = new Round(adapter);
 			expect(() => {
-				round.isPersisted(validFilter);
+				RoundEntity.isPersisted(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
-			const round = new Round(adapter);
 			expect(() => {
-				round.isPersisted(invalidFilter);
+				RoundEntity.isPersisted(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
 
@@ -328,8 +326,8 @@ describe('Round', () => {
 		it('should resolve with true if matching record found', async () => {
 			const randRound = { ...validRound };
 			randRound.round = '1001';
-			await storage.entities.Round.create(randRound);
-			const res = await storage.entities.Round.isPersisted({
+			await RoundEntity.create(randRound);
+			const res = await RoundEntity.isPersisted({
 				round: randRound.round,
 			});
 			expect(res).to.be.true;
@@ -337,8 +335,8 @@ describe('Round', () => {
 
 		it('should resolve with false if matching record not found', async () => {
 			const randRound = new roundsFixtures.Round();
-			await storage.entities.Round.create(randRound);
-			const res = await storage.entities.Round.isPersisted({ round: '20000' });
+			await RoundEntity.create(randRound);
+			const res = await RoundEntity.isPersisted({ round: '20000' });
 			expect(res).to.be.false;
 		});
 	});
@@ -346,7 +344,7 @@ describe('Round', () => {
 	describe('create()', () => {
 		it('should save single round', async () => {
 			const randRound = new roundsFixtures.Round();
-			await storage.entities.Round.create(randRound);
+			await RoundEntity.create(randRound);
 			expect(
 				await storage.entities.Round.getOne({ round: randRound.round })
 			).to.be.eql(randRound);
@@ -358,8 +356,8 @@ describe('Round', () => {
 				new roundsFixtures.Round(),
 			].sort((a, b) => a.round - b.round);
 			const filters = randRounds.map(aRound => aRound.round);
-			await storage.entities.Round.create(randRounds);
-			const result = await storage.entities.Round.get(
+			await RoundEntity.create(randRounds);
+			const result = await RoundEntity.get(
 				{ round_in: filters },
 				{ sort: 'round:asc' }
 			);
@@ -370,17 +368,15 @@ describe('Round', () => {
 	describe('delete', () => {
 		it('should accept only valid filters', async () => {
 			const randRound = new roundsFixtures.Round();
-			const round = new Round(adapter);
 			expect(() => {
-				round.delete(validFilter, randRound);
+				RoundEntity.delete(validFilter, randRound);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
-			const round = new Round(adapter);
 			const randRound = new roundsFixtures.Round();
 			expect(() => {
-				round.delete(invalidFilter, randRound);
+				RoundEntity.delete(invalidFilter, randRound);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
 
@@ -415,22 +411,19 @@ describe('Round', () => {
 		it('should only delete records specified by filter', async () => {
 			const randRoundA = new roundsFixtures.Round();
 			const randRoundB = new roundsFixtures.Round();
-			await storage.entities.Round.create([randRoundA, randRoundB]);
-			await storage.entities.Round.delete({ round: randRoundA.round });
+			await RoundEntity.create([randRoundA, randRoundB]);
+			await RoundEntity.delete({ round: randRoundA.round });
 			expect(
-				await storage.entities.Round.getOne(
-					{ round: randRoundB.round },
-					{ sort: 'round' }
-				)
+				await RoundEntity.getOne({ round: randRoundB.round }, { sort: 'round' })
 			).to.eql(randRoundB);
 		});
 
 		it('should delete all records if no filter is specified', async () => {
 			const randRoundA = new roundsFixtures.Round();
 			const randRoundB = new roundsFixtures.Round();
-			await storage.entities.Round.create([randRoundA, randRoundB]);
-			await storage.entities.Round.delete();
-			const found = await storage.entities.Round.get(
+			await RoundEntity.create([randRoundA, randRoundB]);
+			await RoundEntity.delete();
+			const found = await RoundEntity.get(
 				{ round_in: [randRoundA.round, randRoundB.round] },
 				{ sort: 'round' }
 			);
@@ -450,16 +443,68 @@ describe('Round', () => {
 				round: 1,
 			});
 
-			await storage.entities.Round.create([round1, round2, round3]);
+			await RoundEntity.create([round1, round2, round3]);
 
-			const result1 = await storage.entities.Round.get();
-			const result2 = await storage.entities.Round.getMemRounds();
+			const result1 = await RoundEntity.get();
+			const result2 = await RoundEntity.getMemRounds();
 
 			// Actually there are three records but getMemRounds return unique round
 			expect(result1).to.have.lengthOf(3);
 			expect(result2).to.have.lengthOf(2);
 			expect(result2[0]).to.have.all.keys('round');
 			return expect(result2.map(r => r.round)).to.have.all.members([1, 2]);
+		});
+	});
+
+	describe('getTotalVotedAmount', () => {
+		it('should use the correct SQL file', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.getTotalVotedAmount({ round: 1 });
+
+			expect(adapter.executeFile.firstCall.args[0]).to.eql(
+				SQLs.getTotalVotedAmount
+			);
+			return expect(adapter.executeFile).to.be.calledOnce;
+		});
+
+		it('should return votes for a round in correct format', async () => {
+			const account = new accountsFixtures.Account();
+
+			const round1 = new roundsFixtures.Round({
+				round: 1,
+				delegatePublicKey: account.publicKey,
+			});
+			const round2 = new roundsFixtures.Round({
+				round: 1,
+				delegatePublicKey: account.publicKey,
+			});
+			const round3 = new roundsFixtures.Round({
+				round: 2,
+			});
+			await RoundEntity.create(round1);
+			await RoundEntity.create(round2);
+			await RoundEntity.create(round3);
+
+			const allRecords = await adapter.execute('SELECT * FROM mem_round');
+			const result = await RoundEntity.getTotalVotedAmount({ round: 1 });
+
+			expect(allRecords).to.have.lengthOf(3);
+			expect(result).to.be.not.empty;
+			expect(result).to.have.lengthOf(1);
+			expect(result[0]).to.be.have.all.keys('delegate', 'amount');
+			return expect(result[0]).to.be.eql({
+				delegate: account.publicKey,
+				amount: new BigNumber(round1.amount).plus(round2.amount).toString(),
+			});
+		});
+
+		it('should resolve without any error if no filter is provided', async () => {
+			expect(RoundEntity.getTotalVotedAmount({})).to.be.fulfilled;
+		});
+
+		it('should resolve without any error if unnown round number is provided', async () => {
+			return expect(RoundEntity.getTotalVotedAmount({ round: 1234 })).to.be
+				.fulfilled;
 		});
 	});
 });

@@ -90,6 +90,9 @@ class Round extends BaseEntity {
 			updateOne: this.adapter.loadSQLFile('rounds/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('rounds/is_persisted.sql'),
 			delete: this.adapter.loadSQLFile('rounds/delete.sql'),
+			getTotalVotedAmount: this.adapter.loadSQLFile(
+				'rounds/get_total_voted_amount.sql'
+			),
 		};
 	}
 
@@ -308,6 +311,32 @@ class Round extends BaseEntity {
 	async getMemRounds() {
 		const sql = 'SELECT round FROM mem_round GROUP BY round';
 		return this.adapter.execute(sql);
+	}
+
+	/**
+	 * Get total voted amount for all delegates
+	 *
+	 * @param {filters.Round} filters
+	 * @param {Object} [_options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<Array.<Object>, Error>}
+	 */
+	getTotalVotedAmount(filters, _options, tx = null) {
+		this.validateFilters(filters);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		const params = {
+			parsedFilters,
+		};
+
+		return this.adapter.executeFile(
+			this.SQLs.getTotalVotedAmount,
+			params,
+			{},
+			tx
+		);
 	}
 }
 
