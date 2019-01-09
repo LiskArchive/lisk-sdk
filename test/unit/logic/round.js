@@ -17,65 +17,101 @@
 const rewire = require('rewire');
 const Promise = require('bluebird');
 const Bignum = require('../../../helpers/bignum.js');
-const DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
 const Round = rewire('../../../logic/round.js');
 const genesisBlock = __testContext.config.genesisBlock;
 
 const { ACTIVE_DELEGATES } = global.constants;
 
-describe('rounds', () => {
-	let db;
-	let dbSandbox;
+describe('round', () => {
+	let scope;
 	let round;
+	let dbStub;
+	let storageStub;
 	let validScope;
-	const storageStub = {
-		entities: {
-			Round: {
-				delete: sinonSandbox.stub().resolves('success'),
+
+	before(async () => {
+		dbStub = {
+			rounds: {
+				updateMissedBlocks: sinonSandbox.stub(),
+				updateVotes: sinonSandbox.stub(),
+				updateDelegatesRanks: sinonSandbox.stub(),
+				restoreRoundSnapshot: sinonSandbox.stub(),
+				restoreVotesSnapshot: sinonSandbox.stub(),
+				checkSnapshotAvailability: sinonSandbox.stub(),
+				countRoundSnapshot: sinonSandbox.stub(),
+				deleteRoundRewards: sinonSandbox.stub(),
+				insertRoundRewards: sinonSandbox.stub(),
 			},
-		},
-	};
+		};
 
-	before(done => {
-		dbSandbox = new DBSandbox(__testContext.config.db, 'rounds_logic');
-		dbSandbox.create((err, __db) => {
-			db = __db;
+		dbStub.task = sinonSandbox.stub().yields(dbStub);
+		dbStub.batch = (...args) => {
+			return Promise.all(_.flatten(args));
+		};
 
-			validScope = {
-				backwards: false,
-				round: 1,
-				roundOutsiders: [],
-				roundDelegates: [genesisBlock.generatorPublicKey],
-				roundFees: ACTIVE_DELEGATES,
-				roundRewards: [10],
-				library: {
-					db: undefined,
-					storage: storageStub,
-					logger: {
-						trace: sinonSandbox.spy(),
-						debug: sinonSandbox.spy(),
-						info: sinonSandbox.spy(),
-						log: sinonSandbox.spy(),
-						warn: sinonSandbox.spy(),
-						error: sinonSandbox.spy(),
-					},
+		storageStub = {
+			entities: {
+				Round: {
+					delete: sinonSandbox.stub().resolves('success'),
+					getTotalVotedAmount: sinonSandbox.stub().resolves('success'),
 				},
-				modules: {
-					accounts: {
-						mergeAccountAndGet: sinonSandbox.stub(),
-					},
-				},
-				block: {
-					generatorPublicKey: genesisBlock.generatorPublicKey,
-					id: genesisBlock.id,
-					height: 1,
-					timestamp: 100,
-				},
-			};
+			},
+		};
 
-			done();
-		});
+		validScope = {
+			backwards: false,
+			round: 1,
+			roundOutsiders: [],
+			roundDelegates: [genesisBlock.generatorPublicKey],
+			roundFees: ACTIVE_DELEGATES,
+			roundRewards: [10],
+			library: {
+				db: dbStub,
+				storage: storageStub,
+				logger: {
+					trace: sinonSandbox.spy(),
+					debug: sinonSandbox.spy(),
+					info: sinonSandbox.spy(),
+					log: sinonSandbox.spy(),
+					warn: sinonSandbox.spy(),
+					error: sinonSandbox.spy(),
+				},
+			},
+			modules: {
+				accounts: {
+					mergeAccountAndGet: sinonSandbox.stub(),
+				},
+			},
+			block: {
+				generatorPublicKey: genesisBlock.generatorPublicKey,
+				id: genesisBlock.id,
+				height: 1,
+				timestamp: 100,
+			},
+		};
+	});
+
+	beforeEach(async () => {
+		scope = _.cloneDeep(validScope);
+		round = new Round(_.cloneDeep(scope), dbStub);
+	});
+
+	afterEach(async () => {
+		dbStub.rounds.updateVotes.reset();
+		dbStub.rounds.updateDelegatesRanks.reset();
+		dbStub.rounds.restoreRoundSnapshot.reset();
+		dbStub.rounds.restoreVotesSnapshot.reset();
+		dbStub.rounds.checkSnapshotAvailability.reset();
+		dbStub.rounds.countRoundSnapshot.reset();
+		dbStub.rounds.deleteRoundRewards.reset();
+		dbStub.rounds.insertRoundRewards.reset();
+		dbStub.rounds.updateMissedBlocks.reset();
+
+		storageStub.entities.Round.delete.reset();
+		storageStub.entities.Round.getTotalVotedAmount.reset();
+		scope.modules.accounts.mergeAccountAndGet.reset();
+		sinonSandbox.restore();
 	});
 
 	function isPromise(obj) {
@@ -83,87 +119,27 @@ describe('rounds', () => {
 	}
 
 	describe('constructor', () => {
-		let scope;
-
 		describe('when calling with required properties', () => {
-			before(done => {
-				scope = _.cloneDeep(validScope);
-				round = new Round(_.cloneDeep(scope), db);
-				done();
-			});
-
 			it('should return Round instance', () => {
 				return expect(round).to.be.instanceof(Round);
 			});
 
 			it('should set scope', () => {
-				return expect(round.scope).to.deep.equal(scope);
+				return expect(round.scope).to.be.eql(validScope);
 			});
 
 			it('should set t', () => {
-				return expect(round.t).to.deep.equal(db);
+				return expect(round.t).to.be.eql(dbStub);
 			});
 		});
 
 		describe('when calling with missing properties', () => {
-			beforeEach(done => {
-				scope = _.cloneDeep(validScope);
-				done();
-			});
-
-			/* eslint-disable mocha/no-skipped-tests */
-			describe.skip('library', () => {
-				it('should throw', done => {
-					const property = 'library';
-					delete scope[property];
-					try {
-						round = new Round(_.cloneDeep(scope), db);
-					} catch (err) {
-						expect(err).to.equal(
-							`Missing required scope property: ${property}`
-						);
-					}
-					done();
-				});
-			});
-
-			describe.skip('modules', () => {
-				it('should throw', done => {
-					const property = 'modules';
-					delete scope[property];
-					try {
-						round = new Round(_.cloneDeep(scope), db);
-					} catch (err) {
-						expect(err).to.equal(
-							`Missing required scope property: ${property}`
-						);
-					}
-					done();
-				});
-			});
-
-			describe.skip('block', () => {
-				it('should throw', done => {
-					const property = 'block';
-					delete scope[property];
-					try {
-						round = new Round(_.cloneDeep(scope), db);
-					} catch (err) {
-						expect(err).to.equal(
-							`Missing required scope property: ${property}`
-						);
-					}
-					done();
-				});
-			});
-			/* eslint-enable mocha/no-skipped-tests */
-
 			describe('round', () => {
 				it('should throw', done => {
 					const property = 'round';
 					delete scope[property];
 					try {
-						round = new Round(_.cloneDeep(scope), db);
+						round = new Round(_.cloneDeep(scope), dbStub);
 					} catch (err) {
 						expect(err).to.equal(
 							`Missing required scope property: ${property}`
@@ -178,7 +154,7 @@ describe('rounds', () => {
 					const property = 'backwards';
 					delete scope[property];
 					try {
-						round = new Round(_.cloneDeep(scope), db);
+						round = new Round(_.cloneDeep(scope), dbStub);
 					} catch (err) {
 						expect(err).to.equal(
 							`Missing required scope property: ${property}`
@@ -200,7 +176,7 @@ describe('rounds', () => {
 						const property = 'roundFees';
 						delete scope[property];
 						try {
-							round = new Round(_.cloneDeep(scope), db);
+							round = new Round(_.cloneDeep(scope), dbStub);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -215,7 +191,7 @@ describe('rounds', () => {
 						const property = 'roundRewards';
 						delete scope[property];
 						try {
-							round = new Round(_.cloneDeep(scope), db);
+							round = new Round(_.cloneDeep(scope), dbStub);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -230,7 +206,7 @@ describe('rounds', () => {
 						const property = 'roundDelegates';
 						delete scope[property];
 						try {
-							round = new Round(_.cloneDeep(scope), db);
+							round = new Round(_.cloneDeep(scope), dbStub);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -245,7 +221,7 @@ describe('rounds', () => {
 						const property = 'roundOutsiders';
 						delete scope[property];
 						try {
-							round = new Round(_.cloneDeep(scope), db);
+							round = new Round(_.cloneDeep(scope), dbStub);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -259,15 +235,12 @@ describe('rounds', () => {
 	});
 
 	describe('mergeBlockGenerator', () => {
-		let scope;
-
 		describe('when going forward', () => {
 			let args = null;
 
-			before(() => {
-				scope = _.cloneDeep(validScope);
+			beforeEach(() => {
 				scope.backwards = false;
-				round = new Round(_.cloneDeep(scope), db);
+				round = new Round(_.cloneDeep(scope), dbStub);
 				args = {
 					producedBlocks: 1,
 					publicKey: scope.block.generatorPublicKey,
@@ -287,10 +260,9 @@ describe('rounds', () => {
 		describe('when going backwards', () => {
 			let args = null;
 
-			before(() => {
-				scope = _.cloneDeep(validScope);
+			beforeEach(() => {
 				scope.backwards = true;
-				round = new Round(_.cloneDeep(scope), db);
+				round = new Round(_.cloneDeep(scope), dbStub);
 				args = {
 					producedBlocks: -1,
 					publicKey: scope.block.generatorPublicKey,
@@ -309,29 +281,26 @@ describe('rounds', () => {
 	});
 
 	describe('updateMissedBlocks', () => {
-		let scope;
 		let stub;
 		let res;
 
 		describe('when there are no outsiders', () => {
-			before(done => {
-				scope = _.cloneDeep(validScope);
+			beforeEach(done => {
 				res = round.updateMissedBlocks();
 				done();
 			});
 
 			it('should return t object', () => {
 				expect(res).to.not.be.instanceOf(Promise);
-				return expect(res).to.deep.equal(db);
+				return expect(res).to.deep.equal(dbStub);
 			});
 		});
 
 		describe('when there are outsiders', () => {
-			before(done => {
-				scope = _.cloneDeep(validScope);
+			beforeEach(done => {
 				scope.roundOutsiders = ['abc'];
-				round = new Round(_.cloneDeep(scope), db);
-				stub = sinonSandbox.stub(db.rounds, 'updateMissedBlocks');
+				round = new Round(_.cloneDeep(scope), dbStub);
+				stub = dbStub.rounds.updateMissedBlocks;
 				stub
 					.withArgs(scope.backwards, scope.roundOutsiders)
 					.resolves('success');
@@ -356,12 +325,10 @@ describe('rounds', () => {
 	describe('getVotes', () => {
 		let stub;
 		let res;
-		let scope;
 
-		before(done => {
-			scope = _.cloneDeep(validScope);
-			stub = sinonSandbox.stub(db.rounds, 'getVotes');
-			stub.withArgs(scope.round).resolves('success');
+		beforeEach(done => {
+			stub = storageStub.entities.Round.getTotalVotedAmount;
+			stub.withArgs({ round: scope.round }).resolves('success');
 			res = round.getVotes();
 			done();
 		});
@@ -373,7 +340,7 @@ describe('rounds', () => {
 		it('query should be called with proper args', () => {
 			return res.then(response => {
 				expect(response).to.equal('success');
-				expect(stub.calledWith(scope.round)).to.be.true;
+				expect(stub.calledWith({ round: scope.round })).to.be.true;
 			});
 		});
 	});
@@ -382,12 +349,12 @@ describe('rounds', () => {
 		let getVotes_stub;
 		let updateVotes_stub;
 		let res;
-		let scope;
 		let delegate;
 
-		describe('when getVotes returns at least one entry', () => {
-			before(() => {
-				scope = _.cloneDeep(validScope);
+		describe('when getVotes returns at least one entry', async () => {
+			beforeEach(async () => {
+				getVotes_stub = storageStub.entities.Round.getTotalVotedAmount;
+				updateVotes_stub = dbStub.rounds.updateVotes;
 
 				delegate = {
 					amount: 10000,
@@ -396,23 +363,20 @@ describe('rounds', () => {
 					address: '16010222169256538112L',
 				};
 
-				scope.library.db = db;
 				scope.modules.accounts.generateAddressByPublicKey = function() {
 					return delegate.address;
 				};
 
-				return db.task(t => {
-					// Init stubs
-					getVotes_stub = sinonSandbox.stub(t.rounds, 'getVotes');
-					getVotes_stub.withArgs(scope.round).resolves([delegate, delegate]);
-					updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes');
-					updateVotes_stub
-						.withArgs(delegate.address, delegate.amount)
-						.resolves('QUERY');
+				getVotes_stub
+					.withArgs({ round: scope.round })
+					.resolves([delegate, delegate]);
 
-					round = new Round(_.cloneDeep(scope), t);
-					res = round.updateVotes();
-				});
+				updateVotes_stub
+					.withArgs(delegate.address, delegate.amount)
+					.resolves('QUERY');
+
+				round = new Round(_.cloneDeep(scope), dbStub);
+				res = round.updateVotes();
 			});
 
 			it('should return promise', () => {
@@ -420,11 +384,12 @@ describe('rounds', () => {
 			});
 
 			it('getVotes query should be called with proper args', () => {
-				return expect(getVotes_stub.calledWith(scope.round)).to.be.true;
+				return expect(getVotes_stub.calledWith({ round: scope.round })).to.be
+					.true;
 			});
 
 			it('updateVotes should be called twice', () => {
-				return expect(updateVotes_stub.calledTwice).to.be.true;
+				return expect(updateVotes_stub.callCount).to.be.eql(2);
 			});
 
 			it('updateVotes query should be called with proper args', () => {
@@ -441,7 +406,7 @@ describe('rounds', () => {
 		});
 
 		describe('when getVotes returns no entries', () => {
-			before(() => {
+			beforeEach(async () => {
 				scope = _.cloneDeep(validScope);
 
 				delegate = {
@@ -451,23 +416,18 @@ describe('rounds', () => {
 					address: '16010222169256538112L',
 				};
 
-				scope.library.db = db;
 				scope.modules.accounts.generateAddressByPublicKey = function() {
 					return delegate.address;
 				};
 
-				return db.task(t => {
-					// Init stubs
-					getVotes_stub = sinonSandbox.stub(t.rounds, 'getVotes');
-					getVotes_stub.withArgs(scope.round).resolves([]);
-					updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes');
-					updateVotes_stub
-						.withArgs(delegate.address, delegate.amount)
-						.resolves('QUERY');
+				getVotes_stub.withArgs({ round: scope.round }).resolves([]);
+				updateVotes_stub.resetHistory();
+				updateVotes_stub
+					.withArgs(delegate.address, delegate.amount)
+					.resolves('QUERY');
 
-					round = new Round(_.cloneDeep(scope), t);
-					res = round.updateVotes();
-				});
+				round = new Round(_.cloneDeep(scope), dbStub);
+				res = round.updateVotes();
 			});
 
 			it('should return promise', () => {
@@ -475,7 +435,8 @@ describe('rounds', () => {
 			});
 
 			it('getVotes query should be called with proper args', () => {
-				return expect(getVotes_stub.calledWith(scope.round)).to.be.true;
+				return expect(getVotes_stub.calledWith({ round: scope.round })).to.be
+					.true;
 			});
 
 			it('updateVotes should be not called', () => {
@@ -487,38 +448,33 @@ describe('rounds', () => {
 	describe('flushRound', () => {
 		let stub;
 		let res;
-		let scope;
 
-		before(done => {
-			scope = _.cloneDeep(validScope);
-			round = new Round(_.cloneDeep(scope), db);
+		beforeEach(async () => {
+			stub = scope.library.storage.entities.Round.delete.resolves('success');
+			round = new Round(_.cloneDeep(scope), dbStub);
 			res = round.flushRound();
-			done();
 		});
 
 		it('should return promise', () => {
 			return expect(isPromise(res)).to.be.true;
 		});
 
-		it('query should be called with proper args', () => {
-			return res.then(response => {
-				expect(response).to.equal('success');
-				stub = validScope.library.storage.entities.Round.delete;
-				expect(stub.calledWith({ round: validScope.round })).to.be.true;
-			});
+		it('query should be called with proper args', async () => {
+			const response = await res;
+			expect(response).to.equal('success');
+			expect(stub).to.be.calledWith({ round: validScope.round });
 		});
 	});
 
 	describe('updateDelegatesRanks', () => {
 		let stub;
 		let res;
-		let scope;
 
-		before(done => {
-			scope = _.cloneDeep(validScope);
-			stub = sinonSandbox.stub(db.rounds, 'updateDelegatesRanks');
+		beforeEach(done => {
+			stub = dbStub.rounds.updateDelegatesRanks;
 			stub.resolves('success');
-			round = new Round(_.cloneDeep(scope), db);
+
+			round = new Round(_.cloneDeep(scope), dbStub);
 			res = round.updateDelegatesRanks();
 			done();
 		});
@@ -537,12 +493,11 @@ describe('rounds', () => {
 
 	describe('restoreRoundSnapshot', () => {
 		let res;
+		let stub;
 
-		before(done => {
-			sinonSandbox
-				.stub(db.rounds, 'restoreRoundSnapshot')
-				.withArgs()
-				.resolves('success');
+		beforeEach(done => {
+			stub = dbStub.rounds.restoreRoundSnapshot;
+			stub.resolves('success');
 			res = round.restoreRoundSnapshot();
 			done();
 		});
@@ -554,7 +509,7 @@ describe('rounds', () => {
 		it('query should be called with no args', () => {
 			return res.then(response => {
 				expect(response).to.equal('success');
-				expect(db.rounds.restoreRoundSnapshot.calledWith()).to.be.true;
+				expect(stub.calledWith()).to.be.true;
 			});
 		});
 	});
@@ -563,8 +518,8 @@ describe('rounds', () => {
 		let stub;
 		let res;
 
-		before(done => {
-			stub = sinonSandbox.stub(db.rounds, 'restoreVotesSnapshot');
+		beforeEach(done => {
+			stub = dbStub.rounds.restoreVotesSnapshot;
 			stub.withArgs().resolves('success');
 			res = round.restoreVotesSnapshot();
 			done();
@@ -584,26 +539,12 @@ describe('rounds', () => {
 
 	describe('checkSnapshotAvailability', () => {
 		const stubs = {};
-		let scope;
 		let res;
 
-		before(done => {
+		beforeEach(done => {
 			// Init stubs and scope
-			stubs.checkSnapshotAvailability = sinonSandbox.stub(
-				db.rounds,
-				'checkSnapshotAvailability'
-			);
-			stubs.countRoundSnapshot = sinonSandbox.stub(
-				db.rounds,
-				'countRoundSnapshot'
-			);
-			scope = _.cloneDeep(validScope);
-			done();
-		});
-
-		afterEach(done => {
-			stubs.checkSnapshotAvailability.resetHistory();
-			stubs.countRoundSnapshot.resetHistory();
+			stubs.checkSnapshotAvailability = dbStub.rounds.checkSnapshotAvailability;
+			stubs.countRoundSnapshot = dbStub.rounds.countRoundSnapshot;
 			done();
 		});
 
@@ -611,7 +552,7 @@ describe('rounds', () => {
 			stubs.checkSnapshotAvailability.resolves();
 			stubs.countRoundSnapshot.resolves();
 			scope.round = 1;
-			round = new Round(scope, db);
+			round = new Round(_.cloneDeep(scope), dbStub);
 			res = round.checkSnapshotAvailability();
 
 			return expect(isPromise(res)).to.be.true;
@@ -620,7 +561,7 @@ describe('rounds', () => {
 		it('should resolve without any error when checkSnapshotAvailability query returns 1', () => {
 			stubs.checkSnapshotAvailability.withArgs(1).resolves(1);
 			scope.round = 1;
-			round = new Round(scope, db);
+			round = new Round(_.cloneDeep(scope), dbStub);
 			res = round.checkSnapshotAvailability();
 
 			return res.then(() => {
@@ -633,7 +574,7 @@ describe('rounds', () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(0);
 			scope.round = 2;
-			round = new Round(scope, db);
+			round = new Round(_.cloneDeep(scope), dbStub);
 			res = round.checkSnapshotAvailability();
 
 			return res.then(() => {
@@ -646,7 +587,7 @@ describe('rounds', () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(1);
 			scope.round = 2;
-			round = new Round(scope, db);
+			round = new Round(_.cloneDeep(scope), dbStub);
 			res = round.checkSnapshotAvailability();
 
 			return expect(res).to.eventually.be.rejectedWith(
@@ -659,10 +600,10 @@ describe('rounds', () => {
 		let stub;
 		let res;
 
-		before(done => {
-			stub = sinonSandbox.stub(db.rounds, 'deleteRoundRewards');
+		beforeEach(done => {
+			stub = dbStub.rounds.deleteRoundRewards;
 			stub.withArgs(validScope.round).resolves('success');
-			round = new Round(_.cloneDeep(validScope), db);
+			round = new Round(_.cloneDeep(scope), dbStub);
 			res = round.deleteRoundRewards();
 			done();
 		});
@@ -681,9 +622,7 @@ describe('rounds', () => {
 
 	describe('applyRound', () => {
 		let res;
-		let batch_stub;
 		let insertRoundRewards_stub;
-		let scope;
 
 		function sumChanges(forward, backwards) {
 			const results = {};
@@ -720,76 +659,33 @@ describe('rounds', () => {
 			return results;
 		}
 
-		/* eslint-disable mocha/no-skipped-tests */
-		describe.skip('with no delegates', () => {
-			describe('forward', () => {
-				before(done => {
-					scope = _.cloneDeep(validScope);
-					scope.backwards = false;
-					scope.roundDelegates = [];
-					round = new Round(_.cloneDeep(scope), db);
-					res = round.applyRound();
-					done();
-				});
-
-				it('should return t object', () => {
-					return expect(res).to.deep.equal(db);
-				});
-
-				it('should not call mergeAccountAndGet', () => {
-					return expect(round.scope.modules.accounts.mergeAccountAndGet.called)
-						.to.be.false;
-				});
-			});
-
-			describe('backwards', () => {
-				before(done => {
-					scope = _.cloneDeep(validScope);
-					scope.backwards = true;
-					scope.roundDelegates = [];
-					round = new Round(_.cloneDeep(scope), db);
-					res = round.applyRound();
-					done();
-				});
-
-				it('should not call mergeAccountAndGet', () => {
-					return expect(round.scope.modules.accounts.mergeAccountAndGet.called)
-						.to.be.false;
-				});
-
-				it('should return t object', () => {
-					return expect(res).to.deep.equal(db);
-				});
-			});
-		});
-		/* eslint-enable mocha/no-skipped-tests */
-
 		describe('with only one delegate', () => {
 			describe('when there are no remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
+				let batch_stub;
 
-				before(done => {
-					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
-					validScope.roundFees = ACTIVE_DELEGATES; // 1 LSK fee per delegate, no remaining fees
+				beforeEach(done => {
+					scope.roundDelegates = [genesisBlock.generatorPublicKey];
+					scope.roundFees = ACTIVE_DELEGATES; // 1 LSK fee per delegate, no remaining fees
+					batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves('success');
 					done();
+				});
+
+				afterEach(async () => {
+					round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+					batch_stub.restore();
 				});
 
 				describe('forward', () => {
 					let called = 0;
 
-					before(() => {
-						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						return db.task(t => {
-							insertRoundRewards_stub = sinonSandbox
-								.stub(t.rounds, 'insertRoundRewards')
-								.resolves('success');
-							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
-							scope = _.cloneDeep(validScope);
-							scope.backwards = false;
-							round = new Round(_.cloneDeep(scope), t);
-							res = round.applyRound();
-						});
+					beforeEach(async () => {
+						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
+						insertRoundRewards_stub.resolves('success');
+						scope.backwards = false;
+						round = new Round(_.cloneDeep(scope), dbStub);
+						res = round.applyRound();
 					});
 
 					it('query should be called', () => {
@@ -828,7 +724,7 @@ describe('rounds', () => {
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
-						return expect(result).to.deep.equal(args);
+						return expect(result).to.be.eql(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (for apply remaining fees)', () => {
@@ -851,18 +747,13 @@ describe('rounds', () => {
 				describe('backwards', () => {
 					let called = 0;
 
-					before(() => {
+					beforeEach(async () => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						return db.task(t => {
-							insertRoundRewards_stub = sinonSandbox
-								.stub(t.rounds, 'insertRoundRewards')
-								.resolves('success');
-							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
-							scope = _.cloneDeep(validScope);
-							scope.backwards = true;
-							round = new Round(_.cloneDeep(scope), t);
-							res = round.applyRound();
-						});
+						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
+						insertRoundRewards_stub.resolves('success');
+						scope.backwards = true;
+						round = new Round(_.cloneDeep(scope), dbStub);
+						res = round.applyRound();
 					});
 
 					it('query should be called', () => {
@@ -952,28 +843,29 @@ describe('rounds', () => {
 			describe('when there are remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
+				let batch_stub;
 
-				before(done => {
-					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
-					validScope.roundFees = 100; // 0 LSK fee per delegate, 100 remaining fees
+				beforeEach(done => {
+					scope.roundDelegates = [genesisBlock.generatorPublicKey];
+					scope.roundFees = 100; // 0 LSK fee per delegate, 100 remaining fees
+					batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves('success');
 					done();
+				});
+
+				afterEach(async () => {
+					round.scope.modules.accounts.mergeAccountAndGet.reset();
+					batch_stub.restore();
 				});
 
 				describe('forward', () => {
 					let called = 0;
 
-					before(() => {
-						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						return db.task(t => {
-							insertRoundRewards_stub = sinonSandbox
-								.stub(t.rounds, 'insertRoundRewards')
-								.resolves('success');
-							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
-							scope = _.cloneDeep(validScope);
-							scope.backwards = false;
-							round = new Round(_.cloneDeep(scope), t);
-							res = round.applyRound();
-						});
+					beforeEach(async () => {
+						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
+						insertRoundRewards_stub.resolves('success');
+						scope.backwards = false;
+						round = new Round(_.cloneDeep(scope), dbStub);
+						res = round.applyRound();
 					});
 
 					it('query should be called', () => {
@@ -986,27 +878,27 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(validScope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(validScope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
 										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
-							publicKey: validScope.roundDelegates[index],
+							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							round: validScope.round,
+							round: scope.round,
 							fees: feesPerDelegate,
-							rewards: validScope.roundRewards[index],
+							rewards: scope.roundRewards[index],
 						};
 						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
@@ -1017,22 +909,20 @@ describe('rounds', () => {
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
 						const index = 0; // Delegate index on list
-						const feesPerDelegate = new Bignum(
-							validScope.roundFees.toPrecision(15)
-						)
+						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
 							.integerValue(Bignum.ROUND_FLOOR);
 						const remainingFees = Number(
-							new Bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
 						const args = {
-							publicKey: validScope.roundDelegates[index], // Remaining fees are applied to last delegate of round
+							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
 							u_balance: remainingFees,
-							round: validScope.round,
+							round: scope.round,
 							fees: remainingFees,
 						};
 						const result =
@@ -1062,18 +952,12 @@ describe('rounds', () => {
 				describe('backwards', () => {
 					let called = 0;
 
-					before(() => {
-						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						return db.task(t => {
-							insertRoundRewards_stub = sinonSandbox
-								.stub(t.rounds, 'insertRoundRewards')
-								.resolves('success');
-							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
-							scope = _.cloneDeep(validScope);
-							scope.backwards = true;
-							round = new Round(_.cloneDeep(scope), t);
-							res = round.applyRound();
-						});
+					beforeEach(async () => {
+						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
+						insertRoundRewards_stub.resolves('success');
+						scope.backwards = true;
+						round = new Round(_.cloneDeep(scope), dbStub);
+						res = round.applyRound();
 					});
 
 					it('query should be called', () => {
@@ -1086,27 +970,27 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(validScope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(validScope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
 										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
-							publicKey: validScope.roundDelegates[index],
+							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							round: validScope.round,
+							round: scope.round,
 							fees: -feesPerDelegate,
-							rewards: -validScope.roundRewards[index],
+							rewards: -scope.roundRewards[index],
 						};
 						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
@@ -1117,22 +1001,20 @@ describe('rounds', () => {
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
 						const index = 0; // Delegate index on list
-						const feesPerDelegate = new Bignum(
-							validScope.roundFees.toPrecision(15)
-						)
+						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
 							.integerValue(Bignum.ROUND_FLOOR);
 						const remainingFees = Number(
-							new Bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
 						const args = {
-							publicKey: validScope.roundDelegates[index], // Remaining fees are applied to last delegate of round
+							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
 							u_balance: -remainingFees,
-							round: validScope.round,
+							round: scope.round,
 							fees: -remainingFees,
 						};
 						const result =
@@ -1192,33 +1074,34 @@ describe('rounds', () => {
 			describe('when there are no remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
+				let batch_stub;
 
-				before(done => {
-					validScope.roundDelegates = [
+				beforeEach(done => {
+					scope.roundDelegates = [
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 						'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
 						'380b952cd92f11257b71cce73f51df5e0a258e54f60bb82bccd2ba8b4dff2ec9',
 					];
-					validScope.roundRewards = [1, 2, 3];
-					validScope.roundFees = ACTIVE_DELEGATES; // 1 LSK fee per delegate, no remaining fees
+					scope.roundRewards = [1, 2, 3];
+					scope.roundFees = ACTIVE_DELEGATES; // 1 LSK fee per delegate, no remaining fees
+					batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves('success');
 					done();
+				});
+
+				afterEach(async () => {
+					round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+					batch_stub.restore();
 				});
 
 				describe('forward', () => {
 					let called = 0;
 
-					before(() => {
-						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						return db.task(t => {
-							insertRoundRewards_stub = sinonSandbox
-								.stub(t.rounds, 'insertRoundRewards')
-								.resolves('success');
-							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
-							scope = _.cloneDeep(validScope);
-							scope.backwards = false;
-							round = new Round(_.cloneDeep(scope), t);
-							res = round.applyRound();
-						});
+					beforeEach(async () => {
+						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
+						insertRoundRewards_stub.resolves('success');
+						scope.backwards = false;
+						round = new Round(_.cloneDeep(scope), dbStub);
+						res = round.applyRound();
 					});
 
 					it('query should be called', () => {
@@ -1358,18 +1241,13 @@ describe('rounds', () => {
 				describe('backwards', () => {
 					let called = 0;
 
-					before(() => {
-						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						return db.task(t => {
-							insertRoundRewards_stub = sinonSandbox
-								.stub(t.rounds, 'insertRoundRewards')
-								.resolves('success');
-							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
-							scope = _.cloneDeep(validScope);
-							scope.backwards = true;
-							round = new Round(_.cloneDeep(scope), t);
-							res = round.applyRound();
-						});
+					beforeEach(async () => {
+						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
+						insertRoundRewards_stub.resolves('success');
+						scope.backwards = true;
+						round = new Round(_.cloneDeep(scope), dbStub);
+						res = round.applyRound();
+						await res;
 					});
 
 					it('query should be called', () => {
@@ -1523,33 +1401,35 @@ describe('rounds', () => {
 			describe('when there are remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
+				let batch_stub;
 
-				before(done => {
-					validScope.roundDelegates = [
+				beforeEach(done => {
+					scope.roundDelegates = [
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 						'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
 						'380b952cd92f11257b71cce73f51df5e0a258e54f60bb82bccd2ba8b4dff2ec9',
 					];
-					validScope.roundRewards = [1, 2, 3];
-					validScope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
+					scope.roundRewards = [1, 2, 3];
+					scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
+					batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves('success');
 					done();
+				});
+
+				afterEach(async () => {
+					round.scope.modules.accounts.mergeAccountAndGet.reset();
+					batch_stub.restore();
 				});
 
 				describe('forward', () => {
 					let called = 0;
 
-					before(() => {
-						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						return db.task(t => {
-							insertRoundRewards_stub = sinonSandbox
-								.stub(t.rounds, 'insertRoundRewards')
-								.resolves('success');
-							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
-							scope = _.cloneDeep(validScope);
-							scope.backwards = false;
-							round = new Round(_.cloneDeep(scope), t);
-							res = round.applyRound();
-						});
+					beforeEach(async () => {
+						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
+						insertRoundRewards_stub.resolves('success');
+						scope.backwards = false;
+						round = new Round(_.cloneDeep(scope), dbStub);
+						res = round.applyRound();
+						await res;
 					});
 
 					it('query should be called', () => {
@@ -1714,18 +1594,13 @@ describe('rounds', () => {
 				describe('backwards', () => {
 					let called = 0;
 
-					before(() => {
-						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						return db.task(t => {
-							insertRoundRewards_stub = sinonSandbox
-								.stub(t.rounds, 'insertRoundRewards')
-								.resolves('success');
-							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
-							scope = _.cloneDeep(validScope);
-							scope.backwards = true;
-							round = new Round(_.cloneDeep(scope), t);
-							res = round.applyRound();
-						});
+					beforeEach(async () => {
+						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
+						insertRoundRewards_stub.resolves('success');
+						scope.backwards = true;
+						round = new Round(_.cloneDeep(scope), dbStub);
+						res = round.applyRound();
+						await res;
 					});
 
 					it('query should be called', () => {
@@ -1905,19 +1780,24 @@ describe('rounds', () => {
 
 	describe('land', () => {
 		let batch_stub; // eslint-disable-line no-unused-vars
-		let roundOutsiders_stub;
+		let updateMissedBlocks_stub;
 		let updateVotes_stub;
 		let getVotes_stub;
 		let updateDelegatesRanks_stub;
 		let flush_stub;
 		let res;
-		let scope;
 
-		before(() => {
-			scope = _.cloneDeep(validScope);
+		beforeEach(async () => {
 			// Init required properties
 			scope.roundOutsiders = ['abc'];
-			scope.library.db = db;
+			scope.roundDelegates = [
+				'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
+				'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
+				'380b952cd92f11257b71cce73f51df5e0a258e54f60bb82bccd2ba8b4dff2ec9',
+			];
+			scope.roundRewards = [1, 2, 3];
+			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
+
 			scope.modules.accounts.generateAddressByPublicKey = function() {
 				return delegate.address;
 			};
@@ -1928,29 +1808,18 @@ describe('rounds', () => {
 					'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 				address: '16010222169256538112L',
 			};
+			batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves();
+			updateMissedBlocks_stub = dbStub.rounds.updateMissedBlocks.resolves();
+			getVotes_stub = storageStub.entities.Round.getTotalVotedAmount.resolves([
+				delegate,
+			]);
+			updateVotes_stub = dbStub.rounds.updateVotes.resolves('QUERY');
+			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
+			flush_stub = validScope.library.storage.entities.Round.delete;
 
-			round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-			validScope.library.storage.entities.Round.delete.reset();
-			return db.task(t => {
-				// Init stubs
-				batch_stub = sinonSandbox.stub(t, 'none').resolves();
-				roundOutsiders_stub = sinonSandbox
-					.stub(t.rounds, 'updateMissedBlocks')
-					.resolves();
-				getVotes_stub = sinonSandbox
-					.stub(t.rounds, 'getVotes')
-					.resolves([delegate]);
-				updateVotes_stub = sinonSandbox
-					.stub(t.rounds, 'updateVotes')
-					.resolves('QUERY');
-				updateDelegatesRanks_stub = sinonSandbox
-					.stub(t.rounds, 'updateDelegatesRanks')
-					.resolves();
-				flush_stub = validScope.library.storage.entities.Round.delete;
-
-				round = new Round(_.cloneDeep(scope), t);
-				res = round.land();
-			});
+			round = new Round(_.cloneDeep(scope), dbStub);
+			res = round.land();
+			await res;
 		});
 
 		it('should return promise', () => {
@@ -1959,7 +1828,7 @@ describe('rounds', () => {
 
 		it('query getVotes should be called twice', () => {
 			// 2x updateVotes which calls 1x getVotes
-			return expect(getVotes_stub.callCount).to.equal(2);
+			return expect(getVotes_stub.callCount).to.be.eql(2);
 		});
 
 		it('query updateVotes should be called twice', () => {
@@ -1967,7 +1836,7 @@ describe('rounds', () => {
 		});
 
 		it('query updateMissedBlocks should be called once', () => {
-			return expect(roundOutsiders_stub.callCount).to.equal(1);
+			return expect(updateMissedBlocks_stub.callCount).to.equal(1);
 		});
 
 		it('query flushRound should be called twice', () => {
@@ -1988,7 +1857,7 @@ describe('rounds', () => {
 
 	describe('backwardLand', () => {
 		let batch_stub; // eslint-disable-line no-unused-vars
-		let roundOutsiders_stub;
+		let updateMissedBlocks_stub;
 		let updateVotes_stub;
 		let getVotes_stub;
 		let restoreRoundSnapshot_stub;
@@ -1998,13 +1867,18 @@ describe('rounds', () => {
 		let deleteRoundRewards_stub;
 		let flush_stub;
 		let res;
-		let scope;
 
-		before(() => {
-			scope = _.cloneDeep(validScope);
+		beforeEach(async () => {
 			// Init required properties
 			scope.roundOutsiders = ['abc'];
-			scope.library.db = db;
+			scope.roundDelegates = [
+				'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
+				'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
+				'380b952cd92f11257b71cce73f51df5e0a258e54f60bb82bccd2ba8b4dff2ec9',
+			];
+			scope.roundRewards = [1, 2, 3];
+			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
+
 			scope.modules.accounts.generateAddressByPublicKey = function() {
 				return delegate.address;
 			};
@@ -2016,40 +1890,25 @@ describe('rounds', () => {
 				address: '16010222169256538112L',
 			};
 
-			round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-			validScope.library.storage.entities.Round.delete.reset();
-			return db.task(t => {
-				// Init stubs
-				batch_stub = sinonSandbox.stub(t, 'none').resolves();
-				roundOutsiders_stub = sinonSandbox
-					.stub(t.rounds, 'updateMissedBlocks')
-					.resolves();
-				getVotes_stub = sinonSandbox
-					.stub(t.rounds, 'getVotes')
-					.resolves([delegate]);
-				updateVotes_stub = sinonSandbox
-					.stub(t.rounds, 'updateVotes')
-					.resolves('QUERY');
-				flush_stub = validScope.library.storage.entities.Round.delete;
-				checkSnapshotAvailability_stub = sinonSandbox
-					.stub(t.rounds, 'checkSnapshotAvailability')
-					.resolves(1);
-				restoreRoundSnapshot_stub = sinonSandbox
-					.stub(t.rounds, 'restoreRoundSnapshot')
-					.resolves();
-				restoreVotesSnapshot_stub = sinonSandbox
-					.stub(t.rounds, 'restoreVotesSnapshot')
-					.resolves();
-				deleteRoundRewards_stub = sinonSandbox
-					.stub(t.rounds, 'deleteRoundRewards')
-					.resolves();
-				updateDelegatesRanks_stub = sinonSandbox
-					.stub(t.rounds, 'updateDelegatesRanks')
-					.resolves();
+			batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves();
+			updateMissedBlocks_stub = dbStub.rounds.updateMissedBlocks.resolves();
+			getVotes_stub = storageStub.entities.Round.getTotalVotedAmount.resolves([
+				delegate,
+			]);
+			updateVotes_stub = dbStub.rounds.updateVotes.resolves('QUERY');
+			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
+			flush_stub = validScope.library.storage.entities.Round.delete;
+			checkSnapshotAvailability_stub = dbStub.rounds.checkSnapshotAvailability.resolves(
+				1
+			);
+			restoreRoundSnapshot_stub = dbStub.rounds.restoreRoundSnapshot.resolves();
+			restoreVotesSnapshot_stub = dbStub.rounds.restoreVotesSnapshot.resolves();
+			deleteRoundRewards_stub = dbStub.rounds.deleteRoundRewards.resolves();
+			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
 
-				round = new Round(_.cloneDeep(scope), t);
-				res = round.backwardLand();
-			});
+			round = new Round(_.cloneDeep(scope), dbStub);
+			res = round.backwardLand();
+			await res;
 		});
 
 		it('should return promise', () => {
@@ -2065,7 +1924,7 @@ describe('rounds', () => {
 		});
 
 		it('query updateMissedBlocks not be called', () => {
-			return expect(roundOutsiders_stub.called).to.be.false;
+			return expect(updateMissedBlocks_stub.called).to.be.false;
 		});
 
 		it('query updateDelegatesRanks should be called once', () => {
