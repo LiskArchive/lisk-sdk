@@ -54,8 +54,8 @@ export interface TransactionResponse {
 }
 
 export interface Attributes {
-	readonly [attribute: string]: {
-		readonly [property: string]: string[];
+	readonly [entity: string]: {
+		readonly [property: string]: ReadonlyArray<string>;
 	};
 }
 
@@ -66,7 +66,7 @@ export enum MultisignatureStatus {
 }
 
 export interface EntityMap {
-	readonly [name: string]: ReadonlyArray<unknown>;
+	readonly [name: string]: ReadonlyArray<unknown> | undefined;
 }
 
 export interface RequiredState {
