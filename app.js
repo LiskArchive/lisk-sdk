@@ -534,7 +534,6 @@ d.run(() => {
 						port: scope.config.wsPort,
 						host: '0.0.0.0',
 						wsEngine: scope.config.peers.options.wsEngine,
-						appName: 'lisk',
 						workerController: workersControllerPath,
 						perMessageDeflate: false,
 						secretKey: 'liskSecretKey',
