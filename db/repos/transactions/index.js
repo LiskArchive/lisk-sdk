@@ -109,17 +109,6 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * Count transactions by Id.
-	 *
-	 * @param {string} id
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	countById(id) {
-		return this.db.one(sql.countById, { id }, a => +a.count);
-	}
-
-	/**
 	 * Gets transfer transactions from a list of id-s.
 	 *
 	 * @param {Array.<string>} ids

@@ -110,7 +110,6 @@ module.exports = {
 	},
 	transactions: {
 		count: link('transactions/count.sql'),
-		countById: link('transactions/count_by_id.sql'),
 		countList: link('transactions/count_list.sql'),
 		getDappByIds: link('transactions/get_dapp_by_ids.sql'),
 		getDelegateByIds: link('transactions/get_delegate_by_ids.sql'),

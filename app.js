@@ -668,6 +668,7 @@ d.run(() => {
 							],
 							transaction: [
 								'db',
+								'storage',
 								'bus',
 								'ed',
 								'schema',
@@ -677,6 +678,7 @@ d.run(() => {
 								function(transactionScope, transactionCb) {
 									new Transaction(
 										transactionScope.db,
+										transactionScope.storage,
 										transactionScope.ed,
 										transactionScope.schema,
 										transactionScope.genesisBlock,

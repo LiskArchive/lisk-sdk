@@ -166,43 +166,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('countById()', () => {
-			it('should fulfil with zero if parameter "id" is not provided', () => {
-				return expect(db.transactions.countById()).to.be.eventually.eql(0);
-			});
-
-			it('should fulfil with zero if non existing transaction "id" is provided', () => {
-				return expect(db.transactions.countById('11111')).to.be.eventually.eql(
-					0
-				);
-			});
-
-			it('should use the correct SQL with one parameters', function*() {
-				sinonSandbox.spy(db, 'one');
-				yield db.transactions.countById('11111');
-
-				expect(db.one.firstCall.args[0]).to.eql(transactionsSQL.countById);
-				expect(db.one.firstCall.args[1]).to.eql({ id: '11111' });
-				return expect(db.one.firstCall.args[2]).to.be.a('function');
-			});
-
-			it('should return integer type count of transactions matching the particular id', function*() {
-				let transaction = null;
-
-				for (let i = 0; i < numSeedRecords; i++) {
-					transaction = new transactionsFixtures.Transaction({
-						blockId: seeder.getLastBlock().id,
-					});
-					yield db.transactions.save(transaction);
-				}
-				// Check for last transaction
-				const result = yield db.transactions.countById(transaction.id);
-
-				expect(result).to.be.a('number');
-				return expect(result).to.be.eql(1);
-			});
-		});
-
 		describe('getTransferByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
