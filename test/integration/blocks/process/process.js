@@ -68,8 +68,8 @@ describe('system test (blocks) - process', () => {
 							'forks_stat',
 							'votes WHERE "transactionId" = \'17502993173215211070\'',
 						],
-						table => {
-							clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+						(table, everyCb) => {
+							clearDatabaseTable(db, modulesLoader.logger, table, everyCb);
 						},
 						err => {
 							if (err) {
