@@ -51,7 +51,8 @@ export interface P2PConfig {
 
 // Network info exposed by the P2P library.
 export interface P2PNetworkStatus {
-	readonly peers: ReadonlyArray<PeerInfo>;
+	readonly newPeers: ReadonlyArray<PeerInfo>;
+	readonly activePeers: ReadonlyArray<PeerInfo>;
 }
 
 // This is a representation of the peer object according to the current protocol.

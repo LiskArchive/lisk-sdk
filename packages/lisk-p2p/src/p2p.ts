@@ -53,7 +53,7 @@ export class P2P extends EventEmitter {
 	private _isActive: boolean;
 	private readonly _newPeers: Set<PeerInfo>;
 
-	// TODO ASAP: private readonly _triedPeers: Set<PeerConfig>;
+	// TODO ASAP: private readonly _triedPeers: Set<PeerInfo>;
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServerUpdated;
@@ -102,9 +102,10 @@ export class P2P extends EventEmitter {
 	}
 
 	public getNetworkStatus(): P2PNetworkStatus {
-		// TODO ASAP: Add additional properties.
+		// TODO ASAP: Add additional properties such as _triedPeers.
 		return {
-			peers: this._peerPool.getAllPeerInfos(),
+			newPeers: [...this._newPeers.values()],
+			activePeers: this._peerPool.getAllPeerInfos(),
 		};
 	}
 
