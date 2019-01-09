@@ -23,6 +23,7 @@ describe('transaction pool', () => {
 	const transactions = transactionObjects.map(wrapTransferTransaction);
 	const verifiedTransactionsProcessingInterval = 100;
 	const verifiedTransactionsLimitPerProcessing = 100;
+	const pendingTransactionsProcessingLimit = 5;
 
 	let transactionPool: TransactionPool;
 
@@ -76,6 +77,7 @@ describe('transaction pool', () => {
 		transactionPool = new TransactionPool({
 			expireTransactionsInterval,
 			maxTransactionsPerQueue,
+			pendingTransactionsProcessingLimit,
 			receivedTransactionsProcessingInterval,
 			receivedTransactionsLimitPerProcessing,
 			validateTransactions: validateTransactionsStub,
@@ -395,25 +397,43 @@ describe('transaction pool', () => {
 		const processableTransactionsInVerifiedQueue = transactions.slice(0, 1);
 		const unprocesableTransactionsInVerifiedQueue = transactions.slice(1, 2);
 		const transactionsInVerifiedQueue = [
-			processableTransactionsInVerifiedQueue,
-			unprocesableTransactionsInVerifiedQueue,
+			...processableTransactionsInVerifiedQueue,
+			...unprocesableTransactionsInVerifiedQueue,
 		];
-		const processableTransactionsInReadyQueue = transactions.slice(2, 3);
-		const unprocessableTransactionsInReadyQueue = transactions.slice(3, 5);
+		const processableTransactionsInPendingQueue = transactions.slice(2, 3);
+		const unprocessableTransactionsInPendingQueue = transactions.slice(3, 4);
+		const unprocessableUnsignedTransactionsInPendingQueue = transactions.slice(
+			4,
+			5,
+		);
+		const transactionsInPendingQueue = [
+			...processableTransactionsInPendingQueue,
+			...unprocessableTransactionsInPendingQueue,
+			...unprocessableUnsignedTransactionsInPendingQueue,
+		];
+		const signedTransactionsInPendingQueue = [
+			...processableTransactionsInPendingQueue,
+			...unprocessableTransactionsInPendingQueue,
+		];
+		const processableTransactionsInReadyQueue = transactions.slice(5, 6);
+		const unprocessableTransactionsInReadyQueue = transactions.slice(6, 7);
 		const transactionsInReadyQueue = [
-			processableTransactionsInReadyQueue,
-			unprocessableTransactionsInReadyQueue,
+			...processableTransactionsInReadyQueue,
+			...unprocessableTransactionsInReadyQueue,
 		];
 		const processableTransactions = [
 			...processableTransactionsInReadyQueue,
+			...processableTransactionsInPendingQueue,
 			...processableTransactionsInVerifiedQueue,
 		];
 		const unprocessableTransactions = [
-			...unprocesableTransactionsInVerifiedQueue,
 			...unprocessableTransactionsInReadyQueue,
+			...unprocessableTransactionsInPendingQueue,
+			...unprocesableTransactionsInVerifiedQueue,
 		];
 		const transactionsToProcess = [
 			...transactionsInReadyQueue,
+			...signedTransactionsInPendingQueue,
 			...transactionsInVerifiedQueue,
 		];
 
@@ -437,11 +457,21 @@ describe('transaction pool', () => {
 			(transactionPool.queues.verified.size as sinon.SinonStub).returns(
 				transactionsInVerifiedQueue.length,
 			);
+			(transactionPool.queues.pending.size as sinon.SinonStub).returns(
+				transactionsInPendingQueue.length,
+			);
 			(transactionPool.queues.verified.peekUntil as sinon.SinonStub).returns(
 				transactionsInVerifiedQueue,
 			);
+			(transactionPool.queues.pending.peekUntil as sinon.SinonStub).returns(
+				transactionsInPendingQueue,
+			);
 			(transactionPool.queues.ready.peekUntil as sinon.SinonStub).returns(
 				transactionsInReadyQueue,
+			);
+
+			(transactionPool.queues.pending.filter as sinon.SinonStub).returns(
+				signedTransactionsInPendingQueue,
 			);
 			processVerifiedTransactions = (transactionPool as any)[
 				'processVerifiedTransactions'
@@ -457,25 +487,28 @@ describe('transaction pool', () => {
 			expect(checkTransactionsStub).to.not.be.called;
 		});
 
-		it('should not call checkTransactions if verified queue is empty', async () => {
+		it('should not call checkTransactions if verified and pending queues are empty', async () => {
 			(transactionPool.queues.verified.size as sinon.SinonStub).returns(0);
+			(transactionPool.queues.pending.sizeBy as sinon.SinonStub).returns(0);
 			await processVerifiedTransactions();
 			expect(checkTransactionsStub).to.not.be.called;
 		});
 
 		it('should return empty passedTransactions, failedTransactions arrays if checkTransactions is not called', async () => {
-			(transactionPool.queues.verified.size as sinon.SinonStub).returns(0);
-			const {passedTransactions, failedTransactions} = await processVerifiedTransactions();
+			(transactionPool.queues.ready.size as sinon.SinonStub).returns(
+				verifiedTransactionsLimitPerProcessing + 1,
+			);
+			const {
+				passedTransactions,
+				failedTransactions,
+			} = await processVerifiedTransactions();
 			expect(passedTransactions).to.deep.equal([]);
 			expect(failedTransactions).to.deep.equal([]);
 		});
 
-		it('should remove unprocessable transactions from the verified and ready queues', async () => {
+		it('should remove unprocessable transactions from the verified, pending and ready queues', async () => {
 			checkerStubs.checkTransactionForId
 				.onCall(0)
-				.returns(checkForTransactionUnprocessableTransactionId);
-			checkerStubs.checkTransactionForId
-				.onCall(1)
 				.returns(checkForTransactionUnprocessableTransactionId);
 			await processVerifiedTransactions();
 			expect(checkerStubs.checkTransactionForId.getCall(0)).to.be.calledWith(
@@ -487,9 +520,12 @@ describe('transaction pool', () => {
 				),
 			).to.be.calledWith(checkForTransactionUnprocessableTransactionId);
 
-			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
-				unprocessableTransactions,
-			);
+			expect(
+				(transactionPool.queues.pending.removeFor as sinon.SinonStub).getCall(
+					0,
+				),
+			).to.be.calledWith(checkForTransactionUnprocessableTransactionId);
+
 			expect(
 				(transactionPool.queues.ready.removeFor as sinon.SinonStub).getCall(0),
 			).to.be.calledWith(checkForTransactionUnprocessableTransactionId);
@@ -505,6 +541,9 @@ describe('transaction pool', () => {
 
 		it('should move processable transactions to the ready queue', async () => {
 			checkerStubs.checkTransactionForId
+				.onCall(1)
+				.returns(checkForTransactionProcessableTransactionId);
+			checkerStubs.checkTransactionForId
 				.onCall(2)
 				.returns(checkForTransactionProcessableTransactionId);
 			checkerStubs.checkTransactionForId
@@ -513,10 +552,16 @@ describe('transaction pool', () => {
 			(transactionPool.queues.verified.removeFor as sinon.SinonStub)
 				.onCall(1)
 				.returns(processableTransactions);
+			(transactionPool.queues.pending.removeFor as sinon.SinonStub)
+				.onCall(1)
+				.returns(processableTransactions);
 			(transactionPool.queues.ready.removeFor as sinon.SinonStub)
 				.onCall(1)
 				.returns(processableTransactions);
 			await processVerifiedTransactions();
+			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
+				processableTransactions,
+			);
 			expect(checkerStubs.checkTransactionForId.getCall(2)).to.be.calledWith(
 				processableTransactions,
 			);
@@ -525,6 +570,11 @@ describe('transaction pool', () => {
 			);
 			expect(
 				(transactionPool.queues.verified.removeFor as sinon.SinonStub).getCall(
+					1,
+				),
+			).to.be.calledWith(checkForTransactionProcessableTransactionId);
+			expect(
+				(transactionPool.queues.pending.removeFor as sinon.SinonStub).getCall(
 					1,
 				),
 			).to.be.calledWith(checkForTransactionProcessableTransactionId);
