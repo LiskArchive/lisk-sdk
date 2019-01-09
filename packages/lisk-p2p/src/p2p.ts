@@ -20,6 +20,7 @@ import querystring from 'querystring';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 
 import { Peer, PeerInfo } from './peer';
+import { discoverPeers } from './peer_discovery';
 
 import {
 	P2PConfig,
@@ -29,8 +30,6 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	ProtocolPeerInfo,
-	ProtocolPeerList,
 } from './p2p_types';
 
 type SCServerCloseCallback = () => void;
@@ -188,47 +187,30 @@ export class P2P extends EventEmitter {
 		});
 	}
 
-	// TODO ASAP: This should be refactored to use the discovery function.
-	private async _loadListOfPeerListsFromSeeds(
-		seedList: ReadonlyArray<PeerInfo>,
-	): Promise<ReadonlyArray<ReadonlyArray<Peer>>> {
-		return Promise.all(
-			seedList.map(async (seedPeerInfo: PeerInfo) => {
-				const seedPeer = new Peer(seedPeerInfo);
-				seedPeer.applyNodeInfo(this._nodeInfo);
-				this._newPeers.add(seedPeer.peerInfo);
-				/**
-				 * TODO later: For the LIP phase, we shouldn't add the seed peers to our
-				 * _peerPool and we should disconnect from them as soon as we've loaded their peer lists.
-				 */
-				this._peerPool.addPeer(seedPeer);
-				// TODO later: For the LIP phase, the 'list' request will need to be renamed.
-				const seedNodePeerListResponse = await seedPeer.request<void>({
-					procedure: 'list',
-				});
-				const peerListResponse = seedNodePeerListResponse.data as ProtocolPeerList;
+	private async _runPeerDiscovery(
+		peers: ReadonlyArray<PeerInfo>,
+	): Promise<ReadonlyArray<PeerInfo>> {
+		const peersObjectList = peers.map((peerInfo: PeerInfo) => {
+			const peer = new Peer(peerInfo);
+			this._newPeers.add(peerInfo);
+			this._peerPool.addPeer(peer);
 
-				// TODO ASAP: Validate the response before returning. Check that seedNodePeerListResponse.data.peers exists.
+			return peer;
+		});
+		const peersOfPeers = await discoverPeers(peersObjectList);
 
-				return peerListResponse.peers.map((peerInfo: ProtocolPeerInfo) => {
-					const peer = new Peer({
-						ipAddress: peerInfo.ip, // TODO ASAP: Add more properties
-						wsPort: peerInfo.wsPort,
-						height: peerInfo.height,
-						os: peerInfo.os,
-						version: peerInfo.version,
-					});
-					peer.applyNodeInfo(this._nodeInfo);
-
-					return peer;
-				});
-			}),
-		);
+		return peersOfPeers;
 	}
 
 	public async start(): Promise<void> {
 		await this._startPeerServer();
-		await this._loadListOfPeerListsFromSeeds(this._config.seedPeers);
+		const discoveredPeers = await this._runPeerDiscovery(
+			this._config.seedPeers,
+		);
+		// Add all the discovered peers in newPeer list
+		discoveredPeers.map((peerInfo: PeerInfo) => {
+			this._newPeers.add(peerInfo);
+		});
 	}
 
 	public async stop(): Promise<void> {
