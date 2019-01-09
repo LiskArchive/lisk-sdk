@@ -23,6 +23,7 @@ import { RequestFailError } from './errors';
 import { Peer, PeerInfo } from './peer';
 import { discoverPeers } from './peer_discovery';
 import { PeerOptions } from './peer_selection';
+import { selectForConnection } from './peer_selection';
 
 import {
 	P2PConfig,
@@ -205,13 +206,32 @@ export class P2P extends EventEmitter {
 		});
 	}
 
+	private _getPeerToConnect(): ReadonlyArray<Peer> {
+		const availablePeers = Array.from(this._newPeers).map(
+			(peerInfo: PeerInfo) => new Peer(peerInfo),
+		);
+		const peersToConnect = selectForConnection(availablePeers);
+
+		return peersToConnect;
+	}
+
+	private _connectToPeers(): void {
+		this._getPeerToConnect().map((peer: Peer) => {
+			peer.connect();
+			this._newPeers.delete(peer.peerInfo);
+			this._triedPeers.add(peer.peerInfo);
+		});
+	}
+
 	private async _runPeerDiscovery(
 		peers: ReadonlyArray<PeerInfo>,
 	): Promise<ReadonlyArray<PeerInfo>> {
 		const peersObjectList = peers.map((peerInfo: PeerInfo) => {
 			const peer = new Peer(peerInfo);
-			this._newPeers.add(peerInfo);
-			this._peerPool.addPeer(peer);
+			if (!this._newPeers.has(peerInfo) && !this._triedPeers.has(peerInfo)) {
+				this._newPeers.add(peerInfo);
+				this._peerPool.addPeer(peer);
+			}
 
 			return peer;
 		});
@@ -229,6 +249,8 @@ export class P2P extends EventEmitter {
 		discoveredPeers.forEach((peerInfo: PeerInfo) => {
 			this._newPeers.add(peerInfo);
 		});
+
+		this._connectToPeers();
 	}
 
 	public async stop(): Promise<void> {
