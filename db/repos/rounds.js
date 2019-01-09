@@ -57,19 +57,6 @@ class RoundsRepository {
 		return this.db.none(sql.updateDelegatesRanks);
 	}
 
-	// TODO: Move usage of RoundsRepository#getVotes to db/votes
-	/**
-	 * Get votes for a round.
-	 *
-	 * @param {string} round - Id of the round
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getVotes(round) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getVotes, { round });
-	}
-
 	// TODO: Move usage of RoundsRepository#updateVotes to db/votes
 	/**
 	 * Update the votes of for a particular account.

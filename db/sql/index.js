@@ -73,7 +73,6 @@ module.exports = {
 	},
 	rounds: {
 		updateDelegatesRanks: link('rounds/update_delegates_ranks.sql'),
-		getVotes: link('rounds/get_votes.sql'),
 		updateVotes: link('rounds/update_votes.sql'),
 		updateMissedBlocks: link('rounds/update_missed_blocks.sql'),
 		summedRound: link('rounds/summed_round.sql'),

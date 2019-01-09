@@ -134,7 +134,11 @@ class Round {
 	 * @todo Add @returns tag
 	 */
 	getVotes() {
-		return this.t.rounds.getVotes(this.scope.round);
+		return this.scope.library.storage.entities.Round.getTotalVotedAmount(
+			{ round: this.scope.round },
+			{},
+			this.t
+		);
 	}
 
 	/**

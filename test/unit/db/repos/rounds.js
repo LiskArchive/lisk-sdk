@@ -133,62 +133,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('getVotes()', () => {
-			it('should use the correct SQL file with one parameter', function*() {
-				sinonSandbox.spy(db, 'query');
-				yield db.rounds.getVotes(1);
-
-				expect(db.query.firstCall.args[0]).to.eql(roundsSQL.getVotes);
-				expect(db.query.firstCall.args[1]).to.eql({ round: 1 });
-				return expect(db.query).to.be.calledOnce;
-			});
-
-			it('should return votes for a round in correct format', function*() {
-				const account = new accountsFixtures.Account();
-
-				const round1 = new roundsFixtures.Round({
-					round: 1,
-					delegate: account.publicKey,
-				});
-				const round2 = new roundsFixtures.Round({
-					round: 1,
-					delegate: account.publicKey,
-				});
-				const round3 = new roundsFixtures.Round({
-					round: 2,
-				});
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
-				);
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round2, null, { table: 'mem_round' })
-				);
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round3, null, { table: 'mem_round' })
-				);
-
-				const allRecords = yield db.query('SELECT * FROM mem_round');
-				const result = yield db.rounds.getVotes(1);
-
-				expect(allRecords).to.have.lengthOf(3);
-				expect(result).to.be.not.empty;
-				expect(result).to.have.lengthOf(1);
-				expect(result[0]).to.be.have.all.keys('delegate', 'amount');
-				return expect(result[0]).to.be.eql({
-					delegate: account.publicKey,
-					amount: new BigNumber(round1.amount).plus(round2.amount).toString(),
-				});
-			});
-
-			it('should resolve without any error if no round number is provided', () => {
-				return expect(db.rounds.getVotes()).to.be.fulfilled;
-			});
-
-			it('should resolve without any error if unnown round number is provided', () => {
-				return expect(db.rounds.getVotes(1234)).to.be.fulfilled;
-			});
-		});
-
 		describe('updateVotes()', () => {
 			it('should use the correct SQL file with two parameters', function*() {
 				sinonSandbox.spy(db, 'none');
