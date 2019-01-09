@@ -187,20 +187,12 @@ export class Peer {
 		return this._nodeStatus;
 	}
 
-	public set inboundSocket(value: SCServerSocket | undefined) {
+	public set inboundSocket(value: SCServerSocket) {
 		this._inboundSocket = value;
 	}
 
-	public get inboundSocket(): SCServerSocket | undefined {
-		return this._inboundSocket;
-	}
-
-	public set outboundSocket(value: SCClientSocket | undefined) {
+	public set outboundSocket(value: SCClientSocket) {
 		this._outboundSocket = value;
-	}
-
-	public get outboundSocket(): SCClientSocket | undefined {
-		return this._outboundSocket;
 	}
 
 	public get height(): number {
@@ -208,13 +200,13 @@ export class Peer {
 	}
 
 	public get state(): PeerConnectionState {
-		const inbound = this.inboundSocket
-			? this.inboundSocket.state === this.inboundSocket.OPEN
+		const inbound = this._inboundSocket
+			? this._inboundSocket.state === this._inboundSocket.OPEN
 				? ConnectionState.CONNECTED
 				: ConnectionState.DISCONNECTED
 			: ConnectionState.DISCONNECTED;
-		const outbound = this.outboundSocket
-			? this.outboundSocket.state === this.outboundSocket.OPEN
+		const outbound = this._outboundSocket
+			? this._outboundSocket.state === this._outboundSocket.OPEN
 				? ConnectionState.CONNECTED
 				: ConnectionState.DISCONNECTED
 			: ConnectionState.DISCONNECTED;
