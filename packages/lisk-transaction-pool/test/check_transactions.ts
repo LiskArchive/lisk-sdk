@@ -66,7 +66,7 @@ describe('#checkTransactions', () => {
 
 	it('should call checkerFunction with the transactions passed', async () => {
 		await checkTransactions(transactionsToCheck, checkerFunction);
-		expect(checkerFunction).to.be.calledOnceWithExactly(transactions);
+		expect(checkerFunction).to.be.calledOnceWithExactly(transactionsToCheck);
 	});
 
 	it('should return transactions which passed the checkerFunction', async () => {
