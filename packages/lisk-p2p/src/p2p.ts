@@ -17,7 +17,7 @@ import { EventEmitter } from 'events';
 import http, { Server } from 'http';
 import { platform } from 'os';
 import querystring from 'querystring';
-import { attach, SCServerSocket } from 'socketcluster-server';
+import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 
 import { Peer, PeerInfo } from './peer';
 
@@ -33,6 +33,12 @@ import {
 	ProtocolPeerList,
 } from './p2p_types';
 
+type SCServerCloseCallback = () => void;
+
+type SCServerUpdated = {
+	readonly close: (sCServerCloseCallback: SCServerCloseCallback) => void;
+} & SCServer;
+
 import { PeerPool } from './peer_pool';
 
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
@@ -45,7 +51,7 @@ export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _peerPool: PeerPool;
 	private readonly _httpServer: Server;
-	private readonly _scServer: any; // Until we get comeplete definition for SCServer
+	private readonly _scServer: SCServerUpdated; // Until we get comeplete definition for SCServer
 	private readonly _newPeers: Set<PeerInfo>;
 	// TODO ASAP: private readonly _triedPeers: Set<PeerInfo>;
 	private _nodeStatus: P2PNodeStatus;
@@ -64,7 +70,7 @@ export class P2P extends EventEmitter {
 
 		this._peerPool = new PeerPool();
 		this._httpServer = http.createServer();
-		this._scServer = attach(this._httpServer);
+		this._scServer = attach(this._httpServer) as SCServerUpdated;
 	}
 
 	/* tslint:disable:next-line: prefer-function-over-method */
