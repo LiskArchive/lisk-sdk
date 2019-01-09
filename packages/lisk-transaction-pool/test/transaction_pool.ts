@@ -33,6 +33,10 @@ describe('transaction pool', () => {
 		// Stubbing start function so the jobs do not start in the background.
 		sandbox.stub(Job.prototype, 'start');
 		checkerStubs = {
+			returnTrueUntilLimit: sandbox.stub(
+				queueCheckers,
+				'returnTrueUntilLimit'
+			),
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
 				'checkTransactionPropertyForValues',
@@ -184,7 +188,26 @@ describe('transaction pool', () => {
 		});
 	});
 
-	describe('getProcessableTransactions', () => {});
+	describe('getProcessableTransactions', () => {
+		const limit = 10;
+		let peekUntilCondition: sinon.SinonStub;
+
+		beforeEach(async () => {
+			peekUntilCondition = sandbox.stub();
+			checkerStubs.returnTrueUntilLimit.returns(peekUntilCondition);
+		});
+
+		it('should call returnTrueUntilLimit conditional function with limit parameter', () => {
+			transactionPool.getProcessableTransactions(limit);
+			expect(checkerStubs.returnTrueUntilLimit).to.be.calledWith(limit);
+		});
+
+		it('should call peekUntil for ready queue with correct parameter', () => {
+			transactionPool.getProcessableTransactions(limit);
+			expect(transactionPool.queues.ready.peekUntil).to.be.calledWith(peekUntilCondition);
+		});
+	});
+
 	describe('#addVerifiedRemovedTransactions', () => {
 		const verifiedRemovedTransactions = [
 			transactions[0],

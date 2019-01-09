@@ -177,8 +177,8 @@ export class TransactionPool {
 	}
 
 	public getProcessableTransactions(limit: number): ReadonlyArray<Transaction> {
-		return this._queues.ready.dequeueUntil(
-			queueCheckers.returnTrueUntilLimit(limit),
+		return this._queues.ready.peekUntil(
+			queueCheckers.returnTrueUntilLimit(limit)
 		);
 	}
 
