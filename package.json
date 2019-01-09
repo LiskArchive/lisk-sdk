@@ -62,7 +62,7 @@
 		"lisk-commander": "2.0.0",
 		"lisk-elements": "1.0.0",
 		"lodash": "4.17.11",
-		"lisk-newrelic": "LiskHQ/lisk-newrelic#8f2188c",
+		"lisk-newrelic": "LiskHQ/lisk-newrelic#d1ca762",
 		"method-override": "2.3.10",
 		"newrelic": "4.11.0",
 		"pm2": "3.2.4",
