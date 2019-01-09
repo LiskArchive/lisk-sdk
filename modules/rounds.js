@@ -50,6 +50,7 @@ class Rounds {
 			db: scope.db,
 			bus: scope.bus,
 			network: scope.network,
+			storage: scope.storage,
 		};
 		self = this;
 
@@ -83,8 +84,7 @@ Rounds.prototype.ticking = function() {
  * @todo Add description for the params and the return value
  */
 Rounds.prototype.flush = function(round, cb) {
-	library.db.rounds
-		.flush(round)
+	library.storage.entities.Round.delete({ round })
 		.then(() => setImmediate(cb))
 		.catch(err => {
 			library.logger.error(err.stack);

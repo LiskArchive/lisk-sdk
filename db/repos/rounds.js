@@ -34,17 +34,6 @@ class RoundsRepository {
 	}
 
 	/**
-	 * Remove a particular round from database.
-	 *
-	 * @param {string} round - Id of the round
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	flush(round) {
-		return this.db.none(sql.flush, [round]);
-	}
-
-	/**
 	 * Update the missedBlocks attribute for an account.
 	 *
 	 * @param {boolean} backwards - Backwards flag

@@ -68,52 +68,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('flush()', () => {
-			it('should use the correct SQL file with one parameter', function*() {
-				sinonSandbox.spy(db, 'none');
-				yield db.rounds.flush(1);
-
-				expect(db.none.firstCall.args[0]).to.eql(roundsSQL.flush);
-				expect(db.none.firstCall.args[1]).to.eql([1]);
-				return expect(db.none).to.be.calledOnce;
-			});
-
-			it('should remove round information for provided round number', function*() {
-				const round1 = new roundsFixtures.Round({
-					round: 1,
-				});
-				const round2 = new roundsFixtures.Round({
-					round: 2,
-				});
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
-				);
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round2, null, { table: 'mem_round' })
-				);
-
-				const before = yield db.query('SELECT * FROM mem_round;');
-				const result = yield db.rounds.flush(round1.round);
-				const after = yield db.query('SELECT * FROM mem_round;');
-
-				// Before flushing there were two records
-				expect(before).to.have.lengthOf(2);
-
-				// Flushing does not return any thing
-				expect(result).to.be.eql(null);
-
-				// After flushing there is one record
-				expect(after).to.have.lengthOf(1);
-
-				// And the only record available is what was not flushed
-				return expect(after[0].round).to.be.eql(round2.round);
-			});
-
-			it('should resolve with null if round does not exists', () => {
-				return expect(db.rounds.flush('1234')).to.be.eventually.eql(null);
-			});
-		});
-
 		describe('updateMissedBlocks()', () => {
 			it('should use the correct SQL file with correct parameters with backward flag set to true', function*() {
 				sinonSandbox.spy(db, 'none');

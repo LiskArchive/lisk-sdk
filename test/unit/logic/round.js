@@ -29,6 +29,13 @@ describe('rounds', () => {
 	let dbSandbox;
 	let round;
 	let validScope;
+	const storageStub = {
+		entities: {
+			Round: {
+				delete: sinonSandbox.stub().resolves('success'),
+			},
+		},
+	};
 
 	before(done => {
 		dbSandbox = new DBSandbox(__testContext.config.db, 'rounds_logic');
@@ -44,6 +51,7 @@ describe('rounds', () => {
 				roundRewards: [10],
 				library: {
 					db: undefined,
+					storage: storageStub,
 					logger: {
 						trace: sinonSandbox.spy(),
 						debug: sinonSandbox.spy(),
@@ -65,6 +73,7 @@ describe('rounds', () => {
 					timestamp: 100,
 				},
 			};
+
 			done();
 		});
 	});
@@ -482,8 +491,6 @@ describe('rounds', () => {
 
 		before(done => {
 			scope = _.cloneDeep(validScope);
-			stub = sinonSandbox.stub(db.rounds, 'flush');
-			stub.withArgs(validScope.round).resolves('success');
 			round = new Round(_.cloneDeep(scope), db);
 			res = round.flushRound();
 			done();
@@ -496,7 +503,8 @@ describe('rounds', () => {
 		it('query should be called with proper args', () => {
 			return res.then(response => {
 				expect(response).to.equal('success');
-				expect(stub.calledWith(validScope.round)).to.be.true;
+				stub = validScope.library.storage.entities.Round.delete;
+				expect(stub.calledWith({ round: validScope.round })).to.be.true;
 			});
 		});
 	});
@@ -1922,6 +1930,7 @@ describe('rounds', () => {
 			};
 
 			round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+			validScope.library.storage.entities.Round.delete.reset();
 			return db.task(t => {
 				// Init stubs
 				batch_stub = sinonSandbox.stub(t, 'none').resolves();
@@ -1937,7 +1946,7 @@ describe('rounds', () => {
 				updateDelegatesRanks_stub = sinonSandbox
 					.stub(t.rounds, 'updateDelegatesRanks')
 					.resolves();
-				flush_stub = sinonSandbox.stub(t.rounds, 'flush').resolves();
+				flush_stub = validScope.library.storage.entities.Round.delete;
 
 				round = new Round(_.cloneDeep(scope), t);
 				res = round.land();
@@ -2008,6 +2017,7 @@ describe('rounds', () => {
 			};
 
 			round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+			validScope.library.storage.entities.Round.delete.reset();
 			return db.task(t => {
 				// Init stubs
 				batch_stub = sinonSandbox.stub(t, 'none').resolves();
@@ -2020,7 +2030,7 @@ describe('rounds', () => {
 				updateVotes_stub = sinonSandbox
 					.stub(t.rounds, 'updateVotes')
 					.resolves('QUERY');
-				flush_stub = sinonSandbox.stub(t.rounds, 'flush').resolves();
+				flush_stub = validScope.library.storage.entities.Round.delete;
 				checkSnapshotAvailability_stub = sinonSandbox
 					.stub(t.rounds, 'checkSnapshotAvailability')
 					.resolves(1);

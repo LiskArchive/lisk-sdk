@@ -42,6 +42,7 @@ class Round {
 			library: {
 				db: scope.library.db,
 				logger: scope.library.logger,
+				storage: scope.library.storage,
 			},
 			modules: {
 				accounts: scope.modules.accounts,
@@ -172,7 +173,13 @@ class Round {
 	 * @todo Check type and description of the return value
 	 */
 	flushRound() {
-		return this.t.rounds.flush(this.scope.round);
+		return this.scope.library.storage.entities.Round.delete(
+			{
+				round: this.scope.round,
+			},
+			{},
+			this.t
+		);
 	}
 
 	/**

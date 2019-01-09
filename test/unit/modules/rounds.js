@@ -39,6 +39,8 @@ describe('rounds', () => {
 		error: sinon.spy(),
 	};
 
+	const storageStub = { entities: { Round: { delete: sinon.stub() } } };
+
 	function get(variable) {
 		return Rounds.__get__(variable);
 	}
@@ -55,11 +57,17 @@ describe('rounds', () => {
 			validScope = {
 				logger,
 				db,
+				storage: storageStub,
 				bus: { message: sinon.spy() },
 				network: { io: { sockets: { emit: sinon.spy() } } },
 			};
 			done();
 		});
+	});
+
+	afterEach(done => {
+		sinon.restore();
+		done();
 	});
 
 	describe('constructor', () => {
@@ -116,26 +124,19 @@ describe('rounds', () => {
 		let stub;
 		let error;
 
-		before(() => {
-			stub = sinon.stub(db.rounds, 'flush');
-			stub.withArgs(true).resolves('success');
-			return stub.withArgs(false).rejects('fail');
-		});
-
-		after(() => {
-			return stub.restore();
+		afterEach(async () => {
+			stub.resetHistory();
 		});
 
 		describe('when flush query is successful', () => {
-			before(done => {
+			beforeEach(done => {
+				stub = storageStub.entities.Round.delete
+					.withArgs({ round: true })
+					.resolves('success');
 				rounds.flush(true, err => {
 					error = err;
 					done();
 				});
-			});
-
-			after(() => {
-				return stub.resetHistory();
 			});
 
 			it('should call a callback when no error', () => {
@@ -148,15 +149,14 @@ describe('rounds', () => {
 		});
 
 		describe('when flush query fails', () => {
-			before(done => {
+			beforeEach(done => {
+				stub = storageStub.entities.Round.delete
+					.withArgs({ round: false })
+					.rejects('fail');
 				rounds.flush(false, err => {
 					error = err;
 					done();
 				});
-			});
-
-			after(() => {
-				return stub.resetHistory();
 			});
 
 			it('should call a callback with error = Rounds#flush error', () => {

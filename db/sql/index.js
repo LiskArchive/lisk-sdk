@@ -86,7 +86,6 @@ module.exports = {
 		checkSnapshotAvailability: link('rounds/check_snapshot_availability.sql'),
 		countRoundSnapshot: link('rounds/count_round_snapshot.sql'),
 		getMemRounds: link('rounds/get_mem_rounds.sql'),
-		flush: link('rounds/flush.sql'),
 		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
 		insertRoundInformationWithAmount: link(
 			'rounds/insert_round_information_with_amount.sql'
