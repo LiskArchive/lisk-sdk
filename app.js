@@ -530,7 +530,7 @@ d.run(() => {
 						return cb();
 					}
 					const webSocketConfig = {
-						workers: scope.config.wsWorkers,
+						workers: 1,
 						port: scope.config.wsPort,
 						host: '0.0.0.0',
 						wsEngine: scope.config.peers.options.wsEngine,
