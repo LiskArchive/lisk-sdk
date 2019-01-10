@@ -16,11 +16,11 @@
 
 module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 	describe('@p2p : peers', () => {
-		before(() => {
-			return network.waitForBlocksOnAllNodes(2);
-		});
+		describe('after 4 blocks are created in the network', () => {
+			before(() => {
+				return network.waitForBlocksOnAllNodes(4);
+			});
 
-		describe('when there are mutual connections among peers', () => {
 			it(`there should be ${TOTAL_PEERS} active peers`, () => {
 				return network.getAllPeersLists().then(peers => {
 					return expect(peers.length).to.equal(TOTAL_PEERS);
@@ -70,28 +70,6 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 					});
 				});
 			});
-		});
-
-		describe('after 2 blocks are created in the network', () => {
-			before(() => {
-				return network.waitForBlocksOnAllNodes(2);
-			});
-
-			it('should have height > 1', () => {
-				return network
-					.getAllNodesStatus()
-					.then(status =>
-						expect(status.networkMaxAvgHeight.maxHeight).to.be.above(1)
-					);
-			});
-
-			it('should have average height above 1', () => {
-				return network
-					.getAllNodesStatus()
-					.then(status =>
-						expect(status.networkMaxAvgHeight.averageHeight).to.be.above(1)
-					);
-			});
 
 			it('should have valid values matching specification', () => {
 				return network.getAllPeersLists().then(results => {
@@ -117,28 +95,35 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 				});
 			});
 
-			it('should have matching height across all nodes', () => {
-				return network.getAllNodesStatus().then(result => {
-					const heights = Object.keys(
-						_.groupBy(result.peerStatusList, 'height')
-					);
-					return expect(heights).to.have.lengthOf(1);
-				});
-			});
-
 			describe('network height', () => {
-				it('should have networkHeight > 1 for all peers', () => {
+				it('should be at most 4 in one peer (maxHeight)', () => {
+					return network
+						.getAllNodesStatus()
+						.then(status =>
+							expect(status.networkMaxAvgHeight.maxHeight).to.be.at.least(4)
+						);
+				});
+
+				it('should be on average above 2', () => {
+					return network
+						.getAllNodesStatus()
+						.then(status =>
+							expect(status.networkMaxAvgHeight.averageHeight).to.be.above(2)
+						);
+				});
+
+				it('should be above 1 for all peers', () => {
 					return network.getAllNodesStatus().then(status => {
 						expect(status.peerStatusList)
 							.to.be.an('Array')
 							.to.have.lengthOf(status.peersCount);
 						return status.peerStatusList.map(peer => {
-							return expect(peer.networkHeight).to.be.above(1);
+							return expect(peer.networkHeight).to.be.above(2);
 						});
 					});
 				});
 
-				it('should be similar for all the peers', () => {
+				it('should be similar among all peers (max 2 blocks of difference)', () => {
 					return network.getAllNodesStatus().then(status => {
 						const networkHeights = _.groupBy(
 							status.peerStatusList,
