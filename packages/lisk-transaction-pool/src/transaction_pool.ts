@@ -14,8 +14,10 @@
  */
 import {
 	CheckerFunction,
-	checkTransactions,
-	CheckTransactionsResponse,
+	CheckTransactionsResponseWithPassAndFail,
+	CheckTransactionsResponseWithPassFailAndPending,
+	checkTransactionsWithPassAndFail,
+	checkTransactionsWithPassFailAndPending,
 } from './check_transactions';
 import { Job } from './job';
 import { Queue } from './queue';
@@ -342,7 +344,7 @@ export class TransactionPool {
 	}
 
 	private async processVerifiedTransactions(): Promise<
-		CheckTransactionsResponse
+		CheckTransactionsResponseWithPassAndFail
 	> {
 		const transactionsInReadyQueue = this._queues.ready.size();
 		const transactionsInVerifiedQueue = this._queues.verified.size();
@@ -391,8 +393,10 @@ export class TransactionPool {
 			...transactionsFromPendingQueue,
 			...transactionsFromVerifiedQueue,
 		];
-
-		const { passedTransactions, failedTransactions } = await checkTransactions(
+		const {
+			passedTransactions,
+			failedTransactions,
+		} = await checkTransactionsWithPassAndFail(
 			toProcessTransactions,
 			this._processTransactions,
 		);
@@ -451,14 +455,17 @@ export class TransactionPool {
 	}
 
 	private async validateReceivedTransactions(): Promise<
-		CheckTransactionsResponse
+		CheckTransactionsResponseWithPassAndFail
 	> {
 		const toValidateTransactions = this._queues.received.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
 				this._receivedTransactionsProcessingLimitPerInterval,
 			),
 		);
-		const { passedTransactions, failedTransactions } = await checkTransactions(
+		const {
+			passedTransactions,
+			failedTransactions,
+		} = await checkTransactionsWithPassAndFail(
 			toValidateTransactions,
 			this._validateTransactions,
 		);
@@ -481,14 +488,19 @@ export class TransactionPool {
 	}
 
 	private async verifyValidatedTransactions(): Promise<
-		CheckTransactionsResponse
+		CheckTransactionsResponseWithPassFailAndPending
 	> {
 		const toVerifyTransactions = this._queues.validated.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
 				this._validatedTransactionsProcessingLimitPerInterval,
 			),
 		);
-		const { passedTransactions, failedTransactions } = await checkTransactions(
+
+		const {
+			failedTransactions,
+			pendingTransactions,
+			passedTransactions,
+		} = await checkTransactionsWithPassFailAndPending(
 			toVerifyTransactions,
 			this._verifyTransactions,
 		);
@@ -497,6 +509,7 @@ export class TransactionPool {
 		this._queues.validated.removeFor(
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
+
 		// Move verified transactions from the validated queue to the verified queue
 		this._queues.verified.enqueueMany(
 			this._queues.validated.removeFor(
@@ -504,9 +517,17 @@ export class TransactionPool {
 			),
 		);
 
+		// Move verified pending transactions from the validated queue to the pending queue
+		this._queues.pending.enqueueMany(
+			this._queues.validated.removeFor(
+				queueCheckers.checkTransactionForId(pendingTransactions),
+			),
+		);
+
 		return {
 			passedTransactions,
 			failedTransactions,
+			pendingTransactions,
 		};
 	}
 }

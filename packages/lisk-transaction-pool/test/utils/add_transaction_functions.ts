@@ -9,6 +9,7 @@ export const wrapTransferTransaction = (
 		verifyAgainstOtherTransactions: () => true,
 		isExpired: (time: Date) => time.getTime() > 0,
 		isReady: () => true,
-		addSignature: (signatureObject: SignatureObject) => signatureObject.signature.length === 32,
+		addSignature: (signatureObject: SignatureObject) =>
+			signatureObject.signature.length === 32,
 	};
 };
