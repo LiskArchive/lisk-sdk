@@ -325,6 +325,9 @@ class Account extends BaseEntity {
 			deleteDependentRecord: this.adapter.loadSQLFile(
 				'accounts/delete_dependent_record.sql'
 			),
+			syncDelegatesRank: this.adapter.loadSQLFile(
+				'accounts/sync_delegates_rank.sql'
+			),
 		};
 	}
 
@@ -641,6 +644,16 @@ class Account extends BaseEntity {
 			'delete',
 			tx
 		);
+	}
+
+	/**
+	 * Sync rank for all delegates.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	syncDelegatesRank(tx) {
+		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
 	}
 
 	/**

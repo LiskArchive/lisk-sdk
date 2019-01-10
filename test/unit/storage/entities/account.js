@@ -1113,4 +1113,12 @@ describe('Account', () => {
 			});
 		});
 	});
+
+	describe('syncDelegatesRank', () => {
+		it('should use the correct SQL');
+		it(
+			'should sync rank attribute of all delegates based on their vote value and public key'
+		);
+		it('should not throw error if there is no delegate available');
+	});
 });
