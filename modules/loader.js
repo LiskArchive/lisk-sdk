@@ -535,7 +535,7 @@ __private.loadBlockChain = function() {
 				await library.storage.entities.Account.resetUnconfirmedState();
 				const delegatesPublicKeys = await library.storage.entities.Account.get(
 					{ isDelegate: true },
-					{ limit: null, offset: null }
+					{ limit: null }
 				).then(accounts => accounts.map(account => account.publicKey));
 
 				if (delegatesPublicKeys.length === 0) {

@@ -30,15 +30,7 @@ const { link } = require('./config');
  * @see Parent: {@link db.sql}
  */
 module.exports = {
-	accounts: {
-		incrementAccount: link('accounts/increment_account.sql'),
-		decrementAccount: link('accounts/decrement_account.sql'),
-		removeAccountDependencies: link('accounts/remove_account_dependencies.sql'),
-		columnDelegates: link('accounts/column_delegates.sql'),
-		columnUDelegates: link('accounts/column_u_delegates.sql'),
-		columnMultisignatures: link('accounts/column_multisignatures.sql'),
-		columnUMultisignatures: link('accounts/column_u_multisignatures.sql'),
-	},
+	accounts: {},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
 		count: link('blocks/count.sql'),

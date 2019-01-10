@@ -317,8 +317,8 @@ class Account extends BaseEntity {
 				'accounts/reset_unconfirmed_state.sql'
 			),
 			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
-			increment: this.adapter.loadSQLFile('accounts/increment.sql'),
-			decrement: this.adapter.loadSQLFile('accounts/decrement.sql'),
+			incrementField: this.adapter.loadSQLFile('accounts/increment_field.sql'),
+			decrementField: this.adapter.loadSQLFile('accounts/decrement_field.sql'),
 			createDependentRecord: this.adapter.loadSQLFile(
 				'accounts/create_dependent_record.sql'
 			),
@@ -517,7 +517,7 @@ class Account extends BaseEntity {
 				{ expectedResultCount: 0 },
 				tx
 			)
-			.then(result => result);
+			.then(result => !result);
 	}
 
 	/**
@@ -547,6 +547,12 @@ class Account extends BaseEntity {
 		return this.begin('storage:account:upsert', task);
 	}
 
+	/**
+	 * Reset all unconfirmed states of accounts to confirmed states
+	 *
+	 * @param [tx] - Database transaction object
+	 * @returns {Promise.<*, Error>}
+	 */
 	resetUnconfirmedState(tx) {
 		return this.adapter.executeFile(
 			this.SQLs.resetUnconfirmedState,
@@ -558,6 +564,8 @@ class Account extends BaseEntity {
 
 	/**
 	 * Clear data in memory tables:
+	 * - mem_accounts
+	 * - rounds_rewards
 	 * - mem_round
 	 * - mem_accounts2delegates
 	 * - mem_accounts2u_delegates
@@ -578,10 +586,10 @@ class Account extends BaseEntity {
 	 * @param {string} field - Name of the field to increment
 	 * @param {Number|string} value - Value to be incremented
 	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
+	 * @returns {Promise}
 	 */
-	increment(filters, field, value, tx) {
-		return this._updateField(filters, field, value, '+', tx);
+	incrementField(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'insert', tx);
 	}
 
 	/**
@@ -591,10 +599,10 @@ class Account extends BaseEntity {
 	 * @param {string} field - Name of the field to increment
 	 * @param {Number|string} value - Value to be incremented
 	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
+	 * @returns {Promise}
 	 */
-	decrement(filters, field, value, tx) {
-		return this._updateField(filters, field, value, '-', tx);
+	decrementField(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'delete', tx);
 	}
 
 	/**
@@ -611,7 +619,7 @@ class Account extends BaseEntity {
 			dependencyName,
 			address,
 			dependentPublicKey,
-			'+',
+			'insert',
 			tx
 		);
 	}
@@ -630,7 +638,7 @@ class Account extends BaseEntity {
 			dependencyName,
 			address,
 			dependentPublicKey,
-			'-',
+			'delete',
 			tx
 		);
 	}
@@ -639,7 +647,7 @@ class Account extends BaseEntity {
 		dependencyName,
 		address,
 		dependentPublicKey,
-		mode = '+',
+		mode,
 		tx
 	) {
 		assert(
@@ -652,7 +660,7 @@ class Account extends BaseEntity {
 			dependentId: dependentPublicKey,
 		};
 		const SQL =
-			mode === '+'
+			mode === 'insert'
 				? this.SQLs.createDependentRecord
 				: this.SQLs.deleteDependentRecord;
 
@@ -664,7 +672,17 @@ class Account extends BaseEntity {
 		);
 	}
 
-	_updateField(filters, field, value, mode = '+', tx) {
+	/**
+	 * Update the field value
+	 *
+	 * @param {filters.Account} filters - Filters object
+	 * @param {string} field - Filed name to update
+	 * @param {*} value - Value to be update
+	 * @param {('insert'|'delete')} mode - Mode of update
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	_updateField(filters, field, value, mode, tx) {
 		const atLeastOneRequired = true;
 		const validFieldName = Object.keys(this.fields).includes(field);
 		assert(validFieldName, `Field name "${field}" is not valid.`);
@@ -681,10 +699,11 @@ class Account extends BaseEntity {
 			value,
 		};
 
-		const SQL = mode === '+' ? this.SQLs.increment : this.SQLs.decrement;
+		const sql =
+			mode === 'insert' ? this.SQLs.incrementField : this.SQLs.decrementField;
 
 		return this.adapter.executeFile(
-			SQL,
+			sql,
 			params,
 			{ expectedResultCount: 0 },
 			tx
