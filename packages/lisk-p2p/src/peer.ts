@@ -96,7 +96,7 @@ export class Peer extends EventEmitter {
 				return;
 			}
 			if (
-				request.procedure === 'updateMyself' &&
+				request.procedure === REMOTE_EVENT_SEND_NODE_INFO &&
 				typeof request.data === 'object'
 			) {
 				// Internal handling of request to extract the PeerInfo.
@@ -196,7 +196,6 @@ export class Peer extends EventEmitter {
 		if (!this.outboundSocket) {
 			this.outboundSocket = this._createOutboundSocket();
 		}
-
 		this.outboundSocket.connect();
 	}
 
