@@ -22,28 +22,10 @@ describe('blocks/api', () => {
 	let _list;
 	let library;
 	let loggerSpy;
-	let dbStub;
 	let storageStub;
 	let blockStub;
 
 	beforeEach(done => {
-		dbStub = {
-			blocks: {
-				list: sinonSandbox.stub().resolves([]),
-				sortFields: [
-					'id',
-					'timestamp',
-					'height',
-					'previousBlock',
-					'totalAmount',
-					'totalFee',
-					'reward',
-					'numberOfTransactions',
-					'generatorPublicKey',
-				],
-			},
-		};
-
 		storageStub = {
 			entities: {
 				Block: {
@@ -63,7 +45,6 @@ describe('blocks/api', () => {
 		blockStub = sinonSandbox.stub();
 
 		new BlocksController({
-			db: dbStub,
 			storage: storageStub,
 			logic: blockStub,
 			logger: loggerSpy,
@@ -82,7 +63,6 @@ describe('blocks/api', () => {
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerSpy);
-			expect(library.db).to.eql(dbStub);
 			expect(library.storage).to.eql(storageStub);
 			return expect(library.logic).to.eql(blockStub);
 		});
