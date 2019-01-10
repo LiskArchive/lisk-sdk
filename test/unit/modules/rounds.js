@@ -19,15 +19,14 @@ const rewire = require('rewire');
 // Instantiate test subject
 const Rounds = rewire('../../../modules/rounds.js');
 const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
-const DBSandbox = require('../../common/db_sandbox').DBSandbox;
+const { createStubbedDBObject } = require('../../common/db_sandbox');
 
 const sinon = sinonSandbox;
 
 describe('rounds', () => {
-	let db;
-	let dbSandbox;
 	let rounds;
 	let validScope;
+	let scope;
 
 	// Init fake logger
 	const logger = {
@@ -39,7 +38,41 @@ describe('rounds', () => {
 		error: sinon.spy(),
 	};
 
-	const storageStub = { entities: { Round: { delete: sinon.stub() } } };
+	const storageStub = {
+		entities: { Round: { delete: sinon.stub(), summedRound: sinon.stub() } },
+	};
+
+	const dbStubs = {
+		rounds: {
+			updateMissedBlocks: sinon.stub(),
+			updateVotes: sinon.stub(),
+			updateDelegatesRanks: sinon.stub(),
+			restoreRoundSnapshot: sinon.stub(),
+			restoreVotesSnapshot: sinon.stub(),
+			checkSnapshotAvailability: sinon.stub(),
+			countRoundSnapshot: sinon.stub(),
+			deleteRoundRewards: sinon.stub(),
+			insertRoundRewards: sinon.stub(),
+			clearRoundSnapshot: sinon.stub(),
+			performRoundSnapshot: sinon.stub(),
+			clearVotesSnapshot: sinon.stub(),
+			performVotesSnapshot: sinon.stub(),
+		},
+	};
+
+	const db = createStubbedDBObject(__testContext.config.db, dbStubs);
+
+	const modules = {
+		delegates: {
+			generateDelegateList: sinon
+				.stub()
+				.yields(null, ['delegate1', 'delegate2', 'delegate3']),
+			clearDelegateListCache: sinon.stub(),
+		},
+		accounts: {
+			generateAddressByPublicKey: sinon.stub().returns('delegate'),
+		},
+	};
 
 	function get(variable) {
 		return Rounds.__get__(variable);
@@ -49,41 +82,32 @@ describe('rounds', () => {
 		return Rounds.__set__(variable, value);
 	}
 
-	before(done => {
-		dbSandbox = new DBSandbox(__testContext.config.db, 'rounds_module');
-		dbSandbox.create((err, __db) => {
-			db = __db;
+	beforeEach(done => {
+		validScope = {
+			logger,
+			db,
+			storage: storageStub,
+			bus: { message: sinon.spy() },
+			network: { io: { sockets: { emit: sinon.spy() } } },
+		};
+		scope = _.cloneDeep(validScope);
 
-			validScope = {
-				logger,
-				db,
-				storage: storageStub,
-				bus: { message: sinon.spy() },
-				network: { io: { sockets: { emit: sinon.spy() } } },
-			};
+		new Rounds((err, __instance) => {
+			rounds = __instance;
+			rounds.onBind(modules);
 			done();
-		});
+		}, scope);
 	});
 
 	afterEach(done => {
+		Object.keys(dbStubs.rounds).forEach(key => {
+			dbStubs.rounds[key].reset();
+		});
 		sinon.restore();
 		done();
 	});
 
 	describe('constructor', () => {
-		let scope;
-
-		before(done => {
-			scope = _.cloneDeep(validScope);
-			new Rounds((err, __instance) => {
-				rounds = __instance;
-				// Overwrite database with reference from rounds module,
-				// needed for redefine properties without getting that every time
-				db = get('library.db');
-				done();
-			}, _.cloneDeep(scope));
-		});
-
 		it('should return Rounds instance', () => {
 			return expect(rounds).to.be.instanceof(Rounds);
 		});
@@ -179,13 +203,15 @@ describe('rounds', () => {
 	describe('__private.getOutsiders', () => {
 		let getOutsiders;
 
-		before(done => {
+		beforeEach(done => {
 			getOutsiders = get('__private.getOutsiders');
 			done();
 		});
 
 		describe('when scope.block.height = 1', () => {
-			const scope = { block: { height: 1 } };
+			beforeEach(async () => {
+				scope.block = { height: 1 };
+			});
 
 			it('should call a callback', done => {
 				getOutsiders(scope, err => {
@@ -196,36 +222,15 @@ describe('rounds', () => {
 		});
 
 		describe('when scope.block.height != 1', () => {
-			const scope = { block: { height: 2 } };
+			beforeEach(async () => {
+				scope.block = { height: 2 };
+			});
 
 			describe('when generateDelegateList is successful', () => {
-				let modules;
-
-				before(() => {
-					// Bind fake modules
-					modules = {
-						delegates: {
-							generateDelegateList(a, b, cb) {
-								return cb(null, ['delegate1', 'delegate2', 'delegate3']);
-							},
-						},
-						accounts: {
-							generateAddressByPublicKey() {
-								return 'delegate';
-							},
-						},
-					};
-					return rounds.onBind(modules);
-				});
-
 				describe('when all delegates are on list (no outsiders)', () => {
-					let initialScope;
-
-					before(done => {
+					beforeEach(async () => {
 						scope.roundDelegates = ['delegate1', 'delegate2', 'delegate3'];
 						scope.roundOutsiders = [];
-						initialScope = _.cloneDeep(scope);
-						done();
 					});
 
 					it('should call a callback', done => {
@@ -235,21 +240,18 @@ describe('rounds', () => {
 						});
 					});
 
-					it('should not modify scope.roundOutsiders', () => {
-						return expect(scope.roundOutsiders).to.deep.equal(
-							initialScope.roundOutsiders
-						);
+					it('should not modify scope.roundOutsiders', done => {
+						getOutsiders(scope, () => {
+							expect(scope.roundOutsiders).to.be.eql([]);
+							done();
+						});
 					});
 				});
 
 				describe('when 1 delegates is not on list (outsider)', () => {
-					let initialScope;
-
-					before(done => {
+					beforeEach(async () => {
 						scope.roundDelegates = ['delegate2', 'delegate3'];
 						scope.roundOutsiders = [];
-						initialScope = _.cloneDeep(scope);
-						done();
 					});
 
 					it('should call a callback', done => {
@@ -259,22 +261,18 @@ describe('rounds', () => {
 						});
 					});
 
-					it('should add 1 outsider scope.roundOutsiders', () => {
-						initialScope.roundOutsiders.push('delegate');
-						return expect(scope.roundOutsiders).to.deep.equal(
-							initialScope.roundOutsiders
-						);
+					it('should add 1 outsider scope.roundOutsiders', done => {
+						getOutsiders(scope, () => {
+							expect(scope.roundOutsiders).to.be.eql(['delegate']);
+							done();
+						});
 					});
 				});
 
 				describe('when 2 delegates are not on list (outsiders)', () => {
-					let initialScope;
-
-					before(done => {
+					beforeEach(async () => {
 						scope.roundDelegates = ['delegate3'];
 						scope.roundOutsiders = [];
-						initialScope = _.cloneDeep(scope);
-						done();
 					});
 
 					it('should call a callback', done => {
@@ -284,28 +282,19 @@ describe('rounds', () => {
 						});
 					});
 
-					it('should add 2 outsiders to scope.roundOutsiders', () => {
-						initialScope.roundOutsiders.push('delegate');
-						initialScope.roundOutsiders.push('delegate');
-						return expect(scope.roundOutsiders).to.deep.equal(
-							initialScope.roundOutsiders
-						);
+					it('should add 2 outsiders to scope.roundOutsiders', done => {
+						getOutsiders(scope, () => {
+							expect(scope.roundOutsiders).to.be.eql(['delegate', 'delegate']);
+							done();
+						});
 					});
 				});
 			});
 
 			describe('when generateDelegateList fails', () => {
-				before(() => {
-					// Bind fake modules
-					const modules = {
-						delegates: {
-							generateDelegateList(a, b, cb) {
-								cb('error');
-							},
-							clearDelegateListCache() {},
-						},
-					};
-					return rounds.onBind(modules);
+				beforeEach(async () => {
+					scope.block.height = 2;
+					modules.delegates.generateDelegateList.yields('error');
 				});
 
 				it('should call a callback with error', done => {
@@ -320,7 +309,6 @@ describe('rounds', () => {
 
 	describe('__private.sumRound', () => {
 		let sumRound;
-		let stub;
 
 		beforeEach(done => {
 			sumRound = get('__private.sumRound');
@@ -328,44 +316,53 @@ describe('rounds', () => {
 		});
 
 		describe('when last block is genesis block', () => {
-			const scope = {
-				round: 1,
-				block: {
+			beforeEach(async () => {
+				scope.round = 1;
+				scope.block = {
 					height: 1,
 					totalFee: 123,
 					reward: 456,
 					generatorPublicKey: 'aaa',
-				},
-			};
+				};
+			});
 
 			it('should call a callback', done => {
 				sumRound(scope, err => {
-					_.cloneDeep(scope);
 					expect(err).to.not.exist;
 					done();
 				});
 			});
 
-			it('should set scope.roundFees to 0', () => {
-				return expect(scope.roundFees).to.equal(0);
+			it('should set scope.roundFees to 0', done => {
+				sumRound(scope, () => {
+					expect(scope.roundFees).to.equal(0);
+					done();
+				});
 			});
 
-			it('should set scope.roundRewards to 0', () => {
-				return expect(scope.roundRewards).to.deep.equal([0]);
+			it('should set scope.roundRewards to 0', done => {
+				sumRound(scope, () => {
+					expect(scope.roundRewards).to.deep.equal([0]);
+					done();
+				});
 			});
 
-			it('should set scope.roundDelegates', () => {
-				return expect(scope.roundDelegates).to.deep.equal([
-					scope.block.generatorPublicKey,
-				]);
+			it('should set scope.roundDelegates', done => {
+				sumRound(scope, () => {
+					expect(scope.roundDelegates).to.deep.equal([
+						scope.block.generatorPublicKey,
+					]);
+					done();
+				});
 			});
 		});
 
 		describe('when last block is not genesis block', () => {
-			const scope = { round: 1, block: { height: 2 } };
-
 			describe('when summedRound query is successful', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
+					scope.round = 1;
+					scope.block = { height: 2 };
+
 					const rows = [
 						{
 							rewards: [1.001, 2, 3],
@@ -373,47 +370,48 @@ describe('rounds', () => {
 							delegates: ['delegate1', 'delegate2', 'delegate3'],
 						},
 					];
-					stub = sinon.stub(db.rounds, 'summedRound').resolves(rows);
-					done();
-				});
-
-				afterEach(() => {
-					return stub.restore();
+					storageStub.entities.Round.summedRound.resolves(rows);
 				});
 
 				it('should call a callback', done => {
 					sumRound(scope, err => {
-						_.cloneDeep(scope);
 						expect(err).to.not.exist;
 						done();
 					});
 				});
 
-				it('should set scope.roundFees correctly', () => {
-					return expect(scope.roundFees).to.equal(100);
+				it('should set scope.roundFees correctly', done => {
+					sumRound(scope, () => {
+						expect(scope.roundFees).to.equal(100);
+						done();
+					});
 				});
 
-				it('should set scope.roundRewards correctly', () => {
-					return expect(scope.roundRewards).to.deep.equal([1, 2, 3]);
+				it('should set scope.roundRewards correctly', done => {
+					sumRound(scope, () => {
+						expect(scope.roundRewards).to.deep.equal([1, 2, 3]);
+						done();
+					});
 				});
 
-				it('should set scope.roundDelegates', () => {
-					return expect(scope.roundDelegates).to.deep.equal([
-						'delegate1',
-						'delegate2',
-						'delegate3',
-					]);
+				it('should set scope.roundDelegates', done => {
+					sumRound(scope, () => {
+						expect(scope.roundDelegates).to.deep.equal([
+							'delegate1',
+							'delegate2',
+							'delegate3',
+						]);
+						done();
+					});
 				});
 			});
 
 			describe('when summedRound query fails', () => {
-				before(done => {
-					stub = sinon.stub(db.rounds, 'summedRound').rejects('fail');
+				beforeEach(done => {
+					// Because for genesis block we don't invoke summedRound
+					scope.block = { height: 2 };
+					storageStub.entities.Round.summedRound.rejects('fail');
 					done();
-				});
-
-				after(() => {
-					return stub.restore();
 				});
 
 				it('should call a callback with error = fail', done => {
@@ -440,33 +438,29 @@ describe('rounds', () => {
 		let clearVotesSnapshot_stub;
 		let performVotesSnapshot_stub;
 
-		function resetStubsHistory() {
+		beforeEach(async () => {
+			// Init fake round logic
+			function RoundLogic(__scope) {
+				roundScope = __scope;
+			}
+			RoundLogic.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+			RoundLogic.prototype.land = land_stub;
+			Rounds.__set__('Round', RoundLogic);
+
+			// Set more stubs
+			set('__private.sumRound', sumRound_stub);
+			set('__private.getOutsiders', getOutsiders_stub);
+		});
+
+		afterEach(async () => {
 			mergeBlockGenerator_stub.resetHistory();
 			land_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
-		}
-
-		before(() => {
-			// Init fake round logic
-			function round(__scope) {
-				roundScope = __scope;
-			}
-			round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-			round.prototype.land = land_stub;
-			Rounds.__set__('Round', round);
-
-			// Set more stubs
-			set('__private.sumRound', sumRound_stub);
-			return set('__private.getOutsiders', getOutsiders_stub);
 		});
 
 		describe('testing branches', () => {
 			describe('scope properties', () => {
-				after(() => {
-					return resetStubsHistory();
-				});
-
 				describe('finishRound', () => {
 					describe('when block height = 1', () => {
 						it('should be set to true', done => {
@@ -518,13 +512,14 @@ describe('rounds', () => {
 		describe('scope.finishRound', () => {
 			let bus;
 
-			before(() => {
+			beforeEach(() => {
 				bus = get('library.bus.message');
 				return bus.reset();
 			});
 
 			describe('when true', () => {
-				before(done => {
+				beforeEach(done => {
+					scope.finishRound = true;
 					block = { height: 1 };
 					rounds.tick(block, err => {
 						expect(err).to.not.exist;
@@ -533,8 +528,7 @@ describe('rounds', () => {
 					});
 				});
 
-				after(() => {
-					resetStubsHistory();
+				afterEach(() => {
 					return bus.reset();
 				});
 
@@ -573,7 +567,6 @@ describe('rounds', () => {
 				});
 
 				after(() => {
-					resetStubsHistory();
 					return bus.reset();
 				});
 
@@ -601,48 +594,31 @@ describe('rounds', () => {
 		});
 
 		describe('performing round snapshot (queries)', () => {
-			function clearStubs() {
-				clearRoundSnapshot_stub.restore();
-				performRoundSnapshot_stub.restore();
-				clearVotesSnapshot_stub.restore();
-				performVotesSnapshot_stub.restore();
-			}
-
 			describe('when (block.height+1) % ACTIVE_DELEGATES === 0', () => {
+				beforeEach(async () => {
+					clearRoundSnapshot_stub = db.rounds.clearRoundSnapshot.resolves();
+					performRoundSnapshot_stub = db.rounds.performRoundSnapshot.resolves();
+					clearVotesSnapshot_stub = db.rounds.clearVotesSnapshot.resolves();
+					performVotesSnapshot_stub = db.rounds.performVotesSnapshot.resolves();
+
+					// Init fake round logic
+					function RoundLogic(__scope) {
+						roundScope = __scope;
+					}
+					RoundLogic.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+					RoundLogic.prototype.land = land_stub;
+					Rounds.__set__('Round', RoundLogic);
+				});
+
 				describe('when queries are successful', () => {
 					let res;
 
-					before(done => {
-						// Init fake round logic
-						function round(__scope, __t) {
-							roundScope = __scope;
-
-							clearRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearRoundSnapshot')
-								.resolves();
-							performRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'performRoundSnapshot')
-								.resolves();
-							clearVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearVotesSnapshot')
-								.resolves();
-							performVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'performVotesSnapshot')
-								.resolves();
-						}
-						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						round.prototype.land = land_stub;
-						Rounds.__set__('Round', round);
-
+					beforeEach(done => {
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
-					});
-
-					after(() => {
-						return clearStubs();
 					});
 
 					it('should result with no error', () => {
@@ -669,37 +645,16 @@ describe('rounds', () => {
 				describe('when clearRoundSnapshot query fails', () => {
 					let res;
 
-					before(done => {
-						// Init fake round logic
-						function round(__scope, __t) {
-							roundScope = __scope;
-
-							clearRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearRoundSnapshot')
-								.rejects('clearRoundSnapshot');
-							performRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'performRoundSnapshot')
-								.resolves();
-							clearVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearVotesSnapshot')
-								.resolves();
-							performVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'performVotesSnapshot')
-								.resolves();
-						}
-						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						round.prototype.land = land_stub;
-						Rounds.__set__('Round', round);
+					beforeEach(done => {
+						clearRoundSnapshot_stub = db.rounds.clearRoundSnapshot.rejects(
+							'clearRoundSnapshot'
+						);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
-					});
-
-					after(() => {
-						return clearStubs();
 					});
 
 					it('should result with BatchError and first error = fail', () => {
@@ -727,37 +682,16 @@ describe('rounds', () => {
 				describe('when performRoundSnapshot query fails', () => {
 					let res;
 
-					before(done => {
-						// Init fake round logic
-						function round(__scope, __t) {
-							roundScope = __scope;
-
-							clearRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearRoundSnapshot')
-								.resolves();
-							performRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'performRoundSnapshot')
-								.rejects('performRoundSnapshot');
-							clearVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearVotesSnapshot')
-								.resolves();
-							performVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'performVotesSnapshot')
-								.resolves();
-						}
-						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						round.prototype.land = land_stub;
-						Rounds.__set__('Round', round);
+					beforeEach(done => {
+						performRoundSnapshot_stub = db.rounds.performRoundSnapshot.rejects(
+							'performRoundSnapshot'
+						);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
-					});
-
-					after(() => {
-						return clearStubs();
 					});
 
 					it('should result with BatchError and first error = fail', () => {
@@ -785,37 +719,16 @@ describe('rounds', () => {
 				describe('when clearVotesSnapshot query fails', () => {
 					let res;
 
-					before(done => {
-						// Init fake round logic
-						function round(__scope, __t) {
-							roundScope = __scope;
-
-							clearRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearRoundSnapshot')
-								.resolves();
-							performRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'performRoundSnapshot')
-								.resolves();
-							clearVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearVotesSnapshot')
-								.rejects('clearVotesSnapshot');
-							performVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'performVotesSnapshot')
-								.resolves();
-						}
-						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						round.prototype.land = land_stub;
-						Rounds.__set__('Round', round);
+					beforeEach(done => {
+						clearVotesSnapshot_stub = db.rounds.clearVotesSnapshot.rejects(
+							'clearVotesSnapshot'
+						);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
-					});
-
-					after(() => {
-						return clearStubs();
 					});
 
 					it('should result with BatchError and first error = fail', () => {
@@ -843,37 +756,16 @@ describe('rounds', () => {
 				describe('when performVotesSnapshot query fails', () => {
 					let res;
 
-					before(done => {
-						// Init fake round logic
-						function round(__scope, __t) {
-							roundScope = __scope;
-
-							clearRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearRoundSnapshot')
-								.resolves();
-							performRoundSnapshot_stub = sinon
-								.stub(__t.rounds, 'performRoundSnapshot')
-								.resolves();
-							clearVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'clearVotesSnapshot')
-								.resolves();
-							performVotesSnapshot_stub = sinon
-								.stub(__t.rounds, 'performVotesSnapshot')
-								.rejects('performVotesSnapshot');
-						}
-						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						round.prototype.land = land_stub;
-						Rounds.__set__('Round', round);
+					beforeEach(done => {
+						performVotesSnapshot_stub = db.rounds.performVotesSnapshot.rejects(
+							'performVotesSnapshot'
+						);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
-					});
-
-					after(() => {
-						return clearStubs();
 					});
 
 					it('should result with BatchError and first error = fail', () => {
@@ -900,16 +792,12 @@ describe('rounds', () => {
 			});
 
 			describe('when (block.height+1) % ACTIVE_DELEGATES !== 0', () => {
-				before(done => {
+				beforeEach(done => {
 					block = { height: 101 };
 					rounds.tick(block, err => {
 						expect(err).to.not.exist;
 						done();
 					});
-				});
-
-				after(() => {
-					return resetStubsHistory();
 				});
 
 				it('clearRoundSnapshot query should be not called', () => {
@@ -942,33 +830,29 @@ describe('rounds', () => {
 		const sumRound_stub = sinon.stub().callsArg(1);
 		const getOutsiders_stub = sinon.stub().callsArg(1);
 
-		function resetStubsHistory() {
+		beforeEach(async () => {
+			// Init fake round logic
+			function RoundLogic(__scope) {
+				roundScope = __scope;
+			}
+			RoundLogic.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+			RoundLogic.prototype.backwardLand = backwardLand_stub;
+			Rounds.__set__('Round', RoundLogic);
+
+			// Set more stubs
+			set('__private.sumRound', sumRound_stub);
+			set('__private.getOutsiders', getOutsiders_stub);
+		});
+
+		afterEach(async () => {
 			mergeBlockGenerator_stub.resetHistory();
 			backwardLand_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
-		}
-
-		before(() => {
-			// Init fake round logic
-			function round(__scope) {
-				roundScope = __scope;
-			}
-			round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-			round.prototype.backwardLand = backwardLand_stub;
-			Rounds.__set__('Round', round);
-
-			// Set more stubs
-			set('__private.sumRound', sumRound_stub);
-			return set('__private.getOutsiders', getOutsiders_stub);
 		});
 
 		describe('testing branches', () => {
 			describe('scope properties', () => {
-				after(() => {
-					return resetStubsHistory();
-				});
-
 				describe('finishRound', () => {
 					describe('when block height = 1', () => {
 						it('should be set to true', done => {
@@ -1043,7 +927,7 @@ describe('rounds', () => {
 
 		describe('scope.finishRound', () => {
 			describe('when true', () => {
-				before(done => {
+				beforeEach(done => {
 					block = { height: 1 };
 					previousBlock = { height: 1 };
 					rounds.backwardTick(
@@ -1056,10 +940,6 @@ describe('rounds', () => {
 						},
 						db
 					);
-				});
-
-				after(() => {
-					return resetStubsHistory();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
@@ -1080,7 +960,7 @@ describe('rounds', () => {
 			});
 
 			describe('when false', () => {
-				before(done => {
+				beforeEach(done => {
 					block = { height: 5 };
 					previousBlock = { height: 5 };
 					rounds.backwardTick(
@@ -1093,10 +973,6 @@ describe('rounds', () => {
 						},
 						db
 					);
-				});
-
-				after(() => {
-					return resetStubsHistory();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {

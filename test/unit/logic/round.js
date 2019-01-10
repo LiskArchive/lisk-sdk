@@ -17,6 +17,7 @@
 const rewire = require('rewire');
 const Promise = require('bluebird');
 const Bignum = require('../../../helpers/bignum.js');
+const { createStubbedDBObject } = require('../../common/db_sandbox');
 
 const Round = rewire('../../../logic/round.js');
 const genesisBlock = __testContext.config.genesisBlock;
@@ -26,87 +27,81 @@ const { ACTIVE_DELEGATES } = global.constants;
 describe('round', () => {
 	let scope;
 	let round;
-	let dbStub;
-	let storageStub;
-	let validScope;
 
-	before(async () => {
-		dbStub = {
-			rounds: {
-				updateMissedBlocks: sinonSandbox.stub(),
-				updateVotes: sinonSandbox.stub(),
-				updateDelegatesRanks: sinonSandbox.stub(),
-				restoreRoundSnapshot: sinonSandbox.stub(),
-				restoreVotesSnapshot: sinonSandbox.stub(),
-				checkSnapshotAvailability: sinonSandbox.stub(),
-				countRoundSnapshot: sinonSandbox.stub(),
-				deleteRoundRewards: sinonSandbox.stub(),
-				insertRoundRewards: sinonSandbox.stub(),
-			},
-		};
+	const dbStubs = {
+		rounds: {
+			updateMissedBlocks: sinonSandbox.stub(),
+			updateVotes: sinonSandbox.stub(),
+			updateDelegatesRanks: sinonSandbox.stub(),
+			restoreRoundSnapshot: sinonSandbox.stub(),
+			restoreVotesSnapshot: sinonSandbox.stub(),
+			checkSnapshotAvailability: sinonSandbox.stub(),
+			countRoundSnapshot: sinonSandbox.stub(),
+			deleteRoundRewards: sinonSandbox.stub(),
+			insertRoundRewards: sinonSandbox.stub(),
+		},
+	};
 
-		dbStub.task = sinonSandbox.stub().yields(dbStub);
-		dbStub.batch = (...args) => {
-			return Promise.all(_.flatten(args));
-		};
+	const db = createStubbedDBObject(__testContext.config.db, dbStubs);
 
-		storageStub = {
-			entities: {
-				Round: {
-					delete: sinonSandbox.stub().resolves('success'),
-					getTotalVotedAmount: sinonSandbox.stub().resolves('success'),
-				},
+	const storageStub = {
+		entities: {
+			Round: {
+				delete: sinonSandbox.stub().resolves('success'),
+				getTotalVotedAmount: sinonSandbox.stub().resolves('success'),
 			},
-		};
+		},
+	};
 
-		validScope = {
-			backwards: false,
-			round: 1,
-			roundOutsiders: [],
-			roundDelegates: [genesisBlock.generatorPublicKey],
-			roundFees: ACTIVE_DELEGATES,
-			roundRewards: [10],
-			library: {
-				db: dbStub,
-				storage: storageStub,
-				logger: {
-					trace: sinonSandbox.spy(),
-					debug: sinonSandbox.spy(),
-					info: sinonSandbox.spy(),
-					log: sinonSandbox.spy(),
-					warn: sinonSandbox.spy(),
-					error: sinonSandbox.spy(),
-				},
+	const modules = {
+		accounts: {
+			mergeAccountAndGet: sinonSandbox.stub(),
+		},
+	};
+
+	const validScope = {
+		backwards: false,
+		round: 1,
+		roundOutsiders: [],
+		roundDelegates: [genesisBlock.generatorPublicKey],
+		roundFees: ACTIVE_DELEGATES,
+		roundRewards: [10],
+		library: {
+			db,
+			storage: storageStub,
+			logger: {
+				trace: sinonSandbox.spy(),
+				debug: sinonSandbox.spy(),
+				info: sinonSandbox.spy(),
+				log: sinonSandbox.spy(),
+				warn: sinonSandbox.spy(),
+				error: sinonSandbox.spy(),
 			},
-			modules: {
-				accounts: {
-					mergeAccountAndGet: sinonSandbox.stub(),
-				},
-			},
-			block: {
-				generatorPublicKey: genesisBlock.generatorPublicKey,
-				id: genesisBlock.id,
-				height: 1,
-				timestamp: 100,
-			},
-		};
-	});
+		},
+		modules,
+		block: {
+			generatorPublicKey: genesisBlock.generatorPublicKey,
+			id: genesisBlock.id,
+			height: 1,
+			timestamp: 100,
+		},
+	};
 
 	beforeEach(async () => {
 		scope = _.cloneDeep(validScope);
-		round = new Round(scope, dbStub);
+		round = new Round(scope, db);
 	});
 
 	afterEach(async () => {
-		dbStub.rounds.updateVotes.reset();
-		dbStub.rounds.updateDelegatesRanks.reset();
-		dbStub.rounds.restoreRoundSnapshot.reset();
-		dbStub.rounds.restoreVotesSnapshot.reset();
-		dbStub.rounds.checkSnapshotAvailability.reset();
-		dbStub.rounds.countRoundSnapshot.reset();
-		dbStub.rounds.deleteRoundRewards.reset();
-		dbStub.rounds.insertRoundRewards.reset();
-		dbStub.rounds.updateMissedBlocks.reset();
+		db.rounds.updateVotes.reset();
+		db.rounds.updateDelegatesRanks.reset();
+		db.rounds.restoreRoundSnapshot.reset();
+		db.rounds.restoreVotesSnapshot.reset();
+		db.rounds.checkSnapshotAvailability.reset();
+		db.rounds.countRoundSnapshot.reset();
+		db.rounds.deleteRoundRewards.reset();
+		db.rounds.insertRoundRewards.reset();
+		db.rounds.updateMissedBlocks.reset();
 
 		storageStub.entities.Round.delete.reset();
 		storageStub.entities.Round.getTotalVotedAmount.reset();
@@ -129,7 +124,7 @@ describe('round', () => {
 			});
 
 			it('should set t', () => {
-				return expect(round.t).to.be.eql(dbStub);
+				return expect(round.t).to.be.eql(db);
 			});
 		});
 
@@ -139,7 +134,7 @@ describe('round', () => {
 					const property = 'round';
 					delete scope[property];
 					try {
-						round = new Round(scope, dbStub);
+						round = new Round(scope, db);
 					} catch (err) {
 						expect(err).to.equal(
 							`Missing required scope property: ${property}`
@@ -154,7 +149,7 @@ describe('round', () => {
 					const property = 'backwards';
 					delete scope[property];
 					try {
-						round = new Round(scope, dbStub);
+						round = new Round(scope, db);
 					} catch (err) {
 						expect(err).to.equal(
 							`Missing required scope property: ${property}`
@@ -176,7 +171,7 @@ describe('round', () => {
 						const property = 'roundFees';
 						delete scope[property];
 						try {
-							round = new Round(scope, dbStub);
+							round = new Round(scope, db);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -191,7 +186,7 @@ describe('round', () => {
 						const property = 'roundRewards';
 						delete scope[property];
 						try {
-							round = new Round(scope, dbStub);
+							round = new Round(scope, db);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -206,7 +201,7 @@ describe('round', () => {
 						const property = 'roundDelegates';
 						delete scope[property];
 						try {
-							round = new Round(scope, dbStub);
+							round = new Round(scope, db);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -221,7 +216,7 @@ describe('round', () => {
 						const property = 'roundOutsiders';
 						delete scope[property];
 						try {
-							round = new Round(scope, dbStub);
+							round = new Round(scope, db);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -240,7 +235,7 @@ describe('round', () => {
 
 			beforeEach(() => {
 				scope.backwards = false;
-				round = new Round(scope, dbStub);
+				round = new Round(scope, db);
 				args = {
 					producedBlocks: 1,
 					publicKey: scope.block.generatorPublicKey,
@@ -262,7 +257,7 @@ describe('round', () => {
 
 			beforeEach(() => {
 				scope.backwards = true;
-				round = new Round(scope, dbStub);
+				round = new Round(scope, db);
 				args = {
 					producedBlocks: -1,
 					publicKey: scope.block.generatorPublicKey,
@@ -292,15 +287,15 @@ describe('round', () => {
 
 			it('should return t object', () => {
 				expect(res).to.not.be.instanceOf(Promise);
-				return expect(res).to.deep.equal(dbStub);
+				return expect(res).to.deep.equal(db);
 			});
 		});
 
 		describe('when there are outsiders', () => {
 			beforeEach(done => {
 				scope.roundOutsiders = ['abc'];
-				round = new Round(scope, dbStub);
-				stub = dbStub.rounds.updateMissedBlocks;
+				round = new Round(scope, db);
+				stub = db.rounds.updateMissedBlocks;
 				stub
 					.withArgs(scope.backwards, scope.roundOutsiders)
 					.resolves('success');
@@ -354,7 +349,7 @@ describe('round', () => {
 		describe('when getVotes returns at least one entry', async () => {
 			beforeEach(async () => {
 				getVotes_stub = storageStub.entities.Round.getTotalVotedAmount;
-				updateVotes_stub = dbStub.rounds.updateVotes;
+				updateVotes_stub = db.rounds.updateVotes;
 
 				delegate = {
 					amount: 10000,
@@ -375,8 +370,11 @@ describe('round', () => {
 					.withArgs(delegate.address, delegate.amount)
 					.resolves('QUERY');
 
-				round = new Round(scope, dbStub);
-				res = round.updateVotes();
+				res = db.task(t => {
+					round = new Round(scope, t);
+					return round.updateVotes();
+				});
+				await res;
 			});
 
 			it('should return promise', () => {
@@ -424,7 +422,7 @@ describe('round', () => {
 					.withArgs(delegate.address, delegate.amount)
 					.resolves('QUERY');
 
-				round = new Round(scope, dbStub);
+				round = new Round(scope, db);
 				res = round.updateVotes();
 			});
 
@@ -449,7 +447,7 @@ describe('round', () => {
 
 		beforeEach(async () => {
 			stub = scope.library.storage.entities.Round.delete.resolves('success');
-			round = new Round(scope, dbStub);
+			round = new Round(scope, db);
 			res = round.flushRound();
 		});
 
@@ -469,10 +467,10 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = dbStub.rounds.updateDelegatesRanks;
+			stub = db.rounds.updateDelegatesRanks;
 			stub.resolves('success');
 
-			round = new Round(scope, dbStub);
+			round = new Round(scope, db);
 			res = round.updateDelegatesRanks();
 			done();
 		});
@@ -494,7 +492,7 @@ describe('round', () => {
 		let stub;
 
 		beforeEach(done => {
-			stub = dbStub.rounds.restoreRoundSnapshot;
+			stub = db.rounds.restoreRoundSnapshot;
 			stub.resolves('success');
 			res = round.restoreRoundSnapshot();
 			done();
@@ -517,7 +515,7 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = dbStub.rounds.restoreVotesSnapshot;
+			stub = db.rounds.restoreVotesSnapshot;
 			stub.withArgs().resolves('success');
 			res = round.restoreVotesSnapshot();
 			done();
@@ -541,8 +539,8 @@ describe('round', () => {
 
 		beforeEach(done => {
 			// Init stubs and scope
-			stubs.checkSnapshotAvailability = dbStub.rounds.checkSnapshotAvailability;
-			stubs.countRoundSnapshot = dbStub.rounds.countRoundSnapshot;
+			stubs.checkSnapshotAvailability = db.rounds.checkSnapshotAvailability;
+			stubs.countRoundSnapshot = db.rounds.countRoundSnapshot;
 			done();
 		});
 
@@ -550,7 +548,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.resolves();
 			stubs.countRoundSnapshot.resolves();
 			scope.round = 1;
-			round = new Round(scope, dbStub);
+			round = new Round(scope, db);
 			res = round.checkSnapshotAvailability();
 
 			return expect(isPromise(res)).to.be.true;
@@ -559,7 +557,7 @@ describe('round', () => {
 		it('should resolve without any error when checkSnapshotAvailability query returns 1', () => {
 			stubs.checkSnapshotAvailability.withArgs(1).resolves(1);
 			scope.round = 1;
-			round = new Round(scope, dbStub);
+			round = new Round(scope, db);
 			res = round.checkSnapshotAvailability();
 
 			return res.then(() => {
@@ -572,7 +570,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(0);
 			scope.round = 2;
-			round = new Round(scope, dbStub);
+			round = new Round(scope, db);
 			res = round.checkSnapshotAvailability();
 
 			return res.then(() => {
@@ -585,7 +583,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(1);
 			scope.round = 2;
-			round = new Round(scope, dbStub);
+			round = new Round(scope, db);
 			res = round.checkSnapshotAvailability();
 
 			return expect(res).to.eventually.be.rejectedWith(
@@ -599,9 +597,9 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = dbStub.rounds.deleteRoundRewards;
+			stub = db.rounds.deleteRoundRewards;
 			stub.withArgs(scope.round).resolves('success');
-			round = new Round(scope, dbStub);
+			round = new Round(scope, db);
 			res = round.deleteRoundRewards();
 			done();
 		});
@@ -657,40 +655,45 @@ describe('round', () => {
 			return results;
 		}
 
+		beforeEach(async () => {
+			insertRoundRewards_stub = db.rounds.insertRoundRewards;
+			insertRoundRewards_stub.resolves('insertRoundRewards');
+			scope.modules.accounts.mergeAccountAndGet.yields(
+				null,
+				'mergeAccountAndGet'
+			);
+		});
+
+		afterEach(async () => {
+			round.scope.modules.accounts.mergeAccountAndGet.reset();
+			insertRoundRewards_stub.reset();
+		});
+
 		describe('with only one delegate', () => {
 			describe('when there are no remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
-				let batch_stub;
 
 				beforeEach(done => {
 					scope.roundDelegates = [genesisBlock.generatorPublicKey];
 					scope.roundFees = ACTIVE_DELEGATES; // 1 LSK fee per delegate, no remaining fees
-					batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves('success');
 					done();
-				});
-
-				afterEach(async () => {
-					round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-					batch_stub.restore();
 				});
 
 				describe('forward', () => {
 					let called = 0;
 
 					beforeEach(async () => {
-						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
-						insertRoundRewards_stub.resolves('success');
 						scope.backwards = false;
-						round = new Round(scope, dbStub);
-						res = round.applyRound();
+						res = await db.task(t => {
+							round = new Round(scope, t);
+							return round.applyRound();
+						});
 					});
 
-					it('query should be called', () => {
-						return res.then(response => {
-							expect(response).to.equal('success');
-							expect(batch_stub.called).to.be.true;
-						});
+					it('query should be called', async () => {
+						// One success for mergeAccountAndGet and one for insertRoundRewards_stub
+						expect(res).to.be.eql(['mergeAccountAndGet', 'insertRoundRewards']);
 					});
 
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
@@ -746,19 +749,16 @@ describe('round', () => {
 					let called = 0;
 
 					beforeEach(async () => {
-						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
-						insertRoundRewards_stub.resolves('success');
 						scope.backwards = true;
-						round = new Round(scope, dbStub);
-						res = round.applyRound();
+
+						res = await db.task(t => {
+							round = new Round(scope, t);
+							return round.applyRound();
+						});
 					});
 
-					it('query should be called', () => {
-						return res.then(response => {
-							expect(response).to.equal('success');
-							expect(batch_stub.called).to.be.true;
-						});
+					it('query should be called', async () => {
+						expect(res).to.be.eql(['mergeAccountAndGet']);
 					});
 
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
@@ -841,36 +841,31 @@ describe('round', () => {
 			describe('when there are remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
-				let batch_stub;
 
 				beforeEach(done => {
 					scope.roundDelegates = [genesisBlock.generatorPublicKey];
 					scope.roundFees = 100; // 0 LSK fee per delegate, 100 remaining fees
-					batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves('success');
 					done();
-				});
-
-				afterEach(async () => {
-					round.scope.modules.accounts.mergeAccountAndGet.reset();
-					batch_stub.restore();
 				});
 
 				describe('forward', () => {
 					let called = 0;
 
 					beforeEach(async () => {
-						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
-						insertRoundRewards_stub.resolves('success');
 						scope.backwards = false;
-						round = new Round(scope, dbStub);
-						res = round.applyRound();
+
+						res = await db.task(t => {
+							round = new Round(scope, t);
+							return round.applyRound();
+						});
 					});
 
-					it('query should be called', () => {
-						return res.then(response => {
-							expect(response).to.equal('success');
-							expect(batch_stub.called).to.be.true;
-						});
+					it('query should be called', async () => {
+						expect(res).to.be.eql([
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'insertRoundRewards',
+						]);
 					});
 
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
@@ -951,18 +946,16 @@ describe('round', () => {
 					let called = 0;
 
 					beforeEach(async () => {
-						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
-						insertRoundRewards_stub.resolves('success');
 						scope.backwards = true;
-						round = new Round(scope, dbStub);
-						res = round.applyRound();
+
+						res = await db.task(t => {
+							round = new Round(scope, t);
+							return round.applyRound();
+						});
 					});
 
-					it('query should be called', () => {
-						return res.then(response => {
-							expect(response).to.equal('success');
-							expect(batch_stub.called).to.be.true;
-						});
+					it('query should be called', async () => {
+						expect(res).to.be.eql(['mergeAccountAndGet', 'mergeAccountAndGet']);
 					});
 
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
@@ -1072,7 +1065,6 @@ describe('round', () => {
 			describe('when there are no remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
-				let batch_stub;
 
 				beforeEach(done => {
 					scope.roundDelegates = [
@@ -1082,31 +1074,30 @@ describe('round', () => {
 					];
 					scope.roundRewards = [1, 2, 3];
 					scope.roundFees = ACTIVE_DELEGATES; // 1 LSK fee per delegate, no remaining fees
-					batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves('success');
 					done();
-				});
-
-				afterEach(async () => {
-					round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
-					batch_stub.restore();
 				});
 
 				describe('forward', () => {
 					let called = 0;
 
 					beforeEach(async () => {
-						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
-						insertRoundRewards_stub.resolves('success');
 						scope.backwards = false;
-						round = new Round(scope, dbStub);
-						res = round.applyRound();
+
+						res = await db.task(t => {
+							round = new Round(scope, t);
+							return round.applyRound();
+						});
 					});
 
-					it('query should be called', () => {
-						return res.then(response => {
-							expect(response).to.equal('success');
-							expect(batch_stub.called).to.be.true;
-						});
+					it('query should be called', async () => {
+						expect(res).to.be.eql([
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'insertRoundRewards',
+							'insertRoundRewards',
+							'insertRoundRewards',
+						]);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
@@ -1240,19 +1231,20 @@ describe('round', () => {
 					let called = 0;
 
 					beforeEach(async () => {
-						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
-						insertRoundRewards_stub.resolves('success');
 						scope.backwards = true;
-						round = new Round(_.cloneDeep(scope), dbStub);
-						res = round.applyRound();
-						await res;
+
+						res = await db.task(t => {
+							round = new Round(_.cloneDeep(scope), t);
+							return round.applyRound();
+						});
 					});
 
-					it('query should be called', () => {
-						return res.then(response => {
-							expect(response).to.equal('success');
-							expect(batch_stub.called).to.be.true;
-						});
+					it('query should be called', async () => {
+						expect(res).to.be.eql([
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+						]);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
@@ -1399,7 +1391,6 @@ describe('round', () => {
 			describe('when there are remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
-				let batch_stub;
 
 				beforeEach(done => {
 					scope.roundDelegates = [
@@ -1409,32 +1400,31 @@ describe('round', () => {
 					];
 					scope.roundRewards = [1, 2, 3];
 					scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
-					batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves('success');
 					done();
-				});
-
-				afterEach(async () => {
-					round.scope.modules.accounts.mergeAccountAndGet.reset();
-					batch_stub.restore();
 				});
 
 				describe('forward', () => {
 					let called = 0;
 
 					beforeEach(async () => {
-						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
-						insertRoundRewards_stub.resolves('success');
 						scope.backwards = false;
-						round = new Round(scope, dbStub);
-						res = round.applyRound();
-						await res;
+
+						res = await db.task(t => {
+							round = new Round(scope, t);
+							return round.applyRound();
+						});
 					});
 
-					it('query should be called', () => {
-						return res.then(response => {
-							expect(response).to.equal('success');
-							expect(batch_stub.called).to.be.true;
-						});
+					it('query should be called', async () => {
+						expect(res).to.be.eql([
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'insertRoundRewards',
+							'insertRoundRewards',
+							'insertRoundRewards',
+						]);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
@@ -1593,19 +1583,21 @@ describe('round', () => {
 					let called = 0;
 
 					beforeEach(async () => {
-						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
-						insertRoundRewards_stub.resolves('success');
 						scope.backwards = true;
-						round = new Round(_.cloneDeep(scope), dbStub);
-						res = round.applyRound();
-						await res;
+
+						res = await db.task(t => {
+							round = new Round(_.cloneDeep(scope), t);
+							return round.applyRound();
+						});
 					});
 
-					it('query should be called', () => {
-						return res.then(response => {
-							expect(response).to.equal('success');
-							expect(batch_stub.called).to.be.true;
-						});
+					it('query should be called', async () => {
+						expect(res).to.be.eql([
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+							'mergeAccountAndGet',
+						]);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
@@ -1777,7 +1769,6 @@ describe('round', () => {
 	});
 
 	describe('land', () => {
-		let batch_stub; // eslint-disable-line no-unused-vars
 		let updateMissedBlocks_stub;
 		let updateVotes_stub;
 		let getVotes_stub;
@@ -1806,17 +1797,27 @@ describe('round', () => {
 					'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 				address: '16010222169256538112L',
 			};
-			batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves();
-			updateMissedBlocks_stub = dbStub.rounds.updateMissedBlocks.resolves();
+			updateMissedBlocks_stub = db.rounds.updateMissedBlocks.resolves(
+				'updateMissedBlocks'
+			);
 			getVotes_stub = storageStub.entities.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
-			updateVotes_stub = dbStub.rounds.updateVotes.resolves('QUERY');
-			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
+			updateVotes_stub = db.rounds.updateVotes.resolves('updateVotes');
+			updateDelegatesRanks_stub = db.rounds.updateDelegatesRanks.resolves(
+				'updateDelegatesRanks'
+			);
 			flush_stub = scope.library.storage.entities.Round.delete;
+			scope.modules.accounts.mergeAccountAndGet.yields(
+				null,
+				'mergeAccountAndGet'
+			);
 
-			round = new Round(scope, dbStub);
-			res = round.land();
+			res = db.task(t => {
+				round = new Round(scope, t);
+				return round.land();
+			});
+
 			await res;
 		});
 
@@ -1854,7 +1855,6 @@ describe('round', () => {
 	});
 
 	describe('backwardLand', () => {
-		let batch_stub; // eslint-disable-line no-unused-vars
 		let updateMissedBlocks_stub;
 		let updateVotes_stub;
 		let getVotes_stub;
@@ -1888,24 +1888,30 @@ describe('round', () => {
 				address: '16010222169256538112L',
 			};
 
-			batch_stub = sinonSandbox.stub(dbStub, 'batch').resolves();
-			updateMissedBlocks_stub = dbStub.rounds.updateMissedBlocks.resolves();
+			updateMissedBlocks_stub = db.rounds.updateMissedBlocks.resolves();
 			getVotes_stub = storageStub.entities.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
-			updateVotes_stub = dbStub.rounds.updateVotes.resolves('QUERY');
-			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
+			updateVotes_stub = db.rounds.updateVotes.resolves('QUERY');
+			updateDelegatesRanks_stub = db.rounds.updateDelegatesRanks.resolves();
 			flush_stub = scope.library.storage.entities.Round.delete;
-			checkSnapshotAvailability_stub = dbStub.rounds.checkSnapshotAvailability.resolves(
+			checkSnapshotAvailability_stub = db.rounds.checkSnapshotAvailability.resolves(
 				1
 			);
-			restoreRoundSnapshot_stub = dbStub.rounds.restoreRoundSnapshot.resolves();
-			restoreVotesSnapshot_stub = dbStub.rounds.restoreVotesSnapshot.resolves();
-			deleteRoundRewards_stub = dbStub.rounds.deleteRoundRewards.resolves();
-			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
+			restoreRoundSnapshot_stub = db.rounds.restoreRoundSnapshot.resolves();
+			restoreVotesSnapshot_stub = db.rounds.restoreVotesSnapshot.resolves();
+			deleteRoundRewards_stub = db.rounds.deleteRoundRewards.resolves();
+			updateDelegatesRanks_stub = db.rounds.updateDelegatesRanks.resolves();
+			scope.modules.accounts.mergeAccountAndGet.yields(
+				null,
+				'mergeAccountAndGet'
+			);
 
-			round = new Round(scope, dbStub);
-			res = round.backwardLand();
+			res = db.task(t => {
+				round = new Round(scope, t);
+				return round.backwardLand();
+			});
+
 			await res;
 		});
 
