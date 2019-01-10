@@ -36,9 +36,11 @@ export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_MESSAGE_RECEIVED = 'requestReceived';
 
-// Remote event names sent to or received from peers.
-export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
+// Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
+export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
+export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
+
 
 export interface PeerInfo {
 	readonly ipAddress: string;
@@ -262,7 +264,7 @@ export class Peer extends EventEmitter {
 	public async fetchPeers(): Promise<ReadonlyArray<PeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request<void>({
-				procedure: GET_ALL_PEERS_LIST_RPC,
+				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
 			});
 
 			return processPeerListFromResponse(response.data);
@@ -280,7 +282,7 @@ export class Peer extends EventEmitter {
 		return socketClusterClient.create({
 			hostname: this._ipAddress,
 			port: this._wsPort,
-			query: this._nodeInfo,
+			query: JSON.stringify(this._nodeInfo),
 			autoConnect: false,
 		});
 	}
