@@ -71,8 +71,6 @@ export interface EntityMap {
 
 export interface RequiredState {
 	readonly sender: Account;
-	readonly recipient?: Account;
-	readonly dependentState?: EntityMap;
 }
 
 export const ENTITY_ACCOUNT = 'account';
