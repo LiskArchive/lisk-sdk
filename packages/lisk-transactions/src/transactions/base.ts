@@ -432,9 +432,9 @@ export abstract class BaseTransaction {
 	public sign(passphrase: string, secondPassphrase?: string): void {
 		this._signature = undefined;
 		this._signSignature = undefined;
-		this._signature = signData(hash(this.getBasicBytes()), passphrase);
+		this._signature = signData(hash(this.getBytes()), passphrase);
 		if (secondPassphrase) {
-			this._signSignature = signData(hash(this.getBytes()), passphrase);
+			this._signSignature = signData(hash(this.getBytes()), secondPassphrase);
 		}
 		this._id = getId(this.getBytes());
 	}

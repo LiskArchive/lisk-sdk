@@ -32,6 +32,7 @@ import {
 	validSecondSignatureTransaction,
 } from '../../fixtures';
 import * as utils from '../../src/utils';
+import { SinonStub } from 'sinon';
 
 describe('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(validTransaction);
@@ -936,6 +937,100 @@ describe('Base transaction class', () => {
 
 		it('should return true for expired transaction', async () => {
 			expect(expiredTestTransaction.isExpired(new Date())).to.be.true;
+		});
+	});
+
+	describe('#sign', () => {
+		const defaultPassphrase = 'passphrase';
+		const defaultSecondPassphrase = 'second-passphrase';
+		const defaultHash = Buffer.from(
+			'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02111111',
+			'hex',
+		);
+		const defaultSecondHash = Buffer.from(
+			'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02000000',
+			'hex',
+		);
+		const defaultSignature =
+			'dc8fe25f817c81572585b3769f3c6df13d3dc93ff470b2abe807f43a3359ed94e9406d2539013971431f2d540e42dc7d3d71c7442da28572c827d59adc5dfa08';
+		const defaultSecondSignature =
+			'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309';
+
+		let signDataStub: SinonStub;
+
+		beforeEach(async () => {
+			const hashStub = sandbox
+				.stub(cryptography, 'hash')
+				.onFirstCall()
+				.returns(defaultHash)
+				.onSecondCall()
+				.returns(defaultSecondHash);
+			hashStub.returns(defaultHash);
+			signDataStub = sandbox
+				.stub(cryptography, 'signData')
+				.onFirstCall()
+				.returns(defaultSignature)
+				.onSecondCall()
+				.returns(defaultSecondSignature);
+		});
+
+		describe('when sign is called with passphrase', () => {
+			beforeEach(async () => {
+				validTestTransaction.sign(defaultPassphrase);
+			});
+
+			it('should set signature property', async () => {
+				expect(validTestTransaction.signature).to.equal(defaultSignature);
+			});
+
+			it('should not set signSignature property', async () => {
+				expect(validTestTransaction.signSignature).to.be.undefined;
+			});
+
+			it('should set id property', async () => {
+				expect(validTestTransaction.id).not.to.be.empty;
+			});
+
+			it('should call signData with the hash result and the passphrase', async () => {
+				expect(signDataStub).to.be.calledWithExactly(
+					defaultHash,
+					defaultPassphrase,
+				);
+			});
+		});
+
+		describe('when sign is called with passphrase and second passphrase', () => {
+			beforeEach(async () => {
+				validTestTransaction.sign(defaultPassphrase, defaultSecondPassphrase);
+			});
+
+			it('should set signature property', async () => {
+				expect(validTestTransaction.signature).to.equal(defaultSignature);
+			});
+
+			it('should set signSignature property', async () => {
+				expect(validTestTransaction.signSignature).to.equal(
+					defaultSecondSignature,
+				);
+			});
+
+			it('should set id property', async () => {
+				expect(validTestTransaction.id).not.to.be.empty;
+			});
+
+			it('should call signData with the hash result and the passphrase', async () => {
+				expect(signDataStub).to.be.calledWithExactly(
+					defaultHash,
+					defaultPassphrase,
+				);
+			});
+
+			it('should call signData with the hash result and the passphrase', async () => {
+				expect(signDataStub).to.be.calledWithExactly(
+					defaultSecondHash,
+					defaultSecondPassphrase,
+				);
+			});
 		});
 	});
 });
