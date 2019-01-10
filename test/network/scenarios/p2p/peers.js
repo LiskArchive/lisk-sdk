@@ -123,7 +123,7 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 					});
 				});
 
-				it('should be similar among all peers (max 2 blocks of difference)', () => {
+				it('should be similar among all peers (max 3 blocks of difference)', () => {
 					return network.getAllNodesStatus().then(status => {
 						const networkHeights = _.groupBy(
 							status.peerStatusList,
@@ -132,7 +132,7 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 						const heights = Object.keys(networkHeights);
 						if (heights.length !== 1) {
 							expect(heights).to.have.lengthOf(2);
-							return expect(Math.abs(heights[0] - heights[1])).to.be.at.most(2);
+							return expect(Math.abs(heights[0] - heights[1])).to.be.at.most(3);
 						}
 						return expect(heights).to.have.lengthOf(1);
 					});
