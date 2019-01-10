@@ -507,4 +507,43 @@ describe('Round', () => {
 				.fulfilled;
 		});
 	});
+
+	describe('summedRound()', () => {
+		it('should use the correct SQL file with one parameter', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.summedRound(1, 2);
+
+			expect(adapter.executeFile.firstCall.args[0]).to.eql(SQLs.summedRound);
+			expect(adapter.executeFile.firstCall.args[1]).to.eql({
+				round: 1,
+				activeDelegates: 2,
+			});
+			expect(adapter.executeFile).to.be.calledOnce;
+		});
+
+		it('should return the summed result in valid format', async () => {
+			// Sum the round 1 with active delegates to 2
+			const result = await RoundEntity.summedRound(1, 2);
+			const blocks = seeder.getBlocks();
+
+			// The blocks for round 1 would be with height 1 and 2
+			// referred as index 0 and 1 in the array
+			const computedBlocks = [blocks[0], blocks[1]];
+
+			expect(result).to.be.not.empty;
+			expect(result).to.have.lengthOf(1);
+			expect(result[0]).to.have.all.keys('fees', 'rewards', 'delegates');
+			expect(result[0].rewards).to.be.an('array');
+			expect(result[0].delegates).to.be.an('array');
+			expect(result[0].fees).to.be.eql(
+				new BigNumber(computedBlocks[0].totalFee)
+					.plus(computedBlocks[1].totalFee)
+					.toString()
+			);
+			expect(result[0].rewards).to.be.eql(computedBlocks.map(b => b.reward));
+			expect(result[0].delegates).to.be.eql(
+				computedBlocks.map(b => b.generatorPublicKey)
+			);
+		});
+	});
 });

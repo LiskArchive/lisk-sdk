@@ -93,6 +93,7 @@ class Round extends BaseEntity {
 			getTotalVotedAmount: this.adapter.loadSQLFile(
 				'rounds/get_total_voted_amount.sql'
 			),
+			summedRound: this.adapter.loadSQLFile('rounds/summed_round.sql'),
 		};
 	}
 
@@ -334,6 +335,23 @@ class Round extends BaseEntity {
 		return this.adapter.executeFile(
 			this.SQLs.getTotalVotedAmount,
 			params,
+			{},
+			tx
+		);
+	}
+
+	/**
+	 * Summarize the results for a round.
+	 *
+	 * @param {string} round - Id of the round
+	 * @param {number} activeDelegates - Number of active delegates
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	summedRound(round, activeDelegates, tx = null) {
+		return this.adapter.executeFile(
+			this.SQLs.summedRound,
+			{ round, activeDelegates },
 			{},
 			tx
 		);
