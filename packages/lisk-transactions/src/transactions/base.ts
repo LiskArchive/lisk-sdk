@@ -18,6 +18,7 @@
 import {
 	bigNumberToBuffer,
 	getAddressFromPublicKey,
+	hash,
 	hexToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
@@ -431,9 +432,9 @@ export abstract class BaseTransaction {
 	public sign(passphrase: string, secondPassphrase?: string): void {
 		this._signature = undefined;
 		this._signSignature = undefined;
-		this._signature = signData(this.getBasicBytes(), passphrase);
+		this._signature = signData(hash(this.getBasicBytes()), passphrase);
 		if (secondPassphrase) {
-			this._signSignature = signData(this.getBytes(), passphrase);
+			this._signSignature = signData(hash(this.getBytes()), passphrase);
 		}
 		this._id = getId(this.getBytes());
 	}
