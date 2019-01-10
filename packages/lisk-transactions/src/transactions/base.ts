@@ -158,8 +158,8 @@ export abstract class BaseTransaction {
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			this.signature ? hexToBuffer(this.signature) : Buffer.alloc(0),
-			this.signSignature ? hexToBuffer(this.signSignature) : Buffer.alloc(0),
+			this._signature ? hexToBuffer(this._signature) : Buffer.alloc(0),
+			this._signSignature ? hexToBuffer(this._signSignature) : Buffer.alloc(0),
 		]);
 
 		return transactionBytes;
