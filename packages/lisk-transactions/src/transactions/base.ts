@@ -15,7 +15,11 @@
 // tslint:disable-next-line no-reference
 /// <reference path="../../types/browserify-bignum/index.d.ts" />
 
-import { bigNumberToBuffer, getAddressFromPublicKey, hexToBuffer } from '@liskhq/lisk-cryptography';
+import {
+	bigNumberToBuffer,
+	getAddressFromPublicKey,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
 	BYTESIZES,
@@ -154,12 +158,8 @@ export abstract class BaseTransaction {
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			this.signature
-				? hexToBuffer(this.signature)
-				: Buffer.alloc(0),
-			this.signSignature
-				? hexToBuffer(this.signSignature)
-				: Buffer.alloc(0),
+			this.signature ? hexToBuffer(this.signature) : Buffer.alloc(0),
+			this.signSignature ? hexToBuffer(this.signSignature) : Buffer.alloc(0),
 		]);
 
 		return transactionBytes;
@@ -432,15 +432,10 @@ export abstract class BaseTransaction {
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 
-		const transactionSenderPublicKey = hexToBuffer(
-			this.senderPublicKey,
-		);
+		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		const transactionRecipientID = this.recipientId
-			? bigNumberToBuffer(
-					this.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-			  )
+			? bigNumberToBuffer(this.recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 		const transactionAmount = this.amount.toBuffer({
