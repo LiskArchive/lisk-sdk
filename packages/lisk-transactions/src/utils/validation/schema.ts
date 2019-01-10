@@ -16,16 +16,13 @@ export const transaction = {
 	$id: 'lisk/transaction',
 	type: 'object',
 	required: [
-		'id',
 		'type',
 		'amount',
 		'fee',
 		'senderPublicKey',
-		'senderId',
 		'recipientId',
 		'timestamp',
 		'asset',
-		'signature',
 	],
 	properties: {
 		id: {
@@ -85,6 +82,7 @@ export const baseTransaction = {
 		'type',
 		'amount',
 		'fee',
+		'senderId',
 		'senderPublicKey',
 		'timestamp',
 		'asset',
