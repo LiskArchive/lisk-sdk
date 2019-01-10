@@ -16,17 +16,15 @@
 
 const rewire = require('rewire');
 
-const BlocksApi = rewire('../../../../modules/blocks/api.js');
+const BlocksController = rewire('../../../../api/controllers/blocks.js');
 
 describe('blocks/api', () => {
 	let __private;
-	let blocksApiModule;
 	let library;
 	let loggerSpy;
 	let dbStub;
 	let storageStub;
 	let blockStub;
-	let schemaStub;
 
 	beforeEach(done => {
 		dbStub = {
@@ -64,17 +62,14 @@ describe('blocks/api', () => {
 
 		blockStub = sinonSandbox.stub();
 
-		schemaStub = sinonSandbox.stub();
-
-		blocksApiModule = new BlocksApi(
-			loggerSpy,
-			dbStub,
-			storageStub,
-			blockStub,
-			schemaStub
-		);
-		library = BlocksApi.__get__('library');
-		__private = BlocksApi.__get__('__private');
+		new BlocksController({
+			db: dbStub,
+			storage: storageStub,
+			logic: blockStub,
+			logger: loggerSpy,
+		});
+		library = BlocksController.__get__('library');
+		__private = BlocksController.__get__('__private');
 
 		done();
 	});
@@ -89,8 +84,7 @@ describe('blocks/api', () => {
 			expect(library.logger).to.eql(loggerSpy);
 			expect(library.db).to.eql(dbStub);
 			expect(library.storage).to.eql(storageStub);
-			expect(library.logic.block).to.eql(blockStub);
-			return expect(library.schema).to.eql(schemaStub);
+			return expect(library.logic).to.eql(blockStub);
 		});
 	});
 
@@ -274,7 +268,7 @@ describe('blocks/api', () => {
 
 			describe('when db.query fails', () => {
 				it('should call callback with Blocks#list error', done => {
-					storageStub.entities.Block.get = sinonSandbox.stub().resolves();
+					storageStub.entities.Block.get = sinonSandbox.stub().rejects();
 					__private.list({ limit: 1 }, err => {
 						expect(err).to.equal('Blocks#list error');
 						done();
@@ -286,98 +280,42 @@ describe('blocks/api', () => {
 
 	describe('getBlocks', () => {
 		let listTemp;
+
 		beforeEach(done => {
 			listTemp = __private.list;
 			__private.list = sinonSandbox.stub();
 			done();
 		});
+
 		afterEach(done => {
 			__private.list = listTemp;
 			done();
 		});
-		describe('when __private.loaded = false', () => {
-			before(done => {
-				__private.loaded = false;
-				done();
-			});
 
+		describe('when filters are invalid', () => {
+			beforeEach(() => {
+				return __private.list.callsArgWith(1, [{ message: 'list-ERR' }], null);
+			});
 			it('should call callback with error', done => {
-				blocksApiModule.getBlocks({ limit: 1 }, err => {
-					expect(err).to.equal('Blockchain is loading');
+				__private.getBlocks({ sort: 'invalidField:desc' }, err => {
+					expect(err).instanceOf(Error);
+					expect(err.message).to.equal('list-ERR');
+					expect(err.code).to.equal(500);
 					done();
 				});
 			});
 		});
-
-		describe('when __private.loaded = true', () => {
-			before(done => {
-				__private.loaded = true;
-				done();
+		describe('when filters are valid', () => {
+			beforeEach(() => {
+				return __private.list.callsArgWith(1, null, [
+					{ id: '6524861224470851795' },
+				]);
 			});
-			describe('when filters are invalid', () => {
-				beforeEach(() => {
-					return __private.list.callsArgWith(
-						1,
-						[{ message: 'list-ERR' }],
-						null
-					);
+			it('should call callback with no error', done => {
+				__private.getBlocks({ id: '6524861224470851795' }, (err, cb) => {
+					expect(cb[0].id).to.equal('6524861224470851795');
+					done();
 				});
-				it('should call callback with error', done => {
-					blocksApiModule.getBlocks({ sort: 'invalidField:desc' }, err => {
-						expect(err).instanceOf(Error);
-						expect(err.message).to.equal('list-ERR');
-						expect(err.code).to.equal(500);
-						done();
-					});
-				});
-			});
-			describe('when filters are valid', () => {
-				beforeEach(() => {
-					return __private.list.callsArgWith(1, null, [
-						{ id: '6524861224470851795' },
-					]);
-				});
-				it('should call callback with no error', done => {
-					blocksApiModule.getBlocks(
-						{ id: '6524861224470851795' },
-						(err, cb) => {
-							expect(cb[0].id).to.equal('6524861224470851795');
-							done();
-						}
-					);
-				});
-			});
-		});
-	});
-
-	describe('onBind', () => {
-		let modules;
-		let modulesStub;
-
-		before(done => {
-			modulesStub = {
-				blocks: sinonSandbox.stub(),
-				system: sinonSandbox.stub(),
-			};
-
-			__private.loaded = false;
-
-			blocksApiModule.onBind(modulesStub);
-			modules = BlocksApi.__get__('modules');
-			done();
-		});
-
-		it('should set __private.loaded = true', () => {
-			return expect(__private.loaded).to.be.true;
-		});
-
-		describe('modules', () => {
-			it('should assign blocks', () => {
-				return expect(modules.blocks).to.equal(modulesStub.blocks);
-			});
-
-			it('should assign system', () => {
-				return expect(modules.system).to.equal(modulesStub.system);
 			});
 		});
 	});
