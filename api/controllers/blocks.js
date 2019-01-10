@@ -15,9 +15,10 @@
 'use strict';
 
 const _ = require('lodash');
+const apiCodes = require('../../helpers/api_codes.js');
+const ApiError = require('../../helpers/api_error.js');
 
-// Private Fields
-let modules;
+let library;
 
 /**
  * Description of the function.
@@ -29,7 +30,12 @@ let modules;
  * @todo Add description of BlocksController
  */
 function BlocksController(scope) {
-	modules = scope.modules;
+	library = {
+		db: scope.db,
+		storage: scope.storage,
+		logic: scope.logic,
+		logger: scope.logger,
+	};
 }
 
 /**
@@ -56,7 +62,7 @@ BlocksController.getBlocks = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	return modules.blocks.shared.getBlocks(_.clone(filters), (err, data) => {
+	return __private.getBlocks(_.clone(filters), (err, data) => {
 		if (err) {
 			return next(err);
 		}
@@ -85,6 +91,109 @@ BlocksController.getBlocks = function(context, next) {
 			},
 		});
 	});
+};
+
+/**
+ * Get filtered list of blocks (without transactions).
+ *
+ * @private
+ * @func list
+ * @param {Object} filter - Conditions to filter with
+ * @param {string} filter.id - Block id
+ * @param {string} filter.generatorPublicKey - Public key of delegate who generates the block
+ * @param {number} filter.numberOfTransactions - Number of transactions
+ * @param {string} filter.previousBlock - Previous block ID
+ * @param {number} filter.height - Block height
+ * @param {number} filter.totalAmount - Total amount of block's transactions
+ * @param {number} filter.totalFee - Block total fees
+ * @param {number} filter.reward - Block reward
+ * @param {number} filter.limit - Limit of blocks to retrieve, default: 100, max: 100
+ * @param {number} filter.offset - Offset from where to start
+ * @param {string} filter.sort - Sort order, default: height:desc
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.data - List of normalized blocks
+ */
+const __private = {};
+
+__private.getBlocks = function(filters, cb) {
+	return __private.list(filters, (err, data) => {
+		if (err) {
+			return setImmediate(
+				cb,
+				new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR)
+			);
+		}
+
+		return setImmediate(cb, null, data);
+	});
+};
+
+__private.list = function(filter, cb) {
+	const options = {};
+
+	const filters = {
+		id: filter.id,
+		generatorPublicKey: filter.generatorPublicKey,
+		numberOfTransactions: filter.numberOfTransactions,
+		previousBlockId: filter.previousBlock,
+		height: filter.height,
+		timestamp_gte: filter.fromTimestamp,
+		timestamp_lte: filter.toTimestamp,
+		totalAmount: filter.totalAmount,
+		totalFee: filter.totalFee,
+		reward: filter.reward,
+	};
+
+	Object.keys(filters).forEach(key => {
+		if (!filters[key]) {
+			delete filters[key];
+		}
+	});
+
+	if (!filter.limit) {
+		options.limit = 100;
+	} else {
+		options.limit = Math.abs(filter.limit);
+	}
+
+	if (!filter.offset) {
+		options.offset = 0;
+	} else {
+		options.offset = Math.abs(filter.offset);
+	}
+
+	if (options.limit > 100) {
+		return setImmediate(cb, 'Invalid limit. Maximum is 100');
+	}
+
+	options.sort = filter.sort || 'height:desc';
+	const [sortField, sortMethod = 'ASC'] = options.sort.split(':');
+
+	if (
+		!library.db.blocks.sortFields.includes(sortField) ||
+		!['ASC', 'DESC'].includes(sortMethod.toUpperCase())
+	) {
+		return setImmediate(cb, 'Invalid sort field');
+	}
+
+	return library.storage.entities.Block.get(filters, options)
+		.then(rows => {
+			const blocks = [];
+			const rowCount = rows.length;
+			// Normalize blocks
+			for (let i = 0; i < rowCount; i++) {
+				// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
+				const block = library.logic.block.storageRead(rows[i]);
+				blocks.push(block);
+			}
+			return setImmediate(cb, null, blocks);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#list error');
+		});
 };
 
 module.exports = BlocksController;
