@@ -461,7 +461,7 @@ __private.loadBlockChain = function() {
 		const promises = [
 			t.blocks.count(),
 			t.blocks.getGenesisBlock(),
-			library.storage.entities.Round.getMemRounds(),
+			library.storage.entities.Round.getUniqueRounds(),
 			t.delegates.countDuplicatedDelegates(),
 		];
 

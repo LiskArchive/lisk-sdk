@@ -431,7 +431,7 @@ describe('Round', () => {
 		});
 	});
 
-	describe('getMemRounds()', () => {
+	describe('getUniqueRounds()', () => {
 		it('should return unique round numbers', async () => {
 			const round1 = new roundsFixtures.Round({
 				round: 1,
@@ -446,7 +446,7 @@ describe('Round', () => {
 			await RoundEntity.create([round1, round2, round3]);
 
 			const result1 = await RoundEntity.get();
-			const result2 = await RoundEntity.getMemRounds();
+			const result2 = await RoundEntity.getUniqueRounds();
 
 			// Actually there are three records but getMemRounds return unique round
 			expect(result1).to.have.lengthOf(3);
