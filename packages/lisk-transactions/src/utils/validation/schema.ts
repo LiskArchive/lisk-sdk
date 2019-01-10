@@ -76,6 +76,7 @@ export const transaction = {
 	},
 };
 
+// TODO: Add senderId and recipientId to required once deprecated functions relying on this schema are removed
 export const baseTransaction = {
 	$id: 'lisk/base-transaction',
 	type: 'object',

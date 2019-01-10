@@ -19,6 +19,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
 	BYTESIZES,
+	MAX_TRANSACTION_AMOUNT,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from '../constants';
@@ -43,7 +44,17 @@ export interface TransactionResponse {
 	readonly id: string;
 	readonly status: Status;
 	readonly errors: ReadonlyArray<TransactionError>;
-	readonly state?: ReadonlyArray<Account>;
+	readonly state?: { readonly sender: Account; readonly recipient?: Account };
+}
+
+export interface Attributes {
+	readonly [attribute: string]: string[];
+}
+
+export enum MultisignatureStatus {
+	FALSE = 0,
+	TRUE = 1,
+	UNKNOWN = 2,
 }
 
 export abstract class BaseTransaction {
@@ -61,7 +72,8 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
 	public readonly receivedAt: Date = new Date();
-	public readonly isMultisignature?: boolean = false;
+	public readonly containsUniqueData?: boolean;
+	public isMultisignature?: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		const { valid, errors } = checkTypes(rawTransaction);
@@ -87,10 +99,6 @@ export abstract class BaseTransaction {
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
 		this.receivedAt = rawTransaction.receivedAt;
-		this.isMultisignature =
-			rawTransaction.signatures && rawTransaction.signatures.length > 0
-				? true
-				: false;
 	}
 
 	public abstract assetToJSON(): TransactionAsset;
@@ -106,7 +114,7 @@ export abstract class BaseTransaction {
 			recipientId: this.recipientId,
 			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
-			signature: this.signature ? this.signature : undefined,
+			signature: this.signature,
 			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
@@ -139,9 +147,10 @@ export abstract class BaseTransaction {
 			size: BYTESIZES.AMOUNT,
 		});
 
-		const transactionAsset = this.asset
-			? this.getAssetBytes()
-			: Buffer.alloc(0);
+		const transactionAsset =
+			this.asset && Object.keys(this.asset).length
+				? this.getAssetBytes()
+				: Buffer.alloc(0);
 
 		return Buffer.concat([
 			transactionType,
@@ -153,9 +162,19 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public abstract getBytes(): Buffer;
+	public getBytes(): Buffer {
+		const transactionBytes = Buffer.concat([
+			this.getBasicBytes(),
+			this.signature
+				? cryptography.hexToBuffer(this.signature)
+				: Buffer.alloc(0),
+			this.signSignature
+				? cryptography.hexToBuffer(this.signSignature)
+				: Buffer.alloc(0),
+		]);
 
-	public abstract containsUniqueData(): boolean;
+		return transactionBytes;
+	}
 
 	public checkSchema(): TransactionResponse {
 		const transaction = this.toJSON();
@@ -203,10 +222,8 @@ export abstract class BaseTransaction {
 
 	public validate(): TransactionResponse {
 		const errors: TransactionError[] = [];
-		const transactionBytes = Buffer.concat([
-			this.getBasicBytes(),
-			this.getAssetBytes(),
-		]);
+		const transactionBytes = this.getBasicBytes();
+
 		const {
 			verified: signatureVerified,
 			error: verificationError,
@@ -244,7 +261,7 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public getRequiredAttributes(): object {
+	public getRequiredAttributes(): Attributes {
 		return {
 			ACCOUNTS: [cryptography.getAddressFromPublicKey(this.senderPublicKey)],
 		};
@@ -306,8 +323,7 @@ export abstract class BaseTransaction {
 			} else {
 				const transactionBytes = Buffer.concat([
 					this.getBasicBytes(),
-					this.getAssetBytes(),
-					Buffer.from(this.signature, 'hex'),
+					cryptography.hexToBuffer(this.signature),
 				]);
 
 				const {
@@ -332,14 +348,13 @@ export abstract class BaseTransaction {
 			sender.multisignatures.length > 0 &&
 			sender.multimin
 		) {
+			this.isMultisignature = MultisignatureStatus.TRUE;
 			const transactionBytes = this.signSignature
 				? Buffer.concat([
 						this.getBasicBytes(),
-						this.getAssetBytes(),
 						Buffer.from(this.signature, 'hex'),
 				  ])
-				: Buffer.concat([this.getBasicBytes(), this.getAssetBytes()]);
-
+				: this.getBasicBytes();
 			const {
 				verified: multisignaturesVerified,
 				errors: multisignatureErrors,
@@ -360,6 +375,8 @@ export abstract class BaseTransaction {
 					errors.push(error);
 				});
 			}
+		} else {
+			this.isMultisignature = MultisignatureStatus.FALSE;
 		}
 
 		return {
@@ -376,33 +393,48 @@ export abstract class BaseTransaction {
 	public apply(sender: Account): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
+		const errors = updatedBalance.gte(0)
+			? []
+			: [
+					new TransactionError(
+						`Account does not have enough LSK: ${sender.address}, balance: ${
+							// tslint:disable-next-line no-magic-numbers
+							new BigNum(sender.balance.toString() || '0').div(Math.pow(10, 8))
+						}`,
+						this.id,
+					),
+			  ];
 
 		return {
 			id: this.id,
-			status: Status.OK,
-			state: [updatedAccount],
-			errors: [],
+			status: errors.length > 0 ? Status.FAIL : Status.OK,
+			state: { sender: updatedAccount },
+			errors,
 		};
 	}
 
 	public undo(sender: Account): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
+		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
+			? []
+			: [new TransactionError('Invalid balance amount', this.id)];
 
 		return {
 			id: this.id,
-			status: Status.OK,
-			state: [updatedAccount],
-			errors: [],
+			status: errors.length > 0 ? Status.FAIL : Status.OK,
+			state: { sender: updatedAccount },
+			errors,
 		};
 	}
 
 	public isExpired(date: Date = new Date()): boolean {
 		// tslint:disable-next-line no-magic-numbers
 		const timeNow = Math.floor(date.getTime() / 1000);
-		const timeOut = this.isMultisignature
-			? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
-			: UNCONFIRMED_TRANSACTION_TIMEOUT;
+		const timeOut =
+			this.isMultisignature === MultisignatureStatus.TRUE
+				? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
+				: UNCONFIRMED_TRANSACTION_TIMEOUT;
 		const timeElapsed =
 			// tslint:disable-next-line no-magic-numbers
 			timeNow - Math.floor(this.receivedAt.getTime() / 1000);
