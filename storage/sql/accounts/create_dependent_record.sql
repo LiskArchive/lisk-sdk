@@ -19,6 +19,4 @@
   PARAMETERS: ?
 */
 
-SELECT encode("publicKey", 'hex') AS "publicKey"
-FROM mem_accounts
-WHERE "isDelegate" = 1
+INSERT INTO ${tableName:name} ("accountId", "dependentId") VALUES (${accountId}, ${dependentId});

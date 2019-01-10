@@ -347,9 +347,9 @@ Multisignature.prototype.applyConfirmed = function(
 	library.logic.account.merge(
 		sender.address,
 		{
-			multisignatures: transaction.asset.multisignature.keysgroup,
-			multimin: transaction.asset.multisignature.min,
-			multilifetime: transaction.asset.multisignature.lifetime,
+			membersPublicKeys: transaction.asset.multisignature.keysgroup,
+			multiMin: transaction.asset.multisignature.min,
+			multiLifetime: transaction.asset.multisignature.lifetime,
 			round: slots.calcRound(block.height),
 		},
 		mergeErr => {
@@ -407,9 +407,9 @@ Multisignature.prototype.undoConfirmed = function(
 	library.logic.account.merge(
 		sender.address,
 		{
-			multisignatures: multiInvert,
-			multimin: -transaction.asset.multisignature.min,
-			multilifetime: -transaction.asset.multisignature.lifetime,
+			membersPublicKeys: multiInvert,
+			multiMin: -transaction.asset.multisignature.min,
+			multiLifetime: -transaction.asset.multisignature.lifetime,
 			round: slots.calcRound(block.height),
 		},
 		mergeErr => setImmediate(cb, mergeErr),
@@ -445,9 +445,9 @@ Multisignature.prototype.applyUnconfirmed = function(
 	return library.logic.account.merge(
 		sender.address,
 		{
-			u_multisignatures: transaction.asset.multisignature.keysgroup,
-			u_multimin: transaction.asset.multisignature.min,
-			u_multilifetime: transaction.asset.multisignature.lifetime,
+			u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
+			u_multiMin: transaction.asset.multisignature.min,
+			u_multiLifetime: transaction.asset.multisignature.lifetime,
 		},
 		mergeErr => setImmediate(cb, mergeErr),
 		tx
@@ -478,9 +478,9 @@ Multisignature.prototype.undoUnconfirmed = function(
 	library.logic.account.merge(
 		sender.address,
 		{
-			u_multisignatures: multiInvert,
-			u_multimin: -transaction.asset.multisignature.min,
-			u_multilifetime: -transaction.asset.multisignature.lifetime,
+			u_membersPublicKeys: multiInvert,
+			u_multiMin: -transaction.asset.multisignature.min,
+			u_multiLifetime: -transaction.asset.multisignature.lifetime,
 		},
 		err => setImmediate(cb, err),
 		tx

@@ -132,8 +132,7 @@ class Account {
 	 * @returns {setImmediate} error
 	 */
 	resetMemTables(cb) {
-		this.scope.db.accounts
-			.resetMemTables()
+		this.scope.storage.entities.Account.resetMemTables()
 			.then(() => setImmediate(cb))
 			.catch(err => {
 				library.logger.error(err.stack);
@@ -350,8 +349,7 @@ class Account {
 		// Normalize address
 		fields.address = address;
 
-		(tx || this.scope.db).accounts
-			.upsert(fields, ['address'])
+		this.scope.storage.entities.Account.upsert({ address }, fields, {}, tx)
 			.then(() => setImmediate(cb))
 			.catch(err => {
 				library.logger.error(err.stack);
@@ -408,7 +406,12 @@ class Account {
 					// blockId
 					case String:
 						promises.push(
-							dbTx.accounts.update(address, _.pick(diff, [updatedField]))
+							self.scope.storage.entities.Account.update(
+								{ address },
+								_.pick(diff, [updatedField]),
+								{},
+								dbTx
+							)
 						);
 						break;
 
@@ -423,16 +426,22 @@ class Account {
 						// If updated value is positive number
 						if (value.isGreaterThan(0)) {
 							promises.push(
-								dbTx.accounts.increment(address, updatedField, value.toString())
+								self.scope.storage.entities.Account.incrementField(
+									{ address },
+									updatedField,
+									value.toString(),
+									dbTx
+								)
 							);
 
 							// If updated value is negative number
 						} else if (value.isLessThan(0)) {
 							promises.push(
-								dbTx.accounts.decrement(
-									address,
+								self.scope.storage.entities.Account.decrementField(
+									{ address },
 									updatedField,
-									value.abs().toString()
+									value.abs().toString(),
+									dbTx
 								)
 							);
 						}
@@ -466,23 +475,25 @@ class Account {
 
 								if (mode === '-') {
 									promises.push(
-										dbTx.accounts.removeDependencies(
+										self.scope.storage.entities.Account.deleteDependentRecord(
+											updatedField,
 											address,
 											dependentId,
-											updatedField
+											dbTx
 										)
 									);
 								} else {
 									promises.push(
-										dbTx.accounts.insertDependencies(
+										self.scope.storage.entities.Account.createDependentRecord(
+											updatedField,
 											address,
 											dependentId,
-											updatedField
+											dbTx
 										)
 									);
 								}
 
-								if (updatedField === 'delegates') {
+								if (updatedField === 'votedDelegatesPublicKeys') {
 									promises.push(
 										dbTx.rounds.insertRoundInformationWithDelegate(
 											address,
@@ -530,8 +541,7 @@ class Account {
 	 * @returns {setImmediate} error, address
 	 */
 	remove(address, cb) {
-		this.scope.db.accounts
-			.remove(address)
+		this.scope.storage.entities.Account.delete({ address })
 			.then(() => setImmediate(cb, null, address))
 			.catch(err => {
 				library.logger.error(err.stack);
@@ -640,52 +650,52 @@ Account.prototype.model = [
 		conv: String,
 	},
 	{
-		name: 'delegates',
+		name: 'votedDelegatesPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'u_delegates',
+		name: 'u_votedDelegatesPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'multisignatures',
+		name: 'membersPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'u_multisignatures',
+		name: 'u_membersPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'multimin',
+		name: 'multiMin',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'u_multimin',
+		name: 'u_multiMin',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'multilifetime',
+		name: 'multiLifetime',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'u_multilifetime',
+		name: 'u_multiLifetime',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'nameexist',
+		name: 'nameExist',
 		type: 'SmallInt',
 		conv: Boolean,
 	},
 	{
-		name: 'u_nameexist',
+		name: 'u_nameExist',
 		type: 'SmallInt',
 		conv: Boolean,
 	},

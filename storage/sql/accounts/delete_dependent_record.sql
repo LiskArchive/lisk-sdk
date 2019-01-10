@@ -14,13 +14,9 @@
 
 
 /*
-  DESCRIPTION: Dynamic-field query for column "multisignatures"
+  DESCRIPTION: ?
 
-  PARAMETERS: None
+  PARAMETERS: ?
 */
 
-(
-  SELECT array_agg("dependentId")
-  FROM mem_accounts2multisignatures
-  WHERE "accountId" = mem_accounts.address
-)
+DELETE FROM ${tableName:name} WHERE "accountId" = ${accountId} AND "dependentId" = ${dependentId};

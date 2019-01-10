@@ -14,13 +14,11 @@
 
 
 /*
-  DESCRIPTION: Dynamic-field query for column "u_delegates"
+  DESCRIPTION: ?
 
-  PARAMETERS: None
+  PARAMETERS: ?
 */
 
-(
-  SELECT array_agg("dependentId")
-  FROM mem_accounts2u_delegates
-  WHERE "accountId" = mem_accounts.address
-)
+UPDATE mem_accounts
+SET ${field:name} = ${field:name} - ${value}::bigint
+${parsedFilters:raw}
