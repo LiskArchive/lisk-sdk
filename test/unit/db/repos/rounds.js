@@ -197,8 +197,11 @@ describe('db', () => {
 				yield db.accounts.insert(account);
 				const before = account.missedBlocks;
 				yield db.rounds.updateMissedBlocks(false, account.address);
-				const after = (yield db.accounts.list({ address: account.address }))[0]
-					.missedBlocks;
+				const after = (yield db.query(
+					`SELECT "missedBlocks" FROM mem_accounts WHERE "address" = '${
+						account.address
+					}'`
+				))[0].missedBlocks;
 
 				return expect(after).to.be.eql(before + 1);
 			});
@@ -208,8 +211,11 @@ describe('db', () => {
 				yield db.accounts.insert(account);
 				const before = account.missedBlocks;
 				yield db.rounds.updateMissedBlocks(true, account.address);
-				const after = (yield db.accounts.list({ address: account.address }))[0]
-					.missedBlocks;
+				const after = (yield db.query(
+					`SELECT "missedBlocks" FROM mem_accounts WHERE "address" = '${
+						account.address
+					}'`
+				))[0].missedBlocks;
 
 				return expect(after).to.be.eql(before - 1);
 			});
@@ -286,9 +292,11 @@ describe('db', () => {
 				yield db.accounts.insert(account);
 
 				yield db.rounds.updateVotes(account.address, '123');
-				const result = (yield db.accounts.list({
-					address: account.address,
-				}))[0];
+				const result = (yield db.query(
+					`SELECT "vote" FROM mem_accounts WHERE "address" = '${
+						account.address
+					}'`
+				))[0];
 
 				return expect(result.vote).to.be.eql(
 					new BigNumber(account.vote).plus('123').toString()
@@ -937,10 +945,10 @@ describe('db', () => {
 				});
 				const delegate = '12345678';
 				yield db.accounts.insert(account);
-				yield db.accounts.insertDependencies(
-					account.address,
-					delegate,
-					'delegates'
+				yield db.query(
+					`INSERT INTO mem_accounts2delegates ("accountId", "dependentId") VALUES('${
+						account.address
+					}', '${delegate}')`
 				);
 
 				const params = {

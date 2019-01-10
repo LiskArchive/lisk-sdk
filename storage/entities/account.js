@@ -23,33 +23,36 @@ const BaseEntity = require('./base_entity');
 const defaultCreateValues = {
 	publicKey: null,
 	secondPublicKey: null,
-	secondSignature: 0,
-	u_secondSignature: 0,
+	secondSignature: false,
+	u_secondSignature: false,
 	username: null,
 	u_username: null,
 	isDelegate: false,
 	u_isDelegate: false,
 	balance: '0',
 	u_balance: '0',
-	delegates: null,
-	u_delegates: null,
 	missedBlocks: 0,
 	producedBlocks: 0,
 	rank: null,
 	fees: '0',
 	rewards: '0',
 	vote: '0',
-	nameExist: 0,
-	u_nameExist: 0,
+	nameExist: false,
+	u_nameExist: false,
 	multiMin: 0,
 	u_multiMin: 0,
 	multiLifetime: 0,
 	u_multiLifetime: 0,
-	multiSignatures: null,
-	u_multiSignatures: null,
 };
 
 const readOnlyFields = ['address'];
+
+const dependentFieldsTableMap = {
+	membersPublicKeys: 'mem_accounts2multisignatures',
+	u_membersPublicKeys: 'mem_accounts2u_multisignatures',
+	votedDelegatesPublicKeys: 'mem_accounts2delegates',
+	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
+};
 
 /**
  * Basic Account
@@ -257,13 +260,23 @@ class Account extends BaseEntity {
 		this.addField('u_multiLifetime', 'number', {
 			fieldName: 'u_multilifetime',
 		});
-		this.addField('nameExist', 'boolean', {
-			filter: ft.BOOLEAN,
-			fieldName: 'nameexist',
-		});
-		this.addField('u_nameExist', 'boolean', {
-			fieldName: 'u_nameexist',
-		});
+		this.addField(
+			'nameExist',
+			'boolean',
+			{
+				filter: ft.BOOLEAN,
+				fieldName: 'nameexist',
+			},
+			booleanToInt
+		);
+		this.addField(
+			'u_nameExist',
+			'boolean',
+			{
+				fieldName: 'u_nameexist',
+			},
+			booleanToInt
+		);
 		this.addField('fees', 'string', { filter: ft.NUMBER });
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
 		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
@@ -299,6 +312,19 @@ class Account extends BaseEntity {
 			update: this.adapter.loadSQLFile('accounts/update.sql'),
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('accounts/is_persisted.sql'),
+			delete: this.adapter.loadSQLFile('accounts/delete.sql'),
+			resetUnconfirmedState: this.adapter.loadSQLFile(
+				'accounts/reset_unconfirmed_state.sql'
+			),
+			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
+			incrementField: this.adapter.loadSQLFile('accounts/increment_field.sql'),
+			decrementField: this.adapter.loadSQLFile('accounts/decrement_field.sql'),
+			createDependentRecord: this.adapter.loadSQLFile(
+				'accounts/create_dependent_record.sql'
+			),
+			deleteDependentRecord: this.adapter.loadSQLFile(
+				'accounts/delete_dependent_record.sql'
+			),
 		};
 	}
 
@@ -404,7 +430,16 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	update(filters, data, _options, tx) {
+		const atLeastOneRequired = true;
+
+		this.validateFilters(filters, atLeastOneRequired);
+
 		const objectData = _.omit(data, readOnlyFields);
+
+		if (_.isEmpty(objectData)) {
+			return Promise.resolve();
+		}
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
@@ -460,6 +495,232 @@ class Account extends BaseEntity {
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => result[0].exists);
+	}
+
+	/**
+	 * Delete records with following conditions
+	 *
+	 * @param {filters.Account} filters
+	 * @param {Object} [_options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	delete(filters, _options, tx = null) {
+		this.validateFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(
+				this.SQLs.delete,
+				{ parsedFilters },
+				{ expectedResultCount: 0 },
+				tx
+			)
+			.then(result => !result);
+	}
+
+	/**
+	 * Update data based on filters or insert data if no matching record found
+	 *
+	 * @param {filters.Account} filters - Filters to match the object
+	 * @param {Object} data - Object data to be inserted
+	 * @param {Object} [updateData] - If provided will be used for update, otherwise default data will be updated
+	 * @param {Object} [tx] - DB transaction object
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	upsert(filters, data, updateData = {}, tx = null) {
+		const task = t =>
+			this.isPersisted(filters, {}, t).then(dataFound => {
+				if (dataFound) {
+					const dataToUpdate = _.isEmpty(updateData) ? data : updateData;
+					return this.update(filters, dataToUpdate, {}, t);
+				}
+
+				return this.create(data, {}, t);
+			});
+
+		if (tx) {
+			return task(tx);
+		}
+
+		return this.begin('storage:account:upsert', task);
+	}
+
+	/**
+	 * Reset all unconfirmed states of accounts to confirmed states
+	 *
+	 * @param [tx] - Database transaction object
+	 * @returns {Promise.<*, Error>}
+	 */
+	resetUnconfirmedState(tx) {
+		return this.adapter.executeFile(
+			this.SQLs.resetUnconfirmedState,
+			{},
+			{},
+			tx
+		);
+	}
+
+	/**
+	 * Clear data in memory tables:
+	 * - mem_accounts
+	 * - rounds_rewards
+	 * - mem_round
+	 * - mem_accounts2delegates
+	 * - mem_accounts2u_delegates
+	 * - mem_accounts2multisignatures
+	 * - mem_accounts2u_multisignatures
+	 *
+	 * @param {Object} tx - DB transaction object
+	 * @returns {Promise}
+	 */
+	resetMemTables(tx) {
+		return this.adapter.executeFile(this.SQLs.resetMemTables, {}, {}, tx);
+	}
+
+	/**
+	 * Increment a field value in mem_accounts.
+	 *
+	 * @param {filters.Account} [filters] - Filters to match the objects
+	 * @param {string} field - Name of the field to increment
+	 * @param {Number|string} value - Value to be incremented
+	 * @param {Object} [tx] - Transaction object
+	 * @returns {Promise}
+	 */
+	incrementField(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'increment', tx);
+	}
+
+	/**
+	 * Decrement a field value in mem_accounts.
+	 *
+	 * @param {filters.Account} [filters] - Filters to match the objects
+	 * @param {string} field - Name of the field to increment
+	 * @param {Number|string} value - Value to be incremented
+	 * @param {Object} [tx] - Transaction object
+	 * @returns {Promise}
+	 */
+	decrementField(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'decrement', tx);
+	}
+
+	/**
+	 * Create dependent record for the account
+	 *
+	 * @param {string} dependencyName - Name of the dependent table
+	 * @param {string} address - Address of the account
+	 * @param {string} dependentPublicKey - Dependent public id
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	createDependentRecord(dependencyName, address, dependentPublicKey, tx) {
+		return this._updateDependentRecord(
+			dependencyName,
+			address,
+			dependentPublicKey,
+			'insert',
+			tx
+		);
+	}
+
+	/**
+	 * Delete dependent record for the account
+	 *
+	 * @param {string} dependencyName - Name of the dependent table
+	 * @param {string} address - Address of the account
+	 * @param {string} dependentPublicKey - Dependent public id
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	deleteDependentRecord(dependencyName, address, dependentPublicKey, tx) {
+		return this._updateDependentRecord(
+			dependencyName,
+			address,
+			dependentPublicKey,
+			'delete',
+			tx
+		);
+	}
+
+	/**
+	 * Update the dependent records used to manage votes and multisignature account members
+	 *
+	 * @param {string} dependencyName
+	 * @param {string} address
+	 * @param {string} dependentPublicKey
+	 * @param {('insert'|'delete')} mode
+	 * @param {Object} [tx]
+	 * @returns {Promise}
+	 */
+	_updateDependentRecord(
+		dependencyName,
+		address,
+		dependentPublicKey,
+		mode,
+		tx
+	) {
+		assert(
+			Object.keys(dependentFieldsTableMap).includes(dependencyName),
+			`Invalid dependency name "${dependencyName}" provided.`
+		);
+		const params = {
+			tableName: dependentFieldsTableMap[dependencyName],
+			accountId: address,
+			dependentId: dependentPublicKey,
+		};
+
+		const sql = {
+			insert: this.SQLs.createDependentRecord,
+			delete: this.SQLs.deleteDependentRecord,
+		}[mode];
+
+		return this.adapter.executeFile(
+			sql,
+			params,
+			{ expectedResultCount: 0 },
+			tx
+		);
+	}
+
+	/**
+	 * Update the field value
+	 *
+	 * @param {filters.Account} filters - Filters object
+	 * @param {string} field - Filed name to update
+	 * @param {*} value - Value to be update
+	 * @param {('increment'|'decrement')} mode - Mode of update
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	_updateField(filters, field, value, mode, tx) {
+		const atLeastOneRequired = true;
+		const validFieldName = Object.keys(this.fields).includes(field);
+		assert(validFieldName, `Field name "${field}" is not valid.`);
+
+		this.validateFilters(filters, atLeastOneRequired);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const filedName = this.fields[field].fieldName;
+
+		const params = {
+			parsedFilters,
+			field: filedName,
+			value,
+		};
+
+		const sql = {
+			increment: this.SQLs.incrementField,
+			decrement: this.SQLs.decrementField,
+		}[mode];
+
+		return this.adapter.executeFile(
+			sql,
+			params,
+			{ expectedResultCount: 0 },
+			tx
+		);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {

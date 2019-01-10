@@ -14,7 +14,7 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Reset the unconfirmed state of all accounts
 
   PARAMETERS: ?
 */

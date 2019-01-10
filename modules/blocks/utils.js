@@ -115,6 +115,37 @@ Utils.prototype.readDbRows = function(rows) {
 };
 
 /**
+ * Normalize blocks and their transactions.
+ *
+ * @param {Array} rows - Data from extended block entity
+ * @returns {Array} blocks - List of normalized blocks with transactions
+ */
+Utils.prototype.readStorageRows = function(rows) {
+	const blocks = rows.map(block => {
+		// Normalize block
+		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
+		block = library.logic.block.storageRead(block);
+
+		if (block) {
+			if (block.id === library.genesisBlock.block.id) {
+				// Generate fake signature for genesis block
+				block.generationSignature = new Array(65).join('0');
+			}
+
+			// Normalize transaction
+			if (block.transactions) {
+				block.transactions = block.transactions.map(
+					library.logic.transaction.storageRead
+				);
+			}
+		}
+		return block;
+	});
+
+	return blocks;
+};
+
+/**
  * Loads full blocks from database and normalize them.
  *
  * @param {Object} filter - Filter options
@@ -154,12 +185,13 @@ Utils.prototype.loadBlocksPart = function(filter, cb, tx) {
 Utils.prototype.loadLastBlock = function(cb) {
 	// Get full last block from database
 	// FIXME: Review SQL order by clause
-	library.db.blocks
-		// TODO: REPLACE BY STORAGE WHEN EXTENDED BLOCK IS IMPLEMENTED
-		.loadLastBlock()
+	return library.storage.entities.Block.get(
+		{},
+		{ sort: 'height:desc', limit: 1, extended: true }
+	)
 		.then(rows => {
 			// Normalize block
-			const block = modules.blocks.utils.readDbRows(rows)[0];
+			const block = modules.blocks.utils.readStorageRows(rows)[0];
 
 			// Update last block
 			modules.blocks.lastBlock.set(block);

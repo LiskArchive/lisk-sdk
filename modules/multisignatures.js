@@ -48,6 +48,7 @@ function Multisignatures(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
+		storage: scope.storage,
 		network: scope.network,
 		schema: scope.schema,
 		bus: scope.bus,
@@ -362,31 +363,33 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 				});
 			},
 			getMembers(seriesCb) {
-				library.db.multisignatures
-					.getMemberPublicKeys(scope.group.address)
-					.then(memberAccountKeys => {
-						const addresses = [];
+				library.storage.entities.Account.getOne(
+					{ address: scope.group.address },
+					{ extended: true }
+				).then(memberAccount => {
+					const memberAccountKeys = memberAccount.membersPublicKeys || [];
+					const addresses = [];
 
-						memberAccountKeys.forEach(key => {
-							addresses.push(modules.accounts.generateAddressByPublicKey(key));
-						});
-
-						modules.accounts.getAccounts(
-							{ address_in: addresses },
-							['address', 'publicKey', 'secondPublicKey'],
-							(err, accounts) => {
-								accounts.forEach(account => {
-									scope.group.members.push({
-										address: account.address,
-										publicKey: account.publicKey,
-										secondPublicKey: account.secondPublicKey || '',
-									});
-								});
-
-								return setImmediate(seriesCb);
-							}
-						);
+					memberAccountKeys.forEach(key => {
+						addresses.push(modules.accounts.generateAddressByPublicKey(key));
 					});
+
+					modules.accounts.getAccounts(
+						{ address_in: addresses },
+						['address', 'publicKey', 'secondPublicKey'],
+						(err, accounts) => {
+							accounts.forEach(account => {
+								scope.group.members.push({
+									address: account.address,
+									publicKey: account.publicKey,
+									secondPublicKey: account.secondPublicKey || '',
+								});
+							});
+
+							return setImmediate(seriesCb);
+						}
+					);
+				});
 			},
 		},
 		err => {

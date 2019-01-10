@@ -19,6 +19,6 @@
   PARAMETERS: ?
 */
 
-UPDATE ${table:name}
-SET ${field:name} = ${field:name} - ${value}::bigint
-WHERE address = ${address}
+UPDATE mem_accounts
+SET ${field:name} = ${field:name} + ${value}::bigint
+${parsedFilters:raw}

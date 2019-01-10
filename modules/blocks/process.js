@@ -358,31 +358,42 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting,
  * see: loader.loadBlockChain (private).
  *
- * @param {number} limit - Limit amount of blocks
- * @param {number} offset - Offset to start at
+ * @param {number} blocksAmount - Amount of blocks
+ * @param {number} fromHeight - Height to start at
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.lastBlock - Current last block
  */
-Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
-	// Calculate limit if offset is supplied
-	const newLimit = limit + (offset || 0);
-	const params = { limit: newLimit, offset: offset || 0 };
+Process.prototype.loadBlocksOffset = function(
+	blocksAmount,
+	fromHeight = 0,
+	cb
+) {
+	// Calculate toHeight
+	const toHeight = fromHeight + blocksAmount;
 
 	library.logger.debug('Loading blocks offset', {
-		limit,
-		offset,
+		limit: toHeight,
+		offset: fromHeight,
 	});
 
-	// Loads full blocks from database
-	// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
-	library.db.blocks
-		// TODO: REPLACE BY STORAGE WHEN EXTENDED BLOCK IS IMPLEMENTED
-		.loadBlocksOffset(params.offset, params.limit)
+	const filters = {
+		height_gte: fromHeight,
+		height_lt: toHeight,
+	};
+
+	const options = {
+		limit: null,
+		sort: ['height:asc', 'rowId:asc'],
+		extended: true,
+	};
+
+	// Loads extended blocks from storage
+	library.storage.entities.Block.get(filters, options)
 		.then(rows => {
 			// Normalize blocks
-			const blocks = modules.blocks.utils.readDbRows(rows);
+			const blocks = modules.blocks.utils.readStorageRows(rows);
 
 			async.eachSeries(
 				blocks,
@@ -400,6 +411,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 							setImmediate(eachBlockSeriesCb, err)
 						);
 					}
+
 					// Process block - broadcast: false, saveBlock: false
 					return modules.blocks.verify.processBlock(
 						block,

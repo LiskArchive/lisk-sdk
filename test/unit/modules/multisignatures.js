@@ -87,8 +87,10 @@ describe('multisignatures', () => {
 		// Create stubbed scope
 		validScope = {
 			logger: stubs.logger,
-			db: {
-				multisignatures: {},
+			storage: {
+				entities: {
+					Account: {},
+				},
 			},
 			network: { io: { sockets: { emit: stubs.networkIoSocketsEmit } } },
 			schema: stubs.schema,
@@ -956,8 +958,9 @@ describe('multisignatures', () => {
 
 			library.logic.account.getMultiSignature =
 				stubs.logic.account.getMultiSignature;
-			library.db.multisignatures.getMemberPublicKeys =
-				stubs.getMemberPublicKeys;
+			library.storage.entities.Account.getOne = sinonSandbox
+				.stub()
+				.resolves(validAccount);
 			get('modules').accounts.getAccounts = stubs.modules.accounts.getAccounts;
 			get('modules').accounts.generateAddressByPublicKey =
 				stubs.modules.accounts.generateAddressByPublicKey;
@@ -1023,10 +1026,12 @@ describe('multisignatures', () => {
 			});
 		});
 
-		it('should return group members if getMemberPublicKeys function returns an array of member account keys', done => {
-			library.db.multisignatures.getMemberPublicKeys = sinonSandbox
+		it('should return group members if account.membersPublicKeys returns an array of member account keys', done => {
+			library.storage.entities.Account.getOne = sinonSandbox
 				.stub()
-				.callsFake(() => Promise.resolve(['key1', 'key2']));
+				.callsFake(() =>
+					Promise.resolve({ membersPublicKeys: ['key1', 'key2'] })
+				);
 
 			const member1 = {
 				address: 'address',
