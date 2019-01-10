@@ -111,6 +111,7 @@ __private.getByFilter = function(filter, cb) {
 		'state',
 		'os',
 		'version',
+		'protocolVersion',
 		'broadhash',
 		'height',
 		'nonce',
@@ -271,6 +272,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 			library.logic.peers.remove(peer);
 		}
 	} else if (!modules.system.versionCompatible(status.version)) {
+		// TODO Check protocol compatible first
 		library.logger.debug(
 			`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
 				peer.string
@@ -294,6 +296,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 			os: status.os,
 			state,
 			version: status.version,
+			protocolVersion: status.protocolVersion,
 		});
 	}
 
