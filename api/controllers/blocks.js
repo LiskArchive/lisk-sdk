@@ -184,25 +184,20 @@ function _list(filter, cb) {
 		);
 	}
 
-	return library.storage.entities.Block.get(filters, options)
-		.then(rows => {
-			const blocks = [];
-			const rowCount = rows.length;
-			// Normalize blocks
-			for (let i = 0; i < rowCount; i++) {
-				// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-				const block = library.logic.block.storageRead(rows[i]);
-				blocks.push(block);
-			}
-			return setImmediate(cb, null, blocks);
-		})
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(
-				cb,
-				new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR)
-			);
-		});
+	return (
+		library.storage.entities.Block.get(filters, options)
+			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
+			.then(rows =>
+				setImmediate(cb, null, rows.map(library.logic.block.storageRead))
+			)
+			.catch(err => {
+				library.logger.error(err.stack);
+				return setImmediate(
+					cb,
+					new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR)
+				);
+			})
+	);
 }
 
 module.exports = BlocksController;
