@@ -72,7 +72,6 @@ module.exports = {
 		runtime: link('migrations/runtime.sql'),
 	},
 	rounds: {
-		updateDelegatesRanks: link('rounds/update_delegates_ranks.sql'),
 		updateVotes: link('rounds/update_votes.sql'),
 		clearRoundSnapshot: link('rounds/clear_round_snapshot.sql'),
 		performRoundSnapshot: link('rounds/perform_round_snapshot.sql'),

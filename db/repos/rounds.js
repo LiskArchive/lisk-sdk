@@ -33,15 +33,6 @@ class RoundsRepository {
 		this.pgp = pgp;
 	}
 
-	/**
-	 * Update rank for all delegates.
-	 *
-	 * @returns {Promise}
-	 */
-	updateDelegatesRanks() {
-		return this.db.none(sql.updateDelegatesRanks);
-	}
-
 	// TODO: Move usage of RoundsRepository#updateVotes to db/votes
 	/**
 	 * Update the votes of for a particular account.

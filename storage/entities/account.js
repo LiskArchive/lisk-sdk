@@ -652,7 +652,7 @@ class Account extends BaseEntity {
 	 * @param {Object} [tx] - Database transaction object
 	 * @returns {Promise}
 	 */
-	syncDelegatesRank(tx) {
+	syncDelegatesRanks(tx) {
 		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
 	}
 

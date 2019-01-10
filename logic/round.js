@@ -259,7 +259,9 @@ class Round {
 	 */
 	updateDelegatesRanks() {
 		this.scope.library.logger.debug('Updating ranks of all delegates...');
-		return this.t.rounds.updateDelegatesRanks();
+		return this.scope.library.storage.entities.Account.syncDelegatesRanks(
+			this.t
+		);
 	}
 
 	/**

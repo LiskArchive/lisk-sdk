@@ -1114,7 +1114,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('syncDelegatesRank', () => {
+	describe('syncDelegatesRanks', () => {
 		it('should use the correct SQL');
 		it(
 			'should sync rank attribute of all delegates based on their vote value and public key'

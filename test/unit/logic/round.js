@@ -55,6 +55,9 @@ describe('round', () => {
 			Account: {
 				incrementField: sinonSandbox.stub().resolves('Account.incrementField'),
 				decrementField: sinonSandbox.stub().resolves('Account.decrementField'),
+				syncDelegatesRanks: sinonSandbox
+					.stub()
+					.resolves('Account.syncDelegatesRanks'),
 			},
 		},
 	};
@@ -469,7 +472,7 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = db.rounds.updateDelegatesRanks;
+			stub = storage.entities.Account.syncDelegatesRanks;
 			stub.resolves('success');
 
 			round = new Round(scope, db);
@@ -1775,7 +1778,7 @@ describe('round', () => {
 		let decrementField_stub;
 		let updateVotes_stub;
 		let getVotes_stub;
-		let updateDelegatesRanks_stub;
+		let syncDelegatesRanks_stub;
 		let flush_stub;
 		let res;
 
@@ -1810,8 +1813,8 @@ describe('round', () => {
 				delegate,
 			]);
 			updateVotes_stub = db.rounds.updateVotes.resolves('updateVotes');
-			updateDelegatesRanks_stub = db.rounds.updateDelegatesRanks.resolves(
-				'updateDelegatesRanks'
+			syncDelegatesRanks_stub = storage.entities.Account.syncDelegatesRanks.resolves(
+				'syncDelegatesRanks'
 			);
 			flush_stub = scope.library.storage.entities.Round.delete;
 			scope.modules.accounts.mergeAccountAndGet.yields(
@@ -1853,7 +1856,7 @@ describe('round', () => {
 		});
 
 		it('query updateDelegatesRanks should be called once', () => {
-			return expect(updateDelegatesRanks_stub.callCount).to.equal(1);
+			return expect(syncDelegatesRanks_stub.callCount).to.equal(1);
 		});
 
 		it('modules.accounts.mergeAccountAndGet should be called 4 times', () => {
@@ -1872,7 +1875,7 @@ describe('round', () => {
 		let restoreRoundSnapshot_stub;
 		let restoreVotesSnapshot_stub;
 		let checkSnapshotAvailability_stub;
-		let updateDelegatesRanks_stub;
+		let syncDelegatesRanks_stub;
 		let deleteRoundRewards_stub;
 		let flush_stub;
 		let res;
@@ -1905,7 +1908,7 @@ describe('round', () => {
 				delegate,
 			]);
 			updateVotes_stub = db.rounds.updateVotes.resolves('QUERY');
-			updateDelegatesRanks_stub = db.rounds.updateDelegatesRanks.resolves();
+			syncDelegatesRanks_stub = storage.entities.Account.syncDelegatesRanks.resolves();
 			flush_stub = scope.library.storage.entities.Round.delete;
 			checkSnapshotAvailability_stub = db.rounds.checkSnapshotAvailability.resolves(
 				1
@@ -1913,7 +1916,6 @@ describe('round', () => {
 			restoreRoundSnapshot_stub = db.rounds.restoreRoundSnapshot.resolves();
 			restoreVotesSnapshot_stub = db.rounds.restoreVotesSnapshot.resolves();
 			deleteRoundRewards_stub = db.rounds.deleteRoundRewards.resolves();
-			updateDelegatesRanks_stub = db.rounds.updateDelegatesRanks.resolves();
 			scope.modules.accounts.mergeAccountAndGet.yields(
 				null,
 				'mergeAccountAndGet'
@@ -1947,8 +1949,8 @@ describe('round', () => {
 			return expect(decrementField_stub.called).to.be.false;
 		});
 
-		it('query updateDelegatesRanks should be called once', () => {
-			return expect(updateDelegatesRanks_stub.callCount).to.equal(1);
+		it('query syncDelegatesRanks should be called once', () => {
+			return expect(syncDelegatesRanks_stub.callCount).to.equal(1);
 		});
 
 		it('query flushRound should be called once', () => {
