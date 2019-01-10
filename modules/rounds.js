@@ -76,23 +76,6 @@ Rounds.prototype.ticking = function() {
 };
 
 /**
- * Deletes from `mem_round` table records based on round.
- *
- * @param {number} round
- * @param {function} cb
- * @returns {setImmediateCallback} cb
- * @todo Add description for the params and the return value
- */
-Rounds.prototype.flush = function(round, cb) {
-	library.storage.entities.Round.delete({ round })
-		.then(() => setImmediate(cb))
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Rounds#flush error');
-		});
-};
-
-/**
  * Performs backward tick on round.
  *
  * @param {block} block - Current block

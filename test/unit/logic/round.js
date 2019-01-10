@@ -94,7 +94,7 @@ describe('round', () => {
 
 	beforeEach(async () => {
 		scope = _.cloneDeep(validScope);
-		round = new Round(_.cloneDeep(scope), dbStub);
+		round = new Round(scope, dbStub);
 	});
 
 	afterEach(async () => {
@@ -125,7 +125,7 @@ describe('round', () => {
 			});
 
 			it('should set scope', () => {
-				return expect(round.scope).to.be.eql(validScope);
+				return expect(round.scope).to.be.eql(scope);
 			});
 
 			it('should set t', () => {
@@ -139,7 +139,7 @@ describe('round', () => {
 					const property = 'round';
 					delete scope[property];
 					try {
-						round = new Round(_.cloneDeep(scope), dbStub);
+						round = new Round(scope, dbStub);
 					} catch (err) {
 						expect(err).to.equal(
 							`Missing required scope property: ${property}`
@@ -154,7 +154,7 @@ describe('round', () => {
 					const property = 'backwards';
 					delete scope[property];
 					try {
-						round = new Round(_.cloneDeep(scope), dbStub);
+						round = new Round(scope, dbStub);
 					} catch (err) {
 						expect(err).to.equal(
 							`Missing required scope property: ${property}`
@@ -176,7 +176,7 @@ describe('round', () => {
 						const property = 'roundFees';
 						delete scope[property];
 						try {
-							round = new Round(_.cloneDeep(scope), dbStub);
+							round = new Round(scope, dbStub);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -191,7 +191,7 @@ describe('round', () => {
 						const property = 'roundRewards';
 						delete scope[property];
 						try {
-							round = new Round(_.cloneDeep(scope), dbStub);
+							round = new Round(scope, dbStub);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -206,7 +206,7 @@ describe('round', () => {
 						const property = 'roundDelegates';
 						delete scope[property];
 						try {
-							round = new Round(_.cloneDeep(scope), dbStub);
+							round = new Round(scope, dbStub);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -221,7 +221,7 @@ describe('round', () => {
 						const property = 'roundOutsiders';
 						delete scope[property];
 						try {
-							round = new Round(_.cloneDeep(scope), dbStub);
+							round = new Round(scope, dbStub);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -240,7 +240,7 @@ describe('round', () => {
 
 			beforeEach(() => {
 				scope.backwards = false;
-				round = new Round(_.cloneDeep(scope), dbStub);
+				round = new Round(scope, dbStub);
 				args = {
 					producedBlocks: 1,
 					publicKey: scope.block.generatorPublicKey,
@@ -262,7 +262,7 @@ describe('round', () => {
 
 			beforeEach(() => {
 				scope.backwards = true;
-				round = new Round(_.cloneDeep(scope), dbStub);
+				round = new Round(scope, dbStub);
 				args = {
 					producedBlocks: -1,
 					publicKey: scope.block.generatorPublicKey,
@@ -299,7 +299,7 @@ describe('round', () => {
 		describe('when there are outsiders', () => {
 			beforeEach(done => {
 				scope.roundOutsiders = ['abc'];
-				round = new Round(_.cloneDeep(scope), dbStub);
+				round = new Round(scope, dbStub);
 				stub = dbStub.rounds.updateMissedBlocks;
 				stub
 					.withArgs(scope.backwards, scope.roundOutsiders)
@@ -375,7 +375,7 @@ describe('round', () => {
 					.withArgs(delegate.address, delegate.amount)
 					.resolves('QUERY');
 
-				round = new Round(_.cloneDeep(scope), dbStub);
+				round = new Round(scope, dbStub);
 				res = round.updateVotes();
 			});
 
@@ -407,8 +407,6 @@ describe('round', () => {
 
 		describe('when getVotes returns no entries', () => {
 			beforeEach(async () => {
-				scope = _.cloneDeep(validScope);
-
 				delegate = {
 					amount: 10000,
 					delegate:
@@ -426,7 +424,7 @@ describe('round', () => {
 					.withArgs(delegate.address, delegate.amount)
 					.resolves('QUERY');
 
-				round = new Round(_.cloneDeep(scope), dbStub);
+				round = new Round(scope, dbStub);
 				res = round.updateVotes();
 			});
 
@@ -451,7 +449,7 @@ describe('round', () => {
 
 		beforeEach(async () => {
 			stub = scope.library.storage.entities.Round.delete.resolves('success');
-			round = new Round(_.cloneDeep(scope), dbStub);
+			round = new Round(scope, dbStub);
 			res = round.flushRound();
 		});
 
@@ -462,7 +460,7 @@ describe('round', () => {
 		it('query should be called with proper args', async () => {
 			const response = await res;
 			expect(response).to.equal('success');
-			expect(stub).to.be.calledWith({ round: validScope.round });
+			expect(stub).to.be.calledWith({ round: scope.round });
 		});
 	});
 
@@ -474,7 +472,7 @@ describe('round', () => {
 			stub = dbStub.rounds.updateDelegatesRanks;
 			stub.resolves('success');
 
-			round = new Round(_.cloneDeep(scope), dbStub);
+			round = new Round(scope, dbStub);
 			res = round.updateDelegatesRanks();
 			done();
 		});
@@ -552,7 +550,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.resolves();
 			stubs.countRoundSnapshot.resolves();
 			scope.round = 1;
-			round = new Round(_.cloneDeep(scope), dbStub);
+			round = new Round(scope, dbStub);
 			res = round.checkSnapshotAvailability();
 
 			return expect(isPromise(res)).to.be.true;
@@ -561,7 +559,7 @@ describe('round', () => {
 		it('should resolve without any error when checkSnapshotAvailability query returns 1', () => {
 			stubs.checkSnapshotAvailability.withArgs(1).resolves(1);
 			scope.round = 1;
-			round = new Round(_.cloneDeep(scope), dbStub);
+			round = new Round(scope, dbStub);
 			res = round.checkSnapshotAvailability();
 
 			return res.then(() => {
@@ -574,7 +572,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(0);
 			scope.round = 2;
-			round = new Round(_.cloneDeep(scope), dbStub);
+			round = new Round(scope, dbStub);
 			res = round.checkSnapshotAvailability();
 
 			return res.then(() => {
@@ -587,7 +585,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(1);
 			scope.round = 2;
-			round = new Round(_.cloneDeep(scope), dbStub);
+			round = new Round(scope, dbStub);
 			res = round.checkSnapshotAvailability();
 
 			return expect(res).to.eventually.be.rejectedWith(
@@ -602,8 +600,8 @@ describe('round', () => {
 
 		beforeEach(done => {
 			stub = dbStub.rounds.deleteRoundRewards;
-			stub.withArgs(validScope.round).resolves('success');
-			round = new Round(_.cloneDeep(scope), dbStub);
+			stub.withArgs(scope.round).resolves('success');
+			round = new Round(scope, dbStub);
 			res = round.deleteRoundRewards();
 			done();
 		});
@@ -615,7 +613,7 @@ describe('round', () => {
 		it('query should be called with no args', () => {
 			return res.then(response => {
 				expect(response).to.equal('success');
-				expect(stub).to.have.been.calledWith(validScope.round);
+				expect(stub).to.have.been.calledWith(scope.round);
 			});
 		});
 	});
@@ -684,7 +682,7 @@ describe('round', () => {
 						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
 						insertRoundRewards_stub.resolves('success');
 						scope.backwards = false;
-						round = new Round(_.cloneDeep(scope), dbStub);
+						round = new Round(scope, dbStub);
 						res = round.applyRound();
 					});
 
@@ -735,10 +733,10 @@ describe('round', () => {
 
 					it('should call insertRoundRewards with proper args', () => {
 						return expect(insertRoundRewards_stub).to.have.been.calledWith(
-							validScope.block.timestamp,
+							scope.block.timestamp,
 							forwardResults[0].fees.toString(),
 							forwardResults[0].rewards.toString(),
-							validScope.round,
+							scope.round,
 							forwardResults[0].publicKey
 						);
 					});
@@ -752,7 +750,7 @@ describe('round', () => {
 						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
 						insertRoundRewards_stub.resolves('success');
 						scope.backwards = true;
-						round = new Round(_.cloneDeep(scope), dbStub);
+						round = new Round(scope, dbStub);
 						res = round.applyRound();
 					});
 
@@ -766,27 +764,27 @@ describe('round', () => {
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(validScope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(validScope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
 										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
-							publicKey: validScope.roundDelegates[index],
+							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							round: validScope.round,
+							round: scope.round,
 							fees: -feesPerDelegate,
-							rewards: -validScope.roundRewards[index],
+							rewards: -scope.roundRewards[index],
 						};
 						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
@@ -864,7 +862,7 @@ describe('round', () => {
 						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
 						insertRoundRewards_stub.resolves('success');
 						scope.backwards = false;
-						round = new Round(_.cloneDeep(scope), dbStub);
+						round = new Round(scope, dbStub);
 						res = round.applyRound();
 					});
 
@@ -940,10 +938,10 @@ describe('round', () => {
 
 					it('should call insertRoundRewards with proper args', () => {
 						return expect(insertRoundRewards_stub).to.have.been.calledWith(
-							validScope.block.timestamp,
+							scope.block.timestamp,
 							(forwardResults[0].fees + forwardResults[1].fees).toString(),
 							forwardResults[0].rewards.toString(),
-							validScope.round,
+							scope.round,
 							forwardResults[0].publicKey
 						);
 					});
@@ -956,7 +954,7 @@ describe('round', () => {
 						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
 						insertRoundRewards_stub.resolves('success');
 						scope.backwards = true;
-						round = new Round(_.cloneDeep(scope), dbStub);
+						round = new Round(scope, dbStub);
 						res = round.applyRound();
 					});
 
@@ -1100,7 +1098,7 @@ describe('round', () => {
 						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
 						insertRoundRewards_stub.resolves('success');
 						scope.backwards = false;
-						round = new Round(_.cloneDeep(scope), dbStub);
+						round = new Round(scope, dbStub);
 						res = round.applyRound();
 					});
 
@@ -1215,24 +1213,24 @@ describe('round', () => {
 
 					it('should call insertRoundRewards with proper args', () => {
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
-							validScope.block.timestamp,
+							scope.block.timestamp,
 							forwardResults[0].fees.toString(),
 							forwardResults[0].rewards.toString(),
-							validScope.round,
+							scope.round,
 							forwardResults[0].publicKey
 						);
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
-							validScope.block.timestamp,
+							scope.block.timestamp,
 							forwardResults[1].fees.toString(),
 							forwardResults[1].rewards.toString(),
-							validScope.round,
+							scope.round,
 							forwardResults[1].publicKey
 						);
 						return expect(insertRoundRewards_stub).to.have.been.calledWith(
-							validScope.block.timestamp,
+							scope.block.timestamp,
 							forwardResults[2].fees.toString(),
 							forwardResults[2].rewards.toString(),
-							validScope.round,
+							scope.round,
 							forwardResults[2].publicKey
 						);
 					});
@@ -1427,7 +1425,7 @@ describe('round', () => {
 						insertRoundRewards_stub = dbStub.rounds.insertRoundRewards;
 						insertRoundRewards_stub.resolves('success');
 						scope.backwards = false;
-						round = new Round(_.cloneDeep(scope), dbStub);
+						round = new Round(scope, dbStub);
 						res = round.applyRound();
 						await res;
 					});
@@ -1568,24 +1566,24 @@ describe('round', () => {
 
 					it('should call insertRoundRewards with proper args', () => {
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
-							validScope.block.timestamp,
+							scope.block.timestamp,
 							forwardResults[0].fees.toString(),
 							forwardResults[0].rewards.toString(),
-							validScope.round,
+							scope.round,
 							forwardResults[0].publicKey
 						);
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
-							validScope.block.timestamp,
+							scope.block.timestamp,
 							forwardResults[1].fees.toString(),
 							forwardResults[1].rewards.toString(),
-							validScope.round,
+							scope.round,
 							forwardResults[1].publicKey
 						);
 						return expect(insertRoundRewards_stub).to.have.been.calledWith(
-							validScope.block.timestamp,
+							scope.block.timestamp,
 							(forwardResults[2].fees + forwardResults[3].fees).toString(),
 							forwardResults[2].rewards.toString(),
-							validScope.round,
+							scope.round,
 							forwardResults[2].publicKey
 						);
 					});
@@ -1815,9 +1813,9 @@ describe('round', () => {
 			]);
 			updateVotes_stub = dbStub.rounds.updateVotes.resolves('QUERY');
 			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
-			flush_stub = validScope.library.storage.entities.Round.delete;
+			flush_stub = scope.library.storage.entities.Round.delete;
 
-			round = new Round(_.cloneDeep(scope), dbStub);
+			round = new Round(scope, dbStub);
 			res = round.land();
 			await res;
 		});
@@ -1897,7 +1895,7 @@ describe('round', () => {
 			]);
 			updateVotes_stub = dbStub.rounds.updateVotes.resolves('QUERY');
 			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
-			flush_stub = validScope.library.storage.entities.Round.delete;
+			flush_stub = scope.library.storage.entities.Round.delete;
 			checkSnapshotAvailability_stub = dbStub.rounds.checkSnapshotAvailability.resolves(
 				1
 			);
@@ -1906,7 +1904,7 @@ describe('round', () => {
 			deleteRoundRewards_stub = dbStub.rounds.deleteRoundRewards.resolves();
 			updateDelegatesRanks_stub = dbStub.rounds.updateDelegatesRanks.resolves();
 
-			round = new Round(_.cloneDeep(scope), dbStub);
+			round = new Round(scope, dbStub);
 			res = round.backwardLand();
 			await res;
 		});

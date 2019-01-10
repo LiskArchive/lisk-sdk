@@ -120,55 +120,6 @@ describe('rounds', () => {
 		});
 	});
 
-	describe('flush', () => {
-		let stub;
-		let error;
-
-		afterEach(async () => {
-			stub.resetHistory();
-		});
-
-		describe('when flush query is successful', () => {
-			beforeEach(done => {
-				stub = storageStub.entities.Round.delete
-					.withArgs({ round: true })
-					.resolves('success');
-				rounds.flush(true, err => {
-					error = err;
-					done();
-				});
-			});
-
-			it('should call a callback when no error', () => {
-				return expect(error).to.not.exist;
-			});
-
-			it('flush query should be called once', () => {
-				return expect(stub.calledOnce).to.be.true;
-			});
-		});
-
-		describe('when flush query fails', () => {
-			beforeEach(done => {
-				stub = storageStub.entities.Round.delete
-					.withArgs({ round: false })
-					.rejects('fail');
-				rounds.flush(false, err => {
-					error = err;
-					done();
-				});
-			});
-
-			it('should call a callback with error = Rounds#flush error', () => {
-				return expect(error).to.equal('Rounds#flush error');
-			});
-
-			it('flush query should be called once', () => {
-				return expect(stub.calledOnce).to.be.true;
-			});
-		});
-	});
-
 	describe('onBind', () => {
 		it('should set modules', () => {
 			const variable = 'modules';
