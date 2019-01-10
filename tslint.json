@@ -29,6 +29,6 @@
 		"readonly-keyword": [true, "ignore-class"],
 		"strict-boolean-expressions": false,
 		"strict-type-predicates": false,
-		"member-ordering": false
+		"variable-name": [true, "allow-leading-underscore"]
 	}
 }

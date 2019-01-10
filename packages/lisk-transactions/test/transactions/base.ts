@@ -323,12 +323,12 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe('#checkSchema', () => {
+	describe('#validateSchema', () => {
 		it('should call toJSON', async () => {
 			const toJSONStub = sandbox
 				.stub(validTestTransaction, 'toJSON')
 				.returns({});
-			validTestTransaction.checkSchema();
+			validTestTransaction.validateSchema();
 
 			expect(toJSONStub).to.be.calledOnce;
 		});
@@ -337,7 +337,7 @@ describe('Base transaction class', () => {
 			const cryptographyGetAddressFromPublicKeyStub = sandbox
 				.stub(cryptography, 'getAddressFromPublicKey')
 				.returns('18278674964748191682L');
-			validTestTransaction.checkSchema();
+			validTestTransaction.validateSchema();
 
 			expect(
 				cryptographyGetAddressFromPublicKeyStub,
@@ -353,7 +353,7 @@ describe('Base transaction class', () => {
 						'hex',
 					),
 				);
-			validTestTransaction.checkSchema();
+			validTestTransaction.validateSchema();
 			expect(getBytesStub).to.be.calledOnce;
 		});
 
@@ -361,13 +361,13 @@ describe('Base transaction class', () => {
 			const getIdStub = sandbox
 				.stub(utils, 'getId')
 				.returns('15822870279184933850');
-			validTestTransaction.checkSchema();
+			validTestTransaction.validateSchema();
 
 			expect(getIdStub).to.be.calledOnce;
 		});
 
 		it('should return a successful transaction response with a valid transaction', async () => {
-			const { id, status, errors } = validTestTransaction.checkSchema();
+			const { id, status, errors } = validTestTransaction.validateSchema();
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(errors).to.be.eql([]);
@@ -390,7 +390,7 @@ describe('Base transaction class', () => {
 			const invalidTestTransaction = new TestTransaction(
 				invalidTransaction as any,
 			);
-			const { id, status, errors } = invalidTestTransaction.checkSchema();
+			const { id, status, errors } = invalidTestTransaction.validateSchema();
 
 			expect(id).to.be.eql(invalidTestTransaction.id);
 			(errors as ReadonlyArray<TransactionError>).forEach(error =>
@@ -411,7 +411,7 @@ describe('Base transaction class', () => {
 				id,
 				status,
 				errors,
-			} = invalidSenderIdTestTransaction.checkSchema();
+			} = invalidSenderIdTestTransaction.validateSchema();
 
 			expect(id).to.be.eql(invalidSenderIdTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[1])
@@ -432,7 +432,7 @@ describe('Base transaction class', () => {
 			const invalidIdTestTransaction = new TestTransaction(
 				invalidIdTransaction as any,
 			);
-			const { id, status, errors } = invalidIdTestTransaction.checkSchema();
+			const { id, status, errors } = invalidIdTestTransaction.validateSchema();
 
 			expect(id).to.be.eql(invalidIdTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
@@ -546,7 +546,7 @@ describe('Base transaction class', () => {
 			const cryptographyGetAddressFromPublicKeyStub = sandbox
 				.stub(cryptography, 'getAddressFromPublicKey')
 				.returns('18278674964748191682L');
-			validTestTransaction.checkSchema();
+			validTestTransaction.validateSchema();
 
 			expect(
 				cryptographyGetAddressFromPublicKeyStub,
@@ -902,13 +902,15 @@ describe('Base transaction class', () => {
 			expect(state)
 				.to.be.an('object')
 				.and.to.have.property('sender');
-			expect((state as any).sender).to.have.property('balance', new BigNum(MAX_TRANSACTION_AMOUNT).add(validTestTransaction.fee).toString());
+			expect((state as any).sender).to.have.property(
+				'balance',
+				new BigNum(MAX_TRANSACTION_AMOUNT)
+					.add(validTestTransaction.fee)
+					.toString(),
+			);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					'Invalid balance amount',
-				);
+				.and.to.have.property('message', 'Invalid balance amount');
 		});
 	});
 

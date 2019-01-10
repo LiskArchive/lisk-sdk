@@ -15,7 +15,11 @@
 // tslint:disable-next-line no-reference
 /// <reference path="../../types/browserify-bignum/index.d.ts" />
 
-import * as cryptography from '@liskhq/lisk-cryptography';
+import {
+	bigNumberToBuffer,
+	getAddressFromPublicKey,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
 	BYTESIZES,
@@ -60,20 +64,27 @@ export enum MultisignatureStatus {
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
 	public readonly fee: BigNum;
-	public readonly id: string;
 	public readonly recipientId: string;
-	public readonly recipientPublicKey: string;
+	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
-	public readonly signature: string = '';
 	public readonly signatures: ReadonlyArray<string> = [];
-	public readonly signSignature?: string;
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
-	public readonly receivedAt: Date = new Date();
+	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
-	public isMultisignature?: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
+	public isMultisignature: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
+
+	private _id?: string;
+	private _signature?: string;
+	private _signSignature?: string;
+
+	public abstract assetToJSON(): TransactionAsset;
+	public abstract verifyAgainstOtherTransactions(
+		transactions: ReadonlyArray<TransactionJSON>,
+	): TransactionResponse;
+	protected abstract getAssetBytes(): Buffer;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		const { valid, errors } = checkTypes(rawTransaction);
@@ -88,20 +99,40 @@ export abstract class BaseTransaction {
 		this.amount = new BigNum(rawTransaction.amount);
 		this.asset = rawTransaction.asset;
 		this.fee = new BigNum(rawTransaction.fee);
-		this.id = rawTransaction.id;
+		this._id = rawTransaction.id;
 		this.recipientId = rawTransaction.recipientId;
 		this.recipientPublicKey = rawTransaction.recipientPublicKey;
-		this.senderId = rawTransaction.senderId;
+		this.senderId =
+			rawTransaction.senderId ||
+			getAddressFromPublicKey(rawTransaction.senderPublicKey);
 		this.senderPublicKey = rawTransaction.senderPublicKey;
-		this.signature = rawTransaction.signature as string;
+		this._signature = rawTransaction.signature;
 		this.signatures = rawTransaction.signatures;
-		this.signSignature = rawTransaction.signSignature;
+		this._signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
-		this.receivedAt = rawTransaction.receivedAt;
+		this.receivedAt = rawTransaction.receivedAt || new Date();
 	}
 
-	public abstract assetToJSON(): TransactionAsset;
+	public get id(): string {
+		if (!this._id) {
+			throw new Error('id is requied to be set before use');
+		}
+
+		return this._id;
+	}
+
+	public get signature(): string {
+		if (!this._signature) {
+			throw new Error('signature is requied to be set before use');
+		}
+
+		return this._signature;
+	}
+
+	public get signSignature(): string | undefined {
+		return this._signSignature;
+	}
 
 	public toJSON(): TransactionJSON {
 		const transaction = {
@@ -124,59 +155,17 @@ export abstract class BaseTransaction {
 		return transaction;
 	}
 
-	protected abstract getAssetBytes(): Buffer;
-
-	protected getBasicBytes(): Buffer {
-		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
-		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
-
-		const transactionSenderPublicKey = cryptography.hexToBuffer(
-			this.senderPublicKey,
-		);
-
-		const transactionRecipientID = this.recipientId
-			? cryptography.bigNumberToBuffer(
-					this.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-			  )
-			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
-
-		const transactionAmount = this.amount.toBuffer({
-			endian: 'little',
-			size: BYTESIZES.AMOUNT,
-		});
-
-		const transactionAsset =
-			this.asset && Object.keys(this.asset).length
-				? this.getAssetBytes()
-				: Buffer.alloc(0);
-
-		return Buffer.concat([
-			transactionType,
-			transactionTimestamp,
-			transactionSenderPublicKey,
-			transactionRecipientID,
-			transactionAmount,
-			transactionAsset,
-		]);
-	}
-
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			this.signature
-				? cryptography.hexToBuffer(this.signature)
-				: Buffer.alloc(0),
-			this.signSignature
-				? cryptography.hexToBuffer(this.signSignature)
-				: Buffer.alloc(0),
+			this._signature ? hexToBuffer(this._signature) : Buffer.alloc(0),
+			this._signSignature ? hexToBuffer(this._signSignature) : Buffer.alloc(0),
 		]);
 
 		return transactionBytes;
 	}
 
-	public checkSchema(): TransactionResponse {
+	public validateSchema(): TransactionResponse {
 		const transaction = this.toJSON();
 		const baseTransactionValidator = validator.compile(schemas.baseTransaction);
 		const valid = baseTransactionValidator(transaction) as boolean;
@@ -195,7 +184,7 @@ export abstract class BaseTransaction {
 			// `senderPublicKey` passed format check, safely check equality to senderId
 			if (
 				this.senderId.toUpperCase() !==
-				cryptography.getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
+				getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
 			) {
 				errors.push(
 					new TransactionError(
@@ -263,7 +252,7 @@ export abstract class BaseTransaction {
 
 	public getRequiredAttributes(): Attributes {
 		return {
-			ACCOUNTS: [cryptography.getAddressFromPublicKey(this.senderPublicKey)],
+			ACCOUNTS: [getAddressFromPublicKey(this.senderPublicKey)],
 		};
 	}
 
@@ -323,7 +312,7 @@ export abstract class BaseTransaction {
 			} else {
 				const transactionBytes = Buffer.concat([
 					this.getBasicBytes(),
-					cryptography.hexToBuffer(this.signature),
+					hexToBuffer(this.signature),
 				]);
 
 				const {
@@ -386,10 +375,6 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public abstract verifyAgainstOtherTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse;
-
 	public apply(sender: Account): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
@@ -440,5 +425,36 @@ export abstract class BaseTransaction {
 			timeNow - Math.floor(this.receivedAt.getTime() / 1000);
 
 		return timeElapsed > timeOut;
+	}
+
+	protected getBasicBytes(): Buffer {
+		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
+		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
+		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
+
+		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
+
+		const transactionRecipientID = this.recipientId
+			? bigNumberToBuffer(this.recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
+			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
+
+		const transactionAmount = this.amount.toBuffer({
+			endian: 'little',
+			size: BYTESIZES.AMOUNT,
+		});
+
+		const transactionAsset =
+			this.asset && Object.keys(this.asset).length
+				? this.getAssetBytes()
+				: Buffer.alloc(0);
+
+		return Buffer.concat([
+			transactionType,
+			transactionTimestamp,
+			transactionSenderPublicKey,
+			transactionRecipientID,
+			transactionAmount,
+			transactionAsset,
+		]);
 	}
 }
