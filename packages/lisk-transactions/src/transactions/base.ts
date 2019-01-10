@@ -18,7 +18,9 @@
 import {
 	bigNumberToBuffer,
 	getAddressFromPublicKey,
+	hash,
 	hexToBuffer,
+	signData,
 } from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
@@ -427,15 +429,30 @@ export abstract class BaseTransaction {
 		return timeElapsed > timeOut;
 	}
 
+	public sign(passphrase: string, secondPassphrase?: string): void {
+		this._signature = undefined;
+		this._signSignature = undefined;
+		this._signature = signData(hash(this.getBytes()), passphrase);
+		if (secondPassphrase) {
+			this._signSignature = signData(hash(this.getBytes()), secondPassphrase);
+		}
+		this._id = getId(this.getBytes());
+	}
+
 	protected getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 
-		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
+		const transactionSenderPublicKey = hexToBuffer(
+			this.senderPublicKey,
+		);
 
 		const transactionRecipientID = this.recipientId
-			? bigNumberToBuffer(this.recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
+			? bigNumberToBuffer(
+					this.recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+			  )
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 		const transactionAmount = this.amount.toBuffer({
