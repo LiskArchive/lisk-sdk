@@ -33,18 +33,6 @@ class RoundsRepository {
 		this.pgp = pgp;
 	}
 
-	// TODO: Move usage of RoundsRepository#updateVotes to db/votes
-	/**
-	 * Update the votes of for a particular account.
-	 *
-	 * @param {string} address - Address of the account
-	 * @param {BigNumber} amount - Votes to update
-	 * @todo Add @returns tag
-	 */
-	updateVotes(address, amount) {
-		return this.db.none(sql.updateVotes, [amount.toString(), address]);
-	}
-
 	/**
 	 * Drop the table for round snapshot.
 	 *

@@ -14,7 +14,6 @@
 
 'use strict';
 
-const BigNumber = require('bignumber.js');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const roundsFixtures = require('../../../fixtures').rounds;
 const accountsFixtures = require('../../../fixtures').accounts;
@@ -65,37 +64,6 @@ describe('db', () => {
 			it('should assign param and data members properly', () => {
 				expect(db.rounds.db).to.be.eql(db);
 				return expect(db.rounds.pgp).to.be.eql(db.$config.pgp);
-			});
-		});
-
-		describe('updateVotes()', () => {
-			it('should use the correct SQL file with two parameters', function*() {
-				sinonSandbox.spy(db, 'none');
-				yield db.rounds.updateVotes('123L', '123');
-
-				expect(db.none.firstCall.args[0]).to.eql(roundsSQL.updateVotes);
-				expect(db.none.firstCall.args[1]).to.eql(['123', '123L']);
-				return expect(db.none).to.be.calledOnce;
-			});
-
-			it('should update votes for a given account', function*() {
-				const account = new accountsFixtures.Account();
-				yield db.accounts.insert(account);
-
-				yield db.rounds.updateVotes(account.address, '123');
-				const result = (yield db.query(
-					`SELECT "vote" FROM mem_accounts WHERE "address" = '${
-						account.address
-					}'`
-				))[0];
-
-				return expect(result.vote).to.be.eql(
-					new BigNumber(account.vote).plus('123').toString()
-				);
-			});
-
-			it('should resolve without error if parameter "address" is not provided', () => {
-				return expect(db.rounds.updateVotes(null, '123')).to.be.fulfilled;
 			});
 		});
 

@@ -354,7 +354,7 @@ describe('round', () => {
 		describe('when getVotes returns at least one entry', async () => {
 			beforeEach(async () => {
 				getVotes_stub = storage.entities.Round.getTotalVotedAmount;
-				updateVotes_stub = db.rounds.updateVotes;
+				updateVotes_stub = storage.entities.Account.incrementField;
 
 				delegate = {
 					amount: 10000,
@@ -372,7 +372,12 @@ describe('round', () => {
 					.resolves([delegate, delegate]);
 
 				updateVotes_stub
-					.withArgs(delegate.address, delegate.amount)
+					.withArgs(
+						{ address: delegate.address },
+						'vote',
+						delegate.amount,
+						sinonSandbox.match.any
+					)
 					.resolves('QUERY');
 
 				res = db.task(t => {
@@ -396,9 +401,12 @@ describe('round', () => {
 			});
 
 			it('updateVotes query should be called with proper args', () => {
-				return expect(
-					updateVotes_stub.alwaysCalledWith(delegate.address, delegate.amount)
-				).to.be.true;
+				return expect(updateVotes_stub).to.be.calledWith(
+					{ address: delegate.address },
+					'vote',
+					delegate.amount,
+					sinonSandbox.match.any
+				);
 			});
 
 			it('getVotes result should contain 2 queries', () => {
@@ -1776,7 +1784,6 @@ describe('round', () => {
 	describe('land', () => {
 		let incrementField_stub;
 		let decrementField_stub;
-		let updateVotes_stub;
 		let getVotes_stub;
 		let syncDelegatesRanks_stub;
 		let flush_stub;
@@ -1812,7 +1819,6 @@ describe('round', () => {
 			getVotes_stub = storage.entities.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
-			updateVotes_stub = db.rounds.updateVotes.resolves('updateVotes');
 			syncDelegatesRanks_stub = storage.entities.Account.syncDelegatesRanks.resolves(
 				'syncDelegatesRanks'
 			);
@@ -1839,12 +1845,9 @@ describe('round', () => {
 			return expect(getVotes_stub.callCount).to.be.eql(2);
 		});
 
-		it('query updateVotes should be called twice', () => {
-			return expect(updateVotes_stub.callCount).to.equal(2);
-		});
-
-		it('query incrementField should be called once', () => {
-			return expect(incrementField_stub.callCount).to.equal(1);
+		it('query incrementField should be called 3 times', () => {
+			// 2 for updating vote and 1 for updating missedBlocks
+			return expect(incrementField_stub.callCount).to.equal(3);
 		});
 
 		it('query decrementField should be called once', () => {

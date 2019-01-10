@@ -167,13 +167,19 @@ class Round {
 
 		return self.getVotes(self.scope.round).then(votes => {
 			const queries = votes.map(vote =>
-				self.t.rounds.updateVotes(
-					self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate),
+				self.scope.library.storage.entities.Account.incrementField(
+					{
+						address: self.scope.modules.accounts.generateAddressByPublicKey(
+							vote.delegate
+						),
+					},
+					'vote',
 					// Have to revert the logic to not use bignumber. it was causing change
 					// in vote amount. More details can be found on the issue.
 					// 		new Bignum(vote.amount).integerValue(Bignum.ROUND_FLOOR)
 					// TODO: https://github.com/LiskHQ/lisk/issues/2423
-					Math.floor(vote.amount)
+					Math.floor(vote.amount),
+					this.t
 				)
 			);
 
