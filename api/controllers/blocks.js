@@ -62,7 +62,7 @@ BlocksController.getBlocks = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	return __private.getBlocks(_.clone(filters), (err, data) => {
+	return _list(_.clone(filters), (err, data) => {
 		if (err) {
 			return next(err);
 		}
@@ -94,10 +94,10 @@ BlocksController.getBlocks = function(context, next) {
 };
 
 /**
- * Get filtered list of blocks (without transactions).
+ * Get filtered list of blocks (without transactions - BasicBlock).
  *
  * @private
- * @func list
+ * @func _list
  * @param {Object} filter - Conditions to filter with
  * @param {string} filter.id - Block id
  * @param {string} filter.generatorPublicKey - Public key of delegate who generates the block
@@ -115,22 +115,7 @@ BlocksController.getBlocks = function(context, next) {
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.data - List of normalized blocks
  */
-const __private = {};
-
-__private.getBlocks = function(filters, cb) {
-	return __private.list(filters, (err, data) => {
-		if (err) {
-			return setImmediate(
-				cb,
-				new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR)
-			);
-		}
-
-		return setImmediate(cb, null, data);
-	});
-};
-
-__private.list = function(filter, cb) {
+function _list(filter, cb) {
 	const options = {};
 
 	const filters = {
@@ -165,7 +150,13 @@ __private.list = function(filter, cb) {
 	}
 
 	if (options.limit > 100) {
-		return setImmediate(cb, 'Invalid limit. Maximum is 100');
+		return setImmediate(
+			cb,
+			new ApiError(
+				'Invalid limit. Maximum is 100',
+				apiCodes.INTERNAL_SERVER_ERROR
+			)
+		);
 	}
 
 	options.sort = filter.sort || 'height:desc';
@@ -175,7 +166,10 @@ __private.list = function(filter, cb) {
 		!library.db.blocks.sortFields.includes(sortField) ||
 		!['ASC', 'DESC'].includes(sortMethod.toUpperCase())
 	) {
-		return setImmediate(cb, 'Invalid sort field');
+		return setImmediate(
+			cb,
+			new ApiError('Invalid sort field', apiCodes.INTERNAL_SERVER_ERROR)
+		);
 	}
 
 	return library.storage.entities.Block.get(filters, options)
@@ -192,8 +186,11 @@ __private.list = function(filter, cb) {
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
-			return setImmediate(cb, 'Blocks#list error');
+			return setImmediate(
+				cb,
+				new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR)
+			);
 		});
-};
+}
 
 module.exports = BlocksController;
