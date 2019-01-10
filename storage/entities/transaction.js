@@ -617,7 +617,7 @@ class Transaction extends BaseEntity {
 			}
 		});
 
-		if (transaction.type === 0 && transaction.asset.data) {
+		if (transaction.type === 0 && transaction.asset && transaction.asset.data) {
 			try {
 				transaction.asset.data = transaction.asset.data.toString('utf8');
 			} catch (e) {
