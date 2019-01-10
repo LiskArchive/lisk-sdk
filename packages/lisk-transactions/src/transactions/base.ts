@@ -15,7 +15,7 @@
 // tslint:disable-next-line no-reference
 /// <reference path="../../types/browserify-bignum/index.d.ts" />
 
-import * as cryptography from '@liskhq/lisk-cryptography';
+import { bigNumberToBuffer, getAddressFromPublicKey, hexToBuffer } from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
 	BYTESIZES,
@@ -39,7 +39,6 @@ import {
 	verifySignature,
 } from '../utils';
 import * as schemas from '../utils/validation/schema';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 export interface TransactionResponse {
 	readonly id: string;
@@ -156,10 +155,10 @@ export abstract class BaseTransaction {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
 			this.signature
-				? cryptography.hexToBuffer(this.signature)
+				? hexToBuffer(this.signature)
 				: Buffer.alloc(0),
 			this.signSignature
-				? cryptography.hexToBuffer(this.signSignature)
+				? hexToBuffer(this.signSignature)
 				: Buffer.alloc(0),
 		]);
 
@@ -185,7 +184,7 @@ export abstract class BaseTransaction {
 			// `senderPublicKey` passed format check, safely check equality to senderId
 			if (
 				this.senderId.toUpperCase() !==
-				cryptography.getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
+				getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
 			) {
 				errors.push(
 					new TransactionError(
@@ -253,7 +252,7 @@ export abstract class BaseTransaction {
 
 	public getRequiredAttributes(): Attributes {
 		return {
-			ACCOUNTS: [cryptography.getAddressFromPublicKey(this.senderPublicKey)],
+			ACCOUNTS: [getAddressFromPublicKey(this.senderPublicKey)],
 		};
 	}
 
@@ -313,7 +312,7 @@ export abstract class BaseTransaction {
 			} else {
 				const transactionBytes = Buffer.concat([
 					this.getBasicBytes(),
-					cryptography.hexToBuffer(this.signature),
+					hexToBuffer(this.signature),
 				]);
 
 				const {
@@ -433,12 +432,12 @@ export abstract class BaseTransaction {
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 
-		const transactionSenderPublicKey = cryptography.hexToBuffer(
+		const transactionSenderPublicKey = hexToBuffer(
 			this.senderPublicKey,
 		);
 
 		const transactionRecipientID = this.recipientId
-			? cryptography.bigNumberToBuffer(
+			? bigNumberToBuffer(
 					this.recipientId.slice(0, -1),
 					BYTESIZES.RECIPIENT_ID,
 			  )
