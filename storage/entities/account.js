@@ -589,7 +589,7 @@ class Account extends BaseEntity {
 	 * @returns {Promise}
 	 */
 	incrementField(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'insert', tx);
+		return this._updateField(filters, field, value, 'increment', tx);
 	}
 
 	/**
@@ -602,7 +602,7 @@ class Account extends BaseEntity {
 	 * @returns {Promise}
 	 */
 	decrementField(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'delete', tx);
+		return this._updateField(filters, field, value, 'decrement', tx);
 	}
 
 	/**
@@ -643,6 +643,16 @@ class Account extends BaseEntity {
 		);
 	}
 
+	/**
+	 * Update the dependent records used to manage votes and multisignature account members
+	 *
+	 * @param {string} dependencyName
+	 * @param {string} address
+	 * @param {string} dependentPublicKey
+	 * @param {('insert'|'delete')} mode
+	 * @param {Object} [tx]
+	 * @returns {Promise}
+	 */
 	_updateDependentRecord(
 		dependencyName,
 		address,
@@ -659,13 +669,14 @@ class Account extends BaseEntity {
 			accountId: address,
 			dependentId: dependentPublicKey,
 		};
-		const SQL =
-			mode === 'insert'
-				? this.SQLs.createDependentRecord
-				: this.SQLs.deleteDependentRecord;
+
+		const sql = {
+			insert: this.SQLs.createDependentRecord,
+			delete: this.SQLs.deleteDependentRecord,
+		}[mode];
 
 		return this.adapter.executeFile(
-			SQL,
+			sql,
 			params,
 			{ expectedResultCount: 0 },
 			tx
@@ -678,7 +689,7 @@ class Account extends BaseEntity {
 	 * @param {filters.Account} filters - Filters object
 	 * @param {string} field - Filed name to update
 	 * @param {*} value - Value to be update
-	 * @param {('insert'|'delete')} mode - Mode of update
+	 * @param {('increment'|'decrement')} mode - Mode of update
 	 * @param {Object} [tx] - Database transaction object
 	 * @returns {Promise}
 	 */
@@ -699,8 +710,10 @@ class Account extends BaseEntity {
 			value,
 		};
 
-		const sql =
-			mode === 'insert' ? this.SQLs.incrementField : this.SQLs.decrementField;
+		const sql = {
+			increment: this.SQLs.incrementField,
+			decrement: this.SQLs.decrementField,
+		}[mode];
 
 		return this.adapter.executeFile(
 			sql,
