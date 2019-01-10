@@ -19,6 +19,7 @@ const apiCodes = require('../../helpers/api_codes.js');
 const ApiError = require('../../helpers/api_error.js');
 
 let library;
+let sortFields;
 
 /**
  * Description of the function.
@@ -31,11 +32,22 @@ let library;
  */
 function BlocksController(scope) {
 	library = {
-		db: scope.db,
 		storage: scope.storage,
 		logic: scope.logic,
 		logger: scope.logger,
 	};
+
+	sortFields = [
+		'id',
+		'timestamp',
+		'height',
+		'previousBlock',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'numberOfTransactions',
+		'generatorPublicKey',
+	];
 }
 
 /**
@@ -163,7 +175,7 @@ function _list(filter, cb) {
 	const [sortField, sortMethod = 'ASC'] = options.sort.split(':');
 
 	if (
-		!library.db.blocks.sortFields.includes(sortField) ||
+		!sortFields.includes(sortField) ||
 		!['ASC', 'DESC'].includes(sortMethod.toUpperCase())
 	) {
 		return setImmediate(
