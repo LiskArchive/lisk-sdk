@@ -612,10 +612,12 @@ class Transaction extends BaseEntity {
 			assetAttributesMap[transaction.type] || [];
 
 		transactionAssetAttributes.forEach(assetKey => {
-			_.set(transaction, assetKey, row[assetKey]);
+			if (row[assetKey]) {
+				_.set(transaction, assetKey, row[assetKey]);
+			}
 		});
 
-		if (transaction.asset.data) {
+		if (transaction.type === 0 && transaction.asset && transaction.asset.data) {
 			try {
 				transaction.asset.data = transaction.asset.data.toString('utf8');
 			} catch (e) {
@@ -623,7 +625,7 @@ class Transaction extends BaseEntity {
 				// library.logger.error(
 				// 	'Logic-Transfer-dbRead: Failed to convert data field into utf8'
 				// );
-				transaction.asset.data = null;
+				delete transaction.asset;
 			}
 		}
 

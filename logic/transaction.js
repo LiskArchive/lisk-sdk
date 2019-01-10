@@ -1258,6 +1258,49 @@ class Transaction {
 
 		return transaction;
 	}
+
+	/**
+	 * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
+	 *
+	 * @see {@link privateTypes}
+	 * @param {Object} raw
+	 * @throws {string} If unknown transaction type
+	 * @returns {null|transaction}
+	 * @todo Add description for the params
+	 */
+
+	/* eslint-disable class-methods-use-this */
+	storageRead(raw) {
+		if (!raw.id) {
+			return null;
+		}
+
+		const transaction = {
+			id: raw.id,
+			height: raw.height,
+			blockId: raw.blockId,
+			type: parseInt(raw.type),
+			timestamp: parseInt(raw.timestamp),
+			senderPublicKey: raw.senderPublicKey,
+			requesterPublicKey: raw.requesterPublicKey,
+			senderId: raw.senderId,
+			recipientId: raw.recipientId,
+			recipientPublicKey: raw.requesterPublicKey || null,
+			amount: new Bignum(raw.amount),
+			fee: new Bignum(raw.fee),
+			signature: raw.signature,
+			signSignature: raw.signSignature,
+			signatures: raw.signatures ? raw.signatures.split(',') : [],
+			confirmations: parseInt(raw.confirmations),
+			asset: raw.asset || {},
+		};
+
+		if (!__private.types[transaction.type]) {
+			throw `Unknown transaction type ${transaction.type}`;
+		}
+
+		return transaction;
+	}
 	/* eslint-enable class-methods-use-this */
 }
 

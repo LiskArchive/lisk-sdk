@@ -51,6 +51,7 @@ describe('blocks/process', () => {
 			entities: {
 				Block: {
 					isPersisted: sinonSandbox.stub(),
+					get: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -185,6 +186,7 @@ describe('blocks/process', () => {
 			utils: {
 				getIdSequence: sinonSandbox.stub(),
 				readDbRows: sinonSandbox.stub(),
+				readStorageRows: sinonSandbox.stub(),
 			},
 			isCleaning: {
 				get: sinonSandbox.stub(),
@@ -1179,10 +1181,10 @@ describe('blocks/process', () => {
 			);
 		});
 
-		describe('library.db.blocks.loadBlocksOffset', () => {
+		describe('library.storage.entities.Block.get', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
-					return library.db.blocks.loadBlocksOffset.rejects(
+					return library.storage.entities.Block.get.rejects(
 						'blocks.loadBlocksOffset-REJECTS'
 					);
 				});
@@ -1204,12 +1206,12 @@ describe('blocks/process', () => {
 			describe('when succeeds', () => {
 				describe('when query returns empty array', () => {
 					beforeEach(() => {
-						library.db.blocks.loadBlocksOffset.resolves([]);
-						return modules.blocks.utils.readDbRows.returns([]);
+						library.storage.entities.Block.get.resolves([]);
+						return modules.blocks.utils.readStorageRows.returns([]);
 					});
 
 					afterEach(() => {
-						expect(modules.blocks.utils.readDbRows.calledOnce).to.be.true;
+						expect(modules.blocks.utils.readStorageRows.calledOnce).to.be.true;
 						expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
 						return expect(modules.blocks.isCleaning.get.calledOnce).to.be.false;
 					});
@@ -1228,7 +1230,7 @@ describe('blocks/process', () => {
 
 				describe('when query returns rows', () => {
 					beforeEach(() => {
-						return library.db.blocks.loadBlocksOffset.resolves([dummyBlock]);
+						return library.storage.entities.Block.get.resolves([dummyBlock]);
 					});
 
 					afterEach(() => {
@@ -1271,7 +1273,7 @@ describe('blocks/process', () => {
 
 							describe('when block id is genesis block', () => {
 								beforeEach(() => {
-									return modules.blocks.utils.readDbRows.returns([
+									return modules.blocks.utils.readStorageRows.returns([
 										{
 											id: '6524861224470851795',
 											height: 1,
@@ -1342,7 +1344,9 @@ describe('blocks/process', () => {
 
 							describe('when block id is not genesis block', () => {
 								beforeEach(() => {
-									return modules.blocks.utils.readDbRows.returns([dummyBlock]);
+									return modules.blocks.utils.readStorageRows.returns([
+										dummyBlock,
+									]);
 								});
 
 								afterEach(() => {

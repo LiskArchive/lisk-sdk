@@ -46,6 +46,49 @@ const fullBlocksListRows = [
 	},
 ];
 
+const storageBlocksListRows = [
+	{
+		id: '13068833527549895884',
+		height: 3, // Block 1
+		transactions: [
+			{
+				id: '6950874693022090568',
+				type: 0,
+			},
+		],
+	},
+	{
+		id: '13068833527549895884',
+		height: 3, // Block 1
+		transactions: [
+			{
+				id: '13831767660337349834',
+				type: 1,
+			},
+		],
+	},
+	{
+		id: '7018883617995376402',
+		height: 4, // Block 2
+		transactions: [
+			{
+				id: '10550826199952791739',
+				type: 2,
+			},
+		],
+	},
+	{
+		id: '7018883617995376402',
+		height: 4, // Block 2
+		transactions: [
+			{
+				id: '3502881310841638511',
+				type: 3,
+			},
+		],
+	},
+];
+
 describe('blocks/utils', () => {
 	let dbStub;
 	let storageStub;
@@ -94,6 +137,9 @@ describe('blocks/utils', () => {
 			dbRead(input) {
 				return { id: input.b_id, height: input.b_height };
 			},
+			storageRead(input) {
+				return { id: input.id, height: input.height };
+			},
 		};
 
 		transactionMock = {
@@ -136,6 +182,7 @@ describe('blocks/utils', () => {
 				},
 				utils: {
 					readDbRows: blocksUtilsModule.readDbRows,
+					readStorageRows: blocksUtilsModule.readStorageRows,
 				},
 			},
 		};
@@ -158,6 +205,7 @@ describe('blocks/utils', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
+			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.account).to.eql(accountMock);
 			expect(library.logic.block).to.eql(blockMock);
 			return expect(library.logic.transaction).to.eql(transactionMock);
@@ -314,12 +362,12 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadLastBlock', () => {
-		it('should return error when library.db.blocks.loadLastBlock fails', done => {
-			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(null);
+		it('should return error when library.storage.entities.Block.get fails', done => {
+			library.storage.entities.Block.get = sinonSandbox.stub().resolves(null);
 
 			blocksUtilsModule.loadLastBlock((err, block) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
-					"TypeError: Cannot read property 'length' of null"
+					"TypeError: Cannot read property 'map' of null"
 				);
 				expect(err).to.equal('Blocks#loadLastBlock error');
 				expect(block).to.be.undefined;
@@ -329,9 +377,9 @@ describe('blocks/utils', () => {
 
 		describe('sorting the block.transactions array', () => {
 			it('should call modules.blocks.lastBlock.set with block', done => {
-				library.db.blocks.loadLastBlock = sinonSandbox
+				library.storage.entities.Block.get = sinonSandbox
 					.stub()
-					.resolves(fullBlocksListRows);
+					.resolves(storageBlocksListRows);
 
 				modules.blocks.lastBlock.set = sinonSandbox.spy();
 
