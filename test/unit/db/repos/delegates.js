@@ -173,7 +173,8 @@ describe('db', () => {
 				return expect(db.one.firstCall.args[1]).to.eql([]);
 			});
 
-			it('should return list of duplicate delegates', function*() {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('should return list of duplicate delegates', function*() {
 				const block = seeder.getLastBlock();
 
 				const trs1 = new transactionsFixtures.Transaction({

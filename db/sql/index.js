@@ -97,18 +97,6 @@ module.exports = {
 		insertRoundRewards: link('rounds/insert_round_rewards.sql'),
 		deleteRoundRewards: link('rounds/delete_round_rewards.sql'),
 	},
-	transactions: {
-		count: link('transactions/count.sql'),
-		countList: link('transactions/count_list.sql'),
-		getDappByIds: link('transactions/get_dapp_by_ids.sql'),
-		getDelegateByIds: link('transactions/get_delegate_by_ids.sql'),
-		getInTransferByIds: link('transactions/get_in_transfer_by_ids.sql'),
-		getMultiByIds: link('transactions/get_multi_by_ids.sql'),
-		getOutTransferByIds: link('transactions/get_out_transfer_by_ids.sql'),
-		getSignatureByIds: link('transactions/get_signature_by_ids.sql'),
-		getTransferByIds: link('transactions/get_transfer_by_ids.sql'),
-		getVotesByIds: link('transactions/get_votes_by_ids.sql'),
-	},
 	votes: {
 		getVotes: link('votes/get_votes.sql'),
 		getVotesCount: link('votes/get_votes_count.sql'),
