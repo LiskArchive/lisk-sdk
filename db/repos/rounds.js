@@ -70,19 +70,6 @@ class RoundsRepository {
 	}
 
 	/**
-	 * Summarize the results for a round.
-	 *
-	 * @param {string} round - Id of the round
-	 * @param {int} activeDelegates - Number of active delegates
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	summedRound(round, activeDelegates) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.summedRound, { round, activeDelegates });
-	}
-
-	/**
 	 * Drop the table for round snapshot.
 	 *
 	 * @returns {Promise}

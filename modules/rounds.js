@@ -397,8 +397,11 @@ __private.sumRound = function(scope, cb, tx) {
 
 	library.logger.debug('Summing round', scope.round);
 
-	return (tx || library.db).rounds
-		.summedRound(scope.round, ACTIVE_DELEGATES)
+	return library.storage.entities.Round.summedRound(
+		scope.round,
+		ACTIVE_DELEGATES,
+		tx
+	)
 		.then(rows => {
 			const rewards = [];
 
