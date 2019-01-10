@@ -76,7 +76,7 @@
 		"socket.io": "2.0.3",
 		"socketcluster": "14.3.3",
 		"socketcluster-client": "14.2.1",
-		"sodium-native": "LiskHQ/sodium-native#dd0319f",
+		"sodium-native": "2.2.4",
 		"strftime": "0.10.0",
 		"swagger-node-runner": "0.7.3",
 		"sway": "2.0.5",
