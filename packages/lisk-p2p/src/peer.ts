@@ -13,8 +13,8 @@
  *
  */
 
-import { RPCResponseError } from './errors';
 import { EventEmitter } from 'events';
+import { RPCResponseError } from './errors';
 
 import {
 	P2PMessagePacket,
@@ -210,6 +210,15 @@ export class Peer extends EventEmitter {
 		}
 	}
 
+	public send<T>(packet: P2PMessagePacket<T>): void {
+		if (!this.outboundSocket) {
+			this.outboundSocket = this._createOutboundSocket();
+		}
+		this.outboundSocket.emit(packet.event, {
+			data: packet.data,
+		});
+	}
+
 	public async request<T>(
 		packet: P2PRequestPacket<T>,
 	): Promise<P2PResponsePacket> {
@@ -266,15 +275,6 @@ export class Peer extends EventEmitter {
 				this.wsPort,
 			);
 		}
-	}
-
-	public send<T>(packet: P2PMessagePacket<T>): void {
-		if (!this.outboundSocket) {
-			this.outboundSocket = this._createOutboundSocket();
-		}
-		this.outboundSocket.emit(packet.event, {
-			data: packet.data,
-		});
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
