@@ -44,11 +44,17 @@ describe('round', () => {
 
 	const db = createStubbedDBObject(__testContext.config.db, dbStubs);
 
-	const storageStub = {
+	const storage = {
 		entities: {
 			Round: {
-				delete: sinonSandbox.stub().resolves('success'),
-				getTotalVotedAmount: sinonSandbox.stub().resolves('success'),
+				delete: sinonSandbox.stub().resolves('Round.delete'),
+				getTotalVotedAmount: sinonSandbox
+					.stub()
+					.resolves('Round.getTotalVotedAmount'),
+			},
+			Account: {
+				incrementField: sinonSandbox.stub().resolves('Account.incrementField'),
+				decrementField: sinonSandbox.stub().resolves('Account.decrementField'),
 			},
 		},
 	};
@@ -68,7 +74,7 @@ describe('round', () => {
 		roundRewards: [10],
 		library: {
 			db,
-			storage: storageStub,
+			storage,
 			logger: {
 				trace: sinonSandbox.spy(),
 				debug: sinonSandbox.spy(),
@@ -93,20 +99,7 @@ describe('round', () => {
 	});
 
 	afterEach(async () => {
-		db.rounds.updateVotes.reset();
-		db.rounds.updateDelegatesRanks.reset();
-		db.rounds.restoreRoundSnapshot.reset();
-		db.rounds.restoreVotesSnapshot.reset();
-		db.rounds.checkSnapshotAvailability.reset();
-		db.rounds.countRoundSnapshot.reset();
-		db.rounds.deleteRoundRewards.reset();
-		db.rounds.insertRoundRewards.reset();
-		db.rounds.updateMissedBlocks.reset();
-
-		storageStub.entities.Round.delete.reset();
-		storageStub.entities.Round.getTotalVotedAmount.reset();
-		scope.modules.accounts.mergeAccountAndGet.reset();
-		sinonSandbox.restore();
+		sinonSandbox.reset();
 	});
 
 	function isPromise(obj) {
@@ -295,9 +288,14 @@ describe('round', () => {
 			beforeEach(done => {
 				scope.roundOutsiders = ['abc'];
 				round = new Round(scope, db);
-				stub = db.rounds.updateMissedBlocks;
+				stub = storage.entities.Account.incrementField;
 				stub
-					.withArgs(scope.backwards, scope.roundOutsiders)
+					.withArgs(
+						{ address_in: scope.roundOutsiders },
+						'missedBlocks',
+						'1',
+						sinonSandbox.match.any
+					)
 					.resolves('success');
 				res = round.updateMissedBlocks();
 				done();
@@ -310,8 +308,12 @@ describe('round', () => {
 			it('query should be called with proper args', () => {
 				return res.then(response => {
 					expect(response).to.equal('success');
-					expect(stub.calledWith(scope.backwards, scope.roundOutsiders)).to.be
-						.true;
+					expect(stub).to.be.calledWith(
+						{ address_in: scope.roundOutsiders },
+						'missedBlocks',
+						'1',
+						sinonSandbox.match.any
+					);
 				});
 			});
 		});
@@ -322,7 +324,7 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = storageStub.entities.Round.getTotalVotedAmount;
+			stub = storage.entities.Round.getTotalVotedAmount;
 			stub.withArgs({ round: scope.round }).resolves('success');
 			res = round.getVotes();
 			done();
@@ -348,7 +350,7 @@ describe('round', () => {
 
 		describe('when getVotes returns at least one entry', async () => {
 			beforeEach(async () => {
-				getVotes_stub = storageStub.entities.Round.getTotalVotedAmount;
+				getVotes_stub = storage.entities.Round.getTotalVotedAmount;
 				updateVotes_stub = db.rounds.updateVotes;
 
 				delegate = {
@@ -1769,7 +1771,8 @@ describe('round', () => {
 	});
 
 	describe('land', () => {
-		let updateMissedBlocks_stub;
+		let incrementField_stub;
+		let decrementField_stub;
 		let updateVotes_stub;
 		let getVotes_stub;
 		let updateDelegatesRanks_stub;
@@ -1797,10 +1800,13 @@ describe('round', () => {
 					'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 				address: '16010222169256538112L',
 			};
-			updateMissedBlocks_stub = db.rounds.updateMissedBlocks.resolves(
-				'updateMissedBlocks'
+			incrementField_stub = storage.entities.Account.incrementField.resolves(
+				'incrementField'
 			);
-			getVotes_stub = storageStub.entities.Round.getTotalVotedAmount.resolves([
+			decrementField_stub = storage.entities.Account.decrementField.resolves(
+				'decrementField'
+			);
+			getVotes_stub = storage.entities.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
 			updateVotes_stub = db.rounds.updateVotes.resolves('updateVotes');
@@ -1834,8 +1840,12 @@ describe('round', () => {
 			return expect(updateVotes_stub.callCount).to.equal(2);
 		});
 
-		it('query updateMissedBlocks should be called once', () => {
-			return expect(updateMissedBlocks_stub.callCount).to.equal(1);
+		it('query incrementField should be called once', () => {
+			return expect(incrementField_stub.callCount).to.equal(1);
+		});
+
+		it('query decrementField should be called once', () => {
+			return expect(decrementField_stub.callCount).to.equal(0);
 		});
 
 		it('query flushRound should be called twice', () => {
@@ -1855,7 +1865,8 @@ describe('round', () => {
 	});
 
 	describe('backwardLand', () => {
-		let updateMissedBlocks_stub;
+		let incrementField_stub;
+		let decrementField_stub;
 		let updateVotes_stub;
 		let getVotes_stub;
 		let restoreRoundSnapshot_stub;
@@ -1888,8 +1899,9 @@ describe('round', () => {
 				address: '16010222169256538112L',
 			};
 
-			updateMissedBlocks_stub = db.rounds.updateMissedBlocks.resolves();
-			getVotes_stub = storageStub.entities.Round.getTotalVotedAmount.resolves([
+			incrementField_stub = storage.entities.Account.incrementField.resolves();
+			decrementField_stub = storage.entities.Account.decrementField.resolves();
+			getVotes_stub = storage.entities.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
 			updateVotes_stub = db.rounds.updateVotes.resolves('QUERY');
@@ -1927,8 +1939,12 @@ describe('round', () => {
 			return expect(updateVotes_stub.called).to.be.false;
 		});
 
-		it('query updateMissedBlocks not be called', () => {
-			return expect(updateMissedBlocks_stub.called).to.be.false;
+		it('query incrementField not be called', () => {
+			return expect(incrementField_stub.called).to.be.false;
+		});
+
+		it('query decrementField not be called', () => {
+			return expect(decrementField_stub.called).to.be.false;
 		});
 
 		it('query updateDelegatesRanks should be called once', () => {

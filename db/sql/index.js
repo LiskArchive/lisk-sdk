@@ -74,7 +74,6 @@ module.exports = {
 	rounds: {
 		updateDelegatesRanks: link('rounds/update_delegates_ranks.sql'),
 		updateVotes: link('rounds/update_votes.sql'),
-		updateMissedBlocks: link('rounds/update_missed_blocks.sql'),
 		clearRoundSnapshot: link('rounds/clear_round_snapshot.sql'),
 		performRoundSnapshot: link('rounds/perform_round_snapshot.sql'),
 		restoreRoundSnapshot: link('rounds/restore_round_snapshot.sql'),

@@ -34,21 +34,6 @@ class RoundsRepository {
 	}
 
 	/**
-	 * Update the missedBlocks attribute for an account.
-	 *
-	 * @param {boolean} backwards - Backwards flag
-	 * @param {string} outsiders - Comma separated string of ids
-	 * @returns {*}
-	 * @todo Add description for the return value
-	 */
-	updateMissedBlocks(backwards, outsiders) {
-		return this.db.none(sql.updateMissedBlocks, {
-			change: backwards ? '- 1' : '+ 1',
-			outsiders,
-		});
-	}
-
-	/**
 	 * Update rank for all delegates.
 	 *
 	 * @returns {Promise}

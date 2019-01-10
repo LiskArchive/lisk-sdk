@@ -121,9 +121,24 @@ class Round {
 			return this.t;
 		}
 
-		return this.t.rounds.updateMissedBlocks(
-			this.scope.backwards,
-			this.scope.roundOutsiders
+		const filters = { address_in: this.scope.roundOutsiders };
+		const field = 'missedBlocks';
+		const value = '1';
+
+		if (this.scope.backwards) {
+			return this.scope.library.storage.entities.Account.decrementField(
+				filters,
+				field,
+				value,
+				this.t
+			);
+		}
+
+		return this.scope.library.storage.entities.Account.incrementField(
+			filters,
+			field,
+			value,
+			this.t
 		);
 	}
 
