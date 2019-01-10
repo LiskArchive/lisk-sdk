@@ -13,6 +13,7 @@
  *
  */
 import { expect } from 'chai';
+import { SinonStub } from 'sinon';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../../src/constants';
 import {
@@ -32,7 +33,6 @@ import {
 	validSecondSignatureTransaction,
 } from '../../fixtures';
 import * as utils from '../../src/utils';
-import { SinonStub } from 'sinon';
 
 describe('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(validTransaction);
