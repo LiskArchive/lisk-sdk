@@ -104,7 +104,7 @@ describe('Round', () => {
 	});
 
 	afterEach(() => {
-		sinonSandbox.reset();
+		sinonSandbox.restore();
 		return seeder.reset(storage);
 	});
 
