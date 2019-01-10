@@ -152,7 +152,7 @@ export abstract class BaseTransaction {
 		};
 
 		return transaction;
-	}	
+	}
 
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
