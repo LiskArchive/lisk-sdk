@@ -46,6 +46,7 @@ describe('system', () => {
 			httpPort: 1,
 			nethash: 1,
 			minVersion: '1.0.0-beta.0',
+			protocolVersion: '1.0',
 			nonce: 1,
 		};
 
@@ -81,6 +82,7 @@ describe('system', () => {
 			expect(__private.nethash).to.eql(dummyConfig.nethash);
 			expect(__private.broadhash).to.eql(dummyConfig.nethash);
 			expect(__private.minVersion).to.eql(dummyConfig.minVersion);
+			expect(__private.protocolVersion).to.eql(dummyConfig.protocolVersion);
 			return expect(__private.nonce).to.eql(dummyConfig.nonce);
 		});
 
@@ -97,6 +99,7 @@ describe('system', () => {
 			expect(self.getMinVersion).to.be.a('function');
 			expect(self.networkCompatible).to.be.a('function');
 			expect(self.versionCompatible).to.be.a('function');
+			expect(self.protocolVersionCompatible).to.be.a('function');
 			expect(self.nonceCompatible).to.be.a('function');
 			expect(self.update).to.be.a('function');
 			return expect(self.onBind).to.be.a('function');
@@ -120,6 +123,15 @@ describe('system', () => {
 
 	describe('getVersion', () => {
 		it('should __private.version');
+	});
+
+	describe('getProtocolVersion', () => {
+		it('should be equal to __private.protocolVersion', () => {
+			// Assert
+			return expect(systemModule.getProtocolVersion()).to.equal(
+				__private.protocolVersion
+			);
+		});
 	});
 
 	describe('getPort', () => {

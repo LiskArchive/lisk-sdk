@@ -409,6 +409,29 @@ describe('RPC Client', () => {
 			});
 		});
 
+		describe('makes request with incompatible protocol version', () => {
+			beforeEach(done => {
+				// Set a non-matching version.
+				validHeaders.protocolVersion = '0.0';
+				System.setHeaders(validHeaders);
+				reconnect();
+				validClientRPCStub.status(() => {});
+				captureConnectionResult(() => {
+					done();
+				});
+			});
+
+			it('should close connection with code 4110 and reason string', done => {
+				expect(closeErrorCode).equal(4110);
+				expect(closeErrorReason).equal(
+					`Expected protocol version: ${
+						__testContext.config.protocolVersion
+					} but received: ${validHeaders.protocolVersion}`
+				);
+				done();
+			});
+		});
+
 		describe('makes request with incompatible version', () => {
 			beforeEach(done => {
 				// Set a non-matching version.
