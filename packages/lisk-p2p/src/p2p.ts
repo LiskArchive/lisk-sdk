@@ -144,13 +144,16 @@ export class P2P extends EventEmitter {
 					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
 					const existingPeer = this._peerPool.getPeer(peerId);
 					if (existingPeer === undefined) {
-						const peer = new Peer({
-							inboundSocket: socket,
-							ipAddress: socket.remoteAddress,
-							os: queryObject.os,
-							version: queryObject.version,
-							wsPort,
-						});
+						const peer = new Peer(
+							{
+								ipAddress: socket.remoteAddress,
+								wsPort,
+								height: queryObject.height ? +queryObject.height : 0,
+								os: queryObject.os,
+								version: queryObject.version,
+							},
+							socket,
+						);
 						peer.applyNodeInfo(this._nodeInfo);
 						this._peerPool.addPeer(peer);
 						super.emit(EVENT_NEW_INBOUND_PEER, peer);
@@ -202,13 +205,13 @@ export class P2P extends EventEmitter {
 					procedure: 'list',
 				});
 				const peerListResponse = seedNodePeerListResponse.data as ProtocolPeerList;
-				
+
 				// TODO ASAP: Validate the response before returning. Check that seedNodePeerListResponse.data.peers exists.
 
 				return peerListResponse.peers.map((peerInfo: ProtocolPeerInfo) => {
 					const peer = new Peer({
-						ipAddress: peerInfo.ip,
-						wsPort: peerInfo.wsPort, // TODO ASAP: Add more properties
+						ipAddress: peerInfo.ip, // TODO ASAP: Add more properties
+						wsPort: peerInfo.wsPort,
 						height: peerInfo.height,
 						os: peerInfo.os,
 						version: peerInfo.version,
