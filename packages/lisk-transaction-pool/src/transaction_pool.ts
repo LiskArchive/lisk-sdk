@@ -131,6 +131,7 @@ export class TransactionPool {
 			this.expireTransactions.bind(this),
 			this._expireTransactionsInterval,
 		);
+		// tslint:disable-next-line:no-floating-promises
 		this._expireTransactionsJob.start();
 
 		this._receivedTransactionsProcessingInterval = receivedTransactionsProcessingInterval;
@@ -141,6 +142,7 @@ export class TransactionPool {
 			this.validateReceivedTransactions.bind(this),
 			this._receivedTransactionsProcessingInterval,
 		);
+		// tslint:disable-next-line:no-floating-promises
 		this._validateTransactionsJob.start();
 
 		this._validatedTransactionsProcessingInterval = validatedTransactionsProcessingInterval;
@@ -151,6 +153,7 @@ export class TransactionPool {
 			this.verifyValidatedTransactions.bind(this),
 			this._validatedTransactionsProcessingInterval,
 		);
+		// tslint:disable-next-line:no-floating-promises
 		this._verifyTransactionsJob.start();
 
 		this._verifiedTransactionsProcessingInterval = verifiedTransactionsProcessingInterval;
@@ -161,6 +164,7 @@ export class TransactionPool {
 			this.processVerifiedTransactions.bind(this),
 			this._verifiedTransactionsProcessingInterval,
 		);
+		// tslint:disable-next-line:no-floating-promises
 		this._processTransactionsJob.start();
 	}
 
@@ -208,7 +212,7 @@ export class TransactionPool {
 
 	public getProcessableTransactions(limit: number): ReadonlyArray<Transaction> {
 		return this._queues.ready.peekUntil(
-			queueCheckers.returnTrueUntilLimit(limit)
+			queueCheckers.returnTrueUntilLimit(limit),
 		);
 	}
 
@@ -311,24 +315,26 @@ export class TransactionPool {
 		);
 	}
 
-	private async processVerifiedTransactions(): Promise<CheckTransactionsResponse> {
+	private async processVerifiedTransactions(): Promise<
+		CheckTransactionsResponse
+	> {
 		const transactionsInReadyQueue = this._queues.ready.size();
 		const transactionsInVerifiedQueue = this._queues.verified.size();
 
 		if (
-			transactionsInReadyQueue >= this._verifiedTransactionsProcessingLimitPerInterval ||
+			transactionsInReadyQueue >=
+				this._verifiedTransactionsProcessingLimitPerInterval ||
 			transactionsInVerifiedQueue === 0
 		) {
 			return {
 				passedTransactions: [],
-				failedTransactions: []
+				failedTransactions: [],
 			};
-		} 
+		}
 
 		const transactionsFromVerifiedQueue = this._queues.verified.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
-				this._verifiedTransactionsProcessingInterval -
-				transactionsInReadyQueue,
+				this._verifiedTransactionsProcessingInterval - transactionsInReadyQueue,
 			),
 		);
 		const transactionsFromReadyQueue = this._queues.ready.peekUntil(
@@ -338,10 +344,7 @@ export class TransactionPool {
 			...transactionsFromReadyQueue,
 			...transactionsFromVerifiedQueue,
 		];
-		const {
-			passedTransactions,
-			failedTransactions,
-		} = await checkTransactions(
+		const { passedTransactions, failedTransactions } = await checkTransactions(
 			toProcessTransactions,
 			this._processTransactions,
 		);
