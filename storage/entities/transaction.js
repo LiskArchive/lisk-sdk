@@ -154,6 +154,10 @@ const stringToByteOnlyInsert = (value, mode, alias, fieldName) => {
 	return value ? `DECODE($\{${alias}}, 'hex')` : 'NULL';
 };
 
+const defaultCreateValues = {
+	recipientId: null,
+};
+
 class Transaction extends BaseEntity {
 	/**
 	 * Constructor
@@ -342,6 +346,8 @@ class Transaction extends BaseEntity {
 			t.signatures = t.signatures ? t.signatures.join() : null;
 			t.amount = t.amount.toString();
 			t.fee = t.fee.toString();
+			// Set default create values
+			_.defaults(t, defaultCreateValues);
 		});
 
 		const trsFields = [
