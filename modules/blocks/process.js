@@ -373,9 +373,9 @@ Process.prototype.loadBlocksOffset = function(
 	// Calculate toHeight
 	const toHeight = fromHeight + blocksAmount;
 
-	library.logger.debug('Loading blocks fromHeight', {
-		fromHeight,
-		toHeight,
+	library.logger.debug('Loading blocks offset', {
+		limit: toHeight,
+		offset: fromHeight,
 	});
 
 	const filters = {
