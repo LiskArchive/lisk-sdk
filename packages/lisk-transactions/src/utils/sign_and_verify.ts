@@ -14,7 +14,7 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { MAX_MULTISIG_SIGNATURES } from '../constants';
-import { TransactionError } from '../errors';
+import { TransactionError, TransactionPendingError } from '../errors';
 import { IsVerifiedResponse, TransactionJSON } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
@@ -72,7 +72,7 @@ export const verifySignature = (
 	};
 };
 
-export const verifyMultisignatures = (
+export const verifySignatures = (
 	memberPublicKeys: ReadonlyArray<string> = [],
 	signatures: ReadonlyArray<string>,
 	minimumValidations: number,
@@ -85,13 +85,12 @@ export const verifyMultisignatures = (
 			errors: [new TransactionError('Sender does not have valid multimin', id)],
 		};
 	}
-	if (!signatures) {
+	if (!Array.isArray(signatures)) {
 		return {
 			verified: false,
 			errors: [new TransactionError('Missing signatures', id, '.signatures')],
 		};
 	}
-
 	if (signatures.length > MAX_MULTISIG_SIGNATURES) {
 		return {
 			verified: false,
@@ -130,11 +129,8 @@ export const verifyMultisignatures = (
 		});
 	});
 
-	const invalidSignatures: ReadonlyArray<string> = signatures.filter(
-		signature =>
-			!Array.from(verifiedSignatures.keys()).find(
-				verifiedSignature => signature === verifiedSignature,
-			),
+	const invalidSignatures = signatures.filter(
+		signature => !verifiedSignatures.has(signature),
 	);
 
 	// Transaction is waiting for more signatures
@@ -144,7 +140,9 @@ export const verifyMultisignatures = (
 	) {
 		return {
 			verified: false,
-			pending: true,
+			errors: [
+				new TransactionPendingError(`Missing signatures`, id, '.signatures'),
+			],
 		};
 	}
 

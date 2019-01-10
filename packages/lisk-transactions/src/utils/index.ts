@@ -27,7 +27,7 @@ export {
 	secondSignTransaction,
 	multiSignTransaction,
 	verifySignature,
-	verifyMultisignatures,
+	verifySignatures,
 	verifyTransaction,
 } from './sign_and_verify';
 export { signRawTransaction } from './sign_raw_transaction';
@@ -36,6 +36,7 @@ export {
 	checkTypes,
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
+	validateSignatureAndPublicKey,
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,

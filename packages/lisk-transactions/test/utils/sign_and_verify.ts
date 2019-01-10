@@ -18,11 +18,11 @@ import { addTransactionFields } from '../helpers';
 import {
 	signTransaction,
 	multiSignTransaction,
-	verifyMultisignatures,
 	verifySignature,
+	verifySignatures,
 	verifyTransaction,
 } from '../../src/utils';
-import { TransactionError } from '../../src/errors';
+import { TransactionError, TransactionPendingError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import fixtureTransactions from '../../fixtures/transactions.json';
@@ -147,7 +147,7 @@ describe('signAndVerify module', () => {
 		});
 	});
 
-	describe('#verifyMultisignatures', () => {
+	describe('#verifySignatures', () => {
 		const defaultMultisignatureTransaction = addTransactionFields(
 			validMultisignatureTransaction,
 		);
@@ -160,7 +160,7 @@ describe('signAndVerify module', () => {
 		} = defaultMultisignatureAccount as Account;
 
 		it('should return a verified response with valid signatures', async () => {
-			const { verified } = verifyMultisignatures(
+			const { verified } = verifySignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures,
 				3,
@@ -171,7 +171,7 @@ describe('signAndVerify module', () => {
 		});
 
 		it('should return a verification fail response with invalid multimin', async () => {
-			const { verified, errors } = verifyMultisignatures(
+			const { verified, errors } = verifySignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures,
 				'3' as any,
@@ -185,7 +185,7 @@ describe('signAndVerify module', () => {
 		});
 
 		it('should return a verification fail response with invalid signatures', async () => {
-			const { verified, errors } = verifyMultisignatures(
+			const { verified, errors } = verifySignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures.map((signature: string) =>
 					signature.replace('1', '0'),
@@ -208,7 +208,7 @@ describe('signAndVerify module', () => {
 		});
 
 		it('should return a verification fail response with over max amount of signatures', async () => {
-			const { verified, errors } = verifyMultisignatures(
+			const { verified, errors } = verifySignatures(
 				memberPublicKeys,
 				new Array(16).fill(0),
 				3,
@@ -223,8 +223,8 @@ describe('signAndVerify module', () => {
 			});
 		});
 
-		it('should return a verification pending response when missing signatures', async () => {
-			const { verified, pending } = verifyMultisignatures(
+		it('should return a transaction pending error when missing signatures', async () => {
+			const { verified, errors } = verifySignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures.slice(0, 2),
 				3,
@@ -232,7 +232,11 @@ describe('signAndVerify module', () => {
 			);
 
 			expect(verified).to.be.false;
-			expect(pending).to.be.true;
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error)
+					.to.be.instanceof(TransactionPendingError)
+					.and.have.property('message', 'Missing signatures');
+			});
 		});
 	});
 

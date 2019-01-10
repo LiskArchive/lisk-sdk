@@ -29,7 +29,7 @@ import {
 export const validator = new Ajv({ allErrors: true });
 addKeywords(validator);
 
-validator.addFormat('signature', data => /^[a-f0-9]{128}$/i.test(data));
+validator.addFormat('signature',data =>  /^[a-f0-9]{128}$/i.test(data));
 
 validator.addFormat(
 	'id',

@@ -21,7 +21,11 @@ import {
 	MultisignatureStatus,
 } from '../../src/transactions/base';
 import { TransactionJSON, Status } from '../../src/transaction_types';
-import { TransactionError, TransactionMultiError } from '../../src/errors';
+import {
+	TransactionError,
+	TransactionMultiError,
+	TransactionPendingError,
+} from '../../src/errors';
 import BigNum from 'browserify-bignum';
 import { addTransactionFields, TestTransaction } from '../helpers';
 import {
@@ -613,9 +617,9 @@ describe('Base transaction class', () => {
 			expect(getBasicBytesStub).to.be.calledOnce;
 		});
 
-		it('should call verifyMultisignatures for multisignature transaction', async () => {
-			const verifyMultisignaturesStub = sandbox
-				.stub(utils, 'verifyMultisignatures')
+		it('should call verifySignatures for multisignature transaction', async () => {
+			const verifySignaturesStub = sandbox
+				.stub(utils, 'verifySignatures')
 				.returns(
 					Buffer.from(
 						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02000000',
@@ -626,7 +630,7 @@ describe('Base transaction class', () => {
 				sender: defaultMultisignatureAccount,
 			});
 
-			expect(verifyMultisignaturesStub).to.be.calledWithExactly(
+			expect(verifySignaturesStub).to.be.calledWithExactly(
 				defaultMultisignatureAccount.multisignatures,
 				defaultMultisignatureTransaction.signatures,
 				defaultMultisignatureAccount.multimin,
@@ -832,18 +836,25 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a pending transaction response with missing signatures', async () => {
-			sandbox
-				.stub(utils, 'verifyMultisignatures')
-				.returns({ verified: false, pending: true });
+			const multisignaturesTransaction = new TestTransaction({
+				...defaultMultisignatureTransaction,
+				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
+			});
 
-			const multisignaturesTransaction = new TestTransaction(
-				defaultMultisignatureTransaction,
+			sandbox.stub(utils, 'verifySignatures').returns({
+				verified: false,
+				errors: [
+					new TransactionPendingError(
+						`Missing signatures`,
+						multisignaturesTransaction.id,
+						'.signatures',
+					),
+				],
+			});
+
+			const { id, status, errors } = multisignaturesTransaction.verify(
+				defaultMultisignatureAccount,
 			);
-			const multisignatureAccount = {
-				...defaultMultisignatureAccount,
-				multimin: 5,
-			}
-			const { id, status, errors } = multisignaturesTransaction.verify(multisignatureAccount);
 
 			expect(id).to.be.eql(multisignaturesTransaction.id);
 			expect(status).to.eql(Status.PENDING);

@@ -66,7 +66,6 @@ export interface IsVerifiedResponse {
 	readonly verified: boolean;
 	readonly errors?: ReadonlyArray<TransactionError>;
 	readonly error?: TransactionError;
-	readonly pending?: boolean;
 }
 
 export type PartialTransaction = Partial<TransactionJSON>;

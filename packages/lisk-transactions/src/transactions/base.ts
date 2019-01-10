@@ -29,7 +29,11 @@ import {
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
+import {
+	TransactionError,
+	TransactionMultiError,
+	TransactionPendingError,
+} from '../errors';
 import {
 	Account,
 	Status,
@@ -38,10 +42,11 @@ import {
 import {
 	checkTypes,
 	getId,
+	validateSignatureAndPublicKey,
 	validator,
 	verifyBalance,
-	verifyMultisignatures,
 	verifySignature,
+	verifySignatures,
 } from '../utils';
 import * as schemas from '../utils/validation/schema';
 
@@ -307,6 +312,7 @@ export abstract class BaseTransaction {
 			sender,
 			this.fee,
 		);
+
 		if (!balanceVerified && balanceError) {
 			errors.push(balanceError);
 		}
@@ -353,43 +359,24 @@ export abstract class BaseTransaction {
 			sender.multimin
 		) {
 			this.isMultisignature = MultisignatureStatus.TRUE;
-			const transactionBytes = this.signSignature
-				? Buffer.concat([
-						this.getBasicBytes(),
-						Buffer.from(this.signature, 'hex'),
-				  ])
-				: this.getBasicBytes();
-
 			const {
-				verified: multisignaturesVerified,
+				status,
 				errors: multisignatureErrors,
-				pending,
-			} = verifyMultisignatures(
-				sender.multisignatures,
-				this.signatures,
-				sender.multimin,
-				transactionBytes,
-				this.id,
-			);
+			} = this.verifyMultisignatures(sender);
 
-			if (pending) {
+			if (status === Status.PENDING && errors.length === 0) {
 				return {
 					id: this.id,
-					status: Status.PENDING,
-					errors: [
-						new TransactionError(`Missing signatures`, this.id, '.signatures'),
-					],
+					status,
+					errors,
 				};
 			}
 
 			if (
-				!multisignaturesVerified &&
-				multisignatureErrors &&
+				Array.isArray(multisignatureErrors) &&
 				multisignatureErrors.length > 0
 			) {
-				multisignatureErrors.forEach(error => {
-					errors.push(error);
-				});
+				multisignatureErrors.forEach(error => errors.push(error));
 			}
 		} else {
 			this.isMultisignature = MultisignatureStatus.FALSE;
@@ -437,6 +424,76 @@ export abstract class BaseTransaction {
 			status: errors.length > 0 ? Status.FAIL : Status.OK,
 			state: { sender: updatedAccount },
 			errors,
+		};
+	}
+
+	public addMultiSignature(
+		signature: string,
+		publicKey: string,
+	): TransactionResponse {
+		const { valid } = validateSignatureAndPublicKey(
+			signature,
+			publicKey,
+		);
+
+		if (valid && !this.signatures.includes(signature)) {
+			const transactionBytes = this.getBasicBytes();
+
+			const { verified } = verifySignature(
+				publicKey,
+				signature,
+				transactionBytes,
+			);
+
+			if (verified) {
+				this.signatures.push(signature);
+
+				return {
+					id: this.id,
+					status: Status.OK,
+					errors: [],
+				};
+			}
+		}
+
+		return {
+			id: this.id,
+			status: Status.FAIL,
+			errors: [
+				new TransactionError(
+					'Failed to add signature.',
+					this.id,
+					'.signatures',
+				),
+			],
+		};
+	}
+
+	protected verifyMultisignatures(sender: Account): TransactionResponse {
+		const transactionBytes = this.signSignature
+			? Buffer.concat([
+					this.getBasicBytes(),
+					Buffer.from(this.signature, 'hex'),
+			  ])
+			: this.getBasicBytes();
+
+		const { verified, errors } = verifySignatures(
+			sender.multisignatures,
+			this.signatures,
+			sender.multimin as number,
+			transactionBytes,
+			this.id,
+		);
+
+		return {
+			id: this.id,
+			status:
+				Array.isArray(errors) && errors[0] instanceof TransactionPendingError
+					? Status.PENDING
+					: verified
+						? Status.OK
+						: Status.FAIL,
+			errors: errors as ReadonlyArray<TransactionError>,
 		};
 	}
 

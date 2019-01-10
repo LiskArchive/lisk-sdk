@@ -18,13 +18,13 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
 	MAX_ADDRESS_NUMBER,
+	MAX_PUBLIC_KEY_LENGTH,
 	MAX_TRANSACTION_AMOUNT,
 	MAX_TRANSACTION_ID,
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
 
-const MAX_PUBLIC_KEY_LENGTH = 32;
 export const validatePublicKey = (publicKey: string) => {
 	const publicKeyBuffer = cryptography.hexToBuffer(publicKey);
 	if (publicKeyBuffer.length !== MAX_PUBLIC_KEY_LENGTH) {
