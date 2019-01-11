@@ -50,7 +50,7 @@
 		"deep-diff": "1.0.2",
 		"express": "4.16.4",
 		"express-domain-middleware": "0.1.0",
-		"express-query-int": "1.0.1",
+		"express-query-int": "3.0.0",
 		"express-rate-limit": "2.8.0",
 		"fs-extra": "7.0.1",
 		"ip": "1.1.5",
