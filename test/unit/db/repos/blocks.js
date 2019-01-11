@@ -869,41 +869,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('deleteAfterBlock()', () => {
-			it('should use the correct SQL file with one parameter', function*() {
-				sinonSandbox.spy(db, 'none');
-
-				yield db.blocks.deleteAfterBlock('1111');
-
-				expect(db.none.firstCall.args[0]).to.eql(sql.deleteAfterBlock);
-				expect(db.none.firstCall.args[1]).to.eql(['1111']);
-				return expect(db.none).to.be.calledOnce;
-			});
-
-			it('should delete all blocks with height above or equal to given block id', function*() {
-				const genesisBlock = new blocksFixtures.GenesisBlock();
-				const before = yield db.query(
-					'SELECT height FROM blocks WHERE height >= $1',
-					[genesisBlock.height]
-				);
-				const data = yield db.blocks.deleteAfterBlock(genesisBlock.id);
-				const after = yield db.query(
-					'SELECT height FROM blocks WHERE height >= $1',
-					[genesisBlock.height]
-				);
-
-				expect(data).to.be.null;
-				expect(before).to.have.length(5);
-				return expect(after).to.have.length(0);
-			});
-
-			it('should return empty response if provided id does not exist', function*() {
-				const data = yield db.blocks.deleteAfterBlock('111111');
-
-				return expect(data).to.be.null;
-			});
-		});
-
 		describe('getBlockForTransport()', () => {
 			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'query');
