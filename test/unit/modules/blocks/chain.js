@@ -68,7 +68,6 @@ describe('blocks/chain', () => {
 		dbStub = {
 			blocks: {
 				deleteBlock: sinonSandbox.stub(),
-				deleteAfterBlock: sinonSandbox.stub(),
 			},
 			tx: sinonSandbox.stub(),
 		};
@@ -76,7 +75,10 @@ describe('blocks/chain', () => {
 		storageStub = {
 			entities: {
 				Block: {
+					begin: sinonSandbox.stub(),
+					getOne: sinonSandbox.stub(),
 					isPersisted: sinonSandbox.stub(),
+					delete: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -470,9 +472,28 @@ describe('blocks/chain', () => {
 	});
 
 	describe('deleteAfterBlock', () => {
-		describe('when library.db.blocks.deleteAfterBlock fails', () => {
+		describe('when library.storage.entities.Block.getOne fails', () => {
 			beforeEach(() => {
-				return library.db.blocks.deleteAfterBlock.rejects(
+				return library.storage.entities.Block.getOne.rejects(
+					'deleteAfterBlock-ERR'
+				);
+			});
+
+			it('should call a callback with error', done => {
+				blocksChainModule.deleteAfterBlock(1, err => {
+					expect(err).to.equal('Blocks#deleteAfterBlock error');
+					expect(loggerStub.error.args[0][0]).to.contains(
+						'deleteAfterBlock-ERR'
+					);
+					done();
+				});
+			});
+		});
+
+		describe('when library.storage.entities.Block.delete fails', () => {
+			beforeEach(() => {
+				library.storage.entities.Block.getOne.resolves({ height: 1 });
+				return library.storage.entities.Block.delete.rejects(
 					'deleteAfterBlock-ERR'
 				);
 			});
@@ -490,7 +511,8 @@ describe('blocks/chain', () => {
 
 		describe('when library.db.blocks.deleteAfterBlock succeeds', () => {
 			beforeEach(() => {
-				return library.db.blocks.deleteAfterBlock.resolves(true);
+				library.storage.entities.Block.getOne.resolves({ height: 1 });
+				return library.storage.entities.Block.delete.resolves(true);
 			});
 
 			it('should call a callback with no error and res data', done => {

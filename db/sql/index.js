@@ -43,7 +43,6 @@ module.exports = {
 		loadLastBlock: link('blocks/load_last_block.sql'),
 		loadLastNBlockIds: link('blocks/load_last_n_block_ids.sql'),
 		blockExists: link('blocks/block_exists.sql'),
-		deleteAfterBlock: link('blocks/delete_after_block.sql'),
 		getBlockForTransport: link('blocks/get_block_for_transport.sql'),
 		getHeightByLastId: link('blocks/get_height_by_last_id.sql'),
 		getCommonBlock: link('blocks/get_common_block.sql'),

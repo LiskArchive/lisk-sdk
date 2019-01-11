@@ -195,15 +195,17 @@ Chain.prototype.deleteBlock = function(blockId, cb, tx) {
  * @returns {Object} cb.err - SQL error
  * @returns {Object} cb.res - SQL response
  */
-Chain.prototype.deleteAfterBlock = function(blockId, cb) {
-	// TODO: REPLACE BY STORAGE WHEN DELETE IS IMPLEMENTED
-	library.db.blocks
-		.deleteAfterBlock(blockId)
-		.then(res => setImmediate(cb, null, res))
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Blocks#deleteAfterBlock error');
+Chain.prototype.deleteAfterBlock = async function(blockId, cb) {
+	try {
+		const block = await library.storage.entities.Block.getOne({ id: blockId });
+		const result = await library.storage.entities.Block.delete({
+			height_gte: block.height,
 		});
+		return setImmediate(cb, null, result);
+	} catch (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#deleteAfterBlock error');
+	}
 };
 
 /**

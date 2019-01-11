@@ -270,16 +270,6 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Delete all blocks after a particular height.
-	 *
-	 * @param {string} id
-	 * @returns {Promise}
-	 */
-	deleteAfterBlock(id) {
-		return this.db.none(sql.deleteAfterBlock, [id]);
-	}
-
-	/**
 	 * Get block to be transported to peers.
 	 *
 	 * @param {string} id - id of the block
