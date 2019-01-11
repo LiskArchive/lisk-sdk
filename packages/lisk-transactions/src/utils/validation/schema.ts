@@ -20,6 +20,7 @@ export const transaction = {
 		'amount',
 		'fee',
 		'senderPublicKey',
+		'senderId',
 		'recipientId',
 		'timestamp',
 		'asset',
@@ -66,7 +67,7 @@ export const transaction = {
 		},
 		asset: {
 			type: 'object',
-		},
+},
 		receivedAt: {
 			type: 'object',
 		},

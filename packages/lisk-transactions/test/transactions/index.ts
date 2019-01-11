@@ -12,9 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './base';
-export * from './0_transfer';
-export * from './3_vote_transaction';
-export * from './5_dapp_transaction';
-export * from './6_in_transfer_transaction';
-export * from './7_out_transfer_transaction';
+import { expect } from 'chai';
+import * as transactions from '../../src/transactions';
+
+describe('transactions', () => {
+	describe('exports', () => {
+		it('should have BaseTransaction', () => {
+			return expect(transactions)
+				.to.have.property('BaseTransaction')
+				.and.be.a('function');
+		});
+
+		it('should have TransferTransaction', () => {
+			return expect(transactions)
+				.to.have.property('TransferTransaction')
+				.and.be.a('function');
+        });
+    });
+});

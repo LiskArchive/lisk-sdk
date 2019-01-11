@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './base';
-export * from './0_transfer';
-export * from './3_vote_transaction';
-export * from './5_dapp_transaction';
-export * from './6_in_transfer_transaction';
-export * from './7_out_transfer_transaction';
+import BigNum from 'browserify-bignum';
+import { FEES } from '../constants';
+
+ export const calculateFee = (type: number): BigNum => new BigNum(FEES[type]);
