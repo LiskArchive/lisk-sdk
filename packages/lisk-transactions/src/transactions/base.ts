@@ -18,6 +18,7 @@
 import {
 	bigNumberToBuffer,
 	getAddressFromPublicKey,
+	getKeys,
 	hash,
 	hexToBuffer,
 	signData,
@@ -38,6 +39,7 @@ import {
 import {
 	checkTypes,
 	getId,
+	getTimeWithOffset,
 	validator,
 	verifyBalance,
 	verifyMultisignatures,
@@ -73,6 +75,28 @@ export interface RequiredState {
 }
 
 export const ENTITY_ACCOUNT = 'account';
+export interface CreateBaseTransactionInput {
+	readonly passphrase?: string;
+	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
+}
+
+export const createBaseTransaction = ({
+	passphrase,
+	timeOffset,
+}: CreateBaseTransactionInput) => {
+	const senderPublicKey = passphrase
+		? getKeys(passphrase).publicKey
+		: undefined;
+	const timestamp = getTimeWithOffset(timeOffset);
+
+	return {
+		amount: '0',
+		recipientId: '',
+		senderPublicKey,
+		timestamp,
+	};
+};
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
@@ -457,15 +481,10 @@ export abstract class BaseTransaction {
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 
-		const transactionSenderPublicKey = hexToBuffer(
-			this.senderPublicKey,
-		);
+		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		const transactionRecipientID = this.recipientId
-			? bigNumberToBuffer(
-					this.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-			  )
+			? bigNumberToBuffer(this.recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 		const transactionAmount = this.amount.toBuffer({
