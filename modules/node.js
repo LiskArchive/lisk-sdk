@@ -46,6 +46,7 @@ class Node {
 			lastCommit: scope.lastCommit,
 			config: {
 				version: scope.config.version,
+				protocolVersion: scope.config.protocolVersion,
 				nethash: scope.config.nethash,
 				nonce: scope.config.nonce,
 				forging: {
@@ -161,6 +162,7 @@ Node.prototype.shared = {
 			reward: blockReward.calcReward(height).toString(),
 			supply: blockReward.calcSupply(height),
 			version: library.config.version,
+			protocolVersion: library.config.protocolVersion,
 		});
 	},
 
