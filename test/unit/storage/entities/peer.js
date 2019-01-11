@@ -98,6 +98,7 @@ describe('Peer', () => {
 			'version_ne',
 			'version_in',
 			'version_like',
+			'protocolVersion',
 			'protocolVersion_eql',
 			'protocolVersion_ne',
 			'protocolVersion_in',

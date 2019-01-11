@@ -66,6 +66,10 @@ describe('Handshake', () => {
 			done();
 		});
 
+		afterEach(() => {
+			return sinonSandbox.restore();
+		});
+
 		it('should return an error when nonce is identical to server', done => {
 			validHeaders.nonce = validConfig.config.nonce;
 			handshake(validHeaders, err => {
@@ -375,7 +379,7 @@ describe('Handshake', () => {
 							headers.protocolVersion = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
-									`version: Expected type string but found type ${
+									`protocolVersion: Expected type string but found type ${
 										type.expectation
 									}`
 								);
