@@ -206,17 +206,13 @@ export class P2P extends EventEmitter {
 		});
 	}
 
-	private _getPeerToConnect(): ReadonlyArray<Peer> {
+	private _connectToPeers(): void {
 		const availablePeers = Array.from(this._newPeers).map(
 			(peerInfo: PeerInfo) => new Peer(peerInfo),
 		);
+
 		const peersToConnect = selectForConnection(availablePeers);
-
-		return peersToConnect;
-	}
-
-	private _connectToPeers(): void {
-		this._getPeerToConnect().map((peer: Peer) => {
+		peersToConnect.map((peer: Peer) => {
 			peer.connect();
 			this._newPeers.delete(peer.peerInfo);
 			this._triedPeers.add(peer.peerInfo);
