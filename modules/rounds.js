@@ -303,6 +303,8 @@ Rounds.prototype.createRoundInformationWithAmount = function(
 		{ extended: true },
 		tx
 	).then(account => {
+		if (!account.votedDelegatesPublicKeys) return true;
+
 		const roundData = account.votedDelegatesPublicKeys.map(
 			delegatePublicKey => ({
 				address,
