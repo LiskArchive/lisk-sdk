@@ -52,7 +52,7 @@
 		"express-domain-middleware": "0.1.0",
 		"express-query-int": "1.0.1",
 		"express-rate-limit": "2.8.0",
-		"fs-extra": "5.0.0",
+		"fs-extra": "7.0.1",
 		"ip": "1.1.5",
 		"js-yaml": "3.12.1",
 		"json-refs": "3.0.12",
