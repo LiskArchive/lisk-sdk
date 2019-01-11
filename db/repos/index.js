@@ -22,7 +22,6 @@ module.exports = {
 	dapps: require('./dapps'),
 	delegates: require('./delegates'),
 	migrations: require('./migrations'),
-	rounds: require('./rounds'),
 	voters: require('./voters'),
 	votes: require('./votes'),
 	transactions: require('./transactions'),

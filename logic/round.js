@@ -40,7 +40,6 @@ class Round {
 			roundFees: scope.roundFees,
 			roundRewards: scope.roundRewards,
 			library: {
-				db: scope.library.db,
 				logger: scope.library.logger,
 				storage: scope.library.storage,
 			},
@@ -217,7 +216,9 @@ class Round {
 	 */
 	restoreRoundSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_round snapshot...');
-		return this.t.rounds.restoreRoundSnapshot();
+		return this.scope.library.storage.entities.Round.restoreRoundSnapshot(
+			this.t
+		);
 	}
 
 	/**
@@ -230,7 +231,9 @@ class Round {
 	 */
 	restoreVotesSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');
-		return this.t.rounds.restoreVotesSnapshot();
+		return this.scope.library.storage.entities.Round.restoreVotesSnapshot(
+			this.t
+		);
 	}
 
 	/**
@@ -239,23 +242,26 @@ class Round {
 	 * @returns {Promise}
 	 */
 	checkSnapshotAvailability() {
-		return this.t.rounds
-			.checkSnapshotAvailability(this.scope.round)
-			.then(isAvailable => {
-				if (!isAvailable) {
-					// Snapshot for current round is not available, check if round snapshot table is empty,
-					// because we need to allow to restore snapshot in that case (no transactions during entire round)
-					return this.t.rounds.countRoundSnapshot().then(count => {
-						// Throw an error when round snapshot table is not empty
-						if (count) {
-							throw new Error(
-								`Snapshot for round ${this.scope.round} not available`
-							);
-						}
-					});
-				}
-				return null;
-			});
+		return this.scope.library.storage.entities.Round.checkSnapshotAvailability(
+			this.scope.round,
+			this.t
+		).then(isAvailable => {
+			if (!isAvailable) {
+				// Snapshot for current round is not available, check if round snapshot table is empty,
+				// because we need to allow to restore snapshot in that case (no transactions during entire round)
+				return this.scope.library.storage.entities.Round.countRoundSnapshot(
+					this.t
+				).then(count => {
+					// Throw an error when round snapshot table is not empty
+					if (count) {
+						throw new Error(
+							`Snapshot for round ${this.scope.round} not available`
+						);
+					}
+				});
+			}
+			return null;
+		});
 	}
 
 	/**

@@ -48,7 +48,6 @@ class Rounds {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
 			bus: scope.bus,
 			network: scope.network,
 			storage: scope.storage,
@@ -142,8 +141,8 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			},
 			function(cb) {
 				// Perform round tick
-				tx
-					.task(backwardTick)
+				library.storage.adapter
+					.task('rounds:backwardTick', backwardTick, tx)
 					.then(() => setImmediate(cb))
 					.catch(err => {
 						library.logger.error(err.stack);
@@ -228,10 +227,10 @@ Rounds.prototype.tick = function(block, done, tx) {
 
 					return t
 						.batch([
-							t.rounds.clearRoundSnapshot(),
-							t.rounds.performRoundSnapshot(),
-							t.rounds.clearVotesSnapshot(),
-							t.rounds.performVotesSnapshot(),
+							library.storage.entities.Round.clearRoundSnapshot(t),
+							library.storage.entities.Round.performRoundSnapshot(t),
+							library.storage.entities.Round.clearVotesSnapshot(t),
+							library.storage.entities.Round.performVotesSnapshot(t),
 						])
 						.then(() => {
 							library.logger.trace('Round snapshot done');
@@ -266,8 +265,8 @@ Rounds.prototype.tick = function(block, done, tx) {
 			},
 			// Perform round tick
 			function(cb) {
-				(tx || library.db)
-					.task(Tick)
+				library.storage.adapter
+					.task('rounds:tick', Tick, tx)
 					.then(() => setImmediate(cb))
 					.catch(err => {
 						library.logger.error(err.stack);
