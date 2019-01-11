@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+export { calculateFee } from './calculate_fee';
 export { getTransactionBytes } from './get_transaction_bytes';
 export { getTransactionHash } from './get_transaction_hash';
 export { getId, getTransactionId } from './get_transaction_id';
