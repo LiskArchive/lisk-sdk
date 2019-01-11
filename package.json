@@ -40,7 +40,7 @@
 	},
 	"dependencies": {
 		"async": "2.6.1",
-		"bignumber.js": "7.2.1",
+		"bignumber.js": "8.0.1",
 		"bluebird": "3.5.3",
 		"body-parser": "1.18.3",
 		"bytebuffer": "5.0.1",
