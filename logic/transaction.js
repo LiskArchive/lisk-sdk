@@ -1290,7 +1290,7 @@ class Transaction {
 			fee: new Bignum(raw.fee),
 			signature: raw.signature,
 			signSignature: raw.signSignature,
-			signatures: raw.signatures ? raw.signatures.split(',') : [],
+			signatures: raw.signatures || [],
 			confirmations: parseInt(raw.confirmations),
 			asset: raw.asset || {},
 		};
