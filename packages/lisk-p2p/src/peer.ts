@@ -41,7 +41,6 @@ export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
 export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
-
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
@@ -90,7 +89,7 @@ export class Peer extends EventEmitter {
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRPC = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to a separate file with other validation logic.
+			// TODO ASAP: Move validation/sanitization to response_handler_sanitization with other validation logic.
 			const request = packet as ProtocolInboundRPCRequest;
 			if (!request || typeof request.procedure !== 'string') {
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, request);
@@ -111,7 +110,7 @@ export class Peer extends EventEmitter {
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleMessage = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to a separate file with other validation logic.
+			// TODO ASAP: Move validation/sanitization to response_handler_sanitization with other validation logic.
 			const message = packet as ProtocolInboundMessage;
 			if (!message || typeof message.event !== 'string') {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, message);
@@ -130,7 +129,7 @@ export class Peer extends EventEmitter {
 		return this._id;
 	}
 
-	public set inboundSocket(value: any) {
+	public set inboundSocket(value: SCServerSocket) {
 		if (this._inboundSocket) {
 			this._stopListeningForRPCs(this._inboundSocket);
 			this._stopListeningForMessages(this._inboundSocket);
@@ -144,7 +143,7 @@ export class Peer extends EventEmitter {
 		return this._ipAddress;
 	}
 
-	public set outboundSocket(value: any) {
+	public set outboundSocket(value: SCClientSocket) {
 		this._outboundSocket = value;
 	}
 
@@ -195,10 +194,10 @@ export class Peer extends EventEmitter {
 	}
 
 	public connect(): void {
-		if (!this.outboundSocket) {
-			this.outboundSocket = this._createOutboundSocket();
+		if (!this._outboundSocket) {
+			this._outboundSocket = this._createOutboundSocket();
 		}
-		this.outboundSocket.connect();
+		this._outboundSocket.connect();
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
@@ -206,16 +205,16 @@ export class Peer extends EventEmitter {
 			this._inboundSocket.disconnect(code, reason);
 			this._stopListeningForRPCs(this._inboundSocket);
 		}
-		if (this.outboundSocket) {
-			this.outboundSocket.disconnect(code, reason);
+		if (this._outboundSocket) {
+			this._outboundSocket.disconnect(code, reason);
 		}
 	}
 
 	public send<T>(packet: P2PMessagePacket<T>): void {
-		if (!this.outboundSocket) {
-			this.outboundSocket = this._createOutboundSocket();
+		if (!this._outboundSocket) {
+			this._outboundSocket = this._createOutboundSocket();
 		}
-		this.outboundSocket.emit(packet.event, {
+		this._outboundSocket.emit(packet.event, {
 			data: packet.data,
 		});
 	}
@@ -228,10 +227,10 @@ export class Peer extends EventEmitter {
 				resolve: (result: P2PResponsePacket) => void,
 				reject: (result: Error) => void,
 			): void => {
-				if (!this.outboundSocket) {
-					this.outboundSocket = this._createOutboundSocket();
+				if (!this._outboundSocket) {
+					this._outboundSocket = this._createOutboundSocket();
 				}
-				this.outboundSocket.emit(
+				this._outboundSocket.emit(
 					REMOTE_EVENT_RPC_REQUEST,
 					{
 						type: '/RPCRequest',
@@ -293,23 +292,29 @@ export class Peer extends EventEmitter {
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 	}
 
-	private _startListeningForRPCs(socket: any): void {
+	private _startListeningForRPCs(
+		socket: SCServerSocket | SCClientSocket,
+	): void {
 		// If an existing listener is bound, remove it.
-		socket.removeListener(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
 		socket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
 	}
 
-	private _stopListeningForRPCs(socket: any): void {
-		socket.removeListener(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+	private _stopListeningForRPCs(socket: SCServerSocket | SCClientSocket): void {
+		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
 	}
 
-	private _startListeningForMessages(socket: any): void {
+	private _startListeningForMessages(
+		socket: SCServerSocket | SCClientSocket,
+	): void {
 		// If an existing listener is bound, remove it.
-		socket.removeListener(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
+		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
 		socket.on(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
 	}
 
-	private _stopListeningForMessages(socket: any): void {
-		socket.removeListener(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
+	private _stopListeningForMessages(
+		socket: SCServerSocket | SCClientSocket,
+	): void {
+		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
 	}
 }
