@@ -80,7 +80,6 @@ module.exports = {
 		restoreVotesSnapshot: link('rounds/restore_votes_snapshot.sql'),
 		checkSnapshotAvailability: link('rounds/check_snapshot_availability.sql'),
 		countRoundSnapshot: link('rounds/count_round_snapshot.sql'),
-		getMemRounds: link('rounds/get_mem_rounds.sql'),
 		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
 	},
 	transactions: {
