@@ -33,7 +33,6 @@ import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
 	Status,
-	TransactionAsset,
 	TransactionJSON,
 } from '../transaction_types';
 import {
@@ -73,8 +72,7 @@ export abstract class BaseTransaction {
 	public readonly signatures: ReadonlyArray<string> = [];
 	public readonly timestamp: number;
 	public readonly type: number;
-	public readonly asset: TransactionAsset = {};
-	public readonly receivedAt: Date;
+	public readonly receivedAt: Date = new Date();
 	public readonly containsUniqueData?: boolean;
 	public isMultisignature: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
 
@@ -82,7 +80,7 @@ export abstract class BaseTransaction {
 	private _signature?: string;
 	private _signSignature?: string;
 
-	public abstract assetToJSON(): TransactionAsset;
+	public abstract assetToJSON(): object;
 	public abstract verifyAgainstOtherTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): TransactionResponse;
@@ -99,7 +97,6 @@ export abstract class BaseTransaction {
 		}
 
 		this.amount = new BigNum(rawTransaction.amount);
-		this.asset = rawTransaction.asset;
 		this.fee = new BigNum(rawTransaction.fee);
 		this._id = rawTransaction.id;
 		this.recipientId = rawTransaction.recipientId;
@@ -460,18 +457,13 @@ export abstract class BaseTransaction {
 			size: BYTESIZES.AMOUNT,
 		});
 
-		const transactionAsset =
-			this.asset && Object.keys(this.asset).length
-				? this.getAssetBytes()
-				: Buffer.alloc(0);
-
 		return Buffer.concat([
 			transactionType,
 			transactionTimestamp,
 			transactionSenderPublicKey,
 			transactionRecipientID,
 			transactionAmount,
-			transactionAsset,
+			this.getAssetBytes(),
 		]);
 	}
 }
