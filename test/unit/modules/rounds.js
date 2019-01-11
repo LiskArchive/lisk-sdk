@@ -19,13 +19,12 @@ const rewire = require('rewire');
 // Instantiate test subject
 const Rounds = rewire('../../../modules/rounds.js');
 const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
-const { createStubbedDBObject } = require('../../common/db_sandbox');
+const { TestStorageSandbox } = require('../../common/storage_sandbox');
 
 const sinon = sinonSandbox;
 
 describe('rounds', () => {
 	let rounds;
-	let validScope;
 	let scope;
 
 	// Init fake logger
@@ -38,20 +37,12 @@ describe('rounds', () => {
 		error: sinon.spy(),
 	};
 
-	const storageStub = {
-		entities: {
-			Account: { getOne: sinon.stub() },
-			Round: {
-				delete: sinon.stub(),
-				summedRound: sinon.stub(),
-				create: sinon.stub(),
-			},
-		},
-	};
-
-	const dbStubs = {
-		rounds: {
-			updateMissedBlocks: sinon.stub(),
+	const storageStubs = {
+		Account: { getOne: sinon.stub() },
+		Round: {
+			delete: sinon.stub(),
+			summedRound: sinon.stub(),
+			create: sinon.stub(),
 			updateVotes: sinon.stub(),
 			updateDelegatesRanks: sinon.stub(),
 			restoreRoundSnapshot: sinon.stub(),
@@ -67,18 +58,23 @@ describe('rounds', () => {
 		},
 	};
 
-	const db = createStubbedDBObject(__testContext.config.db, dbStubs);
+	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
 
 	const modules = {
 		delegates: {
-			generateDelegateList: sinon
-				.stub()
-				.yields(null, ['delegate1', 'delegate2', 'delegate3']),
+			generateDelegateList: sinon.stub(),
 			clearDelegateListCache: sinon.stub(),
 		},
 		accounts: {
-			generateAddressByPublicKey: sinon.stub().returns('delegate'),
+			generateAddressByPublicKey: sinon.stub(),
 		},
+	};
+
+	const validScope = {
+		logger,
+		storage,
+		bus: { message: sinon.spy() },
+		network: { io: { sockets: { emit: sinon.spy() } } },
 	};
 
 	function get(variable) {
@@ -90,14 +86,14 @@ describe('rounds', () => {
 	}
 
 	beforeEach(done => {
-		validScope = {
-			logger,
-			db,
-			storage: storageStub,
-			bus: { message: sinon.spy() },
-			network: { io: { sockets: { emit: sinon.spy() } } },
-		};
 		scope = _.cloneDeep(validScope);
+
+		modules.delegates.generateDelegateList.yields(null, [
+			'delegate1',
+			'delegate2',
+			'delegate3',
+		]);
+		modules.accounts.generateAddressByPublicKey.returnsArg(0);
 
 		new Rounds((err, __instance) => {
 			rounds = __instance;
@@ -107,9 +103,6 @@ describe('rounds', () => {
 	});
 
 	afterEach(done => {
-		Object.keys(dbStubs.rounds).forEach(key => {
-			dbStubs.rounds[key].reset();
-		});
 		sinon.restore();
 		done();
 	});
@@ -210,9 +203,8 @@ describe('rounds', () => {
 	describe('__private.getOutsiders', () => {
 		let getOutsiders;
 
-		beforeEach(done => {
+		beforeEach(async () => {
 			getOutsiders = get('__private.getOutsiders');
-			done();
 		});
 
 		describe('when scope.block.height = 1', () => {
@@ -270,7 +262,7 @@ describe('rounds', () => {
 
 					it('should add 1 outsider scope.roundOutsiders', done => {
 						getOutsiders(scope, () => {
-							expect(scope.roundOutsiders).to.be.eql(['delegate']);
+							expect(scope.roundOutsiders).to.be.eql(['delegate1']);
 							done();
 						});
 					});
@@ -291,7 +283,10 @@ describe('rounds', () => {
 
 					it('should add 2 outsiders to scope.roundOutsiders', done => {
 						getOutsiders(scope, () => {
-							expect(scope.roundOutsiders).to.be.eql(['delegate', 'delegate']);
+							expect(scope.roundOutsiders).to.be.eql([
+								'delegate1',
+								'delegate2',
+							]);
 							done();
 						});
 					});
@@ -377,7 +372,7 @@ describe('rounds', () => {
 							delegates: ['delegate1', 'delegate2', 'delegate3'],
 						},
 					];
-					storageStub.entities.Round.summedRound.resolves(rows);
+					storageStubs.Round.summedRound.resolves(rows);
 				});
 
 				it('should call a callback', done => {
@@ -417,7 +412,7 @@ describe('rounds', () => {
 				beforeEach(done => {
 					// Because for genesis block we don't invoke summedRound
 					scope.block = { height: 2 };
-					storageStub.entities.Round.summedRound.rejects('fail');
+					storageStubs.Round.summedRound.rejects('fail');
 					done();
 				});
 
@@ -436,16 +431,21 @@ describe('rounds', () => {
 		let roundScope;
 
 		// Init stubs
-		const mergeBlockGenerator_stub = sinon.stub().resolves();
-		const land_stub = sinon.stub().resolves();
-		const sumRound_stub = sinon.stub().callsArg(1);
-		const getOutsiders_stub = sinon.stub().callsArg(1);
+		let mergeBlockGenerator_stub;
+		let land_stub;
+		let sumRound_stub;
+		let getOutsiders_stub;
 		let clearRoundSnapshot_stub;
 		let performRoundSnapshot_stub;
 		let clearVotesSnapshot_stub;
 		let performVotesSnapshot_stub;
 
 		beforeEach(async () => {
+			mergeBlockGenerator_stub = sinon.stub().resolves();
+			land_stub = sinon.stub().resolves();
+			sumRound_stub = sinon.stub().callsArg(1);
+			getOutsiders_stub = sinon.stub().callsArg(1);
+
 			// Init fake round logic
 			function RoundLogic(__scope) {
 				roundScope = __scope;
@@ -457,13 +457,6 @@ describe('rounds', () => {
 			// Set more stubs
 			set('__private.sumRound', sumRound_stub);
 			set('__private.getOutsiders', getOutsiders_stub);
-		});
-
-		afterEach(async () => {
-			mergeBlockGenerator_stub.resetHistory();
-			land_stub.resetHistory();
-			sumRound_stub.resetHistory();
-			getOutsiders_stub.resetHistory();
 		});
 
 		describe('testing branches', () => {
@@ -564,7 +557,7 @@ describe('rounds', () => {
 			});
 
 			describe('when false', () => {
-				before(done => {
+				beforeEach(done => {
 					block = { height: 203 };
 					rounds.tick(block, err => {
 						expect(err).to.not.exist;
@@ -601,12 +594,19 @@ describe('rounds', () => {
 		});
 
 		describe('performing round snapshot (queries)', () => {
+			afterEach(async () => {
+				clearRoundSnapshot_stub.reset();
+				performRoundSnapshot_stub.reset();
+				clearVotesSnapshot_stub.reset();
+				performVotesSnapshot_stub.reset();
+			});
+
 			describe('when (block.height+1) % ACTIVE_DELEGATES === 0', () => {
 				beforeEach(async () => {
-					clearRoundSnapshot_stub = db.rounds.clearRoundSnapshot.resolves();
-					performRoundSnapshot_stub = db.rounds.performRoundSnapshot.resolves();
-					clearVotesSnapshot_stub = db.rounds.clearVotesSnapshot.resolves();
-					performVotesSnapshot_stub = db.rounds.performVotesSnapshot.resolves();
+					clearRoundSnapshot_stub = storageStubs.Round.clearRoundSnapshot.resolves();
+					performRoundSnapshot_stub = storageStubs.Round.performRoundSnapshot.resolves();
+					clearVotesSnapshot_stub = storageStubs.Round.clearVotesSnapshot.resolves();
+					performVotesSnapshot_stub = storageStubs.Round.performVotesSnapshot.resolves();
 
 					// Init fake round logic
 					function RoundLogic(__scope) {
@@ -653,7 +653,7 @@ describe('rounds', () => {
 					let res;
 
 					beforeEach(done => {
-						clearRoundSnapshot_stub = db.rounds.clearRoundSnapshot.rejects(
+						clearRoundSnapshot_stub = storageStubs.Round.clearRoundSnapshot.rejects(
 							'clearRoundSnapshot'
 						);
 
@@ -690,7 +690,7 @@ describe('rounds', () => {
 					let res;
 
 					beforeEach(done => {
-						performRoundSnapshot_stub = db.rounds.performRoundSnapshot.rejects(
+						performRoundSnapshot_stub = storageStubs.Round.performRoundSnapshot.rejects(
 							'performRoundSnapshot'
 						);
 
@@ -727,7 +727,7 @@ describe('rounds', () => {
 					let res;
 
 					beforeEach(done => {
-						clearVotesSnapshot_stub = db.rounds.clearVotesSnapshot.rejects(
+						clearVotesSnapshot_stub = storageStubs.Round.clearVotesSnapshot.rejects(
 							'clearVotesSnapshot'
 						);
 
@@ -764,7 +764,7 @@ describe('rounds', () => {
 					let res;
 
 					beforeEach(done => {
-						performVotesSnapshot_stub = db.rounds.performVotesSnapshot.rejects(
+						performVotesSnapshot_stub = storageStubs.Round.performVotesSnapshot.rejects(
 							'performVotesSnapshot'
 						);
 
@@ -873,7 +873,7 @@ describe('rounds', () => {
 									expect(roundScope.finishRound).to.be.true;
 									done();
 								},
-								db
+								null
 							);
 						});
 					});
@@ -890,7 +890,7 @@ describe('rounds', () => {
 									expect(roundScope.finishRound).to.be.true;
 									done();
 								},
-								db
+								null
 							);
 						});
 					});
@@ -899,16 +899,11 @@ describe('rounds', () => {
 						it('should be set to true', done => {
 							block = { height: 202 };
 							previousBlock = { height: 202 };
-							rounds.backwardTick(
-								block,
-								previousBlock,
-								err => {
-									expect(err).to.not.exist;
-									expect(roundScope.finishRound).to.be.true;
-									done();
-								},
-								db
-							);
+							rounds.backwardTick(block, previousBlock, err => {
+								expect(err).to.not.exist;
+								expect(roundScope.finishRound).to.be.true;
+								done();
+							});
 						});
 					});
 
@@ -916,16 +911,11 @@ describe('rounds', () => {
 						it('should be set to false', done => {
 							block = { height: 203 };
 							previousBlock = { height: 203 };
-							rounds.backwardTick(
-								block,
-								previousBlock,
-								err => {
-									expect(err).to.not.exist;
-									expect(roundScope.finishRound).to.be.false;
-									done();
-								},
-								db
-							);
+							rounds.backwardTick(block, previousBlock, err => {
+								expect(err).to.not.exist;
+								expect(roundScope.finishRound).to.be.false;
+								done();
+							});
 						});
 					});
 				});
@@ -937,16 +927,11 @@ describe('rounds', () => {
 				beforeEach(done => {
 					block = { height: 1 };
 					previousBlock = { height: 1 };
-					rounds.backwardTick(
-						block,
-						previousBlock,
-						err => {
-							expect(err).to.not.exist;
-							expect(roundScope.finishRound).to.be.true;
-							done();
-						},
-						db
-					);
+					rounds.backwardTick(block, previousBlock, err => {
+						expect(err).to.not.exist;
+						expect(roundScope.finishRound).to.be.true;
+						done();
+					});
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
@@ -970,16 +955,11 @@ describe('rounds', () => {
 				beforeEach(done => {
 					block = { height: 5 };
 					previousBlock = { height: 5 };
-					rounds.backwardTick(
-						block,
-						previousBlock,
-						err => {
-							expect(err).to.not.exist;
-							expect(roundScope.finishRound).to.be.false;
-							done();
-						},
-						db
-					);
+					rounds.backwardTick(block, previousBlock, err => {
+						expect(err).to.not.exist;
+						expect(roundScope.finishRound).to.be.false;
+						done();
+					});
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
@@ -1011,11 +991,11 @@ describe('rounds', () => {
 		let createRoundStub = null;
 
 		beforeEach(async () => {
-			getOneStub = storageStub.entities.Account.getOne.resolves({
+			getOneStub = storageStubs.Account.getOne.resolves({
 				address: params.address,
 				votedDelegatesPublicKeys: ['delegate1', 'delegate2'],
 			});
-			createRoundStub = storageStub.entities.Round.create.resolves();
+			createRoundStub = storageStubs.Round.create.resolves();
 
 			await rounds.createRoundInformationWithAmount(
 				params.address,
@@ -1065,12 +1045,12 @@ describe('rounds', () => {
 		let createRoundStub = null;
 
 		beforeEach(async () => {
-			getOneStub = storageStub.entities.Account.getOne.resolves({
+			getOneStub = storageStubs.Account.getOne.resolves({
 				address: params.address,
 				balance: '123',
 				votedDelegatesPublicKeys: ['delegate1', 'delegate2'],
 			});
-			createRoundStub = storageStub.entities.Round.create.resolves();
+			createRoundStub = storageStubs.Round.create.resolves();
 		});
 
 		afterEach(async () => {

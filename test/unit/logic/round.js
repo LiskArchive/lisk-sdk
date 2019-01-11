@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 const Promise = require('bluebird');
 const Bignum = require('../../../helpers/bignum.js');
-const { createStubbedDBObject } = require('../../common/db_sandbox');
+const { TestStorageSandbox } = require('../../common/storage_sandbox');
 
 const Round = rewire('../../../logic/round.js');
 const genesisBlock = __testContext.config.genesisBlock;
@@ -27,40 +27,35 @@ const { ACTIVE_DELEGATES } = global.constants;
 describe('round', () => {
 	let scope;
 	let round;
+	let task;
 
-	const dbStubs = {
-		rounds: {
+	const storageStubs = {
+		Round: {
+			delete: sinonSandbox.stub().resolves('Round.delete'),
+			getTotalVotedAmount: sinonSandbox
+				.stub()
+				.resolves('Round.getTotalVotedAmount'),
+			deleteRoundRewards: sinonSandbox.stub(),
+			createRoundRewards: sinonSandbox.stub(),
 			restoreRoundSnapshot: sinonSandbox.stub(),
 			restoreVotesSnapshot: sinonSandbox.stub(),
 			checkSnapshotAvailability: sinonSandbox.stub(),
 			countRoundSnapshot: sinonSandbox.stub(),
 		},
-	};
-
-	const db = createStubbedDBObject(__testContext.config.db, dbStubs);
-
-	const storage = {
-		entities: {
-			Round: {
-				delete: sinonSandbox.stub().resolves('Round.delete'),
-				getTotalVotedAmount: sinonSandbox
-					.stub()
-					.resolves('Round.getTotalVotedAmount'),
-				deleteRoundRewards: sinonSandbox.stub(),
-				createRoundRewards: sinonSandbox.stub(),
-			},
-			Account: {
-				incrementField: sinonSandbox.stub().resolves('Account.incrementField'),
-				decrementField: sinonSandbox.stub().resolves('Account.decrementField'),
-				syncDelegatesRanks: sinonSandbox
-					.stub()
-					.resolves('Account.syncDelegatesRanks'),
-			},
+		Account: {
+			incrementField: sinonSandbox.stub().resolves('Account.incrementField'),
+			decrementField: sinonSandbox.stub().resolves('Account.decrementField'),
+			syncDelegatesRanks: sinonSandbox
+				.stub()
+				.resolves('Account.syncDelegatesRanks'),
 		},
 	};
 
+	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
+
 	const modules = {
 		accounts: {
+			generateAddressByPublicKey: sinonSandbox.stub(),
 			mergeAccountAndGet: sinonSandbox.stub(),
 		},
 	};
@@ -73,7 +68,6 @@ describe('round', () => {
 		roundFees: ACTIVE_DELEGATES,
 		roundRewards: [10],
 		library: {
-			db,
 			storage,
 			logger: {
 				trace: sinonSandbox.spy(),
@@ -93,9 +87,15 @@ describe('round', () => {
 		},
 	};
 
-	beforeEach(async () => {
+	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
-		round = new Round(scope, db);
+
+		// As the logic
+		storage.adapter.task(t => {
+			task = t;
+			round = new Round(scope, task);
+			done();
+		});
 	});
 
 	afterEach(async () => {
@@ -117,7 +117,7 @@ describe('round', () => {
 			});
 
 			it('should set t', () => {
-				return expect(round.t).to.be.eql(db);
+				return expect(round.t).to.be.eql(task);
 			});
 		});
 
@@ -127,7 +127,7 @@ describe('round', () => {
 					const property = 'round';
 					delete scope[property];
 					try {
-						round = new Round(scope, db);
+						round = new Round(scope, task);
 					} catch (err) {
 						expect(err).to.equal(
 							`Missing required scope property: ${property}`
@@ -142,7 +142,7 @@ describe('round', () => {
 					const property = 'backwards';
 					delete scope[property];
 					try {
-						round = new Round(scope, db);
+						round = new Round(scope, task);
 					} catch (err) {
 						expect(err).to.equal(
 							`Missing required scope property: ${property}`
@@ -164,7 +164,7 @@ describe('round', () => {
 						const property = 'roundFees';
 						delete scope[property];
 						try {
-							round = new Round(scope, db);
+							round = new Round(scope, task);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -179,7 +179,7 @@ describe('round', () => {
 						const property = 'roundRewards';
 						delete scope[property];
 						try {
-							round = new Round(scope, db);
+							round = new Round(scope, task);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -194,7 +194,7 @@ describe('round', () => {
 						const property = 'roundDelegates';
 						delete scope[property];
 						try {
-							round = new Round(scope, db);
+							round = new Round(scope, task);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -209,7 +209,7 @@ describe('round', () => {
 						const property = 'roundOutsiders';
 						delete scope[property];
 						try {
-							round = new Round(scope, db);
+							round = new Round(scope, task);
 						} catch (err) {
 							expect(err).to.equal(
 								`Missing required scope property: ${property}`
@@ -228,7 +228,7 @@ describe('round', () => {
 
 			beforeEach(() => {
 				scope.backwards = false;
-				round = new Round(scope, db);
+				round = new Round(scope, task);
 				args = {
 					producedBlocks: 1,
 					publicKey: scope.block.generatorPublicKey,
@@ -250,7 +250,7 @@ describe('round', () => {
 
 			beforeEach(() => {
 				scope.backwards = true;
-				round = new Round(scope, db);
+				round = new Round(scope, task);
 				args = {
 					producedBlocks: -1,
 					publicKey: scope.block.generatorPublicKey,
@@ -280,15 +280,15 @@ describe('round', () => {
 
 			it('should return t object', () => {
 				expect(res).to.not.be.instanceOf(Promise);
-				return expect(res).to.deep.equal(db);
+				return expect(res).to.deep.equal(task);
 			});
 		});
 
 		describe('when there are outsiders', () => {
 			beforeEach(done => {
 				scope.roundOutsiders = ['abc'];
-				round = new Round(scope, db);
-				stub = storage.entities.Account.incrementField;
+				round = new Round(scope, task);
+				stub = storageStubs.Account.incrementField;
 				stub
 					.withArgs(
 						{ address_in: scope.roundOutsiders },
@@ -324,7 +324,7 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = storage.entities.Round.getTotalVotedAmount;
+			stub = storageStubs.Round.getTotalVotedAmount;
 			stub.withArgs({ round: scope.round }).resolves('success');
 			res = round.getVotes();
 			done();
@@ -350,8 +350,8 @@ describe('round', () => {
 
 		describe('when getVotes returns at least one entry', async () => {
 			beforeEach(async () => {
-				getVotes_stub = storage.entities.Round.getTotalVotedAmount;
-				updateVotes_stub = storage.entities.Account.incrementField;
+				getVotes_stub = storageStubs.Round.getTotalVotedAmount;
+				updateVotes_stub = storageStubs.Account.incrementField;
 
 				delegate = {
 					amount: 10000,
@@ -377,10 +377,8 @@ describe('round', () => {
 					)
 					.resolves('QUERY');
 
-				res = db.task(t => {
-					round = new Round(scope, t);
-					return round.updateVotes();
-				});
+				round = new Round(scope, task);
+				res = round.updateVotes();
 				await res;
 			});
 
@@ -432,7 +430,7 @@ describe('round', () => {
 					.withArgs(delegate.address, delegate.amount)
 					.resolves('QUERY');
 
-				round = new Round(scope, db);
+				round = new Round(scope, task);
 				res = round.updateVotes();
 			});
 
@@ -456,8 +454,8 @@ describe('round', () => {
 		let res;
 
 		beforeEach(async () => {
-			stub = scope.library.storage.entities.Round.delete.resolves('success');
-			round = new Round(scope, db);
+			stub = storageStubs.Round.delete.resolves('success');
+			round = new Round(scope, task);
 			res = round.flushRound();
 		});
 
@@ -477,10 +475,10 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = storage.entities.Account.syncDelegatesRanks;
+			stub = storageStubs.Account.syncDelegatesRanks;
 			stub.resolves('success');
 
-			round = new Round(scope, db);
+			round = new Round(scope, task);
 			res = round.updateDelegatesRanks();
 			done();
 		});
@@ -502,7 +500,7 @@ describe('round', () => {
 		let stub;
 
 		beforeEach(done => {
-			stub = db.rounds.restoreRoundSnapshot;
+			stub = storageStubs.Round.restoreRoundSnapshot;
 			stub.resolves('success');
 			res = round.restoreRoundSnapshot();
 			done();
@@ -525,7 +523,7 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = db.rounds.restoreVotesSnapshot;
+			stub = storageStubs.Round.restoreVotesSnapshot;
 			stub.withArgs().resolves('success');
 			res = round.restoreVotesSnapshot();
 			done();
@@ -549,8 +547,9 @@ describe('round', () => {
 
 		beforeEach(done => {
 			// Init stubs and scope
-			stubs.checkSnapshotAvailability = db.rounds.checkSnapshotAvailability;
-			stubs.countRoundSnapshot = db.rounds.countRoundSnapshot;
+			stubs.checkSnapshotAvailability =
+				storageStubs.Round.checkSnapshotAvailability;
+			stubs.countRoundSnapshot = storageStubs.Round.countRoundSnapshot;
 			done();
 		});
 
@@ -558,7 +557,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.resolves();
 			stubs.countRoundSnapshot.resolves();
 			scope.round = 1;
-			round = new Round(scope, db);
+			round = new Round(scope, task);
 			res = round.checkSnapshotAvailability();
 
 			return expect(isPromise(res)).to.be.true;
@@ -567,7 +566,7 @@ describe('round', () => {
 		it('should resolve without any error when checkSnapshotAvailability query returns 1', () => {
 			stubs.checkSnapshotAvailability.withArgs(1).resolves(1);
 			scope.round = 1;
-			round = new Round(scope, db);
+			round = new Round(scope, task);
 			res = round.checkSnapshotAvailability();
 
 			return res.then(() => {
@@ -580,7 +579,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(0);
 			scope.round = 2;
-			round = new Round(scope, db);
+			round = new Round(scope, task);
 			res = round.checkSnapshotAvailability();
 
 			return res.then(() => {
@@ -593,7 +592,7 @@ describe('round', () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(1);
 			scope.round = 2;
-			round = new Round(scope, db);
+			round = new Round(scope, task);
 			res = round.checkSnapshotAvailability();
 
 			return expect(res).to.eventually.be.rejectedWith(
@@ -607,9 +606,9 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = storage.entities.Round.deleteRoundRewards;
+			stub = storageStubs.Round.deleteRoundRewards;
 			stub.withArgs(scope.round).resolves('success');
-			round = new Round(scope, db);
+			round = new Round(scope, task);
 			res = round.deleteRoundRewards();
 			done();
 		});
@@ -666,16 +665,14 @@ describe('round', () => {
 		}
 
 		beforeEach(async () => {
-			insertRoundRewards_stub = storage.entities.Round.createRoundRewards;
-			insertRoundRewards_stub.resolves('insertRoundRewards');
-			scope.modules.accounts.mergeAccountAndGet.yields(
-				null,
-				'mergeAccountAndGet'
+			insertRoundRewards_stub = storageStubs.Round.createRoundRewards.resolves(
+				'insertRoundRewards'
 			);
+			modules.accounts.mergeAccountAndGet.yields(null, 'mergeAccountAndGet');
 		});
 
 		afterEach(async () => {
-			round.scope.modules.accounts.mergeAccountAndGet.reset();
+			modules.accounts.mergeAccountAndGet.reset();
 			insertRoundRewards_stub.reset();
 		});
 
@@ -695,10 +692,8 @@ describe('round', () => {
 
 					beforeEach(async () => {
 						scope.backwards = false;
-						res = await db.task(t => {
-							round = new Round(scope, t);
-							return round.applyRound();
-						});
+						round = new Round(scope, task);
+						res = await round.applyRound();
 					});
 
 					it('query should be called', async () => {
@@ -764,10 +759,8 @@ describe('round', () => {
 					beforeEach(async () => {
 						scope.backwards = true;
 
-						res = await db.task(t => {
-							round = new Round(scope, t);
-							return round.applyRound();
-						});
+						round = new Round(scope, task);
+						res = await round.applyRound();
 					});
 
 					it('query should be called', async () => {
@@ -867,10 +860,8 @@ describe('round', () => {
 					beforeEach(async () => {
 						scope.backwards = false;
 
-						res = await db.task(t => {
-							round = new Round(scope, t);
-							return round.applyRound();
-						});
+						round = new Round(scope, task);
+						res = await round.applyRound();
 					});
 
 					it('query should be called', async () => {
@@ -966,10 +957,8 @@ describe('round', () => {
 					beforeEach(async () => {
 						scope.backwards = true;
 
-						res = await db.task(t => {
-							round = new Round(scope, t);
-							return round.applyRound();
-						});
+						round = new Round(scope, task);
+						res = await round.applyRound();
 					});
 
 					it('query should be called', async () => {
@@ -1101,10 +1090,8 @@ describe('round', () => {
 					beforeEach(async () => {
 						scope.backwards = false;
 
-						res = await db.task(t => {
-							round = new Round(scope, t);
-							return round.applyRound();
-						});
+						round = new Round(scope, task);
+						res = await round.applyRound();
 					});
 
 					it('query should be called', async () => {
@@ -1260,10 +1247,8 @@ describe('round', () => {
 					beforeEach(async () => {
 						scope.backwards = true;
 
-						res = await db.task(t => {
-							round = new Round(_.cloneDeep(scope), t);
-							return round.applyRound();
-						});
+						round = new Round(_.cloneDeep(scope), task);
+						res = await round.applyRound();
 					});
 
 					it('query should be called', async () => {
@@ -1436,10 +1421,8 @@ describe('round', () => {
 					beforeEach(async () => {
 						scope.backwards = false;
 
-						res = await db.task(t => {
-							round = new Round(scope, t);
-							return round.applyRound();
-						});
+						round = new Round(_.cloneDeep(scope), task);
+						res = await round.applyRound();
 					});
 
 					it('query should be called', async () => {
@@ -1623,10 +1606,8 @@ describe('round', () => {
 					beforeEach(async () => {
 						scope.backwards = true;
 
-						res = await db.task(t => {
-							round = new Round(_.cloneDeep(scope), t);
-							return round.applyRound();
-						});
+						round = new Round(_.cloneDeep(scope), task);
+						res = await round.applyRound();
 					});
 
 					it('query should be called', async () => {
@@ -1835,29 +1816,26 @@ describe('round', () => {
 					'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 				address: '16010222169256538112L',
 			};
-			incrementField_stub = storage.entities.Account.incrementField.resolves(
+			incrementField_stub = storageStubs.Account.incrementField.resolves(
 				'incrementField'
 			);
-			decrementField_stub = storage.entities.Account.decrementField.resolves(
+			decrementField_stub = storageStubs.Account.decrementField.resolves(
 				'decrementField'
 			);
-			getVotes_stub = storage.entities.Round.getTotalVotedAmount.resolves([
+			getVotes_stub = storageStubs.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
-			syncDelegatesRanks_stub = storage.entities.Account.syncDelegatesRanks.resolves(
+			syncDelegatesRanks_stub = storageStubs.Account.syncDelegatesRanks.resolves(
 				'syncDelegatesRanks'
 			);
-			flush_stub = scope.library.storage.entities.Round.delete;
+			flush_stub = storageStubs.Round.delete;
 			scope.modules.accounts.mergeAccountAndGet.yields(
 				null,
 				'mergeAccountAndGet'
 			);
 
-			res = db.task(t => {
-				round = new Round(scope, t);
-				return round.land();
-			});
-
+			round = new Round(scope, task);
+			res = round.land();
 			await res;
 		});
 
@@ -1929,29 +1907,26 @@ describe('round', () => {
 				address: '16010222169256538112L',
 			};
 
-			incrementField_stub = storage.entities.Account.incrementField.resolves();
-			decrementField_stub = storage.entities.Account.decrementField.resolves();
-			getVotes_stub = storage.entities.Round.getTotalVotedAmount.resolves([
+			incrementField_stub = storageStubs.Account.incrementField.resolves();
+			decrementField_stub = storageStubs.Account.decrementField.resolves();
+			getVotes_stub = storageStubs.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
-			syncDelegatesRanks_stub = storage.entities.Account.syncDelegatesRanks.resolves();
-			flush_stub = scope.library.storage.entities.Round.delete;
-			checkSnapshotAvailability_stub = db.rounds.checkSnapshotAvailability.resolves(
+			syncDelegatesRanks_stub = storageStubs.Account.syncDelegatesRanks.resolves();
+			flush_stub = storageStubs.Round.delete;
+			checkSnapshotAvailability_stub = storageStubs.Round.checkSnapshotAvailability.resolves(
 				1
 			);
-			restoreRoundSnapshot_stub = db.rounds.restoreRoundSnapshot.resolves();
-			restoreVotesSnapshot_stub = db.rounds.restoreVotesSnapshot.resolves();
-			deleteRoundRewards_stub = storage.entities.Round.deleteRoundRewards.resolves();
+			restoreRoundSnapshot_stub = storageStubs.Round.restoreRoundSnapshot.resolves();
+			restoreVotesSnapshot_stub = storageStubs.Round.restoreVotesSnapshot.resolves();
+			deleteRoundRewards_stub = storageStubs.Round.deleteRoundRewards.resolves();
 			scope.modules.accounts.mergeAccountAndGet.yields(
 				null,
 				'mergeAccountAndGet'
 			);
 
-			res = db.task(t => {
-				round = new Round(scope, t);
-				return round.backwardLand();
-			});
-
+			round = new Round(scope, task);
+			res = round.backwardLand();
 			await res;
 		});
 
