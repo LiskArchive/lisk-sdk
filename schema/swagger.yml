@@ -287,6 +287,7 @@ paths:
         - $ref: '#/parameters/wsPort'
         - $ref: '#/parameters/os'
         - $ref: '#/parameters/version'
+        - $ref: '#/parameters/protocolVersion'
         - $ref: '#/parameters/state'
         - $ref: '#/parameters/height'
         - $ref: '#/parameters/broadhash'
@@ -621,7 +622,7 @@ paths:
           format: int32
           minimum: 1
           maximum: 101
-          default: 10         
+          default: 10
         - name: offset
           in: query
           description: Offset value for results
@@ -1042,6 +1043,12 @@ parameters:
     description: Lisk version of the node
     type: string
     format: version
+  protocolVersion:
+    name: protocolVersion
+    in: query
+    description: Protocol version of the node
+    type: string
+    format: protocolVersion
   state:
     name: state
     in: query
@@ -2183,6 +2190,11 @@ definitions:
         example: v0.8.0
         format: version
         description: The version of Lisk Core that the peer node runs on.
+      protocolVersion:
+        type: string
+        example: 1.0
+        format: protocolVersion
+        description: The protocol version of Lisk Core that the peer node runs on.
       state:
         type: integer
         example: 2
@@ -2303,6 +2315,11 @@ definitions:
         format: version
         example: v0.8.0
         description: The Lisk Core version, that the node is running on.
+      protocolVersion:
+        type: string
+        format: protocolVersion
+        example: 1.0
+        description: The Lisk Core protocol version, that the node is running on.
       nethash:
         type: string
         example: ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511
@@ -2930,6 +2947,10 @@ definitions:
         type: string
         example: v0.8.0
         format: version
+      protocolVersion:
+        type: string
+        example: 1.0
+        format: protocolVersion
       height:
         type: integer
         example: 123
