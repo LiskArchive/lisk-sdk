@@ -94,6 +94,12 @@ class Round extends BaseEntity {
 				'rounds/get_total_voted_amount.sql'
 			),
 			summedRound: this.adapter.loadSQLFile('rounds/summed_round.sql'),
+			deleteRoundRewards: this.adapter.loadSQLFile(
+				'rounds/delete_round_rewards.sql'
+			),
+			createRoundRewards: this.adapter.loadSQLFile(
+				'rounds/create_round_rewards.sql'
+			),
 		};
 	}
 
@@ -353,6 +359,48 @@ class Round extends BaseEntity {
 			this.SQLs.summedRound,
 			{ round, activeDelegates },
 			{},
+			tx
+		);
+	}
+
+	/**
+	 * Create information about round rewards into rounds_rewards.
+	 *
+	 * @param {Number} timestamp - Timestamp of last block of round
+	 * @param {String} fees - Fees amount for particular block
+	 * @param {String} reward - Rewards amount for particular block
+	 * @param {Number} round - Round number
+	 * @param {Buffer} publicKey - Public key of a delegate that forged a block
+	 * @param {Object} [tx] - Database transaction object
+	 * @return {Promise}
+	 */
+	createRoundRewards({ timestamp, fees, reward, round, publicKey }, tx) {
+		return this.adapter.executeFile(
+			this.SQLs.createRoundRewards,
+			{
+				timestamp,
+				fees,
+				reward,
+				round,
+				publicKey,
+			},
+			{ expectedResultCount: 0 },
+			tx
+		);
+	}
+
+	/**
+	 * Delete information about entire round rewards from rounds_rewards.
+	 *
+	 * @param {Number} round - Round number
+	 * @param {Object} [tx] - Database transaction object
+	 * @return {Promise}
+	 */
+	deleteRoundRewards(round, tx) {
+		return this.adapter.executeFile(
+			this.SQLs.deleteRoundRewards,
+			{ round },
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}

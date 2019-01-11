@@ -546,4 +546,88 @@ describe('Round', () => {
 			);
 		});
 	});
+
+	describe('createRoundRewards()', () => {
+		it('should use the correct SQL file with five parameters', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const params = {
+				timestamp: (+new Date() / 1000).toFixed(),
+				fees: '123',
+				reward: '123',
+				round: 1,
+				publicKey: '11111111',
+			};
+			await RoundEntity.createRoundRewards(params);
+
+			expect(adapter.executeFile.firstCall.args[0]).to.eql(
+				SQLs.createRoundRewards
+			);
+			expect(adapter.executeFile.firstCall.args[1]).to.eql(params);
+			expect(adapter.executeFile).to.be.calledOnce;
+		});
+
+		it('should insert one record to "round_rewards" table', async () => {
+			const params = {
+				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				fees: '123',
+				reward: '123',
+				round: 1,
+				publicKey: '11111111',
+			};
+			await RoundEntity.createRoundRewards(params);
+
+			const result = await adapter.execute('SELECT * FROM rounds_rewards');
+			result[0].publicKey = Buffer.from(result[0].publicKey).toString('hex');
+
+			expect(result).to.be.not.empty;
+			expect(result).to.have.lengthOf(1);
+			expect(result[0]).to.be.eql(params);
+		});
+	});
+
+	describe('deleteRoundRewards()', () => {
+		it('should use the correct SQL file with five parameters', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.deleteRoundRewards('1');
+
+			expect(adapter.executeFile.firstCall.args[0]).to.eql(
+				SQLs.deleteRoundRewards
+			);
+			expect(adapter.executeFile.firstCall.args[1]).to.eql({ round: '1' });
+			expect(adapter.executeFile).to.be.calledOnce;
+		});
+
+		it('should delete all round rewards for a particular round', async () => {
+			// Seed some round reward data
+			await RoundEntity.createRoundRewards({
+				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				fees: '123',
+				reward: '123',
+				round: 1, // Round 1
+				publicKey: '11111111',
+			});
+			await RoundEntity.createRoundRewards({
+				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				fees: '123',
+				reward: '123',
+				round: 1, // Round 1
+				publicKey: '11111111',
+			});
+			await RoundEntity.createRoundRewards({
+				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				fees: '123',
+				reward: '123',
+				round: 2, // Round 2
+				publicKey: '11111111',
+			});
+
+			const before = await adapter.execute('SELECT * FROM rounds_rewards');
+			await RoundEntity.deleteRoundRewards(1);
+			const after = await adapter.execute('SELECT * FROM rounds_rewards');
+
+			expect(before).to.have.lengthOf(3);
+			expect(after).to.have.lengthOf(1);
+			return expect(after[0].round).to.be.eql(2);
+		});
+	});
 });

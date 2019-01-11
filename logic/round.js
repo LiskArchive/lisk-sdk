@@ -280,7 +280,10 @@ class Round {
 		this.scope.library.logger.debug(
 			`Deleting rewards for round ${this.scope.round}`
 		);
-		return this.t.rounds.deleteRoundRewards(this.scope.round);
+		return this.scope.library.storage.entities.Round.deleteRoundRewards(
+			this.scope.round,
+			this.t
+		);
 	}
 
 	/**
@@ -408,12 +411,15 @@ class Round {
 		// Prepare queries for inserting round rewards
 		roundRewards.forEach(item => {
 			queries.push(
-				self.t.rounds.insertRoundRewards(
-					item.timestamp,
-					item.fees,
-					item.reward,
-					item.round,
-					item.publicKey
+				self.scope.library.storage.entities.Round.createRoundRewards(
+					{
+						timestamp: item.timestamp,
+						fees: item.fees,
+						reward: item.reward,
+						round: item.round,
+						publicKey: item.publicKey,
+					},
+					self.t
 				)
 			);
 		});

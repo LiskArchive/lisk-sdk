@@ -30,15 +30,10 @@ describe('round', () => {
 
 	const dbStubs = {
 		rounds: {
-			updateMissedBlocks: sinonSandbox.stub(),
-			updateVotes: sinonSandbox.stub(),
-			updateDelegatesRanks: sinonSandbox.stub(),
 			restoreRoundSnapshot: sinonSandbox.stub(),
 			restoreVotesSnapshot: sinonSandbox.stub(),
 			checkSnapshotAvailability: sinonSandbox.stub(),
 			countRoundSnapshot: sinonSandbox.stub(),
-			deleteRoundRewards: sinonSandbox.stub(),
-			insertRoundRewards: sinonSandbox.stub(),
 		},
 	};
 
@@ -51,6 +46,8 @@ describe('round', () => {
 				getTotalVotedAmount: sinonSandbox
 					.stub()
 					.resolves('Round.getTotalVotedAmount'),
+				deleteRoundRewards: sinonSandbox.stub(),
+				createRoundRewards: sinonSandbox.stub(),
 			},
 			Account: {
 				incrementField: sinonSandbox.stub().resolves('Account.incrementField'),
@@ -610,7 +607,7 @@ describe('round', () => {
 		let res;
 
 		beforeEach(done => {
-			stub = db.rounds.deleteRoundRewards;
+			stub = storage.entities.Round.deleteRoundRewards;
 			stub.withArgs(scope.round).resolves('success');
 			round = new Round(scope, db);
 			res = round.deleteRoundRewards();
@@ -669,7 +666,7 @@ describe('round', () => {
 		}
 
 		beforeEach(async () => {
-			insertRoundRewards_stub = db.rounds.insertRoundRewards;
+			insertRoundRewards_stub = storage.entities.Round.createRoundRewards;
 			insertRoundRewards_stub.resolves('insertRoundRewards');
 			scope.modules.accounts.mergeAccountAndGet.yields(
 				null,
@@ -749,11 +746,14 @@ describe('round', () => {
 
 					it('should call insertRoundRewards with proper args', () => {
 						return expect(insertRoundRewards_stub).to.have.been.calledWith(
-							scope.block.timestamp,
-							forwardResults[0].fees.toString(),
-							forwardResults[0].rewards.toString(),
-							scope.round,
-							forwardResults[0].publicKey
+							{
+								timestamp: scope.block.timestamp,
+								fees: forwardResults[0].fees.toString(),
+								reward: forwardResults[0].rewards.toString(),
+								round: scope.round,
+								publicKey: forwardResults[0].publicKey,
+							},
+							sinonSandbox.match.any
 						);
 					});
 				});
@@ -946,11 +946,16 @@ describe('round', () => {
 
 					it('should call insertRoundRewards with proper args', () => {
 						return expect(insertRoundRewards_stub).to.have.been.calledWith(
-							scope.block.timestamp,
-							(forwardResults[0].fees + forwardResults[1].fees).toString(),
-							forwardResults[0].rewards.toString(),
-							scope.round,
-							forwardResults[0].publicKey
+							{
+								timestamp: scope.block.timestamp,
+								fees: (
+									forwardResults[0].fees + forwardResults[1].fees
+								).toString(),
+								reward: forwardResults[0].rewards.toString(),
+								round: scope.round,
+								publicKey: forwardResults[0].publicKey,
+							},
+							sinonSandbox.match.any
 						);
 					});
 				});
@@ -1217,25 +1222,34 @@ describe('round', () => {
 
 					it('should call insertRoundRewards with proper args', () => {
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
-							scope.block.timestamp,
-							forwardResults[0].fees.toString(),
-							forwardResults[0].rewards.toString(),
-							scope.round,
-							forwardResults[0].publicKey
+							{
+								timestamp: scope.block.timestamp,
+								fees: forwardResults[0].fees.toString(),
+								reward: forwardResults[0].rewards.toString(),
+								round: scope.round,
+								publicKey: forwardResults[0].publicKey,
+							},
+							sinonSandbox.match.any
 						);
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
-							scope.block.timestamp,
-							forwardResults[1].fees.toString(),
-							forwardResults[1].rewards.toString(),
-							scope.round,
-							forwardResults[1].publicKey
+							{
+								timestamp: scope.block.timestamp,
+								fees: forwardResults[1].fees.toString(),
+								reward: forwardResults[1].rewards.toString(),
+								round: scope.round,
+								publicKey: forwardResults[1].publicKey,
+							},
+							sinonSandbox.match.any
 						);
 						return expect(insertRoundRewards_stub).to.have.been.calledWith(
-							scope.block.timestamp,
-							forwardResults[2].fees.toString(),
-							forwardResults[2].rewards.toString(),
-							scope.round,
-							forwardResults[2].publicKey
+							{
+								timestamp: scope.block.timestamp,
+								fees: forwardResults[2].fees.toString(),
+								reward: forwardResults[2].rewards.toString(),
+								round: scope.round,
+								publicKey: forwardResults[2].publicKey,
+							},
+							sinonSandbox.match.any
 						);
 					});
 				});
@@ -1567,27 +1581,38 @@ describe('round', () => {
 						).to.equal(called);
 					});
 
-					it('should call insertRoundRewards with proper args', () => {
+					it('should call insertRoundRewards with proper args', async () => {
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
-							scope.block.timestamp,
-							forwardResults[0].fees.toString(),
-							forwardResults[0].rewards.toString(),
-							scope.round,
-							forwardResults[0].publicKey
+							{
+								timestamp: scope.block.timestamp,
+								fees: forwardResults[0].fees.toString(),
+								reward: forwardResults[0].rewards.toString(),
+								round: scope.round,
+								publicKey: forwardResults[0].publicKey,
+							},
+							sinonSandbox.match.any
 						);
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
-							scope.block.timestamp,
-							forwardResults[1].fees.toString(),
-							forwardResults[1].rewards.toString(),
-							scope.round,
-							forwardResults[1].publicKey
+							{
+								timestamp: scope.block.timestamp,
+								fees: forwardResults[1].fees.toString(),
+								reward: forwardResults[1].rewards.toString(),
+								round: scope.round,
+								publicKey: forwardResults[1].publicKey,
+							},
+							sinonSandbox.match.any
 						);
-						return expect(insertRoundRewards_stub).to.have.been.calledWith(
-							scope.block.timestamp,
-							(forwardResults[2].fees + forwardResults[3].fees).toString(),
-							forwardResults[2].rewards.toString(),
-							scope.round,
-							forwardResults[2].publicKey
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							{
+								timestamp: scope.block.timestamp,
+								fees: (
+									forwardResults[2].fees + forwardResults[3].fees
+								).toString(),
+								reward: forwardResults[2].rewards.toString(),
+								round: scope.round,
+								publicKey: forwardResults[2].publicKey,
+							},
+							sinonSandbox.match.any
 						);
 					});
 				});
@@ -1873,7 +1898,6 @@ describe('round', () => {
 	describe('backwardLand', () => {
 		let incrementField_stub;
 		let decrementField_stub;
-		let updateVotes_stub;
 		let getVotes_stub;
 		let restoreRoundSnapshot_stub;
 		let restoreVotesSnapshot_stub;
@@ -1910,7 +1934,6 @@ describe('round', () => {
 			getVotes_stub = storage.entities.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
-			updateVotes_stub = db.rounds.updateVotes.resolves('QUERY');
 			syncDelegatesRanks_stub = storage.entities.Account.syncDelegatesRanks.resolves();
 			flush_stub = scope.library.storage.entities.Round.delete;
 			checkSnapshotAvailability_stub = db.rounds.checkSnapshotAvailability.resolves(
@@ -1918,7 +1941,7 @@ describe('round', () => {
 			);
 			restoreRoundSnapshot_stub = db.rounds.restoreRoundSnapshot.resolves();
 			restoreVotesSnapshot_stub = db.rounds.restoreVotesSnapshot.resolves();
-			deleteRoundRewards_stub = db.rounds.deleteRoundRewards.resolves();
+			deleteRoundRewards_stub = storage.entities.Round.deleteRoundRewards.resolves();
 			scope.modules.accounts.mergeAccountAndGet.yields(
 				null,
 				'mergeAccountAndGet'
@@ -1938,10 +1961,6 @@ describe('round', () => {
 
 		it('query getVotes should not be called', () => {
 			return expect(getVotes_stub.called).to.be.false;
-		});
-
-		it('query updateVotes should not be called', () => {
-			return expect(updateVotes_stub.called).to.be.false;
 		});
 
 		it('query incrementField not be called', () => {
