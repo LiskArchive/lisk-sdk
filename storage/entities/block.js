@@ -204,6 +204,7 @@ class Block extends BaseEntity {
 			count: this.adapter.loadSQLFile('blocks/count.sql'),
 			create: this.adapter.loadSQLFile('blocks/create.sql'),
 			isPersisted: this.adapter.loadSQLFile('blocks/is_persisted.sql'),
+			delete: this.adapter.loadSQLFile('blocks/delete.sql'),
 		};
 	}
 
@@ -324,6 +325,29 @@ class Block extends BaseEntity {
 				tx
 			)
 			.then(result => result.exists);
+	}
+
+	/**
+	 * Delete records with following conditions
+	 *
+	 * @param {filters.Block} filters
+	 * @param {Object} [options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	delete(filters, _options, tx = null) {
+		this.validateFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(
+				this.SQLs.delete,
+				{ parsedFilters },
+				{ expectedResultCount: 0 },
+				tx
+			)
+			.then(result => result);
 	}
 
 	async _getResults(filters, options, tx, expectedResultCount = undefined) {

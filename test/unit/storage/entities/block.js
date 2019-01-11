@@ -553,6 +553,51 @@ describe('Block', () => {
 		});
 	});
 
+	describe('delete', () => {
+		it('should accept only valid filters', async () => {
+			const block = new Block(adapter);
+			expect(() => {
+				block.delete(validFilter, validBlock);
+			}).not.to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should throw error for invalid filters', async () => {
+			const block = new Block(adapter);
+			expect(() => {
+				block.delete(invalidFilter, validBlock);
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should call mergeFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validBlock]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const block = new Block(localAdapter);
+			block.mergeFilters = sinonSandbox.stub();
+			block.parseFilters = sinonSandbox.stub();
+			block.delete(validFilter);
+			expect(block.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([validBlock]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const block = new Block(localAdapter);
+			block.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			block.parseFilters = sinonSandbox.stub();
+			block.delete(validFilter);
+			expect(block.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should only delete records specified by filter');
+		it('should delete all records if no filter is specified');
+	});
+
 	describe('count()', () => {
 		let block;
 
