@@ -39,7 +39,14 @@ describe('rounds', () => {
 	};
 
 	const storageStub = {
-		entities: { Round: { delete: sinon.stub(), summedRound: sinon.stub() } },
+		entities: {
+			Account: { getOne: sinon.stub() },
+			Round: {
+				delete: sinon.stub(),
+				summedRound: sinon.stub(),
+				create: sinon.stub(),
+			},
+		},
 	};
 
 	const dbStubs = {
@@ -990,6 +997,152 @@ describe('rounds', () => {
 				it('scope.getOutsiders should be not called', () => {
 					return expect(getOutsiders_stub.called).to.be.false;
 				});
+			});
+		});
+	});
+
+	describe('createRoundInformationWithAmount', () => {
+		const params = {
+			address: '123L',
+			amount: '456',
+			round: 1,
+		};
+		let getOneStub = null;
+		let createRoundStub = null;
+
+		beforeEach(async () => {
+			getOneStub = storageStub.entities.Account.getOne.resolves({
+				address: params.address,
+				votedDelegatesPublicKeys: ['delegate1', 'delegate2'],
+			});
+			createRoundStub = storageStub.entities.Round.create.resolves();
+
+			await rounds.createRoundInformationWithAmount(
+				params.address,
+				params.round,
+				params.amount
+			);
+		});
+
+		it('should should call Account.getOne with correct parameters', async () => {
+			expect(getOneStub).to.be.calledWith(
+				{ address: params.address },
+				{ extended: true },
+				sinon.match.any
+			);
+		});
+
+		it('should call Round.create with correct parameters', async () => {
+			expect(createRoundStub).to.be.calledWith(
+				[
+					{
+						address: params.address,
+						amount: params.amount,
+						round: params.round,
+						delegatePublicKey: 'delegate1',
+					},
+					{
+						address: params.address,
+						amount: params.amount,
+						round: params.round,
+						delegatePublicKey: 'delegate2',
+					},
+				],
+				{},
+				sinon.match.any
+			);
+		});
+	});
+
+	describe('createRoundInformationWithDelegate', () => {
+		const params = {
+			address: '123L',
+			delegatePublicKey: 'delegate1',
+			round: 1,
+			mode: null,
+		};
+		let getOneStub = null;
+		let createRoundStub = null;
+
+		beforeEach(async () => {
+			getOneStub = storageStub.entities.Account.getOne.resolves({
+				address: params.address,
+				balance: '123',
+				votedDelegatesPublicKeys: ['delegate1', 'delegate2'],
+			});
+			createRoundStub = storageStub.entities.Round.create.resolves();
+		});
+
+		afterEach(async () => {
+			getOneStub.reset();
+			createRoundStub.reset();
+		});
+
+		describe('when mode is "+"', () => {
+			beforeEach(async () => {
+				params.mode = '+';
+
+				await rounds.createRoundInformationWithDelegate(
+					params.address,
+					params.round,
+					params.delegatePublicKey,
+					params.mode
+				);
+			});
+
+			it('should should call Account.getOne with correct parameters', async () => {
+				expect(getOneStub).to.be.calledWith(
+					{ address: params.address },
+					{},
+					sinon.match.any
+				);
+			});
+
+			it('should call Round.create with correct parameters', async () => {
+				expect(createRoundStub).to.be.calledWith(
+					{
+						address: params.address,
+						amount: '123',
+						round: params.round,
+						delegatePublicKey: params.delegatePublicKey,
+					},
+					{},
+					sinon.match.any
+				);
+			});
+		});
+
+		describe('when mode is "-"', () => {
+			beforeEach(async () => {
+				params.mode = '-';
+
+				await rounds.createRoundInformationWithDelegate(
+					params.address,
+					params.round,
+					params.delegatePublicKey,
+					params.mode
+				);
+			});
+
+			it('should should call Account.getOne with correct parameters', async () => {
+				expect(getOneStub).to.be.calledWith(
+					{ address: params.address },
+					{},
+					sinon.match.any
+				);
+			});
+
+			it('should call Round.create with correct parameters', async () => {
+				expect(createRoundStub).to.be.calledWith(
+					{
+						address: params.address,
+						amount: '-123',
+						round: params.round,
+						delegatePublicKey: params.delegatePublicKey,
+					},
+					{},
+					sinon.match.any
+				);
 			});
 		});
 	});

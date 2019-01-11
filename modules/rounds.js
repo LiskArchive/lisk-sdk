@@ -14,6 +14,7 @@
 
 'use strict';
 
+const Bignumber = require('bignumber.js');
 const async = require('async');
 // eslint-disable-next-line prefer-const
 let Round = require('../logic/round.js');
@@ -278,6 +279,74 @@ Rounds.prototype.tick = function(block, done, tx) {
 			// Stop round ticking
 			__private.ticking = false;
 			return done(err);
+		}
+	);
+};
+
+/**
+ * Create round information record into mem_rounds.
+ *
+ * @param {string} address - Address of the account
+ * @param {Number} round - Associated round number
+ * @param {Number} amount - Amount updated on account
+ * @param {Object} [tx] - Database transaction
+ * @returns {Promise}
+ */
+Rounds.prototype.createRoundInformationWithAmount = function(
+	address,
+	round,
+	amount,
+	tx
+) {
+	return library.storage.entities.Account.getOne(
+		{ address },
+		{ extended: true },
+		tx
+	).then(account => {
+		const roundData = account.votedDelegatesPublicKeys.map(
+			delegatePublicKey => ({
+				address,
+				amount,
+				round,
+				delegatePublicKey,
+			})
+		);
+
+		return library.storage.entities.Round.create(roundData, {}, tx);
+	});
+};
+
+/**
+ * Create round information record into mem_rounds.
+ *
+ * @param {string} address - Address of the account
+ * @param {Number} round - Associated round number
+ * @param {string} delegatePublicKey - Associated delegate id
+ * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
+ * @param {Object} [tx] - Databaes transaction
+ * @returns {Promise}
+ */
+Rounds.prototype.createRoundInformationWithDelegate = function(
+	address,
+	round,
+	delegatePublicKey,
+	mode,
+	tx
+) {
+	const balanceFactor = mode === '-' ? -1 : 1;
+	return library.storage.entities.Account.getOne({ address }, {}, tx).then(
+		account => {
+			const balance = new Bignumber(account.balance)
+				.multipliedBy(balanceFactor)
+				.toString();
+
+			const roundData = {
+				address,
+				delegatePublicKey,
+				round,
+				amount: balance,
+			};
+			return library.storage.entities.Round.create(roundData, {}, tx);
 		}
 	);
 };
