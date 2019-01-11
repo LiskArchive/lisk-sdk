@@ -105,10 +105,10 @@ export abstract class BaseTransaction {
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
-	public readonly signatures: ReadonlyArray<string> = [];
+	public readonly signatures: ReadonlyArray<string>;
 	public readonly timestamp: number;
 	public readonly type: number;
-	public readonly receivedAt: Date = new Date();
+	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
 	public isMultisignature: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
 
@@ -142,7 +142,7 @@ export abstract class BaseTransaction {
 			getAddressFromPublicKey(rawTransaction.senderPublicKey);
 		this.senderPublicKey = rawTransaction.senderPublicKey;
 		this._signature = rawTransaction.signature;
-		this.signatures = rawTransaction.signatures;
+		this.signatures = rawTransaction.signatures || [];
 		this._signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;

@@ -34,3 +34,20 @@ export const checkTypes = (tx: TransactionJSON): IsValidResponse => {
 
 	return { valid, errors };
 };
+
+export const isTypedArray = <T>(
+	arg: ReadonlyArray<unknown>,
+	checker: (input: unknown) => boolean,
+): arg is ReadonlyArray<T> => arg.every(checker);
+
+export const isTypedObjectArrayWithKeys = <T>(
+	arg: ReadonlyArray<unknown>,
+	requiredKeys: ReadonlyArray<string>,
+): arg is ReadonlyArray<T> =>
+	isTypedArray(arg, (input: unknown) => {
+		if (typeof input !== 'object' || input === null) {
+			return false;
+		}
+
+		return requiredKeys.every(key => Object.keys(input).includes(key));
+	});

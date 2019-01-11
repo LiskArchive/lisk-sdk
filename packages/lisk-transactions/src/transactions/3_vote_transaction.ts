@@ -15,9 +15,13 @@
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Status, TransactionJSON, RequiredState } from '../transaction_types';
+import { Account, Status, TransactionJSON } from '../transaction_types';
 import { prependMinusToPublicKeys, prependPlusToPublicKeys } from '../utils';
-import { validatePublicKeys, validator } from '../utils/validation';
+import {
+	isTypedObjectArrayWithKeys,
+	validatePublicKeys,
+	validator,
+} from '../utils/validation';
 import {
 	BaseTransaction,
 	createBaseTransaction,
@@ -46,7 +50,9 @@ export interface CreateVoteAssetInput {
 export type CastVoteInput = CreateBaseTransactionInput & CreateVoteAssetInput;
 
 export interface RequiredVoteState extends RequiredState {
-	readonly dependentState?: ReadonlyArray<Account>;
+	readonly dependentState?: {
+		readonly [ENTITY_ACCOUNT]: ReadonlyArray<Account>;
+	};
 }
 
 export const voteAssetTypeSchema = {
@@ -215,7 +221,9 @@ export class VoteTransaction extends BaseTransaction {
 		if (!accounts) {
 			throw new Error('Entity account is required.');
 		}
-		if (!isAccountArray(accounts)) {
+		if (
+			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
+		) {
 			throw new Error('Required state does not have valid account type');
 		}
 
@@ -239,8 +247,8 @@ export class VoteTransaction extends BaseTransaction {
 		};
 	}
 
-	public checkSchema(): TransactionResponse {
-		const { status } = super.checkSchema();
+	public validateSchema(): TransactionResponse {
+		const { status } = super.validateSchema();
 		const valid = validator.validate(
 			voteAssetFormatSchema,
 			this.asset,
@@ -279,7 +287,9 @@ export class VoteTransaction extends BaseTransaction {
 		if (!dependentAccounts) {
 			throw new Error('Entity account is required.');
 		}
-		if (!isAccountArray(dependentAccounts)) {
+		if (
+			!isTypedObjectArrayWithKeys<Account>(dependentAccounts, ['publicKey'])
+		) {
 			throw new Error('Required state does not have valid account type');
 		}
 		dependentAccounts.forEach(({ publicKey, username }) => {
