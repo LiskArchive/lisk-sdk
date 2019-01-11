@@ -125,42 +125,6 @@ class RoundsRepository {
 	restoreVotesSnapshot() {
 		return this.db.none(sql.restoreVotesSnapshot);
 	}
-
-	/**
-	 * Insert round information record into mem_rounds.
-	 *
-	 * @param {string} address - Address of the account
-	 * @param {Number} round - Associated round number
-	 * @param {Number} amount - Amount updated on account
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	insertRoundInformationWithAmount(address, round, amount) {
-		return this.db.none(sql.insertRoundInformationWithAmount, {
-			address,
-			amount,
-			round,
-		});
-	}
-
-	/**
-	 * Insert round information record into mem_rounds.
-	 *
-	 * @param {string} address - Address of the account
-	 * @param {Number} round - Associated round number
-	 * @param {string} delegateId - Associated delegate id
-	 * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	insertRoundInformationWithDelegate(address, round, delegateId, mode) {
-		return this.db.none(sql.insertRoundInformationWithDelegate, {
-			address,
-			round,
-			delegate: delegateId,
-			balanceMode: mode === '-' ? '-' : '',
-		});
-	}
 }
 
 module.exports = RoundsRepository;

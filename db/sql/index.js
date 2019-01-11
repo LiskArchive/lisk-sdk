@@ -82,12 +82,6 @@ module.exports = {
 		countRoundSnapshot: link('rounds/count_round_snapshot.sql'),
 		getMemRounds: link('rounds/get_mem_rounds.sql'),
 		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
-		insertRoundInformationWithAmount: link(
-			'rounds/insert_round_information_with_amount.sql'
-		),
-		insertRoundInformationWithDelegate: link(
-			'rounds/insert_round_information_with_delegate.sql'
-		),
 	},
 	transactions: {
 		count: link('transactions/count.sql'),
