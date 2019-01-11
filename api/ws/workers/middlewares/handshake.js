@@ -113,13 +113,26 @@ const middleware = {
 					);
 				}
 
-				if (!system.versionCompatible(headers.version)) {
+				if (!headers.protocolVersion) {
+					if (!system.versionCompatible(headers.version)) {
+						return setImmediate(
+							cb,
+							{
+								code: failureCodes.INCOMPATIBLE_VERSION,
+								description: `Expected version: ${system.getMinVersion()} but received: ${
+									headers.version
+								}`,
+							},
+							peer
+						);
+					}
+				} else if (!system.protocolVersionCompatible(headers.protocolVersion)) {
 					return setImmediate(
 						cb,
 						{
-							code: failureCodes.INCOMPATIBLE_VERSION,
-							description: `Expected version: ${system.getMinVersion()} but received: ${
-								headers.version
+							code: failureCodes.INCOMPATIBLE_PROTOCOL_VERSION,
+							description: `Expected protocol version: ${system.getProtocolVersion()} but received: ${
+								headers.protocolVersion
 							}`,
 						},
 						peer

@@ -89,6 +89,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		nonce: randomstring.generate(16),
 		version: packageJson.version,
 		minVersion: packageJson.lisk.minVersion,
+		protocolVersion: packageJson.lisk.protocolVersion,
 		nethash: genesisBlock.payloadHash,
 	};
 
