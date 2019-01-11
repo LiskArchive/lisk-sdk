@@ -166,7 +166,8 @@ describe('app', () => {
 												return new Bignum(reduceBalance)
 													.plus(acc.amount)
 													.toString();
-											} else if (acc.senderId === voter.senderId) {
+											}
+											if (acc.senderId === voter.senderId) {
 												return new Bignum(reduceBalance)
 													.minus(acc.amount)
 													.toString();

@@ -277,7 +277,8 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 					if (err) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
-					} else if (!blocksCommonRes.common) {
+					}
+					if (!blocksCommonRes.common) {
 						// FIXME: Need better checking here, is base on 'common' property enough?
 						comparisonFailed = true;
 						return setImmediate(
@@ -666,13 +667,15 @@ Process.prototype.onReceiveBlock = function(block) {
 		) {
 			// Process received block
 			return __private.receiveBlock(block, cb);
-		} else if (
+		}
+		if (
 			block.previousBlock !== lastBlock.id &&
 			lastBlock.height + 1 === block.height
 		) {
 			// Process received fork cause 1
 			return __private.receiveForkOne(block, lastBlock, cb);
-		} else if (
+		}
+		if (
 			block.previousBlock === lastBlock.previousBlock &&
 			block.height === lastBlock.height &&
 			block.id !== lastBlock.id
@@ -682,22 +685,21 @@ Process.prototype.onReceiveBlock = function(block) {
 		}
 		if (block.id === lastBlock.id) {
 			library.logger.debug('Block already processed', block.id);
-		} else {
-			library.logger.warn(
-				[
-					'Discarded block that does not match with current chain:',
-					block.id,
-					'height:',
-					block.height,
-					'round:',
-					slots.calcRound(block.height),
-					'slot:',
-					slots.getSlotNumber(block.timestamp),
-					'generator:',
-					block.generatorPublicKey,
-				].join(' ')
-			);
 		}
+		library.logger.warn(
+			[
+				'Discarded block that does not match with current chain:',
+				block.id,
+				'height:',
+				block.height,
+				'round:',
+				slots.calcRound(block.height),
+				'slot:',
+				slots.getSlotNumber(block.timestamp),
+				'generator:',
+				block.generatorPublicKey,
+			].join(' ')
+		);
 
 		// Discard received block
 		return setImmediate(cb);

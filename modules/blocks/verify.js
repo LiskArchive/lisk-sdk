@@ -796,7 +796,8 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 	if (modules.blocks.isCleaning.get()) {
 		// Break processing if node shutdown reqested
 		return setImmediate(cb, 'Cleaning up');
-	} else if (!__private.loaded) {
+	}
+	if (!__private.loaded) {
 		// Break processing if blockchain is not loaded
 		return setImmediate(cb, 'Blockchain is loading');
 	}

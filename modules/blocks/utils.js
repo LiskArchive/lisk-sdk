@@ -280,7 +280,8 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 	// FIXME: filter.id is not used
 	if (filter.id && filter.lastId) {
 		return setImmediate(cb, 'Invalid filter: Received both id and lastId');
-	} else if (filter.id) {
+	}
+	if (filter.id) {
 		params.id = filter.id;
 	} else if (filter.lastId) {
 		params.lastId = filter.lastId;
