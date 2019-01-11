@@ -361,6 +361,41 @@ describe('Handshake', () => {
 					});
 				});
 
+				describe('protocolVersion', () => {
+					const auxInvalidTypes = _.difference(
+						typeRepresentatives.allTypes,
+						typeRepresentatives.strings
+					);
+
+					auxInvalidTypes.forEach(type => {
+						it(`should call callback with error.description when input is: ${
+							type.description
+						}
+						`, itDone => {
+							headers.protocolVersion = type.input;
+							handshake(headers, err => {
+								expect(err.description).to.equal(
+									`version: Expected type string but found type ${
+										type.expectation
+									}`
+								);
+								itDone();
+							});
+						});
+
+						it(`should call callback with error.code when input is: ${
+							type.description
+						}
+						`, itDone => {
+							headers.protocolVersion = type.input;
+							handshake(headers, err => {
+								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
+								itDone();
+							});
+						});
+					});
+				});
+
 				const requiredProperties = ['wsPort', 'version', 'nonce', 'nethash'];
 				requiredProperties.forEach(property => {
 					it(`should call callback with error for required property: ${property}`, itDone => {
