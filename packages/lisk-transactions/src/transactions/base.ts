@@ -53,7 +53,9 @@ export interface TransactionResponse {
 }
 
 export interface Attributes {
-	readonly [attribute: string]: string[];
+	readonly [entity: string]: {
+		readonly [property: string]: ReadonlyArray<string>;
+	};
 }
 
 export enum MultisignatureStatus {
@@ -61,6 +63,16 @@ export enum MultisignatureStatus {
 	TRUE = 1,
 	UNKNOWN = 2,
 }
+
+export interface EntityMap {
+	readonly [name: string]: ReadonlyArray<unknown> | undefined;
+}
+
+export interface RequiredState {
+	readonly sender: Account;
+}
+
+export const ENTITY_ACCOUNT = 'account';
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
@@ -251,11 +263,15 @@ export abstract class BaseTransaction {
 
 	public getRequiredAttributes(): Attributes {
 		return {
-			ACCOUNTS: [getAddressFromPublicKey(this.senderPublicKey)],
+			[ENTITY_ACCOUNT]: {
+				address: [getAddressFromPublicKey(this.senderPublicKey)],
+			},
 		};
 	}
 
-	public verify(sender: Account): TransactionResponse {
+	public abstract processRequiredState(state: EntityMap): RequiredState;
+
+	public verify({ sender }: RequiredState): TransactionResponse {
 		const errors: TransactionError[] = [];
 
 		// Check senderPublicKey
@@ -374,7 +390,7 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public apply(sender: Account): TransactionResponse {
+	public apply({ sender }: RequiredState): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.gte(0)
@@ -397,7 +413,7 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public undo(sender: Account): TransactionResponse {
+	public undo({ sender }: RequiredState): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
