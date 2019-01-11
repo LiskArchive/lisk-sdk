@@ -60,7 +60,7 @@ function BlocksController(scope) {
 BlocksController.getBlocks = function(context, next) {
 	const params = context.request.swagger.params;
 
-	let filters = {
+	let parsedParams = {
 		id: params.blockId.value,
 		height: params.height.value,
 		generatorPublicKey: params.generatorPublicKey.value,
@@ -71,10 +71,13 @@ BlocksController.getBlocks = function(context, next) {
 		offset: params.offset.value,
 	};
 
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
+	// Remove params with undefined/null values
+	parsedParams = _.omitBy(
+		parsedParams,
+		value => value === undefined || value === null
+	);
 
-	return _list(_.clone(filters), (err, data) => {
+	return _list(_.clone(parsedParams), (err, data) => {
 		if (err) {
 			return next(err);
 		}
@@ -98,8 +101,8 @@ BlocksController.getBlocks = function(context, next) {
 		return next(null, {
 			data,
 			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
+				offset: parsedParams.offset,
+				limit: parsedParams.limit,
 			},
 		});
 	});
@@ -127,39 +130,30 @@ BlocksController.getBlocks = function(context, next) {
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.data - List of normalized blocks
  */
-function _list(filter, cb) {
+function _list(params, cb) {
 	const options = {};
-
-	const filters = {
-		id: filter.id,
-		generatorPublicKey: filter.generatorPublicKey,
-		numberOfTransactions: filter.numberOfTransactions,
-		previousBlockId: filter.previousBlock,
-		height: filter.height,
-		timestamp_gte: filter.fromTimestamp,
-		timestamp_lte: filter.toTimestamp,
-		totalAmount: filter.totalAmount,
-		totalFee: filter.totalFee,
-		reward: filter.reward,
+	const parsedFilters = {
+		id: params.id,
+		generatorPublicKey: params.generatorPublicKey,
+		numberOfTransactions: params.numberOfTransactions,
+		previousBlockId: params.previousBlock,
+		height: params.height,
+		timestamp_gte: params.fromTimestamp,
+		timestamp_lte: params.toTimestamp,
+		totalAmount: params.totalAmount,
+		totalFee: params.totalFee,
+		reward: params.reward,
 	};
 
-	Object.keys(filters).forEach(key => {
-		if (!filters[key]) {
-			delete filters[key];
-		}
-	});
+	// Remove filters with undefined/null values
+	const filters = _.omitBy(
+		parsedFilters,
+		value => value === undefined || value === null
+	);
 
-	if (!filter.limit) {
-		options.limit = 100;
-	} else {
-		options.limit = Math.abs(filter.limit);
-	}
-
-	if (!filter.offset) {
-		options.offset = 0;
-	} else {
-		options.offset = Math.abs(filter.offset);
-	}
+	options.limit = params.limit ? Math.abs(params.limit) : 100;
+	options.offset = params.offset ? Math.abs(params.offset) : 0;
+	options.sort = params.sort || 'height:desc';
 
 	if (options.limit > 100) {
 		return setImmediate(
@@ -171,9 +165,7 @@ function _list(filter, cb) {
 		);
 	}
 
-	options.sort = filter.sort || 'height:desc';
 	const [sortField, sortMethod = 'ASC'] = options.sort.split(':');
-
 	if (
 		!sortFields.includes(sortField) ||
 		!['ASC', 'DESC'].includes(sortMethod.toUpperCase())
