@@ -105,7 +105,7 @@
 		"jsdoc": "3.5.5",
 		"jsdox": "0.4.10",
 		"lint-staged": "8.1.0",
-		"mocha": "4.0.1",
+		"mocha": "5.2.0",
 		"moment": "2.23.0",
 		"node-mocks-http": "^1.7.3",
 		"prettier": "1.10.2",
