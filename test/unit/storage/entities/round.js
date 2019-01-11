@@ -653,7 +653,12 @@ describe('Round', () => {
 			await RoundEntity.clearRoundSnapshot();
 
 			expect(adapter.executeFile).to.be.calledOnce;
-			expect(adapter.executeFile).to.be.calledWith(SQLs.clearRoundSnapshot, {});
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.clearRoundSnapshot,
+				{},
+				{ expectedResultCount: 0 },
+				sinonSandbox.match.any
+			);
 		});
 
 		it('should drop the round snapshot table if it exists', async () => {
@@ -686,7 +691,9 @@ describe('Round', () => {
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile).to.be.calledWith(
 				SQLs.performRoundSnapshot,
-				{}
+				{},
+				{ expectedResultCount: 0 },
+				sinonSandbox.match.any
 			);
 		});
 

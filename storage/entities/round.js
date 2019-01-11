@@ -439,7 +439,12 @@ class Round extends BaseEntity {
 	 * @returns {Promise}
 	 */
 	clearRoundSnapshot(tx) {
-		return this.adapter.executeFile(this.SQLs.clearRoundSnapshot, {}, tx);
+		return this.adapter.executeFile(
+			this.SQLs.clearRoundSnapshot,
+			{},
+			{ expectedResultCount: 0 },
+			tx
+		);
 	}
 
 	/**
@@ -449,7 +454,12 @@ class Round extends BaseEntity {
 	 * @returns {Promise}
 	 */
 	performRoundSnapshot(tx) {
-		return this.adapter.executeFile(this.SQLs.performRoundSnapshot, {}, tx);
+		return this.adapter.executeFile(
+			this.SQLs.performRoundSnapshot,
+			{},
+			{ expectedResultCount: 0 },
+			tx
+		);
 	}
 
 	/**
