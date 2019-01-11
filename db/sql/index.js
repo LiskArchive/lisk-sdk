@@ -71,17 +71,6 @@ module.exports = {
 		add: link('migrations/add.sql'),
 		runtime: link('migrations/runtime.sql'),
 	},
-	rounds: {
-		clearRoundSnapshot: link('rounds/clear_round_snapshot.sql'),
-		performRoundSnapshot: link('rounds/perform_round_snapshot.sql'),
-		restoreRoundSnapshot: link('rounds/restore_round_snapshot.sql'),
-		clearVotesSnapshot: link('rounds/clear_votes_snapshot.sql'),
-		performVotesSnapshot: link('rounds/perform_votes_snapshot.sql'),
-		restoreVotesSnapshot: link('rounds/restore_votes_snapshot.sql'),
-		checkSnapshotAvailability: link('rounds/check_snapshot_availability.sql'),
-		countRoundSnapshot: link('rounds/count_round_snapshot.sql'),
-		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
-	},
 	transactions: {
 		count: link('transactions/count.sql'),
 		countById: link('transactions/count_by_id.sql'),

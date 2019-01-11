@@ -20,16 +20,31 @@ const { BaseEntity, Round } = require('../../../../storage/entities');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const accountsFixtures = require('../../../fixtures').accounts;
-const roundsFixtures = require('../../../fixtures').storageRounds;
+const roundsFixtures = require('../../../fixtures').rounds;
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 } = require('../../../../storage/errors');
 
+const checkTableExists = (adapter, tableName) => {
+	return adapter
+		.execute(
+			`SELECT EXISTS 
+					(
+						SELECT 1 
+						FROM pg_tables
+						WHERE schemaname = 'public'
+						AND tablename = '${tableName}'
+					);`
+		)
+		.then(result => result[0].exists);
+};
+
 describe('Round', () => {
 	let adapter;
 	let storage;
 	let RoundEntity;
+	let AccountEntity;
 	let SQLs;
 
 	const invalidFilter = {
@@ -96,6 +111,7 @@ describe('Round', () => {
 
 		adapter = storage.adapter;
 		RoundEntity = storage.entities.Round;
+		AccountEntity = storage.entities.Account;
 		SQLs = RoundEntity.SQLs;
 	});
 
@@ -628,6 +644,538 @@ describe('Round', () => {
 			expect(before).to.have.lengthOf(3);
 			expect(after).to.have.lengthOf(1);
 			return expect(after[0].round).to.be.eql(2);
+		});
+	});
+
+	describe('clearRoundSnapshot()', () => {
+		it('should use the correct SQL file with no parameters', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.clearRoundSnapshot();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(SQLs.clearRoundSnapshot, {});
+		});
+
+		it('should drop the round snapshot table if it exists', async () => {
+			// Make sure the table exists
+			await adapter.execute(
+				'CREATE TABLE mem_round_snapshot AS TABLE mem_round'
+			);
+
+			// Check if table "mem_round_snapshot" exists
+			const before = await checkTableExists(adapter, 'mem_round_snapshot');
+			await RoundEntity.clearRoundSnapshot();
+
+			// Check if table "mem_round_snapshot" exists
+			const after = await checkTableExists(adapter, 'mem_round_snapshot');
+
+			expect(before).to.be.true;
+			expect(after).to.be.false;
+		});
+	});
+
+	describe('performRoundSnapshot()', () => {
+		afterEach(() => {
+			return RoundEntity.clearRoundSnapshot();
+		});
+
+		it('should use the correct SQL file with no parameters', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.performRoundSnapshot();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.performRoundSnapshot,
+				{}
+			);
+		});
+
+		it('should copy the "mem_round" table to snapshot table "mem_round_snapshot"', async () => {
+			// Seed some data to mem_rounds
+			const rounds = [
+				new roundsFixtures.Round(),
+				new roundsFixtures.Round(),
+				new roundsFixtures.Round(),
+			];
+
+			await RoundEntity.create(rounds);
+
+			// Perform the snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			// Load records from the snapshot table
+			let result = await adapter.execute('SELECT * FROM mem_round_snapshot');
+			result = result.map(res => {
+				res.delegatePublicKey = res.delegate;
+				delete res.delegate;
+				return res;
+			});
+
+			expect(result).to.be.eql(rounds);
+		});
+
+		it('should be rejected with error if snapshot table already exists', async () => {
+			await RoundEntity.performRoundSnapshot();
+
+			expect(RoundEntity.performRoundSnapshot()).to.be.rejectedWith(
+				'relation "mem_round_snapshot" already exists'
+			);
+		});
+	});
+
+	describe('checkSnapshotAvailability()', () => {
+		afterEach(() => {
+			return RoundEntity.clearRoundSnapshot();
+		});
+
+		it('should use the correct SQL file with one parameter', async () => {
+			// Perform round snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.checkSnapshotAvailability('1');
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.checkSnapshotAvailability,
+				{ round: '1' }
+			);
+		});
+
+		it('should return 1 when snapshot for requested round is available', async () => {
+			const account = new accountsFixtures.Account();
+
+			const round1 = new roundsFixtures.Round({
+				round: 1,
+				delegate: account.publicKey,
+			});
+
+			await RoundEntity.create(round1);
+
+			// Perform round snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			const result = await RoundEntity.checkSnapshotAvailability(round1.round);
+
+			expect(result).to.be.eql(1);
+		});
+
+		it('should return null when snapshot for requested round is not available', async () => {
+			const account = new accountsFixtures.Account();
+
+			const round1 = new roundsFixtures.Round({
+				round: 1,
+				delegatePublicKey: account.publicKey,
+			});
+
+			await RoundEntity.create(round1);
+
+			// Perform round snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			const result = await RoundEntity.checkSnapshotAvailability(
+				round1.round + 1
+			);
+
+			expect(result).to.be.eql(null);
+		});
+
+		it('should return null when no round number is provided', async () => {
+			// Perform round snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			const result = await RoundEntity.checkSnapshotAvailability();
+
+			expect(result).to.be.eql(null);
+		});
+
+		it('should reject with error if called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.checkSnapshotAvailability(1)
+			).to.be.rejectedWith('relation "mem_round_snapshot" does not exi');
+		});
+	});
+
+	describe('countRoundSnapshot()', () => {
+		afterEach(() => {
+			return RoundEntity.clearRoundSnapshot();
+		});
+
+		it('should use the correct SQL file with one parameter', async () => {
+			// Perform round snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.countRoundSnapshot();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.countRoundSnapshot,
+				{},
+				{
+					expectedResultCount: 1,
+				}
+			);
+		});
+
+		it('should return proper number of records when table is not empty', async () => {
+			// Seed some data to mem_rounds
+			const rounds = [
+				new roundsFixtures.Round(),
+				new roundsFixtures.Round(),
+				new roundsFixtures.Round(),
+			];
+
+			await RoundEntity.create(rounds);
+
+			// Perform round snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			const count = await RoundEntity.countRoundSnapshot();
+
+			expect(count).to.be.an('number');
+			expect(count).to.be.eql(rounds.length);
+		});
+
+		it('should return 0 when table is empty', async () => {
+			// Perform round snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			const count = await RoundEntity.countRoundSnapshot();
+
+			expect(count).to.be.an('number');
+			expect(count).to.be.eql(0);
+		});
+
+		it('should reject with error if called without performing the snapshot', () => {
+			return expect(RoundEntity.countRoundSnapshot()).to.be.rejectedWith(
+				'relation "mem_round_snapshot" does not exist'
+			);
+		});
+	});
+
+	describe('getDelegatesSnapshot()', () => {
+		afterEach(() => {
+			return RoundEntity.clearVotesSnapshot();
+		});
+
+		it('should reject with error if the called without performing the snapshot', () => {
+			return expect(RoundEntity.getDelegatesSnapshot(10)).to.be.rejectedWith(
+				'relation "mem_votes_snapshot" does not exist'
+			);
+		});
+
+		it('should use the correct SQL file with one parameter', async () => {
+			// Perform the snapshot first
+			await RoundEntity.performVotesSnapshot();
+
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.getDelegatesSnapshot(10);
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.getDelegatesSnapshot,
+				{ limit: 10 },
+				{}
+			);
+		});
+
+		it('should return snapshot records in valid format', async () => {
+			// Seed some account
+			const account = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			await AccountEntity.create(account);
+
+			// Perform the snapshot first
+			await RoundEntity.performVotesSnapshot();
+
+			const result = await RoundEntity.getDelegatesSnapshot(2);
+
+			expect(result).to.be.not.empty;
+			expect(result).to.be.an('array');
+			expect(result[0]).to.have.all.keys('publicKey');
+		});
+
+		it('should return snapshot records in valid order', async () => {
+			// Seed some account
+			const account1 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const account2 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const account3 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const accounts = [account1, account2, account3];
+			await AccountEntity.create(accounts);
+
+			// Perform the snapshot first
+			await RoundEntity.performVotesSnapshot();
+
+			const result = await RoundEntity.getDelegatesSnapshot(3);
+
+			expect(
+				result.map(r => Buffer.from(r.publicKey).toString('hex'))
+			).to.be.eql(
+				_.orderBy(accounts, ['vote', 'publicKey'], ['desc', 'asc']).map(
+					r => r.publicKey
+				)
+			);
+		});
+
+		it('should return snapshot records with provided limit', async () => {
+			// Seed some account
+			const account1 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const account2 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const account3 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const accounts = [account1, account2, account3];
+			await AccountEntity.create(accounts);
+
+			// Perform the snapshot first
+			await RoundEntity.performVotesSnapshot();
+
+			const result = await RoundEntity.getDelegatesSnapshot(2);
+
+			return expect(result).to.have.lengthOf(2);
+		});
+	});
+
+	describe('clearVotesSnapshot()', () => {
+		it('should use the correct SQL file with no parameters', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.clearVotesSnapshot();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.clearVotesSnapshot,
+				{},
+				{ expectedResultCount: 0 }
+			);
+		});
+
+		it('should drop the votes snapshot table if it exists', async () => {
+			// Make sure the table exists
+			await adapter.execute(
+				'CREATE TABLE mem_votes_snapshot AS TABLE mem_accounts'
+			);
+
+			// Check if table "mem_round_snapshot" exists
+			const before = await checkTableExists(adapter, 'mem_votes_snapshot');
+			await RoundEntity.clearVotesSnapshot();
+
+			// Check if table "mem_round_snapshot" exists
+			const after = await checkTableExists(adapter, 'mem_votes_snapshot');
+
+			expect(before).to.be.true;
+			return expect(after).to.be.false;
+		});
+	});
+
+	describe('performVotesSnapshot()', () => {
+		afterEach(() => {
+			return RoundEntity.clearVotesSnapshot();
+		});
+
+		it('should use the correct SQL file with no parameters', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.performVotesSnapshot();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.performVotesSnapshot,
+				{},
+				{ expectedResultCount: 0 }
+			);
+		});
+
+		it('should copy the "address", "publicKey", "vote", "producedBlocks", "missedBlocks" from table "mem_accounts" to snapshot table "mem_votes_snapshot" for delegates', async () => {
+			// Seed some account
+			const account1 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const account2 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const account3 = new accountsFixtures.Account({
+				isDelegate: false,
+			});
+			const delegates = [account1, account2];
+			await AccountEntity.create(account3);
+			await AccountEntity.create(delegates);
+
+			// Perform the snapshot
+			await RoundEntity.performVotesSnapshot();
+
+			const count = await adapter.execute(
+				'SELECT count(*)::int FROM mem_accounts'
+			);
+			// Load records from the snapshot table
+			const result = await adapter.execute(
+				'SELECT *, encode("publicKey", \'hex\') as "publicKey" FROM mem_votes_snapshot'
+			);
+
+			expect(result).to.be.not.empty;
+
+			expect(count[0].count).to.at.least(3);
+
+			// As we there were only 2 delegates accounts
+			expect(result).to.have.lengthOf(2);
+			expect(result).to.have.deep.members(
+				delegates.map(d => {
+					return {
+						publicKey: d.publicKey,
+						address: d.address,
+						vote: d.vote,
+						producedBlocks: d.producedBlocks,
+						missedBlocks: d.missedBlocks,
+					};
+				})
+			);
+		});
+
+		it('should be rejected with error if snapshot table already exists', async () => {
+			await RoundEntity.performVotesSnapshot();
+
+			return expect(RoundEntity.performVotesSnapshot()).to.be.rejectedWith(
+				'relation "mem_votes_snapshot" already exists'
+			);
+		});
+	});
+
+	describe('restoreRoundSnapshot()', () => {
+		afterEach(() => {
+			return RoundEntity.clearRoundSnapshot();
+		});
+
+		it('should reject with error if the called without performing the snapshot', () => {
+			return expect(RoundEntity.restoreRoundSnapshot()).to.be.rejectedWith(
+				'relation "mem_round_snapshot" does not exist'
+			);
+		});
+
+		it('should use the correct SQL file with no parameters', async () => {
+			// Perform the snapshot first
+			await RoundEntity.performRoundSnapshot();
+
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.restoreRoundSnapshot();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.restoreRoundSnapshot,
+				{},
+				{ expectedResultCount: 0 }
+			);
+		});
+
+		it('should restore round snapshot to "mem_round" table', async () => {
+			// Seed some data to mem_rounds
+			const rounds = [
+				new roundsFixtures.Round(),
+				new roundsFixtures.Round(),
+				new roundsFixtures.Round(),
+			];
+
+			await RoundEntity.create(rounds);
+
+			// Perform the snapshot
+			await RoundEntity.performRoundSnapshot();
+
+			// Delete the records from round table
+			await adapter.execute('DELETE FROM mem_round');
+
+			const before = await adapter.execute('SELECT * FROM mem_round');
+			// Restore the snapshot
+			await RoundEntity.restoreRoundSnapshot();
+			let after = await adapter.execute('SELECT * FROM mem_round');
+
+			after = after.map(result => {
+				result.delegatePublicKey = result.delegate;
+				delete result.delegate;
+				return result;
+			});
+
+			expect(before).to.have.lengthOf(0);
+			expect(after).to.have.lengthOf(3);
+			expect(after).to.be.eql(rounds);
+		});
+	});
+
+	describe('restoreVotesSnapshot()', () => {
+		afterEach(() => {
+			return RoundEntity.clearVotesSnapshot();
+		});
+
+		it('should reject with error if the called without performing the snapshot', () => {
+			return expect(RoundEntity.restoreVotesSnapshot()).to.be.rejectedWith(
+				'relation "mem_votes_snapshot" does not exist'
+			);
+		});
+
+		it('should use the correct SQL file with no parameters', async () => {
+			// Perform the snapshot first
+			await RoundEntity.performVotesSnapshot();
+
+			sinonSandbox.spy(adapter, 'executeFile');
+			await RoundEntity.restoreVotesSnapshot();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.restoreVotesSnapshot,
+				{},
+				{ expectedResultCount: 0 }
+			);
+		});
+
+		it('should update vote information to "mem_accounts" table from snapshot', async () => {
+			// Seed some account
+			const account1 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const account2 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const account3 = new accountsFixtures.Account({
+				isDelegate: true,
+			});
+			const accounts = [account1, account2, account3];
+			const addresses = accounts.map(a => a.address);
+			await AccountEntity.create(accounts);
+
+			// Perform the snapshot
+			await RoundEntity.performVotesSnapshot();
+
+			// Update mem_accounts and set vote to dummy value
+			await adapter.execute(
+				'UPDATE mem_accounts SET vote = $1 WHERE address IN ($2:csv)',
+				[0, addresses]
+			);
+
+			const before = await adapter.execute(
+				'SELECT address, vote FROM mem_accounts WHERE address IN ($1:csv)',
+				[addresses]
+			);
+			// Restore the snapshot
+			await RoundEntity.restoreVotesSnapshot();
+			const after = await adapter.execute(
+				'SELECT address, vote FROM mem_accounts WHERE address IN ($1:csv)',
+				[addresses]
+			);
+
+			expect(before.map(a => a.vote)).to.be.eql(['0', '0', '0']);
+			return accounts.forEach(account => {
+				expect(_.find(after, { address: account.address }).vote).to.be.eql(
+					account.vote
+				);
+			});
 		});
 	});
 });

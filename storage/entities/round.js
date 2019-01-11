@@ -100,6 +100,33 @@ class Round extends BaseEntity {
 			createRoundRewards: this.adapter.loadSQLFile(
 				'rounds/create_round_rewards.sql'
 			),
+			clearRoundSnapshot: this.adapter.loadSQLFile(
+				'rounds/clear_round_snapshot.sql'
+			),
+			performRoundSnapshot: this.adapter.loadSQLFile(
+				'rounds/perform_round_snapshot.sql'
+			),
+			restoreRoundSnapshot: this.adapter.loadSQLFile(
+				'rounds/restore_round_snapshot.sql'
+			),
+			clearVotesSnapshot: this.adapter.loadSQLFile(
+				'rounds/clear_votes_snapshot.sql'
+			),
+			performVotesSnapshot: this.adapter.loadSQLFile(
+				'rounds/perform_votes_snapshot.sql'
+			),
+			restoreVotesSnapshot: this.adapter.loadSQLFile(
+				'rounds/restore_votes_snapshot.sql'
+			),
+			checkSnapshotAvailability: this.adapter.loadSQLFile(
+				'rounds/check_snapshot_availability.sql'
+			),
+			countRoundSnapshot: this.adapter.loadSQLFile(
+				'rounds/count_round_snapshot.sql'
+			),
+			getDelegatesSnapshot: this.adapter.loadSQLFile(
+				'rounds/get_delegates_snapshot.sql'
+			),
 		};
 	}
 
@@ -400,6 +427,133 @@ class Round extends BaseEntity {
 		return this.adapter.executeFile(
 			this.SQLs.deleteRoundRewards,
 			{ round },
+			{ expectedResultCount: 0 },
+			tx
+		);
+	}
+
+	/**
+	 * Drop the table for round snapshot.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	clearRoundSnapshot(tx) {
+		return this.adapter.executeFile(this.SQLs.clearRoundSnapshot, {}, tx);
+	}
+
+	/**
+	 * Create table for the round snapshot.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	performRoundSnapshot(tx) {
+		return this.adapter.executeFile(this.SQLs.performRoundSnapshot, {}, tx);
+	}
+
+	/**
+	 * Checks round snapshot availability for particular round.
+	 *
+	 * @param {string|number} round - Round number
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	checkSnapshotAvailability(round, tx) {
+		return this.adapter
+			.executeFile(this.SQLs.checkSnapshotAvailability, { round }, {}, tx)
+			.then(result => (result && result.length ? result[0].available : null));
+	}
+
+	/**
+	 * Get number of records from mem_round_snapshot table.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	countRoundSnapshot(tx) {
+		return this.adapter
+			.executeFile(
+				this.SQLs.countRoundSnapshot,
+				{},
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(result => +result.count);
+	}
+
+	/**
+	 * Get data from the round snapshot.
+	 *
+	 * @param {number} limit - Number of records to fetch
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	getDelegatesSnapshot(limit, tx) {
+		return this.adapter.executeFile(
+			this.SQLs.getDelegatesSnapshot,
+			{ limit },
+			{},
+			tx
+		);
+	}
+
+	/**
+	 * Delete table for votes snapshot.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	clearVotesSnapshot(tx) {
+		return this.adapter.executeFile(
+			this.SQLs.clearVotesSnapshot,
+			{},
+			{ expectedResultCount: 0 },
+			tx
+		);
+	}
+
+	/**
+	 * Take a snapshot of the votes by creating table and populating records from votes.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {void}
+	 */
+	performVotesSnapshot(tx) {
+		return this.adapter.executeFile(
+			this.SQLs.performVotesSnapshot,
+			{},
+			{ expectedResultCount: 0 },
+			tx
+		);
+	}
+
+	/**
+	 * Update accounts from the round snapshot.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 * @todo Add description for the return value
+	 */
+	restoreRoundSnapshot(tx) {
+		return this.adapter.executeFile(
+			this.SQLs.restoreRoundSnapshot,
+			{},
+			{ expectedResultCount: 0 },
+			tx
+		);
+	}
+
+	/**
+	 * Update votes for account from a snapshot.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	restoreVotesSnapshot(tx) {
+		return this.adapter.executeFile(
+			this.SQLs.restoreVotesSnapshot,
+			{},
 			{ expectedResultCount: 0 },
 			tx
 		);
