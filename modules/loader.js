@@ -807,9 +807,7 @@ __private.createSnapshot = height => {
 				);
 			},
 			truncateBlocks(seriesCb) {
-				library.db.blocks
-					// TODO: REPLACE BY STORAGE WHEN DELETE IS IMPLEMENTED
-					.deleteBlocksAfterHeight(targetHeight)
+				library.storage.entities.Block.delete({ height_gt: targetHeight })
 					.then(() => setImmediate(seriesCb))
 					.catch(err => setImmediate(seriesCb, err));
 			},
