@@ -91,7 +91,6 @@
 		"chai-as-promised": "7.1.1",
 		"co-mocha": "1.2.2",
 		"coveralls": "3.0.2",
-		"csv": "1.1.1",
 		"eslint": "4.16.0",
 		"eslint-config-airbnb-base": "12.1.0",
 		"eslint-config-lisk-base": "1.0.0",
