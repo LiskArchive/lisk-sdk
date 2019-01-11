@@ -42,7 +42,7 @@ export interface P2PPenalty {}
 export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<PeerInfo>;
 	readonly connectTimeout: number;
-	readonly ipAddress?: string;
+	readonly hostAddress?: string;
 	readonly seedPeers: ReadonlyArray<PeerInfo>;
 	readonly version: string;
 	readonly wsEngine?: string;
@@ -52,7 +52,9 @@ export interface P2PConfig {
 // Network info exposed by the P2P library.
 export interface P2PNetworkStatus {
 	readonly newPeers: ReadonlyArray<PeerInfo>;
-	readonly activePeers: ReadonlyArray<PeerInfo>;
+	readonly triedPeers: ReadonlyArray<PeerInfo>;
+	readonly availablePeers: ReadonlyArray<PeerInfo>;
+	readonly connectedPeers: ReadonlyArray<PeerInfo>;
 }
 
 // This is a representation of the peer object according to the current protocol.

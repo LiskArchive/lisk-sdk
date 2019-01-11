@@ -52,8 +52,8 @@ export class P2P extends EventEmitter {
 	private readonly _httpServer: Server;
 	private _isActive: boolean;
 	private readonly _newPeers: Set<PeerInfo>;
+	private readonly _triedPeers: Set<PeerInfo>;
 
-	// TODO ASAP: private readonly _triedPeers: Set<PeerInfo>;
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServerUpdated;
@@ -69,7 +69,7 @@ export class P2P extends EventEmitter {
 		};
 		this._isActive = false;
 		this._newPeers = new Set();
-		// TODO ASAP: this._triedPeers = new Set();
+		this._triedPeers = new Set();
 
 		this._peerPool = new PeerPool();
 		this._httpServer = http.createServer();
@@ -102,10 +102,14 @@ export class P2P extends EventEmitter {
 	}
 
 	public getNetworkStatus(): P2PNetworkStatus {
-		// TODO ASAP: Add additional properties such as _triedPeers.
+		const newPeers = [...this._newPeers.values()];
+		const triedPeers = [...this._triedPeers.values()];
+		const availablePeers = newPeers.concat(triedPeers);
 		return {
-			newPeers: [...this._newPeers.values()],
-			activePeers: this._peerPool.getAllPeerInfos(),
+			newPeers,
+			triedPeers,
+			availablePeers,
+			connectedPeers: this._peerPool.getAllPeerInfos(),
 		};
 	}
 
