@@ -166,6 +166,21 @@ export class VoteTransaction extends BaseTransaction {
 		return voteTransaction.toJSON();
 	}
 
+	public static fromJSON(tx: TransactionJSON): VoteTransaction {
+		const transaction = new VoteTransaction(tx);
+		const { errors, status } = transaction.validateSchema();
+
+		if (status === Status.FAIL && errors.length !== 0) {
+			throw new TransactionMultiError(
+				'Failed to validate schema',
+				tx.id,
+				errors,
+			);
+		}
+
+		return transaction;
+	}
+
 	protected getAssetBytes(): Buffer {
 		return Buffer.from(this.asset.votes.join(''), 'utf8');
 	}
@@ -248,12 +263,19 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	public validateSchema(): TransactionResponse {
-		const { status } = super.validateSchema();
-		const valid = validator.validate(
-			voteAssetFormatSchema,
-			this.asset,
-		) as boolean;
-		const errors = validator.errors
+		const { errors: baseErrors, status } = super.validateSchema();
+		const valid = validator.validate(voteAssetFormatSchema, this.asset);
+		const errors = [...baseErrors];
+		if (!this.amount.eq(0)) {
+			errors.push(
+				new TransactionError(
+					'Amount must be zero for vote transaction',
+					this.id,
+					'.asset',
+				),
+			);
+		}
+		const assetErrors = validator.errors
 			? validator.errors.map(
 					error =>
 						new TransactionError(
@@ -263,6 +285,7 @@ export class VoteTransaction extends BaseTransaction {
 						),
 			  )
 			: [];
+		errors.push(...assetErrors);
 
 		return {
 			id: this.id,
