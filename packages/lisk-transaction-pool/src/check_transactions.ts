@@ -2,7 +2,7 @@ import { Transaction } from './transaction_pool';
 
 export type CheckerFunction = (
 	transactions: ReadonlyArray<Transaction>,
-) => CheckerFunctionResponse;
+) => Promise<CheckerFunctionResponse>;
 
 export interface CheckerFunctionResponse {
 	status: Status;

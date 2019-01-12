@@ -15,7 +15,7 @@ export const checkTransactionPropertyForValues = (
 export const returnTrueUntilLimit = (
 	limit: number,
 ): ((transaction: Transaction) => boolean) => {
-	// tslint:disable-next-line no-let
+	// tslint:disable-next-line:no-let
 	let current = 0;
 
 	return _ => current++ < limit;
