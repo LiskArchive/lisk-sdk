@@ -104,11 +104,9 @@ export class P2P extends EventEmitter {
 	public getNetworkStatus(): P2PNetworkStatus {
 		const newPeers = [...this._newPeers.values()];
 		const triedPeers = [...this._triedPeers.values()];
-		const availablePeers = newPeers.concat(triedPeers);
 		return {
 			newPeers,
 			triedPeers,
-			availablePeers,
 			connectedPeers: this._peerPool.getAllPeerInfos(),
 		};
 	}

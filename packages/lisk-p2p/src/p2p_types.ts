@@ -53,7 +53,6 @@ export interface P2PConfig {
 export interface P2PNetworkStatus {
 	readonly newPeers: ReadonlyArray<PeerInfo>;
 	readonly triedPeers: ReadonlyArray<PeerInfo>;
-	readonly availablePeers: ReadonlyArray<PeerInfo>;
 	readonly connectedPeers: ReadonlyArray<PeerInfo>;
 }
 
