@@ -432,10 +432,12 @@ describe('RPC Client', () => {
 			});
 		});
 
-		describe('makes request with incompatible version', () => {
+		describe('makes request with incompatible version without protocol version', () => {
 			beforeEach(done => {
 				// Set a non-matching version.
 				validHeaders.version = '0.0.0-beta.1';
+				// Remove protocol version information to simulate old versioning schema.
+				delete validHeaders.protocolVersion;
 				System.setHeaders(validHeaders);
 				reconnect();
 				validClientRPCStub.status(() => {});
