@@ -48,6 +48,8 @@ export const isTypedObjectArrayWithKeys = <T>(
 		if (typeof input !== 'object' || input === null) {
 			return false;
 		}
+		// FIXME: build fail with type unknown, but type is already object here
+		const obj = input as object;
 
-		return requiredKeys.every(key => Object.keys(input).includes(key));
+		return requiredKeys.every(key => Object.keys(obj).includes(key));
 	});

@@ -23,6 +23,7 @@ import {
 	validator,
 } from '../utils/validation';
 import {
+	Attributes,
 	BaseTransaction,
 	createBaseTransaction,
 	CreateBaseTransactionInput,
@@ -62,7 +63,7 @@ export const voteAssetTypeSchema = {
 		votes: {
 			type: 'array',
 			items: {
-				format: 'signedPublicKey',
+				type: 'string',
 			},
 		},
 	},
@@ -191,6 +192,20 @@ export class VoteTransaction extends BaseTransaction {
 		};
 	}
 
+	public getRequiredAttributes(): Attributes {
+		const attr = super.getRequiredAttributes();
+		const publicKey = this.asset.votes.map(pkWithAction =>
+			pkWithAction.slice(1),
+		);
+
+		return {
+			[ENTITY_ACCOUNT]: {
+				...attr[ENTITY_ACCOUNT],
+				publicKey,
+			},
+		};
+	}
+
 	public verifyAgainstOtherTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): TransactionResponse {
@@ -227,7 +242,7 @@ export class VoteTransaction extends BaseTransaction {
 		return {
 			id: this.id,
 			errors,
-			status: Status.OK,
+			status: errors.length === 0 ? Status.OK : Status.FAIL,
 		};
 	}
 
@@ -239,7 +254,7 @@ export class VoteTransaction extends BaseTransaction {
 		if (
 			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
 		) {
-			throw new Error('Required state does not have valid account type');
+			throw new Error('Required state does not have valid account type.');
 		}
 
 		const sender = accounts.find(acct => acct.address === this.senderId);
@@ -302,7 +317,7 @@ export class VoteTransaction extends BaseTransaction {
 		dependentState,
 	}: RequiredVoteState): TransactionResponse {
 		const { errors: baseErrors } = super.apply({ sender });
-		if (!dependentState || !dependentState[ENTITY_ACCOUNT]) {
+		if (!dependentState) {
 			throw new Error('Dependent state is required for vote transaction');
 		}
 		const errors = [...baseErrors];
@@ -316,17 +331,6 @@ export class VoteTransaction extends BaseTransaction {
 			throw new Error('Required state does not have valid account type');
 		}
 		dependentAccounts.forEach(({ publicKey, username }) => {
-			if (
-				!this.asset.votes.map(vote => vote.substring(1)).includes(publicKey)
-			) {
-				errors.push(
-					new TransactionError(
-						`Dependent state for ${publicKey} is required.`,
-						this.id,
-					),
-				);
-			}
-
 			if (username === undefined || username === '') {
 				errors.push(
 					new TransactionError(`${publicKey} is not a delegate.`, this.id),
@@ -348,7 +352,7 @@ export class VoteTransaction extends BaseTransaction {
 					new TransactionError(`${publicKey} is not voted.`, this.id),
 				);
 			}
-			throw new Error('It should never reach here');
+			throw new Error('Unknown vote prefix');
 		});
 
 		const upvotes = this.asset.votes.filter(
@@ -379,7 +383,7 @@ export class VoteTransaction extends BaseTransaction {
 	public apply({ sender }: RequiredVoteState): TransactionResponse {
 		const { errors: baseErrors, state } = super.apply({ sender });
 		if (!state) {
-			throw new Error('state is required for applying transaction');
+			throw new Error('State is required for applying transaction');
 		}
 		const errors = [...baseErrors];
 		const { sender: updatedSender } = state;
@@ -418,7 +422,7 @@ export class VoteTransaction extends BaseTransaction {
 	public undo({ sender }: RequiredVoteState): TransactionResponse {
 		const { errors: baseErrors, state } = super.undo({ sender });
 		if (!state) {
-			throw new Error('state is required for undoing transaction');
+			throw new Error('State is required for undoing transaction');
 		}
 		const errors = [...baseErrors];
 		const { sender: updatedSender } = state;

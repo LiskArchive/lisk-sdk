@@ -15,16 +15,18 @@
 import { transfer } from './0_transfer';
 import { registerSecondPassphrase } from './1_register_second_passphrase';
 import { registerDelegate } from './2_register_delegate';
-import { castVotes } from './3_cast_votes';
 import { registerMultisignature } from './4_register_multisignature_account';
 import { createDapp } from './5_create_dapp';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
-import { BaseTransaction } from './transactions/base';
+import { BaseTransaction, VoteTransaction } from './transactions';
 import * as utils from './utils';
+
+const castVotes = VoteTransaction.create;
 
 export {
 	BaseTransaction,
+	VoteTransaction,
 	transfer,
 	registerSecondPassphrase,
 	registerDelegate,
