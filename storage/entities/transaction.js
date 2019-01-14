@@ -154,10 +154,6 @@ const stringToByteOnlyInsert = (value, mode, alias, fieldName) => {
 	return value ? `DECODE($\{${alias}}, 'hex')` : 'NULL';
 };
 
-const defaultCreateValues = {
-	recipientId: null,
-};
-
 class Transaction extends BaseEntity {
 	/**
 	 * Constructor
@@ -346,8 +342,7 @@ class Transaction extends BaseEntity {
 			t.signatures = t.signatures ? t.signatures.join() : null;
 			t.amount = t.amount.toString();
 			t.fee = t.fee.toString();
-			// Set default create values
-			_.defaults(t, defaultCreateValues);
+			t.recipientId = t.recipientId || null;
 		});
 
 		const trsFields = [
@@ -418,10 +413,12 @@ class Transaction extends BaseEntity {
 		switch (type) {
 			case 0:
 				fields = ['transactionId', 'data'];
-				values = transactions.map(transaction => ({
-					transactionId: transaction.id,
-					data: Buffer.from(transaction.asset.data, 'utf8'),
-				}));
+				values = transactions
+					.filter(transaction => transaction.asset && transaction.asset.data)
+					.map(transaction => ({
+						transactionId: transaction.id,
+						data: Buffer.from(transaction.asset.data, 'utf8'),
+					}));
 				break;
 			case 1:
 				fields = ['transactionId', 'publicKey'];
@@ -494,6 +491,10 @@ class Transaction extends BaseEntity {
 				break;
 			default:
 				throw new Error(`Unsupported transaction type: ${type}`);
+		}
+
+		if (values.length < 1) {
+			return Promise.resolve(null);
 		}
 
 		return this.adapter.executeFile(
