@@ -90,21 +90,21 @@ export const transferFormatSchema = {
 	},
 };
 
-export interface TransferInputs {
+export interface CreateTransferInput {
 	readonly amount: string;
-	readonly data?: string;
-	readonly passphrase?: string;
 	readonly recipientId?: string;
 	readonly recipientPublicKey?: string;
+	readonly data?: string;
+	readonly passphrase: string;
 	readonly secondPassphrase?: string;
 }
 
-const validateInputs = ({
+const validateInput = ({
 	amount,
 	recipientId,
 	recipientPublicKey,
 	data,
-}: TransferInputs): void => {
+}: CreateTransferInput): void => {
 	if (!validateTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
 	}
@@ -168,15 +168,8 @@ export class TransferTransaction extends BaseTransaction {
 		this.fee = calculateFee(this.type);
 	}
 
-	public static create(input: {
-		readonly amount: string;
-		readonly recipientId?: string;
-		readonly recipientPublicKey?: string;
-		readonly data?: string;
-		readonly passphrase: string;
-		readonly secondPassphrase?: string;
-	}): object {
-		validateInputs(input);
+	public static create(input: CreateTransferInput): object {
+		validateInput(input);
 		const {
 			amount,
 			recipientId,
@@ -190,7 +183,7 @@ export class TransferTransaction extends BaseTransaction {
 			...createBaseTransaction(input),
 			type: 0,
 			amount,
-			recipientId: recipientId as string,
+			recipientId,
 			recipientPublicKey,
 			fee: calculateFee(0),
 			asset: { data },
@@ -217,6 +210,21 @@ export class TransferTransaction extends BaseTransaction {
 		transferTransaction.sign(passphrase, secondPassphrase);
 
 		return transferTransaction.toJSON();
+	}
+
+	public static fromJSON(tx: TransactionJSON): TransferTransaction {
+		const transaction = new TransferTransaction(tx);
+		const { errors, status } = transaction.validateSchema();
+
+		if (status === Status.FAIL && errors.length !== 0) {
+			throw new TransactionMultiError(
+				'Failed to validate schema',
+				tx.id,
+				errors,
+			);
+		}
+
+		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {
