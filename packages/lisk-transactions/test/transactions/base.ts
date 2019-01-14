@@ -18,7 +18,6 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../../src/constants';
 import {
 	BaseTransaction,
-	MultisignatureStatus,
 } from '../../src/transactions/base';
 import { TransactionJSON, Status } from '../../src/transaction_types';
 import {
@@ -146,14 +145,8 @@ describe('Base transaction class', () => {
 				.and.be.a('number');
 		});
 
-		it('should have isMultisignature boolean', async () => {
-			expect(validTestTransaction).to.have.property('isMultisignature');
-		});
-
-		it('should set isMultisignature to unknown', async () => {
-			expect(validMultisignatureTestTransaction.isMultisignature).to.eql(
-				MultisignatureStatus.UNKNOWN,
-			);
+		it('should have _multisignatureStatus number', async () => {
+			expect(validTestTransaction).to.have.property('_multisignatureStatus').and.be.a('number');
 		});
 
 		it('should throw a transaction multierror with incorrectly typed transaction properties', async () => {
@@ -198,6 +191,32 @@ describe('Base transaction class', () => {
 			expect(
 				(validTestTransaction as TestTransaction).getAssetBytes(),
 			).to.be.an.instanceOf(Buffer);
+		});
+	});
+
+	describe('#isReady', async () => {
+		it('should return false on initialization of unknown transaction', async () => {
+			expect(validTestTransaction.isReady()).to.be.false;
+		});
+
+		it('should return true on verification of non-multisignature transaction', async () => {
+			validTestTransaction.verify({ sender: defaultSenderAccount });
+			expect(validTestTransaction.isReady()).to.be.true;
+		});
+
+		it('should return true on verification of multisignature transaction with required signatures', async () => {
+			validTestTransaction.verify({ sender: defaultSenderAccount });
+			expect(validTestTransaction.isReady()).to.be.true;
+		});
+
+		it('should return false on verification of multisignature transaction with missing signatures', async () => {
+			const multisignaturesTransaction = new TestTransaction({
+				...defaultMultisignatureTransaction,
+				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
+			});
+			multisignaturesTransaction.verify({ sender: defaultMultisignatureAccount });
+
+			expect(validMultisignatureTestTransaction.isReady()).to.be.false;
 		});
 	});
 
@@ -639,20 +658,6 @@ describe('Base transaction class', () => {
 					'hex',
 				),
 				validMultisignatureTestTransaction.id,
-			);
-		});
-
-		it('should set isMultisignature to true for multisignature account', async () => {
-			validTestTransaction.verify({ sender: defaultMultisignatureAccount });
-			expect(validTestTransaction.isMultisignature).to.eql(
-				MultisignatureStatus.TRUE,
-			);
-		});
-
-		it('should set isMultisignature to false for non-multisignature account', async () => {
-			validTestTransaction.verify({ sender: defaultSenderAccount });
-			expect(validTestTransaction.isMultisignature).to.eql(
-				MultisignatureStatus.FALSE,
 			);
 		});
 

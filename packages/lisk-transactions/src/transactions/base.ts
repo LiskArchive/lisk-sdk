@@ -60,9 +60,10 @@ export interface Attributes {
 }
 
 export enum MultisignatureStatus {
-	FALSE = 0,
-	TRUE = 1,
-	UNKNOWN = 2,
+	UNKNOWN = 0,
+	NONMULTISIGNATURE = 1,
+	PENDING = 2,
+	READY = 3,
 }
 
 export interface EntityMap {
@@ -87,9 +88,10 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly receivedAt: Date = new Date();
 	public readonly containsUniqueData?: boolean;
-	public isMultisignature: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
 
 	private _id?: string;
+	private _multisignatureStatus: MultisignatureStatus =
+		MultisignatureStatus.UNKNOWN;
 	private _signature?: string;
 	private _signSignature?: string;
 
@@ -165,6 +167,13 @@ export abstract class BaseTransaction {
 		};
 
 		return transaction;
+	}
+
+	public isReady(): boolean {
+		return (
+			this._multisignatureStatus === MultisignatureStatus.READY ||
+			this._multisignatureStatus === MultisignatureStatus.NONMULTISIGNATURE
+		);
 	}
 
 	public getBytes(): Buffer {
@@ -347,14 +356,13 @@ export abstract class BaseTransaction {
 				}
 			}
 		}
-
 		// Verify multisignatures
 		if (
 			Array.isArray(sender.multisignatures) &&
 			sender.multisignatures.length > 0 &&
 			sender.multimin
 		) {
-			this.isMultisignature = MultisignatureStatus.TRUE;
+			this._multisignatureStatus = MultisignatureStatus.PENDING;
 			const {
 				status,
 				errors: multisignatureErrors,
@@ -375,7 +383,7 @@ export abstract class BaseTransaction {
 				multisignatureErrors.forEach(error => errors.push(error));
 			}
 		} else {
-			this.isMultisignature = MultisignatureStatus.FALSE;
+			this._multisignatureStatus = MultisignatureStatus.NONMULTISIGNATURE;
 		}
 
 		return {
@@ -490,6 +498,10 @@ export abstract class BaseTransaction {
 			this.id,
 		);
 
+		if (verified) {
+			this._multisignatureStatus = MultisignatureStatus.READY;
+		}
+
 		return {
 			id: this.id,
 			status:
@@ -508,7 +520,8 @@ export abstract class BaseTransaction {
 		// tslint:disable-next-line no-magic-numbers
 		const timeNow = Math.floor(date.getTime() / 1000);
 		const timeOut =
-			this.isMultisignature === MultisignatureStatus.TRUE
+			this._multisignatureStatus === MultisignatureStatus.PENDING ||
+			this._multisignatureStatus === MultisignatureStatus.READY
 				? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
 				: UNCONFIRMED_TRANSACTION_TIMEOUT;
 		const timeElapsed =
