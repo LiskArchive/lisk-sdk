@@ -121,6 +121,11 @@ ARGUMENTS
   ADDRESS  Address of the recipient.
 
 OPTIONS
+  -d, --data=data
+      Optional UTF8 encoded data (maximum of 64 bytes) to include in the transaction asset.
+      	Examples:
+      	- --data=customInformation
+
   -j, --[no-]json
       Prints output in JSON format. You can change the default behaviour in your config.json file.
 
@@ -407,10 +412,32 @@ ARGUMENTS
   IDS  Comma-separated transaction ID(s) to get information about.
 
 OPTIONS
-  -j, --[no-]json  Prints output in JSON format. You can change the default behaviour in your config.json file.
+  -j, --[no-]json
+      Prints output in JSON format. You can change the default behaviour in your config.json file.
 
-  --[no-]pretty    Prints JSON in pretty format rather than condensed. Has no effect if the output is set to table. You
-                   can change the default behaviour in your config.json file.
+  -s, --state=unsigned|unprocessed
+      Get transactions based on a given state. Possible values for the state are 'unsigned' and 'unprocessed'.
+      	Examples:
+      	- --state=unsigned
+      	- --state=unprocessed
+
+  --limit=limit
+      [default: 10] Limits the returned transactions array by specified integer amount. Maximum is 100.
+
+  --offset=offset
+      [default: 0] Offsets the returned transactions array by specified integer amount.
+
+  --[no-]pretty
+      Prints JSON in pretty format rather than condensed. Has no effect if the output is set to table. You can change the
+      default behaviour in your config.json file.
+
+  --sender-id=sender-id
+      Get transactions based by senderId which is sender's lisk address'.
+      	Examples:
+      	- --sender-id=12668885769632475474L
+
+  --sort=amount:asc|amount:desc|fee:asc|fee:desc|type:asc|type:desc|timestamp:asc|timestamp:desc
+      [default: timestamp:asc] Fields to sort results by.
 
 DESCRIPTION
   Gets transaction information from the blockchain.
@@ -418,6 +445,12 @@ DESCRIPTION
 EXAMPLES
   transaction:get 10041151099734832021
   transaction:get 10041151099734832021,1260076503909567890
+  transaction:get 10041151099734832021,1260076503909567890 --state=unprocessed
+  transaction:get 10041151099734832021 --state=unsigned --sender-id=1813095620424213569L
+  transaction:get --state=unsigned --sender-id=1813095620424213569L
+  transaction:get --sender-id=1813095620424213569L
+  transaction:get --limit=10 --sort=amount:desc
+  transaction:get --limit=10 --offset=5
 ```
 
 ## `lisk transaction:sign [TRANSACTION]`
