@@ -208,7 +208,7 @@ export class P2P extends EventEmitter {
 			this._config.seedPeers,
 		);
 		// Add all the discovered peers in newPeer list
-		discoveredPeers.map((peerInfo: PeerInfo) => {
+		discoveredPeers.forEach((peerInfo: PeerInfo) => {
 			this._newPeers.add(peerInfo);
 		});
 	}
