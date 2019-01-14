@@ -23,7 +23,6 @@ module.exports = {
 	delegates: require('./delegates'),
 	migrations: require('./migrations'),
 	rounds: require('./rounds'),
-	votes: require('./votes'),
 	transactions: require('./transactions'),
 	'transactions.dapp': require('./transactions/dapp'),
 	'transactions.delegate': require('./transactions/delegate'),

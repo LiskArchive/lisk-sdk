@@ -110,8 +110,4 @@ module.exports = {
 		getTransferByIds: link('transactions/get_transfer_by_ids.sql'),
 		getVotesByIds: link('transactions/get_votes_by_ids.sql'),
 	},
-	votes: {
-		getVotes: link('votes/get_votes.sql'),
-		getVotesCount: link('votes/get_votes_count.sql'),
-	},
 };
