@@ -1716,7 +1716,7 @@ describe('blocks/chain', () => {
 
 	describe('onBind', () => {
 		beforeEach(done => {
-			loggerStub.trace.reset();
+			loggerStub.trace.resetHistory();
 			__private.loaded = false;
 			blocksChainModule.onBind(modulesStub);
 			done();

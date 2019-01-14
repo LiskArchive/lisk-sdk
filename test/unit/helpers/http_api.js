@@ -79,18 +79,18 @@ describe('httpApi', () => {
 		});
 
 		afterEach(done => {
-			validNextSpy.reset();
-			spyConsoleTrace.reset();
+			validNextSpy.resetHistory();
+			spyConsoleTrace.resetHistory();
 			done();
 		});
 
 		after(done => {
-			loggerMock.trace.reset();
-			loggerMock.log.reset();
-			loggerMock.error.reset();
-			resMock.header.reset();
-			resMock.status.reset();
-			resMock.send.reset();
+			loggerMock.trace.resetHistory();
+			loggerMock.log.resetHistory();
+			loggerMock.error.resetHistory();
+			resMock.header.resetHistory();
+			resMock.status.resetHistory();
+			resMock.send.resetHistory();
 			done();
 		});
 

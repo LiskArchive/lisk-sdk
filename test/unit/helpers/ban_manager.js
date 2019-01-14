@@ -75,7 +75,7 @@ describe('BanManager', () => {
 		});
 
 		beforeEach(done => {
-			onBanFinishedSpy.reset();
+			onBanFinishedSpy.resetHistory();
 			banManagerInstance.bannedPeers = {};
 			banManagerInstance.banTemporarily(validPeer, onBanFinishedSpy);
 			return done();

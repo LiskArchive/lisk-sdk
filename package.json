@@ -111,8 +111,8 @@
 		"prettier": "1.10.2",
 		"rewire": "4.0.1",
 		"rx": "4.1.0",
-		"sinon": "3.2.1",
-		"sinon-chai": "2.14.0",
+		"sinon": "7.2.2",
+		"sinon-chai": "3.3.0",
 		"snyk": "^1.122.0",
 		"stampit": "4.2.0",
 		"supertest": "3.3.0"
