@@ -78,6 +78,7 @@ describe('blocks/chain', () => {
 					begin: sinonSandbox.stub(),
 					getOne: sinonSandbox.stub(),
 					isPersisted: sinonSandbox.stub(),
+					create: sinonSandbox.stub(),
 					delete: sinonSandbox.stub(),
 				},
 			},
