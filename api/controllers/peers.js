@@ -49,7 +49,7 @@ PeersController.getPeers = function(context, next) {
 		state: params.state.value,
 		os: params.os.value,
 		version: params.version.value,
-		protocolVersion: params.version.protocolVersion,
+		protocolVersion: params.protocolVersion.value,
 		broadhash: params.broadhash.value,
 		height: params.height.value,
 		limit: params.limit.value,
