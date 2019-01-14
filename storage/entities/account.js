@@ -325,6 +325,9 @@ class Account extends BaseEntity {
 			deleteDependentRecord: this.adapter.loadSQLFile(
 				'accounts/delete_dependent_record.sql'
 			),
+			delegateBlocksRewards: this.adapter.loadSQLFile(
+				'accounts/delegate_blocks_rewards.sql'
+			),
 		};
 	}
 
@@ -545,6 +548,37 @@ class Account extends BaseEntity {
 		}
 
 		return this.begin('storage:account:upsert', task);
+	}
+
+	/**
+	 * Get blocks rewards of delegate for time period.
+	 * TODO: move this method to Delegate entity once implemented
+	 *
+	 * @param {Object} filters = {} - Filters to filter data
+	 * @param {string} filters.generatorPublicKey - Delegate Public Key to calculate reward
+	 * @param {Number} [filters.fromTimestamp] - WHERE timestamp >= fromTimestamp
+	 * @param {Number} [filters.toTimestamp] - WHERE timestamp <= toTimestamp
+	 * @param {Object} tx - Database transaction object
+	 * @return {Promise.<DatabaseRow, Error>}
+	 */
+	delegateBlocksRewards(filters, tx) {
+		assert(
+			filters && filters.generatorPublicKey,
+			'filters must be an object and contain generatorPublicKey'
+		);
+
+		const parseFilters = {
+			generatorPublicKey: filters.generatorPublicKey,
+			fromTimestamp: filters.fromTimestamp,
+			toTimestamp: filters.toTimestamp,
+		};
+
+		return this.adapter.executeFile(
+			this.SQLs.delegateBlocksRewards,
+			parseFilters,
+			{},
+			tx
+		);
 	}
 
 	/**

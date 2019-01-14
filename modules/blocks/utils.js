@@ -448,19 +448,21 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		params.delegates = ACTIVE_DELEGATES;
 
 		if (filter.start !== undefined) {
-			params.start = Math.floor((filter.start - EPOCH_TIME.getTime()) / 1000);
-			params.start = params.start.toFixed();
+			params.fromTimestamp = Math.floor(
+				(filter.start - EPOCH_TIME.getTime()) / 1000
+			);
+			params.fromTimestamp = params.fromTimestamp.toFixed();
 		}
 
 		if (filter.end !== undefined) {
-			params.end = Math.floor((filter.end - EPOCH_TIME.getTime()) / 1000);
-			params.end = params.end.toFixed();
+			params.toTimestamp = Math.floor(
+				(filter.end - EPOCH_TIME.getTime()) / 1000
+			);
+			params.toTimestamp = params.toTimestamp.toFixed();
 		}
 
 		// Get calculated rewards
-		// TODO: REPLACE BY STORAGE
-		return library.db.blocks
-			.aggregateBlocksReward(params)
+		return library.storage.entities.Account.delegateBlocksRewards(params)
 			.then(rows => {
 				let data = rows[0];
 				if (data.delegate === null) {
@@ -473,8 +475,8 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 				};
 				return setImmediate(cb, null, data);
 			})
-			.catch(aggregateBlocksRewardErr => {
-				library.logger.error(aggregateBlocksRewardErr.stack);
+			.catch(delegateBlocksRewardsErr => {
+				library.logger.error(delegateBlocksRewardsErr.stack);
 				return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
 			});
 	});

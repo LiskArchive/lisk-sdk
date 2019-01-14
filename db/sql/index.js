@@ -32,7 +32,6 @@ const { link } = require('./config');
 module.exports = {
 	accounts: {},
 	blocks: {
-		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
 		count: link('blocks/count.sql'),
 		deleteBlock: link('blocks/delete_block.sql'),
 		deleteBlocksAfterHeight: link('blocks/delete_blocks_after_height.sql'),

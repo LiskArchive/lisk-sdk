@@ -119,25 +119,6 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Aggregate rewards for a block.
-	 *
-	 * @param {Object} params
-	 * @param {string} params.generatorPublicKey
-	 * @param {int} params.start - Start time of aggregation period
-	 * @param {int} params.end - End time for aggregation period
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	aggregateBlocksReward(params) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.aggregateBlocksReward, [
-			params.generatorPublicKey,
-			params.start,
-			params.end,
-		]);
-	}
-
-	/**
 	 * Counts all blocks.
 	 *
 	 * @returns {Promise<number>}
