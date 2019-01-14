@@ -22,6 +22,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		version: '1.0.1',
 		os: 'darwin',
 	};
+
 	const peerOption2: PeerInfo = {
 		ipAddress: '127.0.0.1',
 		wsPort: 5002,
@@ -29,6 +30,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		version: '1.0.1',
 		os: 'darwin',
 	};
+
 	const peerOption3: PeerInfo = {
 		ipAddress: '18.28.48.1',
 		wsPort: 5008,
@@ -36,6 +38,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		version: '1.4.1',
 		os: 'darwin',
 	};
+	
 	const peerOption4: PeerInfo = {
 		ipAddress: '192.28.138.1',
 		wsPort: 5006,
@@ -43,6 +46,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		version: '1.0.1',
 		os: 'darwin',
 	};
+
 	const peerOption5: PeerInfo = {
 		ipAddress: '178.21.90.199',
 		wsPort: 5001,

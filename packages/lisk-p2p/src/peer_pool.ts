@@ -19,7 +19,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Peer } from './peer';
+import { Peer, PeerInfo } from './peer';
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -29,8 +29,8 @@ export class PeerPool extends EventEmitter {
 		this._peerMap = new Map();
 	}
 
-	/* tslint:disable:next-line: prefer-function-over-method */
 	// TODO ASAP: Implement. Use PeerOptions type instead of any for selectionParams.
+	/* tslint:disable:next-line: prefer-function-over-method */
 	public selectPeers(
 		selectionParams: any,
 		numOfPeers: number,
@@ -41,25 +41,33 @@ export class PeerPool extends EventEmitter {
 		return [];
 	}
 
-	public hasPeer(peerId: string): boolean {
-		return this._peerMap.has(peerId);
-	}
-
 	public addPeer(peer: Peer): void {
 		this._peerMap.set(peer.id, peer);
-	}
-
-	public removePeer(peerId: string): boolean {
-		return this._peerMap.delete(peerId);
-	}
-
-	public getPeer(peerId: string): Peer | undefined {
-		return this._peerMap.get(peerId);
 	}
 
 	public disconnectAllPeers(): void {
 		this._peerMap.forEach((peer: Peer) => {
 			peer.disconnect();
 		});
+	}
+
+	public getAllPeerInfos(): ReadonlyArray<PeerInfo> {
+		return this.getAllPeers().map(peer => peer.peerInfo);
+	}
+
+	public getAllPeers(): ReadonlyArray<Peer> {
+		return [...this._peerMap.values()];
+	}
+
+	public getPeer(peerId: string): Peer | undefined {
+		return this._peerMap.get(peerId);
+	}
+
+	public hasPeer(peerId: string): boolean {
+		return this._peerMap.has(peerId);
+	}
+
+	public removePeer(peerId: string): boolean {
+		return this._peerMap.delete(peerId);
 	}
 }
