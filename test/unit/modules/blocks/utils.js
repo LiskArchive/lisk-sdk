@@ -106,7 +106,6 @@ describe('blocks/utils', () => {
 		dbStub = {
 			blocks: {
 				getIdSequence: sinonSandbox.stub().resolves(),
-				getHeightByLastId: sinonSandbox.stub().resolves(['1']),
 				loadLastBlock: sinonSandbox.stub().resolves(fullBlocksListRows),
 				loadBlocksData: sinonSandbox.stub(),
 			},
@@ -118,7 +117,7 @@ describe('blocks/utils', () => {
 					delegateBlocksRewards: sinonSandbox.stub().resolves(),
 				},
 				Block: {
-					get: sinonSandbox.stub(),
+					get: sinonSandbox.stub().resolves(['1']),
 				},
 			},
 		};
@@ -553,7 +552,7 @@ describe('blocks/utils', () => {
 
 	describe('loadBlocksData', () => {
 		it('should return error when library.db.blocks.loadBlocksData fails', done => {
-			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(null);
+			library.storage.entities.Block.get = sinonSandbox.stub().resolves(null);
 
 			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
@@ -566,7 +565,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return error when called with both id and lastId', done => {
-			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(['1']);
+			library.storage.entities.Block.get = sinonSandbox.stub().resolves(['1']);
 
 			blocksUtilsModule.loadBlocksData(
 				{ id: '1', lastId: '5' },

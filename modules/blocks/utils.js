@@ -325,8 +325,11 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 	}
 
 	// Get height of block with supplied ID
-	return (tx || library.db).blocks
-		.getHeightByLastId(filter.lastId || null)
+	return library.storage.entities.Block.get(
+		{ id: filter.lastId || null },
+		{ limit: params.limit },
+		tx
+	)
 		.then(rows => {
 			const height = rows.length ? rows[0].height : 0;
 			// Calculate max block height for database query
