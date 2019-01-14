@@ -15,17 +15,9 @@
 'use strict';
 
 const path = require('path');
-const {
-	Account,
-	BaseEntity,
-	Block,
-	Delegate,
-	Peer,
-	Round,
-	Transaction,
-	Migration,
-} = require('./entities');
+const { BaseEntity } = require('./entities');
 const PgpAdapter = require('./adapters/pgp_adapter');
+const { EntityRegistrationError } = require('./errors');
 
 class Storage {
 	constructor(options, logger) {
@@ -39,6 +31,7 @@ class Storage {
 		this.isReady = false;
 		Storage.instance = this;
 		Storage.instance.BaseEntity = BaseEntity;
+		Storage.instance.entities = {};
 	}
 
 	/**
@@ -56,16 +49,6 @@ class Storage {
 			if (status) {
 				this.isReady = true;
 				Storage.instance.adapter = adapter;
-
-				Storage.instance.entities = {
-					Account: new Account(adapter),
-					Block: new Block(adapter),
-					Delegate: new Delegate(adapter),
-					Migration: new Migration(adapter),
-					Peer: new Peer(adapter),
-					Round: new Round(adapter),
-					Transaction: new Transaction(adapter),
-				};
 			}
 
 			return status;
@@ -76,6 +59,39 @@ class Storage {
 		return Storage.instance.adapter.disconnect().then(() => {
 			this.isReady = false;
 		});
+	}
+
+	/**
+	 * Register an entity by initializing its object.
+	 * It would be accessible through `storage.entities.[identifier]
+	 *
+	 * @param {string} identifier - Identifier used to access the object from stoage.entities.* namespace
+	 * @param {BaseEntity} Entity - A class constructor extended from BaseEntity
+	 * @param {Object} [options]
+	 * @param {Boolean} [options.replaceExisting] - Replace the existing entity
+	 * @param {Array.<*>} [options.initParams] - Extra parameters to pass to initialization of entity
+	 * @returns {BaseEntity}
+	 */
+	register(identifier, Entity, options = {}) {
+		const existed = Object.keys(Storage.instance.entities).includes(identifier);
+
+		if (existed && !options.replaceExisting) {
+			throw new EntityRegistrationError(
+				`Entity ${identifier} already registered`
+			);
+		}
+
+		let args = [Storage.instance.adapter];
+
+		if (options.initParams) {
+			args = args.concat(options.initParams);
+		}
+
+		const entityObject = new Entity(...args);
+
+		this.constructor.instance.entities[identifier] = entityObject;
+
+		return entityObject;
 	}
 }
 
