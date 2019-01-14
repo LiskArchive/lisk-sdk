@@ -19,7 +19,8 @@
  */
 
 import { EventEmitter } from 'events';
-import { Peer, PeerInfo } from './peer';
+import { Peer } from './peer';
+import { PeerOptions, selectPeers } from './peer_selection';
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -29,16 +30,17 @@ export class PeerPool extends EventEmitter {
 		this._peerMap = new Map();
 	}
 
-	// TODO ASAP: Implement. Use PeerOptions type instead of any for selectionParams.
-	/* tslint:disable:next-line: prefer-function-over-method */
 	public selectPeers(
-		selectionParams: any,
-		numOfPeers: number,
+		selectionParams: PeerOptions,
+		numOfPeers?: number,
 	): ReadonlyArray<Peer> {
-		selectionParams;
-		numOfPeers;
+		const selectedPeers = selectPeers(
+			[...this._peerMap.values()],
+			selectionParams,
+			numOfPeers,
+		);
 
-		return [];
+		return selectedPeers;
 	}
 
 	public addPeer(peer: Peer): void {

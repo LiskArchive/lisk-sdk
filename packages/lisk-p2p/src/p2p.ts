@@ -21,6 +21,7 @@ import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 
 import { Peer, PeerInfo } from './peer';
 import { discoverPeers } from './peer_discovery';
+import { PeerOptions } from './peer_selection';
 
 import {
 	P2PConfig,
@@ -110,18 +111,27 @@ export class P2P extends EventEmitter {
 		};
 	}
 
-	/* tslint:disable:next-line: prefer-function-over-method */
 	public async request<T>(
 		packet: P2PRequestPacket<T>,
 	): Promise<P2PResponsePacket> {
-		// TODO ASAP
-		return Promise.resolve({ data: packet });
+		const peerSelectionParams: PeerOptions = {
+			lastBlockHeight: this._nodeInfo.height,
+		};
+		const selectedPeer = this._peerPool.selectPeers(peerSelectionParams, 1);
+		const response: P2PResponsePacket = await selectedPeer[0].request(packet);
+
+		return Promise.resolve(response);
 	}
 
-	/* tslint:disable:next-line: prefer-function-over-method */
 	public send<T>(message: P2PMessagePacket<T>): void {
-		message;
-		// TODO ASAP
+		const peerSelectionParams: PeerOptions = {
+			lastBlockHeight: this._nodeInfo.height,
+		};
+		const selectedPeers = this._peerPool.selectPeers(peerSelectionParams);
+
+		selectedPeers.forEach((peer: Peer) => {
+			peer.send(message);
+		});
 	}
 
 	private async _startPeerServer(): Promise<void> {
