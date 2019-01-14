@@ -64,7 +64,7 @@
 		"newrelic": "5.0.0",
 		"pm2": "3.2.8",
 		"pg-monitor": "1.1.0",
-		"pg-promise": "8.5.2",
+		"pg-promise": "8.5.4",
 		"popsicle": "9.1.0",
 		"randomstring": "1.1.5",
 		"redis": "2.8.0",
