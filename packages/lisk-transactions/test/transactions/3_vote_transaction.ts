@@ -13,19 +13,20 @@
  *
  */
 import { expect } from 'chai';
-// import { SinonStub } from 'sinon';
-// import * as cryptography from '@liskhq/lisk-cryptography';
-import { VoteTransaction, Attributes } from '../../src/transactions';
-import { validVoteTransactions } from '../../fixtures';
+import {
+	VoteTransaction,
+	Attributes,
+	BaseTransaction,
+} from '../../src/transactions';
+import { validVoteTransactions, validTransaction } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
+import { generateRandomPublicKeys } from 'helpers/cryptography';
 
 describe.only('Vote transaction class', () => {
-	const defaultTransaction = validVoteTransactions[1];
-
 	let validTestTransaction: VoteTransaction;
 
 	beforeEach(async () => {
-		validTestTransaction = new VoteTransaction(defaultTransaction);
+		validTestTransaction = new VoteTransaction(validVoteTransactions[2]);
 	});
 
 	describe('#constructor', () => {
@@ -39,7 +40,7 @@ describe.only('Vote transaction class', () => {
 
 		it('should throw TransactionMultiError when asset is not string array', async () => {
 			const invalidVoteTransactionData = {
-				...defaultTransaction,
+				...validVoteTransactions[1],
 				asset: {
 					votes: [1, 2, 3],
 				},
@@ -59,7 +60,7 @@ describe.only('Vote transaction class', () => {
 				status: Status.OK,
 				errors: [],
 			});
-			validTestTransaction = VoteTransaction.fromJSON(defaultTransaction);
+			validTestTransaction = VoteTransaction.fromJSON(validVoteTransactions[1]);
 		});
 
 		it('should create instance of VoteTransaction', async () => {
@@ -75,7 +76,7 @@ describe.only('Vote transaction class', () => {
 		it('should return valid buffer', async () => {
 			const assetBytes = (validTestTransaction as any).getAssetBytes();
 			expect(assetBytes).to.eql(
-				Buffer.from(defaultTransaction.asset.votes.join(''), 'utf8'),
+				Buffer.from(validVoteTransactions[2].asset.votes.join(''), 'utf8'),
 			);
 		});
 	});
@@ -86,7 +87,7 @@ describe.only('Vote transaction class', () => {
 				errors,
 				status,
 			} = validTestTransaction.verifyAgainstOtherTransactions([
-				validVoteTransactions[2],
+				validVoteTransactions[1],
 			] as ReadonlyArray<TransactionJSON>);
 			expect(errors)
 				.to.be.an('array')
@@ -113,7 +114,9 @@ describe.only('Vote transaction class', () => {
 				asset: { votes: validVoteTransactions[2].asset.votes.slice() },
 			};
 			conflictTransaction.asset.votes.push(
-				defaultTransaction.asset.votes.filter(v => v.charAt(0) === '+')[0],
+				validVoteTransactions[1].asset.votes.filter(
+					v => v.charAt(0) === '+',
+				)[0],
 			);
 			const {
 				errors,
@@ -133,7 +136,9 @@ describe.only('Vote transaction class', () => {
 				asset: { votes: validVoteTransactions[2].asset.votes.slice() },
 			};
 			conflictTransaction.asset.votes.push(
-				defaultTransaction.asset.votes.filter(v => v.charAt(0) === '-')[0],
+				validVoteTransactions[1].asset.votes.filter(
+					v => v.charAt(0) === '-',
+				)[0],
 			);
 			const {
 				errors,
@@ -156,7 +161,9 @@ describe.only('Vote transaction class', () => {
 		});
 
 		it('should return attribute including sender address', async () => {
-			expect(attribute.account.address).to.include(defaultTransaction.senderId);
+			expect(attribute.account.address).to.include(
+				validVoteTransactions[1].senderId,
+			);
 		});
 
 		it('should return attribute including vote public keys', async () => {
@@ -346,46 +353,399 @@ describe.only('Vote transaction class', () => {
 	});
 
 	describe('#verify', () => {
-		it('should return TransactionResponse with status OK', async () => {});
+		const defaultValidSender = {
+			address: '8004805717140184627L',
+			balance: '100000000',
+			publicKey:
+				'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+			votes: [
+				'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+			],
+		};
 
-		it('should throw an error when dependent state does not exist', async () => {});
+		const defaultValidDependentAccounts = [
+			{
+				balance: '0',
+				address: '123L',
+				publicKey:
+					'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+				username: 'delegate_0',
+			},
+		];
 
-		it('should throw an error when dependent state does include account', async () => {});
+		it('should return TransactionResponse with status OK', async () => {
+			const { status, errors } = validTestTransaction.verify({
+				sender: defaultValidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect(status).to.equal(Status.OK);
+			expect(errors).to.be.empty;
+		});
 
-		it('should throw an error when dependent state account does not have public key', async () => {});
+		it('should throw an error when dependent state does not exist', async () => {
+			expect(
+				validTestTransaction.verify.bind(validTestTransaction, {
+					sender: defaultValidSender,
+				}),
+			).to.throw('Dependent state is required for vote transaction.');
+		});
 
-		it('should throw an error when public key has unknown prefix', async () => {});
+		it('should throw an error when dependent state does include account', async () => {
+			expect(
+				validTestTransaction.verify.bind(validTestTransaction, {
+					sender: defaultValidSender,
+					dependentState: {} as any,
+				}),
+			).to.throw('Entity account is required.');
+		});
 
-		it('should return TransactionResponse with error when voted account is not a delegate', async () => {});
+		it('should throw an error when dependent state account does not have public key', async () => {
+			expect(
+				validTestTransaction.verify.bind(validTestTransaction, {
+					sender: defaultValidSender,
+					dependentState: {
+						account: [{ balance: '0', address: '123L' }],
+					} as any,
+				}),
+			).to.throw('Required state does not have valid account type.');
+		});
 
-		it('should return TransactionResponse with error when sender exceeds maximum vote', async () => {});
+		it('should return TransactionResponse with error when voted account is not a delegate', async () => {
+			const nonDelegateAccount = [
+				{
+					balance: '0',
+					address: '123L',
+					publicKey:
+						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+				},
+			];
+			const { status, errors } = validTestTransaction.verify({
+				sender: defaultValidSender,
+				dependentState: { account: nonDelegateAccount },
+			});
+			expect(status).to.eql(Status.FAIL);
+			expect(errors).not.to.be.empty;
+		});
+
+		it('should return TransactionResponse with error when the delegate is already voted', async () => {
+			const invalidSender = {
+				address: '8004805717140184627L',
+				balance: '100000000',
+				publicKey:
+					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+				votes: [
+					'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+					'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+				],
+			};
+			const { status, errors } = validTestTransaction.verify({
+				sender: invalidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect(status).to.eql(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].message).to.contain('is already voted.');
+		});
+
+		it('should return TransactionResponse with error when the delegate is not voted', async () => {
+			const tx = {
+				...validVoteTransactions[2],
+				asset: {
+					votes: [
+						...validVoteTransactions[2].asset.votes,
+						'-fc4f231b00f72ba93a4778890c5d2b89d3f570e606c04619a0343a3cdddf73c7',
+					],
+				},
+			};
+			validTestTransaction = new VoteTransaction(tx);
+			const dependentAccounts = [
+				...defaultValidDependentAccounts,
+				{
+					balance: '0',
+					address: '123L',
+					publicKey:
+						'fc4f231b00f72ba93a4778890c5d2b89d3f570e606c04619a0343a3cdddf73c7',
+					username: 'delegate_0',
+				},
+			];
+			const { status, errors } = validTestTransaction.verify({
+				sender: defaultValidSender,
+				dependentState: { account: dependentAccounts },
+			});
+			expect(status).to.eql(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].message).to.contain('is not voted.');
+		});
+
+		it('should return TransactionResponse with error when sender exceeds maximum vote', async () => {
+			const invalidSender = {
+				address: '8004805717140184627L',
+				balance: '100000000',
+				publicKey:
+					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+				votes: generateRandomPublicKeys(101),
+			};
+			const { status, errors } = validTestTransaction.verify({
+				sender: invalidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect(status).to.eql(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].message).to.contains(
+				'Vote cannot exceed 101 but has 102.',
+			);
+		});
 	});
 
 	describe('#apply', () => {
-		it('should return TransactionResponse with status OK', async () => {});
+		const defaultValidSender = {
+			address: '8004805717140184627L',
+			balance: '100000000',
+			publicKey:
+				'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+			votes: [
+				'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+			],
+		};
 
-		it('should throw an error when state does not exist from the base transaction', async () => {});
+		const defaultValidDependentAccounts = [
+			{
+				balance: '0',
+				address: '123L',
+				publicKey:
+					'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+				username: 'delegate_0',
+			},
+		];
 
-		it('should return updated account state with added votes', async () => {});
+		it('should return TransactionResponse with status OK', async () => {
+			const { status, errors } = validTestTransaction.apply({
+				sender: defaultValidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect(status).to.equal(Status.OK);
+			expect(errors).to.be.empty;
+		});
 
-		it('should return updated account state without removed votes', async () => {});
+		it('should throw an error when state does not exist from the base transaction', async () => {
+			sandbox.stub(BaseTransaction.prototype, 'apply').returns({});
+			expect(
+				validTestTransaction.apply.bind(validTransaction, {
+					sender: defaultValidSender,
+					dependentState: { account: defaultValidDependentAccounts },
+				}),
+			).to.throw('State is required for applying transaction.');
+		});
 
-		it('should return updated account state when vote exceeds maximum votes', async () => {});
+		it('should return updated account state with added votes', async () => {
+			const { state } = validTestTransaction.apply({
+				sender: defaultValidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect((state as any).sender.votes).to.include(
+				defaultValidDependentAccounts[0].publicKey,
+			);
+		});
 
-		it('should return TransactionResponse with error when vote exceeds maximum votes', async () => {});
+		it('should return updated account state without removed votes', async () => {
+			const removingVote =
+				'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc';
+			const tx = {
+				...validVoteTransactions[2],
+				asset: {
+					votes: [...validVoteTransactions[2].asset.votes, `-${removingVote}`],
+				},
+			};
+			validTestTransaction = new VoteTransaction(tx);
+			const dependentAccounts = [
+				...defaultValidDependentAccounts,
+				{
+					balance: '0',
+					address: '123L',
+					publicKey:
+						'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+					username: 'delegate_0',
+				},
+			];
+			const { state } = validTestTransaction.apply({
+				sender: defaultValidSender,
+				dependentState: { account: dependentAccounts },
+			});
+			expect((state as any).sender.votes).not.to.include(removingVote);
+		});
+
+		it('should return updated account state when vote exceeds maximum votes', async () => {
+			const invalidSender = {
+				address: '8004805717140184627L',
+				balance: '100000000',
+				publicKey:
+					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+				votes: generateRandomPublicKeys(101),
+			};
+			const { state } = validTestTransaction.apply({
+				sender: invalidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect((state as any).sender.votes).to.include(
+				validTestTransaction.asset.votes[0].substring(1),
+			);
+		});
+
+		it('should return TransactionResponse with error when vote exceeds maximum votes', async () => {
+			const invalidSender = {
+				address: '8004805717140184627L',
+				balance: '100000000',
+				publicKey:
+					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+				votes: generateRandomPublicKeys(101),
+			};
+			const { status, errors } = validTestTransaction.apply({
+				sender: invalidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].message).to.contains(
+				'Vote cannot exceed 101 but has 102.',
+			);
+		});
 	});
 
 	describe('#undo', () => {
-		it('should return TransactionResponse with status OK', async () => {});
+		const defaultValidSender = {
+			address: '8004805717140184627L',
+			balance: '100000000',
+			publicKey:
+				'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+			votes: [
+				'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+				'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+			],
+		};
 
-		it('should throw an error when state does not exist from the base transaction', async () => {});
+		const defaultValidDependentAccounts = [
+			{
+				balance: '0',
+				address: '456L',
+				publicKey:
+					'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+				username: 'delegate_1',
+			},
+			{
+				balance: '0',
+				address: '123L',
+				publicKey:
+					'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+				username: 'delegate_0',
+			},
+		];
 
-		it('should return updated account state without added votes', async () => {});
+		it('should return TransactionResponse with status OK', async () => {
+			const { status, errors } = validTestTransaction.undo({
+				sender: defaultValidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect(status).to.equal(Status.OK);
+			expect(errors).to.be.empty;
+		});
 
-		it('should return updated account state with removed votes', async () => {});
+		it('should throw an error when state does not exist from the base transaction', async () => {
+			sandbox.stub(BaseTransaction.prototype, 'undo').returns({});
+			expect(
+				validTestTransaction.undo.bind(validTransaction, {
+					sender: defaultValidSender,
+					dependentState: { account: defaultValidDependentAccounts },
+				}),
+			).to.throw('State is required for undoing transaction.');
+		});
 
-		it('should return updated account state when vote exceeds maximum votes', async () => {});
+		it('should return updated account state without added votes', async () => {
+			const { state } = validTestTransaction.undo({
+				sender: defaultValidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect((state as any).sender.votes).not.to.include(
+				defaultValidDependentAccounts[0].publicKey,
+			);
+		});
 
-		it('should return TransactionResponse with error when vote exceeds maximum votes', async () => {});
+		it('should return updated account state with removed votes', async () => {
+			const removingVote =
+				'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc';
+			const tx = {
+				...validVoteTransactions[2],
+				asset: {
+					votes: [...validVoteTransactions[2].asset.votes, `-${removingVote}`],
+				},
+			};
+			validTestTransaction = new VoteTransaction(tx);
+			const dependentAccounts = [
+				...defaultValidDependentAccounts,
+				{
+					balance: '0',
+					address: '123L',
+					publicKey:
+						'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+					username: 'delegate_0',
+				},
+			];
+			const { state } = validTestTransaction.undo({
+				sender: defaultValidSender,
+				dependentState: { account: dependentAccounts },
+			});
+			expect((state as any).sender.votes).to.include(removingVote);
+		});
+
+		it('should return updated account state when vote exceeds maximum votes', async () => {
+			const removingVote =
+				'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc';
+			const tx = {
+				...validVoteTransactions[2],
+				asset: {
+					votes: [...validVoteTransactions[2].asset.votes, `-${removingVote}`],
+				},
+			};
+			validTestTransaction = new VoteTransaction(tx);
+			const invalidSender = {
+				address: '8004805717140184627L',
+				balance: '100000000',
+				publicKey:
+					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+				votes: generateRandomPublicKeys(101),
+			};
+			const { state } = validTestTransaction.undo({
+				sender: invalidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect((state as any).sender.votes).to.include(removingVote);
+		});
+
+		it('should return TransactionResponse with error when vote exceeds maximum votes', async () => {
+			const removingVote =
+				'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc';
+			const tx = {
+				...validVoteTransactions[2],
+				asset: {
+					votes: [...validVoteTransactions[2].asset.votes, `-${removingVote}`],
+				},
+			};
+			validTestTransaction = new VoteTransaction(tx);
+			const invalidSender = {
+				address: '8004805717140184627L',
+				balance: '100000000',
+				publicKey:
+					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+				votes: generateRandomPublicKeys(101),
+			};
+			const { status, errors } = validTestTransaction.undo({
+				sender: invalidSender,
+				dependentState: { account: defaultValidDependentAccounts },
+			});
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].message).to.contains(
+				'Vote cannot exceed 101 but has 102.',
+			);
+		});
 	});
 });

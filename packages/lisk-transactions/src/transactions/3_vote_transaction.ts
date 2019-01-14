@@ -318,7 +318,7 @@ export class VoteTransaction extends BaseTransaction {
 	}: RequiredVoteState): TransactionResponse {
 		const { errors: baseErrors } = super.apply({ sender });
 		if (!dependentState) {
-			throw new Error('Dependent state is required for vote transaction');
+			throw new Error('Dependent state is required for vote transaction.');
 		}
 		const errors = [...baseErrors];
 		const dependentAccounts = dependentState[ENTITY_ACCOUNT];
@@ -328,7 +328,7 @@ export class VoteTransaction extends BaseTransaction {
 		if (
 			!isTypedObjectArrayWithKeys<Account>(dependentAccounts, ['publicKey'])
 		) {
-			throw new Error('Required state does not have valid account type');
+			throw new Error('Required state does not have valid account type.');
 		}
 		dependentAccounts.forEach(({ publicKey, username }) => {
 			if (username === undefined || username === '') {
@@ -352,22 +352,21 @@ export class VoteTransaction extends BaseTransaction {
 					new TransactionError(`${publicKey} is not voted.`, this.id),
 				);
 			}
-			throw new Error('Unknown vote prefix');
 		});
 
-		const upvotes = this.asset.votes.filter(
-			vote => vote.charAt(0) === PREFIX_UPVOTE,
-		);
-		const unvotes = this.asset.votes.filter(
-			vote => vote.charAt(0) === PREFIX_UNVOTE,
-		);
+		const upvotes = this.asset.votes
+			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
+			.map(vote => vote.substring(1));
+		const unvotes = this.asset.votes
+			.filter(vote => vote.charAt(0) === PREFIX_UNVOTE)
+			.map(vote => vote.substring(1));
 		const votes: ReadonlyArray<string> = [...senderVotes, ...upvotes].filter(
-			vote => unvotes.includes(vote),
+			vote => !unvotes.includes(vote),
 		);
 		if (votes.length > MAX_VOTE_PER_ACCOUNT) {
 			errors.push(
 				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}`,
+					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}.`,
 					this.id,
 				),
 			);
@@ -383,24 +382,24 @@ export class VoteTransaction extends BaseTransaction {
 	public apply({ sender }: RequiredVoteState): TransactionResponse {
 		const { errors: baseErrors, state } = super.apply({ sender });
 		if (!state) {
-			throw new Error('State is required for applying transaction');
+			throw new Error('State is required for applying transaction.');
 		}
 		const errors = [...baseErrors];
 		const { sender: updatedSender } = state;
-		const upvotes = this.asset.votes.filter(
-			vote => vote.charAt(0) === PREFIX_UPVOTE,
-		);
-		const unvotes = this.asset.votes.filter(
-			vote => vote.charAt(0) === PREFIX_UNVOTE,
-		);
+		const upvotes = this.asset.votes
+			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
+			.map(vote => vote.substring(1));
+		const unvotes = this.asset.votes
+			.filter(vote => vote.charAt(0) === PREFIX_UNVOTE)
+			.map(vote => vote.substring(1));
 		const originalVotes = sender.votes || [];
 		const votes: ReadonlyArray<string> = [...originalVotes, ...upvotes].filter(
-			vote => unvotes.includes(vote),
+			vote => !unvotes.includes(vote),
 		);
 		if (votes.length > MAX_VOTE_PER_ACCOUNT) {
 			errors.push(
 				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}`,
+					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}.`,
 					this.id,
 				),
 			);
@@ -422,24 +421,24 @@ export class VoteTransaction extends BaseTransaction {
 	public undo({ sender }: RequiredVoteState): TransactionResponse {
 		const { errors: baseErrors, state } = super.undo({ sender });
 		if (!state) {
-			throw new Error('State is required for undoing transaction');
+			throw new Error('State is required for undoing transaction.');
 		}
 		const errors = [...baseErrors];
 		const { sender: updatedSender } = state;
-		const upvotes = this.asset.votes.filter(
-			vote => vote.charAt(0) === PREFIX_UPVOTE,
-		);
-		const unvotes = this.asset.votes.filter(
-			vote => vote.charAt(0) === PREFIX_UNVOTE,
-		);
+		const upvotes = this.asset.votes
+			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
+			.map(vote => vote.substring(1));
+		const unvotes = this.asset.votes
+			.filter(vote => vote.charAt(0) === PREFIX_UNVOTE)
+			.map(vote => vote.substring(1));
 		const originalVotes = sender.votes || [];
 		const votes: ReadonlyArray<string> = [...originalVotes, ...unvotes].filter(
-			vote => upvotes.includes(vote),
+			vote => !upvotes.includes(vote),
 		);
 		if (votes.length > MAX_VOTE_PER_ACCOUNT) {
 			errors.push(
 				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}`,
+					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}.`,
 					this.id,
 				),
 			);
