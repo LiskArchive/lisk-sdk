@@ -14,6 +14,8 @@
 
 'use strict';
 
+const path = require('path');
+const fs = require('fs-extra');
 const { defaults, pick } = require('lodash');
 const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
@@ -190,6 +192,93 @@ class Migration extends BaseEntity {
 				tx
 			)
 			.then(result => result.exists);
+	}
+
+	/**
+	 * Verifies presence of the 'migrations' OID named relation.
+	 *
+	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
+	 */
+	async hasMigrations() {
+		const hasMigrations = await this.adapter.execute(
+			"SELECT table_name hasMigrations FROM information_schema.tables WHERE table_name = 'migrations';"
+		);
+		return !!hasMigrations.length;
+	}
+
+	/**
+	 * Gets id of the last migration record, or 0, if none exist.
+	 *
+	 * @returns {Promise<number>}
+	 * Promise object that resolves with either 0 or id of the last migration record.
+	 */
+	async getLastId() {
+		const result = await this.getOne({}, { sort: 'id:DESC', limit: 1 });
+		return result.id;
+	}
+
+	/**
+	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
+	 *
+	 * @param {number} lastMigrationId
+	 * @returns {Promise<Array<Object>>}
+	 * Promise object that resolves with an array of objects `{id, name, path, file}`.
+	 */
+	readPending(lastMigrationId) {
+		const updatesPath = path.join(__dirname, '../sql/migrations/updates');
+		return fs.readdir(updatesPath).then(files =>
+			files
+				.map(migrationFile => {
+					const migration = migrationFile.match(/(\d+)_(.+).sql/);
+					return (
+						migration && {
+							id: migration[1],
+							name: migration[2],
+							path: path.join('migrations/updates', migrationFile),
+						}
+					);
+				})
+				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
+				.filter(
+					migration =>
+						migration &&
+						fs
+							.statSync(path.join(this.adapter.sqlDirectory, migration.path))
+							.isFile() &&
+						(!lastMigrationId || +migration.id > lastMigrationId)
+				)
+				.map(f => {
+					f.file = this.adapter.loadSQLFile(f.path, {
+						minify: true,
+						noWarnings: true,
+					});
+					return f;
+				})
+		);
+	}
+
+	/**
+	 * Applies a cumulative update: all pending migrations + runtime.
+	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
+	 *
+	 * @returns {Promise} Promise object that resolves with `undefined`.
+	 */
+	async applyAll() {
+		if (await this.hasMigrations()) {
+			const lastId = await this.getLastId();
+			const pendingMigrations = await this.readPending(lastId);
+			// console.log(pendingMigrations);
+			// console.log(pendingMigrations.length);
+			// eslint-disable-next-line no-restricted-syntax
+			for (const migration of pendingMigrations) {
+				// const res = await this.adapter.executeFile(migration.file);
+				// eslint-disable-next-line no-await-in-loop
+				await this.adapter.executeFile(migration.file);
+				// console.log(res);
+				// console.log('<^>'.repeat(40));
+			}
+			// @TODO CONST AWAIT APPLY applyRuntime()
+		}
 	}
 }
 
