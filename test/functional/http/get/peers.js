@@ -69,6 +69,11 @@ describe('GET /peers', () => {
 			invalid: ['9999.999.999a'],
 			checkResponse: true,
 		},
+		protocolVersion: {
+			valid: ['999.999'],
+			invalid: ['9999.9999', '-1.-1', 'a.b'],
+			checkResponse: true,
+		},
 		broadhash: {
 			valid: [__testContext.config.nethash],
 			invalid: ['invalid'],
@@ -145,6 +150,16 @@ describe('GET /peers', () => {
 				.makeRequest({ version: validHeaders.version }, 200)
 				.then(res => {
 					expect(res.body.data[0].version).to.be.eql(validHeaders.version);
+				});
+		});
+
+		it(`using protocolVersion = "${
+			validHeaders.protocolVersion
+			}" should return the result`, () => {
+			return peersEndpoint
+				.makeRequest({ protocolVersion: validHeaders.protocolVersion }, 200)
+				.then(res => {
+					expect(res.body.data[0].protocolVersion).to.be.eql(validHeaders.protocolVersion);
 				});
 		});
 
