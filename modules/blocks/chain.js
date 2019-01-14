@@ -16,6 +16,7 @@
 
 const Promise = require('bluebird');
 const async = require('async');
+const _ = require('lodash');
 const transactionTypes = require('../../helpers/transaction_types.js');
 const Bignum = require('../../helpers/bignum.js');
 
@@ -81,7 +82,6 @@ class Chain {
  */
 Chain.prototype.saveGenesisBlock = function(cb) {
 	// Check if genesis block ID already exists in the database
-	// FIXME: Duplicated, there is another SQL query that we can use for that
 	library.storage.entities.Block.isPersisted({
 		id: library.genesisBlock.block.id,
 	})
@@ -112,17 +112,34 @@ Chain.prototype.saveGenesisBlock = function(cb) {
  * @returns {string} cb.err - Error if occurred
  */
 Chain.prototype.saveBlock = function(block, cb, tx) {
-	block.transactions.map(transaction => {
-		transaction.blockId = block.id;
+	// Parse block data to storage module
+	const parsedBlock = _.cloneDeep(block);
+	if (parsedBlock.reward) {
+		parsedBlock.reward = parsedBlock.reward.toString();
+	}
+	if (parsedBlock.totalAmount) {
+		parsedBlock.totalAmount = parsedBlock.totalAmount.toString();
+	}
+	if (parsedBlock.totalFee) {
+		parsedBlock.totalFee = parsedBlock.totalFee.toString();
+	}
+	parsedBlock.previousBlockId = parsedBlock.previousBlock;
+	delete parsedBlock.previousBlock;
 
+	parsedBlock.transactions.map(transaction => {
+		transaction.blockId = parsedBlock.id;
 		return transaction;
 	});
 
 	function saveBlockBatch(saveBlockBatchTx) {
-		const promises = [saveBlockBatchTx.blocks.save(block)];
+		const promises = [
+			library.storage.entities.Block.create(parsedBlock, {}, saveBlockBatchTx),
+		];
 
-		if (block.transactions.length) {
-			promises.push(saveBlockBatchTx.transactions.save(block.transactions));
+		if (parsedBlock.transactions.length) {
+			promises.push(
+				saveBlockBatchTx.transactions.save(parsedBlock.transactions)
+			);
 		}
 
 		saveBlockBatchTx
