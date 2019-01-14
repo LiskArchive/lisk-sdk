@@ -17,7 +17,6 @@
 const ed = require('../../../../helpers/ed.js');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const blocksFixtures = require('../../../fixtures').blocks;
-const accountsFixtures = require('../../../fixtures').accounts;
 const sql = require('../../../../db/sql').blocks;
 const seeder = require('../../../common/db_seed');
 
@@ -282,102 +281,6 @@ describe('db', () => {
 				return expect(
 					db.blocks.deleteBlocksAfterHeight(1234)
 				).to.be.eventually.eql(null);
-			});
-		});
-
-		describe('aggregateBlocksReward()', () => {
-			it('should use the correct SQL file with three parameters', function*() {
-				sinonSandbox.spy(db, 'query');
-				const params = {
-					generatorPublicKey: 'afafafafaf',
-					start: (+new Date() / 1000).toFixed(),
-					end: (+new Date() / 1000).toFixed(),
-				};
-				yield db.blocks.aggregateBlocksReward(params);
-
-				expect(db.query.firstCall.args[0]).to.eql(sql.aggregateBlocksReward);
-				expect(db.query.firstCall.args[1]).to.eql([
-					params.generatorPublicKey,
-					params.start,
-					params.end,
-				]);
-				return expect(db.query).to.be.calledOnce;
-			});
-
-			it('should throw error if invalid public key is passed', () => {
-				return expect(
-					db.blocks.aggregateBlocksReward({
-						generatorPublicKey: 'xxxxxxxxx',
-						start: (+new Date() / 1000).toFixed(),
-						end: (+new Date() / 1000).toFixed(),
-					})
-				).to.be.eventually.rejectedWith('invalid hexadecimal digit: "x"');
-			});
-
-			it('should return empty data set if a valid but non existant key is passed', function*() {
-				const account = new accountsFixtures.Account();
-				const rewards = yield db.blocks.aggregateBlocksReward({
-					generatorPublicKey: account.publicKey,
-					start: (+new Date() / 1000).toFixed(),
-					end: (+new Date() / 1000).toFixed(),
-				});
-				expect(rewards).to.be.not.empty;
-				expect(rewards).to.be.an('array');
-				expect(rewards[0]).to.have.all.keys(
-					'delegate',
-					'count',
-					'fees',
-					'rewards'
-				);
-				expect(rewards[0].count).to.be.eql('0');
-				expect(rewards[0].delegate).to.be.null;
-				expect(rewards[0].fees).to.be.null;
-				return expect(rewards[0].rewards).to.be.null;
-			});
-
-			it('should return empty data set if a valid public key of a non-delegate account is passed', function*() {
-				const account = new accountsFixtures.Account({
-					isDelegate: false,
-				});
-				yield db.accounts.insert(account);
-
-				const rewards = yield db.blocks.aggregateBlocksReward({
-					generatorPublicKey: account.publicKey,
-					start: (+new Date() / 1000).toFixed(),
-					end: (+new Date() / 1000).toFixed(),
-				});
-				expect(rewards).to.be.not.empty;
-				expect(rewards).to.be.an('array');
-				expect(rewards[0]).to.have.all.keys(
-					'delegate',
-					'count',
-					'fees',
-					'rewards'
-				);
-				expect(rewards[0].count).to.be.eql('0');
-				expect(rewards[0].delegate).to.be.null;
-				expect(rewards[0].fees).to.be.null;
-				return expect(rewards[0].rewards).to.be.null;
-			});
-
-			it('should aggregate rewards and response in valid format', function*() {
-				const account = yield db.one(
-					'SELECT encode("publicKey", \'hex\') as "publicKey" FROM mem_accounts LIMIT 1'
-				);
-				const rewards = yield db.blocks.aggregateBlocksReward({
-					generatorPublicKey: account.publicKey,
-					start: (+new Date('2017.01.01') / 1000).toFixed(),
-					end: (+new Date() / 1000).toFixed(),
-				});
-
-				expect(rewards).to.be.not.empty;
-				expect(rewards).to.be.an('array');
-				return expect(rewards[0]).to.have.all.keys(
-					'delegate',
-					'count',
-					'fees',
-					'rewards'
-				);
 			});
 		});
 

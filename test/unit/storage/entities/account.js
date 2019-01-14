@@ -719,6 +719,104 @@ describe('Account', () => {
 		});
 	});
 
+	describe('aggregateBlocksReward()', () => {
+		it('should use the correct SQL file with three parameters', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const params = {
+				generatorPublicKey: 'afafafafaf',
+				fromTimestamp: (+new Date() / 1000).toFixed(),
+				toTimestamp: (+new Date() / 1000).toFixed(),
+			};
+			await AccountEntity.delegateBlocksRewards(params);
+
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
+				SQLs.delegateBlocksRewards
+			);
+			expect(adapter.executeFile.firstCall.args[1]).to.eql({
+				generatorPublicKey: params.generatorPublicKey,
+				fromTimestamp: params.fromTimestamp,
+				toTimestamp: params.toTimestamp,
+			});
+			expect(adapter.executeFile).to.be.calledOnce;
+		});
+
+		it('should throw error if invalid public key is passed', async () => {
+			return expect(
+				AccountEntity.delegateBlocksRewards({
+					generatorPublicKey: 'xxxxxxxxx',
+					start: (+new Date() / 1000).toFixed(),
+					end: (+new Date() / 1000).toFixed(),
+				})
+			).to.be.rejectedWith('invalid hexadecimal digit: "x"');
+		});
+
+		it('should return empty data set if a valid but non existant key is passed', async () => {
+			const account = new accountFixtures.Account();
+			const rewards = await AccountEntity.delegateBlocksRewards({
+				generatorPublicKey: account.publicKey,
+				start: (+new Date() / 1000).toFixed(),
+				end: (+new Date() / 1000).toFixed(),
+			});
+			expect(rewards).to.be.not.empty;
+			expect(rewards).to.be.an('array');
+			expect(rewards[0]).to.have.all.keys(
+				'delegate',
+				'count',
+				'fees',
+				'rewards'
+			);
+			expect(rewards[0].count).to.be.eql('0');
+			expect(rewards[0].delegate).to.be.null;
+			expect(rewards[0].fees).to.be.null;
+			return expect(rewards[0].rewards).to.be.null;
+		});
+
+		it('should return empty data set if a valid public key of a non-delegate account is passed', async () => {
+			const account = new accountFixtures.Account({
+				isDelegate: false,
+			});
+			await AccountEntity.create(account);
+
+			const rewards = await AccountEntity.delegateBlocksRewards({
+				generatorPublicKey: account.publicKey,
+				start: (+new Date() / 1000).toFixed(),
+				end: (+new Date() / 1000).toFixed(),
+			});
+			expect(rewards).to.be.not.empty;
+			expect(rewards).to.be.an('array');
+			expect(rewards[0]).to.have.all.keys(
+				'delegate',
+				'count',
+				'fees',
+				'rewards'
+			);
+			expect(rewards[0].count).to.be.eql('0');
+			expect(rewards[0].delegate).to.be.null;
+			expect(rewards[0].fees).to.be.null;
+			return expect(rewards[0].rewards).to.be.null;
+		});
+
+		it('should aggregate rewards and response in valid format', async () => {
+			const account = await adapter.db.one(
+				'SELECT encode("publicKey", \'hex\') as "publicKey" FROM mem_accounts LIMIT 1'
+			);
+			const rewards = await AccountEntity.delegateBlocksRewards({
+				generatorPublicKey: account.publicKey,
+				start: (+new Date('2017.01.01') / 1000).toFixed(),
+				end: (+new Date() / 1000).toFixed(),
+			});
+
+			expect(rewards).to.be.not.empty;
+			expect(rewards).to.be.an('array');
+			return expect(rewards[0]).to.have.all.keys(
+				'delegate',
+				'count',
+				'fees',
+				'rewards'
+			);
+		});
+	});
+
 	describe('mergeFilters()', () => {
 		it('should accept filters as single object');
 		it('should accept filters as array of objects');
