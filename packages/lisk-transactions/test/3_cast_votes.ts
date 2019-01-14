@@ -214,7 +214,7 @@ describe('#castVotes transaction', () => {
 			return expect(
 				castVotes.bind(null, {
 					passphrase,
-					votes: null,
+					votes: undefined,
 				}),
 			).to.throw(
 				'Please provide a valid votes value. Expected an array if present.',
@@ -225,7 +225,7 @@ describe('#castVotes transaction', () => {
 			return expect(
 				castVotes.bind(null, {
 					passphrase,
-					votes: `+${firstPublicKey}`,
+					votes: `+${firstPublicKey}` as any,
 				}),
 			).to.throw(
 				'Please provide a valid votes value. Expected an array if present.',
@@ -236,7 +236,7 @@ describe('#castVotes transaction', () => {
 			return expect(
 				castVotes.bind(null, {
 					passphrase,
-					unvotes: null,
+					unvotes: undefined,
 				}),
 			).to.throw(
 				'Please provide a valid unvotes value. Expected an array if present.',
@@ -247,7 +247,7 @@ describe('#castVotes transaction', () => {
 			return expect(
 				castVotes.bind(null, {
 					passphrase,
-					unvotes: `-${firstPublicKey}`,
+					unvotes: `-${firstPublicKey}` as any,
 				}),
 			).to.throw(
 				'Please provide a valid unvotes value. Expected an array if present.',

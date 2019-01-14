@@ -173,7 +173,7 @@ export class VoteTransaction extends BaseTransaction {
 
 		if (status === Status.FAIL && errors.length !== 0) {
 			throw new TransactionMultiError(
-				'Failed to validate schema',
+				'Failed to validate schema.',
 				tx.id,
 				errors,
 			);

@@ -13,6 +13,7 @@
  *
  */
 import { expect } from 'chai';
+import { SinonStub } from 'sinon';
 import {
 	VoteTransaction,
 	Attributes,
@@ -21,8 +22,11 @@ import {
 import { validVoteTransactions, validTransaction } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
 import { generateRandomPublicKeys } from 'helpers/cryptography';
+import { TransactionError } from '../../src/errors';
+import * as utils from '../../src/utils';
+import { VOTE_FEE } from '../../src/constants';
 
-describe.only('Vote transaction class', () => {
+describe('Vote transaction class', () => {
 	let validTestTransaction: VoteTransaction;
 
 	beforeEach(async () => {
@@ -51,7 +55,289 @@ describe.only('Vote transaction class', () => {
 		});
 	});
 
-	describe('#create', () => {});
+	describe('#create', () => {
+		const timeWithOffset = 38350076;
+		const passphrase = 'secret';
+		const secondPassphrase = 'second secret';
+		const defaultUpvotes = [
+			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+			'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+		];
+		const defaultUnvotes = [
+			'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+			'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd914',
+		];
+
+		let result: object;
+
+		beforeEach(async () => {
+			sandbox.stub(utils, 'getTimeWithOffset').returns(timeWithOffset);
+		});
+
+		describe('when the transaction is created with one passphrase and the votes', () => {
+			beforeEach(async () => {
+				result = VoteTransaction.create({ passphrase, votes: defaultUpvotes });
+			});
+
+			it('should create vote transaction ', async () => {
+				expect(result).to.have.property('id');
+				expect(result)
+					.to.have.property('type')
+					.and.equal(3);
+				expect(result)
+					.to.have.property('amount')
+					.and.equal('0');
+				expect(result)
+					.to.have.property('fee')
+					.and.equal(VOTE_FEE.toString());
+				expect(result).to.have.property('senderId');
+				expect(result).to.have.property('senderPublicKey');
+				expect(result)
+					.to.have.property('recipientId')
+					.and.eql((result as any).senderId);
+				expect(result)
+					.to.have.property('timestamp')
+					.and.equal(timeWithOffset);
+				expect(result).to.have.property('signature').and.not.to.be.empty;
+				expect((result as any).asset.votes).to.eql(
+					defaultUpvotes.map(vote => `+${vote}`),
+				);
+			});
+
+			it('should use time.getTimeWithOffset to calculate the timestamp', async () => {
+				expect(utils.getTimeWithOffset).to.be.calledWithExactly(undefined);
+			});
+
+			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', async () => {
+				const offset = -10;
+				VoteTransaction.create({
+					passphrase,
+					votes: defaultUpvotes,
+					timeOffset: offset,
+				});
+				expect(utils.getTimeWithOffset).to.be.calledWithExactly(offset);
+			});
+		});
+
+		describe('when the transaction is created with the unvotes', () => {
+			beforeEach(async () => {
+				result = VoteTransaction.create({
+					passphrase,
+					unvotes: defaultUnvotes,
+				});
+			});
+
+			it('should create vote transaction ', async () => {
+				expect(result).to.have.property('id');
+				expect(result)
+					.to.have.property('type')
+					.and.equal(3);
+				expect(result)
+					.to.have.property('amount')
+					.and.equal('0');
+				expect(result)
+					.to.have.property('fee')
+					.and.equal(VOTE_FEE.toString());
+				expect(result).to.have.property('senderId');
+				expect(result).to.have.property('senderPublicKey');
+				expect(result)
+					.to.have.property('recipientId')
+					.and.eql((result as any).senderId);
+				expect(result)
+					.to.have.property('timestamp')
+					.and.equal(timeWithOffset);
+				expect(result).to.have.property('signature').and.not.to.be.empty;
+				expect((result as any).asset.votes).to.eql(
+					defaultUnvotes.map(vote => `-${vote}`),
+				);
+			});
+		});
+
+		describe('when the transaction is created with first and second passphrase', () => {
+			beforeEach(async () => {
+				result = VoteTransaction.create({
+					passphrase,
+					secondPassphrase,
+					votes: defaultUpvotes,
+				});
+			});
+
+			it('should create vote transaction ', async () => {
+				expect(result).to.have.property('id');
+				expect(result)
+					.to.have.property('type')
+					.and.equal(3);
+				expect(result)
+					.to.have.property('amount')
+					.and.equal('0');
+				expect(result)
+					.to.have.property('fee')
+					.and.equal(VOTE_FEE.toString());
+				expect(result).to.have.property('senderId');
+				expect(result).to.have.property('senderPublicKey');
+				expect(result)
+					.to.have.property('recipientId')
+					.and.eql((result as any).senderId);
+				expect(result)
+					.to.have.property('timestamp')
+					.and.equal(timeWithOffset);
+				expect(result).to.have.property('signature').and.not.to.be.empty;
+				expect(result).to.have.property('signSignature').and.not.to.be.empty;
+				expect((result as any).asset.votes).to.eql(
+					defaultUpvotes.map(vote => `+${vote}`),
+				);
+			});
+		});
+
+		describe('when the transaction is created with the votes and unvotes', () => {
+			beforeEach(async () => {
+				result = VoteTransaction.create({
+					passphrase,
+					secondPassphrase,
+					votes: defaultUpvotes,
+					unvotes: defaultUnvotes,
+				});
+			});
+
+			it('should create vote transaction ', async () => {
+				expect(result).to.have.property('id');
+				expect(result)
+					.to.have.property('type')
+					.and.equal(3);
+				expect(result)
+					.to.have.property('amount')
+					.and.equal('0');
+				expect(result)
+					.to.have.property('fee')
+					.and.equal(VOTE_FEE.toString());
+				expect(result).to.have.property('senderId');
+				expect(result).to.have.property('senderPublicKey');
+				expect(result)
+					.to.have.property('recipientId')
+					.and.eql((result as any).senderId);
+				expect(result)
+					.to.have.property('timestamp')
+					.and.equal(timeWithOffset);
+				expect(result).to.have.property('signature').and.not.to.be.empty;
+				expect(result).to.have.property('signSignature').and.not.to.be.empty;
+				const votes = [
+					...defaultUpvotes.map(vote => `+${vote}`),
+					...defaultUnvotes.map(vote => `-${vote}`),
+				];
+				expect((result as any).asset.votes).to.eql(votes);
+			});
+		});
+
+		describe('when the transaction is created with the invalid votes and invalid unvotes', () => {
+			it('should throw an error when votes includes invalid public key', async () => {
+				const invalidPublicKey =
+					'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9';
+				expect(
+					VoteTransaction.create.bind(undefined, {
+						passphrase,
+						secondPassphrase,
+						votes: [invalidPublicKey],
+						unvotes: defaultUnvotes,
+					}),
+				).to.throw();
+			});
+
+			it('should throw an error when unvotes includes invalid public key', async () => {
+				const invalidPublicKey =
+					'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9';
+				expect(
+					VoteTransaction.create.bind(undefined, {
+						passphrase,
+						secondPassphrase,
+						votes: defaultUpvotes,
+						unvotes: [invalidPublicKey],
+					}),
+				).to.throw();
+			});
+		});
+
+		describe('when the transaction is created with invalid inputs', () => {
+			it('should throw an invalid input error when votes is not an array', () => {
+				expect(
+					VoteTransaction.create.bind(undefined, {
+						passphrase,
+						secondPassphrase,
+						votes: {} as any,
+						unvotes: defaultUpvotes,
+					}),
+				).to.throw(
+					'Please provide a valid votes value. Expected an array if present.',
+				);
+			});
+
+			it('should throw an invalid input error when unvotes is not an array', () => {
+				expect(
+					VoteTransaction.create.bind(undefined, {
+						passphrase,
+						secondPassphrase,
+						votes: defaultUpvotes,
+						unvotes: 3 as any,
+					}),
+				).to.throw(
+					'Please provide a valid unvotes value. Expected an array if present.',
+				);
+			});
+		});
+
+		describe('when the transaction is created with duplicated public keys', () => {
+			it('should throw a duplication error', () => {
+				expect(
+					VoteTransaction.create.bind(undefined, {
+						passphrase,
+						secondPassphrase,
+						votes: defaultUpvotes,
+						unvotes: defaultUpvotes,
+					}),
+				).to.throw(
+					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
+				);
+			});
+		});
+
+		describe('when the transaction is created without passphrase', () => {
+			beforeEach(async () => {
+				result = VoteTransaction.create({
+					votes: defaultUpvotes,
+					unvotes: defaultUnvotes,
+				});
+			});
+
+			it('should create vote transaction ', async () => {
+				expect(result)
+					.to.have.property('type')
+					.and.equal(3);
+				expect(result)
+					.to.have.property('amount')
+					.and.equal('0');
+				expect(result)
+					.to.have.property('fee')
+					.and.equal(VOTE_FEE.toString());
+				expect(result)
+					.to.have.property('timestamp')
+					.and.equal(timeWithOffset);
+				const votes = [
+					...defaultUpvotes.map(vote => `+${vote}`),
+					...defaultUnvotes.map(vote => `-${vote}`),
+				];
+				expect((result as any).asset.votes).to.eql(votes);
+
+				expect((result as any).senderPublicKey).to.be.undefined;
+				expect(result)
+					.to.have.property('recipientId')
+					.and.to.equal('');
+
+				expect(result).not.to.have.property('id');
+				expect(result).not.to.have.property('senderId');
+				expect(result).not.to.have.property('signature');
+				expect(result).not.to.have.property('signSignature');
+			});
+		});
+	});
 
 	describe('#fromJSON', () => {
 		beforeEach(async () => {
@@ -69,6 +355,16 @@ describe.only('Vote transaction class', () => {
 
 		it('should call validateSchema', async () => {
 			expect(validTestTransaction.validateSchema).to.be.calledOnce;
+		});
+
+		it('should throw an error if validateSchema returns error', async () => {
+			(VoteTransaction.prototype.validateSchema as SinonStub).returns({
+				status: Status.FAIL,
+				errors: [new TransactionError()],
+			});
+			expect(
+				VoteTransaction.fromJSON.bind(undefined, validVoteTransactions[1]),
+			).to.throw('Failed to validate schema.');
 		});
 	});
 

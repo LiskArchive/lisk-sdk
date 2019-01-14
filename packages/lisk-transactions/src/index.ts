@@ -22,6 +22,7 @@ import { createSignatureObject } from './create_signature_object';
 import { BaseTransaction, VoteTransaction } from './transactions';
 import * as utils from './utils';
 
+// tslint:disable-next-line no-unbound-method
 const castVotes = VoteTransaction.create;
 
 export {
