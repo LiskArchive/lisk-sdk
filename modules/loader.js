@@ -459,8 +459,8 @@ __private.loadBlockChain = function() {
 	 */
 	function checkMemTables(t) {
 		const promises = [
-			t.blocks.count(),
-			t.blocks.getGenesisBlock(),
+			library.storage.entities.Block.count({}, t),
+			library.storage.entities.Block.get({ height: 1 }, {}, t),
 			t.rounds.getMemRounds(),
 			t.delegates.countDuplicatedDelegates(),
 		];
