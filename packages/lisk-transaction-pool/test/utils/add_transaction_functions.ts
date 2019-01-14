@@ -1,15 +1,15 @@
-import { TransactionObject, SignatureObject } from '../../src/transaction_pool';
+import { TransactionObject, Transaction } from '../../src/transaction_pool';
 
 export const wrapTransferTransaction = (
 	transferTransaction: TransactionObject,
-) => {
+): Transaction => {
 	return {
 		...transferTransaction,
-		containsUniqueData: () => false,
+		containsUniqueData: false,
 		verifyAgainstOtherTransactions: () => true,
 		isExpired: (time: Date) => time.getTime() > 0,
 		isReady: () => true,
-		addSignature: (signatureObject: SignatureObject) =>
-			signatureObject.signature.length === 32,
+		addSignature: (signature: string, _: string) =>
+			signature.length === 32,
 	};
 };

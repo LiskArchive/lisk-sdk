@@ -30,19 +30,21 @@ export interface TransactionObject {
 	readonly senderPublicKey: string;
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
+	containsUniqueData: boolean;
 }
 
 export interface SignatureObject {
 	transactionId: string;
 	signature: string;
+	publicKey: string;
 }
+
 export interface TransactionFunctions {
-	containsUniqueData(): boolean;
 	isExpired(date: Date): boolean;
 	verifyAgainstOtherTransactions(
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
-	addSignature(signature: SignatureObject): boolean;
+	addSignature(signature: string, publicKey: string): boolean;
 	isReady(): boolean;
 }
 
@@ -213,7 +215,7 @@ export class TransactionPool {
 			signatureObject.transactionId,
 		);
 		if (transaction) {
-			return transaction.addSignature(signatureObject);
+			return transaction.addSignature(signatureObject.signature, signatureObject.publicKey);
 		}
 
 		return false;
@@ -262,9 +264,8 @@ export class TransactionPool {
 		);
 
 		// Remove all transactions from the verified, pending and ready queues if they are of a type which includes unique data and that type is included in the confirmed transactions
-		// TODO: remove the condition for checking `containsUniqueData` exists, because it should always exist
 		const confirmedTransactionsWithUniqueData = transactions.filter(
-			(transaction: Transaction) => transaction.containsUniqueData(),
+			(transaction: Transaction) => transaction.containsUniqueData,
 		);
 		const removedTransactionsByTypes = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
