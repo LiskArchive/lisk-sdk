@@ -30,6 +30,21 @@ describe('Storage', () => {
 		);
 	});
 
+	describe('register', () => {
+		it('should accept three parameters');
+		it('should initialize an entity and return its object');
+		it(
+			'should initialize an entity and assign to storage.entities.* namespace'
+		);
+		it('should throw error if an entity already registered');
+		it(
+			'should not throw error if an entity already registered but options.replaceExisting is set true'
+		);
+		it(
+			'should pass provided options.initParams as additional constructor parameters'
+		);
+	});
+
 	describe('cleanup()', () => {
 		it('should resolved successfully');
 		it('should reject in case of any error on adapter layer');

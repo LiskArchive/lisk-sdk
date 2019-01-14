@@ -18,6 +18,15 @@ const child_process = require('child_process');
 const pgpLib = require('pg-promise');
 const Storage = require('../../storage/storage');
 const PgpAdapter = require('../../storage/adapters/pgp_adapter');
+const {
+	Account,
+	Block,
+	Delegate,
+	Peer,
+	Round,
+	Transaction,
+	Migration,
+} = require('../../storage/entities');
 
 const dbNames = [];
 
@@ -71,6 +80,15 @@ class StorageSandbox extends Storage {
 		await this._dropDB();
 		await this._createDB();
 		await super.bootstrap();
+
+		this.register('Account', Account);
+		this.register('Block', Block);
+		this.register('Delegate', Delegate);
+		this.register('Migration', Migration);
+		this.register('Peer', Peer);
+		this.register('Round', Round);
+		this.register('Transaction', Transaction);
+
 		await this._createSchema(this.adapter.db);
 		return true;
 	}
