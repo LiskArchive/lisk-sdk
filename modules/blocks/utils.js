@@ -218,13 +218,11 @@ Utils.prototype.getIdSequence = function(height, cb) {
 	const lastBlock = modules.blocks.lastBlock.get();
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
-	library.db.blocks
-		// TODO: REPLACE BY STORAGE
-		.getIdSequence({
-			height,
-			limit: 5,
-			delegates: ACTIVE_DELEGATES,
-		})
+	library.storage.entities.Block.getFirstBlockIdOfLastRounds({
+		height,
+		numberOfRounds: 5,
+		numberOfDelegates: ACTIVE_DELEGATES,
+	})
 		.then(rows => {
 			if (rows.length === 0) {
 				return setImmediate(

@@ -21,7 +21,7 @@
 
 WITH current_round AS
   (
-    SELECT ceil(b.height / ${delegates}::float)::bigint
+    SELECT ceil(b.height / ${numberOfDelegates}::float)::bigint
     FROM blocks b
     WHERE b.height <= ${height}
     ORDER BY b.height DESC
@@ -33,12 +33,12 @@ WITH current_round AS
                          (SELECT *
                           FROM current_round),
                           (SELECT *
-                           FROM current_round) - ${limit} + 1, -1))
+                           FROM current_round) - ${numberOfRounds} + 1, -1))
 SELECT b.id,
        b.height,
-       ceil(b.height / ${delegates}::float)::bigint AS round
+       ceil(b.height / ${numberOfDelegates}::float)::bigint AS round
 FROM blocks b
 WHERE b.height IN
-    (SELECT ((n - 1) * ${delegates}) + 1
+    (SELECT ((n - 1) * ${numberOfDelegates}) + 1
      FROM rounds AS s(n))
 ORDER BY height DESC
