@@ -16,39 +16,33 @@ import BigNum from 'browserify-bignum';
 import { expect } from 'chai';
 import { verifyBalance } from '../../src/utils';
 import { TransactionError } from '../../src/errors';
+import { validAccount as defaultSender } from '../../fixtures';
 
 describe('#verifyBalance', () => {
-	const defaultSender = {
-		address: '18278674964748191682L',
-		balance: '10000000',
-		publicKey:
-			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',
-		secondPublicKey: '',
-	};
 	const amount = new BigNum('999999');
 
-	it('should return an object with boolean `verified` = true with sufficient account balance', () => {
+	it('should return a verified response with sufficient account balance', async () => {
 		const { verified } = verifyBalance(defaultSender, amount);
 
-		return expect(verified).to.be.true;
+		expect(verified).to.be.true;
 	});
 
-	it('should return an object with boolean `verified` = false with insufficient account balance', () => {
+	it('should return an unverified response with insufficient account balance', async () => {
 		const invalidSender = {
 			...defaultSender,
 			balance: '1',
 		};
-		const { verified } = verifyBalance(invalidSender, amount);
+		const { verified, error } = verifyBalance(invalidSender, amount);
 
-		return expect(verified).to.be.false;
-	});
-
-	it('should return an object with a transaction error', () => {
-		const invalidSender = {
-			...defaultSender,
-			balance: '1',
-		};
-		const { error } = verifyBalance(invalidSender, amount);
-		return expect(error).to.be.instanceof(TransactionError);
+		expect(verified).to.be.false;
+		expect(error).to.be.instanceof(TransactionError);
+		expect(error)
+			.to.be.instanceof(TransactionError)
+			.and.have.property(
+				'message',
+				`Account does not have enough LSK: ${
+					defaultSender.address
+				} balance: 0.00000001`,
+			);
 	});
 });

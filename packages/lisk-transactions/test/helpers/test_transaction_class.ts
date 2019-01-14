@@ -1,35 +1,29 @@
-import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
+	EntityMap,
+	RequiredState,
 	TransactionResponse,
 } from '../../src/transactions/base';
 import { TransactionJSON, Status } from '../../src/transaction_types';
 
 export class TestTransaction extends BaseTransaction {
-	public containsUniqueData() {
-		return true;
-	}
-
-	public assetToJSON() {
+	public assetToJSON(): object {
 		return {};
 	}
 
-	public getAssetBytes() {
+	public getAssetBytes(): Buffer {
 		return Buffer.alloc(0);
 	}
 
-	public getBytes() {
-		const transactionBytes = Buffer.concat([
-			this.getBasicBytes(),
-			this.getAssetBytes(),
-			this.signature
-				? cryptography.hexToBuffer(this.signature)
-				: Buffer.alloc(0),
-			this.signSignature
-				? cryptography.hexToBuffer(this.signSignature)
-				: Buffer.alloc(0),
-		]);
-		return transactionBytes;
+	public processRequiredState(_: EntityMap): RequiredState {
+		return {
+			sender: {
+				address: '123L',
+				balance: '10000000',
+				publicKey:
+					'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',
+			},
+		};
 	}
 
 	public verifyAgainstOtherTransactions(

@@ -50,7 +50,7 @@ export class Queue {
 				}
 
 				// Delete the index of the transaction which passed the condition
-				// tslint:disable-next-line no-dynamic-delete
+				// tslint:disable-next-line:no-dynamic-delete
 				delete this._index[transaction.id];
 
 				return {

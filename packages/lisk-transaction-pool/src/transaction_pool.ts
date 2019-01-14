@@ -146,6 +146,7 @@ export class TransactionPool {
 			this.expireTransactions.bind(this),
 			this._expireTransactionsInterval,
 		);
+		// tslint:disable-next-line:no-floating-promises
 		this._expireTransactionsJob.start();
 
 		this._receivedTransactionsProcessingInterval = receivedTransactionsProcessingInterval;
@@ -156,6 +157,7 @@ export class TransactionPool {
 			this.validateReceivedTransactions.bind(this),
 			this._receivedTransactionsProcessingInterval,
 		);
+		// tslint:disable-next-line:no-floating-promises
 		this._validateTransactionsJob.start();
 
 		this._validatedTransactionsProcessingInterval = validatedTransactionsProcessingInterval;
@@ -166,6 +168,7 @@ export class TransactionPool {
 			this.verifyValidatedTransactions.bind(this),
 			this._validatedTransactionsProcessingInterval,
 		);
+		// tslint:disable-next-line:no-floating-promises
 		this._verifyTransactionsJob.start();
 
 		this._verifiedTransactionsProcessingInterval = verifiedTransactionsProcessingInterval;
@@ -176,6 +179,7 @@ export class TransactionPool {
 			this.processVerifiedTransactions.bind(this),
 			this._verifiedTransactionsProcessingInterval,
 		);
+		// tslint:disable-next-line:no-floating-promises
 		this._processTransactionsJob.start();
 	}
 
@@ -215,7 +219,10 @@ export class TransactionPool {
 			signatureObject.transactionId,
 		);
 		if (transaction) {
-			return transaction.addSignature(signatureObject.signature, signatureObject.publicKey);
+			return transaction.addSignature(
+				signatureObject.signature,
+				signatureObject.publicKey,
+			);
 		}
 
 		return false;
@@ -243,7 +250,7 @@ export class TransactionPool {
 
 	public getProcessableTransactions(limit: number): ReadonlyArray<Transaction> {
 		return this._queues.ready.peekUntil(
-			queueCheckers.returnTrueUntilLimit(limit)
+			queueCheckers.returnTrueUntilLimit(limit),
 		);
 	}
 

@@ -2,7 +2,7 @@ import { Transaction } from './transaction_pool';
 
 export type CheckerFunction = (
 	transactions: ReadonlyArray<Transaction>,
-) => CheckerFunctionResponse;
+) => Promise<CheckerFunctionResponse>;
 
 export interface CheckerFunctionResponse {
 	status: Status;
@@ -32,17 +32,21 @@ export interface CheckTransactionsResponseWithPassFailAndPending {
 	pendingTransactions: ReadonlyArray<Transaction>;
 }
 
-const getTransactionByStatus = (transactions: ReadonlyArray<Transaction>, responses: ReadonlyArray<TransactionResponse>, status: Status): ReadonlyArray<Transaction> => {
-	const transactionIdsByStatus = responses 
+const getTransactionByStatus = (
+	transactions: ReadonlyArray<Transaction>,
+	responses: ReadonlyArray<TransactionResponse>,
+	status: Status,
+): ReadonlyArray<Transaction> => {
+	const transactionIdsByStatus = responses
 		.filter(transactionResponse => transactionResponse.status === status)
 		.map(transactionStatus => transactionStatus.id);
-	
+
 	const transactionsByStatus = transactions.filter(transaction =>
 		transactionIdsByStatus.includes(transaction.id),
 	);
 
 	return transactionsByStatus;
-}
+};
 
 export const checkTransactionsWithPassAndFail = async (
 	transactions: ReadonlyArray<Transaction>,
@@ -51,8 +55,16 @@ export const checkTransactionsWithPassAndFail = async (
 	// Process transactions and check their validity
 	const { transactionsResponses } = await checkerFunction(transactions);
 
-	const failedTransactions = getTransactionByStatus(transactions, transactionsResponses, Status.FAIL);
-	const passedTransactions = getTransactionByStatus(transactions, transactionsResponses, Status.OK);
+	const failedTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.FAIL,
+	);
+	const passedTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.OK,
+	);
 
 	return {
 		failedTransactions,
@@ -66,11 +78,22 @@ export const checkTransactionsWithPassFailAndPending = async (
 ): Promise<CheckTransactionsResponseWithPassFailAndPending> => {
 	// Process transactions and check their validity
 	const { transactionsResponses } = await checkerFunction(transactions);
-	
-	const failedTransactions = getTransactionByStatus(transactions, transactionsResponses, Status.FAIL);
-	const passedTransactions = getTransactionByStatus(transactions, transactionsResponses, Status.OK);
-	const pendingTransactions = getTransactionByStatus(transactions, transactionsResponses, Status.PENDING);
 
+	const failedTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.FAIL,
+	);
+	const passedTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.OK,
+	);
+	const pendingTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.PENDING,
+	);
 
 	return {
 		failedTransactions,

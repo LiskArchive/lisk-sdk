@@ -16,7 +16,7 @@ import { TransactionError } from './errors';
 
 export enum Status {
 	OK = 1,
-	FAIL,
+	FAIL = 0,
 }
 export interface Account {
 	readonly address: string;
@@ -48,17 +48,17 @@ export interface TransactionJSON {
 	readonly amount: string;
 	readonly asset: TransactionAsset;
 	readonly fee: string;
-	readonly id: string;
+	readonly id?: string;
 	readonly recipientId: string;
-	readonly recipientPublicKey: string;
-	readonly senderId: string;
+	readonly recipientPublicKey?: string;
+	readonly senderId?: string;
 	readonly senderPublicKey: string;
 	readonly signature?: string;
 	readonly signatures: ReadonlyArray<string>;
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
-	readonly receivedAt: Date;
+	readonly receivedAt?: Date;
 }
 
 export interface IsValidResponse {

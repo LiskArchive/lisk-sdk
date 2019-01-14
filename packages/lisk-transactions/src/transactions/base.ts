@@ -15,20 +15,22 @@
 // tslint:disable-next-line no-reference
 /// <reference path="../../types/browserify-bignum/index.d.ts" />
 
-import * as cryptography from '@liskhq/lisk-cryptography';
+import {
+	bigNumberToBuffer,
+	getAddressFromPublicKey,
+	hash,
+	hexToBuffer,
+	signData,
+} from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
 	BYTESIZES,
+	MAX_TRANSACTION_AMOUNT,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	Account,
-	Status,
-	TransactionAsset,
-	TransactionJSON,
-} from '../transaction_types';
+import { Account, Status, TransactionJSON } from '../transaction_types';
 import {
 	checkTypes,
 	getId,
@@ -43,25 +45,54 @@ export interface TransactionResponse {
 	readonly id: string;
 	readonly status: Status;
 	readonly errors: ReadonlyArray<TransactionError>;
-	readonly state?: ReadonlyArray<Account>;
+	readonly state?: { readonly sender: Account; readonly recipient?: Account };
 }
+
+export interface Attributes {
+	readonly [entity: string]: {
+		readonly [property: string]: ReadonlyArray<string>;
+	};
+}
+
+export enum MultisignatureStatus {
+	FALSE = 0,
+	TRUE = 1,
+	UNKNOWN = 2,
+}
+
+export interface EntityMap {
+	readonly [name: string]: ReadonlyArray<unknown> | undefined;
+}
+
+export interface RequiredState {
+	readonly sender: Account;
+}
+
+export const ENTITY_ACCOUNT = 'account';
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
 	public readonly fee: BigNum;
-	public readonly id: string;
 	public readonly recipientId: string;
-	public readonly recipientPublicKey: string;
+	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
-	public readonly signature: string = '';
 	public readonly signatures: ReadonlyArray<string> = [];
-	public readonly signSignature?: string;
 	public readonly timestamp: number;
 	public readonly type: number;
-	public readonly asset: TransactionAsset = {};
 	public readonly receivedAt: Date = new Date();
-	public readonly isMultisignature?: boolean = false;
+	public readonly containsUniqueData?: boolean;
+	public isMultisignature: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
+
+	private _id?: string;
+	private _signature?: string;
+	private _signSignature?: string;
+
+	public abstract assetToJSON(): object;
+	public abstract verifyAgainstOtherTransactions(
+		transactions: ReadonlyArray<TransactionJSON>,
+	): TransactionResponse;
+	protected abstract getAssetBytes(): Buffer;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		const { valid, errors } = checkTypes(rawTransaction);
@@ -74,26 +105,41 @@ export abstract class BaseTransaction {
 		}
 
 		this.amount = new BigNum(rawTransaction.amount);
-		this.asset = rawTransaction.asset;
 		this.fee = new BigNum(rawTransaction.fee);
-		this.id = rawTransaction.id;
+		this._id = rawTransaction.id;
 		this.recipientId = rawTransaction.recipientId;
 		this.recipientPublicKey = rawTransaction.recipientPublicKey;
-		this.senderId = rawTransaction.senderId;
+		this.senderId =
+			rawTransaction.senderId ||
+			getAddressFromPublicKey(rawTransaction.senderPublicKey);
 		this.senderPublicKey = rawTransaction.senderPublicKey;
-		this.signature = rawTransaction.signature as string;
+		this._signature = rawTransaction.signature;
 		this.signatures = rawTransaction.signatures;
-		this.signSignature = rawTransaction.signSignature;
+		this._signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
-		this.receivedAt = rawTransaction.receivedAt;
-		this.isMultisignature =
-			rawTransaction.signatures && rawTransaction.signatures.length > 0
-				? true
-				: false;
+		this.receivedAt = rawTransaction.receivedAt || new Date();
 	}
 
-	public abstract assetToJSON(): TransactionAsset;
+	public get id(): string {
+		if (!this._id) {
+			throw new Error('id is requied to be set before use');
+		}
+
+		return this._id;
+	}
+
+	public get signature(): string {
+		if (!this._signature) {
+			throw new Error('signature is requied to be set before use');
+		}
+
+		return this._signature;
+	}
+
+	public get signSignature(): string | undefined {
+		return this._signSignature;
+	}
 
 	public toJSON(): TransactionJSON {
 		const transaction = {
@@ -106,7 +152,7 @@ export abstract class BaseTransaction {
 			recipientId: this.recipientId,
 			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
-			signature: this.signature ? this.signature : undefined,
+			signature: this.signature,
 			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
@@ -116,48 +162,17 @@ export abstract class BaseTransaction {
 		return transaction;
 	}
 
-	protected abstract getAssetBytes(): Buffer;
-
-	protected getBasicBytes(): Buffer {
-		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
-		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
-
-		const transactionSenderPublicKey = cryptography.hexToBuffer(
-			this.senderPublicKey,
-		);
-
-		const transactionRecipientID = this.recipientId
-			? cryptography.bigNumberToBuffer(
-					this.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-			  )
-			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
-
-		const transactionAmount = this.amount.toBuffer({
-			endian: 'little',
-			size: BYTESIZES.AMOUNT,
-		});
-
-		const transactionAsset = this.asset
-			? this.getAssetBytes()
-			: Buffer.alloc(0);
-
-		return Buffer.concat([
-			transactionType,
-			transactionTimestamp,
-			transactionSenderPublicKey,
-			transactionRecipientID,
-			transactionAmount,
-			transactionAsset,
+	public getBytes(): Buffer {
+		const transactionBytes = Buffer.concat([
+			this.getBasicBytes(),
+			this._signature ? hexToBuffer(this._signature) : Buffer.alloc(0),
+			this._signSignature ? hexToBuffer(this._signSignature) : Buffer.alloc(0),
 		]);
+
+		return transactionBytes;
 	}
 
-	public abstract getBytes(): Buffer;
-
-	public abstract containsUniqueData(): boolean;
-
-	public checkSchema(): TransactionResponse {
+	public validateSchema(): TransactionResponse {
 		const transaction = this.toJSON();
 		const baseTransactionValidator = validator.compile(schemas.baseTransaction);
 		const valid = baseTransactionValidator(transaction) as boolean;
@@ -176,7 +191,7 @@ export abstract class BaseTransaction {
 			// `senderPublicKey` passed format check, safely check equality to senderId
 			if (
 				this.senderId.toUpperCase() !==
-				cryptography.getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
+				getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
 			) {
 				errors.push(
 					new TransactionError(
@@ -203,10 +218,8 @@ export abstract class BaseTransaction {
 
 	public validate(): TransactionResponse {
 		const errors: TransactionError[] = [];
-		const transactionBytes = Buffer.concat([
-			this.getBasicBytes(),
-			this.getAssetBytes(),
-		]);
+		const transactionBytes = this.getBasicBytes();
+
 		const {
 			verified: signatureVerified,
 			error: verificationError,
@@ -244,13 +257,17 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public getRequiredAttributes(): object {
+	public getRequiredAttributes(): Attributes {
 		return {
-			ACCOUNTS: [cryptography.getAddressFromPublicKey(this.senderPublicKey)],
+			[ENTITY_ACCOUNT]: {
+				address: [getAddressFromPublicKey(this.senderPublicKey)],
+			},
 		};
 	}
 
-	public verify(sender: Account): TransactionResponse {
+	public abstract processRequiredState(state: EntityMap): RequiredState;
+
+	public verify({ sender }: RequiredState): TransactionResponse {
 		const errors: TransactionError[] = [];
 
 		// Check senderPublicKey
@@ -306,8 +323,7 @@ export abstract class BaseTransaction {
 			} else {
 				const transactionBytes = Buffer.concat([
 					this.getBasicBytes(),
-					this.getAssetBytes(),
-					Buffer.from(this.signature, 'hex'),
+					hexToBuffer(this.signature),
 				]);
 
 				const {
@@ -332,14 +348,13 @@ export abstract class BaseTransaction {
 			sender.multisignatures.length > 0 &&
 			sender.multimin
 		) {
+			this.isMultisignature = MultisignatureStatus.TRUE;
 			const transactionBytes = this.signSignature
 				? Buffer.concat([
 						this.getBasicBytes(),
-						this.getAssetBytes(),
 						Buffer.from(this.signature, 'hex'),
 				  ])
-				: Buffer.concat([this.getBasicBytes(), this.getAssetBytes()]);
-
+				: this.getBasicBytes();
 			const {
 				verified: multisignaturesVerified,
 				errors: multisignatureErrors,
@@ -360,6 +375,8 @@ export abstract class BaseTransaction {
 					errors.push(error);
 				});
 			}
+		} else {
+			this.isMultisignature = MultisignatureStatus.FALSE;
 		}
 
 		return {
@@ -369,44 +386,91 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public abstract verifyAgainstOtherTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse;
-
-	public apply(sender: Account): TransactionResponse {
+	public apply({ sender }: RequiredState): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
+		const errors = updatedBalance.gte(0)
+			? []
+			: [
+					new TransactionError(
+						`Account does not have enough LSK: ${sender.address}, balance: ${
+							// tslint:disable-next-line no-magic-numbers
+							new BigNum(sender.balance.toString() || '0').div(Math.pow(10, 8))
+						}`,
+						this.id,
+					),
+			  ];
 
 		return {
 			id: this.id,
-			status: Status.OK,
-			state: [updatedAccount],
-			errors: [],
+			status: errors.length > 0 ? Status.FAIL : Status.OK,
+			state: { sender: updatedAccount },
+			errors,
 		};
 	}
 
-	public undo(sender: Account): TransactionResponse {
+	public undo({ sender }: RequiredState): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
+		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
+			? []
+			: [new TransactionError('Invalid balance amount', this.id)];
 
 		return {
 			id: this.id,
-			status: Status.OK,
-			state: [updatedAccount],
-			errors: [],
+			status: errors.length > 0 ? Status.FAIL : Status.OK,
+			state: { sender: updatedAccount },
+			errors,
 		};
 	}
 
 	public isExpired(date: Date = new Date()): boolean {
 		// tslint:disable-next-line no-magic-numbers
 		const timeNow = Math.floor(date.getTime() / 1000);
-		const timeOut = this.isMultisignature
-			? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
-			: UNCONFIRMED_TRANSACTION_TIMEOUT;
+		const timeOut =
+			this.isMultisignature === MultisignatureStatus.TRUE
+				? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
+				: UNCONFIRMED_TRANSACTION_TIMEOUT;
 		const timeElapsed =
 			// tslint:disable-next-line no-magic-numbers
 			timeNow - Math.floor(this.receivedAt.getTime() / 1000);
 
 		return timeElapsed > timeOut;
+	}
+
+	public sign(passphrase: string, secondPassphrase?: string): void {
+		this._signature = undefined;
+		this._signSignature = undefined;
+		this._signature = signData(hash(this.getBytes()), passphrase);
+		if (secondPassphrase) {
+			this._signSignature = signData(hash(this.getBytes()), secondPassphrase);
+		}
+		this._id = getId(this.getBytes());
+	}
+
+	protected getBasicBytes(): Buffer {
+		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
+		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
+		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
+
+		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
+
+		const transactionRecipientID = this.recipientId
+			? bigNumberToBuffer(this.recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
+			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
+
+		const transactionAmount = this.amount.toBuffer({
+			endian: 'little',
+			size: BYTESIZES.AMOUNT,
+		});
+
+		return Buffer.concat([
+			transactionType,
+			transactionTimestamp,
+			transactionSenderPublicKey,
+			transactionRecipientID,
+			transactionAmount,
+			this.getAssetBytes(),
+		]);
 	}
 }

@@ -29,14 +29,15 @@ export class Job<T> {
 		return new Promise<void>(resolve => {
 			this._id = setTimeout(async () => {
 				await this._job();
+				resolve();
 
-				return resolve();
+				return;
 			}, this._interval);
 		});
 	}
 
 	private async run(): Promise<void> {
-		// tslint:disable-next-line no-loop-statement
+		// tslint:disable-next-line:no-loop-statement
 		while (this._active) {
 			await this.callJobAfterTimeout();
 		}
