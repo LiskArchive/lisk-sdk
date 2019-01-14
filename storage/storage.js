@@ -30,6 +30,12 @@ class Storage {
 
 		this.isReady = false;
 		Storage.instance = this;
+		Storage.instance.adapter = new PgpAdapter({
+			...this.options,
+			inTest: process.env.NODE_ENV === 'test',
+			sqlDirectory: path.join(path.dirname(__filename), './sql'),
+			logger: this.logger,
+		});
 		Storage.instance.BaseEntity = BaseEntity;
 		Storage.instance.entities = {};
 	}
@@ -38,17 +44,9 @@ class Storage {
 	 * @return Promise
 	 */
 	bootstrap() {
-		const adapter = new PgpAdapter({
-			...this.options,
-			inTest: process.env.NODE_ENV === 'test',
-			sqlDirectory: path.join(path.dirname(__filename), './sql'),
-			logger: this.logger,
-		});
-
-		return adapter.connect().then(status => {
+		return Storage.instance.adapter.connect().then(status => {
 			if (status) {
 				this.isReady = true;
-				Storage.instance.adapter = adapter;
 			}
 
 			return status;
