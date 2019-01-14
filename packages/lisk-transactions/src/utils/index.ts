@@ -26,8 +26,8 @@ export {
 	signTransaction,
 	secondSignTransaction,
 	multiSignTransaction,
+	verifyMultisignatures,
 	verifySignature,
-	verifySignatures,
 	verifyTransaction,
 } from './sign_and_verify';
 export { signRawTransaction } from './sign_raw_transaction';

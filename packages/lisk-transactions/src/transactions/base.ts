@@ -34,19 +34,15 @@ import {
 	TransactionMultiError,
 	TransactionPendingError,
 } from '../errors';
-import {
-	Account,
-	Status,
-	TransactionJSON,
-} from '../transaction_types';
+import { Account, Status, TransactionJSON } from '../transaction_types';
 import {
 	checkTypes,
 	getId,
 	validateSignatureAndPublicKey,
 	validator,
 	verifyBalance,
+	verifyMultisignatures,
 	verifySignature,
-	verifySignatures,
 } from '../utils';
 import * as schemas from '../utils/validation/schema';
 
@@ -86,7 +82,7 @@ export abstract class BaseTransaction {
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
-	public readonly signatures: ReadonlyArray<string> = [];
+	public readonly signatures: string[] = [];
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly receivedAt: Date = new Date();
@@ -362,7 +358,7 @@ export abstract class BaseTransaction {
 			const {
 				status,
 				errors: multisignatureErrors,
-			} = this.verifyMultisignatures(sender);
+			} = this.processMultisignatures({ sender });
 
 			if (status === Status.PENDING && errors.length === 0) {
 				return {
@@ -427,14 +423,11 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public addMultiSignature(
+	public addMultisignature(
 		signature: string,
 		publicKey: string,
 	): TransactionResponse {
-		const { valid } = validateSignatureAndPublicKey(
-			signature,
-			publicKey,
-		);
+		const { valid } = validateSignatureAndPublicKey(signature, publicKey);
 
 		if (valid && !this.signatures.includes(signature)) {
 			const transactionBytes = this.getBasicBytes();
@@ -469,7 +462,9 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	protected verifyMultisignatures(sender: Account): TransactionResponse {
+	protected processMultisignatures({
+		sender,
+	}: RequiredState): TransactionResponse {
 		const transactionBytes = this.signSignature
 			? Buffer.concat([
 					this.getBasicBytes(),
@@ -477,10 +472,20 @@ export abstract class BaseTransaction {
 			  ])
 			: this.getBasicBytes();
 
-		const { verified, errors } = verifySignatures(
+		if (!sender.multimin || typeof sender.multimin !== 'number') {
+			return {
+				id: this.id,
+				status: Status.FAIL,
+				errors: [
+					new TransactionError('Sender does not have valid multimin', this.id),
+				],
+			};
+		}
+
+		const { verified, errors } = verifyMultisignatures(
 			sender.multisignatures,
 			this.signatures,
-			sender.multimin as number,
+			sender.multimin,
 			transactionBytes,
 			this.id,
 		);
@@ -488,7 +493,9 @@ export abstract class BaseTransaction {
 		return {
 			id: this.id,
 			status:
-				Array.isArray(errors) && errors[0] instanceof TransactionPendingError
+				Array.isArray(errors) &&
+				errors.length > 0 &&
+				errors[0] instanceof TransactionPendingError
 					? Status.PENDING
 					: verified
 						? Status.OK
@@ -526,15 +533,10 @@ export abstract class BaseTransaction {
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 
-		const transactionSenderPublicKey = hexToBuffer(
-			this.senderPublicKey,
-		);
+		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		const transactionRecipientID = this.recipientId
-			? bigNumberToBuffer(
-					this.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-			  )
+			? bigNumberToBuffer(this.recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 		const transactionAmount = this.amount.toBuffer({

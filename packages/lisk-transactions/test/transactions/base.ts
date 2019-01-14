@@ -617,9 +617,9 @@ describe('Base transaction class', () => {
 			expect(getBasicBytesStub).to.be.calledOnce;
 		});
 
-		it('should call verifySignatures for multisignature transaction', async () => {
-			const verifySignaturesStub = sandbox
-				.stub(utils, 'verifySignatures')
+		it('should call verifyMultisignatures for multisignature transaction', async () => {
+			const verifyMultisignaturesStub = sandbox
+				.stub(utils, 'verifyMultisignatures')
 				.returns(
 					Buffer.from(
 						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02000000',
@@ -630,7 +630,7 @@ describe('Base transaction class', () => {
 				sender: defaultMultisignatureAccount,
 			});
 
-			expect(verifySignaturesStub).to.be.calledWithExactly(
+			expect(verifyMultisignaturesStub).to.be.calledWithExactly(
 				defaultMultisignatureAccount.multisignatures,
 				defaultMultisignatureTransaction.signatures,
 				defaultMultisignatureAccount.multimin,
@@ -841,7 +841,7 @@ describe('Base transaction class', () => {
 				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
 			});
 
-			sandbox.stub(utils, 'verifySignatures').returns({
+			sandbox.stub(utils, 'verifyMultisignatures').returns({
 				verified: false,
 				errors: [
 					new TransactionPendingError(
@@ -852,9 +852,9 @@ describe('Base transaction class', () => {
 				],
 			});
 
-			const { id, status, errors } = multisignaturesTransaction.verify(
-				defaultMultisignatureAccount,
-			);
+			const { id, status, errors } = multisignaturesTransaction.verify({
+				sender: defaultMultisignatureAccount,
+			});
 
 			expect(id).to.be.eql(multisignaturesTransaction.id);
 			expect(status).to.eql(Status.PENDING);

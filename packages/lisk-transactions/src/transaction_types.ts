@@ -49,7 +49,7 @@ export interface TransactionJSON {
 	readonly senderId?: string;
 	readonly senderPublicKey: string;
 	readonly signature?: string;
-	readonly signatures: ReadonlyArray<string>;
+	readonly signatures: string[];
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;

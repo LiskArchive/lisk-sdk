@@ -31,7 +31,7 @@ import {
 	signTransaction,
 	multiSignTransaction,
 	verifyBalance,
-	verifySignatures,
+	verifyMultisignatures,
 	verifySignature,
 	verifyTransaction,
 	validateAddress,
@@ -113,8 +113,8 @@ describe('transaction utils', () => {
 			return expect(verifySignature).to.be.a('function');
 		});
 
-		it('should have verifySignatures', () => {
-			return expect(verifySignatures).to.be.a('function');
+		it('should have verifyMultisignatures', () => {
+			return expect(verifyMultisignatures).to.be.a('function');
 		});
 
 		it('should have verifyBalance', () => {

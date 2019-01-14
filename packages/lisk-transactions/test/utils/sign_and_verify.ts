@@ -18,8 +18,8 @@ import { addTransactionFields } from '../helpers';
 import {
 	signTransaction,
 	multiSignTransaction,
+	verifyMultisignatures,
 	verifySignature,
-	verifySignatures,
 	verifyTransaction,
 } from '../../src/utils';
 import { TransactionError, TransactionPendingError } from '../../src/errors';
@@ -147,7 +147,7 @@ describe('signAndVerify module', () => {
 		});
 	});
 
-	describe('#verifySignatures', () => {
+	describe('#verifyMultisignatures', () => {
 		const defaultMultisignatureTransaction = addTransactionFields(
 			validMultisignatureTransaction,
 		);
@@ -160,7 +160,7 @@ describe('signAndVerify module', () => {
 		} = defaultMultisignatureAccount as Account;
 
 		it('should return a verified response with valid signatures', async () => {
-			const { verified } = verifySignatures(
+			const { verified } = verifyMultisignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures,
 				3,
@@ -170,22 +170,8 @@ describe('signAndVerify module', () => {
 			expect(verified).to.be.true;
 		});
 
-		it('should return a verification fail response with invalid multimin', async () => {
-			const { verified, errors } = verifySignatures(
-				memberPublicKeys,
-				defaultMultisignatureTransaction.signatures,
-				'3' as any,
-				defaultTransactionBytes,
-			);
-
-			expect(verified).to.be.false;
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.have.property('message', `Sender does not have valid multimin`);
-		});
-
 		it('should return a verification fail response with invalid signatures', async () => {
-			const { verified, errors } = verifySignatures(
+			const { verified, errors } = verifyMultisignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures.map((signature: string) =>
 					signature.replace('1', '0'),
@@ -207,24 +193,8 @@ describe('signAndVerify module', () => {
 			});
 		});
 
-		it('should return a verification fail response with over max amount of signatures', async () => {
-			const { verified, errors } = verifySignatures(
-				memberPublicKeys,
-				new Array(16).fill(0),
-				3,
-				defaultTransactionBytes,
-			);
-
-			expect(verified).to.be.false;
-			(errors as ReadonlyArray<TransactionError>).forEach(error => {
-				expect(error)
-					.to.be.instanceof(TransactionError)
-					.and.have.property('message', 'Exceeds maximum of 15 signatures.');
-			});
-		});
-
 		it('should return a transaction pending error when missing signatures', async () => {
-			const { verified, errors } = verifySignatures(
+			const { verified, errors } = verifyMultisignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures.slice(0, 2),
 				3,
