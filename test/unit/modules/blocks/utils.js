@@ -109,12 +109,14 @@ describe('blocks/utils', () => {
 				getHeightByLastId: sinonSandbox.stub().resolves(['1']),
 				loadLastBlock: sinonSandbox.stub().resolves(fullBlocksListRows),
 				loadBlocksData: sinonSandbox.stub(),
-				aggregateBlocksReward: sinonSandbox.stub().resolves(),
 			},
 		};
 
 		storageStub = {
 			entities: {
+				Account: {
+					delegateBlocksRewards: sinonSandbox.stub().resolves(),
+				},
 				Block: {
 					get: sinonSandbox.stub(),
 				},
@@ -657,7 +659,7 @@ describe('blocks/utils', () => {
 			);
 		});
 
-		it('should return error when library.db.blocks.aggregateBlocksReward fails', done => {
+		it('should return error when library.storage.entities.Account.delegateBlocksRewards fails', done => {
 			blocksUtilsModule.aggregateBlocksReward(
 				{ address: '1L' },
 				(err, data) => {
@@ -672,7 +674,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return error when account is not a delegate', done => {
-			library.db.blocks.aggregateBlocksReward = sinonSandbox
+			library.storage.entities.Account.delegateBlocksRewards = sinonSandbox
 				.stub()
 				.resolves([{ delegate: null }]);
 
@@ -687,7 +689,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return aggregate blocks rewards', done => {
-			library.db.blocks.aggregateBlocksReward = sinonSandbox
+			library.storage.entities.Account.delegateBlocksRewards = sinonSandbox
 				.stub()
 				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
 
