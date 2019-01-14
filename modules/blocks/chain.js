@@ -194,8 +194,7 @@ __private.afterSave = function(block, cb) {
 Chain.prototype.deleteBlock = function(blockId, cb, tx) {
 	// Delete block with ID from blocks table
 	// WARNING: DB_WRITE
-	tx.blocks
-		.deleteBlock(blockId)
+	library.storage.entities.Block.delete({ id: blockId }, {}, tx)
 		.then(() => setImmediate(cb))
 		.catch(err => {
 			library.logger.error(err.stack);

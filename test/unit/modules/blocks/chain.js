@@ -437,9 +437,9 @@ describe('blocks/chain', () => {
 	});
 
 	describe('deleteBlock', () => {
-		describe('when library.db.blocks.deleteBlock fails', () => {
+		describe('when library.storage.entities.Block.delete fails', () => {
 			beforeEach(() => {
-				return library.db.blocks.deleteBlock.rejects('deleteBlock-ERR');
+				return library.storage.entities.Block.delete.rejects('deleteBlock-ERR');
 			});
 
 			it('should call a callback with error', done => {
@@ -455,9 +455,9 @@ describe('blocks/chain', () => {
 			});
 		});
 
-		describe('when library.db.blocks.deleteBlock succeeds', () => {
+		describe('when library.storage.entities.Block.delete succeeds', () => {
 			beforeEach(() => {
-				return library.db.blocks.deleteBlock.resolves(true);
+				return library.storage.entities.Block.delete.resolves(true);
 			});
 
 			it('should call a callback with no error', done => {
