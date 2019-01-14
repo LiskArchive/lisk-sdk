@@ -15,7 +15,26 @@
 'use strict';
 
 const Storage = require('./storage');
+const {
+	Account,
+	Block,
+	Delegate,
+	Peer,
+	Round,
+	Transaction,
+	Migration,
+} = require('./entities');
 
 module.exports = function createStorage(options, logger) {
-	return new Storage(options, logger);
+	const storage = new Storage(options, logger);
+
+	storage.register('Account', Account);
+	storage.register('Block', Block);
+	storage.register('Delegate', Delegate);
+	storage.register('Migration', Migration);
+	storage.register('Peer', Peer);
+	storage.register('Round', Round);
+	storage.register('Transaction', Transaction);
+
+	return storage;
 };
