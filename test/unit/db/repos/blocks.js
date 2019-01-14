@@ -72,7 +72,9 @@ const blockListFields = [
 	'v_votes',
 ];
 
-describe('db', () => {
+// TODO: move these tests to storage once all db folder is replaced
+/* eslint-disable mocha/no-skipped-tests */
+describe.skip('db', () => {
 	before(done => {
 		dbSandbox = new DBSandbox(__testContext.config.db, 'lisk_test_db_blocks');
 
