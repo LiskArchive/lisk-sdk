@@ -214,7 +214,7 @@ describe('#castVotes transaction', () => {
 			return expect(
 				castVotes.bind(null, {
 					passphrase,
-					votes: undefined,
+					votes: null as any,
 				}),
 			).to.throw(
 				'Please provide a valid votes value. Expected an array if present.',
@@ -236,7 +236,7 @@ describe('#castVotes transaction', () => {
 			return expect(
 				castVotes.bind(null, {
 					passphrase,
-					unvotes: undefined,
+					unvotes: null as any,
 				}),
 			).to.throw(
 				'Please provide a valid unvotes value. Expected an array if present.',
