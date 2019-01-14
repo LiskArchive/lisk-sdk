@@ -105,7 +105,6 @@ describe('blocks/utils', () => {
 	beforeEach(done => {
 		dbStub = {
 			blocks: {
-				getIdSequence: sinonSandbox.stub().resolves(),
 				loadLastBlock: sinonSandbox.stub().resolves(fullBlocksListRows),
 				loadBlocksData: sinonSandbox.stub(),
 			},
@@ -118,6 +117,7 @@ describe('blocks/utils', () => {
 				},
 				Block: {
 					get: sinonSandbox.stub().resolves(['1']),
+					getFirstBlockIdOfLastRounds: sinonSandbox.stub().resolves(),
 				},
 			},
 		};
@@ -395,19 +395,22 @@ describe('blocks/utils', () => {
 	});
 
 	describe('getIdSequence', () => {
-		it('should call library.db.blocks.getIdSequence with proper params', done => {
+		it('should call library.storage.entities.Block.getFirstBlockIdOfLastRounds with proper params', done => {
 			blocksUtilsModule.getIdSequence(10, () => {
-				expect(library.db.blocks.getIdSequence).to.have.been.calledOnce;
-				expect(library.db.blocks.getIdSequence).to.have.been.calledWith({
+				expect(library.storage.entities.Block.getFirstBlockIdOfLastRounds).to
+					.have.been.calledOnce;
+				expect(
+					library.storage.entities.Block.getFirstBlockIdOfLastRounds
+				).to.have.been.calledWith({
 					height: 10,
-					limit: 5,
-					delegates: 101,
+					numberOfRounds: 5,
+					numberOfDelegates: 101,
 				});
 				done();
 			});
 		});
 
-		it('should return error when library.db.blocks.getIdSequence fails', done => {
+		it('should return error when library.storage.entities.Block.getFirstBlockIdOfLastRounds fails', done => {
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
@@ -419,7 +422,9 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return error when no row is found', done => {
-			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([]);
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
+				.stub()
+				.resolves([]);
 
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(err).to.equal('Failed to get id sequence for height: 10');
@@ -429,7 +434,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return valid block id list', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([
 					{ id: 1, height: 2 },
@@ -450,7 +455,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add genesis block to the set when library.genesisBlock is undefined', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: 1, height: 2 }]);
 
@@ -468,7 +473,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add genesis block to the set when library.genesisBlock.block is undefined', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: 1, height: 2 }]);
 
@@ -486,7 +491,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add genesis block to the set more than once', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: '6524861224470851795', height: 1 }]);
 
@@ -502,7 +507,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add last block when it is undefined', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: '6524861224470851795', height: 1 }]);
 
@@ -518,7 +523,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add last block to the set more than once', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: '9314232245035524467', height: 1 }]);
 
@@ -534,7 +539,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add resolved block to the set more than once', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: 2, height: 3 }, { id: 2, height: 3 }]);
 
