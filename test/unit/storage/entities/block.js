@@ -433,7 +433,7 @@ describe('Block', () => {
 			const block = new Block(localAdapter);
 			block.getValuesSet = sinonSandbox.stub();
 			block.create(validBlock);
-			expect(block.getValuesSet.calledWith(validBlock)).to.be.true;
+			expect(block.getValuesSet.calledWith([validBlock])).to.be.true;
 		});
 
 		it('should create a block object successfully', async () => {

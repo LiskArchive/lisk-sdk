@@ -14,12 +14,30 @@
 
 'use strict';
 
+const assert = require('assert');
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
 const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 const Transaction = require('./transaction');
+
+const defaultCreateValues = {};
+const createFields = [
+	'id',
+	'height',
+	'blockSignature',
+	'generatorPublicKey',
+	'payloadHash',
+	'payloadLength',
+	'numberOfTransactions',
+	'previousBlockId',
+	'timestamp',
+	'totalAmount',
+	'totalFee',
+	'reward',
+	'version',
+];
 
 /**
  * Basic Block
@@ -266,16 +284,30 @@ class Block extends BaseEntity {
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
-		const objectData = data;
-		const createSet = this.getValuesSet(objectData);
-		const attributes = Object.keys(data)
+		assert(data, 'Must provide data to create block');
+		assert(
+			typeof data === 'object' || Array.isArray(data),
+			'Data must be an object or array of objects'
+		);
+
+		let blocks = _.cloneDeep(data);
+
+		if (!Array.isArray(blocks)) {
+			blocks = [blocks];
+		}
+
+		blocks = blocks.map(v => _.defaults(v, defaultCreateValues));
+
+		const createSet = this.getValuesSet(blocks, createFields);
+
+		const fields = createFields
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
 		return this.adapter.executeFile(
 			this.SQLs.create,
-			{ attributes, createSet },
-			{},
+			{ createSet, fields },
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}
