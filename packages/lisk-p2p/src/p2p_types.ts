@@ -77,14 +77,14 @@ export interface ProtocolPeerList {
 }
 
 // TODO later: Switch to LIP protocol format.
-export interface ProtocolInboundRPCRequest {
+export interface ProtocolRPCRequest {
 	readonly data: unknown;
 	readonly procedure: string;
 	readonly type: string;
 }
 
 // TODO later: Switch to LIP protocol format.
-export interface ProtocolInboundMessage {
+export interface ProtocolMessage {
 	readonly data: unknown;
 	readonly event: string;
 }

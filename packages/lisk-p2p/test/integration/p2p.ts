@@ -18,7 +18,7 @@ describe.skip('Integration tests for P2P library', () => {
 				});
 			});
 
-			let peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => {
 					return p2p.start();
 				},
@@ -54,7 +54,7 @@ describe.skip('Integration tests for P2P library', () => {
 				});
 			});
 
-			let peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				blockchainP2P => {
 					return blockchainP2P.start();
 				},

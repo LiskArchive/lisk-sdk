@@ -21,8 +21,8 @@ import {
 	P2PNodeInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	ProtocolInboundMessage,
-	ProtocolInboundRPCRequest,
+	ProtocolMessage,
+	ProtocolRPCRequest,
 } from './p2p_types';
 
 import socketClusterClient, { SCClientSocket } from 'socketcluster-client';
@@ -66,7 +66,7 @@ export class Peer extends EventEmitter {
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
-	private readonly _peerInfo: PeerInfo;
+	private _peerInfo: PeerInfo;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocket | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
@@ -90,7 +90,7 @@ export class Peer extends EventEmitter {
 		this._handleRPC = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
 			// TODO ASAP: Move validation/sanitization to response_handler_sanitization with other validation logic.
-			const request = packet as ProtocolInboundRPCRequest;
+			const request = packet as ProtocolRPCRequest;
 			if (!request || typeof request.procedure !== 'string') {
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, request);
 
@@ -111,7 +111,7 @@ export class Peer extends EventEmitter {
 		this._handleMessage = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
 			// TODO ASAP: Move validation/sanitization to response_handler_sanitization with other validation logic.
-			const message = packet as ProtocolInboundMessage;
+			const message = packet as ProtocolMessage;
 			if (!message || typeof message.event !== 'string') {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, message);
 
@@ -286,9 +286,13 @@ export class Peer extends EventEmitter {
 		});
 	}
 
-	private _handlePeerInfo(request: ProtocolInboundRPCRequest): void {
+	private _handlePeerInfo(request: ProtocolRPCRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
-		Object.assign(this._peerInfo, request.data as PeerInfo);
+		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
+		this._peerInfo = {
+			...this._peerInfo,
+			...request.data,
+		} as PeerInfo;
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 	}
 
