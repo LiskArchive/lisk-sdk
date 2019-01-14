@@ -698,10 +698,10 @@ Delegates.prototype.generateDelegateList = function(blockHeight, cb, tx) {
 		return setImmediate(cb, null, __private.delegatesListCache[round]);
 	}
 
-	const lastBlockRound = slots.calcRound(modules.blocks.lastBlock.get().height);
+	const lastBlockHeight = modules.blocks.lastBlock.get().height;
 	// Set default function for getting delegates
 	const source =
-		lastBlockRound > round
+		blockHeight === lastBlockHeight && lastBlockHeight % ACTIVE_DELEGATES === 0
 			? 'getDelegatesFromPreviousRound'
 			: 'getKeysSortByVote';
 
