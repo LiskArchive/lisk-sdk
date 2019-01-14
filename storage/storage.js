@@ -29,15 +29,16 @@ class Storage {
 		}
 
 		this.isReady = false;
-		Storage.instance = this;
-		Storage.instance.adapter = new PgpAdapter({
+		this.adapter = new PgpAdapter({
 			...this.options,
 			inTest: process.env.NODE_ENV === 'test',
 			sqlDirectory: path.join(path.dirname(__filename), './sql'),
 			logger: this.logger,
 		});
-		Storage.instance.BaseEntity = BaseEntity;
-		Storage.instance.entities = {};
+		this.BaseEntity = BaseEntity;
+		this.entities = {};
+
+		Storage.instance = this;
 	}
 
 	/**
