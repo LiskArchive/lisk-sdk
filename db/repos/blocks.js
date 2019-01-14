@@ -14,7 +14,6 @@
 
 'use strict';
 
-const sql = require('../sql').blocks;
 const ed = require('../../helpers/ed.js');
 
 const cs = {}; // Reusable ColumnSet objects
@@ -73,61 +72,6 @@ class BlocksRepository {
 		}
 	}
 
-	// TODO: Merge BlocksRepository#getGenesisBlock with BlocksRepository#getGenesisBlockId
-	/**
-	 * Get the genesis block.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getGenesisBlock() {
-		return this.db.any(sql.getGenesisBlock);
-	}
-
-	/**
-	 * Get genesis block by id.
-	 *
-	 * @param {string} id
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	getGenesisBlockId(id) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getGenesisBlockId, [id]);
-	}
-
-	/**
-	 * Delete a block from database.
-	 *
-	 * @param {string} id
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	deleteBlock(id) {
-		return this.db.none(sql.deleteBlock, [id]);
-	}
-
-	/**
-	 * Delete all blocks above a particular height.
-	 *
-	 * @param {int} height
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	deleteBlocksAfterHeight(height) {
-		return this.db.none(sql.deleteBlocksAfterHeight, { height });
-	}
-
-	/**
-	 * Counts all blocks.
-	 *
-	 * @returns {Promise<number>}
-	 * @todo Add description for the return value
-	 */
-	count() {
-		return this.db.one(sql.count, [], a => +a.count);
-	}
-
 	/**
 	 * Search blocks in database.
 	 *
@@ -150,47 +94,6 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Get sequence of blocks ids for delegates.
-	 *
-	 * @param {Object} params
-	 * @param {int} params.delegates - Number of delegates
-	 * @param {int} params.height
-	 * @param {int} params.limit
-	 * @returns {Promise<[]>}
-	 * Array of blocks.
-	 */
-	getIdSequence(params) {
-		return this.db.any(sql.getIdSequence, params);
-	}
-
-	/**
-	 * Get common block among peers.
-	 *
-	 * @param {Object} params
-	 * @param {string} params.id
-	 * @param {string} params.previousBlock
-	 * @param {int} params.height
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	getCommonBlock(params) {
-		return this.db.any(sql.getCommonBlock, params);
-	}
-
-	// TODO: Merge BlocksRepository#getHeightByLastId with BlocksRepository#list
-	/**
-	 * Get height of the block with id.
-	 *
-	 * @param {string} lastId - Id of the block to search
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getHeightByLastId(lastId) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getHeightByLastId, [lastId]);
-	}
-
-	/**
 	 * Load block including transactions.
 	 *
 	 * @param {Object} params
@@ -203,63 +106,6 @@ class BlocksRepository {
 	 */
 	loadBlocksData(params) {
 		return this.db.any(Queries.loadBlocksData, params);
-	}
-
-	/**
-	 * Load blocks including transactions with an offset and limit.
-	 *
-	 * @param {int} offset
-	 * @param {int} limit
-	 * @returns {Promise<[]>}
-	 * List of blocks.
-	 */
-	loadBlocksOffset(offset, limit) {
-		return this.db.any(sql.loadBlocksOffset, [offset, limit]);
-	}
-
-	/**
-	 * Load the last block including transactions.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	loadLastBlock() {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.loadLastBlock);
-	}
-
-	/**
-	 * Load last N block ids from the database.
-	 *
-	 * @param {limit} - Number of blocks to load
-	 * @todo Add @returns tag
-	 */
-	loadLastNBlockIds(limit) {
-		return this.db.query(sql.loadLastNBlockIds, [limit]);
-	}
-
-	/**
-	 * Check if a block exits with a particular ID.
-	 *
-	 * @param {string} id
-	 * @throws {QueryResultError} - If multiple rows were not expected - in the case of multiple blocks found with same id
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	blockExists(id) {
-		return this.db.oneOrNone(sql.blockExists, [id]);
-	}
-
-	/**
-	 * Get block to be transported to peers.
-	 *
-	 * @param {string} id - id of the block
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 *
-	 */
-	getBlockForTransport(id) {
-		return this.db.oneOrNone(sql.getBlockForTransport, [id]);
 	}
 
 	/**

@@ -31,21 +31,7 @@ const { link } = require('./config');
  */
 module.exports = {
 	accounts: {},
-	blocks: {
-		count: link('blocks/count.sql'),
-		deleteBlock: link('blocks/delete_block.sql'),
-		deleteBlocksAfterHeight: link('blocks/delete_blocks_after_height.sql'),
-		getGenesisBlock: link('blocks/get_genesis_block.sql'),
-		getGenesisBlockId: link('blocks/get_genesis_block_id.sql'),
-		getIdSequence: link('blocks/get_id_sequence.sql'),
-		loadBlocksOffset: link('blocks/load_blocks_offset.sql'),
-		loadLastBlock: link('blocks/load_last_block.sql'),
-		loadLastNBlockIds: link('blocks/load_last_n_block_ids.sql'),
-		blockExists: link('blocks/block_exists.sql'),
-		getBlockForTransport: link('blocks/get_block_for_transport.sql'),
-		getHeightByLastId: link('blocks/get_height_by_last_id.sql'),
-		getCommonBlock: link('blocks/get_common_block.sql'),
-	},
+	blocks: {},
 	dapps: {
 		countByOutTransactionId: link('dapps/count_by_out_transaction_id.sql'),
 		countByTransactionId: link('dapps/count_by_transaction_id.sql'),
