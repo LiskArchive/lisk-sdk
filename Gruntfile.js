@@ -23,8 +23,8 @@ module.exports = function(grunt) {
 				cmd(tagFilter, suite, section) {
 					if (suite === 'network') {
 						let filter = '';
-						if (tagFilter === 'network') {
-							filter = '--grep @network';
+						if (tagFilter === 'p2p') {
+							filter = '--grep @p2p';
 						} else if (tagFilter === 'propagation') {
 							filter = '--grep @propagation';
 						}

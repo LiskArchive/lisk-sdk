@@ -17,7 +17,6 @@
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const async = require('async');
 // Submodules
-const BlocksAPI = require('./blocks/api');
 const BlocksVerify = require('./blocks/verify');
 const BlocksProcess = require('./blocks/process');
 const BlocksUtils = require('./blocks/utils');
@@ -43,7 +42,6 @@ __private.isActive = false;
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires modules/blocks/api
  * @requires modules/blocks/verify
  * @requires modules/blocks/process
  * @requires modules/blocks/utils
@@ -62,13 +60,6 @@ class Blocks {
 
 		// Initialize submodules with library content
 		this.submodules = {
-			api: new BlocksAPI(
-				scope.logger,
-				scope.db,
-				scope.storage,
-				scope.logic.block,
-				scope.schema
-			),
 			verify: new BlocksVerify(
 				scope.logger,
 				scope.logic.block,
@@ -110,7 +101,6 @@ class Blocks {
 		};
 
 		// Expose submodules
-		this.shared = this.submodules.api;
 		this.verify = this.submodules.verify;
 		this.process = this.submodules.process;
 		this.utils = this.submodules.utils;
