@@ -263,7 +263,7 @@ class Block extends BaseEntity {
 	 * @param {filters.Block|filters.Block[]} [filters = {}]
 	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
 	 */
-	count(filters = {}) {
+	count(filters = {}, tx) {
 		this.validateFilters(filters);
 
 		const mergedFilters = this.mergeFilters(filters);
@@ -271,7 +271,12 @@ class Block extends BaseEntity {
 		const expectedResultCount = 1;
 
 		return this.adapter
-			.executeFile(this.SQLs.count, { parsedFilters }, { expectedResultCount })
+			.executeFile(
+				this.SQLs.count,
+				{ parsedFilters },
+				{ expectedResultCount },
+				tx
+			)
 			.then(result => +result.count);
 	}
 
