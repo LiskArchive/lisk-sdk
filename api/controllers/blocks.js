@@ -15,9 +15,11 @@
 'use strict';
 
 const _ = require('lodash');
+const apiCodes = require('../../helpers/api_codes.js');
+const ApiError = require('../../helpers/api_error.js');
 
-// Private Fields
-let modules;
+let library;
+let sortFields;
 
 /**
  * Description of the function.
@@ -29,7 +31,23 @@ let modules;
  * @todo Add description of BlocksController
  */
 function BlocksController(scope) {
-	modules = scope.modules;
+	library = {
+		storage: scope.storage,
+		logic: scope.logic,
+		logger: scope.logger,
+	};
+
+	sortFields = [
+		'id',
+		'timestamp',
+		'height',
+		'previousBlock',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'numberOfTransactions',
+		'generatorPublicKey',
+	];
 }
 
 /**
@@ -42,7 +60,7 @@ function BlocksController(scope) {
 BlocksController.getBlocks = function(context, next) {
 	const params = context.request.swagger.params;
 
-	let filters = {
+	let parsedParams = {
 		id: params.blockId.value,
 		height: params.height.value,
 		generatorPublicKey: params.generatorPublicKey.value,
@@ -53,10 +71,13 @@ BlocksController.getBlocks = function(context, next) {
 		offset: params.offset.value,
 	};
 
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
+	// Remove params with undefined/null values
+	parsedParams = _.omitBy(
+		parsedParams,
+		value => value === undefined || value === null
+	);
 
-	return modules.blocks.shared.getBlocks(_.clone(filters), (err, data) => {
+	return _list(_.clone(parsedParams), (err, data) => {
 		if (err) {
 			return next(err);
 		}
@@ -80,11 +101,95 @@ BlocksController.getBlocks = function(context, next) {
 		return next(null, {
 			data,
 			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
+				offset: parsedParams.offset,
+				limit: parsedParams.limit,
 			},
 		});
 	});
 };
+
+/**
+ * Get filtered list of blocks (without transactions - BasicBlock).
+ *
+ * @private
+ * @func _list
+ * @param {Object} filter - Conditions to filter with
+ * @param {string} filter.id - Block id
+ * @param {string} filter.generatorPublicKey - Public key of delegate who generates the block
+ * @param {number} filter.numberOfTransactions - Number of transactions
+ * @param {string} filter.previousBlock - Previous block ID
+ * @param {number} filter.height - Block height
+ * @param {number} filter.totalAmount - Total amount of block's transactions
+ * @param {number} filter.totalFee - Block total fees
+ * @param {number} filter.reward - Block reward
+ * @param {number} filter.limit - Limit of blocks to retrieve, default: 100, max: 100
+ * @param {number} filter.offset - Offset from where to start
+ * @param {string} filter.sort - Sort order, default: height:desc
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.data - List of normalized blocks
+ */
+function _list(params, cb) {
+	const options = {};
+	const parsedFilters = {
+		id: params.id,
+		generatorPublicKey: params.generatorPublicKey,
+		numberOfTransactions: params.numberOfTransactions,
+		previousBlockId: params.previousBlock,
+		height: params.height,
+		timestamp_gte: params.fromTimestamp,
+		timestamp_lte: params.toTimestamp,
+		totalAmount: params.totalAmount,
+		totalFee: params.totalFee,
+		reward: params.reward,
+	};
+
+	// Remove filters with undefined/null values
+	const filters = _.omitBy(
+		parsedFilters,
+		value => value === undefined || value === null
+	);
+
+	options.limit = params.limit ? Math.abs(params.limit) : 100;
+	options.offset = params.offset ? Math.abs(params.offset) : 0;
+	options.sort = params.sort || 'height:desc';
+
+	if (options.limit > 100) {
+		return setImmediate(
+			cb,
+			new ApiError(
+				'Invalid limit. Maximum is 100',
+				apiCodes.INTERNAL_SERVER_ERROR
+			)
+		);
+	}
+
+	const [sortField, sortMethod = 'ASC'] = options.sort.split(':');
+	if (
+		!sortFields.includes(sortField) ||
+		!['ASC', 'DESC'].includes(sortMethod.toUpperCase())
+	) {
+		return setImmediate(
+			cb,
+			new ApiError('Invalid sort field', apiCodes.INTERNAL_SERVER_ERROR)
+		);
+	}
+
+	return (
+		library.storage.entities.Block.get(filters, options)
+			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
+			.then(rows =>
+				setImmediate(cb, null, rows.map(library.logic.block.storageRead))
+			)
+			.catch(err => {
+				library.logger.error(err.stack);
+				return setImmediate(
+					cb,
+					new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR)
+				);
+			})
+	);
+}
 
 module.exports = BlocksController;
