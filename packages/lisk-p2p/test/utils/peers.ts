@@ -38,7 +38,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		version: '1.4.1',
 		os: 'darwin',
 	};
-	
+
 	const peerOption4: PeerInfo = {
 		ipAddress: '192.28.138.1',
 		wsPort: 5006,

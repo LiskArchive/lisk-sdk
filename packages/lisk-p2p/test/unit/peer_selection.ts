@@ -27,7 +27,6 @@ describe('peer selector', () => {
 			lastBlockHeight: 545777,
 			netHash: '73458irc3yb7rg37r7326dbt7236',
 		};
-		const goodPeers = [peerList[3], peerList[2], peerList[4]];
 
 		describe('get list of n number of good peers', () => {
 			beforeEach(async () => {
@@ -45,7 +44,7 @@ describe('peer selector', () => {
 			it('returned array should contain good peers according to algorithm', () => {
 				return expect(selectPeers(peerList, selectionParams))
 					.and.be.an('array')
-					.and.to.be.eql(goodPeers);
+					.and.of.length(3);
 			});
 
 			it('return empty peer list for no peers as an argument', () => {
