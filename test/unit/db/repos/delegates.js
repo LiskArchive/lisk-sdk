@@ -15,8 +15,6 @@
 'use strict';
 
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
-const forksFixtures = require('../../../fixtures').forks;
-const delegatesSQL = require('../../../../db/sql').delegates;
 const seeder = require('../../../common/db_seed');
 
 let db;
@@ -65,55 +63,6 @@ describe('db', () => {
 			it('should assign param and data members properly', () => {
 				expect(db.delegates.db).to.be.eql(db);
 				return expect(db.accounts.pgp).to.be.eql(db.$config.pgp);
-			});
-		});
-
-		describe('insertFork()', () => {
-			it('should use the correct SQL with given params', function*() {
-				sinonSandbox.spy(db, 'none');
-				const fork = new forksFixtures.Fork();
-				yield db.delegates.insertFork(fork);
-
-				expect(db.none.firstCall.args[0]).to.eql(delegatesSQL.insertFork);
-				return expect(db.none.firstCall.args[1]).to.eql(fork);
-			});
-
-			it('should insert valid fork entry successfully', function*() {
-				const fork = new forksFixtures.Fork();
-				yield db.delegates.insertFork(fork);
-
-				const result = yield db.query('SELECT * from forks_stat');
-
-				expect(result).to.be.not.empty;
-				expect(result).to.have.lengthOf(1);
-				expect(result[0]).to.have.all.keys(
-					'delegatePublicKey',
-					'blockTimestamp',
-					'blockId',
-					'blockHeight',
-					'previousBlock',
-					'cause'
-				);
-				expect(
-					Buffer.from(result[0].delegatePublicKey, 'hex').toString()
-				).to.be.eql(fork.delegatePublicKey);
-				expect(result[0].blockId).to.be.eql(fork.blockId);
-				expect(result[0].blockHeight).to.be.eql(fork.blockHeight);
-				expect(result[0].previousBlock).to.be.eql(fork.previousBlock);
-				expect(result[0].blockTimestamp).to.be.eql(fork.blockTimestamp);
-				return expect(result[0].cause).to.be.eql(fork.cause);
-			});
-
-			const fork = new forksFixtures.Fork();
-			Object.keys(fork).forEach(attr => {
-				const params = Object.assign({}, fork);
-				delete params[attr];
-
-				it(`should be rejected with error if param "${attr}" is missing`, () => {
-					return expect(
-						db.delegates.insertFork(params)
-					).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`);
-				});
 			});
 		});
 	});

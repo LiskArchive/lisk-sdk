@@ -55,9 +55,6 @@ module.exports = {
 		getGenesis: link('dapps/get_genesis.sql'),
 		list: link('dapps/list.sql'),
 	},
-	delegates: {
-		insertFork: link('delegates/insert_fork.sql'),
-	},
 	multisignatures: {
 		getMemberPublicKeys: link('multisignatures/get_member_public_keys.sql'),
 		getGroupIds: link('multisignatures/get_group_ids.sql'),

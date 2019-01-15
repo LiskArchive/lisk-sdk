@@ -14,8 +14,6 @@
 
 'use strict';
 
-const sql = require('../sql').delegates;
-
 /**
  * Delegates database interaction class.
  *
@@ -31,17 +29,6 @@ class DelegatesRepository {
 	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
-	}
-
-	/**
-	 * Inserts a fork data table entry.
-	 *
-	 * @param {Object} fork
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	insertFork(fork) {
-		return this.db.none(sql.insertFork, fork);
 	}
 }
 

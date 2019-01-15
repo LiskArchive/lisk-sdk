@@ -38,6 +38,6 @@ VALUES (
   ${blockTimestamp},
   ${blockId},
   ${blockHeight},
-  ${previousBlock},
+  ${previousBlockId},
   ${cause}
 )

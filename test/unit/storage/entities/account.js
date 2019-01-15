@@ -22,6 +22,7 @@ const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const accountFixtures = require('../../../fixtures').accounts;
 const transactionsFixtures = require('../../../fixtures').transactions;
+const forksFixtures = require('../../../fixtures').forks;
 
 const defaultCreateValues = {
 	publicKey: null,
@@ -1200,6 +1201,60 @@ describe('Account', () => {
 			const result = await AccountEntity.countDuplicatedDelegates();
 
 			expect(result).to.be.eql(2);
+		});
+	});
+
+	describe('insertFork()', () => {
+		it('should use the correct SQL with given params', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const fork = new forksFixtures.Fork();
+			await AccountEntity.insertFork(fork);
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.insertFork,
+				fork,
+				{ expectedResultCount: 0 },
+				sinonSandbox.match.any
+			);
+		});
+
+		it('should insert valid fork entry successfully', async () => {
+			const fork = new forksFixtures.Fork();
+			await AccountEntity.insertFork(fork);
+
+			const result = await adapter.execute('SELECT * from forks_stat');
+
+			expect(result).to.be.not.empty;
+			expect(result).to.have.lengthOf(1);
+			expect(result[0]).to.have.all.keys(
+				'delegatePublicKey',
+				'blockTimestamp',
+				'blockId',
+				'blockHeight',
+				'previousBlock',
+				'cause'
+			);
+			expect(
+				Buffer.from(result[0].delegatePublicKey, 'hex').toString()
+			).to.be.eql(fork.delegatePublicKey);
+			expect(result[0].blockId).to.be.eql(fork.blockId);
+			expect(result[0].blockHeight).to.be.eql(fork.blockHeight);
+			expect(result[0].previousBlock).to.be.eql(fork.previousBlockId);
+			expect(result[0].blockTimestamp).to.be.eql(fork.blockTimestamp);
+			return expect(result[0].cause).to.be.eql(fork.cause);
+		});
+
+		const fork = new forksFixtures.Fork();
+		Object.keys(fork).forEach(attr => {
+			const params = Object.assign({}, fork);
+			delete params[attr];
+
+			it(`should be rejected with error if param "${attr}" is missing`, () => {
+				return expect(
+					AccountEntity.insertFork(params)
+				).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`);
+			});
 		});
 	});
 });

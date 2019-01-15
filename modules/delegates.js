@@ -951,11 +951,11 @@ Delegates.prototype.fork = function(block, cause) {
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
 		blockHeight: block.height,
-		previousBlock: block.previousBlock,
+		previousBlockId: block.previousBlock,
 		cause,
 	};
 
-	library.db.delegates.insertFork(fork).then(() => {
+	library.storage.entities.Account.insertFork(fork).then(() => {
 		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };
