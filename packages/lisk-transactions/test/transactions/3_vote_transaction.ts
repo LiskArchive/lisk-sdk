@@ -81,23 +81,16 @@ describe('Vote transaction class', () => {
 
 			it('should create vote transaction ', async () => {
 				expect(result).to.have.property('id');
-				expect(result)
-					.to.have.property('type')
-					.and.equal(3);
-				expect(result)
-					.to.have.property('amount')
-					.and.equal('0');
-				expect(result)
-					.to.have.property('fee')
-					.and.equal(VOTE_FEE.toString());
+				expect(result).to.have.property('type', 3);
+				expect(result).to.have.property('amount', '0');
+				expect(result).to.have.property('fee', VOTE_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
-				expect(result)
-					.to.have.property('recipientId')
-					.and.eql((result as any).senderId);
-				expect(result)
-					.to.have.property('timestamp')
-					.and.equal(timeWithOffset);
+				expect(result).to.have.property(
+					'recipientId',
+					(result as any).senderId,
+				);
+				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect(result).to.have.property('signature').and.not.to.be.empty;
 				expect((result as any).asset.votes).to.eql(
 					defaultUpvotes.map(vote => `+${vote}`),
@@ -129,23 +122,16 @@ describe('Vote transaction class', () => {
 
 			it('should create vote transaction ', async () => {
 				expect(result).to.have.property('id');
-				expect(result)
-					.to.have.property('type')
-					.and.equal(3);
-				expect(result)
-					.to.have.property('amount')
-					.and.equal('0');
-				expect(result)
-					.to.have.property('fee')
-					.and.equal(VOTE_FEE.toString());
+				expect(result).to.have.property('type', 3);
+				expect(result).to.have.property('amount', '0');
+				expect(result).to.have.property('fee', VOTE_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
-				expect(result)
-					.to.have.property('recipientId')
-					.and.eql((result as any).senderId);
-				expect(result)
-					.to.have.property('timestamp')
-					.and.equal(timeWithOffset);
+				expect(result).to.have.property(
+					'recipientId',
+					(result as any).senderId,
+				);
+				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect(result).to.have.property('signature').and.not.to.be.empty;
 				expect((result as any).asset.votes).to.eql(
 					defaultUnvotes.map(vote => `-${vote}`),
@@ -167,20 +153,17 @@ describe('Vote transaction class', () => {
 				expect(result)
 					.to.have.property('type')
 					.and.equal(3);
-				expect(result)
-					.to.have.property('amount')
-					.and.equal('0');
+				expect(result).to.have.property('amount', '0');
 				expect(result)
 					.to.have.property('fee')
 					.and.equal(VOTE_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
-				expect(result)
-					.to.have.property('recipientId')
-					.and.eql((result as any).senderId);
-				expect(result)
-					.to.have.property('timestamp')
-					.and.equal(timeWithOffset);
+				expect(result).to.have.property(
+					'recipientId',
+					(result as any).senderId,
+				);
+				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect(result).to.have.property('signature').and.not.to.be.empty;
 				expect(result).to.have.property('signSignature').and.not.to.be.empty;
 				expect((result as any).asset.votes).to.eql(
@@ -201,23 +184,16 @@ describe('Vote transaction class', () => {
 
 			it('should create vote transaction ', async () => {
 				expect(result).to.have.property('id');
-				expect(result)
-					.to.have.property('type')
-					.and.equal(3);
-				expect(result)
-					.to.have.property('amount')
-					.and.equal('0');
-				expect(result)
-					.to.have.property('fee')
-					.and.equal(VOTE_FEE.toString());
+				expect(result).to.have.property('type', 3);
+				expect(result).to.have.property('amount', '0');
+				expect(result).to.have.property('fee', VOTE_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
-				expect(result)
-					.to.have.property('recipientId')
-					.and.eql((result as any).senderId);
-				expect(result)
-					.to.have.property('timestamp')
-					.and.equal(timeWithOffset);
+				expect(result).to.have.property(
+					'recipientId',
+					(result as any).senderId,
+				);
+				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect(result).to.have.property('signature').and.not.to.be.empty;
 				expect(result).to.have.property('signSignature').and.not.to.be.empty;
 				const votes = [
