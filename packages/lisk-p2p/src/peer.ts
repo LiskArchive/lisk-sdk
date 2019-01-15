@@ -289,6 +289,7 @@ export class Peer extends EventEmitter {
 	private _handlePeerInfo(request: ProtocolRPCRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
 		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
+		/* tslint:disable:next-line: no-object-literal-type-assertion */
 		this._peerInfo = {
 			...this._peerInfo,
 			...request.data,

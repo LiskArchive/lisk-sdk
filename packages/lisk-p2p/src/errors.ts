@@ -62,3 +62,10 @@ export class InvalidPeer extends VError {
 		this.name = 'InvalidPeer';
 	}
 }
+
+export class RequestFailError extends VError {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'RequestFailError';
+	}
+}
