@@ -22,8 +22,7 @@ import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import { RequestFailError } from './errors';
 import { ConnectionState, Peer, PeerInfo } from './peer';
 import { discoverPeers } from './peer_discovery';
-import { PeerOptions } from './peer_selection';
-import { selectForConnection } from './peer_selection';
+import { PeerOptions, selectForConnection } from './peer_selection';
 
 import {
 	P2PConfig,
