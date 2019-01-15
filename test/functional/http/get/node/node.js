@@ -64,7 +64,7 @@ describe('GET /node', () => {
 			return expect(constantsResponse)
 				.to.have.property('protocolVersion')
 				.to.match(
-					/^([0-9]{1,3}\.[0-9]{1,3})$/
+					/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/
 				);
 		});
 

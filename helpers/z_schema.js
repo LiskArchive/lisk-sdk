@@ -294,7 +294,7 @@ const liskFormats = {
 	 * @returns {boolean}
 	 */
 	protocolVersion(str) {
-		return str === '' || /^([1-9]|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(str);
+		return str === '' || /^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(str);
 	},
 	/**
 	 * Description of the function.
