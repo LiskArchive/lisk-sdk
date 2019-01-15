@@ -483,7 +483,7 @@ describe('Account', () => {
 		it('should create an account object successfully', async () => {
 			const account = new accountFixtures.Account();
 
-			expect(AccountEntity.create(account)).to.be.fulfilled;
+			await expect(AccountEntity.create(account)).to.be.fulfilled;
 
 			const accountResult = await AccountEntity.getOne(
 				{ address: account.address },
