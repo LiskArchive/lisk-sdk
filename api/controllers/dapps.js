@@ -15,9 +15,10 @@
 'use strict';
 
 const _ = require('lodash');
+const transactionTypes = require('../../helpers/transaction_types.js');
 
 // Private Fields
-let modules;
+let storage;
 
 /**
  * Description of the function.
@@ -29,7 +30,7 @@ let modules;
  * @todo Add description of DappsController
  */
 function DappsController(scope) {
-	modules = scope.modules;
+	storage = scope.storage;
 }
 
 /**
@@ -43,25 +44,50 @@ DappsController.getDapps = function(context, next) {
 	const params = context.request.swagger.params;
 
 	let filters = {
-		transactionId: params.transactionId.value,
-		name: params.name.value,
+		id: params.transactionId.value,
+		dapp_name: params.name.value,
+	};
+
+	let options = {
 		sort: params.sort.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
+		extended: true,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.dapps.shared.getDapps(_.clone(filters), (err, data) => {
-		try {
-			if (err) {
-				return next(err);
-			}
+	// Remove options with null values
+	options = _.pickBy(options, v => !(v === undefined || v === null));
 
+	// We don't want to change the API so we fix the sort field name here
+	options.sort = options.sort.replace('name', 'dapp_name');
+
+	filters =
+		Object.keys(filters).length > 0
+			? Object.keys(filters).map(aFilter => ({
+					[aFilter]: filters[aFilter],
+					type: transactionTypes.DAPP,
+				}))
+			: { type: transactionTypes.DAPP };
+
+	storage.entities.Transaction.get(filters, options)
+		.then(data => {
 			data = _.cloneDeep(data);
 
-			data = _.map(data, dapp => {
+			const dapps = data.map(aDapp => ({
+				name: aDapp.asset.dapp.name,
+				description: aDapp.asset.dapp.description,
+				tags: aDapp.asset.dapp.tags,
+				link: aDapp.asset.dapp.link,
+				type: aDapp.asset.dapp.type,
+				category: aDapp.asset.dapp.category,
+				icon: aDapp.asset.dapp.icon,
+				transactionId: aDapp.id,
+			}));
+
+			data = _.map(dapps, dapp => {
 				if (_.isNull(dapp.description)) {
 					dapp.description = '';
 				}
@@ -77,14 +103,12 @@ DappsController.getDapps = function(context, next) {
 			return next(null, {
 				data,
 				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
+					offset: options.offset,
+					limit: options.limit,
 				},
 			});
-		} catch (error) {
-			return next(error);
-		}
-	});
+		})
+		.catch(error => next(error));
 };
 
 module.exports = DappsController;

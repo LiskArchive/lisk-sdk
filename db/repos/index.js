@@ -19,7 +19,6 @@
 module.exports = {
 	accounts: require('./accounts'),
 	blocks: require('./blocks'),
-	dapps: require('./dapps'),
 	delegates: require('./delegates'),
 	migrations: require('./migrations'),
 	rounds: require('./rounds'),

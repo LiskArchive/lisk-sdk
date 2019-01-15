@@ -31,7 +31,7 @@ const rawValidTransaction = testData.rawValidTransaction;
 
 describe('outTransfer', () => {
 	let outTransfer;
-	let dbStub;
+	let storageStub;
 	let accountsStub;
 	let blocksStub;
 
@@ -41,13 +41,11 @@ describe('outTransfer', () => {
 	let sender;
 
 	beforeEach(() => {
-		dbStub = {
-			dapps: {
-				countByTransactionId: sinonSandbox.stub().resolves(),
-				countByOutTransactionId: sinonSandbox.stub().resolves(),
-				getExisting: sinonSandbox.stub().resolves(),
-				list: sinonSandbox.stub().resolves(),
-				getGenesis: sinonSandbox.stub().resolves(),
+		storageStub = {
+			entities: {
+				Transaction: {
+					isPersisted: sinonSandbox.stub().resolves(),
+				},
 			},
 		};
 
@@ -73,9 +71,9 @@ describe('outTransfer', () => {
 
 		OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
 		outTransfer = new OutTransfer(
-			dbStub,
 			modulesLoader.scope.schema,
-			modulesLoader.logger
+			modulesLoader.logger,
+			storageStub
 		);
 		return outTransfer.bind(accountsStub);
 	});
@@ -86,18 +84,18 @@ describe('outTransfer', () => {
 
 			beforeEach(done => {
 				new OutTransfer(
-					dbStub,
 					modulesLoader.scope.schema,
-					modulesLoader.logger
+					modulesLoader.logger,
+					storageStub
 				);
 				library = OutTransfer.__get__('library');
 				done();
 			});
 
-			it('should assign db', () => {
+			it('should assign storage', () => {
 				return expect(library)
-					.to.have.property('db')
-					.eql(dbStub);
+					.to.have.property('storage')
+					.eql(storageStub);
 			});
 
 			it('should assign schema', () => {
@@ -280,38 +278,41 @@ describe('outTransfer', () => {
 			return OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
 		});
 
-		it('should call library.db.dapps.countByTransactionId', done => {
+		it('should call storageStub.entities.Transaction.isPersisted', done => {
 			outTransfer.process(transaction, sender, () => {
-				expect(dbStub.dapps.countByTransactionId.calledOnce).to.be.true;
+				expect(storageStub.entities.Transaction.isPersisted.calledOnce).to.be
+					.true;
 				done();
 			});
 		});
 
-		it('should call library.db.dapps.countByTransactionId with dappId', done => {
+		it('should call storageStub.entities.Transaction.isPersisted with dappId', done => {
 			outTransfer.process(transaction, sender, () => {
 				expect(
-					dbStub.dapps.countByTransactionId.calledWith(
-						transaction.asset.outTransfer.dappId
-					)
+					storageStub.entities.Transaction.isPersisted.calledWith({
+						id: transaction.asset.outTransfer.dappId,
+						type: 5,
+					})
 				).to.be.true;
 				done();
 			});
 		});
 
-		it('should call library.db.dapps.countByTransactionId with transaction.asset.outTransfer.dappId}', done => {
+		it('should call storageStub.entities.Transaction.isPersisted with transaction.asset.outTransfer.dappId}', done => {
 			outTransfer.process(transaction, sender, () => {
 				expect(
-					dbStub.dapps.countByTransactionId.calledWith(
-						transaction.asset.outTransfer.dappId
-					)
+					storageStub.entities.Transaction.isPersisted.calledWith({
+						id: transaction.asset.outTransfer.dappId,
+						type: 5,
+					})
 				).to.be.true;
 				done();
 			});
 		});
 
-		describe('when library.db.one fails', () => {
+		describe('when storageStub.entities.Transaction.isPersisted fails', () => {
 			beforeEach(done => {
-				dbStub.dapps.countByTransactionId = sinonSandbox
+				storageStub.entities.Transaction.isPersisted = sinonSandbox
 					.stub()
 					.rejects('Rejection error');
 				done();
@@ -325,13 +326,12 @@ describe('outTransfer', () => {
 			});
 		});
 
-		describe('when library.db.dapps.countByTransactionId succeeds', () => {
+		describe('when storageStub.entities.Transaction.isPersisted succeeds', () => {
 			describe('when dapp does not exist', () => {
 				beforeEach(done => {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(0);
-					dbStub.dapps.countByOutTransactionId = sinonSandbox
+					storageStub.entities.Transaction.isPersisted = sinonSandbox
 						.stub()
-						.resolves(0);
+						.resolves(false);
 					done();
 				});
 
@@ -347,10 +347,9 @@ describe('outTransfer', () => {
 
 			describe('when dapp exists', () => {
 				beforeEach(done => {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(1);
-					dbStub.dapps.countByOutTransactionId = sinonSandbox
+					storageStub.entities.Transaction.isPersisted = sinonSandbox
 						.stub()
-						.resolves(1);
+						.resolves(true);
 					done();
 				});
 
@@ -360,6 +359,7 @@ describe('outTransfer', () => {
 						unconfirmedTransactionExistsMap[
 							transaction.asset.outTransfer.transactionId
 						] = true;
+
 						return OutTransfer.__set__(
 							'__private.unconfirmedOutTansfers',
 							unconfirmedTransactionExistsMap
@@ -383,42 +383,31 @@ describe('outTransfer', () => {
 						return OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
 					});
 
-					it('should call library.db.dapps.countByTransactionId second time', done => {
+					it('should call storageStub.entities.Transaction.isPersisted second time', done => {
 						outTransfer.process(transaction, sender, () => {
-							expect(dbStub.dapps.countByTransactionId.calledOnce).to.be.true;
-							expect(dbStub.dapps.countByOutTransactionId.calledOnce).to.be
-								.true;
+							expect(storageStub.entities.Transaction.isPersisted.calledTwice)
+								.to.be.true;
 							done();
 						});
 					});
 
-					it('should call library.db.dapps.countByOutTransactionId', done => {
+					it('should call storageStub.entities.Transaction.isPersisted', done => {
 						outTransfer.process(transaction, sender, () => {
 							expect(
-								dbStub.dapps.countByOutTransactionId.calledWith(
-									transaction.asset.outTransfer.transactionId
+								storageStub.entities.Transaction.isPersisted.secondCall.calledWith(
+									{ id: '14144353162277138821', type: 7 }
 								)
 							).to.be.true;
 							done();
 						});
 					});
 
-					it('should call library.db.dapps.countByOutTransactionId transaction.asset.outTransfer.transactionId', done => {
-						outTransfer.process(transaction, sender, () => {
-							expect(
-								dbStub.dapps.countByOutTransactionId.calledWith(
-									transaction.asset.outTransfer.transactionId
-								)
-							).to.be.true;
-							done();
-						});
-					});
-
-					describe('when library.db.dapps.countByOutTransactionId fails on call', () => {
+					describe('when storageStub.entities.Transaction.isPersisted fails on call', () => {
 						beforeEach(() => {
-							return dbStub.dapps.countByOutTransactionId
-								.withArgs(transaction.id)
-								.rejects('countByOutTransactionId error');
+							return storageStub.entities.Transaction.isPersisted
+								.withArgs({ id: transaction.id }, {})
+								.onSecondCall()
+								.rejects('isPersisted error');
 						});
 
 						it('should call callback with error', done => {
@@ -432,9 +421,9 @@ describe('outTransfer', () => {
 					describe('when library.db.one succeeds on the second call', () => {
 						describe('when confirmed outTransfer transaction exists', () => {
 							beforeEach(() => {
-								return dbStub.dapps.countByOutTransactionId
+								return storageStub.entities.Transaction.isPersisted
 									.withArgs(transaction.id)
-									.resolves(1);
+									.resolves(true);
 							});
 
 							it('should call callback with error', done => {
@@ -451,12 +440,12 @@ describe('outTransfer', () => {
 
 						describe('when confirmed outTransfer transaction does not exist', () => {
 							beforeEach(done => {
-								dbStub.dapps.countByTransactionId = sinonSandbox
+								storageStub.entities.Transaction.isPersisted = sinonSandbox
 									.stub()
-									.resolves(1);
-								dbStub.dapps.countByOutTransactionId = sinonSandbox
-									.stub()
-									.resolves(0);
+									.onFirstCall()
+									.resolves(true)
+									.onSecondCall()
+									.resolves(false);
 								done();
 							});
 

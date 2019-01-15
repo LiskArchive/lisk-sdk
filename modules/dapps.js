@@ -64,6 +64,7 @@ class DApps {
 		library = {
 			logger: scope.logger,
 			db: scope.db,
+			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,
 			ed: scope.ed,
@@ -81,21 +82,21 @@ class DApps {
 			transactionTypes.DAPP
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DAPP,
-			new DApp(scope.db, scope.logger, scope.schema, scope.network)
+			new DApp(scope.logger, scope.schema, scope.network, scope.storage)
 		);
 
 		__private.assetTypes[
 			transactionTypes.IN_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.IN_TRANSFER,
-			new InTransfer(scope.db, scope.schema)
+			new InTransfer(scope.db, scope.schema, scope.storage)
 		);
 
 		__private.assetTypes[
 			transactionTypes.OUT_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.OUT_TRANSFER,
-			new OutTransfer(scope.db, scope.schema, scope.logger)
+			new OutTransfer(scope.schema, scope.logger, scope.storage)
 		);
 
 		/**
@@ -281,8 +282,13 @@ DApps.prototype.shared = {
  * @todo Add description of the function
  */
 shared.getGenesis = function(req, cb, tx) {
-	(tx || library.db).dapps
-		.getGenesis(req.dappid)
+	library.storage.entities.Transaction.get(
+		{
+			id: req.dappid,
+		},
+		{},
+		tx
+	)
 		.then(rows => {
 			if (rows.length === 0) {
 				return setImmediate(cb, 'Application genesis block not found');

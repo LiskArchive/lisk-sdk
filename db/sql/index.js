@@ -48,13 +48,6 @@ module.exports = {
 		getHeightByLastId: link('blocks/get_height_by_last_id.sql'),
 		getCommonBlock: link('blocks/get_common_block.sql'),
 	},
-	dapps: {
-		countByOutTransactionId: link('dapps/count_by_out_transaction_id.sql'),
-		countByTransactionId: link('dapps/count_by_transaction_id.sql'),
-		getExisting: link('dapps/get_existing.sql'),
-		getGenesis: link('dapps/get_genesis.sql'),
-		list: link('dapps/list.sql'),
-	},
 	delegates: {
 		countDuplicatedDelegates: link('delegates/count_duplicated_delegates.sql'),
 		getDelegatesByPublicKeys: link(

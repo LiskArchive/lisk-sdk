@@ -43,12 +43,12 @@ __private.unconfirmedAscii = {};
  * @todo Add description for the params
  */
 class DApp {
-	constructor(db, logger, schema, network) {
+	constructor(logger, schema, network, storage) {
 		library = {
-			db,
 			logger,
 			schema,
 			network,
+			storage,
 		};
 	}
 }
@@ -186,12 +186,14 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		}
 	}
 
-	return (tx || library.db).dapps
-		.getExisting({
+	return library.storage.entities.Transaction.getExistingDapps(
+		{
 			name: transaction.asset.dapp.name,
 			link: transaction.asset.dapp.link || null,
-			transactionId: transaction.id,
-		})
+			transactionId_ne: transaction.id,
+		},
+		tx || null
+	)
 		.then(rows => {
 			const dapp = rows[0];
 
