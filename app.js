@@ -51,6 +51,7 @@ const httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 const swaggerHelper = require('./helpers/swagger');
 const createStorage = require('./storage');
+const createCacheConnector = require('./helpers/cache_connector');
 
 /**
  * Main application entry point.
@@ -495,22 +496,16 @@ d.run(() => {
 			 * @todo Add description for the params
 			 */
 			cache(cb) {
-				const RedisConnector = require('./helpers/redis_connector.js');
-				logger.debug(
-					`Cache ${appConfig.cacheEnabled ? 'Enabled' : 'Disabled'}`
-				);
-				// delete password key if it's value is null
-				const cacheConfigParam = Object.assign({}, config.cache);
-				if (cacheConfigParam.password === null) {
-					delete cacheConfigParam.password;
+				logger.debug(`Cache ${config.cacheEnabled ? 'Enabled' : 'Disabled'}`);
+				if (!config.cacheEnabled) {
+					return cb(null, null);
 				}
-				const redisConnector = new RedisConnector(
-					config.cacheEnabled,
-					cacheConfigParam,
-					logger
-				);
-				redisConnector.connect((redisConnectError, redisClient) =>
-					cb(null, { cacheEnabled: config.cacheEnabled, client: redisClient })
+				const CacheConnector = createCacheConnector(config.cache, logger);
+				return CacheConnector.connect((err, client) =>
+					cb(null, {
+						cacheEnabled: config.cacheEnabled,
+						client,
+					})
 				);
 			},
 
