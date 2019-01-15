@@ -114,8 +114,4 @@ module.exports = {
 		getVotes: link('votes/get_votes.sql'),
 		getVotesCount: link('votes/get_votes_count.sql'),
 	},
-	voters: {
-		getVoters: link('voters/get_voters.sql'),
-		getVotersCount: link('voters/get_voters_count.sql'),
-	},
 };
