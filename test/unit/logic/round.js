@@ -43,8 +43,8 @@ describe('round', () => {
 			countRoundSnapshot: sinonSandbox.stub(),
 		},
 		Account: {
-			incrementField: sinonSandbox.stub().resolves('Account.incrementField'),
-			decrementField: sinonSandbox.stub().resolves('Account.decrementField'),
+			increaseFieldBy: sinonSandbox.stub().resolves('Account.increaseFieldBy'),
+			decreaseFieldBy: sinonSandbox.stub().resolves('Account.decreaseFieldBy'),
 			syncDelegatesRanks: sinonSandbox
 				.stub()
 				.resolves('Account.syncDelegatesRanks'),
@@ -288,7 +288,7 @@ describe('round', () => {
 			beforeEach(done => {
 				scope.roundOutsiders = ['abc'];
 				round = new Round(scope, task);
-				stub = storageStubs.Account.incrementField;
+				stub = storageStubs.Account.increaseFieldBy;
 				stub
 					.withArgs(
 						{ address_in: scope.roundOutsiders },
@@ -351,7 +351,7 @@ describe('round', () => {
 		describe('when getVotes returns at least one entry', async () => {
 			beforeEach(async () => {
 				getVotes_stub = storageStubs.Round.getTotalVotedAmount;
-				updateVotes_stub = storageStubs.Account.incrementField;
+				updateVotes_stub = storageStubs.Account.increaseFieldBy;
 
 				delegate = {
 					amount: 10000,
@@ -1788,8 +1788,8 @@ describe('round', () => {
 	});
 
 	describe('land', () => {
-		let incrementField_stub;
-		let decrementField_stub;
+		let increaseFieldBy_stub;
+		let decreaseFieldBy_stub;
 		let getVotes_stub;
 		let syncDelegatesRanks_stub;
 		let flush_stub;
@@ -1816,11 +1816,11 @@ describe('round', () => {
 					'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 				address: '16010222169256538112L',
 			};
-			incrementField_stub = storageStubs.Account.incrementField.resolves(
-				'incrementField'
+			increaseFieldBy_stub = storageStubs.Account.increaseFieldBy.resolves(
+				'increaseFieldBy'
 			);
-			decrementField_stub = storageStubs.Account.decrementField.resolves(
-				'decrementField'
+			decreaseFieldBy_stub = storageStubs.Account.decreaseFieldBy.resolves(
+				'decreaseFieldBy'
 			);
 			getVotes_stub = storageStubs.Round.getTotalVotedAmount.resolves([
 				delegate,
@@ -1848,13 +1848,13 @@ describe('round', () => {
 			return expect(getVotes_stub.callCount).to.be.eql(2);
 		});
 
-		it('query incrementField should be called 3 times', () => {
+		it('query increaseFieldBy should be called 3 times', () => {
 			// 2 for updating vote and 1 for updating missedBlocks
-			return expect(incrementField_stub.callCount).to.equal(3);
+			return expect(increaseFieldBy_stub.callCount).to.equal(3);
 		});
 
-		it('query decrementField should be called once', () => {
-			return expect(decrementField_stub.callCount).to.equal(0);
+		it('query decreaseFieldBy should be called once', () => {
+			return expect(decreaseFieldBy_stub.callCount).to.equal(0);
 		});
 
 		it('query flushRound should be called twice', () => {
@@ -1874,8 +1874,8 @@ describe('round', () => {
 	});
 
 	describe('backwardLand', () => {
-		let incrementField_stub;
-		let decrementField_stub;
+		let increaseFieldBy_stub;
+		let decreaseFieldBy_stub;
 		let getVotes_stub;
 		let restoreRoundSnapshot_stub;
 		let restoreVotesSnapshot_stub;
@@ -1907,8 +1907,8 @@ describe('round', () => {
 				address: '16010222169256538112L',
 			};
 
-			incrementField_stub = storageStubs.Account.incrementField.resolves();
-			decrementField_stub = storageStubs.Account.decrementField.resolves();
+			increaseFieldBy_stub = storageStubs.Account.increaseFieldBy.resolves();
+			decreaseFieldBy_stub = storageStubs.Account.decreaseFieldBy.resolves();
 			getVotes_stub = storageStubs.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
@@ -1938,12 +1938,12 @@ describe('round', () => {
 			return expect(getVotes_stub.called).to.be.false;
 		});
 
-		it('query incrementField not be called', () => {
-			return expect(incrementField_stub.called).to.be.false;
+		it('query increaseFieldBy not be called', () => {
+			return expect(increaseFieldBy_stub.called).to.be.false;
 		});
 
-		it('query decrementField not be called', () => {
-			return expect(decrementField_stub.called).to.be.false;
+		it('query decreaseFieldBy not be called', () => {
+			return expect(decreaseFieldBy_stub.called).to.be.false;
 		});
 
 		it('query syncDelegatesRanks should be called once', () => {

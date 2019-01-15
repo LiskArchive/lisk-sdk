@@ -483,7 +483,7 @@ describe('Account', () => {
 		it('should create an account object successfully', async () => {
 			const account = new accountFixtures.Account();
 
-			expect(AccountEntity.create(account)).to.be.fulfilled;
+			await expect(AccountEntity.create(account)).to.be.fulfilled;
 
 			const accountResult = await AccountEntity.getOne(
 				{ address: account.address },
@@ -919,15 +919,15 @@ describe('Account', () => {
 		});
 	});
 
-	describe('incrementField()', () => {
+	describe('increaseFieldBy()', () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const address = '12L';
 
-			await AccountEntity.incrementField({ address }, 'balance', 123);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 123);
 
 			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.incrementField
+				SQLs.increaseFieldBy
 			);
 		});
 
@@ -938,7 +938,7 @@ describe('Account', () => {
 			account.balance = 15000;
 
 			await AccountEntity.create(account);
-			await AccountEntity.incrementField({ address }, 'balance', 1000);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -947,7 +947,7 @@ describe('Account', () => {
 
 		it('should throw error if unknown field is provided', async () => {
 			expect(() =>
-				AccountEntity.incrementField({ address: '12L' }, 'unknown', 1000)
+				AccountEntity.increaseFieldBy({ address: '12L' }, 'unknown', 1000)
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
@@ -958,7 +958,7 @@ describe('Account', () => {
 			account.balance = '15000';
 
 			await AccountEntity.create(account);
-			await AccountEntity.incrementField({ address }, 'balance', 1000);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -966,26 +966,26 @@ describe('Account', () => {
 		});
 	});
 
-	describe('decrementField()', () => {
+	describe('decreaseFieldBy()', () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const address = '12L';
 
-			await AccountEntity.decrementField({ address }, 'balance', 123);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', 123);
 
 			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.decrementField
+				SQLs.decreaseFieldBy
 			);
 		});
 
-		it('should decrementField account attribute', async () => {
+		it('should decreaseFieldBy account attribute', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = 15000;
 
 			await AccountEntity.create(account);
-			await AccountEntity.decrementField({ address }, 'balance', 1000);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -994,18 +994,18 @@ describe('Account', () => {
 
 		it('should throw error if unknown field is provided', async () => {
 			expect(() =>
-				AccountEntity.decrementField({ address: '12L' }, 'unknown', 1000)
+				AccountEntity.decreaseFieldBy({ address: '12L' }, 'unknown', 1000)
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
-		it('should decrementField balance with string data', async () => {
+		it('should decreaseFieldBy balance with string data', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = '15000';
 
 			await AccountEntity.create(account);
-			await AccountEntity.decrementField({ address }, 'balance', 1000);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 

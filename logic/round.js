@@ -125,7 +125,7 @@ class Round {
 		const value = '1';
 
 		if (this.scope.backwards) {
-			return this.scope.library.storage.entities.Account.decrementField(
+			return this.scope.library.storage.entities.Account.decreaseFieldBy(
 				filters,
 				field,
 				value,
@@ -133,7 +133,7 @@ class Round {
 			);
 		}
 
-		return this.scope.library.storage.entities.Account.incrementField(
+		return this.scope.library.storage.entities.Account.increaseFieldBy(
 			filters,
 			field,
 			value,
@@ -166,7 +166,7 @@ class Round {
 
 		return self.getVotes(self.scope.round).then(votes => {
 			const queries = votes.map(vote =>
-				self.scope.library.storage.entities.Account.incrementField(
+				self.scope.library.storage.entities.Account.increaseFieldBy(
 					{
 						address: self.scope.modules.accounts.generateAddressByPublicKey(
 							vote.delegate

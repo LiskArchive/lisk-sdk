@@ -317,8 +317,12 @@ class Account extends BaseEntity {
 				'accounts/reset_unconfirmed_state.sql'
 			),
 			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
-			incrementField: this.adapter.loadSQLFile('accounts/increment_field.sql'),
-			decrementField: this.adapter.loadSQLFile('accounts/decrement_field.sql'),
+			increaseFieldBy: this.adapter.loadSQLFile(
+				'accounts/increase_field_by.sql'
+			),
+			decreaseFieldBy: this.adapter.loadSQLFile(
+				'accounts/decrease_field_by.sql'
+			),
 			createDependentRecord: this.adapter.loadSQLFile(
 				'accounts/create_dependent_record.sql'
 			),
@@ -591,8 +595,8 @@ class Account extends BaseEntity {
 	 * @param {Object} [tx] - Transaction object
 	 * @returns {Promise}
 	 */
-	incrementField(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'increment', tx);
+	increaseFieldBy(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'increase', tx);
 	}
 
 	/**
@@ -604,8 +608,8 @@ class Account extends BaseEntity {
 	 * @param {Object} [tx] - Transaction object
 	 * @returns {Promise}
 	 */
-	decrementField(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'decrement', tx);
+	decreaseFieldBy(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'decrease', tx);
 	}
 
 	/**
@@ -702,7 +706,7 @@ class Account extends BaseEntity {
 	 * @param {filters.Account} filters - Filters object
 	 * @param {string} field - Filed name to update
 	 * @param {*} value - Value to be update
-	 * @param {('increment'|'decrement')} mode - Mode of update
+	 * @param {('increase'|'decrease')} mode - Mode of update
 	 * @param {Object} [tx] - Database transaction object
 	 * @returns {Promise}
 	 */
@@ -724,8 +728,8 @@ class Account extends BaseEntity {
 		};
 
 		const sql = {
-			increment: this.SQLs.incrementField,
-			decrement: this.SQLs.decrementField,
+			increase: this.SQLs.increaseFieldBy,
+			decrease: this.SQLs.decreaseFieldBy,
 		}[mode];
 
 		return this.adapter.executeFile(

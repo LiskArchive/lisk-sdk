@@ -427,7 +427,7 @@ class Account {
 						// If updated value is positive number
 						if (value.isGreaterThan(0)) {
 							promises.push(
-								self.scope.storage.entities.Account.incrementField(
+								self.scope.storage.entities.Account.increaseFieldBy(
 									{ address },
 									updatedField,
 									value.toString(),
@@ -438,7 +438,7 @@ class Account {
 							// If updated value is negative number
 						} else if (value.isLessThan(0)) {
 							promises.push(
-								self.scope.storage.entities.Account.decrementField(
+								self.scope.storage.entities.Account.decreaseFieldBy(
 									{ address },
 									updatedField,
 									value.abs().toString(),
