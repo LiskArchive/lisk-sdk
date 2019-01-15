@@ -19,6 +19,7 @@ import { platform } from 'os';
 import querystring from 'querystring';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 
+import { RequestFailError } from './errors';
 import { Peer, PeerInfo } from './peer';
 import { discoverPeers } from './peer_discovery';
 import { PeerOptions } from './peer_selection';
@@ -119,9 +120,15 @@ export class P2P extends EventEmitter {
 			lastBlockHeight: this._nodeInfo.height,
 		};
 		const selectedPeer = this._peerPool.selectPeers(peerSelectionParams, 1);
+
+		if (selectedPeer.length <= 0) {
+			throw new RequestFailError(
+				'Request failed due to no peers found in peer selection',
+			);
+		}
 		const response: P2PResponsePacket = await selectedPeer[0].request(packet);
 
-		return Promise.resolve(response);
+		return response;
 	}
 
 	public send<T>(message: P2PMessagePacket<T>): void {
