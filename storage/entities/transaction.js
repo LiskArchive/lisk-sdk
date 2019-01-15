@@ -632,7 +632,8 @@ class Transaction extends BaseEntity {
 			assetAttributesMap[transaction.type] || [];
 
 		transactionAssetAttributes.forEach(assetKey => {
-			if (row[assetKey]) {
+			// We only want to remove null & undefined not other falsy values
+			if (row[assetKey] !== null && row[assetKey] !== null) {
 				_.set(transaction, assetKey, row[assetKey]);
 			}
 		});
@@ -653,6 +654,12 @@ class Transaction extends BaseEntity {
 			transaction.signatures = transaction.signatures.filter(Boolean);
 		}
 
+		// console.log(transaction);
+		// console.log('#'.repeat(180));
+		// console.log('asset.dapp.type', transaction.asset);
+		// console.log('#'.repeat(180));
+		// console.log('row.asset.dapp.type', row.asset);
+		// console.log('#'.repeat(180));
 		return transaction;
 	}
 
