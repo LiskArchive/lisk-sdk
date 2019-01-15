@@ -20,7 +20,7 @@ import querystring from 'querystring';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 
 import { RequestFailError } from './errors';
-import { Peer, PeerInfo } from './peer';
+import { ConnectionState, Peer, PeerInfo } from './peer';
 import { discoverPeers } from './peer_discovery';
 import { PeerOptions } from './peer_selection';
 import { selectForConnection } from './peer_selection';
@@ -180,8 +180,10 @@ export class P2P extends EventEmitter {
 						super.emit(EVENT_NEW_PEER, peer);
 						this._newPeers.add(peer.peerInfo);
 					} else {
-						existingPeer.inboundSocket = socket;
-						this._newPeers.add(existingPeer.peerInfo);
+						if (existingPeer.state.inbound === ConnectionState.DISCONNECTED) {
+							existingPeer.inboundSocket = socket;
+							this._newPeers.add(existingPeer.peerInfo);
+						}
 					}
 				}
 			},
@@ -212,8 +214,8 @@ export class P2P extends EventEmitter {
 		);
 
 		const peersToConnect = selectForConnection(availablePeers);
-		peersToConnect.forEach((peer: Peer) => {
-			peer.connect();
+		peersToConnect.forEach(async (peer: Peer) => {
+			await peer.connect();
 			this._newPeers.delete(peer.peerInfo);
 			this._triedPeers.add(peer.peerInfo);
 		});
