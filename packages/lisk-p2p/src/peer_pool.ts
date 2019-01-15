@@ -19,7 +19,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Peer } from './peer';
+import { Peer, PeerInfo } from './peer';
 import { PeerOptions, selectPeers } from './peer_selection';
 
 export class PeerPool extends EventEmitter {
