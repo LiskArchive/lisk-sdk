@@ -24,6 +24,7 @@ const httpApi = require('../../helpers/http_api');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Sequence = require('../../helpers/sequence');
 const StorageSandbox = require('./storage_sandbox').StorageSandbox;
+const createCacheConnector = require('../../helpers/cache_connector');
 
 let currentAppScope;
 
@@ -175,13 +176,11 @@ function __init(initScope, done) {
 					});
 				},
 				cache(cb) {
-					const RedisConnector = require('../../helpers/redis_connector.js');
-					const redisConnector = new RedisConnector(
-						__testContext.config.cacheEnabled,
+					const CacheConnector = createCacheConnector(
 						__testContext.config.redis,
 						logger
 					);
-					redisConnector.connect((_, client) =>
+					return CacheConnector.connect((err, client) =>
 						cb(null, {
 							cacheEnabled: __testContext.config.cacheEnabled,
 							client,
