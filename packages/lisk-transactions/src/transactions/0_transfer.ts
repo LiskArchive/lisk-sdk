@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPublicKey,
-} from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
@@ -32,7 +29,6 @@ import {
 	validatePublicKey,
 	validateTransferAmount,
 	validator,
-	verifyBalance,
 } from '../utils';
 import {
 	Attributes,
@@ -43,9 +39,19 @@ import {
 	TransactionResponse,
 } from './base';
 
-export interface RequiredState {
+export interface TransferInput {
+	readonly amount: string;
+	readonly recipientId?: string;
+	readonly recipientPublicKey?: string;
+	readonly data?: string;
+	readonly passphrase?: string;
+	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
+}
+
+export interface RequiredTransferState {
 	readonly sender: Account;
-	readonly recipient?: Account;
+	readonly recipient: Account;
 }
 
 export interface TransferAsset {
@@ -55,76 +61,43 @@ export interface TransferAsset {
 export const transferAssetTypeSchema = {
 	type: 'object',
 	properties: {
-		asset: {
-			type: 'object',
-			properties: {
-				data: {
-					type: 'string',
-				},
-			},
-			additionalProperties: false,
+		data: {
+			type: 'string',
 		},
 	},
 };
 
-export const transferFormatSchema = {
+export const transferAssetFormatSchema = {
 	type: 'object',
-	required: ['recipientId'],
 	properties: {
-		recipientId: {
-			format: 'address',
-		},
-		amount: {
-			format: 'transferAmount',
-		},
-		asset: {
-			type: 'object',
-			properties: {
-				data: {
-					type: 'string',
-					maxLength: 64,
-				},
-			},
-			additionalProperties: false,
+		data: {
+			type: 'string',
+			maxLength: 64,
 		},
 	},
 };
 
-export interface CreateTransferInput {
-	readonly amount: string;
-	readonly recipientId?: string;
-	readonly recipientPublicKey?: string;
-	readonly data?: string;
-	readonly passphrase: string;
-	readonly secondPassphrase?: string;
-}
-
-const validateInput = ({
+const validateInputs = ({
 	amount,
 	recipientId,
 	recipientPublicKey,
 	data,
-}: CreateTransferInput): void => {
+}: TransferInput): void => {
 	if (!validateTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
 	}
 
-	if (!recipientId && !recipientPublicKey) {
-		throw new Error(
-			'Either recipientId or recipientPublicKey must be provided.',
-		);
+	if (!recipientId) {
+		throw new Error('`recipientId` must be provided.');
 	}
 
-	if (typeof recipientId !== 'undefined') {
-		validateAddress(recipientId);
-	}
+	validateAddress(recipientId);
 
 	if (typeof recipientPublicKey !== 'undefined') {
 		validatePublicKey(recipientPublicKey);
 	}
 
 	if (
-		recipientId &&
 		recipientPublicKey &&
 		recipientId !== getAddressFromPublicKey(recipientPublicKey)
 	) {
@@ -147,6 +120,7 @@ export class TransferTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: TransferAsset;
 	public readonly fee: BigNum;
+
 	public constructor(tx: TransactionJSON) {
 		super(tx);
 		const typeValid = validator.validate(transferAssetTypeSchema, tx.asset);
@@ -160,24 +134,32 @@ export class TransferTransaction extends BaseTransaction {
 						),
 			  )
 			: [];
-		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, errors);
+		if (!typeValid || errors.length > 0) {
+			throw new TransactionMultiError('Invalid asset types', tx.id, errors);
 		}
 		this.containsUniqueData = false;
-		this.asset = tx.asset as TransferAsset;
 		this.fee = calculateFee(this.type);
+		this.asset = tx.asset as TransferAsset;
 	}
 
-	public static create(input: CreateTransferInput): object {
-		validateInput(input);
+	public static create(input: TransferInput): object {
+		validateInputs(input);
 		const {
 			amount,
-			recipientId,
+			recipientId: recipientIdInput,
 			recipientPublicKey,
 			data,
 			passphrase,
 			secondPassphrase,
 		} = input;
+
+		const recipientIdFromPublicKey = recipientPublicKey
+			? getAddressFromPublicKey(recipientPublicKey)
+			: undefined;
+
+		const recipientId = recipientIdInput
+			? recipientIdInput
+			: recipientIdFromPublicKey;
 
 		const transaction = {
 			...createBaseTransaction(input),
@@ -185,23 +167,20 @@ export class TransferTransaction extends BaseTransaction {
 			amount,
 			recipientId,
 			recipientPublicKey,
-			fee: calculateFee(0),
-			asset: { data },
+			fee: calculateFee(0).toString(),
+			asset: data ? { data } : {},
 		};
 
 		if (!passphrase) {
 			return transaction;
 		}
 
-		const {
-			address: senderId,
-			publicKey: senderPublicKey,
-		} = getAddressAndPublicKeyFromPassphrase(passphrase);
 		const transactionWithSenderInfo = {
 			...transaction,
-			fee: transaction.fee.toString(),
-			senderId,
-			senderPublicKey,
+			// SenderId and SenderPublicKey are expected to be exist from base transaction
+			recipientId: recipientId as string,
+			senderId: transaction.senderId as string,
+			senderPublicKey: transaction.senderPublicKey as string,
 		};
 
 		const transferTransaction = new TransferTransaction(
@@ -230,9 +209,7 @@ export class TransferTransaction extends BaseTransaction {
 	protected getAssetBytes(): Buffer {
 		const { data } = this.asset;
 
-		return data && typeof data === 'string'
-			? Buffer.from(data, 'utf8')
-			: Buffer.alloc(0);
+		return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
 	}
 
 	public assetToJSON(): TransferAsset {
@@ -250,21 +227,21 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	public getRequiredAttributes(): Attributes {
-		const { ACCOUNTS } = super.getRequiredAttributes();
+		const attr = super.getRequiredAttributes();
 
 		return {
 			[ENTITY_ACCOUNT]: {
-				address: [...ACCOUNTS.address, this.recipientId],
+				address: [...attr[ENTITY_ACCOUNT].address, this.recipientId],
 			},
 		};
 	}
 
-	public processRequiredState(state: EntityMap): RequiredState {
+	public processRequiredState(state: EntityMap): RequiredTransferState {
 		const accounts = state[ENTITY_ACCOUNT];
 		if (!accounts) {
 			throw new Error('Entity account is required.');
 		}
-		if (!isTypedObjectArrayWithKeys(accounts)) {
+		if (!isTypedObjectArrayWithKeys<Account>(accounts, ['publicKey'])) {
 			throw new Error('Required state does not have valid account type');
 		}
 
@@ -273,84 +250,91 @@ export class TransferTransaction extends BaseTransaction {
 			throw new Error('No sender account is found.');
 		}
 
+		const recipient = accounts.find(acct => acct.address === this.recipientId);
+		if (!recipient) {
+			throw new Error('No recipient account is found.');
+		}
+
 		return {
 			sender,
+			recipient,
 		};
 	}
 
 	public validateSchema(): TransactionResponse {
 		const { status, errors: baseErrors } = super.validateSchema();
-		const transaction = this.toJSON();
-		const transferTransactionValidator = validator.compile(
-			transferFormatSchema,
-		);
-
-		const valid = transferTransactionValidator({
-			...transaction,
-			asset: this.asset,
-		}) as boolean;
-
-		const transferErrors = transferTransactionValidator.errors
-			? transferTransactionValidator.errors.map(
+		const valid = validator.validate(transferAssetFormatSchema, this.asset);
+		const errors = [...baseErrors];
+		const assetErrors = validator.errors
+			? validator.errors.map(
 					error =>
 						new TransactionError(
 							`'${error.dataPath}' ${error.message}`,
-							transaction.id,
+							this.id,
 							error.dataPath,
 						),
 			  )
 			: [];
 
-		const totalErrors = [...baseErrors, ...transferErrors];
+		errors.push(...assetErrors);
+
+		if (!validateTransferAmount(this.amount.toString())) {
+			errors.push(
+				new TransactionError(
+					'Amount must be a valid number in string format.',
+					this.id,
+					'.recipientId',
+				),
+			);
+		}
+
+		if (!this.recipientId) {
+			errors.push(
+				new TransactionError(
+					'`recipientId` must be provided.',
+					this.id,
+					'.recipientId',
+				),
+			);
+		}
+
+		try {
+			validateAddress(this.recipientId);
+		} catch (error) {
+			errors.push(new TransactionError(error.message, this.id, '.recipientId'));
+		}
+
+		if (
+			this.recipientPublicKey &&
+			this.recipientId !== getAddressFromPublicKey(this.recipientPublicKey)
+		) {
+			errors.push(
+				new TransactionError(
+					'recipientId does not match recipientPublicKey.',
+					this.id,
+					'.recipientId',
+				),
+			);
+		}
 
 		return {
 			id: this.id,
 			status:
-				status === Status.OK && valid && totalErrors.length === 0
+				status === Status.OK && valid && errors.length === 0
 					? Status.OK
 					: Status.FAIL,
-			errors: totalErrors,
-		};
-	}
-
-	public verify({ sender }: RequiredState): TransactionResponse {
-		const errors: TransactionError[] = [];
-		const { errors: baseErrors, state } = super.apply({ sender });
-		const { sender: updatedSender } = state;
-		baseErrors.forEach(error => {
-			errors.push(error);
-		});
-
-		// Balance verification
-		const { verified: balanceVerified, error: balanceError } = verifyBalance(
-			updatedSender,
-			this.amount,
-		);
-		if (!balanceVerified && balanceError) {
-			errors.push(balanceError);
-		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
 			errors,
 		};
 	}
 
-	public apply({ sender, recipient }: RequiredState): TransactionResponse {
-		const { errors: baseErrors, state } = super.apply({ sender });
-		const { sender: updatedSender } = state;
-		if (!updatedSender || !recipient) {
-			throw new Error('State is required for applying transaction');
-		}
+	public verify({
+		sender,
+		recipient,
+	}: RequiredTransferState): TransactionResponse {
+		const { errors: baseErrors } = super.apply({ sender });
 		const errors = [...baseErrors];
-		const updatedSenderBalance = new BigNum(updatedSender.balance).sub(
-			this.amount,
-		);
-		const finalSender = {
-			...sender,
-			balance: updatedSenderBalance.toString(),
-		};
+		// Balance verification
+		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
 		if (!updatedSenderBalance.gte(0)) {
 			errors.push(
@@ -366,8 +350,61 @@ export class TransferTransaction extends BaseTransaction {
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
 		);
+
+		if (!updatedRecipientBalance.lte(MAX_TRANSACTION_AMOUNT)) {
+			errors.push(new TransactionError('Invalid amount', this.id, '.amount'));
+		}
+
+		return {
+			id: this.id,
+			status: errors.length === 0 ? Status.OK : Status.FAIL,
+			errors,
+		};
+	}
+
+	public apply({
+		sender,
+		recipient,
+	}: RequiredTransferState): TransactionResponse {
+		const { errors: baseErrors } = super.apply({ sender });
+		const errors = [...baseErrors];
+		const updatedSenderBalance = new BigNum(sender.balance)
+			.sub(this.fee)
+			.sub(this.amount);
+
+		if (updatedSenderBalance.lt(0)) {
+			errors.push(
+				new TransactionError(
+					`Account does not have enough LSK: ${sender.address}, balance: ${
+						sender.balance
+					}`,
+					this.id,
+				),
+			);
+		}
+
+		const updatedSender = {
+			...sender,
+			balance: updatedSenderBalance.toString(),
+		};
+
+		if (!recipient) {
+			throw new Error('Recipient is required.');
+		}
+
+		const recipientAccount =
+			recipient.address === updatedSender.address ? updatedSender : recipient;
+
+		const updatedRecipientBalance = new BigNum(recipientAccount.balance).add(
+			this.amount,
+		);
+
+		if (updatedRecipientBalance.gt(MAX_TRANSACTION_AMOUNT)) {
+			errors.push(new TransactionError('Invalid amount', this.id, '.amount'));
+		}
+
 		const updatedRecipient = {
-			...recipient,
+			...recipientAccount,
 			balance: updatedRecipientBalance.toString(),
 		};
 
@@ -376,45 +413,72 @@ export class TransferTransaction extends BaseTransaction {
 			status: errors.length > 0 ? Status.FAIL : Status.OK,
 			errors,
 			state: {
-				sender: finalSender,
+				sender:
+					recipient.address === updatedSender.address
+						? updatedRecipient
+						: updatedSender,
 				recipient: updatedRecipient,
 			},
 		};
 	}
 
-	public undo({ sender, recipient }: RequiredState): TransactionResponse {
-		const { errors: baseErrors, state } = super.undo({ sender });
-		const { sender: updatedSender } = state;
-		if (!sender || !recipient) {
-			throw new Error('State is required for applying transaction');
-		}
+	public undo({
+		sender,
+		recipient,
+	}: RequiredTransferState): TransactionResponse {
+		const { errors: baseErrors } = super.undo({ sender });
 		const errors = [...baseErrors];
-		const updatedSenderBalance = new BigNum(updatedSender.balance).add(
-			this.amount,
-		);
-		const finalSender = {
+		const updatedSenderBalance = new BigNum(sender.balance)
+			.add(this.fee)
+			.add(this.amount);
+
+		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
+			errors.push(new TransactionError('Invalid amount', this.id, '.amount'));
+		}
+
+		const updatedSender = {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
 
-		if (!updatedSenderBalance.lte(MAX_TRANSACTION_AMOUNT)) {
-			errors.push(new TransactionError('Invalid balance amount', this.id));
+		if (!recipient) {
+			throw new Error('Recipient is required for applying transaction');
 		}
 
-		const updatedRecipientBalance = new BigNum(recipient.balance).add(
+		const recipientAccount =
+			recipient.address === updatedSender.address ? updatedSender : recipient;
+
+		const updatedRecipientBalance = new BigNum(recipientAccount.balance).sub(
 			this.amount,
 		);
 
+		if (updatedRecipientBalance.lt(0)) {
+			errors.push(
+				new TransactionError(
+					`Account does not have enough LSK: ${
+						recipientAccount.address
+					}, balance: ${recipient.balance}`,
+					this.id,
+				),
+			);
+		}
+
 		const updatedRecipient = {
-			...recipient,
+			...recipientAccount,
 			balance: updatedRecipientBalance.toString(),
 		};
 
 		return {
 			id: this.id,
-			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			state: { sender: finalSender, recipient: updatedRecipient },
+			status: errors.length === 0 ? Status.OK : Status.FAIL,
 			errors,
+			state: {
+				sender:
+					recipient.address === updatedSender.address
+						? updatedRecipient
+						: updatedSender,
+				recipient: updatedRecipient,
+			},
 		};
 	}
 }

@@ -12,9 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable-next-line no-reference
-/// <reference path="../../types/browserify-bignum/index.d.ts" />
-
 import {
 	bigNumberToBuffer,
 	getAddressAndPublicKeyFromPassphrase,
@@ -444,6 +441,9 @@ export abstract class BaseTransaction {
 	}
 
 	public apply({ sender }: RequiredState): TransactionResponse {
+		if (!sender) {
+			throw new Error('Sender is required.');
+		}
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.gte(0)
@@ -466,6 +466,9 @@ export abstract class BaseTransaction {
 	}
 
 	public undo({ sender }: RequiredState): TransactionResponse {
+		if (!sender) {
+			throw new Error('Sender is required.');
+		}
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)

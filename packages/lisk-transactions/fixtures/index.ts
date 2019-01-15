@@ -21,13 +21,15 @@ import validSecondSignatureAccount from './valid_second_signature_account.json';
 import validTransaction from './valid_transaction.json';
 import validMultisignatureTransaction from './valid_transaction_from_multisignature_account.json';
 import validSecondSignatureTransaction from './valid_transaction_from_second_signature_account.json';
-import validTransferTransaction from './valid_transfer_transaction_with_asset.json';
+import validTransferAccount from './valid_transfer_account.json';
+import validTransferTransactions from './valid_transfer_transactions.json';
 import validVoteTransactions from './valid_vote_transaction.json';
 
 export {
 	validAccount,
 	validTransaction,
-	validTransferTransaction,
+	validTransferTransactions,
+	validTransferAccount,
 	validMultisignatureAccount,
 	validMultisignatureTransaction,
 	validSecondSignatureAccount,

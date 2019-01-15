@@ -41,18 +41,18 @@ export const BYTESIZES = {
 };
 
 interface FeeMap {
-	readonly [type: number]: string
+	readonly [type: number]: number
 }
 
 export const FEES: FeeMap = {
-	0: '10000000',
-	1: '500000000',
-	2: '2500000000',
-	3: '100000000',
-	4: '500000000',
-	5: '2500000000',
-	6: '10000000',
-	7: '10000000',
+	0: TRANSFER_FEE,
+	1: SIGNATURE_FEE,
+	2: DELEGATE_FEE,
+	3: VOTE_FEE,
+	4: MULTISIGNATURE_FEE,
+	5: DAPP_FEE,
+	6: IN_TRANSFER_FEE,
+	7: OUT_TRANSFER_FEE,
 };
 
 export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));

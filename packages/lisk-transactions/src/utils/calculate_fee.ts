@@ -15,4 +15,11 @@
 import BigNum from 'browserify-bignum';
 import { FEES } from '../constants';
 
- export const calculateFee = (type: number): BigNum => new BigNum(FEES[type]);
+export const calculateFee = (type: number, multiplier?: number): BigNum => {
+    // tslint:disable no-magic-numbers
+	if (type === 4) {
+		return new BigNum(FEES[type]).mul(multiplier as number);
+	}
+
+	return new BigNum(FEES[type]);
+};
