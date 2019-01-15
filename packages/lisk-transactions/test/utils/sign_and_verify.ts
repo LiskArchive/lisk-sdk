@@ -152,9 +152,10 @@ describe('signAndVerify module', () => {
 			validMultisignatureTransaction,
 		);
 		const defaultTransactionBytes = Buffer.from(
-			'00de46a00424193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d3c9ea25a6b7c648f00e1f50500000000746865207265616c2074657374',
+			'002c497801500660b67a2ade1e2528b7f648feef8f3b46e2f4f90ca7f5439101b5119f309d572c095724f7f2b7600a3a4200000000',
 			'hex',
 		);
+
 		const {
 			multisignatures: memberPublicKeys,
 		} = defaultMultisignatureAccount as Account;
@@ -163,7 +164,7 @@ describe('signAndVerify module', () => {
 			const { verified } = verifyMultisignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures,
-				3,
+				2,
 				defaultTransactionBytes,
 			);
 
@@ -176,7 +177,7 @@ describe('signAndVerify module', () => {
 				defaultMultisignatureTransaction.signatures.map((signature: string) =>
 					signature.replace('1', '0'),
 				),
-				3,
+				2,
 				defaultTransactionBytes,
 			);
 

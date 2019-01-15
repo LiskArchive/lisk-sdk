@@ -38,7 +38,6 @@ import { Account, Status, TransactionJSON } from '../transaction_types';
 import {
 	checkTypes,
 	getId,
-	validateSignatureAndPublicKey,
 	validator,
 	verifyBalance,
 	verifyMultisignatures,
@@ -83,7 +82,7 @@ export abstract class BaseTransaction {
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
-	public readonly signatures: string[] = [];
+	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly receivedAt: Date = new Date();
@@ -121,7 +120,7 @@ export abstract class BaseTransaction {
 			getAddressFromPublicKey(rawTransaction.senderPublicKey);
 		this.senderPublicKey = rawTransaction.senderPublicKey;
 		this._signature = rawTransaction.signature;
-		this.signatures = rawTransaction.signatures;
+		this.signatures = (rawTransaction.signatures as string[]) || [];
 		this._signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
@@ -358,32 +357,39 @@ export abstract class BaseTransaction {
 		}
 		// Verify multisignatures
 		if (
-			Array.isArray(sender.multisignatures) &&
-			sender.multisignatures.length > 0 &&
-			sender.multimin
+			!(
+				Array.isArray(sender.multisignatures) &&
+				sender.multisignatures.length > 0 &&
+				sender.multimin
+			)
 		) {
-			this._multisignatureStatus = MultisignatureStatus.PENDING;
-			const {
+			this._multisignatureStatus = MultisignatureStatus.NONMULTISIGNATURE;
+
+			return {
+				id: this.id,
+				status: errors.length === 0 ? Status.OK : Status.FAIL,
+				errors,
+			};
+		}
+		this._multisignatureStatus = MultisignatureStatus.PENDING;
+		const {
+			status,
+			errors: multisignatureErrors,
+		} = this.processMultisignatures({ sender });
+
+		if (status === Status.PENDING && errors.length === 0) {
+			return {
+				id: this.id,
 				status,
 				errors: multisignatureErrors,
-			} = this.processMultisignatures({ sender });
+			};
+		}
 
-			if (status === Status.PENDING && errors.length === 0) {
-				return {
-					id: this.id,
-					status,
-					errors,
-				};
-			}
-
-			if (
-				Array.isArray(multisignatureErrors) &&
-				multisignatureErrors.length > 0
-			) {
-				multisignatureErrors.forEach(error => errors.push(error));
-			}
-		} else {
-			this._multisignatureStatus = MultisignatureStatus.NONMULTISIGNATURE;
+		if (
+			Array.isArray(multisignatureErrors) &&
+			multisignatureErrors.length > 0
+		) {
+			multisignatureErrors.forEach(error => errors.push(error));
 		}
 
 		return {
@@ -431,30 +437,15 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public addMultisignature(
-		signature: string,
-		publicKey: string,
-	): TransactionResponse {
-		const { valid } = validateSignatureAndPublicKey(signature, publicKey);
+	public addVerifiedMultisignature(signature: string): TransactionResponse {
+		if (!this.signatures.includes(signature)) {
+			this.signatures.push(signature);
 
-		if (valid && !this.signatures.includes(signature)) {
-			const transactionBytes = this.getBasicBytes();
-
-			const { verified } = verifySignature(
-				publicKey,
-				signature,
-				transactionBytes,
-			);
-
-			if (verified) {
-				this.signatures.push(signature);
-
-				return {
-					id: this.id,
-					status: Status.OK,
-					errors: [],
-				};
-			}
+			return {
+				id: this.id,
+				status: Status.OK,
+				errors: [],
+			};
 		}
 
 		return {
@@ -470,7 +461,7 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	protected processMultisignatures({
+	public processMultisignatures({
 		sender,
 	}: RequiredState): TransactionResponse {
 		const transactionBytes = this.signSignature
@@ -480,7 +471,7 @@ export abstract class BaseTransaction {
 			  ])
 			: this.getBasicBytes();
 
-		if (!sender.multimin || typeof sender.multimin !== 'number') {
+		if (!sender.multimin) {
 			return {
 				id: this.id,
 				status: Status.FAIL,
@@ -512,7 +503,7 @@ export abstract class BaseTransaction {
 					: verified
 						? Status.OK
 						: Status.FAIL,
-			errors: errors as ReadonlyArray<TransactionError>,
+			errors: (errors as ReadonlyArray<TransactionError>) || [],
 		};
 	}
 

@@ -83,19 +83,22 @@ export const verifyMultisignatures = (
 
 	publicKeys.forEach(publicKey => {
 		signatures.forEach((signature: string) => {
-			// Avoid single key from verifying more than one signature. See core issue #2540
+			// Avoid single key from verifying more than one signature.
+			// See issue #2540 at https://github.com/LiskHQ/lisk
 			if (
-				checkedPublicKeys.has(publicKey) &&
+				checkedPublicKeys.has(publicKey) ||
 				verifiedSignatures.has(signature)
 			) {
 				return;
 			}
+
 			const { verified: signatureVerified } = verifySignature(
 				publicKey,
 				signature,
 				transactionBytes,
 				id,
 			);
+
 			if (signatureVerified) {
 				checkedPublicKeys.add(publicKey);
 				verifiedSignatures.add(signature);
@@ -103,15 +106,12 @@ export const verifyMultisignatures = (
 		});
 	});
 
-	const duplicatedSignatures = signatures.filter(
+	const unverifiedTransactionSignatures = signatures.filter(
 		signature => !verifiedSignatures.has(signature),
 	);
 
 	// Transaction is waiting for more signatures
-	if (
-		signatures.length < minimumValidations &&
-		duplicatedSignatures.length === 0
-	) {
+	if (signatures.length < minimumValidations) {
 		return {
 			verified: false,
 			errors: [
@@ -123,8 +123,8 @@ export const verifyMultisignatures = (
 	return {
 		verified: verifiedSignatures.size >= minimumValidations,
 		errors:
-			duplicatedSignatures.length > 0
-				? duplicatedSignatures.map(
+			unverifiedTransactionSignatures.length > 0
+				? unverifiedTransactionSignatures.map(
 						signature =>
 							new TransactionError(
 								`Failed to verify signature ${signature}`,
