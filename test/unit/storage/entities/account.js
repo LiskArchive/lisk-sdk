@@ -21,6 +21,7 @@ const { NonSupportedFilterTypeError } = require('../../../../storage/errors');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const accountFixtures = require('../../../fixtures').accounts;
+const transactionsFixtures = require('../../../fixtures').transactions;
 
 const defaultCreateValues = {
 	publicKey: null,
@@ -58,6 +59,7 @@ describe('Account', () => {
 	let adapter;
 	let storage;
 	let AccountEntity;
+	let TransactionEntity;
 	let SQLs;
 
 	before(async () => {
@@ -70,6 +72,7 @@ describe('Account', () => {
 		adapter = storage.adapter;
 
 		AccountEntity = storage.entities.Account;
+		TransactionEntity = storage.entities.Transaction;
 		SQLs = AccountEntity.SQLs;
 	});
 
@@ -1120,5 +1123,83 @@ describe('Account', () => {
 			'should sync rank attribute of all delegates based on their vote value and public key'
 		);
 		it('should not throw error if there is no delegate available');
+	});
+
+	describe('countDuplicatedDelegates()', () => {
+		it('should use the correct SQL no with parameter', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await AccountEntity.countDuplicatedDelegates();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.countDuplicatedDelegates,
+				{},
+				{ expectedResultCount: 1 }
+			);
+		});
+
+		it('should return zero if no delegate records available', async () => {
+			const block = seeder.getLastBlock();
+
+			const trs1 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			const trs2 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			await TransactionEntity.create([trs1, trs2]);
+
+			const delegates = await adapter.execute('SELECT * from delegates');
+
+			// As we created two delegate transactions
+			expect(delegates).to.have.lengthOf(2);
+
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(0);
+		});
+
+		it('should return zero if there are delegates but no duplicates', async () => {
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(0);
+		});
+
+		it('should return integer value of duplicate delegates', async () => {
+			const block = seeder.getLastBlock();
+
+			const trs1 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			const trs2 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			await TransactionEntity.create([trs1, trs2]);
+
+			const delegates = await adapter.execute('SELECT * from delegates');
+
+			// As we created two delegate transactions
+			expect(delegates).to.have.lengthOf(2);
+
+			// Create duplicate records for each delegate
+			delegates.forEach(async delegate => {
+				const username = randomstring.generate({
+					length: 10,
+					charset: 'alphabetic',
+				});
+				await adapter.execute(
+					'INSERT INTO delegates ("transactionId", "username") VALUES ($1, $2)',
+					[delegate.transactionId, username]
+				);
+			});
+
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(2);
+		});
 	});
 });

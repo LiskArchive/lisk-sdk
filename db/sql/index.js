@@ -56,7 +56,6 @@ module.exports = {
 		list: link('dapps/list.sql'),
 	},
 	delegates: {
-		countDuplicatedDelegates: link('delegates/count_duplicated_delegates.sql'),
 		insertFork: link('delegates/insert_fork.sql'),
 	},
 	multisignatures: {

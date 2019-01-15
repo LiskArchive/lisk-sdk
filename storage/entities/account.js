@@ -332,6 +332,9 @@ class Account extends BaseEntity {
 			syncDelegatesRank: this.adapter.loadSQLFile(
 				'accounts/sync_delegates_rank.sql'
 			),
+			countDuplicatedDelegates: this.adapter.loadSQLFile(
+				'accounts/count_duplicated_delegates.sql'
+			),
 		};
 	}
 
@@ -658,6 +661,24 @@ class Account extends BaseEntity {
 	 */
 	syncDelegatesRanks(tx) {
 		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
+	}
+
+	/**
+	 * Counts duplicate delegates by transactionId.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 *
+	 * @returns {Promise<number>}
+	 */
+	countDuplicatedDelegates(tx) {
+		return this.adapter
+			.executeFile(
+				this.SQLs.countDuplicatedDelegates,
+				{},
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(result => +result.count);
 	}
 
 	/**

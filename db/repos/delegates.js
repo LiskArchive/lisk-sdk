@@ -43,16 +43,6 @@ class DelegatesRepository {
 	insertFork(fork) {
 		return this.db.none(sql.insertFork, fork);
 	}
-
-	/**
-	 * Counts duplicate delegates by transactionId.
-	 *
-	 * @returns {Promise<number>}
-	 * @todo Add description for the return value
-	 */
-	countDuplicatedDelegates() {
-		return this.db.one(sql.countDuplicatedDelegates, [], a => +a.count);
-	}
 }
 
 // TODO: Move DelegatesRepository#insertFork into a separate db repo

@@ -14,9 +14,7 @@
 
 'use strict';
 
-const randomstring = require('randomstring');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
-const transactionsFixtures = require('../../../fixtures').transactions;
 const forksFixtures = require('../../../fixtures').forks;
 const delegatesSQL = require('../../../../db/sql').delegates;
 const seeder = require('../../../common/db_seed');
@@ -116,64 +114,6 @@ describe('db', () => {
 						db.delegates.insertFork(params)
 					).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`);
 				});
-			});
-		});
-
-		describe('countDuplicatedDelegates()', () => {
-			it('should use the correct SQL no with parameter', function*() {
-				sinonSandbox.spy(db, 'one');
-				yield db.delegates.countDuplicatedDelegates();
-
-				expect(db.one.firstCall.args[0]).to.eql(
-					delegatesSQL.countDuplicatedDelegates
-				);
-				return expect(db.one.firstCall.args[1]).to.eql([]);
-			});
-
-			it('should return list of duplicate delegates', function*() {
-				const block = seeder.getLastBlock();
-
-				const trs1 = new transactionsFixtures.Transaction({
-					blockId: block.id,
-					type: 2,
-				});
-				yield db.transactions.save(trs1);
-				yield db.query(
-					db.$config.pgp.helpers.insert(
-						{
-							transactionId: trs1.id,
-							username: randomstring.generate({
-								length: 10,
-								charset: 'alphabetic',
-							}),
-						},
-						null,
-						{ table: 'delegates' }
-					)
-				);
-
-				const trs2 = new transactionsFixtures.Transaction({
-					blockId: block.id,
-					type: 2,
-				});
-				yield db.transactions.save(trs2);
-				yield db.query(
-					db.$config.pgp.helpers.insert(
-						{
-							transactionId: trs2.id,
-							username: randomstring.generate({
-								length: 10,
-								charset: 'alphabetic',
-							}),
-						},
-						null,
-						{ table: 'delegates' }
-					)
-				);
-
-				const result = yield db.delegates.countDuplicatedDelegates();
-
-				return expect(result).to.be.eql(2);
 			});
 		});
 	});
