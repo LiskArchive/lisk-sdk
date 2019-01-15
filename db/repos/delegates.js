@@ -45,17 +45,6 @@ class DelegatesRepository {
 	}
 
 	/**
-	 * Gets delegates for a list of public keys.
-	 *
-	 * @param {string} publicKeys - Comma Separated list of public keys
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getDelegatesByPublicKeys(publicKeys) {
-		return this.db.any(sql.getDelegatesByPublicKeys, { publicKeys });
-	}
-
-	/**
 	 * Counts duplicate delegates by transactionId.
 	 *
 	 * @returns {Promise<number>}

@@ -57,9 +57,6 @@ module.exports = {
 	},
 	delegates: {
 		countDuplicatedDelegates: link('delegates/count_duplicated_delegates.sql'),
-		getDelegatesByPublicKeys: link(
-			'delegates/get_delegates_by_public_keys.sql'
-		),
 		insertFork: link('delegates/insert_fork.sql'),
 	},
 	multisignatures: {

@@ -16,7 +16,6 @@
 
 const randomstring = require('randomstring');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
-const accountFixtures = require('../../../fixtures').accounts;
 const transactionsFixtures = require('../../../fixtures').transactions;
 const forksFixtures = require('../../../fixtures').forks;
 const delegatesSQL = require('../../../../db/sql').delegates;
@@ -117,48 +116,6 @@ describe('db', () => {
 						db.delegates.insertFork(params)
 					).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`);
 				});
-			});
-		});
-
-		describe('getDelegatesByPublicKeys()', () => {
-			it('should use the correct SQL with given params', function*() {
-				sinonSandbox.spy(db, 'any');
-				const keys = ['ABCDE'];
-				yield db.delegates.getDelegatesByPublicKeys(keys);
-
-				expect(db.any.firstCall.args[0]).to.eql(
-					delegatesSQL.getDelegatesByPublicKeys
-				);
-				return expect(db.any.firstCall.args[1]).to.eql({ publicKeys: keys });
-			});
-
-			it('should return list of delegates for given public keys', function*() {
-				const account1 = new accountFixtures.Account({
-					isDelegate: true,
-				});
-				const account2 = new accountFixtures.Account({
-					isDelegate: true,
-				});
-				const account3 = new accountFixtures.Account({
-					isDelegate: true,
-				});
-
-				yield db.accounts.insert(account1);
-				yield db.accounts.insert(account2);
-				yield db.accounts.insert(account3);
-
-				const result = yield db.delegates.getDelegatesByPublicKeys([
-					account1.publicKey,
-					account2.publicKey,
-				]);
-
-				expect(result).to.be.not.empty;
-				expect(result).to.have.lengthOf(2);
-				expect(result[0]).to.have.all.keys('publicKey', 'username', 'address');
-				expect(result.map(r => r.publicKey)).to.include(account1.publicKey);
-				return expect(result.map(r => r.publicKey)).to.include(
-					account2.publicKey
-				);
 			});
 		});
 
