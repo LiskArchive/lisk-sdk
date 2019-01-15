@@ -26,24 +26,19 @@ const redis = require('redis');
 /**
  * Description of the function.
  *
- * @param {boolean} cacheEnabled
  * @param {Object} config - Redis configuration
  * @param {Object} logger
  * @param {function} cb
  * @todo Add description for the function and the params
  */
 
-class RedisConnector {
-	constructor(cacheEnabled, cacheConfig, logger) {
-		this.cacheEnabled = cacheEnabled;
+class CacheConnector {
+	constructor(cacheConfig, logger) {
 		this.cacheConfig = cacheConfig;
 		this.logger = logger;
 	}
 
 	connect(cb) {
-		if (!this.cacheEnabled) {
-			return cb(null, null);
-		}
 		this.client = redis.createClient(this.cacheConfig);
 		this.client.once(
 			'error',
@@ -76,4 +71,11 @@ class RedisConnector {
 	}
 }
 
-module.exports = RedisConnector;
+module.exports = function createCache(options, logger) {
+	// delete password key if it's value is null
+	const cacheConfigParam = Object.assign({}, options);
+	if (cacheConfigParam.password === null) {
+		delete cacheConfigParam.password;
+	}
+	return new CacheConnector(cacheConfigParam, logger);
+};
