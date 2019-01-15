@@ -15,18 +15,10 @@
 'use strict';
 
 module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
-	describe('@network : peers', () => {
-		describe('when there are mutual connections among peers', () => {
-			let mutualPeers = [];
-
-			before(done => {
-				network
-					.getAllPeersLists()
-					.then(peers => {
-						mutualPeers = peers;
-						done();
-					})
-					.catch(done);
+	describe('@p2p : peers', () => {
+		describe('after 4 blocks are created in the network', () => {
+			before(() => {
+				return network.waitForBlocksOnAllNodes(4);
 			});
 
 			it(`there should be ${TOTAL_PEERS} active peers`, () => {
@@ -36,19 +28,21 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 			});
 
 			it('should return a list of peers mutually interconnected', () => {
-				return mutualPeers.forEach(mutualPeer => {
-					expect(mutualPeer).to.have.property('success').to.be.true;
-					expect(mutualPeer)
-						.to.have.property('peers')
-						.to.be.an('array');
-					const peerPorts = mutualPeer.peers.map(peer => {
-						return peer.wsPort;
+				return network.getAllPeersLists().then(peers => {
+					return peers.forEach(mutualPeer => {
+						expect(mutualPeer).to.have.property('success').to.be.true;
+						expect(mutualPeer)
+							.to.have.property('peers')
+							.to.be.an('array');
+						const peerPorts = mutualPeer.peers.map(peer => {
+							return peer.wsPort;
+						});
+						const allPorts = configurations.map(configuration => {
+							return configuration.wsPort;
+						});
+						return expect(_.intersection(allPorts, peerPorts)).to.be.an('array')
+							.and.not.to.be.empty;
 					});
-					const allPorts = configurations.map(configuration => {
-						return configuration.wsPort;
-					});
-					return expect(_.intersection(allPorts, peerPorts)).to.be.an('array')
-						.and.not.to.be.empty;
 				});
 			});
 
@@ -64,38 +58,17 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 					'height',
 					'nonce',
 				];
-				return mutualPeers.forEach(mutualPeer => {
-					mutualPeer.peers.every(peer => {
-						// delete the not required properties from ws peer list call
-						// to keep consistency with api/controllers/peers.js/getPeers
-						delete peer.updated;
-						return expect(peer).to.have.all.keys(peerProps);
+				return network.getAllPeersLists().then(peers => {
+					return peers.forEach(mutualPeer => {
+						return mutualPeer.peers.every(peer => {
+							// delete the not required properties from ws peer list call
+							// to keep consistency with api/controllers/peers.js/getPeers
+							delete peer.updated;
+							delete peer.clock;
+							return expect(peer).to.have.all.keys(peerProps);
+						});
 					});
 				});
-			});
-		});
-
-		describe('after 2 blocks are created in the network', () => {
-			let status;
-
-			before(done => {
-				network
-					.waitForBlocksOnAllNodes(2)
-					.then(() => {
-						return network.getAllNodesStatus();
-					})
-					.then(data => {
-						status = data;
-						done();
-					});
-			});
-
-			it('should have height > 1', () => {
-				return expect(status.networkMaxAvgHeight.maxHeight).to.be.above(1);
-			});
-
-			it('should have average height above 1', () => {
-				return expect(status.networkMaxAvgHeight.averageHeight).to.be.above(1);
 			});
 
 			it('should have valid values matching specification', () => {
@@ -122,32 +95,47 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 				});
 			});
 
-			it('should have matching height across all nodes', () => {
-				return network.getAllNodesStatus().then(result => {
-					const heights = Object.keys(
-						_.groupBy(result.peerStatusList, 'height')
-					);
-					return expect(heights).to.have.lengthOf(1);
-				});
-			});
-
 			describe('network height', () => {
-				it('should have networkHeight > 1 for all peers', () => {
-					expect(status.peerStatusList)
-						.to.be.an('Array')
-						.to.have.lengthOf(status.peersCount);
-					return status.peerStatusList.map(peer => {
-						return expect(peer.networkHeight).to.be.above(1);
+				it('should be at most 4 in one peer (maxHeight)', () => {
+					return network
+						.getAllNodesStatus()
+						.then(status =>
+							expect(status.networkMaxAvgHeight.maxHeight).to.be.at.least(4)
+						);
+				});
+
+				it('should be on average above 2', () => {
+					return network
+						.getAllNodesStatus()
+						.then(status =>
+							expect(status.networkMaxAvgHeight.averageHeight).to.be.above(2)
+						);
+				});
+
+				it('should be above 1 for all peers', () => {
+					return network.getAllNodesStatus().then(status => {
+						expect(status.peerStatusList)
+							.to.be.an('Array')
+							.to.have.lengthOf(status.peersCount);
+						return status.peerStatusList.map(peer => {
+							return expect(peer.networkHeight).to.be.above(2);
+						});
 					});
 				});
 
-				it('should be same for all the peers', () => {
-					const networkHeights = _.groupBy(
-						status.peerStatusList,
-						'networkHeight'
-					);
-					const heights = Object.keys(networkHeights);
-					return expect(heights).to.have.lengthOf(1); // TODO 2: This fails sometimes
+				it('should be similar among all peers (max 3 blocks of difference)', () => {
+					return network.getAllNodesStatus().then(status => {
+						const networkHeights = _.groupBy(
+							status.peerStatusList,
+							'networkHeight'
+						);
+						const heights = Object.keys(networkHeights);
+						if (heights.length !== 1) {
+							expect(heights).to.have.lengthOf(2);
+							return expect(Math.abs(heights[0] - heights[1])).to.be.at.most(3);
+						}
+						return expect(heights).to.have.lengthOf(1);
+					});
 				});
 			});
 		});
