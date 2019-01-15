@@ -22,7 +22,7 @@ const strftime = require('strftime').utc();
 
 require('colors');
 
-module.exports = function(config) {
+module.exports = function createLogger(config) {
 	config = config || {};
 	const exports = {};
 

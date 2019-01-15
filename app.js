@@ -42,7 +42,7 @@ const dns = require('dns');
 const net = require('net');
 const SocketCluster = require('socketcluster');
 const async = require('async');
-const Logger = require('./logger.js');
+const createLogger = require('./logger');
 const wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 const WsTransport = require('./api/ws/transport');
 const git = require('./helpers/git.js');
@@ -158,7 +158,7 @@ const config = {
  *
  * @memberof! app
  */
-const logger = new Logger({
+const logger = createLogger({
 	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 	errorLevel: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
 	filename: appConfig.logFileName,
@@ -178,7 +178,7 @@ if (
 	dbLogger = logger;
 } else {
 	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
-	dbLogger = new Logger({
+	dbLogger = createLogger({
 		echo: process.env.DB_LOG_LEVEL || 'log',
 		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,
