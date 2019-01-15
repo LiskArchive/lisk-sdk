@@ -879,6 +879,9 @@ Delegates.prototype.getForgers = function(query, cb) {
 			{ isDelegate: true, publicKey_in: forgerKeys },
 			{ limit: null }
 		)
+			.then(rows =>
+				rows.map(row => _.pick(row, ['username', 'address', 'publicKey']))
+			)
 			.then(rows => {
 				rows.forEach(forger => {
 					forger.nextSlot =
