@@ -931,7 +931,7 @@ describe('Account', () => {
 			);
 		});
 
-		it('should increment account attribute', async () => {
+		it('should increase account attribute', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
@@ -951,7 +951,7 @@ describe('Account', () => {
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
-		it('should increment balance with string data', async () => {
+		it('should increase balance with string data', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
@@ -978,7 +978,7 @@ describe('Account', () => {
 			);
 		});
 
-		it('should decreaseFieldBy account attribute', async () => {
+		it('should decrease account balance by 1000', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
@@ -998,14 +998,14 @@ describe('Account', () => {
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
-		it('should decreaseFieldBy balance with string data', async () => {
+		it('should decrease account balance by "1000" as string', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = '15000';
 
 			await AccountEntity.create(account);
-			await AccountEntity.decreaseFieldBy({ address }, 'balance', 1000);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', '1000');
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 

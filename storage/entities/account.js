@@ -587,11 +587,11 @@ class Account extends BaseEntity {
 	}
 
 	/**
-	 * Increment a field value in mem_accounts.
+	 * Increase a field value in mem_accounts.
 	 *
 	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to increment
-	 * @param {Number|string} value - Value to be incremented
+	 * @param {string} field - Name of the field to increase
+	 * @param {Number|string} value - Value increase
 	 * @param {Object} [tx] - Transaction object
 	 * @returns {Promise}
 	 */
@@ -600,11 +600,11 @@ class Account extends BaseEntity {
 	}
 
 	/**
-	 * Decrement a field value in mem_accounts.
+	 * Decrease a field value in mem_accounts.
 	 *
 	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to increment
-	 * @param {Number|string} value - Value to be incremented
+	 * @param {string} field - Name of the field to decrease
+	 * @param {Number|string} value - Value decrease
 	 * @param {Object} [tx] - Transaction object
 	 * @returns {Promise}
 	 */
