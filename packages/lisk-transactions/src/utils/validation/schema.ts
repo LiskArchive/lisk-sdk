@@ -126,8 +126,8 @@ export const baseTransaction = {
 			type: 'string',
 		},
 		recipientPublicKey: {
-			type: ['string', 'null'],
-			format: 'publicKey',
+			type: ['string'],
+			format: 'emptyOrPublicKey',
 		},
 		signature: {
 			type: 'string',

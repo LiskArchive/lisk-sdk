@@ -13,6 +13,7 @@
  *
  */
 import validAccount from './valid_account.json';
+import validInTransferTransactions from './valid_in_transfer_transaction.json';
 import validMultisignatureAccount from './valid_multisignature_account.json';
 import validSecondSignatureAccount from './valid_second_signature_account.json';
 import validTransaction from './valid_transaction.json';
@@ -28,4 +29,5 @@ export {
 	validSecondSignatureAccount,
 	validSecondSignatureTransaction,
 	validVoteTransactions,
+	validInTransferTransactions,
 };

@@ -15,6 +15,7 @@
 import BigNum from 'browserify-bignum';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
+import { convertBeddowsToLSK } from '../utils';
 import { isTypedObjectArrayWithKeys, validator } from '../utils/validation';
 import {
 	Attributes,
@@ -146,7 +147,7 @@ export class InTransferTransaction extends BaseTransaction {
 			throw new Error('Entity account is required.');
 		}
 		if (
-			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
+			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'balance'])
 		) {
 			throw new Error('Required state does not have valid account type.');
 		}
@@ -166,7 +167,7 @@ export class InTransferTransaction extends BaseTransaction {
 			!isTypedObjectArrayWithKeys<TransactionJSON>(transactions, [
 				'id',
 				'type',
-				'asset',
+				'senderId',
 			])
 		) {
 			throw new Error('Required state does not have valid transaction type.');
@@ -193,6 +194,15 @@ export class InTransferTransaction extends BaseTransaction {
 		const { errors: baseErrors, status } = super.validateSchema();
 		const valid = validator.validate(inTransferAssetFormatSchema, this.asset);
 		const errors = [...baseErrors];
+		if (this.amount.lte(0)) {
+			errors.push(
+				new TransactionError(
+					'Amount must be greather than 0',
+					this.id,
+					'.amount',
+				),
+			);
+		}
 		const assetErrors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -238,7 +248,9 @@ export class InTransferTransaction extends BaseTransaction {
 		) {
 			errors.push(
 				new TransactionError(
-					`Sender ${this.senderId} does not have sufficient balance.`,
+					`Account does not have enough LSK: ${
+						sender.address
+					}, balance: ${convertBeddowsToLSK(sender.balance)}.`,
 					this.id,
 				),
 			);
@@ -299,17 +311,16 @@ export class InTransferTransaction extends BaseTransaction {
 		if (updatedBalance.lt(0)) {
 			errors.push(
 				new TransactionError(
-					`Account does not have enough LSK: ${sender.address}, balance: ${
-						// tslint:disable-next-line no-magic-numbers
-						new BigNum(sender.balance.toString() || '0').div(Math.pow(10, 8))
-					}`,
+					`Account does not have enough LSK: ${
+						sender.address
+					}, balance: ${convertBeddowsToLSK(sender.balance)}.`,
 					this.id,
 				),
 			);
 		}
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 		if (!recipient) {
-			throw new Error('Recipient is required');
+			throw new Error('Recipient is required.');
 		}
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
@@ -335,34 +346,30 @@ export class InTransferTransaction extends BaseTransaction {
 		sender,
 		recipient,
 	}: RequiredInTransferState): TransactionResponse {
-		const { errors: baseErrors, state } = super.undo({ sender });
-		if (!state) {
-			throw new Error('State is required for undoing transaction.');
-		}
+		const { errors: baseErrors } = super.undo({ sender });
 		const errors = [...baseErrors];
 		// Ignore state from the base transaction
 		const updatedBalance = new BigNum(sender.balance)
 			.add(this.fee)
 			.add(this.amount);
-		if (updatedBalance.lt(0)) {
-			errors.push(
-				new TransactionError(
-					`Account does not have enough LSK: ${sender.address}, balance: ${
-						// tslint:disable-next-line no-magic-numbers
-						new BigNum(sender.balance.toString() || '0').div(Math.pow(10, 8))
-					}`,
-					this.id,
-				),
-			);
-		}
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 		if (!recipient) {
-			throw new Error('Recipient is required');
+			throw new Error('Recipient is required.');
 		}
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
 		);
+		if (updatedRecipientBalance.lt(0)) {
+			errors.push(
+				new TransactionError(
+					`Account does not have enough LSK: ${
+						recipient.address
+					}, balance: ${convertBeddowsToLSK(recipient.balance)}.`,
+					this.id,
+				),
+			);
+		}
 		const updatedRecipient = {
 			...recipient,
 			balance: updatedRecipientBalance.toString(),
