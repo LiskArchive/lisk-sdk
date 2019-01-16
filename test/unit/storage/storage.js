@@ -30,8 +30,10 @@ describe('Storage', () => {
 		);
 	});
 
-	describe('register', () => {
+	describe('registerEntity', () => {
 		it('should accept three parameters');
+		it('should throw error if identifier is not provided');
+		it('should throw error if Entity is not provided');
 		it('should initialize an entity and return its object');
 		it(
 			'should initialize an entity and assign to storage.entities.* namespace'

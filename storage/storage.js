@@ -14,6 +14,7 @@
 
 'use strict';
 
+const assert = require('assert');
 const path = require('path');
 const { BaseEntity } = require('./entities');
 const PgpAdapter = require('./adapters/pgp_adapter');
@@ -62,7 +63,7 @@ class Storage {
 
 	/**
 	 * Register an entity by initializing its object.
-	 * It would be accessible through `storage.entities.[identifier]
+	 * It will be accessible through `storage.entities.[identifier]
 	 *
 	 * @param {string} identifier - Identifier used to access the object from stoage.entities.* namespace
 	 * @param {BaseEntity} Entity - A class constructor extended from BaseEntity
@@ -71,7 +72,10 @@ class Storage {
 	 * @param {Array.<*>} [options.initParams] - Extra parameters to pass to initialization of entity
 	 * @returns {BaseEntity}
 	 */
-	register(identifier, Entity, options = {}) {
+	registerEntity(identifier, Entity, options = {}) {
+		assert(identifier, 'Identifier is required to register an entity.');
+		assert(Entity, 'Entity is required to register it.');
+
 		const existed = Object.keys(Storage.instance.entities).includes(identifier);
 
 		if (existed && !options.replaceExisting) {

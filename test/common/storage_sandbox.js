@@ -81,13 +81,13 @@ class StorageSandbox extends Storage {
 		await this._createDB();
 		await super.bootstrap();
 
-		this.register('Account', Account);
-		this.register('Block', Block);
-		this.register('Delegate', Delegate);
-		this.register('Migration', Migration);
-		this.register('Peer', Peer);
-		this.register('Round', Round);
-		this.register('Transaction', Transaction);
+		this.registerEntity('Account', Account);
+		this.registerEntity('Block', Block);
+		this.registerEntity('Delegate', Delegate);
+		this.registerEntity('Migration', Migration);
+		this.registerEntity('Peer', Peer);
+		this.registerEntity('Round', Round);
+		this.registerEntity('Transaction', Transaction);
 
 		await this._createSchema(this.adapter.db);
 		return true;

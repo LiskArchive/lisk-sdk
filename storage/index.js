@@ -28,13 +28,13 @@ const {
 module.exports = function createStorage(options, logger) {
 	const storage = new Storage(options, logger);
 
-	storage.register('Account', Account);
-	storage.register('Block', Block);
-	storage.register('Delegate', Delegate);
-	storage.register('Migration', Migration);
-	storage.register('Peer', Peer);
-	storage.register('Round', Round);
-	storage.register('Transaction', Transaction);
+	storage.registerEntity('Account', Account);
+	storage.registerEntity('Block', Block);
+	storage.registerEntity('Delegate', Delegate);
+	storage.registerEntity('Migration', Migration);
+	storage.registerEntity('Peer', Peer);
+	storage.registerEntity('Round', Round);
+	storage.registerEntity('Transaction', Transaction);
 
 	return storage;
 };
