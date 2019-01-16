@@ -64,6 +64,7 @@ class Migration extends BaseEntity {
 			select: this.adapter.loadSQLFile('migrations/get.sql'),
 			isPersisted: this.adapter.loadSQLFile('migrations/is_persisted.sql'),
 			create: this.adapter.loadSQLFile('migrations/create.sql'),
+			applyRunTime: this.adapter.loadSQLFile('migrations/runtime.sql'),
 		};
 	}
 
@@ -194,6 +195,10 @@ class Migration extends BaseEntity {
 			.then(result => result.exists);
 	}
 
+	applyRunTime(tx) {
+		return this.adapter.executeFile(this.SQLs.applyRunTime, {}, {}, tx);
+	}
+
 	/**
 	 * Verifies presence of the 'migrations' OID named relation.
 	 *
@@ -274,7 +279,7 @@ class Migration extends BaseEntity {
 				// eslint-disable-next-line no-await-in-loop
 				await this.create({ id: migration.id, name: migration.name });
 			}
-			// @TODO CONST AWAIT APPLY applyRuntime()
+			this.applyRunTime();
 		}
 	}
 }
