@@ -15,18 +15,11 @@
 import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
 import { InvalidPeer, InvalidRPCResponse } from './errors';
+import { ProtocolPeerInfo } from './p2p_types';
 import { PeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
-
-interface RawPeerObject {
-	readonly height?: string;
-	readonly ip: string;
-	readonly os?: string;
-	readonly version?: string;
-	readonly wsPort: string;
-}
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
@@ -41,36 +34,38 @@ export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	return true;
 };
 
-export const instantiatePeerFromResponse = (peer: unknown): PeerInfo => {
-	if (!peer) {
+export const sanitizePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
+	if (!rawPeerInfo) {
 		throw new InvalidPeer(`Invalid peer object`);
 	}
 
-	// TODO: We will use the ProtocolPeerInfo from p2p_types.ts which is similar to RawPeerObject
-	const rawPeer = peer as RawPeerObject;
+	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
 
 	if (
-		!rawPeer.ip ||
-		!rawPeer.wsPort ||
-		!validatePeerAddress(rawPeer.ip, rawPeer.wsPort)
+		!protocolPeer.ip ||
+		!protocolPeer.wsPort ||
+		!validatePeerAddress(protocolPeer.ip, protocolPeer.wsPort)
 	) {
 		throw new InvalidPeer(`Invalid peer ip or port`);
 	}
 
-	if (!rawPeer.version || !isValidVersion(rawPeer.version)) {
+	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
 		throw new InvalidPeer(`Invalid peer version`);
 	}
 
-	const version = rawPeer.version;
-	const wsPort = +rawPeer.wsPort;
-	const os = rawPeer.os && isAlpha(rawPeer.os.toString()) ? rawPeer.os : '';
+	const version = protocolPeer.version;
+	const wsPort = +protocolPeer.wsPort;
+	const os =
+		protocolPeer.os && isAlpha(protocolPeer.os.toString())
+			? protocolPeer.os
+			: '';
 	const height =
-		rawPeer.height && isNumeric(rawPeer.height.toString())
-			? +rawPeer.height
+		protocolPeer.height && isNumeric(protocolPeer.height.toString())
+			? +protocolPeer.height
 			: 0;
 
 	const peerInfo: PeerInfo = {
-		ipAddress: rawPeer.ip,
+		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
 		os,
@@ -80,17 +75,17 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerInfo => {
 	return peerInfo;
 };
 
-export const processPeerListFromResponse = (
-	response: unknown,
+export const sanitizePeerInfoList = (
+	rawPeerInfoList: unknown,
 ): ReadonlyArray<PeerInfo> => {
-	if (!response) {
+	if (!rawPeerInfoList) {
 		throw new InvalidRPCResponse('Invalid response type');
 	}
 
-	const { peers } = response as RPCPeerListResponse;
+	const { peers } = rawPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<PeerInfo>(instantiatePeerFromResponse);
+		const peerList = peers.map<PeerInfo>(sanitizePeerInfo);
 
 		return peerList;
 	} else {

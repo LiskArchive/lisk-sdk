@@ -15,11 +15,11 @@
 import { expect } from 'chai';
 import {
 	validatePeerAddress,
-	instantiatePeerFromResponse,
-} from '../../src/response_handler_sanitization';
+	sanitizePeerInfo,
+} from '../../src/sanitization';
 
 describe('response handlers', () => {
-	describe('#instantiatePeerFromResponse', () => {
+	describe('#sanitizePeerInfo', () => {
 		describe('for valid peer response object', () => {
 			const peer: unknown = {
 				ip: '12.23.54.3',
@@ -46,7 +46,7 @@ describe('response handlers', () => {
 			};
 
 			it('should return PeerInfo object', () => {
-				return expect(instantiatePeerFromResponse(peer))
+				return expect(sanitizePeerInfo(peer))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -58,7 +58,7 @@ describe('response handlers', () => {
 			});
 
 			it('should return PeerInfo object with height value set to 0', () => {
-				return expect(instantiatePeerFromResponse(peerWithInvalidHeightValue))
+				return expect(sanitizePeerInfo(peerWithInvalidHeightValue))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -70,7 +70,7 @@ describe('response handlers', () => {
 			});
 
 			it('should return PeerInfo and instance of Peer sets blank for invalid value of os', () => {
-				return expect(instantiatePeerFromResponse(peerWithInvalidOsValue))
+				return expect(sanitizePeerInfo(peerWithInvalidOsValue))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -87,7 +87,7 @@ describe('response handlers', () => {
 				const peerInvalid: unknown = null;
 
 				return expect(
-					instantiatePeerFromResponse.bind(null, peerInvalid),
+					sanitizePeerInfo.bind(null, peerInvalid),
 				).to.throw('Invalid peer object');
 			});
 
@@ -100,7 +100,7 @@ describe('response handlers', () => {
 				};
 
 				return expect(
-					instantiatePeerFromResponse.bind(null, peerInvalid),
+					sanitizePeerInfo.bind(null, peerInvalid),
 				).to.throw('Invalid peer ip or port');
 			});
 
@@ -114,7 +114,7 @@ describe('response handlers', () => {
 				};
 
 				return expect(
-					instantiatePeerFromResponse.bind(null, peerInvalid),
+					sanitizePeerInfo.bind(null, peerInvalid),
 				).to.throw('Invalid peer version');
 			});
 		});
