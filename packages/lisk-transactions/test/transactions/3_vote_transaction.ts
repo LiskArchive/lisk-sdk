@@ -150,13 +150,9 @@ describe('Vote transaction class', () => {
 
 			it('should create vote transaction ', async () => {
 				expect(result).to.have.property('id');
-				expect(result)
-					.to.have.property('type')
-					.and.equal(3);
+				expect(result).to.have.property('type', 3);
 				expect(result).to.have.property('amount', '0');
-				expect(result)
-					.to.have.property('fee')
-					.and.equal(VOTE_FEE.toString());
+				expect(result).to.have.property('fee', VOTE_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
 				expect(result).to.have.property(
@@ -284,18 +280,10 @@ describe('Vote transaction class', () => {
 			});
 
 			it('should create vote transaction ', async () => {
-				expect(result)
-					.to.have.property('type')
-					.and.equal(3);
-				expect(result)
-					.to.have.property('amount')
-					.and.equal('0');
-				expect(result)
-					.to.have.property('fee')
-					.and.equal(VOTE_FEE.toString());
-				expect(result)
-					.to.have.property('timestamp')
-					.and.equal(timeWithOffset);
+				expect(result).to.have.property('type', 3);
+				expect(result).to.have.property('amount', '0');
+				expect(result).to.have.property('fee', VOTE_FEE.toString());
+				expect(result).to.have.property('timestamp', timeWithOffset);
 				const votes = [
 					...defaultUpvotes.map(vote => `+${vote}`),
 					...defaultUnvotes.map(vote => `-${vote}`),
@@ -303,9 +291,7 @@ describe('Vote transaction class', () => {
 				expect((result as any).asset.votes).to.eql(votes);
 
 				expect((result as any).senderPublicKey).to.be.undefined;
-				expect(result)
-					.to.have.property('recipientId')
-					.and.to.equal('');
+				expect(result).to.have.property('recipientId', '');
 
 				expect(result).not.to.have.property('id');
 				expect(result).not.to.have.property('senderId');
