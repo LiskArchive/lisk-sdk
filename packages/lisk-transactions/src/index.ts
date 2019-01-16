@@ -16,11 +16,11 @@ import { transfer } from './0_transfer';
 import { registerSecondPassphrase } from './1_register_second_passphrase';
 import { registerDelegate } from './2_register_delegate';
 import { registerMultisignature } from './4_register_multisignature_account';
-import { createDapp } from './5_create_dapp';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
 import {
 	BaseTransaction,
+	DappTransaction,
 	InTransferTransaction,
 	VoteTransaction,
 } from './transactions';
@@ -28,6 +28,8 @@ import * as utils from './utils';
 
 // tslint:disable-next-line no-unbound-method
 const castVotes = VoteTransaction.create;
+// tslint:disable-next-line no-unbound-method
+const createDapp = DappTransaction.create;
 
 export {
 	BaseTransaction,

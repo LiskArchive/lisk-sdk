@@ -13,6 +13,7 @@
  *
  */
 import validAccount from './valid_account.json';
+import validDappTransactions from './valid_dapp_transactions.json';
 import validInTransferTransactions from './valid_in_transfer_transaction.json';
 import validMultisignatureAccount from './valid_multisignature_account.json';
 import validSecondSignatureAccount from './valid_second_signature_account.json';
@@ -30,4 +31,5 @@ export {
 	validSecondSignatureTransaction,
 	validVoteTransactions,
 	validInTransferTransactions,
+	validDappTransactions,
 };

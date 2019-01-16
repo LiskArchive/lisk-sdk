@@ -130,7 +130,7 @@ export const dappAssetFormatSchema = {
 				name: {
 					type: 'string',
 					minLength: 1,
-					maxLennth: 20,
+					maxLength: 20,
 				},
 			},
 		},
@@ -155,7 +155,7 @@ export class DappTransaction extends BaseTransaction {
 			  )
 			: [];
 		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, errors);
+			throw new TransactionMultiError('Invalid field types.', tx.id, errors);
 		}
 		this.asset = tx.asset as DappAsset;
 	}
@@ -321,7 +321,7 @@ export class DappTransaction extends BaseTransaction {
 				'asset',
 			])
 		) {
-			throw new Error('Required state does not have valid dapp type.');
+			throw new Error('Required state does not have valid transaction type.');
 		}
 
 		const dependentDappTx = dapps.filter(
@@ -381,10 +381,23 @@ export class DappTransaction extends BaseTransaction {
 	}: RequiredDappState): TransactionResponse {
 		const { errors: baseErrors } = super.apply({ sender });
 		if (!dependentState) {
-			throw new Error('Dependent state is required for vote transaction.');
+			throw new Error('Dependent state is required for dapp transaction.');
 		}
+		if (!dependentState[ENTITY_TRANSACTION]) {
+			throw new Error(
+				'Dependent transaction state is required for dapp transaction.',
+			);
+		}
+
 		const errors = [...baseErrors];
-		const dependentDappsTxs = dependentState[ENTITY_TRANSACTION];
+		const dependentDappsTxs = dependentState[ENTITY_TRANSACTION].filter(
+			tx =>
+				tx.type === this.type &&
+				tx.asset &&
+				'dapp' in tx.asset &&
+				tx.asset.dapp.name === this.asset.dapp.name,
+		);
+
 		if (dependentDappsTxs.length > 0) {
 			errors.push(
 				new TransactionError(
