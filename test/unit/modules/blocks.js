@@ -121,7 +121,6 @@ describe('blocks', () => {
 		});
 
 		it('should instantiate submodules', () => {
-			expect(self.submodules.api).to.be.an('object');
 			expect(self.submodules.chain).to.be.an('object');
 			expect(self.submodules.process).to.be.an('object');
 			expect(self.submodules.utils).to.be.an('object');
@@ -129,7 +128,6 @@ describe('blocks', () => {
 		});
 
 		it('should assign submodules to this', () => {
-			expect(self.submodules.api).to.deep.equal(self.shared);
 			expect(self.submodules.chain).to.deep.equal(self.chain);
 			expect(self.submodules.process).to.deep.equal(self.process);
 			expect(self.submodules.utils).to.deep.equal(self.utils);
@@ -148,7 +146,6 @@ describe('blocks', () => {
 					library = Blocks.__get__('library');
 					__private = Blocks.__get__('__private');
 					expect(err).to.equal('Blocks#saveGenesisBlock error');
-					expect(self.submodules.api).to.be.an('object');
 					expect(self.submodules.chain).to.be.an('object');
 					expect(self.submodules.process).to.be.an('object');
 					expect(self.submodules.utils).to.be.an('object');

@@ -16,36 +16,16 @@
 
 const rewire = require('rewire');
 
-const BlocksApi = rewire('../../../../modules/blocks/api.js');
+const BlocksController = rewire('../../../../api/controllers/blocks.js');
 
 describe('blocks/api', () => {
-	let __private;
-	let blocksApiModule;
+	let _list;
 	let library;
 	let loggerSpy;
-	let dbStub;
 	let storageStub;
 	let blockStub;
-	let schemaStub;
 
 	beforeEach(done => {
-		dbStub = {
-			blocks: {
-				list: sinonSandbox.stub().resolves([]),
-				sortFields: [
-					'id',
-					'timestamp',
-					'height',
-					'previousBlock',
-					'totalAmount',
-					'totalFee',
-					'reward',
-					'numberOfTransactions',
-					'generatorPublicKey',
-				],
-			},
-		};
-
 		storageStub = {
 			entities: {
 				Block: {
@@ -64,17 +44,13 @@ describe('blocks/api', () => {
 
 		blockStub = sinonSandbox.stub();
 
-		schemaStub = sinonSandbox.stub();
-
-		blocksApiModule = new BlocksApi(
-			loggerSpy,
-			dbStub,
-			storageStub,
-			blockStub,
-			schemaStub
-		);
-		library = BlocksApi.__get__('library');
-		__private = BlocksApi.__get__('__private');
+		new BlocksController({
+			storage: storageStub,
+			logic: blockStub,
+			logger: loggerSpy,
+		});
+		library = BlocksController.__get__('library');
+		_list = BlocksController.__get__('_list');
 
 		done();
 	});
@@ -87,14 +63,12 @@ describe('blocks/api', () => {
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerSpy);
-			expect(library.db).to.eql(dbStub);
 			expect(library.storage).to.eql(storageStub);
-			expect(library.logic.block).to.eql(blockStub);
-			return expect(library.schema).to.eql(schemaStub);
+			return expect(library.logic).to.eql(blockStub);
 		});
 	});
 
-	describe('__private', () => {
+	describe('_list', () => {
 		describe('list', () => {
 			afterEach(done => {
 				storageStub.entities.Block.get = sinonSandbox.stub().resolves([]);
@@ -103,14 +77,14 @@ describe('blocks/api', () => {
 
 			describe('filters with where clauses', () => {
 				it('should query storage with id param when filter.id exists', done => {
-					__private.list({ id: 1 }, () => {
+					_list({ id: 1 }, () => {
 						expect(storageStub.entities.Block.get.args[0][0].id).to.equal(1);
 						done();
 					});
 				});
 
 				it('should query storage with generatorPublicKey param when filter.generatorPublicKey exists', done => {
-					__private.list(
+					_list(
 						{
 							generatorPublicKey:
 								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -127,7 +101,7 @@ describe('blocks/api', () => {
 				});
 
 				it('should query storage with numberOfTransactions param when filter.numberOfTransactions exists', done => {
-					__private.list({ numberOfTransactions: 2 }, () => {
+					_list({ numberOfTransactions: 2 }, () => {
 						expect(
 							storageStub.entities.Block.get.args[0][0].numberOfTransactions
 						).to.equal(2);
@@ -136,7 +110,7 @@ describe('blocks/api', () => {
 				});
 
 				it('should query storage with previousBlockId param when filter.previousBlock exists', done => {
-					__private.list({ previousBlock: 12345 }, () => {
+					_list({ previousBlock: 12345 }, () => {
 						expect(
 							storageStub.entities.Block.get.args[0][0].previousBlockId
 						).to.equal(12345);
@@ -145,7 +119,7 @@ describe('blocks/api', () => {
 				});
 
 				it('should query storage with height param when filter.height >= 0', done => {
-					__private.list({ height: 3 }, () => {
+					_list({ height: 3 }, () => {
 						expect(storageStub.entities.Block.get.args[0][0].height).to.equal(
 							3
 						);
@@ -154,7 +128,7 @@ describe('blocks/api', () => {
 				});
 
 				it('should query storage with totalAmount param when filter.totalAmount >= 0', done => {
-					__private.list({ totalAmount: 4 }, () => {
+					_list({ totalAmount: 4 }, () => {
 						expect(
 							storageStub.entities.Block.get.args[0][0].totalAmount
 						).to.equal(4);
@@ -163,7 +137,7 @@ describe('blocks/api', () => {
 				});
 
 				it('should query storage with totalFee param when filter.totalFee >= 0', done => {
-					__private.list({ totalFee: 5 }, () => {
+					_list({ totalFee: 5 }, () => {
 						expect(storageStub.entities.Block.get.args[0][0].totalFee).to.equal(
 							5
 						);
@@ -172,7 +146,7 @@ describe('blocks/api', () => {
 				});
 
 				it('should query storage with reward param when filter.reward >= 0', done => {
-					__private.list({ reward: 6 }, () => {
+					_list({ reward: 6 }, () => {
 						expect(storageStub.entities.Block.get.args[0][0].reward).to.equal(
 							6
 						);
@@ -184,7 +158,7 @@ describe('blocks/api', () => {
 			describe('filters without where clauses', () => {
 				describe('limit', () => {
 					it('should query storage with limit param when filter.limit exists and is number', done => {
-						__private.list({ limit: 1 }, () => {
+						_list({ limit: 1 }, () => {
 							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
 								1
 							);
@@ -193,14 +167,14 @@ describe('blocks/api', () => {
 					});
 
 					it('should query storage with limit NaN when filter.limit exists and is not a number', done => {
-						__private.list({ limit: 'test' }, () => {
+						_list({ limit: 'test' }, () => {
 							expect(storageStub.entities.Block.get.args[0][1].limit).to.be.NaN;
 							done();
 						});
 					});
 
 					it('should query storage with limit 100 when filter.limit does not exists', done => {
-						__private.list({}, () => {
+						_list({}, () => {
 							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
 								100
 							);
@@ -209,8 +183,8 @@ describe('blocks/api', () => {
 					});
 
 					it('should return error when filter.limit is greater than 100', done => {
-						__private.list({ limit: 101 }, err => {
-							expect(err).to.equal('Invalid limit. Maximum is 100');
+						_list({ limit: 101 }, err => {
+							expect(err.message).to.equal('Invalid limit. Maximum is 100');
 							done();
 						});
 					});
@@ -218,7 +192,7 @@ describe('blocks/api', () => {
 
 				describe('offset', () => {
 					it('should query storage with offset param when filter.offset exists and is number', done => {
-						__private.list({ offset: 10 }, () => {
+						_list({ offset: 10 }, () => {
 							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
 								10
 							);
@@ -227,7 +201,7 @@ describe('blocks/api', () => {
 					});
 
 					it('should query storage with offset NaN when filter.offset exists and is not a number', done => {
-						__private.list({ offset: 'test' }, () => {
+						_list({ offset: 'test' }, () => {
 							expect(storageStub.entities.Block.get.args[0][1].offset).to.be
 								.NaN;
 							done();
@@ -235,7 +209,7 @@ describe('blocks/api', () => {
 					});
 
 					it('should query storage with offset 0 when filter.offset does not exist', done => {
-						__private.list({}, () => {
+						_list({}, () => {
 							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
 								0
 							);
@@ -246,7 +220,7 @@ describe('blocks/api', () => {
 
 				describe('sort', () => {
 					it('should query storage with sort param when filter.sort exists', done => {
-						__private.list({ sort: 'numberOfTransactions:desc' }, () => {
+						_list({ sort: 'numberOfTransactions:desc' }, () => {
 							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
 								'numberOfTransactions:desc'
 							);
@@ -255,7 +229,7 @@ describe('blocks/api', () => {
 					});
 
 					it('should query storage with sort height:desc when filter.sort does not exist', done => {
-						__private.list({}, () => {
+						_list({}, () => {
 							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
 								'height:desc'
 							);
@@ -264,8 +238,8 @@ describe('blocks/api', () => {
 					});
 
 					it('should return error when filter.sort is invalid', done => {
-						__private.list({ sort: 'invalidField:desc' }, err => {
-							expect(err).to.equal('Invalid sort field');
+						_list({ sort: 'invalidField:desc' }, err => {
+							expect(err.message).to.equal('Invalid sort field');
 							done();
 						});
 					});
@@ -274,110 +248,12 @@ describe('blocks/api', () => {
 
 			describe('when db.query fails', () => {
 				it('should call callback with Blocks#list error', done => {
-					storageStub.entities.Block.get = sinonSandbox.stub().resolves();
-					__private.list({ limit: 1 }, err => {
-						expect(err).to.equal('Blocks#list error');
+					storageStub.entities.Block.get = sinonSandbox.stub().rejects();
+					_list({ limit: 1 }, err => {
+						expect(err.message).to.equal('Blocks#list error');
 						done();
 					});
 				});
-			});
-		});
-	});
-
-	describe('getBlocks', () => {
-		let listTemp;
-		beforeEach(done => {
-			listTemp = __private.list;
-			__private.list = sinonSandbox.stub();
-			done();
-		});
-		afterEach(done => {
-			__private.list = listTemp;
-			done();
-		});
-		describe('when __private.loaded = false', () => {
-			before(done => {
-				__private.loaded = false;
-				done();
-			});
-
-			it('should call callback with error', done => {
-				blocksApiModule.getBlocks({ limit: 1 }, err => {
-					expect(err).to.equal('Blockchain is loading');
-					done();
-				});
-			});
-		});
-
-		describe('when __private.loaded = true', () => {
-			before(done => {
-				__private.loaded = true;
-				done();
-			});
-			describe('when filters are invalid', () => {
-				beforeEach(() => {
-					return __private.list.callsArgWith(
-						1,
-						[{ message: 'list-ERR' }],
-						null
-					);
-				});
-				it('should call callback with error', done => {
-					blocksApiModule.getBlocks({ sort: 'invalidField:desc' }, err => {
-						expect(err).instanceOf(Error);
-						expect(err.message).to.equal('list-ERR');
-						expect(err.code).to.equal(500);
-						done();
-					});
-				});
-			});
-			describe('when filters are valid', () => {
-				beforeEach(() => {
-					return __private.list.callsArgWith(1, null, [
-						{ id: '6524861224470851795' },
-					]);
-				});
-				it('should call callback with no error', done => {
-					blocksApiModule.getBlocks(
-						{ id: '6524861224470851795' },
-						(err, cb) => {
-							expect(cb[0].id).to.equal('6524861224470851795');
-							done();
-						}
-					);
-				});
-			});
-		});
-	});
-
-	describe('onBind', () => {
-		let modules;
-		let modulesStub;
-
-		before(done => {
-			modulesStub = {
-				blocks: sinonSandbox.stub(),
-				system: sinonSandbox.stub(),
-			};
-
-			__private.loaded = false;
-
-			blocksApiModule.onBind(modulesStub);
-			modules = BlocksApi.__get__('modules');
-			done();
-		});
-
-		it('should set __private.loaded = true', () => {
-			return expect(__private.loaded).to.be.true;
-		});
-
-		describe('modules', () => {
-			it('should assign blocks', () => {
-				return expect(modules.blocks).to.equal(modulesStub.blocks);
-			});
-
-			it('should assign system', () => {
-				return expect(modules.system).to.equal(modulesStub.system);
 			});
 		});
 	});

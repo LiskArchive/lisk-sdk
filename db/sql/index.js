@@ -71,32 +71,6 @@ module.exports = {
 		add: link('migrations/add.sql'),
 		runtime: link('migrations/runtime.sql'),
 	},
-	rounds: {
-		updateDelegatesRanks: link('rounds/update_delegates_ranks.sql'),
-		getVotes: link('rounds/get_votes.sql'),
-		updateVotes: link('rounds/update_votes.sql'),
-		updateMissedBlocks: link('rounds/update_missed_blocks.sql'),
-		summedRound: link('rounds/summed_round.sql'),
-		clearRoundSnapshot: link('rounds/clear_round_snapshot.sql'),
-		performRoundSnapshot: link('rounds/perform_round_snapshot.sql'),
-		restoreRoundSnapshot: link('rounds/restore_round_snapshot.sql'),
-		clearVotesSnapshot: link('rounds/clear_votes_snapshot.sql'),
-		performVotesSnapshot: link('rounds/perform_votes_snapshot.sql'),
-		restoreVotesSnapshot: link('rounds/restore_votes_snapshot.sql'),
-		checkSnapshotAvailability: link('rounds/check_snapshot_availability.sql'),
-		countRoundSnapshot: link('rounds/count_round_snapshot.sql'),
-		getMemRounds: link('rounds/get_mem_rounds.sql'),
-		flush: link('rounds/flush.sql'),
-		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
-		insertRoundInformationWithAmount: link(
-			'rounds/insert_round_information_with_amount.sql'
-		),
-		insertRoundInformationWithDelegate: link(
-			'rounds/insert_round_information_with_delegate.sql'
-		),
-		insertRoundRewards: link('rounds/insert_round_rewards.sql'),
-		deleteRoundRewards: link('rounds/delete_round_rewards.sql'),
-	},
 	transactions: {
 		count: link('transactions/count.sql'),
 		countById: link('transactions/count_by_id.sql'),
@@ -113,9 +87,5 @@ module.exports = {
 	votes: {
 		getVotes: link('votes/get_votes.sql'),
 		getVotesCount: link('votes/get_votes_count.sql'),
-	},
-	voters: {
-		getVoters: link('voters/get_voters.sql'),
-		getVotersCount: link('voters/get_voters_count.sql'),
 	},
 };

@@ -24,17 +24,17 @@ const Round = stampit({
 	props: {
 		address: '',
 		amount: null,
-		delegate: '',
+		delegatePublicKey: '',
 		round: null,
 	},
-	init({ address, amount, delegate, round }) {
+	init({ address, amount, delegatePublicKey, round }) {
 		this.address =
 			address ||
 			`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;
 		this.amount =
 			amount || faker.random.number({ min: 1000, max: 5000 }).toString();
-		this.delegate =
-			delegate ||
+		this.delegatePublicKey =
+			delegatePublicKey ||
 			randomstring.generate({
 				charset: 'hex',
 				length: 32,

@@ -19,6 +19,9 @@
   PARAMETERS: ?
 */
 
-SELECT count(*)
-FROM mem_accounts2delegates
-WHERE "dependentId" = $1
+SELECT
+	delegate,
+	sum(amount) AS amount
+FROM mem_round
+${parsedFilters:raw}
+GROUP BY delegate

@@ -51,7 +51,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 		return network.killNetwork();
 	});
 
-	describe('launching test scenarios', () => {
+	describe('launching Network test scenarios', () => {
 		filepaths.forEach(filepath => {
 			const currentFilePath = filepath.replace('test/network', '.');
 			// eslint-disable-next-line import/no-dynamic-require

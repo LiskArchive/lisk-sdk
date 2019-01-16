@@ -9,6 +9,7 @@ tmp/
 
 # Build revision file generated while building a release
 REVISION
+npm-shrinkwrap.json
 
 # Dependency directories
 node_modules/
