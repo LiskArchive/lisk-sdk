@@ -98,10 +98,10 @@ const validGetGensisResult = {
 
 describe('inTransfer', () => {
 	let inTransfer;
-	let dbStub;
 	let sharedStub;
 	let accountsStub;
 	let blocksStub;
+	let storageStub;
 
 	let trs;
 	let rawTrs;
@@ -109,15 +109,14 @@ describe('inTransfer', () => {
 	let dummyBlock;
 
 	beforeEach(done => {
-		dbStub = {
-			dapps: {
-				countByTransactionId: sinonSandbox.stub().resolves(),
-				countByOutTransactionId: sinonSandbox.stub().resolves(),
-				getExisting: sinonSandbox.stub().resolves(),
-				list: sinonSandbox.stub().resolves(),
-				getGenesis: sinonSandbox.stub().resolves(),
+		storageStub = {
+			entities: {
+				Transaction: {
+					isPersisted: sinonSandbox.stub().resolves(),
+				},
 			},
 		};
+
 		sharedStub = {
 			getGenesis: sinonSandbox
 				.stub()
@@ -136,7 +135,7 @@ describe('inTransfer', () => {
 				get: sinonSandbox.stub().returns(dummyBlock),
 			},
 		};
-		inTransfer = new InTransfer(dbStub, modulesLoader.scope.schema);
+		inTransfer = new InTransfer(modulesLoader.scope.schema, storageStub);
 		inTransfer.bind(accountsStub, blocksStub, sharedStub);
 
 		trs = _.cloneDeep(validTransaction);
@@ -154,15 +153,15 @@ describe('inTransfer', () => {
 			let library;
 
 			beforeEach(done => {
-				new InTransfer(dbStub, modulesLoader.scope.schema);
+				new InTransfer(modulesLoader.scope.schema, storageStub);
 				library = InTransfer.__get__('library');
 				done();
 			});
 
 			it('should assign db', () => {
 				return expect(library)
-					.to.have.property('db')
-					.eql(dbStub);
+					.to.have.property('storage')
+					.eql(storageStub);
 			});
 
 			it('should assign schema', () => {
@@ -305,17 +304,18 @@ describe('inTransfer', () => {
 			});
 		});
 
-		it('should call library.db.dapps.countByTransactionId', done => {
+		it('should call entities.Transaction.isPersisted', done => {
 			inTransfer.verify(trs, sender, () => {
-				expect(dbStub.dapps.countByTransactionId.calledOnce).to.be.false;
+				expect(storageStub.entities.Transaction.isPersisted.calledOnce).to.be
+					.false;
 				done();
 			});
 		});
 
-		it('should call library.db.dapps.countByTransactionId with trs.asset.inTransfer.dappId', done => {
+		it('should call entities.Transaction.isPersisted with trs.asset.inTransfer.dappId', done => {
 			inTransfer.verify(trs, sender, () => {
 				expect(
-					dbStub.dapps.countByTransactionId.calledWith(
+					storageStub.entities.Transaction.isPersisted.calledWith(
 						trs.asset.inTransfer.dappId
 					)
 				).to.be.false;
@@ -323,9 +323,9 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when library.db.one fails', () => {
+		describe('when entities.Transaction.isPersisted fails', () => {
 			beforeEach(done => {
-				dbStub.dapps.countByTransactionId = sinonSandbox
+				storageStub.entities.Transaction.isPersisted = sinonSandbox
 					.stub()
 					.rejects('Rejection error');
 				done();
@@ -339,10 +339,12 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when library.db.one succeeds', () => {
+		describe('when entities.Transaction.isPersisted succeeds', () => {
 			describe('when dapp does not exist', () => {
 				beforeEach(done => {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(0);
+					storageStub.entities.Transaction.isPersisted = sinonSandbox
+						.stub()
+						.resolves(false);
 					done();
 				});
 
@@ -356,7 +358,9 @@ describe('inTransfer', () => {
 
 			describe('when dapp exists', () => {
 				beforeEach(done => {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(1);
+					storageStub.entities.Transaction.isPersisted = sinonSandbox
+						.stub()
+						.resolves(true);
 					done();
 				});
 

@@ -89,7 +89,7 @@ class DApps {
 			transactionTypes.IN_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.IN_TRANSFER,
-			new InTransfer(scope.db, scope.schema, scope.storage)
+			new InTransfer(scope.schema, scope.storage)
 		);
 
 		__private.assetTypes[
@@ -286,7 +286,7 @@ shared.getGenesis = function(req, cb, tx) {
 		{
 			id: req.dappid,
 		},
-		{},
+		{ sort: 'rowId:asc', limit: 1 },
 		tx
 	)
 		.then(rows => {
@@ -298,7 +298,7 @@ shared.getGenesis = function(req, cb, tx) {
 			return setImmediate(cb, null, {
 				pointId: row.id,
 				pointHeight: row.height,
-				authorId: row.authorId,
+				authorId: row.senderId,
 				dappid: req.dappid,
 			});
 		})

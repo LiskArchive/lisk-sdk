@@ -32,14 +32,13 @@ let shared;
  * @see Parent: {@link logic}
  * @requires helpers/milestones
  * @requires helpers/slots
- * @param {Database} db
  * @param {ZSchema} schema
+ * @param {Storage} storage
  * @todo Add description for the params
  */
 class InTransfer {
-	constructor(db, schema, storage) {
+	constructor(schema, storage) {
 		library = {
-			db,
 			schema,
 			storage,
 		};
