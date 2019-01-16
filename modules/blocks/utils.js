@@ -336,16 +336,112 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 			params.limit = realLimit;
 			params.height = height;
 
+			const mergedParams = Object.assign({}, filter, params);
+			const queryFilters = {};
+
+			if (!mergedParams.id && !mergedParams.lastId) {
+				queryFilters.height_lt = mergedParams.limit;
+			}
+
+			if (mergedParams.id) {
+				queryFilters.id = mergedParams.id;
+			}
+
+			if (mergedParams.lastId) {
+				queryFilters.height_gt = mergedParams.height;
+				queryFilters.height_lt = mergedParams.limit;
+			}
+
 			// Retrieve blocks from database
-			// FIXME: That SQL query have mess logic, need to be refactored
-			(tx || library.db).blocks
-				.loadBlocksData(Object.assign({}, filter, params))
-				.then(blockRows => setImmediate(cb, null, blockRows));
+			library.storage.entities.Block.get(
+				queryFilters,
+				{
+					extended: true,
+					limit: null,
+					sort: ['height'],
+				},
+				tx
+			).then(blockRows => {
+				let parsedBlocks = [];
+				blockRows.forEach(block => {
+					parsedBlocks = parsedBlocks.concat(
+						self._parseStorageObjToLegacyObj(block)
+					);
+				});
+				setImmediate(cb, null, parsedBlocks);
+			});
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Blocks#loadBlockData error');
 		});
+};
+
+/**
+ * Generates a list of full blocks structured as full_blocks_list DB view
+ * db.blocks.loadBlocksData used to return the raw full_blocks_list fields and peers expect to receive this schema
+ * After replacing db.blocks for storage.entities.Block, this parser was required to transfor storage object to the expected format.
+ * This should be removed along with https://github.com/LiskHQ/lisk/issues/2424 implementation
+ *
+ * @param {Object} ExtendedBlock - Storage ExtendedBlock object
+ * @returns {Array} Array of transactions with block data formated as full_blocks_list db view
+ */
+Utils.prototype._parseStorageObjToLegacyObj = function(block) {
+	const parsedBlocks = [];
+	let transactions = [{}];
+
+	if (Array.isArray(block.transactions) && block.transactions.length > 0) {
+		transactions = block.transactions;
+	}
+
+	transactions.forEach(t => {
+		parsedBlocks.push({
+			b_id: block.id,
+			b_version: +block.version,
+			b_timestamp: +block.timestamp,
+			b_height: +block.height,
+			b_previousBlock: block.previousBlockId,
+			b_numberOfTransactions: +block.numberOfTransactions,
+			b_totalAmount: block.totalAmount,
+			b_totalFee: block.totalFee,
+			b_reward: block.reward,
+			b_payloadLength: +block.payloadLength,
+			b_payloadHash: block.payloadHash,
+			b_generatorPublicKey: block.generatorPublicKey,
+			b_blockSignature: block.blockSignature,
+			t_id: _.get(t, 'id', null),
+			t_type: _.get(t, 'type', null),
+			t_timestamp: _.get(t, 'timestamp', null),
+			t_senderPublicKey: _.get(t, 'senderPublicKey', null),
+			t_senderId: _.get(t, 'senderId', null),
+			t_recipientId: _.get(t, 'recipientId', null),
+			t_amount: _.get(t, 'amount', null),
+			t_fee: _.get(t, 'fee', null),
+			t_signature: _.get(t, 'signature', null),
+			t_signSignature: _.get(t, 'signSignature', null),
+			t_requesterPublicKey: _.get(t, 'requesterPublicKey', null),
+			t_signatures: t.signatures ? t.signatures.join(',') : null,
+			tf_data: _.get(t, 'asset.data', null),
+			s_publicKey: _.get(t, 'asset.signature.publicKey', null),
+			d_username: _.get(t, 'asset.delegate.username', null),
+			v_votes: t.asset && t.asset.votes ? t.asset.votes.join(',') : null,
+			m_min: _.get(t, 'asset.multisignature.min', null),
+			m_lifetime: _.get(t, 'asset.multisignature.lifetime', null),
+			m_keysgroup: _.get(t, 'asset.multisignature.keysgroup', null),
+			dapp_name: _.get(t, 'asset.dapp.name', null),
+			dapp_description: _.get(t, 'asset.dapp.description', null),
+			dapp_tags: _.get(t, 'asset.dapp.tags', null),
+			dapp_type: _.get(t, 'asset.dapp.type', null),
+			dapp_link: _.get(t, 'asset.dapp.link', null),
+			dapp_category: _.get(t, 'asset.dapp.category', null),
+			dapp_icon: _.get(t, 'asset.dapp.icon', null),
+			in_dappId: _.get(t, 'asset.inTransfer.dappId', null),
+			ot_dappId: _.get(t, 'asset.outTransfer.dappId', null),
+			ot_outTransactionId: _.get(t, 'asset.outTransfer.transactionId', null),
+		});
+	});
+
+	return parsedBlocks;
 };
 
 /**

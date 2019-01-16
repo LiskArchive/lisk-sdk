@@ -161,35 +161,6 @@ const Queries = {
 			.filter(Boolean)
 			.join(' ');
 	},
-
-	/**
-	 * Description of the function.
-	 *
-	 * @func loadBlocksData
-	 * @memberof db.repos.blocks.Queries
-	 * @param {Object} params
-	 * @todo Add description for the function and the params
-	 * @todo Add @returns tag
-	 */
-	loadBlocksData(params) {
-		let limitPart;
-
-		if (!params.id && !params.lastId) {
-			limitPart = 'WHERE "b_height" < ${limit}';
-		}
-
-		return [
-			'SELECT * FROM full_blocks_list',
-			limitPart,
-			params.id || params.lastId ? 'WHERE' : '',
-			params.id ? '"b_id" = ${id}' : '',
-			params.id && params.lastId ? ' AND ' : '',
-			params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : '',
-			'ORDER BY "b_height", "t_rowId"',
-		]
-			.filter(Boolean)
-			.join(' ');
-	},
 };
 
 module.exports = BlocksRepository;
