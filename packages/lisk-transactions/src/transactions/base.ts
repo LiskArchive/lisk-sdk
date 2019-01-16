@@ -77,6 +77,7 @@ export interface RequiredState {
 }
 
 export const ENTITY_ACCOUNT = 'account';
+export const ENTITY_TRANSACTION = 'transaction';
 export interface CreateBaseTransactionInput {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
