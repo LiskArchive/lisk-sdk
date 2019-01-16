@@ -43,11 +43,6 @@ function DappsController(scope) {
 DappsController.getDapps = function(context, next) {
 	const params = context.request.swagger.params;
 
-	let filters = {
-		id: params.transactionId.value,
-		dapp_name: params.name.value,
-	};
-
 	let options = {
 		sort: params.sort.value,
 		limit: params.limit.value,
@@ -55,22 +50,31 @@ DappsController.getDapps = function(context, next) {
 		extended: true,
 	};
 
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
-
 	// Remove options with null values
 	options = _.pickBy(options, v => !(v === undefined || v === null));
 
 	// We don't want to change the API so we fix the sort field name here
 	options.sort = options.sort.replace('name', 'dapp_name');
 
-	filters =
-		Object.keys(filters).length > 0
-			? Object.keys(filters).map(aFilter => ({
-					[aFilter]: filters[aFilter],
-					type: transactionTypes.DAPP,
-				}))
-			: { type: transactionTypes.DAPP };
+	const filters = [];
+
+	if (params.transactionId.value) {
+		filters.push({
+			id: params.transactionId.value,
+			type: transactionTypes.DAPP,
+		});
+	}
+
+	if (params.name.value) {
+		filters.push({
+			dapp_name: params.name.value,
+			type: transactionTypes.DAPP,
+		});
+	}
+
+	if (filters.length === 0) {
+		filters.push({ type: transactionTypes.DAPP });
+	}
 
 	storage.entities.Transaction.get(filters, options)
 		.then(data => {
