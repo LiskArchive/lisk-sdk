@@ -419,7 +419,7 @@ describe('dapp', () => {
 									link: transaction.asset.dapp.link || null,
 									transactionId_ne: transaction.id,
 								},
-								null
+								undefined
 							)
 						).to.equal(true);
 						done();

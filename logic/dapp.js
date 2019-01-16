@@ -192,7 +192,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 			link: transaction.asset.dapp.link || null,
 			transactionId_ne: transaction.id,
 		},
-		tx || null
+		tx
 	)
 		.then(rows => {
 			const dapp = rows[0];
