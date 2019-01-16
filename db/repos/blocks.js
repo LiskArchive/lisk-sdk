@@ -73,42 +73,6 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Search blocks in database.
-	 *
-	 * @param {Object} params
-	 * @param {array} params.where
-	 * @param {string} params.sortField
-	 * @param {string} params.sortMethod
-	 * @param {int} params.limit
-	 * @param {int} params.offset
-	 * @returns {Promise<[]>}
-	 * Array of blocks.
-	 */
-	list(params) {
-		if (params.where && !Array.isArray(params.where)) {
-			return Promise.reject(
-				new TypeError('Invalid parameter "where" provided.')
-			);
-		}
-		return this.db.any(Queries.list, params);
-	}
-
-	/**
-	 * Load block including transactions.
-	 *
-	 * @param {Object} params
-	 * @param {string} params.id
-	 * @param {string} params.lastId
-	 * @param {int} params.height
-	 * @param {int} params.limit
-	 * @returns {Promise<[]>}
-	 * @todo Add description for the params and the return value
-	 */
-	loadBlocksData(params) {
-		return this.db.any(Queries.loadBlocksData, params);
-	}
-
-	/**
 	 * Insert a block to database.
 	 *
 	 * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
@@ -129,38 +93,5 @@ class BlocksRepository {
 		return this.db.none(query);
 	}
 }
-
-// TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
-/**
- * Description of the object.
- *
- * @namespace Queries
- * @memberof db.repos.blocks
- */
-const Queries = {
-	/**
-	 * Description of the function.
-	 *
-	 * @func list
-	 * @memberof db.repos.blocks.Queries
-	 * @param {Object} params
-	 * @todo Add description for the function and the params
-	 * @todo Add @returns tag
-	 */
-	list(params) {
-		return [
-			'SELECT * FROM blocks_list',
-			params.where && params.where.length
-				? `WHERE ${params.where.join(' AND ')}`
-				: '',
-			params.sortField
-				? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}`
-				: '',
-			'LIMIT ${limit} OFFSET ${offset}',
-		]
-			.filter(Boolean)
-			.join(' ');
-	},
-};
 
 module.exports = BlocksRepository;
