@@ -72,13 +72,8 @@ class BlocksRepository {
 		}
 	}
 
-	/**
-	 * Insert a block to database.
-	 *
-	 * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
+	// this is only being used in test/common/db_seed.js
+	// TODO: remove once test/common/db_seed.js is removed
 	save(block) {
 		const query = () => {
 			const saveBlock = Object.assign({}, block);
