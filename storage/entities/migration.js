@@ -267,15 +267,12 @@ class Migration extends BaseEntity {
 		if (await this.hasMigrations()) {
 			const lastId = await this.getLastId();
 			const pendingMigrations = await this.readPending(lastId);
-			// console.log(pendingMigrations);
-			// console.log(pendingMigrations.length);
 			// eslint-disable-next-line no-restricted-syntax
 			for (const migration of pendingMigrations) {
-				// const res = await this.adapter.executeFile(migration.file);
 				// eslint-disable-next-line no-await-in-loop
 				await this.adapter.executeFile(migration.file);
-				// console.log(res);
-				// console.log('<^>'.repeat(40));
+				// eslint-disable-next-line no-await-in-loop
+				await this.create({ id: migration.id, name: migration.name });
 			}
 			// @TODO CONST AWAIT APPLY applyRuntime()
 		}
