@@ -317,8 +317,12 @@ class Account extends BaseEntity {
 				'accounts/reset_unconfirmed_state.sql'
 			),
 			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
-			incrementField: this.adapter.loadSQLFile('accounts/increment_field.sql'),
-			decrementField: this.adapter.loadSQLFile('accounts/decrement_field.sql'),
+			increaseFieldBy: this.adapter.loadSQLFile(
+				'accounts/increase_field_by.sql'
+			),
+			decreaseFieldBy: this.adapter.loadSQLFile(
+				'accounts/decrease_field_by.sql'
+			),
 			createDependentRecord: this.adapter.loadSQLFile(
 				'accounts/create_dependent_record.sql'
 			),
@@ -327,6 +331,9 @@ class Account extends BaseEntity {
 			),
 			delegateBlocksRewards: this.adapter.loadSQLFile(
 				'accounts/delegate_blocks_rewards.sql'
+			),
+			syncDelegatesRank: this.adapter.loadSQLFile(
+				'accounts/sync_delegates_rank.sql'
 			),
 		};
 	}
@@ -614,29 +621,29 @@ class Account extends BaseEntity {
 	}
 
 	/**
-	 * Increment a field value in mem_accounts.
+	 * Increase a field value in mem_accounts.
 	 *
 	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to increment
-	 * @param {Number|string} value - Value to be incremented
+	 * @param {string} field - Name of the field to increase
+	 * @param {Number|string} value - Value increase
 	 * @param {Object} [tx] - Transaction object
 	 * @returns {Promise}
 	 */
-	incrementField(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'increment', tx);
+	increaseFieldBy(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'increase', tx);
 	}
 
 	/**
-	 * Decrement a field value in mem_accounts.
+	 * Decrease a field value in mem_accounts.
 	 *
 	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to increment
-	 * @param {Number|string} value - Value to be incremented
+	 * @param {string} field - Name of the field to decrease
+	 * @param {Number|string} value - Value decrease
 	 * @param {Object} [tx] - Transaction object
 	 * @returns {Promise}
 	 */
-	decrementField(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'decrement', tx);
+	decreaseFieldBy(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'decrease', tx);
 	}
 
 	/**
@@ -675,6 +682,16 @@ class Account extends BaseEntity {
 			'delete',
 			tx
 		);
+	}
+
+	/**
+	 * Sync rank for all delegates.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	syncDelegatesRanks(tx) {
+		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
 	}
 
 	/**
@@ -723,7 +740,7 @@ class Account extends BaseEntity {
 	 * @param {filters.Account} filters - Filters object
 	 * @param {string} field - Filed name to update
 	 * @param {*} value - Value to be update
-	 * @param {('increment'|'decrement')} mode - Mode of update
+	 * @param {('increase'|'decrease')} mode - Mode of update
 	 * @param {Object} [tx] - Database transaction object
 	 * @returns {Promise}
 	 */
@@ -745,8 +762,8 @@ class Account extends BaseEntity {
 		};
 
 		const sql = {
-			increment: this.SQLs.incrementField,
-			decrement: this.SQLs.decrementField,
+			increase: this.SQLs.increaseFieldBy,
+			decrease: this.SQLs.decreaseFieldBy,
 		}[mode];
 
 		return this.adapter.executeFile(

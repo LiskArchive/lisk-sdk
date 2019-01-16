@@ -113,9 +113,10 @@ class Account {
 	 * @param {Blocks} blocks
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	bind(blocks) {
+	bind({ blocks, rounds }) {
 		modules = {
 			blocks,
+			rounds,
 		};
 	}
 
@@ -426,7 +427,7 @@ class Account {
 						// If updated value is positive number
 						if (value.isGreaterThan(0)) {
 							promises.push(
-								self.scope.storage.entities.Account.incrementField(
+								self.scope.storage.entities.Account.increaseFieldBy(
 									{ address },
 									updatedField,
 									value.toString(),
@@ -437,7 +438,7 @@ class Account {
 							// If updated value is negative number
 						} else if (value.isLessThan(0)) {
 							promises.push(
-								self.scope.storage.entities.Account.decrementField(
+								self.scope.storage.entities.Account.decreaseFieldBy(
 									{ address },
 									updatedField,
 									value.abs().toString(),
@@ -448,10 +449,11 @@ class Account {
 
 						if (updatedField === 'balance') {
 							promises.push(
-								dbTx.rounds.insertRoundInformationWithAmount(
+								modules.rounds.createRoundInformationWithAmount(
 									address,
 									diff.round,
-									value.toString()
+									value.toString(),
+									dbTx
 								)
 							);
 						}
@@ -495,11 +497,12 @@ class Account {
 
 								if (updatedField === 'votedDelegatesPublicKeys') {
 									promises.push(
-										dbTx.rounds.insertRoundInformationWithDelegate(
+										modules.rounds.createRoundInformationWithDelegate(
 											address,
 											diff.round,
 											dependentId,
-											mode
+											mode,
+											dbTx
 										)
 									);
 								}
