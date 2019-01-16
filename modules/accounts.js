@@ -255,17 +255,18 @@ Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 /**
  * Calls Vote.bind() with scope.
  *
- * @param {modules} scope - Loaded modules
+ * @param {modules} scopedModules - Loaded modules
  */
-Accounts.prototype.onBind = function(scope) {
+Accounts.prototype.onBind = function(scopedModules) {
 	modules = {
-		transactions: scope.transactions,
-		blocks: scope.blocks,
+		transactions: scopedModules.transactions,
+		blocks: scopedModules.blocks,
+		rounds: scopedModules.rounds,
 	};
 
-	__private.assetTypes[transactionTypes.VOTE].bind(scope.delegates);
+	__private.assetTypes[transactionTypes.VOTE].bind(scopedModules.delegates);
 
-	library.logic.account.bind(modules.blocks);
+	library.logic.account.bind(modules);
 };
 /**
  * Checks if modules is loaded.
