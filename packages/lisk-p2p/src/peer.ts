@@ -27,10 +27,11 @@ import {
 
 import socketClusterClient, { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { processPeerListFromResponse } from './response_handler_sanitization';
+import { sanitizePeerInfo, sanitizePeerInfoList } from './sanitization';
 
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
+export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
@@ -93,7 +94,7 @@ export class Peer extends EventEmitter {
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRPC = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to response_handler_sanitization with other validation logic.
+			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
 			const request = packet as ProtocolRPCRequest;
 			if (!request || typeof request.procedure !== 'string') {
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, request);
@@ -114,7 +115,7 @@ export class Peer extends EventEmitter {
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleMessage = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to response_handler_sanitization with other validation logic.
+			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
 			const message = packet as ProtocolMessage;
 			if (!message || typeof message.event !== 'string') {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, message);
@@ -270,7 +271,7 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
 			});
 
-			return processPeerListFromResponse(response.data);
+			return sanitizePeerInfoList(response.data);
 		} catch (error) {
 			throw new RPCResponseError(
 				`Error when fetching peerlist of a peer`,
@@ -293,11 +294,19 @@ export class Peer extends EventEmitter {
 	private _handlePeerInfo(request: ProtocolRPCRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
 		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
-		/* tslint:disable:next-line: no-object-literal-type-assertion */
-		this._peerInfo = {
-			...this._peerInfo,
-			...request.data,
-		} as PeerInfo;
+		try {
+			const newPeerInfo = sanitizePeerInfo(request.data);
+			// Merge new info with existing info.
+			this._peerInfo = {
+				...this._peerInfo,
+				...newPeerInfo,
+			};
+		} catch (error) {
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+
+			return;
+		}
+
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 	}
 
