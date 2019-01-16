@@ -50,16 +50,29 @@ const storageBlocksListRows = [
 	{
 		id: '13068833527549895884',
 		height: 3, // Block 1
+		version: 0,
 		transactions: [
 			{
 				id: '6950874693022090568',
-				type: 0,
+				type: 5,
+				asset: {
+					dapp: {
+						category: 0,
+						description: 'my app desc',
+						icon: 'app.icon',
+						link: 'app-link.com',
+						name: 'App Name',
+						tags: null,
+						type: 0,
+					},
+				},
 			},
 		],
 	},
 	{
 		id: '13068833527549895884',
 		height: 3, // Block 1
+		version: '0',
 		transactions: [
 			{
 				id: '13831767660337349834',
@@ -70,6 +83,7 @@ const storageBlocksListRows = [
 	{
 		id: '7018883617995376402',
 		height: 4, // Block 2
+		version: '1',
 		transactions: [
 			{
 				id: '10550826199952791739',
@@ -80,12 +94,192 @@ const storageBlocksListRows = [
 	{
 		id: '7018883617995376402',
 		height: 4, // Block 2
+		version: 1,
 		transactions: [
 			{
 				id: '3502881310841638511',
 				type: 3,
 			},
 		],
+	},
+];
+
+const storageBlocksListRowsParsed = [
+	{
+		b_blockSignature: null,
+		b_generatorPublicKey: null,
+		b_height: 3,
+		b_id: '13068833527549895884',
+		b_numberOfTransactions: null,
+		b_payloadHash: null,
+		b_payloadLength: null,
+		b_previousBlock: null,
+		b_reward: null,
+		b_timestamp: null,
+		b_totalAmount: null,
+		b_totalFee: null,
+		b_version: 0,
+		d_username: null,
+		dapp_category: 0,
+		dapp_description: 'my app desc',
+		dapp_icon: 'app.icon',
+		dapp_link: 'app-link.com',
+		dapp_name: 'App Name',
+		dapp_tags: null,
+		dapp_type: 0,
+		in_dappId: null,
+		m_keysgroup: null,
+		m_lifetime: null,
+		m_min: null,
+		ot_dappId: null,
+		ot_outTransactionId: null,
+		s_publicKey: null,
+		t_amount: null,
+		t_fee: null,
+		t_id: '6950874693022090568',
+		t_recipientId: null,
+		t_requesterPublicKey: null,
+		t_senderId: null,
+		t_senderPublicKey: null,
+		t_signSignature: null,
+		t_signature: null,
+		t_signatures: null,
+		t_timestamp: null,
+		t_type: 5,
+		tf_data: null,
+		v_votes: null,
+	},
+	{
+		b_blockSignature: null,
+		b_generatorPublicKey: null,
+		b_height: 3,
+		b_id: '13068833527549895884',
+		b_numberOfTransactions: null,
+		b_payloadHash: null,
+		b_payloadLength: null,
+		b_previousBlock: null,
+		b_reward: null,
+		b_timestamp: null,
+		b_totalAmount: null,
+		b_totalFee: null,
+		b_version: 0,
+		d_username: null,
+		dapp_category: null,
+		dapp_description: null,
+		dapp_icon: null,
+		dapp_link: null,
+		dapp_name: null,
+		dapp_tags: null,
+		dapp_type: null,
+		in_dappId: null,
+		m_keysgroup: null,
+		m_lifetime: null,
+		m_min: null,
+		ot_dappId: null,
+		ot_outTransactionId: null,
+		s_publicKey: null,
+		t_amount: null,
+		t_fee: null,
+		t_id: '13831767660337349834',
+		t_recipientId: null,
+		t_requesterPublicKey: null,
+		t_senderId: null,
+		t_senderPublicKey: null,
+		t_signSignature: null,
+		t_signature: null,
+		t_signatures: null,
+		t_timestamp: null,
+		t_type: 1,
+		tf_data: null,
+		v_votes: null,
+	},
+	{
+		b_blockSignature: null,
+		b_generatorPublicKey: null,
+		b_height: 4,
+		b_id: '7018883617995376402',
+		b_numberOfTransactions: null,
+		b_payloadHash: null,
+		b_payloadLength: null,
+		b_previousBlock: null,
+		b_reward: null,
+		b_timestamp: null,
+		b_totalAmount: null,
+		b_totalFee: null,
+		b_version: 1,
+		d_username: null,
+		dapp_category: null,
+		dapp_description: null,
+		dapp_icon: null,
+		dapp_link: null,
+		dapp_name: null,
+		dapp_tags: null,
+		dapp_type: null,
+		in_dappId: null,
+		m_keysgroup: null,
+		m_lifetime: null,
+		m_min: null,
+		ot_dappId: null,
+		ot_outTransactionId: null,
+		s_publicKey: null,
+		t_amount: null,
+		t_fee: null,
+		t_id: '10550826199952791739',
+		t_recipientId: null,
+		t_requesterPublicKey: null,
+		t_senderId: null,
+		t_senderPublicKey: null,
+		t_signSignature: null,
+		t_signature: null,
+		t_signatures: null,
+		t_timestamp: null,
+		t_type: 2,
+		tf_data: null,
+		v_votes: null,
+	},
+	{
+		b_blockSignature: null,
+		b_generatorPublicKey: null,
+		b_height: 4,
+		b_id: '7018883617995376402',
+		b_numberOfTransactions: null,
+		b_payloadHash: null,
+		b_payloadLength: null,
+		b_previousBlock: null,
+		b_reward: null,
+		b_timestamp: null,
+		b_totalAmount: null,
+		b_totalFee: null,
+		b_version: 1,
+		d_username: null,
+		dapp_category: null,
+		dapp_description: null,
+		dapp_icon: null,
+		dapp_link: null,
+		dapp_name: null,
+		dapp_tags: null,
+		dapp_type: null,
+		in_dappId: null,
+		m_keysgroup: null,
+		m_lifetime: null,
+		m_min: null,
+		ot_dappId: null,
+		ot_outTransactionId: null,
+		s_publicKey: null,
+		t_amount: null,
+		t_fee: null,
+		t_id: '3502881310841638511',
+		t_recipientId: null,
+		t_requesterPublicKey: null,
+		t_senderId: null,
+		t_senderPublicKey: null,
+		t_signSignature: null,
+		t_signature: null,
+		t_signatures: null,
+		t_timestamp: null,
+		t_type: 3,
+		tf_data: null,
+		v_votes: null,
 	},
 ];
 
@@ -318,9 +512,12 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadBlocksPart', () => {
-		it('should return error when library.db.blocks.loadBlocksData fails', done => {
-			library.db.blocks.loadBlocksData = sinonSandbox
+		it('should return error when library.storage.entities.Block.get fails', done => {
+			library.storage.entities.Block.get = sinonSandbox
 				.stub()
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
 				.throws(new Error('An error'));
 
 			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
@@ -332,9 +529,12 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return an array of blocks', done => {
-			library.db.blocks.loadBlocksData = sinonSandbox
+			library.storage.entities.Block.get = sinonSandbox
 				.stub()
-				.resolves(fullBlocksListRows);
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves(storageBlocksListRows);
 
 			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
 				expect(err).to.be.null;
@@ -346,16 +546,19 @@ describe('blocks/utils', () => {
 		});
 
 		it('should call self.readDbRows with the resolved rows', done => {
-			library.db.blocks.loadBlocksData = sinonSandbox
+			library.storage.entities.Block.get = sinonSandbox
 				.stub()
-				.resolves(fullBlocksListRows);
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves(storageBlocksListRows);
 
 			blocksUtilsModule.readDbRows = sinonSandbox.spy();
 
 			blocksUtilsModule.loadBlocksPart({}, () => {
 				expect(blocksUtilsModule.readDbRows).to.have.been.calledOnce;
 				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(
-					fullBlocksListRows
+					storageBlocksListRowsParsed
 				);
 				done();
 			});
@@ -556,12 +759,17 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadBlocksData', () => {
-		it('should return error when library.db.blocks.loadBlocksData fails', done => {
-			library.storage.entities.Block.get = sinonSandbox.stub().resolves(null);
+		it('should return error when library.storage.entities.Block.get fails', done => {
+			library.storage.entities.Block.get = sinonSandbox
+				.stub()
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves(null);
 
 			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
-					"TypeError: Cannot read property 'length' of null"
+					"TypeError: Cannot read property 'forEach' of null"
 				);
 				expect(err).to.equal('Blocks#loadBlockData error');
 				expect(blocks).to.be.undefined;
@@ -583,6 +791,13 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return empty row when called with invalid id', done => {
+			library.storage.entities.Block.get = sinonSandbox
+				.stub()
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves([]);
+
 			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
 				expect(err).to.be.null;
 				expect(blocks).to.an('array').that.is.empty;
@@ -591,6 +806,13 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return one row when called with valid id', done => {
+			library.storage.entities.Block.get = sinonSandbox
+				.stub()
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves(storageBlocksListRows);
+
 			blocksUtilsModule.loadBlocksData(
 				{ id: '13068833527549895884' },
 				(err, blocks) => {
