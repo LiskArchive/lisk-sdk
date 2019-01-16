@@ -69,6 +69,7 @@ class Delegates {
 			sequence: scope.sequence,
 			ed: scope.ed,
 			db: scope.db,
+			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
@@ -874,8 +875,13 @@ Delegates.prototype.getForgers = function(query, cb) {
 			}
 		}
 
-		return library.db.delegates
-			.getDelegatesByPublicKeys(forgerKeys)
+		return library.storage.entities.Account.get(
+			{ isDelegate: true, publicKey_in: forgerKeys },
+			{ limit: null }
+		)
+			.then(rows =>
+				rows.map(row => _.pick(row, ['username', 'address', 'publicKey']))
+			)
 			.then(rows => {
 				rows.forEach(forger => {
 					forger.nextSlot =
@@ -948,11 +954,11 @@ Delegates.prototype.fork = function(block, cause) {
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
 		blockHeight: block.height,
-		previousBlock: block.previousBlock,
+		previousBlockId: block.previousBlock,
 		cause,
 	};
 
-	library.db.delegates.insertFork(fork).then(() => {
+	library.storage.entities.Account.insertFork(fork).then(() => {
 		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };

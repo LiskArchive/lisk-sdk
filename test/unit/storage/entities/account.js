@@ -21,6 +21,8 @@ const { NonSupportedFilterTypeError } = require('../../../../storage/errors');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const accountFixtures = require('../../../fixtures').accounts;
+const transactionsFixtures = require('../../../fixtures').transactions;
+const forksFixtures = require('../../../fixtures').forks;
 
 const defaultCreateValues = {
 	publicKey: null,
@@ -58,6 +60,7 @@ describe('Account', () => {
 	let adapter;
 	let storage;
 	let AccountEntity;
+	let TransactionEntity;
 	let SQLs;
 
 	before(async () => {
@@ -70,6 +73,7 @@ describe('Account', () => {
 		adapter = storage.adapter;
 
 		AccountEntity = storage.entities.Account;
+		TransactionEntity = storage.entities.Transaction;
 		SQLs = AccountEntity.SQLs;
 	});
 
@@ -1120,5 +1124,139 @@ describe('Account', () => {
 			'should sync rank attribute of all delegates based on their vote value and public key'
 		);
 		it('should not throw error if there is no delegate available');
+	});
+
+	describe('countDuplicatedDelegates()', () => {
+		it('should use the correct SQL no with parameter', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await AccountEntity.countDuplicatedDelegates();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.countDuplicatedDelegates,
+				{},
+				{ expectedResultCount: 1 }
+			);
+		});
+
+		it('should return zero if no delegate records available', async () => {
+			const block = seeder.getLastBlock();
+
+			const trs1 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			const trs2 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			await TransactionEntity.create([trs1, trs2]);
+
+			const delegates = await adapter.execute('SELECT * from delegates');
+
+			// As we created two delegate transactions
+			expect(delegates).to.have.lengthOf(2);
+
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(0);
+		});
+
+		it('should return zero if there are delegates but no duplicates', async () => {
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(0);
+		});
+
+		it('should return integer value of duplicate delegates', async () => {
+			const block = seeder.getLastBlock();
+
+			const trs1 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			const trs2 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			await TransactionEntity.create([trs1, trs2]);
+
+			const delegates = await adapter.execute('SELECT * from delegates');
+
+			// As we created two delegate transactions
+			expect(delegates).to.have.lengthOf(2);
+
+			// Create duplicate records for each delegate
+			await Promise.all(
+				delegates.map(delegate => {
+					const username = randomstring.generate({
+						length: 10,
+						charset: 'alphabetic',
+					});
+					return adapter.execute(
+						'INSERT INTO delegates ("transactionId", "username") VALUES ($1, $2)',
+						[delegate.transactionId, username]
+					);
+				})
+			);
+
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(2);
+		});
+	});
+
+	describe('insertFork()', () => {
+		it('should use the correct SQL with given params', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const fork = new forksFixtures.Fork();
+			await AccountEntity.insertFork(fork);
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.insertFork,
+				fork,
+				{ expectedResultCount: 0 },
+				sinonSandbox.match.any
+			);
+		});
+
+		it('should insert valid fork entry successfully', async () => {
+			const fork = new forksFixtures.Fork();
+			await AccountEntity.insertFork(fork);
+
+			const result = await adapter.execute('SELECT * from forks_stat');
+
+			expect(result).to.be.not.empty;
+			expect(result).to.have.lengthOf(1);
+			expect(result[0]).to.have.all.keys(
+				'delegatePublicKey',
+				'blockTimestamp',
+				'blockId',
+				'blockHeight',
+				'previousBlock',
+				'cause'
+			);
+			expect(
+				Buffer.from(result[0].delegatePublicKey, 'hex').toString()
+			).to.be.eql(fork.delegatePublicKey);
+			expect(result[0].blockId).to.be.eql(fork.blockId);
+			expect(result[0].blockHeight).to.be.eql(fork.blockHeight);
+			expect(result[0].previousBlock).to.be.eql(fork.previousBlockId);
+			expect(result[0].blockTimestamp).to.be.eql(fork.blockTimestamp);
+			return expect(result[0].cause).to.be.eql(fork.cause);
+		});
+
+		const fork = new forksFixtures.Fork();
+		Object.keys(fork).forEach(attr => {
+			const params = Object.assign({}, fork);
+			delete params[attr];
+
+			it(`should be rejected with error if param "${attr}" is missing`, () => {
+				return expect(
+					AccountEntity.insertFork(params)
+				).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`);
+			});
+		});
 	});
 });

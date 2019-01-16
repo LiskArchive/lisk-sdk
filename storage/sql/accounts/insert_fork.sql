@@ -14,16 +14,30 @@
 
 
 /*
-  DESCRIPTION: Gets delegates for a list of public keys.
+  DESCRIPTION: Inserts a fork statistics.
 
   PARAMETERS:
-      publicKeys - array of public keys (strings)
+      delegatePublicKey - ?
+      blockTimestamp - ?
+      blockId - ?
+      blockHeight - ?
+      previousBlock - ?
+      cause - ?
 */
 
-SELECT encode("publicKey", 'hex') AS "publicKey",
-       username,
-       address
-FROM mem_accounts
-WHERE
-  "isDelegate" = 1
-  AND encode("publicKey", 'hex') IN (${publicKeys:csv})
+INSERT INTO forks_stat(
+  "delegatePublicKey",
+  "blockTimestamp",
+  "blockId",
+  "blockHeight",
+  "previousBlock",
+  cause
+)
+VALUES (
+  ${delegatePublicKey},
+  ${blockTimestamp},
+  ${blockId},
+  ${blockHeight},
+  ${previousBlockId},
+  ${cause}
+)
