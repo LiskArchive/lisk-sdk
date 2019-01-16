@@ -29,7 +29,7 @@
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}/*.ts",
-		"test:integration": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/*.ts",
+		"test:integration": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/*.ts --reporter spec --timeout 3000 --slow 3000",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node": "npm run build:check",
