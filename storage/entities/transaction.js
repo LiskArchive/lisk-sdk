@@ -679,7 +679,7 @@ class Transaction extends BaseEntity {
 		const sql = `SELECT name, link FROM dapps
 		WHERE (name = '${filters.name}' OR link = '${
 			filters.link
-		}') AND "transactionId" != '${filters.transactionId}'`;
+		}') AND "transactionId" != '${filters.transactionId_ne}'`;
 		return this.adapter.execute(sql, {}, {}, tx);
 	}
 }
