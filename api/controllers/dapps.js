@@ -91,7 +91,7 @@ DappsController.getDapps = function(context, next) {
 				transactionId: aDapp.id,
 			}));
 
-			data = _.map(dapps, dapp => {
+			data = dapps.map(dapp => {
 				if (_.isNull(dapp.description)) {
 					dapp.description = '';
 				}
