@@ -21,7 +21,7 @@ import {
 } from '../../src/transactions';
 import { validVoteTransactions, validTransaction } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
-import { generateRandomPublicKeys } from 'helpers/cryptography';
+import { generateRandomPublicKeys } from '../helpers/cryptography';
 import { TransactionError } from '../../src/errors';
 import * as utils from '../../src/utils';
 import { VOTE_FEE } from '../../src/constants';
@@ -601,12 +601,41 @@ describe('Vote transaction class', () => {
 			const invalidTransaction = {
 				...validVoteTransactions[2],
 				asset: { votes: [] },
+				id: '12771680061315781764',
 			};
 			const transaction = new VoteTransaction(invalidTransaction);
 
 			const { status, errors } = transaction.validateSchema();
 			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.be.equal('.votes');
+		});
+
+		it('should throw TransactionResponse with error when recipientId is empty', async () => {
+			const invalidTransaction = {
+				...validVoteTransactions[2],
+				recipientId: '',
+				id: '17277443568874824891',
+			};
+			const transaction = new VoteTransaction(invalidTransaction);
+
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.be.equal('.recipientId');
+		});
+
+		it('should throw TransactionResponse with error when recipientPublicKey is empty', async () => {
+			const invalidTransaction = {
+				...validVoteTransactions[2],
+				recipientPublicKey: '',
+			};
+			const transaction = new VoteTransaction(invalidTransaction);
+
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.be.equal('.recipientPublicKey');
 		});
 	});
 

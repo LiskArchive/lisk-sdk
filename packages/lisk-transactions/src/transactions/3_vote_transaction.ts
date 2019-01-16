@@ -290,6 +290,30 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
+
+		if (
+			this.recipientPublicKey === undefined ||
+			this.recipientPublicKey === ''
+		) {
+			errors.push(
+				new TransactionError(
+					'RecipientId must be set for vote transaction',
+					this.id,
+					'.recipientPublicKey',
+				),
+			);
+		}
+
+		if (this.recipientId === undefined || this.recipientId === '') {
+			errors.push(
+				new TransactionError(
+					'RecipientId must be set for vote transaction',
+					this.id,
+					'.recipientId',
+				),
+			);
+		}
+
 		const assetErrors = validator.errors
 			? validator.errors.map(
 					error =>
