@@ -353,7 +353,7 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 			}
 
 			// Retrieve blocks from database
-			library.storage.entities.Block.get(
+			return library.storage.entities.Block.get(
 				queryFilters,
 				{
 					extended: true,
@@ -394,21 +394,24 @@ Utils.prototype._parseStorageObjToLegacyObj = function(block) {
 		transactions = block.transactions;
 	}
 
+	/* eslint-disable no-restricted-globals */
 	transactions.forEach(t => {
 		parsedBlocks.push({
-			b_id: block.id,
-			b_version: +block.version,
-			b_timestamp: +block.timestamp,
-			b_height: +block.height,
-			b_previousBlock: block.previousBlockId,
-			b_numberOfTransactions: +block.numberOfTransactions,
-			b_totalAmount: block.totalAmount,
-			b_totalFee: block.totalFee,
-			b_reward: block.reward,
-			b_payloadLength: +block.payloadLength,
-			b_payloadHash: block.payloadHash,
-			b_generatorPublicKey: block.generatorPublicKey,
-			b_blockSignature: block.blockSignature,
+			b_id: _.get(block, 'id', null),
+			b_version: isNaN(+block.version) ? null : +block.version,
+			b_timestamp: isNaN(+block.timestamp) ? null : +block.timestamp,
+			b_height: isNaN(+block.height) ? null : +block.height,
+			b_previousBlock: _.get(block, 'previousBlockId', null),
+			b_numberOfTransactions: isNaN(+block.numberOfTransactions)
+				? null
+				: +block.numberOfTransactions,
+			b_totalAmount: _.get(block, 'totalAmount', null),
+			b_totalFee: _.get(block, 'totalFee', null),
+			b_reward: _.get(block, 'reward', null),
+			b_payloadLength: +block.payloadLength ? +block.payloadLength : null,
+			b_payloadHash: _.get(block, 'payloadHash', null),
+			b_generatorPublicKey: _.get(block, 'generatorPublicKey', null),
+			b_blockSignature: _.get(block, 'blockSignature', null),
 			t_id: _.get(t, 'id', null),
 			t_type: _.get(t, 'type', null),
 			t_timestamp: _.get(t, 'timestamp', null),
