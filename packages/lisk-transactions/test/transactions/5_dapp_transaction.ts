@@ -21,7 +21,7 @@ import { TransactionError } from '../../src/errors';
 import * as utils from '../../src/utils';
 import { DAPP_FEE } from '../../src/constants';
 
-describe.only('Dapp transaction class', () => {
+describe('Dapp transaction class', () => {
 	const defaultValidDappTransaction = validDappTransactions[0];
 	let validTestTransaction: DappTransaction;
 
