@@ -214,7 +214,8 @@ __private.list = function(filter, cb) {
 		fieldPrefix(sortField) {
 			if (['height'].indexOf(sortField) > -1) {
 				return `b_${sortField}`;
-			} else if (['confirmations'].indexOf(sortField) > -1) {
+			}
+			if (['confirmations'].indexOf(sortField) > -1) {
 				return sortField;
 			}
 			return `t_${sortField}`;
@@ -648,7 +649,8 @@ Transactions.prototype.applyUnconfirmed = function(
 
 	if (!sender && transaction.blockId !== library.genesisBlock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
-	} else if (transaction.requesterPublicKey) {
+	}
+	if (transaction.requesterPublicKey) {
 		return modules.accounts.getAccount(
 			{ publicKey: transaction.requesterPublicKey },
 			(err, requester) => {

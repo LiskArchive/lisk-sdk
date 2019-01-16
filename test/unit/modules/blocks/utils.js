@@ -141,7 +141,7 @@ describe('blocks/utils', () => {
 	});
 
 	afterEach(() => {
-		return sinonSandbox.reset();
+		return sinonSandbox.resetHistory();
 	});
 
 	describe('constructor', () => {
@@ -648,7 +648,7 @@ describe('blocks/utils', () => {
 
 	describe('onBind', () => {
 		beforeEach(() => {
-			loggerStub.trace.reset();
+			loggerStub.trace.resetHistory();
 			return blocksUtilsModule.onBind(modulesStub);
 		});
 

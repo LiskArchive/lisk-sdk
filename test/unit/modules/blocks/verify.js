@@ -2221,7 +2221,7 @@ describe('blocks/verify', () => {
 
 	describe('onBind', () => {
 		beforeEach(done => {
-			loggerStub.trace.reset();
+			loggerStub.trace.resetHistory();
 			__private.loaded = false;
 			blocksVerifyModule.onBind(modulesStub);
 			done();

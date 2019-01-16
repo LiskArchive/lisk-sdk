@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-nested-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *

@@ -58,7 +58,7 @@ describe('dapp', () => {
 
 	afterEach(() => {
 		return Object.keys(dbStub.dapps).forEach(key => {
-			dbStub.dapps[key].reset();
+			dbStub.dapps[key].resetHistory();
 		});
 	});
 

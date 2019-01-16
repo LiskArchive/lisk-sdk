@@ -96,12 +96,12 @@ describe('transactionPool', () => {
 		transactionPool.bundled = _.cloneDeep(freshListState);
 		transactionPool.queued = _.cloneDeep(freshListState);
 		transactionPool.multisignature = _.cloneDeep(freshListState);
-		logger.trace.reset();
-		logger.debug.reset();
-		logger.info.reset();
-		logger.log.reset();
-		logger.warn.reset();
-		logger.error.reset();
+		logger.trace.resetHistory();
+		logger.debug.resetHistory();
+		logger.info.resetHistory();
+		logger.log.resetHistory();
+		logger.warn.resetHistory();
+		logger.error.resetHistory();
 
 		dummyProcessVerifyTransaction = sinonSandbox.spy(
 			(transaction, broadcast, cb) => {
@@ -127,8 +127,8 @@ describe('transactionPool', () => {
 			dummyUndoUnconfirmed
 		);
 
-		removeQueuedTransactionSpy.reset();
-		removeMultisignatureTransactionSpy.reset();
+		removeQueuedTransactionSpy.resetHistory();
+		removeMultisignatureTransactionSpy.resetHistory();
 	};
 
 	before(done => {

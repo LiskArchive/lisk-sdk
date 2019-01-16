@@ -71,7 +71,8 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
-				} else if (key === 'SIGNATURE') {
+				}
+				if (key === 'SIGNATURE') {
 					it(`type ${index}: ${key} should fail`, done => {
 						localCommon.addTransaction(
 							library,
@@ -125,7 +126,8 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
-				} else if (key !== 'SIGNATURE') {
+				}
+				if (key !== 'SIGNATURE') {
 					it(`type ${index}: ${key} should be ok`, done => {
 						localCommon.loadTransactionType(
 							key,

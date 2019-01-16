@@ -76,9 +76,9 @@ describe('multisignature', () => {
 	});
 
 	afterEach(() => {
-		accountMock.merge.reset();
-		accountsMock.generateAddressByPublicKey.reset();
-		return accountsMock.setAccountAndGet.reset();
+		accountMock.merge.resetHistory();
+		accountsMock.generateAddressByPublicKey.resetHistory();
+		return accountsMock.setAccountAndGet.resetHistory();
 	});
 
 	describe('constructor', () => {
@@ -806,7 +806,7 @@ describe('multisignature', () => {
 				});
 
 				afterEach(() => {
-					return accountMock.merge.reset();
+					return accountMock.merge.resetHistory();
 				});
 
 				it('should call callback with error = merge error', done => {

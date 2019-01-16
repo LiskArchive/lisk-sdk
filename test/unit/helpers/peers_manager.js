@@ -205,9 +205,7 @@ describe('PeersManager', () => {
 				});
 
 				it('should not create any entry in nonceToAddress map', () => {
-					return expect(
-						peersManagerInstance.nonceToAddressMap
-					).not.to.have.property(validPeer.nonce);
+					return expect(peersManagerInstance.nonceToAddressMap).to.be.empty;
 				});
 
 				describe('when peer is updated with defined nonce = "validNonce"', () => {

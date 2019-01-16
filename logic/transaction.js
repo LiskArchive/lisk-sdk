@@ -292,7 +292,8 @@ class Transaction {
 		return this.countById(transaction, (err, count) => {
 			if (err) {
 				return setImmediate(cb, err, false);
-			} else if (count > 0) {
+			}
+			if (count > 0) {
 				return setImmediate(cb, null, true);
 			}
 			return setImmediate(cb, null, false);
@@ -1128,7 +1129,8 @@ class Transaction {
 
 		if (!transactionType) {
 			return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
-		} else if (typeof transactionType.afterSave === 'function') {
+		}
+		if (typeof transactionType.afterSave === 'function') {
 			return transactionType.afterSave.call(this, transaction, cb);
 		}
 		return setImmediate(cb);
