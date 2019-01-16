@@ -335,6 +335,10 @@ class Account extends BaseEntity {
 			syncDelegatesRank: this.adapter.loadSQLFile(
 				'accounts/sync_delegates_rank.sql'
 			),
+			countDuplicatedDelegates: this.adapter.loadSQLFile(
+				'accounts/count_duplicated_delegates.sql'
+			),
+			insertFork: this.adapter.loadSQLFile('accounts/insert_fork.sql'),
 		};
 	}
 
@@ -692,6 +696,47 @@ class Account extends BaseEntity {
 	 */
 	syncDelegatesRanks(tx) {
 		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
+	}
+
+	/**
+	 * Counts duplicate delegates by transactionId.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 *
+	 * @returns {Promise<number>}
+	 */
+	countDuplicatedDelegates(tx) {
+		return this.adapter
+			.executeFile(
+				this.SQLs.countDuplicatedDelegates,
+				{},
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(result => +result.count);
+	}
+
+	// TODO: Should create a separate entity to manage forks
+	/**
+	 * Inserts a fork data table entry.
+	 *
+	 * @param {Object} fork
+	 * @param {string} fork.delegatePublicKey
+	 * @param {integer} fork.blockTimestamp
+	 * @param {string} fork.blockId
+	 * @param {integer} fork.blockHeight
+	 * @param {string} fork.previousBlockId
+	 * @param {string} fork.cause
+	 * @param {Object} [tx] - Database transaction
+	 * @returns {Promise}
+	 */
+	insertFork(fork, tx) {
+		return this.adapter.executeFile(
+			this.SQLs.insertFork,
+			fork,
+			{ expectedResultCount: 0 },
+			tx
+		);
 	}
 
 	/**
