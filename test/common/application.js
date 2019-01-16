@@ -176,16 +176,16 @@ function __init(initScope, done) {
 					});
 				},
 				cache(cb) {
-					const CacheConnector = createCacheConnector(
+					const cacheConnector = createCacheConnector(
 						__testContext.config.redis,
 						logger
 					);
-					return CacheConnector.connect((err, client) =>
+					return cacheConnector.connect((err, client) =>
 						cb(null, {
 							cacheEnabled: __testContext.config.cacheEnabled,
 							client,
 						})
-					);
+					)
 				},
 				webSocket: [
 					'config',

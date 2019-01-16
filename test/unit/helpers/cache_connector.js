@@ -18,7 +18,7 @@ const redis = require('redis');
 const createCacheConnector = require('../../../helpers/cache_connector');
 
 describe('CacheConnector', () => {
-	let CacheConnector;
+	let cacheConnector;
 	let validConfig;
 	let validLogger;
 	let redisClientStub;
@@ -36,12 +36,12 @@ describe('CacheConnector', () => {
 			info: sinonSandbox.stub(),
 		};
 		validConfig = {};
-		CacheConnector = createCacheConnector(validConfig, validLogger);
+		cacheConnector = createCacheConnector(validConfig, validLogger);
 		_onRedisConnectionErrorStub = sinonSandbox.stub(
-			CacheConnector,
+			cacheConnector,
 			'_onRedisConnectionError'
 		);
-		_onRedisReadyStub = sinonSandbox.stub(CacheConnector, '_onRedisReady');
+		_onRedisReadyStub = sinonSandbox.stub(cacheConnector, '_onRedisReady');
 		done();
 	});
 
@@ -55,7 +55,7 @@ describe('CacheConnector', () => {
 		redisCreateClientStub = sinonSandbox
 			.stub(redis, 'createClient')
 			.returns(redisClientStub);
-		CacheConnector.connect((connectError, connectResult) => {
+		cacheConnector.connect((connectError, connectResult) => {
 			result = connectResult;
 		});
 		return done();
@@ -97,10 +97,10 @@ describe('CacheConnector', () => {
 
 			after(done => {
 				_onRedisConnectionErrorStub = sinonSandbox.stub(
-					CacheConnector,
+					cacheConnector,
 					'_onRedisConnectionError'
 				);
-				_onRedisReadyStub = sinonSandbox.stub(CacheConnector, '_onRedisReady');
+				_onRedisReadyStub = sinonSandbox.stub(cacheConnector, '_onRedisReady');
 				done();
 			});
 
