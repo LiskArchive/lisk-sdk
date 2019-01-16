@@ -178,11 +178,11 @@ export class P2P extends EventEmitter {
 						super.emit(EVENT_NEW_INBOUND_PEER, peer);
 						super.emit(EVENT_NEW_PEER, peer);
 						this._newPeers.add(peer.peerInfo);
-					} else {
-						if (existingPeer.state.inbound === ConnectionState.DISCONNECTED) {
-							existingPeer.inboundSocket = socket;
-							this._newPeers.add(existingPeer.peerInfo);
-						}
+					} else if (
+						existingPeer.state.inbound === ConnectionState.DISCONNECTED
+					) {
+						existingPeer.inboundSocket = socket;
+						this._newPeers.add(existingPeer.peerInfo);
 					}
 				}
 			},
