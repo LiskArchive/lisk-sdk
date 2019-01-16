@@ -275,6 +275,32 @@ describe('InTransfer transaction class', () => {
 			expect(errors[0].dataPath).to.equal('.inTransfer.dappId');
 		});
 
+		it('should return TransactionResponse with error when recipientId is not empty', async () => {
+			const invalidTransaction = {
+				...defaultTransaction,
+				id: '1070575047580588345',
+				recipientId: '13155556493249255133L',
+			};
+			const transaction = new InTransferTransaction(invalidTransaction);
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.recipientId');
+		});
+
+		it('should return TransactionResponse with error when recipientPublicKey is not empty', async () => {
+			const invalidTransaction = {
+				...defaultTransaction,
+				recipientPublicKey:
+					'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
+			};
+			const transaction = new InTransferTransaction(invalidTransaction);
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.recipientPublicKey');
+		});
+
 		it('should return TransactionResponse with error when amount is zero', async () => {
 			const invalidTransaction = {
 				...defaultTransaction,

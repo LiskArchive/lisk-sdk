@@ -194,6 +194,29 @@ export class InTransferTransaction extends BaseTransaction {
 		const { errors: baseErrors, status } = super.validateSchema();
 		const valid = validator.validate(inTransferAssetFormatSchema, this.asset);
 		const errors = [...baseErrors];
+		// Per current protocol, this recipientId and recipientPublicKey must be empty
+		if (this.recipientId !== undefined && this.recipientId !== '') {
+			errors.push(
+				new TransactionError(
+					'Recipient id must be empty',
+					this.id,
+					'.recipientId',
+				),
+			);
+		}
+		if (
+			this.recipientPublicKey !== undefined &&
+			this.recipientPublicKey !== ''
+		) {
+			errors.push(
+				new TransactionError(
+					'Recipient public key must be empty',
+					this.id,
+					'.recipientPublicKey',
+				),
+			);
+		}
+
 		if (this.amount.lte(0)) {
 			errors.push(
 				new TransactionError(
