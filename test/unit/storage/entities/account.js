@@ -1187,16 +1187,18 @@ describe('Account', () => {
 			expect(delegates).to.have.lengthOf(2);
 
 			// Create duplicate records for each delegate
-			delegates.forEach(async delegate => {
-				const username = randomstring.generate({
-					length: 10,
-					charset: 'alphabetic',
-				});
-				await adapter.execute(
-					'INSERT INTO delegates ("transactionId", "username") VALUES ($1, $2)',
-					[delegate.transactionId, username]
-				);
-			});
+			await Promise.all(
+				delegates.map(delegate => {
+					const username = randomstring.generate({
+						length: 10,
+						charset: 'alphabetic',
+					});
+					return adapter.execute(
+						'INSERT INTO delegates ("transactionId", "username") VALUES ($1, $2)',
+						[delegate.transactionId, username]
+					);
+				})
+			);
 
 			const result = await AccountEntity.countDuplicatedDelegates();
 
