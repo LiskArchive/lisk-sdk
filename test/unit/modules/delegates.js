@@ -800,10 +800,14 @@ describe('delegates', () => {
 		let sourceStub;
 		let originalExceptions;
 		const dummyDelegateList = ['x', 'y', 'z'];
+		const dummyPreviousDelegateList = ['a', 'b', 'c'];
 		beforeEach(done => {
 			__private = library.rewiredModules.delegates.__get__('__private');
 			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
 			__private.getKeysSortByVote = sourceStub;
+			sinonSandbox
+				.stub(__private, 'getDelegatesFromPreviousRound')
+				.callsArgWith(0, null, dummyPreviousDelegateList);
 			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
 			done();
 		});
@@ -893,6 +897,30 @@ describe('delegates', () => {
 				}
 			);
 		});
+
+		describe('when lastblockId % ACTIVE_DELEGATES === 0 and fork 5 happens', () => {
+			it('should use getDelegatesFromPreviousRound method', done => {
+				// Arrange
+				const initialSate = {
+					ACTIVE_DELEGATES: ['j', 'k', 'l'],
+				};
+				__private.delegatesListCache = { ...initialSate };
+				sinonSandbox.stub(library.modules.blocks.lastBlock, 'get').returns({
+					height: ACTIVE_DELEGATES,
+				});
+
+				// Act
+				library.modules.delegates.generateDelegateList(
+					ACTIVE_DELEGATES,
+					(err, delegateList) => {
+						// Assert
+						expect(delegateList).to.deep.equal(dummyPreviousDelegateList);
+						expect(__private.getDelegatesFromPreviousRound).to.been.called;
+						done();
+					}
+				);
+			});
+		});
 	});
 
 	describe('shared', () => {
@@ -926,6 +954,7 @@ describe('delegates', () => {
 					})
 					.catch(done);
 			});
+
 			it('should be ok if a valid delegate address is passed', done => {
 				library.modules.delegates.shared.getForgingStatistics(
 					{ address: validDelegate.address },
