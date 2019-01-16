@@ -19,4 +19,9 @@
   PARAMETERS: ?
 */
 
-DELETE FROM mem_round WHERE round = $1::bigint
+SELECT
+	delegate,
+	sum(amount) AS amount
+FROM mem_round
+${parsedFilters:raw}
+GROUP BY delegate

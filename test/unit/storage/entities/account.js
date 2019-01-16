@@ -919,26 +919,26 @@ describe('Account', () => {
 		});
 	});
 
-	describe('incrementField()', () => {
+	describe('increaseFieldBy()', () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const address = '12L';
 
-			await AccountEntity.incrementField({ address }, 'balance', 123);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 123);
 
 			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.incrementField
+				SQLs.increaseFieldBy
 			);
 		});
 
-		it('should increment account attribute', async () => {
+		it('should increase account attribute', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = 15000;
 
 			await AccountEntity.create(account);
-			await AccountEntity.incrementField({ address }, 'balance', 1000);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -947,18 +947,18 @@ describe('Account', () => {
 
 		it('should throw error if unknown field is provided', async () => {
 			expect(() =>
-				AccountEntity.incrementField({ address: '12L' }, 'unknown', 1000)
+				AccountEntity.increaseFieldBy({ address: '12L' }, 'unknown', 1000)
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
-		it('should increment balance with string data', async () => {
+		it('should increase balance with string data', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = '15000';
 
 			await AccountEntity.create(account);
-			await AccountEntity.incrementField({ address }, 'balance', 1000);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -966,26 +966,26 @@ describe('Account', () => {
 		});
 	});
 
-	describe('decrementField()', () => {
+	describe('decreaseFieldBy()', () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const address = '12L';
 
-			await AccountEntity.decrementField({ address }, 'balance', 123);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', 123);
 
 			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.decrementField
+				SQLs.decreaseFieldBy
 			);
 		});
 
-		it('should decrementField account attribute', async () => {
+		it('should decrease account balance by 1000', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = 15000;
 
 			await AccountEntity.create(account);
-			await AccountEntity.decrementField({ address }, 'balance', 1000);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -994,18 +994,18 @@ describe('Account', () => {
 
 		it('should throw error if unknown field is provided', async () => {
 			expect(() =>
-				AccountEntity.decrementField({ address: '12L' }, 'unknown', 1000)
+				AccountEntity.decreaseFieldBy({ address: '12L' }, 'unknown', 1000)
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
-		it('should decrementField balance with string data', async () => {
+		it('should decrease account balance by "1000" as string', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = '15000';
 
 			await AccountEntity.create(account);
-			await AccountEntity.decrementField({ address }, 'balance', 1000);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', '1000');
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -1112,5 +1112,13 @@ describe('Account', () => {
 				expect(after[0].count).to.eql('0');
 			});
 		});
+	});
+
+	describe('syncDelegatesRanks', () => {
+		it('should use the correct SQL');
+		it(
+			'should sync rank attribute of all delegates based on their vote value and public key'
+		);
+		it('should not throw error if there is no delegate available');
 	});
 });

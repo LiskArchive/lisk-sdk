@@ -15,9 +15,13 @@
 'use strict';
 
 const child_process = require('child_process');
+const Promise = require('bluebird');
 const rewire = require('rewire');
+const pgpLib = require('pg-promise');
 
 const database = rewire('../../db');
+
+const inTest = process.env.NODE_ENV === 'test';
 
 const dbNames = [];
 
@@ -77,7 +81,22 @@ DBSandbox.prototype.destroy = function(logger) {
 	this.dbConfig.database = this.originalDbName;
 };
 
+function createStubbedDBObject(dbConfig, stubbedObject) {
+	const initOptions = {
+		capSQL: true,
+		promiseLib: Promise,
+		extend: object => {
+			Object.assign(object, stubbedObject);
+		},
+		noLocking: inTest,
+	};
+
+	const pgp = pgpLib(initOptions);
+	return pgp(dbConfig);
+}
+
 module.exports = {
 	clearDatabaseTable,
 	DBSandbox,
+	createStubbedDBObject,
 };

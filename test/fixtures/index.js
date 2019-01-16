@@ -22,5 +22,4 @@ module.exports = {
 	dapps: require('./dapps'),
 	transactions: require('./transactions'),
 	rounds: require('./rounds'),
-	storageRounds: require('./storage/rounds'),
 };
