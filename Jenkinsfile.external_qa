@@ -1,0 +1,37 @@
+properties([
+    parameters([
+        gitParameter(branch: '',
+                     branchFilter: 'origin/(.*)',
+                     defaultValue: 'master',
+                     description: '',
+                     name: 'BRANCH',
+                     quickFilterEnabled: false,
+                     selectedValue: 'NONE',
+                     sortMode: 'NONE',
+                     tagFilter: '*',
+                     type: 'PT_BRANCH'),
+        string(name: 'NETWORK', defaultValue: 'alphanet', description: 'To Run test against a network', ),
+        string(name: 'NODES_PER_REGION', defaultValue: '1', description: 'Number of nodes per region', ),
+        string(name: 'STRESS_COUNT', defaultValue: '500', description: 'Number of transactions to create', ), // Used by stage: Test Network Stress
+        string(name: 'NEWRELIC_ENABLED', defaultValue: 'no', description: 'Enable NewRelic', ),
+    ])
+])
+
+pipeline {
+  agent { node { label 'lisk-core' } }
+  options { disableConcurrentBuilds() }
+	stages {
+    stage('Trigger qa external build') {
+      steps {
+        build job: 'lisk-core-qa-external/master',
+            parameters: [
+              string(name: 'BRANCH_NAME', value: "${params.BRANCH}"),
+              string(name: 'NETWORK', value: "${params.NETWORK}"),
+              string(name: 'NODES_PER_REGION', value: "${params.NODES_PER_REGION}"),
+              string(name: 'STRESS_COUNT', value: "${params.STRESS_COUNT}"),
+              string(name: 'NEWRELIC_ENABLED', value: "${params.NEWRELIC_ENABLED}"),]
+      }
+
+    }
+  }
+}
