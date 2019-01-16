@@ -19,6 +19,5 @@
 module.exports = {
 	accounts: require('./accounts'),
 	blocks: require('./blocks'),
-	delegates: require('./delegates'),
 	migrations: require('./migrations'),
 };

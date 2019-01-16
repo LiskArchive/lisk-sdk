@@ -48,13 +48,6 @@ module.exports = {
 		getHeightByLastId: link('blocks/get_height_by_last_id.sql'),
 		getCommonBlock: link('blocks/get_common_block.sql'),
 	},
-	delegates: {
-		countDuplicatedDelegates: link('delegates/count_duplicated_delegates.sql'),
-		getDelegatesByPublicKeys: link(
-			'delegates/get_delegates_by_public_keys.sql'
-		),
-		insertFork: link('delegates/insert_fork.sql'),
-	},
 	multisignatures: {
 		getMemberPublicKeys: link('multisignatures/get_member_public_keys.sql'),
 		getGroupIds: link('multisignatures/get_group_ids.sql'),

@@ -340,11 +340,13 @@ class Round extends BaseEntity {
 	/**
 	 * Get unique round numbers from mem tables.
 	 *
+	 * @param {Object} [tx] - Database transaction object
+	 *
 	 * @returns {Promise}
 	 */
-	async getUniqueRounds() {
+	async getUniqueRounds(tx) {
 		const sql = 'SELECT round FROM mem_round GROUP BY round';
-		return this.adapter.execute(sql);
+		return this.adapter.execute(sql, {}, {}, tx);
 	}
 
 	/**
