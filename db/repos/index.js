@@ -21,7 +21,5 @@ module.exports = {
 	blocks: require('./blocks'),
 	delegates: require('./delegates'),
 	migrations: require('./migrations'),
-	rounds: require('./rounds'),
-	voters: require('./voters'),
 	votes: require('./votes'),
 };
