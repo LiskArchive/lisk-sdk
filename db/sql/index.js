@@ -64,8 +64,4 @@ module.exports = {
 		add: link('migrations/add.sql'),
 		runtime: link('migrations/runtime.sql'),
 	},
-	votes: {
-		getVotes: link('votes/get_votes.sql'),
-		getVotesCount: link('votes/get_votes_count.sql'),
-	},
 };
