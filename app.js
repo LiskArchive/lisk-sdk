@@ -511,8 +511,8 @@ d.run(() => {
 				if (!config.cacheEnabled) {
 					return cb(null, null);
 				}
-				const CacheConnector = createCacheConnector(config.cache, logger);
-				return CacheConnector.connect((err, client) =>
+				const cacheConnector = createCacheConnector(config.cache, logger);
+				return cacheConnector.connect((err, client) =>
 					cb(null, {
 						cacheEnabled: config.cacheEnabled,
 						client,

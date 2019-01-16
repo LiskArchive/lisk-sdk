@@ -296,11 +296,11 @@ const modulesLoader = new function() {
 	 */
 	this.initCache = function(cb) {
 		const cacheEnabled = this.scope.config.cacheEnabled;
-		const CacheConnector = createCacheConnector(
+		const cacheConnector = createCacheConnector(
 			this.scope.config.redis,
 			this.logger
 		);
-		return CacheConnector.connect((err, client) =>
+		return cacheConnector.connect((err, client) =>
 			this.initModule(
 				Cache,
 				Object.assign(this.scope, {
