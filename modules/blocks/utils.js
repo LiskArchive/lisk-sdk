@@ -408,7 +408,9 @@ Utils.prototype._parseStorageObjToLegacyObj = function(block) {
 			b_totalAmount: _.get(block, 'totalAmount', null),
 			b_totalFee: _.get(block, 'totalFee', null),
 			b_reward: _.get(block, 'reward', null),
-			b_payloadLength: +block.payloadLength ? +block.payloadLength : null,
+			b_payloadLength: isNaN(+block.payloadLength)
+				? null
+				: +block.payloadLength,
 			b_payloadHash: _.get(block, 'payloadHash', null),
 			b_generatorPublicKey: _.get(block, 'generatorPublicKey', null),
 			b_blockSignature: _.get(block, 'blockSignature', null),
