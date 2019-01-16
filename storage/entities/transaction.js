@@ -379,16 +379,7 @@ class Transaction extends BaseEntity {
 				)
 			);
 
-			// Not all transactions of type 0 might have an `asset` so remove the ones without `asset` before storing related data
-			const needSubtransactions = transactions.filter(
-				transaction =>
-					transaction.type !== 0 ||
-					(transaction.type === 0 &&
-						transaction.asset &&
-						transaction.asset.data)
-			);
-
-			const groupedTransactions = _.groupBy(needSubtransactions, 'type');
+			const groupedTransactions = _.groupBy(transactions, 'type');
 
 			Object.keys(groupedTransactions).forEach(type => {
 				batch.push(
