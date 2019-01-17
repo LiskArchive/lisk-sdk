@@ -36,9 +36,11 @@ export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_MESSAGE_RECEIVED = 'requestReceived';
+export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
+export const REMOTE_EVENT_MESSAGE = 'message';
 export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
@@ -86,8 +88,7 @@ export class Peer extends EventEmitter {
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
 		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
 		if (this._inboundSocket) {
-			this._startListeningForRPCs(this._inboundSocket);
-			this._startListeningForMessages(this._inboundSocket);
+			this._bindHandlersToInboundSocket(this._inboundSocket);
 		}
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
@@ -136,12 +137,10 @@ export class Peer extends EventEmitter {
 
 	public set inboundSocket(value: SCServerSocket) {
 		if (this._inboundSocket) {
-			this._stopListeningForRPCs(this._inboundSocket);
-			this._stopListeningForMessages(this._inboundSocket);
+			this._unbindHandlersFromInboundSocket(this._inboundSocket);
 		}
 		this._inboundSocket = value as SCServerSocketUpdated;
-		this._startListeningForRPCs(this._inboundSocket);
-		this._startListeningForMessages(this._inboundSocket);
+		this._bindHandlersToInboundSocket(this._inboundSocket);
 	}
 
 	public get ipAddress(): string {
@@ -208,10 +207,11 @@ export class Peer extends EventEmitter {
 	public disconnect(code: number = 1000, reason?: string): void {
 		if (this._inboundSocket) {
 			this._inboundSocket.destroy(code, reason);
-			this._stopListeningForRPCs(this._inboundSocket);
+			this._unbindHandlersFromInboundSocket(this._inboundSocket);
 		}
 		if (this._outboundSocket) {
 			this._outboundSocket.destroy(code, reason);
+			this._unbindHandlersFromOutboundSocket(this._outboundSocket);
 		}
 	}
 
@@ -283,12 +283,45 @@ export class Peer extends EventEmitter {
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
-		return socketClusterClient.create({
+		const outboundSocket = socketClusterClient.create({
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: JSON.stringify(this._nodeInfo),
 			autoConnect: false,
 		});
+
+		this._bindHandlersToOutboundSocket(outboundSocket);
+
+		return outboundSocket;
+	}
+
+	// All event handlers for the outbound socket should be bound in this method.
+	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
+		outboundSocket.on('connect', () => {
+			this.emit(EVENT_CONNECT_OUTBOUND);
+		});
+	}
+
+	// All event handlers for the outbound socket should be unbound in this method.
+	/* tslint:disable-next-line:prefer-function-over-method*/
+	private _unbindHandlersFromOutboundSocket(
+		outboundSocket: SCClientSocket,
+	): void {
+		outboundSocket.off();
+	}
+
+	// All event handlers for the inbound socket should be bound in this method.
+	private _bindHandlersToInboundSocket(inboundSocket: SCServerSocket): void {
+		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleMessage);
+	}
+
+	// All event handlers for the inbound socket should be unbound in this method.
+	private _unbindHandlersFromInboundSocket(
+		inboundSocket: SCServerSocket,
+	): void {
+		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleMessage);
 	}
 
 	private _handlePeerInfo(request: ProtocolRPCRequest): void {
@@ -308,31 +341,5 @@ export class Peer extends EventEmitter {
 		}
 
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
-	}
-
-	private _startListeningForRPCs(
-		socket: SCServerSocket | SCClientSocket,
-	): void {
-		// If an existing listener is bound, remove it.
-		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
-		socket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
-	}
-
-	private _stopListeningForRPCs(socket: SCServerSocket | SCClientSocket): void {
-		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
-	}
-
-	private _startListeningForMessages(
-		socket: SCServerSocket | SCClientSocket,
-	): void {
-		// If an existing listener is bound, remove it.
-		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
-		socket.on(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
-	}
-
-	private _stopListeningForMessages(
-		socket: SCServerSocket | SCClientSocket,
-	): void {
-		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
 	}
 }

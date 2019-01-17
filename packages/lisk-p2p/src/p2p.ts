@@ -251,9 +251,11 @@ export class P2P extends EventEmitter {
 
 	public async start(): Promise<void> {
 		await this._startPeerServer();
+
 		const discoveredPeers = await this._runPeerDiscovery(
 			this._config.seedPeers,
 		);
+
 		// Add all the discovered peers in newPeer list
 		discoveredPeers.forEach((peerInfo: PeerInfo) => {
 			this._newPeers.add(peerInfo);
