@@ -286,7 +286,7 @@ shared.getGenesis = function(req, cb, tx) {
 		{
 			id: req.dappid,
 		},
-		{ sort: 'rowId:asc', limit: 1 },
+		{ limit: 1 },
 		tx
 	)
 		.then(rows => {
