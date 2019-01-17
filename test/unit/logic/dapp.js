@@ -345,11 +345,17 @@ describe('dapp', () => {
 
 					// TODO: Some of the code these tests are testing is redundant. We should review and refactor it.
 					it('should call callback with error', done => {
-						storageStub.entities.Transaction.get.withArgs(dappParams).resolves([
-							{
-								name: transaction.asset.dapp.name,
-							},
-						]);
+						storageStub.entities.Transaction.get
+							.withArgs(dappParams, { extended: true }, undefined)
+							.resolves([
+								{
+									asset: {
+										dapp: {
+											name: transaction.asset.dapp.name,
+										},
+									},
+								},
+							]);
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal(
@@ -364,7 +370,11 @@ describe('dapp', () => {
 					it('should call callback with error if application link already exists', done => {
 						storageStub.entities.Transaction.get.withArgs(dappParams).resolves([
 							{
-								link: transaction.asset.dapp.link,
+								asset: {
+									dapp: {
+										link: transaction.asset.dapp.link,
+									},
+								},
 							},
 						]);
 
@@ -380,8 +390,16 @@ describe('dapp', () => {
 
 					it('should call callback with error if application already exists', done => {
 						storageStub.entities.Transaction.get
-							.withArgs(dappParams)
-							.resolves([{ tags: 'a,b,c' }]);
+							.withArgs(dappParams, { extended: true }, undefined)
+							.resolves([
+								{
+									asset: {
+										dapp: {
+											tags: 'a,b,c',
+										},
+									},
+								},
+							]);
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Application already exists');
@@ -429,6 +447,7 @@ describe('dapp', () => {
 						expect(
 							storageStub.entities.Transaction.get.calledWithExactly(
 								dappParams,
+								{ extended: true },
 								undefined
 							)
 						).to.equal(true);

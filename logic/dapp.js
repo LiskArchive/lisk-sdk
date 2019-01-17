@@ -200,20 +200,24 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		},
 	];
 
-	return library.storage.entities.Transaction.get(filter, tx)
+	return library.storage.entities.Transaction.get(
+		filter,
+		{ extended: true },
+		tx
+	)
 		.then(rows => {
 			const dapp = rows[0];
-
 			if (dapp) {
-				if (dapp.name === transaction.asset.dapp.name) {
+				const existingDapp = dapp.asset.dapp;
+				if (existingDapp.name === transaction.asset.dapp.name) {
 					return setImmediate(
 						cb,
-						`Application name already exists: ${dapp.name}`
+						`Application name already exists: ${existingDapp.name}`
 					);
-				} else if (dapp.link === transaction.asset.dapp.link) {
+				} else if (existingDapp.link === transaction.asset.dapp.link) {
 					return setImmediate(
 						cb,
-						`Application link already exists: ${dapp.link}`
+						`Application link already exists: ${existingDapp.link}`
 					);
 				}
 				return setImmediate(cb, 'Application already exists');
