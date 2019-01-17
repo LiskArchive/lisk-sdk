@@ -135,7 +135,7 @@ describe('queueCheckers', () => {
 		});
 	});
 
-	describe('#checkTransactionForSenderIdWithRecipientId', () => {
+	describe('#checkTransactionForSenderIdWithRecipientIds', () => {
 		beforeEach(() => {
 			return sandbox
 				.stub(queueCheckers, 'checkTransactionPropertyForValues')
@@ -144,12 +144,12 @@ describe('queueCheckers', () => {
 
 		it('should return a function', () => {
 			return expect(
-				queueCheckers.checkTransactionForSenderIdWithRecipientId(transactions),
+				queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
 			).to.be.a('function');
 		});
 
 		it('should call checkTransactionPropertyForValues with transacitons recipientId values and senderId property', () => {
-			queueCheckers.checkTransactionForSenderIdWithRecipientId(transactions);
+			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions);
 			const senderId: queueCheckers.TransactionFilterableKeys =
 				'senderId';
 			const transactionRecipientIds = transactions.map(

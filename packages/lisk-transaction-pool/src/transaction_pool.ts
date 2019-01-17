@@ -191,7 +191,7 @@ export class TransactionPool {
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the verified removed transactions
 		const removedTransactionsByRecipientId = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
-			queueCheckers.checkTransactionForSenderIdWithRecipientId(transactions),
+			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
 		);
 
 		this._queues.validated.enqueueMany(removedTransactionsByRecipientId);

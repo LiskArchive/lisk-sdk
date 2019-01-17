@@ -57,7 +57,7 @@ describe('transaction pool', () => {
 			),
 			checkTransactionForRecipientId: sandbox.stub(
 				queueCheckers,
-				'checkTransactionForSenderIdWithRecipientId',
+				'checkTransactionForSenderIdWithRecipientIds',
 			),
 			checkTransactionForExpiry: sandbox.stub(
 				queueCheckers,
