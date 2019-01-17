@@ -200,7 +200,6 @@ export class P2P extends EventEmitter {
 				this._isActive = false;
 				resolve();
 			});
-			this._httpServer.close();
 		});
 	}
 
@@ -210,7 +209,6 @@ export class P2P extends EventEmitter {
 				this._isActive = false;
 				resolve();
 			});
-			this._httpServer.close();
 		});
 	}
 
