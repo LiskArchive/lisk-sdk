@@ -200,13 +200,15 @@ class Migration extends BaseEntity {
 	 *
 	 * @returns {Promise<null>} Promise object that resolves with `null`.
 	 */
-	applyRunTime(tx) {
-		return this.adapter.executeFile(
-			this.SQLs.applyRunTime,
-			{},
-			{ expectedResultCount: 0 },
-			tx
-		);
+	applyRunTime() {
+		const execute = tx =>
+			this.adapter.executeFile(
+				this.SQLs.applyRunTime,
+				{},
+				{ expectedResultCount: 0 },
+				tx
+			);
+		return this.begin('migrations:Runtime', execute);
 	}
 
 	/**

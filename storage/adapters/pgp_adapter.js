@@ -19,7 +19,7 @@ const Promise = require('bluebird');
 const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');
 const QueryFile = require('pg-promise').QueryFile;
-const MigrationsRepo = require('../../db/repos/migrations.js');
+// const MigrationsRepo = require('../../db/repos/migrations.js');
 const BaseAdapter = require('./base_adapter');
 
 class PgpAdapter extends BaseAdapter {
@@ -56,11 +56,11 @@ class PgpAdapter extends BaseAdapter {
 		};
 
 		// TODO: This is only for being able to re-use existing migrations in tests
-		if (this.inTest) {
-			this.pgpOptions.extend = object => {
-				object.migrations = new MigrationsRepo(object, this.pgp);
-			};
-		}
+		// if (this.inTest) {
+		// 	this.pgpOptions.extend = object => {
+		// 		object.migrations = new MigrationsRepo(object, this.pgp);
+		// 	};
+		// }
 
 		this.pgp = pgpLib(this.pgpOptions);
 		this.db = undefined;

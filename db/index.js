@@ -109,7 +109,7 @@ module.exports.connect = (config, logger) => {
 
 	const db = pgp(config);
 
-	return db.migrations.applyAll().then(() => db);
+	return Promise.resolve(db);
 };
 
 /**
