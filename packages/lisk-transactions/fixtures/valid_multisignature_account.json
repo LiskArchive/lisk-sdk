@@ -1,15 +1,13 @@
 {
-    "address": "4368107197830030479L",
-    "publicKey": "24193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d",
-    "secondPublicKey": "",
-    "balance": "6950000000",
-    "multimin": 3,
-    "lifetime": 72,
-    "multisignatures": [
-        "c44a88e68196e4d2f608873467c7350fb92b954eb7c3b31a989b1afd8d55ebdb",
-        "2eca11a4786f35f367299e1defd6a22ac4eb25d2552325d6c5126583a3bdd0fb",
-        "a17e03f21bfa187d2a30fe389aa78431c587bf850e9fa851b3841274fc9f100f",
-        "758fc45791faf5796e8201e49950a9ee1ee788192714b935be982f315b1af8cd",
-        "9af12d260cf5fcc49bf8e8fce2880b34268c7a4ac8915e549c07429a01f2e4a5"
-    ]
+	"address": "9999142599245349337L",
+	"publicKey": "500660b67a2ade1e2528b7f648feef8f3b46e2f4f90ca7f5439101b5119f309d",
+	"secondPublicKey": "",
+	"balance": "94378900000",
+	"multimin": 2,
+	"lifetime": 72,
+	"multisignatures": [
+		"40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f",
+		"d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb",
+		"542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf"
+	]
 }
