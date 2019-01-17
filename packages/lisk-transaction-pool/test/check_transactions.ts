@@ -20,10 +20,10 @@ import {
 } from '../src/check_transactions';
 import { expect } from 'chai';
 import transactionObjects from '../fixtures/transactions.json';
-import { wrapTransferTransaction } from './utils/add_transaction_functions';
+import { wrapTransaction } from './utils/add_transaction_functions';
 
 describe('#checkTransactions', () => {
-	const transactions = transactionObjects.map(wrapTransferTransaction);
+	const transactions = transactionObjects.map(wrapTransaction);
 	const passedTransactions = transactions.slice(0, 2);
 	const failedTransactions = transactions.slice(2, 5);
 	const transactionsToCheck = [...passedTransactions, ...failedTransactions];
@@ -66,7 +66,7 @@ describe('#checkTransactions', () => {
 
 	it('should call checkerFunction with the transactions passed', async () => {
 		await checkTransactions(transactionsToCheck, checkerFunction);
-		expect(checkerFunction).to.be.calledOnceWithExactly(transactions);
+		expect(checkerFunction).to.be.calledOnceWithExactly(transactionsToCheck);
 	});
 
 	it('should return transactions which passed the checkerFunction', async () => {

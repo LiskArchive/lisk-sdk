@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import { Transaction } from '../src/transaction_pool';
-import { wrapTransferTransaction } from './utils/add_transaction_functions';
+import { wrapTransaction } from './utils/add_transaction_functions';
 import * as queueCheckers from '../src/queue_checkers';
 import transactionObjects from '../fixtures/transactions.json';
 import { SinonStub } from 'sinon';
 
 describe('queueCheckers', () => {
 	const [unincludedTransaction, ...transactions] = transactionObjects.map(
-		wrapTransferTransaction,
+		wrapTransaction,
 	);
 
 	describe('#checkTransactionPropertyForValues', () => {

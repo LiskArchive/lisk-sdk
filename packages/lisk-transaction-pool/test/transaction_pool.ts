@@ -8,7 +8,7 @@ import {
 	AddTransactionResult,
 } from '../src/transaction_pool';
 import * as checkTransactions from '../src/check_transactions';
-import { wrapTransferTransaction } from './utils/add_transaction_functions';
+import { wrapTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
 import { Queue } from '../src/queue';
 import * as queueCheckers from '../src/queue_checkers';
@@ -20,7 +20,7 @@ describe('transaction pool', () => {
 	const receivedTransactionsLimitPerProcessing = 100;
 	const validatedTransactionsProcessingInterval = 100;
 	const validatedTransactionsLimitPerProcessing = 100;
-	const transactions = transactionObjects.map(wrapTransferTransaction);
+	const transactions = transactionObjects.map(wrapTransaction);
 	const verifiedTransactionsProcessingInterval = 100;
 	const verifiedTransactionsLimitPerProcessing = 100;
 
@@ -94,9 +94,6 @@ describe('transaction pool', () => {
 		});
 	});
 
-	afterEach(async () => {
-		(transactionPool as any)._expireTransactionsJob.stop();
-	});
 
 	describe('#addTransactionToQueue', () => {
 		const queueName = 'received';
