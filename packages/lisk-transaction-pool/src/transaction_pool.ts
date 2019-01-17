@@ -39,7 +39,7 @@ export interface TransactionFunctions {
 	): boolean;
 }
 
-interface TransactionPoolConfiguration {
+export interface TransactionPoolConfiguration {
 	readonly expireTransactionsInterval: number;
 	readonly maxTransactionsPerQueue: number;
 	readonly receivedTransactionsLimitPerProcessing: number;
@@ -271,6 +271,7 @@ export class TransactionPool {
 		this._queues.validated.enqueueMany(removedTransactionsBySenderPublicKeys);
 	}
 
+	// This function is currently unused, the usability of this function will be decided after performance tests
 	public validateTransactionAgainstTransactionsInPool(
 		transaction: Transaction,
 	): boolean {
@@ -335,7 +336,8 @@ export class TransactionPool {
 
 		const transactionsFromVerifiedQueue = this._queues.verified.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
-				this._verifiedTransactionsProcessingInterval - transactionsInReadyQueue,
+				this._verifiedTransactionsProcessingLimitPerInterval -
+				transactionsInReadyQueue,
 			),
 		);
 		const transactionsFromReadyQueue = this._queues.ready.peekUntil(
@@ -398,6 +400,13 @@ export class TransactionPool {
 	private async validateReceivedTransactions(): Promise<
 		CheckTransactionsResponse
 	> {
+		if (this.queues.validated.size() >= this._maxTransactionsPerQueue || this.queues.received.size() === 0) {
+			return {
+				passedTransactions: [],
+				failedTransactions: [],
+			};
+		}
+
 		const toValidateTransactions = this._queues.received.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
 				this._receivedTransactionsProcessingLimitPerInterval,
@@ -428,6 +437,13 @@ export class TransactionPool {
 	private async verifyValidatedTransactions(): Promise<
 		CheckTransactionsResponse
 	> {
+		if (this.queues.verified.size() >= this._maxTransactionsPerQueue || this.queues.validated.size() === 0) {
+			return {
+				passedTransactions: [],
+				failedTransactions: [],
+			};
+		}
+
 		const toVerifyTransactions = this._queues.validated.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
 				this._validatedTransactionsProcessingLimitPerInterval,
