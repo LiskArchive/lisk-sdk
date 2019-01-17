@@ -195,8 +195,18 @@ class Migration extends BaseEntity {
 			.then(result => result.exists);
 	}
 
+	/**
+	 * Executes 'migrations/runtime.sql' file to set state to 1.
+	 *
+	 * @returns {Promise<null>} Promise object that resolves with `null`.
+	 */
 	applyRunTime(tx) {
-		return this.adapter.executeFile(this.SQLs.applyRunTime, {}, {}, tx);
+		return this.adapter.executeFile(
+			this.SQLs.applyRunTime,
+			{},
+			{ expectedResultCount: 0 },
+			tx
+		);
 	}
 
 	/**
@@ -262,6 +272,16 @@ class Migration extends BaseEntity {
 		);
 	}
 
+	async applyPendingMigrations(pendingMigrations, tx) {
+		// eslint-disable-next-line no-restricted-syntax
+		for (const migration of pendingMigrations) {
+			// eslint-disable-next-line no-await-in-loop
+			await this.adapter.executeFile(migration.file, {}, {}, tx);
+			// eslint-disable-next-line no-await-in-loop
+			await this.create({ id: migration.id, name: migration.name }, {}, tx);
+		}
+	}
+
 	/**
 	 * Applies a cumulative update: all pending migrations + runtime.
 	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
@@ -269,17 +289,13 @@ class Migration extends BaseEntity {
 	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
 	async applyAll() {
-		if (await this.hasMigrations()) {
-			const lastId = await this.getLastId();
-			const pendingMigrations = await this.readPending(lastId);
-			// eslint-disable-next-line no-restricted-syntax
-			for (const migration of pendingMigrations) {
-				// eslint-disable-next-line no-await-in-loop
-				await this.adapter.executeFile(migration.file);
-				// eslint-disable-next-line no-await-in-loop
-				await this.create({ id: migration.id, name: migration.name });
-			}
-			this.applyRunTime();
+		const hasMigrations = await this.hasMigrations();
+		const lastId = hasMigrations ? await this.getLastId() : 0;
+		const pendingMigrations = await this.readPending(lastId);
+
+		if (pendingMigrations.length > 0) {
+			const execute = tx => this.applyPendingMigrations(pendingMigrations, tx);
+			await this.begin('migrations:applyAll', execute);
 		}
 	}
 }
