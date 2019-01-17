@@ -70,8 +70,10 @@ describe('Integration tests for P2P library', () => {
 					return blockchainP2P.start();
 				},
 			);
+
 			await Promise.all(peerStartPromises);
 			await wait(500);
+			
 		});
 
 		afterEach(async () => {
@@ -82,11 +84,12 @@ describe('Integration tests for P2P library', () => {
 			);
 		});
 
-		describe('Seed peer discovery', () => {
+		describe('Peer discovery', () => {
 			it('should discover seed peers', () => {
 				// TODO: Check that nodes are running and connected to seed peers using p2p.getNetworkStatus()
 				p2pNodeList.forEach(p2p => {
 					let networkStatus = p2p.getNetworkStatus();
+					console.log('NETWORK STATUS:', networkStatus);
 				});
 			});
 		});

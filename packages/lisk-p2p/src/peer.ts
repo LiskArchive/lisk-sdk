@@ -15,6 +15,7 @@
 
 import { EventEmitter } from 'events';
 import { RPCResponseError } from './errors';
+import querystring from 'querystring';
 
 import {
 	P2PMessagePacket,
@@ -32,17 +33,18 @@ import { sanitizePeerInfo, sanitizePeerInfoList } from './sanitization';
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
 export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
-export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_REQUEST_RECEIVED = 'requestReceived';
+export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
+export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
-export const EVENT_MESSAGE_RECEIVED = 'requestReceived';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
+export const EVENT_DISCONNECT_OUTBOUND = 'disconnectOutbound';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
-export const REMOTE_EVENT_MESSAGE = 'message';
-export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
-export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
+export const REMOTE_EVENT_MESSAGE = 'remote-message';
+
+export const REMOTE_RPC_NODE_INFO = 'updateMyself';
 
 type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
@@ -77,7 +79,7 @@ export class Peer extends EventEmitter {
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
-	private readonly _handleRPC: (packet: unknown) => void;
+	private readonly _handleRPC: (packet: unknown, respond: any) => void;
 	private readonly _handleMessage: (packet: unknown) => void;
 
 	public constructor(peerInfo: PeerInfo, inboundSocket?: SCServerSocket) {
@@ -93,7 +95,7 @@ export class Peer extends EventEmitter {
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handleRPC = (packet: unknown) => {
+		this._handleRPC = (packet: unknown, respond: any) => {
 			// TODO later: Switch to LIP protocol format.
 			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
 			const request = packet as ProtocolRPCRequest;
@@ -103,11 +105,11 @@ export class Peer extends EventEmitter {
 				return;
 			}
 			if (
-				request.procedure === REMOTE_EVENT_SEND_NODE_INFO &&
+				request.procedure === REMOTE_RPC_NODE_INFO &&
 				typeof request.data === 'object'
 			) {
 				// Internal handling of request to extract the PeerInfo.
-				this._handlePeerInfo(request);
+				this._handlePeerInfo(request, respond);
 			}
 			// Emit request for external use.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
@@ -188,7 +190,7 @@ export class Peer extends EventEmitter {
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = nodeInfo;
 		this.send<P2PNodeInfo>({
-			event: REMOTE_EVENT_SEND_NODE_INFO,
+			event: REMOTE_RPC_NODE_INFO,
 			data: nodeInfo,
 		});
 	}
@@ -294,7 +296,7 @@ export class Peer extends EventEmitter {
 		const outboundSocket = socketClusterClient.create({
 			hostname: this._ipAddress,
 			port: this._wsPort,
-			query: JSON.stringify(this._nodeInfo),
+			query: querystring.stringify(this._nodeInfo),
 			autoConnect: false,
 		});
 
@@ -307,6 +309,13 @@ export class Peer extends EventEmitter {
 	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
 		outboundSocket.on('connect', () => {
 			this.emit(EVENT_CONNECT_OUTBOUND);
+		});
+
+		outboundSocket.on('close', (code, reason) => {
+			this.emit(EVENT_DISCONNECT_OUTBOUND, {
+				code,
+				reason,
+			});
 		});
 	}
 
@@ -332,8 +341,9 @@ export class Peer extends EventEmitter {
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleMessage);
 	}
 
-	// Update peerInfo with the latest values from the remote peer.
-	private _handlePeerInfo(request: ProtocolRPCRequest): void {
+	private _handlePeerInfo(request: ProtocolRPCRequest, respond: any): void {
+		// Update peerInfo with the latest values from the remote peer.
+		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
 		try {
 			// Only allow updating the height and version.
 			const { height, version } = sanitizePeerInfo(request.data);
@@ -344,10 +354,11 @@ export class Peer extends EventEmitter {
 			};
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
-
+			respond(error);
 			return;
 		}
 
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+		respond();
 	}
 }
