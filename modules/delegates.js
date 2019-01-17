@@ -169,13 +169,10 @@ __private.getKeysSortByVote = function(cb, tx) {
  * @todo Add description for the return value
  */
 __private.getDelegatesFromPreviousRound = function(cb, tx) {
-	(tx || library.db).rounds
-		.getDelegatesSnapshot(ACTIVE_DELEGATES)
+	library.storage.entities.Round
+		.getDelegatesSnapshot(ACTIVE_DELEGATES, tx)
 		.then(rows => {
-			const delegatesPublicKeys = [];
-			rows.forEach(row => {
-				delegatesPublicKeys.push(row.publicKey.toString('hex'));
-			});
+			const delegatesPublicKeys = rows.map(({ publicKey }) => publicKey);
 			return setImmediate(cb, null, delegatesPublicKeys);
 		})
 		.catch(err => {
