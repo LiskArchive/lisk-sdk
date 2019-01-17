@@ -80,11 +80,25 @@ export const verifyMultisignatures = (
 ): IsVerifiedResponse => {
 	const checkedPublicKeys = new Set();
 	const verifiedSignatures = new Set();
+	// Check that signatures are unique
+	const uniqueSignatures: ReadonlyArray<string> = [...new Set(signatures)];
+	if (uniqueSignatures.length !== signatures.length) {
+		return {
+			verified: false,
+			errors: [
+				new TransactionError(
+					'Encountered duplicate signature in transaction',
+					id,
+					'.signatures',
+				),
+			],
+		};
+	}
 
 	publicKeys.forEach(publicKey => {
 		signatures.forEach((signature: string) => {
 			// Avoid single key from verifying more than one signature.
-			// See issue #2540 at https://github.com/LiskHQ/lisk
+			// See issue: https://github.com/LiskHQ/lisk/issues/2540
 			if (
 				checkedPublicKeys.has(publicKey) ||
 				verifiedSignatures.has(signature)
@@ -121,7 +135,9 @@ export const verifyMultisignatures = (
 	}
 
 	return {
-		verified: verifiedSignatures.size >= minimumValidations,
+		verified:
+			verifiedSignatures.size >= minimumValidations &&
+			unverifiedTransactionSignatures.length === 0,
 		errors:
 			unverifiedTransactionSignatures.length > 0
 				? unverifiedTransactionSignatures.map(

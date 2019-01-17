@@ -27,18 +27,16 @@ export const validateSignatureAndPublicKey = (
 		errors.push(new TransactionError(`Invalid signature.`, id, '.signature'));
 	}
 
-	if (publicKey) {
-		try {
-			validatePublicKey(publicKey);
-		} catch (err) {
-			errors.push(
-				new TransactionError(
-					`Public key ${publicKey} length differs from the expected 32 bytes for a public key.`,
-					id,
-					'.publicKey',
-				),
-			);
-		}
+	try {
+		validatePublicKey(publicKey);
+	} catch (err) {
+		errors.push(
+			new TransactionError(
+				`Public key ${publicKey} length differs from the expected 32 bytes for a public key.`,
+				id,
+				'.publicKey',
+			),
+		);
 	}
 
 	return {

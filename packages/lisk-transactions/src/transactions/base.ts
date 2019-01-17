@@ -358,7 +358,7 @@ export abstract class BaseTransaction {
 		// Verify multisignatures
 		if (
 			!(
-				Array.isArray(sender.multisignatures) &&
+				sender.multisignatures &&
 				sender.multisignatures.length > 0 &&
 				sender.multimin
 			)
@@ -385,11 +385,8 @@ export abstract class BaseTransaction {
 			};
 		}
 
-		if (
-			Array.isArray(multisignatureErrors) &&
-			multisignatureErrors.length > 0
-		) {
-			multisignatureErrors.forEach(error => errors.push(error));
+		if (multisignatureErrors.length > 0) {
+			errors.push(...multisignatureErrors);
 		}
 
 		return {
