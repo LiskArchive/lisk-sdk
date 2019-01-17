@@ -266,7 +266,7 @@ class Block extends BaseEntity {
 	 * @param {filters.Block|filters.Block[]} [filters = {}]
 	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
 	 */
-	count(filters = {}, tx) {
+	count(filters = {}, _options, tx) {
 		this.validateFilters(filters);
 
 		const mergedFilters = this.mergeFilters(filters);
