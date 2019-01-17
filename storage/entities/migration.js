@@ -272,14 +272,14 @@ class Migration extends BaseEntity {
 		);
 	}
 
-	async applyPendingMigrations(pendingMigrations, tx) {
+	async applyPendingMigration(pendingMigration, tx) {
 		// eslint-disable-next-line no-restricted-syntax
-		for (const migration of pendingMigrations) {
-			// eslint-disable-next-line no-await-in-loop
-			await this.adapter.executeFile(migration.file, {}, {}, tx);
-			// eslint-disable-next-line no-await-in-loop
-			await this.create({ id: migration.id, name: migration.name }, {}, tx);
-		}
+		await this.adapter.executeFile(pendingMigration.file, {}, {}, tx);
+		await this.create(
+			{ id: pendingMigration.id, name: pendingMigration.name },
+			{},
+			tx
+		);
 	}
 
 	/**
@@ -294,8 +294,12 @@ class Migration extends BaseEntity {
 		const pendingMigrations = await this.readPending(lastId);
 
 		if (pendingMigrations.length > 0) {
-			const execute = tx => this.applyPendingMigrations(pendingMigrations, tx);
-			await this.begin('migrations:applyAll', execute);
+			// eslint-disable-next-line no-restricted-syntax
+			for (const migration of pendingMigrations) {
+				const execute = tx => this.applyPendingMigration(migration, tx);
+				// eslint-disable-next-line no-await-in-loop
+				await this.begin('migrations:applyAll', execute);
+			}
 		}
 	}
 }
