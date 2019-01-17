@@ -214,6 +214,19 @@ export class Peer extends EventEmitter {
 		}
 	}
 
+	public dropInboundConnection(code: number = 1000, reason?: string): void {
+		if (this._inboundSocket) {
+			this._inboundSocket.destroy(code, reason);
+			this._stopListeningForRPCs(this._inboundSocket);
+		}
+	}
+
+	public dropOutboundConnection(code: number = 1000, reason?: string): void {
+		if (this._outboundSocket) {
+			this._outboundSocket.destroy(code, reason);
+		}
+	}
+
 	public send<T>(packet: P2PMessagePacket<T>): void {
 		if (!this._outboundSocket) {
 			this._outboundSocket = this._createOutboundSocket();
