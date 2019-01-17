@@ -41,6 +41,10 @@ export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
 export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
+type SCServerSocketUpdated = {
+	destroy(code?: number, data?: string | object): void;
+} & SCServerSocket;
+
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
@@ -68,7 +72,7 @@ export class Peer extends EventEmitter {
 	private readonly _height: number;
 	private _peerInfo: PeerInfo;
 	private _nodeInfo: P2PNodeInfo | undefined;
-	private _inboundSocket: SCServerSocket | undefined;
+	private _inboundSocket: SCServerSocketUpdated | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
 	private readonly _handleRPC: (packet: unknown) => void;
 	private readonly _handleMessage: (packet: unknown) => void;
@@ -79,7 +83,7 @@ export class Peer extends EventEmitter {
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
-		this._inboundSocket = inboundSocket;
+		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
 		if (this._inboundSocket) {
 			this._startListeningForRPCs(this._inboundSocket);
 			this._startListeningForMessages(this._inboundSocket);
@@ -134,7 +138,7 @@ export class Peer extends EventEmitter {
 			this._stopListeningForRPCs(this._inboundSocket);
 			this._stopListeningForMessages(this._inboundSocket);
 		}
-		this._inboundSocket = value;
+		this._inboundSocket = value as SCServerSocketUpdated;
 		this._startListeningForRPCs(this._inboundSocket);
 		this._startListeningForMessages(this._inboundSocket);
 	}
@@ -202,11 +206,11 @@ export class Peer extends EventEmitter {
 
 	public disconnect(code: number = 1000, reason?: string): void {
 		if (this._inboundSocket) {
-			this._inboundSocket.disconnect(code, reason);
+			this._inboundSocket.destroy(code, reason);
 			this._stopListeningForRPCs(this._inboundSocket);
 		}
 		if (this._outboundSocket) {
-			this._outboundSocket.disconnect(code, reason);
+			this._outboundSocket.destroy(code, reason);
 		}
 	}
 
