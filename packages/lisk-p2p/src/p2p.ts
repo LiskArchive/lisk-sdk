@@ -20,9 +20,9 @@ import querystring from 'querystring';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 
 import { RequestFailError } from './errors';
-import { Peer, PeerInfo } from './peer';
+import { ConnectionState, Peer, PeerInfo } from './peer';
 import { discoverPeers } from './peer_discovery';
-import { PeerOptions } from './peer_selection';
+import { PeerOptions, selectForConnection } from './peer_selection';
 
 import {
 	P2PConfig,
@@ -178,7 +178,9 @@ export class P2P extends EventEmitter {
 						super.emit(EVENT_NEW_INBOUND_PEER, peer);
 						super.emit(EVENT_NEW_PEER, peer);
 						this._newPeers.add(peer.peerInfo);
-					} else {
+					} else if (
+						existingPeer.state.inbound === ConnectionState.DISCONNECTED
+					) {
 						existingPeer.inboundSocket = socket;
 						this._newPeers.add(existingPeer.peerInfo);
 					}
@@ -205,13 +207,28 @@ export class P2P extends EventEmitter {
 		});
 	}
 
+	private _connectToPeers(): void {
+		const availablePeers = Array.from(this._newPeers).map(
+			(peerInfo: PeerInfo) => new Peer(peerInfo),
+		);
+
+		const peersToConnect = selectForConnection(availablePeers);
+		peersToConnect.forEach((peer: Peer) => {
+			peer.connect();
+			this._newPeers.delete(peer.peerInfo);
+			this._triedPeers.add(peer.peerInfo);
+		});
+	}
+
 	private async _runPeerDiscovery(
 		peers: ReadonlyArray<PeerInfo>,
 	): Promise<ReadonlyArray<PeerInfo>> {
 		const peersObjectList = peers.map((peerInfo: PeerInfo) => {
 			const peer = new Peer(peerInfo);
-			this._newPeers.add(peerInfo);
-			this._peerPool.addPeer(peer);
+			if (!this._newPeers.has(peerInfo) && !this._triedPeers.has(peerInfo)) {
+				this._newPeers.add(peerInfo);
+				this._peerPool.addPeer(peer);
+			}
 
 			return peer;
 		});
@@ -229,6 +246,8 @@ export class P2P extends EventEmitter {
 		discoveredPeers.forEach((peerInfo: PeerInfo) => {
 			this._newPeers.add(peerInfo);
 		});
+
+		this._connectToPeers();
 	}
 
 	public async stop(): Promise<void> {
