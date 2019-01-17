@@ -48,10 +48,10 @@ describe('dapp', () => {
 		};
 
 		dapp = new Dapp(
+			storageStub,
 			modulesLoader.scope.logger,
 			modulesLoader.scope.schema,
-			modulesLoader.scope.network,
-			storageStub
+			modulesLoader.scope.network
 		);
 		done();
 	});
@@ -70,10 +70,10 @@ describe('dapp', () => {
 
 				beforeEach(done => {
 					new Dapp(
+						storageStub,
 						modulesLoader.scope.logger,
 						modulesLoader.scope.schema,
-						modulesLoader.scope.network,
-						storageStub
+						modulesLoader.scope.network
 					);
 					library = Dapp.__get__('library');
 					done();

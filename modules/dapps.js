@@ -82,7 +82,7 @@ class DApps {
 			transactionTypes.DAPP
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DAPP,
-			new DApp(scope.logger, scope.schema, scope.network, scope.storage)
+			new DApp(scope.storage, scope.logger, scope.schema, scope.network)
 		);
 
 		__private.assetTypes[

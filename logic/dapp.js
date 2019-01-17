@@ -43,7 +43,7 @@ __private.unconfirmedAscii = {};
  * @todo Add description for the params
  */
 class DApp {
-	constructor(logger, schema, network, storage) {
+	constructor(storage, logger, schema, network) {
 		library = {
 			logger,
 			schema,
