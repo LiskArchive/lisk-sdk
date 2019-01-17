@@ -169,6 +169,17 @@ export class TransactionPool {
 		this._processTransactionsJob.start();
 	}
 
+	public cleanup(): void {
+		this.removeTransactionsFromQueues(
+			Object.keys(this.queues),
+			queueCheckers.returnTrueUntilLimit(this._maxTransactionsPerQueue),
+		);
+		this._expireTransactionsJob.stop();
+		this._validateTransactionsJob.stop();
+		this._verifyTransactionsJob.stop();
+		this._processTransactionsJob.stop();
+	}
+
 	public addTransaction(transaction: Transaction): AddTransactionResult {
 		const receivedQueue: QueueNames = 'received';
 
@@ -337,7 +348,7 @@ export class TransactionPool {
 		const transactionsFromVerifiedQueue = this._queues.verified.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
 				this._verifiedTransactionsProcessingLimitPerInterval -
-				transactionsInReadyQueue,
+					transactionsInReadyQueue,
 			),
 		);
 		const transactionsFromReadyQueue = this._queues.ready.peekUntil(
@@ -400,7 +411,10 @@ export class TransactionPool {
 	private async validateReceivedTransactions(): Promise<
 		CheckTransactionsResponse
 	> {
-		if (this.queues.validated.size() >= this._maxTransactionsPerQueue || this.queues.received.size() === 0) {
+		if (
+			this.queues.validated.size() >= this._maxTransactionsPerQueue ||
+			this.queues.received.size() === 0
+		) {
 			return {
 				passedTransactions: [],
 				failedTransactions: [],
@@ -437,7 +451,10 @@ export class TransactionPool {
 	private async verifyValidatedTransactions(): Promise<
 		CheckTransactionsResponse
 	> {
-		if (this.queues.verified.size() >= this._maxTransactionsPerQueue || this.queues.validated.size() === 0) {
+		if (
+			this.queues.verified.size() >= this._maxTransactionsPerQueue ||
+			this.queues.validated.size() === 0
+		) {
 			return {
 				passedTransactions: [],
 				failedTransactions: [],
