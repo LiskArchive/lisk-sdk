@@ -89,14 +89,14 @@ class DApps {
 			transactionTypes.IN_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.IN_TRANSFER,
-			new InTransfer(scope.schema, scope.storage)
+			new InTransfer(scope.storage, scope.schema)
 		);
 
 		__private.assetTypes[
 			transactionTypes.OUT_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.OUT_TRANSFER,
-			new OutTransfer(scope.schema, scope.logger, scope.storage)
+			new OutTransfer(scope.storage, scope.schema, scope.logger)
 		);
 
 		/**

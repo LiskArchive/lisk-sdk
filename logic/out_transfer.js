@@ -38,7 +38,7 @@ __private.unconfirmedOutTansfers = {};
  * @todo Add description for the params
  */
 class OutTransfer {
-	constructor(schema, logger, storage) {
+	constructor(storage, schema, logger) {
 		library = {
 			storage,
 			schema,

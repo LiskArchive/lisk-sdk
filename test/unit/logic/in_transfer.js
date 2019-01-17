@@ -135,7 +135,7 @@ describe('inTransfer', () => {
 				get: sinonSandbox.stub().returns(dummyBlock),
 			},
 		};
-		inTransfer = new InTransfer(modulesLoader.scope.schema, storageStub);
+		inTransfer = new InTransfer(storageStub, modulesLoader.scope.schema);
 		inTransfer.bind(accountsStub, blocksStub, sharedStub);
 
 		trs = _.cloneDeep(validTransaction);
@@ -153,7 +153,7 @@ describe('inTransfer', () => {
 			let library;
 
 			beforeEach(done => {
-				new InTransfer(modulesLoader.scope.schema, storageStub);
+				new InTransfer(storageStub, modulesLoader.scope.schema);
 				library = InTransfer.__get__('library');
 				done();
 			});

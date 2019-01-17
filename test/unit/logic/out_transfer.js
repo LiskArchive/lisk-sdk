@@ -71,9 +71,9 @@ describe('outTransfer', () => {
 
 		OutTransfer.__set__('__private.unconfirmedOutTansfers', {});
 		outTransfer = new OutTransfer(
+			storageStub,
 			modulesLoader.scope.schema,
-			modulesLoader.logger,
-			storageStub
+			modulesLoader.logger
 		);
 		return outTransfer.bind(accountsStub);
 	});
@@ -84,9 +84,9 @@ describe('outTransfer', () => {
 
 			beforeEach(done => {
 				new OutTransfer(
+					storageStub,
 					modulesLoader.scope.schema,
-					modulesLoader.logger,
-					storageStub
+					modulesLoader.logger
 				);
 				library = OutTransfer.__get__('library');
 				done();

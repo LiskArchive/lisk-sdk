@@ -37,7 +37,7 @@ let shared;
  * @todo Add description for the params
  */
 class InTransfer {
-	constructor(schema, storage) {
+	constructor(storage, schema) {
 		library = {
 			schema,
 			storage,
