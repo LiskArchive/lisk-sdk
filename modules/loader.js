@@ -460,7 +460,7 @@ __private.loadBlockChain = function() {
 	function checkMemTables(t) {
 		const promises = [
 			library.storage.entities.Block.count({}, {}, t),
-			library.storage.entities.Block.get({ height: 1 }, {}, t),
+			library.storage.entities.Block.getOne({ height: 1 }, {}, t),
 			library.storage.entities.Round.getUniqueRounds(t),
 			library.storage.entities.Account.countDuplicatedDelegates(t),
 		];
@@ -507,7 +507,7 @@ __private.loadBlockChain = function() {
 					return reload(blocksCount);
 				}
 
-				matchGenesisBlock(getGenesisBlock[0]);
+				matchGenesisBlock(getGenesisBlock);
 
 				if (library.config.loading.snapshotRound) {
 					return __private.createSnapshot(blocksCount);
