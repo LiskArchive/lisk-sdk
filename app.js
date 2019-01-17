@@ -676,7 +676,6 @@ d.run(() => {
 								'logger',
 								function(transactionScope, transactionCb) {
 									new Transaction(
-										transactionScope.db,
 										transactionScope.storage,
 										transactionScope.ed,
 										transactionScope.schema,

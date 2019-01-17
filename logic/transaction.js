@@ -47,7 +47,7 @@ const __private = {};
  * @todo Add description for the params
  */
 class Transaction {
-	constructor(db, storage, ed, schema, genesisBlock, account, logger, cb) {
+	constructor(storage, ed, schema, genesisBlock, account, logger, cb) {
 		/**
 		 * @typedef {Object} privateTypes
 		 * - 0: Transfer
@@ -62,7 +62,6 @@ class Transaction {
 		__private.types = {};
 
 		this.scope = {
-			db,
 			storage,
 			ed,
 			schema,
