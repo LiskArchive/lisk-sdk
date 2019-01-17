@@ -20,6 +20,7 @@ const randomstring = require('randomstring');
 const modulesLoader = require('../../common/modules_loader.js');
 const randomUtil = require('../../common/utils/random');
 const typeRepresentatives = require('../../fixtures/types_representatives.js');
+const transactionTypes = require('../../../helpers/transaction_types');
 const testData = require('./test_data/dapp.js');
 
 const { FEES } = __testContext.config.constants;
@@ -42,7 +43,7 @@ describe('dapp', () => {
 			entities: {
 				Transaction: {
 					isPersisted: sinonSandbox.stub().resolves(),
-					getExistingDapps: sinonSandbox.stub().resolves(),
+					get: sinonSandbox.stub().resolves(),
 				},
 			},
 		};
@@ -308,7 +309,7 @@ describe('dapp', () => {
 					const dbError = new Error();
 
 					it('should call callback with error = "DApp#verify error"', done => {
-						storageStub.entities.Transaction.getExistingDapps
+						storageStub.entities.Transaction.get
 							.withArgs({
 								name: transaction.asset.dapp.name,
 								link: transaction.asset.dapp.link || null,
@@ -327,23 +328,28 @@ describe('dapp', () => {
 					let dappParams;
 
 					beforeEach(done => {
-						dappParams = {
-							name: transaction.asset.dapp.name,
-							link: transaction.asset.dapp.link || null,
-							transactionId_ne: transaction.id,
-						};
+						dappParams = [
+							{
+								dapp_name: transaction.asset.dapp.name,
+								id_ne: transaction.id,
+								type: transactionTypes.DAPP,
+							},
+							{
+								dapp_link: transaction.asset.dapp.link || null,
+								id_ne: transaction.id,
+								type: transactionTypes.DAPP,
+							},
+						];
 						done();
 					});
 
 					// TODO: Some of the code these tests are testing is redundant. We should review and refactor it.
 					it('should call callback with error', done => {
-						storageStub.entities.Transaction.getExistingDapps
-							.withArgs(dappParams)
-							.resolves([
-								{
-									name: transaction.asset.dapp.name,
-								},
-							]);
+						storageStub.entities.Transaction.get.withArgs(dappParams).resolves([
+							{
+								name: transaction.asset.dapp.name,
+							},
+						]);
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal(
@@ -356,13 +362,11 @@ describe('dapp', () => {
 					});
 
 					it('should call callback with error if application link already exists', done => {
-						storageStub.entities.Transaction.getExistingDapps
-							.withArgs(dappParams)
-							.resolves([
-								{
-									link: transaction.asset.dapp.link,
-								},
-							]);
+						storageStub.entities.Transaction.get.withArgs(dappParams).resolves([
+							{
+								link: transaction.asset.dapp.link,
+							},
+						]);
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal(
@@ -375,7 +379,7 @@ describe('dapp', () => {
 					});
 
 					it('should call callback with error if application already exists', done => {
-						storageStub.entities.Transaction.getExistingDapps
+						storageStub.entities.Transaction.get
 							.withArgs(dappParams)
 							.resolves([{ tags: 'a,b,c' }]);
 
@@ -388,13 +392,23 @@ describe('dapp', () => {
 			});
 
 			describe('when transaction is valid', () => {
+				let dappParams;
 				beforeEach(() => {
-					return storageStub.entities.Transaction.getExistingDapps
-						.withArgs({
-							name: transaction.asset.dapp.name,
-							link: transaction.asset.dapp.link || null,
-							transactionId_ne: transaction.id,
-						})
+					dappParams = [
+						{
+							dapp_name: transaction.asset.dapp.name,
+							id_ne: transaction.id,
+							type: transactionTypes.DAPP,
+						},
+						{
+							dapp_link: transaction.asset.dapp.link || null,
+							id_ne: transaction.id,
+							type: transactionTypes.DAPP,
+						},
+					];
+
+					return storageStub.entities.Transaction.get
+						.withArgs(dappParams)
 						.resolves([]);
 				});
 
@@ -407,18 +421,14 @@ describe('dapp', () => {
 					});
 				});
 
-				it('should call storageStub.entities.Transaction.getExistingDapps with correct params', done => {
+				it('should call storageStub.entities.Transaction.get with correct params', done => {
 					dapp.verify(transaction, sender, () => {
+						expect(storageStub.entities.Transaction.get.calledOnce).to.equal(
+							true
+						);
 						expect(
-							storageStub.entities.Transaction.getExistingDapps.calledOnce
-						).to.equal(true);
-						expect(
-							storageStub.entities.Transaction.getExistingDapps.calledWithExactly(
-								{
-									name: transaction.asset.dapp.name,
-									link: transaction.asset.dapp.link || null,
-									transactionId_ne: transaction.id,
-								},
+							storageStub.entities.Transaction.get.calledWithExactly(
+								dappParams,
 								undefined
 							)
 						).to.equal(true);

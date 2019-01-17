@@ -17,6 +17,7 @@
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
 const dappCategories = require('../helpers/dapp_categories.js');
+const transactionTypes = require('../helpers/transaction_types');
 const Bignum = require('../helpers/bignum.js');
 
 let library;
@@ -186,14 +187,20 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		}
 	}
 
-	return library.storage.entities.Transaction.getExistingDapps(
+	const filter = [
 		{
-			name: transaction.asset.dapp.name,
-			link: transaction.asset.dapp.link || null,
-			transactionId_ne: transaction.id,
+			dapp_name: transaction.asset.dapp.name,
+			id_ne: transaction.id,
+			type: transactionTypes.DAPP,
 		},
-		tx
-	)
+		{
+			dapp_link: transaction.asset.dapp.link || null,
+			id_ne: transaction.id,
+			type: transactionTypes.DAPP,
+		},
+	];
+
+	return library.storage.entities.Transaction.get(filter, tx)
 		.then(rows => {
 			const dapp = rows[0];
 

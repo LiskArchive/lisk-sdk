@@ -251,6 +251,10 @@ class Transaction extends BaseEntity {
 			condition: '"dapp_name" = ${dapp_name}',
 		});
 
+		this.addFilter('dapp_link', filterTypes.CUSTOM, {
+			condition: '"dapp_link" = ${dapp_link}',
+		});
+
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('transactions/get.sql'),
 			selectExtended: this.adapter.loadSQLFile('transactions/get_extended.sql'),
@@ -663,24 +667,6 @@ class Transaction extends BaseEntity {
 		}
 
 		return filters;
-	}
-
-	/**
-	 * Checks if a dapp exists.
-	 *
-	 * @param {Object} params
-	 * @param {string} params.transactionId
-	 * @param {string} params.name
-	 * @param {string} params.link
-	 * @returns {Promise}
-	 * @todo This method should be replaced with calls to storage get() and correct filters
-	 */
-	getExistingDapps(filters = {}, tx) {
-		const sql = `SELECT name, link FROM dapps
-		WHERE (name = '${filters.name}' OR link = '${
-			filters.link
-		}') AND "transactionId" != '${filters.transactionId_ne}'`;
-		return this.adapter.execute(sql, {}, {}, tx);
 	}
 }
 
