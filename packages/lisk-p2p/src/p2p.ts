@@ -213,8 +213,8 @@ export class P2P extends EventEmitter {
 		);
 
 		const peersToConnect = selectForConnection(availablePeers);
-		peersToConnect.forEach(async (peer: Peer) => {
-			await peer.connect();
+		peersToConnect.forEach((peer: Peer) => {
+			peer.connect();
 			this._newPeers.delete(peer.peerInfo);
 			this._triedPeers.add(peer.peerInfo);
 		});

@@ -193,17 +193,11 @@ export class Peer extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public async connect(): Promise<void> {
-
-		return new Promise<void>(resolve => {
-			if (!this._outboundSocket) {
-				this._outboundSocket = this._createOutboundSocket();
-			}
-			this._outboundSocket.connect();
-			this._outboundSocket.on('connect', _ => {
-				resolve();
-			});
-		});
+	public connect(): void {
+		if (!this._outboundSocket) {
+			this._outboundSocket = this._createOutboundSocket();
+		}
+		this._outboundSocket.connect();
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
