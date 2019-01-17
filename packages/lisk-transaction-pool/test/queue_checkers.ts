@@ -12,9 +12,9 @@ describe('queueCheckers', () => {
 
 	describe('#checkTransactionPropertyForValues', () => {
 		const propertyName: queueCheckers.TransactionFilterableKeys =
-			'senderPublicKey';
+			'id';
 		const values = transactions.map(
-			(transaction: Transaction) => transaction.senderPublicKey,
+			(transaction: Transaction) => transaction[propertyName],
 		);
 
 		it('should return a function', () => {
@@ -135,7 +135,7 @@ describe('queueCheckers', () => {
 		});
 	});
 
-	describe('#checkTransactionForRecipientId', () => {
+	describe('#checkTransactionForSenderIdWithRecipientId', () => {
 		beforeEach(() => {
 			return sandbox
 				.stub(queueCheckers, 'checkTransactionPropertyForValues')
@@ -144,20 +144,20 @@ describe('queueCheckers', () => {
 
 		it('should return a function', () => {
 			return expect(
-				queueCheckers.checkTransactionForRecipientId(transactions),
+				queueCheckers.checkTransactionForSenderIdWithRecipientId(transactions),
 			).to.be.a('function');
 		});
 
-		it('should call checkTransactionPropertyForValues with transacitons recipientId values and recipientId property', () => {
-			queueCheckers.checkTransactionForRecipientId(transactions);
-			const recipientProperty: queueCheckers.TransactionFilterableKeys =
-				'recipientId';
+		it('should call checkTransactionPropertyForValues with transacitons recipientId values and senderId property', () => {
+			queueCheckers.checkTransactionForSenderIdWithRecipientId(transactions);
+			const senderId: queueCheckers.TransactionFilterableKeys =
+				'senderId';
 			const transactionRecipientIds = transactions.map(
 				(transaction: Transaction) => transaction.recipientId,
 			);
 			return expect(
 				queueCheckers.checkTransactionPropertyForValues as SinonStub,
-			).to.be.calledWith(transactionRecipientIds, recipientProperty);
+			).to.be.calledWith(transactionRecipientIds, senderId);
 		});
 	});
 
