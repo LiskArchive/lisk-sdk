@@ -40,7 +40,7 @@ function DappsController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-DappsController.getDapps = function(context, next) {
+DappsController.getDapps = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	let options = {
@@ -76,43 +76,44 @@ DappsController.getDapps = function(context, next) {
 		filters.push({ type: transactionTypes.DAPP });
 	}
 
-	storage.entities.Transaction.get(filters, options)
-		.then(data => {
-			data = _.cloneDeep(data);
+	try {
+		let data = await storage.entities.Transaction.get(filters, options);
+		data = _.cloneDeep(data);
 
-			const dapps = data.map(aDapp => ({
-				name: aDapp.asset.dapp.name,
-				description: aDapp.asset.dapp.description,
-				tags: aDapp.asset.dapp.tags,
-				link: aDapp.asset.dapp.link,
-				type: aDapp.asset.dapp.type,
-				category: aDapp.asset.dapp.category,
-				icon: aDapp.asset.dapp.icon,
-				transactionId: aDapp.id,
-			}));
+		const dapps = data.map(aDapp => ({
+			name: aDapp.asset.dapp.name,
+			description: aDapp.asset.dapp.description,
+			tags: aDapp.asset.dapp.tags,
+			link: aDapp.asset.dapp.link,
+			type: aDapp.asset.dapp.type,
+			category: aDapp.asset.dapp.category,
+			icon: aDapp.asset.dapp.icon,
+			transactionId: aDapp.id,
+		}));
 
-			data = dapps.map(dapp => {
-				if (_.isNull(dapp.description)) {
-					dapp.description = '';
-				}
-				if (_.isNull(dapp.tags)) {
-					dapp.tags = '';
-				}
-				if (_.isNull(dapp.icon)) {
-					dapp.icon = '';
-				}
-				return dapp;
-			});
+		data = dapps.map(dapp => {
+			if (_.isNull(dapp.description)) {
+				dapp.description = '';
+			}
+			if (_.isNull(dapp.tags)) {
+				dapp.tags = '';
+			}
+			if (_.isNull(dapp.icon)) {
+				dapp.icon = '';
+			}
+			return dapp;
+		});
 
-			return next(null, {
-				data,
-				meta: {
-					offset: options.offset,
-					limit: options.limit,
-				},
-			});
-		})
-		.catch(error => next(error));
+		return next(null, {
+			data,
+			meta: {
+				offset: options.offset,
+				limit: options.limit,
+			},
+		});
+	} catch (error) {
+		return next(error);
+	}
 };
 
 module.exports = DappsController;
