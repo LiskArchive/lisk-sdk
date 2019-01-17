@@ -211,7 +211,7 @@ Chain.prototype.deleteBlock = function(blockId, cb, tx) {
  * @returns {Object} cb.err - SQL error
  * @returns {Object} cb.res - SQL response
  */
-Chain.prototype.deleteAfterBlock = async function(blockId, cb) {
+Chain.prototype.deleteFromBlockId = async function(blockId, cb) {
 	try {
 		const block = await library.storage.entities.Block.getOne({ id: blockId });
 		const result = await library.storage.entities.Block.delete({
@@ -220,7 +220,7 @@ Chain.prototype.deleteAfterBlock = async function(blockId, cb) {
 		return setImmediate(cb, null, result);
 	} catch (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#deleteAfterBlock error');
+		return setImmediate(cb, 'Blocks#deleteFromBlockId error');
 	}
 };
 

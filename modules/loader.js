@@ -423,7 +423,7 @@ __private.loadBlockChain = function() {
 					library.logger.error(err);
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
-						modules.blocks.chain.deleteAfterBlock(err.block.id, () => {
+						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
 							library.logger.error('Blockchain clipped');
 							library.bus.message('blockchainReady');
 						});

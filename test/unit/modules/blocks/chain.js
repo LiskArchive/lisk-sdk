@@ -220,7 +220,7 @@ describe('blocks/chain', () => {
 			expect(blocksChainModule.saveGenesisBlock).to.be.a('function');
 			expect(blocksChainModule.saveBlock).to.be.a('function');
 			expect(blocksChainModule.deleteBlock).to.be.a('function');
-			expect(blocksChainModule.deleteAfterBlock).to.be.a('function');
+			expect(blocksChainModule.deleteFromBlockId).to.be.a('function');
 			expect(blocksChainModule.applyGenesisBlock).to.be.a('function');
 			expect(blocksChainModule.applyBlock).to.be.a('function');
 			expect(blocksChainModule.broadcastReducedBlock).to.be.a('function');
@@ -472,19 +472,19 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('deleteAfterBlock', () => {
+	describe('deleteFromBlockId', () => {
 		describe('when library.storage.entities.Block.getOne fails', () => {
 			beforeEach(() => {
 				return library.storage.entities.Block.getOne.rejects(
-					'deleteAfterBlock-ERR'
+					'deleteFromBlockId-ERR'
 				);
 			});
 
 			it('should call a callback with error', done => {
-				blocksChainModule.deleteAfterBlock(1, err => {
-					expect(err).to.equal('Blocks#deleteAfterBlock error');
+				blocksChainModule.deleteFromBlockId(1, err => {
+					expect(err).to.equal('Blocks#deleteFromBlockId error');
 					expect(loggerStub.error.args[0][0]).to.contains(
-						'deleteAfterBlock-ERR'
+						'deleteFromBlockId-ERR'
 					);
 					done();
 				});
@@ -495,29 +495,29 @@ describe('blocks/chain', () => {
 			beforeEach(() => {
 				library.storage.entities.Block.getOne.resolves({ height: 1 });
 				return library.storage.entities.Block.delete.rejects(
-					'deleteAfterBlock-ERR'
+					'deleteFromBlockId-ERR'
 				);
 			});
 
 			it('should call a callback with error', done => {
-				blocksChainModule.deleteAfterBlock(1, err => {
-					expect(err).to.equal('Blocks#deleteAfterBlock error');
+				blocksChainModule.deleteFromBlockId(1, err => {
+					expect(err).to.equal('Blocks#deleteFromBlockId error');
 					expect(loggerStub.error.args[0][0]).to.contains(
-						'deleteAfterBlock-ERR'
+						'deleteFromBlockId-ERR'
 					);
 					done();
 				});
 			});
 		});
 
-		describe('when library.db.blocks.deleteAfterBlock succeeds', () => {
+		describe('when library.storage.entities.Block.delete succeeds', () => {
 			beforeEach(() => {
 				library.storage.entities.Block.getOne.resolves({ height: 1 });
 				return library.storage.entities.Block.delete.resolves(true);
 			});
 
 			it('should call a callback with no error and res data', done => {
-				blocksChainModule.deleteAfterBlock(1, (err, res) => {
+				blocksChainModule.deleteFromBlockId(1, (err, res) => {
 					expect(err).to.be.null;
 					expect(res).to.be.true;
 					done();

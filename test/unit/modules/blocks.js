@@ -57,7 +57,7 @@ describe('blocks', () => {
 		dbStub = {
 			blocks: {
 				deleteBlock: sinonSandbox.stub(),
-				deleteAfterBlock: sinonSandbox.stub(),
+				deleteFromBlockId: sinonSandbox.stub(),
 			},
 			tx: sinonSandbox.stub(),
 		};
