@@ -1,6 +1,6 @@
 properties([
     parameters([
-        gitParameter branchFilter: 'origin/(.*)', defaultValue: 'development', name: 'BRANCH', type: 'PT_BRANCH',
+        gitParameter(branch: '',branchFilter: 'origin/(.*)', defaultValue: 'development', name: 'BRANCH', type: 'PT_BRANCH'),
         string(name: 'NETWORK', defaultValue: 'alphanet', description: 'network name', ),
         string(name: 'NODES_PER_REGION', defaultValue: '1', description: 'number of nodes per region(we have 10 regions)', ),
         string(name: 'STRESS_COUNT', defaultValue: '500', description: 'number of transactions to create, max 1000', ),
