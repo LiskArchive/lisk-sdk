@@ -55,13 +55,6 @@ module.exports = {
 		getGenesis: link('dapps/get_genesis.sql'),
 		list: link('dapps/list.sql'),
 	},
-	delegates: {
-		countDuplicatedDelegates: link('delegates/count_duplicated_delegates.sql'),
-		getDelegatesByPublicKeys: link(
-			'delegates/get_delegates_by_public_keys.sql'
-		),
-		insertFork: link('delegates/insert_fork.sql'),
-	},
 	multisignatures: {
 		getMemberPublicKeys: link('multisignatures/get_member_public_keys.sql'),
 		getGroupIds: link('multisignatures/get_group_ids.sql'),
@@ -78,9 +71,5 @@ module.exports = {
 		getSignatureByIds: link('transactions/get_signature_by_ids.sql'),
 		getTransferByIds: link('transactions/get_transfer_by_ids.sql'),
 		getVotesByIds: link('transactions/get_votes_by_ids.sql'),
-	},
-	votes: {
-		getVotes: link('votes/get_votes.sql'),
-		getVotesCount: link('votes/get_votes_count.sql'),
 	},
 };

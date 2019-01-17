@@ -14,12 +14,30 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Inserts a fork statistics.
 
-  PARAMETERS: ?
+  PARAMETERS:
+      delegatePublicKey - ?
+      blockTimestamp - ?
+      blockId - ?
+      blockHeight - ?
+      previousBlock - ?
+      cause - ?
 */
 
-SELECT "dependentId"
-FROM mem_accounts2delegates
-WHERE "accountId" = ${address}
-LIMIT ${limit} OFFSET ${offset}
+INSERT INTO forks_stat(
+  "delegatePublicKey",
+  "blockTimestamp",
+  "blockId",
+  "blockHeight",
+  "previousBlock",
+  cause
+)
+VALUES (
+  ${delegatePublicKey},
+  ${blockTimestamp},
+  ${blockId},
+  ${blockHeight},
+  ${previousBlockId},
+  ${cause}
+)
