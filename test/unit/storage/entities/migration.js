@@ -369,13 +369,11 @@ describe('Migration', () => {
 		});
 
 		describe('getLastId', () => {
-			it('should use the correct filters for getOne', async () => {
-				sinonSandbox.spy(storage.entities.Migration, 'getOne');
+			it('should use the correct filters for get', async () => {
+				sinonSandbox.spy(storage.entities.Migration, 'get');
 				await storage.entities.Migration.getLastId();
-				expect(storage.entities.Migration.getOne.firstCall.args[0]).to.be.eql(
-					{}
-				);
-				expect(storage.entities.Migration.getOne.firstCall.args[1]).to.be.eql({
+				expect(storage.entities.Migration.get.firstCall.args[0]).to.be.eql({});
+				expect(storage.entities.Migration.get.firstCall.args[1]).to.be.eql({
 					sort: 'id:DESC',
 					limit: 1,
 				});
@@ -383,9 +381,7 @@ describe('Migration', () => {
 
 			it('should return id of the last migration file', async () => {
 				const result = await storage.entities.Migration.getLastId();
-				return expect(parseInt(result)).to.be.eql(
-					parseInt(fileIds[fileIds.length - 1])
-				);
+				expect(result).to.be.eql(parseInt(fileIds[fileIds.length - 1]));
 			});
 		});
 

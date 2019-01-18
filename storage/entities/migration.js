@@ -230,8 +230,8 @@ class Migration extends BaseEntity {
 	 * Promise object that resolves with either 0 or id of the last migration record.
 	 */
 	async getLastId() {
-		const result = await this.getOne({}, { sort: 'id:DESC', limit: 1 });
-		return result.id;
+		const result = await this.get({}, { sort: 'id:DESC', limit: 1 });
+		return result.length ? parseInt(result[0].id) : null;
 	}
 
 	/**
