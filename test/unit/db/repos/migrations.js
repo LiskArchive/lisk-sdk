@@ -25,7 +25,8 @@ const { sqlRoot } = require('../../../../db/sql/config');
 let db;
 let dbSandbox;
 
-describe('db', () => {
+/* eslint-disable mocha/no-skipped-tests */
+describe.skip('db', () => {
 	before(done => {
 		dbSandbox = new DBSandbox(
 			__testContext.config.db,

@@ -24,8 +24,8 @@ const numSeedRecords = 5;
 let db;
 let dbSandbox;
 let inTransferRepo;
-
-describe('db', () => {
+/* eslint-disable mocha/no-skipped-tests */
+describe.skip('db', () => {
 	before(done => {
 		dbSandbox = new DBSandbox(
 			__testContext.config.db,

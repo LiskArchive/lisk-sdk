@@ -18,6 +18,7 @@ const child_process = require('child_process');
 const Promise = require('bluebird');
 const rewire = require('rewire');
 const pgpLib = require('pg-promise');
+const createStorage = require('../../storage');
 
 const database = rewire('../../db');
 
@@ -67,7 +68,16 @@ DBSandbox.prototype.create = function(cb) {
 			database
 				.connect(this.dbConfig, console)
 				.then(db => {
-					return cb(null, db);
+					// This is temporaty until we remove db_sandbox completely
+					const storage = createStorage(this.dbConfig);
+					storage.bootstrap().then(async status => {
+						if (status) {
+							await storage.entities.Migration.applyAll();
+							await storage.entities.Migration.applyRunTime();
+						}
+						return cb(null, db);
+					});
+					// This is temporaty until we remove db_sandbox completely
 				})
 				.catch(err => {
 					return cb(err);
