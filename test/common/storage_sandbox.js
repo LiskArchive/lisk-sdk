@@ -71,7 +71,7 @@ class StorageSandbox extends Storage {
 		await this._dropDB();
 		await this._createDB();
 		await super.bootstrap();
-		await this._createSchema(this.adapter.db);
+		await this._createSchema();
 		return true;
 	}
 
@@ -99,18 +99,13 @@ class StorageSandbox extends Storage {
 		});
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	async _createSchema(db) {
-		return new Promise((resolve, reject) => {
-			db.migrations
-				.applyAll()
-				.then(() => {
-					return resolve();
-				})
-				.catch(err => {
-					return reject(err);
-				});
-		});
+	async _createSchema() {
+		try {
+			await this.entities.Migration.applyAll();
+			await this.entities.Migration.applyRunTime();
+		} catch (err) {
+			Promise.reject(err);
+		}
 	}
 }
 
