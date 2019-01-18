@@ -161,7 +161,7 @@ export class OutTransferTransaction extends BaseTransaction {
 				tx =>
 					tx.type === this.type &&
 					'outTransfer' in tx.asset &&
-					tx.asset.outTransfer.transactionId ===
+					this.asset.outTransfer.transactionId ===
 						tx.asset.outTransfer.transactionId,
 			)
 			.map(tx => new OutTransferTransaction(tx));
@@ -171,14 +171,14 @@ export class OutTransferTransaction extends BaseTransaction {
 			status: sameTypeTransactions.length === 0 ? Status.OK : Status.FAIL,
 			errors:
 				sameTypeTransactions.length === 0
-					? [
+					? []
+					: [
 							new TransactionError(
 								'Out Transfer cannot refer to the same transactionId',
 								this.id,
 								'.asset.outTransfer.transactionId',
 							),
-					  ]
-					: [],
+					  ],
 		};
 	}
 
@@ -188,7 +188,7 @@ export class OutTransferTransaction extends BaseTransaction {
 			throw new Error('Entity account is required.');
 		}
 		if (
-			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
+			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'balance'])
 		) {
 			throw new Error('Required state does not have valid account type.');
 		}
@@ -206,13 +206,9 @@ export class OutTransferTransaction extends BaseTransaction {
 			throw new Error('Entity transaction is required.');
 		}
 		if (
-			!isTypedObjectArrayWithKeys<TransactionJSON>(transactions, [
-				'id',
-				'type',
-				'asset',
-			])
+			!isTypedObjectArrayWithKeys<TransactionJSON>(transactions, ['id', 'type'])
 		) {
-			throw new Error('Required state does not have valid account type.');
+			throw new Error('Required state does not have valid transaction type.');
 		}
 		const relatedTransactions = transactions.filter(
 			tx =>
@@ -282,7 +278,9 @@ export class OutTransferTransaction extends BaseTransaction {
 	}: RequiredOutTransferState): TransactionResponse {
 		const { errors: baseErrors } = super.apply({ sender });
 		if (!dependentState) {
-			throw new Error('Dependent state is required for vote transaction.');
+			throw new Error(
+				'Dependent state is required for outTransfer transaction.',
+			);
 		}
 		const errors = [...baseErrors];
 		const dependentTransactions = dependentState[ENTITY_TRANSACTION];
