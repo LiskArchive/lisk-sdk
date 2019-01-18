@@ -393,6 +393,7 @@ function __init(initScope, done) {
 									],
 									transaction: [
 										'db',
+										'storage',
 										'bus',
 										'ed',
 										'schema',
@@ -401,7 +402,7 @@ function __init(initScope, done) {
 										'logger',
 										function(transactionScope, transactionCb) {
 											new Transaction(
-												transactionScope.db,
+												transactionScope.storage,
 												transactionScope.ed,
 												transactionScope.schema,
 												transactionScope.genesisBlock,
