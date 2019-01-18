@@ -55,13 +55,6 @@ class PgpAdapter extends BaseAdapter {
 			},
 		};
 
-		// TODO: This is only for being able to re-use existing migrations in tests
-		// if (this.inTest) {
-		// 	this.pgpOptions.extend = object => {
-		// 		object.migrations = new MigrationsRepo(object, this.pgp);
-		// 	};
-		// }
-
 		this.pgp = pgpLib(this.pgpOptions);
 		this.db = undefined;
 	}
