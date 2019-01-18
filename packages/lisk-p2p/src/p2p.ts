@@ -20,9 +20,8 @@ import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import url from 'url';
 
 import { RequestFailError } from './errors';
-import { ConnectionState, Peer, PeerInfo } from './peer';
-import { discoverPeers } from './peer_discovery';
-import { PeerOptions, selectForConnection } from './peer_selection';
+import { Peer, PeerInfo } from './peer';
+import { PeerOptions } from './peer_selection';
 
 import {
 	INVALID_CONNECTION_QUERY_CODE,
@@ -210,28 +209,28 @@ export class P2P extends EventEmitter {
 				} else {
 					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
-					const existingPeer = this._peerPool.getPeer(peerId);
-					if (existingPeer === undefined) {
-						const peer = new Peer(
-							{
-								ipAddress: socket.remoteAddress,
-								wsPort,
-								height: queryObject.height ? +queryObject.height : 0,
-								os: queryObject.os,
-								version: queryObject.version,
-							},
-							socket,
-						);
-						peer.applyNodeInfo(this._nodeInfo);
-						this._peerPool.addPeer(peer);
-						super.emit(EVENT_NEW_INBOUND_PEER, peer);
-						super.emit(EVENT_NEW_PEER, peer);
-						this._newPeers.add(peer.peerInfo);
-					} else if (
-						existingPeer.state.inbound === ConnectionState.DISCONNECTED
-					) {
-						existingPeer.inboundSocket = socket;
-						this._newPeers.add(existingPeer.peerInfo);
+
+					const incomingPeerInfo: PeerInfo = {
+						ipAddress: socket.remoteAddress,
+						wsPort,
+						height: queryObject.height ? +queryObject.height : 0,
+						os: queryObject.os,
+						version: queryObject.version,
+					};
+
+					const isNewPeer = this._peerPool.addInBoundPeer(
+						peerId,
+						incomingPeerInfo,
+						socket,
+						this._nodeInfo,
+					);
+
+					if (isNewPeer) {
+						super.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+						super.emit(EVENT_NEW_PEER, incomingPeerInfo);
+						this._newPeers.add(incomingPeerInfo);
+					} else {
+						this._newPeers.add(incomingPeerInfo);
 					}
 				}
 			},
@@ -269,35 +268,30 @@ export class P2P extends EventEmitter {
 		await this._stopHTTPServer();
 	}
 
-	private _connectToPeers(): void {
-		const availablePeers = Array.from(this._newPeers).map(
-			(peerInfo: PeerInfo) => new Peer(peerInfo),
-		);
+	private _connectToPeers(peers: ReadonlyArray<PeerInfo>): void {
+		const peersSelectedForConnection = this._peerPool.connectToPeers(peers);
 
-		const peersToConnect = selectForConnection(availablePeers);
-		peersToConnect.forEach((peer: Peer) => {
-			peer.connect();
-			this._newPeers.delete(peer.peerInfo);
-			this._triedPeers.add(peer.peerInfo);
+		// Assuming that the peers are connected
+		peersSelectedForConnection.forEach((peerInfo: PeerInfo) => {
+			this._newPeers.delete(peerInfo);
+			this._triedPeers.add(peerInfo);
 		});
 	}
 
 	private async _runPeerDiscovery(
 		peers: ReadonlyArray<PeerInfo>,
 	): Promise<ReadonlyArray<PeerInfo>> {
-		const peersObjectList = peers.map((peerInfo: PeerInfo) => {
-			const peer = new Peer(peerInfo);
-			peer.applyNodeInfo(this._nodeInfo);
-			if (!this._newPeers.has(peerInfo) && !this._triedPeers.has(peerInfo)) {
+		const discoveredPeers = await this._peerPool.runDiscovery(
+			peers,
+			this._config.blacklistedPeers,
+		);
+		discoveredPeers.forEach((peerInfo: PeerInfo) => {
+			if (!this._triedPeers.has(peerInfo) && !this._newPeers.has(peerInfo)) {
 				this._newPeers.add(peerInfo);
-				this._peerPool.addPeer(peer);
 			}
-
-			return peer;
 		});
-		const peersOfPeers = await discoverPeers(peersObjectList);
 
-		return peersOfPeers;
+		return discoveredPeers;
 	}
 
 	public async start(): Promise<void> {
@@ -312,7 +306,7 @@ export class P2P extends EventEmitter {
 			this._newPeers.add(peerInfo);
 		});
 
-		this._connectToPeers();
+		this._connectToPeers([...this._newPeers]);
 	}
 
 	public async stop(): Promise<void> {

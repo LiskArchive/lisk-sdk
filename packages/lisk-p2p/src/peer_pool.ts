@@ -21,20 +21,24 @@
 import { EventEmitter } from 'events';
 
 import {
+	ConnectionState,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	Peer,
 	PeerInfo,
-	REMOTE_RPC_GET_ALL_PEERS_LIST,
-} from './peer';
+	REMOTE_RPC_GET_ALL_PEERS_LIST} from './peer';
+import { discoverPeers } from './peer_discovery';
+import {
+	PeerOptions,
+	selectForConnection,
+	selectPeers,
+} from './peer_selection';
 
+import { SCServerSocket } from 'socketcluster-server';
 import { P2PRequest } from './p2p_request';
-
-import { PeerOptions, selectPeers } from './peer_selection';
-
-import { P2PMessagePacket } from './p2p_types';
+import { P2PMessagePacket, P2PNodeInfo } from './p2p_types';
 
 export { EVENT_CONNECT_OUTBOUND, EVENT_CONNECT_ABORT_OUTBOUND, EVENT_REQUEST_RECEIVED, EVENT_MESSAGE_RECEIVED };
 
@@ -91,10 +95,72 @@ export class PeerPool extends EventEmitter {
 		return selectedPeers;
 	}
 
+	public async runDiscovery(
+		peers: ReadonlyArray<PeerInfo>,
+		blacklist: ReadonlyArray<PeerInfo>,
+	): Promise<ReadonlyArray<PeerInfo>> {
+		const peersObjectList = peers.map((peerInfo: PeerInfo) => {
+			const peer = new Peer(peerInfo);
+			this.addPeer(peer); // Binding of events will be done in addPeer
+
+			return peer;
+		});
+
+		const disoveredPeers = await discoverPeers(peersObjectList, {
+			blacklist: blacklist.map(peer => peer.ipAddress),
+		});
+
+		return disoveredPeers;
+	}
+
+	public connectToPeers(
+		peers: ReadonlyArray<PeerInfo>,
+	): ReadonlyArray<PeerInfo> {
+		const availablePeers = Array.from(peers).map(
+			(peerInfo: PeerInfo) => new Peer(peerInfo),
+		);
+		const peersToConnect = selectForConnection(availablePeers);
+
+		const connectedPeerInfo = peersToConnect.map((peer: Peer) => {
+			peer.connect();
+			this.addPeer(peer);
+
+			return peer.peerInfo; // Return peerInfo to p2p to manage new/tried Peers
+		});
+
+		return connectedPeerInfo;
+	}
+
 	public addPeer(peer: Peer): void {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		peer.connect();
+	}
+
+	public addInBoundPeer(
+		peerId: string,
+		peerinfo: PeerInfo,
+		socket: SCServerSocket,
+		nodeInfo: P2PNodeInfo,
+	): boolean {
+		const existingPeer = this.getPeer(peerId);
+
+		if (existingPeer) {
+			if (existingPeer.state.inbound === ConnectionState.DISCONNECTED) {
+				existingPeer.inboundSocket = socket;
+
+				return false;
+			}
+
+			return false;
+		}
+
+		const peer = new Peer({ ...peerinfo }, socket);
+
+		peer.applyNodeInfo(nodeInfo);
+		this.addPeer(peer);
+
+		return true;
 	}
 
 	public removeAllPeers(): void {
