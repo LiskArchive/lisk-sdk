@@ -16,8 +16,8 @@
 
 import { PeerInfo } from './peer';
 
-export interface P2PRequestPacket<T> {
-	readonly params?: T;
+export interface P2PRequestPacket {
+	readonly data?: unknown;
 	readonly procedure: string;
 }
 
@@ -25,8 +25,8 @@ export interface P2PResponsePacket {
 	readonly data: unknown;
 }
 
-export interface P2PMessagePacket<T> {
-	readonly data: T;
+export interface P2PMessagePacket {
+	readonly data?: unknown;
 	readonly event: string;
 }
 
@@ -76,14 +76,14 @@ export interface ProtocolPeerList {
 }
 
 // TODO later: Switch to LIP protocol format.
-export interface ProtocolRPCRequest {
+export interface ProtocolRPCRequestPacket {
 	readonly data: unknown;
 	readonly procedure: string;
 	readonly type: string;
 }
 
 // TODO later: Switch to LIP protocol format.
-export interface ProtocolMessage {
+export interface ProtocolMessagePacket {
 	readonly data: unknown;
 	readonly event: string;
 }

@@ -16,8 +16,8 @@
 import { EventEmitter } from 'events';
 import http, { Server } from 'http';
 import { platform } from 'os';
-import url from 'url';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
+import url from 'url';
 
 import { RequestFailError } from './errors';
 import { ConnectionState, Peer, PeerInfo } from './peer';
@@ -25,10 +25,10 @@ import { discoverPeers } from './peer_discovery';
 import { PeerOptions, selectForConnection } from './peer_selection';
 
 import {
-	INVALID_CONNECTION_URL_CODE,
-	INVALID_CONNECTION_URL_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
 	INVALID_CONNECTION_QUERY_REASON,
+	INVALID_CONNECTION_URL_CODE,
+	INVALID_CONNECTION_URL_REASON,
 } from './disconnect_status_codes';
 
 import {
@@ -41,7 +41,16 @@ import {
 	P2PResponsePacket,
 } from './p2p_types';
 
-import { PeerPool } from './peer_pool';
+import { P2PRequest } from './p2p_request';
+export { P2PRequest };
+
+import {
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_REQUEST_RECEIVED,
+	PeerPool,
+} from './peer_pool';
+
+export { EVENT_REQUEST_RECEIVED, EVENT_MESSAGE_RECEIVED };
 
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
@@ -60,6 +69,9 @@ export class P2P extends EventEmitter {
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServer;
 
+	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
+	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
+
 	public constructor(config: P2PConfig) {
 		super();
 		this._config = config;
@@ -73,9 +85,23 @@ export class P2P extends EventEmitter {
 		this._newPeers = new Set();
 		this._triedPeers = new Set();
 
-		this._peerPool = new PeerPool();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer);
+
+		// This needs to be an arrow function so that it can be used as a listener.
+		this._handlePeerPoolRPC = (request: P2PRequest) => {
+			// Re-emit the request for external use.
+			this.emit(EVENT_REQUEST_RECEIVED, request);
+		};
+
+		// This needs to be an arrow function so that it can be used as a listener.
+		this._handlePeerPoolMessage = (message: P2PMessagePacket) => {
+			// Re-emit the message for external use.
+			this.emit(EVENT_MESSAGE_RECEIVED, message);
+		};
+
+		this._peerPool = new PeerPool();
+		this._bindHandlersToPeerPool(this._peerPool);
 	}
 
 	public get isActive(): boolean {
@@ -111,9 +137,7 @@ export class P2P extends EventEmitter {
 		};
 	}
 
-	public async request<T>(
-		packet: P2PRequestPacket<T>,
-	): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const peerSelectionParams: PeerOptions = {
 			lastBlockHeight: this._nodeInfo.height,
 		};
@@ -129,7 +153,7 @@ export class P2P extends EventEmitter {
 		return response;
 	}
 
-	public send<T>(message: P2PMessagePacket<T>): void {
+	public send(message: P2PMessagePacket): void {
 		const peerSelectionParams: PeerOptions = {
 			lastBlockHeight: this._nodeInfo.height,
 		};
@@ -150,6 +174,7 @@ export class P2P extends EventEmitter {
 						INVALID_CONNECTION_URL_CODE,
 						INVALID_CONNECTION_URL_REASON,
 					);
+
 					return;
 				}
 				const queryObject = url.parse(socket.request.url, true).query;
@@ -274,5 +299,10 @@ export class P2P extends EventEmitter {
 	public async stop(): Promise<void> {
 		this._peerPool.removeAllPeers();
 		await this._stopPeerServer();
+	}
+
+	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
+		peerPool.on(EVENT_REQUEST_RECEIVED, this._handlePeerPoolRPC);
+		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
 	}
 }

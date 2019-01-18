@@ -21,44 +21,43 @@
 import { EventEmitter } from 'events';
 
 import {
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_REQUEST_RECEIVED,
 	Peer,
 	PeerInfo,
-	EVENT_REQUEST_RECEIVED,
-	EVENT_MESSAGE_RECEIVED,
-	REMOTE_EVENT_RPC_REQUEST,
-	REMOTE_EVENT_MESSAGE,
+	REMOTE_RPC_GET_ALL_PEERS_LIST,
 } from './peer';
+
+import { P2PRequest } from './p2p_request';
 
 import { PeerOptions, selectPeers } from './peer_selection';
 
-import { ProtocolMessage, ProtocolRPCRequest } from './p2p_types';
+import { P2PMessagePacket } from './p2p_types';
 
-export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
+export { EVENT_REQUEST_RECEIVED, EVENT_MESSAGE_RECEIVED };
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
-	private readonly _handleRPC: (
-		request: ProtocolRPCRequest,
-		respond: any,
-	) => void;
-	private readonly _handleMessage: (message: ProtocolMessage) => void;
+	private readonly _handlePeerRPC: (request: P2PRequest) => void;
+	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
 
 	public constructor() {
 		super();
 		this._peerMap = new Map();
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handleRPC = (request: ProtocolRPCRequest, respond: any) => {
-			// TODO 2: ^ Use different type for request instead of ProtocolRPCRequest
+		this._handlePeerRPC = (request: P2PRequest) => {
 			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
-				this._handleGetAllPeersRequest(request, respond); // TODO 2
+				// The PeerPool has the necessary information to handle this request on its own.
+				this._handleGetAllPeersRequest(request);
 			}
-			// Emit request for external use.
+			// Re-emit the request to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handleMessage = (message: ProtocolMessage) => {
+		this._handlePeerMessage = (message: P2PMessagePacket) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 	}
@@ -110,20 +109,21 @@ export class PeerPool extends EventEmitter {
 			peer.disconnect();
 			this._unbindHandlersFromPeer(peer);
 		}
+
 		return this._peerMap.delete(peerId);
 	}
 
-	private _handleGetAllPeersRequest(message: ProtocolRPCRequest, respond: any) {
-		respond(null, this.getAllPeerInfos());
+	private _handleGetAllPeersRequest(request: P2PRequest): void {
+		request.end(this.getAllPeerInfos());
 	}
 
 	private _bindHandlersToPeer(peer: Peer): void {
-		peer.on(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
-		peer.on(REMOTE_EVENT_MESSAGE, this._handleMessage);
+		peer.on(EVENT_REQUEST_RECEIVED, this._handlePeerRPC);
+		peer.on(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {
-		peer.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
-		peer.off(REMOTE_EVENT_MESSAGE, this._handleMessage);
+		peer.off(EVENT_REQUEST_RECEIVED, this._handlePeerRPC);
+		peer.off(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
 	}
 }
