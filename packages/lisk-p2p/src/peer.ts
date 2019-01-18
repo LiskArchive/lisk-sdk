@@ -205,10 +205,18 @@ export class Peer extends EventEmitter {
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
+		this.dropInboundConnection(code, reason);
+		this.dropOutboundConnection(code, reason);
+	}
+
+	public dropInboundConnection(code: number = 1000, reason?: string): void {
 		if (this._inboundSocket) {
 			this._inboundSocket.destroy(code, reason);
 			this._unbindHandlersFromInboundSocket(this._inboundSocket);
 		}
+	}
+
+	public dropOutboundConnection(code: number = 1000, reason?: string): void {
 		if (this._outboundSocket) {
 			this._outboundSocket.destroy(code, reason);
 			this._unbindHandlersFromOutboundSocket(this._outboundSocket);
