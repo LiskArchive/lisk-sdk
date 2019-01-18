@@ -14,18 +14,11 @@
 
 'use strict';
 
+const assert = require('assert');
 const path = require('path');
-const {
-	Account,
-	BaseEntity,
-	Block,
-	Delegate,
-	Peer,
-	Round,
-	Transaction,
-	Migration,
-} = require('./entities');
+const { BaseEntity } = require('./entities');
 const PgpAdapter = require('./adapters/pgp_adapter');
+const { EntityRegistrationError } = require('./errors');
 
 class Storage {
 	constructor(options, logger) {
@@ -37,35 +30,25 @@ class Storage {
 		}
 
 		this.isReady = false;
+		this.adapter = new PgpAdapter({
+			...this.options,
+			inTest: process.env.NODE_ENV === 'test',
+			sqlDirectory: path.join(path.dirname(__filename), './sql'),
+			logger: this.logger,
+		});
+		this.BaseEntity = BaseEntity;
+		this.entities = {};
+
 		Storage.instance = this;
-		Storage.instance.BaseEntity = BaseEntity;
 	}
 
 	/**
 	 * @return Promise
 	 */
 	bootstrap() {
-		const adapter = new PgpAdapter({
-			...this.options,
-			inTest: process.env.NODE_ENV === 'test',
-			sqlDirectory: path.join(path.dirname(__filename), './sql'),
-			logger: this.logger,
-		});
-
-		return adapter.connect().then(status => {
+		return Storage.instance.adapter.connect().then(status => {
 			if (status) {
 				this.isReady = true;
-				Storage.instance.adapter = adapter;
-
-				Storage.instance.entities = {
-					Account: new Account(adapter),
-					Block: new Block(adapter),
-					Delegate: new Delegate(adapter),
-					Migration: new Migration(adapter),
-					Peer: new Peer(adapter),
-					Round: new Round(adapter),
-					Transaction: new Transaction(adapter),
-				};
 			}
 
 			return status;
@@ -76,6 +59,42 @@ class Storage {
 		return Storage.instance.adapter.disconnect().then(() => {
 			this.isReady = false;
 		});
+	}
+
+	/**
+	 * Register an entity by initializing its object.
+	 * It will be accessible through `storage.entities.[identifier]
+	 *
+	 * @param {string} identifier - Identifier used to access the object from stoage.entities.* namespace
+	 * @param {BaseEntity} Entity - A class constructor extended from BaseEntity
+	 * @param {Object} [options]
+	 * @param {Boolean} [options.replaceExisting] - Replace the existing entity
+	 * @param {Array.<*>} [options.initParams] - Extra parameters to pass to initialization of entity
+	 * @returns {BaseEntity}
+	 */
+	registerEntity(identifier, Entity, options = {}) {
+		assert(identifier, 'Identifier is required to register an entity.');
+		assert(Entity, 'Entity is required to register it.');
+
+		const existed = Object.keys(Storage.instance.entities).includes(identifier);
+
+		if (existed && !options.replaceExisting) {
+			throw new EntityRegistrationError(
+				`Entity ${identifier} already registered`
+			);
+		}
+
+		let args = [Storage.instance.adapter];
+
+		if (options.initParams) {
+			args = args.concat(options.initParams);
+		}
+
+		const entityObject = new Entity(...args);
+
+		this.constructor.instance.entities[identifier] = entityObject;
+
+		return entityObject;
 	}
 }
 

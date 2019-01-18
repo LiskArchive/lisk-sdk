@@ -16,6 +16,7 @@
 
 const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
+const transactionTypes = require('../helpers/transaction_types.js');
 
 let modules;
 let library;
@@ -31,15 +32,15 @@ __private.unconfirmedOutTansfers = {};
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @param {Database} db
  * @param {ZSchema} schema
  * @param {Object} logger
+ * @param {Storage} storage
  * @todo Add description for the params
  */
 class OutTransfer {
-	constructor(db, schema, logger) {
+	constructor(storage, schema, logger) {
 		library = {
-			db,
+			storage,
 			schema,
 			logger,
 		};
@@ -120,10 +121,15 @@ OutTransfer.prototype.verify = function(transaction, sender, cb) {
  * @todo Add description for the params
  */
 OutTransfer.prototype.process = function(transaction, sender, cb) {
-	library.db.dapps
-		.countByTransactionId(transaction.asset.outTransfer.dappId)
-		.then(count => {
-			if (count === 0) {
+	library.storage.entities.Transaction.isPersisted(
+		{
+			id: transaction.asset.outTransfer.dappId,
+			type: transactionTypes.DAPP,
+		},
+		{}
+	)
+		.then(isPersisted => {
+			if (!isPersisted) {
 				return setImmediate(
 					cb,
 					`Application not found: ${transaction.asset.outTransfer.dappId}`
@@ -143,10 +149,12 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 				);
 			}
 
-			return library.db.dapps
-				.countByOutTransactionId(transaction.asset.outTransfer.transactionId)
-				.then(counterById => {
-					if (counterById > 0) {
+			return library.storage.entities.Transaction.isPersisted({
+				id: transaction.asset.outTransfer.transactionId,
+				type: transactionTypes.OUT_TRANSFER,
+			})
+				.then(isOutTransferPersisted => {
+					if (isOutTransferPersisted) {
 						return setImmediate(
 							cb,
 							`Transaction is already confirmed: ${

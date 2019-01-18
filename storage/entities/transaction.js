@@ -247,6 +247,14 @@ class Transaction extends BaseEntity {
 			condition: '"tf_data" LIKE ${data_like}',
 		});
 
+		this.addFilter('dapp_name', filterTypes.CUSTOM, {
+			condition: '"dapp_name" = ${dapp_name}',
+		});
+
+		this.addFilter('dapp_link', filterTypes.CUSTOM, {
+			condition: '"dapp_link" = ${dapp_link}',
+		});
+
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('transactions/get.sql'),
 			selectExtended: this.adapter.loadSQLFile('transactions/get_extended.sql'),
@@ -342,6 +350,7 @@ class Transaction extends BaseEntity {
 			t.signatures = t.signatures ? t.signatures.join() : null;
 			t.amount = t.amount.toString();
 			t.fee = t.fee.toString();
+			t.recipientId = t.recipientId || null;
 		});
 
 		const trsFields = [
@@ -375,6 +384,7 @@ class Transaction extends BaseEntity {
 			);
 
 			const groupedTransactions = _.groupBy(transactions, 'type');
+
 			Object.keys(groupedTransactions).forEach(type => {
 				batch.push(
 					this._createSubTransactions(
@@ -482,6 +492,10 @@ class Transaction extends BaseEntity {
 				throw new Error(`Unsupported transaction type: ${type}`);
 		}
 
+		if (values.length < 1) {
+			return Promise.resolve(null);
+		}
+
 		return this.adapter.executeFile(
 			this.SQLs[`createType${type}`],
 			{ values: this.getValuesSet(values, fields, { useRawObject: true }) },
@@ -553,6 +567,7 @@ class Transaction extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters, {
 			filterPrefix: 'AND',
 		});
+
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
@@ -633,7 +648,6 @@ class Transaction extends BaseEntity {
 		if (transaction.signatures) {
 			transaction.signatures = transaction.signatures.filter(Boolean);
 		}
-
 		return transaction;
 	}
 

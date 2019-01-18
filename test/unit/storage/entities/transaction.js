@@ -20,6 +20,7 @@ const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const transactionsFixtures = require('../../../fixtures').transactions;
 const transactionTypes = require('../../../../helpers/transaction_types');
+const { NonSupportedFilterTypeError } = require('../../../../storage/errors');
 
 const numSeedRecords = 5;
 const NON_EXISTENT_ID = '1234';
@@ -311,15 +312,121 @@ describe('Transaction', () => {
 	});
 
 	describe('isPersisted()', () => {
-		it('should accept only valid filters');
-		it('should throw error for in-valid filters');
-		it('should accept only valid options');
-		it('should throw error for in-valid options');
+		afterEach(async () => {
+			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'trs');
+		});
+
+		it('should accept only valid filters', async () => {
+			const block = seeder.getLastBlock();
+			const transactionFixture = new transactionsFixtures.Transaction({
+				blockId: block.id,
+			});
+			await storage.entities.Transaction.create(transactionFixture);
+
+			const transaction = new Transaction(adapter);
+			expect(() => {
+				transaction.isPersisted({ id: transactionFixture.id });
+			}).not.to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should throw error for invalid filters', async () => {
+			const transaction = new Transaction(adapter);
+			expect(() => {
+				transaction.isPersisted({ invalid: true });
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
 		it('should call mergeFilters with proper params');
+
 		it('should call parseFilters with proper params');
+
 		it('should call adapter.executeFile with proper params');
-		it('should resolve with true if matching record found');
-		it('should resolve with false if matching record not found');
+
+		it('should resolve with true if matching record found', async () => {
+			const block = seeder.getLastBlock();
+			const transactionFixture = new transactionsFixtures.Transaction({
+				blockId: block.id,
+			});
+			await storage.entities.Transaction.create(transactionFixture);
+			const res = await storage.entities.Transaction.isPersisted({
+				id: transactionFixture.id,
+			});
+			expect(res).to.be.true;
+		});
+
+		it('should resolve with false if matching record not found', async () => {
+			const block = seeder.getLastBlock();
+			const transactionFixture = new transactionsFixtures.Transaction({
+				blockId: block.id,
+			});
+			await storage.entities.Transaction.create(transactionFixture);
+			const res = await storage.entities.Transaction.isPersisted({
+				id: 'invalidTransactionID',
+			});
+			expect(res).to.be.false;
+		});
+
+		it('It should return true using type as filter', async () => {
+			const transactions = [];
+			const block = seeder.getLastBlock();
+			[0, 1, 2, 3, 4, 5, 6, 7].forEach(transactionType => {
+				transactions.push(
+					new transactionsFixtures.Transaction({
+						blockId: block.id,
+						type: transactionType,
+					})
+				);
+			});
+			await storage.entities.Transaction.create(transactions);
+			expect(
+				await storage.entities.Transaction.isPersisted({
+					id: transactions[0].id,
+					type: 0,
+				})
+			).to.be.true;
+			expect(
+				await storage.entities.Transaction.isPersisted({
+					id: transactions[1].id,
+					type: 1,
+				})
+			).to.be.true;
+			expect(
+				await storage.entities.Transaction.isPersisted({
+					id: transactions[2].id,
+					type: 2,
+				})
+			).to.be.true;
+			expect(
+				await storage.entities.Transaction.isPersisted({
+					id: transactions[3].id,
+					type: 3,
+				})
+			).to.be.true;
+			expect(
+				await storage.entities.Transaction.isPersisted({
+					id: transactions[4].id,
+					type: 4,
+				})
+			).to.be.true;
+			expect(
+				await storage.entities.Transaction.isPersisted({
+					id: transactions[5].id,
+					type: 5,
+				})
+			).to.be.true;
+			expect(
+				await storage.entities.Transaction.isPersisted({
+					id: transactions[6].id,
+					type: 6,
+				})
+			).to.be.true;
+			expect(
+				await storage.entities.Transaction.isPersisted({
+					id: transactions[7].id,
+					type: 7,
+				})
+			).to.be.true;
+		});
 	});
 
 	describe('count()', () => {
@@ -328,7 +435,6 @@ describe('Transaction', () => {
 		it('should resolve with integer value if matching record found', async () => {
 			let transaction = null;
 			const transactions = [];
-
 			for (let i = 0; i < numSeedRecords; i++) {
 				transaction = new transactionsFixtures.Transaction({
 					blockId: seeder.getLastBlock().id,

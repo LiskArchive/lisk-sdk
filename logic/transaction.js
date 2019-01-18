@@ -47,7 +47,7 @@ const __private = {};
  * @todo Add description for the params
  */
 class Transaction {
-	constructor(db, ed, schema, genesisBlock, account, logger, cb) {
+	constructor(storage, ed, schema, genesisBlock, account, logger, cb) {
 		/**
 		 * @typedef {Object} privateTypes
 		 * - 0: Transfer
@@ -62,7 +62,7 @@ class Transaction {
 		__private.types = {};
 
 		this.scope = {
-			db,
+			storage,
 			ed,
 			schema,
 			genesisBlock,
@@ -266,13 +266,12 @@ class Transaction {
 	 * @returns {SetImmediate} error, row.count
 	 * @todo Add description for the params
 	 */
-	countById(transaction, cb) {
-		this.scope.db.transactions
-			.countById(transaction.id)
-			.then(count => setImmediate(cb, null, count))
+	isConfirmed(transaction, cb) {
+		this.scope.storage.entities.Transaction.isPersisted({ id: transaction.id })
+			.then(isConfirmed => setImmediate(cb, null, isConfirmed))
 			.catch(err => {
 				this.scope.logger.error(err.stack);
-				return setImmediate(cb, 'Transaction#countById error');
+				return setImmediate(cb, 'Transaction#isConfirmed error');
 			});
 	}
 
@@ -289,10 +288,10 @@ class Transaction {
 		if (!transaction || !transaction.id) {
 			return setImmediate(cb, 'Invalid transaction id', false);
 		}
-		return this.countById(transaction, (err, count) => {
+		return this.isConfirmed(transaction, (err, isConfirmed) => {
 			if (err) {
 				return setImmediate(cb, err, false);
-			} else if (count > 0) {
+			} else if (isConfirmed) {
 				return setImmediate(cb, null, true);
 			}
 			return setImmediate(cb, null, false);

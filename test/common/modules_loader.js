@@ -101,7 +101,7 @@ const modulesLoader = new function() {
 					},
 					(err, result) => {
 						new Logic(
-							scope.db,
+							scope.storage,
 							scope.ed,
 							scope.schema,
 							scope.genesisBlock,
@@ -120,7 +120,7 @@ const modulesLoader = new function() {
 						},
 						function(account, waterCb) {
 							return new Transaction(
-								scope.db,
+								scope.storage,
 								scope.ed,
 								scope.schema,
 								scope.genesisBlock,

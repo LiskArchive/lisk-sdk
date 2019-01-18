@@ -138,7 +138,10 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 
 		if (parsedBlock.transactions.length) {
 			promises.push(
-				saveBlockBatchTx.transactions.save(parsedBlock.transactions)
+				library.storage.entities.Transaction.create(
+					block.transactions,
+					{},
+					saveBlockBatchTx
 			);
 		}
 

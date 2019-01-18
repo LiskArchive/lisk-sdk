@@ -16,6 +16,7 @@
 
 const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
+const transactionTypes = require('../helpers/transaction_types.js');
 
 const { FEES } = global.constants;
 const exceptions = global.exceptions;
@@ -31,15 +32,15 @@ let shared;
  * @see Parent: {@link logic}
  * @requires helpers/milestones
  * @requires helpers/slots
- * @param {Database} db
  * @param {ZSchema} schema
+ * @param {Storage} storage
  * @todo Add description for the params
  */
 class InTransfer {
-	constructor(db, schema) {
+	constructor(storage, schema) {
 		library = {
-			db,
 			schema,
+			storage,
 		};
 	}
 }
@@ -100,10 +101,16 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	return (tx || library.db).dapps
-		.countByTransactionId(transaction.asset.inTransfer.dappId)
-		.then(count => {
-			if (count === 0) {
+	return library.storage.entities.Transaction.isPersisted(
+		{
+			id: transaction.asset.inTransfer.dappId,
+			type: transactionTypes.DAPP,
+		},
+		{},
+		tx
+	)
+		.then(isPersisted => {
+			if (!isPersisted) {
 				return setImmediate(
 					cb,
 					`Application not found: ${transaction.asset.inTransfer.dappId}`

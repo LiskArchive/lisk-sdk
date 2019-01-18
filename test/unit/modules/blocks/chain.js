@@ -81,6 +81,9 @@ describe('blocks/chain', () => {
 					create: sinonSandbox.stub(),
 					delete: sinonSandbox.stub(),
 				},
+				Transaction: {
+					create: sinonSandbox.stub(),
+				},
 			},
 		};
 
