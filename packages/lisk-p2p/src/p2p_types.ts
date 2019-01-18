@@ -65,7 +65,7 @@ export interface ProtocolPeerInfo {
 	readonly nonce: string;
 	readonly os: string;
 	readonly version: string;
-	readonly wsPort: number;
+	readonly wsPort: string;
 }
 
 // This is a representation of the peer list according to the current protocol.

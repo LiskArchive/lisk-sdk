@@ -103,12 +103,9 @@ export class P2P extends EventEmitter {
 	}
 
 	public getNetworkStatus(): P2PNetworkStatus {
-		const newPeers: ReadonlyArray<PeerInfo> = [...this._newPeers.values()];
-		const triedPeers: ReadonlyArray<PeerInfo> = [...this._triedPeers.values()];
-
 		return {
-			newPeers,
-			triedPeers,
+			newPeers: [...this._newPeers.values()],
+			triedPeers: [...this._triedPeers.values()],
 			connectedPeers: this._peerPool.getAllPeerInfos(),
 		};
 	}
@@ -197,14 +194,27 @@ export class P2P extends EventEmitter {
 		});
 	}
 
-	private async _stopPeerServer(): Promise<void> {
-		// TODO ASAP: Test this and check for potential failure scenarios.
+	private async _stopHTTPServer(): Promise<void> {
+		return new Promise<void>(resolve => {
+			this._httpServer.close(() => {
+				this._isActive = false;
+				resolve();
+			});
+		});
+	}
+
+	private async _stopWSServer(): Promise<void> {
 		return new Promise<void>(resolve => {
 			this._scServer.close(() => {
 				this._isActive = false;
 				resolve();
 			});
 		});
+	}
+
+	private async _stopPeerServer(): Promise<void> {
+		await this._stopWSServer();
+		await this._stopHTTPServer();
 	}
 
 	private _connectToPeers(): void {
@@ -239,9 +249,11 @@ export class P2P extends EventEmitter {
 
 	public async start(): Promise<void> {
 		await this._startPeerServer();
+
 		const discoveredPeers = await this._runPeerDiscovery(
 			this._config.seedPeers,
 		);
+
 		// Add all the discovered peers in newPeer list
 		discoveredPeers.forEach((peerInfo: PeerInfo) => {
 			this._newPeers.add(peerInfo);

@@ -27,17 +27,20 @@ import {
 
 import socketClusterClient, { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { processPeerListFromResponse } from './response_handler_sanitization';
+import { sanitizePeerInfo, sanitizePeerInfoList } from './sanitization';
 
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
+export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_MESSAGE_RECEIVED = 'requestReceived';
+export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
+export const REMOTE_EVENT_MESSAGE = 'message';
 export const REMOTE_EVENT_SEND_NODE_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
@@ -85,15 +88,14 @@ export class Peer extends EventEmitter {
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
 		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
 		if (this._inboundSocket) {
-			this._startListeningForRPCs(this._inboundSocket);
-			this._startListeningForMessages(this._inboundSocket);
+			this._bindHandlersToInboundSocket(this._inboundSocket);
 		}
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRPC = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to response_handler_sanitization with other validation logic.
+			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
 			const request = packet as ProtocolRPCRequest;
 			if (!request || typeof request.procedure !== 'string') {
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, request);
@@ -114,7 +116,7 @@ export class Peer extends EventEmitter {
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleMessage = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to response_handler_sanitization with other validation logic.
+			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
 			const message = packet as ProtocolMessage;
 			if (!message || typeof message.event !== 'string') {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, message);
@@ -133,22 +135,20 @@ export class Peer extends EventEmitter {
 		return this._id;
 	}
 
-	public set inboundSocket(value: SCServerSocket) {
+	public set inboundSocket(scServerSocket: SCServerSocket) {
 		if (this._inboundSocket) {
-			this._stopListeningForRPCs(this._inboundSocket);
-			this._stopListeningForMessages(this._inboundSocket);
+			this._unbindHandlersFromInboundSocket(this._inboundSocket);
 		}
-		this._inboundSocket = value as SCServerSocketUpdated;
-		this._startListeningForRPCs(this._inboundSocket);
-		this._startListeningForMessages(this._inboundSocket);
+		this._inboundSocket = scServerSocket as SCServerSocketUpdated;
+		this._bindHandlersToInboundSocket(this._inboundSocket);
 	}
 
 	public get ipAddress(): string {
 		return this._ipAddress;
 	}
 
-	public set outboundSocket(value: SCClientSocket) {
-		this._outboundSocket = value;
+	public set outboundSocket(scClientSocket: SCClientSocket) {
+		this._outboundSocket = scClientSocket;
 	}
 
 	public get peerInfo(): PeerInfo {
@@ -207,10 +207,11 @@ export class Peer extends EventEmitter {
 	public disconnect(code: number = 1000, reason?: string): void {
 		if (this._inboundSocket) {
 			this._inboundSocket.destroy(code, reason);
-			this._stopListeningForRPCs(this._inboundSocket);
+			this._unbindHandlersFromInboundSocket(this._inboundSocket);
 		}
 		if (this._outboundSocket) {
 			this._outboundSocket.destroy(code, reason);
+			this._unbindHandlersFromOutboundSocket(this._outboundSocket);
 		}
 	}
 
@@ -270,7 +271,7 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
 			});
 
-			return processPeerListFromResponse(response.data);
+			return sanitizePeerInfoList(response.data);
 		} catch (error) {
 			throw new RPCResponseError(
 				`Error when fetching peerlist of a peer`,
@@ -282,48 +283,63 @@ export class Peer extends EventEmitter {
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
-		return socketClusterClient.create({
+		const outboundSocket = socketClusterClient.create({
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: JSON.stringify(this._nodeInfo),
 			autoConnect: false,
 		});
+
+		this._bindHandlersToOutboundSocket(outboundSocket);
+
+		return outboundSocket;
 	}
 
+	// All event handlers for the outbound socket should be bound in this method.
+	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
+		outboundSocket.on('connect', () => {
+			this.emit(EVENT_CONNECT_OUTBOUND);
+		});
+	}
+
+	// All event handlers for the outbound socket should be unbound in this method.
+	/* tslint:disable-next-line:prefer-function-over-method*/
+	private _unbindHandlersFromOutboundSocket(
+		outboundSocket: SCClientSocket,
+	): void {
+		outboundSocket.off();
+	}
+
+	// All event handlers for the inbound socket should be bound in this method.
+	private _bindHandlersToInboundSocket(inboundSocket: SCServerSocket): void {
+		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleMessage);
+	}
+
+	// All event handlers for the inbound socket should be unbound in this method.
+	private _unbindHandlersFromInboundSocket(
+		inboundSocket: SCServerSocket,
+	): void {
+		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
+		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleMessage);
+	}
+
+	// Update peerInfo with the latest values from the remote peer.
 	private _handlePeerInfo(request: ProtocolRPCRequest): void {
-		// Update peerInfo with the latest values from the remote peer.
-		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
-		/* tslint:disable:next-line: no-object-literal-type-assertion */
-		this._peerInfo = {
-			...this._peerInfo,
-			...request.data,
-		} as PeerInfo;
+		try {
+			// Only allow updating the height and version.
+			const { height, version } = sanitizePeerInfo(request.data);
+			const peerInfoChange = { height, version };
+			this._peerInfo = {
+				...this._peerInfo,
+				...peerInfoChange,
+			};
+		} catch (error) {
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+
+			return;
+		}
+
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
-	}
-
-	private _startListeningForRPCs(
-		socket: SCServerSocket | SCClientSocket,
-	): void {
-		// If an existing listener is bound, remove it.
-		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
-		socket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
-	}
-
-	private _stopListeningForRPCs(socket: SCServerSocket | SCClientSocket): void {
-		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRPC);
-	}
-
-	private _startListeningForMessages(
-		socket: SCServerSocket | SCClientSocket,
-	): void {
-		// If an existing listener is bound, remove it.
-		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
-		socket.on(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
-	}
-
-	private _stopListeningForMessages(
-		socket: SCServerSocket | SCClientSocket,
-	): void {
-		socket.off(REMOTE_EVENT_RPC_REQUEST, this._handleMessage);
 	}
 }
