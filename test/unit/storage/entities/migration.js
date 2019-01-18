@@ -15,6 +15,8 @@
 
 'use strict';
 
+const path = require('path');
+const fs = require('fs-extra');
 const { BaseEntity, Migration } = require('../../../../storage/entities');
 const storageSandbox = require('../../../common/storage_sandbox');
 const {
@@ -329,5 +331,146 @@ describe('Migration', () => {
 		it(
 			'should merge provided filter with default filters by preserving default filters values'
 		);
+	});
+
+	describe('Schema Updates methods', () => {
+		let files;
+		let fileIds;
+
+		before(async () => {
+			files = await fs.readdir(
+				path.join(__dirname, '../../../../storage/sql/migrations/updates')
+			);
+			fileIds = files.map(f => f.match(/(\d+)_(.+).sql/)[1]).sort();
+		});
+
+		afterEach(async () => {
+			sinonSandbox.restore();
+		});
+
+		describe('hasMigrations()', () => {
+			it('should resolve with true if migrations table exists', async () => {
+				expect(await storage.entities.Migration.hasMigrations()).to.be.true;
+			});
+
+			it('should resolve with false if migrations table does not exists', async () => {
+				// Create backup table and drop migrations table
+				await storage.entities.Migration.adapter.execute(
+					'CREATE TABLE temp_migrations AS TABLE migrations; DROP TABLE migrations;'
+				);
+
+				expect(await storage.entities.Migration.hasMigrations()).to.be.false;
+
+				// Restore the migrations table and drop the backup
+				await storage.entities.Migration.adapter.execute(
+					'CREATE TABLE migrations AS TABLE temp_migrations; DROP TABLE temp_migrations;'
+				);
+			});
+		});
+
+		describe('getLastId', () => {
+			it('should use the correct filters for getOne', async () => {
+				sinonSandbox.spy(storage.entities.Migration, 'getOne');
+				await storage.entities.Migration.getLastId();
+				expect(storage.entities.Migration.getOne.firstCall.args[0]).to.be.eql(
+					{}
+				);
+				expect(storage.entities.Migration.getOne.firstCall.args[1]).to.be.eql({
+					sort: 'id:DESC',
+					limit: 1,
+				});
+			});
+
+			it('should return id of the last migration file', async () => {
+				const result = await storage.entities.Migration.getLastId();
+				return expect(parseInt(result)).to.be.eql(
+					parseInt(fileIds[fileIds.length - 1])
+				);
+			});
+		});
+
+		describe('readPending', () => {
+			it('should resolve with list of pending files if there exists any', async () => {
+				const pending = (await storage.entities.Migration.readPending(
+					fileIds[0]
+				)).map(f => f.id);
+				fileIds.splice(0, 1);
+				expect(pending).to.be.eql(fileIds);
+			});
+
+			it('should resolve with empty array if there is no pending migration', async () => {
+				const pending = await storage.entities.Migration.readPending(
+					fileIds[fileIds.length - 1]
+				);
+
+				return expect(pending).to.be.empty;
+			});
+
+			it('should resolve with the list in correct format', async () => {
+				const pending = await storage.entities.Migration.readPending(
+					fileIds[0]
+				);
+
+				expect(pending).to.be.an('array');
+				expect(pending[0]).to.have.all.keys('id', 'name', 'path', 'file');
+				expect(pending[0].file).to.be.instanceOf(
+					storage.entities.Migration.adapter.pgp.QueryFile
+				);
+			});
+		});
+
+		describe('applyAll()', () => {
+			let updates;
+
+			beforeEach(async () => {
+				updates = await storage.entities.Migration.readPending(fileIds[0]);
+			});
+
+			it('should call hasMigrations()', async () => {
+				sinonSandbox.spy(storage.entities.Migration, 'hasMigrations');
+				await storage.entities.Migration.applyAll();
+				expect(storage.entities.Migration.hasMigrations).to.be.calledOnce;
+			});
+
+			it('should call getLastId()', async () => {
+				sinonSandbox.spy(storage.entities.Migration, 'getLastId');
+				await storage.entities.Migration.applyAll();
+				expect(storage.entities.Migration.getLastId).to.be.calledOnce;
+			});
+
+			it('should call readPending()', async () => {
+				sinonSandbox.spy(storage.entities.Migration, 'readPending');
+				await storage.entities.Migration.applyAll();
+				expect(storage.entities.Migration.readPending).to.be.calledOnce;
+			});
+
+			it('should apply all pending migrations in independent transactions', async () => {
+				sinonSandbox.spy(storage.entities.Migration, 'begin');
+				sinonSandbox
+					.stub(storage.entities.Migration, 'readPending')
+					.resolves(updates);
+				sinonSandbox
+					.stub(storage.entities.Migration, 'applyPendingMigration')
+					.resolves(null);
+
+				await storage.entities.Migration.applyAll();
+
+				expect(storage.entities.Migration.begin.callCount).to.be.eql(
+					updates.length
+				);
+				expect(
+					storage.entities.Migration.begin
+						.getCalls()
+						.filter(aCall => aCall.args[0] !== 'migrations:applyAll').length
+				).to.be.eql(0);
+
+				const applyPendingMigrationCalls = storage.entities.Migration.applyPendingMigration.getCalls();
+
+				applyPendingMigrationCalls.forEach((aCall, idx) => {
+					expect(aCall.args[0]).to.be.eql(updates[idx]);
+					expect(aCall.args[1].constructor.name).to.be.eql('Task');
+				});
+			});
+		});
 	});
 });
