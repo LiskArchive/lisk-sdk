@@ -78,6 +78,9 @@ describe('blocks/chain', () => {
 				Block: {
 					isPersisted: sinonSandbox.stub(),
 				},
+				Transaction: {
+					create: sinonSandbox.stub(),
+				},
 			},
 		};
 

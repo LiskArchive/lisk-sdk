@@ -673,6 +673,7 @@ d.run(() => {
 							],
 							transaction: [
 								'db',
+								'storage',
 								'bus',
 								'ed',
 								'schema',
@@ -681,7 +682,7 @@ d.run(() => {
 								'logger',
 								function(transactionScope, transactionCb) {
 									new Transaction(
-										transactionScope.db,
+										transactionScope.storage,
 										transactionScope.ed,
 										transactionScope.schema,
 										transactionScope.genesisBlock,

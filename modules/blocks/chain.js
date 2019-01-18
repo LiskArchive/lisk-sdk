@@ -120,9 +120,14 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 
 	function saveBlockBatch(saveBlockBatchTx) {
 		const promises = [saveBlockBatchTx.blocks.save(block)];
-
 		if (block.transactions.length) {
-			promises.push(saveBlockBatchTx.transactions.save(block.transactions));
+			promises.push(
+				library.storage.entities.Transaction.create(
+					block.transactions,
+					{},
+					saveBlockBatchTx
+				)
+			);
 		}
 
 		saveBlockBatchTx
