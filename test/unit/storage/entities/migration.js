@@ -73,7 +73,7 @@ describe('Migration', () => {
 		};
 
 		validFilter = {
-			id: '20160723182900',
+			id: '30200723182900',
 		};
 
 		invalidOptions = {
@@ -87,7 +87,7 @@ describe('Migration', () => {
 		};
 
 		validMigration = {
-			id: '20160723182900',
+			id: '30200723182900',
 			name: 'create_schema',
 		};
 
@@ -224,14 +224,6 @@ describe('Migration', () => {
 	});
 
 	describe('isPersisted()', () => {
-		afterEach(async () => {
-			await storageSandbox.clearDatabaseTable(
-				storage,
-				storage.logger,
-				'migrations'
-			);
-		});
-
 		it('should accept only valid filters', async () => {
 			const migration = new Migration(adapter);
 			expect(() => {
@@ -300,12 +292,18 @@ describe('Migration', () => {
 			await storage.entities.Migration.create(localMigration);
 			const res = await storage.entities.Migration.isPersisted(validFilter);
 			expect(res).to.be.true;
+			await storage.entities.Migration.adapter.execute(
+				`DELETE FROM migrations WHERE id = '${localMigration.id}'`
+			);
 		});
 
 		it('should resolve with false if matching record not found', async () => {
 			await storage.entities.Migration.create(validMigration);
 			const res = await storage.entities.Migration.isPersisted(noResultsFilter);
 			expect(res).to.be.false;
+			await storage.entities.Migration.adapter.execute(
+				`DELETE FROM migrations WHERE id = '${validMigration.id}'`
+			);
 		});
 	});
 
@@ -467,6 +465,16 @@ describe('Migration', () => {
 					expect(aCall.args[1].constructor.name).to.be.eql('Task');
 				});
 			});
+		});
+
+		/* eslint-disable mocha/no-skipped-tests */
+		describe('applyRuntime()', () => {
+			it.skip('should use the correct SQL while in transaction context');
+			it.skip('should start a transaction context if no transaction exists');
+			it.skip('should copy mem_accounts2delegates to mem_accounts2u_delegates');
+			it.skip(
+				'should copy mem_accounts2multisignatures to mem_accounts2u_multisignatures'
+			);
 		});
 	});
 });
