@@ -22,15 +22,13 @@ import {
 	P2PNodeInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	ProtocolMessagePacket,
-	ProtocolRPCRequestPacket,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
 
 import socketClusterClient, { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { sanitizePeerInfo, sanitizePeerInfoList } from './sanitization';
+import { sanitizePeerInfo, sanitizePeerInfoList, sanitizeProtocolMessage, sanitizeRPCRequest } from './sanitization';
 
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
@@ -106,49 +104,34 @@ export class Peer extends EventEmitter {
 			respond: (responseError?: Error, responseData?: unknown) => void,
 		) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
-			const rawRequest = packet as ProtocolRPCRequestPacket; // TODO 2
 
-			if (!rawRequest || typeof rawRequest.procedure !== 'string') {
-				this.emit(EVENT_INVALID_REQUEST_RECEIVED, rawRequest);
+			try {
+				const rawRequest = sanitizeRPCRequest(packet);
+				if (rawRequest.procedure === REMOTE_RPC_NODE_INFO) {
+					this._handlePeerInfo(rawRequest);
+				}
 
-				return;
+				const request = new P2PRequest(
+					rawRequest.procedure,
+					rawRequest.data,
+					respond,
+				);
+
+				this.emit(EVENT_REQUEST_RECEIVED, request);
+			} catch (err) {
+				this.emit(EVENT_INVALID_REQUEST_RECEIVED, packet);
 			}
-			const request = new P2PRequest(
-				rawRequest.procedure,
-				rawRequest.data,
-				respond,
-			);
-
-			if (
-				request.procedure === REMOTE_RPC_NODE_INFO &&
-				typeof request.data === 'object'
-			) {
-				// The Peer has the necessary information to handle this request on its own.
-				// This request doesn't need to propagate to its parent class.
-				this._handlePeerInfo(request);
-
-				return;
-			}
-
-			// Re-emit the request to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
-			const rawMessage = packet as ProtocolMessagePacket;
-			if (!rawMessage || typeof rawMessage.event !== 'string') {
-				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, rawMessage);
-
-				return;
+			try {
+				const protocolMessage = sanitizeProtocolMessage(packet);
+				this.emit(EVENT_MESSAGE_RECEIVED, protocolMessage);
+			} catch (err) {
+				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, packet);
 			}
-			const message = rawMessage as P2PMessagePacket;
-
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 	}
 

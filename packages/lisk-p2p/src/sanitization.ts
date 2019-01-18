@@ -14,8 +14,13 @@
  */
 import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
-import { InvalidPeer, InvalidRPCResponse } from './errors';
-import { ProtocolPeerInfo } from './p2p_types';
+import {
+	InvalidPeer,
+	InvalidProtocolMessage,
+	InvalidRPCRequest,
+	InvalidRPCResponse,
+} from './errors';
+import { ProtocolMessage, ProtocolPeerInfo, ProtocolRPCRequest } from './p2p_types';
 import { PeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
@@ -91,4 +96,33 @@ export const sanitizePeerInfoList = (
 	} else {
 		throw new InvalidRPCResponse('Invalid response type');
 	}
+};
+
+export const sanitizeRPCRequest = (request: unknown): ProtocolRPCRequest => {
+	if (!request) {
+		throw new InvalidRPCRequest('Invalid request');
+	}
+
+	const rpcRequest = request as ProtocolRPCRequest;
+	if (typeof rpcRequest.procedure !== 'string') {
+		throw new InvalidRPCRequest('Request procedure name is not a string');
+	}
+	if (typeof rpcRequest.data !== 'object') {
+		throw new InvalidRPCRequest('Invalid request data');
+	}
+
+	return rpcRequest;
+};
+
+export const sanitizeProtocolMessage = (message: unknown): ProtocolMessage => {
+	if (!message) {
+		throw new InvalidProtocolMessage('Invalid message');
+	}
+
+	const protocolMessage = message as ProtocolMessage;
+	if (typeof protocolMessage.event !== 'string') {
+		throw new InvalidProtocolMessage('Protocol message is not a string');
+	}
+
+	return protocolMessage;
 };
