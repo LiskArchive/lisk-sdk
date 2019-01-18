@@ -135,11 +135,11 @@ export class Peer extends EventEmitter {
 		return this._id;
 	}
 
-	public set inboundSocket(value: SCServerSocket) {
+	public set inboundSocket(scServerSocket: SCServerSocket) {
 		if (this._inboundSocket) {
 			this._unbindHandlersFromInboundSocket(this._inboundSocket);
 		}
-		this._inboundSocket = value as SCServerSocketUpdated;
+		this._inboundSocket = scServerSocket as SCServerSocketUpdated;
 		this._bindHandlersToInboundSocket(this._inboundSocket);
 	}
 
@@ -147,8 +147,8 @@ export class Peer extends EventEmitter {
 		return this._ipAddress;
 	}
 
-	public set outboundSocket(value: SCClientSocket) {
-		this._outboundSocket = value;
+	public set outboundSocket(scClientSocket: SCClientSocket) {
+		this._outboundSocket = scClientSocket;
 	}
 
 	public get peerInfo(): PeerInfo {
@@ -324,15 +324,15 @@ export class Peer extends EventEmitter {
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleMessage);
 	}
 
+	// Update peerInfo with the latest values from the remote peer.
 	private _handlePeerInfo(request: ProtocolRPCRequest): void {
-		// Update peerInfo with the latest values from the remote peer.
-		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
 		try {
-			const newPeerInfo = sanitizePeerInfo(request.data);
-			// Merge new info with existing info.
+			// Only allow updating the height and version.
+			const { height, version } = sanitizePeerInfo(request.data);
+			const peerInfoChange = { height, version };
 			this._peerInfo = {
 				...this._peerInfo,
-				...newPeerInfo,
+				...peerInfoChange,
 			};
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
