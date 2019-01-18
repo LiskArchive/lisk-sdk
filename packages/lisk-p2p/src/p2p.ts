@@ -34,12 +34,6 @@ import {
 	P2PResponsePacket,
 } from './p2p_types';
 
-type SCServerCloseCallback = () => void;
-
-type SCServerUpdated = {
-	readonly close: (sCServerCloseCallback: SCServerCloseCallback) => void;
-} & SCServer;
-
 import { PeerPool } from './peer_pool';
 
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
@@ -57,7 +51,7 @@ export class P2P extends EventEmitter {
 
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
-	private readonly _scServer: SCServerUpdated;
+	private readonly _scServer: SCServer;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -74,7 +68,7 @@ export class P2P extends EventEmitter {
 
 		this._peerPool = new PeerPool();
 		this._httpServer = http.createServer();
-		this._scServer = attach(this._httpServer) as SCServerUpdated;
+		this._scServer = attach(this._httpServer);
 	}
 
 	public get isActive(): boolean {
