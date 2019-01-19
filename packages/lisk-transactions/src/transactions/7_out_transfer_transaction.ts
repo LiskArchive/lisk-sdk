@@ -13,6 +13,7 @@
  *
  */
 import BigNum from 'browserify-bignum';
+import { OUT_TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
 import { convertBeddowsToLSK } from '../utils';
@@ -84,8 +85,9 @@ export const outTransferAssetFormatSchema = {
 };
 
 export class OutTransferTransaction extends BaseTransaction {
-	public readonly containsUniqueData = true;
 	public readonly asset: OutTransferAsset;
+	public readonly containsUniqueData = true;
+	public readonly fee: BigNum = new BigNum(OUT_TRANSFER_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -240,7 +242,17 @@ export class OutTransferTransaction extends BaseTransaction {
 			);
 		}
 
-		if (this.recipientId === undefined || this.recipientId === '') {
+		if (!this.fee.eq(OUT_TRANSFER_FEE)) {
+			errors.push(
+				new TransactionError(
+					'Amount must be set fee for outTransfer transaction',
+					this.id,
+					'.fee',
+				),
+			);
+		}
+
+		if (this.recipientId === '') {
 			errors.push(
 				new TransactionError(
 					'RecipientId must be set for outTransfer transaction',
@@ -302,7 +314,19 @@ export class OutTransferTransaction extends BaseTransaction {
 				tx.type === TRANSACTION_DAPP_REGISTER &&
 				tx.id === this.asset.outTransfer.dappId,
 		);
-		if (!registerDappTx) {
+		if (registerDappTx) {
+			if (
+				registerDappTx.senderId &&
+				registerDappTx.senderId !== this.senderId
+			) {
+				errors.push(
+					new TransactionError(
+						`Out transaction must be sent from owner of the Dapp.`,
+						this.id,
+					),
+				);
+			}
+		} else {
 			errors.push(
 				new TransactionError(
 					`Related Dapp ${this.asset.outTransfer.dappId} not found.`,
