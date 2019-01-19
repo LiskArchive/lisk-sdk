@@ -17,10 +17,10 @@ import {
 	CheckerFunctionResponse,
 	Status,
 	checkTransactions,
-} from '../src/check_transactions';
+} from '../../src/check_transactions';
 import { expect } from 'chai';
-import transactionObjects from '../fixtures/transactions.json';
-import { wrapTransaction } from './utils/add_transaction_functions';
+import transactionObjects from '../../fixtures/transactions.json';
+import { wrapTransaction } from '../utils/add_transaction_functions';
 
 describe('#checkTransactions', () => {
 	const transactions = transactionObjects.map(wrapTransaction);

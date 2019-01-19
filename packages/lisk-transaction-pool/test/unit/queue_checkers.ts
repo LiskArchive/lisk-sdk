@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { Transaction } from '../src/transaction_pool';
-import { wrapTransaction } from './utils/add_transaction_functions';
-import * as queueCheckers from '../src/queue_checkers';
-import transactionObjects from '../fixtures/transactions.json';
+import { Transaction } from '../../src/transaction_pool';
+import { wrapTransaction } from '../utils/add_transaction_functions';
+import * as queueCheckers from '../../src/queue_checkers';
+import transactionObjects from '../../fixtures/transactions.json';
 import { SinonStub } from 'sinon';
 
 describe('queueCheckers', () => {
@@ -11,8 +11,7 @@ describe('queueCheckers', () => {
 	);
 
 	describe('#checkTransactionPropertyForValues', () => {
-		const propertyName: queueCheckers.TransactionFilterableKeys =
-			'id';
+		const propertyName: queueCheckers.TransactionFilterableKeys = 'id';
 		const values = transactions.map(
 			(transaction: Transaction) => transaction[propertyName],
 		);
@@ -150,8 +149,7 @@ describe('queueCheckers', () => {
 
 		it('should call checkTransactionPropertyForValues with transacitons recipientId values and senderId property', () => {
 			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions);
-			const senderId: queueCheckers.TransactionFilterableKeys =
-				'senderId';
+			const senderId: queueCheckers.TransactionFilterableKeys = 'senderId';
 			const transactionRecipientIds = transactions.map(
 				(transaction: Transaction) => transaction.recipientId,
 			);

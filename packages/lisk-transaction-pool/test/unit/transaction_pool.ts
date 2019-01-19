@@ -1,17 +1,17 @@
-import publicKeys from '../fixtures/public_keys.json';
+import publicKeys from '../../fixtures/public_keys.json';
 import { expect } from 'chai';
-import transactionObjects from '../fixtures/transactions.json';
-import { Job } from '../src/job';
+import transactionObjects from '../../fixtures/transactions.json';
+import { Job } from '../../src/job';
 import {
 	Transaction,
 	TransactionPool,
 	AddTransactionResult,
-} from '../src/transaction_pool';
-import * as checkTransactions from '../src/check_transactions';
-import { wrapTransaction } from './utils/add_transaction_functions';
+} from '../../src/transaction_pool';
+import * as checkTransactions from '../../src/check_transactions';
+import { wrapTransaction } from './../utils/add_transaction_functions';
 import * as sinon from 'sinon';
-import { Queue } from '../src/queue';
-import * as queueCheckers from '../src/queue_checkers';
+import { Queue } from '../../src/queue';
+import * as queueCheckers from '../../src/queue_checkers';
 
 describe('transaction pool', () => {
 	const expireTransactionsInterval = 1000;
@@ -39,10 +39,7 @@ describe('transaction pool', () => {
 		// Stubbing start function so the jobs do not start in the background.
 		sandbox.stub(Job.prototype, 'start');
 		checkerStubs = {
-			returnTrueUntilLimit: sandbox.stub(
-				queueCheckers,
-				'returnTrueUntilLimit'
-			),
+			returnTrueUntilLimit: sandbox.stub(queueCheckers, 'returnTrueUntilLimit'),
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
 				'checkTransactionPropertyForValues',
@@ -93,7 +90,6 @@ describe('transaction pool', () => {
 				.value(sinon.createStubInstance(Queue));
 		});
 	});
-
 
 	describe('#addTransactionToQueue', () => {
 		const queueName = 'received';
@@ -219,7 +215,9 @@ describe('transaction pool', () => {
 
 		it('should call peekUntil for ready queue with correct parameter', () => {
 			transactionPool.getProcessableTransactions(limit);
-			expect(transactionPool.queues.ready.peekUntil).to.be.calledWith(peekUntilCondition);
+			expect(transactionPool.queues.ready.peekUntil).to.be.calledWith(
+				peekUntilCondition,
+			);
 		});
 	});
 
@@ -462,7 +460,10 @@ describe('transaction pool', () => {
 
 		it('should return empty passedTransactions, failedTransactions arrays if checkTransactions is not called', async () => {
 			(transactionPool.queues.verified.size as sinon.SinonStub).returns(0);
-			const {passedTransactions, failedTransactions} = await processVerifiedTransactions();
+			const {
+				passedTransactions,
+				failedTransactions,
+			} = await processVerifiedTransactions();
 			expect(passedTransactions).to.deep.equal([]);
 			expect(failedTransactions).to.deep.equal([]);
 		});
