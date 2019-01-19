@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import BigNum from 'browserify-bignum';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
 import { prependMinusToPublicKeys, prependPlusToPublicKeys } from '../utils';
 import {
 	isTypedObjectArrayWithKeys,
+	validateAddress,
 	validatePublicKeys,
 	validator,
 } from '../utils/validation';
@@ -106,6 +107,7 @@ const validateInputs = ({
 export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData = true;
 	public readonly asset: VoteAsset;
+	public readonly fee: BigNum = new BigNum(VOTE_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -150,15 +152,13 @@ export class VoteTransaction extends BaseTransaction {
 			return transaction;
 		}
 
-		const {
-			address: senderId,
-			publicKey: senderPublicKey,
-		} = getAddressAndPublicKeyFromPassphrase(passphrase);
 		const transactionWithSenderInfo = {
 			...transaction,
-			senderId,
-			senderPublicKey,
-			recipientId: senderId,
+			// SenderId and SenderPublicKey are expected to be exist from base transaction
+			senderId: transaction.senderId as string,
+			senderPublicKey: transaction.senderPublicKey as string,
+			recipientId: transaction.senderId as string,
+			recipientPublicKey: transaction.senderPublicKey,
 		};
 
 		const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
@@ -219,16 +219,15 @@ export class VoteTransaction extends BaseTransaction {
 
 		const errors = sameTypeTransactions.reduce(
 			(previous, tx) => {
-				if (
-					tx.asset.votes
-						.map(vote => vote.substring(1))
-						.some(publicKey => publicKeys.includes(publicKey))
-				) {
+				const conflictingVotes = tx.asset.votes
+					.map(vote => vote.substring(1))
+					.filter(publicKey => publicKeys.includes(publicKey));
+				if (conflictingVotes.length > 0) {
 					return [
 						...previous,
 						new TransactionError(
-							'Transaction includes conflicting vote',
-							tx.id,
+							`Transaction includes conflicting votes: ${conflictingVotes.toString()}`,
+							this.id,
 							'.asset.votes',
 						),
 					];
@@ -247,6 +246,9 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	public processRequiredState(state: EntityMap): RequiredVoteState {
+		const { sender } = super.processRequiredState(state);
+		const votes = this.asset.votes.map(vote => vote.substring(1));
+
 		const accounts = state[ENTITY_ACCOUNT];
 		if (!accounts) {
 			throw new Error('Entity account is required.');
@@ -256,17 +258,11 @@ export class VoteTransaction extends BaseTransaction {
 		) {
 			throw new Error('Required state does not have valid account type.');
 		}
-
-		const sender = accounts.find(acct => acct.address === this.senderId);
-		if (!sender) {
-			throw new Error('No sender account is found.');
-		}
-		const votes = this.asset.votes.map(vote => vote.substring(1));
 		const dependentAccounts = accounts.filter(acct =>
 			votes.includes(acct.publicKey),
 		);
 		if (votes.length !== dependentAccounts.length) {
-			throw new Error('Not enought accounts in dependent state.');
+			throw new Error('Not enough accounts in dependent state.');
 		}
 
 		return {
@@ -291,25 +287,24 @@ export class VoteTransaction extends BaseTransaction {
 			);
 		}
 
-		if (
-			this.recipientPublicKey === undefined ||
-			this.recipientPublicKey === ''
-		) {
-			errors.push(
-				new TransactionError(
-					'RecipientId must be set for vote transaction',
-					this.id,
-					'.recipientPublicKey',
-				),
-			);
-		}
-
-		if (this.recipientId === undefined || this.recipientId === '') {
+		try {
+			validateAddress(this.recipientId);
+		} catch (err) {
 			errors.push(
 				new TransactionError(
 					'RecipientId must be set for vote transaction',
 					this.id,
 					'.recipientId',
+				),
+			);
+		}
+
+		if (!this.fee.eq(VOTE_FEE)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${VOTE_FEE}`,
+					this.id,
+					'.fee',
 				),
 			);
 		}

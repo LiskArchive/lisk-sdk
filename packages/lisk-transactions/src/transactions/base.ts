@@ -17,8 +17,8 @@
 
 import {
 	bigNumberToBuffer,
+	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
-	getKeys,
 	hash,
 	hexToBuffer,
 	signData,
@@ -31,11 +31,7 @@ import {
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	Account,
-	Status,
-	TransactionJSON,
-} from '../transaction_types';
+import { Account, Status, TransactionJSON } from '../transaction_types';
 import {
 	checkTypes,
 	getId,
@@ -45,6 +41,7 @@ import {
 	verifyMultisignatures,
 	verifySignature,
 } from '../utils';
+import { isTypedObjectArrayWithKeys } from '../utils/validation';
 import * as schemas from '../utils/validation/schema';
 
 export interface TransactionResponse {
@@ -85,14 +82,15 @@ export const createBaseTransaction = ({
 	passphrase,
 	timeOffset,
 }: CreateBaseTransactionInput) => {
-	const senderPublicKey = passphrase
-		? getKeys(passphrase).publicKey
-		: undefined;
+	const { address: senderId, publicKey: senderPublicKey } = passphrase
+		? getAddressAndPublicKeyFromPassphrase(passphrase)
+		: { address: undefined, publicKey: undefined };
 	const timestamp = getTimeWithOffset(timeOffset);
 
 	return {
 		amount: '0',
 		recipientId: '',
+		senderId,
 		senderPublicKey,
 		timestamp,
 	};
@@ -293,7 +291,26 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public abstract processRequiredState(state: EntityMap): RequiredState;
+	public processRequiredState(state: EntityMap): RequiredState {
+		const accounts = state[ENTITY_ACCOUNT];
+		if (!accounts) {
+			throw new Error('Entity account is required.');
+		}
+		if (
+			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
+		) {
+			throw new Error('Required state does not have valid account type.');
+		}
+
+		const sender = accounts.find(acct => acct.address === this.senderId);
+		if (!sender) {
+			throw new Error('No sender account is found.');
+		}
+
+		return {
+			sender,
+		};
+	}
 
 	public verify({ sender }: RequiredState): TransactionResponse {
 		const errors: TransactionError[] = [];

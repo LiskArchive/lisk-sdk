@@ -290,11 +290,11 @@ describe('Vote transaction class', () => {
 				];
 				expect((result as any).asset.votes).to.eql(votes);
 
+				expect((result as any).senderId).to.be.undefined;
 				expect((result as any).senderPublicKey).to.be.undefined;
 				expect(result).to.have.property('recipientId', '');
 
 				expect(result).not.to.have.property('id');
-				expect(result).not.to.have.property('senderId');
 				expect(result).not.to.have.property('signature');
 				expect(result).not.to.have.property('signSignature');
 			});
