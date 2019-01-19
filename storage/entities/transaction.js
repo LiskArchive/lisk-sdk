@@ -627,7 +627,7 @@ class Transaction extends BaseEntity {
 			assetAttributesMap[transaction.type] || [];
 
 		transactionAssetAttributes.forEach(assetKey => {
-			// We only want to remove null & undefined not other falsy values
+			// We only want to skip null and undefined, not other falsy values
 			if (row[assetKey] !== null && row[assetKey] !== undefined) {
 				_.set(transaction, assetKey, row[assetKey]);
 			}

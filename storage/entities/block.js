@@ -14,12 +14,30 @@
 
 'use strict';
 
+const assert = require('assert');
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
 const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 const Transaction = require('./transaction');
+
+const defaultCreateValues = {};
+const createFields = [
+	'id',
+	'height',
+	'blockSignature',
+	'generatorPublicKey',
+	'payloadHash',
+	'payloadLength',
+	'numberOfTransactions',
+	'previousBlockId',
+	'timestamp',
+	'totalAmount',
+	'totalFee',
+	'reward',
+	'version',
+];
 
 /**
  * Basic Block
@@ -204,6 +222,10 @@ class Block extends BaseEntity {
 			count: this.adapter.loadSQLFile('blocks/count.sql'),
 			create: this.adapter.loadSQLFile('blocks/create.sql'),
 			isPersisted: this.adapter.loadSQLFile('blocks/is_persisted.sql'),
+			delete: this.adapter.loadSQLFile('blocks/delete.sql'),
+			getFirstBlockIdOfLastRounds: this.adapter.loadSQLFile(
+				'blocks/get_first_block_id_of_last_rounds.sql'
+			),
 		};
 	}
 
@@ -244,7 +266,7 @@ class Block extends BaseEntity {
 	 * @param {filters.Block|filters.Block[]} [filters = {}]
 	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
 	 */
-	count(filters = {}) {
+	count(filters = {}, _options, tx) {
 		this.validateFilters(filters);
 
 		const mergedFilters = this.mergeFilters(filters);
@@ -252,7 +274,12 @@ class Block extends BaseEntity {
 		const expectedResultCount = 1;
 
 		return this.adapter
-			.executeFile(this.SQLs.count, { parsedFilters }, { expectedResultCount })
+			.executeFile(
+				this.SQLs.count,
+				{ parsedFilters },
+				{ expectedResultCount },
+				tx
+			)
 			.then(result => +result.count);
 	}
 
@@ -265,16 +292,30 @@ class Block extends BaseEntity {
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
-		const objectData = data;
-		const createSet = this.getValuesSet(objectData);
-		const attributes = Object.keys(data)
+		assert(data, 'Must provide data to create block');
+		assert(
+			typeof data === 'object' || Array.isArray(data),
+			'Data must be an object or array of objects'
+		);
+
+		let blocks = _.cloneDeep(data);
+
+		if (!Array.isArray(blocks)) {
+			blocks = [blocks];
+		}
+
+		blocks = blocks.map(v => _.defaults(v, defaultCreateValues));
+
+		const createSet = this.getValuesSet(blocks, createFields);
+
+		const fields = createFields
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
 		return this.adapter.executeFile(
 			this.SQLs.create,
-			{ attributes, createSet },
-			{},
+			{ createSet, fields },
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}
@@ -324,6 +365,59 @@ class Block extends BaseEntity {
 				tx
 			)
 			.then(result => result.exists);
+	}
+
+	/**
+	 * Delete records with following conditions
+	 *
+	 * @param {filters.Block} filters
+	 * @param {Object} [options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	delete(filters, _options, tx = null) {
+		this.validateFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(
+				this.SQLs.delete,
+				{ parsedFilters },
+				{ expectedResultCount: 0 },
+				tx
+			)
+			.then(result => result);
+	}
+
+	/**
+	 * Get IDs of first block of last (n) rounds, descending order
+	 * EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
+	 *
+	 * @param {Object} filters = {} - Filters to filter data
+	 * @param {string} filters.height - Block height
+	 * @param {Number} [filters.numberOfDelegates] - Total number of delegates
+	 * @param {Number} [filters.numberOfRounds = 5] - Last # of rounds
+	 * @param {Object} tx - Database transaction object
+	 * @return {Promise.<DatabaseRow, Error>}
+	 */
+	getFirstBlockIdOfLastRounds(filters) {
+		assert(
+			filters && filters.height && filters.numberOfDelegates,
+			'filters must be an object and contain height and numberOfDelegates'
+		);
+
+		const parseFilters = {
+			height: filters.height,
+			numberOfDelegates: filters.numberOfDelegates,
+			numberOfRounds: filters.numberOfRounds || 5,
+		};
+
+		return this.adapter.executeFile(
+			this.SQLs.getFirstBlockIdOfLastRounds,
+			parseFilters,
+			{}
+		);
 	}
 
 	async _getResults(filters, options, tx, expectedResultCount = undefined) {

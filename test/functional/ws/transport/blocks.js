@@ -115,7 +115,6 @@ describe('WS transport blocks', () => {
 						.to.have.property('b_blockSignature')
 						.that.is.a('string');
 					expect(block).to.have.property('t_id');
-					expect(block).to.have.property('t_rowId');
 					expect(block).to.have.property('t_type');
 					expect(block).to.have.property('t_timestamp');
 					expect(block).to.have.property('t_senderPublicKey');
