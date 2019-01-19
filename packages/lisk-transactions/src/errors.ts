@@ -32,3 +32,18 @@ export class TransactionMultiError extends TransactionError {
 		this.errors = errors;
 	}
 }
+
+export class TransactionPendingError extends TransactionError {
+	public id: string;
+	public dataPath: string;
+	public constructor(
+		message: string = '',
+		id: string = '',
+		dataPath: string = '',
+	) {
+		super(message);
+		this.name = 'TransactionPendingError';
+		this.id = id;
+		this.dataPath = dataPath;
+	}
+}

@@ -23,13 +23,14 @@ import {
 	validateFee,
 	validateNonTransferAmount,
 	validatePublicKey,
+	validateSignature,
 	validateTransferAmount,
 } from './validation';
 
 export const validator = new Ajv({ allErrors: true });
 addKeywords(validator);
 
-validator.addFormat('signature', data => /^[a-f0-9]{128}$/i.test(data));
+validator.addFormat('signature', validateSignature)
 
 validator.addFormat(
 	'id',

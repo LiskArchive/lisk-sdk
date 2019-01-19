@@ -145,6 +145,7 @@ export const baseTransaction = {
 				format: 'signature',
 			},
 			minItems: 0,
+			maxItems: 15,
 		},
 		asset: {
 			type: 'object',

@@ -20,6 +20,7 @@ export {
 	validateKeysgroup,
 	validateAddress,
 	validateNonTransferAmount,
+	validateSignature,
 	validateTransferAmount,
 	validateFee,
 	isValidInteger,
@@ -27,5 +28,6 @@ export {
 	isGreaterThanZero,
 	isNumberString,
 } from './validation';
+export { validateSignatureAndPublicKey } from './validate_signature_and_publickey';
 export { validateTransaction } from './validate_transaction';
 export { validator } from './validator';
