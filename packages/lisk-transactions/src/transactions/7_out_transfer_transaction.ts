@@ -365,10 +365,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		sender,
 		recipient,
 	}: RequiredOutTransferState): TransactionResponse {
-		const { errors: baseErrors, state } = super.apply({ sender });
-		if (!state) {
-			throw new Error('State is required for applying transaction.');
-		}
+		const { errors: baseErrors } = super.apply({ sender });
 		const errors = [...baseErrors];
 		const updatedBalance = new BigNum(sender.balance)
 			.sub(this.fee)
@@ -387,12 +384,14 @@ export class OutTransferTransaction extends BaseTransaction {
 		if (!recipient) {
 			throw new Error('Recipient is required.');
 		}
+		const recipientAccount =
+			recipient.address === updatedSender.address ? updatedSender : recipient;
 
-		const updatedRecipientBalance = new BigNum(recipient.balance).add(
+		const updatedRecipientBalance = new BigNum(recipientAccount.balance).add(
 			this.amount,
 		);
 		const updatedRecipient = {
-			...recipient,
+			...recipientAccount,
 			balance: updatedRecipientBalance.toString(),
 		};
 
@@ -401,7 +400,10 @@ export class OutTransferTransaction extends BaseTransaction {
 			status: errors.length === 0 ? Status.OK : Status.FAIL,
 			errors,
 			state: {
-				sender: updatedSender,
+				sender:
+					recipient.address === updatedSender.address
+						? updatedRecipient
+						: updatedSender,
 				recipient: updatedRecipient,
 			},
 		};
@@ -421,22 +423,24 @@ export class OutTransferTransaction extends BaseTransaction {
 		if (!recipient) {
 			throw new Error('Recipient is required.');
 		}
+		const recipientAccount =
+			recipient.address === updatedSender.address ? updatedSender : recipient;
 
-		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
+		const updatedRecipientBalance = new BigNum(recipientAccount.balance).sub(
 			this.amount,
 		);
 		if (updatedRecipientBalance.lt(0)) {
 			errors.push(
 				new TransactionError(
 					`Account does not have enough LSK: ${
-						recipient.address
+						recipientAccount.address
 					}, balance: ${convertBeddowsToLSK(recipient.balance)}.`,
 					this.id,
 				),
 			);
 		}
 		const updatedRecipient = {
-			...recipient,
+			...recipientAccount,
 			balance: updatedRecipientBalance.toString(),
 		};
 
@@ -445,7 +449,10 @@ export class OutTransferTransaction extends BaseTransaction {
 			status: errors.length === 0 ? Status.OK : Status.FAIL,
 			errors,
 			state: {
-				sender: updatedSender,
+				sender:
+					recipient.address === updatedSender.address
+						? updatedRecipient
+						: updatedSender,
 				recipient: updatedRecipient,
 			},
 		};

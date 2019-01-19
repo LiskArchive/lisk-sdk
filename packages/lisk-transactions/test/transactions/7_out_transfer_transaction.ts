@@ -529,18 +529,24 @@ describe('outTransfer transaction class', () => {
 
 	describe('#apply', () => {
 		const defaultValidSender = {
-			address: '18237045742439723234L',
-			balance: '510000000',
+			address: '13155556493249255133L',
+			balance: '500010000000',
 			publicKey:
 				'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
 		};
 
 		const defaultValidRecipient = {
-			address: '18237045742439723234L',
+			address: '13155556493249255134L',
 			balance: '0',
 			publicKey:
 				'e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9',
 		};
+
+		beforeEach(async () => {
+			validTestTransaction = new OutTransferTransaction(
+				validOutTransferTransactions[2],
+			);
+		});
 
 		it('should return TransactionResponse with status OK with updated sender and recipient', async () => {
 			const { status, errors } = validTestTransaction.apply({
@@ -557,7 +563,8 @@ describe('outTransfer transaction class', () => {
 				recipient: defaultValidRecipient,
 			});
 			expect(state).not.to.be.empty;
-			expect((state as any).sender.balance).to.equal('400000000');
+			expect((state as any).sender.balance).to.equal('0');
+			expect((state as any).recipient.balance).to.equal('500000000000');
 		});
 
 		it('should return transaction response with error when sender does not have enough balance', async () => {
@@ -587,24 +594,60 @@ describe('outTransfer transaction class', () => {
 				sender: invalidSender,
 				recipient: defaultValidRecipient,
 			});
-			expect((state as any).sender.balance).to.equal('-100000000');
+			expect((state as any).sender.balance).to.equal('-500000000000');
+		});
+
+		describe('when sender and recipient are the same', () => {
+			const defaultValidSenderAndRecipient = {
+				address: '18237045742439723234L',
+				balance: '500010000000',
+				publicKey:
+					'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
+			};
+
+			it('should return sender and recipient with the same result', async () => {
+				const { state } = validTestTransaction.apply({
+					sender: defaultValidSenderAndRecipient,
+					recipient: defaultValidSenderAndRecipient,
+				});
+				expect((state as any).sender.address).to.equal(
+					(state as any).recipient.address,
+				);
+				expect((state as any).sender.balance).to.equal(
+					(state as any).recipient.balance,
+				);
+			});
+
+			it('should return sender where only subtracted the fee', async () => {
+				const { state } = validTestTransaction.apply({
+					sender: defaultValidSenderAndRecipient,
+					recipient: defaultValidSenderAndRecipient,
+				});
+				expect((state as any).sender.balance).to.equal('500000000000');
+			});
 		});
 	});
 
 	describe('#undo', () => {
 		const defaultValidSender = {
-			address: '18237045742439723234L',
+			address: '13155556493249255133L',
 			balance: '0',
 			publicKey:
 				'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
 		};
 
 		const defaultValidRecipient = {
-			address: '18237045742439723234L',
-			balance: '500000000',
+			address: '13155556493249255134L',
+			balance: '500000000000',
 			publicKey:
 				'e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9',
 		};
+
+		beforeEach(async () => {
+			validTestTransaction = new OutTransferTransaction(
+				validOutTransferTransactions[2],
+			);
+		});
 
 		it('should return TransactionResponse with status OK with updated sender and recipient', async () => {
 			const { status, errors } = validTestTransaction.undo({
@@ -621,7 +664,8 @@ describe('outTransfer transaction class', () => {
 				recipient: defaultValidRecipient,
 			});
 			expect(state).not.to.be.empty;
-			expect((state as any).sender.balance).to.equal('110000000');
+			expect((state as any).sender.balance).to.equal('500010000000');
+			expect((state as any).recipient.balance).to.equal('0');
 		});
 
 		it('should return transaction response with error when sender does not have enough balance', async () => {
@@ -651,7 +695,37 @@ describe('outTransfer transaction class', () => {
 				sender: defaultValidSender,
 				recipient: invalidRecipient,
 			});
-			expect((state as any).recipient.balance).to.equal('-100000000');
+			expect((state as any).recipient.balance).to.equal('-500000000000');
+		});
+
+		describe('when sender and recipient are the same', () => {
+			const defaultValidSenderAndRecipient = {
+				address: '18237045742439723234L',
+				balance: '500000000000',
+				publicKey:
+					'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
+			};
+
+			it('should return sender and recipient with the same result', async () => {
+				const { state } = validTestTransaction.undo({
+					sender: defaultValidSenderAndRecipient,
+					recipient: defaultValidSenderAndRecipient,
+				});
+				expect((state as any).sender.address).to.equal(
+					(state as any).recipient.address,
+				);
+				expect((state as any).sender.balance).to.equal(
+					(state as any).recipient.balance,
+				);
+			});
+
+			it('should return sender where only added the fee', async () => {
+				const { state } = validTestTransaction.undo({
+					sender: defaultValidSenderAndRecipient,
+					recipient: defaultValidSenderAndRecipient,
+				});
+				expect((state as any).sender.balance).to.equal('500010000000');
+			});
 		});
 	});
 });
