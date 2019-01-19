@@ -18,6 +18,8 @@ import {
 	CheckTransactionsResponseWithPassFailAndPending,
 	checkTransactionsWithPassAndFail,
 	checkTransactionsWithPassFailAndPending,
+	Status,
+	TransactionResponse,
 } from './check_transactions';
 import { Job } from './job';
 import { Queue } from './queue';
@@ -44,7 +46,7 @@ export interface TransactionFunctions {
 	verifyAgainstOtherTransactions(
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
-	addSignature(signature: string, publicKey: string): boolean;
+	addVerifiedSignature(signature: string): TransactionResponse;
 	isReady(): boolean;
 }
 
@@ -214,18 +216,21 @@ export class TransactionPool {
 	}
 
 	// It is assumed that signature is verified for this transaction before this function is called
-	public addVerifiedSignature(signatureObject: SignatureObject): boolean {
+	public addVerifiedSignature(
+		signatureObject: SignatureObject,
+	): TransactionResponse {
 		const transaction = this.findInTransactionPool(
 			signatureObject.transactionId,
 		);
 		if (transaction) {
-			return transaction.addSignature(
-				signatureObject.signature,
-				signatureObject.publicKey,
-			);
+			return transaction.addVerifiedSignature(signatureObject.signature);
 		}
 
-		return false;
+		return {
+			id: signatureObject.transactionId,
+			status: Status.FAIL,
+			errors: [new Error('Could not find transaction in transaction pool')],
+		};
 	}
 
 	public existsInTransactionPool(transaction: Transaction): boolean {

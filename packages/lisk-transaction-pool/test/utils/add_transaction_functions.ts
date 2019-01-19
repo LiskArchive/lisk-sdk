@@ -1,4 +1,5 @@
 import { TransactionObject, Transaction } from '../../src/transaction_pool';
+import { TransactionResponse, Status } from '../../src/check_transactions';
 
 export const wrapTransferTransaction = (
 	transferTransaction: TransactionObject,
@@ -9,7 +10,12 @@ export const wrapTransferTransaction = (
 		verifyAgainstOtherTransactions: () => true,
 		isExpired: (time: Date) => time.getTime() > 0,
 		isReady: () => true,
-		addSignature: (signature: string, _: string) =>
-			signature.length === 32,
+		addVerifiedSignature: (signature: string): TransactionResponse => {
+			return {
+				status: Status.OK,
+				errors: [],
+				id: signature,
+			};
+		},
 	};
 };
