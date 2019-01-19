@@ -30,7 +30,11 @@ import {
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
+import {
+	TransactionError,
+	TransactionMultiError,
+	TransactionPendingError,
+} from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
 import {
 	checkTypes,
@@ -58,9 +62,10 @@ export interface Attributes {
 }
 
 export enum MultisignatureStatus {
-	FALSE = 0,
-	TRUE = 1,
-	UNKNOWN = 2,
+	UNKNOWN = 0,
+	NONMULTISIGNATURE = 1,
+	PENDING = 2,
+	READY = 3,
 }
 
 export interface EntityMap {
@@ -103,14 +108,15 @@ export abstract class BaseTransaction {
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
-	public readonly signatures: ReadonlyArray<string>;
+	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
-	public isMultisignature: MultisignatureStatus = MultisignatureStatus.UNKNOWN;
 
 	private _id?: string;
+	private _multisignatureStatus: MultisignatureStatus =
+		MultisignatureStatus.UNKNOWN;
 	private _signature?: string;
 	private _signSignature?: string;
 
@@ -140,7 +146,7 @@ export abstract class BaseTransaction {
 			getAddressFromPublicKey(rawTransaction.senderPublicKey);
 		this.senderPublicKey = rawTransaction.senderPublicKey;
 		this._signature = rawTransaction.signature;
-		this.signatures = rawTransaction.signatures || [];
+		this.signatures = (rawTransaction.signatures as string[]) || [];
 		this._signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
@@ -186,6 +192,13 @@ export abstract class BaseTransaction {
 		};
 
 		return transaction;
+	}
+
+	public isReady(): boolean {
+		return (
+			this._multisignatureStatus === MultisignatureStatus.READY ||
+			this._multisignatureStatus === MultisignatureStatus.NONMULTISIGNATURE
+		);
 	}
 
 	public getBytes(): Buffer {
@@ -348,6 +361,7 @@ export abstract class BaseTransaction {
 			sender,
 			this.fee,
 		);
+
 		if (!balanceVerified && balanceError) {
 			errors.push(balanceError);
 		}
@@ -386,42 +400,38 @@ export abstract class BaseTransaction {
 				}
 			}
 		}
-
 		// Verify multisignatures
 		if (
-			Array.isArray(sender.multisignatures) &&
-			sender.multisignatures.length > 0 &&
-			sender.multimin
+			!(
+				sender.multisignatures &&
+				sender.multisignatures.length > 0 &&
+				sender.multimin
+			)
 		) {
-			this.isMultisignature = MultisignatureStatus.TRUE;
-			const transactionBytes = this.signSignature
-				? Buffer.concat([
-						this.getBasicBytes(),
-						Buffer.from(this.signature, 'hex'),
-				  ])
-				: this.getBasicBytes();
-			const {
-				verified: multisignaturesVerified,
-				errors: multisignatureErrors,
-			} = verifyMultisignatures(
-				sender.multisignatures,
-				this.signatures,
-				sender.multimin,
-				transactionBytes,
-				this.id,
-			);
+			this._multisignatureStatus = MultisignatureStatus.NONMULTISIGNATURE;
 
-			if (
-				!multisignaturesVerified &&
-				multisignatureErrors &&
-				multisignatureErrors.length > 0
-			) {
-				multisignatureErrors.forEach(error => {
-					errors.push(error);
-				});
-			}
-		} else {
-			this.isMultisignature = MultisignatureStatus.FALSE;
+			return {
+				id: this.id,
+				status: errors.length === 0 ? Status.OK : Status.FAIL,
+				errors,
+			};
+		}
+		this._multisignatureStatus = MultisignatureStatus.PENDING;
+		const {
+			status,
+			errors: multisignatureErrors,
+		} = this.processMultisignatures({ sender });
+
+		if (status === Status.PENDING && errors.length === 0) {
+			return {
+				id: this.id,
+				status,
+				errors: multisignatureErrors,
+			};
+		}
+
+		if (multisignatureErrors.length > 0) {
+			errors.push(...multisignatureErrors);
 		}
 
 		return {
@@ -469,11 +479,82 @@ export abstract class BaseTransaction {
 		};
 	}
 
+	public addVerifiedMultisignature(signature: string): TransactionResponse {
+		if (!this.signatures.includes(signature)) {
+			this.signatures.push(signature);
+
+			return {
+				id: this.id,
+				status: Status.OK,
+				errors: [],
+			};
+		}
+
+		return {
+			id: this.id,
+			status: Status.FAIL,
+			errors: [
+				new TransactionError(
+					'Failed to add signature.',
+					this.id,
+					'.signatures',
+				),
+			],
+		};
+	}
+
+	public processMultisignatures({
+		sender,
+	}: RequiredState): TransactionResponse {
+		const transactionBytes = this.signSignature
+			? Buffer.concat([
+					this.getBasicBytes(),
+					Buffer.from(this.signature, 'hex'),
+			  ])
+			: this.getBasicBytes();
+
+		if (!sender.multimin) {
+			return {
+				id: this.id,
+				status: Status.FAIL,
+				errors: [
+					new TransactionError('Sender does not have valid multimin', this.id),
+				],
+			};
+		}
+
+		const { verified, errors } = verifyMultisignatures(
+			sender.multisignatures,
+			this.signatures,
+			sender.multimin,
+			transactionBytes,
+			this.id,
+		);
+
+		if (verified) {
+			this._multisignatureStatus = MultisignatureStatus.READY;
+		}
+
+		return {
+			id: this.id,
+			status:
+				Array.isArray(errors) &&
+				errors.length > 0 &&
+				errors[0] instanceof TransactionPendingError
+					? Status.PENDING
+					: verified
+						? Status.OK
+						: Status.FAIL,
+			errors: (errors as ReadonlyArray<TransactionError>) || [],
+		};
+	}
+
 	public isExpired(date: Date = new Date()): boolean {
 		// tslint:disable-next-line no-magic-numbers
 		const timeNow = Math.floor(date.getTime() / 1000);
 		const timeOut =
-			this.isMultisignature === MultisignatureStatus.TRUE
+			this._multisignatureStatus === MultisignatureStatus.PENDING ||
+			this._multisignatureStatus === MultisignatureStatus.READY
 				? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
 				: UNCONFIRMED_TRANSACTION_TIMEOUT;
 		const timeElapsed =

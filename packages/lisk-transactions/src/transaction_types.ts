@@ -15,8 +15,9 @@
 import { TransactionError } from './errors';
 
 export enum Status {
-	OK = 1,
 	FAIL = 0,
+	OK = 1,
+	PENDING = 2,
 }
 export interface Account {
 	readonly address: string;
@@ -28,12 +29,6 @@ export interface Account {
 	readonly multimin?: number;
 	readonly username?: string;
 	readonly votes?: ReadonlyArray<string>;
-}
-
-export interface MultiSignatureAccount extends Account {
-	readonly min: number;
-	readonly lifetime: number;
-	readonly members: ReadonlyArray<Account>;
 }
 
 export interface Delegate {

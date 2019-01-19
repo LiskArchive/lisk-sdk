@@ -13,7 +13,7 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { TransactionError } from '../errors';
+import { TransactionError, TransactionPendingError } from '../errors';
 import { IsVerifiedResponse, TransactionJSON } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
@@ -72,63 +72,75 @@ export const verifySignature = (
 };
 
 export const verifyMultisignatures = (
-	memberPublicKeys: ReadonlyArray<string> = [],
+	publicKeys: ReadonlyArray<string> = [],
 	signatures: ReadonlyArray<string>,
 	minimumValidations: number,
 	transactionBytes: Buffer,
 	id?: string,
 ): IsVerifiedResponse => {
-	if (!minimumValidations || typeof minimumValidations !== 'number') {
+	const checkedPublicKeys = new Set();
+	const verifiedSignatures = new Set();
+	// Check that signatures are unique
+	const uniqueSignatures: ReadonlyArray<string> = [...new Set(signatures)];
+	if (uniqueSignatures.length !== signatures.length) {
 		return {
 			verified: false,
-			errors: [new TransactionError('Sender does not have valid multimin', id)],
+			errors: [
+				new TransactionError(
+					'Encountered duplicate signature in transaction',
+					id,
+					'.signatures',
+				),
+			],
 		};
 	}
-	if (!signatures || (signatures && signatures.length < minimumValidations)) {
-		return {
-			verified: false,
-			errors: [new TransactionError('Missing signatures', id, '.signatures')],
-		};
-	}
 
-	const verifiedSignatures: string[] = [];
-	const checkedPublicKeys: string[] = [];
-
-	memberPublicKeys.forEach(publicKey => {
-		if (checkedPublicKeys.includes(publicKey)) {
-			return;
-		}
-
+	publicKeys.forEach(publicKey => {
 		signatures.forEach((signature: string) => {
-			if (verifiedSignatures.includes(signature)) {
+			// Avoid single key from verifying more than one signature.
+			// See issue: https://github.com/LiskHQ/lisk/issues/2540
+			if (
+				checkedPublicKeys.has(publicKey) ||
+				verifiedSignatures.has(signature)
+			) {
 				return;
 			}
+
 			const { verified: signatureVerified } = verifySignature(
 				publicKey,
 				signature,
 				transactionBytes,
+				id,
 			);
+
 			if (signatureVerified) {
-				checkedPublicKeys.push(publicKey);
-				verifiedSignatures.push(signature);
+				checkedPublicKeys.add(publicKey);
+				verifiedSignatures.add(signature);
 			}
 		});
 	});
 
-	const unverifiedSignatures = signatures.filter(
-		signature =>
-			!verifiedSignatures.find(
-				verifiedSignature => signature === verifiedSignature,
-			),
+	const unverifiedTransactionSignatures = signatures.filter(
+		signature => !verifiedSignatures.has(signature),
 	);
+
+	// Transaction is waiting for more signatures
+	if (signatures.length < minimumValidations) {
+		return {
+			verified: false,
+			errors: [
+				new TransactionPendingError(`Missing signatures`, id, '.signatures'),
+			],
+		};
+	}
 
 	return {
 		verified:
-			verifiedSignatures.length >= minimumValidations &&
-			unverifiedSignatures.length === 0,
+			verifiedSignatures.size >= minimumValidations &&
+			unverifiedTransactionSignatures.length === 0,
 		errors:
-			unverifiedSignatures.length > 0
-				? unverifiedSignatures.map(
+			unverifiedTransactionSignatures.length > 0
+				? unverifiedTransactionSignatures.map(
 						signature =>
 							new TransactionError(
 								`Failed to verify signature ${signature}`,
