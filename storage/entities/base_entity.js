@@ -205,6 +205,24 @@ class BaseEntity {
 	}
 
 	/**
+	 * Load given SQL files to given entity
+	 *
+	 * @param {string} entityLabel - Namespace of the entity
+	 * @param {Array.<Object>} [sqlFiles] - Array of objects with SQL key and path
+	 * @return {Object}
+	 */
+	loadSQLFiles(entityLabel, sqlFiles) {
+		this.adapter.SQLs = this.adapter.SQLs || {};
+		this.adapter.SQLs[entityLabel] = this.adapter.SQLs[entityLabel] || {};
+		Object.keys(sqlFiles).forEach(key => {
+			if (!this.adapter.SQLs[entityLabel][key]) {
+				this.adapter.SQLs[entityLabel][key] = this.adapter.loadSQLFile(sqlFiles[key]);
+			}
+		});
+		return this.adapter.SQLs[entityLabel];
+	}
+
+	/**
 	 * Begin a database transaction
 	 *
 	 * @param {string} transactionName - Name of the transaction

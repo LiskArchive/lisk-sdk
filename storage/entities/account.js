@@ -54,6 +54,27 @@ const dependentFieldsTableMap = {
 	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
 };
 
+const sqlFiles = {
+	selectSimple: 'accounts/get.sql',
+	selectFull: 'accounts/get_extended.sql',
+	count: 'accounts/count.sql',
+	create: 'accounts/create.sql',
+	update: 'accounts/update.sql',
+	updateOne: 'accounts/update_one.sql',
+	isPersisted: 'accounts/is_persisted.sql',
+	delete: 'accounts/delete.sql',
+	resetUnconfirmedState: 'accounts/reset_unconfirmed_state.sql',
+	resetMemTables: 'accounts/reset_mem_tables.sql',
+	increaseFieldBy: 'accounts/increase_field_by.sql',
+	decreaseFieldBy: 'accounts/decrease_field_by.sql',
+	createDependentRecord: 'accounts/create_dependent_record.sql',
+	deleteDependentRecord: 'accounts/delete_dependent_record.sql',
+	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
+	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
+	countDuplicatedDelegates: 'accounts/count_duplicated_delegates.sql',
+	insertFork: 'accounts/insert_fork.sql',
+};
+
 /**
  * Basic Account
  * @typedef {Object} BasicAccount
@@ -304,42 +325,7 @@ class Account extends BaseEntity {
 		const defaultSort = { sort: 'balance:asc' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.SQLs = {
-			selectSimple: this.adapter.loadSQLFile('accounts/get.sql'),
-			selectFull: this.adapter.loadSQLFile('accounts/get_extended.sql'),
-			count: this.adapter.loadSQLFile('accounts/count.sql'),
-			create: this.adapter.loadSQLFile('accounts/create.sql'),
-			update: this.adapter.loadSQLFile('accounts/update.sql'),
-			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
-			isPersisted: this.adapter.loadSQLFile('accounts/is_persisted.sql'),
-			delete: this.adapter.loadSQLFile('accounts/delete.sql'),
-			resetUnconfirmedState: this.adapter.loadSQLFile(
-				'accounts/reset_unconfirmed_state.sql'
-			),
-			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
-			increaseFieldBy: this.adapter.loadSQLFile(
-				'accounts/increase_field_by.sql'
-			),
-			decreaseFieldBy: this.adapter.loadSQLFile(
-				'accounts/decrease_field_by.sql'
-			),
-			createDependentRecord: this.adapter.loadSQLFile(
-				'accounts/create_dependent_record.sql'
-			),
-			deleteDependentRecord: this.adapter.loadSQLFile(
-				'accounts/delete_dependent_record.sql'
-			),
-			delegateBlocksRewards: this.adapter.loadSQLFile(
-				'accounts/delegate_blocks_rewards.sql'
-			),
-			syncDelegatesRank: this.adapter.loadSQLFile(
-				'accounts/sync_delegates_rank.sql'
-			),
-			countDuplicatedDelegates: this.adapter.loadSQLFile(
-				'accounts/count_duplicated_delegates.sql'
-			),
-			insertFork: this.adapter.loadSQLFile('accounts/insert_fork.sql'),
-		};
+		this.SQLs = this.loadSQLFiles('account', sqlFiles);
 	}
 
 	/**

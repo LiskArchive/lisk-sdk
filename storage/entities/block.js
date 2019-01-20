@@ -22,6 +22,7 @@ const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 const Transaction = require('./transaction');
 
+
 const defaultCreateValues = {};
 const createFields = [
 	'id',
@@ -38,6 +39,15 @@ const createFields = [
 	'reward',
 	'version',
 ];
+
+const sqlFiles = {
+	select: 'blocks/get.sql',
+	count: 'blocks/count.sql',
+	create: 'blocks/create.sql',
+	isPersisted: 'blocks/is_persisted.sql',
+	delete: 'blocks/delete.sql',
+	getFirstBlockIdOfLastRounds: 'blocks/get_first_block_id_of_last_rounds.sql',
+};
 
 /**
  * Basic Block
@@ -217,16 +227,7 @@ class Block extends BaseEntity {
 		const defaultSort = { sort: 'height:desc' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.SQLs = {
-			select: this.adapter.loadSQLFile('blocks/get.sql'),
-			count: this.adapter.loadSQLFile('blocks/count.sql'),
-			create: this.adapter.loadSQLFile('blocks/create.sql'),
-			isPersisted: this.adapter.loadSQLFile('blocks/is_persisted.sql'),
-			delete: this.adapter.loadSQLFile('blocks/delete.sql'),
-			getFirstBlockIdOfLastRounds: this.adapter.loadSQLFile(
-				'blocks/get_first_block_id_of_last_rounds.sql'
-			),
-		};
+		this.SQLs = this.loadSQLFiles('block', sqlFiles);
 	}
 
 	/**
