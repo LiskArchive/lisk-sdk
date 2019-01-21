@@ -237,20 +237,16 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	public processRequiredState(state: EntityMap): RequiredTransferState {
+		const { sender } = super.processRequiredState(state);
 		const accounts = state[ENTITY_ACCOUNT];
 		if (!accounts) {
 			throw new Error('Entity account is required.');
 		}
-		if (!isTypedObjectArrayWithKeys<Account>(accounts, ['publicKey'])) {
+		if (!isTypedObjectArrayWithKeys<Account>(accounts, ['address','publicKey'])) {
 			throw new Error('Required state does not have valid account type');
 		}
-
-		const sender = accounts.find(acct => acct.address === this.senderId);
-		if (!sender) {
-			throw new Error('No sender account is found.');
-		}
-
-		const recipient = accounts.find(acct => acct.address === this.recipientId);
+	
+		const recipient = accounts.find(account => account.address === this.recipientId);
 		if (!recipient) {
 			throw new Error('No recipient account is found.');
 		}
