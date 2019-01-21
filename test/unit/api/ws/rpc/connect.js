@@ -156,12 +156,27 @@ describe('connect', () => {
 		let peerAsResult;
 
 		describe('addConnectionOptions', () => {
+			let originalSystemHeaders;
+
 			beforeEach(done => {
+				originalSystemHeaders = System.getHeaders();
+				System.setHeaders({
+					protocolVersion: 'aProtocolVersion',
+					version: 'aVersion',
+					nonce: 'aNonce',
+					wsPort: 'aWSPort',
+					httpPort: 'anHttpPort',
+					nethash: 'aNethash',
+				});
 				const addConnectionOptions = connectRewired.__get__(
 					'connectSteps.addConnectionOptions'
 				);
 				peerAsResult = addConnectionOptions(validPeer);
 				done();
+			});
+
+			afterEach(() => {
+				return System.setHeaders(originalSystemHeaders);
 			});
 
 			it('should add connectionOptions field to peer', () => {
@@ -188,42 +203,41 @@ describe('connect', () => {
 
 			it('should add connectionOptions containing query', () => {
 				return expect(peerAsResult)
-					.to.have.nested.property('connectionOptions.query')
-					.to.eql(System.getHeaders());
+					.to.have.nested.property('connectionOptions.query');
 			});
 
 			describe('connectionOptions.query', () => {
-				it('should contain protocolVersion', () => {
+				it('should contain protocolVersion if present on system headers', () => {
 					return expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.protocolVersion')
 						.to.eql(System.getHeaders().protocolVersion);
 				});
 
-				it('should contain version', () => {
+				it('should contain version if present on system headers', () => {
 					return expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.version')
 						.to.eql(System.getHeaders().version);
 				});
 
-				it('should contain nonce', () => {
+				it('should contain nonce if present on system headers', () => {
 					return expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nonce')
 						.to.eql(System.getHeaders().nonce);
 				});
 
-				it('should contain wsPort', () => {
+				it('should contain wsPort if present on system headers', () => {
 					return expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.wsPort')
 						.to.eql(System.getHeaders().wsPort);
 				});
 
-				it('should contain httpPort', () => {
+				it('should contain httpPort if present on system headers', () => {
 					return expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.httpPort')
 						.to.eql(System.getHeaders().httpPort);
 				});
 
-				it('should contain nethash', () => {
+				it('should contain nethash if present on system headers', () => {
 					return expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nethash')
 						.to.eql(System.getHeaders().nethash);

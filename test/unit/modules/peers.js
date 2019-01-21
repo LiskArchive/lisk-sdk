@@ -1072,7 +1072,7 @@ describe('peers', () => {
 				});
 			});
 
-			it('should call library.logic.peers.upsert() with required args regardless if its compatible or not', () => {
+			it('should call library.logic.peers.upsert() with required args regardless if its compatible or not', done => {
 				// When it's compatible
 				modules.system.protocolVersionCompatible = sinonSandbox
 					.stub()
@@ -1091,6 +1091,7 @@ describe('peers', () => {
 					peer,
 					false
 				);
+				done();
 			});
 		});
 	});

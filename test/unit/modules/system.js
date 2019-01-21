@@ -223,7 +223,7 @@ describe('system', () => {
 	});
 
 	describe('protocolVersionCompatible', () => {
-		describe(`when protocol version is exactly equal to system protocol version`, () => {
+		describe('when protocol version is exactly equal to system protocol version', () => {
 			it('should return true', () => {
 				return expect(systemModule.protocolVersionCompatible('1.0')).to.be.true;
 			});
@@ -244,12 +244,14 @@ describe('system', () => {
 			});
 		});
 		describe('when the hard part of the protocol version is already compatible', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				__private.protocolVersion = '1.1'; // So we can test smaller values for the soft part
+				done();
 			});
 
-			afterEach(() => {
+			afterEach(done => {
 				__private.protocolVersion = '1.0';
+				done();
 			});
 
 			it('should return true if the soft part is lesser, equal or greater than the soft part of the system protocol version', () => {

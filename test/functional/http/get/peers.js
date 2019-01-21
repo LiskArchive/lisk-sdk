@@ -155,11 +155,13 @@ describe('GET /peers', () => {
 
 		it(`using protocolVersion = "${
 			validHeaders.protocolVersion
-			}" should return the result`, () => {
+		}" should return the result`, () => {
 			return peersEndpoint
 				.makeRequest({ protocolVersion: validHeaders.protocolVersion }, 200)
 				.then(res => {
-					expect(res.body.data[0].protocolVersion).to.be.eql(validHeaders.protocolVersion);
+					expect(res.body.data[0].protocolVersion).to.be.eql(
+						validHeaders.protocolVersion
+					);
 				});
 		});
 
