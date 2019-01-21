@@ -223,6 +223,12 @@ describe('Migration', () => {
 		});
 	});
 
+	describe('delete()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Migration.prototype.delete).to.throw(NonSupportedOperationError);
+		});
+	});
+
 	describe('isPersisted()', () => {
 		it('should accept only valid filters', async () => {
 			const migration = new Migration(adapter);
