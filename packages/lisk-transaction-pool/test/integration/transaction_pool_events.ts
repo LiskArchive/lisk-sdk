@@ -26,6 +26,7 @@ describe('transaction pool events', () => {
 		validatedTransactionsProcessingInterval: 10000,
 		verifiedTransactionsLimitPerProcessing: 25,
 		verifiedTransactionsProcessingInterval: 10000,
+		pendingTransactionsProcessingLimit: 5,
 	};
 
 	const validateTransactionFunction = fakeCheckFunctionGenerator([]);

@@ -1,0 +1,9 @@
+{
+	"extends": "../../tslint.json",
+	"rules": {
+		// We need this temporarily until we get more type definitions for external modules.
+		"no-any": false,
+		// We need this temporarily while some methods are not fully implemented.
+		"no-unused-expression": false
+	}
+}

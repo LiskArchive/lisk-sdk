@@ -39,6 +39,7 @@ import {
 	isValidInteger,
 	validateKeysgroup,
 	validatePublicKey,
+	validateSignature,
 	validatePublicKeys,
 	validateTransaction,
 } from '../../src/utils';
@@ -143,6 +144,10 @@ describe('transaction utils', () => {
 
 		it('should have validatePublicKey', () => {
 			return expect(validatePublicKey).to.be.a('function');
+		});
+
+		it('should have validateSignature', () => {
+			return expect(validateSignature).to.be.a('function');
 		});
 
 		it('should have validatePublicKeys', () => {

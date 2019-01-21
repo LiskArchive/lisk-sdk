@@ -16,12 +16,13 @@ import { expect } from 'chai';
 import { SinonStub } from 'sinon';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../../src/constants';
-import {
-	BaseTransaction,
-	MultisignatureStatus,
-} from '../../src/transactions/base';
+import { BaseTransaction } from '../../src/transactions/base';
 import { TransactionJSON, Status } from '../../src/transaction_types';
-import { TransactionError, TransactionMultiError } from '../../src/errors';
+import {
+	TransactionError,
+	TransactionMultiError,
+	TransactionPendingError,
+} from '../../src/errors';
 import BigNum from 'browserify-bignum';
 import { addTransactionFields, TestTransaction } from '../helpers';
 import {
@@ -142,14 +143,10 @@ describe('Base transaction class', () => {
 				.and.be.a('number');
 		});
 
-		it('should have isMultisignature boolean', async () => {
-			expect(validTestTransaction).to.have.property('isMultisignature');
-		});
-
-		it('should set isMultisignature to unknown', async () => {
-			expect(validMultisignatureTestTransaction.isMultisignature).to.eql(
-				MultisignatureStatus.UNKNOWN,
-			);
+		it('should have _multisignatureStatus number', async () => {
+			expect(validTestTransaction)
+				.to.have.property('_multisignatureStatus')
+				.and.be.a('number');
 		});
 
 		it('should throw a transaction multierror with incorrectly typed transaction properties', async () => {
@@ -194,6 +191,34 @@ describe('Base transaction class', () => {
 			expect(
 				(validTestTransaction as TestTransaction).getAssetBytes(),
 			).to.be.an.instanceOf(Buffer);
+		});
+	});
+
+	describe('#isReady', async () => {
+		it('should return false on initialization of unknown transaction', async () => {
+			expect(validTestTransaction.isReady()).to.be.false;
+		});
+
+		it('should return true on verification of non-multisignature transaction', async () => {
+			validTestTransaction.verify({ sender: defaultSenderAccount });
+			expect(validTestTransaction.isReady()).to.be.true;
+		});
+
+		it('should return true on verification of multisignature transaction with required signatures', async () => {
+			validTestTransaction.verify({ sender: defaultSenderAccount });
+			expect(validTestTransaction.isReady()).to.be.true;
+		});
+
+		it('should return false on verification of multisignature transaction with missing signatures', async () => {
+			const multisignaturesTransaction = new TestTransaction({
+				...defaultMultisignatureTransaction,
+				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
+			});
+			multisignaturesTransaction.verify({
+				sender: defaultMultisignatureAccount,
+			});
+
+			expect(validMultisignatureTestTransaction.isReady()).to.be.false;
 		});
 	});
 
@@ -616,12 +641,11 @@ describe('Base transaction class', () => {
 		it('should call verifyMultisignatures for multisignature transaction', async () => {
 			const verifyMultisignaturesStub = sandbox
 				.stub(utils, 'verifyMultisignatures')
-				.returns(
-					Buffer.from(
-						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02000000',
-						'hex',
-					),
-				);
+				.returns({
+					id: validMultisignatureTestTransaction.id,
+					status: Status.OK,
+					errors: [],
+				});
 			validMultisignatureTestTransaction.verify({
 				sender: defaultMultisignatureAccount,
 			});
@@ -631,24 +655,10 @@ describe('Base transaction class', () => {
 				defaultMultisignatureTransaction.signatures,
 				defaultMultisignatureAccount.multimin,
 				Buffer.from(
-					'00de46a00424193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d3c9ea25a6b7c648f00e1f50500000000',
+					'002c497801500660b67a2ade1e2528b7f648feef8f3b46e2f4f90ca7f5439101b5119f309d572c095724f7f2b7600a3a4200000000',
 					'hex',
 				),
 				validMultisignatureTestTransaction.id,
-			);
-		});
-
-		it('should set isMultisignature to true for multisignature account', async () => {
-			validTestTransaction.verify({ sender: defaultMultisignatureAccount });
-			expect(validTestTransaction.isMultisignature).to.eql(
-				MultisignatureStatus.TRUE,
-			);
-		});
-
-		it('should set isMultisignature to false for non-multisignature account', async () => {
-			validTestTransaction.verify({ sender: defaultSenderAccount });
-			expect(validTestTransaction.isMultisignature).to.eql(
-				MultisignatureStatus.FALSE,
 			);
 		});
 
@@ -818,6 +828,7 @@ describe('Base transaction class', () => {
 			});
 
 			expect(id).to.be.eql(invalidSignaturesTransaction.id);
+			expect(status).to.eql(Status.FAIL);
 			(errors as ReadonlyArray<TransactionError>).forEach((error, i) =>
 				expect(error)
 					.to.be.instanceof(TransactionError)
@@ -828,7 +839,36 @@ describe('Base transaction class', () => {
 						].replace('1', '0')}`,
 					),
 			);
-			expect(status).to.eql(Status.FAIL);
+		});
+
+		it('should return a pending transaction response with missing signatures', async () => {
+			const multisignaturesTransaction = new TestTransaction({
+				...defaultMultisignatureTransaction,
+				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
+			});
+
+			sandbox.stub(utils, 'verifyMultisignatures').returns({
+				verified: false,
+				errors: [
+					new TransactionPendingError(
+						`Missing signatures`,
+						multisignaturesTransaction.id,
+						'.signatures',
+					),
+				],
+			});
+
+			const { id, status, errors } = multisignaturesTransaction.verify({
+				sender: defaultMultisignatureAccount,
+			});
+
+			expect(id).to.be.eql(multisignaturesTransaction.id);
+			expect(status).to.eql(Status.PENDING);
+			(errors as ReadonlyArray<TransactionError>).forEach(error =>
+				expect(error)
+					.to.be.instanceof(TransactionError)
+					.and.to.have.property('message', 'Missing signatures'),
+			);
 		});
 	});
 
@@ -845,6 +885,85 @@ describe('Base transaction class', () => {
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(errors).to.be.eql([]);
 			expect(status).to.eql(Status.OK);
+		});
+	});
+
+	describe('#processMultisignatures', () => {
+		it('should return a successful transaction response with valid signatures', async () => {
+			sandbox.stub(utils, 'verifyMultisignatures').returns({
+				verified: true,
+				errors: [],
+			});
+			const {
+				id,
+				status,
+				errors,
+			} = validMultisignatureTestTransaction.processMultisignatures({
+				sender: defaultMultisignatureAccount,
+			});
+
+			expect(id).to.be.eql(validMultisignatureTestTransaction.id);
+			expect(errors).to.be.eql([]);
+			expect(status).to.eql(Status.OK);
+		});
+
+		it('should return a pending transaction response with missing signatures', async () => {
+			const pendingErrors = [
+				new TransactionPendingError(
+					`Missing signatures`,
+					validMultisignatureTestTransaction.id,
+					'.signatures',
+				),
+			];
+			sandbox.stub(utils, 'verifyMultisignatures').returns({
+				verified: false,
+				errors: pendingErrors,
+			});
+			const {
+				id,
+				status,
+				errors,
+			} = validMultisignatureTestTransaction.processMultisignatures({
+				sender: defaultMultisignatureAccount,
+			});
+
+			expect(id).to.be.eql(validMultisignatureTestTransaction.id);
+			expect(errors).to.be.eql(pendingErrors);
+			expect(status).to.eql(Status.PENDING);
+		});
+	});
+
+	describe('#addVerifiedMultisignature', () => {
+		it('should return a successful transaction response if no duplicate signatures', async () => {
+			const {
+				id,
+				status,
+				errors,
+			} = validMultisignatureTestTransaction.addVerifiedMultisignature(
+				'3df1fae6865ec72783dcb5f87a7d906fe20b71e66ad9613c01a89505ebd77279e67efa2c10b5ad880abd09efd27ea350dd8a094f44efa3b4b2c8785fbe0f7e00',
+			);
+
+			expect(id).to.be.eql(validMultisignatureTestTransaction.id);
+			expect(errors).to.be.eql([]);
+			expect(status).to.eql(Status.OK);
+		});
+
+		it('should return a failed transaction response if duplicate signatures', async () => {
+			const {
+				id,
+				status,
+				errors,
+			} = validMultisignatureTestTransaction.addVerifiedMultisignature(
+				'f223799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
+			);
+
+			expect(id).to.be.eql(validMultisignatureTestTransaction.id);
+			expect(status).to.eql(Status.FAIL);
+			(errors as ReadonlyArray<TransactionError>).forEach(error =>
+				expect(error)
+					.to.be.instanceof(TransactionError)
+					.and.to.have.property('message', 'Failed to add signature.'),
+			);
 		});
 	});
 

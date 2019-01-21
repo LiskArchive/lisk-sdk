@@ -16,7 +16,7 @@
 import {
 	CheckerFunctionResponse,
 	Status,
-	checkTransactions,
+	checkTransactionsWithPassAndFail,
 } from '../../src/check_transactions';
 import { expect } from 'chai';
 import transactionObjects from '../../fixtures/transactions.json';
@@ -60,32 +60,37 @@ describe('#checkTransactions', () => {
 
 	let checkerFunction: sinon.SinonStub;
 
-	beforeEach(async () => {
-		checkerFunction = sandbox.stub().resolves(checkerFunctionResponse);
-	});
+	describe('#checkTransactionWithPassAndFail', () => {
+		beforeEach(async () => {
+			checkerFunction = sandbox.stub().resolves(checkerFunctionResponse);
+		});
 
-	it('should call checkerFunction with the transactions passed', async () => {
-		await checkTransactions(transactionsToCheck, checkerFunction);
-		expect(checkerFunction).to.be.calledOnceWithExactly(transactionsToCheck);
-	});
+		it('should call checkerFunction with the transactions passed', async () => {
+			await checkTransactionsWithPassAndFail(
+				transactionsToCheck,
+				checkerFunction,
+			);
+			expect(checkerFunction).to.be.calledOnceWithExactly(transactionsToCheck);
+		});
 
-	it('should return transactions which passed the checkerFunction', async () => {
-		const checkTransactionsResponse = await checkTransactions(
-			transactionsToCheck,
-			checkerFunction,
-		);
-		expect(checkTransactionsResponse.passedTransactions).to.be.deep.equal(
-			passedTransactions,
-		);
-	});
+		it('should return transactions which passed the checkerFunction', async () => {
+			const checkTransactionsResponse = await checkTransactionsWithPassAndFail(
+				transactionsToCheck,
+				checkerFunction,
+			);
+			expect(checkTransactionsResponse.passedTransactions).to.be.deep.equal(
+				passedTransactions,
+			);
+		});
 
-	it('should return transactions which failed the checkerFunction', async () => {
-		const checkTransactionsResponse = await checkTransactions(
-			transactionsToCheck,
-			checkerFunction,
-		);
-		expect(checkTransactionsResponse.failedTransactions).to.be.deep.equal(
-			failedTransactions,
-		);
+		it('should return transactions which failed the checkerFunction', async () => {
+			const checkTransactionsResponse = await checkTransactionsWithPassAndFail(
+				transactionsToCheck,
+				checkerFunction,
+			);
+			expect(checkTransactionsResponse.failedTransactions).to.be.deep.equal(
+				failedTransactions,
+			);
+		});
 	});
 });

@@ -30,6 +30,7 @@ describe('transaction movement between queues', () => {
 		validatedTransactionsProcessingInterval: 100,
 		verifiedTransactionsLimitPerProcessing: 25,
 		verifiedTransactionsProcessingInterval: 100,
+		pendingTransactionsProcessingLimit: 5,
 	};
 
 	const validateTransactionFunction = fakeCheckFunctionGenerator(['1']);
@@ -54,9 +55,9 @@ describe('transaction movement between queues', () => {
 		});
 	});
 
-	afterEach(async () => {
-		transactionPool.cleanup();
-	});
+	//afterEach(async () => {
+	//	transactionPool.cleanup();
+	//});
 
 	describe('validate received transactions', () => {
 		let transactionsToValidate: ReadonlyArray<Transaction>;

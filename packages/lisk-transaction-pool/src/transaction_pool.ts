@@ -14,8 +14,12 @@
  */
 import {
 	CheckerFunction,
-	checkTransactions,
-	CheckTransactionsResponse,
+	CheckTransactionsResponseWithPassAndFail,
+	CheckTransactionsResponseWithPassFailAndPending,
+	checkTransactionsWithPassAndFail,
+	checkTransactionsWithPassFailAndPending,
+	Status,
+	TransactionResponse,
 } from './check_transactions';
 import { Job } from './job';
 import { Queue } from './queue';
@@ -29,14 +33,22 @@ export interface TransactionObject {
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
 	readonly senderId: string;
+	containsUniqueData?: boolean;
+}
+
+export interface SignatureObject {
+	transactionId: string;
+	signature: string;
+	publicKey: string;
 }
 
 export interface TransactionFunctions {
-	containsUniqueData(): boolean;
 	isExpired(date: Date): boolean;
 	verifyAgainstOtherTransactions(
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
+	addVerifiedSignature(signature: string): TransactionResponse;
+	isReady(): boolean;
 }
 
 export interface TransactionPoolConfiguration {
@@ -48,6 +60,7 @@ export interface TransactionPoolConfiguration {
 	readonly validatedTransactionsProcessingInterval: number;
 	readonly verifiedTransactionsLimitPerProcessing: number;
 	readonly verifiedTransactionsProcessingInterval: number;
+	readonly pendingTransactionsProcessingLimit: number;
 }
 
 export interface AddTransactionResult {
@@ -77,6 +90,7 @@ interface Queues {
 	readonly [queue: string]: Queue;
 }
 
+const DEFAULT_PENDING_TRANSACTIONS_PROCESSING_LIMIT = 5;
 const DEFAULT_EXPIRE_TRANSACTION_INTERVAL = 30000;
 const DEFAULT_MAX_TRANSACTIONS_PER_QUEUE = 1000;
 const DEFAULT_RECEIVED_TRANSACTIONS_PROCESSING_INTERVAL = 30000;
@@ -87,6 +101,7 @@ const DEFAULT_VERIFIED_TRANSACTIONS_PROCESSING_INTERVAL = 30000;
 const DEFAULT_VERIFIED_TRANSACTIONS_LIMIT_PER_PROCESSING = 100;
 
 export class TransactionPool {
+	private readonly _pendingTransactionsProcessingLimit: number;
 	private readonly _expireTransactionsInterval: number;
 	private readonly _expireTransactionsJob: Job<ReadonlyArray<Transaction>>;
 	private readonly _maxTransactionsPerQueue: number;
@@ -113,11 +128,13 @@ export class TransactionPool {
 		validatedTransactionsLimitPerProcessing = DEFAULT_VALIDATED_TRANSACTIONS_LIMIT_PER_PROCESSING,
 		verifiedTransactionsProcessingInterval = DEFAULT_VERIFIED_TRANSACTIONS_PROCESSING_INTERVAL,
 		verifiedTransactionsLimitPerProcessing = DEFAULT_VERIFIED_TRANSACTIONS_LIMIT_PER_PROCESSING,
+		pendingTransactionsProcessingLimit = DEFAULT_PENDING_TRANSACTIONS_PROCESSING_LIMIT,
 		validateTransactions,
 		verifyTransactions,
 		processTransactions,
 	}: TransactionPoolOptions) {
 		this._maxTransactionsPerQueue = maxTransactionsPerQueue;
+		this._pendingTransactionsProcessingLimit = pendingTransactionsProcessingLimit;
 
 		this._queues = {
 			received: new Queue(),
@@ -210,11 +227,37 @@ export class TransactionPool {
 		this._queues.verified.enqueueMany(transactions);
 	}
 
+	// It is assumed that signature is verified for this transaction before this function is called
+	public addVerifiedSignature(
+		signatureObject: SignatureObject,
+	): TransactionResponse {
+		const transaction = this.findInTransactionPool(
+			signatureObject.transactionId,
+		);
+		if (transaction) {
+			return transaction.addVerifiedSignature(signatureObject.signature);
+		}
+
+		return {
+			id: signatureObject.transactionId,
+			status: Status.FAIL,
+			errors: [new Error('Could not find transaction in transaction pool')],
+		};
+	}
+
 	public existsInTransactionPool(transaction: Transaction): boolean {
 		return Object.keys(this._queues).reduce(
-			(previousValue, currentValue) =>
-				previousValue || this._queues[currentValue].exists(transaction),
+			(previousValue, queueName) =>
+				previousValue || this._queues[queueName].exists(transaction),
 			false,
+		);
+	}
+
+	public findInTransactionPool(id: string): Transaction | undefined {
+		return Object.keys(this._queues).reduce(
+			(previousValue: Transaction | undefined, queueName) =>
+				previousValue || this._queues[queueName].index[id],
+			undefined,
 		);
 	}
 
@@ -245,10 +288,8 @@ export class TransactionPool {
 		);
 
 		// Remove all transactions from the verified, pending and ready queues if they are of a type which includes unique data and that type is included in the confirmed transactions
-		// TODO: remove the condition for checking `containsUniqueData` exists, because it should always exist
 		const confirmedTransactionsWithUniqueData = transactions.filter(
-			(transaction: Transaction) =>
-				transaction.containsUniqueData && transaction.containsUniqueData(),
+			(transaction: Transaction) => transaction.containsUniqueData,
 		);
 		const removedTransactionsByTypes = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
@@ -329,15 +370,19 @@ export class TransactionPool {
 	}
 
 	private async processVerifiedTransactions(): Promise<
-		CheckTransactionsResponse
+		CheckTransactionsResponseWithPassAndFail
 	> {
 		const transactionsInReadyQueue = this._queues.ready.size();
 		const transactionsInVerifiedQueue = this._queues.verified.size();
+		const processableTransactionsInPendingQueue = this._queues.pending.sizeBy(
+			transaction => transaction.isReady(),
+		);
 
 		if (
 			transactionsInReadyQueue >=
 				this._verifiedTransactionsProcessingLimitPerInterval ||
-			transactionsInVerifiedQueue === 0
+			(transactionsInVerifiedQueue === 0 &&
+				processableTransactionsInPendingQueue === 0)
 		) {
 			return {
 				passedTransactions: [],
@@ -345,10 +390,25 @@ export class TransactionPool {
 			};
 		}
 
+		const additionalTransactionsToProcessLimit =
+			this._verifiedTransactionsProcessingLimitPerInterval -
+			transactionsInReadyQueue;
+		const transactionsFromPendingQueueLimit = Math.min(
+			additionalTransactionsToProcessLimit,
+			this._pendingTransactionsProcessingLimit,
+		);
+		// Filter at max transactionsFromPendingQueueLimit from the pending queue which are also ready
+		const transactionsFromPendingQueue = this._queues.pending
+			.filter(transaction => transaction.isReady())
+			.slice(0, transactionsFromPendingQueueLimit);
+
+		const additionalVerifiedTransactionsToProcessLimit =
+			additionalTransactionsToProcessLimit -
+			transactionsFromPendingQueue.length;
+
 		const transactionsFromVerifiedQueue = this._queues.verified.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
-				this._verifiedTransactionsProcessingLimitPerInterval -
-					transactionsInReadyQueue,
+				additionalVerifiedTransactionsToProcessLimit,
 			),
 		);
 		const transactionsFromReadyQueue = this._queues.ready.peekUntil(
@@ -356,20 +416,25 @@ export class TransactionPool {
 		);
 		const toProcessTransactions = [
 			...transactionsFromReadyQueue,
+			...transactionsFromPendingQueue,
 			...transactionsFromVerifiedQueue,
 		];
-		const { passedTransactions, failedTransactions } = await checkTransactions(
+		const {
+			passedTransactions,
+			failedTransactions,
+		} = await checkTransactionsWithPassAndFail(
 			toProcessTransactions,
 			this._processTransactions,
 		);
 
-		// Remove invalid transactions from verified and ready queues
-		this._queues.verified.removeFor(
+		const { received, validated, ...otherQueues } = this._queues;
+
+		// Remove invalid transactions from verified, pending and ready queues
+		this.removeTransactionsFromQueues(
+			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
-		this._queues.ready.removeFor(
-			queueCheckers.checkTransactionForId(failedTransactions),
-		);
+
 		// Keep transactions in the ready queue which still exist
 		this._queues.ready.enqueueMany(
 			this._queues.ready.removeFor(
@@ -380,6 +445,13 @@ export class TransactionPool {
 		// Move processeable transactions from the verified queue to the ready queue
 		this._queues.ready.enqueueMany(
 			this._queues.verified.removeFor(
+				queueCheckers.checkTransactionForId(passedTransactions),
+			),
+		);
+
+		// Move processable transactions from the pending queue to the ready queue
+		this._queues.ready.enqueueMany(
+			this._queues.pending.removeFor(
 				queueCheckers.checkTransactionForId(passedTransactions),
 			),
 		);
@@ -409,7 +481,7 @@ export class TransactionPool {
 	}
 
 	private async validateReceivedTransactions(): Promise<
-		CheckTransactionsResponse
+		CheckTransactionsResponseWithPassAndFail
 	> {
 		if (
 			this.queues.validated.size() >= this._maxTransactionsPerQueue ||
@@ -426,7 +498,10 @@ export class TransactionPool {
 				this._receivedTransactionsProcessingLimitPerInterval,
 			),
 		);
-		const { passedTransactions, failedTransactions } = await checkTransactions(
+		const {
+			passedTransactions,
+			failedTransactions,
+		} = await checkTransactionsWithPassAndFail(
 			toValidateTransactions,
 			this._validateTransactions,
 		);
@@ -449,7 +524,7 @@ export class TransactionPool {
 	}
 
 	private async verifyValidatedTransactions(): Promise<
-		CheckTransactionsResponse
+		CheckTransactionsResponseWithPassFailAndPending
 	> {
 		if (
 			this.queues.verified.size() >= this._maxTransactionsPerQueue ||
@@ -458,6 +533,7 @@ export class TransactionPool {
 			return {
 				passedTransactions: [],
 				failedTransactions: [],
+				pendingTransactions: [],
 			};
 		}
 
@@ -466,7 +542,12 @@ export class TransactionPool {
 				this._validatedTransactionsProcessingLimitPerInterval,
 			),
 		);
-		const { passedTransactions, failedTransactions } = await checkTransactions(
+
+		const {
+			failedTransactions,
+			pendingTransactions,
+			passedTransactions,
+		} = await checkTransactionsWithPassFailAndPending(
 			toVerifyTransactions,
 			this._verifyTransactions,
 		);
@@ -475,6 +556,7 @@ export class TransactionPool {
 		this._queues.validated.removeFor(
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
+
 		// Move verified transactions from the validated queue to the verified queue
 		this._queues.verified.enqueueMany(
 			this._queues.validated.removeFor(
@@ -482,9 +564,17 @@ export class TransactionPool {
 			),
 		);
 
+		// Move verified pending transactions from the validated queue to the pending queue
+		this._queues.pending.enqueueMany(
+			this._queues.validated.removeFor(
+				queueCheckers.checkTransactionForId(pendingTransactions),
+			),
+		);
+
 		return {
 			passedTransactions,
 			failedTransactions,
+			pendingTransactions,
 		};
 	}
 }

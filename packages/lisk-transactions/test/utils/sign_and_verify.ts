@@ -22,7 +22,7 @@ import {
 	verifySignature,
 	verifyTransaction,
 } from '../../src/utils';
-import { TransactionError } from '../../src/errors';
+import { TransactionError, TransactionPendingError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import fixtureTransactions from '../../fixtures/transactions.json';
@@ -152,9 +152,10 @@ describe('signAndVerify module', () => {
 			validMultisignatureTransaction,
 		);
 		const defaultTransactionBytes = Buffer.from(
-			'00de46a00424193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d3c9ea25a6b7c648f00e1f50500000000746865207265616c2074657374',
+			'002c497801500660b67a2ade1e2528b7f648feef8f3b46e2f4f90ca7f5439101b5119f309d572c095724f7f2b7600a3a4200000000',
 			'hex',
 		);
+
 		const {
 			multisignatures: memberPublicKeys,
 		} = defaultMultisignatureAccount as Account;
@@ -163,25 +164,11 @@ describe('signAndVerify module', () => {
 			const { verified } = verifyMultisignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures,
-				3,
+				2,
 				defaultTransactionBytes,
 			);
 
 			expect(verified).to.be.true;
-		});
-
-		it('should return a verification fail response with invalid multimin', async () => {
-			const { verified, errors } = verifyMultisignatures(
-				memberPublicKeys,
-				defaultMultisignatureTransaction.signatures,
-				'3' as any,
-				defaultTransactionBytes,
-			);
-
-			expect(verified).to.be.false;
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.have.property('message', `Sender does not have valid multimin`);
 		});
 
 		it('should return a verification fail response with invalid signatures', async () => {
@@ -190,7 +177,7 @@ describe('signAndVerify module', () => {
 				defaultMultisignatureTransaction.signatures.map((signature: string) =>
 					signature.replace('1', '0'),
 				),
-				3,
+				2,
 				defaultTransactionBytes,
 			);
 
@@ -207,18 +194,54 @@ describe('signAndVerify module', () => {
 			});
 		});
 
-		it('should return a verification fail response when missing signatures', async () => {
+		it('should return a verification fail response with invalid extra signatures', async () => {
 			const { verified, errors } = verifyMultisignatures(
 				memberPublicKeys,
-				defaultMultisignatureTransaction.signatures.slice(0, 1),
+				[
+					...defaultMultisignatureTransaction.signatures,
+					'f321799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
+				],
+				2,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error).to.be.instanceof(TransactionError);
+			});
+		});
+
+		it('should return a verification fail response with duplicate signatures', async () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberPublicKeys,
+				[
+					...defaultMultisignatureTransaction.signatures,
+					defaultMultisignatureTransaction.signatures[0],
+				],
+				2,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error).to.be.instanceof(TransactionError);
+			});
+		});
+
+		it('should return a transaction pending error when missing signatures', async () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberPublicKeys,
+				defaultMultisignatureTransaction.signatures.slice(0, 2),
 				3,
 				defaultTransactionBytes,
 			);
 
 			expect(verified).to.be.false;
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.have.property('message', 'Missing signatures');
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error)
+					.to.be.instanceof(TransactionPendingError)
+					.and.have.property('message', 'Missing signatures');
+			});
 		});
 	});
 
