@@ -56,6 +56,13 @@ export class InvalidRPCResponse extends VError {
 	}
 }
 
+export class RPCResponseAlreadySentError extends VError {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'ResponseAlreadySentError';
+	}
+}
+
 export class InvalidPeer extends VError {
 	public constructor(message: string) {
 		super(message);
