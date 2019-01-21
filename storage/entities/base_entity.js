@@ -208,7 +208,7 @@ class BaseEntity {
 	 * Load given SQL files to given entity
 	 *
 	 * @param {string} entityLabel - Namespace of the entity
-	 * @param {Array.<Object>} [sqlFiles] - Array of objects with SQL key and path
+	 * @param {Object} sqlFiles - Object with SQL label as key and path to load as value
 	 * @return {Object}
 	 */
 	loadSQLFiles(entityLabel, sqlFiles) {
