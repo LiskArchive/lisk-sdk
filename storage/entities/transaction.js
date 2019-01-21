@@ -537,6 +537,17 @@ class Transaction extends BaseEntity {
 	}
 
 	/**
+	 * Delete operation is not supported for Transactions
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	delete() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Account} filters
