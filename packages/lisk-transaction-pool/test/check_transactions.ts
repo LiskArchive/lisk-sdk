@@ -23,7 +23,9 @@ import transactionObjects from '../fixtures/transactions.json';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 
 describe('checkTransactions', () => {
-	const transactions = transactionObjects.map(wrapTransferTransaction);
+	const transactions = transactionObjects
+		.map(tx => ({ ...tx, containsUniqueData: false }))
+		.map(wrapTransferTransaction);
 	const passedTransactions = transactions.slice(0, 2);
 	const failedTransactions = transactions.slice(2, 5);
 	const transactionsToCheck = [...passedTransactions, ...failedTransactions];

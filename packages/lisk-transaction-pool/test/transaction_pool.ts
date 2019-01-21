@@ -20,7 +20,9 @@ describe('transaction pool', () => {
 	const receivedTransactionsLimitPerProcessing = 100;
 	const validatedTransactionsProcessingInterval = 100;
 	const validatedTransactionsLimitPerProcessing = 100;
-	const transactions = transactionObjects.map(wrapTransferTransaction);
+	const transactions = transactionObjects
+		.map(tx => ({ ...tx, containsUniqueData: false }))
+		.map(wrapTransferTransaction);
 	const verifiedTransactionsProcessingInterval = 100;
 	const verifiedTransactionsLimitPerProcessing = 100;
 	const pendingTransactionsProcessingLimit = 5;
@@ -41,10 +43,7 @@ describe('transaction pool', () => {
 		// Stubbing start function so the jobs do not start in the background.
 		sandbox.stub(Job.prototype, 'start');
 		checkerStubs = {
-			returnTrueUntilLimit: sandbox.stub(
-				queueCheckers,
-				'returnTrueUntilLimit'
-			),
+			returnTrueUntilLimit: sandbox.stub(queueCheckers, 'returnTrueUntilLimit'),
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
 				'checkTransactionPropertyForValues',
@@ -229,7 +228,9 @@ describe('transaction pool', () => {
 
 		it('should call peekUntil for ready queue with correct parameter', () => {
 			transactionPool.getProcessableTransactions(limit);
-			expect(transactionPool.queues.ready.peekUntil).to.be.calledWith(peekUntilCondition);
+			expect(transactionPool.queues.ready.peekUntil).to.be.calledWith(
+				peekUntilCondition,
+			);
 		});
 	});
 
