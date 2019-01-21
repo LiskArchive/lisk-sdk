@@ -339,6 +339,12 @@ describe('Dapp transaction class', () => {
 				defaultValidDappTransaction.asset.dapp.name,
 			);
 		});
+
+		it('should return attribute including dapp link', async () => {
+			expect(attribute.transaction.dappLink).to.include(
+				defaultValidDappTransaction.asset.dapp.link,
+			);
+		});
 	});
 
 	describe('#processRequiredState', () => {
@@ -476,6 +482,10 @@ describe('Dapp transaction class', () => {
 	});
 
 	describe('#validateSchema', () => {
+		beforeEach(async () => {
+			sandbox.stub(utils, 'getId').returns(validTestTransaction.id);
+		});
+
 		it('should return TransactionResponse with status OK', async () => {
 			const { status, errors } = validTestTransaction.validateSchema();
 			expect(status).to.equal(Status.OK);
@@ -491,12 +501,116 @@ describe('Dapp transaction class', () => {
 			const { status, errors } = transaction.validateSchema();
 			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.amount');
+		});
+
+		it('should return TransactionResponse with error when link is in invalid suffix', async () => {
+			const invalidTransaction = {
+				...defaultValidDappTransaction,
+				asset: {
+					dapp: {
+						...defaultValidDappTransaction.asset.dapp,
+						link:
+							'https://github.com/m-schmoock/lisk-dapps-sdk/archive/development.zippo',
+					},
+				},
+			};
+			const transaction = new DappTransaction(invalidTransaction);
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.asset.dapp.link');
+		});
+
+		it('should return TransactionResponse with error when link is not url', async () => {
+			const invalidTransaction = {
+				...defaultValidDappTransaction,
+				asset: {
+					dapp: {
+						...defaultValidDappTransaction.asset.dapp,
+						link:
+							'github.com/m-schmoock/lisk-dapps-sdk/archive/development.zip',
+					},
+				},
+			};
+			const transaction = new DappTransaction(invalidTransaction);
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.asset.dapp.link');
+		});
+
+		it('should return TransactionResponse with error when icon is in invalid suffix', async () => {
+			const invalidTransaction = {
+				...defaultValidDappTransaction,
+				asset: {
+					dapp: {
+						...defaultValidDappTransaction.asset.dapp,
+						icon: 'https://iconverticons.com/img/logo.gif',
+					},
+				},
+			};
+			const transaction = new DappTransaction(invalidTransaction);
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.asset.dapp.icon');
+		});
+
+		it('should return TransactionResponse with error when type is not zero', async () => {
+			const invalidTransaction = {
+				...defaultValidDappTransaction,
+				asset: {
+					dapp: {
+						...defaultValidDappTransaction.asset.dapp,
+						type: 3,
+					},
+				},
+			};
+			const transaction = new DappTransaction(invalidTransaction);
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.asset.dapp.type');
+		});
+
+		it('should return TransactionResponse with error when tags contains non unique key', async () => {
+			const invalidTransaction = {
+				...defaultValidDappTransaction,
+				asset: {
+					dapp: {
+						...defaultValidDappTransaction.asset.dapp,
+						tags: 'game,ftw, game, sidechain',
+					},
+				},
+			};
+			const transaction = new DappTransaction(invalidTransaction);
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.asset.dapp.tags');
+		});
+
+		it('should return TransactionResponse with error when category is out of range', async () => {
+			const invalidTransaction = {
+				...defaultValidDappTransaction,
+				asset: {
+					dapp: {
+						...defaultValidDappTransaction.asset.dapp,
+						category: 10,
+					},
+				},
+			};
+			const transaction = new DappTransaction(invalidTransaction);
+			const { status, errors } = transaction.validateSchema();
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.asset.dapp.category');
 		});
 
 		it('should return TransactionResponse with error when dapp name exceeds maximum', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
-				id: '6689439085046222713',
 				asset: {
 					dapp: {
 						...defaultValidDappTransaction.asset.dapp,
@@ -509,7 +623,7 @@ describe('Dapp transaction class', () => {
 			const { status, errors } = transaction.validateSchema();
 			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.equal('.dapp.name');
+			expect(errors[0].dataPath).to.equal('.asset.dapp.name');
 		});
 	});
 

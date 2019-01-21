@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import BigNum from 'browserify-bignum';
 import { DAPP_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
@@ -125,6 +126,7 @@ export const dappAssetFormatSchema = {
 				type: {
 					type: 'integer',
 					minimum: 0,
+					maximum: 0,
 				},
 				link: {
 					type: 'string',
@@ -153,6 +155,7 @@ export const dappAssetFormatSchema = {
 export class DappTransaction extends BaseTransaction {
 	public readonly containsUniqueData = true;
 	public readonly asset: DappAsset;
+	public readonly fee: BigNum = new BigNum(DAPP_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -389,11 +392,21 @@ export class DappTransaction extends BaseTransaction {
 						new TransactionError(
 							`'${error.dataPath}' ${error.message}`,
 							this.id,
-							error.dataPath,
+							`.asset${error.dataPath}`,
 						),
 			  )
 			: [];
 		errors.push(...assetErrors);
+
+		if (!this.fee.eq(DAPP_FEE)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${DAPP_FEE}`,
+					this.id,
+					'.fee',
+				),
+			);
+		}
 		const validLinkSuffix = ['.zip'];
 		if (
 			this.asset.dapp.link &&
