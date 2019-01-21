@@ -288,25 +288,25 @@ This will start the lisk instance with `devnet` configuration. Once the process 
 This will fork the process into the background and automatically recover the process if it fails.
 
 ```
-pm2 start --name lisk app.js
+npx pm2 start --name lisk app.js
 ```
 
 After the process is started, its runtime status and log location can be retrieved by issuing the following command:
 
 ```
-pm2 show lisk
+npx pm2 show lisk
 ```
 
 To stop Lisk after it has been started with `pm2`, issue the following command:
 
 ```
-pm2 stop lisk
+npx pm2 stop lisk
 ```
 
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
 ```
-pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
+npx pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
 ```
 
 You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for the network option.
