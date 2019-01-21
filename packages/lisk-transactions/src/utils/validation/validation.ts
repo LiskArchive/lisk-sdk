@@ -36,7 +36,8 @@ export const validatePublicKey = (publicKey: string) => {
 	return true;
 };
 
-export const validateSignature = (signature: string) => /^[a-f0-9]{128}$/i.test(signature)
+export const validateSignature = (signature: string) =>
+	/^[a-f0-9]{128}$/i.test(signature);
 
 export const checkPublicKeysForDuplicates = (
 	publicKeys: ReadonlyArray<string>,

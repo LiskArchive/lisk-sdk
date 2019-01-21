@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { checkTypes } from './check_types';
+export * from './check_types';
 export {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
@@ -28,6 +28,8 @@ export {
 	isGreaterThanZero,
 	isNumberString,
 } from './validation';
-export { validateSignatureAndPublicKey } from './validate_signature_and_publickey';
+export {
+	validateSignatureAndPublicKey,
+} from './validate_signature_and_publickey';
 export { validateTransaction } from './validate_transaction';
 export { validator } from './validator';

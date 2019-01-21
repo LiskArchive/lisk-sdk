@@ -27,6 +27,8 @@ export interface Account {
 	readonly secondPublicKey?: string;
 	readonly multisignatures?: ReadonlyArray<string>;
 	readonly multimin?: number;
+	readonly username?: string;
+	readonly votes?: ReadonlyArray<string>;
 }
 
 export interface Delegate {
@@ -49,7 +51,7 @@ export interface TransactionJSON {
 	readonly senderId?: string;
 	readonly senderPublicKey: string;
 	readonly signature?: string;
-	readonly signatures: ReadonlyArray<string>;
+	readonly signatures?: ReadonlyArray<string>;
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;

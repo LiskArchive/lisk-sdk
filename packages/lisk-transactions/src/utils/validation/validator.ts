@@ -30,7 +30,7 @@ import {
 export const validator = new Ajv({ allErrors: true });
 addKeywords(validator);
 
-validator.addFormat('signature', validateSignature)
+validator.addFormat('signature', validateSignature);
 
 validator.addFormat(
 	'id',

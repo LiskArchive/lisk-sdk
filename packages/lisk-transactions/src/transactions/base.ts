@@ -17,6 +17,7 @@
 
 import {
 	bigNumberToBuffer,
+	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
@@ -38,11 +39,13 @@ import { Account, Status, TransactionJSON } from '../transaction_types';
 import {
 	checkTypes,
 	getId,
+	getTimeWithOffset,
 	validator,
 	verifyBalance,
 	verifyMultisignatures,
 	verifySignature,
 } from '../utils';
+import { isTypedObjectArrayWithKeys } from '../utils/validation';
 import * as schemas from '../utils/validation/schema';
 
 export interface TransactionResponse {
@@ -74,6 +77,29 @@ export interface RequiredState {
 }
 
 export const ENTITY_ACCOUNT = 'account';
+export interface CreateBaseTransactionInput {
+	readonly passphrase?: string;
+	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
+}
+
+export const createBaseTransaction = ({
+	passphrase,
+	timeOffset,
+}: CreateBaseTransactionInput) => {
+	const { address: senderId, publicKey: senderPublicKey } = passphrase
+		? getAddressAndPublicKeyFromPassphrase(passphrase)
+		: { address: undefined, publicKey: undefined };
+	const timestamp = getTimeWithOffset(timeOffset);
+
+	return {
+		amount: '0',
+		recipientId: '',
+		senderId,
+		senderPublicKey,
+		timestamp,
+	};
+};
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
@@ -85,7 +111,7 @@ export abstract class BaseTransaction {
 	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
-	public readonly receivedAt: Date = new Date();
+	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
 
 	private _id?: string;
@@ -278,7 +304,26 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public abstract processRequiredState(state: EntityMap): RequiredState;
+	public processRequiredState(state: EntityMap): RequiredState {
+		const accounts = state[ENTITY_ACCOUNT];
+		if (!accounts) {
+			throw new Error('Entity account is required.');
+		}
+		if (
+			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
+		) {
+			throw new Error('Required state does not have valid account type.');
+		}
+
+		const sender = accounts.find(acct => acct.address === this.senderId);
+		if (!sender) {
+			throw new Error('No sender account is found.');
+		}
+
+		return {
+			sender,
+		};
+	}
 
 	public verify({ sender }: RequiredState): TransactionResponse {
 		const errors: TransactionError[] = [];

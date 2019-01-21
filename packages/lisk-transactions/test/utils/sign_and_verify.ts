@@ -197,30 +197,34 @@ describe('signAndVerify module', () => {
 		it('should return a verification fail response with invalid extra signatures', async () => {
 			const { verified, errors } = verifyMultisignatures(
 				memberPublicKeys,
-				[...defaultMultisignatureTransaction.signatures, 'f321799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c'],
+				[
+					...defaultMultisignatureTransaction.signatures,
+					'f321799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
+				],
 				2,
 				defaultTransactionBytes,
 			);
 
 			expect(verified).to.be.false;
-			(errors as ReadonlyArray<TransactionError>).forEach((error) => {
-				expect(error)
-					.to.be.instanceof(TransactionError)
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error).to.be.instanceof(TransactionError);
 			});
 		});
 
 		it('should return a verification fail response with duplicate signatures', async () => {
 			const { verified, errors } = verifyMultisignatures(
 				memberPublicKeys,
-				[...defaultMultisignatureTransaction.signatures, defaultMultisignatureTransaction.signatures[0]],
+				[
+					...defaultMultisignatureTransaction.signatures,
+					defaultMultisignatureTransaction.signatures[0],
+				],
 				2,
 				defaultTransactionBytes,
 			);
 
 			expect(verified).to.be.false;
-			(errors as ReadonlyArray<TransactionError>).forEach((error) => {
-				expect(error)
-					.to.be.instanceof(TransactionError)
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error).to.be.instanceof(TransactionError);
 			});
 		});
 
