@@ -28,7 +28,7 @@ import { P2PRequest } from './p2p_request';
 
 import socketClusterClient, { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { sanitizePeerInfo, sanitizePeerInfoList, sanitizeProtocolMessage, sanitizeRPCRequest } from './sanitization';
+import { sanitizePeerInfo, sanitizePeerInfoList, sanitizeProtocolMessage, validateRPCRequest } from './sanitization';
 
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
@@ -106,8 +106,8 @@ export class Peer extends EventEmitter {
 			// TODO later: Switch to LIP protocol format.
 
 			try {
-				const rawRequest = sanitizeRPCRequest(packet);
-				if (rawRequest.procedure === REMOTE_RPC_NODE_INFO) {
+				const rawRequest = validateRPCRequest(packet);
+				if (rawRequest.procedure === REMOTE_EVENT_SEND_NODE_INFO) {
 					this._handlePeerInfo(rawRequest);
 				}
 
