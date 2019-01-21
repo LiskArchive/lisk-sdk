@@ -939,7 +939,15 @@ describe('delegates', () => {
 				);
 			});
 			it('should aggregate the data runtime if start and end is provided', done => {
-				sinonSandbox.spy(library.modules.blocks.utils, 'aggregateBlocksReward');
+				const stubResp = {
+					count: 1,
+					fees: 2,
+					forged: 3,
+					rewards: 4,
+				};
+				sinonSandbox
+					.stub(library.modules.blocks.utils, 'aggregateBlocksReward')
+					.callsArgWith(1, null, stubResp);
 				sinonSandbox.spy(library.modules.accounts, 'getAccount');
 
 				const params = {
@@ -965,7 +973,15 @@ describe('delegates', () => {
 				);
 			});
 			it('should aggregate the data runtime if start is omitted', done => {
-				sinonSandbox.spy(library.modules.blocks.utils, 'aggregateBlocksReward');
+				const stubResp = {
+					count: 1,
+					fees: 2,
+					forged: 3,
+					rewards: 4,
+				};
+				sinonSandbox
+					.stub(library.modules.blocks.utils, 'aggregateBlocksReward')
+					.callsArgWith(1, null, stubResp);
 				sinonSandbox.spy(library.modules.accounts, 'getAccount');
 
 				const params = {
@@ -991,7 +1007,15 @@ describe('delegates', () => {
 			});
 
 			it('should aggregate the data runtime if end is omitted', done => {
-				sinonSandbox.spy(library.modules.blocks.utils, 'aggregateBlocksReward');
+				const responseStub = {
+					count: 1,
+					fees: 2,
+					forged: 3,
+					rewards: 4,
+				};
+				sinonSandbox
+					.stub(library.modules.blocks.utils, 'aggregateBlocksReward')
+					.callsArgWith(1, null, responseStub);
 				sinonSandbox.spy(library.modules.accounts, 'getAccount');
 
 				const params = {
@@ -1017,8 +1041,16 @@ describe('delegates', () => {
 			});
 
 			it('should fetch data from accounts if both start and end is omitted', done => {
+				const responseStub = {
+					isDelegate: true,
+					producedBlocks: 1,
+					fees: 2,
+					rewards: 4,
+				};
 				sinonSandbox.spy(library.modules.blocks.utils, 'aggregateBlocksReward');
-				sinonSandbox.spy(library.modules.accounts, 'getAccount');
+				sinonSandbox
+					.stub(library.modules.accounts, 'getAccount')
+					.callsArgWith(2, null, responseStub);
 
 				const params = {
 					address: validDelegate.address,

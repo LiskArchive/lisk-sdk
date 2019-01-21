@@ -13,10 +13,4 @@
  */
 
 
-/*
-  DESCRIPTION: ?
-
-  PARAMETERS: ?
-*/
-
-DELETE FROM blocks WHERE height > ${height}::bigint
+DELETE FROM blocks ${parsedFilters:raw}

@@ -537,6 +537,17 @@ class Transaction extends BaseEntity {
 	}
 
 	/**
+	 * Delete operation is not supported for Transactions
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	delete() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Account} filters
@@ -627,7 +638,7 @@ class Transaction extends BaseEntity {
 			assetAttributesMap[transaction.type] || [];
 
 		transactionAssetAttributes.forEach(assetKey => {
-			// We only want to remove null & undefined not other falsy values
+			// We only want to skip null and undefined, not other falsy values
 			if (row[assetKey] !== null && row[assetKey] !== undefined) {
 				_.set(transaction, assetKey, row[assetKey]);
 			}

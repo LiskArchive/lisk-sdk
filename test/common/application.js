@@ -68,8 +68,8 @@ function __init(initScope, done) {
 	);
 
 	const startStorage = () => {
-		return (storage.isReady ? Promise.resolve() : storage.bootstrap()).then(
-			() => {
+		return (storage.isReady ? Promise.resolve() : storage.bootstrap())
+			.then(() => {
 				storage.entities.Account.extendDefaultOptions({
 					limit: global.constants.ACTIVE_DELEGATES,
 				});
@@ -86,8 +86,13 @@ function __init(initScope, done) {
 						storage.adapter.execute('DELETE FROM mem_accounts', {}, {}, t),
 					]);
 				});
-			}
-		);
+			})
+			.then(async status => {
+				if (status) {
+					await storage.entities.Migration.applyAll();
+					await storage.entities.Migration.applyRunTime();
+				}
+			});
 	};
 
 	// Clear tables
@@ -252,7 +257,6 @@ function __init(initScope, done) {
 					'ed',
 					function(scope, cb) {
 						const changeCase = require('change-case');
-
 						const bus =
 							initScope.bus ||
 							new function() {
@@ -332,8 +336,8 @@ function __init(initScope, done) {
 								config(configCb) {
 									configCb(null, scope.config);
 								},
-								storage(storageCb) {
-									storageCb(null, scope.storage);
+								storage(dbCb) {
+									dbCb(null, scope.storage);
 								},
 								ed(edCb) {
 									edCb(null, scope.ed);
@@ -384,7 +388,7 @@ function __init(initScope, done) {
 									},
 								],
 								block: [
-									'storage',
+									'db',
 									'bus',
 									'ed',
 									'schema',
