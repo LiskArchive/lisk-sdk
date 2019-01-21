@@ -20,7 +20,8 @@ import {
 	InvalidRPCRequestError,
 	InvalidRPCResponse,
 } from './errors';
-import { ProtocolMessage, ProtocolPeerInfo, ProtocolRPCRequest } from './p2p_types';
+import { P2PRequest } from './p2p';
+import { ProtocolMessagePacket, ProtocolPeerInfo } from './p2p_types';
 import { PeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
@@ -98,12 +99,12 @@ export const sanitizePeerInfoList = (
 	}
 };
 
-export const validateRPCRequest = (request: unknown): ProtocolRPCRequest => {
+export const validateRPCRequest = (request: unknown): P2PRequest => {
 	if (!request) {
 		throw new InvalidRPCRequestError('Invalid request');
 	}
 
-	const rpcRequest = request as ProtocolRPCRequest;
+	const rpcRequest = request as P2PRequest;
 	if (typeof rpcRequest.procedure !== 'string') {
 		throw new InvalidRPCRequestError('Request procedure name is not a string');
 	}
@@ -114,12 +115,12 @@ export const validateRPCRequest = (request: unknown): ProtocolRPCRequest => {
 	return rpcRequest;
 };
 
-export const sanitizeProtocolMessage = (message: unknown): ProtocolMessage => {
+export const sanitizeProtocolMessage = (message: unknown): ProtocolMessagePacket => {
 	if (!message) {
 		throw new InvalidProtocolMessageError('Invalid message');
 	}
 
-	const protocolMessage = message as ProtocolMessage;
+	const protocolMessage = message as ProtocolMessagePacket;
 	if (typeof protocolMessage.event !== 'string') {
 		throw new InvalidProtocolMessageError('Protocol message is not a string');
 	}

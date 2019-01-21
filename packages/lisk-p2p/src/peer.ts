@@ -107,7 +107,7 @@ export class Peer extends EventEmitter {
 
 			try {
 				const rawRequest = validateRPCRequest(packet);
-				if (rawRequest.procedure === REMOTE_EVENT_SEND_NODE_INFO) {
+				if (rawRequest.procedure === REMOTE_RPC_NODE_INFO) {
 					this._handlePeerInfo(rawRequest);
 				}
 
