@@ -187,7 +187,7 @@ export class P2P extends EventEmitter {
 			'connection',
 			(socket: SCServerSocket): void => {
 				if (!socket.request.url) {
-					super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
+					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
 					socket.disconnect(
 						INVALID_CONNECTION_URL_CODE,
 						INVALID_CONNECTION_URL_REASON,
@@ -205,7 +205,7 @@ export class P2P extends EventEmitter {
 						INVALID_CONNECTION_QUERY_CODE,
 						INVALID_CONNECTION_QUERY_REASON,
 					);
-					super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
+					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
 				} else {
 					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
@@ -226,8 +226,8 @@ export class P2P extends EventEmitter {
 					);
 
 					if (isNewPeer) {
-						super.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
-						super.emit(EVENT_NEW_PEER, incomingPeerInfo);
+						this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+						this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 						this._newPeers.add(incomingPeerInfo);
 					} else {
 						this._newPeers.add(incomingPeerInfo);
