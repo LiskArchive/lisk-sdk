@@ -192,6 +192,44 @@ describe('connect', () => {
 					.to.eql(System.getHeaders());
 			});
 
+			describe('connectionOptions.query', () => {
+				it('should contain protocolVersion', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.protocolVersion')
+						.to.eql(System.getHeaders().protocolVersion);
+				});
+
+				it('should contain version', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.version')
+						.to.eql(System.getHeaders().version);
+				});
+
+				it('should contain nonce', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.nonce')
+						.to.eql(System.getHeaders().nonce);
+				});
+
+				it('should contain wsPort', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.wsPort')
+						.to.eql(System.getHeaders().wsPort);
+				});
+
+				it('should contain httpPort', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.httpPort')
+						.to.eql(System.getHeaders().httpPort);
+				});
+
+				it('should contain nethash', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.nethash')
+						.to.eql(System.getHeaders().nethash);
+				});
+			});
+
 			it('should return [peer]', () => {
 				return expect(peerAsResult).to.eql(validPeer);
 			});
