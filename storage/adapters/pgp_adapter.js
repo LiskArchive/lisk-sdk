@@ -19,7 +19,6 @@ const Promise = require('bluebird');
 const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');
 const QueryFile = require('pg-promise').QueryFile;
-// const MigrationsRepo = require('../../db/repos/migrations.js');
 const BaseAdapter = require('./base_adapter');
 
 class PgpAdapter extends BaseAdapter {
