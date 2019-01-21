@@ -19,4 +19,9 @@
   PARAMETERS: ?
 */
 
-DELETE FROM blocks WHERE height > ${height}::bigint
+SELECT
+	delegate,
+	sum(amount) AS amount
+FROM mem_round
+${parsedFilters:raw}
+GROUP BY delegate

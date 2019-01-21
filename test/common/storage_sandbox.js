@@ -15,7 +15,18 @@
 'use strict';
 
 const child_process = require('child_process');
+const pgpLib = require('pg-promise');
 const Storage = require('../../storage/storage');
+const PgpAdapter = require('../../storage/adapters/pgp_adapter');
+const {
+	Account,
+	Block,
+	Delegate,
+	Peer,
+	Round,
+	Transaction,
+	Migration,
+} = require('../../storage/entities');
 
 const dbNames = [];
 
@@ -69,7 +80,16 @@ class StorageSandbox extends Storage {
 		await this._dropDB();
 		await this._createDB();
 		await super.bootstrap();
-		await this._createSchema(this.adapter.db);
+
+		this.registerEntity('Account', Account);
+		this.registerEntity('Block', Block);
+		this.registerEntity('Delegate', Delegate);
+		this.registerEntity('Migration', Migration);
+		this.registerEntity('Peer', Peer);
+		this.registerEntity('Round', Round);
+		this.registerEntity('Transaction', Transaction);
+
+		await this._createSchema();
 		return true;
 	}
 
@@ -97,22 +117,67 @@ class StorageSandbox extends Storage {
 		});
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	async _createSchema(db) {
-		return new Promise((resolve, reject) => {
-			db.migrations
-				.applyAll()
-				.then(() => {
-					return resolve();
-				})
-				.catch(err => {
-					return reject(err);
-				});
+	async _createSchema() {
+		try {
+			await this.entities.Migration.applyAll();
+			await this.entities.Migration.applyRunTime();
+		} catch (err) {
+			Promise.reject(err);
+		}
+	}
+}
+
+class TestAdapter extends PgpAdapter {
+	constructor(options) {
+		super({
+			engineName: 'pgp-test',
+			inTest: true,
 		});
+
+		this.logger = console;
+		this.pgpOptions = {
+			capSQL: true,
+			promiseLib: Promise,
+		};
+
+		this.pgp = pgpLib(this.pgpOptions);
+		this.db = this.pgp(options);
+	}
+}
+
+class TestStorageSandbox extends Storage {
+	constructor(dbConfig, entityStubs) {
+		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test')
+			throw new Error(
+				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
+					process.env.NODE_ENV
+				}`
+			);
+
+		super(dbConfig, console);
+		this.entityStubs = entityStubs;
+
+		this.bootstrap();
+	}
+
+	bootstrap() {
+		const adapter = new TestAdapter({
+			...this.options,
+			inTest: true,
+			logger: this.logger,
+		});
+
+		this.isReady = true;
+		Storage.instance.adapter = adapter;
+
+		Storage.instance.entities = this.entityStubs;
+
+		return true;
 	}
 }
 
 module.exports = {
 	clearDatabaseTable,
 	StorageSandbox,
+	TestStorageSandbox,
 };

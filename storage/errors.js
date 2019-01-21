@@ -25,10 +25,12 @@ class ImplementationPendingError extends BaseStorageError {}
 class NonSupportedFilterTypeError extends BaseStorageError {}
 class NonSupportedOptionError extends BaseStorageError {}
 class NonSupportedOperationError extends BaseStorageError {}
+class EntityRegistrationError extends BaseStorageError {}
 
 module.exports = {
 	ImplementationPendingError,
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 	NonSupportedOperationError,
+	EntityRegistrationError,
 };

@@ -317,14 +317,28 @@ class Account extends BaseEntity {
 				'accounts/reset_unconfirmed_state.sql'
 			),
 			resetMemTables: this.adapter.loadSQLFile('accounts/reset_mem_tables.sql'),
-			incrementField: this.adapter.loadSQLFile('accounts/increment_field.sql'),
-			decrementField: this.adapter.loadSQLFile('accounts/decrement_field.sql'),
+			increaseFieldBy: this.adapter.loadSQLFile(
+				'accounts/increase_field_by.sql'
+			),
+			decreaseFieldBy: this.adapter.loadSQLFile(
+				'accounts/decrease_field_by.sql'
+			),
 			createDependentRecord: this.adapter.loadSQLFile(
 				'accounts/create_dependent_record.sql'
 			),
 			deleteDependentRecord: this.adapter.loadSQLFile(
 				'accounts/delete_dependent_record.sql'
 			),
+			delegateBlocksRewards: this.adapter.loadSQLFile(
+				'accounts/delegate_blocks_rewards.sql'
+			),
+			syncDelegatesRank: this.adapter.loadSQLFile(
+				'accounts/sync_delegates_rank.sql'
+			),
+			countDuplicatedDelegates: this.adapter.loadSQLFile(
+				'accounts/count_duplicated_delegates.sql'
+			),
+			insertFork: this.adapter.loadSQLFile('accounts/insert_fork.sql'),
 		};
 	}
 
@@ -548,6 +562,37 @@ class Account extends BaseEntity {
 	}
 
 	/**
+	 * Get blocks rewards of delegate for time period.
+	 * TODO: move this method to Delegate entity once implemented
+	 *
+	 * @param {Object} filters = {} - Filters to filter data
+	 * @param {string} filters.generatorPublicKey - Delegate Public Key to calculate reward
+	 * @param {Number} [filters.fromTimestamp] - WHERE timestamp >= fromTimestamp
+	 * @param {Number} [filters.toTimestamp] - WHERE timestamp <= toTimestamp
+	 * @param {Object} tx - Database transaction object
+	 * @return {Promise.<DatabaseRow, Error>}
+	 */
+	delegateBlocksRewards(filters, tx) {
+		assert(
+			filters && filters.generatorPublicKey,
+			'filters must be an object and contain generatorPublicKey'
+		);
+
+		const parseFilters = {
+			generatorPublicKey: filters.generatorPublicKey,
+			fromTimestamp: filters.fromTimestamp,
+			toTimestamp: filters.toTimestamp,
+		};
+
+		return this.adapter.executeFile(
+			this.SQLs.delegateBlocksRewards,
+			parseFilters,
+			{},
+			tx
+		);
+	}
+
+	/**
 	 * Reset all unconfirmed states of accounts to confirmed states
 	 *
 	 * @param [tx] - Database transaction object
@@ -580,29 +625,29 @@ class Account extends BaseEntity {
 	}
 
 	/**
-	 * Increment a field value in mem_accounts.
+	 * Increase a field value in mem_accounts.
 	 *
 	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to increment
-	 * @param {Number|string} value - Value to be incremented
+	 * @param {string} field - Name of the field to increase
+	 * @param {Number|string} value - Value increase
 	 * @param {Object} [tx] - Transaction object
 	 * @returns {Promise}
 	 */
-	incrementField(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'increment', tx);
+	increaseFieldBy(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'increase', tx);
 	}
 
 	/**
-	 * Decrement a field value in mem_accounts.
+	 * Decrease a field value in mem_accounts.
 	 *
 	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to increment
-	 * @param {Number|string} value - Value to be incremented
+	 * @param {string} field - Name of the field to decrease
+	 * @param {Number|string} value - Value decrease
 	 * @param {Object} [tx] - Transaction object
 	 * @returns {Promise}
 	 */
-	decrementField(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'decrement', tx);
+	decreaseFieldBy(filters, field, value, tx) {
+		return this._updateField(filters, field, value, 'decrease', tx);
 	}
 
 	/**
@@ -639,6 +684,57 @@ class Account extends BaseEntity {
 			address,
 			dependentPublicKey,
 			'delete',
+			tx
+		);
+	}
+
+	/**
+	 * Sync rank for all delegates.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	syncDelegatesRanks(tx) {
+		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
+	}
+
+	/**
+	 * Counts duplicate delegates by transactionId.
+	 *
+	 * @param {Object} [tx] - Database transaction object
+	 *
+	 * @returns {Promise<number>}
+	 */
+	countDuplicatedDelegates(tx) {
+		return this.adapter
+			.executeFile(
+				this.SQLs.countDuplicatedDelegates,
+				{},
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(result => +result.count);
+	}
+
+	// TODO: Should create a separate entity to manage forks
+	/**
+	 * Inserts a fork data table entry.
+	 *
+	 * @param {Object} fork
+	 * @param {string} fork.delegatePublicKey
+	 * @param {integer} fork.blockTimestamp
+	 * @param {string} fork.blockId
+	 * @param {integer} fork.blockHeight
+	 * @param {string} fork.previousBlockId
+	 * @param {string} fork.cause
+	 * @param {Object} [tx] - Database transaction
+	 * @returns {Promise}
+	 */
+	insertFork(fork, tx) {
+		return this.adapter.executeFile(
+			this.SQLs.insertFork,
+			fork,
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}
@@ -689,7 +785,7 @@ class Account extends BaseEntity {
 	 * @param {filters.Account} filters - Filters object
 	 * @param {string} field - Filed name to update
 	 * @param {*} value - Value to be update
-	 * @param {('increment'|'decrement')} mode - Mode of update
+	 * @param {('increase'|'decrease')} mode - Mode of update
 	 * @param {Object} [tx] - Database transaction object
 	 * @returns {Promise}
 	 */
@@ -711,8 +807,8 @@ class Account extends BaseEntity {
 		};
 
 		const sql = {
-			increment: this.SQLs.incrementField,
-			decrement: this.SQLs.decrementField,
+			increase: this.SQLs.increaseFieldBy,
+			decrease: this.SQLs.decreaseFieldBy,
 		}[mode];
 
 		return this.adapter.executeFile(

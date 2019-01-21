@@ -17,6 +17,7 @@
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
 const dappCategories = require('../helpers/dapp_categories.js');
+const transactionTypes = require('../helpers/transaction_types');
 const Bignum = require('../helpers/bignum.js');
 
 let library;
@@ -43,12 +44,12 @@ __private.unconfirmedAscii = {};
  * @todo Add description for the params
  */
 class DApp {
-	constructor(db, logger, schema, network) {
+	constructor(storage, logger, schema, network) {
 		library = {
-			db,
 			logger,
 			schema,
 			network,
+			storage,
 		};
 	}
 }
@@ -186,25 +187,37 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		}
 	}
 
-	return (tx || library.db).dapps
-		.getExisting({
-			name: transaction.asset.dapp.name,
-			link: transaction.asset.dapp.link || null,
-			transactionId: transaction.id,
-		})
+	const filter = [
+		{
+			dapp_name: transaction.asset.dapp.name,
+			id_ne: transaction.id,
+			type: transactionTypes.DAPP,
+		},
+		{
+			dapp_link: transaction.asset.dapp.link || null,
+			id_ne: transaction.id,
+			type: transactionTypes.DAPP,
+		},
+	];
+
+	return library.storage.entities.Transaction.get(
+		filter,
+		{ extended: true },
+		tx
+	)
 		.then(rows => {
 			const dapp = rows[0];
-
 			if (dapp) {
-				if (dapp.name === transaction.asset.dapp.name) {
+				const existingDapp = dapp.asset.dapp;
+				if (existingDapp.name === transaction.asset.dapp.name) {
 					return setImmediate(
 						cb,
-						`Application name already exists: ${dapp.name}`
+						`Application name already exists: ${existingDapp.name}`
 					);
-				} else if (dapp.link === transaction.asset.dapp.link) {
+				} else if (existingDapp.link === transaction.asset.dapp.link) {
 					return setImmediate(
 						cb,
-						`Application link already exists: ${dapp.link}`
+						`Application link already exists: ${existingDapp.link}`
 					);
 				}
 				return setImmediate(cb, 'Application already exists');

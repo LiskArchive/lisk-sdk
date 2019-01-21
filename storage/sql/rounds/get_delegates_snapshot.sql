@@ -15,10 +15,9 @@
 
 /*
   DESCRIPTION: ?
-
   PARAMETERS: ?
 */
 
-SELECT count(*)
-FROM outtransfer
-WHERE "outTransactionId" = $1
+SELECT ENCODE("publicKey", 'hex') as "publicKey"
+FROM mem_votes_snapshot
+ORDER BY vote DESC, "publicKey" ASC LIMIT ${limit}

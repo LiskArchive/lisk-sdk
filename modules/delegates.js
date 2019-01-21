@@ -69,6 +69,7 @@ class Delegates {
 			sequence: scope.sequence,
 			ed: scope.ed,
 			db: scope.db,
+			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
@@ -168,13 +169,9 @@ __private.getKeysSortByVote = function(cb, tx) {
  * @todo Add description for the return value
  */
 __private.getDelegatesFromPreviousRound = function(cb, tx) {
-	(tx || library.db).rounds
-		.getDelegatesSnapshot(ACTIVE_DELEGATES)
+	library.storage.entities.Round.getDelegatesSnapshot(ACTIVE_DELEGATES, tx)
 		.then(rows => {
-			const delegatesPublicKeys = [];
-			rows.forEach(row => {
-				delegatesPublicKeys.push(row.publicKey.toString('hex'));
-			});
+			const delegatesPublicKeys = rows.map(({ publicKey }) => publicKey);
 			return setImmediate(cb, null, delegatesPublicKeys);
 		})
 		.catch(err => {
@@ -874,8 +871,13 @@ Delegates.prototype.getForgers = function(query, cb) {
 			}
 		}
 
-		return library.db.delegates
-			.getDelegatesByPublicKeys(forgerKeys)
+		return library.storage.entities.Account.get(
+			{ isDelegate: true, publicKey_in: forgerKeys },
+			{ limit: null }
+		)
+			.then(rows =>
+				rows.map(row => _.pick(row, ['username', 'address', 'publicKey']))
+			)
 			.then(rows => {
 				rows.forEach(forger => {
 					forger.nextSlot =
@@ -948,11 +950,11 @@ Delegates.prototype.fork = function(block, cause) {
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
 		blockHeight: block.height,
-		previousBlock: block.previousBlock,
+		previousBlockId: block.previousBlock,
 		cause,
 	};
 
-	library.db.delegates.insertFork(fork).then(() => {
+	library.storage.entities.Account.insertFork(fork).then(() => {
 		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };

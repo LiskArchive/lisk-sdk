@@ -302,6 +302,13 @@ function __init(initScope, done) {
 									storage.entities.Account.extendDefaultOptions({
 										limit: global.constants.ACTIVE_DELEGATES,
 									});
+									return status;
+								})
+								.then(async status => {
+									if (status) {
+										await storage.entities.Migration.applyAll();
+										await storage.entities.Migration.applyRunTime();
+									}
 									return cb(!status, storage);
 								})
 								.catch(err => {
@@ -393,6 +400,7 @@ function __init(initScope, done) {
 									],
 									transaction: [
 										'db',
+										'storage',
 										'bus',
 										'ed',
 										'schema',
@@ -401,7 +409,7 @@ function __init(initScope, done) {
 										'logger',
 										function(transactionScope, transactionCb) {
 											new Transaction(
-												transactionScope.db,
+												transactionScope.storage,
 												transactionScope.ed,
 												transactionScope.schema,
 												transactionScope.genesisBlock,

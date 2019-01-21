@@ -13,7 +13,7 @@
  */
 
 INSERT INTO blocks (
-	${attributes:raw}
+	${fields:raw}
 ) VALUES
 	${createSet:raw}
 ;

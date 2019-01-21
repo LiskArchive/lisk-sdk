@@ -14,12 +14,30 @@
 
 
 /*
-  DESCRIPTION: Counts transactions by Id
+  DESCRIPTION: Inserts a fork statistics.
 
   PARAMETERS:
-      - id: trs id
+      delegatePublicKey - ?
+      blockTimestamp - ?
+      blockId - ?
+      blockHeight - ?
+      previousBlock - ?
+      cause - ?
 */
 
-SELECT count(*)
-FROM trs
-WHERE id = ${id}
+INSERT INTO forks_stat(
+  "delegatePublicKey",
+  "blockTimestamp",
+  "blockId",
+  "blockHeight",
+  "previousBlock",
+  cause
+)
+VALUES (
+  ${delegatePublicKey},
+  ${blockTimestamp},
+  ${blockId},
+  ${blockHeight},
+  ${previousBlockId},
+  ${cause}
+)

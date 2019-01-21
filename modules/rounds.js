@@ -14,6 +14,7 @@
 
 'use strict';
 
+const Bignumber = require('bignumber.js');
 const async = require('async');
 // eslint-disable-next-line prefer-const
 let Round = require('../logic/round.js');
@@ -47,9 +48,9 @@ class Rounds {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
 			bus: scope.bus,
 			network: scope.network,
+			storage: scope.storage,
 		};
 		self = this;
 
@@ -72,24 +73,6 @@ Rounds.prototype.loaded = function() {
  */
 Rounds.prototype.ticking = function() {
 	return __private.ticking;
-};
-
-/**
- * Deletes from `mem_round` table records based on round.
- *
- * @param {number} round
- * @param {function} cb
- * @returns {setImmediateCallback} cb
- * @todo Add description for the params and the return value
- */
-Rounds.prototype.flush = function(round, cb) {
-	library.db.rounds
-		.flush(round)
-		.then(() => setImmediate(cb))
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Rounds#flush error');
-		});
 };
 
 /**
@@ -158,8 +141,8 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			},
 			function(cb) {
 				// Perform round tick
-				tx
-					.task(backwardTick)
+				library.storage.adapter
+					.task('rounds:backwardTick', backwardTick, tx)
 					.then(() => setImmediate(cb))
 					.catch(err => {
 						library.logger.error(err.stack);
@@ -244,10 +227,10 @@ Rounds.prototype.tick = function(block, done, tx) {
 
 					return t
 						.batch([
-							t.rounds.clearRoundSnapshot(),
-							t.rounds.performRoundSnapshot(),
-							t.rounds.clearVotesSnapshot(),
-							t.rounds.performVotesSnapshot(),
+							library.storage.entities.Round.clearRoundSnapshot(t),
+							library.storage.entities.Round.performRoundSnapshot(t),
+							library.storage.entities.Round.clearVotesSnapshot(t),
+							library.storage.entities.Round.performVotesSnapshot(t),
 						])
 						.then(() => {
 							library.logger.trace('Round snapshot done');
@@ -282,8 +265,8 @@ Rounds.prototype.tick = function(block, done, tx) {
 			},
 			// Perform round tick
 			function(cb) {
-				(tx || library.db)
-					.task(Tick)
+				library.storage.adapter
+					.task('rounds:tick', Tick, tx)
 					.then(() => setImmediate(cb))
 					.catch(err => {
 						library.logger.error(err.stack);
@@ -295,6 +278,76 @@ Rounds.prototype.tick = function(block, done, tx) {
 			// Stop round ticking
 			__private.ticking = false;
 			return done(err);
+		}
+	);
+};
+
+/**
+ * Create round information record into mem_rounds.
+ *
+ * @param {string} address - Address of the account
+ * @param {Number} round - Associated round number
+ * @param {Number} amount - Amount updated on account
+ * @param {Object} [tx] - Database transaction
+ * @returns {Promise}
+ */
+Rounds.prototype.createRoundInformationWithAmount = function(
+	address,
+	round,
+	amount,
+	tx
+) {
+	return library.storage.entities.Account.getOne(
+		{ address },
+		{ extended: true },
+		tx
+	).then(account => {
+		if (!account.votedDelegatesPublicKeys) return true;
+
+		const roundData = account.votedDelegatesPublicKeys.map(
+			delegatePublicKey => ({
+				address,
+				amount,
+				round,
+				delegatePublicKey,
+			})
+		);
+
+		return library.storage.entities.Round.create(roundData, {}, tx);
+	});
+};
+
+/**
+ * Create round information record into mem_rounds.
+ *
+ * @param {string} address - Address of the account
+ * @param {Number} round - Associated round number
+ * @param {string} delegatePublicKey - Associated delegate id
+ * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
+ * @param {Object} [tx] - Databaes transaction
+ * @returns {Promise}
+ */
+Rounds.prototype.createRoundInformationWithDelegate = function(
+	address,
+	round,
+	delegatePublicKey,
+	mode,
+	tx
+) {
+	const balanceFactor = mode === '-' ? -1 : 1;
+	return library.storage.entities.Account.getOne({ address }, {}, tx).then(
+		account => {
+			const balance = new Bignumber(account.balance)
+				.multipliedBy(balanceFactor)
+				.toString();
+
+			const roundData = {
+				address,
+				delegatePublicKey,
+				round,
+				amount: balance,
+			};
+			return library.storage.entities.Round.create(roundData, {}, tx);
 		}
 	);
 };
@@ -414,8 +467,11 @@ __private.sumRound = function(scope, cb, tx) {
 
 	library.logger.debug('Summing round', scope.round);
 
-	return (tx || library.db).rounds
-		.summedRound(scope.round, ACTIVE_DELEGATES)
+	return library.storage.entities.Round.summedRound(
+		scope.round,
+		ACTIVE_DELEGATES,
+		tx
+	)
 		.then(rows => {
 			const rewards = [];
 

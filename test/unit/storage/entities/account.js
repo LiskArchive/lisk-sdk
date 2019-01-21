@@ -21,6 +21,8 @@ const { NonSupportedFilterTypeError } = require('../../../../storage/errors');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const accountFixtures = require('../../../fixtures').accounts;
+const transactionsFixtures = require('../../../fixtures').transactions;
+const forksFixtures = require('../../../fixtures').forks;
 
 const defaultCreateValues = {
 	publicKey: null,
@@ -58,6 +60,7 @@ describe('Account', () => {
 	let adapter;
 	let storage;
 	let AccountEntity;
+	let TransactionEntity;
 	let SQLs;
 
 	before(async () => {
@@ -70,6 +73,7 @@ describe('Account', () => {
 		adapter = storage.adapter;
 
 		AccountEntity = storage.entities.Account;
+		TransactionEntity = storage.entities.Transaction;
 		SQLs = AccountEntity.SQLs;
 	});
 
@@ -483,7 +487,7 @@ describe('Account', () => {
 		it('should create an account object successfully', async () => {
 			const account = new accountFixtures.Account();
 
-			expect(AccountEntity.create(account)).to.be.fulfilled;
+			await expect(AccountEntity.create(account)).to.be.fulfilled;
 
 			const accountResult = await AccountEntity.getOne(
 				{ address: account.address },
@@ -719,6 +723,104 @@ describe('Account', () => {
 		});
 	});
 
+	describe('aggregateBlocksReward()', () => {
+		it('should use the correct SQL file with three parameters', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const params = {
+				generatorPublicKey: 'afafafafaf',
+				fromTimestamp: (+new Date() / 1000).toFixed(),
+				toTimestamp: (+new Date() / 1000).toFixed(),
+			};
+			await AccountEntity.delegateBlocksRewards(params);
+
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
+				SQLs.delegateBlocksRewards
+			);
+			expect(adapter.executeFile.firstCall.args[1]).to.eql({
+				generatorPublicKey: params.generatorPublicKey,
+				fromTimestamp: params.fromTimestamp,
+				toTimestamp: params.toTimestamp,
+			});
+			expect(adapter.executeFile).to.be.calledOnce;
+		});
+
+		it('should throw error if invalid public key is passed', async () => {
+			return expect(
+				AccountEntity.delegateBlocksRewards({
+					generatorPublicKey: 'xxxxxxxxx',
+					start: (+new Date() / 1000).toFixed(),
+					end: (+new Date() / 1000).toFixed(),
+				})
+			).to.be.rejectedWith('invalid hexadecimal digit: "x"');
+		});
+
+		it('should return empty data set if a valid but non existant key is passed', async () => {
+			const account = new accountFixtures.Account();
+			const rewards = await AccountEntity.delegateBlocksRewards({
+				generatorPublicKey: account.publicKey,
+				start: (+new Date() / 1000).toFixed(),
+				end: (+new Date() / 1000).toFixed(),
+			});
+			expect(rewards).to.be.not.empty;
+			expect(rewards).to.be.an('array');
+			expect(rewards[0]).to.have.all.keys(
+				'delegate',
+				'count',
+				'fees',
+				'rewards'
+			);
+			expect(rewards[0].count).to.be.eql('0');
+			expect(rewards[0].delegate).to.be.null;
+			expect(rewards[0].fees).to.be.null;
+			return expect(rewards[0].rewards).to.be.null;
+		});
+
+		it('should return empty data set if a valid public key of a non-delegate account is passed', async () => {
+			const account = new accountFixtures.Account({
+				isDelegate: false,
+			});
+			await AccountEntity.create(account);
+
+			const rewards = await AccountEntity.delegateBlocksRewards({
+				generatorPublicKey: account.publicKey,
+				start: (+new Date() / 1000).toFixed(),
+				end: (+new Date() / 1000).toFixed(),
+			});
+			expect(rewards).to.be.not.empty;
+			expect(rewards).to.be.an('array');
+			expect(rewards[0]).to.have.all.keys(
+				'delegate',
+				'count',
+				'fees',
+				'rewards'
+			);
+			expect(rewards[0].count).to.be.eql('0');
+			expect(rewards[0].delegate).to.be.null;
+			expect(rewards[0].fees).to.be.null;
+			return expect(rewards[0].rewards).to.be.null;
+		});
+
+		it('should aggregate rewards and response in valid format', async () => {
+			const account = await adapter.db.one(
+				'SELECT encode("publicKey", \'hex\') as "publicKey" FROM mem_accounts LIMIT 1'
+			);
+			const rewards = await AccountEntity.delegateBlocksRewards({
+				generatorPublicKey: account.publicKey,
+				start: (+new Date('2017.01.01') / 1000).toFixed(),
+				end: (+new Date() / 1000).toFixed(),
+			});
+
+			expect(rewards).to.be.not.empty;
+			expect(rewards).to.be.an('array');
+			return expect(rewards[0]).to.have.all.keys(
+				'delegate',
+				'count',
+				'fees',
+				'rewards'
+			);
+		});
+	});
+
 	describe('mergeFilters()', () => {
 		it('should accept filters as single object');
 		it('should accept filters as array of objects');
@@ -919,26 +1021,26 @@ describe('Account', () => {
 		});
 	});
 
-	describe('incrementField()', () => {
+	describe('increaseFieldBy()', () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const address = '12L';
 
-			await AccountEntity.incrementField({ address }, 'balance', 123);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 123);
 
 			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.incrementField
+				SQLs.increaseFieldBy
 			);
 		});
 
-		it('should increment account attribute', async () => {
+		it('should increase account attribute', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = 15000;
 
 			await AccountEntity.create(account);
-			await AccountEntity.incrementField({ address }, 'balance', 1000);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -947,18 +1049,18 @@ describe('Account', () => {
 
 		it('should throw error if unknown field is provided', async () => {
 			expect(() =>
-				AccountEntity.incrementField({ address: '12L' }, 'unknown', 1000)
+				AccountEntity.increaseFieldBy({ address: '12L' }, 'unknown', 1000)
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
-		it('should increment balance with string data', async () => {
+		it('should increase balance with string data', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = '15000';
 
 			await AccountEntity.create(account);
-			await AccountEntity.incrementField({ address }, 'balance', 1000);
+			await AccountEntity.increaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -966,26 +1068,26 @@ describe('Account', () => {
 		});
 	});
 
-	describe('decrementField()', () => {
+	describe('decreaseFieldBy()', () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const address = '12L';
 
-			await AccountEntity.decrementField({ address }, 'balance', 123);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', 123);
 
 			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.decrementField
+				SQLs.decreaseFieldBy
 			);
 		});
 
-		it('should decrementField account attribute', async () => {
+		it('should decrease account balance by 1000', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = 15000;
 
 			await AccountEntity.create(account);
-			await AccountEntity.decrementField({ address }, 'balance', 1000);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', 1000);
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -994,18 +1096,18 @@ describe('Account', () => {
 
 		it('should throw error if unknown field is provided', async () => {
 			expect(() =>
-				AccountEntity.decrementField({ address: '12L' }, 'unknown', 1000)
+				AccountEntity.decreaseFieldBy({ address: '12L' }, 'unknown', 1000)
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
-		it('should decrementField balance with string data', async () => {
+		it('should decrease account balance by "1000" as string', async () => {
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
 			account.balance = '15000';
 
 			await AccountEntity.create(account);
-			await AccountEntity.decrementField({ address }, 'balance', 1000);
+			await AccountEntity.decreaseFieldBy({ address }, 'balance', '1000');
 
 			const updatedAccount = await AccountEntity.getOne({ address });
 
@@ -1110,6 +1212,148 @@ describe('Account', () => {
 
 				expect(before[0].count).to.eql('1');
 				expect(after[0].count).to.eql('0');
+			});
+		});
+	});
+
+	describe('syncDelegatesRanks', () => {
+		it('should use the correct SQL');
+		it(
+			'should sync rank attribute of all delegates based on their vote value and public key'
+		);
+		it('should not throw error if there is no delegate available');
+	});
+
+	describe('countDuplicatedDelegates()', () => {
+		it('should use the correct SQL no with parameter', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await AccountEntity.countDuplicatedDelegates();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.countDuplicatedDelegates,
+				{},
+				{ expectedResultCount: 1 }
+			);
+		});
+
+		it('should return zero if no delegate records available', async () => {
+			const block = seeder.getLastBlock();
+
+			const trs1 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			const trs2 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			await TransactionEntity.create([trs1, trs2]);
+
+			const delegates = await adapter.execute('SELECT * from delegates');
+
+			// As we created two delegate transactions
+			expect(delegates).to.have.lengthOf(2);
+
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(0);
+		});
+
+		it('should return zero if there are delegates but no duplicates', async () => {
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(0);
+		});
+
+		it('should return integer value of duplicate delegates', async () => {
+			const block = seeder.getLastBlock();
+
+			const trs1 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			const trs2 = new transactionsFixtures.Transaction({
+				blockId: block.id,
+				type: 2,
+			});
+			await TransactionEntity.create([trs1, trs2]);
+
+			const delegates = await adapter.execute('SELECT * from delegates');
+
+			// As we created two delegate transactions
+			expect(delegates).to.have.lengthOf(2);
+
+			// Create duplicate records for each delegate
+			await Promise.all(
+				delegates.map(delegate => {
+					const username = randomstring.generate({
+						length: 10,
+						charset: 'alphabetic',
+					});
+					return adapter.execute(
+						'INSERT INTO delegates ("transactionId", "username") VALUES ($1, $2)',
+						[delegate.transactionId, username]
+					);
+				})
+			);
+
+			const result = await AccountEntity.countDuplicatedDelegates();
+
+			expect(result).to.be.eql(2);
+		});
+	});
+
+	describe('insertFork()', () => {
+		it('should use the correct SQL with given params', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			const fork = new forksFixtures.Fork();
+			await AccountEntity.insertFork(fork);
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(
+				SQLs.insertFork,
+				fork,
+				{ expectedResultCount: 0 },
+				sinonSandbox.match.any
+			);
+		});
+
+		it('should insert valid fork entry successfully', async () => {
+			const fork = new forksFixtures.Fork();
+			await AccountEntity.insertFork(fork);
+
+			const result = await adapter.execute('SELECT * from forks_stat');
+
+			expect(result).to.be.not.empty;
+			expect(result).to.have.lengthOf(1);
+			expect(result[0]).to.have.all.keys(
+				'delegatePublicKey',
+				'blockTimestamp',
+				'blockId',
+				'blockHeight',
+				'previousBlock',
+				'cause'
+			);
+			expect(
+				Buffer.from(result[0].delegatePublicKey, 'hex').toString()
+			).to.be.eql(fork.delegatePublicKey);
+			expect(result[0].blockId).to.be.eql(fork.blockId);
+			expect(result[0].blockHeight).to.be.eql(fork.blockHeight);
+			expect(result[0].previousBlock).to.be.eql(fork.previousBlockId);
+			expect(result[0].blockTimestamp).to.be.eql(fork.blockTimestamp);
+			return expect(result[0].cause).to.be.eql(fork.cause);
+		});
+
+		const fork = new forksFixtures.Fork();
+		Object.keys(fork).forEach(attr => {
+			const params = Object.assign({}, fork);
+			delete params[attr];
+
+			it(`should be rejected with error if param "${attr}" is missing`, () => {
+				return expect(
+					AccountEntity.insertFork(params)
+				).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`);
 			});
 		});
 	});

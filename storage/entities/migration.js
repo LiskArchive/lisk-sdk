@@ -14,6 +14,8 @@
 
 'use strict';
 
+const path = require('path');
+const fs = require('fs-extra');
 const { defaults, pick } = require('lodash');
 const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
@@ -62,6 +64,7 @@ class Migration extends BaseEntity {
 			select: this.adapter.loadSQLFile('migrations/get.sql'),
 			isPersisted: this.adapter.loadSQLFile('migrations/is_persisted.sql'),
 			create: this.adapter.loadSQLFile('migrations/create.sql'),
+			applyRunTime: this.adapter.loadSQLFile('migrations/runtime.sql'),
 		};
 	}
 
@@ -169,6 +172,17 @@ class Migration extends BaseEntity {
 	}
 
 	/**
+	 * Delete operation is not supported for Migrations
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	delete() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Migration} filters
@@ -190,6 +204,116 @@ class Migration extends BaseEntity {
 				tx
 			)
 			.then(result => result.exists);
+	}
+
+	/**
+	 * Executes 'migrations/runtime.sql' file to set state to 1.
+	 *
+	 * @returns {Promise<null>} Promise object that resolves with `null`.
+	 */
+	applyRunTime() {
+		const execute = tx =>
+			this.adapter.executeFile(
+				this.SQLs.applyRunTime,
+				{},
+				{ expectedResultCount: 0 },
+				tx
+			);
+		return this.begin('migrations:Runtime', execute);
+	}
+
+	/**
+	 * Verifies presence of the 'migrations' OID named relation.
+	 *
+	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
+	 */
+	async hasMigrations() {
+		const hasMigrations = await this.adapter.execute(
+			"SELECT table_name hasMigrations FROM information_schema.tables WHERE table_name = 'migrations';"
+		);
+		return !!hasMigrations.length;
+	}
+
+	/**
+	 * Gets id of the last migration record, or 0, if none exist.
+	 *
+	 * @returns {Promise<number>}
+	 * Promise object that resolves with either 0 or id of the last migration record.
+	 */
+	async getLastId() {
+		const result = await this.get({}, { sort: 'id:DESC', limit: 1 });
+		return result.length ? parseInt(result[0].id) : null;
+	}
+
+	/**
+	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
+	 *
+	 * @param {number} lastMigrationId
+	 * @returns {Promise<Array<Object>>}
+	 * Promise object that resolves with an array of objects `{id, name, path, file}`.
+	 */
+	readPending(lastMigrationId) {
+		const updatesPath = path.join(__dirname, '../sql/migrations/updates');
+		return fs.readdir(updatesPath).then(files =>
+			files
+				.map(migrationFile => {
+					const migration = migrationFile.match(/(\d+)_(.+).sql/);
+					return (
+						migration && {
+							id: migration[1],
+							name: migration[2],
+							path: path.join('migrations/updates', migrationFile),
+						}
+					);
+				})
+				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
+				.filter(
+					migration =>
+						migration &&
+						fs
+							.statSync(path.join(this.adapter.sqlDirectory, migration.path))
+							.isFile() &&
+						(!lastMigrationId || +migration.id > lastMigrationId)
+				)
+				.map(f => {
+					f.file = this.adapter.loadSQLFile(f.path, {
+						minify: true,
+						noWarnings: true,
+					});
+					return f;
+				})
+		);
+	}
+
+	async applyPendingMigration(pendingMigration, tx) {
+		// eslint-disable-next-line no-restricted-syntax
+		await this.adapter.executeFile(pendingMigration.file, {}, {}, tx);
+		await this.create(
+			{ id: pendingMigration.id, name: pendingMigration.name },
+			{},
+			tx
+		);
+	}
+
+	/**
+	 * Applies a cumulative update: all pending migrations + runtime.
+	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
+	 *
+	 * @returns {Promise} Promise object that resolves with `undefined`.
+	 */
+	async applyAll() {
+		const hasMigrations = await this.hasMigrations();
+		const lastId = hasMigrations ? await this.getLastId() : 0;
+		const pendingMigrations = await this.readPending(lastId);
+
+		if (pendingMigrations.length > 0) {
+			// eslint-disable-next-line no-restricted-syntax
+			for (const migration of pendingMigrations) {
+				const execute = tx => this.applyPendingMigration(migration, tx);
+				// eslint-disable-next-line no-await-in-loop
+				await this.begin('migrations:applyAll', execute);
+			}
+		}
 	}
 }
 

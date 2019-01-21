@@ -423,7 +423,7 @@ __private.loadBlockChain = function() {
 					library.logger.error(err);
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
-						modules.blocks.chain.deleteAfterBlock(err.block.id, () => {
+						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
 							library.logger.error('Blockchain clipped');
 							library.bus.message('blockchainReady');
 						});
@@ -459,10 +459,10 @@ __private.loadBlockChain = function() {
 	 */
 	function checkMemTables(t) {
 		const promises = [
-			t.blocks.count(),
-			t.blocks.getGenesisBlock(),
-			t.rounds.getMemRounds(),
-			t.delegates.countDuplicatedDelegates(),
+			library.storage.entities.Block.count({}, {}, t),
+			library.storage.entities.Block.getOne({ height: 1 }, {}, t),
+			library.storage.entities.Round.getUniqueRounds(t),
+			library.storage.entities.Account.countDuplicatedDelegates(t),
 		];
 
 		return t.batch(promises);
@@ -507,7 +507,7 @@ __private.loadBlockChain = function() {
 					return reload(blocksCount);
 				}
 
-				matchGenesisBlock(getGenesisBlock[0]);
+				matchGenesisBlock(getGenesisBlock);
 
 				if (library.config.loading.snapshotRound) {
 					return __private.createSnapshot(blocksCount);
@@ -807,9 +807,7 @@ __private.createSnapshot = height => {
 				);
 			},
 			truncateBlocks(seriesCb) {
-				library.db.blocks
-					// TODO: REPLACE BY STORAGE WHEN DELETE IS IMPLEMENTED
-					.deleteBlocksAfterHeight(targetHeight)
+				library.storage.entities.Block.delete({ height_gt: targetHeight })
 					.then(() => setImmediate(seriesCb))
 					.catch(err => setImmediate(seriesCb, err));
 			},
