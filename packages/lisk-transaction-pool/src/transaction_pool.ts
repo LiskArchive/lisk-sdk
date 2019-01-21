@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { EventEmitter } from 'events';
 import {
 	CheckerFunction,
 	CheckTransactionsResponseWithPassAndFail,
@@ -99,7 +100,10 @@ const DEFAULT_VALIDATED_TRANSACTIONS_LIMIT_PER_PROCESSING = 100;
 const DEFAULT_VERIFIED_TRANSACTIONS_PROCESSING_INTERVAL = 30000;
 const DEFAULT_VERIFIED_TRANSACTIONS_LIMIT_PER_PROCESSING = 100;
 
-export class TransactionPool {
+const EVENT_ADDED_TRANASCTION = 'transactionAdded';
+const EVENT_REMOVED_TRANSACTION = 'transactionRemoved';
+
+export class TransactionPool extends EventEmitter {
 	private readonly _pendingTransactionsProcessingLimit: number;
 	private readonly _expireTransactionsInterval: number;
 	private readonly _expireTransactionsJob: Job<ReadonlyArray<Transaction>>;
@@ -132,6 +136,7 @@ export class TransactionPool {
 		verifyTransactions,
 		processTransactions,
 	}: TransactionPoolOptions) {
+		super();
 		this._maxTransactionsPerQueue = maxTransactionsPerQueue;
 		this._pendingTransactionsProcessingLimit = pendingTransactionsProcessingLimit;
 
@@ -213,6 +218,12 @@ export class TransactionPool {
 		this._queues.validated.enqueueMany(removedTransactionsByRecipientId);
 		// Add transactions to the verified queue which were included in the verified removed transactions
 		this._queues.verified.enqueueMany(transactions);
+
+		this.emit(EVENT_ADDED_TRANASCTION, {
+			action: 'addVerifiedRemovedTransactions',
+			to: 'verified',
+			payload: transactions,
+		});
 	}
 
 	// It is assumed that signature is verified for this transaction before this function is called
@@ -263,7 +274,7 @@ export class TransactionPool {
 		transactions: ReadonlyArray<Transaction>,
 	): void {
 		// Remove transactions in the transaction pool which were included in the confirmed transactions
-		this.removeTransactionsFromQueues(
+		const removedTransactions = this.removeTransactionsFromQueues(
 			Object.keys(this._queues),
 			queueCheckers.checkTransactionForId(transactions),
 		);
@@ -285,6 +296,11 @@ export class TransactionPool {
 				confirmedTransactionsWithUniqueData,
 			),
 		);
+
+		this.emit(EVENT_REMOVED_TRANSACTION, {
+			action: 'removeConfirmedTransactions',
+			payload: removedTransactions,
+		});
 
 		// Add transactions which need to be reverified to the validated queue
 		this._queues.validated.enqueueMany([
@@ -343,6 +359,12 @@ export class TransactionPool {
 
 		this._queues[queueName].enqueueOne(transaction);
 
+		this.emit(EVENT_ADDED_TRANASCTION, {
+			action: 'addTransactions',
+			to: queueName,
+			payload: [transaction],
+		});
+
 		return {
 			isFull: false,
 			alreadyExists: false,
@@ -350,10 +372,17 @@ export class TransactionPool {
 	}
 
 	private async expireTransactions(): Promise<ReadonlyArray<Transaction>> {
-		return this.removeTransactionsFromQueues(
+		const expiredTransactions = this.removeTransactionsFromQueues(
 			Object.keys(this._queues),
 			queueCheckers.checkTransactionForExpiry(),
 		);
+
+		this.emit(EVENT_REMOVED_TRANSACTION, {
+			action: 'expireTransactions',
+			payload: expiredTransactions,
+		});
+
+		return expiredTransactions;
 	}
 
 	private async processVerifiedTransactions(): Promise<
@@ -417,7 +446,7 @@ export class TransactionPool {
 		const { received, validated, ...otherQueues } = this._queues;
 
 		// Remove invalid transactions from verified, pending and ready queues
-		this.removeTransactionsFromQueues(
+		const removedTransactions = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
@@ -442,6 +471,11 @@ export class TransactionPool {
 				queueCheckers.checkTransactionForId(passedTransactions),
 			),
 		);
+
+		this.emit(EVENT_REMOVED_TRANSACTION, {
+			action: 'processVerifiedTransactions',
+			payload: removedTransactions,
+		});
 
 		return {
 			passedTransactions,
@@ -484,7 +518,7 @@ export class TransactionPool {
 		);
 
 		// Remove invalid transactions
-		this._queues.received.removeFor(
+		const removedTransactions = this._queues.received.removeFor(
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
 		// Move valid transactions from the received queue to the validated queue
@@ -493,6 +527,11 @@ export class TransactionPool {
 				queueCheckers.checkTransactionForId(passedTransactions),
 			),
 		);
+
+		this.emit(EVENT_REMOVED_TRANSACTION, {
+			action: 'validateReceivedTransactions',
+			payload: removedTransactions,
+		});
 
 		return {
 			passedTransactions,
@@ -519,7 +558,7 @@ export class TransactionPool {
 		);
 
 		// Remove invalid transactions
-		this._queues.validated.removeFor(
+		const removedTransactions = this._queues.validated.removeFor(
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
 
@@ -536,6 +575,11 @@ export class TransactionPool {
 				queueCheckers.checkTransactionForId(pendingTransactions),
 			),
 		);
+
+		this.emit(EVENT_REMOVED_TRANSACTION, {
+			action: 'verifyValidatedTransactions',
+			payload: removedTransactions,
+		});
 
 		return {
 			passedTransactions,
