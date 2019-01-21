@@ -13,6 +13,7 @@
  *
  */
 import BigNum from 'browserify-bignum';
+import { IN_TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
 import { convertBeddowsToLSK } from '../utils';
@@ -75,6 +76,7 @@ export const inTransferAssetFormatSchema = {
 
 export class InTransferTransaction extends BaseTransaction {
 	public readonly asset: InTransferAsset;
+	public readonly fee: BigNum = new BigNum(IN_TRANSFER_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -237,6 +239,16 @@ export class InTransferTransaction extends BaseTransaction {
 			  )
 			: [];
 		errors.push(...assetErrors);
+
+		if (!this.fee.eq(IN_TRANSFER_FEE)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${IN_TRANSFER_FEE}`,
+					this.id,
+					'.fee',
+				),
+			);
+		}
 
 		return {
 			id: this.id,
