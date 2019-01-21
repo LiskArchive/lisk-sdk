@@ -54,30 +54,36 @@ pipeline {
 		}
 		stage('Run tests') {
 			steps {
-				ansiColor('xterm') {
-					nvm(getNodejsVersion()) {
-						sh 'npm run test'
+				timeout(10) {
+					ansiColor('xterm') {
+						nvm(getNodejsVersion()) {
+							sh 'npm run test'
+						}
 					}
 				}
 			}
 		}
 		stage('Run node tests') {
 			steps {
-				ansiColor('xterm') {
-					nvm(getNodejsVersion()) {
-						sh 'npm run test:node'
+				timeout(10) {
+					ansiColor('xterm') {
+						nvm(getNodejsVersion()) {
+							sh 'npm run test:node'
+						}
 					}
 				}
 			}
 		}
 		stage('Run browser tests') {
 			steps {
-				ansiColor('xterm') {
-					nvm(getNodejsVersion()) {
-						sh '''
-						npm run build:browsertest
-						npm run test:browser
-						'''
+				timeout(10) {
+					ansiColor('xterm') {
+						nvm(getNodejsVersion()) {
+							sh '''
+							npm run build:browsertest
+							npm run test:browser
+							'''
+						}
 					}
 				}
 			}
