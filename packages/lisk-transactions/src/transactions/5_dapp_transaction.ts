@@ -12,11 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { DAPP_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
-import { isTypedObjectArrayWithKeys, validator } from '../utils/validation';
+import {
+	isTypedObjectArrayWithKeys,
+	stringEndsWith,
+	validator,
+} from '../utils/validation';
 import {
 	Attributes,
 	BaseTransaction,
@@ -34,7 +37,7 @@ export interface DappAsset {
 		readonly category: number;
 		readonly description?: string;
 		readonly icon?: string;
-		readonly link: string;
+		readonly link?: string;
 		readonly name: string;
 		readonly tags?: string;
 		readonly type: number;
@@ -45,7 +48,7 @@ export interface DappOptions {
 	readonly category: number;
 	readonly description?: string;
 	readonly icon?: string;
-	readonly link: string;
+	readonly link?: string;
 	readonly name: string;
 	readonly tags?: string;
 	readonly type: number;
@@ -73,7 +76,7 @@ export const dappAssetTypeSchema = {
 	properties: {
 		dapp: {
 			type: 'object',
-			required: ['name', 'type', 'category', 'link'],
+			required: ['name', 'type', 'category'],
 			properties: {
 				icon: {
 					type: 'string',
@@ -107,30 +110,40 @@ export const dappAssetFormatSchema = {
 	properties: {
 		dapp: {
 			type: 'object',
-			required: ['name', 'type', 'category', 'link'],
+			required: ['name', 'type', 'category'],
 			properties: {
 				icon: {
 					type: 'string',
+					format: 'uri',
+					maxLength: 2000,
 				},
 				category: {
 					type: 'integer',
+					minimum: 0,
+					maximum: 8,
 				},
 				type: {
 					type: 'integer',
+					minimum: 0,
 				},
 				link: {
 					type: 'string',
+					format: 'uri',
+					minLength: 0,
+					maxLength: 2000,
 				},
 				tags: {
 					type: 'string',
+					maxLength: 160,
 				},
 				description: {
 					type: 'string',
+					maxLength: 160,
 				},
 				name: {
 					type: 'string',
 					minLength: 1,
-					maxLength: 20,
+					maxLength: 32,
 				},
 			},
 		},
@@ -176,15 +189,11 @@ export class DappTransaction extends BaseTransaction {
 			return transaction;
 		}
 
-		const {
-			address: senderId,
-			publicKey: senderPublicKey,
-		} = getAddressAndPublicKeyFromPassphrase(passphrase);
 		const transactionWithSenderInfo = {
 			...transaction,
-			senderId,
-			senderPublicKey,
-			recipientId: senderId,
+			senderId: transaction.senderId as string,
+			senderPublicKey: transaction.senderPublicKey as string,
+			recipientId: transaction.senderId as string,
 		};
 
 		const dappTransaction = new DappTransaction(transactionWithSenderInfo);
@@ -221,7 +230,7 @@ export class DappTransaction extends BaseTransaction {
 			category,
 		} = this.asset.dapp;
 		const nameBuffer = Buffer.from(name, 'utf8');
-		const linkBuffer = Buffer.from(link, 'utf8');
+		const linkBuffer = link ? Buffer.from(link, 'utf8') : Buffer.alloc(0);
 		const typeBuffer = Buffer.alloc(DAPP_TYPE_LENGTH);
 		typeBuffer.writeIntLE(type, 0, DAPP_TYPE_LENGTH);
 		const categoryBuffer = Buffer.alloc(DAPP_CATEGORY_LENGTH);
@@ -252,12 +261,19 @@ export class DappTransaction extends BaseTransaction {
 
 	public getRequiredAttributes(): Attributes {
 		const attr = super.getRequiredAttributes();
+		const filterObject = {
+			dappName: [this.asset.dapp.name],
+		};
+		const uniqueFields = this.asset.dapp.link
+			? {
+					...filterObject,
+					dappLink: [this.asset.dapp.link],
+			  }
+			: filterObject;
 
 		return {
 			...attr,
-			[ENTITY_TRANSACTION]: {
-				dappName: [this.asset.dapp.name],
-			},
+			[ENTITY_TRANSACTION]: uniqueFields,
 		};
 	}
 
@@ -280,6 +296,20 @@ export class DappTransaction extends BaseTransaction {
 						),
 				  ]
 				: [];
+		if (
+			sameTypeTransactions.filter(
+				tx =>
+					this.asset.dapp.link && this.asset.dapp.link === tx.asset.dapp.link,
+			).length > 0
+		) {
+			errors.push(
+				new TransactionError(
+					'Dapp with the same link already exists.',
+					this.id,
+					'.asset.dapp.link',
+				),
+			);
+		}
 
 		return {
 			id: this.id,
@@ -364,6 +394,49 @@ export class DappTransaction extends BaseTransaction {
 			  )
 			: [];
 		errors.push(...assetErrors);
+		const validLinkSuffix = ['.zip'];
+		if (
+			this.asset.dapp.link &&
+			!stringEndsWith(this.asset.dapp.link, validLinkSuffix)
+		) {
+			errors.push(
+				new TransactionError(
+					`Dapp icon must have suffix ${validLinkSuffix.toString()}`,
+					this.id,
+					'.asset.dapp.link',
+				),
+			);
+		}
+
+		const validIconSuffix = ['.png', '.jpeg', '.jpg'];
+		if (
+			this.asset.dapp.icon &&
+			!stringEndsWith(this.asset.dapp.icon, validIconSuffix)
+		) {
+			errors.push(
+				new TransactionError(
+					`Dapp icon must have suffix of one of ${validIconSuffix.toString()}`,
+					this.id,
+					'.asset.dapp.icon',
+				),
+			);
+		}
+
+		if (this.asset.dapp.tags) {
+			const tags = this.asset.dapp.tags
+				.split(',')
+				.map(tag => tag.trim())
+				.sort();
+			if (tags.length !== new Set(tags).size) {
+				errors.push(
+					new TransactionError(
+						`Dapp tags must have unique set`,
+						this.id,
+						'.asset.dapp.tags',
+					),
+				);
+			}
+		}
 
 		return {
 			id: this.id,

@@ -172,11 +172,11 @@ describe('Dapp transaction class', () => {
 				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect((result as any).asset.dapp).to.eql(defaultOptions);
 
+				expect((result as any).senderId).to.be.undefined;
 				expect((result as any).senderPublicKey).to.be.undefined;
 				expect(result).to.have.property('recipientId', '');
 
 				expect(result).not.to.have.property('id');
-				expect(result).not.to.have.property('senderId');
 				expect(result).not.to.have.property('signature');
 				expect(result).not.to.have.property('signSignature');
 			});
@@ -496,11 +496,11 @@ describe('Dapp transaction class', () => {
 		it('should return TransactionResponse with error when dapp name exceeds maximum', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
-				id: '8404495317536271441',
+				id: '6689439085046222713',
 				asset: {
 					dapp: {
 						...defaultValidDappTransaction.asset.dapp,
-						name: 'Excepteur sint occaec',
+						name: 'Excepteur sint occaecocsd rutrume',
 					},
 				},
 			};
