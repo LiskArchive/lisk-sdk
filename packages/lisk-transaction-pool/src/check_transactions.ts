@@ -16,38 +16,88 @@ export interface TransactionResponse {
 }
 
 export enum Status {
+	FAIL = 0,
 	OK = 1,
-	FAIL = 2,
+	PENDING = 2,
 }
 
-export interface CheckTransactionsResponse {
+export interface CheckTransactionsResponseWithPassAndFail {
 	failedTransactions: ReadonlyArray<Transaction>;
 	passedTransactions: ReadonlyArray<Transaction>;
 }
 
-export const checkTransactions = async (
+export interface CheckTransactionsResponseWithPassFailAndPending {
+	failedTransactions: ReadonlyArray<Transaction>;
+	passedTransactions: ReadonlyArray<Transaction>;
+	pendingTransactions: ReadonlyArray<Transaction>;
+}
+
+const getTransactionByStatus = (
+	transactions: ReadonlyArray<Transaction>,
+	responses: ReadonlyArray<TransactionResponse>,
+	status: Status,
+): ReadonlyArray<Transaction> => {
+	const transactionIdsByStatus = responses
+		.filter(transactionResponse => transactionResponse.status === status)
+		.map(transactionStatus => transactionStatus.id);
+
+	const transactionsByStatus = transactions.filter(transaction =>
+		transactionIdsByStatus.includes(transaction.id),
+	);
+
+	return transactionsByStatus;
+};
+
+export const checkTransactionsWithPassAndFail = async (
 	transactions: ReadonlyArray<Transaction>,
 	checkerFunction: CheckerFunction,
-): Promise<CheckTransactionsResponse> => {
+): Promise<CheckTransactionsResponseWithPassAndFail> => {
 	// Process transactions and check their validity
 	const { transactionsResponses } = await checkerFunction(transactions);
 
-	// Get ids of failed transactions from the response
-	const failedTransactionIds = transactionsResponses
-		.filter(transactionResponse => transactionResponse.status === Status.FAIL)
-		.map(transactionStatus => transactionStatus.id);
-
-	// Filter transactions which were failed
-	const failedTransactions = transactions.filter(transaction =>
-		failedTransactionIds.includes(transaction.id),
+	const failedTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.FAIL,
 	);
-	// Filter transactions which were ok
-	const passedTransactions = transactions.filter(
-		transaction => !failedTransactionIds.includes(transaction.id),
+	const passedTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.OK,
 	);
 
 	return {
 		failedTransactions,
 		passedTransactions,
+	};
+};
+
+export const checkTransactionsWithPassFailAndPending = async (
+	transactions: ReadonlyArray<Transaction>,
+	checkerFunction: CheckerFunction,
+): Promise<CheckTransactionsResponseWithPassFailAndPending> => {
+	// Process transactions and check their validity
+	const { transactionsResponses } = await checkerFunction(transactions);
+
+	const failedTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.FAIL,
+	);
+	const passedTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.OK,
+	);
+	const pendingTransactions = getTransactionByStatus(
+		transactions,
+		transactionsResponses,
+		Status.PENDING,
+	);
+
+	return {
+		failedTransactions,
+		passedTransactions,
+		pendingTransactions,
 	};
 };

@@ -1,7 +1,7 @@
 import { Transaction } from './transaction_pool';
 
 interface QueueIndex {
-	[index: string]: Transaction;
+	[index: string]: Transaction | undefined;
 }
 
 interface RemoveForReduceObject {
@@ -88,6 +88,12 @@ export class Queue {
 		return !!this._index[transaction.id];
 	}
 
+	public filter(
+		condition: (transaction: Transaction) => boolean,
+	): ReadonlyArray<Transaction> {
+		return this._transactions.filter(condition);
+	}
+
 	public peekUntil(
 		condition: (transaction: Transaction) => boolean,
 	): ReadonlyArray<Transaction> {
@@ -145,5 +151,9 @@ export class Queue {
 
 	public size(): number {
 		return this._transactions.length;
+	}
+
+	public sizeBy(condition: (transaction: Transaction) => boolean): number {
+		return this._transactions.filter(condition).length;
 	}
 }
