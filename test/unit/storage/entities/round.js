@@ -923,9 +923,7 @@ describe('Round', () => {
 
 			const result = await RoundEntity.getDelegatesSnapshot(3);
 
-			expect(
-				result.map(({ publicKey }) => publicKey)
-			).to.be.eql(
+			expect(result.map(({ publicKey }) => publicKey)).to.be.eql(
 				_.orderBy(accounts, ['vote', 'publicKey'], ['desc', 'asc']).map(
 					r => r.publicKey
 				)

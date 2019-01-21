@@ -489,7 +489,13 @@ d.run(() => {
 						storage.entities.Account.extendDefaultOptions({
 							limit: global.constants.ACTIVE_DELEGATES,
 						});
-
+						return status;
+					})
+					.then(async status => {
+						if (status) {
+							await storage.entities.Migration.applyAll();
+							await storage.entities.Migration.applyRunTime();
+						}
 						cb(!status, storage);
 					})
 					.catch(err => {

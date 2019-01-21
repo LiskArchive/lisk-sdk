@@ -36,9 +36,4 @@ module.exports = {
 		getMemberPublicKeys: link('multisignatures/get_member_public_keys.sql'),
 		getGroupIds: link('multisignatures/get_group_ids.sql'),
 	},
-	migrations: {
-		getLastId: link('migrations/get_last_id.sql'),
-		add: link('migrations/add.sql'),
-		runtime: link('migrations/runtime.sql'),
-	},
 };
