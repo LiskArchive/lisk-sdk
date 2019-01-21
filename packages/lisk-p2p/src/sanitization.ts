@@ -16,8 +16,8 @@ import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
 import {
 	InvalidPeer,
-	InvalidProtocolMessage,
-	InvalidRPCRequest,
+	InvalidProtocolMessageError,
+	InvalidRPCRequestError,
 	InvalidRPCResponse,
 } from './errors';
 import { ProtocolMessage, ProtocolPeerInfo, ProtocolRPCRequest } from './p2p_types';
@@ -98,17 +98,17 @@ export const sanitizePeerInfoList = (
 	}
 };
 
-export const sanitizeRPCRequest = (request: unknown): ProtocolRPCRequest => {
+export const validateRPCRequest = (request: unknown): ProtocolRPCRequest => {
 	if (!request) {
-		throw new InvalidRPCRequest('Invalid request');
+		throw new InvalidRPCRequestError('Invalid request');
 	}
 
 	const rpcRequest = request as ProtocolRPCRequest;
 	if (typeof rpcRequest.procedure !== 'string') {
-		throw new InvalidRPCRequest('Request procedure name is not a string');
+		throw new InvalidRPCRequestError('Request procedure name is not a string');
 	}
 	if (typeof rpcRequest.data !== 'object') {
-		throw new InvalidRPCRequest('Invalid request data');
+		throw new InvalidRPCRequestError('Invalid request data');
 	}
 
 	return rpcRequest;
@@ -116,12 +116,12 @@ export const sanitizeRPCRequest = (request: unknown): ProtocolRPCRequest => {
 
 export const sanitizeProtocolMessage = (message: unknown): ProtocolMessage => {
 	if (!message) {
-		throw new InvalidProtocolMessage('Invalid message');
+		throw new InvalidProtocolMessageError('Invalid message');
 	}
 
 	const protocolMessage = message as ProtocolMessage;
 	if (typeof protocolMessage.event !== 'string') {
-		throw new InvalidProtocolMessage('Protocol message is not a string');
+		throw new InvalidProtocolMessageError('Protocol message is not a string');
 	}
 
 	return protocolMessage;
