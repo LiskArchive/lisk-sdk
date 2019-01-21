@@ -172,6 +172,17 @@ class Migration extends BaseEntity {
 	}
 
 	/**
+	 * Delete operation is not supported for Migrations
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	delete() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Migration} filters
