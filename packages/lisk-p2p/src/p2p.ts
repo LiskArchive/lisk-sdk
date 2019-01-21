@@ -228,9 +228,10 @@ export class P2P extends EventEmitter {
 					if (isNewPeer) {
 						this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 						this.emit(EVENT_NEW_PEER, incomingPeerInfo);
-						this._newPeers.add(incomingPeerInfo);
-					} else {
-						this._newPeers.add(incomingPeerInfo);
+
+						if (!this._newPeers.has(incomingPeerInfo)) {
+							this._newPeers.add(incomingPeerInfo);
+						}
 					}
 				}
 			},
