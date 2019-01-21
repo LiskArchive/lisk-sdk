@@ -55,9 +55,9 @@ describe('transaction movement between queues', () => {
 		});
 	});
 
-	//afterEach(async () => {
-	//	transactionPool.cleanup();
-	//});
+	afterEach(async () => {
+		transactionPool.cleanup();
+	});
 
 	describe('validate received transactions', () => {
 		let transactionsToValidate: ReadonlyArray<Transaction>;
@@ -139,7 +139,7 @@ describe('transaction movement between queues', () => {
 				});
 			});
 
-			it('should move verifiable transactions to the verfied queue', async () => {
+			it('should move verified transactions to the verified queue', async () => {
 				await wrapExpectationInNextTick(() => {
 					verifiableTransactions.forEach(transaction => {
 						expect(transactionPool.queues.verified.exists(transaction)).to.be
@@ -151,7 +151,7 @@ describe('transaction movement between queues', () => {
 				});
 			});
 
-			it('should remove unverifiable transactions from the transaction pool', async () => {
+			it('should remove verified transactions from the transaction pool', async () => {
 				await wrapExpectationInNextTick(() => {
 					unverifiableTransactions.forEach(transaction => {
 						expect(transactionPool.existsInTransactionPool(transaction)).to.be
@@ -198,7 +198,7 @@ describe('transaction movement between queues', () => {
 					});
 				});
 
-				it('should remove unverifiable transactions from the transaction pool', async () => {
+				it('should remove unverfied transactions from the transaction pool', async () => {
 					await wrapExpectationInNextTick(() => {
 						unprocessableTransactions.forEach(transaction => {
 							expect(transactionPool.existsInTransactionPool(transaction)).to.be

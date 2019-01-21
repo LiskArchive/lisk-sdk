@@ -158,15 +158,15 @@ describe('transaction pool events', () => {
 		});
 
 		describe('on removing confirmed transactions', () => {
-			const affectedTypeWhichContainsUnqiueData = 2;
+			const affectedTypeWhichContainsUniqueData = 2;
 			const transactionsWithAffectedTypeInVerifiedQueue = transactionsInVerifiedQueue.filter(
-				transaction => transaction.type === affectedTypeWhichContainsUnqiueData,
+				transaction => transaction.type === affectedTypeWhichContainsUniqueData,
 			);
 			const transactionsWithAffectedTypeInPendingQueue = transactionsInPendingQueue.filter(
-				transaction => transaction.type === affectedTypeWhichContainsUnqiueData,
+				transaction => transaction.type === affectedTypeWhichContainsUniqueData,
 			);
 			const transactionsWithAffectedTypeInReadyQueue = transactionsInReadyQueue.filter(
-				transaction => transaction.type === affectedTypeWhichContainsUnqiueData,
+				transaction => transaction.type === affectedTypeWhichContainsUniqueData,
 			);
 
 			const confirmedTransactions = [
