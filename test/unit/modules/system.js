@@ -91,6 +91,7 @@ describe('system', () => {
 			expect(self.headers).to.be.a('function');
 			expect(self.getOS).to.be.a('function');
 			expect(self.getVersion).to.be.a('function');
+			expect(self.getProtocolVersion).to.be.a('function');
 			expect(self.getPort).to.be.a('function');
 			expect(self.getHeight).to.be.a('function');
 			expect(self.getNethash).to.be.a('function');
@@ -217,6 +218,46 @@ describe('system', () => {
 			it('should return false', () => {
 				return expect(systemModule.versionCompatible('1.0.0-alpha.10')).to.be
 					.false;
+			});
+		});
+	});
+
+	describe('protocolVersionCompatible', () => {
+		describe(`when protocol version is exactly equal to system protocol version`, () => {
+			it('should return true', () => {
+				return expect(systemModule.protocolVersionCompatible('1.0')).to.be.true;
+			});
+		});
+		describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', () => {
+			it("should return false if it's greater or lesser", () => {
+				return expect(systemModule.protocolVersionCompatible('2.0')).to.be
+					.false;
+			});
+			it("should return false if it's lesser", () => {
+				return expect(systemModule.protocolVersionCompatible('0.0')).to.be
+					.false;
+			});
+		});
+		describe('when the hard part of protocol is equal to  the one of the system protocol version', () => {
+			it('should return true', () => {
+				return expect(systemModule.protocolVersionCompatible('1.5')).to.be.true;
+			});
+		});
+		describe('when the hard part of the protocol version is already compatible', () => {
+			beforeEach(() => {
+				__private.protocolVersion = '1.1'; // So we can test smaller values for the soft part
+			});
+
+			afterEach(() => {
+				__private.protocolVersion = '1.0';
+			});
+
+			it('should return true if the soft part is lesser, equal or greater than the soft part of the system protocol version', () => {
+				return ['1.0', '1.1', '1.2'].forEach(
+					protocolVersion =>
+						expect(systemModule.protocolVersionCompatible(protocolVersion)).to
+							.be.true
+				);
 			});
 		});
 	});
