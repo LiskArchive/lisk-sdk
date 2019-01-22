@@ -18,7 +18,6 @@ const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
 const Sequence = require('../../helpers/sequence.js');
-const database = require('../../db');
 const Logger = require('../../logger.js');
 const Z_schema = require('../../helpers/z_schema.js');
 const RedisConnector = require('../../helpers/redis_connector.js');
@@ -27,6 +26,7 @@ const ed = require('../../helpers/ed');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Transaction = require('../../logic/transaction.js');
 const Account = require('../../logic/account.js');
+const createStorage = require('../../storage');
 
 const modulesLoader = new function() {
 	this.db = null;
@@ -273,11 +273,22 @@ const modulesLoader = new function() {
 		if (this.db) {
 			return cb(null, this.db);
 		}
-		return database
-			.connect(this.scope.config.db, this.logger)
-			.then(db => {
-				this.db = db;
-				cb(null, db);
+		const storage = createStorage(this.scope.config.db, this.logger);
+		return storage
+			.bootstrap()
+			.then(status => {
+				storage.entities.Account.extendDefaultOptions({
+					limit: global.constants.ACTIVE_DELEGATES,
+				});
+				return status;
+			})
+			.then(async status => {
+				if (status) {
+					await storage.entities.Migration.applyAll();
+					await storage.entities.Migration.applyRunTime();
+				}
+				this.db = storage;
+				cb(null, storage);
 			})
 			.catch(err => {
 				return cb(err);
