@@ -41,6 +41,7 @@ import {
 	convertBeddowsToLSK,
 	getId,
 	getTimeWithOffset,
+	validatePublicKey,
 	validator,
 	verifyBalance,
 	verifyMultisignatures,
@@ -165,7 +166,7 @@ export abstract class BaseTransaction {
 
 	public get id(): string {
 		if (!this._id) {
-			throw new Error('id is requied to be set before use');
+			throw new Error('id is required to be set before use');
 		}
 
 		return this._id;
@@ -173,7 +174,7 @@ export abstract class BaseTransaction {
 
 	public get signature(): string {
 		if (!this._signature) {
-			throw new Error('signature is requied to be set before use');
+			throw new Error('signature is required to be set before use');
 		}
 
 		return this._signature;
@@ -248,6 +249,16 @@ export abstract class BaseTransaction {
 						this.id,
 						'.senderId',
 					),
+				);
+			}
+		}
+
+		if (this.recipientPublicKey) {
+			try {
+				validatePublicKey(this.recipientPublicKey);
+			} catch (error) {
+				errors.push(
+					new TransactionError(error.message, this.id, '.recipientPublicKey'),
 				);
 			}
 		}
@@ -337,7 +348,6 @@ export abstract class BaseTransaction {
 
 	public verify({ sender }: RequiredState): TransactionResponse {
 		const errors: TransactionError[] = [];
-
 		// Check senderPublicKey
 		if (sender.publicKey !== this.senderPublicKey) {
 			errors.push(
@@ -524,7 +534,7 @@ export abstract class BaseTransaction {
 		const transactionBytes = this.signSignature
 			? Buffer.concat([
 					this.getBasicBytes(),
-					Buffer.from(this.signature, 'hex'),
+					hexToBuffer(this.signature),
 			  ])
 			: this.getBasicBytes();
 
