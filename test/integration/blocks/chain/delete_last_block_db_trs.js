@@ -28,18 +28,17 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 
 	localCommon.beforeBlock('system_blocks_chain_pop_last_block', lib => {
 		library = lib;
-		db = library.db;
+		db = library.storage;
 	});
 
 	afterEach(done => {
-		db
-			.task(t => {
-				return t.batch([
-					db.none('DELETE FROM blocks WHERE "height" > 1;'),
-					db.none('DELETE FROM forks_stat;'),
-					db.none('UPDATE mem_accounts SET "producedBlocks" = 0'),
-				]);
-			})
+		db.entities.Block.begin(t => {
+			return t.batch([
+				db.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
+				db.adapter.execute('DELETE FROM forks_stat;'),
+				db.adapter.execute('UPDATE mem_accounts SET "producedBlocks" = 0'),
+			]);
+		})
 			.then(() => {
 				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 				done();

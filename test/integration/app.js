@@ -30,7 +30,7 @@ describe('app', () => {
 		it('should init successfully without any error', done => {
 			application.init({ sandbox: { name: 'lisk_test_app' } }, (err, lib) => {
 				library = lib;
-				Queries = new QueriesHelper(lib, lib.db);
+				Queries = new QueriesHelper(lib, library.storage);
 				done(err);
 			});
 		});
