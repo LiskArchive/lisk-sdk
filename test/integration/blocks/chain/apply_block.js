@@ -24,18 +24,18 @@ const localCommon = require('../../common');
 describe('system test (blocks) - chain/applyBlock', () => {
 	const transferAmount = 100000000 * 100;
 	let library;
-	let db;
+	let storage;
 
 	localCommon.beforeBlock('system_blocks_chain_apply_block', lib => {
 		library = lib;
-		db = library.storage;
+		storage = library.storage;
 	});
 
 	afterEach(done => {
-		db.entities.Block.begin(t => {
+		storage.entities.Block.begin(t => {
 			return t.batch([
-				db.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
-				db.adapter.execute('DELETE FROM forks_stat;'),
+				storage.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
+				storage.adapter.execute('DELETE FROM forks_stat;'),
 			]);
 		})
 			.then(() => {
