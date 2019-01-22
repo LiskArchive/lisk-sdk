@@ -232,7 +232,7 @@ export class TransactionPool extends EventEmitter {
 		this._queues.verified.enqueueMany(transactions);
 
 		this.emit(EVENT_ADDED_TRANASCTIONS, {
-			action: 'addVerifiedRemovedTransactions',
+			action: ACTION_ADD_VERIFIED_REMOVED_TRANSACTIONS,
 			to: 'verified',
 			payload: transactions,
 		});
@@ -310,7 +310,7 @@ export class TransactionPool extends EventEmitter {
 		);
 
 		this.emit(EVENT_REMOVED_TRANSACTIONS, {
-			action: 'removeConfirmedTransactions',
+			action: ACTION_REMOVE_CONFIRMED_TRANSACTIONS,
 			payload: removedTransactions,
 		});
 
@@ -372,7 +372,7 @@ export class TransactionPool extends EventEmitter {
 		this._queues[queueName].enqueueOne(transaction);
 
 		this.emit(EVENT_ADDED_TRANASCTIONS, {
-			action: 'addTransactions',
+			action: ACTION_ADD_TRANSACTIONS,
 			to: queueName,
 			payload: [transaction],
 		});
@@ -390,7 +390,7 @@ export class TransactionPool extends EventEmitter {
 		);
 
 		this.emit(EVENT_REMOVED_TRANSACTIONS, {
-			action: 'expireTransactions',
+			action: ACTION_EXPIRE_TRANSACTIONS,
 			payload: expiredTransactions,
 		});
 
@@ -485,7 +485,7 @@ export class TransactionPool extends EventEmitter {
 		);
 
 		this.emit(EVENT_REMOVED_TRANSACTIONS, {
-			action: 'processVerifiedTransactions',
+			action: ACTION_PROCESS_VERIFIED_TRANSACTIONS,
 			payload: removedTransactions,
 		});
 
@@ -541,7 +541,7 @@ export class TransactionPool extends EventEmitter {
 		);
 
 		this.emit(EVENT_REMOVED_TRANSACTIONS, {
-			action: 'validateReceivedTransactions',
+			action: ACTION_VALIDATE_RECEIVED_TRANSACTIONS,
 			payload: removedTransactions,
 		});
 
@@ -589,7 +589,7 @@ export class TransactionPool extends EventEmitter {
 		);
 
 		this.emit(EVENT_REMOVED_TRANSACTIONS, {
-			action: 'verifyValidatedTransactions',
+			action: ACTION_VERIFY_VALIDATED_TRANSACTIONS,
 			payload: removedTransactions,
 		});
 
