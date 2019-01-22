@@ -19,9 +19,7 @@ import { expect } from 'chai';
 import transactionObjects from '../fixtures/transactions.json';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 
-const transactions = transactionObjects
-	.map(tx => ({ ...tx, containsUniqueData: false }))
-	.map(wrapTransferTransaction);
+const transactions = transactionObjects.map(wrapTransferTransaction);
 
 describe('Queue', () => {
 	let queue: Queue;

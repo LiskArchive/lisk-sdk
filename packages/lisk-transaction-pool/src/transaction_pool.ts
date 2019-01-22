@@ -32,7 +32,7 @@ export interface TransactionObject {
 	readonly senderPublicKey: string;
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
-	containsUniqueData: boolean;
+	containsUniqueData?: boolean;
 }
 
 export interface SignatureObject {

@@ -20,9 +20,7 @@ describe('transaction pool', () => {
 	const receivedTransactionsLimitPerProcessing = 100;
 	const validatedTransactionsProcessingInterval = 100;
 	const validatedTransactionsLimitPerProcessing = 100;
-	const transactions = transactionObjects
-		.map(tx => ({ ...tx, containsUniqueData: false }))
-		.map(wrapTransferTransaction);
+	const transactions = transactionObjects.map(wrapTransferTransaction);
 	const verifiedTransactionsProcessingInterval = 100;
 	const verifiedTransactionsLimitPerProcessing = 100;
 	const pendingTransactionsProcessingLimit = 5;

@@ -6,9 +6,9 @@ import transactionObjects from '../fixtures/transactions.json';
 import { SinonStub } from 'sinon';
 
 describe('queueCheckers', () => {
-	const [unincludedTransaction, ...transactions] = transactionObjects
-		.map(tx => ({ ...tx, containsUniqueData: false }))
-		.map(wrapTransferTransaction);
+	const [unincludedTransaction, ...transactions] = transactionObjects.map(
+		wrapTransferTransaction,
+	);
 
 	describe('#checkTransactionPropertyForValues', () => {
 		const propertyName: queueCheckers.TransactionFilterableKeys =
