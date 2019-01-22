@@ -55,7 +55,7 @@ let validAccount = {
 
 const queries = {
 	getAccountByAddress(address, cb) {
-		db
+		db.adapter.db
 			.query(sql.getAccountByAddress, { address })
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
@@ -63,7 +63,7 @@ const queries = {
 			.catch(cb);
 	},
 	updateUsername(account, newUsername, cb) {
-		db
+		db.adapter.db
 			.query(sql.updateUsername, {
 				address: account.address,
 				newUsername,
@@ -74,7 +74,7 @@ const queries = {
 			.catch(cb);
 	},
 	updateU_username(account, newUsername, cb) {
-		db
+		db.adapter.db
 			.query(sql.updateU_username, {
 				address: account.address,
 				newUsername,
@@ -85,7 +85,7 @@ const queries = {
 			.catch(cb);
 	},
 	insertAccount(account, cb) {
-		db
+		db.adapter.db
 			.query(sql.insert, account)
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
@@ -93,7 +93,7 @@ const queries = {
 			.catch(cb);
 	},
 	deleteAccount(account, cb) {
-		db
+		db.adapter.db
 			.query(sql.delete, account)
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
