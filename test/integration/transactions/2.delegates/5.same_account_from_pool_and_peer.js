@@ -29,7 +29,7 @@ describe('delegate', () => {
 
 	localCommon.beforeBlock('system_2_2_delegates_5', lib => {
 		library = lib;
-		db = lib.db;
+		db = lib.storage;
 	});
 
 	afterEach(done => {
