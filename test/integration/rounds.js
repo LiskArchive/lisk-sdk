@@ -39,7 +39,7 @@ describe('rounds', () => {
 
 	localCommon.beforeBlock('lisk_functional_rounds', lib => {
 		library = lib;
-		Queries = new QueriesHelper(lib, lib.db);
+		Queries = new QueriesHelper(lib, lib.storage);
 
 		generateDelegateListPromise = Promise.promisify(
 			library.modules.delegates.generateDelegateList
