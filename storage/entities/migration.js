@@ -23,6 +23,13 @@ const BaseEntity = require('./base_entity');
 
 const defaultCreateValues = {};
 
+const sqlFiles = {
+	select: 'migrations/get.sql',
+	isPersisted: 'migrations/is_persisted.sql',
+	create: 'migrations/create.sql',
+	applyRunTime: 'migrations/runtime.sql',
+};
+
 /**
  * Migration
  * @typedef {Object} Migration
@@ -60,12 +67,7 @@ class Migration extends BaseEntity {
 		const defaultSort = { sort: 'id:asc' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.SQLs = {
-			select: this.adapter.loadSQLFile('migrations/get.sql'),
-			isPersisted: this.adapter.loadSQLFile('migrations/is_persisted.sql'),
-			create: this.adapter.loadSQLFile('migrations/create.sql'),
-			applyRunTime: this.adapter.loadSQLFile('migrations/runtime.sql'),
-		};
+		this.SQLs = this.loadSQLFiles('migration', sqlFiles);
 	}
 
 	/**
