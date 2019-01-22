@@ -159,7 +159,7 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 	} else {
 		// Prepare and execute SQL transaction
 		// WARNING: DB_WRITE
-		library.db.tx('Chain:saveBlock', t => {
+		library.storage.entities.Block.begin('Chain:saveBlock', t => {
 			saveBlockBatch(t);
 		});
 	}
@@ -736,25 +736,22 @@ __private.deleteBlockStep = function(oldLastBlock, tx) {
 __private.popLastBlock = function(oldLastBlock, cb) {
 	let secondLastBlock;
 
-	library.db
-		.tx('Chain:deleteBlock', tx =>
-			__private
-				.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
-				.then(res => {
-					secondLastBlock = res;
-					return Promise.mapSeries(
-						oldLastBlock.transactions.reverse(),
-						transaction =>
-							__private
-								.undoConfirmedStep(transaction, oldLastBlock, tx)
-								.then(() => __private.undoUnconfirmStep(transaction, tx))
-					);
-				})
-				.then(() =>
-					__private.backwardTickStep(oldLastBlock, secondLastBlock, tx)
-				)
-				.then(() => __private.deleteBlockStep(oldLastBlock, tx))
-		)
+	library.storage.entities.Block.begin('Chain:deleteBlock', tx =>
+		__private
+			.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
+			.then(res => {
+				secondLastBlock = res;
+				return Promise.mapSeries(
+					oldLastBlock.transactions.reverse(),
+					transaction =>
+						__private
+							.undoConfirmedStep(transaction, oldLastBlock, tx)
+							.then(() => __private.undoUnconfirmStep(transaction, tx))
+				);
+			})
+			.then(() => __private.backwardTickStep(oldLastBlock, secondLastBlock, tx))
+			.then(() => __private.deleteBlockStep(oldLastBlock, tx))
+	)
 		.then(() => setImmediate(cb, null, secondLastBlock))
 		.catch(err => setImmediate(cb, err));
 };
