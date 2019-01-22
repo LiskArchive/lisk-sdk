@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { registerDelegate } from './2_register_delegate';
 import { registerMultisignature } from './4_register_multisignature_account';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
 import {
 	BaseTransaction,
 	DappTransaction,
+	DelegateTransaction,
 	InTransferTransaction,
 	SecondSignatureTransaction,
 	TransferTransaction,
@@ -31,6 +31,8 @@ const transfer = TransferTransaction.create;
 // tslint:disable-next-line no-unbound-method
 const registerSecondPassphrase = SecondSignatureTransaction.create;
 // tslint:disable-next-line no-unbound-method
+const registerDelegate = DelegateTransaction.create;
+// tslint:disable-next-line no-unbound-method
 const castVotes = VoteTransaction.create;
 // tslint:disable-next-line no-unbound-method
 const createDapp = DappTransaction.create;
@@ -39,10 +41,10 @@ export {
 	BaseTransaction,
 	TransferTransaction,
 	SecondSignatureTransaction,
+	DelegateTransaction,
 	VoteTransaction,
 	InTransferTransaction,
 	transfer,
-	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
 	registerMultisignature,
