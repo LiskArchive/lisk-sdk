@@ -18,7 +18,7 @@ const randomstring = require('randomstring');
 const sql = require('../common/sql/mem_accounts.js');
 const modulesLoader = require('../../common/modules_loader');
 
-let db;
+let storage;
 
 const validUsername = randomstring.generate(10).toLowerCase();
 
@@ -55,7 +55,7 @@ let validAccount = {
 
 const queries = {
 	getAccountByAddress(address, cb) {
-		db.adapter.db
+		storage.adapter.db
 			.query(sql.getAccountByAddress, { address })
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
@@ -63,7 +63,7 @@ const queries = {
 			.catch(cb);
 	},
 	updateUsername(account, newUsername, cb) {
-		db.adapter.db
+		storage.adapter.db
 			.query(sql.updateUsername, {
 				address: account.address,
 				newUsername,
@@ -74,7 +74,7 @@ const queries = {
 			.catch(cb);
 	},
 	updateU_username(account, newUsername, cb) {
-		db.adapter.db
+		storage.adapter.db
 			.query(sql.updateU_username, {
 				address: account.address,
 				newUsername,
@@ -85,7 +85,7 @@ const queries = {
 			.catch(cb);
 	},
 	insertAccount(account, cb) {
-		db.adapter.db
+		storage.adapter.db
 			.query(sql.insert, account)
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
@@ -93,7 +93,7 @@ const queries = {
 			.catch(cb);
 	},
 	deleteAccount(account, cb) {
-		db.adapter.db
+		storage.adapter.db
 			.query(sql.delete, account)
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
@@ -104,11 +104,11 @@ const queries = {
 
 describe('mem_accounts protection', () => {
 	before(done => {
-		modulesLoader.getDbConnection((err, __db) => {
+		modulesLoader.getDbConnection((err, __storage) => {
 			if (err) {
 				return done(err);
 			}
-			db = __db;
+			storage = __storage;
 			return queries.insertAccount(validAccount, done);
 		});
 	});

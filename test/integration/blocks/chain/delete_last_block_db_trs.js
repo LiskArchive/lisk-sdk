@@ -24,19 +24,19 @@ const Bignum = require('../../../../helpers/bignum.js');
 describe('system test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
 	let library;
-	let db;
+	let storage;
 
 	localCommon.beforeBlock('system_blocks_chain_pop_last_block', lib => {
 		library = lib;
-		db = library.storage;
+		storage = library.storage;
 	});
 
 	afterEach(done => {
-		db.entities.Block.begin(t => {
+		storage.entities.Block.begin(t => {
 			return t.batch([
-				db.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
-				db.adapter.execute('DELETE FROM forks_stat;'),
-				db.adapter.execute('UPDATE mem_accounts SET "producedBlocks" = 0'),
+				storage.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
+				storage.adapter.execute('DELETE FROM forks_stat;'),
+				storage.adapter.execute('UPDATE mem_accounts SET "producedBlocks" = 0'),
 			]);
 		})
 			.then(() => {

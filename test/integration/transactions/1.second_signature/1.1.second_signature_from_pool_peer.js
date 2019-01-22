@@ -25,18 +25,18 @@ const { NORMALIZER } = global.constants;
 
 describe('system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
-	let db;
+	let storage;
 
 	localCommon.beforeBlock('system_1_1_second_sign_from_pool_and_peer', lib => {
 		library = lib;
-		db = lib.storage;
+		storage = lib.storage;
 	});
 
 	afterEach(done => {
-		db.entities.Block.begin(t => {
+		storage.entities.Block.begin(t => {
 			return t.batch([
-				db.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
-				db.adapter.execute('DELETE FROM forks_stat;'),
+				storage.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
+				storage.adapter.execute('DELETE FROM forks_stat;'),
 			]);
 		}).then(() => {
 			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
