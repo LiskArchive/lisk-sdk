@@ -36,38 +36,38 @@ class Queries {
 
 	/* eslint-disable class-methods-use-this */
 	validateAccountsBalances() {
-		return self.db.query(self.validateAccountsBalancesQuery);
+		return self.db.adapter.db.query(self.validateAccountsBalancesQuery);
 	}
 
 	getPostgresVersion() {
-		return self.db.query('SELECT version()');
+		return self.db.adapter.db.query('SELECT version()');
 	}
 
 	getAccounts() {
-		return self.db.query('SELECT * FROM mem_accounts');
+		return self.db.adapter.db.query('SELECT * FROM mem_accounts');
 	}
 
 	getAccount(address) {
-		return self.db.query(
+		return self.db.adapter.db.query(
 			'SELECT * FROM mem_accounts WHERE address = ${address}',
 			{ address }
 		);
 	}
 
 	getDelegates() {
-		return self.db.query(
+		return self.db.adapter.db.query(
 			'SELECT * FROM mem_accounts m LEFT JOIN delegates d ON d.username = m.username WHERE d."transactionId" IS NOT NULL'
 		);
 	}
 
 	getDelegatesOrderedByVote() {
-		return self.db.query(
+		return self.db.adapter.db.query(
 			`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`
 		);
 	}
 
 	getFullBlock(height) {
-		return self.db
+		return self.db.adapter.db
 			.query('SELECT * FROM full_blocks_list WHERE b_height = ${height}', {
 				height,
 			})
@@ -78,7 +78,7 @@ class Queries {
 	}
 
 	getAllBlocks() {
-		return self.db
+		return self.db.adapter.db
 			.query('SELECT * FROM full_blocks_list ORDER BY b_height DESC')
 			.then(rows => {
 				// Normalize blocks
@@ -87,14 +87,14 @@ class Queries {
 	}
 
 	getBlocks(round) {
-		return self.db.query(
+		return self.db.adapter.db.query(
 			'SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} ORDER BY height ASC',
 			{ round }
 		);
 	}
 
 	getRoundRewards(round) {
-		return self.db
+		return self.db.adapter.db
 			.query(
 				'SELECT ENCODE("publicKey", \'hex\') AS "publicKey", SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = ${round} GROUP BY "publicKey"',
 				{ round }
@@ -113,7 +113,7 @@ class Queries {
 	}
 
 	getVoters() {
-		return self.db.query(
+		return self.db.adapter.db.query(
 			'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
 		);
 	}
