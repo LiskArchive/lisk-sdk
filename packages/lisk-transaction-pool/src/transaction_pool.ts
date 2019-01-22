@@ -113,11 +113,17 @@ export class TransactionPool {
 	private readonly _verifiedTransactionsProcessingInterval: number;
 	private readonly _verifiedTransactionsProcessingLimitPerInterval: number;
 	private readonly _validateTransactions: CheckerFunction;
-	private readonly _validateTransactionsJob: Job<ReadonlyArray<Transaction>>;
+	private readonly _validateTransactionsJob: Job<
+		CheckTransactionsResponseWithPassAndFail
+	>;
 	private readonly _verifyTransactions: CheckerFunction;
-	private readonly _verifyTransactionsJob: Job<ReadonlyArray<Transaction>>;
+	private readonly _verifyTransactionsJob: Job<
+		CheckTransactionsResponseWithPassAndFail
+	>;
 	private readonly _processTransactions: CheckerFunction;
-	private readonly _processTransactionsJob: Job<ReadonlyArray<Transaction>>;
+	private readonly _processTransactionsJob: Job<
+		CheckTransactionsResponseWithPassAndFail
+	>;
 
 	public constructor({
 		expireTransactionsInterval = DEFAULT_EXPIRE_TRANSACTION_INTERVAL,

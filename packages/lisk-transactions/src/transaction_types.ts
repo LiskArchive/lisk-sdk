@@ -61,13 +61,16 @@ export interface TransactionJSON {
 export interface IsValidResponse {
 	readonly valid: boolean;
 	readonly errors?: ReadonlyArray<TransactionError>;
+}
+
+export interface IsVerifiedResponseWithError {
+	readonly verified: boolean;
 	readonly error?: TransactionError;
 }
 
 export interface IsVerifiedResponse {
 	readonly verified: boolean;
 	readonly errors?: ReadonlyArray<TransactionError>;
-	readonly error?: TransactionError;
 }
 
 export type PartialTransaction = Partial<TransactionJSON>;

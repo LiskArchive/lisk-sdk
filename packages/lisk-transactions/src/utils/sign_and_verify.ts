@@ -14,7 +14,11 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { TransactionError, TransactionPendingError } from '../errors';
-import { IsVerifiedResponse, TransactionJSON } from '../transaction_types';
+import {
+	IsVerifiedResponse,
+	IsVerifiedResponseWithError,
+	TransactionJSON,
+} from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
 export const signTransaction = (
@@ -50,7 +54,7 @@ export const verifySignature = (
 	signature: string,
 	transactionBytes: Buffer,
 	id?: string,
-): IsVerifiedResponse => {
+): IsVerifiedResponseWithError => {
 	const transactionHash = cryptography.hash(transactionBytes);
 
 	const verified = cryptography.verifyData(
