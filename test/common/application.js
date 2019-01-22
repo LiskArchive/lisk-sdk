@@ -40,6 +40,7 @@ function init(options, cb) {
 		);
 		storage.bootstrap().then(() => {
 			options.scope.storage = storage;
+			__init(options.scope, cb);
 		});
 	} else {
 		__init(options.scope, cb);
@@ -388,7 +389,7 @@ function __init(initScope, done) {
 									},
 								],
 								block: [
-									'db',
+									'storage',
 									'bus',
 									'ed',
 									'schema',

@@ -18,7 +18,7 @@ const async = require('async');
 const blockVersion = require('../../../../logic/block_version.js');
 const application = require('../../../common/application');
 const modulesLoader = require('../../../common/modules_loader');
-const clearDatabaseTable = require('../../../common/db_sandbox')
+const clearDatabaseTable = require('../../../common/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
 
