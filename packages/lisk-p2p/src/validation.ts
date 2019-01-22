@@ -20,8 +20,12 @@ import {
 	InvalidRPCRequestError,
 	InvalidRPCResponse,
 } from './errors';
-import { P2PRequest } from './p2p';
-import { ProtocolMessagePacket, ProtocolPeerInfo } from './p2p_types';
+
+import {
+	ProtocolMessagePacket,
+	ProtocolPeerInfo,
+	ProtocolRPCRequestPacket,
+} from './p2p_types';
 import { PeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
@@ -99,12 +103,14 @@ export const validatePeerInfoList = (
 	}
 };
 
-export const validateRPCRequest = (request: unknown): P2PRequest => {
+export const validateRPCRequest = (
+	request: unknown,
+): ProtocolRPCRequestPacket => {
 	if (!request) {
 		throw new InvalidRPCRequestError('Invalid request');
 	}
 
-	const rpcRequest = request as P2PRequest;
+	const rpcRequest = request as ProtocolRPCRequestPacket;
 	if (typeof rpcRequest.procedure !== 'string') {
 		throw new InvalidRPCRequestError('Request procedure name is not a string');
 	}

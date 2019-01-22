@@ -118,16 +118,15 @@ export class Peer extends EventEmitter {
 
 				return;
 			}
-
-			if (rawRequest.procedure === REMOTE_RPC_NODE_INFO) {
-				this._handlePeerInfo(rawRequest);
-			}
-
 			const request = new P2PRequest(
 				rawRequest.procedure,
 				rawRequest.data,
 				respond,
 			);
+
+			if (rawRequest.procedure === REMOTE_RPC_NODE_INFO) {
+				this._handlePeerInfo(request);
+			}
 
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
