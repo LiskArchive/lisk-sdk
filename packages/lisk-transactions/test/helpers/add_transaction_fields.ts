@@ -5,5 +5,6 @@ export const addTransactionFields = (transaction: any) => {
 			? transaction.signSignature
 			: undefined,
 		receivedAt: new Date(),
+		signatures: [...transaction.signatures],
 	};
 };

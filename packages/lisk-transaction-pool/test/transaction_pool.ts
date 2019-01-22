@@ -41,10 +41,7 @@ describe('transaction pool', () => {
 		// Stubbing start function so the jobs do not start in the background.
 		sandbox.stub(Job.prototype, 'start');
 		checkerStubs = {
-			returnTrueUntilLimit: sandbox.stub(
-				queueCheckers,
-				'returnTrueUntilLimit'
-			),
+			returnTrueUntilLimit: sandbox.stub(queueCheckers, 'returnTrueUntilLimit'),
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
 				'checkTransactionPropertyForValues',
@@ -229,7 +226,9 @@ describe('transaction pool', () => {
 
 		it('should call peekUntil for ready queue with correct parameter', () => {
 			transactionPool.getProcessableTransactions(limit);
-			expect(transactionPool.queues.ready.peekUntil).to.be.calledWith(peekUntilCondition);
+			expect(transactionPool.queues.ready.peekUntil).to.be.calledWith(
+				peekUntilCondition,
+			);
 		});
 	});
 
