@@ -145,6 +145,22 @@ const assetAttributesMap = {
 	7: ['asset.outTransfer.dappId', ' asset.outTransfer.transactionId'],
 };
 
+const sqlFiles = {
+	select: 'transactions/get.sql',
+	selectExtended: 'transactions/get_extended.sql',
+	isPersisted: 'transactions/is_persisted.sql',
+	count: 'transactions/count.sql',
+	create: 'transactions/create.sql',
+	createType0: 'transactions/create_type_0.sql',
+	createType1: 'transactions/create_type_1.sql',
+	createType2: 'transactions/create_type_2.sql',
+	createType3: 'transactions/create_type_3.sql',
+	createType4: 'transactions/create_type_4.sql',
+	createType5: 'transactions/create_type_5.sql',
+	createType6: 'transactions/create_type_6.sql',
+	createType7: 'transactions/create_type_7.sql',
+};
+
 // eslint-disable-next-line no-unused-vars
 const stringToByteOnlyInsert = (value, mode, alias, fieldName) => {
 	if (mode === 'select') {
@@ -255,21 +271,7 @@ class Transaction extends BaseEntity {
 			condition: '"dapp_link" = ${dapp_link}',
 		});
 
-		this.SQLs = {
-			select: this.adapter.loadSQLFile('transactions/get.sql'),
-			selectExtended: this.adapter.loadSQLFile('transactions/get_extended.sql'),
-			isPersisted: this.adapter.loadSQLFile('transactions/is_persisted.sql'),
-			count: this.adapter.loadSQLFile('transactions/count.sql'),
-			create: this.adapter.loadSQLFile('transactions/create.sql'),
-			createType0: this.adapter.loadSQLFile('transactions/create_type_0.sql'),
-			createType1: this.adapter.loadSQLFile('transactions/create_type_1.sql'),
-			createType2: this.adapter.loadSQLFile('transactions/create_type_2.sql'),
-			createType3: this.adapter.loadSQLFile('transactions/create_type_3.sql'),
-			createType4: this.adapter.loadSQLFile('transactions/create_type_4.sql'),
-			createType5: this.adapter.loadSQLFile('transactions/create_type_5.sql'),
-			createType6: this.adapter.loadSQLFile('transactions/create_type_6.sql'),
-			createType7: this.adapter.loadSQLFile('transactions/create_type_7.sql'),
-		};
+		this.SQLs = this.loadSQLFiles('transaction', sqlFiles);
 	}
 
 	/**

@@ -23,6 +23,28 @@ const defaultCreateValues = {};
 
 const readOnlyFields = [];
 
+const sqlFiles = {
+	select: 'rounds/get.sql',
+	create: 'rounds/create.sql',
+	update: 'rounds/update.sql',
+	updateOne: 'rounds/update_one.sql',
+	isPersisted: 'rounds/is_persisted.sql',
+	delete: 'rounds/delete.sql',
+	getTotalVotedAmount: 'rounds/get_total_voted_amount.sql',
+	summedRound: 'rounds/summed_round.sql',
+	deleteRoundRewards: 'rounds/delete_round_rewards.sql',
+	createRoundRewards: 'rounds/create_round_rewards.sql',
+	clearRoundSnapshot: 'rounds/clear_round_snapshot.sql',
+	performRoundSnapshot: 'rounds/perform_round_snapshot.sql',
+	restoreRoundSnapshot: 'rounds/restore_round_snapshot.sql',
+	clearVotesSnapshot: 'rounds/clear_votes_snapshot.sql',
+	performVotesSnapshot: 'rounds/perform_votes_snapshot.sql',
+	restoreVotesSnapshot: 'rounds/restore_votes_snapshot.sql',
+	checkSnapshotAvailability: 'rounds/check_snapshot_availability.sql',
+	countRoundSnapshot: 'rounds/count_round_snapshot.sql',
+	getDelegatesSnapshot: 'rounds/get_delegates_snapshot.sql',
+};
+
 /**
  * Round
  * @typedef {Object} Round
@@ -83,51 +105,7 @@ class Round extends BaseEntity {
 		const defaultSort = { sort: '' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.SQLs = {
-			select: this.adapter.loadSQLFile('rounds/get.sql'),
-			create: this.adapter.loadSQLFile('rounds/create.sql'),
-			update: this.adapter.loadSQLFile('rounds/update.sql'),
-			updateOne: this.adapter.loadSQLFile('rounds/update_one.sql'),
-			isPersisted: this.adapter.loadSQLFile('rounds/is_persisted.sql'),
-			delete: this.adapter.loadSQLFile('rounds/delete.sql'),
-			getTotalVotedAmount: this.adapter.loadSQLFile(
-				'rounds/get_total_voted_amount.sql'
-			),
-			summedRound: this.adapter.loadSQLFile('rounds/summed_round.sql'),
-			deleteRoundRewards: this.adapter.loadSQLFile(
-				'rounds/delete_round_rewards.sql'
-			),
-			createRoundRewards: this.adapter.loadSQLFile(
-				'rounds/create_round_rewards.sql'
-			),
-			clearRoundSnapshot: this.adapter.loadSQLFile(
-				'rounds/clear_round_snapshot.sql'
-			),
-			performRoundSnapshot: this.adapter.loadSQLFile(
-				'rounds/perform_round_snapshot.sql'
-			),
-			restoreRoundSnapshot: this.adapter.loadSQLFile(
-				'rounds/restore_round_snapshot.sql'
-			),
-			clearVotesSnapshot: this.adapter.loadSQLFile(
-				'rounds/clear_votes_snapshot.sql'
-			),
-			performVotesSnapshot: this.adapter.loadSQLFile(
-				'rounds/perform_votes_snapshot.sql'
-			),
-			restoreVotesSnapshot: this.adapter.loadSQLFile(
-				'rounds/restore_votes_snapshot.sql'
-			),
-			checkSnapshotAvailability: this.adapter.loadSQLFile(
-				'rounds/check_snapshot_availability.sql'
-			),
-			countRoundSnapshot: this.adapter.loadSQLFile(
-				'rounds/count_round_snapshot.sql'
-			),
-			getDelegatesSnapshot: this.adapter.loadSQLFile(
-				'rounds/get_delegates_snapshot.sql'
-			),
-		};
+		this.SQLs = this.loadSQLFiles('round', sqlFiles);
 	}
 
 	/**

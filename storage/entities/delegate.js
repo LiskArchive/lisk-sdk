@@ -16,6 +16,8 @@
 
 const Account = require('./account');
 
+const sqlFiles = [];
+
 class Delegate extends Account {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, {
@@ -24,6 +26,8 @@ class Delegate extends Account {
 		});
 
 		this.defaultOptions.fieldSet = Account.prototype.FIELD_SET_FULL;
+
+		this.SQLs = this.loadSQLFiles('delegate', sqlFiles);
 	}
 }
 
