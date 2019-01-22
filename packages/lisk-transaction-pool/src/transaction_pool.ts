@@ -100,8 +100,20 @@ const DEFAULT_VALIDATED_TRANSACTIONS_LIMIT_PER_PROCESSING = 100;
 const DEFAULT_VERIFIED_TRANSACTIONS_PROCESSING_INTERVAL = 30000;
 const DEFAULT_VERIFIED_TRANSACTIONS_LIMIT_PER_PROCESSING = 100;
 
-const EVENT_ADDED_TRANASCTION = 'transactionAdded';
-const EVENT_REMOVED_TRANSACTION = 'transactionRemoved';
+export const EVENT_ADDED_TRANASCTIONS = 'transactionsAdded';
+export const EVENT_REMOVED_TRANSACTIONS = 'transactionsRemoved';
+export const ACTION_ADD_VERIFIED_REMOVED_TRANSACTIONS =
+	'addVerifiedRemovedTransactions';
+export const ACTION_REMOVE_CONFIRMED_TRANSACTIONS =
+	'removeConfirmedTransactions';
+export const ACTION_ADD_TRANSACTIONS = 'addTransactions';
+export const ACTION_EXPIRE_TRANSACTIONS = 'expireTransactions';
+export const ACTION_PROCESS_VERIFIED_TRANSACTIONS =
+	'processVerifiedTransactions';
+export const ACTION_VALIDATE_RECEIVED_TRANSACTIONS =
+	'validateReceivedTransactions';
+export const ACTION_VERIFY_VALIDATED_TRANSACTIONS =
+	'verifyValidatedTransactions';
 
 export class TransactionPool extends EventEmitter {
 	private readonly _pendingTransactionsProcessingLimit: number;
@@ -219,7 +231,7 @@ export class TransactionPool extends EventEmitter {
 		// Add transactions to the verified queue which were included in the verified removed transactions
 		this._queues.verified.enqueueMany(transactions);
 
-		this.emit(EVENT_ADDED_TRANASCTION, {
+		this.emit(EVENT_ADDED_TRANASCTIONS, {
 			action: 'addVerifiedRemovedTransactions',
 			to: 'verified',
 			payload: transactions,
@@ -297,7 +309,7 @@ export class TransactionPool extends EventEmitter {
 			),
 		);
 
-		this.emit(EVENT_REMOVED_TRANSACTION, {
+		this.emit(EVENT_REMOVED_TRANSACTIONS, {
 			action: 'removeConfirmedTransactions',
 			payload: removedTransactions,
 		});
@@ -359,7 +371,7 @@ export class TransactionPool extends EventEmitter {
 
 		this._queues[queueName].enqueueOne(transaction);
 
-		this.emit(EVENT_ADDED_TRANASCTION, {
+		this.emit(EVENT_ADDED_TRANASCTIONS, {
 			action: 'addTransactions',
 			to: queueName,
 			payload: [transaction],
@@ -377,7 +389,7 @@ export class TransactionPool extends EventEmitter {
 			queueCheckers.checkTransactionForExpiry(),
 		);
 
-		this.emit(EVENT_REMOVED_TRANSACTION, {
+		this.emit(EVENT_REMOVED_TRANSACTIONS, {
 			action: 'expireTransactions',
 			payload: expiredTransactions,
 		});
@@ -472,7 +484,7 @@ export class TransactionPool extends EventEmitter {
 			),
 		);
 
-		this.emit(EVENT_REMOVED_TRANSACTION, {
+		this.emit(EVENT_REMOVED_TRANSACTIONS, {
 			action: 'processVerifiedTransactions',
 			payload: removedTransactions,
 		});
@@ -528,7 +540,7 @@ export class TransactionPool extends EventEmitter {
 			),
 		);
 
-		this.emit(EVENT_REMOVED_TRANSACTION, {
+		this.emit(EVENT_REMOVED_TRANSACTIONS, {
 			action: 'validateReceivedTransactions',
 			payload: removedTransactions,
 		});
@@ -576,7 +588,7 @@ export class TransactionPool extends EventEmitter {
 			),
 		);
 
-		this.emit(EVENT_REMOVED_TRANSACTION, {
+		this.emit(EVENT_REMOVED_TRANSACTIONS, {
 			action: 'verifyValidatedTransactions',
 			payload: removedTransactions,
 		});
