@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line no-reference
+/// <reference path="../../types/browserify-bignum/index.d.ts" />
+
 import {
 	bigNumberToBuffer,
 	getAddressAndPublicKeyFromPassphrase,
@@ -102,7 +105,6 @@ export const createBaseTransaction = ({
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
-	public readonly fee: BigNum;
 	public readonly recipientId: string;
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
@@ -113,6 +115,7 @@ export abstract class BaseTransaction {
 	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
 
+	private _fee: BigNum;
 	private _id?: string;
 	private _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
@@ -136,7 +139,7 @@ export abstract class BaseTransaction {
 		}
 
 		this.amount = new BigNum(rawTransaction.amount);
-		this.fee = new BigNum(rawTransaction.fee);
+		this._fee = new BigNum(rawTransaction.fee);
 		this._id = rawTransaction.id;
 		this.recipientId = rawTransaction.recipientId;
 		this.recipientPublicKey = rawTransaction.recipientPublicKey;
@@ -150,6 +153,18 @@ export abstract class BaseTransaction {
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
 		this.receivedAt = rawTransaction.receivedAt || new Date();
+	}
+
+	public get fee(): BigNum {
+		if(!this._fee) {
+			throw new Error('fee is required to be set before use')
+		}
+
+		return this._fee;
+	}
+
+	public set fee(fee: BigNum) {
+		this._fee = fee;
 	}
 
 	public get id(): string {

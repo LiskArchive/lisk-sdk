@@ -14,7 +14,7 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
@@ -23,7 +23,6 @@ import {
 	TransferAsset,
 } from '../transaction_types';
 import {
-	calculateFee,
 	isTypedObjectArrayWithKeys,
 	validateAddress,
 	validatePublicKey,
@@ -117,9 +116,8 @@ const validateInputs = ({
 };
 
 export class TransferTransaction extends BaseTransaction {
-	public readonly containsUniqueData: boolean;
 	public readonly asset: TransferAsset;
-	public readonly fee: BigNum;
+	public readonly fee: BigNum = new BigNum(TRANSFER_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -137,8 +135,6 @@ export class TransferTransaction extends BaseTransaction {
 		if (!typeValid || errors.length > 0) {
 			throw new TransactionMultiError('Invalid asset types', tx.id, errors);
 		}
-		this.containsUniqueData = false;
-		this.fee = calculateFee(this.type);
 		this.asset = tx.asset as TransferAsset;
 	}
 
@@ -167,7 +163,7 @@ export class TransferTransaction extends BaseTransaction {
 			amount,
 			recipientId,
 			recipientPublicKey,
-			fee: calculateFee(0).toString(),
+			fee: TRANSFER_FEE.toString(),
 			asset: data ? { data } : {},
 		};
 
@@ -214,7 +210,7 @@ export class TransferTransaction extends BaseTransaction {
 
 	public assetToJSON(): TransferAsset {
 		return {
-			data: this.asset.data,
+			...this.asset,
 		};
 	}
 
@@ -242,11 +238,15 @@ export class TransferTransaction extends BaseTransaction {
 		if (!accounts) {
 			throw new Error('Entity account is required.');
 		}
-		if (!isTypedObjectArrayWithKeys<Account>(accounts, ['address','publicKey'])) {
+		if (
+			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'balance'])
+		) {
 			throw new Error('Required state does not have valid account type');
 		}
-	
-		const recipient = accounts.find(account => account.address === this.recipientId);
+
+		const recipient = accounts.find(
+			account => account.address === this.recipientId,
+		);
 		if (!recipient) {
 			throw new Error('No recipient account is found.');
 		}
@@ -280,6 +280,16 @@ export class TransferTransaction extends BaseTransaction {
 					'Amount must be a valid number in string format.',
 					this.id,
 					'.recipientId',
+				),
+			);
+		}
+
+		if (!this.fee.eq(TRANSFER_FEE)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${TRANSFER_FEE}`,
+					this.id,
+					'.fee',
 				),
 			);
 		}
@@ -330,7 +340,9 @@ export class TransferTransaction extends BaseTransaction {
 		const { errors: baseErrors } = super.apply({ sender });
 		const errors = [...baseErrors];
 		// Balance verification
-		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
+		const updatedSenderBalance = new BigNum(sender.balance)
+			.sub(this.fee)
+			.sub(this.amount);
 
 		if (!updatedSenderBalance.gte(0)) {
 			errors.push(

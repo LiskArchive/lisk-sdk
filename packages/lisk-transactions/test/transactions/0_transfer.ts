@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import BigNum from 'browserify-bignum';
 import { expect } from 'chai';
 import { SinonStub } from 'sinon';
-import { FEES, MAX_TRANSACTION_AMOUNT } from '../../src/constants';
+import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../../src/constants';
 import { Attributes, TransferTransaction } from '../../src/transactions';
 import { Account, Status } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
@@ -26,34 +27,45 @@ import {
 import * as utils from '../../src/utils';
 
 describe('Transfer transaction class', () => {
-	const defaultTransaction = addTransactionFields(validTransferTransactions[1]);
-	let validTestTransaction: TransferTransaction;
+	const validTransferTransaction = addTransactionFields(
+		validTransferTransactions[0],
+	);
+	const validSelfTransferTransaction = addTransactionFields(
+		validTransferTransactions[1],
+	);
+	let validTransferTestTransaction: TransferTransaction;
+	let validSelfTransferTestTransaction: TransferTransaction;
 	let sender: Account;
 	let recipient: Account;
+	let selfAccount: Account;
 
 	beforeEach(async () => {
-		validTestTransaction = new TransferTransaction(defaultTransaction);
-		sender = validTransferAccount;
-		recipient = validTransferAccount;
+		validTransferTestTransaction = new TransferTransaction(
+			validTransferTransaction,
+		);
+		validSelfTransferTestTransaction = new TransferTransaction(
+			validSelfTransferTransaction,
+		);
+		sender = validTransferAccount[0];
+		recipient = validTransferAccount[1];
+		selfAccount = validTransferAccount[2];
 	});
 
 	describe('#constructor', () => {
 		it('should create instance of TransferTransaction', async () => {
-			expect(validTestTransaction)
+			expect(validSelfTransferTestTransaction)
 				.to.be.an('object')
 				.and.be.instanceof(TransferTransaction);
 		});
 
-		it('should set containsUniqueData to false', () => {
-			expect(validTestTransaction.containsUniqueData).to.be.false;
-		});
-
 		it('should set transfer asset', () => {
-			expect(validTestTransaction.asset).to.eql({ data: 'a' });
+			expect(validSelfTransferTestTransaction.asset).to.eql({ data: 'a' });
 		});
 
 		it('should set fee to transfer transaction fee amount', () => {
-			expect(validTestTransaction.fee.toString()).to.eql(FEES[0].toString());
+			expect(validSelfTransferTestTransaction.fee.toString()).to.eql(
+				TRANSFER_FEE.toString(),
+			);
 		});
 	});
 
@@ -81,7 +93,7 @@ describe('Transfer transaction class', () => {
 				expect(result).to.have.property('id');
 				expect(result).to.have.property('type', 0);
 				expect(result).to.have.property('amount', '1000');
-				expect(result).to.have.property('fee', FEES[0].toString());
+				expect(result).to.have.property('fee', TRANSFER_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
 				expect(result).to.have.property('recipientId', '1L');
@@ -121,7 +133,7 @@ describe('Transfer transaction class', () => {
 				expect(result).to.have.property('id');
 				expect(result).to.have.property('type', 0);
 				expect(result).to.have.property('amount', '1000');
-				expect(result).to.have.property('fee', FEES[0].toString());
+				expect(result).to.have.property('fee', TRANSFER_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
 				expect(result).to.have.property('recipientId', '1L');
@@ -202,7 +214,7 @@ describe('Transfer transaction class', () => {
 			it('should create transfer transaction ', async () => {
 				expect(result).to.have.property('type', 0);
 				expect(result).to.have.property('amount', '1000');
-				expect(result).to.have.property('fee', FEES[0].toString());
+				expect(result).to.have.property('fee', TRANSFER_FEE.toString());
 				expect(result)
 					.to.have.property('timestamp')
 					.and.equal(timeWithOffset);
@@ -220,19 +232,23 @@ describe('Transfer transaction class', () => {
 	describe('#fromJSON', () => {
 		beforeEach(async () => {
 			sandbox.stub(TransferTransaction.prototype, 'validateSchema').returns({
-				id: defaultTransaction.id,
+				id: validTransferTestTransaction.id,
 				status: Status.OK,
 				errors: [],
 			});
-			validTestTransaction = TransferTransaction.fromJSON(defaultTransaction);
+			validTransferTestTransaction = TransferTransaction.fromJSON(
+				validTransferTransaction,
+			);
 		});
 
 		it('should create instance of TransferTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(TransferTransaction);
+			expect(validTransferTestTransaction).to.be.instanceOf(
+				TransferTransaction,
+			);
 		});
 
 		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
+			expect(validTransferTestTransaction.validateSchema).to.be.calledOnce;
 		});
 
 		it('should throw an error if validateSchema returns error', async () => {
@@ -241,7 +257,7 @@ describe('Transfer transaction class', () => {
 				errors: [new TransactionError()],
 			});
 			expect(
-				TransferTransaction.fromJSON.bind(undefined, defaultTransaction),
+				TransferTransaction.fromJSON.bind(undefined, validTransferTransaction),
 			).to.throw('Failed to validate schema');
 		});
 	});
@@ -249,7 +265,7 @@ describe('Transfer transaction class', () => {
 	describe('#getAssetBytes', () => {
 		it('should return a buffer', async () => {
 			const expectedBytes = '61';
-			const assetBytes = (validTestTransaction as any).getAssetBytes();
+			const assetBytes = (validSelfTransferTestTransaction as any).getAssetBytes();
 			expect(assetBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
 		});
 	});
@@ -260,8 +276,8 @@ describe('Transfer transaction class', () => {
 				id,
 				status,
 				errors,
-			} = validTestTransaction.verifyAgainstOtherTransactions();
-			expect(id).to.be.eql(defaultTransaction.id);
+			} = validTransferTestTransaction.verifyAgainstOtherTransactions();
+			expect(id).to.be.eql(validTransferTransaction.id);
 			expect(errors).to.be.eql([]);
 			expect(status).to.eql(Status.OK);
 		});
@@ -271,13 +287,13 @@ describe('Transfer transaction class', () => {
 		let attribute: Attributes;
 
 		beforeEach(async () => {
-			attribute = validTestTransaction.getRequiredAttributes();
+			attribute = validTransferTestTransaction.getRequiredAttributes();
 		});
 
 		it('should return return attribute including sender and recipient address', async () => {
 			const expectedAddresses = [
-				'7329472648011827824L',
-				'7329472648011827824L',
+				'1977368676922172803L',
+				'7675634738153324567L',
 			];
 			expect(attribute)
 				.to.be.an('object')
@@ -289,58 +305,39 @@ describe('Transfer transaction class', () => {
 	});
 
 	describe('#processRequiredState', () => {
-		beforeEach(async () => {
-			validTestTransaction = new TransferTransaction(defaultTransaction);
-		});
-
 		it('should return sender and recipient', async () => {
 			const validEntity = {
 				account: [sender, recipient],
 			};
 			expect(
-				validTestTransaction.processRequiredState(validEntity).sender,
+				validTransferTestTransaction.processRequiredState(validEntity).sender,
 			).to.eql(sender);
 			expect(
-				validTestTransaction.processRequiredState(validEntity).recipient,
+				validTransferTestTransaction.processRequiredState(validEntity)
+					.recipient,
 			).to.eql(recipient);
 		});
 
 		it('should throw an error when account state does not include the sender', async () => {
 			const invalidEntity = {
-				account: [
-					{
-						address: '1L',
-						publicKey:
-							'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
-					},
-				],
+				account: [recipient],
 			};
 			expect(
-				validTestTransaction.processRequiredState.bind(
-					validTestTransaction,
+				validTransferTestTransaction.processRequiredState.bind(
+					validTransferTestTransaction,
 					invalidEntity,
 				),
 			).to.throw('No sender account is found.');
 		});
 
 		it('should throw an error when account state does not include the recipient', async () => {
-			const TestTransaction = new TransferTransaction({
-				...defaultTransaction,
-				senderId: defaultTransaction.senderId.replace('0', '1'),
-			});
 			const invalidEntity = {
-				account: [
-					{ ...sender, address: defaultTransaction.senderId.replace('0', '1') },
-					{
-						address: '1L',
-						publicKey:
-							'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
-					},
-				],
+				account: [sender],
 			};
+
 			expect(
-				TestTransaction.processRequiredState.bind(
-					TestTransaction,
+				validTransferTestTransaction.processRequiredState.bind(
+					validTransferTestTransaction,
 					invalidEntity,
 				),
 			).to.throw('No recipient account is found.');
@@ -349,12 +346,7 @@ describe('Transfer transaction class', () => {
 
 	describe('#assetToJSON', async () => {
 		it('should return an object of type transfer asset', async () => {
-			const transferTransactionWithAsset = new TransferTransaction({
-				...defaultTransaction,
-				asset: { data: 'data' },
-			});
-
-			expect(transferTransactionWithAsset.assetToJSON())
+			expect(validSelfTransferTestTransaction.assetToJSON())
 				.to.be.an('object')
 				.and.to.have.property('data')
 				.that.is.a('string');
@@ -363,9 +355,13 @@ describe('Transfer transaction class', () => {
 
 	describe('#validateSchema', () => {
 		it('should return a successful transaction response with a valid transfer transaction', async () => {
-			const { id, status, errors } = validTestTransaction.validateSchema();
+			const {
+				id,
+				status,
+				errors,
+			} = validSelfTransferTestTransaction.validateSchema();
 
-			expect(id).to.be.eql(validTestTransaction.id);
+			expect(id).to.be.eql(validSelfTransferTestTransaction.id);
 			expect(errors).to.be.eql([]);
 			expect(status).to.eql(Status.OK);
 		});
@@ -373,7 +369,7 @@ describe('Transfer transaction class', () => {
 		it('should return a failed transaction response with invalid recipientId', async () => {
 			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
 				{
-					...defaultTransaction,
+					...validTransferTransaction,
 					recipientId: '123456',
 				},
 			);
@@ -384,7 +380,7 @@ describe('Transfer transaction class', () => {
 			} = transferTransactionWithInvalidRecipientId.validateSchema();
 
 			expect(id).to.be.eql(transferTransactionWithInvalidRecipientId.id);
-			expect(errors[1])
+			expect(errors[2])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
@@ -395,7 +391,7 @@ describe('Transfer transaction class', () => {
 
 		it('should return a failed transaction response with invalid amount', async () => {
 			const transferTransactionWithInvalidAmount = new TransferTransaction({
-				...defaultTransaction,
+				...validTransferTransaction,
 				amount: '9223372036854775808',
 			});
 			const {
@@ -405,7 +401,7 @@ describe('Transfer transaction class', () => {
 			} = transferTransactionWithInvalidAmount.validateSchema();
 
 			expect(id).to.be.eql(transferTransactionWithInvalidAmount.id);
-			expect(errors[1])
+			expect(errors[2])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
@@ -416,7 +412,7 @@ describe('Transfer transaction class', () => {
 
 		it('should return a failed transaction response with invalid asset', async () => {
 			const transferTransactionWithInvalidAsset = new TransferTransaction({
-				...defaultTransaction,
+				...validTransferTransaction,
 				asset: {
 					data:
 						'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
@@ -436,7 +432,7 @@ describe('Transfer transaction class', () => {
 
 	describe('#verify', () => {
 		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.verify({
+			const { status, errors } = validTransferTestTransaction.verify({
 				sender,
 				recipient,
 			});
@@ -445,7 +441,7 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should return a failed transaction response when sender balance is insufficient', async () => {
-			const { status, errors } = validTestTransaction.verify({
+			const { status, errors } = validTransferTestTransaction.verify({
 				sender: {
 					...sender,
 					balance: '0',
@@ -462,29 +458,62 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should return a failed transaction response when recipient balance is over maximum amount', async () => {
-			const invalidTestTransaction = new TransferTransaction({
-				...defaultTransaction,
-				amount: MAX_TRANSACTION_AMOUNT,
-			});
-			const { status, errors } = invalidTestTransaction.verify({
+			const { status, errors } = validTransferTestTransaction.verify({
 				sender,
-				recipient,
+				recipient: { ...recipient, balance: MAX_TRANSACTION_AMOUNT },
 			});
 			expect(status).to.eql(Status.FAIL);
 			expect(errors[0])
 				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					`Account does not have enough LSK: ${sender.address}, balance: ${
-						sender.balance
-					}`,
-				);
+				.and.to.have.property('message', 'Invalid amount');
+		});
+
+		describe('when self transfer', () => {
+			it('should return TransactionResponse with status OK', async () => {
+				const { status, errors } = validSelfTransferTestTransaction.verify({
+					sender: selfAccount,
+					recipient: selfAccount,
+				});
+
+				expect(status).to.equal(Status.OK);
+				expect(errors).to.be.empty;
+			});
+
+			it('should return a failed transaction response when sender balance is insufficient', async () => {
+				const { status, errors } = validSelfTransferTestTransaction.verify({
+					sender: {
+						...selfAccount,
+						balance: '0',
+					},
+					recipient: selfAccount,
+				});
+				expect(status).to.eql(Status.FAIL);
+				expect(errors[0])
+					.to.be.instanceof(TransactionError)
+					.and.to.have.property(
+						'message',
+						`Account does not have enough LSK: ${
+							selfAccount.address
+						}, balance: 0`,
+					);
+			});
+
+			it('should return a failed transaction response when recipient balance is over maximum amount', async () => {
+				const { status, errors } = validSelfTransferTestTransaction.verify({
+					sender: selfAccount,
+					recipient: { ...selfAccount, balance: MAX_TRANSACTION_AMOUNT },
+				});
+				expect(status).to.eql(Status.FAIL);
+				expect(errors[0])
+					.to.be.instanceof(TransactionError)
+					.and.to.have.property('message', 'Invalid amount');
+			});
 		});
 	});
 
 	describe('#apply', () => {
 		it('should return a successful transaction response', async () => {
-			const { status, state, errors } = validTestTransaction.apply({
+			const { status, state, errors } = validTransferTestTransaction.apply({
 				sender,
 				recipient,
 			});
@@ -493,11 +522,17 @@ describe('Transfer transaction class', () => {
 			expect(state).to.be.an('object');
 			expect((state as any).sender)
 				.to.be.an('object')
-				.and.to.have.property('balance', '154660001749');
+				.and.to.have.property(
+					'balance',
+					new BigNum(sender.balance)
+						.sub(validTransferTestTransaction.fee)
+						.sub(validTransferTestTransaction.amount)
+						.toString(),
+				);
 		});
 
 		it('should return a transaction response with error when sender balance is insufficient', async () => {
-			const { status, errors } = validTestTransaction.apply({
+			const { status, errors } = validTransferTestTransaction.apply({
 				sender: {
 					...sender,
 					balance: '0',
@@ -505,17 +540,53 @@ describe('Transfer transaction class', () => {
 				recipient,
 			});
 			expect(status).to.eql(Status.FAIL);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].message)
-				.to.equal(
-					`Account does not have enough LSK: ${sender.address}, balance: 0`,
+			expect(errors[0].message).to.equal(
+				`Account does not have enough LSK: ${sender.address}, balance: 0`,
+			);
+		});
+
+		it('should return a transaction response with error when recipient balance is over maximum amount', async () => {
+			const { status, errors } = validTransferTestTransaction.apply({
+				sender,
+				recipient: { ...recipient, balance: MAX_TRANSACTION_AMOUNT },
+			});
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0]).and.to.have.property('message', 'Invalid amount');
+		});
+
+		describe('when sender and recipient are the same', () => {
+			it('should return sender and recipient with the same result', async () => {
+				const { state } = validSelfTransferTestTransaction.apply({
+					sender: selfAccount,
+					recipient: selfAccount,
+				});
+				expect((state as any).sender.address).to.equal(
+					(state as any).recipient.address,
 				);
+				expect((state as any).sender.balance).to.equal(
+					(state as any).recipient.balance,
+				);
+			});
+
+			it('should return sender where only subtracted the fee', async () => {
+				const { state } = validSelfTransferTestTransaction.apply({
+					sender: selfAccount,
+					recipient: selfAccount,
+				});
+
+				expect((state as any).sender.balance).to.equal(
+					new BigNum(selfAccount.balance)
+						.sub(validSelfTransferTestTransaction.fee)
+						.toString(),
+				);
+			});
 		});
 	});
 
 	describe('#undo', () => {
 		it('should return a successful transaction response', async () => {
-			const { status, state, errors } = validTestTransaction.undo({
+			const { status, state, errors } = validTransferTestTransaction.undo({
 				sender,
 				recipient,
 			});
@@ -524,21 +595,68 @@ describe('Transfer transaction class', () => {
 			expect(state).to.be.an('object');
 			expect((state as any).sender)
 				.to.be.an('object')
-				.and.to.have.property('balance', '154680001749');
+				.and.to.have.property(
+					'balance',
+					new BigNum(sender.balance)
+						.add(validTransferTestTransaction.fee)
+						.add(validTransferTestTransaction.amount)
+						.toString(),
+				);
 		});
 
-		it('should return a transaction response with error when recipient balance is over maximum amount', async () => {
-			const invalidTestTransaction = new TransferTransaction({
-				...defaultTransaction,
-				amount: MAX_TRANSACTION_AMOUNT,
-			});
-			const { status, errors } = invalidTestTransaction.undo({
+		it('should return a transaction response with error when recipient balance is insufficient', async () => {
+			const { status, errors } = validTransferTestTransaction.undo({
 				sender,
-				recipient,
+				recipient: {
+					...recipient,
+					balance: '0',
+				},
 			});
 			expect(status).to.eql(Status.FAIL);
-			expect(errors[0])
-				.and.to.have.property('message', 'Invalid amount');
+			expect(errors[0].message).to.equal(
+				`Account does not have enough LSK: ${recipient.address}, balance: 0`,
+			);
+		});
+
+		it('should return a transaction response with error when sender balance is over maximum amount', async () => {
+			const { status, errors } = validTransferTestTransaction.undo({
+				sender: { ...sender, balance: MAX_TRANSACTION_AMOUNT },
+				recipient,
+			});
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0]).and.to.have.property(
+				'message',
+				'Invalid balance amount',
+			);
+		});
+
+		describe('when sender and recipient are the same', () => {
+			it('should return sender and recipient with the same result', async () => {
+				const { state } = validSelfTransferTestTransaction.undo({
+					sender: selfAccount,
+					recipient: selfAccount,
+				});
+				expect((state as any).sender.address).to.equal(
+					(state as any).recipient.address,
+				);
+				expect((state as any).sender.balance).to.equal(
+					(state as any).recipient.balance,
+				);
+			});
+
+			it('should return sender where only added the fee', async () => {
+				const { state } = validSelfTransferTestTransaction.undo({
+					sender: selfAccount,
+					recipient: selfAccount,
+				});
+
+				expect((state as any).sender.balance).to.equal(
+					new BigNum(selfAccount.balance)
+						.add(validSelfTransferTestTransaction.fee)
+						.toString(),
+				);
+			});
 		});
 	});
 });
