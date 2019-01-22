@@ -14,12 +14,8 @@
 
 'use strict';
 
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
 const DApp = require('../logic/dapp.js');
-const dappCategories = require('../helpers/dapp_categories.js');
 const InTransfer = require('../logic/in_transfer.js');
-const sortBy = require('../helpers/sort_by.js').sortBy;
 const OutTransfer = require('../logic/out_transfer.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 
@@ -110,94 +106,6 @@ class DApps {
 	}
 }
 
-// Private methods
-/**
- * Gets applications based on a given filter object.
- *
- * @func list
- * @private
- * @param {Object} filter - May contain type, name, category, link, limit, offset, sort.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb, err, applications
- */
-__private.list = function(filter, cb) {
-	const params = {};
-	const where = [];
-
-	if (filter.transactionId) {
-		where.push('"transactionId" = ${transactionId}');
-		params.transactionId = filter.transactionId;
-	}
-
-	if (filter.type >= 0) {
-		where.push('"type" = ${type}');
-		params.type = filter.type;
-	}
-
-	if (filter.name) {
-		where.push('"name" = ${name}');
-		params.name = filter.name;
-	}
-
-	if (filter.category) {
-		const category = dappCategories[filter.category];
-
-		if (category !== null) {
-			where.push('"category" = ${category}');
-			params.category = category;
-		} else {
-			return setImmediate(cb, 'Invalid application category');
-		}
-	}
-
-	if (filter.link) {
-		where.push('"link" = ${link}');
-		params.link = filter.link;
-	}
-
-	if (!filter.limit) {
-		params.limit = 100;
-	} else {
-		params.limit = Math.abs(filter.limit);
-	}
-
-	if (!filter.offset) {
-		params.offset = 0;
-	} else {
-		params.offset = Math.abs(filter.offset);
-	}
-
-	if (params.limit > 100) {
-		return setImmediate(cb, 'Invalid limit. Maximum is 100');
-	}
-
-	const sort = sortBy(filter.sort, {
-		sortFields: library.db.dapps.sortFields,
-	});
-
-	if (sort.error) {
-		return setImmediate(cb, sort.error);
-	}
-
-	return library.db.dapps
-		.list(
-			Object.assign(
-				{},
-				{
-					where,
-					sortField: sort.sortField,
-					sortMethod: sort.sortMethod,
-				},
-				params
-			)
-		)
-		.then(rows => setImmediate(cb, null, rows))
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, err);
-		});
-};
-
 // Events
 /**
  * Bounds used scope modules to private modules constiable and sets params
@@ -233,44 +141,6 @@ DApps.prototype.onBind = function(scope) {
  */
 DApps.prototype.isLoaded = function() {
 	return !!modules;
-};
-
-/**
- * Internal & Shared
- * - DApps.prototype.internal
- * - shared.
- *
- * @property {function} getDapps - Utility method to get dapps
- * @property {function} getGenesis
- * @todo Add description for getGenesis function
- * @todo Implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
- */
-DApps.prototype.shared = {
-	/**
-	 * Utility method to get dapps.
-	 *
-	 * @param {Object} parameters - Object of all parameters
-	 * @param {string} parameters.transactionId - Registration transaction ID to query
-	 * @param {string} parameters.name - Name to query - Fuzzy search
-	 * @param {string} parameters.sort - Sort field
-	 * @param {int} parameters.limit - Limit applied to results
-	 * @param {int} parameters.offset - Offset value for results
-	 * @param {function} cb - Callback function
-	 * @returns {Array.<Object>}
-	 * @todo Add description for the return value
-	 */
-	getDapps(parameters, cb) {
-		__private.list(parameters, (err, dapps) => {
-			if (err) {
-				return setImmediate(
-					cb,
-					new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR)
-				);
-			}
-			return setImmediate(cb, null, dapps);
-		});
-	},
 };
 
 // Shared API
