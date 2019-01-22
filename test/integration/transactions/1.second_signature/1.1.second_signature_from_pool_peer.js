@@ -29,21 +29,19 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 	localCommon.beforeBlock('system_1_1_second_sign_from_pool_and_peer', lib => {
 		library = lib;
-		db = lib.db;
+		db = lib.storage;
 	});
 
 	afterEach(done => {
-		db
-			.task(t => {
-				return t.batch([
-					db.none('DELETE FROM blocks WHERE "height" > 1;'),
-					db.none('DELETE FROM forks_stat;'),
-				]);
-			})
-			.then(() => {
-				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
-				done();
-			});
+		db.entities.Block.begin(t => {
+			return t.batch([
+				db.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
+				db.adapter.execute('DELETE FROM forks_stat;'),
+			]);
+		}).then(() => {
+			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+			done();
+		});
 	});
 
 	describe('with funds inside account', () => {

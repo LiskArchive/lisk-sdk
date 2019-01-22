@@ -37,7 +37,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			{ sandbox: { name: 'system_blocks_process_on_receive_block' } },
 			(err, scope) => {
 				library = scope;
-				db = scope.db;
+				db = scope.storage;
 				setTimeout(done, 5000);
 			}
 		);
@@ -46,13 +46,12 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	after(application.cleanup);
 
 	afterEach(done => {
-		db
-			.task(t => {
-				return t.batch([
-					db.none('DELETE FROM blocks WHERE "height" > 1;'),
-					db.none('DELETE FROM forks_stat;'),
-				]);
-			})
+		db.entities.Block.begin(t => {
+			return t.batch([
+				db.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
+				db.adapter.execute('DELETE FROM forks_stat;'),
+			]);
+		})
 			.then(() => {
 				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 				done();
