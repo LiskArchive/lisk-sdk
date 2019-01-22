@@ -219,8 +219,8 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function verifyForkStat(blockId, cause) {
-		return db.adapter
-			.execute(
+		return db.adapter.db
+			.one(
 				'SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}',
 				{ blockId, cause }
 			)
