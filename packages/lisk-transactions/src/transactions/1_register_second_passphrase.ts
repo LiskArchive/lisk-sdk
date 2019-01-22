@@ -14,6 +14,7 @@
  */
 import { getKeys, hexToBuffer } from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
+import { SIGNATURE_FEE} from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
@@ -85,7 +86,6 @@ const validateInputs = ({ secondPassphrase }: SecondSignatureInputs): void => {
 };
 
 export class SecondSignatureTransaction extends BaseTransaction {
-	public readonly containsUniqueData: boolean;
 	public readonly asset: SecondSignatureAsset;
 	public readonly fee: BigNum = calculateFee(this.type);
 	public constructor(tx: TransactionJSON) {
@@ -107,7 +107,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		if (!typeValid) {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
-		this.containsUniqueData = false;
 		this.fee = calculateFee(this.type);
 		this.asset = tx.asset as SecondSignatureAsset;
 	}
@@ -166,12 +165,10 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		return publicKey ? hexToBuffer(publicKey) : Buffer.alloc(0);
 	}
 
-	public assetToJSON(): SecondSignatureAsset {
+	public assetToJSON(): object {
 		return {
-			signature: {
-				publicKey: this.asset.signature.publicKey,
-			},
-		};
+			...this.asset,
+		}
 	}
 
 	public verifyAgainstOtherTransactions(
@@ -224,6 +221,16 @@ export class SecondSignatureTransaction extends BaseTransaction {
 					'Amount must be zero for second signature registration transaction',
 					this.id,
 					'.asset',
+				),
+			);
+		}
+
+		if (!this.fee.eq(SIGNATURE_FEE)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${SIGNATURE_FEE}`,
+					this.id,
+					'.fee',
 				),
 			);
 		}
