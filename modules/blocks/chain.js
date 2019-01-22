@@ -37,7 +37,7 @@ const __private = {};
  * @param {Object} logger
  * @param {Block} block
  * @param {Transaction} transaction
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Object} genesisBlock
  * @param {bus} bus
  * @param {Sequence} balancesSequence
@@ -48,7 +48,6 @@ class Chain {
 		logger,
 		block,
 		transaction,
-		db,
 		storage,
 		genesisBlock,
 		bus,
@@ -56,7 +55,6 @@ class Chain {
 	) {
 		library = {
 			logger,
-			db,
 			storage,
 			genesisBlock,
 			bus,
@@ -534,15 +532,14 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return library.db
-			.tx('Chain:applyBlock', tx => {
-				modules.blocks.isActive.set(true);
+		return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
+			modules.blocks.isActive.set(true);
 
-				return __private
-					.applyUnconfirmedStep(block, tx)
-					.then(() => __private.applyConfirmedStep(block, tx))
-					.then(() => __private.saveBlockStep(block, saveBlock, tx));
-			})
+			return __private
+				.applyUnconfirmedStep(block, tx)
+				.then(() => __private.applyConfirmedStep(block, tx))
+				.then(() => __private.saveBlockStep(block, saveBlock, tx));
+		})
 			.then(() => {
 				// Remove block transactions from transaction pool
 				block.transactions.forEach(transaction => {

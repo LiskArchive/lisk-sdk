@@ -92,7 +92,6 @@ class Blocks {
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db,
 				scope.storage,
 				scope.genesisBlock,
 				scope.bus,
