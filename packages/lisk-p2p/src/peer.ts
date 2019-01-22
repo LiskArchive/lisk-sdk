@@ -22,15 +22,18 @@ import {
 	P2PNodeInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	ProtocolMessagePacket,
-	ProtocolRPCRequestPacket,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
 
 import socketClusterClient, { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { sanitizePeerInfo, sanitizePeerInfoList } from './sanitization';
+import {
+	validatePeerInfo,
+	validatePeerInfoList,
+	validateProtocolMessage,
+	validateRPCRequest,
+} from './validation';
 
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
@@ -106,11 +109,12 @@ export class Peer extends EventEmitter {
 			respond: (responseError?: Error, responseData?: unknown) => void,
 		) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
-			const rawRequest = packet as ProtocolRPCRequestPacket; // TODO 2
-
-			if (!rawRequest || typeof rawRequest.procedure !== 'string') {
-				this.emit(EVENT_INVALID_REQUEST_RECEIVED, rawRequest);
+			// tslint:disable-next-line:no-let
+			let rawRequest;
+			try {
+				rawRequest = validateRPCRequest(packet);
+			} catch (err) {
+				this.emit(EVENT_INVALID_REQUEST_RECEIVED, packet);
 
 				return;
 			}
@@ -120,35 +124,27 @@ export class Peer extends EventEmitter {
 				respond,
 			);
 
-			if (
-				request.procedure === REMOTE_RPC_NODE_INFO &&
-				typeof request.data === 'object'
-			) {
-				// The Peer has the necessary information to handle this request on its own.
-				// This request doesn't need to propagate to its parent class.
+			if (rawRequest.procedure === REMOTE_RPC_NODE_INFO) {
 				this._handlePeerInfo(request);
-
-				return;
 			}
 
-			// Re-emit the request to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
-			// TODO ASAP: Move validation/sanitization to sanitization.ts with other validation logic.
-			const rawMessage = packet as ProtocolMessagePacket;
-			if (!rawMessage || typeof rawMessage.event !== 'string') {
-				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, rawMessage);
+			// tslint:disable-next-line:no-let
+			let protocolMessage;
+			try {
+				protocolMessage = validateProtocolMessage(packet);
+			} catch (err) {
+				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, packet);
 
 				return;
 			}
-			const message = rawMessage as P2PMessagePacket;
 
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_MESSAGE_RECEIVED, message);
+			this.emit(EVENT_MESSAGE_RECEIVED, protocolMessage);
 		};
 	}
 
@@ -302,7 +298,7 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
 			});
 
-			return sanitizePeerInfoList(response.data);
+			return validatePeerInfoList(response.data);
 		} catch (error) {
 			throw new RPCResponseError(
 				`Error when fetching peerlist of a peer`,
@@ -367,7 +363,7 @@ export class Peer extends EventEmitter {
 		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
 		try {
 			// Only allow updating the height and version.
-			const { height, version } = sanitizePeerInfo(request.data);
+			const { height, version } = validatePeerInfo(request.data);
 			const peerInfoChange = { height, version };
 			this._peerInfo = {
 				...this._peerInfo,

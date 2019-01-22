@@ -13,10 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import {
-	validatePeerAddress,
-	sanitizePeerInfo,
-} from '../../src/sanitization';
+import { validatePeerAddress, validatePeerInfo } from '../../src/validation';
 
 describe('response handlers', () => {
 	describe('#sanitizePeerInfo', () => {
@@ -46,7 +43,7 @@ describe('response handlers', () => {
 			};
 
 			it('should return PeerInfo object', () => {
-				return expect(sanitizePeerInfo(peer))
+				return expect(validatePeerInfo(peer))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -58,7 +55,7 @@ describe('response handlers', () => {
 			});
 
 			it('should return PeerInfo object with height value set to 0', () => {
-				return expect(sanitizePeerInfo(peerWithInvalidHeightValue))
+				return expect(validatePeerInfo(peerWithInvalidHeightValue))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -70,7 +67,7 @@ describe('response handlers', () => {
 			});
 
 			it('should return PeerInfo and instance of Peer sets blank for invalid value of os', () => {
-				return expect(sanitizePeerInfo(peerWithInvalidOsValue))
+				return expect(validatePeerInfo(peerWithInvalidOsValue))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -86,9 +83,9 @@ describe('response handlers', () => {
 			it('throw InvalidPeer error for invalid peer', () => {
 				const peerInvalid: unknown = null;
 
-				return expect(
-					sanitizePeerInfo.bind(null, peerInvalid),
-				).to.throw('Invalid peer object');
+				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+					'Invalid peer object',
+				);
 			});
 
 			it('throw InvalidPeer error for invalid peer ip or port', () => {
@@ -99,9 +96,9 @@ describe('response handlers', () => {
 					height: '23232',
 				};
 
-				return expect(
-					sanitizePeerInfo.bind(null, peerInvalid),
-				).to.throw('Invalid peer ip or port');
+				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+					'Invalid peer ip or port',
+				);
 			});
 
 			it('throw InvalidPeer error for invalid peer version', () => {
@@ -113,9 +110,9 @@ describe('response handlers', () => {
 					version: '1222.22',
 				};
 
-				return expect(
-					sanitizePeerInfo.bind(null, peerInvalid),
-				).to.throw('Invalid peer version');
+				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+					'Invalid peer version',
+				);
 			});
 		});
 	});

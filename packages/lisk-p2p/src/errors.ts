@@ -76,3 +76,17 @@ export class RequestFailError extends VError {
 		this.name = 'RequestFailError';
 	}
 }
+
+export class InvalidRPCRequestError extends VError {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidRPCRequestError';
+	}
+}
+
+export class InvalidProtocolMessageError extends VError {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidProtocolMessageError';
+	}
+}
