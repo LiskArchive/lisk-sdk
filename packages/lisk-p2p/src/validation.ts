@@ -40,7 +40,7 @@ export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	return true;
 };
 
-export const sanitizePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
+export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeer(`Invalid peer object`);
 	}
@@ -81,7 +81,7 @@ export const sanitizePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 	return peerInfo;
 };
 
-export const sanitizePeerInfoList = (
+export const validatePeerInfoList = (
 	rawPeerInfoList: unknown,
 ): ReadonlyArray<PeerInfo> => {
 	if (!rawPeerInfoList) {
@@ -91,7 +91,7 @@ export const sanitizePeerInfoList = (
 	const { peers } = rawPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<PeerInfo>(sanitizePeerInfo);
+		const peerList = peers.map<PeerInfo>(validatePeerInfo);
 
 		return peerList;
 	} else {
@@ -115,7 +115,9 @@ export const validateRPCRequest = (request: unknown): P2PRequest => {
 	return rpcRequest;
 };
 
-export const sanitizeProtocolMessage = (message: unknown): ProtocolMessagePacket => {
+export const validateProtocolMessage = (
+	message: unknown,
+): ProtocolMessagePacket => {
 	if (!message) {
 		throw new InvalidProtocolMessageError('Invalid message');
 	}
