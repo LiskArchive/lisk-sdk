@@ -202,7 +202,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	function getBlocks(cb) {
 		library.sequence.add(
 			sequenceCb => {
-				db
+				db.adapter.db
 					.query(
 						new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
 					)
@@ -219,8 +219,8 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function verifyForkStat(blockId, cause) {
-		return db
-			.one(
+		return db.adapter
+			.execute(
 				'SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}',
 				{ blockId, cause }
 			)
