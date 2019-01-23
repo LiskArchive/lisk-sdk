@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BigNum from 'browserify-bignum';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
@@ -107,7 +106,6 @@ const validateInputs = ({
 export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData = true;
 	public readonly asset: VoteAsset;
-	public readonly fee: BigNum = new BigNum(VOTE_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);

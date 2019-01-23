@@ -117,7 +117,6 @@ const validateInputs = ({
 
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
-	public readonly fee: BigNum = new BigNum(TRANSFER_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);

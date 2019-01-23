@@ -163,10 +163,6 @@ export abstract class BaseTransaction {
 		return this._fee;
 	}
 
-	public set fee(fee: BigNum) {
-		this._fee = fee;
-	}
-
 	public get id(): string {
 		if (!this._id) {
 			throw new Error('id is requied to be set before use');
