@@ -25,7 +25,7 @@ describe('system', () => {
 	let __private;
 	let self;
 	let loggerStub;
-	let dbStub;
+	let storageStub;
 	let dummyConfig;
 
 	beforeEach(done => {
@@ -38,7 +38,7 @@ describe('system', () => {
 			debug: sinonSandbox.spy(),
 		};
 
-		dbStub = sinonSandbox.stub();
+		storageStub = sinonSandbox.stub();
 
 		dummyConfig = {
 			version: '1.0.0-beta.3',
@@ -60,7 +60,7 @@ describe('system', () => {
 			},
 			{
 				logger: loggerStub,
-				db: dbStub,
+				storage: storageStub,
 				config: dummyConfig,
 			}
 		);
@@ -69,7 +69,7 @@ describe('system', () => {
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
-			expect(library.db).to.eql(dbStub);
+			expect(library.storage).to.eql(storageStub);
 			return expect(library.config).to.deep.equal(dummyConfig);
 		});
 

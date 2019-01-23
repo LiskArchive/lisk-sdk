@@ -25,7 +25,6 @@ describe('blocks/process', () => {
 	let library;
 	let modules;
 	let blocksProcessModule;
-	let dbStub;
 	let storageStub;
 	let loggerStub;
 	let dummyBlock;
@@ -40,13 +39,6 @@ describe('blocks/process', () => {
 	let definitions;
 
 	beforeEach(done => {
-		// Logic
-		dbStub = {
-			blocks: {
-				loadBlocksOffset: sinonSandbox.stub(),
-			},
-		};
-
 		storageStub = {
 			entities: {
 				Block: {
@@ -147,7 +139,6 @@ describe('blocks/process', () => {
 			peersStub,
 			transactionStub,
 			schemaStub,
-			dbStub,
 			storageStub,
 			sequenceStub,
 			genesisBlockStub
@@ -256,7 +247,6 @@ describe('blocks/process', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.schema).to.eql(schemaStub);
-			expect(library.db).to.eql(dbStub);
 			expect(library.storage).to.eql(storageStub);
 			expect(library.sequence).to.eql(sequenceStub);
 			expect(library.genesisBlock).to.eql(genesisBlockStub);

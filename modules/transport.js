@@ -60,7 +60,6 @@ class Transport {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
 			storage: scope.storage,
 			bus: scope.bus,
 			schema: scope.schema,

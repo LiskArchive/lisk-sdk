@@ -37,7 +37,7 @@ __private.unconfirmedAscii = {};
  * @requires bytebuffer
  * @requires valid
  * @requires helpers/dapp_categories
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Object} logger
  * @param {ZSchema} schema
  * @param {Object} network
@@ -46,10 +46,10 @@ __private.unconfirmedAscii = {};
 class DApp {
 	constructor(storage, logger, schema, network) {
 		library = {
+			storage,
 			logger,
 			schema,
 			network,
-			storage,
 		};
 	}
 }

@@ -23,7 +23,6 @@ describe('blocks/chain', () => {
 	let library;
 	let modules;
 	let blocksChainModule;
-	let dbStub;
 	let storageStub;
 	let loggerStub;
 	let blockStub;
@@ -65,13 +64,6 @@ describe('blocks/chain', () => {
 
 	beforeEach(done => {
 		// Logic
-		dbStub = {
-			blocks: {
-				deleteBlock: sinonSandbox.stub(),
-			},
-			tx: sinonSandbox.stub(),
-		};
-
 		storageStub = {
 			entities: {
 				Block: {
@@ -83,6 +75,7 @@ describe('blocks/chain', () => {
 				},
 				Transaction: {
 					create: sinonSandbox.stub(),
+					begin: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -123,7 +116,6 @@ describe('blocks/chain', () => {
 			loggerStub,
 			blockStub,
 			transactionStub,
-			dbStub,
 			storageStub,
 			genesisBlockStub,
 			busStub,
@@ -203,7 +195,6 @@ describe('blocks/chain', () => {
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
-			expect(library.db).to.eql(dbStub);
 			expect(library.storage).to.eql(storageStub);
 			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.bus).to.eql(busStub);
@@ -253,7 +244,7 @@ describe('blocks/chain', () => {
 			});
 		});
 
-		describe('when library.db.blocks.getGenesisBlockId succeeds', () => {
+		describe('when library.storage.entities.Block.isPersisted succeeds', () => {
 			describe('if returns false (genesis block is not in database)', () => {
 				beforeEach(done => {
 					library.storage.entities.Block.isPersisted.resolves(false);
@@ -391,7 +382,7 @@ describe('blocks/chain', () => {
 					},
 					batch: sinonSandbox.stub(),
 				};
-				library.db.tx.callsArgWith(1, txStub);
+				storageStub.entities.Block.begin.callsArgWith(1, txStub);
 				done();
 			});
 
@@ -453,7 +444,7 @@ describe('blocks/chain', () => {
 						expect(loggerStub.error.args[0][0]).to.contains('deleteBlock-ERR');
 						done();
 					},
-					library.db
+					storageStub.entities.Block.begin
 				);
 			});
 		});
@@ -469,7 +460,7 @@ describe('blocks/chain', () => {
 					() => {
 						done();
 					},
-					library.db
+					storageStub.entities.Block.begin
 				);
 			});
 		});
@@ -771,7 +762,10 @@ describe('blocks/chain', () => {
 		describe('when block.transactions is undefined', () => {
 			it('should return rejected promise with error', done => {
 				__private
-					.applyUnconfirmedStep(blockWithUndefinedTransactions, dbStub.tx)
+					.applyUnconfirmedStep(
+						blockWithUndefinedTransactions,
+						storageStub.entities.Block.begin
+					)
 					.catch(err => {
 						expect(err).instanceOf(Error);
 						expect(err.message).to.equal(
@@ -785,7 +779,10 @@ describe('blocks/chain', () => {
 		describe('when block.transactions is empty', () => {
 			it('should return resolved promise with no error', done => {
 				__private
-					.applyUnconfirmedStep(blockWithEmptyTransactions, dbStub.tx)
+					.applyUnconfirmedStep(
+						blockWithEmptyTransactions,
+						storageStub.entities.Block.begin
+					)
 					.then(resolved => {
 						expect(resolved).to.be.an('array').that.is.empty;
 						done();
@@ -804,7 +801,10 @@ describe('blocks/chain', () => {
 				});
 				it('should return rejected promise with error', done => {
 					__private
-						.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
+						.applyUnconfirmedStep(
+							blockWithTransactions,
+							storageStub.entities.Block.begin
+						)
 						.catch(err => {
 							expect(err).instanceOf(Error);
 							expect(err.message).to.equal(
@@ -841,7 +841,10 @@ describe('blocks/chain', () => {
 					});
 					it('should return rejected promise with error', done => {
 						__private
-							.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
+							.applyUnconfirmedStep(
+								blockWithTransactions,
+								storageStub.entities.Block.begin
+							)
 							.catch(err => {
 								expect(err).instanceOf(Error);
 								expect(err.message).to.equal(
@@ -870,7 +873,10 @@ describe('blocks/chain', () => {
 
 					it('should return resolved promise with no error', done => {
 						__private
-							.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
+							.applyUnconfirmedStep(
+								blockWithTransactions,
+								storageStub.entities.Block.begin
+							)
 							.then(resolve => {
 								expect(resolve).to.deep.equal([
 									undefined,
@@ -893,7 +899,10 @@ describe('blocks/chain', () => {
 		describe('when block transaction is undefined', () => {
 			it('should return rejected promise with error', done => {
 				__private
-					.applyConfirmedStep(blockWithUndefinedTransactions, dbStub.tx)
+					.applyConfirmedStep(
+						blockWithUndefinedTransactions,
+						storageStub.entities.Block.begin
+					)
 					.catch(err => {
 						expect(err).instanceOf(Error);
 						expect(err.message).to.equal(
@@ -907,7 +916,10 @@ describe('blocks/chain', () => {
 		describe('when block transaction is empty', () => {
 			it('should return resolved promise with no error', done => {
 				__private
-					.applyConfirmedStep(blockWithEmptyTransactions, dbStub.tx)
+					.applyConfirmedStep(
+						blockWithEmptyTransactions,
+						storageStub.entities.Block.begin
+					)
 					.then(resolved => {
 						expect(resolved).to.be.an('array').that.is.empty;
 						done();
@@ -927,7 +939,10 @@ describe('blocks/chain', () => {
 
 				it('should return rejected promise with error', done => {
 					__private
-						.applyConfirmedStep(blockWithTransactions, dbStub.tx)
+						.applyConfirmedStep(
+							blockWithTransactions,
+							storageStub.entities.Block.begin
+						)
 						.catch(err => {
 							expect(err).instanceOf(Error);
 							expect(err.message).to.equal(
@@ -963,7 +978,10 @@ describe('blocks/chain', () => {
 
 					it('should return rejected promise with error', done => {
 						__private
-							.applyConfirmedStep(blockWithTransactions, dbStub.tx)
+							.applyConfirmedStep(
+								blockWithTransactions,
+								storageStub.entities.Block.begin
+							)
 							.catch(err => {
 								expect(err).instanceOf(Error);
 								expect(err.message).to.equal(
@@ -995,7 +1013,10 @@ describe('blocks/chain', () => {
 					});
 					it('should return resolved promise with no error', done => {
 						__private
-							.applyConfirmedStep(blockWithTransactions, dbStub.tx)
+							.applyConfirmedStep(
+								blockWithTransactions,
+								storageStub.entities.Block.begin
+							)
 							.then(resolve => {
 								expect(resolve).to.be.deep.equal([
 									undefined,
@@ -1020,7 +1041,7 @@ describe('blocks/chain', () => {
 				.callsArgWith(1, null, true);
 			modules.rounds.tick.callsArgWith(1, null, true);
 			process.emit = sinonSandbox.stub();
-			library.db.tx = (desc, tx) => {
+			storageStub.entities.Block.begin = (desc, tx) => {
 				return tx();
 			};
 			done();
@@ -1043,7 +1064,11 @@ describe('blocks/chain', () => {
 
 				it('should call a callback with error', done => {
 					__private
-						.saveBlockStep(blockWithTransactions, true, dbStub.tx)
+						.saveBlockStep(
+							blockWithTransactions,
+							true,
+							storageStub.entities.Block.begin
+						)
 						.catch(err => {
 							expect(err).instanceOf(Error);
 							expect(err.message).to.equal('Failed to save block');
@@ -1085,7 +1110,11 @@ describe('blocks/chain', () => {
 
 					it('should call a callback with error', done => {
 						__private
-							.saveBlockStep(blockWithTransactions, true, dbStub.tx)
+							.saveBlockStep(
+								blockWithTransactions,
+								true,
+								storageStub.entities.Block.begin
+							)
 							.catch(err => {
 								expect(err).to.equal('tick-ERR');
 								expect(library.bus.message.calledOnce).to.be.false;
@@ -1101,7 +1130,11 @@ describe('blocks/chain', () => {
 
 					it('should call a callback with no error', done => {
 						__private
-							.saveBlockStep(blockWithTransactions, true, dbStub.tx)
+							.saveBlockStep(
+								blockWithTransactions,
+								true,
+								storageStub.entities.Block.begin
+							)
 							.then(resolve => {
 								expect(resolve).to.be.undefined;
 								expect(library.bus.message.calledOnce).to.be.true;
@@ -1126,7 +1159,11 @@ describe('blocks/chain', () => {
 
 				it('should call a callback with error', done => {
 					__private
-						.saveBlockStep(blockWithTransactions, true, dbStub.tx)
+						.saveBlockStep(
+							blockWithTransactions,
+							true,
+							storageStub.entities.Block.begin
+						)
 						.catch(err => {
 							expect(err).to.equal('tick-ERR');
 							expect(library.bus.message.calledOnce).to.be.false;
@@ -1142,7 +1179,11 @@ describe('blocks/chain', () => {
 
 				it('should call a callback with no error', done => {
 					__private
-						.saveBlockStep(blockWithTransactions, true, dbStub.tx)
+						.saveBlockStep(
+							blockWithTransactions,
+							true,
+							storageStub.entities.Block.begin
+						)
 						.then(resolve => {
 							expect(resolve).to.be.undefined;
 							expect(library.bus.message.calledOnce).to.be.true;
@@ -1162,7 +1203,7 @@ describe('blocks/chain', () => {
 		let txTemp;
 
 		beforeEach(done => {
-			txTemp = library.db.tx;
+			txTemp = storageStub.entities.Block.begin;
 			privateTemp = __private;
 			process.emit = sinonSandbox.stub();
 			modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
@@ -1194,11 +1235,11 @@ describe('blocks/chain', () => {
 			);
 			expect(modules.blocks.isActive.set.calledTwice).to.be.true;
 			__private = privateTemp;
-			library.db.tx = txTemp;
+			storageStub.entities.Block.begin = txTemp;
 			done();
 		});
 
-		describe('when library.db.tx fails', () => {
+		describe('when storageStub.entities.Block.begin fails', () => {
 			afterEach(() => {
 				expect(modules.blocks.isActive.set.args[0][0]).to.be.true;
 				return expect(modules.blocks.isActive.set.args[1][0]).to.be.false;
@@ -1206,7 +1247,7 @@ describe('blocks/chain', () => {
 
 			describe('when reason === Snapshot finished', () => {
 				beforeEach(done => {
-					library.db.tx = (desc, tx) => {
+					storageStub.entities.Block.begin = (desc, tx) => {
 						return tx(txTemp.rejects());
 					};
 					__private.saveBlockStep.rejects('Snapshot finished');
@@ -1227,7 +1268,7 @@ describe('blocks/chain', () => {
 
 			describe('when reason !== Snapshot finished', () => {
 				beforeEach(done => {
-					library.db.tx = (desc, tx) => {
+					storageStub.entities.Block.begin = (desc, tx) => {
 						return tx(txTemp.rejects());
 					};
 					__private.saveBlockStep.rejects('Chain:applyBlock-ERR');
@@ -1244,9 +1285,9 @@ describe('blocks/chain', () => {
 			});
 		});
 
-		describe('when library.db.tx succeeds', () => {
+		describe('when storageStub.entities.Block.begin succeeds', () => {
 			beforeEach(done => {
-				library.db.tx = (desc, tx) => {
+				storageStub.entities.Block.begin = (desc, tx) => {
 					return tx(txTemp.resolves());
 				};
 				modules.transactions.removeUnconfirmedTransaction.returns(true);
@@ -1542,9 +1583,9 @@ describe('blocks/chain', () => {
 	});
 
 	describe('__private.popLastBlock', () => {
-		describe('when library.db.tx fails', () => {
+		describe('when storageStub.entities.Block.begin fails', () => {
 			beforeEach(done => {
-				library.db.tx.rejects('db-tx_ERR');
+				storageStub.entities.Block.begin.rejects('db-tx_ERR');
 				done();
 			});
 
@@ -1556,9 +1597,9 @@ describe('blocks/chain', () => {
 			});
 		});
 
-		describe('when library.db.tx passes', () => {
+		describe('when storageStub.entities.Block.begin passes', () => {
 			beforeEach(done => {
-				library.db.tx.resolves('savedBlock');
+				storageStub.entities.Block.begin.resolves('savedBlock');
 				done();
 			});
 

@@ -50,7 +50,7 @@ const validAccount = {
 describe('accounts', () => {
 	let accounts;
 	let accountLogic;
-	let db;
+	let storage;
 
 	before(done => {
 		application.init(
@@ -60,7 +60,7 @@ describe('accounts', () => {
 				scope.modules.blocks.lastBlock.set({ height: 10 });
 				accounts = scope.modules.accounts;
 				accountLogic = scope.logic.account;
-				db = scope.db;
+				storage = scope.storage;
 				done(err);
 			}
 		);
@@ -189,7 +189,7 @@ describe('accounts', () => {
 			const account = new accountFixtures.Account();
 			let eventCtx;
 
-			db.$config.options.query = function(event) {
+			storage.adapter.db.$config.options.query = function(event) {
 				eventCtx = event.ctx;
 			};
 
@@ -201,7 +201,7 @@ describe('accounts', () => {
 				expect(eventCtx.isTX).to.be.true;
 				expect(eventCtx.txLevel).to.be.eql(0);
 				expect(eventCtx.tag).to.be.eql('Accounts:setAccountAndGet');
-				delete db.$config.options.query;
+				delete storage.adapter.db.$config.options.query;
 
 				done();
 			});
@@ -211,7 +211,7 @@ describe('accounts', () => {
 			const account = new accountFixtures.Account();
 			let eventCtx;
 
-			db.$config.options.query = function(event) {
+			storage.adapter.db.$config.options.query = function(event) {
 				eventCtx = event.ctx;
 			};
 
@@ -226,14 +226,14 @@ describe('accounts', () => {
 						expect(eventCtx.isTX).to.be.true;
 						expect(eventCtx.txLevel).to.be.eql(0);
 						expect(eventCtx.tag).to.be.eql('Tests:setAccountAndGet');
-						delete db.$config.options.query;
+						delete storage.adapter.db.$config.options.query;
 
 						done();
 					},
 					t
 				);
 
-			db.tx('Tests:setAccountAndGet', task);
+				storage.adapter.db.tx('Tests:setAccountAndGet', task);
 		});
 	});
 

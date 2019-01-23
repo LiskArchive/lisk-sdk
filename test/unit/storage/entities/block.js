@@ -18,7 +18,7 @@
 const { BaseEntity, Block } = require('../../../../storage/entities');
 const storageSandbox = require('../../../common/storage_sandbox');
 const transactionsFixtures = require('../../../fixtures').transactions;
-const blocksFixtures = require('../../../fixtures/storage/blocks');
+const blocksFixtures = require('../../../fixtures/blocks');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,

@@ -64,7 +64,6 @@ class Blocks {
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db,
 				scope.storage,
 				scope.config
 			),
@@ -74,7 +73,6 @@ class Blocks {
 				scope.logic.peers,
 				scope.logic.transaction,
 				scope.schema,
-				scope.db,
 				scope.storage,
 				scope.sequence,
 				scope.genesisBlock
@@ -84,7 +82,6 @@ class Blocks {
 				scope.logic.account,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db,
 				scope.storage,
 				scope.genesisBlock
 			),
@@ -92,7 +89,6 @@ class Blocks {
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db,
 				scope.storage,
 				scope.genesisBlock,
 				scope.bus,

@@ -81,7 +81,7 @@ const createStorage = require('./storage');
  * @property {Object} bus
  * @property {Object} config
  * @property {undefined} connect
- * @property {Object} db
+ * @property {Object} storage
  * @property {Object} ed
  * @property {Object} genesisBlock
  * @property {string} lastCommit
@@ -464,23 +464,6 @@ d.run(() => {
 				},
 			],
 
-			/**
-			 * Description of the function.
-			 *
-			 * @memberof! app
-			 * @param {function} cb - Callback function
-			 * @todo Add description for the function and its params
-			 */
-			db(cb) {
-				const db = require('./db');
-				db
-					.connect(config.db, dbLogger)
-					.then(dbResult => cb(null, dbResult))
-					.catch(err => {
-						console.error(err);
-					});
-			},
-
 			storage(cb) {
 				const storage = createStorage(config.db, dbLogger);
 				storage
@@ -535,7 +518,7 @@ d.run(() => {
 				'config',
 				'logger',
 				'network',
-				'db',
+				'storage',
 				/**
 				 * Description of the function.
 				 *
@@ -610,7 +593,6 @@ d.run(() => {
 
 			logic: [
 				'storage',
-				'db',
 				'bus',
 				'schema',
 				'genesisBlock',
@@ -636,9 +618,6 @@ d.run(() => {
 							config(configCb) {
 								configCb(null, scope.config);
 							},
-							db(dbCb) {
-								dbCb(null, scope.db);
-							},
 							storage(storageCb) {
 								storageCb(null, scope.storage);
 							},
@@ -655,7 +634,6 @@ d.run(() => {
 								genesisBlockCb(null, scope.genesisBlock);
 							},
 							account: [
-								'db',
 								'storage',
 								'bus',
 								'ed',
@@ -664,7 +642,6 @@ d.run(() => {
 								'logger',
 								function(accountScope, accountCb) {
 									new Account(
-										accountScope.db,
 										accountScope.storage,
 										accountScope.schema,
 										accountScope.logger,
@@ -673,7 +650,6 @@ d.run(() => {
 								},
 							],
 							transaction: [
-								'db',
 								'storage',
 								'bus',
 								'ed',
@@ -694,7 +670,7 @@ d.run(() => {
 								},
 							],
 							block: [
-								'db',
+								'storage',
 								'bus',
 								'ed',
 								'schema',
@@ -731,7 +707,6 @@ d.run(() => {
 				'bus',
 				'sequence',
 				'balancesSequence',
-				'db',
 				'storage',
 				'logic',
 				'cache',

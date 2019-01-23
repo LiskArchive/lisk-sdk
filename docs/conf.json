@@ -9,7 +9,7 @@
 			"./app.js",
 			"./api/",
 			"./config/",
-			"./db/",
+			"./storage/",
 			"./helpers/",
 			"./logic/",
 			"./modules/",
