@@ -19,7 +19,6 @@ const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
 const { StorageSandbox } = require('../common/storage_sandbox');
 
 describe('Dependency versions', () => {
-
 	describe('node version', () => {
 		it('should be the same as the one inside .nvmrc file', () => {
 			const nvmrc = fs.readFileSync('.nvmrc', 'utf8').trim();
