@@ -529,7 +529,7 @@ describe('rounds', () => {
 				});
 
 				afterEach(() => {
-					return bus.reset();
+					return bus.resetHistory();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
@@ -567,7 +567,7 @@ describe('rounds', () => {
 				});
 
 				after(() => {
-					return bus.reset();
+					return bus.resetHistory();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
