@@ -51,7 +51,7 @@ const httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 const swaggerHelper = require('./helpers/swagger');
 const createStorage = require('./storage');
-const createCacheConnector = require('./helpers/cache_connector');
+const createCache = require('./components');
 
 /**
  * Main application entry point.
@@ -88,6 +88,7 @@ const createCacheConnector = require('./helpers/cache_connector');
  * @property {string} lastCommit
  * @property {Object} listen
  * @property {Object} logger
+ * @property {Object} components
  * @property {Object} logic
  * @property {Object} modules
  * @property {Object} network
@@ -139,7 +140,6 @@ const config = {
 	modules: {
 		accounts: './modules/accounts.js',
 		blocks: './modules/blocks.js',
-		cache: './modules/cache.js',
 		dapps: './modules/dapps.js',
 		delegates: './modules/delegates.js',
 		rounds: './modules/rounds.js',
@@ -202,6 +202,7 @@ d.on('error', err => {
 logger.info(`Starting lisk with "${appConfig.network}" genesis block.`);
 // Run domain
 d.run(() => {
+	const components = [];
 	const modules = [];
 	async.auto(
 		{
@@ -390,9 +391,9 @@ d.run(() => {
 			],
 
 			swagger: [
+				'components',
 				'modules',
 				'logger',
-				'cache',
 				/**
 				 * Description of the function.
 				 *
@@ -488,25 +489,20 @@ d.run(() => {
 					});
 			},
 
-			/**
-			 * Description of the function.
-			 *
-			 * @memberof! app
-			 * @param {function} cb
-			 * @todo Add description for the params
-			 */
-			cache(cb) {
+			components(cb) {
 				logger.debug(`Cache ${config.cacheEnabled ? 'Enabled' : 'Disabled'}`);
 				if (!config.cacheEnabled) {
-					return cb(null, null);
+					return cb();
 				}
-				const cacheConnector = createCacheConnector(config.cache, logger);
-				return cacheConnector.connect((err, client) =>
-					cb(null, {
-						cacheEnabled: config.cacheEnabled,
-						client,
-					})
-				);
+				const cacheComponent = createCache(config.cache, logger);
+				return cacheComponent
+					.connect(err => {
+						if (err) {
+							return cb(err);
+						}
+						components.push(cacheComponent);
+						return cb(null, cacheComponent);
+					});
 			},
 
 			webSocket: [
@@ -703,7 +699,6 @@ d.run(() => {
 				'balancesSequence',
 				'storage',
 				'logic',
-				'cache',
 				/**
 				 * Description of the function.
 				 *
@@ -742,6 +737,7 @@ d.run(() => {
 			],
 
 			ready: [
+				'components',
 				'swagger',
 				'modules',
 				'bus',
@@ -759,7 +755,7 @@ d.run(() => {
 					scope.modules.swagger = scope.swagger;
 
 					// Fire onBind event in every module
-					scope.bus.message('bind', scope.modules);
+					scope.bus.message('bind', scope);
 
 					scope.logic.peers.bindModules(scope.modules);
 					cb();
@@ -873,6 +869,11 @@ d.run(() => {
 				if (scope.socketCluster) {
 					scope.socketCluster.removeAllListeners('fail');
 					scope.socketCluster.destroy();
+				}
+				if (components.length !== 0) {
+					components.map(component =>
+						component.cleanup()
+					);
 				}
 				// Run cleanup operation on each module before shutting down the node;
 				// this includes operations like snapshotting database tables.
