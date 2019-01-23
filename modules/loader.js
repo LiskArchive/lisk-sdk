@@ -57,7 +57,6 @@ class Loader {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
 			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,
@@ -490,76 +489,75 @@ __private.loadBlockChain = function() {
 		}
 	}
 
-	library.db
-		.task(checkMemTables)
-		.spread(
-			async (
+	library.storage.entities.Block.begin('loader:checkMemTables', checkMemTables)
+		.then(async result => {
+			const [
 				blocksCount,
 				getGenesisBlock,
 				getMemRounds,
-				duplicatedDelegatesCount
-			) => {
-				library.logger.info(`Blocks ${blocksCount}`);
+				duplicatedDelegatesCount,
+			] = result;
 
-				const round = slots.calcRound(blocksCount);
+			library.logger.info(`Blocks ${blocksCount}`);
 
-				if (blocksCount === 1) {
-					return reload(blocksCount);
+			const round = slots.calcRound(blocksCount);
+
+			if (blocksCount === 1) {
+				return reload(blocksCount);
+			}
+
+			matchGenesisBlock(getGenesisBlock);
+
+			if (library.config.loading.snapshotRound) {
+				return __private.createSnapshot(blocksCount);
+			}
+
+			const unapplied = getMemRounds.filter(row => row.round !== round);
+
+			if (unapplied.length > 0) {
+				library.logger.error('Detected unapplied rounds in mem_round', {
+					currentHeight: blocksCount,
+					currentRound: round,
+					unappliedRounds: unapplied,
+				});
+
+				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
+			}
+
+			if (duplicatedDelegatesCount > 0) {
+				library.logger.error(
+					'Delegates table corrupted with duplicated entries'
+				);
+				return process.emit('exit');
+			}
+
+			await library.storage.entities.Account.resetUnconfirmedState();
+			const delegatesPublicKeys = await library.storage.entities.Account.get(
+				{ isDelegate: true },
+				{ limit: null }
+			).then(accounts => accounts.map(account => account.publicKey));
+
+			if (delegatesPublicKeys.length === 0) {
+				return reload(blocksCount, 'No delegates found');
+			}
+
+			return modules.blocks.utils.loadLastBlock((err, block) => {
+				if (err) {
+					return reload(blocksCount, err || 'Failed to load last block');
 				}
 
-				matchGenesisBlock(getGenesisBlock);
+				__private.lastBlock = block;
 
-				if (library.config.loading.snapshotRound) {
-					return __private.createSnapshot(blocksCount);
-				}
-
-				const unapplied = getMemRounds.filter(row => row.round !== round);
-
-				if (unapplied.length > 0) {
-					library.logger.error('Detected unapplied rounds in mem_round', {
-						currentHeight: blocksCount,
-						currentRound: round,
-						unappliedRounds: unapplied,
-					});
-
-					return reload(blocksCount, 'Detected unapplied rounds in mem_round');
-				}
-
-				if (duplicatedDelegatesCount > 0) {
-					library.logger.error(
-						'Delegates table corrupted with duplicated entries'
-					);
-					return process.emit('exit');
-				}
-
-				await library.storage.entities.Account.resetUnconfirmedState();
-				const delegatesPublicKeys = await library.storage.entities.Account.get(
-					{ isDelegate: true },
-					{ limit: null }
-				).then(accounts => accounts.map(account => account.publicKey));
-
-				if (delegatesPublicKeys.length === 0) {
-					return reload(blocksCount, 'No delegates found');
-				}
-
-				return modules.blocks.utils.loadLastBlock((err, block) => {
-					if (err) {
-						return reload(blocksCount, err || 'Failed to load last block');
+				return __private.validateOwnChain(validateOwnChainError => {
+					if (validateOwnChainError) {
+						throw validateOwnChainError;
 					}
 
-					__private.lastBlock = block;
-
-					return __private.validateOwnChain(validateOwnChainError => {
-						if (validateOwnChainError) {
-							throw validateOwnChainError;
-						}
-
-						library.logger.info('Blockchain ready');
-						library.bus.message('blockchainReady');
-					});
+					library.logger.info('Blockchain ready');
+					library.bus.message('blockchainReady');
 				});
-			}
-		)
+			});
+		})
 		.catch(err => {
 			library.logger.error(err.stack || err);
 			return process.emit('exit');

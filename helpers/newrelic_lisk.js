@@ -51,10 +51,6 @@ const modulesToInstrument = {
 			'removeByPattern',
 		],
 	},
-	'./modules/dapps.js': {
-		identifier: 'modules.dapps',
-		callbackMethods: ['getDapps'],
-	},
 	'./modules/delegates.js': {
 		identifier: 'modules.delegates',
 		callbackMethods: ['getForgers', 'getDelegates'],

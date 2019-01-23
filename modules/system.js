@@ -48,7 +48,6 @@ class System {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
 			storage: scope.storage,
 			config: {
 				version: scope.config.version,

@@ -28,7 +28,7 @@ describe('block_version', () => {
 
 	localCommon.beforeBlock('lisk_functional_block_version', lib => {
 		library = lib;
-		Queries = new QueriesHelper(lib, lib.db);
+		Queries = new QueriesHelper(lib, lib.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge

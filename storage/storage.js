@@ -56,9 +56,8 @@ class Storage {
 	}
 
 	cleanup() {
-		return Storage.instance.adapter.disconnect().then(() => {
-			this.isReady = false;
-		});
+		Storage.instance.adapter.disconnect();
+		this.isReady = false;
 	}
 
 	/**

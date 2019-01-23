@@ -73,7 +73,7 @@ class StorageSeed {
 		}).then(() => blocks);
 	}
 
-	static seedDapps(db, count = 1) {
+	static seedDapps(storage, count = 1) {
 		const trs = [];
 
 		for (let i = 0; i < count; i++) {
@@ -85,12 +85,12 @@ class StorageSeed {
 			);
 		}
 
-		return db.tx('db:seed:dapps', t => {
-			return t.transactions.save(trs).then(() => trs);
+		return storage.adapter.db.tx('db:seed:dapps', tx => {
+			return storage.entities.Transaction.create(trs, {}, tx).then(() => trs);
 		});
 	}
 
-	static seedOutTransfer(db, dapp, inTransfer, count = 1) {
+	static seedOutTransfer(storage, dapp, inTransfer, count = 1) {
 		const trs = [];
 
 		for (let i = 0; i < count; i++) {
@@ -104,12 +104,12 @@ class StorageSeed {
 			);
 		}
 
-		return db.tx('db:seed:outtransfer', t => {
-			return t.transactions.save(trs).then(() => trs);
+		return storage.adapter.db.tx('db:seed:outtransfer', tx => {
+			return storage.entities.Transaction.create(trs, {}, tx).then(() => trs);
 		});
 	}
 
-	static seedInTransfer(db, dapp, count = 1) {
+	static seedInTransfer(storage, dapp, count = 1) {
 		const trs = [];
 
 		for (let i = 0; i < count; i++) {
@@ -122,14 +122,14 @@ class StorageSeed {
 			);
 		}
 
-		return db.tx('db:seed:intransfer', t => {
-			return t.transactions.save(trs).then(() => trs);
+		return storage.adapter.db.tx('db:seed:intransfer', tx => {
+			return storage.entities.Transaction.create(trs, {}, tx).then(() => trs);
 		});
 	}
 
-	static seed(db) {
-		return this.seedAccounts(db).then(seedAccounts =>
-			this.seedBlocks(db, seedAccounts)
+	static seed(storage) {
+		return this.seedAccounts(storage).then(seedAccounts =>
+			this.seedBlocks(storage, seedAccounts)
 		);
 	}
 

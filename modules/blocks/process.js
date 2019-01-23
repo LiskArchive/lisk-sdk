@@ -41,7 +41,7 @@ let self;
  * @param {Peers} peers
  * @param {Transaction} transaction
  * @param {ZSchema} schema
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Sequence} sequence
  * @param {Object} genesisBlock
  * @todo Add description for the params
@@ -53,7 +53,6 @@ class Process {
 		peers,
 		transaction,
 		schema,
-		db,
 		storage,
 		sequence,
 		genesisBlock
@@ -61,7 +60,6 @@ class Process {
 		library = {
 			logger,
 			schema,
-			db,
 			storage,
 			sequence,
 			genesisBlock,

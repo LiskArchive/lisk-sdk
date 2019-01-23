@@ -25,7 +25,6 @@ describe('blocks/verify', () => {
 	let library;
 	let __private;
 	let loggerStub;
-	let dbStub;
 	let storageStub;
 	let logicBlockStub;
 	let logicTransactionStub;
@@ -76,7 +75,6 @@ describe('blocks/verify', () => {
 			loggerStub,
 			logicBlockStub,
 			logicTransactionStub,
-			dbStub,
 			storageStub,
 			configMock
 		);
@@ -142,7 +140,7 @@ describe('blocks/verify', () => {
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
-			expect(library.db).to.eql(dbStub);
+			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.block).to.eql(logicBlockStub);
 			expect(library.config).to.eql(configMock);
 			return expect(library.logic.transaction).to.eql(logicTransactionStub);
@@ -2099,7 +2097,6 @@ describe('blocks/verify', () => {
 					loggerStub,
 					logicBlockStub,
 					logicTransactionStub,
-					dbStub,
 					storageStub,
 					{
 						loading: { snapshotRound: 123 },

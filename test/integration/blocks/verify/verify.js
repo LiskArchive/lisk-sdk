@@ -18,13 +18,12 @@ const crypto = require('crypto');
 const lisk = require('lisk-elements').default;
 const _ = require('lodash');
 const rewire = require('rewire');
-const async = require('async'); // eslint-disable-line no-unused-vars
+const async = require('async');
 const Promise = require('bluebird');
 const Bignum = require('../../../../helpers/bignum.js');
-const application = require('../../../common/application'); // eslint-disable-line no-unused-vars
-const clearDatabaseTable = require('../../../common/db_sandbox')
-	.clearDatabaseTable; // eslint-disable-line no-unused-vars
-const modulesLoader = require('../../../common/modules_loader'); // eslint-disable-line no-unused-vars
+const application = require('../../../common/application');
+const { clearDatabaseTable } = require('../../../common/storage_sandbox');
+const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
 const slots = require('../../../../helpers/slots.js');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -182,7 +181,6 @@ describe('blocks/verify', () => {
 	let blocks;
 	let blockLogic;
 	let delegates;
-	let db;
 	let storage;
 	let results;
 
@@ -199,7 +197,6 @@ describe('blocks/verify', () => {
 				blockLogic = scope.logic.block;
 				blocks = scope.modules.blocks;
 				delegates = scope.modules.delegates;
-				db = scope.db;
 				storage = scope.storage;
 
 				// Set current block version to 0
@@ -215,7 +212,7 @@ describe('blocks/verify', () => {
 
 	afterEach(() => {
 		library.modules.blocks.lastBlock.set(genesisBlock);
-		return db.none('DELETE FROM blocks WHERE height > 1');
+		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
 	});
 
 	beforeEach(done => {
@@ -240,7 +237,6 @@ describe('blocks/verify', () => {
 				library.logger,
 				library.logic.block,
 				library.logic.transaction,
-				library.db,
 				library.storage,
 				library.config
 			);
@@ -699,7 +695,6 @@ describe('blocks/verify', () => {
 
 			before(done => {
 				RewiredVerify.__set__('library', {
-					db,
 					storage,
 					logger: library.logger,
 				});
@@ -884,7 +879,13 @@ describe('blocks/verify', () => {
 					'votes WHERE "transactionId" = \'17502993173215211070\'',
 				],
 				(table, seriesCb) => {
-					clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+					clearDatabaseTable(storage, modulesLoader.logger, table)
+						.then(res => {
+							seriesCb(null, res);
+						})
+						.catch(err => {
+							seriesCb(err, null);
+						});
 				},
 				err => {
 					if (err) {

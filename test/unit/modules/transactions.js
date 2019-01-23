@@ -89,7 +89,7 @@ describe('transactions', () => {
 		const dappLogic = transactionLogic.attachAssetType(
 			transactionTypes.DAPP,
 			new DappLogic(
-				modulesLoader.db,
+				modulesLoader.storage,
 				modulesLoader.logger,
 				modulesLoader.scope.schema,
 				modulesLoader.scope.network
@@ -99,7 +99,7 @@ describe('transactions', () => {
 
 		const inTransferLogic = transactionLogic.attachAssetType(
 			transactionTypes.IN_TRANSFER,
-			new InTransferLogic(modulesLoader.db, modulesLoader.scope.schema)
+			new InTransferLogic(modulesLoader.storage, modulesLoader.scope.schema)
 		);
 		inTransferLogic.bind(accountsModule, /* sharedApi */ null);
 		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
@@ -107,7 +107,7 @@ describe('transactions', () => {
 		const outTransfer = transactionLogic.attachAssetType(
 			transactionTypes.OUT_TRANSFER,
 			new OutTransferLogic(
-				modulesLoader.db,
+				modulesLoader.storage,
 				modulesLoader.scope.schema,
 				modulesLoader.logger
 			)

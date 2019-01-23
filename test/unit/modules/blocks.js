@@ -26,7 +26,6 @@ describe('blocks', () => {
 	let library;
 	let modules;
 	let __private;
-	let dbStub;
 	let storageStub;
 	let loggerStub;
 	let logicBlockStub;
@@ -54,13 +53,6 @@ describe('blocks', () => {
 			warn: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
 		};
-		dbStub = {
-			blocks: {
-				deleteBlock: sinonSandbox.stub(),
-				deleteFromBlockId: sinonSandbox.stub(),
-			},
-			tx: sinonSandbox.stub(),
-		};
 		storageStub = {
 			entities: {
 				Block: {
@@ -78,7 +70,6 @@ describe('blocks', () => {
 		balancesSequenceStub = sinonSandbox.stub();
 		scope = {
 			logger: loggerStub,
-			db: dbStub,
 			storage: storageStub,
 			logic: {
 				account: accountStub,

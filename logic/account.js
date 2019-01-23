@@ -37,7 +37,7 @@ const __private = {};
  * @requires helpers/sort_by
  * @requires helpers/bignum
  * @requires logic/block_reward
- * @param {Database} db
+ * @param {Storage} storage
  * @param {ZSchema} schema
  * @param {Object} logger
  * @param {function} cb - Callback function
@@ -47,9 +47,8 @@ const __private = {};
  * @todo Add description for the params
  */
 class Account {
-	constructor(db, storage, schema, logger, cb) {
+	constructor(storage, schema, logger, cb) {
 		this.scope = {
-			db,
 			schema,
 			storage,
 		};
@@ -519,8 +518,10 @@ class Account {
 			// Run all db operations in a batch
 			return dbTx.batch(promises);
 		};
-
-		return (tx ? job(tx) : self.scope.db.tx('logic:account:merge', job))
+		return (tx
+			? job(tx)
+			: this.scope.storage.entities.Account.begin('logic:account:merge', job)
+		)
 			.then(() =>
 				self.get(
 					{

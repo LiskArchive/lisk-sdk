@@ -158,7 +158,7 @@ describe('inTransfer', () => {
 				done();
 			});
 
-			it('should assign db', () => {
+			it('should assign storage', () => {
 				return expect(library)
 					.to.have.property('storage')
 					.eql(storageStub);
