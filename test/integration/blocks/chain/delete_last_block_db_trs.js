@@ -34,9 +34,9 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 	afterEach(done => {
 		storage.entities.Block.begin(t => {
 			return t.batch([
-				storage.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.execute('DELETE FROM forks_stat;'),
-				storage.adapter.execute('UPDATE mem_accounts SET "producedBlocks" = 0'),
+				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
+				storage.adapter.db.none('DELETE FROM forks_stat;'),
+				storage.adapter.db.none('UPDATE mem_accounts SET "producedBlocks" = 0'),
 			]);
 		})
 			.then(() => {

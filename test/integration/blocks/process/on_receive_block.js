@@ -48,8 +48,8 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	afterEach(done => {
 		storage.entities.Block.begin(t => {
 			return t.batch([
-				storage.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.execute('DELETE FROM forks_stat;'),
+				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
+				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		})
 			.then(() => {

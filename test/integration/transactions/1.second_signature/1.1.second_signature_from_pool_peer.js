@@ -35,8 +35,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 	afterEach(done => {
 		storage.entities.Block.begin(t => {
 			return t.batch([
-				storage.adapter.execute('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.execute('DELETE FROM forks_stat;'),
+				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
+				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		}).then(() => {
 			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);

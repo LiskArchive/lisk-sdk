@@ -75,8 +75,8 @@ function createValidBlock(library, transactions, cb) {
 
 function getBlocks(library, cb) {
 	library.sequence.add(sequenceCb => {
-		library.storage.adapter
-			.execute('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
+		library.storage.adapter.db
+			.query('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
 			.then(rows => {
 				sequenceCb();
 				cb(null, _.map(rows, 'id'));
@@ -237,7 +237,7 @@ function getAccountFromDb(library, address) {
 		library.storage.adapter.execute(
 			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`
 		),
-		library.storage.adapter.execute(
+		library.storage.adapter.db.query(
 			`SELECT * FROM mem_accounts2u_multisignatures where "accountId" = '${address}'`
 		),
 	]).then(res => {
