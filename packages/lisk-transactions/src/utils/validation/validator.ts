@@ -56,6 +56,20 @@ validator.addFormat('nonTransferAmount', validateNonTransferAmount);
 
 validator.addFormat('fee', validateFee);
 
+validator.addFormat('emptyOrPublicKey', data => {
+	if (data === null || data === '') {
+		return true;
+	}
+
+	try {
+		validatePublicKey(data);
+
+		return true;
+	} catch (error) {
+		return false;
+	}
+});
+
 validator.addFormat('publicKey', data => {
 	try {
 		validatePublicKey(data);

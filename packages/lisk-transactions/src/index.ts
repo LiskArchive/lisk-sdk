@@ -19,7 +19,11 @@ import { registerMultisignature } from './4_register_multisignature_account';
 import { createDapp } from './5_create_dapp';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
-import { BaseTransaction, VoteTransaction } from './transactions';
+import {
+	BaseTransaction,
+	InTransferTransaction,
+	VoteTransaction,
+} from './transactions';
 import * as utils from './utils';
 
 // tslint:disable-next-line no-unbound-method
@@ -28,6 +32,7 @@ const castVotes = VoteTransaction.create;
 export {
 	BaseTransaction,
 	VoteTransaction,
+	InTransferTransaction,
 	transfer,
 	registerSecondPassphrase,
 	registerDelegate,

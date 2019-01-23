@@ -38,6 +38,7 @@ import {
 import { Account, Status, TransactionJSON } from '../transaction_types';
 import {
 	checkTypes,
+	convertBeddowsToLSK,
 	getId,
 	getTimeWithOffset,
 	validator,
@@ -77,6 +78,7 @@ export interface RequiredState {
 }
 
 export const ENTITY_ACCOUNT = 'account';
+export const ENTITY_TRANSACTION = 'transaction';
 export interface CreateBaseTransactionInput {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
@@ -448,10 +450,9 @@ export abstract class BaseTransaction {
 			? []
 			: [
 					new TransactionError(
-						`Account does not have enough LSK: ${sender.address}, balance: ${
-							// tslint:disable-next-line no-magic-numbers
-							new BigNum(sender.balance.toString() || '0').div(Math.pow(10, 8))
-						}`,
+						`Account does not have enough LSK: ${
+							sender.address
+						}, balance: ${convertBeddowsToLSK(sender.balance)}`,
 						this.id,
 					),
 			  ];
