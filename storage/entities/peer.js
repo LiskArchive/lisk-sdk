@@ -25,6 +25,15 @@ const defaultCreateValues = {};
 
 const readOnlyFields = [];
 
+const sqlFiles = {
+	select: 'peers/get.sql',
+	create: 'peers/create.sql',
+	update: 'peers/update.sql',
+	updateOne: 'peers/update_one.sql',
+	isPersisted: 'peers/is_persisted.sql',
+	delete: 'peers/delete.sql',
+};
+
 /**
  * Peer
  * @typedef {Object} Peer
@@ -125,14 +134,7 @@ class Peer extends BaseEntity {
 		);
 		this.addField('height', 'number', { filter: filterType.NUMBER });
 
-		this.SQLs = {
-			select: this.adapter.loadSQLFile('peers/get.sql'),
-			create: this.adapter.loadSQLFile('peers/create.sql'),
-			update: this.adapter.loadSQLFile('peers/update.sql'),
-			updateOne: this.adapter.loadSQLFile('peers/update_one.sql'),
-			isPersisted: this.adapter.loadSQLFile('peers/is_persisted.sql'),
-			delete: this.adapter.loadSQLFile('peers/delete.sql'),
-		};
+		this.SQLs = this.loadSQLFiles('peer', sqlFiles);
 	}
 
 	/**
