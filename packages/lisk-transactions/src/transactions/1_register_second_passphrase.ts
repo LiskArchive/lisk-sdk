@@ -13,7 +13,6 @@
  *
  */
 import { getKeys, hexToBuffer } from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
 import { SIGNATURE_FEE} from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
@@ -87,7 +86,6 @@ const validateInputs = ({ secondPassphrase }: SecondSignatureInputs): void => {
 
 export class SecondSignatureTransaction extends BaseTransaction {
 	public readonly asset: SecondSignatureAsset;
-	public readonly fee: BigNum = calculateFee(this.type);
 	public constructor(tx: TransactionJSON) {
 		super(tx);
 		const typeValid = validator.validate(
