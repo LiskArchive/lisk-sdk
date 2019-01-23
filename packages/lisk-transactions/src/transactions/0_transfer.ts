@@ -135,6 +135,7 @@ export class TransferTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid asset types', tx.id, errors);
 		}
 		this.asset = tx.asset as TransferAsset;
+		this._fee = new BigNum(TRANSFER_FEE); 
 	}
 
 	public static create(input: TransferInput): object {

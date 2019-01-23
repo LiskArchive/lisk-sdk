@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import BigNum from 'browserify-bignum';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
@@ -124,6 +125,7 @@ export class VoteTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as VoteAsset;
+		this._fee = new BigNum(VOTE_FEE); 
 	}
 
 	public static create(input: CastVoteInput): object {

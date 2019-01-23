@@ -155,7 +155,6 @@ export const dappAssetFormatSchema = {
 export class DappTransaction extends BaseTransaction {
 	public readonly containsUniqueData = true;
 	public readonly asset: DappAsset;
-	public readonly fee: BigNum = new BigNum(DAPP_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -174,6 +173,8 @@ export class DappTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types.', tx.id, errors);
 		}
 		this.asset = tx.asset as DappAsset;
+		this._fee = new BigNum(DAPP_FEE);
+
 	}
 
 	public static create(input: CreateDappInput): object {

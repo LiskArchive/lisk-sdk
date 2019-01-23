@@ -115,7 +115,7 @@ export abstract class BaseTransaction {
 	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
 
-	private _fee: BigNum;
+	protected _fee: BigNum;
 	private _id?: string;
 	private _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
