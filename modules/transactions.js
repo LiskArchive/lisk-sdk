@@ -65,7 +65,7 @@ class Transactions {
 			},
 			genesisBlock: scope.genesisBlock,
 			config: {
-				version: scope.config.cacheEnabled,
+				cacheEnabled: scope.config.cacheEnabled,
 			},
 		};
 
@@ -658,7 +658,7 @@ Transactions.prototype.shared = {
 			[
 				function getConfirmedCountFromCache(waterCb) {
 					if (library.config.cacheEnabled) {
-						components.cache.getJsonForKey(
+						return components.cache.getJsonForKey(
 							CACHE.KEYS.transactionCount,
 							(err, data) => {
 								if (err) {
@@ -666,7 +666,11 @@ Transactions.prototype.shared = {
 									return setImmediate(waterCb, null, null);
 								}
 
-								return setImmediate(waterCb, null, data ? data.confirmed : null);
+								return setImmediate(
+									waterCb,
+									null,
+									data ? data.confirmed : null
+								);
 							}
 						);
 					}
