@@ -21,6 +21,8 @@
 import { EventEmitter } from 'events';
 
 import {
+	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_CONNECT_OUTBOUND,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	Peer,
@@ -34,12 +36,14 @@ import { PeerOptions, selectPeers } from './peer_selection';
 
 import { P2PMessagePacket } from './p2p_types';
 
-export { EVENT_REQUEST_RECEIVED, EVENT_MESSAGE_RECEIVED };
+export { EVENT_CONNECT_OUTBOUND, EVENT_CONNECT_ABORT_OUTBOUND, EVENT_REQUEST_RECEIVED, EVENT_MESSAGE_RECEIVED };
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
+	private readonly _handlePeerConnect: (peerInfo: PeerInfo) => void;
+	private readonly _handlePeerConnectAbort: (peerInfo: PeerInfo) => void;
 
 	public constructor() {
 		super();
@@ -63,6 +67,14 @@ export class PeerPool extends EventEmitter {
 		this._handlePeerMessage = (message: P2PMessagePacket) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
+		};
+		this._handlePeerConnect = (peerInfo: PeerInfo) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
+		};
+		this._handlePeerConnectAbort = (peerInfo: PeerInfo) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 	}
 
@@ -124,10 +136,14 @@ export class PeerPool extends EventEmitter {
 	private _bindHandlersToPeer(peer: Peer): void {
 		peer.on(EVENT_REQUEST_RECEIVED, this._handlePeerRPC);
 		peer.on(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
+		peer.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
+		peer.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {
 		peer.off(EVENT_REQUEST_RECEIVED, this._handlePeerRPC);
 		peer.off(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
+		peer.off(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
+		peer.off(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
 	}
 }

@@ -45,6 +45,8 @@ import { P2PRequest } from './p2p_request';
 export { P2PRequest };
 
 import {
+	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_CONNECT_OUTBOUND,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	PeerPool,
@@ -71,6 +73,8 @@ export class P2P extends EventEmitter {
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
+	private readonly _handlePeerConnect: (peerInfo: PeerInfo) => void;
+	private readonly _handlePeerConnectAbort: (peerInfo: PeerInfo) => void;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -98,6 +102,21 @@ export class P2P extends EventEmitter {
 		this._handlePeerPoolMessage = (message: P2PMessagePacket) => {
 			// Re-emit the message for external use.
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
+		};
+
+		this._handlePeerConnect = (peerInfo: PeerInfo) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			if(!this._triedPeers.has(peerInfo)) {
+				this._triedPeers.add(peerInfo)
+			}
+			this.emit(EVENT_CONNECT_OUTBOUND);
+		};
+		this._handlePeerConnectAbort = (peerInfo: PeerInfo) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			if(this._triedPeers.has(peerInfo)) {
+				this._triedPeers.delete(peerInfo)
+			}
+			this.emit(EVENT_CONNECT_ABORT_OUTBOUND);
 		};
 
 		this._peerPool = new PeerPool();
@@ -304,5 +323,7 @@ export class P2P extends EventEmitter {
 	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
 		peerPool.on(EVENT_REQUEST_RECEIVED, this._handlePeerPoolRPC);
 		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
+		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
+		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
 	}
 }
