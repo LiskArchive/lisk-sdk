@@ -30,20 +30,16 @@ describe('Dependency versions', () => {
 		let storageSandbox;
 
 		it('should be 10.x', async () => {
-			try {
-				storageSandbox = new StorageSandbox(
-					__testContext.config.db,
-					'postgresql-version'
-				);
+			storageSandbox = new StorageSandbox(
+				__testContext.config.db,
+				'postgresql-version'
+			);
 
-				await storageSandbox.bootstrap();
-				const Queries = new QueriesHelper(null, storageSandbox);
+			await storageSandbox.bootstrap();
+			const Queries = new QueriesHelper(null, storageSandbox);
 
-				const data = await Queries.getPostgresVersion();
-				expect(data[0].version).to.contain('PostgreSQL 10.');
-			} catch (getPostgresVersionErr) {
-				throw new Error(getPostgresVersionErr);
-			}
+			const data = await Queries.getPostgresVersion();
+			expect(data[0].version).to.contain('PostgreSQL 10.');
 		});
 	});
 });
