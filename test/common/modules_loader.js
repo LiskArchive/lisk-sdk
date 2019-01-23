@@ -109,7 +109,7 @@ const modulesLoader = new function() {
 				async.waterfall(
 					[
 						function(waterCb) {
-							return new Account(scope.schema, scope.logger, waterCb);
+							return new Account(scope.storage, scope.schema, scope.logger, waterCb);
 						},
 						function(account, waterCb) {
 							return new Transaction(
