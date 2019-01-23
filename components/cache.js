@@ -29,16 +29,16 @@ const errorCacheDisabled = 'Cache Disabled';
  * @requires async
  * @requires redis
  * @requires helpers/transaction_types
- * @param {Object} config - Redis configuration
+ * @param {Object} options - Cache options
  * @param {Object} logger
  * @param {function} cb
  * @todo Add description for the function and the params
  */
 class Cache {
-	constructor(cacheConfig, logger) {
+	constructor(options, logger) {
+		this.options = options;
 		this.logger = logger;
-		this.cacheConfig = cacheConfig;
-		this.cacheReady = true;
+		this.cacheReady = false;
 		this.KEYS = {
 			transactionCount: 'transactionCount',
 			blocksApi: '/api/blocks*',
@@ -47,35 +47,36 @@ class Cache {
 		};
 	}
 
-	connect() {
-		this.client = redis.createClient(this.cacheConfig);
+	connect(cb) {
+		this.client = redis.createClient(this.options);
 		this.client.once(
 			'error',
-			this._onRedisConnectionError.bind(this, this)
+			this._onConnectionError.bind(this, () => cb())
 		);
 		this.client.once(
 			'ready',
-			this._onRedisReady.bind(this, this)
+			this._onReady.bind(this, () => cb())
 		);
-
-		return this;
 	}
 
-	_onRedisConnectionError(err) {
+	_onConnectionError(cb, err) {
 		// Called if the "error" event occured before "ready" event
-		this.logger.info('App was unable to connect to Redis server', err);
-		// Don't attempt to connect to Redis again as the connection was never established before
+		this.logger.info('App was unable to connect to Cache server', err);
+		// Don't attempt to connect to server again as the connection was never established before
 		this.client.quit();
+		return cb();
 	}
 
-	_onRedisReady() {
-		// Called after "ready" Redis event
-		this.logger.info('App connected with Redis server');
-		this.client.removeListener('error', this._onRedisConnectionError);
+	_onReady(cb) {
+		// Called after "ready" Cache event
+		this.logger.info('App connected with Cache server');
+		this.client.removeListener('error', this._onConnectionError);
+		this.cacheReady = true;
 		this.client.on('error', err => {
-			// Log Redis errors before and after Redis was connected
-			this.logger.info('Redis:', err);
+			// Log Cache errors before and after server was connected
+			this.logger.info('Cache:', err);
 		});
+		return cb();
 	}
 	/**
 	 * Gets redis connection status.
@@ -148,7 +149,7 @@ class Cache {
 			return cb(errorCacheDisabled);
 		}
 
-		// Redis calls toString on objects, which converts it to object [object] so calling stringify before saving
+		// Cache server calls toString on objects, which converts it to object [object] so calling stringify before saving
 		return this.client.set(key, JSON.stringify(value), cb);
 	}
 
@@ -429,6 +430,4 @@ class Cache {
 	}
 }
 
-module.exports = function createCacheComponent(cacheConfig, logger) {
-	return new Cache(cacheConfig, logger);
-};
+module.exports = Cache;
