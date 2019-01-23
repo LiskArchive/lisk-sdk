@@ -104,13 +104,16 @@ const queries = {
 
 describe('mem_accounts protection', () => {
 	before(done => {
-		modulesLoader.getDbConnection((err, __storage) => {
-			if (err) {
-				return done(err);
+		modulesLoader.getDbConnection(
+			'mem_accounts_protection_test',
+			(err, __storage) => {
+				if (err) {
+					return done(err);
+				}
+				storage = __storage;
+				return queries.insertAccount(validAccount, done);
 			}
-			storage = __storage;
-			return queries.insertAccount(validAccount, done);
-		});
+		);
 	});
 
 	after(done => {

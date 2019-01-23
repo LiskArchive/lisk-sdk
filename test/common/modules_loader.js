@@ -26,7 +26,7 @@ const ed = require('../../helpers/ed');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Transaction = require('../../logic/transaction.js');
 const Account = require('../../logic/account.js');
-const createStorage = require('../../storage');
+const StorageSandbox = require('./storage_sandbox').StorageSandbox;
 
 const modulesLoader = new function() {
 	this.storage = null;
@@ -251,24 +251,18 @@ const modulesLoader = new function() {
 	 *
 	 * @param {function} cb
 	 */
-	this.getDbConnection = function(cb) {
+	this.getDbConnection = function(dbName, cb) {
 		if (this.storage) {
 			return cb(null, this.storage);
 		}
-		const storage = createStorage(this.scope.config.db, this.logger);
+		const storage = new StorageSandbox(
+			this.scope.config.db || __testContext.config.db,
+			dbName
+		);
+
 		return storage
 			.bootstrap()
-			.then(status => {
-				storage.entities.Account.extendDefaultOptions({
-					limit: global.constants.ACTIVE_DELEGATES,
-				});
-				return status;
-			})
-			.then(async status => {
-				if (status) {
-					await storage.entities.Migration.applyAll();
-					await storage.entities.Migration.applyRunTime();
-				}
+			.then(() => {
 				this.storage = storage;
 				cb(null, storage);
 			})
