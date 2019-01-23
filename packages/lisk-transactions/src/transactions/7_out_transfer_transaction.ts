@@ -87,7 +87,6 @@ export const outTransferAssetFormatSchema = {
 export class OutTransferTransaction extends BaseTransaction {
 	public readonly asset: OutTransferAsset;
 	public readonly containsUniqueData = true;
-	public readonly fee: BigNum = new BigNum(OUT_TRANSFER_FEE);
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -106,6 +105,7 @@ export class OutTransferTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as OutTransferAsset;
+		this._fee = new BigNum(OUT_TRANSFER_FEE);
 	}
 
 	public static fromJSON(tx: TransactionJSON): OutTransferTransaction {

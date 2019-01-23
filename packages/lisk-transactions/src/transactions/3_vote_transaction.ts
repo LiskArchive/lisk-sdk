@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
@@ -125,7 +126,7 @@ export class VoteTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as VoteAsset;
-		this._fee = new BigNum(VOTE_FEE); 
+		this._fee = new BigNum(VOTE_FEE);
 	}
 
 	public static create(input: CastVoteInput): object {
@@ -305,6 +306,29 @@ export class VoteTransaction extends BaseTransaction {
 					`Fee must be equal to ${VOTE_FEE}`,
 					this.id,
 					'.fee',
+				),
+			);
+		}
+
+		if (!this.recipientPublicKey) {
+			errors.push(
+				new TransactionError(
+					'RecipientPublicKey must be set for vote transaction',
+					this.id,
+					'.recipientPublicKey',
+				),
+			);
+		}
+
+		if (
+			this.recipientPublicKey &&
+			this.recipientId !== getAddressFromPublicKey(this.recipientPublicKey)
+		) {
+			errors.push(
+				new TransactionError(
+					'recipientId does not match recipientPublicKey.',
+					this.id,
+					'.recipientId',
 				),
 			);
 		}

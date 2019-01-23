@@ -380,7 +380,7 @@ describe('Transfer transaction class', () => {
 			} = transferTransactionWithInvalidRecipientId.validateSchema();
 
 			expect(id).to.be.eql(transferTransactionWithInvalidRecipientId.id);
-			expect(errors[2])
+			expect(errors[1])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
@@ -401,7 +401,7 @@ describe('Transfer transaction class', () => {
 			} = transferTransactionWithInvalidAmount.validateSchema();
 
 			expect(id).to.be.eql(transferTransactionWithInvalidAmount.id);
-			expect(errors[2])
+			expect(errors[1])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
