@@ -218,7 +218,7 @@ export class P2P extends EventEmitter {
 						version: queryObject.version,
 					};
 
-					const isNewPeer = this._peerPool.addInBoundPeer(
+					const isNewPeer = this._peerPool.addInboundPeer(
 						peerId,
 						incomingPeerInfo,
 						socket,

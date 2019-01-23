@@ -28,7 +28,8 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	Peer,
 	PeerInfo,
-	REMOTE_RPC_GET_ALL_PEERS_LIST} from './peer';
+	REMOTE_RPC_GET_ALL_PEERS_LIST,
+} from './peer';
 import { discoverPeers } from './peer_discovery';
 import {
 	PeerOptions,
@@ -122,7 +123,6 @@ export class PeerPool extends EventEmitter {
 		const peersToConnect = selectForConnection(availablePeers);
 
 		const connectedPeerInfo = peersToConnect.map((peer: Peer) => {
-			peer.connect();
 			this.addPeer(peer);
 
 			return peer.peerInfo; // Return peerInfo to p2p to manage new/tried Peers
@@ -137,7 +137,7 @@ export class PeerPool extends EventEmitter {
 		peer.connect();
 	}
 
-	public addInBoundPeer(
+	public addInboundPeer(
 		peerId: string,
 		peerinfo: PeerInfo,
 		socket: SCServerSocket,
