@@ -31,17 +31,16 @@ const Block = stampit({
 			'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
 		payloadLength: 494,
 		height: 489,
-		previousBlock: null,
+		previousBlockId: null,
 		reward: '0',
 		timestamp: 32578370,
 		totalAmount: '10000000000000000',
 		totalFee: '0',
-		transactions: [],
 		version: 0,
 	},
-	init({ id, previousBlock, generatorPublicKey, height }) {
+	init({ id, previousBlockId, generatorPublicKey, height }) {
 		// Must to provide
-		this.previousBlock = previousBlock;
+		this.previousBlockId = previousBlockId;
 
 		this.id = id || randomstring.generate({ charset: 'numeric', length: 20 });
 		this.generatorPublicKey =
@@ -66,10 +65,9 @@ const GenesisBlock = stampit(Block, {
 			generatorPublicKey || genesisBlock.generatorPublicKey;
 		this.blockSignature = genesisBlock.blockSignature;
 		this.payloadHash = genesisBlock.payloadHash;
-		this.previousBlock = null;
+		this.previousBlockId = null;
 		this.height = 1;
 		this.numberOfTransactions = 0;
-
 		this.reward = '111';
 		this.totalFee = '100000';
 		this.totalAmount = '10000000000000000';
