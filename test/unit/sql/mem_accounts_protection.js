@@ -16,7 +16,7 @@
 
 const randomstring = require('randomstring');
 const sql = require('../common/sql/mem_accounts.js');
-const modulesLoader = require('../../common/modules_loader');
+const storageSandbox = require('../../common/storage_sandbox');
 
 let storage;
 
@@ -104,16 +104,14 @@ const queries = {
 
 describe('mem_accounts protection', () => {
 	before(done => {
-		modulesLoader.getDbConnection(
-			'mem_accounts_protection_test',
-			(err, __storage) => {
-				if (err) {
-					return done(err);
-				}
-				storage = __storage;
-				return queries.insertAccount(validAccount, done);
-			}
+		storage = new storageSandbox.StorageSandbox(
+			__testContext.config.db,
+			'mem_accounts_protection_test'
 		);
+
+		storage.bootstrap().then(() => {
+			queries.insertAccount(validAccount, done);
+		}).catch(done);
 	});
 
 	after(done => {

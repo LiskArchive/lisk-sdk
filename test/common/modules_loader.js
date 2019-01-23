@@ -26,7 +26,6 @@ const ed = require('../../helpers/ed');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Transaction = require('../../logic/transaction.js');
 const Account = require('../../logic/account.js');
-const StorageSandbox = require('./storage_sandbox').StorageSandbox;
 
 const modulesLoader = new function() {
 	this.storage = null;
@@ -244,31 +243,6 @@ const modulesLoader = new function() {
 			scope || {},
 			cb
 		);
-	};
-
-	/**
-	 * Starts and returns storage connection
-	 *
-	 * @param {function} cb
-	 */
-	this.getDbConnection = function(dbName, cb) {
-		if (this.storage) {
-			return cb(null, this.storage);
-		}
-		const storage = new StorageSandbox(
-			this.scope.config.db || __testContext.config.db,
-			dbName
-		);
-
-		return storage
-			.bootstrap()
-			.then(() => {
-				this.storage = storage;
-				cb(null, storage);
-			})
-			.catch(err => {
-				return cb(err);
-			});
 	};
 
 	/**
