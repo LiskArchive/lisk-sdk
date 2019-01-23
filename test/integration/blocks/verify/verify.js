@@ -238,7 +238,6 @@ describe('blocks/verify', () => {
 				library.logger,
 				library.logic.block,
 				library.logic.transaction,
-				library.db,
 				library.storage,
 				library.config
 			);
