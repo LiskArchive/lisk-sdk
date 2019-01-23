@@ -85,8 +85,8 @@ class StorageSeed {
 			);
 		}
 
-		return storage.adapter.db.tx('db:seed:dapps', t => {
-			return storage.entities.Transaction.save(trs).then(() => trs);
+		return storage.adapter.db.tx('db:seed:dapps', tx => {
+			return storage.entities.Transaction.create(trs, {}, tx).then(() => trs);
 		});
 	}
 
@@ -104,8 +104,8 @@ class StorageSeed {
 			);
 		}
 
-		return storage.adapter.db.tx('db:seed:outtransfer', t => {
-			return storage.entities.Transaction.save(trs).then(() => trs);
+		return storage.adapter.db.tx('db:seed:outtransfer', tx => {
+			return storage.entities.Transaction.create(trs, {}, tx).then(() => trs);
 		});
 	}
 
@@ -122,8 +122,8 @@ class StorageSeed {
 			);
 		}
 
-		return storage.adapter.db.tx('db:seed:intransfer', t => {
-			return storage.entities.Transaction.save(trs).then(() => trs);
+		return storage.adapter.db.tx('db:seed:intransfer', tx => {
+			return storage.entities.Transaction.create(trs, {}, tx).then(() => trs);
 		});
 	}
 
