@@ -22,7 +22,7 @@ import {
 	Status,
 	TransactionJSON,
 } from '../transaction_types';
-import { calculateFee, validator } from '../utils';
+import { validator } from '../utils';
 import {
 	BaseTransaction,
 	createBaseTransaction,
@@ -107,7 +107,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		if (!typeValid) {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
-		this.fee = calculateFee(this.type);
 		this.asset = tx.asset as SecondSignatureAsset;
 	}
 

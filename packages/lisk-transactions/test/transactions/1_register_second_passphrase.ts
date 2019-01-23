@@ -26,7 +26,7 @@ import {
 import { Status, TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
 import * as utils from '../../src/utils';
-import { FEES } from '../../src/constants';
+import { SIGNATURE_FEE } from '../../src/constants';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
 describe('Second signature registration transaction class', () => {
@@ -91,7 +91,7 @@ describe('Second signature registration transaction class', () => {
 				expect(result).to.have.property('id');
 				expect(result).to.have.property('type', 1);
 				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property('fee', FEES[1].toString());
+				expect(result).to.have.property('fee', SIGNATURE_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
 				expect(result).to.have.property('recipientId', '');
