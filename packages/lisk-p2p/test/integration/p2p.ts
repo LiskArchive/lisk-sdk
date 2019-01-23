@@ -8,7 +8,7 @@ describe('Integration tests for P2P library', () => {
 	const NETWORK_PEER_COUNT = 10;
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	describe.skip('Disconnected network', () => {
+	describe('Disconnected network', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				return new P2P({
@@ -44,7 +44,7 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Fully connected network', () => {
+	describe.skip('Fully connected network', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
