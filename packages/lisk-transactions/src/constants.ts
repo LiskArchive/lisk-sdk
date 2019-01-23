@@ -40,21 +40,6 @@ export const BYTESIZES = {
 	DATA: 64,
 };
 
-interface FeeMap {
-	readonly [type: number]: string
-}
-
-export const FEES: FeeMap = {
-	0: '10000000',
-	1: '500000000',
-	2: '2500000000',
-	3: '100000000',
-	4: '500000000',
-	5: '2500000000',
-	6: '10000000',
-	7: '10000000',
-};
-
 export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 export const EPOCH_TIME_MILLISECONDS = EPOCH_TIME.getTime();
 const MS_FACTOR = 1000;
