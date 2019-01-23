@@ -114,7 +114,7 @@ export class PeerPool extends EventEmitter {
 		return disoveredPeers;
 	}
 
-	public connectToPeers(
+	public selectPeersAndConnect(
 		peers: ReadonlyArray<PeerInfo>,
 	): ReadonlyArray<PeerInfo> {
 		const availablePeers = Array.from(peers).map(

@@ -269,16 +269,6 @@ export class P2P extends EventEmitter {
 		await this._stopHTTPServer();
 	}
 
-	private _connectToPeers(peers: ReadonlyArray<PeerInfo>): void {
-		const peersSelectedForConnection = this._peerPool.connectToPeers(peers);
-
-		// Assuming that the peers are connected
-		peersSelectedForConnection.forEach((peerInfo: PeerInfo) => {
-			this._newPeers.delete(peerInfo);
-			this._triedPeers.add(peerInfo);
-		});
-	}
-
 	private async _runPeerDiscovery(
 		peers: ReadonlyArray<PeerInfo>,
 	): Promise<ReadonlyArray<PeerInfo>> {
@@ -300,7 +290,7 @@ export class P2P extends EventEmitter {
 
 		await this._runPeerDiscovery(this._config.seedPeers);
 
-		this._connectToPeers([...this._newPeers]);
+		this._peerPool.selectPeersAndConnect([...this._newPeers]);
 	}
 
 	public async stop(): Promise<void> {
