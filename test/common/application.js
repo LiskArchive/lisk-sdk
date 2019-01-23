@@ -23,8 +23,8 @@ const async = require('async');
 const httpApi = require('../../helpers/http_api');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Sequence = require('../../helpers/sequence');
+const createCache = require('../../components');
 const StorageSandbox = require('./storage_sandbox').StorageSandbox;
-const createCacheConnector = require('../../helpers/cache_connector');
 
 let currentAppScope;
 
@@ -56,6 +56,7 @@ function __init(initScope, done) {
 
 	jobsQueue.jobs = {};
 	const modules = [];
+	const components = [];
 	const rewiredModules = {};
 	let storage = initScope.storage;
 
@@ -175,17 +176,15 @@ function __init(initScope, done) {
 						app: require('express')(),
 					});
 				},
-				cache(cb) {
-					const cacheConnector = createCacheConnector(
+				components(cb) {
+					const cacheComponent = createCache(
 						__testContext.config.redis,
 						logger
 					);
-					return cacheConnector.connect((err, client) =>
-						cb(null, {
-							cacheEnabled: __testContext.config.cacheEnabled,
-							client,
-						})
-					)
+					return cacheComponent.connect(() => {
+						components.push(cacheComponent);
+						return cb(null, cacheComponent);
+					});
 				},
 				webSocket: [
 					'config',
@@ -531,6 +530,9 @@ function __init(initScope, done) {
 }
 
 function cleanup(done) {
+	if (currentAppScope.components.length !== 0) {
+		currentAppScope.components.map(component => component.cleanup());
+	}
 	async.eachSeries(
 		currentAppScope.modules,
 		(module, cb) => {
