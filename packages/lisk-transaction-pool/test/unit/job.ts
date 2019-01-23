@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Job } from '../src/job';
+import { Job } from '../../src/job';
 import { SinonFakeTimers } from 'sinon';
 
 describe('job', () => {

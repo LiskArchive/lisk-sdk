@@ -1,17 +1,17 @@
-import publicKeys from '../fixtures/public_keys.json';
+import publicKeys from '../../fixtures/public_keys.json';
 import { expect } from 'chai';
-import transactionObjects from '../fixtures/transactions.json';
-import { Job } from '../src/job';
+import transactionObjects from '../../fixtures/transactions.json';
+import { Job } from '../../src/job';
 import {
 	Transaction,
 	TransactionPool,
 	AddTransactionResult,
-} from '../src/transaction_pool';
-import * as checkTransactions from '../src/check_transactions';
-import { wrapTransferTransaction } from './utils/add_transaction_functions';
+} from '../../src/transaction_pool';
+import * as checkTransactions from '../../src/check_transactions';
+import { wrapTransaction } from './../utils/add_transaction_functions';
 import * as sinon from 'sinon';
-import { Queue } from '../src/queue';
-import * as queueCheckers from '../src/queue_checkers';
+import { Queue } from '../../src/queue';
+import * as queueCheckers from '../../src/queue_checkers';
 
 describe('transaction pool', () => {
 	const expireTransactionsInterval = 1000;
@@ -20,7 +20,7 @@ describe('transaction pool', () => {
 	const receivedTransactionsLimitPerProcessing = 100;
 	const validatedTransactionsProcessingInterval = 100;
 	const validatedTransactionsLimitPerProcessing = 100;
-	const transactions = transactionObjects.map(wrapTransferTransaction);
+	const transactions = transactionObjects.map(wrapTransaction);
 	const verifiedTransactionsProcessingInterval = 100;
 	const verifiedTransactionsLimitPerProcessing = 100;
 	const pendingTransactionsProcessingLimit = 5;
@@ -56,7 +56,7 @@ describe('transaction pool', () => {
 			),
 			checkTransactionForRecipientId: sandbox.stub(
 				queueCheckers,
-				'checkTransactionForRecipientId',
+				'checkTransactionForSenderIdWithRecipientIds',
 			),
 			checkTransactionForExpiry: sandbox.stub(
 				queueCheckers,
@@ -96,10 +96,6 @@ describe('transaction pool', () => {
 				.stub((transactionPool as any)._queues, queueName)
 				.value(sinon.createStubInstance(Queue));
 		});
-	});
-
-	afterEach(async () => {
-		(transactionPool as any)._expireTransactionsJob.stop();
 	});
 
 	describe('#addTransactionToQueue', () => {

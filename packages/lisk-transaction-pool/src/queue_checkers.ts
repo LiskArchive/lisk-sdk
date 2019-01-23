@@ -4,6 +4,7 @@ export type TransactionFilterableKeys =
 	| 'id'
 	| 'recipientId'
 	| 'senderPublicKey'
+	| 'senderId'
 	| 'type';
 
 export const checkTransactionPropertyForValues = (
@@ -49,15 +50,16 @@ export const checkTransactionForId = (
 	return checkTransactionPropertyForValues(ids, idProperty);
 };
 
-export const checkTransactionForRecipientId = (
+export const checkTransactionForSenderIdWithRecipientIds = (
 	transactions: ReadonlyArray<Transaction>,
 ): ((transaction: Transaction) => boolean) => {
 	const recipientProperty: TransactionFilterableKeys = 'recipientId';
+	const senderId: TransactionFilterableKeys = 'senderId'
 	const recipients = transactions.map(
 		transaction => transaction[recipientProperty],
 	);
 
-	return checkTransactionPropertyForValues(recipients, recipientProperty);
+	return checkTransactionPropertyForValues(recipients, senderId);
 };
 
 export const checkTransactionForTypes = (

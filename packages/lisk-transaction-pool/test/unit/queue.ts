@@ -13,13 +13,13 @@
  *
  */
 
-import { Queue } from '../src/queue';
-import { Transaction } from '../src/transaction_pool';
+import { Queue } from '../../src/queue';
+import { Transaction } from '../../src/transaction_pool';
 import { expect } from 'chai';
-import transactionObjects from '../fixtures/transactions.json';
-import { wrapTransferTransaction } from './utils/add_transaction_functions';
+import transactionObjects from '../../fixtures/transactions.json';
+import { wrapTransaction } from '../utils/add_transaction_functions';
 
-const transactions = transactionObjects.map(wrapTransferTransaction);
+const transactions = transactionObjects.map(wrapTransaction);
 
 describe('Queue', () => {
 	let queue: Queue;

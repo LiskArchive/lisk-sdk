@@ -32,6 +32,7 @@ export interface TransactionObject {
 	readonly senderPublicKey: string;
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
+	readonly senderId: string;
 	containsUniqueData?: boolean;
 }
 
@@ -50,7 +51,7 @@ export interface TransactionFunctions {
 	isReady(): boolean;
 }
 
-interface TransactionPoolConfiguration {
+export interface TransactionPoolConfiguration {
 	readonly expireTransactionsInterval: number;
 	readonly maxTransactionsPerQueue: number;
 	readonly receivedTransactionsLimitPerProcessing: number;
@@ -191,6 +192,17 @@ export class TransactionPool {
 		this._processTransactionsJob.start();
 	}
 
+	public cleanup(): void {
+		this.removeTransactionsFromQueues(
+			Object.keys(this.queues),
+			queueCheckers.returnTrueUntilLimit(this._maxTransactionsPerQueue),
+		);
+		this._expireTransactionsJob.stop();
+		this._validateTransactionsJob.stop();
+		this._verifyTransactionsJob.stop();
+		this._processTransactionsJob.stop();
+	}
+
 	public addTransaction(transaction: Transaction): AddTransactionResult {
 		const receivedQueue: QueueNames = 'received';
 
@@ -213,7 +225,7 @@ export class TransactionPool {
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the verified removed transactions
 		const removedTransactionsByRecipientId = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
-			queueCheckers.checkTransactionForRecipientId(transactions),
+			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
 		);
 
 		this._queues.validated.enqueueMany(removedTransactionsByRecipientId);
@@ -317,6 +329,7 @@ export class TransactionPool {
 		this._queues.validated.enqueueMany(removedTransactionsBySenderPublicKeys);
 	}
 
+	// This function is currently unused, the usability of this function will be decided after performance tests
 	public validateTransactionAgainstTransactionsInPool(
 		transaction: Transaction,
 	): boolean {
@@ -476,6 +489,16 @@ export class TransactionPool {
 	private async validateReceivedTransactions(): Promise<
 		CheckTransactionsResponseWithPassAndFail
 	> {
+		if (
+			this.queues.validated.size() >= this._maxTransactionsPerQueue ||
+			this.queues.received.size() === 0
+		) {
+			return {
+				passedTransactions: [],
+				failedTransactions: [],
+			};
+		}
+
 		const toValidateTransactions = this._queues.received.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
 				this._receivedTransactionsProcessingLimitPerInterval,
@@ -509,6 +532,17 @@ export class TransactionPool {
 	private async verifyValidatedTransactions(): Promise<
 		CheckTransactionsResponseWithPassFailAndPending
 	> {
+		if (
+			this.queues.verified.size() >= this._maxTransactionsPerQueue ||
+			this.queues.validated.size() === 0
+		) {
+			return {
+				passedTransactions: [],
+				failedTransactions: [],
+				pendingTransactions: [],
+			};
+		}
+
 		const toVerifyTransactions = this._queues.validated.peekUntil(
 			queueCheckers.returnTrueUntilLimit(
 				this._validatedTransactionsProcessingLimitPerInterval,
