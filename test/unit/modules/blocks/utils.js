@@ -284,7 +284,6 @@ const storageBlocksListRowsParsed = [
 ];
 
 describe('blocks/utils', () => {
-	let dbStub;
 	let storageStub;
 	let loggerStub;
 	let blockMock;
@@ -297,13 +296,6 @@ describe('blocks/utils', () => {
 	let modules;
 
 	beforeEach(done => {
-		dbStub = {
-			blocks: {
-				loadLastBlock: sinonSandbox.stub().resolves(fullBlocksListRows),
-				loadBlocksData: sinonSandbox.stub(),
-			},
-		};
-
 		storageStub = {
 			entities: {
 				Account: {
@@ -315,12 +307,6 @@ describe('blocks/utils', () => {
 				},
 			},
 		};
-
-		dbStub.blocks.loadBlocksData
-			.withArgs(sinonSandbox.match({ id: '13068833527549895884' }))
-			.resolves(fullBlocksListRows)
-			.withArgs(sinonSandbox.match({ id: '1' }))
-			.resolves([]);
 
 		loggerStub = {
 			trace: sinonSandbox.spy(),
@@ -360,7 +346,6 @@ describe('blocks/utils', () => {
 			accountMock,
 			blockMock,
 			transactionMock,
-			dbStub,
 			storageStub,
 			modulesLoader.scope.genesisBlock
 		);
@@ -399,7 +384,6 @@ describe('blocks/utils', () => {
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
-			expect(library.db).to.eql(dbStub);
 			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.account).to.eql(accountMock);
 			expect(library.logic.block).to.eql(blockMock);

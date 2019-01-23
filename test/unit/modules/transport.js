@@ -32,7 +32,7 @@ const expect = chai.expect;
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
-	let dbStub;
+	let storageStub;
 	let loggerStub;
 	let busStub;
 	let schemaStub;
@@ -162,7 +162,7 @@ describe('transport', () => {
 			},
 		];
 
-		dbStub = {
+		storageStub = {
 			query: sinonSandbox.spy(),
 		};
 
@@ -199,7 +199,7 @@ describe('transport', () => {
 				transaction: transactionStub,
 				peers: peersStub,
 			},
-			db: dbStub,
+			storage: storageStub,
 			logger: loggerStub,
 			bus: busStub,
 			schema: schemaStub,
@@ -258,8 +258,8 @@ describe('transport', () => {
 
 			it('should assign scope variables when instantiating', () => {
 				expect(library)
-					.to.have.property('db')
-					.which.is.equal(dbStub);
+					.to.have.property('storage')
+					.which.is.equal(storageStub);
 				expect(library)
 					.to.have.property('logger')
 					.which.is.equal(loggerStub);
