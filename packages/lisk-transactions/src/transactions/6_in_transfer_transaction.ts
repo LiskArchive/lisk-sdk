@@ -159,7 +159,6 @@ export class InTransferTransaction extends BaseTransaction {
 			throw new Error('No sender account is found.');
 		}
 
-		// In valid case, transaction should not exist
 		const transactions = state[ENTITY_TRANSACTION];
 		if (!transactions) {
 			throw new Error('Entity transaction is required.');
@@ -175,6 +174,7 @@ export class InTransferTransaction extends BaseTransaction {
 			throw new Error('Required state does not have valid transaction type.');
 		}
 
+		// In valid case, transaction should not exist
 		const dependentDappTx = transactions.find(
 			tx => tx.id === this.asset.inTransfer.dappId,
 		);
@@ -197,7 +197,7 @@ export class InTransferTransaction extends BaseTransaction {
 		const valid = validator.validate(inTransferAssetFormatSchema, this.asset);
 		const errors = [...baseErrors];
 		// Per current protocol, this recipientId and recipientPublicKey must be empty
-		if (this.recipientId !== undefined && this.recipientId !== '') {
+		if (this.recipientId) {
 			errors.push(
 				new TransactionError(
 					'Recipient id must be empty',
@@ -206,10 +206,7 @@ export class InTransferTransaction extends BaseTransaction {
 				),
 			);
 		}
-		if (
-			this.recipientPublicKey !== undefined &&
-			this.recipientPublicKey !== ''
-		) {
+		if (this.recipientPublicKey) {
 			errors.push(
 				new TransactionError(
 					'Recipient public key must be empty',
@@ -222,7 +219,7 @@ export class InTransferTransaction extends BaseTransaction {
 		if (this.amount.lte(0)) {
 			errors.push(
 				new TransactionError(
-					'Amount must be greather than 0',
+					'Amount must be greater than 0',
 					this.id,
 					'.amount',
 				),
