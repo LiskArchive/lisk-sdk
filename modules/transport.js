@@ -60,7 +60,7 @@ class Transport {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
+			storage: scope.storage,
 			bus: scope.bus,
 			schema: scope.schema,
 			network: scope.network,
@@ -535,11 +535,25 @@ Transport.prototype.shared = {
 					return setImmediate(cb, 'Invalid block id sequence');
 				}
 
-				return library.db.blocks
-					.getBlockForTransport(escapedIds[0])
-					.then(row => setImmediate(cb, null, { success: true, common: row }))
-					.catch(getBlockForTransportErr => {
-						library.logger.error(getBlockForTransportErr.stack);
+				return library.storage.entities.Block.get({ id: escapedIds[0] })
+					.then(row => {
+						if (!row.length > 0) {
+							return setImmediate(cb, null, { success: true, common: null });
+						}
+
+						const {
+							height,
+							id,
+							previousBlockId: previousBlock,
+							timestamp,
+						} = row[0];
+
+						const parsedRow = { id, height, previousBlock, timestamp };
+
+						return setImmediate(cb, null, { success: true, common: parsedRow });
+					})
+					.catch(getOneError => {
+						library.logger.error(getOneError.stack);
 						return setImmediate(cb, 'Failed to get common block');
 					});
 			}

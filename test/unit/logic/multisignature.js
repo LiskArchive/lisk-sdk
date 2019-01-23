@@ -342,7 +342,7 @@ describe('multisignature', () => {
 
 		describe('when sender has multisignature enbled', () => {
 			it('should call callback with error = "Account already has multisignatures enabled"', done => {
-				sender.multisignatures = [
+				sender.membersPublicKeys = [
 					lisk.cryptography.getKeys(randomUtil.password()).publicKey,
 				];
 
@@ -528,9 +528,9 @@ describe('multisignature', () => {
 
 		it('should call library.logic.account.merge with expected params', () => {
 			const expectedParams = {
-				multisignatures: transaction.asset.multisignature.keysgroup,
-				multimin: transaction.asset.multisignature.min,
-				multilifetime: transaction.asset.multisignature.lifetime,
+				membersPublicKeys: transaction.asset.multisignature.keysgroup,
+				multiMin: transaction.asset.multisignature.min,
+				multiLifetime: transaction.asset.multisignature.lifetime,
 				round: slots.calcRound(dummyBlock.height),
 			};
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
@@ -679,11 +679,11 @@ describe('multisignature', () => {
 
 		it('should call library.logic.account.merge with expected params', () => {
 			const expectedParams = {
-				multisignatures: Diff.reverse(
+				membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
-				multimin: -transaction.asset.multisignature.min,
-				multilifetime: -transaction.asset.multisignature.lifetime,
+				multiMin: -transaction.asset.multisignature.min,
+				multiLifetime: -transaction.asset.multisignature.lifetime,
 				round: slots.calcRound(dummyBlock.height),
 			};
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
@@ -790,9 +790,9 @@ describe('multisignature', () => {
 
 			it('should call library.logic.account.merge with expected params', done => {
 				const expectedParams = {
-					u_multisignatures: transaction.asset.multisignature.keysgroup,
-					u_multimin: transaction.asset.multisignature.min,
-					u_multilifetime: transaction.asset.multisignature.lifetime,
+					u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
+					u_multiMin: transaction.asset.multisignature.min,
+					u_multiLifetime: transaction.asset.multisignature.lifetime,
 				};
 				multisignature.applyUnconfirmed(transaction, sender, () => {
 					expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
@@ -861,11 +861,11 @@ describe('multisignature', () => {
 
 		it('should call library.logic.account.merge with expected params', () => {
 			const expectedParams = {
-				u_multisignatures: Diff.reverse(
+				u_membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
-				u_multimin: -transaction.asset.multisignature.min,
-				u_multilifetime: -transaction.asset.multisignature.lifetime,
+				u_multiMin: -transaction.asset.multisignature.min,
+				u_multiLifetime: -transaction.asset.multisignature.lifetime,
 			};
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
@@ -1273,14 +1273,14 @@ describe('multisignature', () => {
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {
-			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
+			sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 
 			return expect(multisignature.ready(transaction, sender)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', () => {
-			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
-			sender.multimin = 1;
+			sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
+			sender.multiMin = 1;
 
 			delete transaction.signature;
 			// Not really correct signature, but we are not testing that over here

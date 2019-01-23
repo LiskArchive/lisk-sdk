@@ -516,4 +516,43 @@ Block.prototype.dbRead = function(raw) {
 	return block;
 };
 
+/**
+ * Creates block object based on raw data.
+ *
+ * @param {Object} raw
+ * @returns {null|block} Block object
+ * @todo Add description for the params
+ */
+Block.prototype.storageRead = function(raw) {
+	if (!raw.id) {
+		return null;
+	}
+
+	const block = {
+		id: raw.id,
+		version: parseInt(raw.version),
+		timestamp: parseInt(raw.timestamp),
+		height: parseInt(raw.height),
+		previousBlock: raw.previousBlockId,
+		numberOfTransactions: parseInt(raw.numberOfTransactions),
+		totalAmount: new Bignum(raw.totalAmount),
+		totalFee: new Bignum(raw.totalFee),
+		reward: new Bignum(raw.reward),
+		payloadLength: parseInt(raw.payloadLength),
+		payloadHash: raw.payloadHash,
+		generatorPublicKey: raw.generatorPublicKey,
+		generatorId: __private.getAddressByPublicKey(raw.generatorPublicKey),
+		blockSignature: raw.blockSignature,
+		confirmations: parseInt(raw.confirmations),
+	};
+
+	if (raw.transactions) {
+		block.transactions = raw.transactions;
+	}
+
+	block.totalForged = block.totalFee.plus(block.reward).toString();
+
+	return block;
+};
+
 module.exports = Block;

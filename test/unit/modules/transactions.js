@@ -37,16 +37,7 @@ const TransactionModule = rewire('../../../modules/transactions.js');
 describe('transactions', () => {
 	let transactionsModule;
 	let cacheModule;
-	let dbStub;
-	const TransactionTypeMap = {};
-	TransactionTypeMap[transactionTypes.SEND] = 'getTransferByIds';
-	TransactionTypeMap[transactionTypes.SIGNATURE] = 'getSignatureByIds';
-	TransactionTypeMap[transactionTypes.DELEGATE] = 'getDelegateByIds';
-	TransactionTypeMap[transactionTypes.VOTE] = 'getVotesByIds';
-	TransactionTypeMap[transactionTypes.MULTI] = 'getMultiByIds';
-	TransactionTypeMap[transactionTypes.DAPP] = 'getDappByIds';
-	TransactionTypeMap[transactionTypes.IN_TRANSFER] = 'getInTransferByIds';
-	TransactionTypeMap[transactionTypes.OUT_TRANSFER] = 'getOutTransferByIds';
+	let storageStub;
 
 	function attachAllAssets(
 		transactionLogic,
@@ -98,7 +89,7 @@ describe('transactions', () => {
 		const dappLogic = transactionLogic.attachAssetType(
 			transactionTypes.DAPP,
 			new DappLogic(
-				modulesLoader.db,
+				modulesLoader.storage,
 				modulesLoader.logger,
 				modulesLoader.scope.schema,
 				modulesLoader.scope.network
@@ -108,7 +99,7 @@ describe('transactions', () => {
 
 		const inTransferLogic = transactionLogic.attachAssetType(
 			transactionTypes.IN_TRANSFER,
-			new InTransferLogic(modulesLoader.db, modulesLoader.scope.schema)
+			new InTransferLogic(modulesLoader.storage, modulesLoader.scope.schema)
 		);
 		inTransferLogic.bind(accountsModule, /* sharedApi */ null);
 		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
@@ -116,7 +107,7 @@ describe('transactions', () => {
 		const outTransfer = transactionLogic.attachAssetType(
 			transactionTypes.OUT_TRANSFER,
 			new OutTransferLogic(
-				modulesLoader.db,
+				modulesLoader.storage,
 				modulesLoader.scope.schema,
 				modulesLoader.logger
 			)
@@ -127,31 +118,19 @@ describe('transactions', () => {
 	}
 
 	before(done => {
-		dbStub = {
-			transactions: {
-				sortFields: [
-					'id',
-					'blockId',
-					'amount',
-					'fee',
-					'type',
-					'timestamp',
-					'senderPublicKey',
-					'senderId',
-					'recipientId',
-					'confirmations',
-					'height',
-				],
-				countList: null,
-				list: null,
-				count: null,
+		storageStub = {
+			entities: {
+				Transaction: {
+					get: null,
+					count: null,
+				},
 			},
 		};
 
 		async.auto(
 			{
 				accountLogic(cb) {
-					modulesLoader.initLogic(AccountLogic, { db: dbStub }, cb);
+					modulesLoader.initLogic(AccountLogic, {}, cb);
 				},
 				cacheModule(cb) {
 					modulesLoader.initCache(cb);
@@ -163,7 +142,6 @@ describe('transactions', () => {
 							TransactionLogic,
 							{
 								account: result.accountLogic,
-								db: dbStub,
 							},
 							cb
 						);
@@ -180,7 +158,7 @@ describe('transactions', () => {
 									transaction: result.transactionLogic,
 									account: result.accountLogic,
 								},
-								db: dbStub,
+								storage: storageStub,
 								config: {
 									loading: {
 										snapshot: false,
@@ -203,7 +181,6 @@ describe('transactions', () => {
 								logic: {
 									transaction: result.transactionLogic,
 								},
-								db: dbStub,
 							},
 							cb
 						);
@@ -220,7 +197,6 @@ describe('transactions', () => {
 									account: result.accountLogic,
 									transaction: result.transactionLogic,
 								},
-								db: dbStub,
 							},
 							cb
 						);
@@ -234,7 +210,10 @@ describe('transactions', () => {
 
 				modulesLoader.initModule(
 					TransactionModule,
-					{ db: dbStub, logic: { transaction: result.transactionLogic } },
+					{
+						storage: storageStub,
+						logic: { transaction: result.transactionLogic },
+					},
 					(initModuleErr, __transactionModule) => {
 						expect(initModuleErr).to.not.exist;
 
@@ -270,26 +249,20 @@ describe('transactions', () => {
 		);
 	});
 
-	beforeEach(() => {
-		dbStub.transactions.countList = sinonSandbox.stub().resolves();
-		dbStub.transactions.list = sinonSandbox.stub().resolves();
-		dbStub.transactions.count = sinonSandbox.stub().resolves();
-
-		return Object.keys(TransactionTypeMap).forEach(key => {
-			dbStub.transactions[
-				TransactionTypeMap[key]
-			] = sinonSandbox.stub().resolves();
-		});
+	beforeEach(done => {
+		storageStub.entities.Transaction.get = sinonSandbox.stub().resolves();
+		storageStub.entities.Transaction.count = sinonSandbox.stub().resolves();
+		done();
 	});
 
 	afterEach(() => {
 		return sinonSandbox.restore();
 	});
 
-	describe('Transaction#shared', () => {
+	describe('Transaction', () => {
 		describe('getTransaction', () => {
 			function getTransactionsById(id, done) {
-				transactionsModule.shared.getTransactions({ id }, done);
+				transactionsModule.getTransactions({ id }, done);
 			}
 
 			const transactionsByType = {
@@ -483,61 +456,12 @@ describe('transactions', () => {
 				const transaction =
 					transactionsByType[transactionTypes.SEND].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves(1);
-
-				dbStub.transactions.list.onCall(0).resolves([
-					{
-						t_id: '10707276464897629547',
-						b_height: 276,
-						t_blockId: '10342884759015889572',
-						t_type: 0,
-						t_timestamp: 40080841,
-						t_senderPublicKey:
-							'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
-						m_recipientPublicKey:
-							'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-						t_senderId: '2525786814299543383L',
-						t_recipientId: '16313739661670634666L',
-						t_amount: '112340000',
-						t_fee: '20000000',
-						t_signature:
-							'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
-						t_SignSignature: null,
-						t_signatures: null,
-						confirmations: 12,
-					},
-				]);
-
-				dbStub.transactions[TransactionTypeMap[transactionTypes.SEND]]
-					.onCall(0)
-					.resolves([
-						{
-							transaction_id: '10707276464897629547',
-							tf_data: 'extra information',
-						},
-					]);
+				storageStub.entities.Transaction.count.onCall(0).resolves(1);
+				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
 
 				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
-					expect(res)
-						.to.have.property('transactions')
-						.which.is.an('Array');
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].amount.isEqualTo(transaction.amount)).to.be
-						.true;
-					expect(res.transactions[0].fee.isEqualTo(transaction.fee)).to.be.true;
-					expect(res.transactions[0].recipientId).to.equal(
-						transaction.recipientId
-					);
-					expect(res.transactions[0].timestamp).to.equal(transaction.timestamp);
-					expect(res.transactions[0].asset).to.eql(transaction.asset);
-					expect(res.transactions[0].senderPublicKey).to.equal(
-						transaction.senderPublicKey
-					);
-					expect(res.transactions[0].signature).to.equal(transaction.signature);
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.SEND);
+					expect(res).to.be.eql({ transactions: [transaction], count: 1 });
 					done();
 				});
 			});
@@ -548,54 +472,12 @@ describe('transactions', () => {
 				const transaction =
 					transactionsByType[transactionTypes.SIGNATURE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves(1);
-
-				dbStub.transactions.list.onCall(0).resolves([
-					{
-						t_id: '11286126025791281057',
-						b_height: 276,
-						t_blockId: '10342884759015889572',
-						t_type: 1,
-						t_timestamp: 40080841,
-						t_senderPublicKey:
-							'f6b8bd8e0643921d90d935cbcf0eae7cd2271e77aceac35e75c9ed9d4e222237',
-						m_recipientPublicKey: null,
-						t_senderId: '10313008732729972965L',
-						t_recipientId: null,
-						t_amount: '0',
-						t_fee: '500000000',
-						t_signature:
-							'b281931b24514c0b150a3b6daf362822c98207148c8967b2469233c5118f7874520e4067595f20c359136385fc8c0ba9391b408df139f58ba86a279b9d96b305',
-						t_SignSignature: null,
-						t_signatures: null,
-						confirmations: 42,
-					},
-				]);
-
-				dbStub.transactions[TransactionTypeMap[transactionTypes.SIGNATURE]]
-					.onCall(0)
-					.resolves([
-						{
-							transaction_id: '11286126025791281057',
-							s_publicKey:
-								'e26ede27ed390a9da260b5f5b76db5908a164044d3d1f9d2b24116dd5b25dc72',
-						},
-					]);
+				storageStub.entities.Transaction.count.onCall(0).resolves(1);
+				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
 
 				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
-					expect(res)
-						.to.have.property('transactions')
-						.which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.isEqualTo(transaction.amount)).to.be
-						.true;
-					expect(res.transactions[0].asset.signature.publicKey).to.equal(
-						transaction.asset.signature.publicKey
-					);
-					expect(res.transactions[0].fee.isEqualTo(transaction.fee)).to.be.true;
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.SIGNATURE);
+					expect(res).to.be.eql({ transactions: [transaction], count: 1 });
 					done();
 				});
 			});
@@ -606,59 +488,12 @@ describe('transactions', () => {
 				const transaction =
 					transactionsByType[transactionTypes.DELEGATE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves(1);
-
-				dbStub.transactions.list.onCall(0).resolves([
-					{
-						t_id: '6092156606242987573',
-						b_height: 371,
-						t_blockId: '17233974955873751907',
-						t_type: 2,
-						t_timestamp: 40081792,
-						t_senderPublicKey:
-							'81fc017321367f5ebfd75c9b115c321ca8dbbaaf6c794feeefa0bd70f364f98d',
-						m_recipientPublicKey: null,
-						t_senderId: '13683056641259213857L',
-						t_recipientId: null,
-						t_amount: '0',
-						t_fee: '2500000000',
-						t_signature:
-							'00732b1bc95d8b459bde261cbdd27c7e06bb023483446f350101f42bdd2f5d807be0115ea5ef9f3e15246659a8d3d14cbae5afe5ad2862a3416ddee29870b009',
-						t_SignSignature: null,
-						t_signatures: null,
-						confirmations: 13,
-					},
-				]);
-
-				dbStub.transactions[TransactionTypeMap[transactionTypes.DELEGATE]]
-					.onCall(0)
-					.resolves([
-						{
-							transaction_id: '6092156606242987573',
-							d_username: '&im',
-						},
-					]);
+				storageStub.entities.Transaction.count.onCall(0).resolves(1);
+				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
 
 				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
-					expect(res)
-						.to.have.property('transactions')
-						.which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.isEqualTo(transaction.amount)).to.be
-						.true;
-					expect(res.transactions[0].asset.username).to.equal(
-						transaction.asset.username
-					);
-					expect(res.transactions[0].asset.publicKey).to.equal(
-						transaction.asset.publicKey
-					);
-					expect(res.transactions[0].asset.address).to.equal(
-						transaction.asset.address
-					);
-					expect(res.transactions[0].fee.isEqualTo(transaction.fee)).to.be.true;
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.DELEGATE);
+					expect(res).to.be.eql({ transactions: [transaction], count: 1 });
 					done();
 				});
 			});
@@ -669,55 +504,12 @@ describe('transactions', () => {
 				const transaction =
 					transactionsByType[transactionTypes.VOTE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves(1);
-
-				dbStub.transactions.list.onCall(0).resolves([
-					{
-						t_id: '6820432253266933365',
-						b_height: 371,
-						t_blockId: '17233974955873751907',
-						t_type: 3,
-						t_timestamp: 40081792,
-						t_senderPublicKey:
-							'31ab15b507bbdbb8f53b0dfbca65e78aafc3efe73e793b5f7db94dae53f94aba',
-						m_recipientPublicKey:
-							'31ab15b507bbdbb8f53b0dfbca65e78aafc3efe73e793b5f7db94dae53f94aba',
-						t_senderId: '8643584619166983815L',
-						t_recipientId: '8643584619166983815L',
-						t_amount: '0',
-						t_fee: '100000000',
-						t_signature:
-							'02dacc2888e1c4608e812d7099a2657e6f57f1446af6489811a942621f5619292873429621c097078276047a5905bb8e11af5ad5a96a389b767e6c7c019f6c0b',
-						t_SignSignature: null,
-						t_signatures: null,
-						confirmations: 40,
-					},
-				]);
-
-				dbStub.transactions[TransactionTypeMap[transactionTypes.VOTE]]
-					.onCall(0)
-					.resolves([
-						{
-							transaction_id: '6820432253266933365',
-							v_votes:
-								'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-						},
-					]);
+				storageStub.entities.Transaction.count.onCall(0).resolves(1);
+				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
 
 				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
-					expect(res)
-						.to.have.property('transactions')
-						.which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.isEqualTo(transaction.amount)).to.be
-						.true;
-					expect(res.transactions[0].asset.votes).to.eql(
-						transaction.asset.votes
-					);
-					expect(res.transactions[0].fee.isEqualTo(transaction.fee)).to.be.true;
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.VOTE);
+					expect(res).to.be.eql({ transactions: [transaction], count: 1 });
 					done();
 				});
 			});
@@ -728,63 +520,12 @@ describe('transactions', () => {
 				const transaction =
 					transactionsByType[transactionTypes.MULTI].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves(1);
-
-				dbStub.transactions.list.onCall(0).resolves([
-					{
-						t_id: '481620703379194749',
-						b_height: 371,
-						t_blockId: '17233974955873751907',
-						t_type: 4,
-						t_timestamp: 40081792,
-						t_senderPublicKey:
-							'aae5e1ccc5f30e1983aaf38867ce6f33acbee116a396ae5249ea6495fdc9bcf7',
-						m_recipientPublicKey: null,
-						t_senderId: '10952279861355607751L',
-						t_recipientId: null,
-						t_amount: '0',
-						t_fee: '1500000000',
-						t_signature:
-							'c05e4fe662f64c14529331d37611ccfc66f41901f92faa6c7c010f7a2f6fcda9c594aa67c5634f46b795d9dc0cb75943c6a20f757e56f86e88205876ae17b103',
-						t_SignSignature: null,
-						t_signatures:
-							'fa67d933ca29f6c476b02e5f0057fe8ecdae4a15d06acd6df515389c7e1d989f20e931c51483632059d4173fc69e472ef889e06e05a73ec48b7cea887ae4da0f,83946b53e06e89eeb76a667c8607bcb93cee2c63932040eb49f78a1eb7480071f5c9e89e3bbf96f63cd31b664baa489c2765b81376c793daace7573566611900',
-						confirmations: 65,
-					},
-				]);
-
-				dbStub.transactions[TransactionTypeMap[transactionTypes.MULTI]]
-					.onCall(0)
-					.resolves([
-						{
-							transaction_id: '481620703379194749',
-							m_min: 2,
-							m_lifetime: 1,
-							m_keysgroup:
-								'+f497c0187575ca25d01e4afc454b04be71a4f3a45c48b86e6e86c71fdeecb4f4,+cbc6f7f616035cbc5d21c398735d5dc1baf68eec7f4671fba2390b34eb4fd854',
-						},
-					]);
+				storageStub.entities.Transaction.count.onCall(0).resolves(1);
+				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
 
 				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
-					expect(res)
-						.to.have.property('transactions')
-						.which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.isEqualTo(transaction.amount)).to.be
-						.true;
-					expect(res.transactions[0].asset.multisignature.lifetime).to.equal(
-						transaction.asset.multisignature.lifetime
-					);
-					expect(res.transactions[0].asset.multisignature.min).to.equal(
-						transaction.asset.multisignature.min
-					);
-					expect(res.transactions[0].asset.multisignature.keysgroup).to.eql(
-						transaction.asset.multisignature.keysgroup
-					);
-					expect(res.transactions[0].fee.isEqualTo(transaction.fee)).to.be.true;
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.MULTI);
+					expect(res).to.be.eql({ transactions: [transaction], count: 1 });
 					done();
 				});
 			});
@@ -795,69 +536,12 @@ describe('transactions', () => {
 				const transaction =
 					transactionsByType[transactionTypes.DAPP].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves(1);
-
-				dbStub.transactions.list.onCall(0).resolves([
-					{
-						t_id: '1907088915785679339',
-						b_height: 371,
-						t_blockId: '17233974955873751907',
-						t_type: 5,
-						t_timestamp: 40081792,
-						t_senderPublicKey:
-							'644485a01cb11e06a1f4ffef90a7ba251e56d54eb06a0cb2ecb5693a8cc163a2',
-						m_recipientPublicKey: null,
-						t_senderId: '5519106118231224961L',
-						t_recipientId: null,
-						t_amount: '0',
-						t_fee: '2500000000',
-						t_signature:
-							'b024f90f73e53c9fee943f3c3ef7a9e3da99bab2f9fa3cbfd5ad05ed79cdbbe21130eb7b27698692bf491a1cf573a518dfa63607dc88bc0c01925fda18304905',
-						t_SignSignature: null,
-						t_signatures: null,
-						confirmations: 97,
-					},
-				]);
-
-				dbStub.transactions[TransactionTypeMap[transactionTypes.DAPP]]
-					.onCall(0)
-					.resolves([
-						{
-							transaction_id: '1907088915785679339',
-							dapp_name: 'AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi',
-							dapp_description: null,
-							dapp_tags: null,
-							dapp_link:
-								'http://www.lisk.io/AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi.zip',
-							dapp_type: 1,
-							dapp_category: 2,
-							dapp_icon: null,
-						},
-					]);
+				storageStub.entities.Transaction.count.onCall(0).resolves(1);
+				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
 
 				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
-					expect(res)
-						.to.have.property('transactions')
-						.which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.isEqualTo(transaction.amount)).to.be
-						.true;
-					expect(res.transactions[0].fee.isEqualTo(transaction.fee)).to.be.true;
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].asset.dapp.name).to.equal(
-						transaction.asset.dapp.name
-					);
-					expect(res.transactions[0].asset.dapp.category).to.equal(
-						transaction.asset.dapp.category
-					);
-					expect(res.transactions[0].asset.dapp.link).to.equal(
-						transaction.asset.dapp.link
-					);
-					expect(res.transactions[0].asset.dapp.type).to.equal(
-						transaction.asset.dapp.type
-					);
-					expect(res.transactions[0].type).to.equal(transactionTypes.DAPP);
+					expect(res).to.be.eql({ transactions: [transaction], count: 1 });
 					done();
 				});
 			});
@@ -895,170 +579,172 @@ describe('transactions', () => {
 			/* eslint-enable mocha/no-pending-tests */
 		});
 
-		describe('getTransactionsCount', () => {
-			beforeEach(() => {
-				sinonSandbox.spy(async, 'waterfall');
-				return dbStub.transactions.count.onCall(0).resolves(10);
-			});
-
-			const expectValidCountResponse = data => {
-				expect(data).to.have.keys(
-					'total',
-					'confirmed',
-					'unconfirmed',
-					'unprocessed',
-					'unsigned'
-				);
-				expect(data.total).to.be.a('number');
-				expect(data.confirmed).to.be.a('number');
-				expect(data.unconfirmed).to.be.a('number');
-				expect(data.unprocessed).to.be.a('number');
-				expect(data.unsigned).to.be.a('number');
-				expect(data.total).to.be.eql(
-					data.confirmed + data.unconfirmed + data.unprocessed + data.unsigned
-				);
-			};
-
-			it('should return transaction count in correct format', done => {
-				transactionsModule.shared.getTransactionsCount((err, data) => {
-					expect(err).to.be.null;
-					expectValidCountResponse(data);
-
-					done();
+		describe('shared', () => {
+			describe('getTransactionsCount', () => {
+				beforeEach(() => {
+					sinonSandbox.spy(async, 'waterfall');
+					return storageStub.entities.Transaction.count.onCall(0).resolves(10);
 				});
-			});
 
-			it('should try to get transaction count from cache first', done => {
-				sinonSandbox.spy(cacheModule, 'getJsonForKey');
-
-				transactionsModule.shared.getTransactionsCount((err, data) => {
-					expect(err).to.be.null;
-					expectValidCountResponse(data);
-
-					expect(async.waterfall).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
-						cacheModule.KEYS.transactionCount
+				const expectValidCountResponse = data => {
+					expect(data).to.have.keys(
+						'total',
+						'confirmed',
+						'unconfirmed',
+						'unprocessed',
+						'unsigned'
 					);
-
-					done();
-				});
-			});
-
-			it('should use cached transaction count if found', done => {
-				sinonSandbox
-					.stub(cacheModule, 'getJsonForKey')
-					.callsArgWith(1, null, { confirmed: 999 });
-
-				transactionsModule.shared.getTransactionsCount((err, data) => {
-					expect(err).to.be.null;
-					expectValidCountResponse(data);
-
-					expect(async.waterfall).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
-						cacheModule.KEYS.transactionCount
+					expect(data.total).to.be.a('number');
+					expect(data.confirmed).to.be.a('number');
+					expect(data.unconfirmed).to.be.a('number');
+					expect(data.unprocessed).to.be.a('number');
+					expect(data.unsigned).to.be.a('number');
+					expect(data.total).to.be.eql(
+						data.confirmed + data.unconfirmed + data.unprocessed + data.unsigned
 					);
-					expect(dbStub.transactions.count).to.be.not.calledOnce;
+				};
 
-					expect(data.confirmed).to.be.eql(999);
+				it('should return transaction count in correct format', done => {
+					transactionsModule.shared.getTransactionsCount((err, data) => {
+						expect(err).to.be.null;
+						expectValidCountResponse(data);
 
-					done();
-				});
-			});
-
-			it('should get transaction count from db if cache fails', done => {
-				sinonSandbox
-					.stub(cacheModule, 'getJsonForKey')
-					.callsArgWith(1, new Error('Cache error'));
-
-				transactionsModule.shared.getTransactionsCount((err, data) => {
-					expect(err).to.be.null;
-					expectValidCountResponse(data);
-
-					expect(async.waterfall).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
-						cacheModule.KEYS.transactionCount
-					);
-					expect(dbStub.transactions.count).to.be.calledOnce;
-					expect(data.confirmed).to.be.eql(10);
-
-					done();
-				});
-			});
-
-			it('should get transaction count from db if no cache exists', done => {
-				sinonSandbox
-					.stub(cacheModule, 'getJsonForKey')
-					.callsArgWith(1, null, null);
-
-				transactionsModule.shared.getTransactionsCount((err, data) => {
-					expect(err).to.be.null;
-					expectValidCountResponse(data);
-
-					expect(async.waterfall).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
-						cacheModule.KEYS.transactionCount
-					);
-					expect(dbStub.transactions.count).to.be.calledOnce;
-					expect(data.confirmed).to.be.eql(10);
-					done();
-				});
-			});
-
-			it('should update the transaction count in cache if not already persisted', done => {
-				sinonSandbox
-					.stub(cacheModule, 'getJsonForKey')
-					.callsArgWith(1, null, null);
-				sinonSandbox.spy(cacheModule, 'setJsonForKey');
-
-				transactionsModule.shared.getTransactionsCount((err, data) => {
-					expect(err).to.be.null;
-					expectValidCountResponse(data);
-
-					expect(async.waterfall).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
-						cacheModule.KEYS.transactionCount
-					);
-					expect(data.confirmed).to.be.eql(10);
-					expect(dbStub.transactions.count).to.be.calledOnce;
-
-					expect(cacheModule.setJsonForKey).to.be.calledOnce;
-					expect(cacheModule.setJsonForKey.firstCall.args[0]).to.be.eql(
-						cacheModule.KEYS.transactionCount
-					);
-					expect(cacheModule.setJsonForKey.firstCall.args[1]).to.be.eql({
-						confirmed: 10,
+						done();
 					});
-
-					done();
 				});
-			});
 
-			it('should skip updating transaction count cache if already persisted', done => {
-				sinonSandbox
-					.stub(cacheModule, 'getJsonForKey')
-					.callsArgWith(1, null, { confirmed: 999 });
-				sinonSandbox.spy(cacheModule, 'setJsonForKey');
+				it('should try to get transaction count from cache first', done => {
+					sinonSandbox.spy(cacheModule, 'getJsonForKey');
 
-				transactionsModule.shared.getTransactionsCount((err, data) => {
-					expect(err).to.be.null;
-					expectValidCountResponse(data);
+					transactionsModule.shared.getTransactionsCount((err, data) => {
+						expect(err).to.be.null;
+						expectValidCountResponse(data);
 
-					expect(async.waterfall).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey).to.be.calledOnce;
-					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
-						cacheModule.KEYS.transactionCount
-					);
-					expect(data.confirmed).to.be.eql(999);
-					expect(dbStub.transactions.count).to.not.be.called;
+						expect(async.waterfall).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+							cacheModule.KEYS.transactionCount
+						);
 
-					expect(cacheModule.setJsonForKey).to.be.not.called;
+						done();
+					});
+				});
 
-					done();
+				it('should use cached transaction count if found', done => {
+					sinonSandbox
+						.stub(cacheModule, 'getJsonForKey')
+						.callsArgWith(1, null, { confirmed: 999 });
+
+					transactionsModule.shared.getTransactionsCount((err, data) => {
+						expect(err).to.be.null;
+						expectValidCountResponse(data);
+
+						expect(async.waterfall).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+							cacheModule.KEYS.transactionCount
+						);
+						expect(storageStub.entities.Transaction.count).to.be.not.calledOnce;
+
+						expect(data.confirmed).to.be.eql(999);
+
+						done();
+					});
+				});
+
+				it('should get transaction count from db if cache fails', done => {
+					sinonSandbox
+						.stub(cacheModule, 'getJsonForKey')
+						.callsArgWith(1, new Error('Cache error'));
+
+					transactionsModule.shared.getTransactionsCount((err, data) => {
+						expect(err).to.be.null;
+						expectValidCountResponse(data);
+
+						expect(async.waterfall).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+							cacheModule.KEYS.transactionCount
+						);
+						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
+						expect(data.confirmed).to.be.eql(10);
+
+						done();
+					});
+				});
+
+				it('should get transaction count from db if no cache exists', done => {
+					sinonSandbox
+						.stub(cacheModule, 'getJsonForKey')
+						.callsArgWith(1, null, null);
+
+					transactionsModule.shared.getTransactionsCount((err, data) => {
+						expect(err).to.be.null;
+						expectValidCountResponse(data);
+
+						expect(async.waterfall).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+							cacheModule.KEYS.transactionCount
+						);
+						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
+						expect(data.confirmed).to.be.eql(10);
+						done();
+					});
+				});
+
+				it('should update the transaction count in cache if not already persisted', done => {
+					sinonSandbox
+						.stub(cacheModule, 'getJsonForKey')
+						.callsArgWith(1, null, null);
+					sinonSandbox.spy(cacheModule, 'setJsonForKey');
+
+					transactionsModule.shared.getTransactionsCount((err, data) => {
+						expect(err).to.be.null;
+						expectValidCountResponse(data);
+
+						expect(async.waterfall).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+							cacheModule.KEYS.transactionCount
+						);
+						expect(data.confirmed).to.be.eql(10);
+						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
+
+						expect(cacheModule.setJsonForKey).to.be.calledOnce;
+						expect(cacheModule.setJsonForKey.firstCall.args[0]).to.be.eql(
+							cacheModule.KEYS.transactionCount
+						);
+						expect(cacheModule.setJsonForKey.firstCall.args[1]).to.be.eql({
+							confirmed: 10,
+						});
+
+						done();
+					});
+				});
+
+				it('should skip updating transaction count cache if already persisted', done => {
+					sinonSandbox
+						.stub(cacheModule, 'getJsonForKey')
+						.callsArgWith(1, null, { confirmed: 999 });
+					sinonSandbox.spy(cacheModule, 'setJsonForKey');
+
+					transactionsModule.shared.getTransactionsCount((err, data) => {
+						expect(err).to.be.null;
+						expectValidCountResponse(data);
+
+						expect(async.waterfall).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey).to.be.calledOnce;
+						expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+							cacheModule.KEYS.transactionCount
+						);
+						expect(data.confirmed).to.be.eql(999);
+						expect(storageStub.entities.Transaction.count).to.not.be.called;
+
+						expect(cacheModule.setJsonForKey).to.be.not.called;
+
+						done();
+					});
 				});
 			});
 		});

@@ -23,7 +23,7 @@ const Fork = stampit({
 		blockTimestamp: '',
 		blockId: '',
 		blockHeight: '',
-		previousBlock: '',
+		previousBlockId: '',
 		cause: '',
 	},
 	init({ cause }) {
@@ -35,7 +35,7 @@ const Fork = stampit({
 		this.blockHeight = parseInt(
 			randomstring.generate({ charset: 'numeric', length: 2 })
 		);
-		this.previousBlock = randomstring.generate({
+		this.previousBlockId = randomstring.generate({
 			charset: 'numeric',
 			length: 20,
 		});

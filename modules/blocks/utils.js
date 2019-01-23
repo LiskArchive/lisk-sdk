@@ -34,18 +34,18 @@ let self;
  * @param {Account} account
  * @param {Block} block
  * @param {Transaction} transaction
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Object} genesisBlock
  * @todo Add description for the params
  */
 class Utils {
-	constructor(logger, account, block, transaction, db, genesisBlock) {
+	constructor(logger, account, block, transaction, storage, genesisBlock) {
 		library = {
 			logger,
 			account,
 			block,
 			transaction,
-			db,
+			storage,
 			genesisBlock,
 			logic: {
 				account,
@@ -114,6 +114,37 @@ Utils.prototype.readDbRows = function(rows) {
 };
 
 /**
+ * Normalize blocks and their transactions.
+ *
+ * @param {Array} rows - Data from extended block entity
+ * @returns {Array} blocks - List of normalized blocks with transactions
+ */
+Utils.prototype.readStorageRows = function(rows) {
+	const blocks = rows.map(block => {
+		// Normalize block
+		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
+		block = library.logic.block.storageRead(block);
+
+		if (block) {
+			if (block.id === library.genesisBlock.block.id) {
+				// Generate fake signature for genesis block
+				block.generationSignature = new Array(65).join('0');
+			}
+
+			// Normalize transaction
+			if (block.transactions) {
+				block.transactions = block.transactions.map(
+					library.logic.transaction.storageRead
+				);
+			}
+		}
+		return block;
+	});
+
+	return blocks;
+};
+
+/**
  * Loads full blocks from database and normalize them.
  *
  * @param {Object} filter - Filter options
@@ -153,11 +184,13 @@ Utils.prototype.loadBlocksPart = function(filter, cb, tx) {
 Utils.prototype.loadLastBlock = function(cb) {
 	// Get full last block from database
 	// FIXME: Review SQL order by clause
-	library.db.blocks
-		.loadLastBlock()
+	return library.storage.entities.Block.get(
+		{},
+		{ sort: 'height:desc', limit: 1, extended: true }
+	)
 		.then(rows => {
 			// Normalize block
-			const block = modules.blocks.utils.readDbRows(rows)[0];
+			const block = modules.blocks.utils.readStorageRows(rows)[0];
 
 			// Update last block
 			modules.blocks.lastBlock.set(block);
@@ -184,12 +217,11 @@ Utils.prototype.getIdSequence = function(height, cb) {
 	const lastBlock = modules.blocks.lastBlock.get();
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
-	library.db.blocks
-		.getIdSequence({
-			height,
-			limit: 5,
-			delegates: ACTIVE_DELEGATES,
-		})
+	library.storage.entities.Block.getFirstBlockIdOfLastRounds({
+		height,
+		numberOfRounds: 5,
+		numberOfDelegates: ACTIVE_DELEGATES,
+	})
 		.then(rows => {
 			if (rows.length === 0) {
 				return setImmediate(
@@ -250,11 +282,14 @@ Utils.prototype.getIdSequence = function(height, cb) {
  * @returns {Object} cb.block - Block with requested height
  */
 Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
-	(tx || library.db).blocks
-		.loadBlocksOffset(height, height + 1)
-		.then(rows => {
-			const blocks = self.readDbRows(rows);
-			return setImmediate(cb, null, blocks[0]);
+	library.storage.entities.Block.getOne(
+		{ height },
+		{ extended: true },
+		tx
+	)
+		.then(row => {
+			const block = self.readStorageRows([row])[0];
+			return setImmediate(cb, null, block);
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -288,8 +323,11 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 	}
 
 	// Get height of block with supplied ID
-	return (tx || library.db).blocks
-		.getHeightByLastId(filter.lastId || null)
+	return library.storage.entities.Block.get(
+		{ id: filter.lastId || null },
+		{ limit: params.limit },
+		tx
+	)
 		.then(rows => {
 			const height = rows.length ? rows[0].height : 0;
 			// Calculate max block height for database query
@@ -298,16 +336,117 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 			params.limit = realLimit;
 			params.height = height;
 
+			const mergedParams = Object.assign({}, filter, params);
+			const queryFilters = {};
+
+			if (!mergedParams.id && !mergedParams.lastId) {
+				queryFilters.height_lt = mergedParams.limit;
+			}
+
+			if (mergedParams.id) {
+				queryFilters.id = mergedParams.id;
+			}
+
+			if (mergedParams.lastId) {
+				queryFilters.height_gt = mergedParams.height;
+				queryFilters.height_lt = mergedParams.limit;
+			}
+
 			// Retrieve blocks from database
-			// FIXME: That SQL query have mess logic, need to be refactored
-			(tx || library.db).blocks
-				.loadBlocksData(Object.assign({}, filter, params))
-				.then(blockRows => setImmediate(cb, null, blockRows));
+			return library.storage.entities.Block.get(
+				queryFilters,
+				{
+					extended: true,
+					limit: null,
+					sort: ['height'],
+				},
+				tx
+			).then(blockRows => {
+				let parsedBlocks = [];
+				blockRows.forEach(block => {
+					parsedBlocks = parsedBlocks.concat(
+						self._parseStorageObjToLegacyObj(block)
+					);
+				});
+				setImmediate(cb, null, parsedBlocks);
+			});
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Blocks#loadBlockData error');
 		});
+};
+
+/**
+ * Generates a list of full blocks structured as full_blocks_list DB view
+ * db.blocks.loadBlocksData used to return the raw full_blocks_list fields and peers expect to receive this schema
+ * After replacing db.blocks for storage.entities.Block, this parser was required to transfor storage object to the expected format.
+ * This should be removed along with https://github.com/LiskHQ/lisk/issues/2424 implementation
+ *
+ * @param {Object} ExtendedBlock - Storage ExtendedBlock object
+ * @returns {Array} Array of transactions with block data formated as full_blocks_list db view
+ */
+Utils.prototype._parseStorageObjToLegacyObj = function(block) {
+	const parsedBlocks = [];
+	let transactions = [{}];
+
+	if (Array.isArray(block.transactions) && block.transactions.length > 0) {
+		transactions = block.transactions;
+	}
+
+	/* eslint-disable no-restricted-globals */
+	transactions.forEach(t => {
+		parsedBlocks.push({
+			b_id: _.get(block, 'id', null),
+			b_version: isNaN(+block.version) ? null : +block.version,
+			b_timestamp: isNaN(+block.timestamp) ? null : +block.timestamp,
+			b_height: isNaN(+block.height) ? null : +block.height,
+			b_previousBlock: _.get(block, 'previousBlockId', null),
+			b_numberOfTransactions: isNaN(+block.numberOfTransactions)
+				? null
+				: +block.numberOfTransactions,
+			b_totalAmount: _.get(block, 'totalAmount', null),
+			b_totalFee: _.get(block, 'totalFee', null),
+			b_reward: _.get(block, 'reward', null),
+			b_payloadLength: isNaN(+block.payloadLength)
+				? null
+				: +block.payloadLength,
+			b_payloadHash: _.get(block, 'payloadHash', null),
+			b_generatorPublicKey: _.get(block, 'generatorPublicKey', null),
+			b_blockSignature: _.get(block, 'blockSignature', null),
+			t_id: _.get(t, 'id', null),
+			t_type: _.get(t, 'type', null),
+			t_timestamp: _.get(t, 'timestamp', null),
+			t_senderPublicKey: _.get(t, 'senderPublicKey', null),
+			t_senderId: _.get(t, 'senderId', null),
+			t_recipientId: _.get(t, 'recipientId', null),
+			t_amount: _.get(t, 'amount', null),
+			t_fee: _.get(t, 'fee', null),
+			t_signature: _.get(t, 'signature', null),
+			t_signSignature: _.get(t, 'signSignature', null),
+			t_requesterPublicKey: _.get(t, 'requesterPublicKey', null),
+			t_signatures: t.signatures ? t.signatures.join(',') : null,
+			tf_data: _.get(t, 'asset.data', null),
+			s_publicKey: _.get(t, 'asset.signature.publicKey', null),
+			d_username: _.get(t, 'asset.delegate.username', null),
+			v_votes: t.asset && t.asset.votes ? t.asset.votes.join(',') : null,
+			m_min: _.get(t, 'asset.multisignature.min', null),
+			m_lifetime: _.get(t, 'asset.multisignature.lifetime', null),
+			m_keysgroup: _.get(t, 'asset.multisignature.keysgroup', null),
+			dapp_name: _.get(t, 'asset.dapp.name', null),
+			dapp_description: _.get(t, 'asset.dapp.description', null),
+			dapp_tags: _.get(t, 'asset.dapp.tags', null),
+			dapp_type: _.get(t, 'asset.dapp.type', null),
+			dapp_link: _.get(t, 'asset.dapp.link', null),
+			dapp_category: _.get(t, 'asset.dapp.category', null),
+			dapp_icon: _.get(t, 'asset.dapp.icon', null),
+			in_dappId: _.get(t, 'asset.inTransfer.dappId', null),
+			ot_dappId: _.get(t, 'asset.outTransfer.dappId', null),
+			ot_outTransactionId: _.get(t, 'asset.outTransfer.transactionId', null),
+		});
+	});
+
+	return parsedBlocks;
 };
 
 /**
@@ -414,18 +553,21 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		params.delegates = ACTIVE_DELEGATES;
 
 		if (filter.start !== undefined) {
-			params.start = Math.floor((filter.start - EPOCH_TIME.getTime()) / 1000);
-			params.start = params.start.toFixed();
+			params.fromTimestamp = Math.floor(
+				(filter.start - EPOCH_TIME.getTime()) / 1000
+			);
+			params.fromTimestamp = params.fromTimestamp.toFixed();
 		}
 
 		if (filter.end !== undefined) {
-			params.end = Math.floor((filter.end - EPOCH_TIME.getTime()) / 1000);
-			params.end = params.end.toFixed();
+			params.toTimestamp = Math.floor(
+				(filter.end - EPOCH_TIME.getTime()) / 1000
+			);
+			params.toTimestamp = params.toTimestamp.toFixed();
 		}
 
 		// Get calculated rewards
-		return library.db.blocks
-			.aggregateBlocksReward(params)
+		return library.storage.entities.Account.delegateBlocksRewards(params)
 			.then(rows => {
 				let data = rows[0];
 				if (data.delegate === null) {
@@ -438,8 +580,8 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 				};
 				return setImmediate(cb, null, data);
 			})
-			.catch(aggregateBlocksRewardErr => {
-				library.logger.error(aggregateBlocksRewardErr.stack);
+			.catch(delegateBlocksRewardsErr => {
+				library.logger.error(delegateBlocksRewardsErr.stack);
 				return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
 			});
 	});

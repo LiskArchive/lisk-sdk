@@ -159,7 +159,6 @@ class Peer {
  * @property {string} version - Between 5 and 12 chars
  * @property {string} broadhash
  * @property {number} height - Minimum 1
- * @property {Date} clock
  * @property {Date} updated
  * @property {string} nonce
  * @property {string} string
@@ -172,7 +171,6 @@ Peer.prototype.properties = [
 	'version',
 	'broadhash',
 	'height',
-	'clock',
 	'updated',
 	'nonce',
 	'httpPort',

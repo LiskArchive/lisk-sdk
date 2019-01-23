@@ -487,7 +487,7 @@ initApplication: Done
 lisk-core [lisk_dev] >
 ```
 
-Once you get the prompt, you can use `modules`, `helpers`, `logic`, `db` and `config` objects and play with these in REPL.
+Once you get the prompt, you can use `modules`, `helpers`, `logic`, `storage` and `config` objects and play with these in REPL.
 
 ## Performance Monitoring
 

@@ -30,14 +30,14 @@ const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
 describe('system test (blocks) - process onReceiveBlock()', () => {
 	let library;
-	let db;
+	let storage;
 
 	before(done => {
 		application.init(
 			{ sandbox: { name: 'system_blocks_process_on_receive_block' } },
 			(err, scope) => {
 				library = scope;
-				db = scope.db;
+				storage = scope.storage;
 				setTimeout(done, 5000);
 			}
 		);
@@ -46,13 +46,12 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	after(application.cleanup);
 
 	afterEach(done => {
-		db
-			.task(t => {
-				return t.batch([
-					db.none('DELETE FROM blocks WHERE "height" > 1;'),
-					db.none('DELETE FROM forks_stat;'),
-				]);
-			})
+		storage.entities.Block.begin(t => {
+			return t.batch([
+				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
+				storage.adapter.db.none('DELETE FROM forks_stat;'),
+			]);
+		})
 			.then(() => {
 				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 				done();
@@ -203,7 +202,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	function getBlocks(cb) {
 		library.sequence.add(
 			sequenceCb => {
-				db
+				storage.adapter.db
 					.query(
 						new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
 					)
@@ -220,7 +219,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function verifyForkStat(blockId, cause) {
-		return db
+		return storage.adapter.db
 			.one(
 				'SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}',
 				{ blockId, cause }

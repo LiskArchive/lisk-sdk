@@ -35,10 +35,6 @@ const modulesToInstrument = {
 		identifier: 'modules.node',
 		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
 	},
-	'./modules/accounts.js': {
-		identifier: 'modules.accounts',
-		callbackMethods: ['shared.getAccounts'],
-	},
 	'./modules/blocks.js': {
 		identifier: 'modules.blocks',
 		callbackMethods: ['shared.getBlocks'],
@@ -55,10 +51,6 @@ const modulesToInstrument = {
 			'removeByPattern',
 		],
 	},
-	'./modules/dapps.js': {
-		identifier: 'modules.dapps',
-		callbackMethods: ['getDapps'],
-	},
 	'./modules/delegates.js': {
 		identifier: 'modules.delegates',
 		callbackMethods: ['getForgers', 'getDelegates'],
@@ -66,10 +58,6 @@ const modulesToInstrument = {
 	'./modules/loader.js': {
 		identifier: 'modules.loader',
 		callbackMethods: ['getNetwork'],
-	},
-	'./modules/multisignatures.js': {
-		identifier: 'modules.multisignatures',
-		callbackMethods: ['shared.getGroups', 'shared.getMemberships'],
 	},
 	'./modules/peers.js': {
 		identifier: 'modules.peers',
@@ -90,7 +78,6 @@ const modulesToInstrument = {
 	'./modules/transactions.js': {
 		identifier: 'modules.transactions',
 		callbackMethods: [
-			'shared.getTransactions',
 			'shared.getTransactionsCount',
 			'shared.getUnProcessedTransactions',
 			'shared.getMultisignatureTransactions',

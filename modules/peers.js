@@ -52,7 +52,7 @@ class Peers {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
+			storage: scope.storage,
 			schema: scope.schema,
 			bus: scope.bus,
 			nonce: scope.nonce,
@@ -358,8 +358,8 @@ __private.insertSeeds = function(cb) {
 __private.dbLoad = function(cb) {
 	let updated = 0;
 	library.logger.trace('Importing peers from database');
-	library.db.peers
-		.list()
+	library.storage.entities.Peer
+		.get({}, { limit: 10000 }) // @TODO: Arbitrary limit set for now. Base issue should be addressed in storage module for this cases
 		.then(rows => {
 			library.logger.info('Imported peers from database', {
 				count: rows.length,
@@ -429,9 +429,11 @@ __private.dbSave = function(cb) {
 	}
 
 	// Wrap sql queries in transaction and execute
-	return library.db
-		.tx('modules:peers:dbSave', t =>
-			t.peers.clear().then(() => t.peers.insert(peers))
+	return library.storage.entities.Peer
+		.begin('modules:peers:dbSave', t =>
+			library.storage.entities.Peer
+				.delete({}, {}, t)
+				.then(() => library.storage.entities.Peer.create(peers, {}, t))
 		)
 		.then(() => {
 			library.logger.info('Peers exported to database');

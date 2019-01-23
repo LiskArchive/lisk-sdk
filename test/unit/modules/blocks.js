@@ -26,7 +26,7 @@ describe('blocks', () => {
 	let library;
 	let modules;
 	let __private;
-	let dbStub;
+	let storageStub;
 	let loggerStub;
 	let logicBlockStub;
 	let logicTransactionStub;
@@ -53,15 +53,12 @@ describe('blocks', () => {
 			warn: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
 		};
-		dbStub = {
-			blocks: {
-				getGenesisBlockId: sinonSandbox
-					.stub()
-					.resolves([{ id: '6524861224470851795' }]),
-				deleteBlock: sinonSandbox.stub(),
-				deleteAfterBlock: sinonSandbox.stub(),
+		storageStub = {
+			entities: {
+				Block: {
+					isPersisted: sinonSandbox.stub().resolves(true),
+				},
 			},
-			tx: sinonSandbox.stub(),
 		};
 		logicBlockStub = sinonSandbox.stub();
 		logicTransactionStub = sinonSandbox.stub();
@@ -73,7 +70,7 @@ describe('blocks', () => {
 		balancesSequenceStub = sinonSandbox.stub();
 		scope = {
 			logger: loggerStub,
-			db: dbStub,
+			storage: storageStub,
 			logic: {
 				account: accountStub,
 				block: logicBlockStub,
@@ -115,7 +112,6 @@ describe('blocks', () => {
 		});
 
 		it('should instantiate submodules', () => {
-			expect(self.submodules.api).to.be.an('object');
 			expect(self.submodules.chain).to.be.an('object');
 			expect(self.submodules.process).to.be.an('object');
 			expect(self.submodules.utils).to.be.an('object');
@@ -123,7 +119,6 @@ describe('blocks', () => {
 		});
 
 		it('should assign submodules to this', () => {
-			expect(self.submodules.api).to.deep.equal(self.shared);
 			expect(self.submodules.chain).to.deep.equal(self.chain);
 			expect(self.submodules.process).to.deep.equal(self.process);
 			expect(self.submodules.utils).to.deep.equal(self.utils);
@@ -136,13 +131,12 @@ describe('blocks', () => {
 
 		describe('when this.submodules.chain.saveGenesisBlock fails', () => {
 			it('should call callback with error', done => {
-				dbStub.blocks.getGenesisBlockId.resolves([]);
+				storageStub.entities.Block.isPersisted.resolves(false);
 				blocksInstance = new Blocks((err, cbSelf) => {
 					self = cbSelf;
 					library = Blocks.__get__('library');
 					__private = Blocks.__get__('__private');
 					expect(err).to.equal('Blocks#saveGenesisBlock error');
-					expect(self.submodules.api).to.be.an('object');
 					expect(self.submodules.chain).to.be.an('object');
 					expect(self.submodules.process).to.be.an('object');
 					expect(self.submodules.utils).to.be.an('object');

@@ -26,7 +26,7 @@
 		"lint": "./node_modules/.bin/eslint .",
 		"lint:fix": "./node_modules/.bin/eslint --fix .",
 		"format":
-			"prettier --write \"./*.{js,json,md}\" \"{api,config,db,docs,helpers,logic,modules,schema,scripts,tasks,test}{,/**}/*.{js,json,md}\"",
+			"prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test}{,/**}/*.{js,json,md}\"",
 		"test": "./node_modules/.bin/grunt",
 		"grunt": "./node_modules/.bin/grunt",
 		"mocha": "./node_modules/.bin/mocha",

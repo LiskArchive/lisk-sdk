@@ -16,6 +16,7 @@
 
 const Promise = require('bluebird');
 const async = require('async');
+const _ = require('lodash');
 const transactionTypes = require('../../helpers/transaction_types.js');
 const Bignum = require('../../helpers/bignum.js');
 
@@ -36,7 +37,7 @@ const __private = {};
  * @param {Object} logger
  * @param {Block} block
  * @param {Transaction} transaction
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Object} genesisBlock
  * @param {bus} bus
  * @param {Sequence} balancesSequence
@@ -47,14 +48,14 @@ class Chain {
 		logger,
 		block,
 		transaction,
-		db,
+		storage,
 		genesisBlock,
 		bus,
 		balancesSequence
 	) {
 		library = {
 			logger,
-			db,
+			storage,
 			genesisBlock,
 			bus,
 			balancesSequence,
@@ -79,21 +80,20 @@ class Chain {
  */
 Chain.prototype.saveGenesisBlock = function(cb) {
 	// Check if genesis block ID already exists in the database
-	// FIXME: Duplicated, there is another SQL query that we can use for that
-	library.db.blocks
-		.getGenesisBlockId(library.genesisBlock.block.id)
-		.then(rows => {
-			const blockId = rows.length && rows[0].id;
-
-			if (!blockId) {
-				// If there is no block with genesis ID - save to database
-				// WARNING: DB_WRITE
-				// FIXME: This will fail if we already have genesis block in database, but with different ID
-				return self.saveBlock(library.genesisBlock.block, err =>
-					setImmediate(cb, err)
-				);
+	library.storage.entities.Block.isPersisted({
+		id: library.genesisBlock.block.id,
+	})
+		.then(isPersisted => {
+			if (isPersisted) {
+				return setImmediate(cb);
 			}
-			return setImmediate(cb);
+
+			// If there is no block with genesis ID - save to database
+			// WARNING: DB_WRITE
+			// FIXME: This will fail if we already have genesis block in database, but with different ID
+			return self.saveBlock(library.genesisBlock.block, err =>
+				setImmediate(cb, err)
+			);
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -110,17 +110,38 @@ Chain.prototype.saveGenesisBlock = function(cb) {
  * @returns {string} cb.err - Error if occurred
  */
 Chain.prototype.saveBlock = function(block, cb, tx) {
-	block.transactions.map(transaction => {
-		transaction.blockId = block.id;
+	// Parse block data to storage module
+	const parsedBlock = _.cloneDeep(block);
+	if (parsedBlock.reward) {
+		parsedBlock.reward = parsedBlock.reward.toString();
+	}
+	if (parsedBlock.totalAmount) {
+		parsedBlock.totalAmount = parsedBlock.totalAmount.toString();
+	}
+	if (parsedBlock.totalFee) {
+		parsedBlock.totalFee = parsedBlock.totalFee.toString();
+	}
+	parsedBlock.previousBlockId = parsedBlock.previousBlock;
+	delete parsedBlock.previousBlock;
 
+	parsedBlock.transactions.map(transaction => {
+		transaction.blockId = parsedBlock.id;
 		return transaction;
 	});
 
 	function saveBlockBatch(saveBlockBatchTx) {
-		const promises = [saveBlockBatchTx.blocks.save(block)];
+		const promises = [
+			library.storage.entities.Block.create(parsedBlock, {}, saveBlockBatchTx),
+		];
 
-		if (block.transactions.length) {
-			promises.push(saveBlockBatchTx.transactions.save(block.transactions));
+		if (parsedBlock.transactions.length) {
+			promises.push(
+				library.storage.entities.Transaction.create(
+					parsedBlock.transactions,
+					{},
+					saveBlockBatchTx
+				)
+			);
 		}
 
 		saveBlockBatchTx
@@ -138,7 +159,7 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 	} else {
 		// Prepare and execute SQL transaction
 		// WARNING: DB_WRITE
-		library.db.tx('Chain:saveBlock', t => {
+		library.storage.entities.Block.begin('Chain:saveBlock', t => {
 			saveBlockBatch(t);
 		});
 	}
@@ -175,8 +196,7 @@ __private.afterSave = function(block, cb) {
 Chain.prototype.deleteBlock = function(blockId, cb, tx) {
 	// Delete block with ID from blocks table
 	// WARNING: DB_WRITE
-	tx.blocks
-		.deleteBlock(blockId)
+	library.storage.entities.Block.delete({ id: blockId }, {}, tx)
 		.then(() => setImmediate(cb))
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -193,14 +213,17 @@ Chain.prototype.deleteBlock = function(blockId, cb, tx) {
  * @returns {Object} cb.err - SQL error
  * @returns {Object} cb.res - SQL response
  */
-Chain.prototype.deleteAfterBlock = function(blockId, cb) {
-	library.db.blocks
-		.deleteAfterBlock(blockId)
-		.then(res => setImmediate(cb, null, res))
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Blocks#deleteAfterBlock error');
+Chain.prototype.deleteFromBlockId = async function(blockId, cb) {
+	try {
+		const block = await library.storage.entities.Block.getOne({ id: blockId });
+		const result = await library.storage.entities.Block.delete({
+			height_gte: block.height,
 		});
+		return setImmediate(cb, null, result);
+	} catch (err) {
+		library.logger.error(err.stack);
+		return setImmediate(cb, 'Blocks#deleteFromBlockId error');
+	}
 };
 
 /**
@@ -509,15 +532,14 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return library.db
-			.tx('Chain:applyBlock', tx => {
-				modules.blocks.isActive.set(true);
+		return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
+			modules.blocks.isActive.set(true);
 
-				return __private
-					.applyUnconfirmedStep(block, tx)
-					.then(() => __private.applyConfirmedStep(block, tx))
-					.then(() => __private.saveBlockStep(block, saveBlock, tx));
-			})
+			return __private
+				.applyUnconfirmedStep(block, tx)
+				.then(() => __private.applyConfirmedStep(block, tx))
+				.then(() => __private.saveBlockStep(block, saveBlock, tx));
+		})
 			.then(() => {
 				// Remove block transactions from transaction pool
 				block.transactions.forEach(transaction => {
@@ -714,25 +736,22 @@ __private.deleteBlockStep = function(oldLastBlock, tx) {
 __private.popLastBlock = function(oldLastBlock, cb) {
 	let secondLastBlock;
 
-	library.db
-		.tx('Chain:deleteBlock', tx =>
-			__private
-				.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
-				.then(res => {
-					secondLastBlock = res;
-					return Promise.mapSeries(
-						oldLastBlock.transactions.reverse(),
-						transaction =>
-							__private
-								.undoConfirmedStep(transaction, oldLastBlock, tx)
-								.then(() => __private.undoUnconfirmStep(transaction, tx))
-					);
-				})
-				.then(() =>
-					__private.backwardTickStep(oldLastBlock, secondLastBlock, tx)
-				)
-				.then(() => __private.deleteBlockStep(oldLastBlock, tx))
-		)
+	library.storage.entities.Block.begin('Chain:deleteBlock', tx =>
+		__private
+			.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
+			.then(res => {
+				secondLastBlock = res;
+				return Promise.mapSeries(
+					oldLastBlock.transactions.reverse(),
+					transaction =>
+						__private
+							.undoConfirmedStep(transaction, oldLastBlock, tx)
+							.then(() => __private.undoUnconfirmStep(transaction, tx))
+				);
+			})
+			.then(() => __private.backwardTickStep(oldLastBlock, secondLastBlock, tx))
+			.then(() => __private.deleteBlockStep(oldLastBlock, tx))
+	)
 		.then(() => setImmediate(cb, null, secondLastBlock))
 		.catch(err => setImmediate(cb, err));
 };

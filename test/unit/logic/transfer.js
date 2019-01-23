@@ -466,7 +466,7 @@ describe('transfer', () => {
 		it('should return false for multi signature transaction with less signatures', () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(validSender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 
 			return expect(transactionLogic.ready(transaction, vs)).to.equal(false);
 		});
@@ -474,8 +474,8 @@ describe('transfer', () => {
 		it('should return true for multi signature transaction with alteast min signatures', () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(validSender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-			vs.multimin = 1;
+			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
+			vs.multiMin = 1;
 
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);

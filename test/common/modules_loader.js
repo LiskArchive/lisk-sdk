@@ -18,7 +18,6 @@ const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
 const Sequence = require('../../helpers/sequence.js');
-const database = require('../../db');
 const Logger = require('../../logger.js');
 const Z_schema = require('../../helpers/z_schema.js');
 const RedisConnector = require('../../helpers/redis_connector.js');
@@ -29,7 +28,7 @@ const Transaction = require('../../logic/transaction.js');
 const Account = require('../../logic/account.js');
 
 const modulesLoader = new function() {
-	this.db = null;
+	this.storage = null;
 	this.logger = new Logger({
 		echo: null,
 		errorLevel: __testContext.config.fileLogLevel,
@@ -84,18 +83,18 @@ const modulesLoader = new function() {
 		scope = _.assign({}, this.scope, scope);
 		switch (Logic.name) {
 			case 'Account':
-				new Logic(scope.db, scope.schema, scope.logger, cb);
+				new Logic(scope.storage, scope.schema, scope.logger, cb);
 				break;
 			case 'Transaction':
 				async.series(
 					{
 						account(accountCb) {
-							new Account(scope.db, scope.schema, scope.logger, accountCb);
+							new Account(scope.storage, scope.schema, scope.logger, accountCb);
 						},
 					},
 					(err, result) => {
 						new Logic(
-							scope.db,
+							scope.storage,
 							scope.ed,
 							scope.schema,
 							scope.genesisBlock,
@@ -110,11 +109,11 @@ const modulesLoader = new function() {
 				async.waterfall(
 					[
 						function(waterCb) {
-							return new Account(scope.db, scope.schema, scope.logger, waterCb);
+							return new Account(scope.storage, scope.schema, scope.logger, waterCb);
 						},
 						function(account, waterCb) {
 							return new Transaction(
-								scope.db,
+								scope.storage,
 								scope.ed,
 								scope.schema,
 								scope.genesisBlock,
@@ -244,44 +243,6 @@ const modulesLoader = new function() {
 			scope || {},
 			cb
 		);
-	};
-
-	/**
-	 * Accepts Class to invoke (Logic or Module) and fills the scope with basic conf
-	 *
-	 * @param {function} Klass
-	 * @param {function} moduleConstructor
-	 * @param {function} cb
-	 * @param {Object=} scope
-	 */
-	this.initWithDb = function(Klass, moduleConstructor, cb, scope) {
-		this.getDbConnection((err, db) => {
-			if (err) {
-				return cb(err);
-			}
-
-			return moduleConstructor(Klass, _.merge(this.scope, { db }, scope), cb);
-		});
-	};
-
-	/**
-	 * Starts and returns db connection
-	 *
-	 * @param {function} cb
-	 */
-	this.getDbConnection = function(cb) {
-		if (this.db) {
-			return cb(null, this.db);
-		}
-		return database
-			.connect(this.scope.config.db, this.logger)
-			.then(db => {
-				this.db = db;
-				cb(null, db);
-			})
-			.catch(err => {
-				return cb(err);
-			});
 	};
 
 	/**

@@ -25,25 +25,23 @@ const { NORMALIZER } = global.constants;
 
 describe('system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
-	let db;
+	let storage;
 
 	localCommon.beforeBlock('system_1_1_second_sign_from_pool_and_peer', lib => {
 		library = lib;
-		db = lib.db;
+		storage = lib.storage;
 	});
 
 	afterEach(done => {
-		db
-			.task(t => {
-				return t.batch([
-					db.none('DELETE FROM blocks WHERE "height" > 1;'),
-					db.none('DELETE FROM forks_stat;'),
-				]);
-			})
-			.then(() => {
-				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
-				done();
-			});
+		storage.entities.Block.begin(t => {
+			return t.batch([
+				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
+				storage.adapter.db.none('DELETE FROM forks_stat;'),
+			]);
+		}).then(() => {
+			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+			done();
+		});
 	});
 
 	describe('with funds inside account', () => {

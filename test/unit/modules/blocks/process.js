@@ -25,7 +25,7 @@ describe('blocks/process', () => {
 	let library;
 	let modules;
 	let blocksProcessModule;
-	let dbStub;
+	let storageStub;
 	let loggerStub;
 	let dummyBlock;
 	let dummyCommonBlock;
@@ -39,11 +39,12 @@ describe('blocks/process', () => {
 	let definitions;
 
 	beforeEach(done => {
-		// Logic
-		dbStub = {
-			blocks: {
-				getCommonBlock: sinonSandbox.stub(),
-				loadBlocksOffset: sinonSandbox.stub(),
+		storageStub = {
+			entities: {
+				Block: {
+					isPersisted: sinonSandbox.stub(),
+					get: sinonSandbox.stub(),
+				},
 			},
 		};
 
@@ -138,7 +139,7 @@ describe('blocks/process', () => {
 			peersStub,
 			transactionStub,
 			schemaStub,
-			dbStub,
+			storageStub,
 			sequenceStub,
 			genesisBlockStub
 		);
@@ -176,6 +177,7 @@ describe('blocks/process', () => {
 			utils: {
 				getIdSequence: sinonSandbox.stub(),
 				readDbRows: sinonSandbox.stub(),
+				readStorageRows: sinonSandbox.stub(),
 			},
 			isCleaning: {
 				get: sinonSandbox.stub(),
@@ -245,7 +247,7 @@ describe('blocks/process', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.schema).to.eql(schemaStub);
-			expect(library.db).to.eql(dbStub);
+			expect(library.storage).to.eql(storageStub);
 			expect(library.sequence).to.eql(sequenceStub);
 			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.logic.block).to.eql(blockStub);
@@ -1055,10 +1057,10 @@ describe('blocks/process', () => {
 									});
 								});
 
-								describe('library.db.blocks.getCommonBlock', () => {
+								describe('library.storage.entities.Block.isPersisted', () => {
 									describe('when fails', () => {
 										beforeEach(() => {
-											return library.db.blocks.getCommonBlock.rejects(
+											return library.storage.entities.Block.isPersisted.rejects(
 												new Error('blocks.getCommonBlock-REJECTS')
 											);
 										});
@@ -1081,7 +1083,9 @@ describe('blocks/process', () => {
 
 									describe('when comparison failed', () => {
 										beforeEach(() => {
-											library.db.blocks.getCommonBlock.resolves([]);
+											library.storage.entities.Block.isPersisted.resolves(
+												false
+											);
 											return modules.blocks.chain.recoverChain.callsArgWith(
 												0,
 												null,
@@ -1134,9 +1138,9 @@ describe('blocks/process', () => {
 
 									describe('when succeeds', () => {
 										beforeEach(() => {
-											return library.db.blocks.getCommonBlock.resolves([
-												{ count: 1 },
-											]);
+											return library.storage.entities.Block.isPersisted.resolves(
+												true
+											);
 										});
 
 										it('should return common block', done => {
@@ -1167,10 +1171,10 @@ describe('blocks/process', () => {
 			);
 		});
 
-		describe('library.db.blocks.loadBlocksOffset', () => {
+		describe('library.storage.entities.Block.get', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
-					return library.db.blocks.loadBlocksOffset.rejects(
+					return library.storage.entities.Block.get.rejects(
 						'blocks.loadBlocksOffset-REJECTS'
 					);
 				});
@@ -1192,12 +1196,12 @@ describe('blocks/process', () => {
 			describe('when succeeds', () => {
 				describe('when query returns empty array', () => {
 					beforeEach(() => {
-						library.db.blocks.loadBlocksOffset.resolves([]);
-						return modules.blocks.utils.readDbRows.returns([]);
+						library.storage.entities.Block.get.resolves([]);
+						return modules.blocks.utils.readStorageRows.returns([]);
 					});
 
 					afterEach(() => {
-						expect(modules.blocks.utils.readDbRows.calledOnce).to.be.true;
+						expect(modules.blocks.utils.readStorageRows.calledOnce).to.be.true;
 						expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
 						return expect(modules.blocks.isCleaning.get.calledOnce).to.be.false;
 					});
@@ -1216,7 +1220,7 @@ describe('blocks/process', () => {
 
 				describe('when query returns rows', () => {
 					beforeEach(() => {
-						return library.db.blocks.loadBlocksOffset.resolves([dummyBlock]);
+						return library.storage.entities.Block.get.resolves([dummyBlock]);
 					});
 
 					afterEach(() => {
@@ -1259,7 +1263,7 @@ describe('blocks/process', () => {
 
 							describe('when block id is genesis block', () => {
 								beforeEach(() => {
-									return modules.blocks.utils.readDbRows.returns([
+									return modules.blocks.utils.readStorageRows.returns([
 										{
 											id: '6524861224470851795',
 											height: 1,
@@ -1330,7 +1334,9 @@ describe('blocks/process', () => {
 
 							describe('when block id is not genesis block', () => {
 								beforeEach(() => {
-									return modules.blocks.utils.readDbRows.returns([dummyBlock]);
+									return modules.blocks.utils.readStorageRows.returns([
+										dummyBlock,
+									]);
 								});
 
 								afterEach(() => {

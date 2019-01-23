@@ -15,11 +15,14 @@
 'use strict';
 
 const _ = require('lodash');
-const ApiError = require('../../helpers/api_error');
+const Promise = require('bluebird');
 const swaggerHelper = require('../../helpers/swagger');
+const BlockReward = require('../../logic/block_reward');
+const { calculateApproval } = require('../../helpers/http_api');
 
 // Private Fields
-let modules;
+let storage;
+let blockReward;
 
 /**
  * Description of the function.
@@ -33,7 +36,42 @@ let modules;
  * @todo Add description of AccountsController
  */
 function AccountsController(scope) {
-	modules = scope.modules;
+	storage = scope.storage;
+	blockReward = new BlockReward();
+}
+
+function accountFormatter(totalSupply, account) {
+	const object = _.pick(account, [
+		'address',
+		'publicKey',
+		'balance',
+		'u_balance',
+		'secondPublicKey',
+	]);
+	object.unconfirmedBalance = object.u_balance;
+	delete object.u_balance;
+
+	if (account.isDelegate) {
+		object.delegate = _.pick(account, [
+			'username',
+			'vote',
+			'rewards',
+			'producedBlocks',
+			'missedBlocks',
+			'rank',
+			'productivity',
+		]);
+
+		object.delegate.rank = parseInt(object.delegate.rank);
+
+		// Computed fields
+		object.delegate.approval = calculateApproval(object.vote, totalSupply);
+	}
+
+	object.publicKey = object.publicKey || '';
+	object.secondPublicKey = object.secondPublicKey || '';
+
+	return object;
 }
 
 /**
@@ -43,54 +81,131 @@ function AccountsController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-AccountsController.getAccounts = function(context, next) {
+AccountsController.getAccounts = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	let filters = {
-		address: params.address.value,
-		publicKey: params.publicKey.value,
-		secondPublicKey: params.secondPublicKey.value,
-		username: params.username.value,
+		address_eql: params.address.value,
+		publicKey_eql: params.publicKey.value,
+		secondPublicKey_eql: params.secondPublicKey.value,
+		username_like: params.username.value,
+	};
+
+	const options = {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
+		extended: true,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.accounts.shared.getAccounts(_.clone(filters), (err, data) => {
-		if (err) {
-			return next(err);
-		}
+	try {
+		let lastBlock = await storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1 }
+		);
+		lastBlock = lastBlock[0];
 
-		data = _.cloneDeep(data);
-
-		data = _.map(data, account => {
-			if (_.isEmpty(account.delegate)) {
-				delete account.delegate;
-			} else {
-				account.delegate.rank = parseInt(account.delegate.rank);
-			}
-			if (_.isNull(account.publicKey)) {
-				account.publicKey = '';
-			}
-			if (_.isNull(account.secondPublicKey)) {
-				account.secondPublicKey = '';
-			}
-			delete account.secondSignature;
-			delete account.unconfirmedSignature;
-			return account;
-		});
+		const data = await storage.entities.Account.get(filters, options).map(
+			accountFormatter.bind(
+				null,
+				lastBlock.height ? blockReward.calcSupply(lastBlock.height) : 0
+			)
+		);
 
 		return next(null, {
 			data,
+			meta: {
+				offset: options.offset,
+				limit: options.limit,
+			},
+		});
+	} catch (err) {
+		return next(err);
+	}
+};
+
+async function multiSigAccountFormatter(account) {
+	const result = _.pick(account, [
+		'address',
+		'publicKey',
+		'balance',
+		'secondPublicKey',
+	]);
+	result.min = account.multiMin;
+	result.lifetime = account.multiLifetime;
+	result.unconfirmedBalance = account.u_balance;
+
+	if (result.secondPublicKey === null) {
+		result.secondPublicKey = '';
+	}
+
+	const members = await storage.entities.Account.get({
+		publicKey_in: account.membersPublicKeys,
+	});
+
+	result.members = members.map(member => {
+		member = _.pick(member, ['address', 'publicKey', 'secondPublicKey']);
+		if (member.secondPublicKey === null) {
+			member.secondPublicKey = '';
+		}
+		return member;
+	});
+
+	return result;
+}
+
+/**
+ * Description of the function.
+ *
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
+ */
+AccountsController.getMultisignatureGroups = async function(context, next) {
+	const address = context.request.swagger.params.address.value;
+
+	if (!address) {
+		return next(
+			swaggerHelper.generateParamsErrorObject(
+				['address'],
+				['Invalid address specified']
+			)
+		);
+	}
+
+	const filters = {
+		address,
+		multiMin_gt: 0,
+	};
+
+	try {
+		let account = await storage.entities.Account.getOne(filters, {
+			extended: true,
+		});
+		account = await multiSigAccountFormatter(account);
+
+		return next(null, {
+			data: [account],
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
 			},
 		});
-	});
+	} catch (error) {
+		// TODO: Improve it later by having custom error class from storage
+		// https://github.com/vitaly-t/pg-promise/blob/master/lib/errors/queryResult.js#L29
+		// code(0) == queryResultErrorCode.noData
+
+		if (error.code === 0) {
+			context.statusCode = 404;
+			return next(new Error('Multisignature account not found'));
+		}
+
+		return next(error);
+	}
 };
 
 /**
@@ -100,17 +215,13 @@ AccountsController.getAccounts = function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-AccountsController.getMultisignatureGroups = function(context, next) {
-	const params = context.request.swagger.params;
+AccountsController.getMultisignatureMemberships = async function(
+	context,
+	next
+) {
+	const address = context.request.swagger.params.address.value;
 
-	let filters = {
-		address: params.address.value,
-	};
-
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
-
-	if (!filters.address) {
+	if (!address) {
 		return next(
 			swaggerHelper.generateParamsErrorObject(
 				['address'],
@@ -119,76 +230,36 @@ AccountsController.getMultisignatureGroups = function(context, next) {
 		);
 	}
 
-	return modules.multisignatures.shared.getGroups(
-		_.clone(filters),
-		(err, data) => {
-			if (err) {
-				if (err instanceof ApiError) {
-					context.statusCode = err.code;
-					delete err.code;
-				}
+	let account;
 
-				return next(err);
-			}
-
-			return next(null, {
-				data,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-				},
-			});
-		}
-	);
-};
-
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-AccountsController.getMultisignatureMemberships = function(context, next) {
-	const params = context.request.swagger.params;
-
-	let filters = {
-		address: params.address.value,
-	};
-
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
-
-	if (!filters.address) {
-		return next(
-			swaggerHelper.generateParamsErrorObject(
-				['address'],
-				['Invalid address specified']
-			)
+	try {
+		account = await storage.entities.Account.getOne(
+			{ address },
+			{ extended: true }
 		);
+	} catch (error) {
+		if (error.code === 0) {
+			context.statusCode = 404;
+			return next(new Error('Multisignature membership account not found'));
+		}
+		return next(error);
 	}
 
-	return modules.multisignatures.shared.getMemberships(
-		_.clone(filters),
-		(err, data) => {
-			if (err) {
-				if (err instanceof ApiError) {
-					context.statusCode = err.code;
-					delete err.code;
-				}
+	try {
+		let groups = await storage.entities.Account.get(
+			{ membersPublicKeys_in: [account.publicKey] },
+			{ extended: true }
+		);
 
-				return next(err);
-			}
+		groups = await Promise.map(groups, multiSigAccountFormatter);
 
-			return next(null, {
-				data,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-				},
-			});
-		}
-	);
+		return next(null, {
+			data: groups,
+			meta: {},
+		});
+	} catch (error) {
+		return next(error);
+	}
 };
 
 module.exports = AccountsController;

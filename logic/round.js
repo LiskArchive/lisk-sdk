@@ -40,8 +40,8 @@ class Round {
 			roundFees: scope.roundFees,
 			roundRewards: scope.roundRewards,
 			library: {
-				db: scope.library.db,
 				logger: scope.library.logger,
+				storage: scope.library.storage,
 			},
 			modules: {
 				accounts: scope.modules.accounts,
@@ -120,9 +120,24 @@ class Round {
 			return this.t;
 		}
 
-		return this.t.rounds.updateMissedBlocks(
-			this.scope.backwards,
-			this.scope.roundOutsiders
+		const filters = { address_in: this.scope.roundOutsiders };
+		const field = 'missedBlocks';
+		const value = '1';
+
+		if (this.scope.backwards) {
+			return this.scope.library.storage.entities.Account.decreaseFieldBy(
+				filters,
+				field,
+				value,
+				this.t
+			);
+		}
+
+		return this.scope.library.storage.entities.Account.increaseFieldBy(
+			filters,
+			field,
+			value,
+			this.t
 		);
 	}
 
@@ -133,7 +148,11 @@ class Round {
 	 * @todo Add @returns tag
 	 */
 	getVotes() {
-		return this.t.rounds.getVotes(this.scope.round);
+		return this.scope.library.storage.entities.Round.getTotalVotedAmount(
+			{ round: this.scope.round },
+			{},
+			this.t
+		);
 	}
 
 	/**
@@ -147,13 +166,19 @@ class Round {
 
 		return self.getVotes(self.scope.round).then(votes => {
 			const queries = votes.map(vote =>
-				self.t.rounds.updateVotes(
-					self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate),
+				self.scope.library.storage.entities.Account.increaseFieldBy(
+					{
+						address: self.scope.modules.accounts.generateAddressByPublicKey(
+							vote.delegate
+						),
+					},
+					'vote',
 					// Have to revert the logic to not use bignumber. it was causing change
 					// in vote amount. More details can be found on the issue.
 					// 		new Bignum(vote.amount).integerValue(Bignum.ROUND_FLOOR)
 					// TODO: https://github.com/LiskHQ/lisk/issues/2423
-					Math.floor(vote.amount)
+					Math.floor(vote.amount),
+					this.t
 				)
 			);
 
@@ -172,7 +197,13 @@ class Round {
 	 * @todo Check type and description of the return value
 	 */
 	flushRound() {
-		return this.t.rounds.flush(this.scope.round);
+		return this.scope.library.storage.entities.Round.delete(
+			{
+				round: this.scope.round,
+			},
+			{},
+			this.t
+		);
 	}
 
 	/**
@@ -185,7 +216,9 @@ class Round {
 	 */
 	restoreRoundSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_round snapshot...');
-		return this.t.rounds.restoreRoundSnapshot();
+		return this.scope.library.storage.entities.Round.restoreRoundSnapshot(
+			this.t
+		);
 	}
 
 	/**
@@ -198,7 +231,9 @@ class Round {
 	 */
 	restoreVotesSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');
-		return this.t.rounds.restoreVotesSnapshot();
+		return this.scope.library.storage.entities.Round.restoreVotesSnapshot(
+			this.t
+		);
 	}
 
 	/**
@@ -207,23 +242,26 @@ class Round {
 	 * @returns {Promise}
 	 */
 	checkSnapshotAvailability() {
-		return this.t.rounds
-			.checkSnapshotAvailability(this.scope.round)
-			.then(isAvailable => {
-				if (!isAvailable) {
-					// Snapshot for current round is not available, check if round snapshot table is empty,
-					// because we need to allow to restore snapshot in that case (no transactions during entire round)
-					return this.t.rounds.countRoundSnapshot().then(count => {
-						// Throw an error when round snapshot table is not empty
-						if (count) {
-							throw new Error(
-								`Snapshot for round ${this.scope.round} not available`
-							);
-						}
-					});
-				}
-				return null;
-			});
+		return this.scope.library.storage.entities.Round.checkSnapshotAvailability(
+			this.scope.round,
+			this.t
+		).then(isAvailable => {
+			if (!isAvailable) {
+				// Snapshot for current round is not available, check if round snapshot table is empty,
+				// because we need to allow to restore snapshot in that case (no transactions during entire round)
+				return this.scope.library.storage.entities.Round.countRoundSnapshot(
+					this.t
+				).then(count => {
+					// Throw an error when round snapshot table is not empty
+					if (count) {
+						throw new Error(
+							`Snapshot for round ${this.scope.round} not available`
+						);
+					}
+				});
+			}
+			return null;
+		});
 	}
 
 	/**
@@ -233,7 +271,9 @@ class Round {
 	 */
 	updateDelegatesRanks() {
 		this.scope.library.logger.debug('Updating ranks of all delegates...');
-		return this.t.rounds.updateDelegatesRanks();
+		return this.scope.library.storage.entities.Account.syncDelegatesRanks(
+			this.t
+		);
 	}
 
 	/**
@@ -246,7 +286,10 @@ class Round {
 		this.scope.library.logger.debug(
 			`Deleting rewards for round ${this.scope.round}`
 		);
-		return this.t.rounds.deleteRoundRewards(this.scope.round);
+		return this.scope.library.storage.entities.Round.deleteRoundRewards(
+			this.scope.round,
+			this.t
+		);
 	}
 
 	/**
@@ -374,12 +417,15 @@ class Round {
 		// Prepare queries for inserting round rewards
 		roundRewards.forEach(item => {
 			queries.push(
-				self.t.rounds.insertRoundRewards(
-					item.timestamp,
-					item.fees,
-					item.reward,
-					item.round,
-					item.publicKey
+				self.scope.library.storage.entities.Round.createRoundRewards(
+					{
+						timestamp: item.timestamp,
+						fees: item.fees,
+						reward: item.reward,
+						round: item.round,
+						publicKey: item.publicKey,
+					},
+					self.t
 				)
 			);
 		});

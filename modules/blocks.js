@@ -17,7 +17,6 @@
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const async = require('async');
 // Submodules
-const BlocksAPI = require('./blocks/api');
 const BlocksVerify = require('./blocks/verify');
 const BlocksProcess = require('./blocks/process');
 const BlocksUtils = require('./blocks/utils');
@@ -43,7 +42,6 @@ __private.isActive = false;
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires modules/blocks/api
  * @requires modules/blocks/verify
  * @requires modules/blocks/process
  * @requires modules/blocks/utils
@@ -62,17 +60,11 @@ class Blocks {
 
 		// Initialize submodules with library content
 		this.submodules = {
-			api: new BlocksAPI(
-				scope.logger,
-				scope.db,
-				scope.logic.block,
-				scope.schema
-			),
 			verify: new BlocksVerify(
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db,
+				scope.storage,
 				scope.config
 			),
 			process: new BlocksProcess(
@@ -81,7 +73,7 @@ class Blocks {
 				scope.logic.peers,
 				scope.logic.transaction,
 				scope.schema,
-				scope.db,
+				scope.storage,
 				scope.sequence,
 				scope.genesisBlock
 			),
@@ -90,14 +82,14 @@ class Blocks {
 				scope.logic.account,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db,
+				scope.storage,
 				scope.genesisBlock
 			),
 			chain: new BlocksChain(
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db,
+				scope.storage,
 				scope.genesisBlock,
 				scope.bus,
 				scope.balancesSequence
@@ -105,7 +97,6 @@ class Blocks {
 		};
 
 		// Expose submodules
-		this.shared = this.submodules.api;
 		this.verify = this.submodules.verify;
 		this.process = this.submodules.process;
 		this.utils = this.submodules.utils;
