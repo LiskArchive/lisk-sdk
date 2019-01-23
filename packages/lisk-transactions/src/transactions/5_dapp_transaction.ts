@@ -196,7 +196,6 @@ export class DappTransaction extends BaseTransaction {
 			...transaction,
 			senderId: transaction.senderId as string,
 			senderPublicKey: transaction.senderPublicKey as string,
-			recipientId: transaction.senderId as string,
 		};
 
 		const dappTransaction = new DappTransaction(transactionWithSenderInfo);
@@ -283,13 +282,13 @@ export class DappTransaction extends BaseTransaction {
 	public verifyAgainstOtherTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): TransactionResponse {
-		const sameTypeTransactions = transactions
-			.filter(tx => tx.type === this.type)
-			.map(tx => new DappTransaction(tx));
+		const sameTypeTransactions = transactions.filter(
+			tx => tx.type === this.type,
+		);
 
 		const errors =
 			sameTypeTransactions.filter(
-				tx => tx.asset.dapp.name === this.asset.dapp.name,
+				tx => 'dapp' in tx.asset && tx.asset.dapp.name === this.asset.dapp.name,
 			).length > 0
 				? [
 						new TransactionError(
@@ -302,7 +301,9 @@ export class DappTransaction extends BaseTransaction {
 		if (
 			sameTypeTransactions.filter(
 				tx =>
-					this.asset.dapp.link && this.asset.dapp.link === tx.asset.dapp.link,
+					'dapp' in tx.asset &&
+					this.asset.dapp.link &&
+					this.asset.dapp.link === tx.asset.dapp.link,
 			).length > 0
 		) {
 			errors.push(
@@ -397,6 +398,12 @@ export class DappTransaction extends BaseTransaction {
 			  )
 			: [];
 		errors.push(...assetErrors);
+
+		if (this.recipientId) {
+			errors.push(
+				new TransactionError(`Invalid recipient id`, this.id, '.recipientId'),
+			);
+		}
 
 		if (!this.fee.eq(DAPP_FEE)) {
 			errors.push(
