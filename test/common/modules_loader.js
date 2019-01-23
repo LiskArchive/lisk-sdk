@@ -247,24 +247,6 @@ const modulesLoader = new function() {
 	};
 
 	/**
-	 * Accepts Class to invoke (Logic or Module) and fills the scope with basic conf
-	 *
-	 * @param {function} Klass
-	 * @param {function} moduleConstructor
-	 * @param {function} cb
-	 * @param {Object=} scope
-	 */
-	this.initWithDb = function(Klass, moduleConstructor, cb, scope) {
-		this.getDbConnection((err, db) => {
-			if (err) {
-				return cb(err);
-			}
-
-			return moduleConstructor(Klass, _.merge(this.scope, { db }, scope), cb);
-		});
-	};
-
-	/**
 	 * Starts and returns storage connection
 	 *
 	 * @param {function} cb
