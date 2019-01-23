@@ -214,7 +214,8 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 						cb,
 						`Application name already exists: ${existingDapp.name}`
 					);
-				} else if (existingDapp.link === transaction.asset.dapp.link) {
+				}
+				if (existingDapp.link === transaction.asset.dapp.link) {
 					return setImmediate(
 						cb,
 						`Application link already exists: ${existingDapp.link}`

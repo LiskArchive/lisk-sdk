@@ -480,7 +480,8 @@ Transactions.prototype.applyUnconfirmed = function(
 
 	if (!sender && transaction.blockId !== library.genesisBlock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
-	} else if (transaction.requesterPublicKey) {
+	}
+	if (transaction.requesterPublicKey) {
 		return modules.accounts.getAccount(
 			{ publicKey: transaction.requesterPublicKey },
 			(err, requester) => {

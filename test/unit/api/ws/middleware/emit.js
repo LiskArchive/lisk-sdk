@@ -43,7 +43,7 @@ describe('emitMiddleware', () => {
 		});
 
 		afterEach(() => {
-			return validNext.reset();
+			return validNext.resetHistory();
 		});
 
 		it('should call validNext', () => {

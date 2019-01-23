@@ -997,7 +997,8 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 __private.transactionTimeOut = function(transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
 		return transaction.asset.multisignature.lifetime * self.hourInSeconds;
-	} else if (Array.isArray(transaction.signatures)) {
+	}
+	if (Array.isArray(transaction.signatures)) {
 		return UNCONFIRMED_TRANSACTION_TIMEOUT * 8;
 	}
 	return UNCONFIRMED_TRANSACTION_TIMEOUT;

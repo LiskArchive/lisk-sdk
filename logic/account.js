@@ -400,6 +400,7 @@ class Account {
 				// Get field data type
 				const fieldType = self.conv[updatedField];
 				const updatedValue = diff[updatedField];
+				const value = new Bignum(updatedValue);
 
 				// Make execution selection based on field type
 				switch (fieldType) {
@@ -418,7 +419,6 @@ class Account {
 					// [u_]balance, [u_]multimin, [u_]multilifetime, fees, rewards, votes, producedBlocks, missedBlocks
 					// eslint-disable-next-line no-case-declarations
 					case Number:
-						const value = new Bignum(updatedValue);
 						if (value.isNaN() || !value.isFinite()) {
 							throw `Encountered insane number: ${value.toString()}`;
 						}
