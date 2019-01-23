@@ -56,6 +56,9 @@ class Blocks {
 		library = {
 			logger: scope.logger,
 			network: scope.network,
+			config: {
+				cacheEnabled: scope.config.cacheEnabled,
+			},
 		};
 
 		// Initialize submodules with library content
@@ -240,14 +243,16 @@ Blocks.prototype.onBind = function(scope) {
  * @todo Add @returns tag
  */
 Blocks.prototype.onNewBlock = function(block) {
-	const tasks = [
-		CACHE.KEYS.blocksApi,
-		CACHE.KEYS.transactionsApi,
-	].map(pattern => callback => components.cache.clearCacheFor(pattern, callback));
+	if (library.config.cacheEnabled) {
+		const tasks = [
+			CACHE.KEYS.blocksApi,
+			CACHE.KEYS.transactionsApi,
+		].map(pattern => callback => components.cache.clearCacheFor(pattern, callback));
 
-	async.parallel(async.reflectAll(tasks), () =>
-		library.network.io.sockets.emit('blocks/change', block)
-	);
+		async.parallel(async.reflectAll(tasks), () =>
+			library.network.io.sockets.emit('blocks/change', block)
+		);
+	}
 };
 
 /**

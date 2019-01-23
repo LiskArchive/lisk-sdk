@@ -64,6 +64,9 @@ class Transactions {
 				transaction: scope.logic.transaction,
 			},
 			genesisBlock: scope.genesisBlock,
+			config: {
+				version: scope.config.cacheEnabled,
+			},
 		};
 
 		self = this;
@@ -654,17 +657,21 @@ Transactions.prototype.shared = {
 		async.waterfall(
 			[
 				function getConfirmedCountFromCache(waterCb) {
-					components.cache.getJsonForKey(
-						CACHE.KEYS.transactionCount,
-						(err, data) => {
-							if (err) {
-								// If some issue in cache we will fallback to database
-								return setImmediate(waterCb, null, null);
-							}
+					if (library.config.cacheEnabled) {
+						components.cache.getJsonForKey(
+							CACHE.KEYS.transactionCount,
+							(err, data) => {
+								if (err) {
+									// If some issue in cache we will fallback to database
+									return setImmediate(waterCb, null, null);
+								}
 
-							return setImmediate(waterCb, null, data ? data.confirmed : null);
-						}
-					);
+								return setImmediate(waterCb, null, data ? data.confirmed : null);
+							}
+						);
+					}
+
+					return setImmediate(waterCb, null, null);
 				},
 
 				function getConfirmedCountFromDb(cachedCount, waterCb) {
@@ -683,20 +690,23 @@ Transactions.prototype.shared = {
 						// Cache already persisted, no need to set cache again
 						return setImmediate(waterCb, null, cachedCount);
 					}
+					if (library.config.cacheEnabled) {
+						return components.cache.setJsonForKey(
+							CACHE.KEYS.transactionCount,
+							{
+								confirmed: dbCount,
+							},
+							err => {
+								if (err) {
+									library.logger.warn("Transaction count wasn't cached", err);
+								}
 
-					return components.cache.setJsonForKey(
-						CACHE.KEYS.transactionCount,
-						{
-							confirmed: dbCount,
-						},
-						err => {
-							if (err) {
-								library.logger.warn("Transaction count wasn't cached", err);
+								return setImmediate(waterCb, null, dbCount);
 							}
+						);
+					}
 
-							return setImmediate(waterCb, null, dbCount);
-						}
-					);
+					return setImmediate(waterCb, null, null);
 				},
 
 				function getAllCount(confirmedTransactionCount, waterCb) {
