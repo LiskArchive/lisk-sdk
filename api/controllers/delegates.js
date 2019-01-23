@@ -14,16 +14,20 @@
 
 'use strict';
 
+const promisify = require('util').promisify;
 const _ = require('lodash');
+const Bignum = require('../../helpers/bignum.js');
 const swaggerHelper = require('../../helpers/swagger');
 const BlockReward = require('../../logic/block_reward');
+const apiCodes = require('../../helpers/api_codes.js');
+const ApiError = require('../../helpers/api_error.js');
 const { calculateApproval } = require('../../helpers/http_api');
-
+const slots = require('../../helpers/slots.js');
 // Private Fields
 let modules;
 let storage;
 let blockReward;
-const { EPOCH_TIME } = global.constants;
+const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
 
 /**
  * Description of the function.
@@ -134,7 +138,7 @@ DelegatesController.getDelegates = async function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-DelegatesController.getForgers = function(context, next) {
+DelegatesController.getForgers = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	const filters = {
@@ -142,21 +146,148 @@ DelegatesController.getForgers = function(context, next) {
 		offset: params.offset.value,
 	};
 
-	return modules.delegates.shared.getForgers(_.clone(filters), (err, data) => {
+	const [lastBlock] = await storage.entities.Block.get(
+		{},
+		{ sort: 'height:desc', limit: 1 }
+	);
+
+	const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
+	const currentSlot = slots.getSlotNumber();
+
+	modules.delegates.getForgers(_.clone(filters), (err, forgers) => {
 		if (err) {
-			return next(err);
+			return next(
+				new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR)
+			);
 		}
 
-		data.meta.limit = filters.limit;
-		data.meta.offset = filters.offset;
-
-		data.links = {};
-
-		return next(null, data);
+		return next(null, {
+			data: forgers,
+			meta: {
+				lastBlock: lastBlock.height,
+				lastBlockSlot,
+				currentSlot,
+				limit: filters.limit,
+				offset: filters.offset,
+			},
+			links: {},
+		});
 	});
 };
 
-DelegatesController.getForgingStatistics = function(context, next) {
+/**
+ *
+ * @param {Object} filters - Filters applied to results
+ * @param {string} filters.address - Address of the delegate
+ * @param {string} filters.start - Start time to aggregate
+ * @param {string} filters.end - End time to aggregate
+ * @returns {Promise<*>}
+ * @private
+ */
+async function _getForgingStatistics(filters) {
+	// If need to aggregate all data then just fetch from the account
+	if (!filters.start && !filters.end) {
+		// TODO: Need to move modules.delegates.getDelegates after adding "fees" in its list
+		let account = await modules.account.getOne({ address: filters.address });
+		account = _.pick(account, ['rewards', 'fees', 'producedBlocks', 'isDelegate']);
+
+		if (!account) {
+			throw 'Account not found';
+		}
+
+		if (!account.isDelagate) {
+			throw 'Account is not a delegate';
+		}
+
+		return {
+			rewards: account.rewards,
+			fees: account.fees,
+			count: new Bignum(account.producedBlocks).toString(),
+			forged: new Bignum(account.rewards)
+				.plus(new Bignum(account.fees))
+				.toString(),
+		};
+	}
+	const reward = await promisify(modules.blocks.utils.aggregateBlocksReward)(filters);
+	reward.forged = new Bignum(reward.fees)
+		.plus(new Bignum(reward.rewards))
+		.toString();
+
+	return reward;
+}
+
+
+async function aggregateBlocksReward(filter) {
+	const params = {};
+
+	const account = storage.account.getOne({ address: filter.address });
+
+	if (!account) {
+		throw 'Account not found';
+	}
+
+	params.generatorPublicKey = account.publicKey;
+	params.delegates = ACTIVE_DELEGATES;
+
+	if (filter.start !== undefined) {
+		params.fromTimestamp = Math.floor(
+			(filter.start - EPOCH_TIME.getTime()) / 1000
+		);
+		params.fromTimestamp = params.fromTimestamp.toFixed();
+	}
+
+	if (filter.end !== undefined) {
+		params.toTimestamp = Math.floor(
+			(filter.end - EPOCH_TIME.getTime()) / 1000
+		);
+		params.toTimestamp = params.toTimestamp.toFixed();
+	}
+
+	let delegateBlocksRewards;
+
+	try {
+		delegateBlocksRewards = await library.storage.entities.Account.delegateBlocksRewards(params);
+	catch (err) {
+		library.logger.error(delegateBlocksRewardsErr.stack);
+		return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
+		// TODO
+	}
+
+	let data = rows[0];
+	if (data.delegate === null) {
+		return setImmediate(cb, 'Account is not a delegate');
+	}
+	data = {
+		fees: data.fees || '0',
+		rewards: data.rewards || '0',
+		count: data.count || '0',
+	};
+	return setImmediate(cb, null, data);
+
+
+
+	/*// Get calculated rewards
+	return library.storage.entities.Account.delegateBlocksRewards(params)
+		.then(rows => {
+			let data = rows[0];
+			if (data.delegate === null) {
+				return setImmediate(cb, 'Account is not a delegate');
+			}
+			data = {
+				fees: data.fees || '0',
+				rewards: data.rewards || '0',
+				count: data.count || '0',
+			};
+			return setImmediate(cb, null, data);
+		})
+		.catch(delegateBlocksRewardsErr => {
+			library.logger.error(delegateBlocksRewardsErr.stack);
+			return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
+		});*/
+}
+
+
+DelegatesController.getForgingStatistics = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	const filters = {
@@ -165,34 +296,29 @@ DelegatesController.getForgingStatistics = function(context, next) {
 		end: params.toTimestamp.value,
 	};
 
-	return modules.delegates.shared.getForgingStatistics(
-		filters,
-		(err, reward) => {
-			if (err) {
-				if (
-					err === 'Account not found' ||
-					err === 'Account is not a delegate'
-				) {
-					return next(
-						swaggerHelper.generateParamsErrorObject([params.address], [err])
-					);
-				}
-				return next(err);
-			}
+	let reward;
+	try {
+		reward = await _getForgingStatistics(filters);
+	} catch (err) {
+		if (err === 'Account not found' || err === 'Account is not a delegate') {
+			return next(
+				swaggerHelper.generateParamsErrorObject([params.address], [err])
+			);
+		}
+		return next(err);
+	}
 
-			return next(null, {
-				data: {
-					fees: reward.fees,
-					rewards: reward.rewards,
-					forged: reward.forged,
-					count: reward.count,
-				},
-				meta: {
-					fromTimestamp: filters.start || EPOCH_TIME.getTime(),
-					toTimestamp: filters.end || Date.now(),
-				},
-				links: {},
-			});
+	const data = _.pick(reward, ['fees, rewards, forged, count']);
+
+	return next(
+		null,
+		{
+			data,
+			meta: {
+				fromTimestamp: filters.start || EPOCH_TIME.getTime(),
+				toTimestamp: filters.end || Date.now(),
+			},
+			links: {},
 		}
 	);
 };
