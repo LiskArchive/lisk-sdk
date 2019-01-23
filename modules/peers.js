@@ -775,7 +775,7 @@ Peers.prototype.networkHeight = function(options, cb) {
  */
 Peers.prototype.onBind = function(scope) {
 	modules = {
-		system: scope.system,
+		system: scope.modules.system,
 	};
 
 	definitions = scope.swagger.definitions;

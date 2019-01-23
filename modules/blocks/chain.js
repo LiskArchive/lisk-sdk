@@ -853,12 +853,12 @@ Chain.prototype.recoverChain = function(cb) {
 Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
 	modules = {
-		accounts: scope.accounts,
-		blocks: scope.blocks,
-		rounds: scope.rounds,
-		transactions: scope.transactions,
-		system: scope.system,
-		transport: scope.transport,
+		accounts: scope.modules.accounts,
+		blocks: scope.modules.blocks,
+		rounds: scope.modules.rounds,
+		transactions: scope.modules.transactions,
+		system: scope.modules.system,
+		transport: scope.modules.transport,
 	};
 
 	// Set module as loaded

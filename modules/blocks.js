@@ -25,7 +25,7 @@ const BlocksChain = require('./blocks/chain');
 // Private fields
 let library;
 let self;
-let modules = {};
+let components = {};
 const __private = {};
 
 __private.lastBlock = {};
@@ -219,13 +219,13 @@ Blocks.prototype.isCleaning = {
 };
 
 /**
- * Handle modules initialization.
- * Modules are not required in this file.
+ * Handle components initialization.
+ * Components are not required in this file.
  */
 Blocks.prototype.onBind = function(scope) {
 	// TODO: move here blocks submodules modules load from app.js.
-	modules = {
-		cache: scope.cache,
+	components = {
+		cache: scope.components,
 	};
 
 	// Set module as loaded
@@ -241,9 +241,9 @@ Blocks.prototype.onBind = function(scope) {
  */
 Blocks.prototype.onNewBlock = function(block) {
 	const tasks = [
-		modules.cache.KEYS.blocksApi,
-		modules.cache.KEYS.transactionsApi,
-	].map(pattern => callback => modules.cache.clearCacheFor(pattern, callback));
+		components.cache.KEYS.blocksApi,
+		components.cache.KEYS.transactionsApi,
+	].map(pattern => callback => components.cache.clearCacheFor(pattern, callback));
 
 	async.parallel(async.reflectAll(tasks), () =>
 		library.network.io.sockets.emit('blocks/change', block)

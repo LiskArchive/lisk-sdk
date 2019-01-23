@@ -25,6 +25,7 @@ const Transfer = require('../logic/transfer.js');
 
 // Private fields
 const __private = {};
+let components;
 let modules;
 let library;
 let self;
@@ -588,19 +589,22 @@ Transactions.prototype.isLoaded = function() {
  * @param {scope} scope - Loaded modules
  */
 Transactions.prototype.onBind = function(scope) {
+	components = {
+		cache: scope.components,
+	};
+
 	modules = {
-		accounts: scope.accounts,
-		transport: scope.transport,
-		cache: scope.cache,
+		accounts: scope.modules.accounts,
+		transport: scope.modules.transport,
 	};
 
 	__private.transactionPool.bind(
-		scope.accounts,
-		scope.transactions,
-		scope.loader
+		scope.modules.accounts,
+		scope.modules.transactions,
+		scope.modules.loader
 	);
 
-	__private.assetTypes[transactionTypes.SEND].bind(scope.accounts);
+	__private.assetTypes[transactionTypes.SEND].bind(scope.modules.accounts);
 };
 
 /**
@@ -649,8 +653,8 @@ Transactions.prototype.shared = {
 		async.waterfall(
 			[
 				function getConfirmedCountFromCache(waterCb) {
-					modules.cache.getJsonForKey(
-						modules.cache.KEYS.transactionCount,
+					components.cache.getJsonForKey(
+						components.cache.KEYS.transactionCount,
 						(err, data) => {
 							if (err) {
 								// If some issue in cache we will fallback to database
@@ -679,8 +683,8 @@ Transactions.prototype.shared = {
 						return setImmediate(waterCb, null, cachedCount);
 					}
 
-					return modules.cache.setJsonForKey(
-						modules.cache.KEYS.transactionCount,
+					return components.cache.setJsonForKey(
+						components.cache.KEYS.transactionCount,
 						{
 							confirmed: dbCount,
 						},

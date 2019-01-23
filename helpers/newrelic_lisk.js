@@ -27,6 +27,18 @@ newrelicLisk.instrumentBackgroundJobs();
 
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
+	'./componentes/cache.js': {
+		identifier: 'components.cache',
+		callbackMethods: [
+			'onNewBlock',
+			'onFinishRound',
+			'onTransactionsSaved',
+			'getJsonForKey',
+			'setJsonForKey',
+			'deleteJsonForKey',
+			'removeByPattern',
+		],
+	},
 	'./helpers/sequence.js': {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
@@ -39,17 +51,9 @@ const modulesToInstrument = {
 		identifier: 'modules.blocks',
 		callbackMethods: ['shared.getBlocks'],
 	},
-	'./modules/cache.js': {
-		identifier: 'modules.cache',
-		callbackMethods: [
-			'onNewBlock',
-			'onFinishRound',
-			'onTransactionsSaved',
-			'getJsonForKey',
-			'setJsonForKey',
-			'deleteJsonForKey',
-			'removeByPattern',
-		],
+	'./modules/dapps.js': {
+		identifier: 'modules.dapps',
+		callbackMethods: ['getDapps'],
 	},
 	'./modules/delegates.js': {
 		identifier: 'modules.delegates',

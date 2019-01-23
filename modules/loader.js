@@ -1154,13 +1154,13 @@ Loader.prototype.onPeersReady = function() {
  */
 Loader.prototype.onBind = function(scope) {
 	modules = {
-		transactions: scope.transactions,
-		blocks: scope.blocks,
-		peers: scope.peers,
-		rounds: scope.rounds,
-		transport: scope.transport,
-		multisignatures: scope.multisignatures,
-		system: scope.system,
+		transactions: scope.modules.transactions,
+		blocks: scope.modules.blocks,
+		peers: scope.modules.peers,
+		rounds: scope.modules.rounds,
+		transport: scope.modules.transport,
+		multisignatures: scope.modules.multisignatures,
+		system: scope.modules.system,
 	};
 
 	definitions = scope.swagger.definitions;

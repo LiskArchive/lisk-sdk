@@ -114,7 +114,6 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);
-
 		return newRound
 			.mergeBlockGenerator()
 			.then(() => (scope.finishRound ? newRound.backwardLand() : newRound));
@@ -360,9 +359,9 @@ Rounds.prototype.createRoundInformationWithDelegate = function(
  */
 Rounds.prototype.onBind = function(scope) {
 	modules = {
-		blocks: scope.blocks,
-		accounts: scope.accounts,
-		delegates: scope.delegates,
+		blocks: scope.modules.blocks,
+		accounts: scope.modules.accounts,
+		delegates: scope.modules.delegates,
 	};
 };
 

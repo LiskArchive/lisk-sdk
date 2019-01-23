@@ -201,11 +201,11 @@ Node.prototype.shared = {
  */
 Node.prototype.onBind = function(scope) {
 	modules = {
-		blocks: scope.blocks,
-		loader: scope.loader,
-		peers: scope.peers,
-		system: scope.system,
-		delegates: scope.delegates,
+		blocks: scope.modules.blocks,
+		loader: scope.modules.loader,
+		peers: scope.modules.peers,
+		system: scope.modules.system,
+		delegates: scope.modules.delegates,
 	};
 	loaded = true;
 };
