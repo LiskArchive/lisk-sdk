@@ -68,7 +68,6 @@ class Delegates {
 			logger: scope.logger,
 			sequence: scope.sequence,
 			ed: scope.ed,
-			db: scope.db,
 			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,

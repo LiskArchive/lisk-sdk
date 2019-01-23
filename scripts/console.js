@@ -55,7 +55,7 @@ application.init(
 		replServer.context.config = scope.config;
 		replServer.context.modules = scope.modules;
 		replServer.context.logic = scope.logic;
-		replServer.context.db = scope.db;
+		replServer.context.storage = scope.storage;
 		const helpers = {};
 
 		const helpersFolder = './helpers/';

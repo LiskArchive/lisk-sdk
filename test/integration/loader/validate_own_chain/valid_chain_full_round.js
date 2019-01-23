@@ -30,7 +30,7 @@ describe('validateOwnChain', () => {
 		'lisk_functional_validate_own_chain_valid_chain_full_round',
 		lib => {
 			library = lib;
-			Queries = new QueriesHelper(lib, lib.db);
+			Queries = new QueriesHelper(lib, lib.storage);
 
 			addTransactionsAndForgePromise = Promise.promisify(
 				localCommon.addTransactionsAndForge

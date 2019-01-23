@@ -16,9 +16,9 @@
 
 const randomstring = require('randomstring');
 const sql = require('../common/sql/mem_accounts.js');
-const modulesLoader = require('../../common/modules_loader');
+const storageSandbox = require('../../common/storage_sandbox');
 
-let db;
+let storage;
 
 const validUsername = randomstring.generate(10).toLowerCase();
 
@@ -55,7 +55,7 @@ let validAccount = {
 
 const queries = {
 	getAccountByAddress(address, cb) {
-		db
+		storage.adapter.db
 			.query(sql.getAccountByAddress, { address })
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
@@ -63,7 +63,7 @@ const queries = {
 			.catch(cb);
 	},
 	updateUsername(account, newUsername, cb) {
-		db
+		storage.adapter.db
 			.query(sql.updateUsername, {
 				address: account.address,
 				newUsername,
@@ -74,7 +74,7 @@ const queries = {
 			.catch(cb);
 	},
 	updateU_username(account, newUsername, cb) {
-		db
+		storage.adapter.db
 			.query(sql.updateU_username, {
 				address: account.address,
 				newUsername,
@@ -85,7 +85,7 @@ const queries = {
 			.catch(cb);
 	},
 	insertAccount(account, cb) {
-		db
+		storage.adapter.db
 			.query(sql.insert, account)
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
@@ -93,7 +93,7 @@ const queries = {
 			.catch(cb);
 	},
 	deleteAccount(account, cb) {
-		db
+		storage.adapter.db
 			.query(sql.delete, account)
 			.then(accountRows => {
 				return cb(null, accountRows[0]);
@@ -104,13 +104,14 @@ const queries = {
 
 describe('mem_accounts protection', () => {
 	before(done => {
-		modulesLoader.getDbConnection((err, __db) => {
-			if (err) {
-				return done(err);
-			}
-			db = __db;
-			return queries.insertAccount(validAccount, done);
-		});
+		storage = new storageSandbox.StorageSandbox(
+			__testContext.config.db,
+			'mem_accounts_protection_test'
+		);
+
+		storage.bootstrap().then(() => {
+			queries.insertAccount(validAccount, done);
+		}).catch(done);
 	});
 
 	after(done => {

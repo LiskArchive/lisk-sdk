@@ -36,7 +36,7 @@ const __private = {};
  * @requires lodash
  * @requires helpers/bignum
  * @requires helpers/slots
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Object} ed
  * @param {ZSchema} schema
  * @param {Object} genesisBlock

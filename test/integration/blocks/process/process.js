@@ -18,7 +18,7 @@ const async = require('async');
 const blockVersion = require('../../../../logic/block_version.js');
 const application = require('../../../common/application');
 const modulesLoader = require('../../../common/modules_loader');
-const clearDatabaseTable = require('../../../common/db_sandbox')
+const clearDatabaseTable = require('../../../common/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
 
@@ -27,7 +27,7 @@ const { REWARDS } = global.constants;
 describe('system test (blocks) - process', () => {
 	let blocksProcess;
 	let blocks;
-	let db;
+	let storage;
 	let originalBlockRewardsOffset;
 	let scope;
 
@@ -44,7 +44,7 @@ describe('system test (blocks) - process', () => {
 			(err, scopeInit) => {
 				blocksProcess = scopeInit.modules.blocks.process;
 				blocks = scopeInit.modules.blocks;
-				db = scopeInit.db;
+				storage = scopeInit.storage;
 				scope = scopeInit;
 				done(err);
 			}
@@ -69,7 +69,13 @@ describe('system test (blocks) - process', () => {
 							'votes WHERE "transactionId" = \'17502993173215211070\'',
 						],
 						(table, everyCb) => {
-							clearDatabaseTable(db, modulesLoader.logger, table, everyCb);
+							clearDatabaseTable(storage, modulesLoader.logger, table)
+								.then(res => {
+									everyCb(null, res);
+								})
+								.catch(error => {
+									everyCb(error, null);
+								});
 						},
 						err => {
 							if (err) {
@@ -83,12 +89,18 @@ describe('system test (blocks) - process', () => {
 					async.everySeries(
 						loadTables,
 						(table, everySeriesCb) => {
-							const cs = new db.$config.pgp.helpers.ColumnSet(table.fields, {
-								table: table.name,
-							});
-							const insert = db.$config.pgp.helpers.insert(table.data, cs);
-							db
-								.none(insert)
+							const cs = new storage.adapter.db.$config.pgp.helpers.ColumnSet(
+								table.fields,
+								{
+									table: table.name,
+								}
+							);
+							const insert = storage.adapter.db.$config.pgp.helpers.insert(
+								table.data,
+								cs
+							);
+							storage.adapter
+								.execute(insert)
 								.then(() => {
 									everySeriesCb(null, true);
 								})

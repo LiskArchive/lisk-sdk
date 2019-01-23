@@ -246,7 +246,7 @@ describe('blocks/api', () => {
 				});
 			});
 
-			describe('when db.query fails', () => {
+			describe('when storageStub.entities.Block.get fails', () => {
 				it('should call callback with Blocks#list error', done => {
 					storageStub.entities.Block.get = sinonSandbox.stub().rejects();
 					_list({ limit: 1 }, err => {

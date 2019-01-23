@@ -76,14 +76,9 @@ describe('account', () => {
 
 	describe('constructor', () => {
 		let library;
-		let dbStub;
 		let storageStub;
 
 		before(done => {
-			dbStub = {
-				query: sinonSandbox.stub().resolves(),
-			};
-
 			storageStub = {
 				entities: {
 					Account: {
@@ -93,7 +88,6 @@ describe('account', () => {
 			};
 
 			new Account(
-				dbStub,
 				storageStub,
 				modulesLoader.scope.schema,
 				modulesLoader.scope.logger,
@@ -109,10 +103,6 @@ describe('account', () => {
 			return expect(accountLogic.scope.schema).to.eql(
 				modulesLoader.scope.schema
 			);
-		});
-
-		it('should attach db to scope variable', () => {
-			return expect(accountLogic.scope.db).to.eql(dbStub);
 		});
 
 		it('should attach storage to scope variable', () => {

@@ -31,7 +31,7 @@ const swagerHelper = require('../../../helpers/swagger');
 const { MAX_PEERS } = __testContext.config.constants;
 
 describe('peers', () => {
-	let dbMock;
+	let storageMock;
 	let peers;
 	let PeersRewired;
 	let modules;
@@ -43,10 +43,11 @@ describe('peers', () => {
 	const NONCE = randomstring.generate(16);
 
 	before(done => {
-		dbMock = {
-			any: sinonSandbox.stub().resolves(),
-			peers: {
-				list: sinonSandbox.stub().resolves(),
+		storageMock = {
+			entities: {
+				Peer: {
+					get: sinonSandbox.stub().resolves(),
+				},
 			},
 		};
 
@@ -86,7 +87,7 @@ describe('peers', () => {
 			peers = peersModule;
 			peers.onBind(modules);
 			done();
-		}, _.assign({}, modulesLoader.scope, { logic: { peers: peersLogicMock }, db: dbMock }));
+		}, _.assign({}, modulesLoader.scope, { logic: { peers: peersLogicMock }, storage: storageMock }));
 	});
 
 	describe('list', () => {
@@ -877,15 +878,12 @@ describe('peers', () => {
 		});
 
 		describe('importFromDatabase', () => {
-			describe('when library.db.peers.list returns results', () => {
+			describe('when library.storage.entities.Peer.get returns results', () => {
 				let dbPeersListResults;
 
 				beforeEach(done => {
 					dbPeersListResults = [prefixedPeer];
-					PeersRewired.__set__(
-						'library.db.peers.list',
-						sinon.stub().resolves(dbPeersListResults)
-					);
+					storageMock.entities.Peer.get = sinonSandbox.stub().resolves(dbPeersListResults);
 					peersLogicMock.upsert = sinonSandbox.spy();
 					// Call onBlockchainReady and wait 100ms
 					peers.onBlockchainReady();

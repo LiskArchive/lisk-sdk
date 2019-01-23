@@ -34,18 +34,17 @@ let self;
  * @param {Account} account
  * @param {Block} block
  * @param {Transaction} transaction
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Object} genesisBlock
  * @todo Add description for the params
  */
 class Utils {
-	constructor(logger, account, block, transaction, db, storage, genesisBlock) {
+	constructor(logger, account, block, transaction, storage, genesisBlock) {
 		library = {
 			logger,
 			account,
 			block,
 			transaction,
-			db,
 			storage,
 			genesisBlock,
 			logic: {

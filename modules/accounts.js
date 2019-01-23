@@ -50,7 +50,7 @@ class Accounts {
 	constructor(cb, scope) {
 		library = {
 			ed: scope.ed,
-			db: scope.db,
+			storage: scope.storage,
 			logger: scope.logger,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
@@ -209,7 +209,7 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 	// Force task to run in a db tx to make sure it always return the inserted account
 	const taskPromise = tx
 		? task(tx)
-		: library.db.tx('Accounts:setAccountAndGet', task);
+		: library.storage.entities.Account.begin('Accounts:setAccountAndGet', task);
 
 	return taskPromise
 		.then(taskPromiseData => setImmediate(cb, null, taskPromiseData))
