@@ -29,7 +29,7 @@ const Account = require('../../logic/account.js');
 const createStorage = require('../../storage');
 
 const modulesLoader = new function() {
-	this.db = null;
+	this.storage = null;
 	this.logger = new Logger({
 		echo: null,
 		errorLevel: __testContext.config.fileLogLevel,
@@ -265,13 +265,13 @@ const modulesLoader = new function() {
 	};
 
 	/**
-	 * Starts and returns db connection
+	 * Starts and returns storage connection
 	 *
 	 * @param {function} cb
 	 */
 	this.getDbConnection = function(cb) {
-		if (this.db) {
-			return cb(null, this.db);
+		if (this.storage) {
+			return cb(null, this.storage);
 		}
 		const storage = createStorage(this.scope.config.db, this.logger);
 		return storage
@@ -287,7 +287,7 @@ const modulesLoader = new function() {
 					await storage.entities.Migration.applyAll();
 					await storage.entities.Migration.applyRunTime();
 				}
-				this.db = storage;
+				this.storage = storage;
 				cb(null, storage);
 			})
 			.catch(err => {

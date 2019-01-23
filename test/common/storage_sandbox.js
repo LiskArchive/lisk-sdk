@@ -33,7 +33,7 @@ const dbNames = [];
 /**
  * @param {string} table
  * @param {Logger} logger
- * @param {Object} db
+ * @param {Object} storage
  * @param {function} cb
  */
 function clearDatabaseTable(storageInstance, logger, table) {
