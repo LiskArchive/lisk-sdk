@@ -40,6 +40,7 @@ export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
+export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_DISCONNECT_OUTBOUND = 'disconnectOutbound';
 
 // Remote event or RPC names sent to or received from peers.
@@ -329,7 +330,11 @@ export class Peer extends EventEmitter {
 	// All event handlers for the outbound socket should be bound in this method.
 	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
 		outboundSocket.on('connect', () => {
-			this.emit(EVENT_CONNECT_OUTBOUND);
+			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
+		});
+
+		outboundSocket.on('connectAbort', () => {
+			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
 		});
 
 		outboundSocket.on('close', (code, reason) => {
