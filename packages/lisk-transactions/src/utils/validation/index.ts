@@ -27,6 +27,7 @@ export {
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanZero,
 	isNumberString,
+	stringEndsWith,
 } from './validation';
 export {
 	validateSignatureAndPublicKey,

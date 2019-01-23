@@ -50,6 +50,11 @@ export const checkPublicKeysForDuplicates = (
 		return true;
 	});
 
+export const stringEndsWith = (
+	target: string,
+	suffixes: ReadonlyArray<string>,
+): boolean => suffixes.some(suffix => target.endsWith(suffix));
+
 export const validatePublicKeys = (publicKeys: ReadonlyArray<string>) =>
 	publicKeys.every(validatePublicKey) &&
 	checkPublicKeysForDuplicates(publicKeys);
