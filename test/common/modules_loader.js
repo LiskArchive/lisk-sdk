@@ -20,8 +20,7 @@ const async = require('async');
 const Sequence = require('../../helpers/sequence.js');
 const Logger = require('../../logger.js');
 const Z_schema = require('../../helpers/z_schema.js');
-const createCacheConnector = require('../../helpers/cache_connector');
-const Cache = require('../../modules/cache.js');
+const createCache = require('../../components');
 const ed = require('../../helpers/ed');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Transaction = require('../../logic/transaction.js');
@@ -250,23 +249,14 @@ const modulesLoader = new function() {
 	 * @param {function} cb
 	 */
 	this.initCache = function(cb) {
-		const cacheEnabled = this.scope.config.cacheEnabled;
-		const cacheConnector = createCacheConnector(
-			this.scope.config.redis,
+		const cacheComponent = createCache(
+			__testContext.config.redis,
 			this.logger
 		);
-		return cacheConnector.connect((err, client) =>
-			this.initModule(
-				Cache,
-				Object.assign(this.scope, {
-					cache: {
-						client,
-						cacheEnabled,
-					},
-				}),
-				cb
-			)
-		);
+		return cacheComponent
+			.connect(() => {
+				return cb(null, cacheComponent);
+			});
 	};
 }();
 
