@@ -16,7 +16,8 @@
 
 const async = require('async');
 const redis = require('redis');
-const transactionTypes = require('../helpers/transaction_types.js');
+const transactionTypes = require('../helpers/transaction_types');
+const { CACHE } = require('../config/default/constants');
 
 const errorCacheDisabled = 'Cache Disabled';
 
@@ -39,12 +40,6 @@ class Cache {
 		this.options = options;
 		this.logger = logger;
 		this.cacheReady = false;
-		this.KEYS = {
-			transactionCount: 'transactionCount',
-			blocksApi: '/api/blocks*',
-			transactionsApi: '/api/transactions*',
-			delegatesApi: '/api/delegates*',
-		};
 	}
 
 	connect(cb) {
@@ -69,7 +64,7 @@ class Cache {
 
 	_onReady(cb) {
 		// Called after "ready" Cache event
-		this.logger.info('App connected with Cache server');
+		this.logger.info('App connected to Cache server');
 		this.client.removeListener('error', this._onConnectionError);
 		this.cacheReady = true;
 		this.client.on('error', err => {
@@ -312,7 +307,7 @@ class Cache {
 		if (!this.isReady()) {
 			return cb(errorCacheDisabled);
 		}
-		const pattern = this.KEYS.delegatesApi;
+		const pattern = CACHE.KEYS.delegatesApi;
 		return this.removeByPattern(pattern, err => {
 			if (err) {
 				this.logger.error(
@@ -356,7 +351,7 @@ class Cache {
 		return async.parallel(
 			[
 				async.reflect(reflectCb => {
-					const pattern = this.KEYS.delegatesApi;
+					const pattern = CACHE.KEYS.delegatesApi;
 
 					const delegateTransaction = transactions.find(
 						transaction =>
@@ -395,15 +390,15 @@ class Cache {
 					}
 
 					return this.deleteJsonForKey(
-						this.KEYS.transactionCount,
+						CACHE.KEYS.transactionCount,
 						deleteJsonForKeyErr => {
 							if (deleteJsonForKeyErr) {
 								this.logger.error(
-									`Cache - Error clearing keys: ${this.KEYS.transactionCount}`
+									`Cache - Error clearing keys: ${CACHE.KEYS.transactionCount}`
 								);
 							} else {
 								this.logger.debug(
-									`Cache - Keys ${this.KEYS.transactionCount} cleared from cache`
+									`Cache - Keys ${CACHE.KEYS.transactionCount} cleared from cache`
 								);
 							}
 							return setImmediate(reflectCb, deleteJsonForKeyErr);

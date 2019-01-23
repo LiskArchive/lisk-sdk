@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
+const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME, CACHE } = global.constants;
 const async = require('async');
 // Submodules
 const BlocksVerify = require('./blocks/verify');
@@ -241,8 +241,8 @@ Blocks.prototype.onBind = function(scope) {
  */
 Blocks.prototype.onNewBlock = function(block) {
 	const tasks = [
-		components.cache.KEYS.blocksApi,
-		components.cache.KEYS.transactionsApi,
+		CACHE.KEYS.blocksApi,
+		CACHE.KEYS.transactionsApi,
 	].map(pattern => callback => components.cache.clearCacheFor(pattern, callback));
 
 	async.parallel(async.reflectAll(tasks), () =>

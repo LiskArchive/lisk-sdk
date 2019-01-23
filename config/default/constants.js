@@ -123,4 +123,12 @@ module.exports = {
 	TOTAL_AMOUNT: '10000000000000000',
 	UNCONFIRMED_TRANSACTION_TIMEOUT: 10800, // 1080 blocks
 	EXPIRY_INTERVAL: 30000,
+	CACHE: {
+		KEYS: {
+			transactionCount: 'transactionCount',
+			blocksApi: '/api/blocks*',
+			transactionsApi: '/api/transactions*',
+			delegatesApi: '/api/delegates*',
+		},
+	},
 };

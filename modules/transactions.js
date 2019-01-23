@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { CACHE } = global.constants;
 const _ = require('lodash');
 const async = require('async');
 const apiCodes = require('../helpers/api_codes.js');
@@ -654,7 +655,7 @@ Transactions.prototype.shared = {
 			[
 				function getConfirmedCountFromCache(waterCb) {
 					components.cache.getJsonForKey(
-						components.cache.KEYS.transactionCount,
+						CACHE.KEYS.transactionCount,
 						(err, data) => {
 							if (err) {
 								// If some issue in cache we will fallback to database
@@ -684,7 +685,7 @@ Transactions.prototype.shared = {
 					}
 
 					return components.cache.setJsonForKey(
-						components.cache.KEYS.transactionCount,
+						CACHE.KEYS.transactionCount,
 						{
 							confirmed: dbCount,
 						},
