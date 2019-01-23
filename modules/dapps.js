@@ -59,7 +59,6 @@ class DApps {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
 			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,
