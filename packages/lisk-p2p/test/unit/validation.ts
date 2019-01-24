@@ -13,7 +13,12 @@
  *
  */
 import { expect } from 'chai';
-import { validatePeerAddress, validatePeerInfo } from '../../src/validation';
+import {
+	validatePeerAddress,
+	validatePeerInfo,
+	validatePeerInfoList,
+} from '../../src/validation';
+import { PeerInfo } from '../../src/peer';
 
 describe('response handlers', () => {
 	describe('#sanitizePeerInfo', () => {
@@ -159,6 +164,75 @@ describe('response handlers', () => {
 					peerWithIncorrectPort.wsPort,
 				),
 			).to.be.false;
+		});
+	});
+
+	describe('#validatePeerInfoList', () => {
+		let validatedPeerInfoArray: ReadonlyArray<PeerInfo>;
+		const peer1 = {
+			ip: '12.12.12.12',
+			wsPort: '5001',
+			height: '545776',
+			version: '1.0.1',
+			os: 'darwin',
+		};
+
+		const peer2 = {
+			ip: '127.0.0.1',
+			wsPort: '5002',
+			height: '545981',
+			version: '1.0.1',
+			os: 'darwin',
+		};
+		const peerList = [peer1, peer2];
+
+		const rawPeerInfoList: unknown = {
+			success: true,
+			peers: peerList,
+		};
+
+		beforeEach(async () => {
+			validatedPeerInfoArray = validatePeerInfoList(rawPeerInfoList);
+		});
+
+		it('throws error ', () => {
+			const inValidPeerInfoList = {
+				peers: [
+					{
+						ip: '127.0.0.1',
+						wsPort: '5002dd',
+						height: '545981',
+						version: '1.0.1',
+						os: 'darwin',
+					},
+				],
+				success: true,
+			};
+
+			return expect(
+				validatePeerInfoList.bind(validatePeerInfoList, inValidPeerInfoList),
+			).to.throw(`Invalid peer ip or port`);
+		});
+
+		it('should return peer info list array', () => {
+			return expect(validatedPeerInfoArray).to.be.an('array');
+		});
+
+		it('should return peer info list array of length 2', () => {
+			return expect(validatedPeerInfoArray).to.be.of.length(2);
+		});
+
+		it('should return santized peer info list', () => {
+			const sanitizedPeerInfoList = peerList.map((peer: any) => {
+				peer['ipAddress'] = peer.ip;
+				peer.wsPort = +peer.wsPort;
+				peer.height = +peer.height;
+				delete peer.ip;
+
+				return peer;
+			});
+
+			return expect(validatedPeerInfoArray).to.be.eql(sanitizedPeerInfoList);
 		});
 	});
 });
