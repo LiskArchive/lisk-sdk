@@ -184,14 +184,18 @@ __private.getDelegatesFromPreviousRound = function(cb, tx) {
  *
  * @private
  * @param {number} slot
- * @param {block} block
+ * @param {number} blockHeight
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, {time, keypair}
  * @todo Add description for the params
  */
-__private.getDelegateKeypairForCurrentSlot = function(currentSlot, block, cb) {
+__private.getDelegateKeypairForCurrentSlot = function(
+	currentSlot,
+	blockHeight,
+	cb
+) {
 	self.generateDelegateList(
-		block,
+		blockHeight,
 		(generateDelegateListErr, activeDelegates) => {
 			if (generateDelegateListErr) {
 				return setImmediate(cb, generateDelegateListErr);
