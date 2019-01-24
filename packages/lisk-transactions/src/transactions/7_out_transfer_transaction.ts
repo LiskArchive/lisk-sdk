@@ -288,7 +288,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		sender,
 		dependentState,
 	}: RequiredOutTransferState): TransactionResponse {
-		const { errors: baseErrors } = super.apply({ sender });
+		const { errors: baseErrors } = super.verify({ sender });
 		if (!dependentState) {
 			throw new Error(
 				'Dependent state is required for outTransfer transaction.',

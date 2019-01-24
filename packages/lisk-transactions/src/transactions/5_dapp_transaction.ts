@@ -174,7 +174,6 @@ export class DappTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as DappAsset;
 		this._fee = new BigNum(DAPP_FEE);
-
 	}
 
 	public static create(input: CreateDappInput): object {
@@ -473,7 +472,7 @@ export class DappTransaction extends BaseTransaction {
 		sender,
 		dependentState,
 	}: RequiredDappState): TransactionResponse {
-		const { errors: baseErrors } = super.apply({ sender });
+		const { errors: baseErrors } = super.verify({ sender });
 		if (!dependentState) {
 			throw new Error('Dependent state is required for dapp transaction.');
 		}

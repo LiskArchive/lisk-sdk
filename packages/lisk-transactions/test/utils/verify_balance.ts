@@ -42,7 +42,7 @@ describe('#verifyBalance', () => {
 				'message',
 				`Account does not have enough LSK: ${
 					defaultSender.address
-				} balance: 0.00000001`,
+				}, balance: 0.00000001`,
 			);
 	});
 });

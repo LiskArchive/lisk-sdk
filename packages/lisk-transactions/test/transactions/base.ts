@@ -737,7 +737,7 @@ describe('Base transaction class', () => {
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
-					'Account does not have enough LSK: 18278674964748191682L balance: 0',
+					'Account does not have enough LSK: 18278674964748191682L, balance: 0',
 				);
 			expect(status).to.eql(Status.FAIL);
 		});
