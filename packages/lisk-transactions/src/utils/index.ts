@@ -46,6 +46,7 @@ export {
 	validateFee,
 	isValidInteger,
 	isNumberString,
+	isTypedObjectArrayWithKeys,
 	validateTransaction,
 	validator,
 } from './validation';

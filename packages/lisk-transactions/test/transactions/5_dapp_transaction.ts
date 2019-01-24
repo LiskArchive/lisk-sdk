@@ -87,7 +87,7 @@ describe('Dapp transaction class', () => {
 				expect(result).to.have.property('senderPublicKey');
 				expect(result).to.have.property(
 					'recipientId',
-					(result as any).senderId,
+					'',
 				);
 				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect(result).to.have.property('signature').and.not.to.be.empty;
@@ -127,7 +127,7 @@ describe('Dapp transaction class', () => {
 				expect(result).to.have.property('senderPublicKey');
 				expect(result).to.have.property(
 					'recipientId',
-					(result as any).senderId,
+					'',
 				);
 				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect(result).to.have.property('signature').and.not.to.be.empty;

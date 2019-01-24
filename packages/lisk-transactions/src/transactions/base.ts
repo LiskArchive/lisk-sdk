@@ -105,7 +105,6 @@ export const createBaseTransaction = ({
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
-	public readonly fee: BigNum;
 	public readonly recipientId: string;
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
@@ -116,6 +115,7 @@ export abstract class BaseTransaction {
 	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
 
+	protected _fee: BigNum;
 	private _id?: string;
 	private _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
@@ -139,7 +139,7 @@ export abstract class BaseTransaction {
 		}
 
 		this.amount = new BigNum(rawTransaction.amount);
-		this.fee = new BigNum(rawTransaction.fee);
+		this._fee = new BigNum(rawTransaction.fee);
 		this._id = rawTransaction.id;
 		this.recipientId = rawTransaction.recipientId;
 		this.recipientPublicKey = rawTransaction.recipientPublicKey;
@@ -153,6 +153,14 @@ export abstract class BaseTransaction {
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
 		this.receivedAt = rawTransaction.receivedAt || new Date();
+	}
+
+	public get fee(): BigNum {
+		if(!this._fee) {
+			throw new Error('fee is required to be set before use')
+		}
+
+		return this._fee;
 	}
 
 	public get id(): string {
@@ -444,6 +452,9 @@ export abstract class BaseTransaction {
 	}
 
 	public apply({ sender }: RequiredState): TransactionResponse {
+		if (!sender) {
+			throw new Error('Sender is required.');
+		}
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.gte(0)
@@ -466,6 +477,9 @@ export abstract class BaseTransaction {
 	}
 
 	public undo({ sender }: RequiredState): TransactionResponse {
+		if (!sender) {
+			throw new Error('Sender is required.');
+		}
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
