@@ -112,7 +112,6 @@ function __init(initScope, done) {
 		const modulesInit = {
 			accounts: '../../modules/accounts.js',
 			blocks: '../../modules/blocks.js',
-			cache: '../../modules/cache.js',
 			dapps: '../../modules/dapps.js',
 			delegates: '../../modules/delegates.js',
 			loader: '../../modules/loader.js',
@@ -181,7 +180,10 @@ function __init(initScope, done) {
 						__testContext.config.redis,
 						logger
 					);
-					return cacheComponent.connect(() => {
+					return cacheComponent.connect(err => {
+						if (err) {
+							return cb(err);
+						}
 						components.push(cacheComponent);
 						return cb(null, cacheComponent);
 					});
@@ -234,7 +236,7 @@ function __init(initScope, done) {
 				],
 
 				swagger: [
-					'network',
+					'components',
 					'modules',
 					'logger',
 					function(scope, cb) {
@@ -442,7 +444,6 @@ function __init(initScope, done) {
 					'storage',
 					'logic',
 					'rpc',
-					'cache',
 					function(scope, cb) {
 						const tasks = {};
 						scope.rewiredModules = {};
@@ -461,6 +462,7 @@ function __init(initScope, done) {
 					},
 				],
 				ready: [
+					'components',
 					'swagger',
 					'modules',
 					'bus',
@@ -469,7 +471,7 @@ function __init(initScope, done) {
 						scope.modules.swagger = scope.swagger;
 
 						// Fire onBind event in every module
-						scope.bus.message('bind', scope.modules);
+						scope.bus.message('bind', scope);
 						scope.logic.peers.bindModules(scope.modules);
 						cb();
 					},
@@ -530,9 +532,7 @@ function __init(initScope, done) {
 }
 
 function cleanup(done) {
-	if (currentAppScope.components.length !== 0) {
-		currentAppScope.components.map(component => component.cleanup());
-	}
+	currentAppScope.components.cleanup();
 	async.eachSeries(
 		currentAppScope.modules,
 		(module, cb) => {
