@@ -14,7 +14,7 @@
  */
 import { getKeys, hexToBuffer } from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
-import { SIGNATURE_FEE} from '../constants';
+import { SIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
@@ -39,6 +39,12 @@ export interface SignatureObject {
 
 export interface SecondSignatureAsset {
 	readonly signature: SignatureObject;
+}
+
+export interface SecondSignatureInput {
+	readonly passphrase: string;
+	readonly secondPassphrase: string;
+	readonly timeOffset?: number;
 }
 
 export const secondSignatureAssetTypeSchema = {
@@ -118,7 +124,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		const transaction = {
 			...createBaseTransaction(input),
 			type: 1,
-			fee: calculateFee(1).toString(),
+			fee: SIGNATURE_FEE.toString(),
 			asset: { signature: { publicKey } },
 		};
 
@@ -126,15 +132,8 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			return transaction;
 		}
 
-		const transactionWithSenderInfo = {
-			...transaction,
-			// SenderId and SenderPublicKey are expected to be exist from base transaction
-			senderId: transaction.senderId as string,
-			senderPublicKey: transaction.senderPublicKey as string,
-		};
-
 		const secondSignatureTransaction = new SecondSignatureTransaction(
-			transactionWithSenderInfo,
+			transaction as TransactionJSON,
 		);
 		secondSignatureTransaction.sign(passphrase, secondPassphrase);
 
@@ -161,13 +160,13 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			signature: { publicKey },
 		} = this.asset;
 
-		return publicKey ? hexToBuffer(publicKey) : Buffer.alloc(0);
+		return hexToBuffer(publicKey);
 	}
 
 	public assetToJSON(): object {
 		return {
 			...this.asset,
-		}
+		};
 	}
 
 	public verifyAgainstOtherTransactions(
@@ -176,7 +175,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		const errors = transactions
 			.filter(
 				tx =>
-					tx.senderPublicKey === this.senderPublicKey && tx.type === this.type,
+					tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
 			)
 			.map(
 				tx =>
@@ -219,7 +218,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 				new TransactionError(
 					'Amount must be zero for second signature registration transaction',
 					this.id,
-					'.asset',
+					'.amount',
 				),
 			);
 		}
@@ -230,6 +229,22 @@ export class SecondSignatureTransaction extends BaseTransaction {
 					`Fee must be equal to ${SIGNATURE_FEE}`,
 					this.id,
 					'.fee',
+				),
+			);
+		}
+
+		if (this.recipientId) {
+			errors.push(
+				new TransactionError('Invalid recipient', this.id, '.recipientId'),
+			);
+		}
+
+		if (this.recipientPublicKey) {
+			errors.push(
+				new TransactionError(
+					'Invalid recipientPublicKey',
+					this.id,
+					'.recipientPublicKey',
 				),
 			);
 		}
@@ -271,7 +286,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			throw new Error('State is required for applying transaction.');
 		}
 		const errors = [...baseErrors];
-		const { sender: updatedSender } = state as { readonly sender: Account };
+		const { sender: updatedSender } = state;
 
 		// Check if secondPublicKey already exists on account
 		if (updatedSender.secondPublicKey) {
