@@ -223,7 +223,8 @@ __private.filterQueue = function(cb) {
 		(broadcast, filterCb) => {
 			if (broadcast.options.immediate) {
 				return setImmediate(filterCb, null, false);
-			} else if (broadcast.options.data) {
+			}
+			if (broadcast.options.data) {
 				let transactionId;
 				if (broadcast.options.data.transaction) {
 					// Look for a transaction of a given "id" when broadcasting transactions

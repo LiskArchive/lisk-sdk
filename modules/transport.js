@@ -429,7 +429,8 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
 		);
 		return;
-	} else if (modules.loader.syncing()) {
+	}
+	if (modules.loader.syncing()) {
 		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 		);

@@ -83,13 +83,13 @@ describe('redisConnector', () => {
 		});
 
 		afterEach(done => {
-			_onRedisConnectionErrorStub.reset();
-			_onRedisReadyStub.reset();
-			redisClientStub.on.reset();
-			redisClientStub.once.reset();
-			redisClientStub.removeListener.reset();
+			_onRedisConnectionErrorStub.resetHistory();
+			_onRedisReadyStub.resetHistory();
+			redisClientStub.on.resetHistory();
+			redisClientStub.once.resetHistory();
+			redisClientStub.removeListener.resetHistory();
 			redisCreateClientStub.restore();
-			validLogger.info.reset();
+			validLogger.info.resetHistory();
 			done();
 		});
 

@@ -153,6 +153,13 @@ const middleware = {
 				errors: ['API access blocked.'],
 			});
 		}
+
+		if (config.api.mode === 'READONLY' && req.method !== 'GET') {
+			return res.status(apiCodes.FORBIDDEN).send({
+				message: 'API write access denied',
+				errors: ['API write access blocked.'],
+			});
+		}
 		return next();
 	},
 

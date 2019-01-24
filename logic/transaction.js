@@ -291,7 +291,8 @@ class Transaction {
 		return this.isConfirmed(transaction, (err, isConfirmed) => {
 			if (err) {
 				return setImmediate(cb, err, false);
-			} else if (isConfirmed) {
+			}
+			if (isConfirmed) {
 				return setImmediate(cb, null, true);
 			}
 			return setImmediate(cb, null, false);
@@ -1130,7 +1131,8 @@ class Transaction {
 
 		if (!transactionType) {
 			return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
-		} else if (typeof transactionType.afterSave === 'function') {
+		}
+		if (typeof transactionType.afterSave === 'function') {
 			return transactionType.afterSave.call(this, transaction, cb);
 		}
 		return setImmediate(cb);

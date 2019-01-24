@@ -178,9 +178,9 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 		validateForce(appConfig);
 
-		// Disable api, peers, broadcasts, syncing and ws workers when snapshotting mode required
+		// Adding API READONLY mode and disabling peers, broadcasts, syncing and ws workers when snapshotting mode required
 		if (program.snapshot) {
-			appConfig.api.enabled = false;
+			appConfig.api.mode = 'READONLY';
 			appConfig.peers.enabled = false;
 			appConfig.peers.list = [];
 			appConfig.broadcasts.active = false;

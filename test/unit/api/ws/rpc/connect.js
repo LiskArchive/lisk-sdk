@@ -102,8 +102,8 @@ describe('connect', () => {
 			});
 
 			afterEach(done => {
-				addConnectionOptionsSpySpy.reset();
-				addSocketSpy.reset();
+				addConnectionOptionsSpySpy.resetHistory();
+				addSocketSpy.resetHistory();
 				done();
 			});
 
@@ -272,7 +272,7 @@ describe('connect', () => {
 				done();
 			});
 			afterEach(done => {
-				scClientConnectStub.reset();
+				scClientConnectStub.resetHistory();
 				done();
 			});
 			after(done => {
@@ -321,7 +321,7 @@ describe('connect', () => {
 				done();
 			});
 			afterEach(done => {
-				upgradeToWAMPSpy.reset();
+				upgradeToWAMPSpy.resetHistory();
 				done();
 			});
 			after(done => {
@@ -356,8 +356,8 @@ describe('connect', () => {
 			});
 			beforeEach(done => {
 				const registerRPC = connectRewired.__get__('connectSteps.registerRPC');
-				validRPCSocket.call.reset();
-				validRPCSocket.emit.reset();
+				validRPCSocket.call.resetHistory();
+				validRPCSocket.emit.resetHistory();
 				validPeer.socket = validRPCSocket;
 				peerAsResult = registerRPC(validPeer, loggerMock, masterWAMPServerMock);
 				done();
@@ -393,7 +393,7 @@ describe('connect', () => {
 					});
 					beforeEach(beforeEachCb => {
 						peerAsResult.socket.call.resolves(validRPCResult);
-						validRPCCallback.reset();
+						validRPCCallback.resetHistory();
 						peerAsResult.rpc[validRPCProcedureName](
 							validRPCArgument,
 							(...args) => {
@@ -448,7 +448,7 @@ describe('connect', () => {
 					describe('when peer.socket.call failed', () => {
 						const validRPCError = 'valid rpc error';
 						beforeEach(beforeEachCb => {
-							validRPCCallback.reset();
+							validRPCCallback.resetHistory();
 							peerAsResult.socket.call.rejects(validRPCError);
 							peerAsResult.rpc[validRPCProcedureName](
 								validRPCArgument,
@@ -498,7 +498,7 @@ describe('connect', () => {
 				done();
 			});
 			beforeEach(done => {
-				validSocket.on.reset();
+				validSocket.on.resetHistory();
 				const registerSocketListeners = connectRewired.__get__(
 					'connectSteps.registerSocketListeners'
 				);

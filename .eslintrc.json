@@ -16,6 +16,7 @@
 			}
 		],
 		"func-names": "off",
+		"implicit-arrow-linebreak": "off",
 		"max-len": "off",
 		"no-new": "off",
 		"no-param-reassign": "off",
@@ -23,6 +24,7 @@
 		"no-underscore-dangle": "off",
 		"no-unused-expressions": "off",
 		"no-use-before-define": "off",
+		"operator-linebreak": "off",
 		"prefer-destructuring": "off",
 		"radix": "off",
 		"require-jsdoc": [

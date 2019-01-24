@@ -58,7 +58,8 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 					return setTimeout(() => {
 						fetchBlockchainStatus();
 					}, timeout);
-				} else if (res.data.loaded) {
+				}
+				if (res.data.loaded) {
 					return cb();
 				}
 				return cb('Failed to load blockchain');

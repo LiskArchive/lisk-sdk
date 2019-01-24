@@ -61,7 +61,8 @@ function sortBy(sort, options) {
 
 		if (keys.length === 0) {
 			return self.sortBy('');
-		} else if (keys.length === 1) {
+		}
+		if (keys.length === 1) {
 			return self.sortBy(
 				`${keys[0]}:${sort[keys[0]] === -1 ? 'desc' : 'asc'}`,
 				options
@@ -90,9 +91,11 @@ function sortBy(sort, options) {
 	function prefixField(prefixSortedField) {
 		if (!prefixSortedField) {
 			return prefixSortedField;
-		} else if (typeof options.fieldPrefix === 'string') {
+		}
+		if (typeof options.fieldPrefix === 'string') {
 			return options.fieldPrefix + prefixSortedField;
-		} else if (typeof options.fieldPrefix === 'function') {
+		}
+		if (typeof options.fieldPrefix === 'function') {
 			return options.fieldPrefix(prefixSortedField);
 		}
 		return prefixSortedField;
