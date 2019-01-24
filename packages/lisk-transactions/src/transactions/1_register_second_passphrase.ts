@@ -80,12 +80,7 @@ export const secondSignatureAssetFormatSchema = {
 	},
 };
 
-export interface SecondSignatureInputs {
-	readonly passphrase: string;
-	readonly secondPassphrase: string;
-}
-
-const validateInputs = ({ secondPassphrase }: SecondSignatureInputs): void => {
+const validateInputs = ({ secondPassphrase }: SecondSignatureInput): void => {
 	if (typeof secondPassphrase !== 'string') {
 		throw new Error('Please provide a secondPassphrase. Expected string.');
 	}
@@ -116,7 +111,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		this._fee = new BigNum(SIGNATURE_FEE);
 	}
 
-	public static create(input: SecondSignatureInputs): object {
+	public static create(input: SecondSignatureInput): object {
 		validateInputs(input);
 		const { passphrase, secondPassphrase } = input;
 		const { publicKey } = getKeys(secondPassphrase);
