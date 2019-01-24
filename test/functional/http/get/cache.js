@@ -18,7 +18,7 @@ require('../../functional.js');
 const Promise = require('bluebird');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
-const modulesLoader = require('../../../common/modules_loader');
+const componentsLoader = require('../../../common/components_loader');
 const apiHelpers = require('../../../common/helpers/api');
 const waitFor = require('../../../common/utils/wait_for');
 
@@ -32,7 +32,7 @@ describe('cached endpoints', () => {
 
 	before(done => {
 		__testContext.config.cacheEnabled = true;
-		modulesLoader.initCache((err, __cache) => {
+		componentsLoader.initCache((err, __cache) => {
 			cache = __cache;
 			getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
 			expect(err).to.not.exist;
