@@ -218,6 +218,7 @@ describe('transport', () => {
 					releaseLimit: 10,
 				},
 			},
+			modules: {},
 		};
 
 		peerMock = {
