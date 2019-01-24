@@ -33,11 +33,11 @@ describe('cached endpoints', () => {
 	before(done => {
 		__testContext.config.cacheEnabled = true;
 		componentsLoader.initCache((err, __cache) => {
-			cache = __cache;
-			getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
 			expect(err).to.not.exist;
 			expect(__cache).to.be.an('object');
-			return done(err);
+			cache = __cache;
+			getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey).bind(cache);
+			done();
 		});
 	});
 
@@ -45,7 +45,7 @@ describe('cached endpoints', () => {
 		cache.flushDb((err, status) => {
 			expect(err).to.not.exist;
 			expect(status).to.equal('OK');
-			done(err);
+			done();
 		});
 	});
 
