@@ -24,7 +24,7 @@ describe('blocks', () => {
 	let blocksInstance;
 	let self;
 	let library;
-	let modules;
+	let components;
 	let __private;
 	let storageStub;
 	let loggerStub;
@@ -39,6 +39,7 @@ describe('blocks', () => {
 	let busStub;
 	let balancesSequenceStub;
 	let scope;
+
 	beforeEach(done => {
 		dummyGenesisblock = {
 			block: {
@@ -96,16 +97,18 @@ describe('blocks', () => {
 		blocksInstance = new Blocks((err, cbSelf) => {
 			self = cbSelf;
 			library = Blocks.__get__('library');
-			modules = Blocks.__get__('modules');
+			components = Blocks.__get__('components');
 			__private = Blocks.__get__('__private');
 			expect(err).to.be.undefined;
 			done();
 		}, scope);
 	});
+
 	afterEach(done => {
 		sinonSandbox.restore();
 		done();
 	});
+
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			return expect(library.logger).to.eql(loggerStub);
@@ -300,20 +303,17 @@ describe('blocks', () => {
 		const block = { id: 123 };
 
 		beforeEach(done => {
-			modules.cache = {
-				clearCacheFor: sinonSandbox.stub().callsArg(1),
-				KEYS: {
-					blocksApi: '/api/blocks*',
-					transactionsApi: '/api/transactions*',
+			components = {
+				cache: {
+					clearCacheFor: sinonSandbox.stub().callsArg(1),
 				},
 			};
-
 			blocksInstance.onNewBlock(block);
 			done();
 		});
 
 		it('should call clearCacheFor', done => {
-			expect(modules.cache.clearCacheFor.calledTwice).to.be.true;
+			expect(components.cache.clearCacheFor.calledTwice).to.be.true;
 
 			done();
 		});

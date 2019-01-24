@@ -282,11 +282,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
  * @returns {Object} cb.block - Block with requested height
  */
 Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
-	library.storage.entities.Block.getOne(
-		{ height },
-		{ extended: true },
-		tx
-	)
+	library.storage.entities.Block.getOne({ height }, { extended: true }, tx)
 		.then(row => {
 			const block = self.readStorageRows([row])[0];
 			return setImmediate(cb, null, block);

@@ -34,7 +34,7 @@ describe('peers', () => {
 	let storageMock;
 	let peers;
 	let PeersRewired;
-	let modules;
+	let bindings;
 
 	let peersLogicMock;
 	let systemModuleMock;
@@ -62,13 +62,15 @@ describe('peers', () => {
 		};
 		systemModuleMock = {};
 		transportModuleMock = {};
-		modules = {
-			system: systemModuleMock,
-			transport: transportModuleMock,
+		bindings = {
+			modules: {
+				system: systemModuleMock,
+				transport: transportModuleMock,
+			},
 		};
 
 		swagerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
-			modules.swagger = {
+			bindings.swagger = {
 				definitions: resolvedSpec.definitions,
 			};
 		});
@@ -85,7 +87,7 @@ describe('peers', () => {
 
 		new PeersRewired((err, peersModule) => {
 			peers = peersModule;
-			peers.onBind(modules);
+			peers.onBind(bindings);
 			done();
 		}, _.assign({}, modulesLoader.scope, { logic: { peers: peersLogicMock }, storage: storageMock }));
 	});
@@ -883,7 +885,9 @@ describe('peers', () => {
 
 				beforeEach(done => {
 					dbPeersListResults = [prefixedPeer];
-					storageMock.entities.Peer.get = sinonSandbox.stub().resolves(dbPeersListResults);
+					storageMock.entities.Peer.get = sinonSandbox
+						.stub()
+						.resolves(dbPeersListResults);
 					peersLogicMock.upsert = sinonSandbox.spy();
 					// Call onBlockchainReady and wait 100ms
 					peers.onBlockchainReady();

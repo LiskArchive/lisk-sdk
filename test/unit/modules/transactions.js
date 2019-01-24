@@ -223,20 +223,28 @@ describe('transactions', () => {
 						transactionsModule = __transactionModule;
 
 						result.accountsModule.onBind({
-							delegates: result.delegateModule,
-							accounts: result.accountsModule,
-							transactions: transactionsModule,
+							modules: {
+								delegates: result.delegateModule,
+								accounts: result.accountsModule,
+								transactions: transactionsModule,
+							},
 						});
 
 						result.delegateModule.onBind({
-							accounts: result.accountsModule,
-							transactions: transactionsModule,
+							modules: {
+								accounts: result.accountsModule,
+								transactions: transactionsModule,
+							},
 						});
 
 						__transactionModule.onBind({
-							accounts: result.accountsModule,
-							loader: result.loaderModule,
-							cache: result.cacheComponent,
+							components: {
+								cache: cacheComponent,
+							},
+							modules: {
+								accounts: result.accountsModule,
+								loader: result.loaderModule,
+							},
 						});
 
 						attachAllAssets(

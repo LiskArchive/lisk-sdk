@@ -495,14 +495,13 @@ d.run(() => {
 					return cb();
 				}
 				const cacheComponent = createCache(config.cache, logger);
-				return cacheComponent
-					.connect(err => {
-						if (err) {
-							return cb(err);
-						}
-						components.push(cacheComponent);
-						return cb(null, cacheComponent);
-					});
+				return cacheComponent.connect(err => {
+					if (err) {
+						return cb(err);
+					}
+					components.push(cacheComponent);
+					return cb(null, cacheComponent);
+				});
 			},
 
 			webSocket: [
@@ -871,9 +870,7 @@ d.run(() => {
 					scope.socketCluster.destroy();
 				}
 				if (components.length !== 0) {
-					components.map(component =>
-						component.cleanup()
-					);
+					components.map(component => component.cleanup());
 				}
 				// Run cleanup operation on each module before shutting down the node;
 				// this includes operations like snapshotting database tables.

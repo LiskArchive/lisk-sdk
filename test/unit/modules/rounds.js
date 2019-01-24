@@ -60,13 +60,15 @@ describe('rounds', () => {
 
 	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
 
-	const modules = {
-		delegates: {
-			generateDelegateList: sinon.stub(),
-			clearDelegateListCache: sinon.stub(),
-		},
-		accounts: {
-			generateAddressByPublicKey: sinon.stub(),
+	const bindings = {
+		modules: {
+			delegates: {
+				generateDelegateList: sinon.stub(),
+				clearDelegateListCache: sinon.stub(),
+			},
+			accounts: {
+				generateAddressByPublicKey: sinon.stub(),
+			},
 		},
 	};
 
@@ -88,16 +90,16 @@ describe('rounds', () => {
 	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
 
-		modules.delegates.generateDelegateList.yields(null, [
+		bindings.modules.delegates.generateDelegateList.yields(null, [
 			'delegate1',
 			'delegate2',
 			'delegate3',
 		]);
-		modules.accounts.generateAddressByPublicKey.returnsArg(0);
+		bindings.modules.accounts.generateAddressByPublicKey.returnsArg(0);
 
 		new Rounds((err, __instance) => {
 			rounds = __instance;
-			rounds.onBind(modules);
+			rounds.onBind(bindings);
 			done();
 		}, scope);
 	});
@@ -148,13 +150,15 @@ describe('rounds', () => {
 		it('should set modules', () => {
 			const variable = 'modules';
 			const backup = get(variable);
-			const value = {
-				blocks: 'blocks',
-				accounts: 'accounts',
-				delegates: 'delegates',
+			const roundBindings = {
+				modules: {
+					blocks: 'blocks',
+					accounts: 'accounts',
+					delegates: 'delegates',
+				},
 			};
-			rounds.onBind(value);
-			expect(get(variable)).to.deep.equal(value);
+			rounds.onBind(roundBindings);
+			expect(get(variable)).to.deep.equal(roundBindings.modules);
 			return set(variable, backup);
 		});
 	});
@@ -296,7 +300,7 @@ describe('rounds', () => {
 			describe('when generateDelegateList fails', () => {
 				beforeEach(async () => {
 					scope.block.height = 2;
-					modules.delegates.generateDelegateList.yields('error');
+					bindings.modules.delegates.generateDelegateList.yields('error');
 				});
 
 				it('should call a callback with error', done => {

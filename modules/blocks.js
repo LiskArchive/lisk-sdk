@@ -244,10 +244,9 @@ Blocks.prototype.onBind = function(scope) {
  */
 Blocks.prototype.onNewBlock = function(block) {
 	if (library.config.cacheEnabled) {
-		const tasks = [
-			CACHE.KEYS.blocksApi,
-			CACHE.KEYS.transactionsApi,
-		].map(pattern => callback => components.cache.clearCacheFor(pattern, callback));
+		const tasks = [CACHE.KEYS.blocksApi, CACHE.KEYS.transactionsApi].map(
+			pattern => callback => components.cache.clearCacheFor(pattern, callback)
+		);
 
 		async.parallel(async.reflectAll(tasks), () =>
 			library.network.io.sockets.emit('blocks/change', block)

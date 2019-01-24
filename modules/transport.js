@@ -318,7 +318,11 @@ Transport.prototype.onBind = function(scope) {
 
 	definitions = scope.swagger.definitions;
 
-	__private.broadcaster.bind(scope.modules.peers, scope.modules.transport, scope.modules.transactions);
+	__private.broadcaster.bind(
+		scope.modules.peers,
+		scope.modules.transport,
+		scope.modules.transactions
+	);
 };
 
 /**

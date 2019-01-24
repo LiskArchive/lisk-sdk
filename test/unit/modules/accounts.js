@@ -233,7 +233,7 @@ describe('accounts', () => {
 					t
 				);
 
-				storage.adapter.db.tx('Tests:setAccountAndGet', task);
+			storage.adapter.db.tx('Tests:setAccountAndGet', task);
 		});
 	});
 
