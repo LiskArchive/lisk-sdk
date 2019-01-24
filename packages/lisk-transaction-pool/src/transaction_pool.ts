@@ -249,7 +249,7 @@ export class TransactionPool extends EventEmitter {
 		// Add transactions to the verified queue which were included in the verified removed transactions
 		this._queues.verified.enqueueMany(transactions);
 
-		this.emit(EVENT_ADDED_TRANASCTIONS, {
+		this.emit(EVENT_ADDED_TRANSACTIONS, {
 			action: ACTION_ADD_VERIFIED_REMOVED_TRANSACTIONS,
 			to: 'verified',
 			payload: transactions,
@@ -390,7 +390,7 @@ export class TransactionPool extends EventEmitter {
 
 		this._queues[queueName].enqueueOne(transaction);
 
-		this.emit(EVENT_ADDED_TRANASCTIONS, {
+		this.emit(EVENT_ADDED_TRANSACTIONS, {
 			action: ACTION_ADD_TRANSACTIONS,
 			to: queueName,
 			payload: [transaction],
