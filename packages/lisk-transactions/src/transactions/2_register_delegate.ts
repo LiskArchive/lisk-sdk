@@ -13,6 +13,7 @@
  *
  */
 import BigNum from 'browserify-bignum';
+import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
@@ -20,24 +21,20 @@ import {
 	Status,
 	TransactionJSON,
 } from '../transaction_types';
-import {
-	calculateFee,
-	validator,
-} from '../utils';
+import { validator } from '../utils';
 import { isTypedObjectArrayWithKeys } from '../utils/validation';
 import {
 	Attributes,
 	BaseTransaction,
 	createBaseTransaction,
 	ENTITY_ACCOUNT,
-	ENTITY_TRANSACTION,
 	EntityMap,
 	TransactionResponse,
 } from './base';
 
 export interface RequiredDelegateState {
 	readonly sender: Account;
-	readonly dependentState: {
+	readonly dependentState?: {
 		readonly [ENTITY_ACCOUNT]: ReadonlyArray<Account>;
 	};
 }
@@ -50,8 +47,6 @@ export interface DelegateObject {
 export interface DelegateAsset {
 	readonly delegate: DelegateObject;
 }
-
-const TRANSACTION_DELEGATE_REGISTER = 2;
 
 export const delegateAssetTypeSchema = {
 	type: 'object',
@@ -66,8 +61,6 @@ export const delegateAssetTypeSchema = {
 					minLength: 1,
 					maxLength: 20,
 				},
-				// FIXME: Required?
-				publicKey: { type: 'string' },
 			},
 		},
 	},
@@ -87,8 +80,6 @@ export const delegateAssetFormatSchema = {
 					maxLength: 20,
 					format: 'username',
 				},
-				// FIXME: Required?
-				publicKey: { type: 'string', format: 'publicKey' },
 			},
 		},
 	},
@@ -98,6 +89,7 @@ export interface CreateDelegateRegistrationInput {
 	readonly username: string;
 	readonly passphrase: string;
 	readonly secondPassphrase?: string;
+	readonly timeOffset?: number; 
 }
 
 const validateInput = ({ username }: CreateDelegateRegistrationInput): void => {
@@ -106,10 +98,9 @@ const validateInput = ({ username }: CreateDelegateRegistrationInput): void => {
 	}
 };
 
-export class DelegateRegistrationTransaction extends BaseTransaction {
+export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
 	public readonly containsUniqueData = true;
-	public readonly fee: BigNum;
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -130,17 +121,27 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 			]);
 		}
 		this.asset = tx.asset as DelegateAsset;
-		this.fee = calculateFee(this.type);
+		this._fee = new BigNum(DELEGATE_FEE);
 	}
 
 	public static create(input: CreateDelegateRegistrationInput): object {
 		validateInput(input);
 		const { username, passphrase, secondPassphrase } = input;
 
+		if (!username || typeof username !== 'string') {
+			throw new Error('Please provide a username. Expected string.');
+		}
+	
+		if (username.length > USERNAME_MAX_LENGTH) {
+			throw new Error(
+				`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
+			);
+		}
+
 		const transaction = {
 			...createBaseTransaction(input),
 			type: 2,
-			fee: calculateFee(TRANSACTION_DELEGATE_REGISTER).toString(),
+			fee: DELEGATE_FEE.toString(),
 			asset: { delegate: { username } },
 		};
 
@@ -148,22 +149,16 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 			return transaction;
 		}
 
-		const transactionWithSenderInfo = {
-			...transaction,
-			senderId: transaction.senderId as string,
-			senderPublicKey: transaction.senderPublicKey as string,
-		};
-
-		const transferTransaction = new DelegateRegistrationTransaction(
-			transactionWithSenderInfo,
+		const transferTransaction = new DelegateTransaction(
+			transaction as TransactionJSON,
 		);
 		transferTransaction.sign(passphrase, secondPassphrase);
 
 		return transferTransaction.toJSON();
 	}
 
-	public static fromJSON(tx: TransactionJSON): DelegateRegistrationTransaction {
-		const transaction = new DelegateRegistrationTransaction(tx);
+	public static fromJSON(tx: TransactionJSON): DelegateTransaction {
+		const transaction = new DelegateTransaction(tx);
 		const { errors, status } = transaction.validateSchema();
 
 		if (status === Status.FAIL && errors.length !== 0) {
@@ -199,7 +194,6 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 		return {
 			[ENTITY_ACCOUNT]: {
 				...attr[ENTITY_ACCOUNT],
-				// FIXME:
 				username: [this.asset.delegate.username],
 			},
 		};
@@ -211,7 +205,7 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 		const errors = transactions
 			.filter(
 				tx =>
-					tx.senderPublicKey === this.senderPublicKey && tx.type === this.type,
+				tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
 			)
 			.map(
 				tx =>
@@ -230,7 +224,9 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 	}
 
 	public processRequiredState(state: EntityMap): RequiredDelegateState {
+		const { sender } = super.processRequiredState(state);
 		const accounts = state[ENTITY_ACCOUNT];
+
 		if (!accounts) {
 			throw new Error('Entity account is required.');
 		}
@@ -240,28 +236,24 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 			throw new Error('Required state does not have valid account type');
 		}
 
-		const sender = accounts.find(acct => acct.address === this.senderId);
-		if (!sender) {
-			throw new Error('No sender account is found.');
-		}
-		const dependentAccount = accounts.find(
+		const dependentAccounts = accounts.filter(
 			acct =>
-				typeof acct.delegate === 'object' &&
-				acct.delegate.username === this.asset.delegate.username,
+				acct.username === this.asset.delegate.username,
 		);
 
 		return {
 			sender,
 			dependentState: {
-				[ENTITY_ACCOUNT]: [dependentAccount] as ReadonlyArray<Account>,
+				[ENTITY_ACCOUNT]: dependentAccounts,
 			},
 		};
 	}
 
 	public validateSchema(): TransactionResponse {
 		const { status, errors: baseErrors } = super.validateSchema();
-		const errors = [...baseErrors];
 		const valid = validator.validate(delegateAssetFormatSchema, this.asset);
+		const errors = [...baseErrors];
+
 		const assetErrors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -272,31 +264,31 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 						),
 			  )
 			: [];
+
 		errors.push(...assetErrors);
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
 					'Amount must be zero for delegate registration transaction',
 					this.id,
-					'.asset',
+					'.amount',
 				),
 			);
 		}
+
 		if (this.recipientId) {
 			errors.push(
 				new TransactionError('Invalid recipient', this.id, '.recipientId'),
 			);
 		}
+
 		if (this.recipientPublicKey) {
 			errors.push(
-				new TransactionError(
-					'Recipient public key must be empty',
-					this.id,
-					'.recipientPublicKey',
-				),
+				new TransactionError('Invalid recipientPublicKey', this.id, '.recipientPublicKey'),
 			);
 		}
-		
+
+
 		return {
 			id: this.id,
 			status:
@@ -311,28 +303,11 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 		sender,
 		dependentState,
 	}: RequiredDelegateState): TransactionResponse {
-		const {
-			errors: baseErrors,
-		} = super.apply({ sender });
-		if (!dependentState) {
-			throw new Error('Dependent state is required for delegate registration transaction.');
-		}
+		const { errors: baseErrors } = super.verify({ sender });
 		const errors = [...baseErrors];
-		const dependentAccount = dependentState[ENTITY_ACCOUNT];
-
-		if (sender.isDelegate) {
-			errors.push(
-				new TransactionError(
-					'Account is already a delegate',
-					this.id,
-					'.isDelegate',
-				),
-			);
-		}
-
-		const usernameUnique = dependentAccount.every(
+		const usernameUnique = dependentState ? dependentState[ENTITY_ACCOUNT].every(
 			({ username }) => username !== this.asset.delegate.username,
-		);
+		) : true;
 
 		if (!usernameUnique) {
 			errors.push(
@@ -344,6 +319,16 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 			);
 		}
 
+		if ((sender as Account).isDelegate || sender.username) {
+			errors.push(
+				new TransactionError(
+					'Account is already a delegate',
+					this.id,
+					'.username',
+				),
+			);
+		}
+
 		return {
 			id: this.id,
 			status: errors.length === 0 ? Status.OK : Status.FAIL,
@@ -351,16 +336,37 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 		};
 	}
 
-	public apply({ sender }: RequiredDelegateState): TransactionResponse {
-		const {
-			errors: baseErrors,
-		} = super.apply({ sender });
+	public apply({ sender, dependentState }: RequiredDelegateState): TransactionResponse {
+		const { errors: baseErrors, state } = super.apply({ sender });
+		if (!state) {
+			throw new Error('State is required for applying transaction.');
+		}
 		const errors = [...baseErrors];
+		const usernameUnique = dependentState ? dependentState[ENTITY_ACCOUNT].every(
+			({ username }) => username !== this.asset.delegate.username,
+		) : true;
+		if (!usernameUnique) {
+			errors.push(
+				new TransactionError(
+					`Username is not unique.`,
+					this.id,
+					'.asset.delegate.username',
+				),
+			);
+		}
+		if ((sender as Account).isDelegate || sender.username) {
+			errors.push(
+				new TransactionError(
+					'Account is already a delegate',
+					this.id,
+					'.username',
+				),
+			);
+		}
 		// Ignore state from the base transaction
-		const updatedBalance = new BigNum(sender.balance)
-			.sub(this.fee);
-		const updatedSender = { ...sender, balance: updatedBalance.toString() }; 
-		if (updatedSender.isDelegate) {
+		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
+		const updatedSender = { ...sender, balance: updatedBalance.toString() };
+		if (updatedSender.isDelegate || updatedSender.username) {
 			errors.push(
 				new TransactionError(
 					'Account is already a delegate',
@@ -378,31 +384,29 @@ export class DelegateRegistrationTransaction extends BaseTransaction {
 				sender: {
 					...updatedSender,
 					isDelegate: true,
-					delegate: {
-						username: this.asset.delegate.username,
-					},
+					username: this.asset.delegate.username,
 				},
 			},
 		};
 	}
 
 	public undo({ sender }: RequiredDelegateState): TransactionResponse {
-		const {
-			errors: baseErrors,
-		} = super.undo({ sender });
+		const { errors: baseErrors, state } = super.undo({ sender });
+		if (!state) {
+			throw new Error('State is required for undoing transaction.');
+		}
 		const errors = [...baseErrors];
 		// Ignore state from the base transaction
-		const updatedBalance = new BigNum(sender.balance)
-			.add(this.fee);
-		const updatedSender = { ...sender, balance: updatedBalance.toString() }; 
-		const { delegate, ...strippedSender } = updatedSender;
+		const updatedBalance = new BigNum(sender.balance).add(this.fee);
+		const updatedSender = { ...sender, balance: updatedBalance.toString() };
+		const { username, ...strippedSender } = updatedSender;
 
 		return {
 			id: this.id,
 			status: errors.length === 0 ? Status.OK : Status.FAIL,
 			errors,
 			state: {
-				sender: { ...strippedSender, isDelegate: false },
+				sender: strippedSender,
 			},
 		};
 	}

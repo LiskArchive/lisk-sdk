@@ -252,17 +252,6 @@ export abstract class BaseTransaction {
 				);
 			}
 		}
-
-		if (this.recipientPublicKey) {
-			try {
-				validatePublicKey(this.recipientPublicKey);
-			} catch (error) {
-				errors.push(
-					new TransactionError(error.message, this.id, '.recipientPublicKey'),
-				);
-			}
-		}
-
 		if (this.id !== getId(this.getBytes())) {
 			errors.push(
 				new TransactionError('Invalid transaction id', this.id, '.id'),

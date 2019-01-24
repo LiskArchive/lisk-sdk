@@ -36,25 +36,19 @@ export const validatePublicKey = (publicKey: string) => {
 	return true;
 };
 
-export const validateUsername = (username: string): boolean => {
+export const validateUsername = (username: string) => {
 	if (
 		username !== username.toLowerCase()
 	) {
-		throw new Error(
-			'Username must be lowercase',
-		);
+		return false;
 	}
 
-	if(!( /^[0-9]{1,21}[L|l]$/g).test(username)) {
-		throw new Error(
-			'Username can not be a potential address',
-		);
+	if(( /^[0-9]{1,21}[L|l]$/g).test(username)) {
+		return false;
 	}
 
 	if(!(/^[a-z0-9!@$&_.]+$/g).test(username)) {
-		throw new Error(
-			'Username can only contain alphanumeric characters with the exception of !@$&_.',
-		);
+		return false;
 	}
 
 	return true;

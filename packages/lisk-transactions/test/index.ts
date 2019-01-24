@@ -23,12 +23,6 @@ describe('transaction', () => {
 				.and.be.a('function');
 		});
 
-		it('should have #registerSecondPassphrase', () => {
-			return expect(transaction)
-				.to.have.property('registerSecondPassphrase')
-				.and.be.a('function');
-		});
-
 		it('should have #registerDelegate', () => {
 			return expect(transaction)
 				.to.have.property('registerDelegate')
