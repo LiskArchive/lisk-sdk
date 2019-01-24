@@ -463,6 +463,9 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	updateOne(filters, data, _options, tx) {
+		const atLeastOneRequired = true;
+		this.validateFilters(filters, atLeastOneRequired);
+
 		const objectData = _.omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -806,6 +809,9 @@ class Account extends BaseEntity {
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		this.validateFilters(filters);
+		this.validateOptions(options);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(

@@ -17,7 +17,7 @@
 
 const randomstring = require('randomstring');
 const { BaseEntity, Account } = require('../../../../storage/entities');
-const { NonSupportedFilterTypeError } = require('../../../../storage/errors');
+const { NonSupportedFilterTypeError, NonSupportedOptionError } = require('../../../../storage/errors');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const accountFixtures = require('../../../fixtures').accounts;
@@ -62,6 +62,13 @@ describe('Account', () => {
 	let AccountEntity;
 	let TransactionEntity;
 	let SQLs;
+	let validAccountSQLs;
+	let validAccountFields;
+	let validOptions;
+	let invalidOptions;
+	let validFilters;
+	let validExtendedObjectFields;
+	let validSimpleObjectFields;
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
@@ -75,6 +82,232 @@ describe('Account', () => {
 		AccountEntity = storage.entities.Account;
 		TransactionEntity = storage.entities.Transaction;
 		SQLs = AccountEntity.SQLs;
+
+		validAccountSQLs = [
+			'selectSimple',
+			'selectFull',
+			'count',
+			'create',
+			'update',
+			'updateOne',
+			'isPersisted',
+			'delete',
+			'resetUnconfirmedState',
+			'resetMemTables',
+			'increaseFieldBy',
+			'decreaseFieldBy',
+			'createDependentRecord',
+			'deleteDependentRecord',
+			'delegateBlocksRewards',
+			'syncDelegatesRank',
+			'countDuplicatedDelegates',
+			'insertFork',
+		];
+
+		validAccountFields = [
+			'address',
+			'publicKey',
+			'secondPublicKey',
+			'username',
+			'u_username',
+			'isDelegate',
+			'u_isDelegate',
+			'secondSignature',
+			'u_secondSignature',
+			'balance',
+			'u_balance',
+			'multiMin',
+			'u_multiMin',
+			'multiLifetime',
+			'u_multiLifetime',
+			'nameExist',
+			'u_nameExist',
+			'fees',
+			'rewards',
+			'producedBlocks',
+			'missedBlocks',
+			'rank',
+			'vote',
+		];
+
+		validExtendedObjectFields = [
+			'address',
+			'publicKey',
+			'secondPublicKey',
+			'username',
+			'isDelegate',
+			'secondSignature',
+			'balance',
+			'multiMin',
+			'multiLifetime',
+			'nameExist',
+			'missedBlocks',
+			'producedBlocks',
+			'rank',
+			'fees',
+			'rewards',
+			'vote',
+			'u_username',
+			'u_isDelegate',
+			'u_secondSignature',
+			'u_nameExist',
+			'u_multiMin',
+			'u_multiLifetime',
+			'u_balance',
+			'productivity',
+			'votedDelegatesPublicKeys',
+			'u_votedDelegatesPublicKeys',
+			'membersPublicKeys',
+			'u_membersPublicKeys',
+		];
+
+		validSimpleObjectFields = [
+			'address',
+			'publicKey',
+			'secondPublicKey',
+			'username',
+			'isDelegate',
+			'secondSignature',
+			'balance',
+			'multiMin',
+			'multiLifetime',
+			'nameExist',
+			'missedBlocks',
+			'producedBlocks',
+			'rank',
+			'fees',
+			'rewards',
+			'vote',
+		];
+
+		validFilters = [
+			'address',
+			'address_eql',
+			'address_ne',
+			'address_in',
+			'address_like',
+			'publicKey',
+			'publicKey_eql',
+			'publicKey_ne',
+			'publicKey_in',
+			'publicKey_like',
+			'secondPublicKey',
+			'secondPublicKey_eql',
+			'secondPublicKey_ne',
+			'secondPublicKey_in',
+			'secondPublicKey_like',
+			'username',
+			'username_eql',
+			'username_ne',
+			'username_in',
+			'username_like',
+			'u_username',
+			'u_username_eql',
+			'u_username_ne',
+			'u_username_in',
+			'u_username_like',
+			'isDelegate',
+			'isDelegate_eql',
+			'isDelegate_ne',
+			'u_isDelegate',
+			'u_isDelegate_eql',
+			'u_isDelegate_ne',
+			'secondSignature',
+			'secondSignature_eql',
+			'secondSignature_ne',
+			'u_secondSignature',
+			'u_secondSignature_eql',
+			'u_secondSignature_ne',
+			'balance',
+			'balance_eql',
+			'balance_ne',
+			'balance_gt',
+			'balance_gte',
+			'balance_lt',
+			'balance_lte',
+			'balance_in',
+			'multiMin',
+			'multiMin_eql',
+			'multiMin_ne',
+			'multiMin_gt',
+			'multiMin_gte',
+			'multiMin_lt',
+			'multiMin_lte',
+			'multiMin_in',
+			'multiLifetime',
+			'multiLifetime_eql',
+			'multiLifetime_ne',
+			'multiLifetime_gt',
+			'multiLifetime_gte',
+			'multiLifetime_lt',
+			'multiLifetime_lte',
+			'multiLifetime_in',
+			'nameExist',
+			'nameExist_eql',
+			'nameExist_ne',
+			'fees',
+			'fees_eql',
+			'fees_ne',
+			'fees_gt',
+			'fees_gte',
+			'fees_lt',
+			'fees_lte',
+			'fees_in',
+			'rewards',
+			'rewards_eql',
+			'rewards_ne',
+			'rewards_gt',
+			'rewards_gte',
+			'rewards_lt',
+			'rewards_lte',
+			'rewards_in',
+			'producedBlocks',
+			'producedBlocks_eql',
+			'producedBlocks_ne',
+			'producedBlocks_gt',
+			'producedBlocks_gte',
+			'producedBlocks_lt',
+			'producedBlocks_lte',
+			'producedBlocks_in',
+			'missedBlocks',
+			'missedBlocks_eql',
+			'missedBlocks_ne',
+			'missedBlocks_gt',
+			'missedBlocks_gte',
+			'missedBlocks_lt',
+			'missedBlocks_lte',
+			'missedBlocks_in',
+			'rank',
+			'rank_eql',
+			'rank_ne',
+			'rank_gt',
+			'rank_gte',
+			'rank_lt',
+			'rank_lte',
+			'rank_in',
+			'vote',
+			'vote_eql',
+			'vote_ne',
+			'vote_gt',
+			'vote_gte',
+			'vote_lt',
+			'vote_lte',
+			'vote_in',
+			'votedDelegatesPublicKeys_in',
+			'u_votedDelegatesPublicKeys_in',
+			'membersPublicKeys_in',
+			'u_membersPublicKeys_in',
+		];
+
+		validOptions = {
+			limit: 100,
+			offset: 0,
+		};
+
+		invalidOptions = {
+			foo: true,
+			bar: true,
+		};
 	});
 
 	beforeEach(() => {
@@ -104,34 +337,98 @@ describe('Account', () => {
 	});
 
 	describe('constructor()', () => {
-		it('should accept only one parameter');
-		it('should call super');
-		it('should assign proper parameters');
+		it('should accept only one mandatory parameter', async () => {
+			expect(Account.prototype.constructor.length).to.be.eql(1);
+		});
+
+		it('should have called super', async () => {
+			// The reasoning here is that if the parent's contstructor was called
+			// the properties from the parent are present in the extending object
+			const account = new Account(adapter);
+			expect(typeof account.parseFilters).to.be.eql('function');
+			expect(typeof account.addFilter).to.be.eql('function');
+			expect(typeof account.addField).to.be.eql('function');
+			expect(typeof account.getFilters).to.be.eql('function');
+			expect(typeof account.getUpdateSet).to.be.eql('function');
+			expect(typeof account.getValuesSet).to.be.eql('function');
+			expect(typeof account.begin).to.be.eql('function');
+			expect(typeof account.validateFilters).to.be.eql('function');
+			expect(typeof account.validateOptions).to.be.eql('function');
+		});
+
+		it('should assign proper sql', async () => {
+			const account = new Account(adapter);
+			expect(account.SQLs).to.include.all.keys(validAccountSQLs);
+		});
+
+		it('should call addField the exact number of times', async () => {
+			const addFieldSpy = sinonSandbox.spy(Account.prototype, 'addField');
+			const account = new Account(adapter);
+			expect(addFieldSpy.callCount).to.eql(
+				Object.keys(account.fields).length
+			);
+		});
+
+		it('should setup correct fields', async () => {
+			const account = new Account(adapter);
+			expect(account.fields).to.include.all.keys(validAccountFields);
+		});
+
 		it('should setup specific filters');
 	});
 
 	describe('getOne()', () => {
-		it('should accept only valid filters');
-		it('should throw error for in-valid filters');
-		it('should accept only valid options');
-		it('should throw error for in-valid options');
-		it('should call adapter.executeFile with proper param for extended=false');
-		it('should call adapter.executeFile with proper param for extended=true');
-		it('should accept "tx" as last parameter and pass to adapter.executeFile');
-		it(
-			'should resolve with one object matching specification of type definition of simple object'
-		);
-		it(
-			'should resolve with one object matching specification of type definition of full object'
-		);
-		it(
-			'should reject with error if matched with multiple records for provided filters'
-		);
+		it('should call _getResults with proper param for extended=false', async () => {
+			const anAccount = new accountFixtures.Account();
+			await AccountEntity.create(anAccount);
+			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
+			await AccountEntity.getOne({ address: anAccount.address }, { extended: false });
+			expect(_getResultsSpy.firstCall.args[1]).to.be.eql({ extended: false });
+		});
+
+		it('should call _getResults with proper param for extended=true', async () => {
+			const anAccount = new accountFixtures.Account();
+			await AccountEntity.create(anAccount);
+			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
+			await AccountEntity.getOne({ address: anAccount.address }, { extended: true });
+			expect(_getResultsSpy.firstCall.args[1]).to.be.eql({ extended: true });
+		});
+
+		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
+			const anAccount = new accountFixtures.Account();
+			await AccountEntity.create(anAccount);
+			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
+			await AccountEntity.begin('testTX', async tx => {
+				await AccountEntity.getOne({ address: anAccount.address }, {}, tx);
+				expect(Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])).to.be.eql(Object.getPrototypeOf(tx));
+			});
+		});
+
+		it('should resolve with one object matching specification of type definition of simple object', async () => {
+			const anAccount = new accountFixtures.Account();
+			await AccountEntity.create(anAccount);
+			const results = await AccountEntity.getOne({ address: anAccount.address }, { extended: false });
+			expect(results).to.have.all.keys(validSimpleObjectFields);
+		});
+
+		it('should resolve with one object matching specification of type definition of full object', async () => {
+			const anAccount = new accountFixtures.Account();
+			await AccountEntity.create(anAccount);
+			const results = await AccountEntity.getOne({ address: anAccount.address }, { extended: true });
+			expect(results).to.have.all.keys(validExtendedObjectFields);
+		});
+
+		it('should reject with error if matched with multiple records for provided filters', async () => {
+			expect(AccountEntity.getOne({})).to.be.rejected;
+		});
+
 		it('should not change any of the provided parameter');
 
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
-			it('should have only specific filters');
+			it('should have only specific filters', async () => {
+				expect(AccountEntity.getFilters()).to.eql(validFilters);
+			});
 			// For each filter type
 			it('should return matching result for provided filter');
 		});
@@ -142,19 +439,40 @@ describe('Account', () => {
 			expect(AccountEntity.get()).to.be.fulfilled;
 		});
 
-		it('should accept only valid filters');
-		it('should throw error for in-valid filters');
-		it('should accept only valid options');
-		it('should throw error for in-valid options');
-		it('should call adapter.executeFile with proper param for extended=false');
-		it('should call adapter.executeFile with proper param for extended=true');
-		it('should accept "tx" as last parameter and pass to adapter.executeFile');
-		it(
-			'should resolve with one object matching specification of type definition of simple object'
-		);
-		it(
-			'should resolve with one object matching specification of type definition of full object'
-		);
+		it('should call _getResults with proper param for extended=false', async () => {
+			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
+			await AccountEntity.get({}, { extended: false });
+			expect(_getResultsSpy.firstCall.args[1]).to.be.eql({ extended: false });
+		});
+
+		it('should call _getResults with proper param for extended=true', async () => {
+			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
+			await AccountEntity.get({}, { extended: true });
+			expect(_getResultsSpy.firstCall.args[1]).to.be.eql({ extended: true });
+		});
+
+		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
+			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
+			await AccountEntity.begin('testTX', async tx => {
+				await AccountEntity.get({}, {}, tx);
+				expect(Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])).to.be.eql(Object.getPrototypeOf(tx));
+			});
+		});
+
+		it('should resolve with one object matching specification of type definition of simple object', async () => {
+			const anAccount = new accountFixtures.Account();
+			await AccountEntity.create(anAccount);
+			const results = await AccountEntity.get({ address: anAccount.address }, { extended: false });
+			expect(results[0]).to.have.all.keys(validSimpleObjectFields);
+		});
+
+		it('should resolve with one object matching specification of type definition of full object', async () => {
+			const anAccount = new accountFixtures.Account();
+			await AccountEntity.create(anAccount);
+			const results = await AccountEntity.get({ address: anAccount.address }, { extended: true });
+			expect(results[0]).to.have.all.keys(validExtendedObjectFields);
+		});
+
 		it('should not change any of the provided parameter');
 
 		describe('dynamic fields', () => {
@@ -356,7 +674,9 @@ describe('Account', () => {
 
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
-			it('should have only specific filters');
+			it('should have only specific filters', async () => {
+				expect(AccountEntity.getFilters()).to.eql(validFilters);
+			});
 			// For each filter type
 			it('should return matching result for provided filter');
 		});
@@ -410,9 +730,8 @@ describe('Account', () => {
 				});
 
 				it('should fail if unknown sort field is specified', async () => {
-					return expect(
-						AccountEntity.get({}, { sort: 'unknownField', limit: 10 })
-					).to.be.rejectedWith('column "unknownField" does not exist');
+					expect(() => AccountEntity.get({}, { sort: 'unknownField', limit: 10 })
+					).to.throw(NonSupportedOptionError);
 				});
 			});
 
@@ -460,9 +779,81 @@ describe('Account', () => {
 		});
 	});
 
+	describe('_getResults()', () => {
+		const accounts = [
+			new accountFixtures.Account(),
+			new accountFixtures.Account(),
+			new accountFixtures.Account(),
+		];
+
+		before(async () => {
+			await AccountEntity.create(accounts);
+		});
+
+		it('should accept only valid filters', async () => {
+			// Arrange
+			const validFilter = {
+				address: accounts[0].address,
+			};
+			// Act & Assert
+			expect(() => {
+				AccountEntity.getOne(validFilter);
+			}).not.to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should throw error for invalid filters', async () => {
+			// Arrange
+			const invalidFilter = {
+				not_an_account_field: 'foo-bar',
+			};
+			// Act & Assert
+			expect(() => {
+				AccountEntity.get(invalidFilter);
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should accept only valid options', async () => {
+			// Act & Assert
+			expect(() => {
+				AccountEntity.get({}, validOptions);
+			}).not.to.throw(NonSupportedOptionError);
+		});
+
+		it('should throw error for invalid options', async () => {
+			// Act & Assert
+			expect(() => {
+				AccountEntity.get({}, invalidOptions);
+			}).to.throw(NonSupportedOptionError);
+		});
+
+		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
+			const executeSpy = sinonSandbox.spy(AccountEntity.adapter, 'executeFile');
+			await AccountEntity.begin('testTX', async tx => {
+				await AccountEntity.get({}, {}, tx);
+				expect(Object.getPrototypeOf(executeSpy.firstCall.args[3])).to.be.eql(Object.getPrototypeOf(tx));
+			});
+		});
+
+		it('should not change any of the provided parameter');
+
+		describe('filters', () => {
+			// To make add/remove filters we add their tests.
+			it('should have only specific filters', async () => {
+							// Arrange
+			const account = new Account(adapter);
+				expect(account.getFilters()).to.eql(validFilters);
+			});
+			// For each filter type
+			it('should return matching result for provided filter');
+		});
+	});
+
 	describe('create()', () => {
-		it('should accept only valid options');
-		it('should throw error for in-valid options');
+		it('should throw error when address is missing', async () => {
+			expect(() => {
+				AccountEntity.create({ foo: 'bar', baz: 'qux' }, validOptions);
+			}).to.throw('Property \'address\' doesn\'t exist');
+		});
 
 		it('should merge default values to the provided account object', async () => {
 			sinonSandbox.spy(AccountEntity, 'getValuesSet');
@@ -497,6 +888,7 @@ describe('Account', () => {
 
 			expect(mergedObject).to.be.eql(accountResult);
 		});
+
 		it('should create multiple account objects successfully', async () => {
 			const accounts = [
 				new accountFixtures.Account(),
@@ -515,13 +907,61 @@ describe('Account', () => {
 				expect(mergedObject).to.be.eql(accountResult);
 			});
 		});
-		it('should skip if any invalid attribute is provided');
-		it('should reject with invalid data provided');
-		it('should populate account object with default values');
+
+		it('should reject with invalid data provided', async () => {
+			expect(() => AccountEntity.create({ missedBlocks: 'FOO-BAR', address: '1234L' }, validOptions)).to.throw;
+		});
+
+		it('should populate account object with default values', async () => {
+			const account = new accountFixtures.Account();
+			await AccountEntity.create({ address: account.address });
+			const accountFromDB = await AccountEntity.getOne({ address: account.address }, { extended: true });
+			const expectedObject = {
+				address: account.address,
+				publicKey: null,
+				secondPublicKey: null,
+				username: null,
+				isDelegate: false,
+				secondSignature: false,
+				balance: '0',
+				multiMin: 0,
+				multiLifetime: 0,
+				nameExist: false,
+				missedBlocks: 0,
+				producedBlocks: 0,
+				rank: null,
+				fees: '0',
+				rewards: '0',
+				vote: '0',
+				u_username: null,
+				u_isDelegate: false,
+				u_secondSignature: false,
+				u_nameExist: false,
+				u_multiMin: 0,
+				u_multiLifetime: 0,
+				u_balance: '0',
+				productivity: 0,
+				votedDelegatesPublicKeys: null,
+				u_votedDelegatesPublicKeys: null,
+				membersPublicKeys: null,
+				u_membersPublicKeys: null,
+			};
+			expect(accountFromDB).to.be.eql(expectedObject);
+		});
 	});
 
 	describe('update()', () => {
-		it('should accept only valid filters');
+		it('should accept only valid filters', async () => {
+			// Arrange
+			const invalidFilter = {
+				foo: 'bar',
+			};
+			// Act & Assert
+			expect(() => {
+				AccountEntity.update(invalidFilter, {});
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
 		it('should throw error for in-valid filters', async () => {
 			const account = new accountFixtures.Account();
 
@@ -532,6 +972,7 @@ describe('Account', () => {
 				'One or more filters are not supported.'
 			);
 		});
+
 		it('should update account without any error', async () => {
 			const account = new accountFixtures.Account();
 
@@ -540,8 +981,47 @@ describe('Account', () => {
 			expect(AccountEntity.update({ address: account.address }, account)).to.be
 				.fulfilled;
 		});
-		it('should call mergeFilters with proper params');
-		it('should call parseFilters with proper params');
+
+		it('should call mergeFilters with proper params', async () => {
+			// Arrange
+			const randAccount = new accountFixtures.Account();
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns(),
+				executeFile: sinonSandbox.stub().resolves(),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const validFilter = {
+				address: randAccount.address,
+			};
+			const account = new Account(localAdapter);
+			account.mergeFilters = sinonSandbox.stub();
+			account.parseFilters = sinonSandbox.stub();
+			// Act
+			account.update(validFilter, { username: 'not_a_rand_name' });
+			// Assert
+			expect(account.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			// Arrange
+			const randAccount = new accountFixtures.Account();
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([randAccount]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const validFilter = {
+				address: randAccount.address,
+			};
+			const account = new Account(localAdapter);
+			account.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			account.parseFilters = sinonSandbox.stub();
+			// Act
+			account.update(validFilter, { username: 'not_a_rand_name' });
+			// Assert
+			expect(account.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
 		it('should call getUpdateSet with proper params');
 		it('should call adapter.executeFile with proper params', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
@@ -679,28 +1159,127 @@ describe('Account', () => {
 	});
 
 	describe('updateOne()', () => {
-		it('should accept only valid filters');
-		it('should throw error for in-valid filters');
-		it('should accept only valid options');
-		it('should throw error for in-valid options');
-		it('should call mergeFilters with proper params');
-		it('should call parseFilters with proper params');
+		it('should throw error for in-valid filters', async () => {
+			// Arrange
+			const invalidFilter = {
+				foo: 'bar',
+			};
+			// Act & Assert
+			expect(() => {
+				AccountEntity.updateOne(invalidFilter, { username: 'test1234' });
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should call mergeFilters with proper params', async () => {
+			// Arrange
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns(),
+				executeFile: sinonSandbox.stub().resolves(),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const validFilter = {
+				address: 'test1234',
+			};
+			const account = new Account(localAdapter);
+			account.mergeFilters = sinonSandbox.stub();
+			account.parseFilters = sinonSandbox.stub();
+			// Act
+			account.updateOne(validFilter);
+			// Assert
+			expect(account.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			// Arrange
+			const randAccount = new accountFixtures.Account();
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([randAccount]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const validFilter = {
+				address: randAccount.address,
+			};
+			const account = new Account(localAdapter);
+			account.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			account.parseFilters = sinonSandbox.stub();
+			// Act
+			account.updateOne(validFilter);
+			// Assert
+			expect(account.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
 		it('should call getUpdateSet with proper params');
-		it('should call adapter.executeFile with proper params');
-		it(
-			'should update only one account object successfully with matching condition'
-		);
+
+		it('should call adapter.executeFile with proper params', async () => {
+			// Arrange
+			sinonSandbox.spy(adapter, 'executeFile');
+			const account = new accountFixtures.Account();
+			// Act
+			await AccountEntity.updateOne({ address: account.address }, account);
+			// Assert
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.updateOne);
+		});
+
+		it('should update only one account object successfully with matching condition');
+
 		it('should skip if any invalid attribute is provided');
 		it('should not throw error if no matching record found');
 	});
 
 	describe('isPersisted()', () => {
-		it('should accept only valid filters');
-		it('should throw error for in-valid filters');
-		it('should accept only valid options');
-		it('should throw error for in-valid options');
-		it('should call mergeFilters with proper params');
-		it('should call parseFilters with proper params');
+		it('should throw error for in-valid filters', async () => {
+			// Arrange
+			const invalidFilter = {
+				foo: 'bar',
+			};
+			// Act & Assert
+			expect(() => {
+				AccountEntity.isPersisted(invalidFilter);
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
+		it('should call mergeFilters with proper params', async () => {
+			// Arrange
+			const randAccount = new accountFixtures.Account();
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns(),
+				executeFile: sinonSandbox.stub().resolves([randAccount]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const validFilter = {
+				address: randAccount.address,
+			};
+			const account = new Account(localAdapter);
+			account.mergeFilters = sinonSandbox.stub();
+			account.parseFilters = sinonSandbox.stub();
+			// Act
+			account.isPersisted(validFilter);
+			// Assert
+			expect(account.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should call parseFilters with proper params', async () => {
+			// Arrange
+			const randAccount = new accountFixtures.Account();
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves([randAccount]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const validFilter = {
+				address: randAccount.address,
+			};
+			const account = new Account(localAdapter);
+			account.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			account.parseFilters = sinonSandbox.stub();
+			// Act
+			account.isPersisted(validFilter);
+			// Assert
+			expect(account.parseFilters.calledWith(validFilter)).to.be.true;
+		});
+
 		it('should call adapter.executeFile with proper params');
 		it('should resolve with true if matching record found');
 		it('should resolve with false if matching record not found');
