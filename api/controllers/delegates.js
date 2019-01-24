@@ -197,7 +197,7 @@ DelegatesController.getForgingStatistics = async function(context, next) {
 		return next(err);
 	}
 
-	const data = _.pick(reward, ['fees, rewards, forged, count']);
+	const data = _.pick(reward, ['fees', 'rewards', 'forged', 'count']);
 
 	return next(null, {
 		data,
@@ -221,22 +221,26 @@ DelegatesController.getForgingStatistics = async function(context, next) {
 async function _getForgingStatistics(filters) {
 	// If need to aggregate all data then just fetch from the account
 	if (!filters.start && !filters.end) {
-		// TODO: Need to move modules.delegates.getDelegates after adding "fees" in its list
-		let account = await storage.entities.account.getOne({ address: filters.address });
+		let account;
+
+		try {
+			account = await storage.entities.Account.getOne({ address: filters.address });
+		} catch (err) {
+			if (err.code === 0) {
+				throw 'Account not found';
+			}
+		}
+
+		if (!account.isDelegate) {
+			throw 'Account is not a delegate';
+		}
+
 		account = _.pick(account, [
 			'rewards',
 			'fees',
 			'producedBlocks',
 			'isDelegate',
 		]);
-
-		if (!account) {
-			throw 'Account not found';
-		}
-
-		if (!account.isDelagate) {
-			throw 'Account is not a delegate';
-		}
 
 		return {
 			rewards: account.rewards,
@@ -265,10 +269,15 @@ async function _getForgingStatistics(filters) {
  */
 async function _aggregateBlocksReward(filter) {
 	const params = {};
-	const account = await storage.entities.account.getOne({ address: filter.address });
 
-	if (!account) {
-		throw 'Account not found';
+	let account;
+
+	try {
+		account = await storage.entities.Account.getOne({ address: filter.address });
+	} catch (err) {
+		if (err.code === 0) {
+			throw 'Account not found';
+		}
 	}
 
 	params.generatorPublicKey = account.publicKey;

@@ -1,5 +1,5 @@
 const rewire = require('rewire');
-const Bignum = require('../../helpers/bignum.js');
+const Bignum = require('../../../../helpers/bignum.js');
 
 const DelegatesController = rewire('../../../../api/controllers/delegates.js');
 
@@ -7,11 +7,26 @@ describe('delegates/api', () => {
 	const __private = {};
 	let loggerStub;
 	let storageStub;
+	let restoreRewire;
+	const blocksRewardReturnStub = {
+		fees: 1,
+		rewards: 2,
+		count: 3,
+	};
+	const expectedForgingStatisticsResult = {
+		...blocksRewardReturnStub,
+		...{
+			forged: new Bignum(blocksRewardReturnStub.fees)
+				.plus(new Bignum(blocksRewardReturnStub.rewards))
+				.toString(),
+		},
+	};
+	let aggregateBlocksRewardStub;
 
 	beforeEach(done => {
 		storageStub = {
 			entities: {
-				account: {
+				Account: {
 					getOne: sinonSandbox.stub().resolves({
 						rewards: 1,
 						fees: 2,
@@ -34,132 +49,95 @@ describe('delegates/api', () => {
 			'_aggregateBlocksReward'
 		);
 
+		aggregateBlocksRewardStub = sinonSandbox
+			.stub()
+			.resolves(blocksRewardReturnStub);
+
 		DelegatesController.__set__('logger', loggerStub);
 		DelegatesController.__set__('storage', storageStub);
+		restoreRewire = DelegatesController.__set__(
+			'_aggregateBlocksReward',
+			aggregateBlocksRewardStub
+		);
 		done();
 	});
 
 	afterEach(() => {
+		restoreRewire();
 		return sinonSandbox.restore();
 	});
 
 	describe('_getForgingStatistics()', () => {
 		it('should fail if invalid address is passed', () => {
-			storageStub.entities.account.getOne = sinonSandbox
-				.stub()
-				.resolves(undefined);
+			storageStub.entities.Account.getOne.rejects({ code: 0 });
 			return expect(
 				__private.getForgingStatistics({ address: 'InvalidAddress' })
-			).to.throw('Account not found');
+			).to.eventually.be.rejectedWith('Account not found');
+		});
+
+		it('should fail if no record is found on the database', () => {
+			storageStub.entities.Account.getOne.rejects({ code: 0 });
+			return expect(
+				__private.getForgingStatistics({ address: 'InvalidAddress' })
+			).to.eventually.be.rejectedWith('Account not found');
 		});
 
 		it('should fail if non-delegate address is passed', () => {
-			storageStub.entities.account.getOne = sinonSandbox.stub().resolves({
+			storageStub.entities.Account.getOne.resolves({
 				isDelegate: false,
 			});
 
 			return expect(
 				__private.getForgingStatistics({ address: 'NonDelegateAddress' })
-			).to.throw('Account not a delegate');
+			).to.eventually.be.rejectedWith('Account is not a delegate');
 		});
 
 		it('should be ok if a valid delegate address is passed', async () => {
-			storageStub.entities.account.getOne = sinonSandbox.stub().resolves({
+			storageStub.entities.Account.getOne.resolves({
 				rewards: 1,
 				fees: 2,
-				count: 3,
+				producedBlocks: 3,
 				forged: 4,
+				isDelegate: true,
 			});
 
-			const data = await __private.getForgingStatistics({
-				address: 'aValidAddress',
-			});
-			expect(data).to.have.keys('count', 'rewards', 'fees', 'forged');
+			expect(
+				__private.getForgingStatistics({ address: 'aValidAddress' })
+			).to.eventually.have.keys('count', 'rewards', 'fees', 'forged');
 		});
 
 		it('should return aggregated data if start and end filters are provided', async () => {
-			const reward = {
-				fees: 1,
-				rewards: 2,
-				count: 3,
-			};
-
-			sinonSandbox.stub(__private, 'aggregateBlocksReward').resolves(reward);
-
-			const expectedReturn = {
-				...reward,
-				...{
-					forged: new Bignum(reward.fees)
-						.plus(new Bignum(reward.rewards))
-						.toString(),
-				},
-			};
-
 			const filters = {
 				address: 'aValidAddress',
 				start: 'start',
 				end: 'end',
 			};
 			const data = await __private.getForgingStatistics(filters);
-			expect(__private.aggregateBlocksReward).to.be.calledWithExactly(filters);
-			expect(data).to.be.equal(expectedReturn);
+			expect(aggregateBlocksRewardStub).to.be.deep.calledWith(filters);
+			expect(data).to.deep.equal(expectedForgingStatisticsResult);
 		});
 
 		it('should aggregate the data runtime if start is omitted', async () => {
-			const reward = {
-				fees: 1,
-				rewards: 2,
-				count: 3,
-			};
-
-			sinonSandbox.stub(__private, 'aggregateBlocksReward').resolves(reward);
-
-			const expectedReturn = {
-				...reward,
-				...{
-					forged: new Bignum(reward.fees)
-						.plus(new Bignum(reward.rewards))
-						.toString(),
-				},
-			};
-
 			const filters = {
 				address: 'aValidAddress',
 				end: 'end',
 			};
 			const data = await __private.getForgingStatistics(filters);
-			expect(__private.aggregateBlocksReward).to.be.calledWithExactly(filters);
-			expect(data).to.be.equal(expectedReturn);
+			expect(aggregateBlocksRewardStub).to.be.deep.calledWith(filters);
+			expect(data).to.deep.equal(expectedForgingStatisticsResult);
 		});
 
 		it('should aggregate the data runtime if end is omitted', async () => {
-			const reward = {
-				fees: 1,
-				rewards: 2,
-				count: 3,
-			};
-
-			sinonSandbox.stub(__private, 'aggregateBlocksReward').resolves(reward);
-
-			const expectedReturn = {
-				...reward,
-				...{
-					forged: new Bignum(reward.fees)
-						.plus(new Bignum(reward.rewards))
-						.toString(),
-				},
-			};
-
 			const filters = {
 				address: 'aValidAddress',
 				start: 'start',
 			};
 			const data = await __private.getForgingStatistics(filters);
-			expect(__private.aggregateBlocksReward).to.be.calledWithExactly(filters);
-			expect(data).to.be.equal(expectedReturn);
+			expect(aggregateBlocksRewardStub).to.be.deep.calledWith(filters);
+			expect(data).to.deep.equal(expectedForgingStatisticsResult);
 		});
 
-		it('should fetch data from accounts if both start and end are omitted', async () => {
+		it('should fetch data from Accounts if both start and end are omitted', async () => {
 			const getAccountResponse = {
 				isDelegate: true,
 				producedBlocks: 1,
@@ -167,17 +145,13 @@ describe('delegates/api', () => {
 				rewards: 4,
 			};
 
-			sinonSandbox.spy(__private, 'aggregateBlocksReward');
-			sinonSandbox
-				.stub(storageStub.entities.account.getOne)
-				.resolve(getAccountResponse);
+			storageStub.entities.Account.getOne.resolves(getAccountResponse);
 
 			const filters = {
 				address: 'aValidAddress',
-				start: 'start',
 			};
 			const data = await __private.getForgingStatistics(filters);
-			expect(storageStub.entities.account.getOne).to.be.calledOnceWith({
+			expect(storageStub.entities.Account.getOne).to.be.calledWith({
 				address: filters.address,
 			});
 			expect(data).to.deep.equal({
@@ -188,43 +162,39 @@ describe('delegates/api', () => {
 					.plus(new Bignum(getAccountResponse.fees))
 					.toString(),
 			});
-			expect(__private.aggregateBlocksReward).to.not.have.been.called;
+			expect(aggregateBlocksRewardStub).to.not.have.been.called;
 		});
 	});
 
 	describe('_aggregateBlocksReward()', async () => {
-		it('should return error when account not found', () => {
-			sinonSandbox
-				.stub(storageStub.entities.account, 'getOne')
-				.resolves(undefined);
+		it('should return account not found when using invalid address', () => {
+			storageStub.entities.Account.getOne.rejects({ code: 0 });
 			return expect(
 				__private.aggregateBlocksReward({ address: '0L' })
-			).to.throw('Account not found');
+			).to.eventually.be.rejectedWith('Account not found');
 		});
 
-		it('should return error when library.storage.entities.Account.delegateBlocksRewards fails', done => {
-			storageStub.entities.account.delegateBlocksRewards = sinonSandbox
-				.stub()
-				.throws(['anError']);
-			try {
-				__private.aggregateBlocksReward({ address: '1L' });
-			} catch (err) {
-				expect(err).to.equal('Blocks#aggregateBlocksReward error');
-				expect(loggerStub.error.args[0][0]).to.equal(['anError']);
-				done();
-			}
-		});
+		it('should return error when library.storage.entities.Account.delegateBlocksRewards fails', async () => {
+			storageStub.entities.Account.delegateBlocksRewards.throws({
+				stack: ['anError'],
+			});
 
-		it('should return error when account is not a delegate', async done => {
-			storageStub.entities.Account.delegateBlocksRewards = sinonSandbox
-				.stub()
-				.resolves([{ delegate: null }]);
 			try {
 				await __private.aggregateBlocksReward({ address: '1L' });
 			} catch (err) {
-				expect(err).to.equal('Account is not a delegate');
-				done();
+				expect(err).to.deep.equal('Blocks#aggregateBlocksReward error');
+				expect(loggerStub.error).to.be.calledWith(['anError']);
 			}
+		});
+
+		it('should return error when account is not a delegate', () => {
+			storageStub.entities.Account.delegateBlocksRewards = sinonSandbox
+				.stub()
+				.resolves([{ delegate: null }]);
+
+			return expect(
+				__private.aggregateBlocksReward({ address: '1L' })
+			).to.eventually.be.rejectedWith('Account is not a delegate');
 		});
 
 		it('should return aggregate blocks rewards', async () => {

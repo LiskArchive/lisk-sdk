@@ -19,9 +19,6 @@ const genesisDelegates = require('../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../data/delegates_rounds_list.json');
 const accountFixtures = require('../../fixtures/accounts');
 const application = require('../../common/application');
-const seeder = require('../../common/storage_seed');
-
-let storage;
 
 const exceptions = global.exceptions;
 
@@ -33,8 +30,6 @@ describe('delegates', () => {
 			{ sandbox: { name: 'lisk_test_modules_delegates' } },
 			(err, scope) => {
 				library = scope;
-				storage = scope.storage;
-
 				// Set delegates module as loaded to allow manual forging
 				library.rewiredModules.delegates.__set__('__private.loaded', true);
 				// Load forging delegates
