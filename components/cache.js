@@ -44,14 +44,8 @@ class Cache {
 
 	connect(cb) {
 		this.client = redis.createClient(this.options);
-		this.client.once(
-			'error',
-			this._onConnectionError.bind(this, () => cb())
-		);
-		this.client.once(
-			'ready',
-			this._onReady.bind(this, () => cb())
-		);
+		this.client.once('error', this._onConnectionError.bind(this, () => cb()));
+		this.client.once('ready', this._onReady.bind(this, () => cb()));
 	}
 
 	_onConnectionError(cb, err) {
@@ -73,6 +67,7 @@ class Cache {
 		});
 		return cb();
 	}
+
 	/**
 	 * Gets redis connection status.
 	 *
@@ -83,6 +78,7 @@ class Cache {
 		// Use client.ready because this constiable is updated on client connection
 		return this.client && this.client.ready;
 	}
+
 	/**
 	 * Gets caching readiness and the redis connection status.
 	 *
@@ -92,6 +88,7 @@ class Cache {
 	isReady() {
 		return this.cacheReady && this.isConnected();
 	}
+
 	/**
 	 * Gets json value for a key from redis.
 	 *
@@ -398,7 +395,9 @@ class Cache {
 								);
 							} else {
 								this.logger.debug(
-									`Cache - Keys ${CACHE.KEYS.transactionCount} cleared from cache`
+									`Cache - Keys ${
+										CACHE.KEYS.transactionCount
+									} cleared from cache`
 								);
 							}
 							return setImmediate(reflectCb, deleteJsonForKeyErr);
