@@ -1,6 +1,6 @@
 import {
 	CheckerFunctionResponse,
-	CheckTransactionsResponse,
+	CheckTransactionsResponseWithPassAndFail,
 	Status,
 } from '../../../src/check_transactions';
 import { Transaction } from '../../../src/transaction_pool';
@@ -40,7 +40,7 @@ export const fakeCheckFunctionGenerator = (
 	return (transactions: ReadonlyArray<Transaction>) => {
 		return transactions.reduce(
 			(
-				checkedTransactions: CheckTransactionsResponse,
+				checkedTransactions: CheckTransactionsResponseWithPassAndFail,
 				transaction: Transaction,
 			) => {
 				if (!firstCharacterOfFailedTransactionsId.includes(transaction.id[0])) {
@@ -67,7 +67,7 @@ export const fakeCheckFunctionGenerator = (
 export const fakeCheckerFunctionGenerator = (
 	checkFunction: (
 		transactions: ReadonlyArray<Transaction>,
-	) => CheckTransactionsResponse,
+	) => CheckTransactionsResponseWithPassAndFail,
 ) => {
 	return (transactions: ReadonlyArray<Transaction>) => {
 		const { passedTransactions, failedTransactions } = checkFunction(
