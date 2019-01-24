@@ -300,6 +300,19 @@ export class VoteTransaction extends BaseTransaction {
 			);
 		}
 
+		if (
+			this.recipientPublicKey &&
+			this.recipientId !== getAddressFromPublicKey(this.recipientPublicKey)
+		) {
+			errors.push(
+				new TransactionError(
+					'recipientId does not match recipientPublicKey.',
+					this.id,
+					'.recipientId',
+				),
+			);
+		}
+
 		if (!this.fee.eq(VOTE_FEE)) {
 			errors.push(
 				new TransactionError(
