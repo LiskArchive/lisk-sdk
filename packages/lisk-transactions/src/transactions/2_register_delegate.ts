@@ -177,9 +177,7 @@ export class DelegateTransaction extends BaseTransaction {
 			delegate: { username },
 		} = this.asset;
 
-		return username && typeof username === 'string'
-			? Buffer.from(username, 'utf8')
-			: Buffer.alloc(0);
+		return Buffer.from(username, 'utf8');
 	}
 
 	public assetToJSON(): DelegateAsset {
@@ -319,12 +317,12 @@ export class DelegateTransaction extends BaseTransaction {
 			);
 		}
 
-		if ((sender as Account).isDelegate || sender.username) {
+		if (sender.isDelegate || sender.username) {
 			errors.push(
 				new TransactionError(
 					'Account is already a delegate',
 					this.id,
-					'.username',
+					'.asset.delegate.username',
 				),
 			);
 		}
@@ -354,24 +352,21 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-		if ((sender as Account).isDelegate || sender.username) {
+		if (sender.isDelegate || sender.username) {
 			errors.push(
 				new TransactionError(
 					'Account is already a delegate',
 					this.id,
-					'.username',
+					'.asset.delegate.username',
 				),
 			);
 		}
-		// Ignore state from the base transaction
-		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
-		const updatedSender = { ...sender, balance: updatedBalance.toString() };
-		if (updatedSender.isDelegate || updatedSender.username) {
+		if (state.sender.isDelegate || state.sender.username) {
 			errors.push(
 				new TransactionError(
 					'Account is already a delegate',
 					this.id,
-					'.isDelegate',
+					'.asset.delegate.username',
 				),
 			);
 		}
@@ -382,7 +377,7 @@ export class DelegateTransaction extends BaseTransaction {
 			errors,
 			state: {
 				sender: {
-					...updatedSender,
+					...state.sender,
 					isDelegate: true,
 					username: this.asset.delegate.username,
 				},
@@ -396,10 +391,7 @@ export class DelegateTransaction extends BaseTransaction {
 			throw new Error('State is required for undoing transaction.');
 		}
 		const errors = [...baseErrors];
-		// Ignore state from the base transaction
-		const updatedBalance = new BigNum(sender.balance).add(this.fee);
-		const updatedSender = { ...sender, balance: updatedBalance.toString() };
-		const { username, ...strippedSender } = updatedSender;
+		const { username, ...strippedSender } = state.sender;
 
 		return {
 			id: this.id,

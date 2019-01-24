@@ -467,7 +467,7 @@ describe('Delegate registration transaction class', () => {
 			});
 			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.username');
+			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
 		});
 
 		it('should throw an error when state does not exist from the base transaction', async () => {
