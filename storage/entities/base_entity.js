@@ -216,7 +216,9 @@ class BaseEntity {
 		this.adapter.SQLs[entityLabel] = this.adapter.SQLs[entityLabel] || {};
 		Object.keys(sqlFiles).forEach(key => {
 			if (!this.adapter.SQLs[entityLabel][key]) {
-				this.adapter.SQLs[entityLabel][key] = this.adapter.loadSQLFile(sqlFiles[key]);
+				this.adapter.SQLs[entityLabel][key] = this.adapter.loadSQLFile(
+					sqlFiles[key]
+				);
 			}
 		});
 		return this.adapter.SQLs[entityLabel];

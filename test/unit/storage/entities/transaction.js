@@ -20,7 +20,10 @@ const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const transactionsFixtures = require('../../../fixtures').transactions;
 const transactionTypes = require('../../../../helpers/transaction_types');
-const { NonSupportedFilterTypeError, NonSupportedOperationError } = require('../../../../storage/errors');
+const {
+	NonSupportedFilterTypeError,
+	NonSupportedOperationError,
+} = require('../../../../storage/errors');
 
 const numSeedRecords = 5;
 const NON_EXISTENT_ID = '1234';

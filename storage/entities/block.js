@@ -22,7 +22,6 @@ const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 const Transaction = require('./transaction');
 
-
 const defaultCreateValues = {};
 const createFields = [
 	'id',
