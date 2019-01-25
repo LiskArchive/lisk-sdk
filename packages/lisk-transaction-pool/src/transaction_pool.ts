@@ -239,13 +239,26 @@ export class TransactionPool extends EventEmitter {
 	): void {
 		const { received, validated, ...otherQueues } = this._queues;
 
+		// Move transactions from the validated queue to the received queue where account was a receipient in the verified removed transactions
+		// Rationale is explained in issue #963
+		const remoevdTransactionsByRecipientIdFromValidatedQueue = this._queues.validated.removeFor(
+			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
+		);
+
+		this._queues.received.enqueueMany(
+			remoevdTransactionsByRecipientIdFromValidatedQueue,
+		);
+
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the verified removed transactions
-		const removedTransactionsByRecipientId = this.removeTransactionsFromQueues(
+		const removedTransactionsByRecipientIdFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
 		);
 
-		this._queues.validated.enqueueMany(removedTransactionsByRecipientId);
+		this._queues.validated.enqueueMany(
+			removedTransactionsByRecipientIdFromOtherQueues,
+		);
+
 		// Add transactions to the verified queue which were included in the verified removed transactions
 		this._queues.verified.enqueueMany(transactions);
 
@@ -310,17 +323,38 @@ export class TransactionPool extends EventEmitter {
 		);
 
 		const { received, validated, ...otherQueues } = this._queues;
+
+		const confirmedTransactionsWithUniqueData = transactions.filter(
+			(transaction: Transaction) => transaction.containsUniqueData,
+		);
+
+		// Remove transactions from the validated queue which were sent from the accounts in the confirmed transactions
+		const removedTransactionsBySenderPublicKeysFromValidatedQueue = this._queues.validated.removeFor(
+			queueCheckers.checkTransactionForSenderPublicKey(transactions),
+		);
+
+		// Remove transactions from the validated queue if they are of a type which includes unique data and that type is included in the confirmed transactions
+		const removedTransactionsByTypesFromValidatedQueue = this._queues.validated.removeFor(
+			queueCheckers.checkTransactionForTypes(
+				confirmedTransactionsWithUniqueData,
+			),
+		);
+
+		// Add removed transactions from the validated queue to the received queue
+		// Rationale is explained in issue #963
+		this._queues.received.enqueueMany([
+			...removedTransactionsBySenderPublicKeysFromValidatedQueue,
+			...removedTransactionsByTypesFromValidatedQueue,
+		]);
+
 		// Remove transactions from the verified, pending and ready queues which were sent from the accounts in the confirmed transactions
-		const removedTransactionsBySenderPublicKeys = this.removeTransactionsFromQueues(
+		const removedTransactionsBySenderPublicKeysFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForSenderPublicKey(transactions),
 		);
 
 		// Remove all transactions from the verified, pending and ready queues if they are of a type which includes unique data and that type is included in the confirmed transactions
-		const confirmedTransactionsWithUniqueData = transactions.filter(
-			(transaction: Transaction) => transaction.containsUniqueData,
-		);
-		const removedTransactionsByTypes = this.removeTransactionsFromQueues(
+		const removedTransactionsByTypesFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForTypes(
 				confirmedTransactionsWithUniqueData,
@@ -334,19 +368,33 @@ export class TransactionPool extends EventEmitter {
 
 		// Add transactions which need to be reverified to the validated queue
 		this._queues.validated.enqueueMany([
-			...removedTransactionsBySenderPublicKeys,
-			...removedTransactionsByTypes,
+			...removedTransactionsBySenderPublicKeysFromOtherQueues,
+			...removedTransactionsByTypesFromOtherQueues,
 		]);
 	}
 
 	public reverifyTransactionsFromSenders(
 		senderPublicKeys: ReadonlyArray<string>,
 	): void {
-		// Move transactions from the verified, pending and ready queues to the validated queue which were sent from sender accounts
 		const { received, validated, ...otherQueues } = this._queues;
 		const senderProperty: queueCheckers.TransactionFilterableKeys =
 			'senderPublicKey';
-		const removedTransactionsBySenderPublicKeys = this.removeTransactionsFromQueues(
+
+		// Move transactions from the validated queue to the received queue which were sent from sender accounts
+		// Rationale is explained in issue #963
+		const removedTransactionsBySenderPublicKeysFromValidatedQueue = this._queues.validated.removeFor(
+			queueCheckers.checkTransactionPropertyForValues(
+				senderPublicKeys,
+				senderProperty,
+			),
+		);
+
+		this._queues.received.enqueueMany(
+			removedTransactionsBySenderPublicKeysFromValidatedQueue,
+		);
+
+		// Move transactions from the verified, pending and ready queues to the validated queue which were sent from sender accounts
+		const removedTransactionsBySenderPublicKeysFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionPropertyForValues(
 				senderPublicKeys,
@@ -354,7 +402,9 @@ export class TransactionPool extends EventEmitter {
 			),
 		);
 
-		this._queues.validated.enqueueMany(removedTransactionsBySenderPublicKeys);
+		this._queues.validated.enqueueMany(
+			removedTransactionsBySenderPublicKeysFromOtherQueues,
+		);
 	}
 
 	// This function is currently unused, the usability of this function will be decided after performance tests
