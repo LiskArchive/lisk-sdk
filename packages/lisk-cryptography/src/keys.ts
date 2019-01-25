@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { bufferToHex } from './buffer';
+import { bufferToHex, hexToBuffer } from './buffer';
 import { getAddressFromPublicKey } from './convert';
 import { hash } from './hash';
-import { getKeyPair } from './nacl';
+import { getKeyPair, getPublicKey } from './nacl';
 
 export interface KeypairBytes {
 	readonly privateKeyBytes: Buffer;
@@ -69,6 +69,13 @@ export const getAddressAndPublicKeyFromPassphrase = (
 
 export const getAddressFromPassphrase = (passphrase: string): string => {
 	const { publicKey } = getKeys(passphrase);
+
+	return getAddressFromPublicKey(publicKey);
+};
+
+export const getAddressFromPrivateKey = (privateKey: string): string => {
+	const publicKeyBytes = getPublicKey(hexToBuffer(privateKey));
+	const publicKey = bufferToHex(publicKeyBytes);
 
 	return getAddressFromPublicKey(publicKey);
 };
