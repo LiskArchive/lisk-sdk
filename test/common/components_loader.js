@@ -30,7 +30,7 @@ const componentsLoader = new function() {
 	 */
 	this.initCache = function(cb) {
 		const cache = createCache(__testContext.config.redis, this.logger);
-		return cache.connect(err => {
+		return cache.boostrap().then(err => {
 			if (err) {
 				return cb(err);
 			}

@@ -177,7 +177,7 @@ function __init(initScope, done) {
 				},
 				components(cb) {
 					const cache = createCache(__testContext.config.redis, logger);
-					return cache.connect(err => {
+					return cache.connect().then(err => {
 						if (err) {
 							return cb(err);
 						}

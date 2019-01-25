@@ -16,6 +16,7 @@
 
 const async = require('async');
 const redis = require('redis');
+const { promisify } = require('util');
 const transactionTypes = require('../../helpers/transaction_types');
 const { CACHE } = require('./constants');
 
@@ -42,21 +43,20 @@ class Cache {
 		this.cacheReady = false;
 	}
 
-	connect(cb) {
+	async boostrap() {
 		this.client = redis.createClient(this.options);
-		this.client.once('error', this._onConnectionError.bind(this, () => cb()));
-		this.client.once('ready', this._onReady.bind(this, () => cb()));
+		this.client.once('error', this._onConnectionError.bind(this));
+		this.client.once('ready', this._onReady.bind(this));
 	}
 
-	_onConnectionError(cb, err) {
+	_onConnectionError(err) {
 		// Called if the "error" event occured before "ready" event
 		this.logger.info('App was unable to connect to Cache server', err);
 		// Don't attempt to connect to server again as the connection was never established before
-		this.client.quit();
-		return cb();
+		this.quit();
 	}
 
-	_onReady(cb) {
+	_onReady() {
 		// Called after "ready" Cache event
 		this.logger.info('App connected to Cache server');
 		this.client.removeListener('error', this._onConnectionError);
@@ -65,7 +65,6 @@ class Cache {
 			// Log Cache errors before and after server was connected
 			this.logger.info('Cache:', err);
 		});
-		return cb();
 	}
 
 	/**
@@ -207,12 +206,13 @@ class Cache {
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	flushDb(cb) {
+	async flushDb() {
 		this.logger.debug('Cache - Flush database');
 		if (!this.isConnected()) {
-			return cb(errorCacheDisabled);
+			return new Error(errorCacheDisabled);
 		}
-		return this.client.flushdb(cb);
+		const flushdbAsync = promisify(this.client.flushdb).bind(this.client);
+		return flushdbAsync();
 	}
 
 	/**
@@ -222,9 +222,9 @@ class Cache {
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	cleanup(cb) {
+	async cleanup() {
 		this.logger.debug('Cache - Clean up database');
-		this.quit(cb);
+		this.quit();
 	}
 
 	/**
@@ -234,13 +234,14 @@ class Cache {
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	quit(cb) {
+	async quit() {
 		this.logger.debug('Cache - Quit database');
 		if (!this.isConnected()) {
 			// Because connection is not established in the first place
-			return cb();
+			return null;
 		}
-		return this.client.quit(cb);
+		const quitAsync = promisify(this.client.quit).bind(this.client);
+		return quitAsync();
 	}
 
 	/**
