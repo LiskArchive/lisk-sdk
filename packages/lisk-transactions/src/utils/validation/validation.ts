@@ -38,7 +38,7 @@ export const validatePublicKey = (publicKey: string) => {
 
 export const validateUsername = (username: string) => {
 	if (
-		username.trim() !== username.trim().toLowerCase()
+		username !== username.trim().toLowerCase()
 	) {
 		return false;
 	}
