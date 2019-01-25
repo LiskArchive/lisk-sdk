@@ -91,7 +91,10 @@ describe('blocks', () => {
 			genesisBlock: dummyGenesisblock,
 			bus: busStub,
 			balancesSequence: balancesSequenceStub,
-			config: { loading: {} },
+			config: {
+				loading: {},
+				cacheEnabled: sinonSandbox.stub().returns(true),
+			},
 		};
 
 		blocksInstance = new Blocks((err, cbSelf) => {
@@ -297,16 +300,18 @@ describe('blocks', () => {
 			blocksInstance.onBind(onBindScope);
 			return expect(__private.loaded).to.be.true;
 		});
+
+		it('should assign component property', () => {
+			return expect(components).to.have.property('cache');
+		});
 	});
 
 	describe('onNewBlock', () => {
 		const block = { id: 123 };
 
 		beforeEach(done => {
-			components = {
-				cache: {
-					clearCacheFor: sinonSandbox.stub().callsArg(1),
-				},
+			components.cache = {
+				clearCacheFor: sinonSandbox.stub().callsArg(1),
 			};
 			blocksInstance.onNewBlock(block);
 			done();
