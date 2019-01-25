@@ -310,7 +310,6 @@ describe('blocks', () => {
 
 		describe('when cache is enabled', () => {
 			beforeEach(done => {
-				scope.config.cacheEnabled = sinonSandbox.stub().returns(true);
 				blocksInstance = new Blocks(err => {
 					expect(err).to.be.undefined;
 					components = Blocks.__get__('components');
@@ -324,7 +323,6 @@ describe('blocks', () => {
 
 			afterEach(done => {
 				components.cache.clearCacheFor.reset();
-				scope.config.cacheEnabled.reset();
 				done();
 			});
 
@@ -338,39 +336,6 @@ describe('blocks', () => {
 				expect(
 					library.network.io.sockets.emit.calledWith('blocks/change', block)
 				).to.be.true;
-
-				done();
-			});
-		});
-
-		describe('when cache is not enabled', () => {
-			beforeEach(done => {
-				blocksInstance = new Blocks(err => {
-					expect(err).to.be.undefined;
-					components = Blocks.__get__('components');
-					components.cache = {
-						clearCacheFor: sinonSandbox.stub().callsArg(1),
-					};
-					blocksInstance.onNewBlock(block);
-					done();
-				}, scope);
-			});
-
-			afterEach(done => {
-				components.cache.clearCacheFor.reset();
-				done();
-			});
-
-			it('should not call clearCacheFor', done => {
-				expect(components.cache.clearCacheFor.called).to.be.false;
-
-				done();
-			});
-
-			it('should not call library.network.io.sockets.emit with "blocks/change" and block', done => {
-				expect(
-					library.network.io.sockets.emit.calledWith('blocks/change', block)
-				).to.be.false;
 
 				done();
 			});

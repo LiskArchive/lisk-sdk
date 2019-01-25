@@ -64,9 +64,6 @@ class Transactions {
 				transaction: scope.logic.transaction,
 			},
 			genesisBlock: scope.genesisBlock,
-			config: {
-				cacheEnabled: scope.config.cacheEnabled,
-			},
 		};
 
 		self = this;
@@ -657,7 +654,7 @@ Transactions.prototype.shared = {
 		async.waterfall(
 			[
 				function getConfirmedCountFromCache(waterCb) {
-					if (library.config.cacheEnabled) {
+					if (components.cache) {
 						return components.cache.getJsonForKey(
 							CACHE.KEYS.transactionCount,
 							(err, data) => {
@@ -694,7 +691,7 @@ Transactions.prototype.shared = {
 						// Cache already persisted, no need to set cache again
 						return setImmediate(waterCb, null, cachedCount);
 					}
-					if (library.config.cacheEnabled) {
+					if (components.cache) {
 						return components.cache.setJsonForKey(
 							CACHE.KEYS.transactionCount,
 							{

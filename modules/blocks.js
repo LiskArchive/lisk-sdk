@@ -57,9 +57,6 @@ class Blocks {
 		library = {
 			logger: scope.logger,
 			network: scope.network,
-			config: {
-				cacheEnabled: scope.config.cacheEnabled,
-			},
 		};
 
 		// Initialize submodules with library content
@@ -244,7 +241,7 @@ Blocks.prototype.onBind = function(scope) {
  * @todo Add @returns tag
  */
 Blocks.prototype.onNewBlock = function(block) {
-	if (library.config.cacheEnabled) {
+	if (components.cache) {
 		const tasks = [CACHE.KEYS.blocksApi, CACHE.KEYS.transactionsApi].map(
 			pattern => callback => components.cache.clearCacheFor(pattern, callback)
 		);
