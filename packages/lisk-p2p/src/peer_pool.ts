@@ -54,11 +54,10 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
 	private readonly _handlePeerConnect: (peerInfo: PeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: PeerInfo) => void;
-	private _nodeInfo: P2PNodeInfo;
+	private _nodeInfo: P2PNodeInfo | undefined;
 
-	public constructor(initialNodeInfo: P2PNodeInfo) {
+	public constructor() {
 		super();
-		this._nodeInfo = initialNodeInfo;
 		this._peerMap = new Map();
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -67,8 +66,6 @@ export class PeerPool extends EventEmitter {
 				// The PeerPool has the necessary information to handle this request on its own.
 				// This request doesn't need to propagate to its parent class.
 				this._handleGetAllPeersRequest(request);
-
-				return;
 			}
 
 			// Re-emit the request to allow it to bubble up the class hierarchy.
@@ -98,7 +95,7 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
-	public get nodeInfo(): P2PNodeInfo {
+	public get nodeInfo(): P2PNodeInfo | undefined {
 		return this._nodeInfo;
 	}
 
@@ -119,9 +116,7 @@ export class PeerPool extends EventEmitter {
 		peers: ReadonlyArray<PeerInfo>,
 		blacklist: ReadonlyArray<PeerInfo>,
 	): Promise<ReadonlyArray<PeerInfo>> {
-		const peersObjectList = peers.map((peerInfo: PeerInfo) => {
-			return this.addPeer(peerInfo); // Binding of events will be done in addPeer
-		});
+		const peersObjectList = peers.map((peerInfo: PeerInfo) => this.addPeer(peerInfo));
 
 		const disoveredPeers = await discoverPeers(peersObjectList, {
 			blacklist: blacklist.map(peer => peer.ipAddress),
@@ -146,7 +141,9 @@ export class PeerPool extends EventEmitter {
 		const peer = new Peer(peerInfo, inboundSocket);
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
-		peer.applyNodeInfo(this._nodeInfo);
+		if (this._nodeInfo) {
+			peer.applyNodeInfo(this._nodeInfo);
+		}
 		peer.connect();
 
 		return peer;
@@ -209,11 +206,21 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _handleGetAllPeersRequest(request: P2PRequest): void {
-		// TODO ASAP: Apply peer selection to only send back good peers (a subset of all peers)
-		// TODO ASAP: Send back peerInfo as ProtocolPeerInfo to be compatible with 1.0 protocol
+		const peerSelectionParams: PeerOptions = {
+			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
+		};
+		
 		request.end({
 			success: true,
-			peers: this.getAllPeerInfos(),
+			peers: this.selectPeers(peerSelectionParams).map((peer: Peer) => {
+				const peerInfo = peer.peerInfo;
+				
+				return {
+					...peerInfo,
+					ip: peerInfo.ipAddress,
+					wsPort: String(peerInfo.wsPort)
+				};
+			})
 		});
 	}
 
