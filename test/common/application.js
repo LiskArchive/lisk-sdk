@@ -176,16 +176,15 @@ function __init(initScope, done) {
 					});
 				},
 				components(cb) {
-					const cacheComponent = createCache(
-						__testContext.config.redis,
-						logger
-					);
-					return cacheComponent.connect(err => {
+					const cache = createCache(__testContext.config.redis, logger);
+					return cache.connect(err => {
 						if (err) {
 							return cb(err);
 						}
-						components.push(cacheComponent);
-						return cb(null, cacheComponent);
+						components.push(cache);
+						return cb(null, {
+							cache,
+						});
 					});
 				},
 				webSocket: [
@@ -532,7 +531,9 @@ function __init(initScope, done) {
 }
 
 function cleanup(done) {
-	currentAppScope.components.cleanup();
+	if (currentAppScope.components !== undefined) {
+		currentAppScope.components.cache.cleanup();
+	}
 	async.eachSeries(
 		currentAppScope.modules,
 		(module, cb) => {

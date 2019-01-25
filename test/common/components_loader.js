@@ -29,12 +29,14 @@ const componentsLoader = new function() {
 	 * @param {function} cb
 	 */
 	this.initCache = function(cb) {
-		const cacheComponent = createCache(__testContext.config.redis, this.logger);
-		return cacheComponent.connect(err => {
+		const cache = createCache(__testContext.config.redis, this.logger);
+		return cache.connect(err => {
 			if (err) {
 				return cb(err);
 			}
-			return cb(null, cacheComponent);
+			return cb(null, {
+				cache,
+			});
 		});
 	};
 }();

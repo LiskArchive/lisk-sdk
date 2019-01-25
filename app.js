@@ -494,13 +494,15 @@ d.run(() => {
 				if (!config.cacheEnabled) {
 					return cb();
 				}
-				const cacheComponent = createCache(config.cache, logger);
-				return cacheComponent.connect(err => {
+				const cache = createCache(config.cache, logger);
+				return cache.connect(err => {
 					if (err) {
 						return cb(err);
 					}
-					components.push(cacheComponent);
-					return cb(null, cacheComponent);
+					components.push(cache);
+					return cb(null, {
+						cache,
+					});
 				});
 			},
 
@@ -869,7 +871,7 @@ d.run(() => {
 					scope.socketCluster.removeAllListeners('fail');
 					scope.socketCluster.destroy();
 				}
-				if (components.length !== 0) {
+				if (components !== undefined) {
 					components.map(component => component.cleanup());
 				}
 				// Run cleanup operation on each module before shutting down the node;

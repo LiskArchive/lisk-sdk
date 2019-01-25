@@ -26,11 +26,12 @@ describe('components: cache', () => {
 
 	before(done => {
 		__testContext.config.cacheEnabled = true;
-		componentsLoader.initCache((err, cacheComponent) => {
+		componentsLoader.initCache((err, __components) => {
 			expect(err).to.not.exist;
-			expect(cacheComponent).to.be.an('object');
-			cache = cacheComponent;
-			return done();
+			expect(__components).to.be.an('object');
+			expect(__components).to.have.property('cache');
+			cache = __components.cache;
+			done();
 		});
 	});
 

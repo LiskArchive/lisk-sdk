@@ -228,7 +228,7 @@ Blocks.prototype.isCleaning = {
 Blocks.prototype.onBind = function(scope) {
 	// TODO: move here blocks submodules modules load from app.js.
 	components = {
-		cache: scope.components,
+		cache: scope.components ? scope.components.cache : undefined,
 	};
 
 	// Set module as loaded

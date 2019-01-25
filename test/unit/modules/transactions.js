@@ -136,10 +136,11 @@ describe('transactions', () => {
 					modulesLoader.initLogic(AccountLogic, {}, cb);
 				},
 				cacheComponent(cb) {
-					componentsLoader.initCache((err, __cache) => {
+					componentsLoader.initCache((err, __components) => {
 						expect(err).to.not.exist;
-						expect(__cache).to.be.an('object');
-						cache = __cache;
+						expect(__components).to.be.an('object');
+						expect(__components).to.have.property('cache');
+						cache = __components.cache;
 						cb();
 					});
 				},
@@ -241,7 +242,9 @@ describe('transactions', () => {
 						});
 
 						__transactionModule.onBind({
-							components: cache,
+							components: {
+								cache,
+							},
 							modules: {
 								accounts: result.accountsModule,
 								loader: result.loaderModule,

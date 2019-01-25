@@ -594,7 +594,7 @@ Transactions.prototype.isLoaded = function() {
  */
 Transactions.prototype.onBind = function(scope) {
 	components = {
-		cache: scope.components,
+		cache: scope.components ? scope.components.cache : undefined,
 	};
 
 	modules = {
