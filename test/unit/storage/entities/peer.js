@@ -17,6 +17,7 @@
 
 const { BaseEntity, Peer } = require('../../../../storage/entities');
 const storageSandbox = require('../../../common/storage_sandbox');
+const peersFixtures = require('../../../fixtures/peers');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
@@ -309,7 +310,18 @@ describe('Peer', () => {
 			return expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected;
 		});
 
-		it('should create multiple account objects successfully');
+		it('should create multiple objects successfully', async () => {
+			// Arrange
+			const peers = [
+				new peersFixtures.Peer(),
+				new peersFixtures.Peer(),
+			];
+			// Act
+			await storage.entities.Peer.create(peers);
+			const savedPeers = await storage.entities.Peer.get({ ip_in: [peers[0].ip, peers[1].ip] });
+			// Assert
+			expect(savedPeers).length.to.be(2);
+		});
 	});
 
 	describe('update()', () => {

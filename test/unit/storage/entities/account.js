@@ -368,7 +368,9 @@ describe('Account', () => {
 			expect(account.fields).to.include.all.keys(validAccountFields);
 		});
 
-		it('should setup specific filters');
+		it('should setup specific filters', async () => {
+			expect(AccountEntity.getFilters()).to.have.members(validFilters);
+		});
 	});
 
 	describe('getOne()', () => {
