@@ -146,12 +146,12 @@ export class DelegateTransaction extends BaseTransaction {
 			return transaction;
 		}
 
-		const transferTransaction = new DelegateTransaction(
+		const delegateTransaction = new DelegateTransaction(
 			transaction as TransactionJSON,
 		);
-		transferTransaction.sign(passphrase, secondPassphrase);
+		delegateTransaction.sign(passphrase, secondPassphrase);
 
-		return transferTransaction.toJSON();
+		return delegateTransaction.toJSON();
 	}
 
 	public static fromJSON(tx: TransactionJSON): DelegateTransaction {
