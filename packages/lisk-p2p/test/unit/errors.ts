@@ -19,6 +19,10 @@ import {
 	PeerTransportError,
 	RPCResponseError,
 	InvalidRPCResponseError,
+	InvalidProtocolMessageError,
+	InvalidRPCRequestError,
+	RPCResponseAlreadySentError,
+	RequestFailError,
 } from '../../src';
 
 describe('errors', () => {
@@ -220,6 +224,113 @@ describe('errors', () => {
 			it('should set error message when passed an argument', () => {
 				return expect(invalidRPCResponse.message).to.eql(defaultMessage);
 			});
+		});
+	});
+
+	describe('#InvalidProtocolMessageError', () => {
+		let invalidProtocolMessageError: InvalidProtocolMessageError;
+		const defaultMessage = 'Invalid protocol message';
+
+		beforeEach(async () => {
+			invalidProtocolMessageError = new InvalidProtocolMessageError(
+				defaultMessage,
+			);
+			return Promise.resolve();
+		});
+
+		it('should create a new instance of InvalidProtocolMessageError', () => {
+			return expect(invalidProtocolMessageError)
+				.to.be.an('object')
+				.and.be.instanceof(InvalidProtocolMessageError);
+		});
+
+		it('should set error name to `InvalidProtocolMessageError`', () => {
+			return expect(invalidProtocolMessageError.name).to.eql(
+				'InvalidProtocolMessageError',
+			);
+		});
+
+		it('should set error message when passed an argument', () => {
+			return expect(invalidProtocolMessageError.message).to.eql(defaultMessage);
+		});
+	});
+
+	describe('#InvalidRPCRequestError', () => {
+		let invalidRPCRequestError: InvalidRPCRequestError;
+		const defaultMessage = 'Invalid RPC request error';
+
+		beforeEach(async () => {
+			invalidRPCRequestError = new InvalidRPCRequestError(defaultMessage);
+			return Promise.resolve();
+		});
+
+		it('should create a new instance of InvalidRPCRequestError', () => {
+			return expect(invalidRPCRequestError)
+				.to.be.an('object')
+				.and.be.instanceof(InvalidRPCRequestError);
+		});
+
+		it('should set error name to `InvalidRPCRequestError`', () => {
+			return expect(invalidRPCRequestError.name).to.eql(
+				'InvalidRPCRequestError',
+			);
+		});
+
+		it('should set error message when passed an argument', () => {
+			return expect(invalidRPCRequestError.message).to.eql(defaultMessage);
+		});
+	});
+
+	describe('#RPCResponseAlreadySentError', () => {
+		let rpcResponseAlreadySentError: RPCResponseAlreadySentError;
+		const defaultMessage = 'Response was already sent';
+
+		beforeEach(async () => {
+			rpcResponseAlreadySentError = new RPCResponseAlreadySentError(
+				defaultMessage,
+			);
+			return Promise.resolve();
+		});
+
+		it('should create a new instance of RPCResponseAlreadySentError', () => {
+			return expect(rpcResponseAlreadySentError)
+				.to.be.an('object')
+				.and.be.instanceof(RPCResponseAlreadySentError);
+		});
+
+		it('should set error name to `RPCResponseAlreadySentError`', () => {
+			return expect(rpcResponseAlreadySentError.name).to.eql(
+				'ResponseAlreadySentError',
+			);
+		});
+
+		it('should set error message when passed an argument', () => {
+			return expect(rpcResponseAlreadySentError.message).to.eql(defaultMessage);
+		});
+	});
+
+	describe('#RequestFailError', () => {
+		let requestFailError: RequestFailError;
+		const defaultMessage =
+			'Request failed due to no peers found in peer selection';
+
+		beforeEach(async () => {
+			requestFailError = new RequestFailError(defaultMessage);
+			return Promise.resolve();
+		});
+
+		it('should create a new instance of RequestFailError', () => {
+			return expect(requestFailError)
+				.to.be.an('object')
+				.and.be.instanceof(RequestFailError);
+		});
+
+		it('should set error name to `RequestFailError`', () => {
+			return expect(requestFailError.name).to.eql('RequestFailError');
+		});
+
+		it('should set error message when passed an argument', () => {
+			return expect(requestFailError.message).to.eql(defaultMessage);
 		});
 	});
 });
