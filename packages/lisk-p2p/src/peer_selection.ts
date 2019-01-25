@@ -27,6 +27,9 @@ interface HistogramValues {
 	histogram: Histogram;
 	max: number;
 }
+
+
+// TODO ASAP: Only select peers which have all available PeerInfo properties.
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,
@@ -65,10 +68,15 @@ export const selectPeers = (
 
 	// Perform histogram cut of peers too far from histogram maximum
 	const processedPeers = sortedPeers.filter(
-		peer =>
-			peer &&
-			Math.abs(calculatedHistogramValues.height - peer.height) <
-				aggregation + 1,
+		peer => {
+			const isTriedPeer: boolean = !!(peer.peerInfo && peer.peerInfo.isTriedPeer);
+
+			return peer &&
+				Math.abs(
+					calculatedHistogramValues.height - peer.height
+				) < aggregation + 1 &&
+				isTriedPeer;
+		}
 	);
 
 	if (numOfPeers <= 0) {
