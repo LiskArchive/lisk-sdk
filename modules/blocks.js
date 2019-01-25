@@ -14,8 +14,9 @@
 
 'use strict';
 
-const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME, CACHE } = global.constants;
+const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const async = require('async');
+const { CACHE } = require('../components/cache/constants');
 // Submodules
 const BlocksVerify = require('./blocks/verify');
 const BlocksProcess = require('./blocks/process');

@@ -16,8 +16,8 @@
 
 const async = require('async');
 const redis = require('redis');
-const transactionTypes = require('../helpers/transaction_types');
-const { CACHE } = require('../config/default/constants');
+const transactionTypes = require('../../helpers/transaction_types');
+const { CACHE } = require('./constants');
 
 const errorCacheDisabled = 'Cache Disabled';
 

@@ -14,9 +14,9 @@
 
 'use strict';
 
-const { CACHE } = global.constants;
 const async = require('async');
 const lisk = require('lisk-elements').default;
+const { CACHE } = require('../../../components/cache/constants');
 const componentsLoader = require('../../common/components_loader');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');

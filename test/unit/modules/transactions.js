@@ -14,10 +14,9 @@
 
 'use strict';
 
-const { CACHE } = global.constants;
-
 const async = require('async');
 const rewire = require('rewire');
+const { CACHE } = require('../../../components/cache/constants');
 const transactionTypes = require('../../../helpers/transaction_types.js');
 const componentsLoader = require('../../common/components_loader');
 const modulesLoader = require('../../common/modules_loader');

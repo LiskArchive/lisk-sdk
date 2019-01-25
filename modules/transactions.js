@@ -14,9 +14,9 @@
 
 'use strict';
 
-const { CACHE } = global.constants;
 const _ = require('lodash');
 const async = require('async');
+const { CACHE } = require('../components/cache/constants');
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;
