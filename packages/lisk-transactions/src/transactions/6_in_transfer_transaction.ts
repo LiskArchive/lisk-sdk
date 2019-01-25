@@ -282,7 +282,7 @@ export class InTransferTransaction extends BaseTransaction {
 				new TransactionError(
 					`Account does not have enough LSK: ${
 						sender.address
-					},here?, balance: ${convertBeddowsToLSK(sender.balance)}.`,
+					}, balance: ${convertBeddowsToLSK(sender.balance)}.`,
 					this.id,
 				),
 			);
