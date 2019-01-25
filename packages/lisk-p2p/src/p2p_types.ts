@@ -30,11 +30,24 @@ export interface P2PMessagePacket {
 	readonly event: string;
 }
 
-export interface P2PNodeInfo {
+// TODO ASAP: This should be merged with P2PNodeInfo below; once it has been made more generic.
+export interface P2PNodeInfoChange {
 	readonly height: number;
+	readonly broadhash: string;
+	/* tslint:disable-next-line:no-mixed-interface */
+	readonly [key: string]: unknown;
+}
+
+// TODO ASAP: We need to think of a strategy for making P2PNodeInfo more generic.
+// The user of the P2P library should be able to provide custom fields.
+// Also, fields like height, broadhash and nonce are specific to the Lisk blockchain and may not apply to all P2P apps which this library may cater for.
+export interface P2PNodeInfo {
 	readonly os: string;
 	readonly version: string;
 	readonly wsPort: number;
+	readonly height: number;
+	readonly broadhash: string;
+	readonly nonce: string;
 }
 
 export interface P2PPenalty {}
@@ -47,6 +60,7 @@ export interface P2PConfig {
 	readonly version: string;
 	readonly wsEngine?: string;
 	readonly wsPort: number;
+	readonly nonce: string,
 }
 
 // Network info exposed by the P2P library.
