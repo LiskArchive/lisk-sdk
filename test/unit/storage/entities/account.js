@@ -1022,20 +1022,47 @@ describe('Account', () => {
 			expect(account.parseFilters.calledWith(validFilter)).to.be.true;
 		});
 
-		it('should call getUpdateSet with proper params');
+		it('should call getUpdateSet with proper params', async () => {
+			// Arrange
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves(),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+
+			const validFilter = {
+				address: 'test1234',
+			};
+
+			const randomAccount = new accountFixtures.Account();
+
+			const account = new Account(localAdapter);
+			delete randomAccount.address;
+			account.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			account.parseFilters = sinonSandbox.stub();
+			account.getUpdateSet = sinonSandbox.stub();
+			// Act
+			account.update(validFilter, randomAccount);
+			// Assert
+			expect(account.getUpdateSet.calledWith(randomAccount)).to.be.true;
+		});
+
 		it('should call adapter.executeFile with proper params', async () => {
+			// Arrange
 			sinonSandbox.spy(adapter, 'executeFile');
 			const account = new accountFixtures.Account();
-
+			// Act
 			await AccountEntity.update({ address: account.address }, account);
-
+			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.update);
 		});
+
 		it('should update all accounts successfully with matching condition', async () => {
+			// Arrange
 			const account = new accountFixtures.Account();
 			const delegate = new accountFixtures.Delegate();
-
+			// Act
 			await AccountEntity.create(account);
 			await AccountEntity.create(delegate);
 
@@ -1044,16 +1071,17 @@ describe('Account', () => {
 
 			const result1 = await AccountEntity.getOne({ address: delegate.address });
 			const result2 = await AccountEntity.getOne({ address: account.address });
-
+			// Assert
 			expect(result1.balance).to.be.eql('1234');
 			expect(result2.balance).to.be.eql('5678');
 		});
 		it('should not pass the readonly fields to update set', async () => {
+			// Arrange
 			sinonSandbox.spy(AccountEntity, 'getUpdateSet');
 			const account = new accountFixtures.Account();
-
+			// Act
 			await AccountEntity.update({ address: account.address }, account);
-
+			// Assert
 			expect(AccountEntity.getUpdateSet).to.be.calledOnce;
 			expect(AccountEntity.getUpdateSet.firstCall.args[0]).to.not.have.keys([
 				'address',
@@ -1061,6 +1089,7 @@ describe('Account', () => {
 		});
 
 		it('should skip the readonly fields to update', async () => {
+			// Arrange
 			const account = new accountFixtures.Account();
 			const address = account.address;
 
@@ -1069,17 +1098,31 @@ describe('Account', () => {
 				{ address },
 				{ balance: '1234', address: '1234L' }
 			);
+			// Act
 			const result = await AccountEntity.getOne({ address });
-
+			// Assert
 			expect(result.balance).to.be.eql('1234');
 			expect(result.address).to.not.eql('1234L');
 			expect(result.address).to.be.eql(address);
 		});
+
 		it('should resolve promise without any error if no data is passed', async () => {
 			expect(AccountEntity.update({ address: '123L' }, {})).to.be.fulfilled;
 		});
-		it('should skip if any invalid attribute is provided');
-		it('should not throw error if no matching record found');
+
+		it('should throw if any invalid attribute is provided', async () => {
+			expect(async() => AccountEntity.update({ address: '123L' }, { invalid: true })).to.throw;
+		});
+
+
+		it('should not throw error if no matching record found', async () => {
+			// Arrange
+			const filter = { rank: -100 };
+			// Act & Assert
+			expect(() => {
+				AccountEntity.update(filter, { balance: 20 });
+			}).not.to.throw();
+		});
 	});
 
 	describe('upsert', () => {
@@ -1209,7 +1252,30 @@ describe('Account', () => {
 			expect(account.parseFilters.calledWith(validFilter)).to.be.true;
 		});
 
-		it('should call getUpdateSet with proper params');
+		it('should call getUpdateSet with proper params', async () => {
+			// Arrange
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().resolves(),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+
+			const validFilter = {
+				address: 'test1234',
+			};
+
+			const randomAccount = new accountFixtures.Account();
+
+			const account = new Account(localAdapter);
+			delete randomAccount.address;
+			account.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			account.parseFilters = sinonSandbox.stub();
+			account.getUpdateSet = sinonSandbox.stub();
+			// Act
+			account.updateOne(validFilter, randomAccount);
+			// Assert
+			expect(account.getUpdateSet.calledWith(randomAccount)).to.be.true;
+		});
 
 		it('should call adapter.executeFile with proper params', async () => {
 			// Arrange
@@ -1222,10 +1288,36 @@ describe('Account', () => {
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.updateOne);
 		});
 
-		it('should update only one account object successfully with matching condition');
+		it('should update only one account object successfully with matching condition', async () => {
+			// Arrange
+			const accounts = [
+				new accountFixtures.Account(),
+				new accountFixtures.Account(),
+			];
+			accounts[0].rank = 1000;
+			accounts[1].rank = 1000;
 
-		it('should skip if any invalid attribute is provided');
-		it('should not throw error if no matching record found');
+			const filter = { rank: 1000 };
+
+			await AccountEntity.create(accounts);
+			// Act
+			await AccountEntity.updateOne(filter, { balance: 20 });
+			const results = await AccountEntity.get(filter);
+			const updated = results.filter(anAccount => anAccount.balance === '20');
+			// Assert
+			expect(updated.length).to.be.eql(1);
+		});
+
+		it('should throw if any invalid attribute is provided');
+
+		it('should not throw error if no matching record found', async () => {
+			// Arrange
+			const filter = { rank: -100 };
+			// Act & Assert
+			expect(() => {
+				AccountEntity.updateOne(filter, { balance: 20 });
+			}).not.to.throw();
+		});
 	});
 
 	describe('isPersisted()', () => {
@@ -1280,9 +1372,32 @@ describe('Account', () => {
 			expect(account.parseFilters.calledWith(validFilter)).to.be.true;
 		});
 
-		it('should call adapter.executeFile with proper params');
-		it('should resolve with true if matching record found');
-		it('should resolve with false if matching record not found');
+		it('should call adapter.executeFile with proper params', async () => {
+			// Arrange
+			sinonSandbox.spy(adapter, 'executeFile');
+			const account = new accountFixtures.Account();
+			// Act
+			await AccountEntity.isPersisted({ address: account.address }, account);
+			// Assert
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.isPersisted);
+		});
+
+		it('should resolve with true if matching record found', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const res = await AccountEntity.isPersisted({ address: account.address });
+			expect(res).to.be.true;
+		});
+
+		it('should resolve with false if matching record not found', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const res = await AccountEntity.isPersisted({ address: 'ABFFFF' });
+			expect(res).to.be.false;
+		});
 	});
 
 	describe('delete()', () => {
@@ -1401,8 +1516,32 @@ describe('Account', () => {
 	});
 
 	describe('mergeFilters()', () => {
-		it('should accept filters as single object');
-		it('should accept filters as array of objects');
+		it('should accept filters as single object', async () => {
+			// Arrange
+			const validFilter = {
+				address: 'ABCFFF',
+			};
+			const mergeFiltersSpy = sinonSandbox.spy(AccountEntity, 'mergeFilters');
+			// Act & Assert
+			expect(() => {
+				AccountEntity.get(validFilter);
+			}).not.to.throw(NonSupportedFilterTypeError);
+			expect(mergeFiltersSpy.calledWith(validFilter)).to.be.true;
+		});
+
+		it('should accept filters as array of objects', async () => {
+			// Arrange
+			const validFilter = {
+				address: 'ABCFFF',
+			};
+			const mergeFiltersSpy = sinonSandbox.spy(AccountEntity, 'mergeFilters');
+			// Act & Assert
+			expect(() => {
+				AccountEntity.get([validFilter, validFilter]);
+			}).not.to.throw(NonSupportedFilterTypeError);
+			expect(mergeFiltersSpy.calledWith([validFilter, validFilter])).to.be.true;
+		});
+
 		it(
 			'should merge provided filter with default filters by preserving default filters values '
 		);
@@ -1796,10 +1935,18 @@ describe('Account', () => {
 	});
 
 	describe('syncDelegatesRanks', () => {
-		it('should use the correct SQL');
-		it(
-			'should sync rank attribute of all delegates based on their vote value and public key'
-		);
+		it('should use the correct SQL', async () => {
+			// Arrange
+			sinonSandbox.spy(adapter, 'executeFile');
+			// Act
+			await AccountEntity.syncDelegatesRanks();
+			// Assert
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.syncDelegatesRank);
+		});
+
+		it('should sync rank attribute of all delegates based on their vote value and public key');
+
 		it('should not throw error if there is no delegate available');
 	});
 
