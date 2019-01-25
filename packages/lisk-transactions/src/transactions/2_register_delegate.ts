@@ -42,7 +42,6 @@ export interface RequiredDelegateState {
 
 export interface DelegateObject {
 	readonly username: string;
-	readonly publicKey: string;
 }
 
 export interface DelegateAsset {
