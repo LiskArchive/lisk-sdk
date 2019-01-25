@@ -47,6 +47,7 @@ class BaseAdapter extends EventEmitter {
 	get EVENT_DISCONNECT() {
 		return EVENT_DISCONNECT;
 	}
+
 	connect() {
 		throw new ImplementationPendingError();
 	}

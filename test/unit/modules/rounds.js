@@ -182,7 +182,7 @@ describe('rounds', () => {
 					number: round,
 				})
 			).to.be.true;
-			return validScope.network.io.sockets.emit.reset();
+			return validScope.network.io.sockets.emit.resetHistory();
 		});
 	});
 
@@ -514,7 +514,7 @@ describe('rounds', () => {
 
 			beforeEach(() => {
 				bus = get('library.bus.message');
-				return bus.reset();
+				return bus.resetHistory();
 			});
 
 			describe('when true', () => {
@@ -529,7 +529,7 @@ describe('rounds', () => {
 				});
 
 				afterEach(() => {
-					return bus.reset();
+					return bus.resetHistory();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
@@ -567,7 +567,7 @@ describe('rounds', () => {
 				});
 
 				after(() => {
-					return bus.reset();
+					return bus.resetHistory();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {

@@ -44,7 +44,7 @@ describe('PeersUpdateRules', () => {
 		sinonSandbox
 			.stub(peersUpdateRules.slaveToMasterSender, 'send')
 			.callsArg(3, null);
-		actionCb.reset();
+		actionCb.resetHistory();
 		validPeer = _.clone(prefixedPeer);
 		connectionsTable.nonceToConnectionIdMap = {};
 		connectionsTable.connectionIdToNonceMap = {};
@@ -426,9 +426,9 @@ describe('PeersUpdateRules', () => {
 		});
 
 		beforeEach(done => {
-			insertStub.reset();
-			removeStub.reset();
-			blockStub.reset();
+			insertStub.resetHistory();
+			removeStub.resetHistory();
+			blockStub.resetHistory();
 			connectionsTable.getNonce.restore();
 			connectionsTable.getConnectionId.restore();
 			done();

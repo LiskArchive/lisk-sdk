@@ -25,9 +25,9 @@ describe('Rules', () => {
 
 	beforeEach(done => {
 		rules = new Rules(insertMock, removeMock, blockMock);
-		insertMock.reset();
-		removeMock.reset();
-		blockMock.reset();
+		insertMock.resetHistory();
+		removeMock.resetHistory();
+		blockMock.resetHistory();
 		done();
 	});
 

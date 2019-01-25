@@ -54,9 +54,9 @@ ed.makeKeypair = function(hash) {
  * @todo Add description for the params and the return value
  */
 ed.sign = function(hash, privateKey) {
-	if (!(hash instanceof Buffer))
+	if (!(hash instanceof Buffer)) {
 		throw new Error('argument message must be a buffer');
-
+	}
 	const signature = Buffer.alloc(sodium.crypto_sign_BYTES);
 	sodium.crypto_sign_detached(signature, hash, privateKey);
 
@@ -74,8 +74,9 @@ ed.sign = function(hash, privateKey) {
  * @todo Add description for the params
  */
 ed.verify = function(hash, signature, publicKey) {
-	if (!(hash instanceof Buffer) || !(signature instanceof Buffer))
+	if (!(hash instanceof Buffer) || !(signature instanceof Buffer)) {
 		throw new Error('argument message must be a buffer');
+	}
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
 };
 

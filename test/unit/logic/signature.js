@@ -112,7 +112,7 @@ describe('signature', () => {
 	});
 
 	afterEach(() => {
-		return accountsMock.setAccountAndGet.reset();
+		return accountsMock.setAccountAndGet.resetHistory();
 	});
 
 	describe('with transaction and sender objects', () => {

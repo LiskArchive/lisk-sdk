@@ -349,9 +349,9 @@ describe('block', () => {
 		});
 
 		after(() => {
-			blockNormalizeStub.reset();
-			transactionStub.getBytes.reset();
-			return transactionStub.objectNormalize.reset();
+			blockNormalizeStub.resetHistory();
+			transactionStub.getBytes.resetHistory();
+			return transactionStub.objectNormalize.resetHistory();
 		});
 
 		describe('when each of all supported', () => {

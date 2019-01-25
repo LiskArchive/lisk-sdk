@@ -137,16 +137,18 @@ function JSONHistory(title, logger) {
 		}
 
 		assert(typeof json === 'object', 'Invalid json object to migrate.');
-		if (jsonVersion)
+		if (jsonVersion) {
 			assert(
 				semver.valid(jsonVersion),
 				'Invalid start version specified to migrate.'
 			);
-		if (migrateToVersion)
+		}
+		if (migrateToVersion) {
 			assert(
 				semver.valid(migrateToVersion),
 				'Invalid end version specified to migrate.'
 			);
+		}
 		assert(typeof cb === 'function', 'Invalid callback specified to migrate.');
 
 		self.logger.info(

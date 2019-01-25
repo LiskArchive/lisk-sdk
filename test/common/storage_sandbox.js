@@ -52,12 +52,13 @@ function clearDatabaseTable(storageInstance, logger, table) {
 
 class StorageSandbox extends Storage {
 	constructor(dbConfig, dbName) {
-		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test')
+		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
 			throw new Error(
 				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
 					process.env.NODE_ENV
 				}`
 			);
+		}
 
 		dbNames.push(dbName);
 		dbConfig.database = dbName;
@@ -147,12 +148,13 @@ class TestAdapter extends PgpAdapter {
 
 class TestStorageSandbox extends Storage {
 	constructor(dbConfig, entityStubs) {
-		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test')
+		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
 			throw new Error(
 				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
 					process.env.NODE_ENV
 				}`
 			);
+		}
 
 		super(dbConfig, console);
 		this.entityStubs = entityStubs;

@@ -2340,7 +2340,7 @@ describe('blocks/process', () => {
 
 	describe('onBind', () => {
 		beforeEach(done => {
-			loggerStub.trace.reset();
+			loggerStub.trace.resetHistory();
 			__private.loaded = false;
 			blocksProcessModule.onBind(modulesStub);
 			done();
