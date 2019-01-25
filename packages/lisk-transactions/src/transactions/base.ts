@@ -41,7 +41,6 @@ import {
 	convertBeddowsToLSK,
 	getId,
 	getTimeWithOffset,
-	validatePublicKey,
 	validator,
 	verifyBalance,
 	verifyMultisignatures,

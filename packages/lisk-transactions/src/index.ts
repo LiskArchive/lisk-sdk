@@ -48,6 +48,7 @@ export {
 	registerDelegate,
 	castVotes,
 	registerMultisignature,
+	registerSecondPassphrase,
 	createSignatureObject,
 	createDapp,
 	utils,
