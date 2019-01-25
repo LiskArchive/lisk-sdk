@@ -1,4 +1,3 @@
-import publicKeys from '../../fixtures/public_keys.json';
 import { expect } from 'chai';
 import transactionObjects from '../../fixtures/transactions.json';
 import { Job } from '../../src/job';
