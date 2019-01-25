@@ -909,7 +909,7 @@ describe('Account', () => {
 		});
 
 		it('should reject with invalid data provided', async () => {
-			expect(() => AccountEntity.create({ missedBlocks: 'FOO-BAR', address: '1234L' }, validOptions)).to.throw;
+			expect(AccountEntity.create({ missedBlocks: 'FOO-BAR', address: '1234L' }, validOptions)).to.be.rejected;
 		});
 
 		it('should populate account object with default values', async () => {
@@ -1110,8 +1110,8 @@ describe('Account', () => {
 			expect(AccountEntity.update({ address: '123L' }, {})).to.be.fulfilled;
 		});
 
-		it('should throw if any invalid attribute is provided', async () => {
-			expect(async() => AccountEntity.update({ address: '123L' }, { invalid: true })).to.throw;
+		it('should be rejected if any invalid attribute is provided', async () => {
+			expect(AccountEntity.update({ address: '123L' }, { invalid: true })).to.be.rejected;
 		});
 
 
@@ -1128,7 +1128,6 @@ describe('Account', () => {
 	describe('upsert', () => {
 		it('should throw error if no filter specified', async () => {
 			const account = new accountFixtures.Account();
-
 			expect(AccountEntity.upsert({}, account)).to.be.rejectedWith(
 				NonSupportedFilterTypeError,
 				'One or more filters are required for this operation.'
@@ -1137,7 +1136,6 @@ describe('Account', () => {
 
 		it('should succeed updating or insert object', async () => {
 			const account = new accountFixtures.Account();
-
 			expect(AccountEntity.upsert({ address: account.address }, account)).to.be
 				.fulfilled;
 		});
@@ -1308,7 +1306,16 @@ describe('Account', () => {
 			expect(updated.length).to.be.eql(1);
 		});
 
-		it('should throw if any invalid attribute is provided');
+		it('should be rejected if any invalid attribute is provided', async () => {
+			// Arrange
+			const randomAccount = new accountFixtures.Account();
+			await AccountEntity.create(randomAccount);
+			// Act & Assert
+			expect(AccountEntity.updateOne(
+				{ address: randomAccount.address },
+				{ username: 'AN_INVALID_LONG_USERNAME' }
+			)).to.be.rejected;
+		});
 
 		it('should not throw error if no matching record found', async () => {
 			// Arrange
