@@ -29,8 +29,5 @@ export {
 	isNumberString,
 	stringEndsWith,
 } from './validation';
-export {
-	validateSignatureAndPublicKey,
-} from './validate_signature_and_publickey';
 export { validateTransaction } from './validate_transaction';
 export { validator } from './validator';

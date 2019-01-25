@@ -29,6 +29,8 @@ import {
 	TransactionResponse,
 } from './base';
 
+const TRANSACTION_SIGNATURE_TYPE = 1;
+
 export interface RequiredSecondSignatureState {
 	readonly sender: Account;
 }
@@ -59,8 +61,10 @@ export const secondSignatureAssetTypeSchema = {
 					type: 'string',
 				},
 			},
+			additionalProperties: false,
 		},
 	},
+	additionalProperties: false,
 };
 
 export const secondSignatureAssetFormatSchema = {
@@ -76,8 +80,10 @@ export const secondSignatureAssetFormatSchema = {
 					format: 'publicKey',
 				},
 			},
+			additionalProperties: false,
 		},
 	},
+	additionalProperties: false,
 };
 
 const validateInputs = ({ secondPassphrase }: SecondSignatureInput): void => {
@@ -207,6 +213,10 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			: [];
 
 		errors.push(...assetErrors);
+
+		if (this.type !== TRANSACTION_SIGNATURE_TYPE) {
+			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+		}
 
 		if (!this.amount.eq(0)) {
 			errors.push(

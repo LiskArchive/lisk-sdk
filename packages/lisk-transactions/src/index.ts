@@ -20,6 +20,7 @@ import {
 	DappTransaction,
 	DelegateTransaction,
 	InTransferTransaction,
+	MultisignatureTransaction,
 	SecondSignatureTransaction,
 	TransferTransaction,
 	VoteTransaction,
@@ -39,6 +40,7 @@ const createDapp = DappTransaction.create;
 
 export {
 	BaseTransaction,
+	MultisignatureTransaction,
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,

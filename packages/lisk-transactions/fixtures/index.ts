@@ -18,6 +18,7 @@ import validDelegateAccount from './valid_delegate_account.json';
 import validDelegateTransaction from './valid_delegate_transaction.json';
 import validInTransferTransactions from './valid_in_transfer_transaction.json';
 import validMultisignatureAccount from './valid_multisignature_account.json';
+import validMultisignatureRegistrationTransaction from  './valid_multisignature_transaction.json';
 import validOutTransferTransactions from './valid_out_transfer_transactions.json';
 import validRegisterSecondSignatureTransaction from './valid_register_second_signature_transaction.json';
 import validSecondSignatureAccount from './valid_second_signature_account.json';
@@ -36,6 +37,7 @@ export {
 	validTransferTransactions,
 	validTransferAccount,
 	validMultisignatureAccount,
+	validMultisignatureRegistrationTransaction,
 	validMultisignatureTransaction,
 	validRegisterSecondSignatureTransaction,
 	validSecondSignatureAccount,
