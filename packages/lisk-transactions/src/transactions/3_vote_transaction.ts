@@ -283,7 +283,7 @@ export class VoteTransaction extends BaseTransaction {
 				new TransactionError(
 					'Amount must be zero for vote transaction',
 					this.id,
-					'.asset',
+					'.amount',
 				),
 			);
 		}
@@ -372,7 +372,7 @@ export class VoteTransaction extends BaseTransaction {
 		sender,
 		dependentState,
 	}: RequiredVoteState): TransactionResponse {
-		const { errors: baseErrors } = super.apply({ sender });
+		const { errors: baseErrors } = super.verify({ sender });
 		if (!dependentState) {
 			throw new Error('Dependent state is required for vote transaction.');
 		}

@@ -262,7 +262,7 @@ export class InTransferTransaction extends BaseTransaction {
 		recipient,
 		dependentState,
 	}: RequiredInTransferState): TransactionResponse {
-		const { errors: baseErrors } = super.apply({ sender });
+		const { errors: baseErrors } = super.verify({ sender });
 		if (!dependentState) {
 			throw new Error(
 				'Dependent state is required for inTransfer transaction.',

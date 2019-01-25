@@ -14,7 +14,11 @@
  */
 import { expect } from 'chai';
 import { SinonStub } from 'sinon';
-import { DappTransaction, Attributes } from '../../src/transactions';
+import {
+	DappTransaction,
+	Attributes,
+	BaseTransaction,
+} from '../../src/transactions';
 import { validDappTransactions, validVoteTransactions } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
@@ -85,10 +89,7 @@ describe('Dapp transaction class', () => {
 				expect(result).to.have.property('fee', DAPP_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property(
-					'recipientId',
-					'',
-				);
+				expect(result).to.have.property('recipientId', '');
 				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect(result).to.have.property('signature').and.not.to.be.empty;
 				expect((result as any).asset.dapp).to.eql(defaultOptions);
@@ -125,10 +126,7 @@ describe('Dapp transaction class', () => {
 				expect(result).to.have.property('fee', DAPP_FEE.toString());
 				expect(result).to.have.property('senderId');
 				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property(
-					'recipientId',
-					'',
-				);
+				expect(result).to.have.property('recipientId', '');
 				expect(result).to.have.property('timestamp', timeWithOffset);
 				expect(result).to.have.property('signature').and.not.to.be.empty;
 				expect(result).to.have.property('signSignature').and.not.to.be.empty;
@@ -634,6 +632,15 @@ describe('Dapp transaction class', () => {
 			publicKey:
 				'f19d39b087a3174cbf113162f2dad498edbf84341ffbfeb650a365ac8a40ac04',
 		};
+
+		it('should call BaseTransaction verify', async () => {
+			sandbox.stub(BaseTransaction.prototype, 'verify').returns({ errors: [] });
+			validTestTransaction.verify({
+				sender: defaultValidSender,
+				dependentState: { transaction: [] },
+			});
+			expect(BaseTransaction.prototype.verify).to.be.calledOnce;
+		});
 
 		it('should return TransactionResponse with status OK', async () => {
 			const { status, errors } = validTestTransaction.verify({

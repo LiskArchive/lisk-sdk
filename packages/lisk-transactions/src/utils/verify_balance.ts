@@ -29,7 +29,7 @@ export const verifyBalance = (
 			? new TransactionError(
 					`Account does not have enough LSK: ${
 						sender.address
-					} balance: ${convertBeddowsToLSK(sender.balance.toString())}`,
+					}, balance: ${convertBeddowsToLSK(sender.balance.toString())}`,
 			  )
 			: undefined,
 	};

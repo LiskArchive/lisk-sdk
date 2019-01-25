@@ -14,7 +14,11 @@
  */
 import { expect } from 'chai';
 import { SinonStub } from 'sinon';
-import { InTransferTransaction, Attributes } from '../../src/transactions';
+import {
+	InTransferTransaction,
+	Attributes,
+	BaseTransaction,
+} from '../../src/transactions';
 import { validInTransferTransactions, validTransaction } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
@@ -317,7 +321,7 @@ describe('InTransfer transaction class', () => {
 
 	describe('#verify', () => {
 		const defaultValidSender = {
-			address: '8004805717140184627L',
+			address: '13155556493249255133L',
 			balance: '1000000000',
 			publicKey:
 				'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
@@ -338,12 +342,22 @@ describe('InTransfer transaction class', () => {
 				'e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9',
 		};
 
+		it('should call BaseTransaction verify', async () => {
+			sandbox.stub(BaseTransaction.prototype, 'verify').returns({ errors: [] });
+			validTestTransaction.verify({
+				sender: defaultValidSender,
+				dependentState: { transaction: [] },
+			});
+			expect(BaseTransaction.prototype.verify).to.be.calledOnce;
+		});
+
 		it('should return TransactionResponse with status OK', async () => {
 			const { status, errors } = validTestTransaction.verify({
 				sender: defaultValidSender,
 				recipient: defaultValidRecipient,
 				dependentState: { transaction: defaultValidTxs as any },
 			});
+
 			expect(status).to.equal(Status.OK);
 			expect(errors).to.be.empty;
 		});
@@ -387,7 +401,7 @@ describe('InTransfer transaction class', () => {
 			).to.throw('Required state does not have valid transaction type.');
 		});
 
-		it('should return TransactionResponse with error when voted sender account does not have sufficient balance', async () => {
+		it('should return TransactionResponse with error when sender account does not have sufficient balance', async () => {
 			const invalidSender = {
 				...defaultValidSender,
 				balance: '0',

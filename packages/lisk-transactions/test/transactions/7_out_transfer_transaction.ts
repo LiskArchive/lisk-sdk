@@ -14,7 +14,11 @@
  */
 import { expect } from 'chai';
 import { SinonStub } from 'sinon';
-import { OutTransferTransaction, Attributes } from '../../src/transactions';
+import {
+	OutTransferTransaction,
+	Attributes,
+	BaseTransaction,
+} from '../../src/transactions';
 import { validOutTransferTransactions } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
@@ -394,10 +398,10 @@ describe('outTransfer transaction class', () => {
 
 	describe('#verify', () => {
 		const defaultValidSender = {
-			address: '8004805717140184627L',
+			address: '18237045742439723234L',
 			balance: '1000000000',
 			publicKey:
-				'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
+				'e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9',
 		};
 
 		const defaultValidTxs = [
@@ -415,12 +419,22 @@ describe('outTransfer transaction class', () => {
 			},
 		];
 
+		it('should call BaseTransaction verify', async () => {
+			sandbox.stub(BaseTransaction.prototype, 'verify').returns({ errors: [] });
+			validTestTransaction.verify({
+				sender: defaultValidSender,
+				dependentState: { transaction: [] },
+			});
+			expect(BaseTransaction.prototype.verify).to.be.calledOnce;
+		});
+
 		it('should return TransactionResponse with status OK', async () => {
 			const { status, errors } = validTestTransaction.verify({
 				sender: defaultValidSender,
 				recipient: defaultValidSender,
 				dependentState: { transaction: defaultValidTxs as any },
 			});
+
 			expect(status).to.equal(Status.OK);
 			expect(errors).to.be.empty;
 		});
