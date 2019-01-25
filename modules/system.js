@@ -255,9 +255,9 @@ System.prototype.versionCompatible = function(version) {
  * @returns {boolean}
  */
 System.prototype.protocolVersionCompatible = function(protocolVersion) {
-	const hard = parseInt(protocolVersion[0]);
-	const privateHard = parseInt(__private.protocolVersion[0]);
-	return privateHard === hard && hard >= 1;
+	const peerHard = parseInt(protocolVersion[0]);
+	const myHard = parseInt(__private.protocolVersion[0]);
+	return myHard === peerHard && peerHard >= 1;
 };
 
 /**
