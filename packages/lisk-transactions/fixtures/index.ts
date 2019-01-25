@@ -14,6 +14,8 @@
  */
 import validAccount from './valid_account.json';
 import validDappTransactions from './valid_dapp_transactions.json';
+import validDelegateAccount from './valid_delegate_account.json';
+import validDelegateTransaction from './valid_delegate_transaction.json';
 import validInTransferTransactions from './valid_in_transfer_transaction.json';
 import validMultisignatureAccount from './valid_multisignature_account.json';
 import validOutTransferTransactions from './valid_out_transfer_transactions.json';
@@ -28,6 +30,8 @@ import validVoteTransactions from './valid_vote_transaction.json';
 
 export {
 	validAccount,
+	validDelegateAccount,
+	validDelegateTransaction,
 	validTransaction,
 	validTransferTransactions,
 	validTransferAccount,

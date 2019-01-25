@@ -15,6 +15,7 @@
 export * from './base';
 export * from './0_transfer';
 export * from './1_register_second_passphrase';
+export * from './2_register_delegate';
 export * from './3_vote_transaction';
 export * from './5_dapp_transaction';
 export * from './6_in_transfer_transaction';

@@ -29,11 +29,11 @@ export interface Account {
 	readonly multimin?: number;
 	readonly username?: string;
 	readonly votes?: ReadonlyArray<string>;
+	readonly isDelegate?: boolean;
 }
 
 export interface Delegate {
 	readonly username: string;
-	readonly vote: string;
 }
 
 export interface RequiredState {

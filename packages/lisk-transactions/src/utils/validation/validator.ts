@@ -25,6 +25,7 @@ import {
 	validatePublicKey,
 	validateSignature,
 	validateTransferAmount,
+	validateUsername,
 } from './validation';
 
 export const validator = new Ajv({ allErrors: true });
@@ -116,10 +117,13 @@ validator.addFormat(
 		data instanceof Date && !isNaN((data as unknown) as number),
 );
 
+validator.addFormat('username', validateUsername);
+
 validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',
 	compile: () => (data: ReadonlyArray<string>) =>
 		new Set(data.map((key: string) => key.slice(1))).size === data.length,
 });
+
 
 validator.addSchema(schemas.baseTransaction);
