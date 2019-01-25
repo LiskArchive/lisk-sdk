@@ -26,7 +26,8 @@ describe('Integration tests for P2P library', () => {
 				p2p => {
 					p2p.applyNodeInfo({
 						height: 0,
-						broadhash: '2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5'
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 					});
 					return p2p.start();
 				},
@@ -76,13 +77,14 @@ describe('Integration tests for P2P library', () => {
 				p2p => {
 					p2p.applyNodeInfo({
 						height: 0,
-						broadhash: '2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5'
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 					});
 					return p2p.start();
 				},
 			);
 			await Promise.all(peerStartPromises);
-			await wait(50);
+			await wait(500);
 		});
 
 		afterEach(async () => {
@@ -135,7 +137,8 @@ describe('Integration tests for P2P library', () => {
 				p2p => {
 					p2p.applyNodeInfo({
 						height: 0,
-						broadhash: '2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5'
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 					});
 					return p2p.start();
 				},

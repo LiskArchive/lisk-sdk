@@ -14,7 +14,7 @@
  */
 /* tslint:disable:no-empty-interface*/
 
-import { PeerInfo } from './peer';
+import { P2PPeerInfo } from './peer';
 
 export interface P2PRequestPacket {
 	readonly data?: unknown;
@@ -30,11 +30,8 @@ export interface P2PMessagePacket {
 	readonly event: string;
 }
 
-// TODO ASAP: This should be merged with P2PNodeInfo below; once it has been made more generic.
-export interface P2PNodeInfoChange {
-	readonly height: number;
-	readonly broadhash: string;
-	/* tslint:disable-next-line:no-mixed-interface */
+// Allows the user to provide custom fields.
+export interface P2PInfoOptions {
 	readonly [key: string]: unknown;
 }
 
@@ -46,28 +43,42 @@ export interface P2PNodeInfo {
 	readonly version: string;
 	readonly wsPort: number;
 	readonly height: number;
-	readonly broadhash: string;
-	readonly nonce: string;
+	readonly options?: P2PInfoOptions;
+}
+
+export interface P2PPeerInfo {
+	readonly ipAddress: string;
+	readonly wsPort: number;
+	readonly height: number;
+	readonly os?: string;
+	readonly version?: string;
+	// Add support for custom fields like broadhash or nonce.
+	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
+	/* tslint:disable-next-line:no-mixed-interface */
+	readonly options?: P2PInfoOptions;
+	// This is necessary because PeerInfo for a tried peer will likely have more properties.
+	/* tslint:disable-next-line:no-mixed-interface */
+	readonly isTriedPeer?: boolean;
 }
 
 export interface P2PPenalty {}
 
 export interface P2PConfig {
-	readonly blacklistedPeers: ReadonlyArray<PeerInfo>;
+	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly connectTimeout: number;
 	readonly hostAddress?: string;
-	readonly seedPeers: ReadonlyArray<PeerInfo>;
+	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly version: string;
 	readonly wsEngine?: string;
 	readonly wsPort: number;
-	readonly nonce: string,
+	readonly nonce: string;
 }
 
 // Network info exposed by the P2P library.
 export interface P2PNetworkStatus {
-	readonly newPeers: ReadonlyArray<PeerInfo>;
-	readonly triedPeers: ReadonlyArray<PeerInfo>;
-	readonly connectedPeers: ReadonlyArray<PeerInfo>;
+	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly triedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly connectedPeers: ReadonlyArray<P2PPeerInfo>;
 }
 
 // This is a representation of the peer object according to the current protocol.

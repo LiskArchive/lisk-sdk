@@ -20,7 +20,7 @@ import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import url from 'url';
 
 import { RequestFailError } from './errors';
-import { Peer, PeerInfo } from './peer';
+import { Peer } from './peer';
 import { PeerOptions } from './peer_selection';
 
 import {
@@ -35,7 +35,7 @@ import {
 	P2PMessagePacket,
 	P2PNetworkStatus,
 	P2PNodeInfo,
-	P2PNodeInfoChange,
+	P2PPeerInfo,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -66,8 +66,8 @@ export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _httpServer: Server;
 	private _isActive: boolean;
-	private readonly _newPeers: Set<PeerInfo>;
-	private readonly _triedPeers: Set<PeerInfo>;
+	private readonly _newPeers: Set<P2PPeerInfo>;
+	private readonly _triedPeers: Set<P2PPeerInfo>;
 	private readonly _platform: string;
 
 	private _nodeInfo: P2PNodeInfo | undefined;
@@ -76,8 +76,8 @@ export class P2P extends EventEmitter {
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
-	private readonly _handlePeerConnect: (peerInfo: PeerInfo) => void;
-	private readonly _handlePeerConnectAbort: (peerInfo: PeerInfo) => void;
+	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -102,14 +102,14 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
-		this._handlePeerConnect = (peerInfo: PeerInfo) => {
+		this._handlePeerConnect = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			if (!this._triedPeers.has(peerInfo)) {
 				this._triedPeers.add(peerInfo);
 			}
 			this.emit(EVENT_CONNECT_OUTBOUND);
 		};
-		this._handlePeerConnectAbort = (peerInfo: PeerInfo) => {
+		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			if (this._triedPeers.has(peerInfo)) {
 				this._triedPeers.delete(peerInfo);
@@ -129,14 +129,15 @@ export class P2P extends EventEmitter {
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
-	public applyNodeInfo(nodeInfoChange: P2PNodeInfoChange): void {
+	public applyNodeInfo(nodeInfoChange: P2PNodeInfo): void {
 		this._nodeInfo = {
 			os: this._platform,
-			wsPort: this._config.wsPort,
 			version: this._config.version,
-			nonce: this._config.nonce,
-			...nodeInfoChange
+			wsPort: this._config.wsPort,
+			height: nodeInfoChange.height,
+			options: nodeInfoChange.options,
 		};
+
 		this._peerPool.applyNodeInfo(this._nodeInfo);
 	}
 
@@ -214,7 +215,7 @@ export class P2P extends EventEmitter {
 					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
 
-					const incomingPeerInfo: PeerInfo = {
+					const incomingPeerInfo: P2PPeerInfo = {
 						...queryObject,
 						ipAddress: socket.remoteAddress,
 						wsPort,
@@ -274,13 +275,13 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _runPeerDiscovery(
-		peers: ReadonlyArray<PeerInfo>,
-	): Promise<ReadonlyArray<PeerInfo>> {
+		peers: ReadonlyArray<P2PPeerInfo>,
+	): Promise<ReadonlyArray<P2PPeerInfo>> {
 		const discoveredPeers = await this._peerPool.runDiscovery(
 			peers,
 			this._config.blacklistedPeers,
 		);
-		discoveredPeers.forEach((peerInfo: PeerInfo) => {
+		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
 			if (!this._triedPeers.has(peerInfo) && !this._newPeers.has(peerInfo)) {
 				this._newPeers.add(peerInfo);
 			}

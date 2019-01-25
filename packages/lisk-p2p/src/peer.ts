@@ -20,6 +20,7 @@ import { RPCResponseError } from './errors';
 import {
 	P2PMessagePacket,
 	P2PNodeInfo,
+	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './p2p_types';
@@ -57,23 +58,6 @@ type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
 } & SCServerSocket;
 
-// TODO ASAP: We need to make PeerInfo more generic.
-// For example, height is blockchain specific and may not be relevant for all P2P applications which this library could support.
-export interface PeerInfo {
-	readonly ipAddress: string;
-	readonly wsPort: number;
-	readonly height: number;
-	readonly os?: string;
-	readonly version?: string;
-	// Add support for custom fields like broadhash or nonce.
-	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
-	/* tslint:disable-next-line:no-mixed-interface */
-	readonly [key: string]: unknown;
-	// This is necessary because PeerInfo for a tried peer will likely have more properties.
-	/* tslint:disable-next-line:no-mixed-interface */
-	readonly isTriedPeer?: boolean;
-}
-
 export enum ConnectionState {
 	CONNECTING = 0,
 	CONNECTED = 1,
@@ -90,7 +74,7 @@ export class Peer extends EventEmitter {
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
-	private _peerInfo: PeerInfo;
+	private _peerInfo: P2PPeerInfo;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
@@ -100,7 +84,7 @@ export class Peer extends EventEmitter {
 	) => void;
 	private readonly _handleRawMessage: (packet: unknown) => void;
 
-	public constructor(peerInfo: PeerInfo, inboundSocket?: SCServerSocket) {
+	public constructor(peerInfo: P2PPeerInfo, inboundSocket?: SCServerSocket) {
 		super();
 		this._peerInfo = peerInfo;
 		this._ipAddress = peerInfo.ipAddress;
@@ -182,16 +166,16 @@ export class Peer extends EventEmitter {
 		this._outboundSocket = scClientSocket;
 	}
 
-	public updatePeerInfo(newPeerInfo: PeerInfo): void {
+	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
 		this._peerInfo = {
 			...newPeerInfo,
-			wsPort: this._peerInfo.wsPort,
 			ipAddress: this._peerInfo.ipAddress,
-			isTriedPeer: true
+			wsPort: this._peerInfo.wsPort,
+			isTriedPeer: true,
 		};
 	}
 
-	public get peerInfo(): PeerInfo {
+	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
 	}
 
@@ -311,7 +295,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<PeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,

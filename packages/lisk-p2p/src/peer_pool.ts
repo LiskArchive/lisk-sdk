@@ -27,7 +27,6 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	Peer,
-	PeerInfo,
 	REMOTE_RPC_GET_ALL_PEERS_LIST,
 } from './peer';
 import { discoverPeers } from './peer_discovery';
@@ -39,7 +38,7 @@ import {
 
 import { SCServerSocket } from 'socketcluster-server';
 import { P2PRequest } from './p2p_request';
-import { P2PMessagePacket, P2PNodeInfo } from './p2p_types';
+import { P2PMessagePacket, P2PNodeInfo, P2PPeerInfo } from './p2p_types';
 
 export {
 	EVENT_CONNECT_OUTBOUND,
@@ -52,8 +51,8 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
-	private readonly _handlePeerConnect: (peerInfo: PeerInfo) => void;
-	private readonly _handlePeerConnectAbort: (peerInfo: PeerInfo) => void;
+	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 
 	public constructor() {
@@ -77,11 +76,11 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
-		this._handlePeerConnect = (peerInfo: PeerInfo) => {
+		this._handlePeerConnect = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
-		this._handlePeerConnectAbort = (peerInfo: PeerInfo) => {
+		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
@@ -113,10 +112,12 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async runDiscovery(
-		peers: ReadonlyArray<PeerInfo>,
-		blacklist: ReadonlyArray<PeerInfo>,
-	): Promise<ReadonlyArray<PeerInfo>> {
-		const peersObjectList = peers.map((peerInfo: PeerInfo) => this.addPeer(peerInfo));
+		peers: ReadonlyArray<P2PPeerInfo>,
+		blacklist: ReadonlyArray<P2PPeerInfo>,
+	): Promise<ReadonlyArray<P2PPeerInfo>> {
+		const peersObjectList = peers.map((peerInfo: P2PPeerInfo) =>
+			this.addPeer(peerInfo),
+		);
 
 		const disoveredPeers = await discoverPeers(peersObjectList, {
 			blacklist: blacklist.map(peer => peer.ipAddress),
@@ -126,18 +127,18 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public selectPeersAndConnect(
-		peers: ReadonlyArray<PeerInfo>,
-	): ReadonlyArray<PeerInfo> {
+		peers: ReadonlyArray<P2PPeerInfo>,
+	): ReadonlyArray<P2PPeerInfo> {
 		const peersToConnect = selectForConnection(peers);
 
-		peersToConnect.forEach((peerInfo: PeerInfo) => {
+		peersToConnect.forEach((peerInfo: P2PPeerInfo) => {
 			this.addPeer(peerInfo);
 		});
 
 		return peersToConnect;
 	}
 
-	public addPeer(peerInfo: PeerInfo, inboundSocket?: SCServerSocket): Peer {
+	public addPeer(peerInfo: P2PPeerInfo, inboundSocket?: SCServerSocket): Peer {
 		const peer = new Peer(peerInfo, inboundSocket);
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
@@ -151,7 +152,7 @@ export class PeerPool extends EventEmitter {
 
 	public addInboundPeer(
 		peerId: string,
-		peerInfo: PeerInfo,
+		peerInfo: P2PPeerInfo,
 		socket: SCServerSocket,
 	): boolean {
 		const existingPeer = this.getPeer(peerId);
@@ -179,7 +180,7 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
-	public getAllPeerInfos(): ReadonlyArray<PeerInfo> {
+	public getAllPeerInfos(): ReadonlyArray<P2PPeerInfo> {
 		return this.getAllPeers().map(peer => peer.peerInfo);
 	}
 
@@ -209,18 +210,18 @@ export class PeerPool extends EventEmitter {
 		const peerSelectionParams: PeerOptions = {
 			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
 		};
-		
+
 		request.end({
 			success: true,
 			peers: this.selectPeers(peerSelectionParams).map((peer: Peer) => {
 				const peerInfo = peer.peerInfo;
-				
+
 				return {
 					...peerInfo,
 					ip: peerInfo.ipAddress,
-					wsPort: String(peerInfo.wsPort)
+					wsPort: String(peerInfo.wsPort),
 				};
-			})
+			}),
 		});
 	}
 

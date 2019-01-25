@@ -16,7 +16,7 @@ import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
 import { InvalidPeerError, InvalidRPCResponseError } from './errors';
 import { ProtocolPeerInfo } from './p2p_types';
-import { PeerInfo } from './peer';
+import { P2PPeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
@@ -34,7 +34,7 @@ export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	return true;
 };
 
-export const sanitizePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
+export const sanitizePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
 	}
@@ -64,7 +64,7 @@ export const sanitizePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 			? +protocolPeer.height
 			: 0;
 
-	const peerInfo: PeerInfo = {
+	const peerInfo: P2PPeerInfo = {
 		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
@@ -77,7 +77,7 @@ export const sanitizePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 
 export const sanitizePeerInfoList = (
 	rawPeerInfoList: unknown,
-): ReadonlyArray<PeerInfo> => {
+): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
@@ -85,7 +85,7 @@ export const sanitizePeerInfoList = (
 	const { peers } = rawPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<PeerInfo>(sanitizePeerInfo);
+		const peerList = peers.map<P2PPeerInfo>(sanitizePeerInfo);
 
 		return peerList;
 	} else {

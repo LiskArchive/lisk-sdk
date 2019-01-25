@@ -13,7 +13,8 @@
  *
  */
 import { NotEnoughPeersError } from './errors';
-import { Peer, PeerInfo } from './peer';
+import { Peer } from './peer';
+import { P2PPeerInfo } from './p2p_types';
 
 export interface PeerOptions {
 	readonly [key: string]: string | number;
@@ -28,8 +29,7 @@ interface HistogramValues {
 	max: number;
 }
 
-
-// TODO ASAP: Only select peers which have all available PeerInfo properties.
+// TODO ASAP: Only select peers which have all available P2PPeerInfo properties.
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,
@@ -67,17 +67,16 @@ export const selectPeers = (
 	);
 
 	// Perform histogram cut of peers too far from histogram maximum
-	const processedPeers = sortedPeers.filter(
-		peer => {
-			const isTriedPeer: boolean = !!(peer.peerInfo && peer.peerInfo.isTriedPeer);
+	const processedPeers = sortedPeers.filter(peer => {
+		const isTriedPeer: boolean = !!(peer.peerInfo && peer.peerInfo.isTriedPeer);
 
-			return peer &&
-				Math.abs(
-					calculatedHistogramValues.height - peer.height
-				) < aggregation + 1 &&
-				isTriedPeer;
-		}
-	);
+		return (
+			peer &&
+			Math.abs(calculatedHistogramValues.height - peer.height) <
+				aggregation + 1 &&
+			isTriedPeer
+		);
+	});
 
 	if (numOfPeers <= 0) {
 		return processedPeers;
@@ -126,5 +125,5 @@ export const selectPeers = (
 	return peerList;
 };
 
-export const selectForConnection = (peerInfoList: ReadonlyArray<PeerInfo>) =>
+export const selectForConnection = (peerInfoList: ReadonlyArray<P2PPeerInfo>) =>
 	peerInfoList;

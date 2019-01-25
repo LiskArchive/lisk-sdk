@@ -22,11 +22,11 @@ import {
 } from './errors';
 
 import {
+	P2PPeerInfo,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from './p2p_types';
-import { PeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
@@ -44,7 +44,7 @@ export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	return true;
 };
 
-export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
+export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
 	}
@@ -73,15 +73,13 @@ export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 			? +protocolPeer.height
 			: 0;
 
-	// TODO ASAP: Make PeerInfo more generic instead of fixed, static fields.
-	const peerInfo: PeerInfo = {
+	const peerInfo: P2PPeerInfo = {
 		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
 		os,
 		version,
-		nonce: protocolPeer.nonce,
-		broadhash: protocolPeer.broadhash,
+		options: protocolPeer,
 	};
 
 	return peerInfo;
@@ -89,14 +87,14 @@ export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 
 export const validatePeerInfoList = (
 	rawPeerInfoList: unknown,
-): ReadonlyArray<PeerInfo> => {
+): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
 	const { peers } = rawPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<PeerInfo>(validatePeerInfo);
+		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
 
 		return peerList;
 	} else {
