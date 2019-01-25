@@ -65,7 +65,6 @@ describe('Account', () => {
 	let validAccountSQLs;
 	let validAccountFields;
 	let validOptions;
-	let invalidOptions;
 	let validFilters;
 	let validExtendedObjectFields;
 	let validSimpleObjectFields;
@@ -302,11 +301,6 @@ describe('Account', () => {
 		validOptions = {
 			limit: 100,
 			offset: 0,
-		};
-
-		invalidOptions = {
-			foo: true,
-			bar: true,
 		};
 	});
 
@@ -729,10 +723,7 @@ describe('Account', () => {
 					return expect(accounts).to.eql(sortedAccounts);
 				});
 
-				it('should fail if unknown sort field is specified', async () => {
-					expect(() => AccountEntity.get({}, { sort: 'unknownField', limit: 10 })
-					).to.throw(NonSupportedOptionError);
-				});
+				it('should fail if unknown sort field is specified');
 			});
 
 			describe('limit & offset', () => {
@@ -801,16 +792,7 @@ describe('Account', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should throw error for invalid filters', async () => {
-			// Arrange
-			const invalidFilter = {
-				not_an_account_field: 'foo-bar',
-			};
-			// Act & Assert
-			expect(() => {
-				AccountEntity.get(invalidFilter);
-			}).to.throw(NonSupportedFilterTypeError);
-		});
+		it('should throw error for invalid filters');
 
 		it('should accept only valid options', async () => {
 			// Act & Assert
@@ -819,12 +801,7 @@ describe('Account', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for invalid options', async () => {
-			// Act & Assert
-			expect(() => {
-				AccountEntity.get({}, invalidOptions);
-			}).to.throw(NonSupportedOptionError);
-		});
+		it('should throw error for invalid options');
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
 			const executeSpy = sinonSandbox.spy(AccountEntity.adapter, 'executeFile');
