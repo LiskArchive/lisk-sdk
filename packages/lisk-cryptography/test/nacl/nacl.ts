@@ -120,9 +120,7 @@ describe('nacl', () => {
 				let publicKey: Buffer;
 
 				beforeEach(() => {
-					publicKey = getPublicKey(
-						Buffer.from(defaultPrivateKey.slice(0, 64), 'hex'),
-					);
+					publicKey = getPublicKey(Buffer.from(defaultPrivateKey, 'hex'));
 
 					return Promise.resolve();
 				});
