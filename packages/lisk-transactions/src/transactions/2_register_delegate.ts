@@ -27,6 +27,7 @@ import {
 	Attributes,
 	BaseTransaction,
 	createBaseTransaction,
+	CreateBaseTransactionInput,
 	ENTITY_ACCOUNT,
 	EntityMap,
 	TransactionResponse,
@@ -58,8 +59,6 @@ export const delegateAssetTypeSchema = {
 			properties: {
 				username: {
 					type: 'string',
-					minLength: 1,
-					maxLength: 20,
 				},
 			},
 		},
@@ -87,12 +86,11 @@ export const delegateAssetFormatSchema = {
 
 export interface CreateDelegateRegistrationInput {
 	readonly username: string;
-	readonly passphrase: string;
-	readonly secondPassphrase?: string;
-	readonly timeOffset?: number; 
 }
 
-const validateInput = ({ username }: CreateDelegateRegistrationInput): void => {
+export type RegisterDelegateInput = CreateBaseTransactionInput &  CreateDelegateRegistrationInput;
+
+const validateInput = ({ username }:  RegisterDelegateInput): void => {
 	if (!username || typeof username !== 'string') {
 		throw new Error('Please provide a username. Expected string.');
 	}
@@ -124,7 +122,7 @@ export class DelegateTransaction extends BaseTransaction {
 		this._fee = new BigNum(DELEGATE_FEE);
 	}
 
-	public static create(input: CreateDelegateRegistrationInput): object {
+	public static create(input:  RegisterDelegateInput): object {
 		validateInput(input);
 		const { username, passphrase, secondPassphrase } = input;
 
@@ -347,15 +345,6 @@ export class DelegateTransaction extends BaseTransaction {
 			errors.push(
 				new TransactionError(
 					`Username is not unique.`,
-					this.id,
-					'.asset.delegate.username',
-				),
-			);
-		}
-		if (sender.isDelegate || sender.username) {
-			errors.push(
-				new TransactionError(
-					'Account is already a delegate',
 					this.id,
 					'.asset.delegate.username',
 				),
