@@ -57,13 +57,21 @@ type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
 } & SCServerSocket;
 
+// TODO ASAP: We need to make PeerInfo more generic.
+// For example, height is blockchain specific and may not be relevant for all P2P applications which this library could support.
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
-	readonly clock?: Date;
 	readonly height: number;
 	readonly os?: string;
 	readonly version?: string;
+	// Add support for custom fields like broadhash or nonce.
+	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
+	/* tslint:disable-next-line:no-mixed-interface */
+	readonly [key: string]: unknown;
+	// This is necessary because PeerInfo for a tried peer will likely have more properties.
+	/* tslint:disable-next-line:no-mixed-interface */
+	readonly isTriedPeer?: boolean;
 }
 
 export enum ConnectionState {
@@ -174,13 +182,12 @@ export class Peer extends EventEmitter {
 		this._outboundSocket = scClientSocket;
 	}
 
-	public updatePeerInfo(peerInfo: PeerInfo) {
-		// Only allow updating a subset of fields.
-		const { height, version, os } = peerInfo;
-		const peerInfoChange = { height, version, os };
+	public updatePeerInfo(newPeerInfo: PeerInfo): void {
 		this._peerInfo = {
-			...this._peerInfo,
-			...peerInfoChange,
+			...newPeerInfo,
+			wsPort: this._peerInfo.wsPort,
+			ipAddress: this._peerInfo.ipAddress,
+			isTriedPeer: true
 		};
 	}
 
