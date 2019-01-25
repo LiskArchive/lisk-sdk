@@ -50,7 +50,6 @@ export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
-
 	if (
 		!protocolPeer.ip ||
 		!protocolPeer.wsPort ||
@@ -74,12 +73,15 @@ export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 			? +protocolPeer.height
 			: 0;
 
+	// TODO ASAP: Make PeerInfo more generic instead of fixed, static fields.
 	const peerInfo: PeerInfo = {
 		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
 		os,
 		version,
+		nonce: protocolPeer.nonce,
+		broadhash: protocolPeer.broadhash,
 	};
 
 	return peerInfo;
