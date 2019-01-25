@@ -17,11 +17,17 @@ import {
 	validatePeerAddress,
 	validatePeerInfo,
 	validatePeerInfoList,
+	validateRPCRequest,
+	validateProtocolMessage,
 } from '../../src/validation';
 import { PeerInfo } from '../../src/peer';
+import {
+	ProtocolRPCRequestPacket,
+	ProtocolMessagePacket,
+} from '../../src/p2p_types';
 
 describe('response handlers', () => {
-	describe('#sanitizePeerInfo', () => {
+	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
 			const peer: unknown = {
 				ip: '12.23.54.3',
@@ -195,7 +201,24 @@ describe('response handlers', () => {
 			validatedPeerInfoArray = validatePeerInfoList(rawPeerInfoList);
 		});
 
-		it('throws error ', () => {
+		it('throws errors for an undefined rawPeerInfoList object', () => {
+			return expect(
+				validatePeerInfoList.bind(validatePeerInfoList, undefined),
+			).to.throw(`Invalid response type`);
+		});
+
+		it('throws error for an invalid value of peers property', () => {
+			const inValidPeerInfoList = {
+				peers: 'random text',
+				success: true,
+			};
+
+			return expect(
+				validatePeerInfoList.bind(validatePeerInfoList, inValidPeerInfoList),
+			).to.throw(`Invalid response type`);
+		});
+
+		it('throws error for an invalid port number', () => {
 			const inValidPeerInfoList = {
 				peers: [
 					{
@@ -233,6 +256,110 @@ describe('response handlers', () => {
 			});
 
 			return expect(validatedPeerInfoArray).to.be.eql(sanitizedPeerInfoList);
+		});
+	});
+
+	describe('#validateRPCRequest', () => {
+		let validatedRPCRequest: ProtocolRPCRequestPacket;
+
+		const validRPCRequest: unknown = {
+			data: {},
+			procedure: 'list',
+			type: '',
+		};
+
+		beforeEach(async () => {
+			validatedRPCRequest = validateRPCRequest(validRPCRequest);
+		});
+
+		it('should throw an error for an invalid procedure value', () => {
+			return expect(
+				validateRPCRequest.bind(validateRPCRequest, undefined),
+			).to.throw('Invalid request');
+		});
+
+		it('should throw an error for an invalid procedure value', () => {
+			const inValidRequest: unknown = {
+				data: {},
+				procedure: {},
+			};
+
+			return expect(
+				validateRPCRequest.bind(validateRPCRequest, inValidRequest),
+			).to.throw('Request procedure name is not a string');
+		});
+
+		it('should throw an error for an invalid data field type', () => {
+			const inValidRequestData: unknown = {
+				data: 'invalid data field',
+				procedure: 'list',
+				type: '',
+			};
+
+			return expect(
+				validateRPCRequest.bind(validateRPCRequest, inValidRequestData),
+			).to.throw('Invalid request data');
+		});
+
+		it('should pass and return an object', () => {
+			return expect(validatedRPCRequest).to.be.an('object');
+		});
+
+		it('should return a valid rpc request', () => {
+			expect(validatedRPCRequest)
+				.to.be.an('object')
+				.has.property('data')
+				.to.be.an('object');
+			expect(validatedRPCRequest)
+				.to.be.an('object')
+				.has.property('procedure').to.be.string;
+
+			return expect(validatedRPCRequest)
+				.to.be.an('object')
+				.has.property('type').to.be.string;
+		});
+	});
+
+	describe('#validateProtocolMessage', () => {
+		let returnedValidatedMessage: ProtocolMessagePacket;
+
+		const validProtocolMessage: unknown = {
+			data: {},
+			event: 'newPeer',
+		};
+
+		beforeEach(async () => {
+			returnedValidatedMessage = validateProtocolMessage(validProtocolMessage);
+		});
+
+		it('should throw an error for an invalid event value type', () => {
+			return expect(
+				validateProtocolMessage.bind(validateProtocolMessage, undefined),
+			).to.throw('Invalid message');
+		});
+
+		it('should throw an error for an invalid event value type', () => {
+			const inValidMessage: unknown = {
+				data: {},
+				event: 6788,
+			};
+			return expect(
+				validateProtocolMessage.bind(validateProtocolMessage, inValidMessage),
+			).to.throw('Protocol message is not a string');
+		});
+
+		it('should return an object', () => {
+			return expect(returnedValidatedMessage).to.be.an('object');
+		});
+
+		it('should return a valid protocol message object', () => {
+			expect(returnedValidatedMessage)
+				.to.be.an('object')
+				.has.property('data').to.be.any;
+
+			return expect(returnedValidatedMessage)
+				.to.be.an('object')
+				.has.property('data').to.be.string;
 		});
 	});
 });
