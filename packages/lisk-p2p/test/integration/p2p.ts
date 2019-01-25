@@ -5,11 +5,10 @@ import { wait } from '../utils/helpers';
 const NETWORK_START_PORT = 5000;
 
 describe('Integration tests for P2P library', () => {
-	const NETWORK_PEER_COUNT = 2;
-	// const NETWORK_PEER_COUNT = 10;
+	const NETWORK_PEER_COUNT = 10;
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	describe.skip('Disconnected network', () => {
+	describe('Disconnected network', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				return new P2P({
@@ -19,11 +18,16 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					wsPort: NETWORK_START_PORT + index,
 					version: '1.0.0',
+					nonce: 'O2wTkjqplHII5wPv',
 				});
 			});
 
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => {
+					p2p.applyNodeInfo({
+						height: 0,
+						broadhash: '2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5'
+					});
 					return p2p.start();
 				},
 			);
@@ -56,14 +60,6 @@ describe('Integration tests for P2P library', () => {
 						height: 0,
 					},
 				];
-				console.log('CURRENT NODE', {
-					blacklistedPeers: [],
-					connectTimeout: 5000,
-					seedPeers,
-					wsEngine: 'ws',
-					wsPort: NETWORK_START_PORT + index,
-					version: '1.0.0',
-				});
 
 				return new P2P({
 					blacklistedPeers: [],
@@ -72,16 +68,21 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					wsPort: NETWORK_START_PORT + index,
 					version: '1.0.0',
+					nonce: 'O2wTkjqplHII5wPv',
 				});
 			});
 
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => {
+					p2p.applyNodeInfo({
+						height: 0,
+						broadhash: '2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5'
+					});
 					return p2p.start();
 				},
 			);
 			await Promise.all(peerStartPromises);
-			await wait(500);
+			await wait(50);
 		});
 
 		afterEach(async () => {
@@ -94,16 +95,18 @@ describe('Integration tests for P2P library', () => {
 
 		describe('Peer discovery', () => {
 			it('should discover seed peers', () => {
-				// TODO: Check that nodes are running and connected to seed peers using p2p.getNetworkStatus()
 				p2pNodeList.forEach(p2p => {
+					// TODO ASAP: Do multiple rounds of discovery.
+					// TODO ASAP: Check that nodes are running and connected to seed peers using p2p.getNetworkStatus()
 					let networkStatus = p2p.getNetworkStatus();
+					// TODO ASAP: Remove this and use assertions instead.
 					console.log('NETWORK STATUS:', networkStatus);
 				});
 			});
 		});
 	});
 
-	describe.skip('Partially interconnected network', () => {
+	describe('Partially interconnected network', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				const seedPeers =
@@ -124,11 +127,16 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					wsPort: NETWORK_START_PORT + index,
 					version: '1.0.0',
+					nonce: 'O2wTkjqplHII5wPv',
 				});
 			});
 
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => {
+					p2p.applyNodeInfo({
+						height: 0,
+						broadhash: '2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5'
+					});
 					return p2p.start();
 				},
 			);
