@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { validatePublicKey, validateSignature } from '.';
 import { TransactionError } from '../../errors';
 import { IsValidResponse } from '../../transaction_types';
+import { validatePublicKey, validateSignature } from './validation';
 
 export const validateSignatureAndPublicKey = (
 	signature: string,
