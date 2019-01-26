@@ -131,6 +131,15 @@ describe('nacl', () => {
 					);
 				});
 
+				it('should create a publicKey when private key is 32 bytes', () => {
+					publicKey = getPublicKey(
+						Buffer.from(defaultPrivateKey, 'hex').slice(0, 32),
+					);
+					return expect(Buffer.from(publicKey).toString('hex')).to.be.eql(
+						defaultPublicKey,
+					);
+				});
+
 				it('should create a publicKey of type uint8array', () => {
 					return expect(publicKey).to.be.instanceOf(Uint8Array);
 				});
