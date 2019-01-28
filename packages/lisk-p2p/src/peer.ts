@@ -367,7 +367,6 @@ export class Peer extends EventEmitter {
 
 	private _handlePeerInfo(request: P2PRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
-		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
 		try {
 			const newPeerInfo = validatePeerInfo(request.data);
 			this.updatePeerInfo(newPeerInfo);

@@ -29,7 +29,6 @@ interface HistogramValues {
 	max: number;
 }
 
-// TODO ASAP: Only select peers which have all available P2PPeerInfo properties.
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,

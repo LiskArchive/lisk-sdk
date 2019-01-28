@@ -107,7 +107,6 @@ describe('Integration tests for P2P library', () => {
 			it('should discover seed peers', () => {
 				p2pNodeList.forEach(p2p => {
 					// TODO ASAP: Do multiple rounds of discovery.
-					// TODO ASAP: Check that nodes are running and connected to seed peers using p2p.getNetworkStatus()
 					let networkStatus = p2p.getNetworkStatus();
 					// TODO ASAP: Remove this and use assertions instead.
 					console.log('NETWORK STATUS:', networkStatus);
