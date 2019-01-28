@@ -17,34 +17,36 @@
 const async = require('async');
 const lisk = require('lisk-elements').default;
 const { CACHE } = require('../../../components/cache/constants');
-const componentsLoader = require('../../common/components_loader');
+const createCache = require('../../../components');
+const Logger = require('../../../logger');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 
 describe('components: cache', () => {
 	let cache;
 
-	before(done => {
+	before(async () => {
 		__testContext.config.cacheEnabled = true;
-		componentsLoader.initCache((err, __components) => {
-			expect(err).to.not.exist;
-			expect(__components).to.be.an('object');
-			expect(__components).to.have.property('cache');
-			cache = __components.cache;
-			done();
+		this.logger = new Logger({
+			echo: null,
+			errorLevel: __testContext.config.fileLogLevel,
+			filename: __testContext.config.logFileName,
 		});
+		cache = createCache(__testContext.config.redis, this.logger);
+		const err = await cache.bootstrap();
+		expect(err).to.not.exist;
+		expect(cache).to.be.an('object');
 	});
 
-	afterEach(done => {
-		cache.flushDb((err, status) => {
+	afterEach(() => {
+		return cache.flushDb((err, status) => {
 			expect(err).to.not.exist;
 			expect(status).to.equal('OK');
-			done(err, status);
 		});
 	});
 
-	after(done => {
-		cache.quit(done);
+	after(() => {
+		return cache.quit();
 	});
 
 	describe('connect', () => {});
@@ -166,10 +168,10 @@ describe('components: cache', () => {
 					},
 					// flush cache database
 					function(callback) {
-						cache.flushDb((err, status) => {
+						return cache.flushDb().then((result, err) => {
 							expect(err).to.not.exist;
-							expect(status).to.equal('OK');
-							return callback(err, status);
+							expect(result).to.equal('OK');
+							return callback(err, result);
 						});
 					},
 					// check if entries exist

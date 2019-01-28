@@ -495,7 +495,7 @@ d.run(() => {
 					return cb();
 				}
 				const cache = createCache(config.cache, logger);
-				return cache.boostrap().then(err => {
+				return cache.bootstrap().then(err => {
 					if (err) {
 						return cb(err);
 					}

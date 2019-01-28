@@ -18,7 +18,8 @@ require('../../functional.js');
 const Promise = require('bluebird');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
-const componentsLoader = require('../../../common/components_loader');
+const createCache = require('../../../../components');
+const Logger = require('../../../../logger');
 const apiHelpers = require('../../../common/helpers/api');
 const waitFor = require('../../../common/utils/wait_for');
 
@@ -30,28 +31,29 @@ describe('cached endpoints', () => {
 	let cache;
 	let getJsonForKeyPromise;
 
-	before(done => {
+	before(async () => {
 		__testContext.config.cacheEnabled = true;
-		componentsLoader.initCache((err, __components) => {
+		this.logger = new Logger({
+			echo: null,
+			errorLevel: __testContext.config.fileLogLevel,
+			filename: __testContext.config.logFileName,
+		});
+		cache = createCache(__testContext.config.redis, this.logger);
+		const err = await cache.bootstrap();
+		expect(err).to.not.exist;
+		expect(cache).to.be.an('object');
+		getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey).bind(cache);
+	});
+
+	afterEach(() => {
+		return cache.flushDb().then((result, err) => {
 			expect(err).to.not.exist;
-			expect(__components).to.be.an('object');
-			expect(__components).to.have.property('cache');
-			cache = __components.cache;
-			getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey).bind(cache);
-			done();
+			return expect(result).to.equal('OK');
 		});
 	});
 
-	afterEach(done => {
-		cache.flushDb((err, status) => {
-			expect(err).to.not.exist;
-			expect(status).to.equal('OK');
-			done();
-		});
-	});
-
-	after(done => {
-		cache.quit(done);
+	after(() => {
+		return cache.quit();
 	});
 
 	describe('@sequential tests', () => {

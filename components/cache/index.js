@@ -43,7 +43,7 @@ class Cache {
 		this.cacheReady = false;
 	}
 
-	async boostrap() {
+	async bootstrap() {
 		this.client = redis.createClient(this.options);
 		this.client.once('error', this._onConnectionError.bind(this));
 		this.client.once('ready', this._onReady.bind(this));

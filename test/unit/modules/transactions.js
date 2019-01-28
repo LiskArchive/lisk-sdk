@@ -18,7 +18,7 @@ const async = require('async');
 const rewire = require('rewire');
 const { CACHE } = require('../../../components/cache/constants');
 const transactionTypes = require('../../../helpers/transaction_types.js');
-const componentsLoader = require('../../common/components_loader');
+const createCache = require('../../../components');
 const modulesLoader = require('../../common/modules_loader');
 const AccountLogic = require('../../../logic/account.js');
 const TransactionLogic = require('../../../logic/transaction.js');
@@ -135,11 +135,10 @@ describe('transactions', () => {
 					modulesLoader.initLogic(AccountLogic, {}, cb);
 				},
 				cacheComponent(cb) {
-					componentsLoader.initCache((err, __components) => {
+					cache = createCache(__testContext.config.redis, modulesLoader.logger);
+					return cache.bootstrap().then(err => {
 						expect(err).to.not.exist;
-						expect(__components).to.be.an('object');
-						expect(__components).to.have.property('cache');
-						cache = __components.cache;
+						expect(cache).to.be.an('object');
 						cb();
 					});
 				},
