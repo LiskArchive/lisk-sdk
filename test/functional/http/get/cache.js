@@ -29,7 +29,6 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('cached endpoints', () => {
 	let cache;
-	let getJsonForKeyPromise;
 
 	before(async () => {
 		__testContext.config.cacheEnabled = true;
@@ -39,17 +38,13 @@ describe('cached endpoints', () => {
 			filename: __testContext.config.logFileName,
 		});
 		cache = createCache(__testContext.config.redis, this.logger);
-		const err = await cache.bootstrap();
-		expect(err).to.not.exist;
+		await cache.bootstrap();
 		expect(cache).to.be.an('object');
-		getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey).bind(cache);
 	});
 
-	afterEach(() => {
-		return cache.flushDb().then((result, err) => {
-			expect(err).to.not.exist;
-			return expect(result).to.equal('OK');
-		});
+	afterEach(async () => {
+		const result = await cache.flushDb();
+		return expect(result).to.equal('OK');
 	});
 
 	after(() => {
@@ -67,10 +62,9 @@ describe('cached endpoints', () => {
 
 				return transactionsEndpoint.makeRequest(params, 200).then(res => {
 					return Promise.all(
-						[0, 10, 100].map(delay => {
-							return Promise.delay(delay).then(() => {
-								return getJsonForKeyPromise(res.req.path);
-							});
+						[0, 10, 100].map(async delay => {
+							await Promise.delay(delay);
+							return cache.getJsonForKey(res.req.path);
 						})
 					).then(responses => {
 						expect(responses).to.deep.include(res.body);
@@ -89,7 +83,7 @@ describe('cached endpoints', () => {
 						.to.equal(400);
 					expect(res).to.have.nested.property('body.message');
 
-					return getJsonForKeyPromise(res.req.path).then(response => {
+					return cache.getJsonForKey(res.req.path).then(response => {
 						expect(response).to.eql(null);
 					});
 				});
@@ -112,7 +106,7 @@ describe('cached endpoints', () => {
 						return Promise.all(
 							[0, 10, 100].map(delay => {
 								return Promise.delay(delay).then(() => {
-									return getJsonForKeyPromise(res.req.path);
+									return cache.getJsonForKey(res.req.path);
 								});
 							})
 						);
@@ -127,7 +121,7 @@ describe('cached endpoints', () => {
 					.makeRequest({ height: -100 }, 400)
 					.then(res => {
 						expectSwaggerParamError(res, 'height');
-						return getJsonForKeyPromise(res.req.path);
+						return cache.getJsonForKey(res.req.path);
 					})
 					.then(response => {
 						expect(response).to.eql(null);
@@ -148,7 +142,7 @@ describe('cached endpoints', () => {
 						return Promise.all(
 							[0, 10, 100].map(delay => {
 								return Promise.delay(delay).then(() => {
-									return getJsonForKeyPromise(res.req.path);
+									return cache.getJsonForKey(res.req.path);
 								});
 							})
 						);
@@ -160,7 +154,7 @@ describe('cached endpoints', () => {
 						return waitForBlocksPromise(1, null);
 					})
 					.then(() => {
-						return getJsonForKeyPromise(initialResponse.req.path);
+						return cache.getJsonForKey(initialResponse.req.path);
 					})
 					.then(result => {
 						expect(result).to.eql(null);
@@ -176,7 +170,7 @@ describe('cached endpoints', () => {
 					return Promise.all(
 						[0, 10, 100].map(delay => {
 							return Promise.delay(delay).then(() => {
-								return getJsonForKeyPromise(res.req.path);
+								return cache.getJsonForKey(res.req.path);
 							});
 						})
 					).then(responses => {
@@ -191,7 +185,7 @@ describe('cached endpoints', () => {
 				};
 
 				return delegatesEndpoint.makeRequest(params, 400).then(res => {
-					return getJsonForKeyPromise(res.req.path).then(response => {
+					return cache.getJsonForKey(res.req.path).then(response => {
 						expect(response).to.not.exist;
 					});
 				});
@@ -215,13 +209,13 @@ describe('cached endpoints', () => {
 					return Promise.all(
 						[0, 10, 100].map(delay => {
 							return Promise.delay(delay).then(() => {
-								return getJsonForKeyPromise(res.req.path);
+								return cache.getJsonForKey(res.req.path);
 							});
 						})
 					).then(responses => {
 						expect(responses).to.deep.include(res.body);
 						return onNewRoundPromise(null).then(() => {
-							return getJsonForKeyPromise(urlPath).then(result => {
+							return cache.getJsonForKey(urlPath).then(result => {
 								expect(result).to.not.exist;
 							});
 						});

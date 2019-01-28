@@ -14,7 +14,6 @@
 
 'use strict';
 
-const async = require('async');
 const redis = require('redis');
 const { promisify } = require('util');
 const transactionTypes = require('../../helpers/transaction_types');
@@ -53,7 +52,7 @@ class Cache {
 		// Called if the "error" event occured before "ready" event
 		this.logger.info('App was unable to connect to Cache server', err);
 		// Don't attempt to connect to server again as the connection was never established before
-		this.quit();
+		return this.quit();
 	}
 
 	_onReady() {
@@ -61,7 +60,7 @@ class Cache {
 		this.logger.info('App connected to Cache server');
 		this.client.removeListener('error', this._onConnectionError);
 		this.cacheReady = true;
-		this.client.on('error', err => {
+		return this.client.on('error', err => {
 			// Log Cache errors before and after server was connected
 			this.logger.info('Cache:', err);
 		});
@@ -92,27 +91,21 @@ class Cache {
 	 * Gets json value for a key from redis.
 	 *
 	 * @param {string} key
-	 * @param {function} cb
-	 * @returns {function} cb
-	 * @returns {boolean}
 	 * @todo Add description for the params and the return value
 	 */
-	getJsonForKey(key, cb) {
+	async getJsonForKey(key) {
 		this.logger.debug(
 			['Cache - Get value for key:', key, '| Status:', this.isConnected()].join(
 				' '
 			)
 		);
 		if (!this.isConnected()) {
-			return cb(errorCacheDisabled);
+			return new Error(errorCacheDisabled);
 		}
-		return this.client.get(key, (err, value) => {
-			if (err) {
-				return cb(err, value);
-			}
-			// Parse string to json
-			return cb(null, JSON.parse(value));
-		});
+
+		const getAsync = promisify(this.client.get).bind(this.client);
+		const value = await getAsync(key);
+		return JSON.parse(value);
 	}
 
 	/**
@@ -120,28 +113,22 @@ class Cache {
 	 *
 	 * @param {string} key
 	 * @param {Object} value
-	 * @param {function} cb
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	setJsonForKey(key, value, cb) {
-		cb =
-			cb ||
-			function() {
-				this.logger.debug('Cache - Value set for key');
-			};
-
+	async setJsonForKey(key, value) {
 		this.logger.debug(
 			['Cache - Set value for key:', key, '| Status:', this.isConnected()].join(
 				' '
 			)
 		);
 		if (!this.isConnected()) {
-			return cb(errorCacheDisabled);
+			return new Error(errorCacheDisabled);
 		}
 
+		const setAsync = promisify(this.client.set).bind(this.client);
 		// Cache server calls toString on objects, which converts it to object [object] so calling stringify before saving
-		return this.client.set(key, JSON.stringify(value), cb);
+		return setAsync(key, JSON.stringify(value));
 	}
 
 	/**
@@ -151,7 +138,7 @@ class Cache {
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	deleteJsonForKey(key, cb) {
+	async deleteJsonForKey(key) {
 		this.logger.debug(
 			[
 				'Cache - Delete value for key:',
@@ -161,42 +148,49 @@ class Cache {
 			].join(' ')
 		);
 		if (!this.isConnected()) {
-			return cb(errorCacheDisabled);
+			return new Error(errorCacheDisabled);
 		}
-		return this.client.del(key, cb);
+		const delAsync = promisify(this.client.del).bind(this.client);
+		return delAsync(key);
 	}
 
 	/**
 	 * Scans keys with provided pattern in redis db and deletes the entries that match.
 	 *
 	 * @param {string} pattern
-	 * @param {function} cb
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	removeByPattern(pattern, cb) {
+	async removeByPattern(pattern) {
 		if (!this.isConnected()) {
-			return cb(errorCacheDisabled);
+			return new Error(errorCacheDisabled);
 		}
 		let keys;
 		let cursor = 0;
-		return async.doWhilst(
-			whilstCb => {
-				this.client.scan(cursor, 'MATCH', pattern, (err, res) => {
-					if (err) {
-						return whilstCb(err);
-					}
-					cursor = Number(res.shift());
-					keys = res.shift();
-					if (keys.length > 0) {
-						return this.client.del(keys, whilstCb);
-					}
-					return whilstCb();
-				});
-			},
-			() => cursor > 0,
-			cb
-		);
+
+		const scanAsync = promisify(this.client.scan).bind(this.client);
+		const delAsync = promisify(this.client.del).bind(this.client);
+
+		const scan = () =>
+			scanAsync(cursor, 'MATCH', pattern).then((res, err) => {
+				if (err) throw err;
+
+				cursor = res[0];
+				keys = res[1];
+
+				if (keys.length > 0) {
+					delAsync(keys);
+					return scan();
+				}
+
+				if (cursor === '0') {
+					return null;
+				}
+
+				return scan();
+			});
+
+		return scan();
 	}
 
 	/**
@@ -224,7 +218,7 @@ class Cache {
 	 */
 	async cleanup() {
 		this.logger.debug('Cache - Clean up database');
-		this.quit();
+		return this.quit();
 	}
 
 	/**
@@ -252,9 +246,7 @@ class Cache {
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	clearCacheFor(pattern, cb) {
-		cb = cb || function() {};
-
+	async clearCacheFor(pattern) {
 		this.logger.debug(
 			['Cache - clearCacheFor', pattern, '| Status:', this.isConnected()].join(
 				' '
@@ -262,151 +254,117 @@ class Cache {
 		);
 
 		if (!this.isReady()) {
-			return cb(errorCacheDisabled);
+			return new Error(errorCacheDisabled);
 		}
 
-		return this.removeByPattern(pattern, err => {
-			if (err) {
-				this.logger.error(
-					[
-						'Cache - Error clearing keys with pattern:',
-						pattern,
-						'on new block',
-					].join(' ')
-				);
-			} else {
-				this.logger.debug(
-					[
-						'Cache - Keys with pattern:',
-						pattern,
-						'cleared from cache on new block',
-					].join(' ')
-				);
-			}
-
-			cb(err);
-		});
+		const err = await this.removeByPattern(pattern);
+		if (err) {
+			this.logger.error(
+				[
+					'Cache - Error clearing keys with pattern:',
+					pattern,
+					'on new block',
+				].join(' ')
+			);
+		} else {
+			this.logger.debug(
+				[
+					'Cache - Keys with pattern:',
+					pattern,
+					'cleared from cache on new block',
+				].join(' ')
+			);
+		}
+		return err;
 	}
 
 	/**
 	 * Clears all cache entries upon round finish.
 	 *
-	 * @param {Object} round - Current round.
-	 * @param {function} cb
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	onFinishRound(round, cb) {
-		cb = cb || function() {};
-
+	async onFinishRound() {
 		this.logger.debug(
 			['Cache - onFinishRound', '| Status:', this.isConnected()].join(' ')
 		);
 		if (!this.isReady()) {
-			return cb(errorCacheDisabled);
+			return new Error(errorCacheDisabled);
 		}
 		const pattern = CACHE.KEYS.delegatesApi;
-		return this.removeByPattern(pattern, err => {
-			if (err) {
-				this.logger.error(
-					[
-						'Cache - Error clearing keys with pattern:',
-						pattern,
-						'round finish',
-					].join(' ')
-				);
-			} else {
-				this.logger.debug(
-					[
-						'Cache - Keys with pattern:',
-						pattern,
-						'cleared from cache on new Round',
-					].join(' ')
-				);
-			}
-			return cb(err);
-		});
+		const err = await this.removeByPattern(pattern);
+		if (err) {
+			return this.logger.error(
+				[
+					'Cache - Error clearing keys with pattern:',
+					pattern,
+					'round finish',
+				].join(' ')
+			);
+		}
+		return this.logger.debug(
+			[
+				'Cache - Keys with pattern:',
+				pattern,
+				'cleared from cache on new Round',
+			].join(' ')
+		);
 	}
 
 	/**
 	 * Clears all cache entries if there is a delegate type transaction after transactions saved.
 	 *
 	 * @param {transactions[]} transactions
-	 * @param {function} cb
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	onTransactionsSaved(transactions, cb) {
-		cb = cb || function() {};
-
+	async onTransactionsSaved(transactions) {
 		this.logger.debug(
 			['Cache - onTransactionsSaved', '| Status:', this.isConnected()].join(' ')
 		);
 		if (!this.isReady()) {
-			return cb(errorCacheDisabled);
+			return new Error(errorCacheDisabled);
 		}
 
-		return async.parallel(
-			[
-				async.reflect(reflectCb => {
-					const pattern = CACHE.KEYS.delegatesApi;
+		const pattern = CACHE.KEYS.delegatesApi;
+		const delegateTransaction = transactions.find(
+			transaction =>
+				!!transaction && transaction.type === transactionTypes.DELEGATE
+		);
 
-					const delegateTransaction = transactions.find(
-						transaction =>
-							!!transaction && transaction.type === transactionTypes.DELEGATE
-					);
+		if (!delegateTransaction) {
+			return null;
+		}
 
-					if (!delegateTransaction) {
-						return setImmediate(reflectCb, null);
-					}
+		const removeByPatternErr = await this.removeByPattern(pattern);
+		if (removeByPatternErr) {
+			this.logger.error(
+				[
+					'Cache - Error clearing keys with pattern:',
+					pattern,
+					'on delegate transaction',
+				].join(' ')
+			);
+		} else {
+			this.logger.debug(
+				[
+					'Cache - Keys with pattern:',
+					pattern,
+					'cleared from cache on delegate transaction',
+				].join(' ')
+			);
+		}
 
-					return this.removeByPattern(pattern, removeByPatternErr => {
-						if (removeByPatternErr) {
-							this.logger.error(
-								[
-									'Cache - Error clearing keys with pattern:',
-									pattern,
-									'on delegate transaction',
-								].join(' ')
-							);
-						} else {
-							this.logger.debug(
-								[
-									'Cache - Keys with pattern:',
-									pattern,
-									'cleared from cache on delegate transaction',
-								].join(' ')
-							);
-						}
-						return setImmediate(reflectCb, removeByPatternErr);
-					});
-				}),
-
-				async.reflect(reflectCb => {
-					if (transactions.length === 0) {
-						return setImmediate(reflectCb, null);
-					}
-
-					return this.deleteJsonForKey(
-						CACHE.KEYS.transactionCount,
-						deleteJsonForKeyErr => {
-							if (deleteJsonForKeyErr) {
-								this.logger.error(
-									`Cache - Error clearing keys: ${CACHE.KEYS.transactionCount}`
-								);
-							} else {
-								this.logger.debug(
-									`Cache - Keys ${
-										CACHE.KEYS.transactionCount
-									} cleared from cache`
-								);
-							}
-							return setImmediate(reflectCb, deleteJsonForKeyErr);
-						}
-					);
-				}),
-			],
-			() => setImmediate(cb, null) // Don't propagate cache error to continue normal operations
+		const deleteJsonForKeyErr = await this.deleteJsonForKey(
+			CACHE.KEYS.transactionCount
+		);
+		if (deleteJsonForKeyErr) {
+			return this.logger.error(
+				`Cache - Error clearing keys: ${CACHE.KEYS.transactionCount}`
+			);
+		}
+		return this.logger.debug(
+			`Cache - Keys ${CACHE.KEYS.transactionCount} cleared from cache`
 		);
 	}
 
