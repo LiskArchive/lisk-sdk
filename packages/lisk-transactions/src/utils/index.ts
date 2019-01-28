@@ -36,7 +36,6 @@ export {
 	checkTypes,
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
-	validateSignatureAndPublicKey,
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
