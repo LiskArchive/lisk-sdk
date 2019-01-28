@@ -12,22 +12,45 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { transfer } from './0_transfer';
-import { registerSecondPassphrase } from './1_register_second_passphrase';
-import { registerDelegate } from './2_register_delegate';
-import { castVotes } from './3_cast_votes';
 import { registerMultisignature } from './4_register_multisignature_account';
-import { createDapp } from './5_create_dapp';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
+import {
+	BaseTransaction,
+	DappTransaction,
+	DelegateTransaction,
+	InTransferTransaction,
+	MultisignatureTransaction,
+	SecondSignatureTransaction,
+	TransferTransaction,
+	VoteTransaction,
+} from './transactions';
 import * as utils from './utils';
 
+// tslint:disable-next-line no-unbound-method
+const transfer = TransferTransaction.create;
+// tslint:disable-next-line no-unbound-method
+const registerSecondPassphrase = SecondSignatureTransaction.create;
+// tslint:disable-next-line no-unbound-method
+const registerDelegate = DelegateTransaction.create;
+// tslint:disable-next-line no-unbound-method
+const castVotes = VoteTransaction.create;
+// tslint:disable-next-line no-unbound-method
+const createDapp = DappTransaction.create;
+
 export {
+	BaseTransaction,
+	MultisignatureTransaction,
+	TransferTransaction,
+	SecondSignatureTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	InTransferTransaction,
 	transfer,
-	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
 	registerMultisignature,
+	registerSecondPassphrase,
 	createSignatureObject,
 	createDapp,
 	utils,

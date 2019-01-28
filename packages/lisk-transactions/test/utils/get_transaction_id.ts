@@ -14,10 +14,56 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { getTransactionId } from '../../src/utils';
-import { BaseTransaction } from '../../src/transaction_types';
+import { addTransactionFields } from '../helpers';
+import { getId, getTransactionId } from '../../src/utils';
+import { TransactionJSON } from '../../src/transaction_types';
+import { validTransaction } from '../../fixtures';
 // Require is used for stubbing
 const utils = require('../../src/utils');
+
+describe('#getId', () => {
+	const defaultTransaction = addTransactionFields(validTransaction);
+	const defaultTransactionBytes =
+		'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309';
+
+	it('should return a valid id', async () => {
+		expect(getId(Buffer.from(defaultTransactionBytes, 'hex'))).to.be.eql(
+			defaultTransaction.id,
+		);
+	});
+
+	it('should call cryptography hash', async () => {
+		const cryptographyHashStub = sandbox
+			.stub(cryptography, 'hash')
+			.returns(
+				Buffer.from(
+					'da63e78daf2096db8316a157a839c8b9a616d3ce6692cfe61d6d380a623a1902',
+					'hex',
+				),
+			);
+
+		getId(Buffer.from(defaultTransactionBytes, 'hex'));
+		expect(cryptographyHashStub).to.be.calledOnce;
+	});
+
+	it('should call cryptography getFirstEightBytesReversed', async () => {
+		const cryptographygetFirstEightBytesReversedStub = sandbox
+			.stub(cryptography, 'getFirstEightBytesReversed')
+			.returns('db9620af8de763da');
+
+		getId(Buffer.from(defaultTransactionBytes, 'hex'));
+		expect(cryptographygetFirstEightBytesReversedStub).to.be.calledOnce;
+	});
+
+	it('should call cryptography bufferToBigNumberString', async () => {
+		const cryptographyBufferToBigNumberStringStub = sandbox
+			.stub(cryptography, 'bufferToBigNumberString')
+			.returns('15822870279184933850');
+
+		getId(Buffer.from(defaultTransactionBytes, 'hex'));
+		expect(cryptographyBufferToBigNumberStringStub).to.be.calledOnce;
+	});
+});
 
 describe('#getTransactionId', () => {
 	const defaultPublicKey =
@@ -39,7 +85,7 @@ describe('#getTransactionId', () => {
 	});
 
 	it('should return an id of 13987348420913138422 for a transaction', () => {
-		const transaction: BaseTransaction = {
+		const transaction: unknown = {
 			type: 0,
 			amount: defaultAmount,
 			fee: '0',
@@ -49,7 +95,7 @@ describe('#getTransactionId', () => {
 			senderPublicKey: defaultPublicKey,
 			signature: defaultSignature,
 		};
-		const id = getTransactionId(transaction);
+		const id = getTransactionId(transaction as TransactionJSON);
 
 		return expect(id).to.be.equal(defaultTransactionId);
 	});

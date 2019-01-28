@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { prepareTransaction } from '../../src/utils/prepare_transaction';
 import { getTimeWithOffset } from '../../src/utils/time';
 import {
-	BaseTransaction,
+	TransactionJSON,
 	PartialTransaction,
 } from '../../src/transaction_types';
 
@@ -40,9 +40,10 @@ describe('#prepareTransaction', () => {
 		timestamp: 10,
 		senderPublicKey: keys.publicKey,
 		asset: {},
+		signatures: [],
 	};
 	let inputTransaction: PartialTransaction;
-	let preparedTransaction: BaseTransaction;
+	let preparedTransaction: TransactionJSON;
 
 	beforeEach(() => {
 		inputTransaction = { ...defaultTransaction };

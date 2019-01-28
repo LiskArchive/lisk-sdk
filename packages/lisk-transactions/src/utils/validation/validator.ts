@@ -20,16 +20,18 @@ import {
 	isGreaterThanMaxTransactionId,
 	isNumberString,
 	validateAddress,
-	validateAmount,
 	validateFee,
+	validateNonTransferAmount,
 	validatePublicKey,
+	validateSignature,
 	validateTransferAmount,
+	validateUsername,
 } from './validation';
 
 export const validator = new Ajv({ allErrors: true });
 addKeywords(validator);
 
-validator.addFormat('signature', data => /^[a-f0-9]{128}$/i.test(data));
+validator.addFormat('signature', validateSignature);
 
 validator.addFormat(
 	'id',
@@ -47,11 +49,27 @@ validator.addFormat('address', data => {
 	}
 });
 
-validator.addFormat('amount', validateAmount);
+validator.addFormat('amount', isNumberString);
 
 validator.addFormat('transferAmount', validateTransferAmount);
 
+validator.addFormat('nonTransferAmount', validateNonTransferAmount);
+
 validator.addFormat('fee', validateFee);
+
+validator.addFormat('emptyOrPublicKey', data => {
+	if (data === null || data === '') {
+		return true;
+	}
+
+	try {
+		validatePublicKey(data);
+
+		return true;
+	} catch (error) {
+		return false;
+	}
+});
 
 validator.addFormat('publicKey', data => {
 	try {
@@ -93,10 +111,19 @@ validator.addFormat('additionPublicKey', data => {
 	}
 });
 
+validator.addFormat(
+	'receivedAt',
+	(data: unknown) =>
+		data instanceof Date && !isNaN((data as unknown) as number),
+);
+
+validator.addFormat('username', validateUsername);
+
 validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',
 	compile: () => (data: ReadonlyArray<string>) =>
 		new Set(data.map((key: string) => key.slice(1))).size === data.length,
 });
+
 
 validator.addSchema(schemas.baseTransaction);

@@ -14,12 +14,12 @@
  */
 import { expect } from 'chai';
 import { getTransactionHash } from '../../src/utils';
-import { BaseTransaction } from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
 import * as getTransactionBytesModule from '../../src/utils/get_transaction_bytes';
 
 describe('#getTransactionHash', () => {
 	let defaultTransactionBytes;
-	let transaction: BaseTransaction;
+	let transaction: unknown;
 	let result: Buffer;
 
 	beforeEach(() => {
@@ -41,9 +41,10 @@ describe('#getTransactionHash', () => {
 				'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 			signature:
 				'618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+			signatures: [],
 			id: '13987348420913138422',
 		};
-		result = getTransactionHash(transaction);
+		result = getTransactionHash(transaction as TransactionJSON);
 		return Promise.resolve();
 	});
 

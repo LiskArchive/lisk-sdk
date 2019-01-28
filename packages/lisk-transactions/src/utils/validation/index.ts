@@ -12,19 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+export * from './check_types';
 export {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-	validateAmount,
+	validateNonTransferAmount,
 	validateTransferAmount,
+	validateUsername,
 	validateFee,
 	isValidInteger,
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanZero,
+	isNumberString,
+	stringEndsWith,
 } from './validation';
-
 export { validateTransaction } from './validate_transaction';
+export { validator } from './validator';

@@ -15,7 +15,7 @@
 import { ErrorObject, ValidateFunction } from 'ajv';
 import {
 	MultiSignatureTransaction,
-	PartialTransaction,
+	TransactionJSON,
 } from '../../transaction_types';
 import * as schemas from './schema';
 import { validator } from './validator';
@@ -70,13 +70,11 @@ const validateMultiTransaction = (
 };
 
 const isMultiSignatureTransaction = (
-	tx: PartialTransaction,
+	tx: TransactionJSON,
 ): tx is MultiSignatureTransaction =>
 	tx.type === TRANSACTION_TYPE_MULTI_SIGNATURE;
 
-export const validateTransaction = (
-	tx: PartialTransaction,
-): ValidationResult => {
+export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
 	if (tx.type === undefined || tx.type === null) {
 		throw new Error('Transaction type is required.');
 	}

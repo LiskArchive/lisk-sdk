@@ -14,23 +14,237 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { addTransactionFields } from '../helpers';
 import {
 	signTransaction,
 	multiSignTransaction,
+	verifyMultisignatures,
+	verifySignature,
 	verifyTransaction,
 } from '../../src/utils';
+import { TransactionError, TransactionPendingError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import fixtureTransactions from '../../fixtures/transactions.json';
-import {
-	PartialTransaction,
-	BaseTransaction,
-} from '../../src/transaction_types';
+import { Account, TransactionJSON } from '../../src/transaction_types';
 import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
+import {
+	validMultisignatureAccount as defaultMultisignatureAccount,
+	validMultisignatureTransaction,
+	validSecondSignatureTransaction,
+} from '../../fixtures';
+
 // Require is used for stubbing
-const validTransactions = fixtureTransactions as ReadonlyArray<BaseTransaction>;
+const validTransactions = (fixtureTransactions as unknown) as ReadonlyArray<
+	TransactionJSON
+>;
 
 describe('signAndVerify module', () => {
+	describe('#verifySignature', () => {
+		const defaultSecondSignatureTransaction = addTransactionFields(
+			validSecondSignatureTransaction,
+		);
+		const defaultSecondSignatureTransactionBytes = Buffer.from(
+			'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b54020000003357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
+			'hex',
+		);
+		const defaultSecondPublicKey =
+			'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8';
+		const defaultTransactionBytes = Buffer.from(
+			'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b5402000000',
+			'hex',
+		);
+
+		it('should call cryptography hash', async () => {
+			const cryptographyHashStub = sandbox
+				.stub(cryptography, 'hash')
+				.returns(
+					Buffer.from(
+						'62b13b81836f3f1e371eba2f7f8306ff23d00a87d9473793eda7f742f4cfc21c',
+						'hex',
+					),
+				);
+
+			verifySignature(
+				defaultSecondSignatureTransaction.senderPublicKey,
+				defaultSecondSignatureTransaction.signature,
+				defaultTransactionBytes,
+			);
+
+			expect(cryptographyHashStub).to.be.calledOnce;
+		});
+
+		it('should call cryptography verifyData', async () => {
+			const cryptographyVerifyDataStub = sandbox
+				.stub(cryptography, 'verifyData')
+				.returns(true);
+
+			verifySignature(
+				defaultSecondSignatureTransaction.senderPublicKey,
+				defaultSecondSignatureTransaction.signature,
+				defaultTransactionBytes,
+			);
+
+			expect(cryptographyVerifyDataStub).to.be.calledOnce;
+		});
+
+		it('should return a verified response with valid signature', async () => {
+			const { verified } = verifySignature(
+				defaultSecondSignatureTransaction.senderPublicKey,
+				defaultSecondSignatureTransaction.signature,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.true;
+		});
+
+		it('should return an unverified response with invalid signature', async () => {
+			const { verified, error } = verifySignature(
+				defaultSecondSignatureTransaction.senderPublicKey,
+				defaultSecondSignatureTransaction.signature.replace('1', '0'),
+				Buffer.from(defaultTransactionBytes),
+			);
+
+			expect(verified).to.be.false;
+			expect(error)
+				.to.be.instanceof(TransactionError)
+				.and.have.property(
+					'message',
+					`Failed to verify signature ${defaultSecondSignatureTransaction.signature.replace(
+						'1',
+						'0',
+					)}`,
+				);
+		});
+
+		it('should return a verified response with valid signSignature', async () => {
+			const { verified } = verifySignature(
+				defaultSecondPublicKey,
+				defaultSecondSignatureTransaction.signSignature,
+				defaultSecondSignatureTransactionBytes,
+			);
+
+			expect(verified).to.be.true;
+		});
+
+		it('should return an unverified response with invalid signSignature', async () => {
+			const { verified, error } = verifySignature(
+				defaultSecondPublicKey,
+				defaultSecondSignatureTransaction.signSignature.replace('1', '0'),
+				defaultSecondSignatureTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			expect(error)
+				.to.be.instanceof(TransactionError)
+				.and.have.property(
+					'message',
+					`Failed to verify signature ${defaultSecondSignatureTransaction.signSignature.replace(
+						'1',
+						'0',
+					)}`,
+				);
+		});
+	});
+
+	describe('#verifyMultisignatures', () => {
+		const defaultMultisignatureTransaction = addTransactionFields(
+			validMultisignatureTransaction,
+		);
+		const defaultTransactionBytes = Buffer.from(
+			'002c497801500660b67a2ade1e2528b7f648feef8f3b46e2f4f90ca7f5439101b5119f309d572c095724f7f2b7600a3a4200000000',
+			'hex',
+		);
+
+		const {
+			multisignatures: memberPublicKeys,
+		} = defaultMultisignatureAccount as Account;
+
+		it('should return a verified response with valid signatures', async () => {
+			const { verified } = verifyMultisignatures(
+				memberPublicKeys,
+				defaultMultisignatureTransaction.signatures,
+				2,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.true;
+		});
+
+		it('should return a verification fail response with invalid signatures', async () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberPublicKeys,
+				defaultMultisignatureTransaction.signatures.map((signature: string) =>
+					signature.replace('1', '0'),
+				),
+				2,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			(errors as ReadonlyArray<TransactionError>).forEach((error, i) => {
+				expect(error)
+					.to.be.instanceof(TransactionError)
+					.and.have.property(
+						'message',
+						`Failed to verify signature ${defaultMultisignatureTransaction.signatures[
+							i
+						].replace('1', '0')}`,
+					);
+			});
+		});
+
+		it('should return a verification fail response with invalid extra signatures', async () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberPublicKeys,
+				[
+					...defaultMultisignatureTransaction.signatures,
+					'f321799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
+				],
+				2,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error).to.be.instanceof(TransactionError);
+			});
+		});
+
+		it('should return a verification fail response with duplicate signatures', async () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberPublicKeys,
+				[
+					...defaultMultisignatureTransaction.signatures,
+					defaultMultisignatureTransaction.signatures[0],
+				],
+				2,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error).to.be.instanceof(TransactionError);
+			});
+		});
+
+		it('should return a transaction pending error when missing signatures', async () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberPublicKeys,
+				defaultMultisignatureTransaction.signatures.slice(0, 2),
+				3,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error)
+					.to.be.instanceof(TransactionPendingError)
+					.and.have.property('message', 'Missing signatures');
+			});
+		});
+	});
+
 	describe('signAndVerify transaction utils', () => {
 		const defaultPassphrase =
 			'minute omit local rare sword knee banner pair rib museum shadow juice';
@@ -47,7 +261,7 @@ describe('signAndVerify module', () => {
 			'hex',
 		);
 
-		let defaultTransaction: PartialTransaction;
+		let defaultTransaction: TransactionJSON;
 		let cryptoSignDataStub: sinon.SinonStub;
 		let cryptoVerifyDataStub: sinon.SinonStub;
 		let getTransactionHashStub: sinon.SinonStub;
@@ -56,11 +270,16 @@ describe('signAndVerify module', () => {
 			defaultTransaction = {
 				type: 0,
 				amount: '1000',
+				fee: '1',
 				recipientId: '58191285901858109L',
+				recipientPublicKey: '',
+				senderId: '',
 				timestamp: 141738,
 				asset: {},
 				id: '13987348420913138422',
+				signatures: [],
 				senderPublicKey: defaultPublicKey,
+				receivedAt: new Date(),
 			};
 
 			cryptoSignDataStub = sandbox
@@ -76,11 +295,11 @@ describe('signAndVerify module', () => {
 		});
 
 		describe('#signTransaction', () => {
-			let transaction: BaseTransaction;
+			let transaction: TransactionJSON;
 			let signature: string;
 
 			beforeEach(() => {
-				transaction = { ...defaultTransaction } as BaseTransaction;
+				transaction = { ...defaultTransaction } as TransactionJSON;
 				signature = signTransaction(transaction, defaultPassphrase);
 				return Promise.resolve();
 			});
@@ -109,7 +328,7 @@ describe('signAndVerify module', () => {
 				'hex',
 			);
 
-			let multiSignatureTransaction: BaseTransaction;
+			let multiSignatureTransaction: TransactionJSON;
 			let signature: string;
 
 			beforeEach(() => {
@@ -126,7 +345,7 @@ describe('signAndVerify module', () => {
 					signSignature:
 						'508a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					id: '13987348420913138422',
-				} as BaseTransaction;
+				} as TransactionJSON;
 				getTransactionHashStub.returns(defaultMultisignatureHash);
 				signature = multiSignTransaction(
 					multiSignatureTransaction,
@@ -157,14 +376,14 @@ describe('signAndVerify module', () => {
 		});
 
 		describe('#verifyTransaction', () => {
-			let transaction: BaseTransaction;
+			let transaction: TransactionJSON;
 
 			describe('with a single signed transaction', () => {
 				beforeEach(() => {
 					transaction = {
 						...defaultTransaction,
 						signature: defaultSignature,
-					} as BaseTransaction;
+					} as TransactionJSON;
 					return Promise.resolve();
 				});
 
@@ -209,7 +428,7 @@ describe('signAndVerify module', () => {
 						...defaultTransaction,
 						signature: defaultSignature,
 						signSignature: defaultSecondSignature,
-					} as BaseTransaction;
+					} as TransactionJSON;
 					return getTransactionHashStub
 						.onFirstCall()
 						.returns(
