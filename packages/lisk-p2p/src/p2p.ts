@@ -57,6 +57,8 @@ export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
 
+export const NODE_HOST_IP = '0.0.0.0';
+
 const BASE_10_RADIX = 10;
 
 export class P2P extends EventEmitter {
@@ -105,29 +107,25 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerConnect = (peerInfo: PeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			if(!this._triedPeers.has(peerInfo)) {
-				this._triedPeers.add(peerInfo)
+			if (!this._triedPeers.has(peerInfo)) {
+				this._triedPeers.add(peerInfo);
 			}
 			this.emit(EVENT_CONNECT_OUTBOUND);
 		};
 		this._handlePeerConnectAbort = (peerInfo: PeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			if(this._triedPeers.has(peerInfo)) {
-				this._triedPeers.delete(peerInfo)
+			if (this._triedPeers.has(peerInfo)) {
+				this._triedPeers.delete(peerInfo);
 			}
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND);
 		};
 
-		this._peerPool = new PeerPool();
+		this._peerPool = new PeerPool(this._nodeInfo);
 		this._bindHandlersToPeerPool(this._peerPool);
 	}
 
 	public get isActive(): boolean {
 		return this._isActive;
-	}
-
-	public get nodeInfo(): P2PNodeInfo {
-		return this._nodeInfo;
 	}
 
 	/**
@@ -136,10 +134,11 @@ export class P2P extends EventEmitter {
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = nodeInfo;
-		const peerList = this._peerPool.getAllPeers();
-		peerList.forEach(peer => {
-			peer.applyNodeInfo(nodeInfo);
-		});
+		this._peerPool.applyNodeInfo(nodeInfo);
+	}
+
+	public get nodeInfo(): P2PNodeInfo {
+		return this._nodeInfo;
 	}
 
 	/* tslint:disable:next-line: prefer-function-over-method */
@@ -155,6 +154,7 @@ export class P2P extends EventEmitter {
 		};
 	}
 
+	// TODO ASAP: Change selectPeers to return PeerInfo list and then make request on peerPool itself; pass peerInfo as argument.
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const peerSelectionParams: PeerOptions = {
 			lastBlockHeight: this._nodeInfo.height,
@@ -196,6 +196,7 @@ export class P2P extends EventEmitter {
 					return;
 				}
 				const queryObject = url.parse(socket.request.url, true).query;
+
 				if (
 					typeof queryObject.wsPort !== 'string' ||
 					typeof queryObject.os !== 'string' ||
@@ -222,7 +223,6 @@ export class P2P extends EventEmitter {
 						peerId,
 						incomingPeerInfo,
 						socket,
-						this._nodeInfo,
 					);
 
 					if (isNewPeer) {
@@ -236,7 +236,7 @@ export class P2P extends EventEmitter {
 				}
 			},
 		);
-		this._httpServer.listen(this._config.wsPort);
+		this._httpServer.listen(this._config.wsPort, NODE_HOST_IP);
 
 		return new Promise<void>(resolve => {
 			this._scServer.once('ready', () => {
@@ -287,9 +287,7 @@ export class P2P extends EventEmitter {
 
 	public async start(): Promise<void> {
 		await this._startPeerServer();
-
 		await this._runPeerDiscovery(this._config.seedPeers);
-
 		this._peerPool.selectPeersAndConnect([...this._newPeers]);
 	}
 

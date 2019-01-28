@@ -14,11 +14,11 @@
  */
 import { expect } from 'chai';
 import {
-	InvalidPeer,
+	InvalidPeerError,
 	NotEnoughPeersError,
 	PeerTransportError,
 	RPCResponseError,
-	InvalidRPCResponse,
+	InvalidRPCResponseError,
 } from '../../src';
 
 describe('errors', () => {
@@ -156,11 +156,11 @@ describe('errors', () => {
 	});
 
 	describe('#InvalidPeer', () => {
-		let invalidPeer: InvalidPeer;
+		let invalidPeer: InvalidPeerError;
 		const defaultMessage = 'Invalid peer ip or port';
 
 		beforeEach(() => {
-			invalidPeer = new InvalidPeer(defaultMessage);
+			invalidPeer = new InvalidPeerError(defaultMessage);
 			return Promise.resolve();
 		});
 
@@ -168,7 +168,7 @@ describe('errors', () => {
 			it('should create a new instance of InvalidPeer', () => {
 				return expect(invalidPeer)
 					.to.be.an('object')
-					.and.be.instanceof(InvalidPeer);
+					.and.be.instanceof(InvalidPeerError);
 			});
 
 			it('should set error name to `InvalidPeer`', () => {
@@ -178,7 +178,7 @@ describe('errors', () => {
 
 		describe('should set error object properties', () => {
 			beforeEach(() => {
-				invalidPeer = new InvalidPeer(defaultMessage);
+				invalidPeer = new InvalidPeerError(defaultMessage);
 				return Promise.resolve();
 			});
 
@@ -189,11 +189,11 @@ describe('errors', () => {
 	});
 
 	describe('#InvalidRPCResponse', () => {
-		let invalidRPCResponse: InvalidRPCResponse;
+		let invalidRPCResponse: InvalidRPCResponseError;
 		const defaultMessage = 'Invalid response type';
 
 		beforeEach(() => {
-			invalidRPCResponse = new InvalidRPCResponse(defaultMessage);
+			invalidRPCResponse = new InvalidRPCResponseError(defaultMessage);
 			return Promise.resolve();
 		});
 
@@ -201,7 +201,7 @@ describe('errors', () => {
 			it('should create a new instance of InvalidRPCResponse', () => {
 				return expect(invalidRPCResponse)
 					.to.be.an('object')
-					.and.be.instanceof(InvalidRPCResponse);
+					.and.be.instanceof(InvalidRPCResponseError);
 			});
 
 			it('should set error name to `InvalidRPCResponse`', () => {
@@ -211,7 +211,7 @@ describe('errors', () => {
 
 		describe('should set error object properties', () => {
 			beforeEach(() => {
-				invalidRPCResponse = new InvalidRPCResponse(defaultMessage);
+				invalidRPCResponse = new InvalidRPCResponseError(defaultMessage);
 				return Promise.resolve();
 			});
 

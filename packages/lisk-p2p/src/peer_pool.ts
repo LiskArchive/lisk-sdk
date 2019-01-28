@@ -41,7 +41,12 @@ import { SCServerSocket } from 'socketcluster-server';
 import { P2PRequest } from './p2p_request';
 import { P2PMessagePacket, P2PNodeInfo } from './p2p_types';
 
-export { EVENT_CONNECT_OUTBOUND, EVENT_CONNECT_ABORT_OUTBOUND, EVENT_REQUEST_RECEIVED, EVENT_MESSAGE_RECEIVED };
+export {
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_REQUEST_RECEIVED,
+	EVENT_MESSAGE_RECEIVED,
+};
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -49,9 +54,11 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
 	private readonly _handlePeerConnect: (peerInfo: PeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: PeerInfo) => void;
+	private _nodeInfo: P2PNodeInfo;
 
-	public constructor() {
+	public constructor(initialNodeInfo: P2PNodeInfo) {
 		super();
+		this._nodeInfo = initialNodeInfo;
 		this._peerMap = new Map();
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -83,6 +90,18 @@ export class PeerPool extends EventEmitter {
 		};
 	}
 
+	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
+		this._nodeInfo = nodeInfo;
+		const peerList = this.getAllPeers();
+		peerList.forEach(peer => {
+			peer.applyNodeInfo(nodeInfo);
+		});
+	}
+
+	public get nodeInfo(): P2PNodeInfo {
+		return this._nodeInfo;
+	}
+
 	public selectPeers(
 		selectionParams: PeerOptions,
 		numOfPeers?: number,
@@ -101,10 +120,7 @@ export class PeerPool extends EventEmitter {
 		blacklist: ReadonlyArray<PeerInfo>,
 	): Promise<ReadonlyArray<PeerInfo>> {
 		const peersObjectList = peers.map((peerInfo: PeerInfo) => {
-			const peer = new Peer(peerInfo);
-			this.addPeer(peer); // Binding of events will be done in addPeer
-
-			return peer;
+			return this.addPeer(peerInfo); // Binding of events will be done in addPeer
 		});
 
 		const disoveredPeers = await discoverPeers(peersObjectList, {
@@ -117,35 +133,35 @@ export class PeerPool extends EventEmitter {
 	public selectPeersAndConnect(
 		peers: ReadonlyArray<PeerInfo>,
 	): ReadonlyArray<PeerInfo> {
-		const availablePeers = Array.from(peers).map(
-			(peerInfo: PeerInfo) => new Peer(peerInfo),
-		);
-		const peersToConnect = selectForConnection(availablePeers);
+		const peersToConnect = selectForConnection(peers);
 
-		const connectedPeerInfo = peersToConnect.map((peer: Peer) => {
-			this.addPeer(peer);
-
-			return peer.peerInfo; // Return peerInfo to p2p to manage new/tried Peers
+		peersToConnect.forEach((peerInfo: PeerInfo) => {
+			this.addPeer(peerInfo);
 		});
 
-		return connectedPeerInfo;
+		return peersToConnect;
 	}
 
-	public addPeer(peer: Peer): void {
+	public addPeer(peerInfo: PeerInfo, inboundSocket?: SCServerSocket): Peer {
+		const peer = new Peer(peerInfo, inboundSocket);
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
+		peer.applyNodeInfo(this._nodeInfo);
 		peer.connect();
+
+		return peer;
 	}
 
 	public addInboundPeer(
 		peerId: string,
-		peerinfo: PeerInfo,
+		peerInfo: PeerInfo,
 		socket: SCServerSocket,
-		nodeInfo: P2PNodeInfo,
 	): boolean {
 		const existingPeer = this.getPeer(peerId);
 
 		if (existingPeer) {
+			// Update the peerInfo from the latest inbound socket.
+			existingPeer.updatePeerInfo(peerInfo);
 			if (existingPeer.state.inbound === ConnectionState.DISCONNECTED) {
 				existingPeer.inboundSocket = socket;
 
@@ -155,10 +171,7 @@ export class PeerPool extends EventEmitter {
 			return false;
 		}
 
-		const peer = new Peer({ ...peerinfo }, socket);
-
-		peer.applyNodeInfo(nodeInfo);
-		this.addPeer(peer);
+		this.addPeer({ ...peerInfo }, socket);
 
 		return true;
 	}
@@ -196,7 +209,12 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _handleGetAllPeersRequest(request: P2PRequest): void {
-		request.end(this.getAllPeerInfos());
+		// TODO ASAP: Apply peer selection to only send back good peers (a subset of all peers)
+		// TODO ASAP: Send back peerInfo as ProtocolPeerInfo to be compatible with 1.0 protocol
+		request.end({
+			success: true,
+			peers: this.getAllPeerInfos(),
+		});
 	}
 
 	private _bindHandlersToPeer(peer: Peer): void {
@@ -207,9 +225,12 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {
-		peer.off(EVENT_REQUEST_RECEIVED, this._handlePeerRPC);
-		peer.off(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
-		peer.off(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
-		peer.off(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
+		peer.removeListener(EVENT_REQUEST_RECEIVED, this._handlePeerRPC);
+		peer.removeListener(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
+		peer.removeListener(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
+		peer.removeListener(
+			EVENT_CONNECT_ABORT_OUTBOUND,
+			this._handlePeerConnectAbort,
+		);
 	}
 }

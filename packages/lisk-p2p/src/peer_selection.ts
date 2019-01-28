@@ -13,7 +13,7 @@
  *
  */
 import { NotEnoughPeersError } from './errors';
-import { Peer } from './peer';
+import { Peer, PeerInfo } from './peer';
 
 export interface PeerOptions {
 	readonly [key: string]: string | number;
@@ -118,4 +118,5 @@ export const selectPeers = (
 	return peerList;
 };
 
-export const selectForConnection = (peers: ReadonlyArray<Peer>) => peers;
+export const selectForConnection = (peerInfoList: ReadonlyArray<PeerInfo>) =>
+	peerInfoList;

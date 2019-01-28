@@ -98,10 +98,6 @@ export class Peer extends EventEmitter {
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
-		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
-		if (this._inboundSocket) {
-			this._bindHandlersToInboundSocket(this._inboundSocket);
-		}
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -147,6 +143,11 @@ export class Peer extends EventEmitter {
 
 			this.emit(EVENT_MESSAGE_RECEIVED, protocolMessage);
 		};
+
+		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
+		if (this._inboundSocket) {
+			this._bindHandlersToInboundSocket(this._inboundSocket);
+		}
 	}
 
 	public get height(): number {
@@ -171,6 +172,16 @@ export class Peer extends EventEmitter {
 
 	public set outboundSocket(scClientSocket: SCClientSocket) {
 		this._outboundSocket = scClientSocket;
+	}
+
+	public updatePeerInfo(peerInfo: PeerInfo) {
+		// Only allow updating a subset of fields.
+		const { height, version, os } = peerInfo;
+		const peerInfoChange = { height, version, os };
+		this._peerInfo = {
+			...this._peerInfo,
+			...peerInfoChange,
+		};
 	}
 
 	public get peerInfo(): PeerInfo {
@@ -367,13 +378,8 @@ export class Peer extends EventEmitter {
 		// Update peerInfo with the latest values from the remote peer.
 		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
 		try {
-			// Only allow updating the height and version.
-			const { height, version } = validatePeerInfo(request.data);
-			const peerInfoChange = { height, version };
-			this._peerInfo = {
-				...this._peerInfo,
-				...peerInfoChange,
-			};
+			const newPeerInfo = validatePeerInfo(request.data);
+			this.updatePeerInfo(newPeerInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 			request.error(error);
