@@ -82,6 +82,8 @@ describe('Transaction', () => {
 	let validFilters;
 	let validOptions;
 	let validSimpleObjectFields;
+	let validExtendedObjectFields;
+	let SQLs;
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
@@ -89,6 +91,8 @@ describe('Transaction', () => {
 			'lisk_test_transactions'
 		);
 		await storage.bootstrap();
+
+		SQLs = storage.entities.Transaction.SQLs;
 
 		validTransactionSQLs = [
 			'select',
@@ -180,6 +184,26 @@ describe('Transaction', () => {
 		];
 
 		validSimpleObjectFields = [
+			'id',
+			'blockId',
+			'height',
+			'type',
+			'timestamp',
+			'senderId',
+			'recipientId',
+			'amount',
+			'fee',
+			'signature',
+			'signSignature',
+			'signatures',
+			'senderPublicKey',
+			'recipientPublicKey',
+			'requesterPublicKey',
+			'confirmations',
+		];
+
+		validExtendedObjectFields = [
+			'asset',
 			'id',
 			'blockId',
 			'height',
@@ -374,19 +398,109 @@ describe('Transaction', () => {
 	});
 
 	describe('get()', () => {
-		it('should accept only valid filters');
-		it('should throw error for in-valid filters');
+		beforeEach(() => {
+			return sinonSandbox.restore();
+		});
+		it('should accept only valid filters', async () => {
+			// Arrange
+			const transaction = new Transaction(adapter);
+			const transactions = [
+				new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				}),
+			];
+			await transaction.create(transactions);
+			const validFilter = {
+				id: transactions[0].id,
+			};
+			// Act & Assert
+			expect(() => {
+				transaction.get(validFilter);
+			}).not.to.throw(NonSupportedFilterTypeError);
+		});
+		it('should throw error for invalid filters');
 		it('should accept only valid options');
-		it('should throw error for in-valid options');
-		it('should call adapter.executeFile with proper param for extended=false');
-		it('should call adapter.executeFile with proper param for extended=true');
-		it('should accept "tx" as last parameter and pass to adapter.executeFile');
-		it(
-			'should resolve with one object matching specification of type definition of simple object'
-		);
-		it(
-			'should resolve with one object matching specification of type definition of full object'
-		);
+		it('should throw error for invalid options');
+
+		it('should call adapter.executeFile with proper param for extended=false', async () => {
+			// Arrange
+			sinonSandbox.spy(adapter, 'executeFile');
+			const transaction = new Transaction(adapter);
+			// Act
+			transaction.get();
+			// Assert
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.select);
+		});
+
+		it('should call adapter.executeFile with proper param for extended=true', async () => {
+			// Arrange
+			sinonSandbox.spy(adapter, 'executeFile');
+			const transaction = new Transaction(adapter);
+			// Act
+			transaction.get({}, { extended: true });
+			// Assert
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
+				SQLs.selectExtended
+			);
+		});
+
+		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
+			// Arrange
+			const transaction = new Transaction(adapter);
+			const transactions = [
+				new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				}),
+			];
+			await transaction.create(transactions);
+			const validFilter = {
+				id: transactions[0].id,
+			};
+			const _getSpy = sinonSandbox.spy(transaction, 'get');
+			// Act & Assert
+			await transaction.begin('testTX', async tx => {
+				await transaction.get(validFilter, {}, tx);
+				expect(Object.getPrototypeOf(_getSpy.firstCall.args[2])).to.be.eql(
+					Object.getPrototypeOf(tx)
+				);
+			});
+		});
+
+		it('should resolve with one object matching specification of type definition of simple object', async () => {
+			// Arrange
+			const transaction = new Transaction(adapter);
+			const transactions = [
+				new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				}),
+			];
+			await transaction.create(transactions);
+			const validFilter = {
+				id: transactions[0].id,
+			};
+			// Act
+			const results = await transaction.get(validFilter, { extended: false });
+			// Assert
+			expect(results[0]).to.have.all.keys(validSimpleObjectFields);
+		});
+
+		it('should resolve with one object matching specification of type definition of full object', async () => {
+			// Arrange
+			const transaction = new Transaction(adapter);
+			const transactions = [
+				new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				}),
+			];
+			await transaction.create(transactions);
+			const validFilter = {
+				id: transactions[0].id,
+			};
+			// Act
+			const results = await transaction.get(validFilter, { extended: true });
+			// Assert
+			expect(results[0]).to.have.all.keys(validExtendedObjectFields);
+		});
 		it('should not change any of the provided parameter');
 
 		it('should return result in valid format', async () => {
@@ -510,7 +624,10 @@ describe('Transaction', () => {
 
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
-			it('should have only specific filters');
+			it('should have only specific filters', async () => {
+				const transaction = new Transaction(adapter);
+				expect(transaction.getFilters()).to.eql(validFilters);
+			});
 			// For each filter type
 			it('should return matching result for provided filter');
 		});
@@ -547,11 +664,66 @@ describe('Transaction', () => {
 			}).to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should call mergeFilters with proper params');
+		it('should call mergeFilters with proper params', async () => {
+			// Arrange
+			const block = seeder.getLastBlock();
+			const randTransaction = new transactionsFixtures.Transaction({
+				blockId: block.id,
+			});
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns(),
+				executeFile: sinonSandbox.stub().resolves([randTransaction]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const validFilter = {
+				id: randTransaction.id,
+			};
+			const transaction = new Transaction(localAdapter);
+			transaction.mergeFilters = sinonSandbox.stub();
+			transaction.parseFilters = sinonSandbox.stub();
+			// Act
+			transaction.isPersisted(validFilter);
+			// Assert
+			expect(transaction.mergeFilters.calledWith(validFilter)).to.be.true;
+		});
 
-		it('should call parseFilters with proper params');
+		it('should call parseFilters with proper params', async () => {
+			// Arrange
+			const block = seeder.getLastBlock();
+			const randTransaction = new transactionsFixtures.Transaction({
+				blockId: block.id,
+			});
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns(),
+				executeFile: sinonSandbox.stub().resolves([randTransaction]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const validFilter = {
+				id: randTransaction.id,
+			};
+			const transaction = new Transaction(localAdapter);
+			transaction.mergeFilters = sinonSandbox.stub().returns(validFilter);
+			transaction.parseFilters = sinonSandbox.stub();
+			// Act
+			transaction.isPersisted(validFilter);
+			// Assert
+			expect(transaction.parseFilters.calledWith(validFilter)).to.be.true;
+		});
 
-		it('should call adapter.executeFile with proper params');
+		it('should call adapter.executeFile with proper params', async () => {
+			// Arrange
+			sinonSandbox.spy(adapter, 'executeFile');
+			const block = seeder.getLastBlock();
+			const randTransaction = new transactionsFixtures.Transaction({
+				blockId: block.id,
+			});
+			const transaction = new Transaction(adapter);
+			// Act
+			await transaction.isPersisted({ id: randTransaction.id });
+			// Assert
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.isPersisted);
+		});
 
 		it('should resolve with true if matching record found', async () => {
 			const block = seeder.getLastBlock();
@@ -642,7 +814,7 @@ describe('Transaction', () => {
 
 	describe('count()', () => {
 		it('should accept only valid filters');
-		it('should throw error for in-valid filters');
+		it('should throw error for invalid filters');
 		it('should resolve with integer value if matching record found', async () => {
 			let transaction = null;
 			const transactions = [];

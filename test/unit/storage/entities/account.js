@@ -17,7 +17,10 @@
 
 const randomstring = require('randomstring');
 const { BaseEntity, Account } = require('../../../../storage/entities');
-const { NonSupportedFilterTypeError, NonSupportedOptionError } = require('../../../../storage/errors');
+const {
+	NonSupportedFilterTypeError,
+	NonSupportedOptionError,
+} = require('../../../../storage/errors');
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const accountFixtures = require('../../../fixtures').accounts;
@@ -358,9 +361,7 @@ describe('Account', () => {
 		it('should call addField the exact number of times', async () => {
 			const addFieldSpy = sinonSandbox.spy(Account.prototype, 'addField');
 			const account = new Account(adapter);
-			expect(addFieldSpy.callCount).to.eql(
-				Object.keys(account.fields).length
-			);
+			expect(addFieldSpy.callCount).to.eql(Object.keys(account.fields).length);
 		});
 
 		it('should setup correct fields', async () => {
@@ -378,7 +379,10 @@ describe('Account', () => {
 			const anAccount = new accountFixtures.Account();
 			await AccountEntity.create(anAccount);
 			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
-			await AccountEntity.getOne({ address: anAccount.address }, { extended: false });
+			await AccountEntity.getOne(
+				{ address: anAccount.address },
+				{ extended: false }
+			);
 			expect(_getResultsSpy.firstCall.args[1]).to.be.eql({ extended: false });
 		});
 
@@ -386,7 +390,10 @@ describe('Account', () => {
 			const anAccount = new accountFixtures.Account();
 			await AccountEntity.create(anAccount);
 			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
-			await AccountEntity.getOne({ address: anAccount.address }, { extended: true });
+			await AccountEntity.getOne(
+				{ address: anAccount.address },
+				{ extended: true }
+			);
 			expect(_getResultsSpy.firstCall.args[1]).to.be.eql({ extended: true });
 		});
 
@@ -396,21 +403,29 @@ describe('Account', () => {
 			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
 			await AccountEntity.begin('testTX', async tx => {
 				await AccountEntity.getOne({ address: anAccount.address }, {}, tx);
-				expect(Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])).to.be.eql(Object.getPrototypeOf(tx));
+				expect(
+					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])
+				).to.be.eql(Object.getPrototypeOf(tx));
 			});
 		});
 
 		it('should resolve with one object matching specification of type definition of simple object', async () => {
 			const anAccount = new accountFixtures.Account();
 			await AccountEntity.create(anAccount);
-			const results = await AccountEntity.getOne({ address: anAccount.address }, { extended: false });
+			const results = await AccountEntity.getOne(
+				{ address: anAccount.address },
+				{ extended: false }
+			);
 			expect(results).to.have.all.keys(validSimpleObjectFields);
 		});
 
 		it('should resolve with one object matching specification of type definition of full object', async () => {
 			const anAccount = new accountFixtures.Account();
 			await AccountEntity.create(anAccount);
-			const results = await AccountEntity.getOne({ address: anAccount.address }, { extended: true });
+			const results = await AccountEntity.getOne(
+				{ address: anAccount.address },
+				{ extended: true }
+			);
 			expect(results).to.have.all.keys(validExtendedObjectFields);
 		});
 
@@ -451,21 +466,29 @@ describe('Account', () => {
 			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
 			await AccountEntity.begin('testTX', async tx => {
 				await AccountEntity.get({}, {}, tx);
-				expect(Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])).to.be.eql(Object.getPrototypeOf(tx));
+				expect(
+					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])
+				).to.be.eql(Object.getPrototypeOf(tx));
 			});
 		});
 
 		it('should resolve with one object matching specification of type definition of simple object', async () => {
 			const anAccount = new accountFixtures.Account();
 			await AccountEntity.create(anAccount);
-			const results = await AccountEntity.get({ address: anAccount.address }, { extended: false });
+			const results = await AccountEntity.get(
+				{ address: anAccount.address },
+				{ extended: false }
+			);
 			expect(results[0]).to.have.all.keys(validSimpleObjectFields);
 		});
 
 		it('should resolve with one object matching specification of type definition of full object', async () => {
 			const anAccount = new accountFixtures.Account();
 			await AccountEntity.create(anAccount);
-			const results = await AccountEntity.get({ address: anAccount.address }, { extended: true });
+			const results = await AccountEntity.get(
+				{ address: anAccount.address },
+				{ extended: true }
+			);
 			expect(results[0]).to.have.all.keys(validExtendedObjectFields);
 		});
 
@@ -809,7 +832,9 @@ describe('Account', () => {
 			const executeSpy = sinonSandbox.spy(AccountEntity.adapter, 'executeFile');
 			await AccountEntity.begin('testTX', async tx => {
 				await AccountEntity.get({}, {}, tx);
-				expect(Object.getPrototypeOf(executeSpy.firstCall.args[3])).to.be.eql(Object.getPrototypeOf(tx));
+				expect(Object.getPrototypeOf(executeSpy.firstCall.args[3])).to.be.eql(
+					Object.getPrototypeOf(tx)
+				);
 			});
 		});
 
@@ -818,8 +843,8 @@ describe('Account', () => {
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
-							// Arrange
-			const account = new Account(adapter);
+				// Arrange
+				const account = new Account(adapter);
 				expect(account.getFilters()).to.eql(validFilters);
 			});
 			// For each filter type
@@ -831,7 +856,7 @@ describe('Account', () => {
 		it('should throw error when address is missing', async () => {
 			expect(() => {
 				AccountEntity.create({ foo: 'bar', baz: 'qux' }, validOptions);
-			}).to.throw('Property \'address\' doesn\'t exist');
+			}).to.throw("Property 'address' doesn't exist");
 		});
 
 		it('should merge default values to the provided account object', async () => {
@@ -888,13 +913,21 @@ describe('Account', () => {
 		});
 
 		it('should reject with invalid data provided', async () => {
-			expect(AccountEntity.create({ missedBlocks: 'FOO-BAR', address: '1234L' }, validOptions)).to.be.rejected;
+			expect(
+				AccountEntity.create(
+					{ missedBlocks: 'FOO-BAR', address: '1234L' },
+					validOptions
+				)
+			).to.be.rejected;
 		});
 
 		it('should populate account object with default values', async () => {
 			const account = new accountFixtures.Account();
 			await AccountEntity.create({ address: account.address });
-			const accountFromDB = await AccountEntity.getOne({ address: account.address }, { extended: true });
+			const accountFromDB = await AccountEntity.getOne(
+				{ address: account.address },
+				{ extended: true }
+			);
 			const expectedObject = {
 				address: account.address,
 				publicKey: null,
@@ -1090,9 +1123,9 @@ describe('Account', () => {
 		});
 
 		it('should be rejected if any invalid attribute is provided', async () => {
-			expect(AccountEntity.update({ address: '123L' }, { invalid: true })).to.be.rejected;
+			expect(AccountEntity.update({ address: '123L' }, { invalid: true })).to.be
+				.rejected;
 		});
-
 
 		it('should not throw error if no matching record found', async () => {
 			// Arrange
@@ -1290,10 +1323,12 @@ describe('Account', () => {
 			const randomAccount = new accountFixtures.Account();
 			await AccountEntity.create(randomAccount);
 			// Act & Assert
-			expect(AccountEntity.updateOne(
-				{ address: randomAccount.address },
-				{ username: 'AN_INVALID_LONG_USERNAME' }
-			)).to.be.rejected;
+			expect(
+				AccountEntity.updateOne(
+					{ address: randomAccount.address },
+					{ username: 'AN_INVALID_LONG_USERNAME' }
+				)
+			).to.be.rejected;
 		});
 
 		it('should not throw error if no matching record found', async () => {
@@ -1363,7 +1398,7 @@ describe('Account', () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const account = new accountFixtures.Account();
 			// Act
-			await AccountEntity.isPersisted({ address: account.address }, account);
+			await AccountEntity.isPersisted({ address: account.address });
 			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.isPersisted);
@@ -1928,10 +1963,14 @@ describe('Account', () => {
 			await AccountEntity.syncDelegatesRanks();
 			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
-			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.syncDelegatesRank);
+			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
+				SQLs.syncDelegatesRank
+			);
 		});
 
-		it('should sync rank attribute of all delegates based on their vote value and public key');
+		it(
+			'should sync rank attribute of all delegates based on their vote value and public key'
+		);
 
 		it('should not throw error if there is no delegate available');
 	});
