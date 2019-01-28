@@ -28,6 +28,8 @@ import {
 	TransactionResponse,
 } from './base';
 
+const TRANSACTION_INTRANSFER_TYPE = 6;
+
 export interface InTransferAsset {
 	readonly inTransfer: {
 		readonly dappId: string;
@@ -196,6 +198,11 @@ export class InTransferTransaction extends BaseTransaction {
 		const { errors: baseErrors, status } = super.validateSchema();
 		const valid = validator.validate(inTransferAssetFormatSchema, this.asset);
 		const errors = [...baseErrors];
+
+		if (this.type !== TRANSACTION_INTRANSFER_TYPE) {
+			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+		}
+
 		// Per current protocol, this recipientId and recipientPublicKey must be empty
 		if (this.recipientId) {
 			errors.push(

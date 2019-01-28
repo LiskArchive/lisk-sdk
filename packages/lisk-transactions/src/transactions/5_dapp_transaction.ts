@@ -33,6 +33,8 @@ import {
 	TransactionResponse,
 } from './base';
 
+const TRANSACTION_DAPP_TYPE = 5;
+
 export interface DappAsset {
 	readonly dapp: {
 		readonly category: number;
@@ -398,6 +400,10 @@ export class DappTransaction extends BaseTransaction {
 			  )
 			: [];
 		errors.push(...assetErrors);
+
+		if (this.type !== TRANSACTION_DAPP_TYPE) {
+			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+		}
 
 		if (this.recipientId) {
 			errors.push(

@@ -28,6 +28,7 @@ import {
 	TransactionResponse,
 } from './base';
 
+const TRANSACTION_OUTTRANSFER_TYPE = 7;
 const TRANSACTION_DAPP_REGISTER = 5;
 
 export interface OutTransferAsset {
@@ -231,6 +232,11 @@ export class OutTransferTransaction extends BaseTransaction {
 		const { errors: baseErrors, status } = super.validateSchema();
 		const valid = validator.validate(outTransferAssetFormatSchema, this.asset);
 		const errors = [...baseErrors];
+
+		if (this.type !== TRANSACTION_OUTTRANSFER_TYPE) {
+			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+		}
+
 		// Amount has to be greater than 0
 		if (this.amount.lte(0)) {
 			errors.push(

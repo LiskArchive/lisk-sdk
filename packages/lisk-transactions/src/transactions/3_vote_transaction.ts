@@ -40,6 +40,7 @@ const PREFIX_UNVOTE = '-';
 const MAX_VOTE_PER_ACCOUNT = 101;
 const MIN_VOTE_PER_TX = 1;
 const MAX_VOTE_PER_TX = 33;
+const TRANSACTION_VOTE_TYPE = 3;
 
 export interface VoteAsset {
 	readonly votes: ReadonlyArray<string>;
@@ -286,6 +287,10 @@ export class VoteTransaction extends BaseTransaction {
 					'.amount',
 				),
 			);
+		}
+
+		if (this.type !== TRANSACTION_VOTE_TYPE) {
+			errors.push(new TransactionError('Invalid type', this.id, '.type'));
 		}
 
 		try {

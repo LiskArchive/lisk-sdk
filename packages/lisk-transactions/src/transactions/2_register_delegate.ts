@@ -33,6 +33,8 @@ import {
 	TransactionResponse,
 } from './base';
 
+const TRANSACTION_DELEGATE_TYPE = 2;
+
 export interface RequiredDelegateState {
 	readonly sender: Account;
 	readonly dependentState?: {
@@ -261,6 +263,11 @@ export class DelegateTransaction extends BaseTransaction {
 			: [];
 
 		errors.push(...assetErrors);
+
+		if (this.type !== TRANSACTION_DELEGATE_TYPE) {
+			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+		}
+
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
