@@ -121,6 +121,10 @@ export class P2P extends EventEmitter {
 		this._bindHandlersToPeerPool(this._peerPool);
 	}
 
+	public get config(): P2PConfig {
+		return this._config;
+	}
+
 	public get isActive(): boolean {
 		return this._isActive;
 	}
@@ -129,13 +133,13 @@ export class P2P extends EventEmitter {
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
-	public applyNodeInfo(nodeInfoChange: P2PNodeInfo): void {
+	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = {
 			os: this._platform,
 			version: this._config.version,
 			wsPort: this._config.wsPort,
-			height: nodeInfoChange.height,
-			options: nodeInfoChange.options,
+			height: nodeInfo.height,
+			options: nodeInfo.options,
 		};
 
 		this._peerPool.applyNodeInfo(this._nodeInfo);

@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PPeerInfo, Peer } from '../../src/peer';
+import { Peer } from '../../src/peer';
+import { P2PPeerInfo } from '../../src/p2p_types';
 
 export const initializePeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption1: P2PPeerInfo = {

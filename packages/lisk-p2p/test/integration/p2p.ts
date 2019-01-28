@@ -18,16 +18,20 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					wsPort: NETWORK_START_PORT + index,
 					version: '1.0.0',
-					nonce: 'O2wTkjqplHII5wPv',
 				});
 			});
 
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => {
 					p2p.applyNodeInfo({
+						os: 'darwin',
+						version: '1.0.0',
+						wsPort: p2p.config.wsPort,
 						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						options: {
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						},
 					});
 					return p2p.start();
 				},
@@ -69,16 +73,20 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					wsPort: NETWORK_START_PORT + index,
 					version: '1.0.0',
-					nonce: 'O2wTkjqplHII5wPv',
 				});
 			});
 
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => {
 					p2p.applyNodeInfo({
+						os: 'darwin',
+						version: '1.0.0',
+						wsPort: p2p.config.wsPort,
 						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						options: {
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						},
 					});
 					return p2p.start();
 				},
@@ -129,16 +137,20 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					wsPort: NETWORK_START_PORT + index,
 					version: '1.0.0',
-					nonce: 'O2wTkjqplHII5wPv',
 				});
 			});
 
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => {
 					p2p.applyNodeInfo({
+						os: 'darwin',
+						version: '1.0.0',
+						wsPort: p2p.config.wsPort,
 						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						options: {
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						},
 					});
 					return p2p.start();
 				},

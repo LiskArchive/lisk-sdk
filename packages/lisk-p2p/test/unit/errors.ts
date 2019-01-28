@@ -171,8 +171,8 @@ describe('errors', () => {
 					.and.be.instanceof(InvalidPeerError);
 			});
 
-			it('should set error name to `InvalidPeer`', () => {
-				return expect(invalidPeer.name).to.eql('InvalidPeer');
+			it('should set error name to `InvalidPeerError`', () => {
+				return expect(invalidPeer.name).to.eql('InvalidPeerError');
 			});
 		});
 
@@ -204,8 +204,10 @@ describe('errors', () => {
 					.and.be.instanceof(InvalidRPCResponseError);
 			});
 
-			it('should set error name to `InvalidRPCResponse`', () => {
-				return expect(invalidRPCResponse.name).to.eql('InvalidRPCResponse');
+			it('should set error name to `InvalidRPCResponseError`', () => {
+				return expect(invalidRPCResponse.name).to.eql(
+					'InvalidRPCResponseError',
+				);
 			});
 		});
 
