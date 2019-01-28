@@ -160,6 +160,9 @@ describe('RPC', () => {
 					.to.have.property('version')
 					.that.is.a('string');
 				expect(result)
+					.to.have.property('protocolVersion')
+					.that.is.a('string');
+				expect(result)
 					.to.have.property('httpPort')
 					.that.is.a('number');
 				expect(result)

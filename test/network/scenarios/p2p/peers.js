@@ -53,6 +53,7 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 					'state',
 					'os',
 					'version',
+					'protocolVersion',
 					'broadhash',
 					'httpPort',
 					'height',
@@ -79,6 +80,7 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 							expect(peer.wsPort).to.be.gte(5000);
 							expect(peer.wsPort).to.be.lt(5010);
 							expect(peer.version).to.not.empty;
+							expect(peer.protocolVersion).to.not.empty;
 							return expect(peer.nonce).to.not.empty;
 						});
 					});

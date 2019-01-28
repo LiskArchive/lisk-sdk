@@ -156,6 +156,7 @@ describe('peer', () => {
 			const updateData = {
 				os: 'test os',
 				version: '0.0.0',
+				protocolVersion: '0.0',
 				broadhash: 'test broadhash',
 				height: 3,
 				nonce: 'ABCD123',
@@ -211,6 +212,7 @@ describe('peer', () => {
 			const updateData = {
 				os: 'test os',
 				version: '0.0.0',
+				protocolVersion: '0.0',
 				dappid: ['test dappid'],
 				broadhash: 'test broadhash',
 				height: 3,
