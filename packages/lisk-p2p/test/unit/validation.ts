@@ -53,8 +53,8 @@ describe('response handlers', () => {
 				version: '3.4.5-alpha.9',
 			};
 
-			it('should return PeerInfo object', () => {
-				return expect(validatePeerInfo(peer))
+			it('should return PeerInfo object', async () => {
+				expect(validatePeerInfo(peer))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -65,8 +65,8 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return PeerInfo object with height value set to 0', () => {
-				return expect(validatePeerInfo(peerWithInvalidHeightValue))
+			it('should return PeerInfo object with height value set to 0', async () => {
+				expect(validatePeerInfo(peerWithInvalidHeightValue))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -77,8 +77,8 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return PeerInfo and instance of Peer sets blank for invalid value of os', () => {
-				return expect(validatePeerInfo(peerWithInvalidOsValue))
+			it('should return PeerInfo and instance of Peer sets blank for invalid value of os', async () => {
+				expect(validatePeerInfo(peerWithInvalidOsValue))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -91,15 +91,15 @@ describe('response handlers', () => {
 		});
 
 		describe('for invalid peer response object', () => {
-			it('throw InvalidPeerError for invalid peer', () => {
+			it('should throw an InvalidPeer error for invalid peer', async () => {
 				const peerInvalid: unknown = null;
 
-				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
 					'Invalid peer object',
 				);
 			});
 
-			it('throw InvalidPeerError for invalid peer ip or port', () => {
+			it('should throw InvalidPeer error for invalid peer ip or port', async () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.uhig3',
 					wsPort: '53937888',
@@ -107,12 +107,12 @@ describe('response handlers', () => {
 					height: '23232',
 				};
 
-				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
 					'Invalid peer ip or port',
 				);
 			});
 
-			it('throw InvalidPeerError for invalid peer version', () => {
+			it('should throw an InvalidPeer error for invalid peer version', async () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.23',
 					wsPort: '5390',
@@ -121,7 +121,7 @@ describe('response handlers', () => {
 					version: '1222.22',
 				};
 
-				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
 					'Invalid peer version',
 				);
 			});
@@ -129,42 +129,42 @@ describe('response handlers', () => {
 	});
 
 	describe('#validatePeerAddress', () => {
-		it('should return true for correct IPv4', () => {
+		it('should return true for correct IPv4', async () => {
 			const peer = {
 				ip: '12.12.12.12',
 				wsPort: '4001',
 			};
 
-			return expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
 		});
 
-		it('should return true for correct IPv6', () => {
+		it('should return true for correct IPv6', async () => {
 			const peer = {
 				ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
 				wsPort: '4001',
 			};
 
-			return expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
 		});
 
-		it('should return false for incorrect ip', () => {
+		it('should return false for incorrect ip', async () => {
 			const peerWithIncorrectIp = {
 				ip: '12.12.hh12.12',
 				wsPort: '4001',
 			};
 
-			return expect(
+			expect(
 				validatePeerAddress(peerWithIncorrectIp.ip, peerWithIncorrectIp.wsPort),
 			).to.be.false;
 		});
 
-		it('should return false for incorrect port', () => {
+		it('should return false for incorrect port', async () => {
 			const peerWithIncorrectPort = {
 				ip: '12.12.12.12',
 				wsPort: '400f1',
 			};
 
-			return expect(
+			expect(
 				validatePeerAddress(
 					peerWithIncorrectPort.ip,
 					peerWithIncorrectPort.wsPort,
@@ -174,7 +174,6 @@ describe('response handlers', () => {
 	});
 
 	describe('#validatePeerInfoList', () => {
-		let validatedPeerInfoArray: ReadonlyArray<PeerInfo>;
 		const peer1 = {
 			ip: '12.12.12.12',
 			wsPort: '5001',
@@ -196,29 +195,30 @@ describe('response handlers', () => {
 			success: true,
 			peers: peerList,
 		};
+		let validatedPeerInfoArray: ReadonlyArray<PeerInfo>;
 
 		beforeEach(async () => {
 			validatedPeerInfoArray = validatePeerInfoList(rawPeerInfoList);
 		});
 
-		it('throws errors for an undefined rawPeerInfoList object', () => {
-			return expect(
+		it('should throw an error for an undefined rawPeerInfoList object', async () => {
+			expect(
 				validatePeerInfoList.bind(validatePeerInfoList, undefined),
 			).to.throw(`Invalid response type`);
 		});
 
-		it('throws error for an invalid value of peers property', () => {
+		it('should throw an error for an invalid value of peers property', async () => {
 			const inValidPeerInfoList = {
 				peers: 'random text',
 				success: true,
 			};
 
-			return expect(
+			expect(
 				validatePeerInfoList.bind(validatePeerInfoList, inValidPeerInfoList),
 			).to.throw(`Invalid response type`);
 		});
 
-		it('throws error for an invalid port number', () => {
+		it('should throw an error for an invalid port number', async () => {
 			const inValidPeerInfoList = {
 				peers: [
 					{
@@ -232,20 +232,20 @@ describe('response handlers', () => {
 				success: true,
 			};
 
-			return expect(
+			expect(
 				validatePeerInfoList.bind(validatePeerInfoList, inValidPeerInfoList),
 			).to.throw(`Invalid peer ip or port`);
 		});
 
-		it('should return peer info list array', () => {
-			return expect(validatedPeerInfoArray).to.be.an('array');
+		it('should return peer info list array', async () => {
+			expect(validatedPeerInfoArray).to.be.an('array');
 		});
 
-		it('should return peer info list array of length 2', () => {
-			return expect(validatedPeerInfoArray).to.be.of.length(2);
+		it('should return peer info list array of length 2', async () => {
+			expect(validatedPeerInfoArray).to.be.of.length(2);
 		});
 
-		it('should return santized peer info list', () => {
+		it('should return deserialised peer info list', async () => {
 			const sanitizedPeerInfoList = peerList.map((peer: any) => {
 				peer['ipAddress'] = peer.ip;
 				peer.wsPort = +peer.wsPort;
@@ -255,57 +255,56 @@ describe('response handlers', () => {
 				return peer;
 			});
 
-			return expect(validatedPeerInfoArray).to.be.eql(sanitizedPeerInfoList);
+			expect(validatedPeerInfoArray).to.be.eql(sanitizedPeerInfoList);
 		});
 	});
 
 	describe('#validateRPCRequest', () => {
-		let validatedRPCRequest: ProtocolRPCRequestPacket;
-
 		const validRPCRequest: unknown = {
 			data: {},
 			procedure: 'list',
 			type: '',
 		};
+		let validatedRPCRequest: ProtocolRPCRequestPacket;
 
 		beforeEach(async () => {
 			validatedRPCRequest = validateRPCRequest(validRPCRequest);
 		});
 
-		it('should throw an error for an invalid procedure value', () => {
-			return expect(
-				validateRPCRequest.bind(validateRPCRequest, undefined),
-			).to.throw('Invalid request');
+		it('should throw an error for an invalid procedure value', async () => {
+			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).to.throw(
+				'Invalid request',
+			);
 		});
 
-		it('should throw an error for an invalid procedure value', () => {
+		it('should throw an error for an invalid procedure value', async () => {
 			const inValidRequest: unknown = {
 				data: {},
 				procedure: {},
 			};
 
-			return expect(
+			expect(
 				validateRPCRequest.bind(validateRPCRequest, inValidRequest),
 			).to.throw('Request procedure name is not a string');
 		});
 
-		it('should throw an error for an invalid data field type', () => {
+		it('should throw an error for an invalid data field type', async () => {
 			const inValidRequestData: unknown = {
 				data: 'invalid data field',
 				procedure: 'list',
 				type: '',
 			};
 
-			return expect(
+			expect(
 				validateRPCRequest.bind(validateRPCRequest, inValidRequestData),
 			).to.throw('Invalid request data');
 		});
 
-		it('should pass and return an object', () => {
-			return expect(validatedRPCRequest).to.be.an('object');
+		it('should pass and return an object', async () => {
+			expect(validatedRPCRequest).to.be.an('object');
 		});
 
-		it('should return a valid rpc request', () => {
+		it('should return a valid rpc request', async () => {
 			expect(validatedRPCRequest)
 				.to.be.an('object')
 				.has.property('data')
@@ -314,50 +313,49 @@ describe('response handlers', () => {
 				.to.be.an('object')
 				.has.property('procedure').to.be.string;
 
-			return expect(validatedRPCRequest)
+			expect(validatedRPCRequest)
 				.to.be.an('object')
 				.has.property('type').to.be.string;
 		});
 	});
 
 	describe('#validateProtocolMessage', () => {
-		let returnedValidatedMessage: ProtocolMessagePacket;
-
 		const validProtocolMessage: unknown = {
 			data: {},
 			event: 'newPeer',
 		};
+		let returnedValidatedMessage: ProtocolMessagePacket;
 
 		beforeEach(async () => {
 			returnedValidatedMessage = validateProtocolMessage(validProtocolMessage);
 		});
 
-		it('should throw an error for an invalid event value type', () => {
-			return expect(
+		it('should throw an error for an invalid event value type', async () => {
+			expect(
 				validateProtocolMessage.bind(validateProtocolMessage, undefined),
 			).to.throw('Invalid message');
 		});
 
-		it('should throw an error for an invalid event value type', () => {
+		it('should throw an error for an invalid event value type', async () => {
 			const inValidMessage: unknown = {
 				data: {},
 				event: 6788,
 			};
-			return expect(
+			expect(
 				validateProtocolMessage.bind(validateProtocolMessage, inValidMessage),
 			).to.throw('Protocol message is not a string');
 		});
 
-		it('should return an object', () => {
-			return expect(returnedValidatedMessage).to.be.an('object');
+		it('should return an object', async () => {
+			expect(returnedValidatedMessage).to.be.an('object');
 		});
 
-		it('should return a valid protocol message object', () => {
+		it('should return a valid protocol message object', async () => {
 			expect(returnedValidatedMessage)
 				.to.be.an('object')
-				.has.property('data').to.be.any;
+				.has.property('data');
 
-			return expect(returnedValidatedMessage)
+			expect(returnedValidatedMessage)
 				.to.be.an('object')
 				.has.property('data').to.be.string;
 		});
