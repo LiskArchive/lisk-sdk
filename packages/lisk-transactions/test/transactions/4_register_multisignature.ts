@@ -55,7 +55,7 @@ describe('Multisignature transaction class', () => {
 				.and.be.instanceof(MultisignatureTransaction);
 		});
 
-		it('should set multisignature asset', () => {
+		it('should set multisignature asset', async () => {
 			expect(validTestTransaction.asset).to.eql(
 				validMultisignatureRegistrationTransaction.asset,
 			);
