@@ -110,6 +110,7 @@ __private.getByFilter = function(filter, cb) {
 		'state',
 		'os',
 		'version',
+		'protocolVersion',
 		'broadhash',
 		'height',
 		'nonce',
@@ -269,31 +270,51 @@ __private.updatePeerStatus = function(err, status, peer) {
 		} else {
 			library.logic.peers.remove(peer);
 		}
-	} else if (!modules.system.versionCompatible(status.version)) {
-		library.logger.debug(
-			`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
-				peer.string
-			}, version: ${status.version}`
-		);
-		library.logic.peers.remove(peer);
 	} else {
-		let state;
-		// Ban peer if it is presented in the array of black listed peers
-		if (__private.isBlacklisted(peer.ip)) {
-			state = Peer.STATE.BANNED;
+		let compatible = false;
+		// Check needed for compatibility with older nodes
+		if (!status.protocolVersion) {
+			if (!modules.system.versionCompatible(status.version)) {
+				library.logger.debug(
+					`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
+						peer.string
+					}, version: ${status.version}`
+				);
+			} else {
+				compatible = true;
+			}
+		} else if (
+			!modules.system.protocolVersionCompatible(status.protocolVersion)
+		) {
+			library.logger.debug(
+				`Peers->updatePeerStatus Incompatible protocol version, rejecting peer: ${
+					peer.string
+				}, version: ${status.protocolVersion}`
+			);
 		} else {
-			state = Peer.STATE.CONNECTED;
+			compatible = true;
 		}
 
-		peer.applyHeaders({
-			broadhash: status.broadhash,
-			height: status.height,
-			httpPort: status.httpPort,
-			nonce: status.nonce,
-			os: status.os,
-			state,
-			version: status.version,
-		});
+		if (compatible) {
+			let state;
+			// Ban peer if it is presented in the array of black listed peers
+			if (__private.isBlacklisted(peer.ip)) {
+				state = Peer.STATE.BANNED;
+			} else {
+				state = Peer.STATE.CONNECTED;
+			}
+
+			peer.applyHeaders({
+				broadhash: status.broadhash,
+				height: status.height,
+				httpPort: status.httpPort,
+				nonce: status.nonce,
+				os: status.os,
+				state,
+				version: status.version,
+				protocolVersion: status.protocolVersion,
+			});
+		}
 	}
 
 	library.logic.peers.upsert(peer, false);

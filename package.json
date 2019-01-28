@@ -119,7 +119,8 @@
 	},
 	"snyk": true,
 	"lisk": {
-		"minVersion": "1.1.0-rc.0"
+		"minVersion": "1.0.0",
+		"protocolVersion": "1.0"
 	},
 	"husky": {
 		"hooks": {

@@ -51,6 +51,7 @@ module.exports = function(grunt) {
 		}
 	});
 
+	grunt.loadTasks('tasks');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.registerTask('default', 'mocha');
 };

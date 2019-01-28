@@ -35,6 +35,7 @@ describe('peers', () => {
 	let peers;
 	let PeersRewired;
 	let bindings;
+	let __private;
 
 	let peersLogicMock;
 	let systemModuleMock;
@@ -52,6 +53,8 @@ describe('peers', () => {
 		};
 
 		PeersRewired = rewire('../../../modules/peers');
+		__private = PeersRewired.__get__('__private');
+
 		peersLogicMock = {
 			create: sinonSandbox.spy(),
 			exists: sinonSandbox.stub(),
@@ -946,9 +949,13 @@ describe('peers', () => {
 
 	describe('discover', () => {
 		let randomPeerStub;
+		let restoreSet;
 
 		beforeEach(done => {
-			PeersRewired.__set__('__private.updatePeerStatus', sinonSandbox.spy());
+			restoreSet = PeersRewired.__set__(
+				'__private.updatePeerStatus',
+				sinonSandbox.spy()
+			);
 			randomPeerStub = {
 				rpc: {
 					status: sinonSandbox
@@ -961,10 +968,125 @@ describe('peers', () => {
 			done();
 		});
 
+		afterEach(() => {
+			return restoreSet();
+		});
+
 		it('should not call randomPeer.rpc.list if randomPeer.rpc.status operation has failed', done => {
 			peers.discover(err => {
 				expect(err).to.equal('Failed to get peer status');
 				expect(randomPeerStub.rpc.list.called).to.be.false;
+				done();
+			});
+		});
+	});
+
+	describe('__private', () => {
+		describe('updatePeerStatus', () => {
+			let peer;
+			let status;
+
+			beforeEach(done => {
+				status = {
+					broadhash: 'aBroadhash',
+					height: 'aHeight',
+					httpPort: 'anHttpHeight',
+					nonce: 'aNonce',
+					os: 'anOs',
+					version: '1.0.0',
+					protocolVersion: '1.0',
+				};
+
+				peer = {
+					applyHeaders: sinonSandbox.stub(),
+					ip: '127.0.0.1',
+					string: 'aPeerString',
+				};
+
+				bindings.modules.system.versionCompatible = sinonSandbox.stub();
+				bindings.modules.system.protocolVersionCompatible = sinonSandbox.stub();
+				__private.updatePeerStatus(undefined, status, peer);
+				done();
+			});
+
+			afterEach(() => {
+				return sinonSandbox.restore();
+			});
+
+			describe('when no protocol version is present', () => {
+				it('should call versionCompatible() with status.version', () => {
+					delete status.protocolVersion;
+					__private.updatePeerStatus(undefined, status, peer);
+					return expect(
+						bindings.modules.system.versionCompatible
+					).to.be.calledWith(status.version);
+				});
+			});
+
+			describe('when protocol version is present', () => {
+				it('should call protocolVersionCompatible() with status.protocolVersion', () => {
+					__private.updatePeerStatus(undefined, status, peer);
+					return expect(
+						bindings.modules.system.protocolVersionCompatible
+					).to.be.calledWith(status.protocolVersion);
+				});
+			});
+
+			describe('when the peer is compatible', () => {
+				beforeEach(() => {
+					bindings.modules.system.protocolVersionCompatible = sinonSandbox
+						.stub()
+						.returns(true);
+					return __private.updatePeerStatus(undefined, status, peer);
+				});
+
+				it('should check if its blacklisted', () => {
+					// Arrange
+					__private.isBlacklisted = sinonSandbox.stub();
+					// Act
+					__private.updatePeerStatus(undefined, status, peer);
+					// Assert
+					return expect(__private.isBlacklisted).to.be.called;
+				});
+
+				it('should call peer.applyHeaders()', () => {
+					return expect(peer.applyHeaders).to.be.called;
+				});
+
+				it('should call peer.applyHeaders() with a BANNED status if blacklisted', () => {
+					// Arrange
+					__private.isBlacklisted = sinonSandbox.stub().returns(true);
+					const expectedArg = { ...status, state: Peer.STATE.BANNED };
+					// Act
+					__private.updatePeerStatus(undefined, status, peer);
+					// Assert
+					return expect(peer.applyHeaders).to.be.calledWithExactly(expectedArg);
+				});
+
+				it('should call peer.applyHeaders() with CONNECTED status if not blacklisted', () => {
+					// Arrange
+					__private.isBlacklisted = sinonSandbox.stub().returns(false);
+					const expectedArg = { ...status, state: Peer.STATE.CONNECTED };
+					// Act
+					__private.updatePeerStatus(undefined, status, peer);
+					// Assert
+					return expect(peer.applyHeaders).to.be.calledWithExactly(expectedArg);
+				});
+			});
+
+			it('should call library.logic.peers.upsert() with required args regardless if its compatible or not', done => {
+				// When it's compatible
+				bindings.modules.system.protocolVersionCompatible = sinonSandbox
+					.stub()
+					.returns(true);
+				__private.updatePeerStatus(undefined, status, peer);
+				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
+				// When it's not compatible
+				bindings.modules.system.protocolVersionCompatible = sinonSandbox
+					.stub()
+					.returns(false);
+				__private.updatePeerStatus(undefined, status, peer);
+				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
 				done();
 			});
 		});

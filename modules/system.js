@@ -55,6 +55,7 @@ class System {
 				httpPort: scope.config.httpPort,
 				nethash: scope.config.nethash,
 				minVersion: scope.config.minVersion,
+				protocolVersion: scope.config.protocolVersion,
 				nonce: scope.config.nonce,
 			},
 		};
@@ -69,6 +70,7 @@ class System {
 		__private.nethash = library.config.nethash;
 		__private.broadhash = library.config.nethash;
 		__private.minVersion = library.config.minVersion;
+		__private.protocolVersion = library.config.protocolVersion;
 		__private.nonce = library.config.nonce;
 
 		setImmediate(cb, null, self);
@@ -215,6 +217,15 @@ System.prototype.getMinVersion = function() {
 };
 
 /**
+ * Gets private variable `protocolVersion`
+ *
+ * @returns {string}
+ */
+System.prototype.getProtocolVersion = function() {
+	return __private.protocolVersion;
+};
+
+/**
  * Checks nethash (network) compatibility.
  *
  * @param {string} nethash
@@ -234,6 +245,19 @@ System.prototype.networkCompatible = function(nethash) {
  */
 System.prototype.versionCompatible = function(version) {
 	return semver.gte(version, __private.minVersion);
+};
+
+/**
+ * Checks protocol version compatibility from input param against
+ * private values.
+ *
+ * @param protocolVersion
+ * @returns {boolean}
+ */
+System.prototype.protocolVersionCompatible = function(protocolVersion) {
+	const peerHard = parseInt(protocolVersion[0]);
+	const myHard = parseInt(__private.protocolVersion[0]);
+	return myHard === peerHard && peerHard >= 1;
 };
 
 /**

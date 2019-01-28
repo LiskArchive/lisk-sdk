@@ -700,6 +700,7 @@ Transport.prototype.shared = {
 			nonce: headers.nonce,
 			httpPort: headers.httpPort,
 			version: headers.version,
+			protocolVersion: headers.protocolVersion,
 			os: headers.os,
 		});
 	},
