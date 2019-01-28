@@ -655,21 +655,14 @@ Transactions.prototype.shared = {
 			[
 				function getConfirmedCountFromCache(waterCb) {
 					if (components.cache) {
-						return components.cache.getJsonForKey(
-							CACHE.KEYS.transactionCount,
-							(err, data) => {
-								if (err) {
-									// If some issue in cache we will fallback to database
-									return setImmediate(waterCb, null, null);
-								}
-
-								return setImmediate(
-									waterCb,
-									null,
-									data ? data.confirmed : null
-								);
-							}
-						);
+						return components.cache
+							.getJsonForKey(CACHE.KEYS.transactionCount)
+							.then(data => {
+								setImmediate(waterCb, null, data ? data.confirmed : null);
+							})
+							.catch(() => {
+								setImmediate(waterCb, null, null);
+							});
 					}
 
 					return setImmediate(waterCb, null, null);
@@ -692,19 +685,17 @@ Transactions.prototype.shared = {
 						return setImmediate(waterCb, null, cachedCount);
 					}
 					if (components.cache) {
-						return components.cache.setJsonForKey(
-							CACHE.KEYS.transactionCount,
-							{
+						return components.cache
+							.setJsonForKey(CACHE.KEYS.transactionCount, {
 								confirmed: dbCount,
-							},
-							err => {
+							})
+							.then(err => {
 								if (err) {
 									library.logger.warn("Transaction count wasn't cached", err);
 								}
 
 								return setImmediate(waterCb, null, dbCount);
-							}
-						);
+							});
 					}
 
 					return setImmediate(waterCb, null, null);

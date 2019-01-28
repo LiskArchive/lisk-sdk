@@ -644,9 +644,9 @@ describe('transactions', () => {
 				});
 
 				it('should use cached transaction count if found', done => {
-					sinonSandbox
-						.stub(cache, 'getJsonForKey')
-						.callsArgWith(1, null, { confirmed: 999 });
+					sinonSandbox.stub(cache, 'getJsonForKey').resolves({
+						confirmed: 999,
+					});
 
 					transactionsModule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
@@ -668,7 +668,7 @@ describe('transactions', () => {
 				it('should get transaction count from db if cache fails', done => {
 					sinonSandbox
 						.stub(cache, 'getJsonForKey')
-						.callsArgWith(1, new Error('Cache error'));
+						.rejects(new Error('Cache error'));
 
 					transactionsModule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
@@ -687,7 +687,7 @@ describe('transactions', () => {
 				});
 
 				it('should get transaction count from db if no cache exists', done => {
-					sinonSandbox.stub(cache, 'getJsonForKey').callsArgWith(1, null, null);
+					sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
 
 					transactionsModule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
@@ -705,7 +705,7 @@ describe('transactions', () => {
 				});
 
 				it('should update the transaction count in cache if not already persisted', done => {
-					sinonSandbox.stub(cache, 'getJsonForKey').callsArgWith(1, null, null);
+					sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
 					sinonSandbox.spy(cache, 'setJsonForKey');
 
 					transactionsModule.shared.getTransactionsCount((err, data) => {
@@ -733,9 +733,9 @@ describe('transactions', () => {
 				});
 
 				it('should skip updating transaction count cache if already persisted', done => {
-					sinonSandbox
-						.stub(cache, 'getJsonForKey')
-						.callsArgWith(1, null, { confirmed: 999 });
+					sinonSandbox.stub(cache, 'getJsonForKey').resolves({
+						confirmed: 999,
+					});
 					sinonSandbox.spy(cache, 'setJsonForKey');
 
 					transactionsModule.shared.getTransactionsCount((err, data) => {
