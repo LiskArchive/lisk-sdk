@@ -174,6 +174,9 @@ describe('loader', () => {
 			};
 
 			const bindingsStub = {
+				components: {
+					cache: sinonSandbox.stub(),
+				},
 				modules: {
 					transactions: sinonSandbox.stub(),
 					blocks: { process: { loadBlocksOffset: loadBlocksOffsetStub } },

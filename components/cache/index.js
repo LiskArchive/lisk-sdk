@@ -70,19 +70,18 @@ class Cache {
 	 * @returns {boolean}
 	 * @todo Add description for the return value
 	 */
-	isConnected() {
+	isReady() {
 		// Use client.ready because this constiable is updated on client connection
 		return this.client && this.client.ready;
 	}
 
 	/**
-	 * Gets caching readiness and the redis connection status.
+	 * Enables or disables cache client
 	 *
-	 * @returns {boolean}
-	 * @todo Add description for the return value
+	 * @param {boolean} availability
 	 */
-	isReady() {
-		return this.cacheReady && this.isConnected();
+	setReady(availability) {
+		this.client.ready = availability;
 	}
 
 	/**
@@ -93,11 +92,9 @@ class Cache {
 	 */
 	async getJsonForKey(key) {
 		this.logger.debug(
-			['Cache - Get value for key:', key, '| Status:', this.isConnected()].join(
-				' '
-			)
+			['Cache - Get value for key:', key, '| Status:', this.isReady()].join(' ')
 		);
-		if (!this.isConnected()) {
+		if (!this.isReady()) {
 			return new Error(errorCacheDisabled);
 		}
 
@@ -116,11 +113,9 @@ class Cache {
 	 */
 	async setJsonForKey(key, value) {
 		this.logger.debug(
-			['Cache - Set value for key:', key, '| Status:', this.isConnected()].join(
-				' '
-			)
+			['Cache - Set value for key:', key, '| Status:', this.isReady()].join(' ')
 		);
-		if (!this.isConnected()) {
+		if (!this.isReady()) {
 			return new Error(errorCacheDisabled);
 		}
 
@@ -138,14 +133,11 @@ class Cache {
 	 */
 	async deleteJsonForKey(key) {
 		this.logger.debug(
-			[
-				'Cache - Delete value for key:',
-				key,
-				'| Status:',
-				this.isConnected(),
-			].join(' ')
+			['Cache - Delete value for key:', key, '| Status:', this.isReady()].join(
+				' '
+			)
 		);
-		if (!this.isConnected()) {
+		if (!this.isReady()) {
 			return new Error(errorCacheDisabled);
 		}
 		const delAsync = promisify(this.client.del).bind(this.client);
@@ -160,7 +152,7 @@ class Cache {
 	 * @todo Add @returns tag
 	 */
 	async removeByPattern(pattern) {
-		if (!this.isConnected()) {
+		if (!this.isReady()) {
 			return new Error(errorCacheDisabled);
 		}
 		let keys;
@@ -199,7 +191,7 @@ class Cache {
 	 */
 	async flushDb() {
 		this.logger.debug('Cache - Flush database');
-		if (!this.isConnected()) {
+		if (!this.isReady()) {
 			return new Error(errorCacheDisabled);
 		}
 		const flushdbAsync = promisify(this.client.flushdb).bind(this.client);
@@ -225,7 +217,7 @@ class Cache {
 	 */
 	async quit() {
 		this.logger.debug('Cache - Quit database');
-		if (!this.isConnected()) {
+		if (!this.isReady()) {
 			// Because connection is not established in the first place
 			return null;
 		}
@@ -242,9 +234,7 @@ class Cache {
 	 */
 	async clearCacheFor(pattern) {
 		this.logger.debug(
-			['Cache - clearCacheFor', pattern, '| Status:', this.isConnected()].join(
-				' '
-			)
+			['Cache - clearCacheFor', pattern, '| Status:', this.isReady()].join(' ')
 		);
 
 		if (!this.isReady()) {
@@ -280,7 +270,7 @@ class Cache {
 	 */
 	async onFinishRound() {
 		this.logger.debug(
-			['Cache - onFinishRound', '| Status:', this.isConnected()].join(' ')
+			['Cache - onFinishRound', '| Status:', this.isReady()].join(' ')
 		);
 		if (!this.isReady()) {
 			return new Error(errorCacheDisabled);
@@ -314,7 +304,7 @@ class Cache {
 	 */
 	async onTransactionsSaved(transactions) {
 		this.logger.debug(
-			['Cache - onTransactionsSaved', '| Status:', this.isConnected()].join(' ')
+			['Cache - onTransactionsSaved', '| Status:', this.isReady()].join(' ')
 		);
 		if (!this.isReady()) {
 			return new Error(errorCacheDisabled);
@@ -360,20 +350,6 @@ class Cache {
 		return this.logger.debug(
 			`Cache - Keys ${CACHE.KEYS.transactionCount} cleared from cache`
 		);
-	}
-
-	/**
-	 * Disables any changes in cache while syncing.
-	 */
-	onSyncStarted() {
-		this.cacheReady = false;
-	}
-
-	/**
-	 * Enables changes in cache after syncing finished.
-	 */
-	onSyncFinished() {
-		this.cacheReady = true;
 	}
 }
 

@@ -51,9 +51,9 @@ describe('components: cache', () => {
 
 	describe('_onReady', () => {});
 
-	describe('isConnected', () => {});
-
 	describe('isReady', () => {});
+
+	describe('setReady', () => {});
 
 	describe('setJsonForKey', () => {
 		it('should set the key value correctly', async () => {
@@ -182,10 +182,10 @@ describe('components: cache', () => {
 
 			const result = await cache.setJsonForKey(key, value);
 			expect(result).to.equal('OK');
-			await cache.onSyncStarted();
+			await cache.setReady(false);
 			const clearCacheForErr = await cache.clearCacheFor('/api/transactions*');
 			expect(clearCacheForErr.message).to.equal('Cache Disabled');
-			await cache.onSyncFinished();
+			await cache.setReady(true);
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);
 		});
@@ -220,10 +220,10 @@ describe('components: cache', () => {
 
 			const result = await cache.setJsonForKey(key, value);
 			expect(result).to.equal('OK');
-			await cache.onSyncStarted();
+			await cache.setReady(false);
 			const onFinishRoundErr = await cache.onFinishRound();
 			expect(onFinishRoundErr.message).to.equal('Cache Disabled');
-			await cache.onSyncFinished();
+			await cache.setReady(true);
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);
 		});
@@ -298,18 +298,14 @@ describe('components: cache', () => {
 
 			const result = await cache.setJsonForKey(key, value);
 			expect(result).to.equal('OK');
-			await cache.onSyncStarted();
+			await cache.setReady(false);
 			const onTransactionsSavedErr = await cache.onTransactionsSaved([
 				transaction,
 			]);
 			expect(onTransactionsSavedErr.message).to.equal('Cache Disabled');
-			await cache.onSyncFinished();
+			await cache.setReady(true);
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);
 		});
 	});
-
-	describe('onSyncStarted', () => {});
-
-	describe('onSyncFinished', () => {});
 });

@@ -21,6 +21,7 @@ const slots = require('../helpers/slots.js');
 require('colors');
 
 // Private fields
+let components;
 let modules;
 let definitions;
 let library;
@@ -934,7 +935,9 @@ __private.loadBlocksFromNetwork = function(cb) {
  */
 __private.sync = function(cb) {
 	library.logger.info('Starting sync');
-	library.bus.message('syncStarted');
+	if (components.cache) {
+		components.cache.setReady(false);
+	}
 
 	__private.isActive = true;
 	__private.syncTrigger(true);
@@ -971,7 +974,9 @@ __private.sync = function(cb) {
 			__private.blocksToSync = 0;
 
 			library.logger.info('Finished sync');
-			library.bus.message('syncFinished');
+			if (components.cache) {
+				components.cache.setReady(true);
+			}
 			return setImmediate(cb, err);
 		}
 	);
@@ -1153,6 +1158,10 @@ Loader.prototype.onPeersReady = function() {
  * @todo Add description for the params
  */
 Loader.prototype.onBind = function(scope) {
+	components = {
+		cache: scope.components ? scope.components.cache : undefined,
+	};
+
 	modules = {
 		transactions: scope.modules.transactions,
 		blocks: scope.modules.blocks,
