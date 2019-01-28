@@ -62,10 +62,8 @@ export const delegateAssetTypeSchema = {
 					type: 'string',
 				},
 			},
-			additionalProperties: false,
 		},
 	},
-	additionalProperties: false,
 };
 
 export const delegateAssetFormatSchema = {
@@ -83,10 +81,8 @@ export const delegateAssetFormatSchema = {
 					format: 'username',
 				},
 			},
-			additionalProperties: false,
 		},
 	},
-	additionalProperties: false,
 };
 
 export interface CreateDelegateRegistrationInput {

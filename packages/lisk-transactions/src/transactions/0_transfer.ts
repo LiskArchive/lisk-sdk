@@ -38,6 +38,8 @@ import {
 	TransactionResponse,
 } from './base';
 
+const TRANSACTION_TRANSFER_TYPE = 0;
+
 export interface TransferInput {
 	readonly amount: string;
 	readonly recipientId?: string;
@@ -273,6 +275,10 @@ export class TransferTransaction extends BaseTransaction {
 			: [];
 
 		errors.push(...assetErrors);
+
+		if (this.type !== TRANSACTION_TRANSFER_TYPE) {
+			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+		}
 
 		if (!validateTransferAmount(this.amount.toString())) {
 			errors.push(

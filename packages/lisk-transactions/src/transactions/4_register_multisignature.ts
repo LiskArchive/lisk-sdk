@@ -67,10 +67,8 @@ export const multisignatureAssetTypeSchema = {
 					},
 				},
 			},
-			additionalProperties: false,
 		},
 	},
-	additionalProperties: false,
 };
 
 export const multisignatureAssetFormatSchema = {
@@ -102,10 +100,8 @@ export const multisignatureAssetFormatSchema = {
 					},
 				},
 			},
-			additionalProperties: false,
 		},
 	},
-	additionalProperties: false,
 };
 
 export interface CreateMultisignatureInput {
@@ -168,6 +164,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 						),
 			  )
 			: [];
+
 		if (!typeValid) {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
@@ -421,6 +418,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 			multisignatures: this.asset.multisignature.keysgroup.map(key =>
 				key.substring(1),
 			),
+			multimin: this.asset.multisignature.min,
+			multilifetime: this.asset.multisignature.lifetime,
 		};
 
 		return {
@@ -440,7 +439,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 		const errors = [...baseErrors];
 
-		const { multisignatures, ...strippedSender } = state.sender;
+		const { multisignatures, multimin, multilifetime, ...strippedSender } = state.sender;
 
 		return {
 			id: this.id,

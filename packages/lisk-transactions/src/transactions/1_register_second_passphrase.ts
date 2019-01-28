@@ -61,10 +61,8 @@ export const secondSignatureAssetTypeSchema = {
 					type: 'string',
 				},
 			},
-			additionalProperties: false,
 		},
 	},
-	additionalProperties: false,
 };
 
 export const secondSignatureAssetFormatSchema = {
@@ -80,10 +78,8 @@ export const secondSignatureAssetFormatSchema = {
 					format: 'publicKey',
 				},
 			},
-			additionalProperties: false,
 		},
 	},
-	additionalProperties: false,
 };
 
 const validateInputs = ({ secondPassphrase }: SecondSignatureInput): void => {

@@ -61,7 +61,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should set fee to multisignature transaction fee amount', () => {
+		it('should set fee to multisignature transaction fee amount', async () => {
 			expect(validTestTransaction.fee.toString()).to.eql(
 				(
 					MULTISIGNATURE_FEE *
@@ -74,8 +74,10 @@ describe('Multisignature transaction class', () => {
 			const invalidMultisignatureTransactionData = {
 				...validMultisignatureTransaction,
 				asset: {
-					...validMultisignatureTransaction.asset,
-					min: '2',
+					multisignature: {
+						...validMultisignatureTransaction.asset.multisignature,
+						min: '2',
+					},
 				},
 			};
 			expect(
@@ -88,22 +90,10 @@ describe('Multisignature transaction class', () => {
 			const invalidMultisignatureTransactionData = {
 				...validMultisignatureTransaction,
 				asset: {
-					...validMultisignatureTransaction.asset,
-					lifetime: '1',
-				},
-			};
-			expect(
-				() =>
-					new MultisignatureTransaction(invalidMultisignatureTransactionData),
-			).to.throw('Invalid field types');
-		});
-
-		it('should throw TransactionMultiError when min is larger than number of keys in keysgroup', async () => {
-			const invalidMultisignatureTransactionData = {
-				...validMultisignatureTransaction,
-				asset: {
-					...validMultisignatureTransaction.asset,
-					min: 7,
+					multisignature: {
+						...validMultisignatureTransaction.asset.multisignature,
+						lifetime: '1',
+					},
 				},
 			};
 			expect(
@@ -218,7 +208,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		describe('when the transaction is created with invalid inputs', () => {
-			it('should throw an invalid input error when lifetime is not a valid integer', () => {
+			it('should throw an invalid input error when lifetime is not a valid integer', async () => {
 				expect(
 					MultisignatureTransaction.create.bind(undefined, {
 						passphrase,
@@ -233,7 +223,7 @@ describe('Multisignature transaction class', () => {
 				);
 			});
 
-			it('should throw an invalid input error when min is not a valid integer', () => {
+			it('should throw an invalid input error when min is not a valid integer', async () => {
 				expect(
 					MultisignatureTransaction.create.bind(undefined, {
 						passphrase,
@@ -378,7 +368,6 @@ describe('Multisignature transaction class', () => {
 	describe('#validateSchema', () => {
 		it('should return TransactionResponse with status OK', async () => {
 			const { status, errors } = validTestTransaction.validateSchema();
-
 			expect(status).to.equal(Status.OK);
 			expect(errors).to.be.empty;
 		});
@@ -395,7 +384,6 @@ describe('Multisignature transaction class', () => {
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
 			const { status, errors } = transaction.validateSchema();
-
 			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
 		});
@@ -422,10 +410,9 @@ describe('Multisignature transaction class', () => {
 				asset: {
 					multisignature: {
 						...validMultisignatureTransaction.asset.multisignature,
-						keysgroup: validMultisignatureTransaction.asset.multisignature.keysgroup.map((key: string) => key.replace(
-							'+',
-							'',
-						)),
+						keysgroup: validMultisignatureTransaction.asset.multisignature.keysgroup.map(
+							(key: string) => key.replace('+', ''),
+						),
 					},
 				},
 			};
@@ -442,28 +429,24 @@ describe('Multisignature transaction class', () => {
 				asset: {
 					multisignature: {
 						...validMultisignatureTransaction.asset.multisignature,
-						keysgroup: validMultisignatureTransaction.asset.multisignature.keysgroup.concat(
-							validMultisignatureTransaction.asset.multisignature.keysgroup,
-						),
-					},
-				},
-			};
-			const transaction = new MultisignatureTransaction(invalidTransaction);
-
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
-			expect(errors).not.to.be.empty;
-		});
-
-		it('should return TransactionResponse with error when min is less than keysgroup size', async () => {
-			const invalidTransaction = {
-				...validMultisignatureTransaction,
-				asset: {
-					multisignature: {
-						...validMultisignatureTransaction.asset.multisignature,
-						min: 1,
-						keysgroup:
-						validMultisignatureTransaction.asset.multisignature.keysgroup,
+						keysgroup: [
+							'+40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+							'+d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+							'+542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+							'+30af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+							'+a042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+							'+442fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+							'+10af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+							'+z042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+							'+x42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+							'+c0af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+							'+v042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+							'+b42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+							'+80af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+							'+n042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+							'+042fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+							'+k42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+						],
 					},
 				},
 			};
@@ -539,7 +522,7 @@ describe('Multisignature transaction class', () => {
 	describe('#apply', () => {
 		it('should return TransactionResponse with status OK', async () => {
 			const { multisignatures, ...nonMultisignatureAccount } = sender;
-			const { status, errors } = validTestTransaction.verify({
+			const { status, errors } = validTestTransaction.apply({
 				sender: nonMultisignatureAccount,
 			});
 
@@ -548,7 +531,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should return TransactionResponse with error when account is already multisignature', async () => {
-			const { status, errors } = validTestTransaction.verify({
+			const { status, errors } = validTestTransaction.apply({
 				sender,
 			});
 			expect(status).to.equal(Status.FAIL);
@@ -557,7 +540,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should return TransactionResponse with error when keysgroup includes sender key', async () => {
-			const { status, errors } = validTestTransaction.verify({
+			const { status, errors } = validTestTransaction.apply({
 				sender: {
 					...sender,
 					multisignatures: [
