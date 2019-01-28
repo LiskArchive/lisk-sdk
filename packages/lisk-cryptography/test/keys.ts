@@ -21,6 +21,7 @@ import {
 	getKeys,
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPassphrase,
+	getAddressFromPrivateKey,
 } from '../src/keys';
 // Require is used for stubbing
 const buffer = require('../src/buffer');
@@ -131,6 +132,14 @@ describe('keys', () => {
 			return expect(getAddressFromPassphrase(defaultPassphrase)).to.equal(
 				defaultAddress,
 			);
+		});
+	});
+
+	describe('#getAddressFromPrivateKey', () => {
+		it('should create correct address', () => {
+			return expect(
+				getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64)),
+			).to.equal(defaultAddress);
 		});
 	});
 });
