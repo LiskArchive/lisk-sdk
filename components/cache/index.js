@@ -27,12 +27,10 @@ const errorCacheDisabled = 'Cache Disabled';
  * @class
  * @memberof components
  * @see Parent: {@link components}
- * @requires async
  * @requires redis
  * @requires helpers/transaction_types
  * @param {Object} options - Cache options
  * @param {Object} logger
- * @param {function} cb
  * @todo Add description for the function and the params
  */
 class Cache {
@@ -196,7 +194,6 @@ class Cache {
 	/**
 	 * Removes all entries from redis db.
 	 *
-	 * @param {function} cb
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -212,7 +209,6 @@ class Cache {
 	/**
 	 * Quits established redis connection upon process exit.
 	 *
-	 * @param {function} cb
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -224,7 +220,6 @@ class Cache {
 	/**
 	 * Quits established redis connection.
 	 *
-	 * @param {function} cb
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -242,7 +237,6 @@ class Cache {
 	 * Clears cache entries for given pattern.
 	 *
 	 * @param {string} pattern
-	 * @param {function} cb
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
