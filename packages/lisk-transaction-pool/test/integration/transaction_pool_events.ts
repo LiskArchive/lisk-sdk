@@ -84,6 +84,13 @@ describe('transaction pool events', () => {
 
 		describe('on adding verified removed transactions', () => {
 			// 4 transactions from each account are affected
+			const affectedTransactionsInValidatedQueue = transactionsInValidatedQueue.slice(
+				0,
+				8,
+			);
+			const unaffectedTransactionsInValidatedQueue = transactionsInValidatedQueue.slice(
+				8,
+			);
 			const affectedTransactionsInVerifiedQueue = transactionsInVerifiedQueue.slice(
 				0,
 				8,
@@ -105,14 +112,18 @@ describe('transaction pool events', () => {
 			const unaffectedTransactionsInReadyQueue = transactionsInReadyQueue.slice(
 				8,
 			);
-			const affectedTransactions = [
+			const transactionsToMoveToValidatedQueue = [
 				...affectedTransactionsInVerifiedQueue,
 				...affectedTransactionsInPendingQueue,
 				...affectedTransactionsInReadyQueue,
 			];
+			const transactionsToMoveToReceivedQueue = affectedTransactionsInValidatedQueue;
 			const transactionsToAffectedReceipients = transferTransactions.filter(
 				transferTransaction =>
-					affectedTransactions.find(
+					[
+						...transactionsToMoveToValidatedQueue,
+						...transactionsToMoveToReceivedQueue,
+					].find(
 						affectedTransaction =>
 							affectedTransaction.senderId === transferTransaction.recipientId,
 					),
@@ -124,10 +135,17 @@ describe('transaction pool events', () => {
 				);
 			});
 
-			it('should move affected transactions to the validated queue', async () => {
-				affectedTransactions.forEach(affectedTransaction => {
+			it('should move affected transactions in verified, pending and ready queue to the validated queue', async () => {
+				transactionsToMoveToValidatedQueue.forEach(affectedTransaction => {
 					expect(transactionPool.queues.validated.exists(affectedTransaction))
 						.to.be.true;
+				});
+			});
+
+			it('should move affected transactions in the validated queue to the received queue', async () => {
+				transactionsToMoveToReceivedQueue.forEach(affectedTransaction => {
+					expect(transactionPool.queues.received.exists(affectedTransaction)).to
+						.be.true;
 				});
 			});
 
@@ -146,6 +164,11 @@ describe('transaction pool events', () => {
 						expect(transactionPool.queues.pending.exists(transaction)).to.be
 							.true,
 				);
+				unaffectedTransactionsInValidatedQueue.forEach(
+					transaction =>
+						expect(transactionPool.queues.validated.exists(transaction)).to.be
+							.true,
+				);
 			});
 
 			it('should add transactions to the verified queue', async () => {
@@ -159,48 +182,75 @@ describe('transaction pool events', () => {
 
 		describe('on removing confirmed transactions', () => {
 			const affectedTypeWhichContainsUniqueData = 2;
-			const transactionsWithAffectedTypeInVerifiedQueue = transactionsInVerifiedQueue.filter(
-				transaction => transaction.type === affectedTypeWhichContainsUniqueData,
-			);
-			const transactionsWithAffectedTypeInPendingQueue = transactionsInPendingQueue.filter(
-				transaction => transaction.type === affectedTypeWhichContainsUniqueData,
-			);
-			const transactionsWithAffectedTypeInReadyQueue = transactionsInReadyQueue.filter(
-				transaction => transaction.type === affectedTypeWhichContainsUniqueData,
-			);
+			const filterForAffectedType = (transaction: Transaction) =>
+				transaction.type === affectedTypeWhichContainsUniqueData;
+
+			// Filter transactions in queues by type, and use the first transaction as a confirmed transaction
+			const [
+				confirmedTransactionInVerifiedQueue,
+				...transactionsWithAffectedTypeInVerifiedQueue
+			] = transactionsInVerifiedQueue.filter(filterForAffectedType);
+			const [
+				confirmedTransactionInPendingQueue,
+				...transactionsWithAffectedTypeInPendingQueue
+			] = transactionsInPendingQueue.filter(filterForAffectedType);
+			const [
+				confirmedTransactionInReadyQueue,
+				...transactionsWithAffectedTypeInReadyQueue
+			] = transactionsInReadyQueue.filter(filterForAffectedType);
+			const [
+				confirmedTransactionInValidatedQueue,
+				...transactionsWithAffectedTypeInValidatedQueue
+			] = transactionsInValidatedQueue.filter(filterForAffectedType);
 
 			const confirmedTransactions = [
-				transactionsWithAffectedTypeInPendingQueue[0],
-				transactionsWithAffectedTypeInReadyQueue[0],
-				transactionsWithAffectedTypeInVerifiedQueue[0],
+				confirmedTransactionInVerifiedQueue,
+				confirmedTransactionInPendingQueue,
+				confirmedTransactionInReadyQueue,
+				confirmedTransactionInValidatedQueue,
 			];
 
-			const transactionsWithAffectedSenderId = [
-				...transactionsInReadyQueue,
-				...transactionsInVerifiedQueue,
-				...transactionsInPendingQueue,
-			].filter(transaction => {
+			const filterForAffectedTransactionsBySenderId = (
+				transaction: Transaction,
+			) => {
 				confirmedTransactions.find(
 					confirmedTransaction =>
 						confirmedTransaction.senderId === transaction.senderId,
 				);
-			});
-			const affectedTransactions = [
+			};
+
+			const transactionsWithAffectedSenderIdInVerifiedQueue = transactionsInVerifiedQueue.filter(
+				filterForAffectedTransactionsBySenderId,
+			);
+			const transactionsWithAffectedSenderIdInPendingQueue = transactionsInPendingQueue.filter(
+				filterForAffectedTransactionsBySenderId,
+			);
+			const transactionsWithAffectedSenderIdInReadyQueue = transactionsInReadyQueue.filter(
+				filterForAffectedTransactionsBySenderId,
+			);
+			const transactionsWithAffectedSenderIdInValidatedQueue = transactionsInValidatedQueue.filter(
+				filterForAffectedTransactionsBySenderId,
+			);
+
+			const transactionsToMoveToValidatedQueue = [
 				...transactionsWithAffectedTypeInVerifiedQueue,
 				...transactionsWithAffectedTypeInPendingQueue,
 				...transactionsWithAffectedTypeInReadyQueue,
-				...transactionsWithAffectedSenderId,
+				...transactionsWithAffectedSenderIdInVerifiedQueue,
+				...transactionsWithAffectedSenderIdInPendingQueue,
+				...transactionsWithAffectedSenderIdInReadyQueue,
 			];
-			const affectedUnconfirmedTransactions = affectedTransactions.filter(
-				affectedTransaction =>
-					!confirmedTransactions.find(
-						transaction => transaction.id === affectedTransaction.id,
-					),
-			);
+
+			const transactionsToMoveToReceivedQueue = [
+				...transactionsWithAffectedTypeInValidatedQueue,
+				...transactionsWithAffectedSenderIdInValidatedQueue,
+			];
 
 			beforeEach(async () => {
 				transactionPool.removeConfirmedTransactions(confirmedTransactions);
 			});
+
+			afterEach(async () => {});
 
 			it('should remove confirmed transactions from the transaction pool', async () => {
 				confirmedTransactions.forEach(transaction => {
@@ -209,9 +259,16 @@ describe('transaction pool events', () => {
 				});
 			});
 
-			it('should move affected transactions to the validated queue', async () => {
-				affectedUnconfirmedTransactions.forEach(transaction => {
+			it('should move affected transactions in the verified, ready and pending queue to the validated queue', async () => {
+				transactionsToMoveToValidatedQueue.forEach(transaction => {
 					expect(transactionPool.queues.validated.exists(transaction)).to.be
+						.true;
+				});
+			});
+
+			it('should move affected transactions in the validated queue to the received queue', async () => {
+				transactionsToMoveToReceivedQueue.forEach(transaction => {
+					expect(transactionPool.queues.received.exists(transaction)).to.be
 						.true;
 				});
 			});
@@ -222,13 +279,20 @@ describe('transaction pool events', () => {
 				transactionsInVerifiedQueue[0],
 				transactionsInPendingQueue[0],
 				transactionsInReadyQueue[0],
+				transactionsInValidatedQueue[0],
 			].map(transaction => transaction.senderPublicKey);
-			const affectedTransactions = [
+
+			const transactionsToMoveToValidatedQueue = [
 				...transactionsInVerifiedQueue,
 				...transactionsInPendingQueue,
 				...transactionsInReadyQueue,
 			].filter(transaction =>
 				affectedSenderPublicKeys.includes(transaction.senderPublicKey),
+			);
+
+			const transactionsToMoveToReceivedQueue = transactionsInValidatedQueue.filter(
+				transaction =>
+					affectedSenderPublicKeys.includes(transaction.senderPublicKey),
 			);
 
 			beforeEach(async () => {
@@ -237,8 +301,15 @@ describe('transaction pool events', () => {
 				);
 			});
 
-			it('should move affected transactions to the validated queue', async () => {
-				affectedTransactions.forEach(transaction => {
+			it('should move affected transactions in the validated queue to the received queue', async () => {
+				transactionsToMoveToReceivedQueue.forEach(transaction => {
+					expect(transactionPool.queues.received.exists(transaction)).to.be
+						.true;
+				});
+			});
+
+			it('should move affected transactions in the verified, ready and pending queue to the validated queue', async () => {
+				transactionsToMoveToValidatedQueue.forEach(transaction => {
 					expect(transactionPool.queues.validated.exists(transaction)).to.be
 						.true;
 				});
