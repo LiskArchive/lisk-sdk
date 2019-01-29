@@ -748,7 +748,11 @@ describe('Account', () => {
 					return expect(accounts).to.eql(sortedAccounts);
 				});
 
-				it('should fail if unknown sort field is specified');
+				it('should fail if unknown sort field is specified', async () => {
+					expect(() => {
+						AccountEntity.get({}, { sort: 'unknownField', limit: 10 });
+					}).to.throw(NonSupportedOptionError);
+				});
 			});
 
 			describe('limit & offset', () => {
