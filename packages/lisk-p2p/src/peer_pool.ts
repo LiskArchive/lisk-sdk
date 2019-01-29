@@ -19,6 +19,7 @@
  */
 
 import { EventEmitter } from 'events';
+import shuffle from 'lodash.shuffle';
 
 import {
 	ConnectionState,
@@ -51,6 +52,8 @@ export {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 };
+
+export const MAX_PEER_LIST_BATCH_SIZE = 100;
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -211,17 +214,20 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.delete(peerId);
 	}
 
-	private _handleGetAllPeersRequest(request: P2PRequest): void {
-		const peerSelectionParams: PeerOptions = {
-			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
-		};
+	private _pickRandomPeers(count: number): ReadonlyArray<Peer> {
+		const discoveredPeerList: ReadonlyArray<Peer> = [...this._peerMap.values()].filter(
+			peer => peer.peerInfo.isTriedPeer
+		);
+		
+		return shuffle(discoveredPeerList).slice(0, count);
+	}
 
+	private _handleGetAllPeersRequest(request: P2PRequest): void {
 		// TODO later: Remove fields that are specific to the current Lisk protocol.
 		const protocolPeerInfoList: ProtocolPeerInfoList = {
 			success: true,
 			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
-			// TODO ASAP: Consider changing selectPeers function to handle P2PDiscoveredPeerInfo instead of Peer objects.
-			peers: this.selectPeers(peerSelectionParams).map((peer: Peer) => {
+			peers: this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE).map((peer: Peer) => {
 				const peerInfo = peer.peerInfo;
 
 				return {
