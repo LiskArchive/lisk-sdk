@@ -46,7 +46,7 @@ describe('components: cache', () => {
 		return cache.quit();
 	});
 
-	describe('connect', () => {});
+	describe('bootstrap', () => {});
 
 	describe('_onConnectionError', () => {});
 
@@ -55,32 +55,6 @@ describe('components: cache', () => {
 	describe('isReady', () => {});
 
 	describe('setReady', () => {});
-
-	describe('setJsonForKey', () => {
-		it('should set the key value correctly', async () => {
-			const key = 'test_key';
-			const value = { testObject: 'testValue' };
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.eql(value);
-		});
-
-		it('should not set any key when cache is not ready', async () => {
-			const key = '/api/transactions';
-			const value = {
-				testObject: 'testValue',
-			};
-
-			await cache.setReady(false);
-			try {
-				await cache.setJsonForKey(key, value);
-			} catch (setJsonForKeyErr) {
-				expect(setJsonForKeyErr.message).to.equal('Cache Disabled');
-			}
-		});
-	});
 
 	describe('getJsonForKey', () => {
 		it('should return null for non-existent key', async () => {
@@ -108,6 +82,34 @@ describe('components: cache', () => {
 				await cache.getJsonForKey(key);
 			} catch (getJsonForKeyErr) {
 				expect(getJsonForKeyErr.message).to.equal('Cache Disabled');
+			}
+		});
+	});
+
+	describe('setJsonForKey', () => {
+		it('should set the key value correctly', async () => {
+			const key = 'test_key';
+			const value = {
+				testObject: 'testValue',
+			};
+
+			const result = await cache.setJsonForKey(key, value);
+			expect(result).to.equal('OK');
+			const res = await cache.getJsonForKey(key);
+			expect(res).to.eql(value);
+		});
+
+		it('should not set any key when cache is not ready', async () => {
+			const key = '/api/transactions';
+			const value = {
+				testObject: 'testValue',
+			};
+
+			await cache.setReady(false);
+			try {
+				await cache.setJsonForKey(key, value);
+			} catch (setJsonForKeyErr) {
+				expect(setJsonForKeyErr.message).to.equal('Cache Disabled');
 			}
 		});
 	});
@@ -176,6 +178,17 @@ describe('components: cache', () => {
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);
 		});
+
+		it('should not remove any key when cache is not ready', async () => {
+			const pattern = '/api/delegate*';
+
+			await cache.setReady(false);
+			try {
+				await cache.removeByPattern(pattern);
+			} catch (removeByPatternErr) {
+				expect(removeByPatternErr.message).to.equal('Cache Disabled');
+			}
+		});
 	});
 
 	describe('flushDb', () => {
@@ -197,6 +210,15 @@ describe('components: cache', () => {
 			expect(getResults.filter(status => status === null)).to.have.length(
 				keys.length
 			);
+		});
+
+		it('should not remove any key when cache is not ready', async () => {
+			await cache.setReady(false);
+			try {
+				await cache.flushDb();
+			} catch (flushDbErr) {
+				expect(flushDbErr.message).to.equal('Cache Disabled');
+			}
 		});
 	});
 
@@ -238,7 +260,7 @@ describe('components: cache', () => {
 			expect(res).to.equal(null);
 		});
 
-		it('should not remove keys when cache is not ready', async () => {
+		it('should not remove any key when cache is not ready', async () => {
 			const key = '/api/transactions';
 			const value = { testObject: 'testValue' };
 
@@ -279,7 +301,7 @@ describe('components: cache', () => {
 			expect(res).to.eql(value);
 		});
 
-		it('should not remove keys when cache is not ready', async () => {
+		it('should not remove any key when cache is not ready', async () => {
 			const key = '/api/delegates';
 			const value = { testObject: 'testValue' };
 
@@ -356,7 +378,7 @@ describe('components: cache', () => {
 			expect(res).to.eql(value);
 		});
 
-		it('should not remove keys when cache is not ready', async () => {
+		it('should not remove any key when cache is not ready', async () => {
 			const key = '/api/delegates?123';
 			const value = { testObject: 'testValue' };
 			const transaction = lisk.transaction.registerDelegate({
