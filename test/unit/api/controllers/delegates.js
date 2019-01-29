@@ -1,5 +1,6 @@
 const rewire = require('rewire');
 const Bignum = require('../../../../helpers/bignum.js');
+const BlockReward = require('../../../../logic/block_reward.js');
 
 const DelegatesController = rewire('../../../../api/controllers/delegates.js');
 
@@ -7,6 +8,7 @@ describe('delegates/api', () => {
 	const __private = {};
 	let loggerStub;
 	let storageStub;
+	let modulesStub;
 	let restoreRewire;
 	const blocksRewardReturnStub = {
 		fees: 1,
@@ -42,6 +44,8 @@ describe('delegates/api', () => {
 			error: sinonSandbox.stub(),
 		};
 
+		modulesStub = sinonSandbox.stub();
+
 		__private.getForgingStatistics = DelegatesController.__get__(
 			'_getForgingStatistics'
 		);
@@ -53,8 +57,12 @@ describe('delegates/api', () => {
 			.stub()
 			.resolves(blocksRewardReturnStub);
 
-		DelegatesController.__set__('logger', loggerStub);
-		DelegatesController.__set__('storage', storageStub);
+		new DelegatesController({
+			logger: loggerStub,
+			storage: storageStub,
+			modules: modulesStub,
+		});
+
 		restoreRewire = DelegatesController.__set__(
 			'_aggregateBlocksReward',
 			aggregateBlocksRewardStub
@@ -65,6 +73,24 @@ describe('delegates/api', () => {
 	afterEach(() => {
 		restoreRewire();
 		return sinonSandbox.restore();
+	});
+
+	describe('constructor', () => {
+		it('should assign modules', () => {
+			return expect(DelegatesController.__get__('logger')).to.equal(loggerStub);
+		});
+
+		it('should assign storage', () => {
+			return expect(DelegatesController.__get__('storage')).to.equal(storageStub);
+		});
+
+		it('should assign logger', () => {
+			return expect(DelegatesController.__get__('modules')).to.equal(modulesStub);
+		});
+
+		it('should assign blockReward', () => {
+			return expect(DelegatesController.__get__('blockReward')).to.be.instanceOf(BlockReward);
+		});
 	});
 
 	describe('_getForgingStatistics()', () => {

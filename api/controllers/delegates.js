@@ -45,30 +45,6 @@ function DelegatesController(scope) {
 	blockReward = new BlockReward();
 }
 
-function delegateFormatter(totalSupply, delegate) {
-	const result = _.pick(delegate, [
-		'username',
-		'vote',
-		'rewards',
-		'producedBlocks',
-		'missedBlocks',
-		'productivity',
-		'rank',
-	]);
-
-	result.account = {
-		address: delegate.address,
-		publicKey: delegate.publicKey,
-		secondPublicKey: delegate.secondPublicKey || '',
-	};
-
-	result.approval = calculateApproval(result.vote, totalSupply);
-
-	result.rank = parseInt(result.rank);
-
-	return result;
-}
-
 /**
  * Description of the function.
  *
@@ -132,7 +108,6 @@ DelegatesController.getDelegates = async function(context, next) {
 	}
 };
 
-
 /**
  * Description of the function.
  *
@@ -174,7 +149,6 @@ DelegatesController.getForgers = async function(context, next) {
 		});
 	});
 };
-
 
 DelegatesController.getForgingStatistics = async function(context, next) {
 	const params = context.request.swagger.params;
@@ -316,6 +290,30 @@ async function _aggregateBlocksReward(filter) {
 		count: data.count || '0',
 	};
 	return data;
+}
+
+function delegateFormatter(totalSupply, delegate) {
+	const result = _.pick(delegate, [
+		'username',
+		'vote',
+		'rewards',
+		'producedBlocks',
+		'missedBlocks',
+		'productivity',
+		'rank',
+	]);
+
+	result.account = {
+		address: delegate.address,
+		publicKey: delegate.publicKey,
+		secondPublicKey: delegate.secondPublicKey || '',
+	};
+
+	result.approval = calculateApproval(result.vote, totalSupply);
+
+	result.rank = parseInt(result.rank);
+
+	return result;
 }
 
 module.exports = DelegatesController;
