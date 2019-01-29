@@ -28,12 +28,14 @@ describe('Handshake', () => {
 	let system;
 	let handshake;
 	const minVersion = '1.0.0';
+	const protocolVersion = '1.0';
 	const validPeerNonce = randomstring.generate(16);
 	const validNodeNonce = randomstring.generate(16);
 	const validConfig = {
 		config: {
 			version: config.version,
 			minVersion,
+			protocolVersion,
 			nethash: config.nethash,
 			nonce: validNodeNonce,
 			blackListedPeers: [],
@@ -53,12 +55,20 @@ describe('Handshake', () => {
 	});
 
 	describe('compatibility', () => {
+		let versionCompatibleStub;
 		beforeEach(done => {
+			versionCompatibleStub = sinonSandbox.stub(system, 'versionCompatible');
+
 			validHeaders = WSServerMaster.generatePeerHeaders({
 				version: minVersion,
+				protocolVersion,
 				nonce: validPeerNonce,
 			});
 			done();
+		});
+
+		afterEach(() => {
+			return sinonSandbox.restore();
 		});
 
 		it('should return an error when nonce is identical to server', done => {
@@ -95,6 +105,7 @@ describe('Handshake', () => {
 
 		it('should return an error when version is incompatible', done => {
 			validHeaders.version = '0.0.0';
+			delete validHeaders.protocolVersion;
 			handshake(validHeaders, err => {
 				expect(err)
 					.to.have.property('code')
@@ -109,11 +120,44 @@ describe('Handshake', () => {
 				done();
 			});
 		});
+
+		it('should return an error when protocol version is incompatible', done => {
+			// Arrange
+			validHeaders.protocolVersion = '0.1';
+			// Act
+			handshake(validHeaders, err => {
+				// Assert
+				expect(err)
+					.to.have.property('code')
+					.equal(failureCodes.INCOMPATIBLE_PROTOCOL_VERSION);
+				expect(err)
+					.to.have.property('description')
+					.equal(
+						`Expected protocol version: ${protocolVersion} but received: ${
+							validHeaders.protocolVersion
+						}`
+					);
+				done();
+			});
+		});
+
+		it('should check version information if no protocol version attribute is present for backwards compatibility', done => {
+			// Arrange
+			delete validHeaders.protocolVersion;
+
+			// Act
+			handshake(validHeaders, () => {
+				// Assert
+				expect(versionCompatibleStub).to.be.called;
+				done();
+			});
+		});
 	});
 
 	after(done => {
 		validHeaders = WSServerMaster.generatePeerHeaders({
 			version: minVersion,
+			protocolVersion,
 			nonce: '0123456789ABCDEF',
 		});
 
@@ -314,6 +358,41 @@ describe('Handshake', () => {
 						}
 						`, itDone => {
 							headers.version = type.input;
+							handshake(headers, err => {
+								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
+								itDone();
+							});
+						});
+					});
+				});
+
+				describe('protocolVersion', () => {
+					const auxInvalidTypes = _.difference(
+						typeRepresentatives.allTypes,
+						typeRepresentatives.strings
+					);
+
+					auxInvalidTypes.forEach(type => {
+						it(`should call callback with error.description when input is: ${
+							type.description
+						}
+						`, itDone => {
+							headers.protocolVersion = type.input;
+							handshake(headers, err => {
+								expect(err.description).to.equal(
+									`protocolVersion: Expected type string but found type ${
+										type.expectation
+									}`
+								);
+								itDone();
+							});
+						});
+
+						it(`should call callback with error.code when input is: ${
+							type.description
+						}
+						`, itDone => {
+							headers.protocolVersion = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
 								itDone();

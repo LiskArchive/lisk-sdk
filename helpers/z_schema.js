@@ -289,6 +289,14 @@ const liskFormats = {
 		);
 	},
 	/**
+	 * Validation for the protocol version format.
+	 * @param str
+	 * @returns {boolean}
+	 */
+	protocolVersion(str) {
+		return str === '' || /^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(str);
+	},
+	/**
 	 * Description of the function.
 	 *
 	 * @param {string} str

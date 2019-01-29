@@ -29,6 +29,7 @@ const NormalizedPeer = stampit({
 		httpPort: 4000,
 		state: 2,
 		version: '0.0.0',
+		protocolVersion: '0.0',
 		nonce: '',
 	},
 	init({ nonce }) {
@@ -48,6 +49,7 @@ const Peer = stampit({
 		state: null,
 		nonce: '',
 		version: '',
+		protocolVersion: '',
 	},
 	init({ broadhash, nonce, state }) {
 		this.dappid = null;

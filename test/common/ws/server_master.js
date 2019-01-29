@@ -111,6 +111,7 @@ WSServerMaster.generatePeerHeaders = function(headers) {
 		os: operatingSystems[random.number(0, operatingSystems.length)],
 		version: testConfig.version,
 		minVersion: testConfig.minVersion,
+		protocolVersion: testConfig.protocolVersion,
 	};
 
 	return Object.assign({}, defaults, headers);
