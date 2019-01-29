@@ -176,13 +176,7 @@ class Cache {
 				}
 
 				if (cursor === '0') {
-					return this.logger.debug(
-						[
-							'Cache - Keys with pattern:',
-							pattern,
-							'cleared from cache on new block',
-						].join(' ')
-					);
+					return null;
 				}
 
 				return scan();
@@ -243,8 +237,9 @@ class Cache {
 			throw new Error(errorCacheDisabled);
 		}
 		const pattern = CACHE.KEYS.delegatesApi;
-		const err = await this.removeByPattern(pattern);
-		if (err) {
+		try {
+			await this.removeByPattern(pattern);
+		} catch (removeByPatternErr) {
 			return this.logger.error(
 				[
 					'Cache - Error clearing keys with pattern:',
@@ -253,6 +248,7 @@ class Cache {
 				].join(' ')
 			);
 		}
+
 		return this.logger.debug(
 			[
 				'Cache - Keys with pattern:',
@@ -286,8 +282,9 @@ class Cache {
 			return null;
 		}
 
-		const removeByPatternErr = await this.removeByPattern(pattern);
-		if (removeByPatternErr) {
+		try {
+			await this.removeByPattern(pattern);
+		} catch (removeByPatternErr) {
 			this.logger.error(
 				[
 					'Cache - Error clearing keys with pattern:',
@@ -295,15 +292,15 @@ class Cache {
 					'on delegate transaction',
 				].join(' ')
 			);
-		} else {
-			this.logger.debug(
-				[
-					'Cache - Keys with pattern:',
-					pattern,
-					'cleared from cache on delegate transaction',
-				].join(' ')
-			);
 		}
+
+		this.logger.debug(
+			[
+				'Cache - Keys with pattern:',
+				pattern,
+				'cleared from cache on delegate transaction',
+			].join(' ')
+		);
 
 		try {
 			await this.deleteJsonForKey(CACHE.KEYS.transactionCount);
