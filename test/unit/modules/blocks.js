@@ -340,6 +340,26 @@ describe('blocks', () => {
 				done();
 			});
 		});
+
+		describe('when cache is not enabled', () => {
+			beforeEach(done => {
+				blocksInstance = new Blocks(err => {
+					expect(err).to.be.undefined;
+					components = Blocks.__get__('components');
+					components.cache = undefined;
+					blocksInstance.onNewBlock(block);
+					done();
+				}, scope);
+			});
+
+			it('should call library.network.io.sockets.emit with "blocks/change" and block', done => {
+				expect(
+					library.network.io.sockets.emit.calledWith('blocks/change', block)
+				).to.be.true;
+
+				done();
+			});
+		});
 	});
 
 	describe('cleanup', () => {
