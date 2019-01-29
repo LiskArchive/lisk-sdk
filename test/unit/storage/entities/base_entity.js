@@ -145,4 +145,32 @@ describe('BaseEntity', () => {
 			);
 		});
 	});
+
+	describe('addVirtualField()', () => {
+		let baseEntity;
+		let virtualField;
+
+		beforeEach(async () => {
+			baseEntity = new BaseEntity(adapter);
+			virtualField = 'aVirtualField';
+		});
+
+		it('should add a basic virtual field', async () => {
+			// Act
+			baseEntity.addVirtualField(virtualField, false);
+			// Assert
+			expect(baseEntity.virtualFields.basic).to.include.keys(virtualField);
+			expect(baseEntity.virtualFields.extended).not.to.include.keys(
+				virtualField
+			);
+		});
+
+		it('should add an extended virtual field', async () => {
+			// Act
+			baseEntity.addVirtualField(virtualField, true);
+			// Assert
+			expect(baseEntity.virtualFields.extended).to.include.keys(virtualField);
+			expect(baseEntity.virtualFields.basic).not.to.include.keys(virtualField);
+		});
+	});
 });
