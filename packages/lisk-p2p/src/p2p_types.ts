@@ -81,14 +81,14 @@ export interface ProtocolPeerInfo {
 	readonly height: number;
 	readonly ip: string;
 	readonly nonce: string;
-	readonly os: string;
+	readonly os?: string;
 	readonly version: string;
 	readonly wsPort: string;
 }
 
 // This is a representation of the peer list according to the current protocol.
 // TODO later: Switch to LIP protocol format.
-export interface ProtocolPeerList {
+export interface ProtocolPeerInfoList {
 	readonly peers: ReadonlyArray<ProtocolPeerInfo>;
 	readonly success: boolean;
 }

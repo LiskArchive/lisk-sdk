@@ -38,7 +38,12 @@ import {
 
 import { SCServerSocket } from 'socketcluster-server';
 import { P2PRequest } from './p2p_request';
-import { P2PMessagePacket, P2PNodeInfo, P2PPeerInfo } from './p2p_types';
+import {
+	P2PMessagePacket,
+	P2PNodeInfo,
+	P2PPeerInfo,
+	ProtocolPeerInfoList,
+} from './p2p_types';
 
 export {
 	EVENT_CONNECT_OUTBOUND,
@@ -211,18 +216,27 @@ export class PeerPool extends EventEmitter {
 			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
 		};
 
-		request.end({
+		// TODO later: Remove fields that are specific to the current Lisk protocol.
+		const protocolPeerInfoList: ProtocolPeerInfoList = {
 			success: true,
+			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
+			// TODO ASAP: Consider changing selectPeers function to handle P2PDiscoveredPeerInfo instead of Peer objects.
 			peers: this.selectPeers(peerSelectionParams).map((peer: Peer) => {
 				const peerInfo = peer.peerInfo;
 
 				return {
-					...peerInfo,
+					broadhash: peerInfo.options ? peerInfo.options.broadhash as string : '',
+					height: peerInfo.height,
 					ip: peerInfo.ipAddress,
+					nonce: peerInfo.options ? peerInfo.options.nonce as string : '',
+					os: peerInfo.os ? peerInfo.os : '',
+					version: peerInfo.version ? peerInfo.version: '',
 					wsPort: String(peerInfo.wsPort),
 				};
 			}),
-		});
+		};
+
+		request.end(protocolPeerInfoList);
 	}
 
 	private _bindHandlersToPeer(peer: Peer): void {
