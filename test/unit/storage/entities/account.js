@@ -802,7 +802,7 @@ describe('Account', () => {
 			new accountFixtures.Account(),
 		];
 
-		before(async () => {
+		beforeEach(async () => {
 			await AccountEntity.create(accounts);
 		});
 
