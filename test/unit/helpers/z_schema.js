@@ -510,6 +510,48 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
+	describe('protocolVersion', () => {
+		beforeEach(function(done) {
+			this.schema = {
+				format: 'protocolVersion',
+			};
+			done();
+		});
+
+		it('should return false for invalid protocol version format', function() {
+			const invalidData = [
+				'1a.1',
+				'-1.-1',
+				'01.1',
+				'1.1.1',
+				'1.1.1-alpha.0',
+				'1.01',
+			];
+
+			return invalidData.forEach(function(item) {
+				expect(validator.validate(item, this.schema)).to.equal(false);
+			}, this);
+		});
+
+		it('should return true for valid protocol version format', function() {
+			const validData = [
+				'1.0',
+				'111.12',
+				'11.11',
+				'999.999',
+				'999.0',
+			];
+
+			return validData.forEach(function(item) {
+				expect(validator.validate(item, this.schema)).to.equal(true);
+			}, this);
+		});
+
+		shouldReturnFalseForEmptyNonStringValues();
+		shouldReturnTrueForEmptyStringValues();
+	});
+
+
 	describe('ipOrFQDN', () => {
 		beforeEach(function(done) {
 			this.schema = {

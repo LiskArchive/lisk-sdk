@@ -88,6 +88,7 @@ NodeController.getConstants = async (context, next) => {
 			reward: blockReward.calcReward(height).toString(),
 			supply: blockReward.calcSupply(height).toString(),
 			version: library.config.version,
+			protocolVersion: library.config.protocolVersion,
 		});
 	} catch (error) {
 		return next(error);

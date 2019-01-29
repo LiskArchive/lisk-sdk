@@ -169,6 +169,7 @@ Peer.prototype.properties = [
 	'state',
 	'os',
 	'version',
+	'protocolVersion',
 	'broadhash',
 	'height',
 	'updated',
@@ -182,7 +183,14 @@ Peer.prototype.optional = ['httpPort', 'nonce'];
 
 Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
 
-Peer.prototype.headers = ['os', 'version', 'broadhash', 'height', 'nonce'];
+Peer.prototype.headers = [
+	'os',
+	'version',
+	'protocolVersion',
+	'broadhash',
+	'height',
+	'nonce',
+];
 
 Peer.STATE = {
 	BANNED: 0,

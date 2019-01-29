@@ -23,6 +23,7 @@
  * @property {number} INCOMPATIBLE_NONCE
  * @property {number} INCOMPATIBLE_NETWORK
  * @property {number} INCOMPATIBLE_VERSION
+ * @property {number} INCOMPATIBLE_PROTOCOL_VERSION
  * @property {number} ALREADY_ADDED
  * @property {number} ALREADY_REMOVED
  * @property {number} DIFFERENT_CONN_ID
@@ -65,6 +66,7 @@ module.exports = {
 	INCOMPATIBLE_NONCE: 4101,
 	INCOMPATIBLE_NETWORK: 4102,
 	INCOMPATIBLE_VERSION: 4103,
+	INCOMPATIBLE_PROTOCOL_VERSION: 4110,
 	ALREADY_ADDED: 4104,
 	ALREADY_REMOVED: 4105,
 	DIFFERENT_CONN_ID: 4106,
@@ -101,6 +103,7 @@ module.exports.errorMessages = {
 	4107: 'Cannot connect - handshake error',
 	4108: 'Connection timeout exceeded',
 	4109: 'Cannot connect - peer is blacklisted',
+	4110: 'Request is made from incompatible protocol version',
 	4200: 'Failed to check if peer is already present',
 	4201: 'Unable to match an address to the peer',
 	4202: 'Transport error while invoking update procedure',

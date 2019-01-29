@@ -43,6 +43,7 @@ const sqlFiles = {
  * @property {number} state
  * @property {string} os
  * @property {string} version
+ * @property {string} protocolVersion
  * @property {string} broadhash
  * @property {number} height
  */
@@ -89,6 +90,11 @@ const sqlFiles = {
  * @property {string} [version_ne]
  * @property {string} [version_in]
  * @property {string} [version_like]
+ * @property {string} [protocolVersion]
+ * @property {string} [prptocolVersion_eql]
+ * @property {string} [protocolVersion_ne]
+ * @property {string} [protocolVersion_in]
+ * @property {string} [protocolVersion_like]
  * @property {string} [broadhash]
  * @property {string} [broadhash_eql]
  * @property {string} [broadhash_ne]
@@ -119,6 +125,7 @@ class Peer extends BaseEntity {
 		this.addField('state', 'number', { filter: filterType.NUMBER });
 		this.addField('os', 'string', { filter: filterType.TEXT });
 		this.addField('version', 'string', { filter: filterType.TEXT });
+		this.addField('protocolVersion', 'string', { filter: filterType.TEXT });
 		this.addField(
 			'broadhash',
 			'string',

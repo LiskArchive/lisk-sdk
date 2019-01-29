@@ -12,19 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT
-	"id",
-	"ip",
-	"wsPort",
-	"state",
-	"os",
-	"version",
-	"protocolVersion",
-	ENCODE("broadhash", 'hex') as "broadhash",
-	"height"
-FROM
-	peers
 
-${parsedFilters:raw}
+/*
+  DESCRIPTION: Add protocolVersion Column to Peers.
 
-LIMIT ${limit} OFFSET ${offset}
+  PARAMETERS: None
+*/
+
+ALTER TABLE "peers" ADD COLUMN IF NOT EXISTS "protocolVersion" VARCHAR(20);
