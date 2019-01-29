@@ -45,6 +45,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
+		"@types/lodash.shuffle": "4.2.4",
+		"lodash.shuffle": "4.2.0",
 		"semver": "5.6.0",
 		"socketcluster-client": "14.2.1",
 		"socketcluster-server": "14.3.1",
