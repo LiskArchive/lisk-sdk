@@ -226,58 +226,6 @@ describe('components: cache', () => {
 
 	describe('quit', () => {});
 
-	describe('clearCacheFor', () => {
-		it('should remove all keys matching pattern /api/transactions', async () => {
-			const key = '/api/transactions?123';
-			const value = { testObject: 'testValue' };
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.clearCacheFor('/api/transactions*');
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.equal(null);
-		});
-
-		it('should remove all keys matching pattern /api/blocks', async () => {
-			const key = '/api/blocks';
-			const value = { testObject: 'testValue' };
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.clearCacheFor('/api/blocks*');
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.equal(null);
-		});
-
-		it('should not remove keys that dont match pattern /api/blocks', async () => {
-			const key = '/api/delegates';
-			const value = { testObject: 'testValue' };
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.clearCacheFor('/api/delegates*');
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.equal(null);
-		});
-
-		it('should not remove any key when cache is not ready', async () => {
-			const key = '/api/transactions';
-			const value = { testObject: 'testValue' };
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.setReady(false);
-			try {
-				await cache.clearCacheFor('/api/transactions*');
-			} catch (clearCacheForErr) {
-				expect(clearCacheForErr.message).to.equal('Cache Disabled');
-			}
-			await cache.setReady(true);
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.eql(value);
-		});
-	});
-
 	describe('onFinishRound', () => {
 		it('should remove all keys matching pattern /api/delegates', async () => {
 			const key = '/api/delegates?123';

@@ -314,7 +314,7 @@ describe('blocks', () => {
 					expect(err).to.be.undefined;
 					components = Blocks.__get__('components');
 					components.cache = {
-						clearCacheFor: sinonSandbox.stub().callsArg(1),
+						removeByPattern: sinonSandbox.stub().callsArg(1),
 					};
 					blocksInstance.onNewBlock(block);
 					done();
@@ -322,12 +322,12 @@ describe('blocks', () => {
 			});
 
 			afterEach(done => {
-				components.cache.clearCacheFor.reset();
+				components.cache.removeByPattern.reset();
 				done();
 			});
 
-			it('should call clearCacheFor', done => {
-				expect(components.cache.clearCacheFor.calledTwice).to.be.true;
+			it('should call removeByPattern', done => {
+				expect(components.cache.removeByPattern.calledTwice).to.be.true;
 
 				done();
 			});

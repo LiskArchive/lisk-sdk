@@ -142,12 +142,18 @@ class Cache {
 	}
 
 	/**
-	 * Scans keys with provided pattern in redis db and deletes the entries that match.
+	 * Scans keys with provided pattern in redis db and deletes the entries matching the given pattern.
 	 *
 	 * @param {string} pattern
 	 * @return {Promise.<null, Error>}
 	 */
 	async removeByPattern(pattern) {
+		this.logger.debug(
+			['Cache - removeByPattern', pattern, '| Status:', this.isReady()].join(
+				' '
+			)
+		);
+
 		if (!this.isReady()) {
 			throw new Error(errorCacheDisabled);
 		}
@@ -170,7 +176,13 @@ class Cache {
 				}
 
 				if (cursor === '0') {
-					return null;
+					return this.logger.debug(
+						[
+							'Cache - Keys with pattern:',
+							pattern,
+							'cleared from cache on new block',
+						].join(' ')
+					);
 				}
 
 				return scan();
@@ -216,40 +228,6 @@ class Cache {
 		}
 		const quitAsync = promisify(this.client.quit).bind(this.client);
 		return quitAsync();
-	}
-
-	/**
-	 * Clears cache entries for given pattern.
-	 *
-	 * @param {string} pattern
-	 * @return {Promise.<null, Error>}
-	 */
-	async clearCacheFor(pattern) {
-		this.logger.debug(
-			['Cache - clearCacheFor', pattern, '| Status:', this.isReady()].join(' ')
-		);
-
-		if (!this.isReady()) {
-			throw new Error(errorCacheDisabled);
-		}
-
-		const err = await this.removeByPattern(pattern);
-		if (err) {
-			return this.logger.error(
-				[
-					'Cache - Error clearing keys with pattern:',
-					pattern,
-					'on new block',
-				].join(' ')
-			);
-		}
-		return this.logger.debug(
-			[
-				'Cache - Keys with pattern:',
-				pattern,
-				'cleared from cache on new block',
-			].join(' ')
-		);
 	}
 
 	/**

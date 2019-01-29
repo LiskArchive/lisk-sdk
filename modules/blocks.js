@@ -243,7 +243,7 @@ Blocks.prototype.onBind = function(scope) {
 Blocks.prototype.onNewBlock = function(block) {
 	if (components.cache) {
 		const tasks = [CACHE.KEYS.blocksApi, CACHE.KEYS.transactionsApi].map(
-			pattern => callback => components.cache.clearCacheFor(pattern, callback)
+			pattern => callback => components.cache.removeByPattern(pattern, callback)
 		);
 
 		async.parallel(async.reflectAll(tasks), () =>
