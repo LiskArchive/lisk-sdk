@@ -20,12 +20,14 @@ const rewire = require('rewire');
 const Rounds = rewire('../../../modules/rounds.js');
 const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../common/storage_sandbox');
+const { CACHE } = require('../../../components/cache/constants');
 
 const sinon = sinonSandbox;
 
 describe('rounds', () => {
 	let rounds;
 	let scope;
+	let components;
 
 	// Init fake logger
 	const logger = {
@@ -61,6 +63,12 @@ describe('rounds', () => {
 	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
 
 	const bindings = {
+		components: {
+			cache: {
+				isReady: sinon.stub(),
+				removeByPattern: sinon.stub(),
+			},
+		},
 		modules: {
 			delegates: {
 				generateDelegateList: sinon.stub(),
@@ -100,6 +108,11 @@ describe('rounds', () => {
 		new Rounds((err, __instance) => {
 			rounds = __instance;
 			rounds.onBind(bindings);
+			components = get('components');
+			components.cache = {
+				isReady: sinon.stub(),
+				removeByPattern: sinonSandbox.stub().callsArg(1),
+			};
 			done();
 		}, scope);
 	});
@@ -161,6 +174,11 @@ describe('rounds', () => {
 			expect(get(variable)).to.deep.equal(roundBindings.modules);
 			return set(variable, backup);
 		});
+
+		it('should assign component property', () => {
+			components = get('components');
+			return expect(components).to.have.property('cache');
+		});
 	});
 
 	describe('onBlockchainReady', () => {
@@ -176,17 +194,31 @@ describe('rounds', () => {
 	});
 
 	describe('onFinishRound', () => {
-		it('should call library.network.io.sockets.emit once, with proper params', () => {
+		beforeEach(() => {
+			validScope.network.io.sockets.emit.resetHistory();
+			return components.cache.removeByPattern.resetHistory();
+		});
+
+		it('should call components.cache.removeByPattern once if cache is enabled', () => {
 			const round = 123;
+			const pattern = CACHE.KEYS.delegatesApi;
+			rounds.onFinishRound(round);
+
+			expect(components.cache.removeByPattern.called).to.be.true;
+			return expect(components.cache.removeByPattern.calledWith(pattern)).to.be
+				.true;
+		});
+
+		it('should call library.network.io.sockets.emit once, with proper params', () => {
+			const round = 124;
 			rounds.onFinishRound(round);
 
 			expect(validScope.network.io.sockets.emit.calledOnce).to.be.true;
-			expect(
+			return expect(
 				validScope.network.io.sockets.emit.calledWith('rounds/change', {
 					number: round,
 				})
 			).to.be.true;
-			return validScope.network.io.sockets.emit.resetHistory();
 		});
 	});
 

@@ -225,40 +225,6 @@ class Cache {
 	}
 
 	/**
-	 * Clears all cache entries upon round finish.
-	 *
-	 * @return {Promise.<null, Error>}
-	 */
-	async onFinishRound() {
-		this.logger.debug(
-			['Cache - onFinishRound', '| Status:', this.isReady()].join(' ')
-		);
-		if (!this.isReady()) {
-			throw new Error(errorCacheDisabled);
-		}
-		const pattern = CACHE.KEYS.delegatesApi;
-		try {
-			await this.removeByPattern(pattern);
-		} catch (removeByPatternErr) {
-			return this.logger.error(
-				[
-					'Cache - Error clearing keys with pattern:',
-					pattern,
-					'round finish',
-				].join(' ')
-			);
-		}
-
-		return this.logger.debug(
-			[
-				'Cache - Keys with pattern:',
-				pattern,
-				'cleared from cache on new Round',
-			].join(' ')
-		);
-	}
-
-	/**
 	 * Clears all cache entries if there is a delegate type transaction after transactions saved.
 	 *
 	 * @param {transactions[]} transactions
