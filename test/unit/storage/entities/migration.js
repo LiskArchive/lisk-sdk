@@ -202,7 +202,18 @@ describe('Migration', () => {
 			}).to.throw(NonSupportedOptionError);
 		});
 
-		it('should accept "tx" as last parameter and pass to adapter.executeFile');
+		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
+			// Arrange
+			const migration = new Migration(adapter);
+			const getSpy = sinonSandbox.spy(migration, 'get');
+			// Act & Assert
+			await migration.begin('testTX', async tx => {
+				await migration.get({ id: '20160723182900' }, {}, tx);
+				expect(Object.getPrototypeOf(getSpy.firstCall.args[2])).to.be.eql(
+					Object.getPrototypeOf(tx)
+				);
+			});
+		});
 
 		it('should not change any of the provided parameter');
 

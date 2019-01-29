@@ -17,6 +17,7 @@
 
 const { BaseEntity, Peer } = require('../../../../storage/entities');
 const storageSandbox = require('../../../common/storage_sandbox');
+const peersFixtures = require('../../../fixtures/peers');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
@@ -51,6 +52,7 @@ describe('Peer', () => {
 			'state',
 			'os',
 			'version',
+			'protocolVersion',
 			'broadhash',
 			'height',
 		];
@@ -97,6 +99,11 @@ describe('Peer', () => {
 			'version_ne',
 			'version_in',
 			'version_like',
+			'protocolVersion',
+			'protocolVersion_eql',
+			'protocolVersion_ne',
+			'protocolVersion_in',
+			'protocolVersion_like',
 			'broadhash',
 			'broadhash_eql',
 			'broadhash_ne',
@@ -127,6 +134,7 @@ describe('Peer', () => {
 			state: 1,
 			os: 'linux2.6.32-042stab127.2',
 			version: '1.1.1-rc.1',
+			protocolVersion: '1.0',
 			broadhash:
 				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
 			height: 6857664,
@@ -138,6 +146,7 @@ describe('Peer', () => {
 			state: 1,
 			os: 123123,
 			version: 1233,
+			protocolVersion: 0,
 			broadhash:
 				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
 			height: 'foo',
@@ -309,7 +318,18 @@ describe('Peer', () => {
 			return expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected;
 		});
 
-		it('should create multiple account objects successfully');
+		it('should create multiple objects successfully', async () => {
+			// Arrange
+			const peers = [
+				new peersFixtures.Peer(),
+				new peersFixtures.Peer(),
+			];
+			// Act
+			await storage.entities.Peer.create(peers);
+			const savedPeers = await storage.entities.Peer.get({ ip_in: [peers[0].ip, peers[1].ip] });
+			// Assert
+			expect(savedPeers).length.to.be(2);
+		});
 	});
 
 	describe('update()', () => {

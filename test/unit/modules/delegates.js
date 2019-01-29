@@ -21,6 +21,7 @@ const accountFixtures = require('../../fixtures/accounts');
 const application = require('../../common/application');
 
 const exceptions = global.exceptions;
+const { ACTIVE_DELEGATES } = global.constants;
 
 describe('delegates', () => {
 	let library;
@@ -553,8 +554,8 @@ describe('delegates', () => {
 				const currentSlot = 35;
 				const round = 1;
 
-				delegates.generateDelegateList = (roundArg, source, cb) => {
-					cb(null, delegatesRoundsList[roundArg]);
+				delegates.generateDelegateList = (blockHeight, cb) => {
+					cb(null, delegatesRoundsList[round]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -578,8 +579,8 @@ describe('delegates', () => {
 				const currentSlot = 578;
 				const round = 2;
 
-				delegates.generateDelegateList = (roundArg, source, cb) => {
-					cb(null, delegatesRoundsList[roundArg]);
+				delegates.generateDelegateList = (blockHeight, cb) => {
+					cb(null, delegatesRoundsList[round]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -603,8 +604,8 @@ describe('delegates', () => {
 				const currentSlot = 1051;
 				const round = 3;
 
-				delegates.generateDelegateList = (roundArg, source, cb) => {
-					cb(null, delegatesRoundsList[roundArg]);
+				delegates.generateDelegateList = (blockHeight, cb) => {
+					cb(null, delegatesRoundsList[round]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -629,8 +630,8 @@ describe('delegates', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegates.generateDelegateList = (roundArg, source, cb) => {
-					cb(null, delegatesRoundsList[roundArg]);
+				delegates.generateDelegateList = (blockHeight, cb) => {
+					cb(null, delegatesRoundsList[round]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -648,7 +649,7 @@ describe('delegates', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegates.generateDelegateList = (__round, source, cb) => {
+				delegates.generateDelegateList = (blockHeight, cb) => {
 					cb('generateDelegateList error');
 				};
 
@@ -794,9 +795,14 @@ describe('delegates', () => {
 		let sourceStub;
 		let originalExceptions;
 		const dummyDelegateList = ['x', 'y', 'z'];
+		const dummyPreviousDelegateList = ['a', 'b', 'c'];
 		beforeEach(done => {
 			__private = library.rewiredModules.delegates.__get__('__private');
 			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
+			__private.getKeysSortByVote = sourceStub;
+			sinonSandbox
+				.stub(__private, 'getDelegatesFromPreviousRound')
+				.callsArgWith(0, null, dummyPreviousDelegateList);
 			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
 			done();
 		});
@@ -815,12 +821,11 @@ describe('delegates', () => {
 
 			// Act
 			library.modules.delegates.generateDelegateList(
-				1,
-				sourceStub,
+				ACTIVE_DELEGATES - 1,
 				(err, delegateList) => {
 					// Assert
 					expect(delegateList).to.deep.equal(initialSate[1]);
-					expect(sourceStub).to.not.been.called;
+					expect(__private.getKeysSortByVote).to.not.been.called;
 					done();
 				}
 			);
@@ -835,11 +840,10 @@ describe('delegates', () => {
 
 			// Act
 			library.modules.delegates.generateDelegateList(
-				2,
-				sourceStub,
+				ACTIVE_DELEGATES + 1,
 				(err, delegateList) => {
 					// Assert
-					expect(sourceStub).to.been.called;
+					expect(__private.getKeysSortByVote).to.been.called;
 					expect(delegateList).to.deep.equal(dummyDelegateList);
 					done();
 				}
@@ -856,8 +860,7 @@ describe('delegates', () => {
 
 			// Act
 			library.modules.delegates.generateDelegateList(
-				2,
-				sourceStub,
+				ACTIVE_DELEGATES + 1,
 				(err, delegateList) => {
 					// Assert
 					expect(delegateList).to.deep.equal(dummyDelegateList);
@@ -875,20 +878,43 @@ describe('delegates', () => {
 				1: ['j', 'k', 'l'],
 			};
 			__private.delegatesListCache = { ...initialSate };
-			exceptions.ignoreDelegateListCacheForRounds.push(666);
+			exceptions.ignoreDelegateListCacheForRounds.push(6);
 
 			// Act
 			library.modules.delegates.generateDelegateList(
-				666,
-				sourceStub,
+				ACTIVE_DELEGATES * 6,
 				(err, delegateList) => {
 					// Assert
 
 					expect(delegateList).to.deep.equal(dummyDelegateList);
-					expect(__private.delegatesListCache).to.not.have.property('666');
+					expect(__private.delegatesListCache).to.not.have.property('6');
 					done();
 				}
 			);
+		});
+
+		describe('when lastblockId % ACTIVE_DELEGATES === 0 and fork 5 happens', () => {
+			it('should use getDelegatesFromPreviousRound method', done => {
+				// Arrange
+				const initialSate = {
+					ACTIVE_DELEGATES: ['j', 'k', 'l'],
+				};
+				__private.delegatesListCache = { ...initialSate };
+				sinonSandbox.stub(library.modules.blocks.lastBlock, 'get').returns({
+					height: ACTIVE_DELEGATES,
+				});
+
+				// Act
+				library.modules.delegates.generateDelegateList(
+					ACTIVE_DELEGATES,
+					(err, delegateList) => {
+						// Assert
+						expect(delegateList).to.deep.equal(dummyPreviousDelegateList);
+						expect(__private.getDelegatesFromPreviousRound).to.been.called;
+						done();
+					}
+				);
+			});
 		});
 	});
 });

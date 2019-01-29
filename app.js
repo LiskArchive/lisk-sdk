@@ -555,6 +555,7 @@ d.run(() => {
 					const childProcessOptions = {
 						version: scope.config.version,
 						minVersion: scope.config.minVersion,
+						protocolVersion: scope.config.protocolVersion,
 						nethash: scope.config.nethash,
 						port: scope.config.wsPort,
 						nonce: scope.config.nonce,

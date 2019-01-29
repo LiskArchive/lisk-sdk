@@ -460,6 +460,43 @@ class Network {
 		});
 	}
 
+	/**
+	 * Reloads a node optionally updating its environment variables.
+	 * @param {string} nodeName - The name of the node
+	 * @param {boolean} waitForSync - Waits for the node to synchronize.
+	 * @param {boolean} [updateEnv] - Updates new environment vars on reload.
+	 * @returns {Promise<void>}
+	 */
+	async reloadNode(nodeName, waitForSync, updateEnv) {
+		const update = updateEnv ? ' --update-env' : '';
+
+		await new Promise((resolve, reject) => {
+			childProcess.exec(
+				`node_modules/.bin/pm2 reload test/network/pm2.network.json --only ${nodeName}${update}`,
+				err => {
+					if (err) {
+						return reject(
+							new Error(
+								`Failed to start node ${nodeName}: ${err.message || err}`
+							)
+						);
+					}
+					return resolve();
+				}
+			);
+		});
+
+		if (waitForSync) {
+			try {
+				await this.waitForNodeToBeReady(nodeName);
+			} catch (err) {
+				throw new Error(
+					`Failed to start node ${nodeName} because it did not sync before timeout`
+				);
+			}
+		}
+	}
+
 	restartAllNodes(nodeNamesList, waitForSync) {
 		const waitForRestartPromises = nodeNamesList.map(nodeName => {
 			return this.restartNode(nodeName, waitForSync);
