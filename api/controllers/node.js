@@ -29,60 +29,6 @@ let library;
 let blockReward;
 
 /**
- * Get the forging status of a delegate.
- *
- * @param {string} publicKey - Public key of delegate
- * @returns {Promise<object>}
- * @private
- */
-async function _getForgingStatus(publicKey) {
-	const keyPairs = library.modules.delegates.getForgersKeyPairs();
-	const internalForgers = library.config.forging.delegates;
-	const forgersPublicKeys = {};
-
-	Object.keys(keyPairs).forEach(key => {
-		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
-	});
-
-	const fullList = internalForgers.map(forger => ({
-		forging: !!forgersPublicKeys[forger.publicKey],
-		publicKey: forger.publicKey,
-	}));
-
-	if (publicKey && _.find(fullList, { publicKey })) {
-		return [
-			{
-				publicKey,
-				forging: !!forgersPublicKeys[publicKey],
-			},
-		];
-	}
-
-	if (publicKey && !_.find(fullList, { publicKey })) {
-		return [];
-	}
-
-	return fullList;
-}
-
-/**
- * Toggle the forging status of a delegate.
- * @param {string} publicKey - Public key of a delegate
- * @param {string} password - Password used to decrypt encrypted passphrase
- * @param {boolean} forging - Forging status of a delegate to update
- * @returns {Promise<object>}
- * @todo Add description for the return value
- * @private
- */
-async function _updateForgingStatus(publicKey, password, forging) {
-	return promisify(library.modules.delegates.updateForgingStatus)(
-		publicKey,
-		password,
-		forging
-	);
-}
-
-/**
  * Description of the function.
  *
  * @class
@@ -299,5 +245,59 @@ NodeController.getPooledTransactions = function(context, next) {
 		}
 	);
 };
+
+/**
+ * Get the forging status of a delegate.
+ *
+ * @param {string} publicKey - Public key of delegate
+ * @returns {Promise<object>}
+ * @private
+ */
+async function _getForgingStatus(publicKey) {
+	const keyPairs = library.modules.delegates.getForgersKeyPairs();
+	const internalForgers = library.config.forging.delegates;
+	const forgersPublicKeys = {};
+
+	Object.keys(keyPairs).forEach(key => {
+		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
+	});
+
+	const fullList = internalForgers.map(forger => ({
+		forging: !!forgersPublicKeys[forger.publicKey],
+		publicKey: forger.publicKey,
+	}));
+
+	if (publicKey && _.find(fullList, { publicKey })) {
+		return [
+			{
+				publicKey,
+				forging: !!forgersPublicKeys[publicKey],
+			},
+		];
+	}
+
+	if (publicKey && !_.find(fullList, { publicKey })) {
+		return [];
+	}
+
+	return fullList;
+}
+
+/**
+ * Toggle the forging status of a delegate.
+ * @param {string} publicKey - Public key of a delegate
+ * @param {string} password - Password used to decrypt encrypted passphrase
+ * @param {boolean} forging - Forging status of a delegate to update
+ * @returns {Promise<object>}
+ * @todo Add description for the return value
+ * @private
+ */
+async function _updateForgingStatus(publicKey, password, forging) {
+	return promisify(library.modules.delegates.updateForgingStatus)(
+		publicKey,
+		password,
+		forging
+	);
+}
 
 module.exports = NodeController;
