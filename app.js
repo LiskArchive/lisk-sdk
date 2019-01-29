@@ -144,7 +144,6 @@ const config = {
 		rounds: './modules/rounds.js',
 		loader: './modules/loader.js',
 		multisignatures: './modules/multisignatures.js',
-		node: './modules/node.js',
 		peers: './modules/peers.js',
 		system: './modules/system.js',
 		signatures: './modules/signatures.js',

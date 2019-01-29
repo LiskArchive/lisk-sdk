@@ -14,14 +14,73 @@
 
 'use strict';
 
+const { promisify } = require('util');
 const _ = require('lodash');
 const checkIpInList = require('../../helpers/check_ip_in_list.js');
 const apiCodes = require('../../helpers/api_codes');
 const swaggerHelper = require('../../helpers/swagger');
+const BlockReward = require('../../logic/block_reward.js');
+const slots = require('../../helpers/slots.js');
+
+const { EPOCH_TIME, FEES } = global.constants;
 
 // Private Fields
-let modules;
-let config;
+let library;
+let blockReward;
+
+/**
+ * Get the forging status of a delegate.
+ *
+ * @param {string} publicKey - Public key of delegate
+ * @returns {Promise<object>}
+ * @private
+ */
+async function _getForgingStatus(publicKey) {
+	const keyPairs = library.modules.delegates.getForgersKeyPairs();
+	const internalForgers = library.config.forging.delegates;
+	const forgersPublicKeys = {};
+
+	Object.keys(keyPairs).forEach(key => {
+		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
+	});
+
+	const fullList = internalForgers.map(forger => ({
+		forging: !!forgersPublicKeys[forger.publicKey],
+		publicKey: forger.publicKey,
+	}));
+
+	if (publicKey && _.find(fullList, { publicKey })) {
+		return [
+			{
+				publicKey,
+				forging: !!forgersPublicKeys[publicKey],
+			},
+		];
+	}
+
+	if (publicKey && !_.find(fullList, { publicKey })) {
+		return [];
+	}
+
+	return fullList;
+}
+
+/**
+ * Toggle the forging status of a delegate.
+ * @param {string} publicKey - Public key of a delegate
+ * @param {string} password - Password used to decrypt encrypted passphrase
+ * @param {boolean} forging - Forging status of a delegate to update
+ * @returns {Promise<object>}
+ * @todo Add description for the return value
+ * @private
+ */
+async function _updateForgingStatus(publicKey, password, forging) {
+	return promisify(library.modules.delegates.updateForgingStatus)(
+		publicKey,
+		password,
+		forging
+	);
+}
 
 /**
  * Description of the function.
@@ -38,8 +97,14 @@ let config;
  * @todo Add description of NodeController
  */
 function NodeController(scope) {
-	modules = scope.modules;
-	config = scope.config;
+	library = {
+		modules: scope.modules,
+		storage: scope.storage,
+		config: scope.config,
+		build: scope.build,
+		lastCommit: scope.lastCommit,
+	};
+	blockReward = new BlockReward();
 }
 
 /**
@@ -49,34 +114,38 @@ function NodeController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getConstants = function(context, next) {
-	return modules.node.shared.getConstants(null, (err, data) => {
-		try {
-			if (err) {
-				return next(err);
-			}
+NodeController.getConstants = async (context, next) => {
+	try {
+		const [lastBlock] = await library.storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1 }
+		);
+		const { height } = lastBlock;
 
-			data = _.cloneDeep(data);
-
-			// Perform required typecasts for integer
-			// or bignum properties when returning an API response
-			data.supply = data.supply.toString();
-			data.milestone = data.milestone.toString();
-			data.reward = data.reward.toString();
-			data.fees.dappDeposit = data.fees.dappDeposit.toString();
-			data.fees.dappWithdrawal = data.fees.dappWithdrawal.toString();
-			data.fees.dappRegistration = data.fees.dappRegistration.toString();
-			data.fees.multisignature = data.fees.multisignature.toString();
-			data.fees.delegate = data.fees.delegate.toString();
-			data.fees.secondSignature = data.fees.secondSignature.toString();
-			data.fees.vote = data.fees.vote.toString();
-			data.fees.send = data.fees.send.toString();
-
-			return next(null, data);
-		} catch (error) {
-			return next(error);
-		}
-	});
+		return next(null, {
+			build: library.build,
+			commit: library.lastCommit,
+			epoch: EPOCH_TIME,
+			fees: {
+				send: FEES.SEND.toString(),
+				vote: FEES.VOTE.toString(),
+				secondSignature: FEES.SECOND_SIGNATURE.toString(),
+				delegate: FEES.DELEGATE.toString(),
+				multisignature: FEES.MULTISIGNATURE.toString(),
+				dappRegistration: FEES.DAPP_REGISTRATION.toString(),
+				dappWithdrawal: FEES.DAPP_WITHDRAWAL.toString(),
+				dappDeposit: FEES.DAPP_DEPOSIT.toString(),
+			},
+			nethash: library.config.nethash,
+			nonce: library.config.nonce,
+			milestone: blockReward.calcMilestone(height).toString(),
+			reward: blockReward.calcReward(height).toString(),
+			supply: blockReward.calcSupply(height).toString(),
+			version: library.config.version,
+		});
+	} catch (error) {
+		return next(error);
+	}
 };
 
 /**
@@ -86,35 +155,28 @@ NodeController.getConstants = function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getStatus = function(context, next) {
-	return modules.node.shared.getStatus(null, (getStatusErr, data) => {
-		try {
-			if (getStatusErr) {
-				return next(getStatusErr);
-			}
+NodeController.getStatus = async (context, next) => {
+	try {
+		const networkHeight = await promisify(library.modules.peers.networkHeight)({
+			normalized: false,
+		});
 
-			data = _.cloneDeep(data);
+		const data = {
+			broadhash: library.modules.system.getBroadhash(),
+			consensus: library.modules.peers.getLastConsensus() || 0,
+			currentTime: Date.now(),
+			secondsSinceEpoch: slots.getTime(),
+			height: library.modules.blocks.lastBlock.get().height,
+			loaded: library.modules.loader.loaded(),
+			networkHeight: networkHeight || 0,
+			syncing: library.modules.loader.syncing(),
+		};
 
-			// Check if properties are null, then set it to 0
-			// as per schema defined for these properties in swagger
-			data.networkHeight = data.networkHeight || 0;
-			data.consensus = data.consensus || 0;
-
-			return modules.transactions.shared.getTransactionsCount(
-				(getTransactionsCountErr, count) => {
-					if (getTransactionsCountErr) {
-						return next(getTransactionsCountErr);
-					}
-
-					data.transactions = count;
-
-					return next(null, data);
-				}
-			);
-		} catch (error) {
-			return next(error);
-		}
-	});
+		data.transactions = await promisify(library.modules.transactions.shared.getTransactionsCount)();
+		return next(null, data);
+	} catch (err) {
+		return next(err);
+	}
 };
 
 /**
@@ -124,21 +186,19 @@ NodeController.getStatus = function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getForgingStatus = function(context, next) {
-	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
+NodeController.getForgingStatus = async (context, next) => {
+	if (!checkIpInList(library.config.forging.access.whiteList, context.request.ip)) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
-
 	const publicKey = context.request.swagger.params.publicKey.value;
 
-	return modules.node.internal.getForgingStatus(publicKey, (err, data) => {
-		if (err) {
-			return next(err);
-		}
-
-		return next(null, data);
-	});
+	try {
+		const forgingStatus = await _getForgingStatus(publicKey);
+		return next(null, forgingStatus);
+	} catch (err) {
+		return next(err);
+	}
 };
 
 /**
@@ -149,7 +209,7 @@ NodeController.getForgingStatus = function(context, next) {
  * @todo Add description for the function and the params
  */
 NodeController.updateForgingStatus = function(context, next) {
-	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
+	if (!checkIpInList(library.config.forging.access.whiteList, context.request.ip)) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
@@ -158,19 +218,13 @@ NodeController.updateForgingStatus = function(context, next) {
 	const password = context.request.swagger.params.data.value.password;
 	const forging = context.request.swagger.params.data.value.forging;
 
-	return modules.node.internal.updateForgingStatus(
-		publicKey,
-		password,
-		forging,
-		(err, data) => {
-			if (err) {
-				context.statusCode = apiCodes.NOT_FOUND;
-				return next(err);
-			}
-
-			return next(null, [data]);
-		}
-	);
+	try {
+		const data = _updateForgingStatus(publicKey, password, forging);
+		return next(null, [data]);
+	} catch (err) {
+		context.statusCode = apiCodes.NOT_FOUND;
+		return next(err);
+	}
 };
 
 /**
@@ -212,7 +266,7 @@ NodeController.getPooledTransactions = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	return modules.transactions.shared[stateMap[state]].call(
+	return library.modules.transactions.shared[stateMap[state]].call(
 		this,
 		_.clone(filters),
 		(err, data) => {
