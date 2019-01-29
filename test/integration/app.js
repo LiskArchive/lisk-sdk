@@ -312,7 +312,7 @@ describe('app', () => {
 			let delegatesList;
 
 			before(() => {
-				return generateDelegateListPromise(1, null).then(_delegatesList => {
+				return generateDelegateListPromise(1).then(_delegatesList => {
 					delegatesList = _delegatesList;
 				});
 			});
