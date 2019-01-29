@@ -155,7 +155,7 @@ NodeController.getForgingStatus = async (context, next) => {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.updateForgingStatus = function(context, next) {
+NodeController.updateForgingStatus = async (context, next) => {
 	if (!checkIpInList(library.config.forging.access.whiteList, context.request.ip)) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
@@ -166,7 +166,7 @@ NodeController.updateForgingStatus = function(context, next) {
 	const forging = context.request.swagger.params.data.value.forging;
 
 	try {
-		const data = _updateForgingStatus(publicKey, password, forging);
+		const data = await _updateForgingStatus(publicKey, password, forging);
 		return next(null, [data]);
 	} catch (err) {
 		context.statusCode = apiCodes.NOT_FOUND;
