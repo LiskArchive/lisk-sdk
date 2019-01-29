@@ -14,12 +14,21 @@
 
 'use strict';
 
-const isSortOptionValid = (sortOption, fields) => {
+const { VIRTUAL_FIELD_EXTENDED, VIRTUAL_FIELD_BASIC } = require('../constants');
+
+const isSortOptionValid = (sortOption, fields, virtualFields, extended) => {
 	if (!sortOption) return true;
 	const sortArray = Array.isArray(sortOption) ? sortOption : [sortOption];
+	const virtualFieldsByType = Object.values(
+		virtualFields[extended ? [VIRTUAL_FIELD_EXTENDED] : [VIRTUAL_FIELD_BASIC]]
+	);
 	return sortArray.reduce((acc, curr) => {
 		const { field, method } = parseSortStringToObject(curr);
-		return acc && fields.includes(field) && ['ASC', 'DESC'].includes(method);
+		return (
+			acc &&
+			(fields.includes(field) || virtualFieldsByType.includes(field)) &&
+			['ASC', 'DESC'].includes(method)
+		);
 	}, true);
 };
 

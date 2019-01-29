@@ -305,6 +305,8 @@ class Account extends BaseEntity {
 		this.addField('rank', 'string', { filter: ft.NUMBER });
 		this.addField('vote', 'string', { filter: ft.NUMBER });
 
+		this.addVirtualField('productivity', true);
+
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
@@ -806,6 +808,7 @@ class Account extends BaseEntity {
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		this.validateOptions(options);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(

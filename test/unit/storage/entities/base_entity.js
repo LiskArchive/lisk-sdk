@@ -16,6 +16,10 @@
 'use strict';
 
 const { BaseEntity } = require('../../../../storage/entities');
+const {
+	VIRTUAL_FIELD_EXTENDED,
+	VIRTUAL_FIELD_BASIC,
+} = require('../../../../storage/constants');
 
 describe('BaseEntity', () => {
 	let adapter;
@@ -24,17 +28,17 @@ describe('BaseEntity', () => {
 
 	beforeEach(async () => {
 		adapter = {
-            loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-        };
+			loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+		};
 		defaultFilters = {
-            id: 1,
-            name: 'name',
-        };
-        defaultOptions = {
+			id: 1,
+			name: 'name',
+		};
+		defaultOptions = {
 			limit: 10,
 			offset: 0,
 			extended: false,
-        };
+		};
 	});
 
 	afterEach(async () => {
@@ -71,6 +75,14 @@ describe('BaseEntity', () => {
 			expect(baseEntity.fields).to.be.eql({});
 		});
 
+		it('should setup vritualFields as empty object with properties extended and basic', async () => {
+			const baseEntity = new BaseEntity(adapter);
+			expect(baseEntity.virtualFields).to.be.eql({
+				[VIRTUAL_FIELD_EXTENDED]: {},
+				[VIRTUAL_FIELD_BASIC]: {},
+			});
+		});
+
 		it('should setup filters as empty object', async () => {
 			const baseEntity = new BaseEntity(adapter);
 			expect(baseEntity.filters).to.be.eql({});
@@ -83,50 +95,54 @@ describe('BaseEntity', () => {
 	});
 
 	describe('loadSQLFiles()', () => {
-        let baseEntity;
-        let entityLabel;
-        let sqlFilesKeys;
-        let sqlFiles;
+		let baseEntity;
+		let entityLabel;
+		let sqlFilesKeys;
+		let sqlFiles;
 
-        beforeEach(async () => {
-            baseEntity = new BaseEntity(adapter);
-            entityLabel = 'baseEntity';
-            sqlFilesKeys = ['get', 'save', 'update'];
-            sqlFiles = {
-                get: 'path/to/get.sql',
-                save: 'path/to/save.sql',
-                update: 'path/to/update.sql',
-            };
-        });
+		beforeEach(async () => {
+			baseEntity = new BaseEntity(adapter);
+			entityLabel = 'baseEntity';
+			sqlFilesKeys = ['get', 'save', 'update'];
+			sqlFiles = {
+				get: 'path/to/get.sql',
+				save: 'path/to/save.sql',
+				update: 'path/to/update.sql',
+			};
+		});
 
-        afterEach(async () => {
-            sinonSandbox.reset();
-        });
+		afterEach(async () => {
+			sinonSandbox.reset();
+		});
 
-        it('should initialize adapter.SQLs as object', async () => {
-            baseEntity.loadSQLFiles(entityLabel, {});
+		it('should initialize adapter.SQLs as object', async () => {
+			baseEntity.loadSQLFiles(entityLabel, {});
 			expect(typeof baseEntity.adapter.SQLs).to.be.eql('object');
 		});
 
-        it('should initialize adapter.SQLs[entityLabel] as object', async () => {
-            baseEntity.loadSQLFiles(entityLabel, {});
+		it('should initialize adapter.SQLs[entityLabel] as object', async () => {
+			baseEntity.loadSQLFiles(entityLabel, {});
 			expect(typeof baseEntity.adapter.SQLs[entityLabel]).to.be.eql('object');
 		});
 
-        it('should return expected object', async () => {
-            const SQLs = baseEntity.loadSQLFiles(entityLabel, sqlFiles);
-            expect(SQLs).to.include.all.keys(sqlFilesKeys);
+		it('should return expected object', async () => {
+			const SQLs = baseEntity.loadSQLFiles(entityLabel, sqlFiles);
+			expect(SQLs).to.include.all.keys(sqlFilesKeys);
 		});
 
-        it('should call adapter.loadSQLFile 3 times', async () => {
-            baseEntity.loadSQLFiles(entityLabel, sqlFiles);
-            expect(adapter.loadSQLFile.callCount).to.eql(Object.keys(sqlFiles).length);
+		it('should call adapter.loadSQLFile 3 times', async () => {
+			baseEntity.loadSQLFiles(entityLabel, sqlFiles);
+			expect(adapter.loadSQLFile.callCount).to.eql(
+				Object.keys(sqlFiles).length
+			);
 		});
 
-        it('should not call adapter.loadSQLFile again when using same arguments', async () => {
-            baseEntity.loadSQLFiles(entityLabel, sqlFiles);
-            baseEntity.loadSQLFiles(entityLabel, sqlFiles);
-            expect(adapter.loadSQLFile.callCount).to.eql(Object.keys(sqlFiles).length);
+		it('should not call adapter.loadSQLFile again when using same arguments', async () => {
+			baseEntity.loadSQLFiles(entityLabel, sqlFiles);
+			baseEntity.loadSQLFiles(entityLabel, sqlFiles);
+			expect(adapter.loadSQLFile.callCount).to.eql(
+				Object.keys(sqlFiles).length
+			);
 		});
 	});
 });
