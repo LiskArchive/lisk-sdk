@@ -241,15 +241,16 @@ Blocks.prototype.onBind = function(scope) {
  * @todo Add @returns tag
  */
 Blocks.prototype.onNewBlock = function(block) {
+	let tasks = [];
 	if (components.cache) {
-		const tasks = [CACHE.KEYS.blocksApi, CACHE.KEYS.transactionsApi].map(
+		tasks = [CACHE.KEYS.blocksApi, CACHE.KEYS.transactionsApi].map(
 			pattern => callback => components.cache.removeByPattern(pattern, callback)
 		);
-
-		async.parallel(async.reflectAll(tasks), () =>
-			library.network.io.sockets.emit('blocks/change', block)
-		);
 	}
+
+	async.parallel(async.reflectAll(tasks), () =>
+		library.network.io.sockets.emit('blocks/change', block)
+	);
 };
 
 /**
