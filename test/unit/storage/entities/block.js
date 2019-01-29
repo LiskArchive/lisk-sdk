@@ -273,7 +273,10 @@ describe('Block', () => {
 			expect(block.fields).to.include.all.keys(validBlockFields);
 		});
 
-		it('should setup specific filters');
+		it('should setup specific filters', async () => {
+			const block = new Block(adapter);
+			expect(block.getFilters()).to.have.members(validFilters);
+		});
 	});
 
 	describe('getOne()', () => {
@@ -407,7 +410,18 @@ describe('Block', () => {
 			);
 		});
 
-		it('should accept "tx" as last parameter and pass to adapter.executeFile');
+		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
+			// Arrange
+			const block = new Block(adapter);
+			const _getResultsSpy = sinonSandbox.spy(block, '_getResults');
+			// Act & Assert
+			await block.begin('testTX', async tx => {
+				await block.get({}, {}, tx);
+				expect(
+					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])
+				).to.be.eql(Object.getPrototypeOf(tx));
+			});
+		});
 
 		it('should not change any of the provided parameter');
 
@@ -448,7 +462,18 @@ describe('Block', () => {
 			return expect(storage.entities.Block.create(invalidBlock)).to.be.rejected;
 		});
 
-		it('should create multiple objects successfully');
+		it('should create multiple objects successfully', async () => {
+			// Arrange
+			const block = new Block(adapter);
+			const blocks = [new blocksFixtures.Block(), new blocksFixtures.Block()];
+			// Act
+			await block.create(blocks);
+			const savedBlocks = await block.get({
+				id_in: [blocks[0].id, blocks[1].id],
+			});
+			// Assert
+			expect(savedBlocks).length.to.be(2);
+		});
 	});
 
 	describe('update()', () => {
@@ -594,8 +619,31 @@ describe('Block', () => {
 			expect(block.parseFilters.calledWith(validFilter)).to.be.true;
 		});
 
-		it('should only delete records specified by filter');
-		it('should delete all records if no filter is specified');
+		it('should only delete records specified by filter', async () => {
+			// Arrange
+			const block = new Block(adapter);
+			const blocks = [new blocksFixtures.Block(), new blocksFixtures.Block()];
+
+			// Act
+			await block.create(blocks);
+			await block.delete({ id: blocks[0].id });
+			const remainingBlock = await block.getOne({ id: blocks[1].id });
+			// Assert
+			expect(remainingBlock).to.exist;
+		});
+
+		it('should delete all records if no filter is specified', async () => {
+			// Arrange
+			const block = new Block(adapter);
+			const blocks = [new blocksFixtures.Block(), new blocksFixtures.Block()];
+
+			// Act
+			await block.create(blocks);
+			await block.delete();
+			const remainingBlock = await block.get();
+			// Assert
+			expect(remainingBlock).to.be.empty;
+		});
 	});
 
 	describe('count()', () => {

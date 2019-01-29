@@ -289,7 +289,7 @@ class BaseEntity {
 	 * Validate allowed filters
 	 * @param {Array.<Object>|Object} filters
 	 * @param {Boolean} atLeastOneRequired
-	 * @return {true, NonSupportedFilterTypeError>}
+	 * @return {Boolean|Object} true or NonSupportedFilterTypeError
 	 */
 	validateFilters(filters = {}, atLeastOneRequired = false) {
 		if (atLeastOneRequired && (!filters || !Object.keys(filters).length)) {
@@ -328,7 +328,7 @@ class BaseEntity {
 	 * Validate allowed options
 	 * @param {Object} options
 	 * @param {Boolean} atLeastOneRequired
-	 * @return {true, NonSupportedFilterTypeError>}
+	 * @return {Boolean|Object} true or NonSupportedFilterTypeError
 	 */
 	validateOptions(options = {}, atLeastOneRequired = false) {
 		if (atLeastOneRequired && (!options || !Object.keys(options).length)) {
