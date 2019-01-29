@@ -69,3 +69,13 @@ export const getKeyPair: NaclInterface['getKeyPair'] = hashedSeed => {
 		publicKeyBytes: Buffer.from(publicKey),
 	};
 };
+
+const PRIVATE_KEY_LENGTH = 32;
+
+export const getPublicKey: NaclInterface['getPublicKey'] = privateKey => {
+	const { publicKey } = tweetnacl.sign.keyPair.fromSeed(
+		privateKey.slice(0, PRIVATE_KEY_LENGTH),
+	);
+
+	return Buffer.from(publicKey);
+};

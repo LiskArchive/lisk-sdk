@@ -1,0 +1,18 @@
+{
+    "id": "9046966103496425914",
+    "type": 2,
+    "timestamp": 0,
+    "senderPublicKey": "dd786687dd2399605ce8fe70212d078db1a2fc6effba127defb176a004cec6d4",
+    "senderId": "17676438278047402502L",
+    "recipientId": "",
+    "recipientPublicKey": "",
+    "amount": "0",
+    "fee": "0",
+    "signature": "ace469bdbee1524c7d7d8ce1e2d42fa6ec75d1c25a0e9eff67bbaeb25fb2a3d511629aef342288f1bee83a39a608c8e205a903f1963e6bedb8b7d26a29ae2307",
+    "signatures": [],
+    "asset": {
+      "delegate": {
+        "username": "genesis_10"
+      }
+    }
+  }

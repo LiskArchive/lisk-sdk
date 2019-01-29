@@ -30,7 +30,7 @@ import {
 } from '../../src/utils/get_transaction_bytes';
 import {
 	TransferTransaction,
-	BaseTransaction,
+	TransactionJSON,
 	MultiSignatureAsset,
 } from '../../src/transaction_types';
 
@@ -41,6 +41,8 @@ const defaultSenderPublicKey =
 const defaultSenderId = '18160565574430594874L';
 const defaultSenderSecondPublicKey =
 	'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
+const defaultRecipientPublicKey =
+	'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82z';
 // Use (1<<62) + 3 to ensure the highest and the lowest bytes are set and contain different data.
 // This exceeds the safe integer range of JavaScript numbers and thus is expressed as a string.
 const defaultAmount = '10000000000000000';
@@ -57,7 +59,7 @@ const defaultDelegateUsername = 'MyDelegateUsername';
 describe('getTransactionBytes module', () => {
 	describe('#getTransactionBytes', () => {
 		describe('transfer transaction, type 0', () => {
-			let defaultTransaction: BaseTransaction;
+			let defaultTransaction: TransactionJSON;
 
 			beforeEach(() => {
 				defaultTransaction = {
@@ -65,12 +67,15 @@ describe('getTransactionBytes module', () => {
 					fee: (0.1 * fixedPoint).toString(),
 					amount: defaultAmount,
 					recipientId: defaultRecipient,
+					recipientPublicKey: defaultRecipientPublicKey,
 					timestamp: defaultTimestamp,
 					asset: {},
 					senderPublicKey: defaultSenderPublicKey,
 					senderId: defaultSenderId,
 					signature: defaultSignature,
+					signatures: [],
 					id: defaultTransactionId,
+					receivedAt: new Date(),
 				};
 				return Promise.resolve();
 			});
@@ -120,9 +125,12 @@ describe('getTransactionBytes module', () => {
 					...defaultTransaction,
 					amount,
 				};
-				return expect(getTransactionBytes.bind(null, transaction)).to.throw(
-					'Transaction amount must not be negative.',
-				);
+				return expect(
+					getTransactionBytes.bind(
+						null,
+						(transaction as unknown) as TransactionJSON,
+					),
+				).to.throw('Transaction amount must not be negative.');
 			});
 
 			it('should throw on type 0 with an amount that is too large', () => {
@@ -133,9 +141,12 @@ describe('getTransactionBytes module', () => {
 					...defaultTransaction,
 					amount,
 				};
-				return expect(getTransactionBytes.bind(null, transaction)).to.throw(
-					'Transaction amount is too large.',
-				);
+				return expect(
+					getTransactionBytes.bind(
+						null,
+						(transaction as unknown) as TransactionJSON,
+					),
+				).to.throw('Transaction amount is too large.');
 			});
 
 			it('should return Buffer of transaction with second signature', () => {
@@ -153,24 +164,16 @@ describe('getTransactionBytes module', () => {
 
 			it('should return Buffer from multisignature type 0 (transfer LSK) transaction', () => {
 				const multiSignatureTransaction = {
-					type: 0,
-					amount: '1000',
-					fee: (1 * fixedPoint).toString(),
-					recipientId: defaultRecipient,
-					senderPublicKey: defaultSenderPublicKey,
-					requesterPublicKey:
-						'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-					timestamp: defaultTimestamp,
-					asset: {},
+					...defaultTransaction,
 					signatures: [],
-					signature: defaultSignature,
-					id: defaultTransactionId,
 				};
 				const expectedBuffer = Buffer.from(
-					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae095d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de803000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0000c16ff2862300618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
-				const transactionBytes = getTransactionBytes(multiSignatureTransaction);
+				const transactionBytes = getTransactionBytes(
+					multiSignatureTransaction as any,
+				);
 
 				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
@@ -192,14 +195,20 @@ describe('getTransactionBytes module', () => {
 			it('should throw on missing required parameter type', () => {
 				const { type, ...defaultTransactionClone } = defaultTransaction;
 				expect(
-					getTransactionBytes.bind(null, defaultTransactionClone),
+					getTransactionBytes.bind(
+						null,
+						(defaultTransactionClone as unknown) as TransactionJSON,
+					),
 				).to.throw(`type is a required parameter.`);
 			});
 
 			it('should throw on missing required parameter timestamp', () => {
 				const { timestamp, ...defaultTransactionClone } = defaultTransaction;
 				expect(
-					getTransactionBytes.bind(null, defaultTransactionClone),
+					getTransactionBytes.bind(
+						null,
+						(defaultTransactionClone as unknown) as TransactionJSON,
+					),
 				).to.throw(`timestamp is a required parameter.`);
 			});
 
@@ -209,14 +218,20 @@ describe('getTransactionBytes module', () => {
 					...defaultTransactionClone
 				} = defaultTransaction;
 				expect(
-					getTransactionBytes.bind(null, defaultTransactionClone),
+					getTransactionBytes.bind(
+						null,
+						(defaultTransactionClone as unknown) as TransactionJSON,
+					),
 				).to.throw(`senderPublicKey is a required parameter.`);
 			});
 
 			it('should throw on missing required parameter amount', () => {
 				const { amount, ...defaultTransactionClone } = defaultTransaction;
 				expect(
-					getTransactionBytes.bind(null, defaultTransactionClone),
+					getTransactionBytes.bind(
+						null,
+						(defaultTransactionClone as unknown) as TransactionJSON,
+					),
 				).to.throw(`amount is a required parameter.`);
 			});
 		});
@@ -226,17 +241,21 @@ describe('getTransactionBytes module', () => {
 				type: 1,
 				amount: defaultNoAmount,
 				fee: (5 * fixedPoint).toString(),
-				recipientId: null,
+				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
+				senderId: defaultSenderId,
+				recipientPublicKey: defaultRecipientPublicKey,
 				timestamp: defaultTimestamp,
 				asset: { signature: { publicKey: defaultSenderSecondPublicKey } },
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 1 (register second signature) transaction', () => {
 				const expectedBuffer = Buffer.from(
-					'01aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09000000000000000000000000000000000401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'01aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d00000000000000000401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(signatureTransaction);
@@ -250,17 +269,21 @@ describe('getTransactionBytes module', () => {
 				type: 2,
 				amount: defaultNoAmount,
 				fee: (25 * fixedPoint).toString(),
-				recipientId: null,
+				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
+				senderId: defaultSenderId,
+				recipientPublicKey: defaultRecipientPublicKey,
 				timestamp: defaultTimestamp,
 				asset: { delegate: { username: defaultDelegateUsername } },
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 2 (register delegate) transaction', () => {
 				const expectedBuffer = Buffer.from(
-					'02aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09000000000000000000000000000000004d7944656c6567617465557365726e616d65618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'02aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d00000000000000004d7944656c6567617465557365726e616d65618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(
@@ -278,6 +301,8 @@ describe('getTransactionBytes module', () => {
 				fee: (1 * fixedPoint).toString(),
 				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
+				senderId: defaultSenderId,
+				recipientPublicKey: defaultRecipientPublicKey,
 				timestamp: defaultTimestamp,
 				asset: {
 					votes: [
@@ -286,7 +311,9 @@ describe('getTransactionBytes module', () => {
 					],
 				},
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 3 (vote) transaction', () => {
@@ -305,8 +332,10 @@ describe('getTransactionBytes module', () => {
 				type: 4,
 				amount: '0',
 				fee: (15 * fixedPoint).toString(),
-				recipientId: null,
+				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
+				senderId: defaultSenderId,
+				recipientPublicKey: defaultRecipientPublicKey,
 				timestamp: defaultTimestamp,
 				asset: {
 					multisignature: {
@@ -319,12 +348,14 @@ describe('getTransactionBytes module', () => {
 					},
 				},
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer from type 4 (register multisignature) transaction', () => {
 				const expectedBuffer = Buffer.from(
-					'04aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae090000000000000000000000000000000002052b356430333661383538636538396638343434393137363265623839653262666264353061346130613064613635386534623236323862323562313137616530392b30343031633861633966323964656439653165346435623662343330353163623235623232663237633762376233353039323136316538353139343666383266618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'04aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d000000000000000002052b356430333661383538636538396638343434393137363265623839653262666264353061346130613064613635386534623236323862323562313137616530392b30343031633861633966323964656439653165346435623662343330353163623235623232663237633762376233353039323136316538353139343666383266618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(
@@ -340,8 +371,10 @@ describe('getTransactionBytes module', () => {
 				type: 5,
 				amount: '0',
 				fee: (25 * fixedPoint).toString(),
-				recipientId: null,
+				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
+				senderId: defaultSenderId,
+				recipientPublicKey: defaultRecipientPublicKey,
 				timestamp: defaultTimestamp,
 				asset: {
 					dapp: {
@@ -356,12 +389,14 @@ describe('getTransactionBytes module', () => {
 					},
 				},
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 5 (register dapp) transaction', () => {
 				const expectedBuffer = Buffer.from(
-					'05aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09000000000000000000000000000000004c69736b204775657374626f6f6b546865206f6666696369616c204c69736b206775657374626f6f6b6775657374626f6f6b206d6573736167652073696465636861696e68747470733a2f2f6769746875622e636f6d2f4d61784b4b2f6775657374626f6f6b446170702f617263686976652f6d61737465722e7a697068747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f4d61784b4b2f6775657374626f6f6b446170702f6d61737465722f69636f6e2e706e670000000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'05aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d00000000000000004c69736b204775657374626f6f6b546865206f6666696369616c204c69736b206775657374626f6f6b6775657374626f6f6b206d6573736167652073696465636861696e68747470733a2f2f6769746875622e636f6d2f4d61784b4b2f6775657374626f6f6b446170702f617263686976652f6d61737465722e7a697068747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f4d61784b4b2f6775657374626f6f6b446170702f6d61737465722f69636f6e2e706e670000000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(dappTransaction);
@@ -375,17 +410,21 @@ describe('getTransactionBytes module', () => {
 				type: 6,
 				amount: defaultAmount,
 				fee: (1 * fixedPoint).toString(),
-				recipientId: null,
+				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
+				senderId: defaultSenderId,
+				recipientPublicKey: defaultRecipientPublicKey,
 				timestamp: defaultTimestamp,
 				asset: { inTransfer: { dappId: defaultAppId } },
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 6 (dapp inTransfer) transaction', () => {
 				const expectedBuffer = Buffer.from(
-					'06aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900000000000000000000c16ff286230031323334323133618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'06aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0000c16ff286230031323334323133618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(inTransferTransction);
@@ -401,6 +440,8 @@ describe('getTransactionBytes module', () => {
 				fee: (1 * fixedPoint).toString(),
 				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
+				senderId: defaultSenderId,
+				recipientPublicKey: defaultRecipientPublicKey,
 				timestamp: defaultTimestamp,
 				asset: {
 					outTransfer: {
@@ -409,7 +450,9 @@ describe('getTransactionBytes module', () => {
 					},
 				},
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 7 (dapp outTransfer) transaction', () => {
@@ -741,7 +784,7 @@ describe('getTransactionBytes module', () => {
 
 		describe('#checkTransaction', () => {
 			const maxDataLength = 64;
-			let defaultTransaction: BaseTransaction;
+			let defaultTransaction: TransactionJSON;
 			beforeEach(() => {
 				defaultTransaction = {
 					type: 0,
@@ -751,9 +794,12 @@ describe('getTransactionBytes module', () => {
 					timestamp: defaultTimestamp,
 					asset: {},
 					senderPublicKey: defaultSenderPublicKey,
+					recipientPublicKey: defaultRecipientPublicKey,
 					senderId: defaultSenderId,
 					signature: defaultSignature,
+					signatures: [],
 					id: defaultTransactionId,
+					receivedAt: new Date(),
 				};
 				return Promise.resolve();
 			});

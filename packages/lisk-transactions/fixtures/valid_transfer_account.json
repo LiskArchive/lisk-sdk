@@ -1,0 +1,20 @@
+[
+	{
+		"address": "1977368676922172803L",
+		"balance": "1612516352",
+		"publicKey": "b3eae984ec05ea3b4d4564fa1f195d67d14fe56a1a0d038c2c34780e0c0f9a09",
+		"secondPublicKey": ""
+	},
+	{
+		"address": "7675634738153324567L",
+		"balance": "2347483648",
+		"publicKey": "",
+		"secondPublicKey": ""
+	},
+	{
+		"address": "7329472648011827824L",
+		"balance": "154610001743",
+		"publicKey": "9becd3e545be91f85270d8a796ae3b9e8ec01a8cb479fef46a298b4efd943a0f",
+		"secondPublicKey": ""
+	}
+]

@@ -8,6 +8,7 @@ export interface NaclInterface {
 		convertedPrivateKey: Buffer,
 	): Buffer;
 	getKeyPair(hashedSeed: Buffer): KeypairBytes;
+	getPublicKey(privateKey: Buffer): Buffer;
 	getRandomBytes(length: number): Buffer;
 	openBox(
 		cipherBytes: Buffer,

@@ -23,7 +23,7 @@ import {
 describe('format', () => {
 	describe('#convertBeddowsToLSK', () => {
 		it('should error if not given a string', () => {
-			return expect(convertBeddowsToLSK.bind(null, 12345678)).to.throw(
+			return expect(convertBeddowsToLSK.bind(null, 12345678 as any)).to.throw(
 				'Cannot convert non-string amount',
 			);
 		});
@@ -56,7 +56,7 @@ describe('format', () => {
 	});
 	describe('#convertLSKToBeddows', () => {
 		it('should error if not given a string', () => {
-			return expect(convertLSKToBeddows.bind(null, 12345678)).to.throw(
+			return expect(convertLSKToBeddows.bind(null, 12345678 as any)).to.throw(
 				'Cannot convert non-string amount',
 			);
 		});

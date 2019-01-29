@@ -100,3 +100,12 @@ export const getKeyPair: NaclInterface['getKeyPair'] = hashedSeed => {
 		privateKeyBytes,
 	};
 };
+
+export const getPublicKey: NaclInterface['getPublicKey'] = privateKey => {
+	const publicKeyBytes = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES);
+	const privateKeyBytes = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES);
+
+	sodium.crypto_sign_seed_keypair(publicKeyBytes, privateKeyBytes, privateKey);
+
+	return publicKeyBytes;
+};

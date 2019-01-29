@@ -13,11 +13,16 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from '../transaction_types';
+import { TransactionError, TransactionPendingError } from '../errors';
+import {
+	IsVerifiedResponse,
+	IsVerifiedResponseWithError,
+	TransactionJSON,
+} from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
 export const signTransaction = (
-	transaction: BaseTransaction,
+	transaction: TransactionJSON,
 	passphrase: string,
 ): string => {
 	const transactionHash = getTransactionHash(transaction);
@@ -25,8 +30,16 @@ export const signTransaction = (
 	return cryptography.signData(transactionHash, passphrase);
 };
 
+export const secondSignTransaction = (
+	transaction: TransactionJSON,
+	secondPassphrase: string,
+): TransactionJSON => ({
+	...transaction,
+	signSignature: signTransaction(transaction, secondPassphrase),
+});
+
 export const multiSignTransaction = (
-	transaction: BaseTransaction,
+	transaction: TransactionJSON,
 	passphrase: string,
 ): string => {
 	const { signature, signSignature, ...transactionToSign } = transaction;
@@ -36,8 +49,116 @@ export const multiSignTransaction = (
 	return cryptography.signData(transactionHash, passphrase);
 };
 
+export const verifySignature = (
+	publicKey: string,
+	signature: string,
+	transactionBytes: Buffer,
+	id?: string,
+): IsVerifiedResponseWithError => {
+	const transactionHash = cryptography.hash(transactionBytes);
+
+	const verified = cryptography.verifyData(
+		transactionHash,
+		signature,
+		publicKey,
+	);
+
+	return {
+		verified,
+		error: !verified
+			? new TransactionError(
+					`Failed to verify signature ${signature}`,
+					id,
+					'.signature',
+			  )
+			: undefined,
+	};
+};
+
+export const verifyMultisignatures = (
+	publicKeys: ReadonlyArray<string> = [],
+	signatures: ReadonlyArray<string>,
+	minimumValidations: number,
+	transactionBytes: Buffer,
+	id?: string,
+): IsVerifiedResponse => {
+	const checkedPublicKeys = new Set();
+	const verifiedSignatures = new Set();
+	// Check that signatures are unique
+	const uniqueSignatures: ReadonlyArray<string> = [...new Set(signatures)];
+	if (uniqueSignatures.length !== signatures.length) {
+		return {
+			verified: false,
+			errors: [
+				new TransactionError(
+					'Encountered duplicate signature in transaction',
+					id,
+					'.signatures',
+				),
+			],
+		};
+	}
+
+	publicKeys.forEach(publicKey => {
+		signatures.forEach((signature: string) => {
+			// Avoid single key from verifying more than one signature.
+			// See issue: https://github.com/LiskHQ/lisk/issues/2540
+			if (
+				checkedPublicKeys.has(publicKey) ||
+				verifiedSignatures.has(signature)
+			) {
+				return;
+			}
+
+			const { verified: signatureVerified } = verifySignature(
+				publicKey,
+				signature,
+				transactionBytes,
+				id,
+			);
+
+			if (signatureVerified) {
+				checkedPublicKeys.add(publicKey);
+				verifiedSignatures.add(signature);
+			}
+		});
+	});
+
+	const unverifiedTransactionSignatures = signatures.filter(
+		signature => !verifiedSignatures.has(signature),
+	);
+
+	// Transaction is waiting for more signatures
+	if (signatures.length < minimumValidations) {
+		return {
+			verified: false,
+			errors: [
+				new TransactionPendingError(`Missing signatures`, id, '.signatures'),
+			],
+		};
+	}
+
+	return {
+		verified:
+			verifiedSignatures.size >= minimumValidations &&
+			unverifiedTransactionSignatures.length === 0,
+		errors:
+			unverifiedTransactionSignatures.length > 0
+				? unverifiedTransactionSignatures.map(
+						signature =>
+							new TransactionError(
+								`Failed to verify signature ${signature}`,
+								id,
+								'.signature',
+							),
+				  )
+				: [],
+	};
+};
+
+// FIXME: Deprecated
 export const verifyTransaction = (
-	transaction: BaseTransaction,
+	transaction: TransactionJSON,
 	secondPublicKey?: string,
 ): boolean => {
 	if (!transaction.signature) {

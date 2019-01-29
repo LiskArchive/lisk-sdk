@@ -16,15 +16,14 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
 import {
-	BaseTransaction,
 	DappAsset,
 	DelegateAsset,
 	InTransferAsset,
 	MultiSignatureAsset,
 	OutTransferAsset,
-	PartialTransaction,
 	SecondSignatureAsset,
 	TransactionAsset,
+	TransactionJSON,
 	TransferAsset,
 	TransferTransaction,
 	VoteAsset,
@@ -178,7 +177,7 @@ const transactionTypeAssetGetBytesMap: {
 	7: getAssetDataForTransferOutOfDappTransaction,
 };
 
-export const getAssetBytes = (transaction: BaseTransaction): Buffer =>
+export const getAssetBytes = (transaction: TransactionJSON): Buffer =>
 	transactionTypeAssetGetBytesMap[transaction.type](transaction.asset);
 
 const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
@@ -188,7 +187,7 @@ const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
 	'amount',
 ];
 
-export const checkTransaction = (transaction: PartialTransaction): boolean => {
+export const checkTransaction = (transaction: TransactionJSON): boolean => {
 	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
 	const {
 		asset: { data },
@@ -202,13 +201,12 @@ export const checkTransaction = (transaction: PartialTransaction): boolean => {
 	return true;
 };
 
-export const getTransactionBytes = (transaction: BaseTransaction): Buffer => {
+// FIXME: Deprecated
+export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	checkTransaction(transaction);
-
 	const {
 		type,
 		timestamp,
-		requesterPublicKey,
 		senderPublicKey,
 		recipientId,
 		amount,
@@ -221,9 +219,6 @@ export const getTransactionBytes = (transaction: BaseTransaction): Buffer => {
 	transactionTimestamp.writeIntLE(timestamp, 0, BYTESIZES.TIMESTAMP);
 
 	const transactionSenderPublicKey = cryptography.hexToBuffer(senderPublicKey);
-	const transactionRequesterPublicKey = requesterPublicKey
-		? cryptography.hexToBuffer(requesterPublicKey)
-		: Buffer.alloc(0);
 
 	const transactionRecipientID = recipientId
 		? cryptography.bigNumberToBuffer(
@@ -260,7 +255,6 @@ export const getTransactionBytes = (transaction: BaseTransaction): Buffer => {
 		transactionType,
 		transactionTimestamp,
 		transactionSenderPublicKey,
-		transactionRequesterPublicKey,
 		transactionRecipientID,
 		transactionAmount,
 		transactionAssetData,

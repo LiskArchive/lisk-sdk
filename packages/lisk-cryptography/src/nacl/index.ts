@@ -41,4 +41,5 @@ export const {
 	verifyDetached,
 	getRandomBytes,
 	getKeyPair,
+	getPublicKey,
 } = lib;

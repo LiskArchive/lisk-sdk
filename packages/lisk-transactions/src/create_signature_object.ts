@@ -13,7 +13,7 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from './transaction_types';
+import { TransactionJSON } from './transaction_types';
 import { multiSignTransaction, verifyTransaction } from './utils';
 
 export interface SignatureObject {
@@ -23,7 +23,7 @@ export interface SignatureObject {
 }
 
 export const createSignatureObject = (
-	transaction: BaseTransaction,
+	transaction: TransactionJSON,
 	passphrase: string,
 ): SignatureObject => {
 	if (!verifyTransaction(transaction)) {

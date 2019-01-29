@@ -18,13 +18,13 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
 	MAX_ADDRESS_NUMBER,
+	MAX_PUBLIC_KEY_LENGTH,
 	MAX_TRANSACTION_AMOUNT,
 	MAX_TRANSACTION_ID,
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
 
-const MAX_PUBLIC_KEY_LENGTH = 32;
 export const validatePublicKey = (publicKey: string) => {
 	const publicKeyBuffer = cryptography.hexToBuffer(publicKey);
 	if (publicKeyBuffer.length !== MAX_PUBLIC_KEY_LENGTH) {
@@ -36,6 +36,27 @@ export const validatePublicKey = (publicKey: string) => {
 	return true;
 };
 
+export const validateUsername = (username: string) => {
+	if (
+		username !== username.trim().toLowerCase()
+	) {
+		return false;
+	}
+
+	if(( /^[0-9]{1,21}[L|l]$/g).test(username)) {
+		return false;
+	}
+
+	if(!(/^[a-z0-9!@$&_.]+$/g).test(username)) {
+		return false;
+	}
+
+	return true;
+} 
+
+export const validateSignature = (signature: string) =>
+	/^[a-f0-9]{128}$/i.test(signature);
+
 export const checkPublicKeysForDuplicates = (
 	publicKeys: ReadonlyArray<string>,
 ) =>
@@ -46,6 +67,11 @@ export const checkPublicKeysForDuplicates = (
 
 		return true;
 	});
+
+export const stringEndsWith = (
+	target: string,
+	suffixes: ReadonlyArray<string>,
+): boolean => suffixes.some(suffix => target.endsWith(suffix));
 
 export const validatePublicKeys = (publicKeys: ReadonlyArray<string>) =>
 	publicKeys.every(validatePublicKey) &&
@@ -123,8 +149,8 @@ export const isNumberString = (str: string) => {
 	return /^[0-9]+$/g.test(str);
 };
 
-export const validateAmount = (data: string) =>
-	isNumberString(data) && !isGreaterThanZero(new BigNum(data));
+export const validateNonTransferAmount = (data: string) =>
+	isNumberString(data) && data === '0';
 
 export const validateTransferAmount = (data: string) =>
 	isNumberString(data) &&

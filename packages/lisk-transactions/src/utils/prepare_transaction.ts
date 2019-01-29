@@ -13,29 +13,23 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction, PartialTransaction } from '../transaction_types';
+import { PartialTransaction, TransactionJSON } from '../transaction_types';
 import { getTransactionId } from './get_transaction_id';
-import { signTransaction } from './sign_and_verify';
+import { secondSignTransaction, signTransaction } from './sign_and_verify';
 import { getTimeWithOffset } from './time';
 
-const secondSignTransaction = (
-	transactionObject: BaseTransaction,
-	secondPassphrase: string,
-): BaseTransaction => ({
-	...transactionObject,
-	signSignature: signTransaction(transactionObject, secondPassphrase),
-});
-
+// FIXME: Deprecated
 const validTransaction = (
 	partial: PartialTransaction,
-): partial is BaseTransaction => partial.type !== undefined;
+): partial is TransactionJSON => partial.type !== undefined;
 
+// FIXME: Deprecated
 export const prepareTransaction = (
 	partialTransaction: PartialTransaction,
 	passphrase?: string,
 	secondPassphrase?: string,
 	timeOffset?: number,
-): BaseTransaction => {
+): TransactionJSON => {
 	const senderPublicKey = passphrase
 		? cryptography.getKeys(passphrase).publicKey
 		: undefined;
