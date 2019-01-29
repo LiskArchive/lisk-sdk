@@ -172,5 +172,14 @@ describe('BaseEntity', () => {
 			expect(baseEntity.virtualFields.extended).to.include.keys(virtualField);
 			expect(baseEntity.virtualFields.basic).not.to.include.keys(virtualField);
 		});
+
+		it('should throw error if trying to overwrite a regular field', async () => {
+			// Arrange
+			baseEntity.addField(virtualField, 'string');
+			// Act & Assert
+			expect(() => {
+				baseEntity.addVirtualField(virtualField, true);
+			}).to.throw('Trying to overwrite field with virtual field');
+		});
 	});
 });

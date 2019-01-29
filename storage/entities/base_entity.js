@@ -177,8 +177,9 @@ class BaseEntity {
 	 * @param {string} name - Name of the virtual field
 	 */
 	addVirtualField(name, extended = false) {
-		if (Object.keys(this.fields).includes(name))
+		if (Object.keys(this.fields).includes(name)) {
 			throw new Error('Trying to overwrite field with virtual field');
+		}
 		const extendedOrbasic = extended
 			? [VIRTUAL_FIELD_EXTENDED]
 			: [VIRTUAL_FIELD_BASIC];
