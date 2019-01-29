@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { PeerInfo, Peer } from '../../src/peer';
+import { Peer } from '../../src/peer';
+import { P2PPeerInfo } from '../../src/p2p_types';
 
-export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
-	const peerOption1: PeerInfo = {
+export const initializePeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
+	const peerOption1: P2PPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
@@ -23,7 +24,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		os: 'darwin',
 	};
 
-	const peerOption2: PeerInfo = {
+	const peerOption2: P2PPeerInfo = {
 		ipAddress: '127.0.0.1',
 		wsPort: 5002,
 		height: 545981,
@@ -31,7 +32,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		os: 'darwin',
 	};
 
-	const peerOption3: PeerInfo = {
+	const peerOption3: P2PPeerInfo = {
 		ipAddress: '18.28.48.1',
 		wsPort: 5008,
 		height: 645980,
@@ -39,7 +40,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		os: 'darwin',
 	};
 
-	const peerOption4: PeerInfo = {
+	const peerOption4: P2PPeerInfo = {
 		ipAddress: '192.28.138.1',
 		wsPort: 5006,
 		height: 645982,
@@ -47,7 +48,7 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 		os: 'darwin',
 	};
 
-	const peerOption5: PeerInfo = {
+	const peerOption5: P2PPeerInfo = {
 		ipAddress: '178.21.90.199',
 		wsPort: 5001,
 		height: 645980,
@@ -59,4 +60,4 @@ export const initializePeerInfoList = (): ReadonlyArray<PeerInfo> => {
 };
 
 export const initializePeerList = (): ReadonlyArray<Peer> =>
-	initializePeerInfoList().map((peerInfo: PeerInfo) => new Peer(peerInfo));
+	initializePeerInfoList().map((peerInfo: P2PPeerInfo) => new Peer(peerInfo));

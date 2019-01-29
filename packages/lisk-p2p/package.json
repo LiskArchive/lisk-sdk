@@ -29,7 +29,7 @@
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}/*.ts",
-		"test:integration": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/*.ts",
+		"test:integration": "USE_REAL_TIMERS=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/*.ts",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node": "npm run build:check",
@@ -45,6 +45,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
+		"@types/lodash.shuffle": "4.2.4",
+		"lodash.shuffle": "4.2.0",
 		"semver": "5.6.0",
 		"socketcluster-client": "14.2.1",
 		"socketcluster-server": "14.3.1",

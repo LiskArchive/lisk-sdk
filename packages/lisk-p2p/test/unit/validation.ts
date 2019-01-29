@@ -80,7 +80,7 @@ describe('response handlers', () => {
 		});
 
 		describe('for invalid peer response object', () => {
-			it('throw InvalidPeer error for invalid peer', () => {
+			it('throw InvalidPeerError for invalid peer', () => {
 				const peerInvalid: unknown = null;
 
 				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
@@ -88,7 +88,7 @@ describe('response handlers', () => {
 				);
 			});
 
-			it('throw InvalidPeer error for invalid peer ip or port', () => {
+			it('throw InvalidPeerError for invalid peer ip or port', () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.uhig3',
 					wsPort: '53937888',
@@ -101,7 +101,7 @@ describe('response handlers', () => {
 				);
 			});
 
-			it('throw InvalidPeer error for invalid peer version', () => {
+			it('throw InvalidPeerError for invalid peer version', () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.23',
 					wsPort: '5390',

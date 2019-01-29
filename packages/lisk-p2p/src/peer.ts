@@ -20,6 +20,7 @@ import { RPCResponseError } from './errors';
 import {
 	P2PMessagePacket,
 	P2PNodeInfo,
+	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './p2p_types';
@@ -57,15 +58,6 @@ type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
 } & SCServerSocket;
 
-export interface PeerInfo {
-	readonly ipAddress: string;
-	readonly wsPort: number;
-	readonly clock?: Date;
-	readonly height: number;
-	readonly os?: string;
-	readonly version?: string;
-}
-
 export enum ConnectionState {
 	CONNECTING = 0,
 	CONNECTED = 1,
@@ -82,7 +74,7 @@ export class Peer extends EventEmitter {
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
-	private _peerInfo: PeerInfo;
+	private _peerInfo: P2PPeerInfo;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
@@ -92,16 +84,12 @@ export class Peer extends EventEmitter {
 	) => void;
 	private readonly _handleRawMessage: (packet: unknown) => void;
 
-	public constructor(peerInfo: PeerInfo, inboundSocket?: SCServerSocket) {
+	public constructor(peerInfo: P2PPeerInfo, inboundSocket?: SCServerSocket) {
 		super();
 		this._peerInfo = peerInfo;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
-		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
-		if (this._inboundSocket) {
-			this._bindHandlersToInboundSocket(this._inboundSocket);
-		}
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -147,6 +135,11 @@ export class Peer extends EventEmitter {
 
 			this.emit(EVENT_MESSAGE_RECEIVED, protocolMessage);
 		};
+
+		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
+		if (this._inboundSocket) {
+			this._bindHandlersToInboundSocket(this._inboundSocket);
+		}
 	}
 
 	public get height(): number {
@@ -173,7 +166,16 @@ export class Peer extends EventEmitter {
 		this._outboundSocket = scClientSocket;
 	}
 
-	public get peerInfo(): PeerInfo {
+	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
+		this._peerInfo = {
+			...newPeerInfo,
+			ipAddress: this._peerInfo.ipAddress,
+			wsPort: this._peerInfo.wsPort,
+			isTriedPeer: true,
+		};
+	}
+
+	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
 	}
 
@@ -293,7 +295,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<PeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
@@ -365,15 +367,9 @@ export class Peer extends EventEmitter {
 
 	private _handlePeerInfo(request: P2PRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
-		// TODO ASAP: Validate and/or sanitize the request.data as a PeerInfo object.
 		try {
-			// Only allow updating the height and version.
-			const { height, version } = validatePeerInfo(request.data);
-			const peerInfoChange = { height, version };
-			this._peerInfo = {
-				...this._peerInfo,
-				...peerInfoChange,
-			};
+			const newPeerInfo = validatePeerInfo(request.data);
+			this.updatePeerInfo(newPeerInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 			request.error(error);
