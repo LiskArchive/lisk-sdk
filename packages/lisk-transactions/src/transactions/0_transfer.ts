@@ -23,19 +23,17 @@ import {
 	TransferAsset,
 } from '../transaction_types';
 import {
-	isTypedObjectArrayWithKeys,
 	validateAddress,
 	validatePublicKey,
 	validateTransferAmount,
 	validator,
 } from '../utils';
 import {
-	Attributes,
 	BaseTransaction,
 	createBaseTransaction,
 	ENTITY_ACCOUNT,
-	EntityMap,
-	TransactionResponse,
+	StateStore,
+	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_TRANSFER_TYPE = 0;
@@ -191,7 +189,7 @@ export class TransferTransaction extends BaseTransaction {
 
 	public static fromJSON(tx: TransactionJSON): TransferTransaction {
 		const transaction = new TransferTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
+		const { errors, status } = transaction.validate();
 
 		if (status === Status.FAIL && errors.length !== 0) {
 			throw new TransactionMultiError(
@@ -216,54 +214,21 @@ export class TransferTransaction extends BaseTransaction {
 		};
 	}
 
-	public verifyAgainstOtherTransactions(): TransactionResponse {
-		return {
-			id: this.id,
-			status: Status.OK,
-			errors: [],
-		};
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.prepare(ENTITY_ACCOUNT, {
+			address: [this.senderId, this.recipientId],
+		});
 	}
 
-	public getRequiredAttributes(): Attributes {
-		const attr = super.getRequiredAttributes();
-
-		return {
-			[ENTITY_ACCOUNT]: {
-				address: [...attr[ENTITY_ACCOUNT].address, this.recipientId],
-			},
-		};
+	// tslint:disable-next-line prefer-function-over-method
+	protected verifyAgainstTransactions(
+		_: ReadonlyArray<TransactionJSON>,
+	): ReadonlyArray<TransactionError> {
+		return [];
 	}
 
-	public processRequiredState(state: EntityMap): RequiredTransferState {
-		const { sender } = super.processRequiredState(state);
-		const accounts = state[ENTITY_ACCOUNT];
-		if (!accounts) {
-			throw new Error('Entity account is required.');
-		}
-		if (
-			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'balance'])
-		) {
-			throw new Error('Required state does not have valid account type');
-		}
-
-		const recipient = accounts.find(
-			account => account.address === this.recipientId,
-		);
-		if (!recipient) {
-			throw new Error('No recipient account is found.');
-		}
-
-		return {
-			sender,
-			recipient,
-		};
-	}
-
-	public validateSchema(): TransactionResponse {
-		const { status, errors: baseErrors } = super.validateSchema();
-		const valid = validator.validate(transferAssetFormatSchema, this.asset);
-		const errors = [...baseErrors];
-		const assetErrors = validator.errors
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		const errors = validator.errors
 			? validator.errors.map(
 					error =>
 						new TransactionError(
@@ -273,8 +238,6 @@ export class TransferTransaction extends BaseTransaction {
 						),
 			  )
 			: [];
-
-		errors.push(...assetErrors);
 
 		if (this.type !== TRANSACTION_TRANSFER_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
@@ -329,62 +292,13 @@ export class TransferTransaction extends BaseTransaction {
 			);
 		}
 
-		return {
-			id: this.id,
-			status:
-				status === Status.OK && valid && errors.length === 0
-					? Status.OK
-					: Status.FAIL,
-			errors,
-		};
+		return errors;
 	}
 
-	public verify({
-		sender,
-		recipient,
-	}: RequiredTransferState): TransactionResponse {
-		const { errors: baseErrors } = super.apply({ sender });
-		const errors = [...baseErrors];
-		// Balance verification
-		const updatedSenderBalance = new BigNum(sender.balance)
-			.sub(this.fee)
-			.sub(this.amount);
-
-		if (!updatedSenderBalance.gte(0)) {
-			errors.push(
-				new TransactionError(
-					`Account does not have enough LSK: ${sender.address}, balance: ${
-						sender.balance
-					}`,
-					this.id,
-				),
-			);
-		}
-
-		const updatedRecipientBalance = new BigNum(recipient.balance).add(
-			this.amount,
-		);
-
-		if (!updatedRecipientBalance.lte(MAX_TRANSACTION_AMOUNT)) {
-			errors.push(new TransactionError('Invalid amount', this.id, '.amount'));
-		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
-	}
-
-	public apply({
-		sender,
-		recipient,
-	}: RequiredTransferState): TransactionResponse {
-		const { errors: baseErrors } = super.apply({ sender });
-		const errors = [...baseErrors];
-		const updatedSenderBalance = new BigNum(sender.balance)
-			.sub(this.fee)
-			.sub(this.amount);
+	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors = [];
+		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
 		if (updatedSenderBalance.lt(0)) {
 			errors.push(
@@ -401,15 +315,14 @@ export class TransferTransaction extends BaseTransaction {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
+		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		const recipient = store.get<Account>(
+			ENTITY_ACCOUNT,
+			'address',
+			this.recipientId,
+		);
 
-		if (!recipient) {
-			throw new Error('Recipient is required.');
-		}
-
-		const recipientAccount =
-			recipient.address === updatedSender.address ? updatedSender : recipient;
-
-		const updatedRecipientBalance = new BigNum(recipientAccount.balance).add(
+		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
 		);
 
@@ -418,33 +331,18 @@ export class TransferTransaction extends BaseTransaction {
 		}
 
 		const updatedRecipient = {
-			...recipientAccount,
+			...recipient,
 			balance: updatedRecipientBalance.toString(),
 		};
+		store.set<Account>(ENTITY_ACCOUNT, updatedRecipient);
 
-		return {
-			id: this.id,
-			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			errors,
-			state: {
-				sender:
-					recipient.address === updatedSender.address
-						? updatedRecipient
-						: updatedSender,
-				recipient: updatedRecipient,
-			},
-		};
+		return errors;
 	}
 
-	public undo({
-		sender,
-		recipient,
-	}: RequiredTransferState): TransactionResponse {
-		const { errors: baseErrors } = super.undo({ sender });
-		const errors = [...baseErrors];
-		const updatedSenderBalance = new BigNum(sender.balance)
-			.add(this.fee)
-			.add(this.amount);
+	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors = [];
+		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
 
 		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(new TransactionError('Invalid amount', this.id, '.amount'));
@@ -454,45 +352,34 @@ export class TransferTransaction extends BaseTransaction {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
+		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		const recipient = store.get<Account>(
+			ENTITY_ACCOUNT,
+			'address',
+			this.recipientId,
+		);
 
-		if (!recipient) {
-			throw new Error('Recipient is required for applying transaction');
-		}
-
-		const recipientAccount =
-			recipient.address === updatedSender.address ? updatedSender : recipient;
-
-		const updatedRecipientBalance = new BigNum(recipientAccount.balance).sub(
+		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
 		);
 
 		if (updatedRecipientBalance.lt(0)) {
 			errors.push(
 				new TransactionError(
-					`Account does not have enough LSK: ${
-						recipientAccount.address
-					}, balance: ${recipient.balance}`,
+					`Account does not have enough LSK: ${recipient.address}, balance: ${
+						recipient.balance
+					}`,
 					this.id,
 				),
 			);
 		}
 
 		const updatedRecipient = {
-			...recipientAccount,
+			...recipient,
 			balance: updatedRecipientBalance.toString(),
 		};
+		store.set<Account>(ENTITY_ACCOUNT, updatedRecipient);
 
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-			state: {
-				sender:
-					recipient.address === updatedSender.address
-						? updatedRecipient
-						: updatedSender,
-				recipient: updatedRecipient,
-			},
-		};
+		return errors;
 	}
 }
