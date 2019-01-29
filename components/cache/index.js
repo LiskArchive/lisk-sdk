@@ -22,16 +22,16 @@ const { CACHE } = require('./constants');
 const errorCacheDisabled = 'Cache Disabled';
 
 /**
- * Cache module.
+ * Cache component.
  *
  * @class
  * @memberof components
  * @see Parent: {@link components}
  * @requires redis
+ * @requires util
  * @requires helpers/transaction_types
  * @param {Object} options - Cache options
  * @param {Object} logger
- * @todo Add description for the function and the params
  */
 class Cache {
 	constructor(options, logger) {
@@ -67,8 +67,7 @@ class Cache {
 	/**
 	 * Gets redis connection status.
 	 *
-	 * @returns {boolean}
-	 * @todo Add description for the return value
+	 * @return {boolean}
 	 */
 	isReady() {
 		// Use client.ready because this constiable is updated on client connection
@@ -88,14 +87,14 @@ class Cache {
 	 * Gets json value for a key from redis.
 	 *
 	 * @param {string} key
-	 * @todo Add description for the params and the return value
+	 * @return {Promise.<value, Error>}
 	 */
 	async getJsonForKey(key) {
 		this.logger.debug(
 			['Cache - Get value for key:', key, '| Status:', this.isReady()].join(' ')
 		);
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 
 		const getAsync = promisify(this.client.get).bind(this.client);
@@ -108,15 +107,14 @@ class Cache {
 	 *
 	 * @param {string} key
 	 * @param {Object} value
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<null, Error>}
 	 */
 	async setJsonForKey(key, value) {
 		this.logger.debug(
 			['Cache - Set value for key:', key, '| Status:', this.isReady()].join(' ')
 		);
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 
 		const setAsync = promisify(this.client.set).bind(this.client);
@@ -128,8 +126,7 @@ class Cache {
 	 * Deletes json value for a key in redis.
 	 *
 	 * @param {string} key
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<Integer, Error>} 0 if key doesn't exist or 1 if key was found and successfully deleted.
 	 */
 	async deleteJsonForKey(key) {
 		this.logger.debug(
@@ -138,7 +135,7 @@ class Cache {
 			)
 		);
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 		const delAsync = promisify(this.client.del).bind(this.client);
 		return delAsync(key);
@@ -148,12 +145,11 @@ class Cache {
 	 * Scans keys with provided pattern in redis db and deletes the entries that match.
 	 *
 	 * @param {string} pattern
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<null, Error>}
 	 */
 	async removeByPattern(pattern) {
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 		let keys;
 		let cursor = 0;
@@ -186,8 +182,7 @@ class Cache {
 	/**
 	 * Removes all entries from redis db.
 	 *
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<null, Error>}
 	 */
 	async flushDb() {
 		this.logger.debug('Cache - Flush database');
@@ -201,8 +196,7 @@ class Cache {
 	/**
 	 * Quits established redis connection upon process exit.
 	 *
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<null, Error>}
 	 */
 	async cleanup() {
 		this.logger.debug('Cache - Clean up database');
@@ -212,8 +206,7 @@ class Cache {
 	/**
 	 * Quits established redis connection.
 	 *
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<null, Error>}
 	 */
 	async quit() {
 		this.logger.debug('Cache - Quit database');
@@ -229,8 +222,7 @@ class Cache {
 	 * Clears cache entries for given pattern.
 	 *
 	 * @param {string} pattern
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<null, Error>}
 	 */
 	async clearCacheFor(pattern) {
 		this.logger.debug(
@@ -238,42 +230,39 @@ class Cache {
 		);
 
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 
 		const err = await this.removeByPattern(pattern);
 		if (err) {
-			this.logger.error(
+			return this.logger.error(
 				[
 					'Cache - Error clearing keys with pattern:',
 					pattern,
 					'on new block',
 				].join(' ')
 			);
-		} else {
-			this.logger.debug(
-				[
-					'Cache - Keys with pattern:',
-					pattern,
-					'cleared from cache on new block',
-				].join(' ')
-			);
 		}
-		return err;
+		return this.logger.debug(
+			[
+				'Cache - Keys with pattern:',
+				pattern,
+				'cleared from cache on new block',
+			].join(' ')
+		);
 	}
 
 	/**
 	 * Clears all cache entries upon round finish.
 	 *
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<null, Error>}
 	 */
 	async onFinishRound() {
 		this.logger.debug(
 			['Cache - onFinishRound', '| Status:', this.isReady()].join(' ')
 		);
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 		const pattern = CACHE.KEYS.delegatesApi;
 		const err = await this.removeByPattern(pattern);
@@ -299,15 +288,14 @@ class Cache {
 	 * Clears all cache entries if there is a delegate type transaction after transactions saved.
 	 *
 	 * @param {transactions[]} transactions
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
+	 * @return {Promise.<null, Error>}
 	 */
 	async onTransactionsSaved(transactions) {
 		this.logger.debug(
 			['Cache - onTransactionsSaved', '| Status:', this.isReady()].join(' ')
 		);
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 
 		const pattern = CACHE.KEYS.delegatesApi;
@@ -339,12 +327,13 @@ class Cache {
 			);
 		}
 
-		const deleteJsonForKeyErr = await this.deleteJsonForKey(
-			CACHE.KEYS.transactionCount
-		);
-		if (deleteJsonForKeyErr) {
+		try {
+			await this.deleteJsonForKey(CACHE.KEYS.transactionCount);
+		} catch (deleteJsonForKeyErr) {
 			return this.logger.error(
-				`Cache - Error clearing keys: ${CACHE.KEYS.transactionCount}`
+				`Cache - Error clearing keys: ${
+					CACHE.KEYS.transactionCount
+				} : ${deleteJsonForKeyErr}`
 			);
 		}
 		return this.logger.debug(

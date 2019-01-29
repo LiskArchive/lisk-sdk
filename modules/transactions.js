@@ -660,7 +660,8 @@ Transactions.prototype.shared = {
 							.then(data => {
 								setImmediate(waterCb, null, data ? data.confirmed : null);
 							})
-							.catch(() => {
+							.catch(err => {
+								library.logger.warn("Transaction count wasn't cached", err);
 								setImmediate(waterCb, null, null);
 							});
 					}
@@ -689,11 +690,9 @@ Transactions.prototype.shared = {
 							.setJsonForKey(CACHE.KEYS.transactionCount, {
 								confirmed: dbCount,
 							})
-							.then(err => {
-								if (err) {
-									library.logger.warn("Transaction count wasn't cached", err);
-								}
-
+							.then(() => setImmediate(waterCb, null, dbCount))
+							.catch(err => {
+								library.logger.warn("Transaction count wasn't cached", err);
 								return setImmediate(waterCb, null, dbCount);
 							});
 					}

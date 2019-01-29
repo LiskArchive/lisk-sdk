@@ -209,7 +209,7 @@ describe('cached endpoints', () => {
 					return Promise.all(
 						[0, 10, 100].map(delay => {
 							return Promise.delay(delay).then(() => {
-								return cache.getJsonForKey(res.req.path);
+								return cache.getJsonForKey(urlPath);
 							});
 						})
 					).then(responses => {

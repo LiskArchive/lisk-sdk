@@ -37,6 +37,7 @@ describe('components: cache', () => {
 	});
 
 	afterEach(async () => {
+		await cache.setReady(true);
 		const result = await cache.flushDb();
 		return expect(result).to.equal('OK');
 	});
@@ -65,6 +66,20 @@ describe('components: cache', () => {
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);
 		});
+
+		it('should not set any key when cache is not ready', async () => {
+			const key = '/api/transactions';
+			const value = {
+				testObject: 'testValue',
+			};
+
+			await cache.setReady(false);
+			try {
+				await cache.setJsonForKey(key, value);
+			} catch (setJsonForKeyErr) {
+				expect(setJsonForKeyErr.message).to.equal('Cache Disabled');
+			}
+		});
 	});
 
 	describe('getJsonForKey', () => {
@@ -83,6 +98,53 @@ describe('components: cache', () => {
 			expect(result).to.equal('OK');
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);
+		});
+
+		it('should not get any key when cache is not ready', async () => {
+			const key = '/api/transactions';
+
+			await cache.setReady(false);
+			try {
+				await cache.getJsonForKey(key);
+			} catch (getJsonForKeyErr) {
+				expect(getJsonForKeyErr.message).to.equal('Cache Disabled');
+			}
+		});
+	});
+
+	describe('deleteJsonForKey', () => {
+		it('should return 0 for non-existent key', async () => {
+			const key = 'test_key';
+
+			const value = await cache.deleteJsonForKey(key);
+			expect(value).to.equal(0);
+		});
+
+		it('should delete the correct value for the key', async () => {
+			const key = 'test_key';
+			const value = {
+				testObject: 'testValue',
+			};
+
+			const result = await cache.setJsonForKey(key, value);
+			expect(result).to.equal('OK');
+			const res = await cache.getJsonForKey(key);
+			expect(res).to.eql(value);
+			const deleteJsonForKeyRes = await cache.deleteJsonForKey(key);
+			expect(deleteJsonForKeyRes).to.equal(1);
+			const getJsonForKeyAfterDelete = await cache.getJsonForKey(key);
+			expect(getJsonForKeyAfterDelete).to.eql(null);
+		});
+
+		it('should not delete any key when cache is not ready', async () => {
+			const key = '/api/transactions';
+
+			await cache.setReady(false);
+			try {
+				await cache.deleteJsonForKey(key);
+			} catch (deleteJsonForKeyErr) {
+				expect(deleteJsonForKeyErr.message).to.equal('Cache Disabled');
+			}
 		});
 	});
 
@@ -176,15 +238,18 @@ describe('components: cache', () => {
 			expect(res).to.equal(null);
 		});
 
-		it('should not remove keys when cacheReady = false', async () => {
+		it('should not remove keys when cache is not ready', async () => {
 			const key = '/api/transactions';
 			const value = { testObject: 'testValue' };
 
 			const result = await cache.setJsonForKey(key, value);
 			expect(result).to.equal('OK');
 			await cache.setReady(false);
-			const clearCacheForErr = await cache.clearCacheFor('/api/transactions*');
-			expect(clearCacheForErr.message).to.equal('Cache Disabled');
+			try {
+				await cache.clearCacheFor('/api/transactions*');
+			} catch (clearCacheForErr) {
+				expect(clearCacheForErr.message).to.equal('Cache Disabled');
+			}
 			await cache.setReady(true);
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);
@@ -214,15 +279,18 @@ describe('components: cache', () => {
 			expect(res).to.eql(value);
 		});
 
-		it('should not remove keys when cacheReady = false', async () => {
+		it('should not remove keys when cache is not ready', async () => {
 			const key = '/api/delegates';
 			const value = { testObject: 'testValue' };
 
 			const result = await cache.setJsonForKey(key, value);
 			expect(result).to.equal('OK');
 			await cache.setReady(false);
-			const onFinishRoundErr = await cache.onFinishRound();
-			expect(onFinishRoundErr.message).to.equal('Cache Disabled');
+			try {
+				await cache.onFinishRound();
+			} catch (onFinishRoundErr) {
+				expect(onFinishRoundErr.message).to.equal('Cache Disabled');
+			}
 			await cache.setReady(true);
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);
@@ -288,7 +356,7 @@ describe('components: cache', () => {
 			expect(res).to.eql(value);
 		});
 
-		it('should not remove keys when cacheReady = false', async () => {
+		it('should not remove keys when cache is not ready', async () => {
 			const key = '/api/delegates?123';
 			const value = { testObject: 'testValue' };
 			const transaction = lisk.transaction.registerDelegate({
@@ -299,10 +367,11 @@ describe('components: cache', () => {
 			const result = await cache.setJsonForKey(key, value);
 			expect(result).to.equal('OK');
 			await cache.setReady(false);
-			const onTransactionsSavedErr = await cache.onTransactionsSaved([
-				transaction,
-			]);
-			expect(onTransactionsSavedErr.message).to.equal('Cache Disabled');
+			try {
+				await cache.onTransactionsSaved([transaction]);
+			} catch (onTransactionsSavedErr) {
+				expect(onTransactionsSavedErr.message).to.equal('Cache Disabled');
+			}
 			await cache.setReady(true);
 			const res = await cache.getJsonForKey(key);
 			expect(res).to.eql(value);

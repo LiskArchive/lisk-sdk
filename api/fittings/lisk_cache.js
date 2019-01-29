@@ -78,16 +78,22 @@ module.exports = function create(fittingDef) {
 
 		// If cache fitting is called before response processing
 		if (mode === 'pre_response') {
-			return cache.getJsonForKey(cacheKey).then(cachedValue => {
-				if (cachedValue) {
-					logger.debug(
-						'Cache - Sending cached response for url:',
-						context.request.url
-					);
-					return context.response.json(cachedValue);
-				}
-				return next(null, context.input);
-			});
+			return cache
+				.getJsonForKey(cacheKey)
+				.then(cachedValue => {
+					if (cachedValue) {
+						logger.debug(
+							'Cache - Sending cached response for url:',
+							context.request.url
+						);
+						return context.response.json(cachedValue);
+					}
+					return next(null, context.input);
+				})
+				.catch(getJsonForKeyErr => {
+					logger.debug(getJsonForKeyErr.message);
+					return next(null, context.input);
+				});
 		}
 
 		// If cache fitting is called after response processing
@@ -99,7 +105,11 @@ module.exports = function create(fittingDef) {
 				);
 				return cache
 					.setJsonForKey(cacheKey, context.input)
-					.then(() => next(null, context.input));
+					.then(() => next(null, context.input))
+					.catch(error => {
+						logger.debug(error.message);
+						return next(null, context.input);
+					});
 			}
 			return next(null, context.input);
 		}
