@@ -1913,50 +1913,6 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.validateBlockSlot', () => {
-		const dummyBlock = { id: 1 };
-
-		describe('when modules.delegates.validateBlockSlot fails', () => {
-			beforeEach(() => {
-				return modules.delegates.validateBlockSlot.callsArgWith(
-					1,
-					'validateBlockSlot-ERR',
-					null
-				);
-			});
-
-			afterEach(() => {
-				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
-				return expect(modules.delegates.fork).calledWith(dummyBlock, 3);
-			});
-
-			it('should call a callback with error', done => {
-				__private.validateBlockSlot(dummyBlock, err => {
-					expect(err).to.equal('validateBlockSlot-ERR');
-					done();
-				});
-			});
-		});
-
-		describe('when modules.delegates.validateBlockSlot succeeds', () => {
-			beforeEach(() => {
-				return modules.delegates.validateBlockSlot.callsArgWith(1, null, true);
-			});
-
-			afterEach(() => {
-				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
-				return expect(modules.delegates.fork.calledOnce).to.be.false;
-			});
-
-			it('should call a callback with no error', done => {
-				__private.validateBlockSlot(dummyBlock, err => {
-					expect(err).to.be.undefined;
-					done();
-				});
-			});
-		});
-	});
-
 	describe('__private.checkTransactions', () => {
 		let checkTransactionTemp;
 		let dummyBlock;
@@ -2041,7 +1997,7 @@ describe('blocks/verify', () => {
 				.callsArgWith(1, null, true);
 			__private.verifyBlock = sinonSandbox.stub().callsArgWith(1, null, true);
 			__private.checkExists = sinonSandbox.stub().callsArgWith(1, null, true);
-			__private.validateBlockSlot = sinonSandbox
+			modules.delegates.validateBlockSlot = sinonSandbox
 				.stub()
 				.callsArgWith(1, null, true);
 			__private.checkTransactions = sinonSandbox
@@ -2068,7 +2024,9 @@ describe('blocks/verify', () => {
 				dummyBlock,
 				broadcast
 			);
-			expect(__private.validateBlockSlot).to.have.been.calledWith(dummyBlock);
+			expect(modules.delegates.validateBlockSlot).to.have.been.calledWith(
+				dummyBlock
+			);
 			expect(__private.checkTransactions).to.have.been.calledWith(dummyBlock);
 			expect(modules.blocks.chain.applyBlock).to.have.been.calledWith(
 				dummyBlock,
@@ -2208,7 +2166,7 @@ describe('blocks/verify', () => {
 								__private.verifyBlock,
 								__private.broadcastBlock,
 								__private.checkExists,
-								__private.validateBlockSlot,
+								modules.delegates.validateBlockSlot,
 								__private.checkTransactions,
 								modules.blocks.chain.applyBlock,
 								modules.system.update,
