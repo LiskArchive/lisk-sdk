@@ -23,5 +23,5 @@ process.env.NODE_ENV = 'test';
 [sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
 
 global.sandbox = sinon.createSandbox({
-	useFakeTimers: true,
+	useFakeTimers: process.env.USE_REAL_TIMERS !== 'true',
 });

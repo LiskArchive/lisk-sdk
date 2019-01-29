@@ -14,10 +14,11 @@
  */
 import { expect } from 'chai';
 
-import { PeerInfo, Peer } from '../../src/peer';
+import { Peer } from '../../src/peer';
+import { P2PPeerInfo } from '../../src/p2p_types';
 
 describe('peer', () => {
-	const defaultPeerInfo: PeerInfo = {
+	const defaultPeerInfo: P2PPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,

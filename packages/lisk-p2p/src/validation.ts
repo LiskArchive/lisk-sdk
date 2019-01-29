@@ -15,18 +15,18 @@
 import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
 import {
-	InvalidPeer,
+	InvalidPeerError,
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
-	InvalidRPCResponse,
+	InvalidRPCResponseError,
 } from './errors';
 
 import {
+	P2PPeerInfo,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from './p2p_types';
-import { PeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
@@ -44,23 +44,22 @@ export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	return true;
 };
 
-export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
+export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
-		throw new InvalidPeer(`Invalid peer object`);
+		throw new InvalidPeerError(`Invalid peer object`);
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
-
 	if (
 		!protocolPeer.ip ||
 		!protocolPeer.wsPort ||
 		!validatePeerAddress(protocolPeer.ip, protocolPeer.wsPort)
 	) {
-		throw new InvalidPeer(`Invalid peer ip or port`);
+		throw new InvalidPeerError(`Invalid peer ip or port`);
 	}
 
 	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
-		throw new InvalidPeer(`Invalid peer version`);
+		throw new InvalidPeerError(`Invalid peer version`);
 	}
 
 	const version = protocolPeer.version;
@@ -74,12 +73,13 @@ export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 			? +protocolPeer.height
 			: 0;
 
-	const peerInfo: PeerInfo = {
+	const peerInfo: P2PPeerInfo = {
 		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
 		os,
 		version,
+		options: protocolPeer,
 	};
 
 	return peerInfo;
@@ -87,19 +87,18 @@ export const validatePeerInfo = (rawPeerInfo: unknown): PeerInfo => {
 
 export const validatePeerInfoList = (
 	rawPeerInfoList: unknown,
-): ReadonlyArray<PeerInfo> => {
+): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawPeerInfoList) {
-		throw new InvalidRPCResponse('Invalid response type');
+		throw new InvalidRPCResponseError('Invalid response type');
 	}
-
 	const { peers } = rawPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<PeerInfo>(validatePeerInfo);
+		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
 
 		return peerList;
 	} else {
-		throw new InvalidRPCResponse('Invalid response type');
+		throw new InvalidRPCResponseError('Invalid response type');
 	}
 };
 
@@ -113,9 +112,6 @@ export const validateRPCRequest = (
 	const rpcRequest = request as ProtocolRPCRequestPacket;
 	if (typeof rpcRequest.procedure !== 'string') {
 		throw new InvalidRPCRequestError('Request procedure name is not a string');
-	}
-	if (typeof rpcRequest.data !== 'object') {
-		throw new InvalidRPCRequestError('Invalid request data');
 	}
 
 	return rpcRequest;

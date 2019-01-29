@@ -49,10 +49,10 @@ export class RPCResponseError extends VError {
 	}
 }
 
-export class InvalidRPCResponse extends VError {
+export class InvalidRPCResponseError extends VError {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidRPCResponse';
+		this.name = 'InvalidRPCResponseError';
 	}
 }
 
@@ -63,10 +63,10 @@ export class RPCResponseAlreadySentError extends VError {
 	}
 }
 
-export class InvalidPeer extends VError {
+export class InvalidPeerError extends VError {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidPeer';
+		this.name = 'InvalidPeerError';
 	}
 }
 

@@ -13,6 +13,7 @@
  *
  */
 import { NotEnoughPeersError } from './errors';
+import { P2PPeerInfo } from './p2p_types';
 import { Peer } from './peer';
 
 export interface PeerOptions {
@@ -27,6 +28,8 @@ interface HistogramValues {
 	histogram: Histogram;
 	max: number;
 }
+
+// TODO ASAP: Consider changing selectPeers function to handle P2PDiscoveredPeerInfo instead of Peer objects.
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,
@@ -64,11 +67,10 @@ export const selectPeers = (
 	);
 
 	// Perform histogram cut of peers too far from histogram maximum
-	const processedPeers = sortedPeers.filter(
-		peer =>
-			peer &&
-			Math.abs(calculatedHistogramValues.height - peer.height) <
-				aggregation + 1,
+	const processedPeers = sortedPeers.filter(peer => peer &&
+		Math.abs(
+			calculatedHistogramValues.height - peer.height
+		) < aggregation + 1
 	);
 
 	if (numOfPeers <= 0) {
@@ -118,4 +120,5 @@ export const selectPeers = (
 	return peerList;
 };
 
-export const selectForConnection = (peers: ReadonlyArray<Peer>) => peers;
+export const selectForConnection = (peerInfoList: ReadonlyArray<P2PPeerInfo>) =>
+	peerInfoList;
