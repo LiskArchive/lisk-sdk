@@ -15,7 +15,7 @@
 import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
 import { InvalidPeerError, InvalidRPCResponseError } from './errors';
-import { ProtocolPeerInfo, P2PPeerInfo } from './p2p_types';
+import { P2PPeerInfo, ProtocolPeerInfo } from './p2p_types';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;

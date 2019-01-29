@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Peer } from './peer';
 import { P2PPeerInfo } from './p2p_types';
+import { Peer } from './peer';
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
 	readonly blacklist: ReadonlyArray<string>;

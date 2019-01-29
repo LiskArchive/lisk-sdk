@@ -13,8 +13,8 @@
  *
  */
 import { NotEnoughPeersError } from './errors';
-import { Peer } from './peer';
 import { P2PPeerInfo } from './p2p_types';
+import { Peer } from './peer';
 
 export interface PeerOptions {
 	readonly [key: string]: string | number;

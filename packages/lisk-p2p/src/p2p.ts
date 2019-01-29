@@ -15,7 +15,6 @@
 
 import { EventEmitter } from 'events';
 import http, { Server } from 'http';
-import { platform } from 'os';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import url from 'url';
 
@@ -68,9 +67,8 @@ export class P2P extends EventEmitter {
 	private _isActive: boolean;
 	private readonly _newPeers: Set<P2PPeerInfo>;
 	private readonly _triedPeers: Set<P2PPeerInfo>;
-	private readonly _platform: string;
 
-	private _nodeInfo: P2PNodeInfo | undefined;
+	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServer;
 
@@ -85,7 +83,6 @@ export class P2P extends EventEmitter {
 		this._isActive = false;
 		this._newPeers = new Set();
 		this._triedPeers = new Set();
-		this._platform = platform();
 
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer);
@@ -119,6 +116,9 @@ export class P2P extends EventEmitter {
 
 		this._peerPool = new PeerPool();
 		this._bindHandlersToPeerPool(this._peerPool);
+		
+		this._nodeInfo = config.nodeInfo;
+		this._peerPool.applyNodeInfo(this._nodeInfo);
 	}
 
 	public get config(): P2PConfig {
@@ -135,9 +135,9 @@ export class P2P extends EventEmitter {
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = {
-			os: this._platform,
-			version: this._config.version,
-			wsPort: this._config.wsPort,
+			os: this._nodeInfo.os,
+			version: this._nodeInfo.version,
+			wsPort: this._nodeInfo.wsPort,
 			height: nodeInfo.height,
 			options: nodeInfo.options,
 		};
@@ -145,7 +145,7 @@ export class P2P extends EventEmitter {
 		this._peerPool.applyNodeInfo(this._nodeInfo);
 	}
 
-	public get nodeInfo(): P2PNodeInfo | undefined {
+	public get nodeInfo(): P2PNodeInfo {
 		return this._nodeInfo;
 	}
 
@@ -165,7 +165,7 @@ export class P2P extends EventEmitter {
 	// TODO ASAP: Change selectPeers to return PeerInfo list and then make request on peerPool itself; pass peerInfo as argument.
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const peerSelectionParams: PeerOptions = {
-			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
+			lastBlockHeight: this._nodeInfo.height,
 		};
 		const selectedPeer = this._peerPool.selectPeers(peerSelectionParams, 1);
 
@@ -181,7 +181,7 @@ export class P2P extends EventEmitter {
 
 	public send(message: P2PMessagePacket): void {
 		const peerSelectionParams: PeerOptions = {
-			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
+			lastBlockHeight: this._nodeInfo.height,
 		};
 		const selectedPeers = this._peerPool.selectPeers(peerSelectionParams);
 
@@ -245,7 +245,7 @@ export class P2P extends EventEmitter {
 				}
 			},
 		);
-		this._httpServer.listen(this._config.wsPort, NODE_HOST_IP);
+		this._httpServer.listen(this._nodeInfo.wsPort, NODE_HOST_IP);
 
 		return new Promise<void>(resolve => {
 			this._scServer.once('ready', () => {

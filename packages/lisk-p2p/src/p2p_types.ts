@@ -28,18 +28,7 @@ export interface P2PMessagePacket {
 	readonly event: string;
 }
 
-// Allows the user to provide custom fields.
-export interface P2PInfoOptions {
-	readonly [key: string]: unknown;
-}
-
-export interface P2PNodeInfo {
-	readonly os: string;
-	readonly version: string;
-	readonly wsPort: number;
-	readonly height: number;
-	readonly options?: P2PInfoOptions;
-}
+export interface P2PPenalty {}
 
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
@@ -56,16 +45,26 @@ export interface P2PPeerInfo {
 	readonly isTriedPeer?: boolean;
 }
 
-export interface P2PPenalty {}
+// Allows the user to provide custom fields.
+export interface P2PInfoOptions {
+	readonly [key: string]: unknown;
+}
+
+export interface P2PNodeInfo {
+	readonly os: string;
+	readonly version: string;
+	readonly wsPort: number;
+	readonly height: number;
+	readonly options?: P2PInfoOptions;
+}
 
 export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly connectTimeout: number;
 	readonly hostAddress?: string;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly version: string;
+	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
-	readonly wsPort: number;
 }
 
 // Network info exposed by the P2P library.

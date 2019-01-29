@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
+import { platform } from 'os';
 
 const NETWORK_START_PORT = 5000;
 
@@ -16,25 +17,21 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 5000,
 					seedPeers: [],
 					wsEngine: 'ws',
-					wsPort: NETWORK_START_PORT + index,
-					version: '1.0.0',
-				});
-			});
-
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => {
-					p2p.applyNodeInfo({
-						os: 'darwin',
+					nodeInfo: {
+						wsPort: NETWORK_START_PORT + index,
 						version: '1.0.0',
-						wsPort: p2p.config.wsPort,
+						os: platform(),
 						height: 0,
 						options: {
 							broadhash:
 								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						},
-					});
-					return p2p.start();
-				},
+					},
+				});
+			});
+
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
 		});
@@ -71,25 +68,21 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 5000,
 					seedPeers,
 					wsEngine: 'ws',
-					wsPort: NETWORK_START_PORT + index,
-					version: '1.0.0',
-				});
-			});
-
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => {
-					p2p.applyNodeInfo({
-						os: 'darwin',
+					nodeInfo: {
+						wsPort: NETWORK_START_PORT + index,
 						version: '1.0.0',
-						wsPort: p2p.config.wsPort,
+						os: platform(),
 						height: 0,
 						options: {
 							broadhash:
 								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						},
-					});
-					return p2p.start();
-				},
+					},
+				});
+			});
+
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
 			await wait(500);
@@ -134,25 +127,21 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 5000,
 					seedPeers,
 					wsEngine: 'ws',
-					wsPort: NETWORK_START_PORT + index,
-					version: '1.0.0',
-				});
-			});
-
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => {
-					p2p.applyNodeInfo({
-						os: 'darwin',
+					nodeInfo: {
+						wsPort: NETWORK_START_PORT + index,
 						version: '1.0.0',
-						wsPort: p2p.config.wsPort,
+						os: platform(),
 						height: 0,
 						options: {
 							broadhash:
 								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						},
-					});
-					return p2p.start();
-				},
+					},
+				});
+			});
+
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
 			);
 
 			await Promise.all(peerStartPromises);
