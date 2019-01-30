@@ -16,7 +16,7 @@
 
 const _ = require('lodash');
 const async = require('async');
-const { CACHE } = require('../components/cache/constants');
+const { CACHE_CONSTANTS } = require('../components/cache');
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;
@@ -656,7 +656,7 @@ Transactions.prototype.shared = {
 				function getConfirmedCountFromCache(waterCb) {
 					if (components.cache) {
 						return components.cache
-							.getJsonForKey(CACHE.KEYS.transactionCount)
+							.getJsonForKey(CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT)
 							.then(data => {
 								setImmediate(waterCb, null, data ? data.confirmed : null);
 							})
@@ -687,7 +687,7 @@ Transactions.prototype.shared = {
 					}
 					if (components.cache) {
 						return components.cache
-							.setJsonForKey(CACHE.KEYS.transactionCount, {
+							.setJsonForKey(CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT, {
 								confirmed: dbCount,
 							})
 							.then(() => setImmediate(waterCb, null, dbCount))

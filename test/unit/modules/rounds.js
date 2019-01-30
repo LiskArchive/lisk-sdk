@@ -20,7 +20,7 @@ const rewire = require('rewire');
 const Rounds = rewire('../../../modules/rounds.js');
 const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../common/storage_sandbox');
-const { CACHE } = require('../../../components/cache/constants');
+const { CACHE_CONSTANTS } = require('../../../components/cache');
 
 const sinon = sinonSandbox;
 
@@ -201,7 +201,7 @@ describe('rounds', () => {
 
 		it('should call components.cache.removeByPattern once if cache is enabled', () => {
 			const round = 123;
-			const pattern = CACHE.KEYS.delegatesApi;
+			const pattern = CACHE_CONSTANTS.KEYS_DELEGATES;
 			rounds.onFinishRound(round);
 
 			expect(components.cache.removeByPattern.called).to.be.true;

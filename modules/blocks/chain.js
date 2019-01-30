@@ -19,7 +19,7 @@ const async = require('async');
 const _ = require('lodash');
 const transactionTypes = require('../../helpers/transaction_types.js');
 const Bignum = require('../../helpers/bignum.js');
-const { CACHE } = require('../../components/cache/constants');
+const { CACHE_CONSTANTS } = require('../../components/cache');
 
 let components;
 let modules;
@@ -185,25 +185,26 @@ __private.afterSave = async function(block, cb) {
 				' '
 			)
 		);
-		const pattern = CACHE.KEYS.delegatesApi;
 		const delegateTransaction = block.transactions.find(
 			transaction =>
 				!!transaction && transaction.type === transactionTypes.DELEGATE
 		);
 		if (delegateTransaction) {
 			try {
-				await components.cache.removeByPattern(pattern);
+				await components.cache.removeByPattern(CACHE_CONSTANTS.KEYS_DELEGATES);
 				library.logger.debug(
 					[
 						'Cache - Keys with pattern:',
-						pattern,
+						CACHE_CONSTANTS.KEYS_DELEGATES,
 						'cleared from cache on delegate transaction',
 					].join(' ')
 				);
-				await components.cache.deleteJsonForKey(CACHE.KEYS.transactionCount);
+				await components.cache.deleteJsonForKey(
+					CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
+				);
 				components.cache.logger.debug(
 					`Cache - Keys ${
-						CACHE.KEYS.transactionCount
+						CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
 					} cleared from cache on chain afterSave`
 				);
 			} catch (err) {

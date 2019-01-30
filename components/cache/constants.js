@@ -20,19 +20,15 @@
  * @namespace constants
  * @memberof config
  * @see Parent: {@link component/cache}
- * @property {number} CACHE.KEYS.transactionCount
- * @property {number} CACHE.KEYS.blocksApi
- * @property {number} CACHE.KEYS.transactionsApi
- * @property {number} CACHE.KEYS.delegatesApi
+ * @property {number} CACHE_KEYS_BLOCKS
+ * @property {number} CACHE_KEYS_DELEGATES
+ * @property {number} CACHE_KEYS_TRANSACTIONS
+ * @property {number} CACHE_KEYS_TRANSACTION_COUNT
  * @todo Add description for the namespace and the properties.
  */
 module.exports = {
-	CACHE: {
-		KEYS: {
-			transactionCount: 'transactionCount',
-			blocksApi: '/api/blocks*',
-			transactionsApi: '/api/transactions*',
-			delegatesApi: '/api/delegates*',
-		},
-	},
+	KEYS_BLOCKS: '/api/blocks*',
+	KEYS_DELEGATES: '/api/delegates*',
+	KEYS_TRANSACTIONS: '/api/transactions*',
+	KEYS_TRANSACTION_COUNT: 'transactionCount',
 };

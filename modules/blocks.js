@@ -15,7 +15,7 @@
 'use strict';
 
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
-const { CACHE } = require('../components/cache/constants');
+const { CACHE_CONSTANTS } = require('../components/cache');
 // Submodules
 const BlocksVerify = require('./blocks/verify');
 const BlocksProcess = require('./blocks/process');
@@ -244,7 +244,10 @@ Blocks.prototype.onNewBlock = async function(block) {
 		library.logger.debug(
 			['Cache - onNewBlock', '| Status:', components.cache.isReady()].join(' ')
 		);
-		const keys = [CACHE.KEYS.blocksApi, CACHE.KEYS.transactionsApi];
+		const keys = [
+			CACHE_CONSTANTS.KEYS_BLOCKS,
+			CACHE_CONSTANTS.KEYS_TRANSACTIONS,
+		];
 		try {
 			// eslint-disable-next-line no-restricted-syntax
 			for await (const key of keys) {
@@ -253,8 +256,8 @@ Blocks.prototype.onNewBlock = async function(block) {
 			library.logger.debug(
 				[
 					'Cache - Keys with patterns:',
-					CACHE.KEYS.blocksApi,
-					CACHE.KEYS.transactionsApi,
+					CACHE_CONSTANTS.KEYS_BLOCKS,
+					CACHE_CONSTANTS.KEYS_TRANSACTIONS,
 					'cleared from cache on new Block',
 				].join(' ')
 			);
