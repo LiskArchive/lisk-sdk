@@ -36,7 +36,7 @@ module.exports = function(grunt) {
 		fs.writeFile(
 			path.join(
 				process.cwd(),
-				'./db/sql/migrations/updates',
+				'./storage/sql/migrations/updates',
 				migration.filename
 			),
 			'',
