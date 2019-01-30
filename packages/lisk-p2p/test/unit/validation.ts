@@ -13,10 +13,21 @@
  *
  */
 import { expect } from 'chai';
-import { validatePeerAddress, validatePeerInfo } from '../../src/validation';
+import {
+	validatePeerAddress,
+	validatePeerInfo,
+	validatePeerInfoList,
+	validateRPCRequest,
+	validateProtocolMessage,
+} from '../../src/validation';
+import { P2PPeerInfo } from '../../src/p2p_types';
+import {
+	ProtocolRPCRequestPacket,
+	ProtocolMessagePacket,
+} from '../../src/p2p_types';
 
 describe('response handlers', () => {
-	describe('#sanitizePeerInfo', () => {
+	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
 			const peer: unknown = {
 				ip: '12.23.54.3',
@@ -42,8 +53,8 @@ describe('response handlers', () => {
 				version: '3.4.5-alpha.9',
 			};
 
-			it('should return PeerInfo object', () => {
-				return expect(validatePeerInfo(peer))
+			it('should return P2PPeerInfo object', async () => {
+				expect(validatePeerInfo(peer))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -54,8 +65,8 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return PeerInfo object with height value set to 0', () => {
-				return expect(validatePeerInfo(peerWithInvalidHeightValue))
+			it('should return P2PPeerInfo object with height value set to 0', async () => {
+				expect(validatePeerInfo(peerWithInvalidHeightValue))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -66,8 +77,8 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return PeerInfo and instance of Peer sets blank for invalid value of os', () => {
-				return expect(validatePeerInfo(peerWithInvalidOsValue))
+			it('should return P2PPeerInfo and instance of Peer sets blank for invalid value of os', async () => {
+				expect(validatePeerInfo(peerWithInvalidOsValue))
 					.to.be.an('object')
 					.include({
 						ipAddress: '12.23.54.3',
@@ -80,15 +91,15 @@ describe('response handlers', () => {
 		});
 
 		describe('for invalid peer response object', () => {
-			it('throw InvalidPeerError for invalid peer', () => {
+			it('should throw an InvalidPeer error for invalid peer', async () => {
 				const peerInvalid: unknown = null;
 
-				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
 					'Invalid peer object',
 				);
 			});
 
-			it('throw InvalidPeerError for invalid peer ip or port', () => {
+			it('should throw InvalidPeer error for invalid peer ip or port', async () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.uhig3',
 					wsPort: '53937888',
@@ -96,12 +107,12 @@ describe('response handlers', () => {
 					height: '23232',
 				};
 
-				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
 					'Invalid peer ip or port',
 				);
 			});
 
-			it('throw InvalidPeerError for invalid peer version', () => {
+			it('should throw an InvalidPeer error for invalid peer version', async () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.23',
 					wsPort: '5390',
@@ -110,7 +121,7 @@ describe('response handlers', () => {
 					version: '1222.22',
 				};
 
-				return expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
 					'Invalid peer version',
 				);
 			});
@@ -118,47 +129,224 @@ describe('response handlers', () => {
 	});
 
 	describe('#validatePeerAddress', () => {
-		it('should return true for correct IPv4', () => {
+		it('should return true for correct IPv4', async () => {
 			const peer = {
 				ip: '12.12.12.12',
 				wsPort: '4001',
 			};
 
-			return expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
 		});
 
-		it('should return true for correct IPv6', () => {
+		it('should return true for correct IPv6', async () => {
 			const peer = {
 				ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
 				wsPort: '4001',
 			};
 
-			return expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
 		});
 
-		it('should return false for incorrect ip', () => {
+		it('should return false for incorrect ip', async () => {
 			const peerWithIncorrectIp = {
 				ip: '12.12.hh12.12',
 				wsPort: '4001',
 			};
 
-			return expect(
+			expect(
 				validatePeerAddress(peerWithIncorrectIp.ip, peerWithIncorrectIp.wsPort),
 			).to.be.false;
 		});
 
-		it('should return false for incorrect port', () => {
+		it('should return false for incorrect port', async () => {
 			const peerWithIncorrectPort = {
 				ip: '12.12.12.12',
 				wsPort: '400f1',
 			};
 
-			return expect(
+			expect(
 				validatePeerAddress(
 					peerWithIncorrectPort.ip,
 					peerWithIncorrectPort.wsPort,
 				),
 			).to.be.false;
+		});
+	});
+
+	describe('#validatePeerInfoList', () => {
+		const peer1 = {
+			ip: '12.12.12.12',
+			wsPort: '5001',
+			height: '545776',
+			version: '1.0.1',
+			os: 'darwin',
+		};
+
+		const peer2 = {
+			ip: '127.0.0.1',
+			wsPort: '5002',
+			height: '545981',
+			version: '1.0.1',
+			os: 'darwin',
+		};
+		const peerList = [peer1, peer2];
+
+		const rawPeerInfoList: unknown = {
+			success: true,
+			peers: peerList,
+		};
+		let validatedPeerInfoArray: ReadonlyArray<P2PPeerInfo>;
+
+		beforeEach(async () => {
+			validatedPeerInfoArray = validatePeerInfoList(rawPeerInfoList);
+		});
+
+		it('should throw an error for an undefined rawPeerInfoList object', async () => {
+			expect(
+				validatePeerInfoList.bind(validatePeerInfoList, undefined),
+			).to.throw(`Invalid response type`);
+		});
+
+		it('should throw an error for an invalid value of peers property', async () => {
+			const inValidPeerInfoList = {
+				peers: 'random text',
+				success: true,
+			};
+
+			expect(
+				validatePeerInfoList.bind(validatePeerInfoList, inValidPeerInfoList),
+			).to.throw(`Invalid response type`);
+		});
+
+		it('should throw an error for an invalid port number', async () => {
+			const inValidPeerInfoList = {
+				peers: [
+					{
+						ip: '127.0.0.1',
+						wsPort: '5002dd',
+						height: '545981',
+						version: '1.0.1',
+						os: 'darwin',
+					},
+				],
+				success: true,
+			};
+
+			expect(
+				validatePeerInfoList.bind(validatePeerInfoList, inValidPeerInfoList),
+			).to.throw(`Invalid peer ip or port`);
+		});
+
+		it('should return peer info list array', async () => {
+			expect(validatedPeerInfoArray).to.be.an('array');
+		});
+
+		it('should return peer info list array of length 2', async () => {
+			expect(validatedPeerInfoArray).to.be.of.length(2);
+		});
+
+		it('should return deserialised P2PPeerInfo list', async () => {
+			const sanitizedPeerInfoList = peerList.map((peer: any) => {
+				peer['ipAddress'] = peer.ip;
+				peer.wsPort = +peer.wsPort;
+				peer.height = +peer.height;
+				peer.options = peer;
+				delete peer.ip;
+
+				return peer;
+			});
+
+			expect(validatedPeerInfoArray).to.be.eql(sanitizedPeerInfoList);
+		});
+	});
+
+	describe('#validateRPCRequest', () => {
+		const validRPCRequest: unknown = {
+			data: {},
+			procedure: 'list',
+			type: '',
+		};
+		let validatedRPCRequest: ProtocolRPCRequestPacket;
+
+		beforeEach(async () => {
+			validatedRPCRequest = validateRPCRequest(validRPCRequest);
+		});
+
+		it('should throw an error for an invalid procedure value', async () => {
+			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).to.throw(
+				'Invalid request',
+			);
+		});
+
+		it('should throw an error for an invalid procedure value', async () => {
+			const inValidRequest: unknown = {
+				data: {},
+				procedure: {},
+			};
+
+			expect(
+				validateRPCRequest.bind(validateRPCRequest, inValidRequest),
+			).to.throw('Request procedure name is not a string');
+		});
+
+		it('should pass and return an object', async () => {
+			expect(validatedRPCRequest).to.be.an('object');
+		});
+
+		it('should return a valid rpc request', async () => {
+			expect(validatedRPCRequest)
+				.to.be.an('object')
+				.has.property('data')
+				.to.be.an('object');
+			expect(validatedRPCRequest)
+				.to.be.an('object')
+				.has.property('procedure').to.be.string;
+
+			expect(validatedRPCRequest)
+				.to.be.an('object')
+				.has.property('type').to.be.string;
+		});
+	});
+
+	describe('#validateProtocolMessage', () => {
+		const validProtocolMessage: unknown = {
+			data: {},
+			event: 'newPeer',
+		};
+		let returnedValidatedMessage: ProtocolMessagePacket;
+
+		beforeEach(async () => {
+			returnedValidatedMessage = validateProtocolMessage(validProtocolMessage);
+		});
+
+		it('should throw an error for an invalid event value type', async () => {
+			expect(
+				validateProtocolMessage.bind(validateProtocolMessage, undefined),
+			).to.throw('Invalid message');
+		});
+
+		it('should throw an error for an invalid event value type', async () => {
+			const inValidMessage: unknown = {
+				data: {},
+				event: 6788,
+			};
+			expect(
+				validateProtocolMessage.bind(validateProtocolMessage, inValidMessage),
+			).to.throw('Protocol message is not a string');
+		});
+
+		it('should return an object', async () => {
+			expect(returnedValidatedMessage).to.be.an('object');
+		});
+
+		it('should return a valid protocol message object', async () => {
+			expect(returnedValidatedMessage)
+				.to.be.an('object')
+				.has.property('data');
+
+			expect(returnedValidatedMessage)
+				.to.be.an('object')
+				.has.property('data').to.be.string;
 		});
 	});
 });
