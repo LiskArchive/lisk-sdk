@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import transactionObjects from '../../fixtures/transactions.json';
+import * as transactionObjects from '../../fixtures/transactions.json';
 import { Job } from '../../src/job';
 import {
 	Transaction,
