@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import { OUT_TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';

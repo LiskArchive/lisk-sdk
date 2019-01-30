@@ -13,7 +13,7 @@
  *
  */
 import { getKeys, hexToBuffer } from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import { SIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
