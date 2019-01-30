@@ -192,6 +192,7 @@ describe('blocks/process', () => {
 
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
+			validateBlockSlotAgainstPreviousRound: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
 		};
 
@@ -299,12 +300,12 @@ describe('blocks/process', () => {
 	describe('__private.receiveForkOne', () => {
 		let tempValidateBlockSlot;
 		before(done => {
-			tempValidateBlockSlot = modules.delegates.validateBlockSlot;
+			tempValidateBlockSlot = __private.validateBlockSlot;
 			done();
 		});
 
 		after(done => {
-			modules.delegates.validateBlockSlot = tempValidateBlockSlot;
+			__private.validateBlockSlot = tempValidateBlockSlot;
 			done();
 		});
 
@@ -337,7 +338,7 @@ describe('blocks/process', () => {
 
 		describe('last block and parent loses', () => {
 			beforeEach(done => {
-				modules.delegates.validateBlockSlot = sinonSandbox.stub();
+				__private.validateBlockSlot = sinonSandbox.stub();
 				done();
 			});
 
@@ -372,15 +373,15 @@ describe('blocks/process', () => {
 				});
 
 				describe('when succeeds', () => {
-					describe('modules.delegates.validateBlockSlot', () => {
+					describe('__private.validateBlockSlot', () => {
 						describe('when fails', () => {
 							beforeEach(() => {
 								library.logic.block.objectNormalize.returns({
 									timestamp: 1,
 									id: 2,
 								});
-								return modules.delegates.validateBlockSlot.callsArgWith(
-									1,
+								return __private.validateBlockSlot.callsArgWith(
+									2,
 									'validateBlockSlot-ERR',
 									null
 								);
@@ -410,11 +411,7 @@ describe('blocks/process', () => {
 											timestamp: 1,
 											id: 2,
 										});
-										modules.delegates.validateBlockSlot.callsArgWith(
-											1,
-											null,
-											true
-										);
+										__private.validateBlockSlot.callsArgWith(2, null, true);
 										return modules.blocks.verify.verifyReceipt.returns({
 											verified: false,
 											errors: ['verifyReceipt-ERR', 'ERR2'],
@@ -456,11 +453,7 @@ describe('blocks/process', () => {
 													timestamp: 1,
 													id: 2,
 												});
-												modules.delegates.validateBlockSlot.callsArgWith(
-													1,
-													null,
-													true
-												);
+												__private.validateBlockSlot.callsArgWith(2, null, true);
 												modules.blocks.verify.verifyReceipt.returns({
 													verified: true,
 												});
@@ -495,8 +488,8 @@ describe('blocks/process', () => {
 															timestamp: 1,
 															id: 2,
 														});
-														modules.delegates.validateBlockSlot.callsArgWith(
-															1,
+														__private.validateBlockSlot.callsArgWith(
+															2,
 															null,
 															true
 														);
@@ -538,8 +531,8 @@ describe('blocks/process', () => {
 															timestamp: 1,
 															id: 2,
 														});
-														modules.delegates.validateBlockSlot.callsArgWith(
-															1,
+														__private.validateBlockSlot.callsArgWith(
+															2,
 															null,
 															true
 														);
@@ -577,12 +570,12 @@ describe('blocks/process', () => {
 	describe('__private.receiveForkFive', () => {
 		let tempValidateBlockSlot;
 		before(done => {
-			tempValidateBlockSlot = modules.delegates.validateBlockSlot;
+			tempValidateBlockSlot = __private.validateBlockSlot;
 			done();
 		});
 
 		after(done => {
-			modules.delegates.validateBlockSlot = tempValidateBlockSlot;
+			__private.validateBlockSlot = tempValidateBlockSlot;
 			done();
 		});
 
@@ -644,7 +637,7 @@ describe('blocks/process', () => {
 
 		describe('last block loses', () => {
 			beforeEach(done => {
-				modules.delegates.validateBlockSlot = sinonSandbox.stub();
+				__private.validateBlockSlot = sinonSandbox.stub();
 				__private.receiveBlock = sinonSandbox.stub();
 				done();
 			});
@@ -687,11 +680,11 @@ describe('blocks/process', () => {
 						});
 					});
 
-					describe('modules.delegates.validateBlockSlot', () => {
+					describe('__private.validateBlockSlot', () => {
 						describe('when fails', () => {
 							beforeEach(() => {
-								return modules.delegates.validateBlockSlot.callsArgWith(
-									1,
+								return __private.validateBlockSlot.callsArgWith(
+									2,
 									'validateBlockSlot-ERR',
 									null
 								);
@@ -715,11 +708,7 @@ describe('blocks/process', () => {
 
 						describe('when succeeds', () => {
 							beforeEach(() => {
-								return modules.delegates.validateBlockSlot.callsArgWith(
-									1,
-									null,
-									true
-								);
+								return __private.validateBlockSlot.callsArgWith(2, null, true);
 							});
 
 							describe('modules.blocks.verify.verifyReceipt', () => {
@@ -1954,6 +1943,168 @@ describe('blocks/process', () => {
 									);
 								});
 							});
+						});
+					});
+				});
+			});
+		});
+	});
+
+	describe('__private.validateBlockSlot', () => {
+		describe('lastBlock.height % ACTIVE_DELEGATES === 0', () => {
+			describe('validateBlockSlotAgainstPreviousRound', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						return modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
+							1,
+							'round-ERR',
+							null
+						);
+					});
+
+					it('should call a callback with error', done => {
+						__private.validateBlockSlot(
+							{ height: 10 },
+							{ height: 202 },
+							err => {
+								expect(err).to.equal('round-ERR');
+								expect(
+									modules.delegates.validateBlockSlotAgainstPreviousRound
+										.calledOnce
+								).to.be.true;
+								done();
+							}
+						);
+					});
+				});
+
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						return modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
+							1,
+							null,
+							true
+						);
+					});
+
+					it('should call a callback with no error', done => {
+						__private.validateBlockSlot(
+							{ height: 10 },
+							{ height: 202 },
+							err => {
+								expect(err).to.be.null;
+								expect(
+									modules.delegates.validateBlockSlotAgainstPreviousRound
+										.calledOnce
+								).to.be.true;
+								done();
+							}
+						);
+					});
+				});
+			});
+		});
+
+		describe('lastBlock.height % ACTIVE_DELEGATES !== 0', () => {
+			describe('roundLastBlock < roundNextBlock', () => {
+				describe('validateBlockSlotAgainstPreviousRound', () => {
+					describe('when fails', () => {
+						beforeEach(() => {
+							return modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
+								1,
+								'round-ERR',
+								null
+							);
+						});
+
+						it('should call a callback with error', done => {
+							__private.validateBlockSlot(
+								{ height: 400 },
+								{ height: 200 },
+								err => {
+									expect(err).to.equal('round-ERR');
+									expect(
+										modules.delegates.validateBlockSlotAgainstPreviousRound
+											.calledOnce
+									).to.be.true;
+									done();
+								}
+							);
+						});
+					});
+
+					describe('when succeeds', () => {
+						beforeEach(() => {
+							return modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
+								1,
+								null,
+								true
+							);
+						});
+
+						it('should call a callback with no error', done => {
+							__private.validateBlockSlot(
+								{ height: 400 },
+								{ height: 200 },
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.delegates.validateBlockSlotAgainstPreviousRound
+											.calledOnce
+									).to.be.true;
+									done();
+								}
+							);
+						});
+					});
+				});
+			});
+
+			describe('roundLastBlock >= roundNextBlock', () => {
+				describe('validateBlockSlot', () => {
+					describe('when fails', () => {
+						beforeEach(() => {
+							return modules.delegates.validateBlockSlot.callsArgWith(
+								1,
+								'round-ERR',
+								null
+							);
+						});
+
+						it('should call a callback with error', done => {
+							__private.validateBlockSlot(
+								{ height: 10 },
+								{ height: 200 },
+								err => {
+									expect(err).to.equal('round-ERR');
+									expect(modules.delegates.validateBlockSlot.calledOnce).to.be
+										.true;
+									done();
+								}
+							);
+						});
+					});
+
+					describe('when succeeds', () => {
+						beforeEach(() => {
+							return modules.delegates.validateBlockSlot.callsArgWith(
+								1,
+								null,
+								true
+							);
+						});
+
+						it('should call a callback with no error', done => {
+							__private.validateBlockSlot(
+								{ height: 10 },
+								{ height: 200 },
+								err => {
+									expect(err).to.be.null;
+									expect(modules.delegates.validateBlockSlot.calledOnce).to.be
+										.true;
+									done();
+								}
+							);
 						});
 					});
 				});
