@@ -240,7 +240,7 @@ Blocks.prototype.onBind = function(scope) {
  * @todo Add @returns tag
  */
 Blocks.prototype.onNewBlock = async function(block) {
-	if (components.cache) {
+	if (components && components.cache && components.cache.isReady()) {
 		library.logger.debug(
 			['Cache - onNewBlock', '| Status:', components.cache.isReady()].join(' ')
 		);

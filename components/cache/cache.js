@@ -43,29 +43,27 @@ class Cache {
 		// TOFIX: app crashes with FTL error when launchin app with CACHE_ENABLE=true
 		// but cache server is not available.
 		this.client = redis.createClient(this.options);
-		this.client.once('error', this._onConnectionError.bind(this));
+		this.client.on('error', this._onConnectionError.bind(this));
 		this.client.once('ready', this._onReady.bind(this));
-		this.getAsync = promisify(this.client.get).bind(this.client);
-		this.setAsync = promisify(this.client.set).bind(this.client);
-		this.delAsync = promisify(this.client.del).bind(this.client);
-		this.scanAsync = promisify(this.client.scan).bind(this.client);
-		this.flushdbAsync = promisify(this.client.flushdb).bind(this.client);
-		this.quitAsync = promisify(this.client.quit).bind(this.client);
 	}
 
 	_onConnectionError(err) {
 		// Called if the "error" event occured before "ready" event
-		this.logger.info('App was unable to connect to Cache server', err);
-		// Don't attempt to connect to server again as the connection was never established before
-		return this.quit();
+		this.logger.warn('App was unable to connect to Cache server', err);
 	}
 
 	_onReady() {
 		// Called after "ready" Cache event
 		this.logger.info('App connected to Cache server');
 		this.client.removeListener('error', this._onConnectionError);
-		this.cacheReady = true;
-		return this.client.on('error', err => {
+		this.getAsync = promisify(this.client.get).bind(this.client);
+		this.setAsync = promisify(this.client.set).bind(this.client);
+		this.delAsync = promisify(this.client.del).bind(this.client);
+		this.scanAsync = promisify(this.client.scan).bind(this.client);
+		this.flushdbAsync = promisify(this.client.flushdb).bind(this.client);
+		this.quitAsync = promisify(this.client.quit).bind(this.client);
+		this.enable();
+		this.client.on('error', err => {
 			// Log Cache errors before and after server was connected
 			this.logger.info('Cache:', err);
 		});
@@ -77,22 +75,22 @@ class Cache {
 	 * @return {boolean}
 	 */
 	isReady() {
-		// Use client.ready because this constiable is updated on client connection
-		return this.client && this.client.ready;
+		// Use client.ready because this constant is updated on client connection
+		return this.client && this.client.ready && this.cacheReady;
 	}
 
 	/**
 	 * Enables cache client
 	 */
 	enable() {
-		this.client.ready = true;
+		this.cacheReady = true;
 	}
 
 	/**
 	 * Disables cache client
 	 */
 	disable() {
-		this.client.ready = true;
+		this.cacheReady = false;
 	}
 
 	/**

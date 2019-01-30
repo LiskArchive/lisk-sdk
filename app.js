@@ -490,20 +490,23 @@ d.run(() => {
 			},
 
 			components(cb) {
-				logger.debug(`Cache ${config.cacheEnabled ? 'Enabled' : 'Disabled'}`);
 				if (!config.cacheEnabled) {
+					logger.debug('Cache not enabled');
 					return cb();
 				}
+				logger.debug('Initiating cache...');
 				const cache = createCacheComponent(config.cache, logger);
-				return cache.bootstrap().then(err => {
-					if (err) {
-						return cb(err);
-					}
-					components.push(cache);
-					return cb(null, {
-						cache,
+				return cache
+					.bootstrap()
+					.then(() => {
+						components.push(cache);
+						return cb(null, {
+							cache,
+						});
+					})
+					.catch(err => {
+						cb(err);
 					});
-				});
 			},
 
 			webSocket: [

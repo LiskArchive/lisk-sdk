@@ -388,7 +388,7 @@ Rounds.prototype.onBlockchainReady = function() {
  * @todo Add description for the params
  */
 Rounds.prototype.onFinishRound = async function(round) {
-	if (components.cache) {
+	if (components && components.cache && components.cache.isReady()) {
 		library.logger.debug(
 			['Cache - onFinishRound', '| Status:', components.cache.isReady()].join(
 				' '
