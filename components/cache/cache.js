@@ -39,9 +39,18 @@ class Cache {
 	}
 
 	async bootstrap() {
+		// TODO: implement retry_strategy
+		// TOFIX: app crashes with FTL error when launchin app with CACHE_ENABLE=true
+		// but cache server is not available.
 		this.client = redis.createClient(this.options);
 		this.client.once('error', this._onConnectionError.bind(this));
 		this.client.once('ready', this._onReady.bind(this));
+		this.getAsync = promisify(this.client.get).bind(this.client);
+		this.setAsync = promisify(this.client.set).bind(this.client);
+		this.delAsync = promisify(this.client.del).bind(this.client);
+		this.scanAsync = promisify(this.client.scan).bind(this.client);
+		this.flushdbAsync = promisify(this.client.flushdb).bind(this.client);
+		this.quitAsync = promisify(this.client.quit).bind(this.client);
 	}
 
 	_onConnectionError(err) {
@@ -100,8 +109,7 @@ class Cache {
 			throw new Error(errorCacheDisabled);
 		}
 
-		const getAsync = promisify(this.client.get).bind(this.client);
-		const value = await getAsync(key);
+		const value = await this.getAsync(key);
 		return JSON.parse(value);
 	}
 
@@ -120,9 +128,8 @@ class Cache {
 			throw new Error(errorCacheDisabled);
 		}
 
-		const setAsync = promisify(this.client.set).bind(this.client);
 		// Cache server calls toString on objects, which converts it to object [object] so calling stringify before saving
-		return setAsync(key, JSON.stringify(value));
+		return this.setAsync(key, JSON.stringify(value));
 	}
 
 	/**
@@ -140,8 +147,8 @@ class Cache {
 		if (!this.isReady()) {
 			throw new Error(errorCacheDisabled);
 		}
-		const delAsync = promisify(this.client.del).bind(this.client);
-		return delAsync(key);
+
+		return this.delAsync(key);
 	}
 
 	/**
@@ -163,18 +170,15 @@ class Cache {
 		let keys;
 		let cursor = 0;
 
-		const scanAsync = promisify(this.client.scan).bind(this.client);
-		const delAsync = promisify(this.client.del).bind(this.client);
-
 		const scan = () =>
-			scanAsync(cursor, 'MATCH', pattern).then((res, err) => {
+			this.scanAsync(cursor, 'MATCH', pattern).then((res, err) => {
 				if (err) throw err;
 
 				cursor = res[0];
 				keys = res[1];
 
 				if (keys.length > 0) {
-					delAsync(keys);
+					this.delAsync(keys);
 					return scan();
 				}
 
@@ -198,8 +202,7 @@ class Cache {
 		if (!this.isReady()) {
 			return new Error(errorCacheDisabled);
 		}
-		const flushdbAsync = promisify(this.client.flushdb).bind(this.client);
-		return flushdbAsync();
+		return this.flushdbAsync();
 	}
 
 	/**
@@ -223,8 +226,7 @@ class Cache {
 			// Because connection is not established in the first place
 			return null;
 		}
-		const quitAsync = promisify(this.client.quit).bind(this.client);
-		return quitAsync();
+		return this.quitAsync();
 	}
 }
 
