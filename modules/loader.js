@@ -303,7 +303,7 @@ __private.loadTransactions = function(cb) {
 							});
 
 							library.logger.warn(
-								['Transaction', id, 'is not valid, peer removed'].join(' '),
+								`Transaction ${id} is not valid, peer removed`,
 								peer.string
 							);
 							modules.peers.remove(peer);

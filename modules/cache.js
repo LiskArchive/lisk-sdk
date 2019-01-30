@@ -78,9 +78,7 @@ Cache.prototype.isReady = function() {
  */
 Cache.prototype.getJsonForKey = function(key, cb) {
 	logger.debug(
-		['Cache - Get value for key:', key, '| Status:', self.isConnected()].join(
-			' '
-		)
+		`Cache - Get value for key: ${key} | Status: ${self.isConnected()}`
 	);
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
@@ -111,9 +109,7 @@ Cache.prototype.setJsonForKey = function(key, value, cb) {
 		};
 
 	logger.debug(
-		['Cache - Set value for key:', key, '| Status:', self.isConnected()].join(
-			' '
-		)
+		`Cache - Set value for key: ${key} | Status: ${self.isConnected()}`
 	);
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
@@ -132,12 +128,7 @@ Cache.prototype.setJsonForKey = function(key, value, cb) {
  */
 Cache.prototype.deleteJsonForKey = function(key, cb) {
 	logger.debug(
-		[
-			'Cache - Delete value for key:',
-			key,
-			'| Status:',
-			self.isConnected(),
-		].join(' ')
+		`Cache - Delete value for key: ${key} | Status: ${self.isConnected()}`
 	);
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
@@ -233,9 +224,7 @@ Cache.prototype.clearCacheFor = function(pattern, cb) {
 	cb = cb || function() {};
 
 	logger.debug(
-		['Cache - clearCacheFor', pattern, '| Status:', self.isConnected()].join(
-			' '
-		)
+		`Cache - clearCacheFor ${pattern} | Status: ${self.isConnected()}`
 	);
 
 	if (!self.isReady()) {
@@ -245,19 +234,11 @@ Cache.prototype.clearCacheFor = function(pattern, cb) {
 	return self.removeByPattern(pattern, err => {
 		if (err) {
 			logger.error(
-				[
-					'Cache - Error clearing keys with pattern:',
-					pattern,
-					'on new block',
-				].join(' ')
+				`Cache - Error clearing keys with pattern: ${pattern} on new block`
 			);
 		} else {
 			logger.debug(
-				[
-					'Cache - Keys with pattern:',
-					pattern,
-					'cleared from cache on new block',
-				].join(' ')
+				`Cache - Keys with pattern: ${pattern} cleared from cache on new block`
 			);
 		}
 
@@ -277,7 +258,7 @@ Cache.prototype.onFinishRound = function(round, cb) {
 	cb = cb || function() {};
 
 	logger.debug(
-		['Cache - onFinishRound', '| Status:', self.isConnected()].join(' ')
+		`Cache - onFinishRound | Status: ${self.isConnected()}`
 	);
 	if (!self.isReady()) {
 		return cb(errorCacheDisabled);
@@ -286,19 +267,11 @@ Cache.prototype.onFinishRound = function(round, cb) {
 	return self.removeByPattern(pattern, err => {
 		if (err) {
 			logger.error(
-				[
-					'Cache - Error clearing keys with pattern:',
-					pattern,
-					'round finish',
-				].join(' ')
+				`Cache - Error clearing keys with pattern: ${pattern} round finish`
 			);
 		} else {
 			logger.debug(
-				[
-					'Cache - Keys with pattern:',
-					pattern,
-					'cleared from cache on new Round',
-				].join(' ')
+				`Cache - Keys with pattern: ${pattern} cleared from cache on new Round`
 			);
 		}
 		return cb(err);
@@ -317,7 +290,7 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 	cb = cb || function() {};
 
 	logger.debug(
-		['Cache - onTransactionsSaved', '| Status:', self.isConnected()].join(' ')
+		`Cache - onTransactionsSaved | Status: ${self.isConnected()}`
 	);
 	if (!self.isReady()) {
 		return cb(errorCacheDisabled);
@@ -340,19 +313,11 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 				return self.removeByPattern(pattern, removeByPatternErr => {
 					if (removeByPatternErr) {
 						logger.error(
-							[
-								'Cache - Error clearing keys with pattern:',
-								pattern,
-								'on delegate transaction',
-							].join(' ')
+							`Cache - Error clearing keys with pattern: ${pattern} on delegate transaction`
 						);
 					} else {
 						logger.debug(
-							[
-								'Cache - Keys with pattern:',
-								pattern,
-								'cleared from cache on delegate transaction',
-							].join(' ')
+							`Cache - Keys with pattern: ${pattern} cleared from cache on delegate transaction`
 						);
 					}
 					return setImmediate(reflectCb, removeByPatternErr);

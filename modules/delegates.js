@@ -299,12 +299,7 @@ __private.forge = function(cb) {
 			}
 
 			if (modules.transport.poorConsensus()) {
-				const consensusErr = [
-					'Inadequate broadhash consensus before forging a block:',
-					modules.peers.getLastConsensus(),
-					'%',
-				].join(' ');
-
+				const consensusErr = `Inadequate broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`;
 				library.logger.error(
 					'Failed to generate block within delegate slot',
 					consensusErr
@@ -313,11 +308,7 @@ __private.forge = function(cb) {
 			}
 
 			library.logger.info(
-				[
-					'Broadhash consensus before forging a block:',
-					modules.peers.getLastConsensus(),
-					'%',
-				].join(' ')
+				`Broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`
 			);
 
 			return modules.blocks.process.generateBlock(
@@ -337,17 +328,13 @@ __private.forge = function(cb) {
 					modules.blocks.lastReceipt.update();
 
 					library.logger.info(
-						[
-							'Forged new block id:',
-							forgedBlock.id,
-							'height:',
-							forgedBlock.height,
-							'round:',
-							slots.calcRound(forgedBlock.height),
-							'slot:',
-							slots.getSlotNumber(forgedBlock.timestamp),
-							`reward: ${forgedBlock.reward}`,
-						].join(' ')
+						`Forged new block id: ${forgedBlock.id} height: ${
+							forgedBlock.height
+						} round: ${slots.calcRound(
+							forgedBlock.height
+						)} slot: ${slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
+							forgedBlock.reward
+						}`
 					);
 
 					return setImmediate(cb);

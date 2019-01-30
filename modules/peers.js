@@ -599,7 +599,7 @@ Peers.prototype.discover = function(cb) {
 	function pickPeers(peers, waterCb) {
 		const picked = self.acceptable(peers);
 		library.logger.debug(
-			['Picked', picked.length, 'of', peers.length, 'peers'].join(' ')
+			`Picked ${picked.length} of ${peers.length} peers`
 		);
 		return setImmediate(waterCb, null, picked);
 	}
@@ -619,7 +619,7 @@ Peers.prototype.discover = function(cb) {
 				library.schema.validate(peer, definitions.Peer, err => {
 					if (err) {
 						library.logger.warn(
-							['Rejecting invalid peer:', peer.string].join(' '),
+							`Rejecting invalid peer: ${peer.string}`,
 							{ err }
 						);
 						return setImmediate(eachCb);
@@ -910,7 +910,7 @@ Peers.prototype.onPeersReady = function() {
 	function calculateConsensus(cb) {
 		self.calculateConsensus();
 		library.logger.debug(
-			['Broadhash consensus:', self.getLastConsensus(), '%'].join(' ')
+			`Broadhash consensus: ${self.getLastConsensus()} %`
 		);
 		return setImmediate(cb);
 	}
