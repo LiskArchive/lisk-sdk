@@ -34,14 +34,12 @@ const convertToBigNum = transactions => {
 
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
+	const round = slots.calcRound(lastBlock.height + 1);
 
-	library.modules.delegates.generateDelegateList(
-		lastBlock.height + 1,
-		(err, list) => {
-			const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
-			return cb(err, delegatePublicKey);
-		}
-	);
+	library.modules.delegates.generateDelegateList(round, null, (err, list) => {
+		const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
+		return cb(err, delegatePublicKey);
+	});
 }
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {

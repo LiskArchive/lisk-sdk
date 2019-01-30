@@ -177,22 +177,50 @@ __private.getDelegatesFromPreviousRound = function(cb, tx) {
 };
 
 /**
+ * Generates delegate list and checks if block generator publicKey matches delegate id.
+ *
+ * @param {block} block
+ * @param {function} source - Source function for get delegates
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
+ */
+__private.validateBlockSlot = function(block, source, cb) {
+	const round = slots.calcRound(block.height);
+	self.generateDelegateList(round, source, (err, activeDelegates) => {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+
+		const currentSlot = slots.getSlotNumber(block.timestamp);
+		const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
+
+		if (delegateId && block.generatorPublicKey === delegateId) {
+			return setImmediate(cb);
+		}
+		library.logger.error(
+			`Expected generator: ${delegateId} Received generator: ${
+				block.generatorPublicKey
+			}`
+		);
+		return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
+	});
+};
+
+/**
  * Gets the assigned delegate to current slot and returns its keypair if present.
  *
  * @private
  * @param {number} slot
- * @param {number} blockHeight
+ * @param {number} round
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, {time, keypair}
  * @todo Add description for the params
  */
-__private.getDelegateKeypairForCurrentSlot = function(
-	currentSlot,
-	blockHeight,
-	cb
-) {
+__private.getDelegateKeypairForCurrentSlot = function(currentSlot, round, cb) {
 	self.generateDelegateList(
-		blockHeight,
+		round,
+		null,
 		(generateDelegateListErr, activeDelegates) => {
 			if (generateDelegateListErr) {
 				return setImmediate(cb, generateDelegateListErr);
@@ -686,27 +714,23 @@ Delegates.prototype.updateForgingStatus = function(
 /**
  * Gets delegate list based on input function by vote and changes order.
  *
- * @param {number} blockHeight
+ * @param {number} round
+ * @param {function} source - Source function for get delegates
  * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback} cb, err, truncated delegate list
  * @todo Add description for the params
  */
-Delegates.prototype.generateDelegateList = function(blockHeight, cb, tx) {
-	const round = slots.calcRound(blockHeight);
+Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
+	// Set default function for getting delegates
+	source = source || __private.getKeysSortByVote;
 
 	if (__private.delegatesListCache[round]) {
+		library.logger.debug('Using delegate list from the cache for round', round);
 		return setImmediate(cb, null, __private.delegatesListCache[round]);
 	}
 
-	const lastBlockHeight = modules.blocks.lastBlock.get().height;
-	// Set default function for getting delegates
-	const source =
-		blockHeight === lastBlockHeight && lastBlockHeight % ACTIVE_DELEGATES === 0
-			? 'getDelegatesFromPreviousRound'
-			: 'getKeysSortByVote';
-
-	return __private[source]((err, truncDelegateList) => {
+	return source((err, truncDelegateList) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -747,24 +771,26 @@ Delegates.prototype.generateDelegateList = function(blockHeight, cb, tx) {
  * @todo Add description for the params
  */
 Delegates.prototype.validateBlockSlot = function(block, cb) {
-	self.generateDelegateList(block.height, (err, activeDelegates) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
+	__private.validateBlockSlot(block, __private.getKeysSortByVote, cb);
+};
 
-		const currentSlot = slots.getSlotNumber(block.timestamp);
-		const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
-
-		if (delegateId && block.generatorPublicKey === delegateId) {
-			return setImmediate(cb);
-		}
-		library.logger.error(
-			`Expected generator: ${delegateId} Received generator: ${
-				block.generatorPublicKey
-			}`
-		);
-		return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
-	});
+/**
+ * Generates delegate list and checks if block generator public key matches delegate id - against previous round.
+ *
+ * @param {block} block
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
+ */
+Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
+	block,
+	cb
+) {
+	__private.validateBlockSlot(
+		block,
+		__private.getDelegatesFromPreviousRound,
+		cb
+	);
 };
 
 /**
@@ -824,7 +850,9 @@ Delegates.prototype.getForgers = function(query, cb) {
 
 	// We calculate round using height + 1, because we want the list to be generated for next block - it will be passed as seed for generating the list
 	// For example: last block height is 101 (still round 1, but already finished), then we want the list for round 2 (height 102)
-	self.generateDelegateList(currentBlock.height + 1, (err, activeDelegates) => {
+	const round = slots.calcRound(currentBlock.height + 1);
+
+	self.generateDelegateList(round, null, (err, activeDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
