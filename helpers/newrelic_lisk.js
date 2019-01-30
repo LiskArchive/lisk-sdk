@@ -25,13 +25,12 @@ newrelicLisk.instrumentWeb();
 newrelicLisk.instrumentDatabase();
 newrelicLisk.instrumentBackgroundJobs();
 
+// TOFIX: fix callbackMethods converted to async in #2579
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
-	'./componentes/cache.js': {
+	'./componentes/cache/cache': {
 		identifier: 'components.cache',
 		callbackMethods: [
-			'onNewBlock',
-			'onFinishRound',
 			'getJsonForKey',
 			'setJsonForKey',
 			'deleteJsonForKey',
