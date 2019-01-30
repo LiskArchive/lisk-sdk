@@ -23,7 +23,7 @@ const async = require('async');
 const httpApi = require('../../helpers/http_api');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Sequence = require('../../helpers/sequence');
-const createCache = require('../../components');
+const { createCacheComponent } = require('../../components/cache');
 const StorageSandbox = require('./storage_sandbox').StorageSandbox;
 
 let currentAppScope;
@@ -176,7 +176,10 @@ function __init(initScope, done) {
 					});
 				},
 				components(cb) {
-					const cache = createCache(__testContext.config.redis, logger);
+					const cache = createCacheComponent(
+						__testContext.config.redis,
+						logger
+					);
 					return cache.bootstrap().then(err => {
 						if (err) {
 							return cb(err);

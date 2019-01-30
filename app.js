@@ -51,7 +51,7 @@ const httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 const swaggerHelper = require('./helpers/swagger');
 const createStorage = require('./storage');
-const createCache = require('./components');
+const { createCacheComponent } = require('./components/cache');
 
 /**
  * Main application entry point.
@@ -494,7 +494,7 @@ d.run(() => {
 				if (!config.cacheEnabled) {
 					return cb();
 				}
-				const cache = createCache(config.cache, logger);
+				const cache = createCacheComponent(config.cache, logger);
 				return cache.bootstrap().then(err => {
 					if (err) {
 						return cb(err);

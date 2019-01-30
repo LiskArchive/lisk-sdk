@@ -14,7 +14,7 @@
 
 'use strict';
 
-const createCache = require('../../../components');
+const { createCacheComponent } = require('../../../components/cache');
 const Logger = require('../../../logger');
 
 describe('components: cache', () => {
@@ -27,7 +27,7 @@ describe('components: cache', () => {
 			errorLevel: __testContext.config.fileLogLevel,
 			filename: __testContext.config.logFileName,
 		});
-		cache = createCache(__testContext.config.redis, this.logger);
+		cache = createCacheComponent(__testContext.config.redis, this.logger);
 		await cache.bootstrap();
 		return expect(cache).to.be.an('object');
 	});
