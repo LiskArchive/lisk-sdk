@@ -16,8 +16,6 @@
 
 const redis = require('redis');
 const { promisify } = require('util');
-const transactionTypes = require('../../helpers/transaction_types');
-const { CACHE } = require('./constants');
 
 const errorCacheDisabled = 'Cache Disabled';
 
@@ -222,64 +220,6 @@ class Cache {
 		}
 		const quitAsync = promisify(this.client.quit).bind(this.client);
 		return quitAsync();
-	}
-
-	/**
-	 * Clears all cache entries if there is a delegate type transaction after transactions saved.
-	 *
-	 * @param {transactions[]} transactions
-	 * @return {Promise.<null, Error>}
-	 */
-	async onTransactionsSaved(transactions) {
-		this.logger.debug(
-			['Cache - onTransactionsSaved', '| Status:', this.isReady()].join(' ')
-		);
-		if (!this.isReady()) {
-			throw new Error(errorCacheDisabled);
-		}
-
-		const pattern = CACHE.KEYS.delegatesApi;
-		const delegateTransaction = transactions.find(
-			transaction =>
-				!!transaction && transaction.type === transactionTypes.DELEGATE
-		);
-
-		if (!delegateTransaction) {
-			return null;
-		}
-
-		try {
-			await this.removeByPattern(pattern);
-		} catch (removeByPatternErr) {
-			this.logger.error(
-				[
-					'Cache - Error clearing keys with pattern:',
-					pattern,
-					'on delegate transaction',
-				].join(' ')
-			);
-		}
-
-		this.logger.debug(
-			[
-				'Cache - Keys with pattern:',
-				pattern,
-				'cleared from cache on delegate transaction',
-			].join(' ')
-		);
-
-		try {
-			await this.deleteJsonForKey(CACHE.KEYS.transactionCount);
-		} catch (deleteJsonForKeyErr) {
-			return this.logger.error(
-				`Cache - Error clearing keys: ${
-					CACHE.KEYS.transactionCount
-				} : ${deleteJsonForKeyErr}`
-			);
-		}
-		return this.logger.debug(
-			`Cache - Keys ${CACHE.KEYS.transactionCount} cleared from cache`
-		);
 	}
 }
 

@@ -422,11 +422,6 @@ describe('blocks/chain', () => {
 		it('should call afterSave for all transactions', done => {
 			__private.afterSave(blockWithTransactions, () => {
 				expect(library.logic.transaction.afterSave.callCount).to.equal(3);
-				expect(library.bus.message.calledOnce).to.be.true;
-				expect(library.bus.message.args[0][0]).to.equal('transactionsSaved');
-				expect(library.bus.message.args[0][1]).to.deep.equal(
-					blockWithTransactions.transactions
-				);
 				done();
 			});
 		});

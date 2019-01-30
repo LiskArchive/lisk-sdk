@@ -32,7 +32,6 @@ const modulesToInstrument = {
 		callbackMethods: [
 			'onNewBlock',
 			'onFinishRound',
-			'onTransactionsSaved',
 			'getJsonForKey',
 			'setJsonForKey',
 			'deleteJsonForKey',

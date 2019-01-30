@@ -14,12 +14,8 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
-const { CACHE } = require('../../../components/cache/constants');
 const createCache = require('../../../components');
 const Logger = require('../../../logger');
-const accountFixtures = require('../../fixtures/accounts');
-const randomUtil = require('../../common/utils/random');
 
 describe('components: cache', () => {
 	let cache;
@@ -225,85 +221,4 @@ describe('components: cache', () => {
 	describe('cleanup', () => {});
 
 	describe('quit', () => {});
-
-	describe('onTransactionsSaved', () => {
-		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 transaction', async () => {
-			const key = '/api/delegates?123';
-			const value = { testObject: 'testValue' };
-			const transaction = lisk.transaction.transfer({
-				amount: 1,
-				passphrase: accountFixtures.genesis.passphrase,
-				secondPassphrase: accountFixtures.genesis.secondPassphrase,
-				recipientId: '1L',
-			});
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.onTransactionsSaved([transaction]);
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.eql(value);
-		});
-
-		it('should remove keys that match pattern /api/delegate on type 2 transaction', async () => {
-			const key = '/api/delegates?123';
-			const value = { testObject: 'testValue' };
-			const transaction = lisk.transaction.registerDelegate({
-				passphrase: randomUtil.password(),
-				username: randomUtil.delegateName().toLowerCase(),
-			});
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.onTransactionsSaved([transaction]);
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.equal(null);
-		});
-
-		it('should remove keys "transactionCount" if there is any transaction saved', async () => {
-			const key = CACHE.KEYS.transactionCount;
-			const value = { confirmed: 34 };
-			const transaction = lisk.transaction.registerDelegate({
-				passphrase: randomUtil.password(),
-				username: randomUtil.delegateName().toLowerCase(),
-			});
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.onTransactionsSaved([transaction]);
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.equal(null);
-		});
-
-		it('should not remove keys "transactionCount" if no transaction saved', async () => {
-			const key = CACHE.KEYS.transactionCount;
-			const value = { confirmed: 34 };
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.onTransactionsSaved([]);
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.eql(value);
-		});
-
-		it('should not remove any key when cache is not ready', async () => {
-			const key = '/api/delegates?123';
-			const value = { testObject: 'testValue' };
-			const transaction = lisk.transaction.registerDelegate({
-				passphrase: randomUtil.password(),
-				username: randomUtil.delegateName().toLowerCase(),
-			});
-
-			const result = await cache.setJsonForKey(key, value);
-			expect(result).to.equal('OK');
-			await cache.setReady(false);
-			try {
-				await cache.onTransactionsSaved([transaction]);
-			} catch (onTransactionsSavedErr) {
-				expect(onTransactionsSavedErr.message).to.equal('Cache Disabled');
-			}
-			await cache.setReady(true);
-			const res = await cache.getJsonForKey(key);
-			expect(res).to.eql(value);
-		});
-	});
 });
