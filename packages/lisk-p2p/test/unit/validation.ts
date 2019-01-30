@@ -20,7 +20,7 @@ import {
 	validateRPCRequest,
 	validateProtocolMessage,
 } from '../../src/validation';
-import { PeerInfo } from '../../src/peer';
+import { P2PPeerInfo } from '../../src/p2p_types';
 import {
 	ProtocolRPCRequestPacket,
 	ProtocolMessagePacket,
@@ -53,7 +53,7 @@ describe('response handlers', () => {
 				version: '3.4.5-alpha.9',
 			};
 
-			it('should return PeerInfo object', async () => {
+			it('should return P2PPeerInfo object', async () => {
 				expect(validatePeerInfo(peer))
 					.to.be.an('object')
 					.include({
@@ -65,7 +65,7 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return PeerInfo object with height value set to 0', async () => {
+			it('should return P2PPeerInfo object with height value set to 0', async () => {
 				expect(validatePeerInfo(peerWithInvalidHeightValue))
 					.to.be.an('object')
 					.include({
@@ -77,7 +77,7 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return PeerInfo and instance of Peer sets blank for invalid value of os', async () => {
+			it('should return P2PPeerInfo and instance of Peer sets blank for invalid value of os', async () => {
 				expect(validatePeerInfo(peerWithInvalidOsValue))
 					.to.be.an('object')
 					.include({
@@ -195,7 +195,7 @@ describe('response handlers', () => {
 			success: true,
 			peers: peerList,
 		};
-		let validatedPeerInfoArray: ReadonlyArray<PeerInfo>;
+		let validatedPeerInfoArray: ReadonlyArray<P2PPeerInfo>;
 
 		beforeEach(async () => {
 			validatedPeerInfoArray = validatePeerInfoList(rawPeerInfoList);
@@ -245,11 +245,12 @@ describe('response handlers', () => {
 			expect(validatedPeerInfoArray).to.be.of.length(2);
 		});
 
-		it('should return deserialised peer info list', async () => {
+		it('should return deserialised P2PPeerInfo list', async () => {
 			const sanitizedPeerInfoList = peerList.map((peer: any) => {
 				peer['ipAddress'] = peer.ip;
 				peer.wsPort = +peer.wsPort;
 				peer.height = +peer.height;
+				peer.options = peer;
 				delete peer.ip;
 
 				return peer;
@@ -286,18 +287,6 @@ describe('response handlers', () => {
 			expect(
 				validateRPCRequest.bind(validateRPCRequest, inValidRequest),
 			).to.throw('Request procedure name is not a string');
-		});
-
-		it('should throw an error for an invalid data field type', async () => {
-			const inValidRequestData: unknown = {
-				data: 'invalid data field',
-				procedure: 'list',
-				type: '',
-			};
-
-			expect(
-				validateRPCRequest.bind(validateRPCRequest, inValidRequestData),
-			).to.throw('Invalid request data');
 		});
 
 		it('should pass and return an object', async () => {
