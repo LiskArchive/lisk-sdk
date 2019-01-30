@@ -179,7 +179,7 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.afterSave = async function(block, cb) {
-	if (components.cache) {
+	if (components && components.cache) {
 		library.logger.debug(
 			['Cache - chain afterSave', '| Status:', components.cache.isReady()].join(
 				' '
