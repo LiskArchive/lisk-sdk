@@ -310,13 +310,14 @@ describe('blocks', () => {
 
 		describe('when cache is enabled', () => {
 			beforeEach(done => {
-				blocksInstance = new Blocks(err => {
+				blocksInstance = new Blocks(async err => {
 					expect(err).to.be.undefined;
 					components = Blocks.__get__('components');
 					components.cache = {
-						removeByPattern: sinonSandbox.stub().callsArg(1),
+						removeByPattern: sinonSandbox.stub().resolves(),
+						isReady: sinonSandbox.stub(),
 					};
-					blocksInstance.onNewBlock(block);
+					await blocksInstance.onNewBlock(block);
 					done();
 				}, scope);
 			});
@@ -326,18 +327,14 @@ describe('blocks', () => {
 				done();
 			});
 
-			it('should call removeByPattern', done => {
-				expect(components.cache.removeByPattern.calledTwice).to.be.true;
-
-				done();
+			it('should call removeByPattern', () => {
+				return expect(components.cache.removeByPattern.calledTwice).to.be.true;
 			});
 
-			it('should call library.network.io.sockets.emit with "blocks/change" and block', done => {
-				expect(
+			it('should call library.network.io.sockets.emit with "blocks/change" and block', () => {
+				return expect(
 					library.network.io.sockets.emit.calledWith('blocks/change', block)
 				).to.be.true;
-
-				done();
 			});
 		});
 

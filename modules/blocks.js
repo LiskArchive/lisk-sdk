@@ -15,7 +15,6 @@
 'use strict';
 
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
-const async = require('async');
 const { CACHE } = require('../components/cache/constants');
 // Submodules
 const BlocksVerify = require('./blocks/verify');
@@ -240,17 +239,33 @@ Blocks.prototype.onBind = function(scope) {
  * @todo Add description for the params
  * @todo Add @returns tag
  */
-Blocks.prototype.onNewBlock = function(block) {
-	let tasks = [];
+Blocks.prototype.onNewBlock = async function(block) {
 	if (components.cache) {
-		tasks = [CACHE.KEYS.blocksApi, CACHE.KEYS.transactionsApi].map(
-			pattern => callback => components.cache.removeByPattern(pattern, callback)
+		library.logger.debug(
+			['Cache - onNewBlock', '| Status:', components.cache.isReady()].join(' ')
 		);
+		const keys = [CACHE.KEYS.blocksApi, CACHE.KEYS.transactionsApi];
+		try {
+			// eslint-disable-next-line no-restricted-syntax
+			for await (const key of keys) {
+				await components.cache.removeByPattern(key);
+			}
+			library.logger.debug(
+				[
+					'Cache - Keys with patterns:',
+					CACHE.KEYS.blocksApi,
+					CACHE.KEYS.transactionsApi,
+					'cleared from cache on new Block',
+				].join(' ')
+			);
+		} catch (removeByPatternErr) {
+			library.logger.error(
+				['Cache - Error clearing keys on new Block'].join(' ')
+			);
+		}
 	}
 
-	async.parallel(async.reflectAll(tasks), () =>
-		library.network.io.sockets.emit('blocks/change', block)
-	);
+	return library.network.io.sockets.emit('blocks/change', block);
 };
 
 /**
