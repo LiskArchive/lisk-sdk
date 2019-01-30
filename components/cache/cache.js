@@ -73,12 +73,17 @@ class Cache {
 	}
 
 	/**
-	 * Enables or disables cache client
-	 *
-	 * @param {boolean} availability
+	 * Enables cache client
 	 */
-	setReady(availability) {
-		this.client.ready = availability;
+	enable() {
+		this.client.ready = true;
+	}
+
+	/**
+	 * Disables cache client
+	 */
+	disable() {
+		this.client.ready = true;
 	}
 
 	/**
