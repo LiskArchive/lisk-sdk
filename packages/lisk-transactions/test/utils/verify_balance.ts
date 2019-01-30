@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import { expect } from 'chai';
 import { verifyBalance } from '../../src/utils';
 import { TransactionError } from '../../src/errors';
