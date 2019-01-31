@@ -59,15 +59,6 @@ class Logger {
 			flags: 'a',
 		});
 
-		function snipFragileData(data) {
-			Object.keys(data).forEach(key => {
-				if (key.search(/passphrase|password/i) > -1) {
-					data[key] = 'XXXXXXXXXX';
-				}
-			});
-			return data;
-		}
-
 		Object.keys(this.levels).forEach(name => {
 			logs[name] = (message, data) => {
 				const logContext = {
@@ -82,7 +73,7 @@ class Logger {
 				}
 
 				if (data && util.isObject(data)) {
-					logContext.data = JSON.stringify(snipFragileData(data));
+					logContext.data = JSON.stringify(Logger.snipFragileData(data));
 				} else {
 					logContext.data = data;
 				}
@@ -140,6 +131,15 @@ class Logger {
 		});
 
 		return logs;
+	}
+
+	static snipFragileData(data) {
+		Object.keys(data).forEach(key => {
+			if (key.search(/passphrase|password/i) > -1) {
+				data[key] = 'XXXXXXXXXX';
+			}
+		});
+		return data;
 	}
 }
 
