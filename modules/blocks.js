@@ -248,11 +248,9 @@ Blocks.prototype.onNewBlock = async function(block) {
 			['Cache - onNewBlock', '| Status:', components.cache.isReady()].join(' ')
 		);
 		const keys = [CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS];
+		const tasks = keys.map(key => components.cache.removeByPattern(key));
 		try {
-			// eslint-disable-next-line no-restricted-syntax
-			for await (const key of keys) {
-				await components.cache.removeByPattern(key);
-			}
+			await Promise.all(tasks);
 			library.logger.debug(
 				[
 					'Cache - Keys with patterns:',
