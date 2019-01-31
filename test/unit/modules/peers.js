@@ -886,7 +886,9 @@ describe('peers', () => {
 
 				beforeEach(done => {
 					dbPeersListResults = [prefixedPeer];
-					storageMock.entities.Peer.get = sinonSandbox.stub().resolves(dbPeersListResults);
+					storageMock.entities.Peer.get = sinonSandbox
+						.stub()
+						.resolves(dbPeersListResults);
 					peersLogicMock.upsert = sinonSandbox.spy();
 					// Call onBlockchainReady and wait 100ms
 					peers.onBlockchainReady();
@@ -897,6 +899,12 @@ describe('peers', () => {
 					return dbPeersListResults.forEach(dbPeer => {
 						expect(peersLogicMock.upsert).calledWith(dbPeer, true);
 					});
+				});
+
+				it('should call storage get method with limit = null for pulling all peers', async () => {
+					expect(
+						storageMock.entities.Peer.get.firstCall.args[1].limit
+					).to.be.eql(null);
 				});
 			});
 		});
@@ -1076,19 +1084,13 @@ describe('peers', () => {
 					.stub()
 					.returns(true);
 				__private.updatePeerStatus(undefined, status, peer);
-				expect(peersLogicMock.upsert).to.be.calledWithExactly(
-					peer,
-					false
-				);
+				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
 				// When it's not compatible
 				modules.system.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(false);
 				__private.updatePeerStatus(undefined, status, peer);
-				expect(peersLogicMock.upsert).to.be.calledWithExactly(
-					peer,
-					false
-				);
+				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
 				done();
 			});
 		});
