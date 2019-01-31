@@ -237,6 +237,7 @@ describe('Transaction', () => {
 
 	afterEach(() => {
 		sinonSandbox.reset();
+		sinonSandbox.restore();
 		return seeder.reset(storage);
 	});
 
@@ -842,6 +843,24 @@ describe('Transaction', () => {
 
 			expect(result).to.be.a('number');
 			return expect(result).to.be.eql(0);
+		});
+
+		it('should use view query file if some conditions provided', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await storage.entities.Transaction.count({
+				id: NON_EXISTENT_ID,
+			});
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(SQLs.count);
+		});
+
+		it('should use trs  query file if no conditions provided', async () => {
+			sinonSandbox.spy(adapter, 'executeFile');
+			await storage.entities.Transaction.count();
+
+			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledWith(SQLs.count_all);
 		});
 	});
 
