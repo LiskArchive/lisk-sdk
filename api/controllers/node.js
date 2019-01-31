@@ -28,6 +28,11 @@ const { EPOCH_TIME, FEES } = global.constants;
 let library;
 let blockReward;
 
+// Promised functions
+let getNetworkHeight;
+let getTransactionsCount;
+let updateForgingStatus;
+
 /**
  * Description of the function.
  *
@@ -51,6 +56,9 @@ function NodeController(scope) {
 		lastCommit: scope.lastCommit,
 	};
 	blockReward = new BlockReward();
+	getNetworkHeight = promisify(library.modules.peers.networkHeight);
+	getTransactionsCount = promisify(library.modules.transactions.shared.getTransactionsCount);
+	updateForgingStatus = promisify(library.modules.delegates.updateForgingStatus);
 }
 
 /**
@@ -104,7 +112,7 @@ NodeController.getConstants = async (context, next) => {
  */
 NodeController.getStatus = async (context, next) => {
 	try {
-		const networkHeight = await promisify(library.modules.peers.networkHeight)({
+		const networkHeight = await getNetworkHeight({
 			normalized: false,
 		});
 
@@ -119,7 +127,7 @@ NodeController.getStatus = async (context, next) => {
 			syncing: library.modules.loader.syncing(),
 		};
 
-		data.transactions = await promisify(library.modules.transactions.shared.getTransactionsCount)();
+		data.transactions = await getTransactionsCount();
 		return next(null, data);
 	} catch (err) {
 		return next(err);
@@ -294,11 +302,7 @@ async function _getForgingStatus(publicKey) {
  * @private
  */
 async function _updateForgingStatus(publicKey, password, forging) {
-	return promisify(library.modules.delegates.updateForgingStatus)(
-		publicKey,
-		password,
-		forging
-	);
+	return updateForgingStatus(publicKey, password, forging);
 }
 
 module.exports = NodeController;
