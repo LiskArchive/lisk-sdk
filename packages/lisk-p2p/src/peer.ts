@@ -370,6 +370,10 @@ export class Peer extends EventEmitter {
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
 	}
 
+	public static constructPeerIdFromPeerInfo(peerInfo: P2PPeerInfo): string {
+		return `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+	}
+
 	private _handlePeerInfo(request: P2PRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {

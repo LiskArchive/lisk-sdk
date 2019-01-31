@@ -22,11 +22,14 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
+import { RequestFailError } from './errors';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PRequestPacket,
+	P2PResponsePacket,
 	ProtocolPeerInfoList,
 } from './p2p_types';
 import {
@@ -108,14 +111,62 @@ export class PeerPool extends EventEmitter {
 	public selectPeers(
 		selectionParams: PeerOptions,
 		numOfPeers?: number,
-	): ReadonlyArray<Peer> {
+	): ReadonlyArray<P2PPeerInfo> {
+		const listOfPeerInfo = [...this._peerMap.values()].map(
+			(peer: Peer) => peer.peerInfo,
+		);
 		const selectedPeers = selectPeers(
-			[...this._peerMap.values()],
+			listOfPeerInfo,
 			selectionParams,
 			numOfPeers,
 		);
 
 		return selectedPeers;
+	}
+
+	public async requestPeer(
+		packet: P2PRequestPacket,
+		nodeInfo: P2PNodeInfo,
+	): Promise<P2PResponsePacket> {
+		const peerSelectionParams: PeerOptions = {
+			lastBlockHeight: nodeInfo.height,
+		};
+		const selectedPeer = this.selectPeers(peerSelectionParams, 1);
+
+		if (selectedPeer.length <= 0) {
+			throw new RequestFailError(
+				'Request failed due to no peers found in peer selection',
+			);
+		}
+
+		const selectedPeerId = Peer.constructPeerIdFromPeerInfo(selectedPeer[0]);
+		const peer = this._peerMap.get(selectedPeerId);
+
+		if (!peer) {
+			throw new RequestFailError(
+				`No such Peer exist in PeerPool with the selected peer with Id: ${selectedPeerId}`,
+			);
+		}
+
+		const response: P2PResponsePacket = await peer.request(packet);
+
+		return response;
+	}
+
+	public sendToPeers(message: P2PMessagePacket, nodeInfo: P2PNodeInfo): void {
+		const peerSelectionParams: PeerOptions = {
+			lastBlockHeight: nodeInfo.height,
+		};
+		const selectedPeers = this.selectPeers(peerSelectionParams);
+
+		selectedPeers.forEach((peerInfo: P2PPeerInfo) => {
+			const selectedPeerId = Peer.constructPeerIdFromPeerInfo(peerInfo);
+			const peer = this._peerMap.get(selectedPeerId);
+
+			if (peer) {
+				peer.send(message);
+			}
+		});
 	}
 
 	public async runDiscovery(
