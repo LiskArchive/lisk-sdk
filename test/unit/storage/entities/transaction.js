@@ -228,10 +228,10 @@ describe('Transaction', () => {
 		};
 
 		adapter = storage.adapter;
-		addFieldSpy = sinonSandbox.spy(Transaction.prototype, 'addField');
 	});
 
 	beforeEach(() => {
+		addFieldSpy = sinonSandbox.spy(Transaction.prototype, 'addField');
 		return seeder.seed(storage);
 	});
 
