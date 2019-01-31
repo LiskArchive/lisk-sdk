@@ -143,10 +143,4 @@ class Logger {
 	}
 }
 
-function createLoggerComponent(config = {}) {
-	return new Logger(config);
-}
-
-module.exports = {
-	createLoggerComponent,
-};
+module.exports = Logger;
