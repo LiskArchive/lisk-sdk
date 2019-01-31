@@ -271,14 +271,18 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
+
 					if (!blocksCommonRes.common) {
 						// FIXME: Need better checking here, is base on 'common' property enough?
 						comparisonFailed = true;
 						return setImmediate(
 							waterCb,
-							`Chain comparison failed with peer: ${peer.string} using ids: ${ids}`
+							`Chain comparison failed with peer: ${
+								peer.string
+							} using ids: ${ids}`
 						);
 					}
+
 					return setImmediate(waterCb, null, blocksCommonRes.common);
 				});
 			},
@@ -316,7 +320,9 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 						comparisonFailed = true;
 						return setImmediate(
 							waterCb,
-							`Chain comparison failed with peer: ${peer.string} using block: ${JSON.stringify(common)}`
+							`Chain comparison failed with peer: ${
+								peer.string
+							} using block: ${JSON.stringify(common)}`
 						);
 					})
 					.catch(err => {
@@ -417,10 +423,7 @@ Process.prototype.loadBlocksOffset = function(
 		})
 		.catch(err => {
 			library.logger.error(err);
-			return setImmediate(
-				cb,
-				`Blocks#loadBlocksOffset error: ${err}`
-			);
+			return setImmediate(cb, `Blocks#loadBlocksOffset error: ${err}`);
 		});
 };
 
@@ -664,6 +667,7 @@ Process.prototype.onReceiveBlock = function(block) {
 			// Process received block
 			return __private.receiveBlock(block, cb);
 		}
+
 		if (
 			block.previousBlock !== lastBlock.id &&
 			lastBlock.height + 1 === block.height
@@ -671,6 +675,7 @@ Process.prototype.onReceiveBlock = function(block) {
 			// Process received fork cause 1
 			return __private.receiveForkOne(block, lastBlock, cb);
 		}
+
 		if (
 			block.previousBlock === lastBlock.previousBlock &&
 			block.height === lastBlock.height &&
@@ -682,17 +687,17 @@ Process.prototype.onReceiveBlock = function(block) {
 
 		if (block.id === lastBlock.id) {
 			library.logger.debug('Block already processed', block.id);
+		} else {
+			library.logger.warn(
+				`Discarded block that does not match with current chain: ${
+					block.id
+				} height: ${block.height} round: ${slots.calcRound(
+					block.height
+				)} slot: ${slots.getSlotNumber(block.timestamp)} generator: ${
+					block.generatorPublicKey
+				}`
+			);
 		}
-
-		library.logger.warn(
-			`Discarded block that does not match with current chain: ${
-				block.id
-			} height: ${block.height} round: ${slots.calcRound(
-				block.height
-			)} slot: ${slots.getSlotNumber(block.timestamp)} generator: ${
-				block.generatorPublicKey
-			}`
-		);
 
 		// Discard received block
 		return setImmediate(cb);
