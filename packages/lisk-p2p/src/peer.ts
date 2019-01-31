@@ -18,6 +18,7 @@ import * as querystring from 'querystring';
 import { RPCResponseError } from './errors';
 
 import {
+	DiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -77,6 +78,7 @@ export class Peer extends EventEmitter {
 	private readonly _wsPort: number;
 	private readonly _height: number;
 	private _peerInfo: P2PPeerInfo;
+	private _peerDetailedInfo: DiscoveredPeerInfo | undefined;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
@@ -168,17 +170,23 @@ export class Peer extends EventEmitter {
 		this._outboundSocket = scClientSocket;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
+	public updatePeerInfo(newPeerInfo: DiscoveredPeerInfo): void {
 		this._peerInfo = {
-			...newPeerInfo,
+			height: newPeerInfo.height,
 			ipAddress: this._peerInfo.ipAddress,
 			wsPort: this._peerInfo.wsPort,
-			isTriedPeer: true,
+			isDiscoveredPeer: true,
 		};
+
+		this._peerDetailedInfo = newPeerInfo;
 	}
 
 	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
+	}
+
+	public get detailedPeerInfo(): DiscoveredPeerInfo | undefined {
+		return this._peerDetailedInfo;
 	}
 
 	public get state(): PeerConnectionState {

@@ -24,6 +24,7 @@ import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
 import { P2PRequest } from './p2p_request';
 import {
+	DiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -159,7 +160,7 @@ export class PeerPool extends EventEmitter {
 
 	public addInboundPeer(
 		peerId: string,
-		peerInfo: P2PPeerInfo,
+		peerInfo: DiscoveredPeerInfo,
 		socket: SCServerSocket,
 	): boolean {
 		const existingPeer = this.getPeer(peerId);
@@ -176,7 +177,14 @@ export class PeerPool extends EventEmitter {
 			return false;
 		}
 
-		this.addPeer({ ...peerInfo }, socket);
+		this.addPeer(
+			{
+				ipAddress: peerInfo.ipAddress,
+				wsPort: peerInfo.wsPort,
+				height: peerInfo.height,
+			},
+			socket,
+		);
 
 		return true;
 	}
@@ -216,7 +224,7 @@ export class PeerPool extends EventEmitter {
 	private _pickRandomPeers(count: number): ReadonlyArray<Peer> {
 		const discoveredPeerList: ReadonlyArray<Peer> = [
 			...this._peerMap.values(),
-		].filter(peer => peer.peerInfo.isTriedPeer);
+		].filter(peer => peer.peerInfo.isDiscoveredPeer);
 
 		return shuffle(discoveredPeerList).slice(0, count);
 	}
@@ -228,17 +236,32 @@ export class PeerPool extends EventEmitter {
 			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
 			peers: this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE).map(
 				(peer: Peer) => {
+					const peerDetailedInfo = peer.detailedPeerInfo;
 					const peerInfo = peer.peerInfo;
 
+					if (peerDetailedInfo) {
+						return {
+							broadhash: peerDetailedInfo.options
+								? (peerDetailedInfo.options.broadhash as string)
+								: '',
+							height: peerDetailedInfo.height,
+							ip: peerDetailedInfo.ipAddress,
+							nonce: peerDetailedInfo.options
+								? (peerDetailedInfo.options.nonce as string)
+								: '',
+							os: peerDetailedInfo.os ? peerDetailedInfo.os : '',
+							version: peerDetailedInfo.version ? peerDetailedInfo.version : '',
+							wsPort: String(peerInfo.wsPort),
+						};
+					}
+
 					return {
-						broadhash: peerInfo.options
-							? (peerInfo.options.broadhash as string)
-							: '',
+						broadhash: '',
 						height: peerInfo.height,
 						ip: peerInfo.ipAddress,
-						nonce: peerInfo.options ? (peerInfo.options.nonce as string) : '',
-						os: peerInfo.os ? peerInfo.os : '',
-						version: peerInfo.version ? peerInfo.version : '',
+						nonce: '',
+						os: '',
+						version: '',
 						wsPort: String(peerInfo.wsPort),
 					};
 				},

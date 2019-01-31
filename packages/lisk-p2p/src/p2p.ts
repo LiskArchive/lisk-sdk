@@ -30,6 +30,7 @@ import {
 } from './disconnect_status_codes';
 
 import {
+	DiscoveredPeerInfo,
 	P2PConfig,
 	P2PMessagePacket,
 	P2PNetworkStatus,
@@ -219,7 +220,7 @@ export class P2P extends EventEmitter {
 					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
 
-					const incomingPeerInfo: P2PPeerInfo = {
+					const incomingPeerInfo: DiscoveredPeerInfo = {
 						...queryObject,
 						ipAddress: socket.remoteAddress,
 						wsPort,
