@@ -31,7 +31,7 @@ const modulesLoader = new function() {
 		echo: null,
 		errorLevel: __testContext.config.fileLogLevel,
 		filename: __testContext.config.logFileName,
-	});
+	}).bootstrap();
 	this.scope = {
 		config: __testContext.config,
 		genesisBlock: { block: __testContext.config.genesisBlock },

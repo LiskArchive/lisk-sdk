@@ -22,121 +22,129 @@ const strftime = require('strftime').utc();
 
 require('colors');
 
-function createLoggerComponent(config) {
-	config = config || {};
-	const exports = {};
+class Logger {
+	constructor(config) {
+		this.levels = config.levels || {
+			none: 99,
+			trace: 0,
+			debug: 1,
+			log: 2,
+			info: 3,
+			warn: 4,
+			error: 5,
+			fatal: 6,
+		};
 
-	config.levels = config.levels || {
-		none: 99,
-		trace: 0,
-		debug: 1,
-		log: 2,
-		info: 3,
-		warn: 4,
-		error: 5,
-		fatal: 6,
-	};
+		this.level_abbr = config.level_abbr || {
+			trace: 'trc',
+			debug: 'dbg',
+			log: 'log',
+			info: 'inf',
+			warn: 'WRN',
+			error: 'ERR',
+			fatal: 'FTL',
+		};
 
-	config.level_abbr = config.level_abbr || {
-		trace: 'trc',
-		debug: 'dbg',
-		log: 'log',
-		info: 'inf',
-		warn: 'WRN',
-		error: 'ERR',
-		fatal: 'FTL',
-	};
+		this.filename = `${process.cwd()}/${config.filename || 'logs.log'}`;
 
-	config.filename = `${process.cwd()}/${config.filename || 'logs.log'}`;
+		this.errorLevel = config.errorLevel || 'log';
 
-	config.errorLevel = config.errorLevel || 'log';
-
-	child_process.execSync(`mkdir -p ${path.dirname(config.filename)}`);
-	const log_file = fs.createWriteStream(config.filename, { flags: 'a' });
-
-	function snipFragileData(data) {
-		Object.keys(data).forEach(key => {
-			if (key.search(/passphrase|password/i) > -1) {
-				data[key] = 'XXXXXXXXXX';
-			}
-		});
-		return data;
+		this.echo = config.echo;
 	}
 
-	Object.keys(config.levels).forEach(name => {
-		function log(message, data) {
-			const logContext = {
-				level: name,
-				timestamp: strftime('%F %T', new Date()),
-			};
+	bootstrap() {
+		const logs = {};
+		child_process.execSync(`mkdir -p ${path.dirname(this.filename)}`);
+		const log_file = fs.createWriteStream(this.filename, {
+			flags: 'a',
+		});
 
-			if (message instanceof Error) {
-				logContext.message = message.stack;
-			} else {
-				logContext.message = message;
-			}
-
-			if (data && util.isObject(data)) {
-				logContext.data = JSON.stringify(snipFragileData(data));
-			} else {
-				logContext.data = data;
-			}
-
-			logContext.symbol = config.level_abbr[logContext.level]
-				? config.level_abbr[logContext.level]
-				: '???';
-
-			if (config.levels[config.errorLevel] <= config.levels[logContext.level]) {
-				if (logContext.data) {
-					log_file.write(
-						util.format(
-							'[%s] %s | %s - %s\n',
-							logContext.symbol,
-							logContext.timestamp,
-							logContext.message,
-							logContext.data
-						)
-					);
-				} else {
-					log_file.write(
-						util.format(
-							'[%s] %s | %s\n',
-							logContext.symbol,
-							logContext.timestamp,
-							logContext.message
-						)
-					);
+		function snipFragileData(data) {
+			Object.keys(data).forEach(key => {
+				if (key.search(/passphrase|password/i) > -1) {
+					data[key] = 'XXXXXXXXXX';
 				}
-			}
-
-			if (
-				config.echo &&
-				config.levels[config.echo] <= config.levels[logContext.level]
-			) {
-				if (logContext.data) {
-					console.info(
-						`[${logContext.symbol.bgYellow.black}]`,
-						logContext.timestamp.grey,
-						'|',
-						logContext.message,
-						'-',
-						logContext.data
-					);
-				} else {
-					console.info(
-						`[${logContext.symbol.bgYellow.black}]`,
-						logContext.timestamp.grey,
-						'|',
-						logContext.message
-					);
-				}
-			}
+			});
+			return data;
 		}
 
-		exports[name] = log;
-	});
+		Object.keys(this.levels).forEach(name => {
+			logs[name] = (message, data) => {
+				const logContext = {
+					level: name,
+					timestamp: strftime('%F %T', new Date()),
+				};
 
-	return exports;
+				if (message instanceof Error) {
+					logContext.message = message.stack;
+				} else {
+					logContext.message = message;
+				}
+
+				if (data && util.isObject(data)) {
+					logContext.data = JSON.stringify(snipFragileData(data));
+				} else {
+					logContext.data = data;
+				}
+
+				logContext.symbol = this.level_abbr[logContext.level]
+					? this.level_abbr[logContext.level]
+					: '???';
+
+				if (this.levels[this.errorLevel] <= this.levels[logContext.level]) {
+					if (logContext.data) {
+						log_file.write(
+							util.format(
+								'[%s] %s | %s - %s\n',
+								logContext.symbol,
+								logContext.timestamp,
+								logContext.message,
+								logContext.data
+							)
+						);
+					} else {
+						log_file.write(
+							util.format(
+								'[%s] %s | %s\n',
+								logContext.symbol,
+								logContext.timestamp,
+								logContext.message
+							)
+						);
+					}
+				}
+
+				if (
+					this.echo &&
+					this.levels[this.echo] <= this.levels[logContext.level]
+				) {
+					if (logContext.data) {
+						console.info(
+							`[${logContext.symbol.bgYellow.black}]`,
+							logContext.timestamp.grey,
+							'|',
+							logContext.message,
+							'-',
+							logContext.data
+						);
+					} else {
+						console.info(
+							`[${logContext.symbol.bgYellow.black}]`,
+							logContext.timestamp.grey,
+							'|',
+							logContext.message
+						);
+					}
+				}
+			};
+		});
+
+		return logs;
+	}
+}
+
+function createLoggerComponent(config = {}) {
+	return new Logger(config);
 }
 
 module.exports = {

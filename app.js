@@ -163,7 +163,7 @@ const logger = createLoggerComponent({
 	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 	errorLevel: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
 	filename: appConfig.logFileName,
-});
+}).bootstrap();
 
 /**
  * Db logger instance.
@@ -183,7 +183,7 @@ if (
 		echo: process.env.DB_LOG_LEVEL || 'log',
 		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,
-	});
+	}).bootstrap();
 }
 
 // Try to get the last git commit

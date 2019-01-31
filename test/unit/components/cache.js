@@ -26,7 +26,7 @@ describe('components: cache', () => {
 			echo: null,
 			errorLevel: __testContext.config.fileLogLevel,
 			filename: __testContext.config.logFileName,
-		});
+		}).bootstrap();
 		cache = createCacheComponent(__testContext.config.redis, this.logger);
 		await cache.bootstrap();
 		return expect(cache).to.be.an('object');
