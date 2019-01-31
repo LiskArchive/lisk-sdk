@@ -16,13 +16,13 @@
 
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-const Logger = require('../../../logger');
+const { createLoggerComponent } = require('../../../components/logger');
 
 module.exports = {
 	http: require('./http'),
 	ws: require('./ws'),
 	transactions: require('./transactions'),
-	logger: new Logger({
+	logger: createLoggerComponent({
 		filename: 'test/network/networkTestsLogger.logs',
 		echo: 'log',
 	}),

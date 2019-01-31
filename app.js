@@ -42,7 +42,6 @@ const dns = require('dns');
 const net = require('net');
 const SocketCluster = require('socketcluster');
 const async = require('async');
-const createLogger = require('./logger');
 const wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 const WsTransport = require('./api/ws/transport');
 const git = require('./helpers/git.js');
@@ -52,6 +51,7 @@ const httpApi = require('./helpers/http_api.js');
 const swaggerHelper = require('./helpers/swagger');
 const createStorage = require('./storage');
 const { createCacheComponent } = require('./components/cache');
+const { createLoggerComponent } = require('./components/logger');
 
 /**
  * Main application entry point.
@@ -159,7 +159,7 @@ const config = {
  *
  * @memberof! app
  */
-const logger = createLogger({
+const logger = createLoggerComponent({
 	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 	errorLevel: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
 	filename: appConfig.logFileName,
@@ -179,7 +179,7 @@ if (
 	dbLogger = logger;
 } else {
 	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
-	dbLogger = createLogger({
+	dbLogger = createLoggerComponent({
 		echo: process.env.DB_LOG_LEVEL || 'log',
 		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,

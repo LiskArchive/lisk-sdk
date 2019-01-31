@@ -22,7 +22,7 @@ const strftime = require('strftime').utc();
 
 require('colors');
 
-module.exports = function createLogger(config) {
+function createLoggerComponent(config) {
 	config = config || {};
 	const exports = {};
 
@@ -141,4 +141,8 @@ module.exports = function createLogger(config) {
 	});
 
 	return exports;
+}
+
+module.exports = {
+	createLoggerComponent,
 };

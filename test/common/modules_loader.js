@@ -18,7 +18,7 @@ const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
 const Sequence = require('../../helpers/sequence.js');
-const Logger = require('../../logger.js');
+const { createLoggerComponent } = require('../../components/logger');
 const Z_schema = require('../../helpers/z_schema.js');
 const ed = require('../../helpers/ed');
 const jobsQueue = require('../../helpers/jobs_queue');
@@ -27,7 +27,7 @@ const Account = require('../../logic/account.js');
 
 const modulesLoader = new function() {
 	this.storage = null;
-	this.logger = new Logger({
+	this.logger = createLoggerComponent({
 		echo: null,
 		errorLevel: __testContext.config.fileLogLevel,
 		filename: __testContext.config.logFileName,
