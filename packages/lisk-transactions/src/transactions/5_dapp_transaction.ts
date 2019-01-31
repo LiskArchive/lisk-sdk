@@ -15,22 +15,15 @@
 import * as BigNum from 'browserify-bignum';
 import { DAPP_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Account, Status, TransactionJSON } from '../transaction_types';
+import { Status, TransactionJSON } from '../transaction_types';
+import { stringEndsWith, validator } from '../utils/validation';
 import {
-	isTypedObjectArrayWithKeys,
-	stringEndsWith,
-	validator,
-} from '../utils/validation';
-import {
-	Attributes,
 	BaseTransaction,
 	createBaseTransaction,
 	CreateBaseTransactionInput,
-	ENTITY_ACCOUNT,
 	ENTITY_TRANSACTION,
-	EntityMap,
-	RequiredState,
-	TransactionResponse,
+	StateStore,
+	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_DAPP_TYPE = 5;
@@ -40,7 +33,7 @@ export interface DappAsset {
 		readonly category: number;
 		readonly description?: string;
 		readonly icon?: string;
-		readonly link?: string;
+		readonly link: string;
 		readonly name: string;
 		readonly tags?: string;
 		readonly type: number;
@@ -51,7 +44,7 @@ export interface DappOptions {
 	readonly category: number;
 	readonly description?: string;
 	readonly icon?: string;
-	readonly link?: string;
+	readonly link: string;
 	readonly name: string;
 	readonly tags?: string;
 	readonly type: number;
@@ -66,12 +59,6 @@ export type CreateDappInput = CreateBaseTransactionInput & CreateDappAssetInput;
 export type Dapp = DappOptions & {
 	readonly id: string;
 };
-
-export interface RequiredDappState extends RequiredState {
-	readonly dependentState?: {
-		readonly [ENTITY_TRANSACTION]: ReadonlyArray<TransactionJSON>;
-	};
-}
 
 export const dappAssetTypeSchema = {
 	type: 'object',
@@ -208,7 +195,7 @@ export class DappTransaction extends BaseTransaction {
 
 	public static fromJSON(tx: TransactionJSON): DappTransaction {
 		const transaction = new DappTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
+		const { errors, status } = transaction.validate();
 
 		if (status === Status.FAIL && errors.length !== 0) {
 			throw new TransactionMultiError(
@@ -263,27 +250,16 @@ export class DappTransaction extends BaseTransaction {
 		};
 	}
 
-	public getRequiredAttributes(): Attributes {
-		const attr = super.getRequiredAttributes();
-		const filterObject = {
-			dappName: [this.asset.dapp.name],
-		};
-		const uniqueFields = this.asset.dapp.link
-			? {
-					...filterObject,
-					dappLink: [this.asset.dapp.link],
-			  }
-			: filterObject;
-
-		return {
-			...attr,
-			[ENTITY_TRANSACTION]: uniqueFields,
-		};
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.prepare(ENTITY_TRANSACTION, {
+			dapp_name_in: [this.asset.dapp.name],
+			dapp_link_in: [this.asset.dapp.link],
+		});
 	}
 
-	public verifyAgainstOtherTransactions(
+	protected verifyAgainstTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
+	): ReadonlyArray<TransactionError> {
 		const sameTypeTransactions = transactions.filter(
 			tx => tx.type === this.type,
 		);
@@ -317,89 +293,21 @@ export class DappTransaction extends BaseTransaction {
 			);
 		}
 
-		return {
-			id: this.id,
-			errors,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-		};
+		return errors;
 	}
 
-	public processRequiredState(state: EntityMap): RequiredDappState {
-		const accounts = state[ENTITY_ACCOUNT];
-		if (!accounts) {
-			throw new Error('Entity account is required.');
-		}
-		if (
-			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
-		) {
-			throw new Error('Required state does not have valid account type.');
-		}
-
-		const sender = accounts.find(acct => acct.address === this.senderId);
-		if (!sender) {
-			throw new Error('No sender account is found.');
-		}
-
-		// In valid case, transaction should not exist
-		const dapps = state[ENTITY_TRANSACTION];
-		if (!dapps) {
-			return {
-				sender,
-				dependentState: {
-					[ENTITY_TRANSACTION]: [],
-				},
-			};
-		}
-		if (
-			!isTypedObjectArrayWithKeys<TransactionJSON>(dapps, [
-				'id',
-				'type',
-				'asset',
-			])
-		) {
-			throw new Error('Required state does not have valid transaction type.');
-		}
-
-		const dependentDappTx = dapps.filter(
-			tx =>
-				tx.type === this.type &&
-				tx.asset &&
-				'dapp' in tx.asset &&
-				tx.asset.dapp.name === this.asset.dapp.name,
-		);
-
-		return {
-			sender,
-			dependentState: {
-				[ENTITY_TRANSACTION]: dependentDappTx,
-			},
-		};
-	}
-
-	public validateSchema(): TransactionResponse {
-		const { errors: baseErrors, status } = super.validateSchema();
-		const valid = validator.validate(dappAssetFormatSchema, this.asset);
-		const errors = [...baseErrors];
-		if (!this.amount.eq(0)) {
-			errors.push(
-				new TransactionError(
-					'Amount must be zero for dapp transaction',
-					this.id,
-					'.amount',
-				),
-			);
-		}
-		const assetErrors = validator.errors
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		validator.validate(dappAssetFormatSchema, this.asset);
+		const errors = validator.errors
 			? validator.errors.map(
 					error =>
 						new TransactionError(
 							`'${error.dataPath}' ${error.message}`,
 							this.id,
-							`.asset${error.dataPath}`,
+							error.dataPath,
 						),
 			  )
 			: [];
-		errors.push(...assetErrors);
 
 		if (this.type !== TRANSACTION_DAPP_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
@@ -464,60 +372,46 @@ export class DappTransaction extends BaseTransaction {
 			}
 		}
 
-		return {
-			id: this.id,
-			status:
-				status === Status.OK && valid && errors.length === 0
-					? Status.OK
-					: Status.FAIL,
-			errors,
-		};
+		return errors;
 	}
 
-	public verify({
-		sender,
-		dependentState,
-	}: RequiredDappState): TransactionResponse {
-		const { errors: baseErrors } = super.verify({ sender });
-		if (!dependentState) {
-			throw new Error('Dependent state is required for dapp transaction.');
-		}
-		if (!dependentState[ENTITY_TRANSACTION]) {
-			throw new Error(
-				'Dependent transaction state is required for dapp transaction.',
-			);
-		}
-
-		const errors = [...baseErrors];
-		const dependentDappsTxs = dependentState[ENTITY_TRANSACTION].filter(
-			tx =>
-				tx.type === this.type &&
-				tx.asset &&
-				'dapp' in tx.asset &&
-				tx.asset.dapp.name === this.asset.dapp.name,
+	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors: TransactionError[] = [];
+		const nameExists = store.exists(
+			ENTITY_TRANSACTION,
+			'asset.dapp.name',
+			this.asset.dapp.name,
 		);
 
-		if (dependentDappsTxs.length > 0) {
+		if (nameExists) {
 			errors.push(
 				new TransactionError(
-					`${this.asset.dapp.name} already exists.`,
+					`Application name already exists: ${this.asset.dapp.name}`,
 					this.id,
 				),
 			);
 		}
 
-		return {
-			id: this.id,
-			status: dependentDappsTxs.length === 0 ? Status.OK : Status.FAIL,
-			errors:
-				dependentDappsTxs.length === 0
-					? []
-					: [
-							new TransactionError(
-								`${this.asset.dapp.name} already exists.`,
-								this.id,
-							),
-					  ],
-		};
+		const linkExists = store.exists(
+			ENTITY_TRANSACTION,
+			'asset.dapp.link',
+			this.asset.dapp.name,
+		);
+
+		if (linkExists) {
+			errors.push(
+				new TransactionError(
+					`Application link already exists: ${this.asset.dapp.link}`,
+					this.id,
+				),
+			);
+		}
+
+		return errors;
+	}
+
+	// tslint:disable-next-line prefer-function-over-method
+	protected undoAsset(_: StateStore): ReadonlyArray<TransactionError> {
+		return [];
 	}
 }

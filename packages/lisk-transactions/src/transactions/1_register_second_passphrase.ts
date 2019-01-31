@@ -166,7 +166,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 
 	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
 		await store.prepare(ENTITY_ACCOUNT, {
-			address: [this.senderId],
+			address_in: [this.senderId],
 		});
 	}
 
@@ -245,7 +245,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 	}
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const errors = [];
+		const errors: TransactionError[] = [];
 		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
 		// Check if secondPublicKey already exists on account
 		if (sender.secondPublicKey) {

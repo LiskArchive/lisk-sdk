@@ -186,8 +186,8 @@ export class DelegateTransaction extends BaseTransaction {
 
 	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
 		await store.prepare(ENTITY_ACCOUNT, {
-			address: [this.senderId],
-			username: [this.asset.delegate.username],
+			address_in: [this.senderId],
+			username_in: [this.asset.delegate.username],
 		});
 	}
 
@@ -255,7 +255,7 @@ export class DelegateTransaction extends BaseTransaction {
 	}
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const errors = [];
+		const errors: TransactionError[] = [];
 		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
 
 		if (

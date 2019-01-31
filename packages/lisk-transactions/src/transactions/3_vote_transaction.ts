@@ -190,8 +190,8 @@ export class VoteTransaction extends BaseTransaction {
 			pkWithAction.slice(1),
 		);
 		await store.prepare(ENTITY_ACCOUNT, {
-			address: [this.senderId],
-			publicKey,
+			address_in: [this.senderId],
+			publicKey_in: publicKey,
 		});
 	}
 
@@ -328,7 +328,7 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const errors = [];
+		const errors: TransactionError[] = [];
 		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
 		this.asset.votes.forEach(actionVotes => {
 			const vote = actionVotes.substring(1);

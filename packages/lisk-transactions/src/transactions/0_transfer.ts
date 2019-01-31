@@ -228,6 +228,7 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
+		validator.validate(transferAssetFormatSchema, this.asset); 
 		const errors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -296,7 +297,7 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const errors = [];
+		const errors: TransactionError[] = [];
 		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
@@ -340,7 +341,7 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const errors = [];
+		const errors: TransactionError[] = [];
 		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
 
