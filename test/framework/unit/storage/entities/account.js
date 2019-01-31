@@ -16,16 +16,19 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const { BaseEntity, Account } = require('../../../../storage/entities');
+const {
+	BaseEntity,
+	Account,
+} = require('../../../../../framework/src/components/storage/entities');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-} = require('../../../../storage/errors');
-const storageSandbox = require('../../../common/storage_sandbox');
-const seeder = require('../../../common/storage_seed');
-const accountFixtures = require('../../../fixtures').accounts;
-const transactionsFixtures = require('../../../fixtures').transactions;
-const forksFixtures = require('../../../fixtures').forks;
+} = require('../../../../../framework/src/components/storage/errors');
+const storageSandbox = require('../../../../common/storage_sandbox');
+const seeder = require('../../../../common/storage_seed');
+const accountFixtures = require('../../../../fixtures').accounts;
+const transactionsFixtures = require('../../../../fixtures').transactions;
+const forksFixtures = require('../../../../fixtures').forks;
 
 const defaultCreateValues = {
 	publicKey: null,

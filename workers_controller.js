@@ -32,7 +32,7 @@ const emitMiddleware = require('./api/ws/workers/middlewares/emit');
 const PeersUpdateRules = require('./api/ws/workers/peers_update_rules');
 const Rules = require('./api/ws/workers/rules');
 const failureCodes = require('./api/ws/rpc/failure_codes');
-const { createLoggerComponent } = require('./components/logger');
+const { createLoggerComponent } = require('./framework/src/components/logger');
 const AppConfig = require('./helpers/config.js');
 const config = new AppConfig(require('./package.json'), false);
 

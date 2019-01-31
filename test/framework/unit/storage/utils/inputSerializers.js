@@ -15,7 +15,7 @@
 
 'use strict';
 
-const inputSerializers = require('../../../../storage/utils/inputSerializers');
+const inputSerializers = require('../../../../../framework/src/components/storage/utils/inputSerializers');
 
 describe('inputSerializers', () => {
 	afterEach(() => {

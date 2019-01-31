@@ -49,9 +49,9 @@ const Sequence = require('./helpers/sequence.js');
 const httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 const swaggerHelper = require('./helpers/swagger');
-const createStorage = require('./storage');
-const { createCacheComponent } = require('./components/cache');
-const { createLoggerComponent } = require('./components/logger');
+const createStorage = require('./framework/src/components/storage');
+const { createCacheComponent } = require('./framework/src/components/cache');
+const { createLoggerComponent } = require('./framework/src/components/logger');
 
 /**
  * Main application entry point.

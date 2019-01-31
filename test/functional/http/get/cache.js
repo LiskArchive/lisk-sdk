@@ -18,8 +18,12 @@ require('../../functional.js');
 const Promise = require('bluebird');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
-const { createCacheComponent } = require('../../../../components/cache');
-const { createLoggerComponent } = require('../../../../components/logger');
+const {
+	createLoggerComponent,
+} = require('../../../../framework/src/components/logger');
+const {
+	createCacheComponent,
+} = require('../../../../framework/src/components/cache');
 const apiHelpers = require('../../../common/helpers/api');
 const waitFor = require('../../../common/utils/wait_for');
 
