@@ -14,8 +14,10 @@
 
 'use strict';
 
-const { createCacheComponent } = require('../../../components/cache');
-const Logger = require('../../../logger');
+const {
+	createCacheComponent,
+} = require('../../../../framework/src/components/cache');
+const Logger = require('../../../../logger');
 
 describe('components: cache', () => {
 	let cache;
