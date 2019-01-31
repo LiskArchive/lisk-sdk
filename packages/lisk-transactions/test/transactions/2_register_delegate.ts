@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import {
 	Attributes,
 	BaseTransaction,
@@ -26,7 +25,6 @@ import {
 	validTransaction,
 } from '../../fixtures';
 import { Account, Status, TransactionJSON } from '../../src/transaction_types';
-import { TransactionError } from '../../src/errors';
 import * as utils from '../../src/utils';
 import { DELEGATE_FEE } from '../../src/constants';
 
@@ -39,11 +37,12 @@ describe('Delegate registration transaction class', () => {
 		validTestTransaction = new DelegateTransaction(validDelegateTransaction);
 		sender = validDelegateAccount;
 		nonDelegateAccount = {
-			"address": "17676438278047402502L",
-			"balance": "15412982278208",
-			"publicKey": "dd786687dd2399605ce8fe70212d078db1a2fc6effba127defb176a004cec6d4",
-			"secondPublicKey": "",
-		}
+			address: '17676438278047402502L',
+			balance: '15412982278208',
+			publicKey:
+				'dd786687dd2399605ce8fe70212d078db1a2fc6effba127defb176a004cec6d4',
+			secondPublicKey: '',
+		};
 	});
 
 	describe('#constructor', () => {
@@ -146,7 +145,7 @@ describe('Delegate registration transaction class', () => {
 					DelegateTransaction.create.bind(undefined, {
 						passphrase,
 						secondPassphrase,
-						username: invalidUsername as unknown as string,
+						username: (invalidUsername as unknown) as string,
 					}),
 				).to.throw();
 			});
@@ -170,37 +169,6 @@ describe('Delegate registration transaction class', () => {
 				expect(result).not.to.have.property('signature');
 				expect(result).not.to.have.property('signSignature');
 			});
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox.stub(DelegateTransaction.prototype, 'validateSchema').returns({
-				id: validTestTransaction.id,
-				status: Status.OK,
-				errors: [],
-			});
-			validTestTransaction = DelegateTransaction.fromJSON(
-				validDelegateTransaction,
-			);
-		});
-
-		it('should create instance of DelegateTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(DelegateTransaction);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(DelegateTransaction.prototype.validateSchema as SinonStub).returns({
-				status: Status.FAIL,
-				errors: [new TransactionError()],
-			});
-			expect(
-				DelegateTransaction.fromJSON.bind(undefined, validDelegateTransaction),
-			).to.throw('Failed to validate schema');
 		});
 	});
 
@@ -346,7 +314,6 @@ describe('Delegate registration transaction class', () => {
 			const transaction = new DelegateTransaction(invalidTransaction);
 
 			const { status, errors } = transaction.validateSchema();
-
 
 			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;

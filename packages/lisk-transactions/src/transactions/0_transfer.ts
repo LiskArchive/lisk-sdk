@@ -137,7 +137,7 @@ export class TransferTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid asset types', tx.id, errors);
 		}
 		this.asset = tx.asset as TransferAsset;
-		this._fee = new BigNum(TRANSFER_FEE); 
+		this._fee = new BigNum(TRANSFER_FEE);
 	}
 
 	public static create(input: TransferInput): object {
@@ -187,21 +187,6 @@ export class TransferTransaction extends BaseTransaction {
 		transferTransaction.sign(passphrase, secondPassphrase);
 
 		return transferTransaction.toJSON();
-	}
-
-	public static fromJSON(tx: TransactionJSON): TransferTransaction {
-		const transaction = new TransferTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {

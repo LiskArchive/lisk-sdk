@@ -206,21 +206,6 @@ export class DappTransaction extends BaseTransaction {
 		return dappTransaction.toJSON();
 	}
 
-	public static fromJSON(tx: TransactionJSON): DappTransaction {
-		const transaction = new DappTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
-	}
-
 	protected getAssetBytes(): Buffer {
 		const DAPP_TYPE_LENGTH = 4;
 		const DAPP_CATEGORY_LENGTH = 4;

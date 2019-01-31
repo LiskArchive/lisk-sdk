@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import {
 	MULTISIGNATURE_FEE,
 	MULTISIGNATURE_MAX_KEYSGROUP,
@@ -26,7 +25,6 @@ import {
 	MultisignatureTransaction,
 } from '../../src/transactions';
 import { Account, Status, TransactionJSON } from '../../src/transaction_types';
-import { TransactionError } from '../../src/errors';
 import { addTransactionFields } from '../helpers';
 import {
 	validMultisignatureAccount,
@@ -269,44 +267,6 @@ describe('Multisignature transaction class', () => {
 				expect(result).not.to.have.property('signature');
 				expect(result).not.to.have.property('signSignature');
 			});
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox
-				.stub(MultisignatureTransaction.prototype, 'validateSchema')
-				.returns({
-					id: validTestTransaction.id,
-					status: Status.OK,
-					errors: [],
-				});
-			validTestTransaction = MultisignatureTransaction.fromJSON(
-				validMultisignatureRegistrationTransaction,
-			);
-		});
-
-		it('should create instance of DelegateTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(MultisignatureTransaction);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(MultisignatureTransaction.prototype.validateSchema as SinonStub).returns(
-				{
-					status: Status.FAIL,
-					errors: [new TransactionError()],
-				},
-			);
-			expect(
-				MultisignatureTransaction.fromJSON.bind(
-					undefined,
-					validMultisignatureRegistrationTransaction,
-				),
-			).to.throw('Failed to validate schema');
 		});
 	});
 

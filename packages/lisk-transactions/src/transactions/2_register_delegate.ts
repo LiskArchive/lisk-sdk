@@ -89,9 +89,10 @@ export interface CreateDelegateRegistrationInput {
 	readonly username: string;
 }
 
-export type RegisterDelegateInput = CreateBaseTransactionInput &  CreateDelegateRegistrationInput;
+export type RegisterDelegateInput = CreateBaseTransactionInput &
+	CreateDelegateRegistrationInput;
 
-const validateInput = ({ username }:  RegisterDelegateInput): void => {
+const validateInput = ({ username }: RegisterDelegateInput): void => {
 	if (!username || typeof username !== 'string') {
 		throw new Error('Please provide a username. Expected string.');
 	}
@@ -123,14 +124,14 @@ export class DelegateTransaction extends BaseTransaction {
 		this._fee = new BigNum(DELEGATE_FEE);
 	}
 
-	public static create(input:  RegisterDelegateInput): object {
+	public static create(input: RegisterDelegateInput): object {
 		validateInput(input);
 		const { username, passphrase, secondPassphrase } = input;
 
 		if (!username || typeof username !== 'string') {
 			throw new Error('Please provide a username. Expected string.');
 		}
-	
+
 		if (username.length > USERNAME_MAX_LENGTH) {
 			throw new Error(
 				`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
@@ -154,21 +155,6 @@ export class DelegateTransaction extends BaseTransaction {
 		delegateTransaction.sign(passphrase, secondPassphrase);
 
 		return delegateTransaction.toJSON();
-	}
-
-	public static fromJSON(tx: TransactionJSON): DelegateTransaction {
-		const transaction = new DelegateTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {
@@ -202,7 +188,7 @@ export class DelegateTransaction extends BaseTransaction {
 		const errors = transactions
 			.filter(
 				tx =>
-				tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
+					tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
 			)
 			.map(
 				tx =>
@@ -234,8 +220,7 @@ export class DelegateTransaction extends BaseTransaction {
 		}
 
 		const dependentAccounts = accounts.filter(
-			acct =>
-				acct.username === this.asset.delegate.username,
+			acct => acct.username === this.asset.delegate.username,
 		);
 
 		return {
@@ -286,10 +271,13 @@ export class DelegateTransaction extends BaseTransaction {
 
 		if (this.recipientPublicKey) {
 			errors.push(
-				new TransactionError('Invalid recipientPublicKey', this.id, '.recipientPublicKey'),
+				new TransactionError(
+					'Invalid recipientPublicKey',
+					this.id,
+					'.recipientPublicKey',
+				),
 			);
 		}
-
 
 		return {
 			id: this.id,
@@ -307,9 +295,11 @@ export class DelegateTransaction extends BaseTransaction {
 	}: RequiredDelegateState): TransactionResponse {
 		const { errors: baseErrors } = super.verify({ sender });
 		const errors = [...baseErrors];
-		const usernameUnique = dependentState ? dependentState[ENTITY_ACCOUNT].every(
-			({ username }) => username !== this.asset.delegate.username,
-		) : true;
+		const usernameUnique = dependentState
+			? dependentState[ENTITY_ACCOUNT].every(
+					({ username }) => username !== this.asset.delegate.username,
+			  )
+			: true;
 
 		if (!usernameUnique) {
 			errors.push(
@@ -338,15 +328,20 @@ export class DelegateTransaction extends BaseTransaction {
 		};
 	}
 
-	public apply({ sender, dependentState }: RequiredDelegateState): TransactionResponse {
+	public apply({
+		sender,
+		dependentState,
+	}: RequiredDelegateState): TransactionResponse {
 		const { errors: baseErrors, state } = super.apply({ sender });
 		if (!state) {
 			throw new Error('State is required for applying transaction.');
 		}
 		const errors = [...baseErrors];
-		const usernameUnique = dependentState ? dependentState[ENTITY_ACCOUNT].every(
-			({ username }) => username !== this.asset.delegate.username,
-		) : true;
+		const usernameUnique = dependentState
+			? dependentState[ENTITY_ACCOUNT].every(
+					({ username }) => username !== this.asset.delegate.username,
+			  )
+			: true;
 		if (!usernameUnique) {
 			errors.push(
 				new TransactionError(

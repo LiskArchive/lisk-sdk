@@ -14,7 +14,6 @@
  */
 import BigNum from 'browserify-bignum';
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../../src/constants';
 import { Attributes, TransferTransaction } from '../../src/transactions';
 import { Account, Status } from '../../src/transaction_types';
@@ -226,39 +225,6 @@ describe('Transfer transaction class', () => {
 				expect(result).not.to.have.property('signature');
 				expect(result).not.to.have.property('signSignature');
 			});
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox.stub(TransferTransaction.prototype, 'validateSchema').returns({
-				id: validTransferTestTransaction.id,
-				status: Status.OK,
-				errors: [],
-			});
-			validTransferTestTransaction = TransferTransaction.fromJSON(
-				validTransferTransaction,
-			);
-		});
-
-		it('should create instance of TransferTransaction', async () => {
-			expect(validTransferTestTransaction).to.be.instanceOf(
-				TransferTransaction,
-			);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTransferTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(TransferTransaction.prototype.validateSchema as SinonStub).returns({
-				status: Status.FAIL,
-				errors: [new TransactionError()],
-			});
-			expect(
-				TransferTransaction.fromJSON.bind(undefined, validTransferTransaction),
-			).to.throw('Failed to validate schema');
 		});
 	});
 

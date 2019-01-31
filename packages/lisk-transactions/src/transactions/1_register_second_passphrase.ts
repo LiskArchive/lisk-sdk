@@ -137,21 +137,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		return secondSignatureTransaction.toJSON();
 	}
 
-	public static fromJSON(tx: TransactionJSON): SecondSignatureTransaction {
-		const transaction = new SecondSignatureTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
-	}
-
 	protected getAssetBytes(): Buffer {
 		const {
 			signature: { publicKey },

@@ -169,21 +169,6 @@ export class VoteTransaction extends BaseTransaction {
 		return voteTransaction.toJSON();
 	}
 
-	public static fromJSON(tx: TransactionJSON): VoteTransaction {
-		const transaction = new VoteTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
-	}
-
 	protected getAssetBytes(): Buffer {
 		return Buffer.from(this.asset.votes.join(''), 'utf8');
 	}

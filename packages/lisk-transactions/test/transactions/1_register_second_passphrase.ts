@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import {
 	SecondSignatureTransaction,
 	Attributes,
@@ -24,7 +23,6 @@ import {
 	validTransaction,
 } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
-import { TransactionError } from '../../src/errors';
 import * as utils from '../../src/utils';
 import { SIGNATURE_FEE } from '../../src/constants';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
@@ -101,43 +99,6 @@ describe('Second signature registration transaction class', () => {
 					'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
 				);
 			});
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox
-				.stub(SecondSignatureTransaction.prototype, 'validateSchema')
-				.returns({
-					id: validTestTransaction.id,
-					status: Status.OK,
-					errors: [],
-				});
-			validTestTransaction = SecondSignatureTransaction.fromJSON(
-				validRegisterSecondSignatureTransaction,
-			);
-		});
-
-		it('should create instance of SecondSignatureTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(SecondSignatureTransaction);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(SecondSignatureTransaction.prototype
-				.validateSchema as SinonStub).returns({
-				status: Status.FAIL,
-				errors: [new TransactionError()],
-			});
-			expect(
-				SecondSignatureTransaction.fromJSON.bind(
-					undefined,
-					validRegisterSecondSignatureTransaction,
-				),
-			).to.throw('Failed to validate schema.');
 		});
 	});
 

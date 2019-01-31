@@ -206,21 +206,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return multisignatureTransaction.toJSON();
 	}
 
-	public static fromJSON(tx: TransactionJSON): MultisignatureTransaction {
-		const transaction = new MultisignatureTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
-	}
-
 	protected getAssetBytes(): Buffer {
 		const {
 			multisignature: { min, lifetime, keysgroup },
@@ -238,7 +223,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 				min: this.asset.multisignature.min,
 				lifetime: this.asset.multisignature.lifetime,
 				keysgroup: [...this.asset.multisignature.keysgroup],
-			}
+			},
 		};
 	}
 
@@ -439,7 +424,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 		const errors = [...baseErrors];
 
-		const { multisignatures, multimin, multilifetime, ...strippedSender } = state.sender;
+		const {
+			multisignatures,
+			multimin,
+			multilifetime,
+			...strippedSender
+		} = state.sender;
 
 		return {
 			id: this.id,

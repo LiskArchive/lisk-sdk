@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import {
 	VoteTransaction,
 	Attributes,
@@ -22,7 +21,6 @@ import {
 import { validVoteTransactions, validTransaction } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
 import { generateRandomPublicKeys } from '../helpers/cryptography';
-import { TransactionError } from '../../src/errors';
 import * as utils from '../../src/utils';
 import { VOTE_FEE } from '../../src/constants';
 
@@ -298,35 +296,6 @@ describe('Vote transaction class', () => {
 				expect(result).not.to.have.property('signature');
 				expect(result).not.to.have.property('signSignature');
 			});
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox.stub(VoteTransaction.prototype, 'validateSchema').returns({
-				id: validTestTransaction.id,
-				status: Status.OK,
-				errors: [],
-			});
-			validTestTransaction = VoteTransaction.fromJSON(validVoteTransactions[1]);
-		});
-
-		it('should create instance of VoteTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(VoteTransaction);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(VoteTransaction.prototype.validateSchema as SinonStub).returns({
-				status: Status.FAIL,
-				errors: [new TransactionError()],
-			});
-			expect(
-				VoteTransaction.fromJSON.bind(undefined, validVoteTransactions[1]),
-			).to.throw('Failed to validate schema.');
 		});
 	});
 

@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import {
 	DappTransaction,
 	Attributes,
@@ -21,7 +20,6 @@ import {
 } from '../../src/transactions';
 import { validDappTransactions, validVoteTransactions } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
-import { TransactionError } from '../../src/errors';
 import * as utils from '../../src/utils';
 import { DAPP_FEE } from '../../src/constants';
 
@@ -178,37 +176,6 @@ describe('Dapp transaction class', () => {
 				expect(result).not.to.have.property('signature');
 				expect(result).not.to.have.property('signSignature');
 			});
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox.stub(DappTransaction.prototype, 'validateSchema').returns({
-				id: validTestTransaction.id,
-				status: Status.OK,
-				errors: [],
-			});
-			validTestTransaction = DappTransaction.fromJSON(
-				defaultValidDappTransaction,
-			);
-		});
-
-		it('should create instance of DappTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(DappTransaction);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(DappTransaction.prototype.validateSchema as SinonStub).returns({
-				status: Status.FAIL,
-				errors: [new TransactionError()],
-			});
-			expect(
-				DappTransaction.fromJSON.bind(undefined, defaultValidDappTransaction),
-			).to.throw('Failed to validate schema.');
 		});
 	});
 
