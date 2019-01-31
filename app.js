@@ -42,7 +42,6 @@ const dns = require('dns');
 const net = require('net');
 const SocketCluster = require('socketcluster');
 const async = require('async');
-const Logger = require('./logger.js');
 const wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 const WsTransport = require('./api/ws/transport');
 const git = require('./helpers/git.js');
@@ -52,6 +51,7 @@ const httpApi = require('./helpers/http_api.js');
 const swaggerHelper = require('./helpers/swagger');
 const createStorage = require('./framework/src/components/storage');
 const { createCacheComponent } = require('./framework/src/components/cache');
+const { createLoggerComponent } = require('./framework/src/components/logger');
 
 /**
  * Main application entry point.
@@ -159,11 +159,11 @@ const config = {
  *
  * @memberof! app
  */
-const logger = new Logger({
+const logger = createLoggerComponent({
 	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 	errorLevel: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
 	filename: appConfig.logFileName,
-});
+}).bootstrap();
 
 /**
  * Db logger instance.
@@ -179,11 +179,11 @@ if (
 	dbLogger = logger;
 } else {
 	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
-	dbLogger = new Logger({
+	dbLogger = createLoggerComponent({
 		echo: process.env.DB_LOG_LEVEL || 'log',
 		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,
-	});
+	}).bootstrap();
 }
 
 // Try to get the last git commit

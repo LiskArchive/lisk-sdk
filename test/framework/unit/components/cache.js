@@ -17,18 +17,20 @@
 const {
 	createCacheComponent,
 } = require('../../../../framework/src/components/cache');
-const Logger = require('../../../../logger');
+const {
+	createLoggerComponent,
+} = require('../../../../framework/src/components/logger');
 
 describe('components: cache', () => {
 	let cache;
 
 	before(async () => {
 		__testContext.config.cacheEnabled = true;
-		this.logger = new Logger({
+		this.logger = createLoggerComponent({
 			echo: null,
 			errorLevel: __testContext.config.fileLogLevel,
 			filename: __testContext.config.logFileName,
-		});
+		}).bootstrap();
 		cache = createCacheComponent(__testContext.config.redis, this.logger);
 		await cache.bootstrap();
 		return expect(cache).to.be.an('object');

@@ -19,9 +19,11 @@ const Promise = require('bluebird');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
 const {
+	createLoggerComponent,
+} = require('../../../../framework/src/components/logger');
+const {
 	createCacheComponent,
 } = require('../../../../framework/src/components/cache');
-const Logger = require('../../../../logger');
 const apiHelpers = require('../../../common/helpers/api');
 const waitFor = require('../../../common/utils/wait_for');
 
@@ -34,11 +36,12 @@ describe('cached endpoints', () => {
 
 	before(async () => {
 		__testContext.config.cacheEnabled = true;
-		this.logger = new Logger({
+		this.logger = createLoggerComponent({
 			echo: null,
 			errorLevel: __testContext.config.fileLogLevel,
 			filename: __testContext.config.logFileName,
-		});
+		}).bootstrap();
+
 		cache = createCacheComponent(__testContext.config.redis, this.logger);
 		await cache.bootstrap();
 		expect(cache).to.be.an('object');

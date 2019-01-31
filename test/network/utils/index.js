@@ -16,16 +16,18 @@
 
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-const Logger = require('../../../logger');
+const {
+	createLoggerComponent,
+} = require('../../../framework/src/components/logger');
 
 module.exports = {
 	http: require('./http'),
 	ws: require('./ws'),
 	transactions: require('./transactions'),
-	logger: new Logger({
+	logger: createLoggerComponent({
 		filename: 'test/network/networkTestsLogger.logs',
 		echo: 'log',
-	}),
+	}).bootstrap(),
 	async getListeningConnections(ports) {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:LISTEN -t | wc -l
 		// tail -n +2 to strip the headers of lsof so we can count the rows
