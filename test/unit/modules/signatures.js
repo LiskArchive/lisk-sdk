@@ -65,7 +65,9 @@ describe('signatures', () => {
 
 		beforeEach(() => {
 			privateModules = library.rewiredModules.signatures.__get__('modules');
-			return library.modules.signatures.onBind(library.modules);
+			return library.modules.signatures.onBind({
+				modules: library.modules,
+			});
 		});
 
 		describe('modules', () => {

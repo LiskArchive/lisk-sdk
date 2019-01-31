@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const async = require('async');
+const { CACHE_KEYS_TRANSACTION_COUNT } = require('../components/cache');
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;
@@ -25,6 +26,7 @@ const Transfer = require('../logic/transfer.js');
 
 // Private fields
 const __private = {};
+let components;
 let modules;
 let library;
 let self;
@@ -588,19 +590,22 @@ Transactions.prototype.isLoaded = function() {
  * @param {scope} scope - Loaded modules
  */
 Transactions.prototype.onBind = function(scope) {
+	components = {
+		cache: scope.components ? scope.components.cache : undefined,
+	};
+
 	modules = {
-		accounts: scope.accounts,
-		transport: scope.transport,
-		cache: scope.cache,
+		accounts: scope.modules.accounts,
+		transport: scope.modules.transport,
 	};
 
 	__private.transactionPool.bind(
-		scope.accounts,
-		scope.transactions,
-		scope.loader
+		scope.modules.accounts,
+		scope.modules.transactions,
+		scope.modules.loader
 	);
 
-	__private.assetTypes[transactionTypes.SEND].bind(scope.accounts);
+	__private.assetTypes[transactionTypes.SEND].bind(scope.modules.accounts);
 };
 
 /**
@@ -649,17 +654,19 @@ Transactions.prototype.shared = {
 		async.waterfall(
 			[
 				function getConfirmedCountFromCache(waterCb) {
-					modules.cache.getJsonForKey(
-						modules.cache.KEYS.transactionCount,
-						(err, data) => {
-							if (err) {
-								// If some issue in cache we will fallback to database
-								return setImmediate(waterCb, null, null);
-							}
+					if (components.cache) {
+						return components.cache
+							.getJsonForKey(CACHE_KEYS_TRANSACTION_COUNT)
+							.then(data => {
+								setImmediate(waterCb, null, data ? data.confirmed : null);
+							})
+							.catch(err => {
+								library.logger.warn("Transaction count wasn't cached", err);
+								setImmediate(waterCb, null, null);
+							});
+					}
 
-							return setImmediate(waterCb, null, data ? data.confirmed : null);
-						}
-					);
+					return setImmediate(waterCb, null, null);
 				},
 
 				function getConfirmedCountFromDb(cachedCount, waterCb) {
@@ -678,20 +685,19 @@ Transactions.prototype.shared = {
 						// Cache already persisted, no need to set cache again
 						return setImmediate(waterCb, null, cachedCount);
 					}
-
-					return modules.cache.setJsonForKey(
-						modules.cache.KEYS.transactionCount,
-						{
-							confirmed: dbCount,
-						},
-						err => {
-							if (err) {
+					if (components.cache) {
+						return components.cache
+							.setJsonForKey(CACHE_KEYS_TRANSACTION_COUNT, {
+								confirmed: dbCount,
+							})
+							.then(() => setImmediate(waterCb, null, dbCount))
+							.catch(err => {
 								library.logger.warn("Transaction count wasn't cached", err);
-							}
+								return setImmediate(waterCb, null, dbCount);
+							});
+					}
 
-							return setImmediate(waterCb, null, dbCount);
-						}
-					);
+					return setImmediate(waterCb, null, null);
 				},
 
 				function getAllCount(confirmedTransactionCount, waterCb) {
