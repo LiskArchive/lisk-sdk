@@ -150,6 +150,7 @@ const sqlFiles = {
 	selectExtended: 'transactions/get_extended.sql',
 	isPersisted: 'transactions/is_persisted.sql',
 	count: 'transactions/count.sql',
+	count_all: 'transactions/count_all.sql',
 	create: 'transactions/create.sql',
 	createType0: 'transactions/create_type_0.sql',
 	createType1: 'transactions/create_type_1.sql',
@@ -328,8 +329,10 @@ class Transaction extends BaseEntity {
 		};
 		const expectedResultCount = 1;
 
+		const sql = parsedFilters === '' ? this.SQLs.count_all : this.SQLs.count;
+
 		return this.adapter
-			.executeFile(this.SQLs.count, params, { expectedResultCount }, tx)
+			.executeFile(sql, params, { expectedResultCount }, tx)
 			.then(data => +data.count);
 	}
 
