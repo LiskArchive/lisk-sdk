@@ -97,7 +97,7 @@ Install System wide via package manager:
 * Ubuntu:
 
 ```
-curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
@@ -135,14 +135,6 @@ nvm install 10.14.1
 ```
 
 For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
-
-### [PM2](https://github.com/Unitech/pm2) (recommended)
-
-PM2 manages the node process for Lisk.
-
-```
-npm install -g pm2
-```
 
 ### PostgreSQL:
 
@@ -296,25 +288,25 @@ This will start the lisk instance with `devnet` configuration. Once the process 
 This will fork the process into the background and automatically recover the process if it fails.
 
 ```
-pm2 start --name lisk app.js
+npx pm2 start --name lisk app.js
 ```
 
 After the process is started, its runtime status and log location can be retrieved by issuing the following command:
 
 ```
-pm2 show lisk
+npx pm2 show lisk
 ```
 
 To stop Lisk after it has been started with `pm2`, issue the following command:
 
 ```
-pm2 stop lisk
+npx pm2 stop lisk
 ```
 
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
 ```
-pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
+npx pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
 ```
 
 You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for the network option.
@@ -487,7 +479,7 @@ initApplication: Done
 lisk-core [lisk_dev] >
 ```
 
-Once you get the prompt, you can use `modules`, `helpers`, `logic`, `db` and `config` objects and play with these in REPL.
+Once you get the prompt, you can use `modules`, `helpers`, `logic`, `storage` and `config` objects and play with these in REPL.
 
 ## Performance Monitoring
 

@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const ed = require('../helpers/ed.js');
-const sortBy = require('../helpers/sort_by.js');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('./block_reward.js');
 
@@ -38,7 +37,7 @@ const __private = {};
  * @requires helpers/sort_by
  * @requires helpers/bignum
  * @requires logic/block_reward
- * @param {Database} db
+ * @param {Storage} storage
  * @param {ZSchema} schema
  * @param {Object} logger
  * @param {function} cb - Callback function
@@ -48,10 +47,10 @@ const __private = {};
  * @todo Add description for the params
  */
 class Account {
-	constructor(db, schema, logger, cb) {
+	constructor(storage, schema, logger, cb) {
 		this.scope = {
-			db,
 			schema,
+			storage,
 		};
 
 		__private.blockReward = new BlockReward();
@@ -59,8 +58,6 @@ class Account {
 		library = {
 			logger,
 		};
-
-		this.computedFields = this.model.filter(field => field.computedField);
 
 		// Obtains fields from model
 		this.fields = this.model.map(field => {
@@ -115,9 +112,10 @@ class Account {
 	 * @param {Blocks} blocks
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	bind(blocks) {
+	bind({ blocks, rounds }) {
 		modules = {
 			blocks,
+			rounds,
 		};
 	}
 
@@ -134,8 +132,7 @@ class Account {
 	 * @returns {setImmediate} error
 	 */
 	resetMemTables(cb) {
-		this.scope.db.accounts
-			.resetMemTables()
+		this.scope.storage.entities.Account.resetMemTables()
 			.then(() => setImmediate(cb))
 			.catch(err => {
 				library.logger.error(err.stack);
@@ -227,7 +224,7 @@ class Account {
 			fields = null;
 		}
 
-		filter.multisig = true;
+		filter.multiMin_gt = 0;
 
 		this.get(filter, fields, cb, tx);
 	}
@@ -272,79 +269,23 @@ class Account {
 			fields = null;
 		}
 
-		const computedFieldsMap = {};
-		this.computedFields.forEach(field => {
-			computedFieldsMap[field.name] = field.dependentFields;
-		});
+		const options = {
+			limit: filter.limit || ACTIVE_DELEGATES,
+			offset: filter.offset || 0,
+			sort: filter.sort || 'balance:asc',
+			extended: true,
+		};
 
-		// If fields are not provided append computed fields
-		if (!fields) {
-			fields = this.scope.db.accounts.getDBFields();
-			fields = fields.concat(Object.keys(computedFieldsMap));
+		if (options.limit < 0) {
+			options.limit = ACTIVE_DELEGATES;
 		}
 
-		let fieldsAddedForComputation = [];
-		const performComputationFor = [];
-
-		Object.keys(computedFieldsMap).forEach(computedField => {
-			if (fields.includes(computedField)) {
-				// Add computed field to list to process later
-				performComputationFor.push(computedField);
-
-				// Remove computed field from the db fields list
-				fields.splice(fields.indexOf(computedField), 1);
-
-				// Marks fields which are explicitly added due to computation
-				fieldsAddedForComputation = fieldsAddedForComputation.concat(
-					_.difference(computedFieldsMap[computedField], fields)
-				);
-
-				// Add computation dependant fields to db fields list
-				fields = fields.concat(computedFieldsMap[computedField]);
-			}
-		});
-
-		let limit = ACTIVE_DELEGATES;
-		let offset = 0;
-		let sort = { sortField: '', sortMethod: '' };
-
-		if (filter.offset > 0) {
-			offset = filter.offset;
-		}
-		delete filter.offset;
-
-		if (filter.limit > 0) {
-			limit = filter.limit;
-		}
-		delete filter.limit;
-
-		if (filter.sort) {
-			const allowedSortFields = [
-				'username',
-				'balance',
-				'rank',
-				'missedBlocks',
-				'vote',
-				'publicKey',
-				'address',
-			];
-			sort = sortBy.sortBy(filter.sort, {
-				sortFields: allowedSortFields,
-				quoteField: false,
-			});
-		}
-		delete filter.sort;
+		const filters = _.omit(filter, ['limit', 'offset', 'sort']);
 
 		const self = this;
 
-		(tx || this.scope.db).accounts
-			.list(filter, fields, {
-				limit,
-				offset,
-				sortField: sort.sortField,
-				sortMethod: sort.sortMethod,
-			})
-			.then(rows => {
+		this.scope.storage.entities.Account.get(filters, options, tx)
+			.then(accounts => {
 				const lastBlock = modules.blocks.lastBlock.get();
 				// If the last block height is undefined, it means it's a genesis block with height = 1
 				// look for a constant for total supply
@@ -352,34 +293,18 @@ class Account {
 					? __private.blockReward.calcSupply(lastBlock.height)
 					: 0;
 
-				if (performComputationFor.includes('approval')) {
-					rows.forEach(accountRow => {
-						accountRow.approval = self.calculateApproval(
-							accountRow.vote,
-							totalSupply
-						);
-					});
-				}
+				accounts.forEach(accountRow => {
+					accountRow.approval = self.calculateApproval(
+						accountRow.vote,
+						totalSupply
+					);
+				});
 
-				if (performComputationFor.includes('productivity')) {
-					rows.forEach(accountRow => {
-						accountRow.productivity = self.calculateProductivity(
-							accountRow.producedBlocks,
-							accountRow.missedBlocks
-						);
-					});
-				}
+				const result = fields
+					? accounts.map(account => _.pick(account, fields))
+					: accounts;
 
-				if (fieldsAddedForComputation.length > 0) {
-					// Remove the fields which were only added for computation
-					rows.forEach(accountRow => {
-						fieldsAddedForComputation.forEach(field => {
-							delete accountRow[field];
-						});
-					});
-				}
-
-				return setImmediate(cb, null, rows);
+				return setImmediate(cb, null, result);
 			})
 			.catch(err => {
 				library.logger.error(err.stack);
@@ -409,25 +334,6 @@ class Account {
 	}
 
 	/**
-	 * Calculates productivity of a delegate account.
-	 *
-	 * @param {number} producedBlocks
-	 * @param {number} missedBlocks
-	 * @returns {number}
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	calculateProductivity(producedBlocks, missedBlocks) {
-		const producedBlocksBignum = new Bignum(producedBlocks || 0);
-		const missedBlocksBignum = new Bignum(missedBlocks || 0);
-		const percent = producedBlocksBignum
-			.dividedBy(producedBlocksBignum.plus(missedBlocksBignum))
-			.multipliedBy(100)
-			.decimalPlaces(2);
-
-		return !percent.isNaN() ? percent.toNumber() : 0;
-	}
-
-	/**
 	 * Sets fields for specific address in mem_accounts table.
 	 *
 	 * @param {address} address
@@ -443,8 +349,7 @@ class Account {
 		// Normalize address
 		fields.address = address;
 
-		(tx || this.scope.db).accounts
-			.upsert(fields, ['address'])
+		this.scope.storage.entities.Account.upsert({ address }, fields, {}, tx)
 			.then(() => setImmediate(cb))
 			.catch(err => {
 				library.logger.error(err.stack);
@@ -495,20 +400,25 @@ class Account {
 				// Get field data type
 				const fieldType = self.conv[updatedField];
 				const updatedValue = diff[updatedField];
+				const value = new Bignum(updatedValue);
 
 				// Make execution selection based on field type
 				switch (fieldType) {
 					// blockId
 					case String:
 						promises.push(
-							dbTx.accounts.update(address, _.pick(diff, [updatedField]))
+							self.scope.storage.entities.Account.update(
+								{ address },
+								_.pick(diff, [updatedField]),
+								{},
+								dbTx
+							)
 						);
 						break;
 
 					// [u_]balance, [u_]multimin, [u_]multilifetime, fees, rewards, votes, producedBlocks, missedBlocks
 					// eslint-disable-next-line no-case-declarations
 					case Number:
-						const value = new Bignum(updatedValue);
 						if (value.isNaN() || !value.isFinite()) {
 							throw `Encountered insane number: ${value.toString()}`;
 						}
@@ -516,26 +426,33 @@ class Account {
 						// If updated value is positive number
 						if (value.isGreaterThan(0)) {
 							promises.push(
-								dbTx.accounts.increment(address, updatedField, value.toString())
+								self.scope.storage.entities.Account.increaseFieldBy(
+									{ address },
+									updatedField,
+									value.toString(),
+									dbTx
+								)
 							);
 
 							// If updated value is negative number
 						} else if (value.isLessThan(0)) {
 							promises.push(
-								dbTx.accounts.decrement(
-									address,
+								self.scope.storage.entities.Account.decreaseFieldBy(
+									{ address },
 									updatedField,
-									value.abs().toString()
+									value.abs().toString(),
+									dbTx
 								)
 							);
 						}
 
 						if (updatedField === 'balance') {
 							promises.push(
-								dbTx.rounds.insertRoundInformationWithAmount(
+								modules.rounds.createRoundInformationWithAmount(
 									address,
 									diff.round,
-									value.toString()
+									value.toString(),
+									dbTx
 								)
 							);
 						}
@@ -559,29 +476,32 @@ class Account {
 
 								if (mode === '-') {
 									promises.push(
-										dbTx.accounts.removeDependencies(
+										self.scope.storage.entities.Account.deleteDependentRecord(
+											updatedField,
 											address,
 											dependentId,
-											updatedField
+											dbTx
 										)
 									);
 								} else {
 									promises.push(
-										dbTx.accounts.insertDependencies(
+										self.scope.storage.entities.Account.createDependentRecord(
+											updatedField,
 											address,
 											dependentId,
-											updatedField
+											dbTx
 										)
 									);
 								}
 
-								if (updatedField === 'delegates') {
+								if (updatedField === 'votedDelegatesPublicKeys') {
 									promises.push(
-										dbTx.rounds.insertRoundInformationWithDelegate(
+										modules.rounds.createRoundInformationWithDelegate(
 											address,
 											diff.round,
 											dependentId,
-											mode
+											mode,
+											dbTx
 										)
 									);
 								}
@@ -598,8 +518,10 @@ class Account {
 			// Run all db operations in a batch
 			return dbTx.batch(promises);
 		};
-
-		return (tx ? job(tx) : self.scope.db.tx('logic:account:merge', job))
+		return (tx
+			? job(tx)
+			: this.scope.storage.entities.Account.begin('logic:account:merge', job)
+		)
 			.then(() =>
 				self.get(
 					{
@@ -623,8 +545,7 @@ class Account {
 	 * @returns {setImmediate} error, address
 	 */
 	remove(address, cb) {
-		this.scope.db.accounts
-			.remove(address)
+		this.scope.storage.entities.Account.delete({ address })
 			.then(() => setImmediate(cb, null, address))
 			.catch(err => {
 				library.logger.error(err.stack);
@@ -733,52 +654,52 @@ Account.prototype.model = [
 		conv: String,
 	},
 	{
-		name: 'delegates',
+		name: 'votedDelegatesPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'u_delegates',
+		name: 'u_votedDelegatesPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'multisignatures',
+		name: 'membersPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'u_multisignatures',
+		name: 'u_membersPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
 	{
-		name: 'multimin',
+		name: 'multiMin',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'u_multimin',
+		name: 'u_multiMin',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'multilifetime',
+		name: 'multiLifetime',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'u_multilifetime',
+		name: 'u_multiLifetime',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'nameexist',
+		name: 'nameExist',
 		type: 'SmallInt',
 		conv: Boolean,
 	},
 	{
-		name: 'u_nameexist',
+		name: 'u_nameExist',
 		type: 'SmallInt',
 		conv: Boolean,
 	},
@@ -815,14 +736,10 @@ Account.prototype.model = [
 	{
 		name: 'approval',
 		type: 'integer',
-		dependentFields: ['vote'],
-		computedField: true,
 	},
 	{
 		name: 'productivity',
 		type: 'integer',
-		dependentFields: ['producedBlocks', 'missedBlocks', 'rank'],
-		computedField: true,
 	},
 ];
 
@@ -912,7 +829,7 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		multisignatures: {
+		membersPublicKeys: {
 			anyOf: [
 				{
 					type: 'array',
@@ -924,7 +841,7 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		u_multisignatures: {
+		u_membersPublicKeys: {
 			anyOf: [
 				{
 					type: 'array',
@@ -936,31 +853,31 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		multimin: {
+		multiMin: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
-		u_multimin: {
+		u_multiMin: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
-		multilifetime: {
+		multiLifetime: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
-		u_multilifetime: {
+		u_multiLifetime: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
-		nameexist: {
+		nameExist: {
 			type: 'integer',
 			maximum: 32767,
 		},
-		u_nameexist: {
+		u_nameExist: {
 			type: 'integer',
 			maximum: 32767,
 		},

@@ -159,7 +159,6 @@ class Peer {
  * @property {string} version - Between 5 and 12 chars
  * @property {string} broadhash
  * @property {number} height - Minimum 1
- * @property {Date} clock
  * @property {Date} updated
  * @property {string} nonce
  * @property {string} string
@@ -170,9 +169,9 @@ Peer.prototype.properties = [
 	'state',
 	'os',
 	'version',
+	'protocolVersion',
 	'broadhash',
 	'height',
-	'clock',
 	'updated',
 	'nonce',
 	'httpPort',
@@ -184,7 +183,14 @@ Peer.prototype.optional = ['httpPort', 'nonce'];
 
 Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
 
-Peer.prototype.headers = ['os', 'version', 'broadhash', 'height', 'nonce'];
+Peer.prototype.headers = [
+	'os',
+	'version',
+	'protocolVersion',
+	'broadhash',
+	'height',
+	'nonce',
+];
 
 Peer.STATE = {
 	BANNED: 0,

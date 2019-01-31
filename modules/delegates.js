@@ -68,7 +68,7 @@ class Delegates {
 			logger: scope.logger,
 			sequence: scope.sequence,
 			ed: scope.ed,
-			db: scope.db,
+			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
@@ -143,8 +143,8 @@ Delegates.prototype.clearDelegateListCache = function() {
 __private.getKeysSortByVote = function(cb, tx) {
 	modules.accounts.getAccounts(
 		{
-			isDelegate: 1,
-			sort: { vote: -1, publicKey: 1 },
+			isDelegate: true,
+			sort: ['vote:desc', 'publicKey:asc'],
 			limit: ACTIVE_DELEGATES,
 		},
 		['publicKey'],
@@ -168,13 +168,9 @@ __private.getKeysSortByVote = function(cb, tx) {
  * @todo Add description for the return value
  */
 __private.getDelegatesFromPreviousRound = function(cb, tx) {
-	(tx || library.db).rounds
-		.getDelegatesSnapshot(ACTIVE_DELEGATES)
+	library.storage.entities.Round.getDelegatesSnapshot(ACTIVE_DELEGATES, tx)
 		.then(rows => {
-			const delegatesPublicKeys = [];
-			rows.forEach(row => {
-				delegatesPublicKeys.push(row.publicKey.toString('hex'));
-			});
+			const delegatesPublicKeys = rows.map(({ publicKey }) => publicKey);
 			return setImmediate(cb, null, delegatesPublicKeys);
 		})
 		.catch(err => {
@@ -433,7 +429,9 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 						}
 
 						const delegates =
-							state === 'confirmed' ? account.delegates : account.u_delegates;
+							state === 'confirmed'
+								? account.votedDelegatesPublicKeys
+								: account.u_votedDelegatesPublicKeys;
 						const existingVotedPublicKeys = Array.isArray(delegates)
 							? delegates
 							: [];
@@ -447,8 +445,8 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 			function validateVotes(existingVotedPublicKeys, waterfallCb) {
 				modules.accounts.getAccounts(
 					{
-						publicKey: votesWithAction.map(({ publicKey }) => publicKey),
-						isDelegate: 1,
+						publicKey_in: votesWithAction.map(({ publicKey }) => publicKey),
+						isDelegate: true,
 						sort: 'address:desc',
 					},
 					(err, votesAccounts) => {
@@ -618,7 +616,6 @@ __private.loadDelegates = function(cb) {
 							)} not found`
 						);
 					}
-
 					if (account.isDelegate) {
 						__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 						library.logger.info(
@@ -814,10 +811,10 @@ Delegates.prototype.getDelegates = function(query, cb) {
 		throw 'Invalid query argument, expected object';
 	}
 	if (query.search) {
-		query.username = { $like: `%${query.search}%` };
+		query.username_like = `%${query.search}%`;
 		delete query.search;
 	}
-	query.isDelegate = 1;
+	query.isDelegate = true;
 	modules.accounts.getAccounts(
 		query,
 		[
@@ -873,8 +870,13 @@ Delegates.prototype.getForgers = function(query, cb) {
 			}
 		}
 
-		return library.db.delegates
-			.getDelegatesByPublicKeys(forgerKeys)
+		return library.storage.entities.Account.get(
+			{ isDelegate: true, publicKey_in: forgerKeys },
+			{ limit: null }
+		)
+			.then(rows =>
+				rows.map(row => _.pick(row, ['username', 'address', 'publicKey']))
+			)
 			.then(rows => {
 				rows.forEach(forger => {
 					forger.nextSlot =
@@ -947,11 +949,11 @@ Delegates.prototype.fork = function(block, cause) {
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
 		blockHeight: block.height,
-		previousBlock: block.previousBlock,
+		previousBlockId: block.previousBlock,
 		cause,
 	};
 
-	library.db.delegates.insertFork(fork).then(() => {
+	library.storage.entities.Account.insertFork(fork).then(() => {
 		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };
@@ -1082,35 +1084,6 @@ Delegates.prototype.shared = {
 					currentSlot,
 				},
 			});
-		});
-	},
-
-	/**
-	 * Search accounts based on the query parameters passed.
-	 *
-	 * @param {Object} filters - Filters applied to results
-	 * @param {string} filters.address - Account address
-	 * @param {string} filters.publicKey - Public key associated to account
-	 * @param {string} filters.secondPublicKey - Second public key associated to account
-	 * @param {string} filters.username - Username associated to account
-	 * @param {string} filters.sort - Field to sort results by
-	 * @param {string} filters.search - Field to sort results by
-	 * @param {string} filters.rank - Field to sort results by
-	 * @param {int} filters.limit - Limit applied to results
-	 * @param {int} filters.offset - Offset value for results
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the return value
-	 */
-	getDelegates(filters, cb) {
-		modules.delegates.getDelegates(filters, (err, delegates) => {
-			if (err) {
-				return setImmediate(
-					cb,
-					new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR)
-				);
-			}
-			return setImmediate(cb, null, delegates);
 		});
 	},
 

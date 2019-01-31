@@ -96,12 +96,12 @@ describe('transactionPool', () => {
 		transactionPool.bundled = _.cloneDeep(freshListState);
 		transactionPool.queued = _.cloneDeep(freshListState);
 		transactionPool.multisignature = _.cloneDeep(freshListState);
-		logger.trace.reset();
-		logger.debug.reset();
-		logger.info.reset();
-		logger.log.reset();
-		logger.warn.reset();
-		logger.error.reset();
+		logger.trace.resetHistory();
+		logger.debug.resetHistory();
+		logger.info.resetHistory();
+		logger.log.resetHistory();
+		logger.warn.resetHistory();
+		logger.error.resetHistory();
 
 		dummyProcessVerifyTransaction = sinonSandbox.spy(
 			(transaction, broadcast, cb) => {
@@ -127,8 +127,8 @@ describe('transactionPool', () => {
 			dummyUndoUnconfirmed
 		);
 
-		removeQueuedTransactionSpy.reset();
-		removeMultisignatureTransactionSpy.reset();
+		removeQueuedTransactionSpy.resetHistory();
+		removeMultisignatureTransactionSpy.resetHistory();
 	};
 
 	before(done => {
@@ -1799,7 +1799,7 @@ describe('transactionPool', () => {
 
 			it('should return error when requester not found', done => {
 				const sender = _.cloneDeep(transaction);
-				sender.multisignatures = [{ id: '23423' }];
+				sender.membersPublicKeys = [{ id: '23423' }];
 				sender.signatures = [{ id: '11999' }];
 				accountsStub.setAccountAndGet.callsArgWith(1, null, sender);
 				accountsStub.getAccount.callsArgWith(1, 'Requester not found', null);
@@ -1811,7 +1811,7 @@ describe('transactionPool', () => {
 
 			it('should process when requester is available', done => {
 				const sender = _.cloneDeep(transaction);
-				sender.multisignatures = [{ id: '23423' }];
+				sender.membersPublicKeys = [{ id: '23423' }];
 				sender.signatures = [{ id: '11999' }];
 				accountsStub.setAccountAndGet.callsArgWith(1, null, sender);
 				accountsStub.getAccount.callsArgWith(1, null, sender);

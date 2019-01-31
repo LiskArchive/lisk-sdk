@@ -50,6 +50,7 @@ const Sequence = require('./helpers/sequence.js');
 const httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 const swaggerHelper = require('./helpers/swagger');
+const createStorage = require('./storage');
 
 /**
  * Main application entry point.
@@ -80,7 +81,7 @@ const swaggerHelper = require('./helpers/swagger');
  * @property {Object} bus
  * @property {Object} config
  * @property {undefined} connect
- * @property {Object} db
+ * @property {Object} storage
  * @property {Object} ed
  * @property {Object} genesisBlock
  * @property {string} lastCommit
@@ -149,7 +150,6 @@ const config = {
 		signatures: './modules/signatures.js',
 		transactions: './modules/transactions.js',
 		transport: './modules/transport.js',
-		voters: './modules/voters',
 	},
 };
 
@@ -464,20 +464,26 @@ d.run(() => {
 				},
 			],
 
-			/**
-			 * Description of the function.
-			 *
-			 * @memberof! app
-			 * @param {function} cb - Callback function
-			 * @todo Add description for the function and its params
-			 */
-			db(cb) {
-				const db = require('./db');
-				db
-					.connect(config.db, dbLogger)
-					.then(dbResult => cb(null, dbResult))
+			storage(cb) {
+				const storage = createStorage(config.db, dbLogger);
+				storage
+					.bootstrap()
+					.then(status => {
+						storage.entities.Account.extendDefaultOptions({
+							limit: global.constants.ACTIVE_DELEGATES,
+						});
+						return status;
+					})
+					.then(async status => {
+						if (status) {
+							await storage.entities.Migration.applyAll();
+							await storage.entities.Migration.applyRunTime();
+						}
+						cb(!status, storage);
+					})
 					.catch(err => {
 						console.error(err);
+						cb(err);
 					});
 			},
 
@@ -512,7 +518,7 @@ d.run(() => {
 				'config',
 				'logger',
 				'network',
-				'db',
+				'storage',
 				/**
 				 * Description of the function.
 				 *
@@ -549,6 +555,7 @@ d.run(() => {
 					const childProcessOptions = {
 						version: scope.config.version,
 						minVersion: scope.config.minVersion,
+						protocolVersion: scope.config.protocolVersion,
 						nethash: scope.config.nethash,
 						port: scope.config.wsPort,
 						nonce: scope.config.nonce,
@@ -585,7 +592,7 @@ d.run(() => {
 			],
 
 			logic: [
-				'db',
+				'storage',
 				'bus',
 				'schema',
 				'genesisBlock',
@@ -611,8 +618,8 @@ d.run(() => {
 							config(configCb) {
 								configCb(null, scope.config);
 							},
-							db(dbCb) {
-								dbCb(null, scope.db);
+							storage(storageCb) {
+								storageCb(null, scope.storage);
 							},
 							ed(edCb) {
 								edCb(null, scope.ed);
@@ -627,7 +634,7 @@ d.run(() => {
 								genesisBlockCb(null, scope.genesisBlock);
 							},
 							account: [
-								'db',
+								'storage',
 								'bus',
 								'ed',
 								'schema',
@@ -635,7 +642,7 @@ d.run(() => {
 								'logger',
 								function(accountScope, accountCb) {
 									new Account(
-										accountScope.db,
+										accountScope.storage,
 										accountScope.schema,
 										accountScope.logger,
 										accountCb
@@ -643,7 +650,7 @@ d.run(() => {
 								},
 							],
 							transaction: [
-								'db',
+								'storage',
 								'bus',
 								'ed',
 								'schema',
@@ -652,7 +659,7 @@ d.run(() => {
 								'logger',
 								function(transactionScope, transactionCb) {
 									new Transaction(
-										transactionScope.db,
+										transactionScope.storage,
 										transactionScope.ed,
 										transactionScope.schema,
 										transactionScope.genesisBlock,
@@ -663,7 +670,7 @@ d.run(() => {
 								},
 							],
 							block: [
-								'db',
+								'storage',
 								'bus',
 								'ed',
 								'schema',
@@ -700,7 +707,7 @@ d.run(() => {
 				'bus',
 				'sequence',
 				'balancesSequence',
-				'db',
+				'storage',
 				'logic',
 				'cache',
 				/**

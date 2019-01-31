@@ -36,7 +36,7 @@ const __private = {};
  * @requires lodash
  * @requires helpers/bignum
  * @requires helpers/slots
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Object} ed
  * @param {ZSchema} schema
  * @param {Object} genesisBlock
@@ -47,7 +47,7 @@ const __private = {};
  * @todo Add description for the params
  */
 class Transaction {
-	constructor(db, ed, schema, genesisBlock, account, logger, cb) {
+	constructor(storage, ed, schema, genesisBlock, account, logger, cb) {
 		/**
 		 * @typedef {Object} privateTypes
 		 * - 0: Transfer
@@ -62,7 +62,7 @@ class Transaction {
 		__private.types = {};
 
 		this.scope = {
-			db,
+			storage,
 			ed,
 			schema,
 			genesisBlock,
@@ -266,13 +266,12 @@ class Transaction {
 	 * @returns {SetImmediate} error, row.count
 	 * @todo Add description for the params
 	 */
-	countById(transaction, cb) {
-		this.scope.db.transactions
-			.countById(transaction.id)
-			.then(count => setImmediate(cb, null, count))
+	isConfirmed(transaction, cb) {
+		this.scope.storage.entities.Transaction.isPersisted({ id: transaction.id })
+			.then(isConfirmed => setImmediate(cb, null, isConfirmed))
 			.catch(err => {
 				this.scope.logger.error(err.stack);
-				return setImmediate(cb, 'Transaction#countById error');
+				return setImmediate(cb, 'Transaction#isConfirmed error');
 			});
 	}
 
@@ -289,10 +288,11 @@ class Transaction {
 		if (!transaction || !transaction.id) {
 			return setImmediate(cb, 'Invalid transaction id', false);
 		}
-		return this.countById(transaction, (err, count) => {
+		return this.isConfirmed(transaction, (err, isConfirmed) => {
 			if (err) {
 				return setImmediate(cb, err, false);
-			} else if (count > 0) {
+			}
+			if (isConfirmed) {
 				return setImmediate(cb, null, true);
 			}
 			return setImmediate(cb, null, false);
@@ -511,7 +511,7 @@ class Transaction {
 		}
 
 		// Determine multisignatures from sender or transaction asset
-		const multisignatures = sender.multisignatures || [];
+		const multisignatures = sender.membersPublicKeys || [];
 
 		if (multisignatures.length === 0) {
 			if (
@@ -727,7 +727,10 @@ class Transaction {
 		// Sanitize ready property
 		transaction.ready = this.ready(transaction, sender);
 		// Sanitize signatures property
-		if (sender.multisignatures) {
+		if (
+			Array.isArray(sender.membersPublicKeys) &&
+			sender.membersPublicKeys.length
+		) {
 			transaction.signatures = Array.isArray(transaction.signatures)
 				? transaction.signatures
 				: [];
@@ -1128,7 +1131,8 @@ class Transaction {
 
 		if (!transactionType) {
 			return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
-		} else if (typeof transactionType.afterSave === 'function') {
+		}
+		if (typeof transactionType.afterSave === 'function') {
 			return transactionType.afterSave.call(this, transaction, cb);
 		}
 		return setImmediate(cb);
@@ -1251,6 +1255,49 @@ class Transaction {
 
 		if (asset) {
 			transaction.asset = Object.assign(transaction.asset, asset);
+		}
+
+		return transaction;
+	}
+
+	/**
+	 * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
+	 *
+	 * @see {@link privateTypes}
+	 * @param {Object} raw
+	 * @throws {string} If unknown transaction type
+	 * @returns {null|transaction}
+	 * @todo Add description for the params
+	 */
+
+	/* eslint-disable class-methods-use-this */
+	storageRead(raw) {
+		if (!raw.id) {
+			return null;
+		}
+
+		const transaction = {
+			id: raw.id,
+			height: raw.height,
+			blockId: raw.blockId,
+			type: parseInt(raw.type),
+			timestamp: parseInt(raw.timestamp),
+			senderPublicKey: raw.senderPublicKey,
+			requesterPublicKey: raw.requesterPublicKey,
+			senderId: raw.senderId,
+			recipientId: raw.recipientId,
+			recipientPublicKey: raw.requesterPublicKey || null,
+			amount: new Bignum(raw.amount),
+			fee: new Bignum(raw.fee),
+			signature: raw.signature,
+			signSignature: raw.signSignature,
+			signatures: raw.signatures || [],
+			confirmations: parseInt(raw.confirmations),
+			asset: raw.asset || {},
+		};
+
+		if (!__private.types[transaction.type]) {
+			throw `Unknown transaction type ${transaction.type}`;
 		}
 
 		return transaction;

@@ -16,9 +16,13 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../../helpers/swagger');
+const BlockReward = require('../../logic/block_reward');
+const { calculateApproval } = require('../../helpers/http_api');
 
 // Private Fields
 let modules;
+let storage;
+let blockReward;
 const { EPOCH_TIME } = global.constants;
 
 /**
@@ -32,6 +36,32 @@ const { EPOCH_TIME } = global.constants;
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
+	storage = scope.storage;
+	blockReward = new BlockReward();
+}
+
+function delegateFormatter(totalSupply, delegate) {
+	const result = _.pick(delegate, [
+		'username',
+		'vote',
+		'rewards',
+		'producedBlocks',
+		'missedBlocks',
+		'productivity',
+		'rank',
+	]);
+
+	result.account = {
+		address: delegate.address,
+		publicKey: delegate.publicKey,
+		secondPublicKey: delegate.secondPublicKey || '',
+	};
+
+	result.approval = calculateApproval(result.vote, totalSupply);
+
+	result.rank = parseInt(result.rank);
+
+	return result;
 }
 
 /**
@@ -41,7 +71,7 @@ function DelegatesController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-DelegatesController.getDelegates = function(context, next) {
+DelegatesController.getDelegates = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	let filters = {
@@ -49,49 +79,52 @@ DelegatesController.getDelegates = function(context, next) {
 		publicKey: params.publicKey.value,
 		secondPublicKey: params.secondPublicKey.value,
 		username: params.username.value,
+	};
+
+	if (params.search.value) {
+		filters.username_like = `%${params.search.value}%`;
+	}
+
+	let options = {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
-		search: params.search.value,
+		extended: true,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
+	options = _.pickBy(options, v => !(v === undefined || v === null));
 
-	return modules.delegates.shared.getDelegates(
-		_.clone(filters),
-		(err, data) => {
-			if (err) {
-				return next(err);
-			}
+	try {
+		const delegates = await storage.entities.Account.get(
+			{ isDelegate: true, ...filters },
+			options
+		);
 
-			data = _.cloneDeep(data);
+		let lastBlock = await storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1 }
+		);
+		lastBlock = lastBlock[0];
 
-			data = _.map(data, delegate => {
-				delegate.account = {
-					address: delegate.address,
-					publicKey: delegate.publicKey,
-					secondPublicKey: delegate.secondPublicKey || '',
-				};
+		const data = delegates.map(
+			delegateFormatter.bind(
+				null,
+				lastBlock.height ? blockReward.calcSupply(lastBlock.height) : 0
+			)
+		);
 
-				delete delegate.secondPublicKey;
-				delete delegate.publicKey;
-				delete delegate.address;
-
-				delegate.rank = parseInt(delegate.rank);
-
-				return delegate;
-			});
-
-			return next(null, {
-				data,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-				},
-			});
-		}
-	);
+		return next(null, {
+			data,
+			meta: {
+				offset: options.offset,
+				limit: options.limit,
+			},
+		});
+	} catch (error) {
+		return next(error);
+	}
 };
 
 /**

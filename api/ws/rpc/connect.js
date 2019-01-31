@@ -48,6 +48,9 @@ const connectSteps = {
 		if (systemHeaders.version) {
 			queryParams.version = systemHeaders.version;
 		}
+		if (systemHeaders.protocolVersion) {
+			queryParams.protocolVersion = systemHeaders.protocolVersion;
+		}
 		if (systemHeaders.wsPort) {
 			queryParams.wsPort = systemHeaders.wsPort;
 		}

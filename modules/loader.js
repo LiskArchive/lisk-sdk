@@ -57,7 +57,7 @@ class Loader {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
+			storage: scope.storage,
 			network: scope.network,
 			schema: scope.schema,
 			sequence: scope.sequence,
@@ -422,7 +422,7 @@ __private.loadBlockChain = function() {
 					library.logger.error(err);
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
-						modules.blocks.chain.deleteAfterBlock(err.block.id, () => {
+						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
 							library.logger.error('Blockchain clipped');
 							library.bus.message('blockchainReady');
 						});
@@ -458,10 +458,10 @@ __private.loadBlockChain = function() {
 	 */
 	function checkMemTables(t) {
 		const promises = [
-			t.blocks.count(),
-			t.blocks.getGenesisBlock(),
-			t.rounds.getMemRounds(),
-			t.delegates.countDuplicatedDelegates(),
+			library.storage.entities.Block.count({}, {}, t),
+			library.storage.entities.Block.getOne({ height: 1 }, {}, t),
+			library.storage.entities.Round.getUniqueRounds(t),
+			library.storage.entities.Account.countDuplicatedDelegates(t),
 		];
 
 		return t.batch(promises);
@@ -489,82 +489,75 @@ __private.loadBlockChain = function() {
 		}
 	}
 
-	library.db
-		.task(checkMemTables)
-		.spread(
-			(
+	library.storage.entities.Block.begin('loader:checkMemTables', checkMemTables)
+		.then(async result => {
+			const [
 				blocksCount,
 				getGenesisBlock,
 				getMemRounds,
-				duplicatedDelegatesCount
-			) => {
-				library.logger.info(`Blocks ${blocksCount}`);
+				duplicatedDelegatesCount,
+			] = result;
 
-				const round = slots.calcRound(blocksCount);
+			library.logger.info(`Blocks ${blocksCount}`);
 
-				if (blocksCount === 1) {
-					return reload(blocksCount);
-				}
+			const round = slots.calcRound(blocksCount);
 
-				matchGenesisBlock(getGenesisBlock[0]);
-
-				if (library.config.loading.snapshotRound) {
-					return __private.createSnapshot(blocksCount);
-				}
-
-				const unapplied = getMemRounds.filter(row => row.round !== round);
-
-				if (unapplied.length > 0) {
-					library.logger.error('Detected unapplied rounds in mem_round', {
-						currentHeight: blocksCount,
-						currentRound: round,
-						unappliedRounds: unapplied,
-					});
-
-					return reload(blocksCount, 'Detected unapplied rounds in mem_round');
-				}
-
-				if (duplicatedDelegatesCount > 0) {
-					library.logger.error(
-						'Delegates table corrupted with duplicated entries'
-					);
-					return process.emit('exit');
-				}
-
-				function updateMemAccounts(t) {
-					const promises = [
-						t.accounts.updateMemAccounts(),
-						t.accounts.getDelegates(),
-					];
-					return t.batch(promises);
-				}
-
-				return library.db
-					.task(updateMemAccounts)
-					.spread((_updateMemAccounts, getDelegates) => {
-						if (getDelegates.length === 0) {
-							return reload(blocksCount, 'No delegates found');
-						}
-
-						return modules.blocks.utils.loadLastBlock((err, block) => {
-							if (err) {
-								return reload(blocksCount, err || 'Failed to load last block');
-							}
-
-							__private.lastBlock = block;
-
-							return __private.validateOwnChain(validateOwnChainError => {
-								if (validateOwnChainError) {
-									throw validateOwnChainError;
-								}
-
-								library.logger.info('Blockchain ready');
-								library.bus.message('blockchainReady');
-							});
-						});
-					});
+			if (blocksCount === 1) {
+				return reload(blocksCount);
 			}
-		)
+
+			matchGenesisBlock(getGenesisBlock);
+
+			if (library.config.loading.snapshotRound) {
+				return __private.createSnapshot(blocksCount);
+			}
+
+			const unapplied = getMemRounds.filter(row => row.round !== round);
+
+			if (unapplied.length > 0) {
+				library.logger.error('Detected unapplied rounds in mem_round', {
+					currentHeight: blocksCount,
+					currentRound: round,
+					unappliedRounds: unapplied,
+				});
+
+				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
+			}
+
+			if (duplicatedDelegatesCount > 0) {
+				library.logger.error(
+					'Delegates table corrupted with duplicated entries'
+				);
+				return process.emit('exit');
+			}
+
+			await library.storage.entities.Account.resetUnconfirmedState();
+			const delegatesPublicKeys = await library.storage.entities.Account.get(
+				{ isDelegate: true },
+				{ limit: null }
+			).then(accounts => accounts.map(account => account.publicKey));
+
+			if (delegatesPublicKeys.length === 0) {
+				return reload(blocksCount, 'No delegates found');
+			}
+
+			return modules.blocks.utils.loadLastBlock((err, block) => {
+				if (err) {
+					return reload(blocksCount, err || 'Failed to load last block');
+				}
+
+				__private.lastBlock = block;
+
+				return __private.validateOwnChain(validateOwnChainError => {
+					if (validateOwnChainError) {
+						throw validateOwnChainError;
+					}
+
+					library.logger.info('Blockchain ready');
+					library.bus.message('blockchainReady');
+				});
+			});
+		})
 		.catch(err => {
 			library.logger.error(err.stack || err);
 			return process.emit('exit');
@@ -812,8 +805,7 @@ __private.createSnapshot = height => {
 				);
 			},
 			truncateBlocks(seriesCb) {
-				library.db.blocks
-					.deleteBlocksAfterHeight(targetHeight)
+				library.storage.entities.Block.delete({ height_gt: targetHeight })
 					.then(() => setImmediate(seriesCb))
 					.catch(err => setImmediate(seriesCb, err));
 			},

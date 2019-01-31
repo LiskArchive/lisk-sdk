@@ -29,6 +29,7 @@ const NormalizedPeer = stampit({
 		httpPort: 4000,
 		state: 2,
 		version: '0.0.0',
+		protocolVersion: '0.0',
 		nonce: '',
 	},
 	init({ nonce }) {
@@ -48,6 +49,7 @@ const Peer = stampit({
 		state: null,
 		nonce: '',
 		version: '',
+		protocolVersion: '',
 	},
 	init({ broadhash, nonce, state }) {
 		this.dappid = null;
@@ -71,11 +73,7 @@ const Peer = stampit({
 });
 
 const DBPeer = stampit(Peer, {
-	props: {
-		clock: '',
-	},
 	init() {
-		this.clock = (+new Date() / 1000).toFixed();
 		delete this.dappid;
 		delete this.httpPort;
 		delete this.nonce;

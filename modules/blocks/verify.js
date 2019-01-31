@@ -15,7 +15,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const _ = require('lodash');
 const async = require('async');
 const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../../helpers/slots.js');
@@ -50,10 +49,10 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, transaction, db, config) {
+	constructor(logger, block, transaction, storage, config) {
 		library = {
 			logger,
-			db,
+			storage,
 			logic: {
 				block,
 				transaction,
@@ -471,10 +470,12 @@ Verify.prototype.verifyReceipt = function(block) {
  * Loads last {BLOCK_SLOT_WINDOW} blocks from the database into memory. Called when application triggeres blockchainReady event.
  */
 Verify.prototype.onBlockchainReady = function() {
-	return library.db.blocks
-		.loadLastNBlockIds(BLOCK_SLOT_WINDOW)
-		.then(blockIds => {
-			__private.lastNBlockIds = _.map(blockIds, 'id');
+	return library.storage.entities.Block.get(
+		{},
+		{ limit: BLOCK_SLOT_WINDOW, sort: 'height:desc' }
+	)
+		.then(rows => {
+			__private.lastNBlockIds = rows.map(row => row.id);
 		})
 		.catch(err => {
 			library.logger.error(
@@ -714,10 +715,9 @@ __private.checkExists = function(block, cb) {
 	// Check if block id is already in the database (very low probability of hash collision)
 	// TODO: In case of hash-collision, to me it would be a special autofork...
 	// DATABASE: read only
-	library.db.blocks
-		.blockExists(block.id)
-		.then(rows => {
-			if (rows) {
+	library.storage.entities.Block.isPersisted({ id: block.id })
+		.then(isPersisted => {
+			if (isPersisted) {
 				return setImmediate(
 					cb,
 					['Block', block.id, 'already exists'].join(' ')
@@ -796,7 +796,8 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 	if (modules.blocks.isCleaning.get()) {
 		// Break processing if node shutdown reqested
 		return setImmediate(cb, 'Cleaning up');
-	} else if (!__private.loaded) {
+	}
+	if (!__private.loaded) {
 		// Break processing if blockchain is not loaded
 		return setImmediate(cb, 'Blockchain is loading');
 	}

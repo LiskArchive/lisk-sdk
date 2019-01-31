@@ -76,7 +76,7 @@ class Vote {
 		return library.account.merge(
 			sender.address,
 			{
-				delegates: votesInvert,
+				votedDelegatesPublicKeys: votesInvert,
 				round: slots.calcRound(block.height),
 			},
 			mergeErr => setImmediate(cb, mergeErr),
@@ -105,7 +105,7 @@ class Vote {
 
 		return library.account.merge(
 			sender.address,
-			{ u_delegates: votesInvert },
+			{ u_votedDelegatesPublicKeys: votesInvert },
 			mergeErr => setImmediate(cb, mergeErr),
 			tx
 		);
@@ -363,7 +363,7 @@ Vote.prototype.applyConfirmed = function(transaction, block, sender, cb, tx) {
 				library.account.merge(
 					sender.address,
 					{
-						delegates: transaction.asset.votes,
+						votedDelegatesPublicKeys: transaction.asset.votes,
 						round: slots.calcRound(block.height),
 					},
 					mergeErr => setImmediate(cb, mergeErr),
@@ -394,7 +394,7 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 				library.account.merge(
 					sender.address,
 					{
-						u_delegates: transaction.asset.votes,
+						u_votedDelegatesPublicKeys: transaction.asset.votes,
 					},
 					mergeErr => setImmediate(seriesCb, mergeErr),
 					tx
@@ -474,11 +474,14 @@ Vote.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Vote.prototype.ready = function(transaction, sender) {
-	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+	if (
+		Array.isArray(sender.membersPublicKeys) &&
+		sender.membersPublicKeys.length
+	) {
 		if (!Array.isArray(transaction.signatures)) {
 			return false;
 		}
-		return transaction.signatures.length >= sender.multimin;
+		return transaction.signatures.length >= sender.multiMin;
 	}
 	return true;
 };

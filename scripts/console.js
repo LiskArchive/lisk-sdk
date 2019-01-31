@@ -55,7 +55,7 @@ application.init(
 		replServer.context.config = scope.config;
 		replServer.context.modules = scope.modules;
 		replServer.context.logic = scope.logic;
-		replServer.context.db = scope.db;
+		replServer.context.storage = scope.storage;
 		const helpers = {};
 
 		const helpersFolder = './helpers/';
@@ -69,7 +69,6 @@ application.init(
 		replServer.context.helpers = helpers;
 
 		// A dummy callback method to be utilized in repl
-		// e.g. modules.accounts.shared.getAccount({body: {}}, cb)
 		replServer.context.cb = function(replServerErr, data) {
 			// Make sure cab response showed in terminal
 			console.info(data);

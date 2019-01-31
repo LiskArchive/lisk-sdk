@@ -157,7 +157,7 @@ describe('duplicate_signatures', () => {
 			address: '4368107197830030479L',
 			publicKey:
 				'24193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d',
-			multisignatures: [
+			membersPublicKeys: [
 				'c44a88e68196e4d2f608873467c7350fb92b954eb7c3b31a989b1afd8d55ebdb',
 				'2eca11a4786f35f367299e1defd6a22ac4eb25d2552325d6c5126583a3bdd0fb',
 				'a17e03f21bfa187d2a30fe389aa78431c587bf850e9fa851b3841274fc9f100f',

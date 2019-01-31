@@ -41,7 +41,7 @@ let self;
  * @param {Peers} peers
  * @param {Transaction} transaction
  * @param {ZSchema} schema
- * @param {Database} db
+ * @param {Storage} storage
  * @param {Sequence} sequence
  * @param {Object} genesisBlock
  * @todo Add description for the params
@@ -53,14 +53,14 @@ class Process {
 		peers,
 		transaction,
 		schema,
-		db,
+		storage,
 		sequence,
 		genesisBlock
 	) {
 		library = {
 			logger,
 			schema,
-			db,
+			storage,
 			sequence,
 			genesisBlock,
 			logic: {
@@ -277,7 +277,9 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 					if (err) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
-					} else if (!blocksCommonRes.common) {
+					}
+
+					if (!blocksCommonRes.common) {
 						// FIXME: Need better checking here, is base on 'common' property enough?
 						comparisonFailed = true;
 						return setImmediate(
@@ -290,6 +292,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 							].join(' ')
 						);
 					}
+
 					return setImmediate(waterCb, null, blocksCommonRes.common);
 				});
 			},
@@ -312,28 +315,28 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 			},
 			function(common, waterCb) {
 				// Check that block with ID, previousBlock and height exists in database
-				library.db.blocks
-					.getCommonBlock({
-						id: common.id,
-						previousBlock: common.previousBlock,
-						height: common.height,
-					})
-					.then(rows => {
-						if (!rows.length || !rows[0].count) {
-							// Block doesn't exists - comparison failed
-							comparisonFailed = true;
-							return setImmediate(
-								waterCb,
-								[
-									'Chain comparison failed with peer:',
-									peer.string,
-									'using block:',
-									JSON.stringify(common),
-								].join(' ')
-							);
+				library.storage.entities.Block.isPersisted({
+					id: common.id,
+					previousBlockId: common.previousBlock,
+					height: common.height,
+				})
+					.then(isPersisted => {
+						if (isPersisted) {
+							// Block exists - it's common between our node and remote peer
+							return setImmediate(waterCb, null, common);
 						}
-						// Block exists - it's common between our node and remote peer
-						return setImmediate(waterCb, null, common);
+
+						// Block doesn't exists - comparison failed
+						comparisonFailed = true;
+						return setImmediate(
+							waterCb,
+							[
+								'Chain comparison failed with peer:',
+								peer.string,
+								'using block:',
+								JSON.stringify(common),
+							].join(' ')
+						);
 					})
 					.catch(err => {
 						// SQL error occurred
@@ -356,30 +359,42 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting,
  * see: loader.loadBlockChain (private).
  *
- * @param {number} limit - Limit amount of blocks
- * @param {number} offset - Offset to start at
+ * @param {number} blocksAmount - Amount of blocks
+ * @param {number} fromHeight - Height to start at
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.lastBlock - Current last block
  */
-Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
-	// Calculate limit if offset is supplied
-	const newLimit = limit + (offset || 0);
-	const params = { limit: newLimit, offset: offset || 0 };
+Process.prototype.loadBlocksOffset = function(
+	blocksAmount,
+	fromHeight = 0,
+	cb
+) {
+	// Calculate toHeight
+	const toHeight = fromHeight + blocksAmount;
 
 	library.logger.debug('Loading blocks offset', {
-		limit,
-		offset,
+		limit: toHeight,
+		offset: fromHeight,
 	});
 
-	// Loads full blocks from database
-	// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
-	library.db.blocks
-		.loadBlocksOffset(params.offset, params.limit)
+	const filters = {
+		height_gte: fromHeight,
+		height_lt: toHeight,
+	};
+
+	const options = {
+		limit: null,
+		sort: ['height:asc', 'rowId:asc'],
+		extended: true,
+	};
+
+	// Loads extended blocks from storage
+	library.storage.entities.Block.get(filters, options)
 		.then(rows => {
 			// Normalize blocks
-			const blocks = modules.blocks.utils.readDbRows(rows);
+			const blocks = modules.blocks.utils.readStorageRows(rows);
 
 			async.eachSeries(
 				blocks,
@@ -397,6 +412,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 							setImmediate(eachBlockSeriesCb, err)
 						);
 					}
+
 					// Process block - broadcast: false, saveBlock: false
 					return modules.blocks.verify.processBlock(
 						block,
@@ -666,13 +682,17 @@ Process.prototype.onReceiveBlock = function(block) {
 		) {
 			// Process received block
 			return __private.receiveBlock(block, cb);
-		} else if (
+		}
+
+		if (
 			block.previousBlock !== lastBlock.id &&
 			lastBlock.height + 1 === block.height
 		) {
 			// Process received fork cause 1
 			return __private.receiveForkOne(block, lastBlock, cb);
-		} else if (
+		}
+
+		if (
 			block.previousBlock === lastBlock.previousBlock &&
 			block.height === lastBlock.height &&
 			block.id !== lastBlock.id
@@ -680,6 +700,7 @@ Process.prototype.onReceiveBlock = function(block) {
 			// Process received fork cause 5
 			return __private.receiveForkFive(block, lastBlock, cb);
 		}
+
 		if (block.id === lastBlock.id) {
 			library.logger.debug('Block already processed', block.id);
 		} else {

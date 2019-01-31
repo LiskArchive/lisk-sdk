@@ -317,8 +317,8 @@ TransactionPool.prototype.addUnconfirmedTransaction = function(
 	const isMultisignature =
 		transaction.type === transactionTypes.MULTI ||
 		(sender &&
-			Array.isArray(sender.multisignatures) &&
-			sender.multisignatures.length);
+			Array.isArray(sender.membersPublicKeys) &&
+			sender.membersPublicKeys.length);
 	if (isMultisignature) {
 		self.removeMultisignatureTransaction(transaction.id);
 	} else {
@@ -632,8 +632,8 @@ TransactionPool.prototype.queueTransaction = function(transaction, sender, cb) {
 	const isMultisignature =
 		transaction.type === transactionTypes.MULTI ||
 		(sender &&
-			Array.isArray(sender.multisignatures) &&
-			sender.multisignatures.length);
+			Array.isArray(sender.membersPublicKeys) &&
+			sender.membersPublicKeys.length);
 	if (isMultisignature) {
 		if (
 			self.countMultisignature() >=
@@ -854,8 +854,8 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 			},
 			function getRequester(sender, waterCb) {
 				const multisignatures =
-					Array.isArray(sender.multisignatures) &&
-					sender.multisignatures.length;
+					Array.isArray(sender.membersPublicKeys) &&
+					sender.membersPublicKeys.length;
 
 				if (multisignatures) {
 					transaction.signatures = transaction.signatures || [];
@@ -997,7 +997,8 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 __private.transactionTimeOut = function(transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
 		return transaction.asset.multisignature.lifetime * self.hourInSeconds;
-	} else if (Array.isArray(transaction.signatures)) {
+	}
+	if (Array.isArray(transaction.signatures)) {
 		return UNCONFIRMED_TRANSACTION_TIMEOUT * 8;
 	}
 	return UNCONFIRMED_TRANSACTION_TIMEOUT;

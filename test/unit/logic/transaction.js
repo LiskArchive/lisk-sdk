@@ -387,25 +387,25 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('countById', () => {
+	describe('isConfirmed', () => {
 		it('should throw an error with no param', () => {
-			return expect(transactionLogic.countById.bind(transactionLogic)).to.throw(
-				"Cannot read property 'id' of undefined"
-			);
+			return expect(
+				transactionLogic.isConfirmed.bind(transactionLogic)
+			).to.throw("Cannot read property 'id' of undefined");
 		});
 
-		it('should return count of transaction in db with transaction id', done => {
-			transactionLogic.countById(validTransaction, (err, count) => {
+		it('should return false if transaction is not confirmed', done => {
+			transactionLogic.isConfirmed(validTransaction, (err, isConfirmed) => {
 				expect(err).to.not.exist;
-				expect(count).to.equal(0);
+				expect(isConfirmed).to.equal(false);
 				done();
 			});
 		});
 
 		it('should return 1 for transaction from genesis block', done => {
-			transactionLogic.countById(genesisTransaction, (err, count) => {
+			transactionLogic.isConfirmed(genesisTransaction, (err, isConfirmed) => {
 				expect(err).to.not.exist;
-				expect(count).to.equal(1);
+				expect(isConfirmed).to.equal(true);
 				done();
 			});
 		});
@@ -694,7 +694,7 @@ describe('transaction', () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(sender);
 			// Different publicKey for multisignature account
-			vs.multisignatures = [accountFixtures.existingDelegate.publicKey];
+			vs.membersPublicKeys = [accountFixtures.existingDelegate.publicKey];
 			transaction.requesterPublicKey = validKeypair.publicKey.toString('hex');
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(validKeypair, transaction);
@@ -719,7 +719,7 @@ describe('transaction', () => {
 		it('should return error when duplicate signature in transaction', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(sender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
 			transaction.signatures = Array(...Array(2)).map(() => {
 				return transactionLogic.sign(validKeypair, transaction);
@@ -734,7 +734,7 @@ describe('transaction', () => {
 		it('should be okay with valid multisignature', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(sender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
+			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.signatures = [

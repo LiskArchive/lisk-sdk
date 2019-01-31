@@ -14,10 +14,8 @@
 
 'use strict';
 
-const Bignum = require('../../../helpers/bignum.js');
 const AccountModule = require('../../../modules/accounts.js');
 const accountFixtures = require('../../fixtures').accounts;
-const randomUtil = require('../../common/utils/random');
 const application = require('../../common/application');
 
 const validAccount = {
@@ -52,7 +50,7 @@ const validAccount = {
 describe('accounts', () => {
 	let accounts;
 	let accountLogic;
-	let db;
+	let storage;
 
 	before(done => {
 		application.init(
@@ -62,7 +60,7 @@ describe('accounts', () => {
 				scope.modules.blocks.lastBlock.set({ height: 10 });
 				accounts = scope.modules.accounts;
 				accountLogic = scope.logic.account;
-				db = scope.db;
+				storage = scope.storage;
 				done(err);
 			}
 		);
@@ -124,7 +122,7 @@ describe('accounts', () => {
 
 	describe('getAccounts', () => {
 		it('should get accounts for the filter provided', done => {
-			accounts.getAccounts({ secondSignature: 0 }, (err, res) => {
+			accounts.getAccounts({ secondSignature: false }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
 				expect(res.filter(a => a.secondSignature !== false).length).to.equal(0);
@@ -191,7 +189,7 @@ describe('accounts', () => {
 			const account = new accountFixtures.Account();
 			let eventCtx;
 
-			db.$config.options.query = function(event) {
+			storage.adapter.db.$config.options.query = function(event) {
 				eventCtx = event.ctx;
 			};
 
@@ -203,7 +201,7 @@ describe('accounts', () => {
 				expect(eventCtx.isTX).to.be.true;
 				expect(eventCtx.txLevel).to.be.eql(0);
 				expect(eventCtx.tag).to.be.eql('Accounts:setAccountAndGet');
-				delete db.$config.options.query;
+				delete storage.adapter.db.$config.options.query;
 
 				done();
 			});
@@ -213,7 +211,7 @@ describe('accounts', () => {
 			const account = new accountFixtures.Account();
 			let eventCtx;
 
-			db.$config.options.query = function(event) {
+			storage.adapter.db.$config.options.query = function(event) {
 				eventCtx = event.ctx;
 			};
 
@@ -228,14 +226,14 @@ describe('accounts', () => {
 						expect(eventCtx.isTX).to.be.true;
 						expect(eventCtx.txLevel).to.be.eql(0);
 						expect(eventCtx.tag).to.be.eql('Tests:setAccountAndGet');
-						delete db.$config.options.query;
+						delete storage.adapter.db.$config.options.query;
 
 						done();
 					},
 					t
 				);
 
-			db.tx('Tests:setAccountAndGet', task);
+				storage.adapter.db.tx('Tests:setAccountAndGet', task);
 		});
 	});
 
@@ -248,97 +246,6 @@ describe('accounts', () => {
 	describe('isLoaded', () => {
 		it('should return true when modules are loaded', () => {
 			return expect(accounts.isLoaded).to.be.ok;
-		});
-	});
-
-	describe('shared', () => {
-		describe('getAccounts', () => {
-			it('should return empty accounts array when account does not exist', done => {
-				accounts.shared.getAccounts(
-					{
-						address: randomUtil.account().address,
-					},
-					(err, res) => {
-						expect(err).to.not.exist;
-						expect(res)
-							.be.an('array')
-							.which.has.length(0);
-						done();
-					}
-				);
-			});
-
-			it('should return account using publicKey', done => {
-				accounts.shared.getAccounts(
-					{
-						publicKey: validAccount.publicKey,
-					},
-					(err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('array');
-						done();
-					}
-				);
-			});
-
-			it('should return account using address', done => {
-				accounts.shared.getAccounts(
-					{
-						address: validAccount.address,
-					},
-					(err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('array');
-						done();
-					}
-				);
-			});
-
-			it('should return top 10 accounts ordered by descending balance', done => {
-				const limit = 10;
-				const sort = 'balance:desc';
-
-				accounts.shared.getAccounts(
-					{
-						limit,
-						sort,
-					},
-					(err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.have.length(10);
-						for (let i = 0; i < limit - 1; i++) {
-							expect(
-								new Bignum(res[i].balance).gte(new Bignum(res[i + 1].balance))
-							).to.equal(true);
-						}
-						done();
-					}
-				);
-			});
-
-			it('should return accounts in the range 10 to 20 ordered by descending balance', done => {
-				const limit = 10;
-				const offset = 10;
-				const sort = 'balance:desc';
-
-				accounts.shared.getAccounts(
-					{
-						limit,
-						offset,
-						sort,
-					},
-					(err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.have.length(10);
-						for (let i = 0; i < limit - 1; i++) {
-							expect(
-								new Bignum(res[i].balance).gte(new Bignum(res[i + 1].balance))
-							).to.equal(true);
-						}
-						done();
-					}
-				);
-			});
 		});
 	});
 });

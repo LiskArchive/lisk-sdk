@@ -20,6 +20,7 @@ const _ = require('lodash');
 const bodyParser = require('body-parser');
 const queryParser = require('express-query-int');
 const methodOverride = require('method-override');
+const Bignum = require('bignumber.js');
 const SwaggerRunner = require('swagger-node-runner');
 const swaggerHelper = require('../helpers/swagger');
 const checkIpInList = require('./check_ip_in_list');
@@ -201,6 +202,20 @@ const middleware = {
 	},
 };
 
+// TODO: Move this method to better directory structure, as its not directly related to HTTP
+function calculateApproval(votersBalance, totalSupply) {
+	// votersBalance and totalSupply are sent as strings,
+	// we convert them into bignum and send the response as number as well
+	const votersBalanceBignum = new Bignum(votersBalance || 0);
+	const totalSupplyBignum = new Bignum(totalSupply);
+	const approvalBignum = votersBalanceBignum
+		.dividedBy(totalSupplyBignum)
+		.multipliedBy(100)
+		.decimalPlaces(2);
+
+	return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
+}
+
 /**
  * Configure swagger node runner with the app.
  * It loads the swagger specification and maps everything with an active express app.
@@ -377,4 +392,5 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 module.exports = {
 	middleware,
 	bootstrapSwagger,
+	calculateApproval,
 };

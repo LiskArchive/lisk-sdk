@@ -52,7 +52,7 @@ class Peers {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
-			db: scope.db,
+			storage: scope.storage,
 			schema: scope.schema,
 			bus: scope.bus,
 			nonce: scope.nonce,
@@ -110,6 +110,7 @@ __private.getByFilter = function(filter, cb) {
 		'state',
 		'os',
 		'version',
+		'protocolVersion',
 		'broadhash',
 		'height',
 		'nonce',
@@ -269,31 +270,51 @@ __private.updatePeerStatus = function(err, status, peer) {
 		} else {
 			library.logic.peers.remove(peer);
 		}
-	} else if (!modules.system.versionCompatible(status.version)) {
-		library.logger.debug(
-			`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
-				peer.string
-			}, version: ${status.version}`
-		);
-		library.logic.peers.remove(peer);
 	} else {
-		let state;
-		// Ban peer if it is presented in the array of black listed peers
-		if (__private.isBlacklisted(peer.ip)) {
-			state = Peer.STATE.BANNED;
+		let compatible = false;
+		// Check needed for compatibility with older nodes
+		if (!status.protocolVersion) {
+			if (!modules.system.versionCompatible(status.version)) {
+				library.logger.debug(
+					`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
+						peer.string
+					}, version: ${status.version}`
+				);
+			} else {
+				compatible = true;
+			}
+		} else if (
+			!modules.system.protocolVersionCompatible(status.protocolVersion)
+		) {
+			library.logger.debug(
+				`Peers->updatePeerStatus Incompatible protocol version, rejecting peer: ${
+					peer.string
+				}, version: ${status.protocolVersion}`
+			);
 		} else {
-			state = Peer.STATE.CONNECTED;
+			compatible = true;
 		}
 
-		peer.applyHeaders({
-			broadhash: status.broadhash,
-			height: status.height,
-			httpPort: status.httpPort,
-			nonce: status.nonce,
-			os: status.os,
-			state,
-			version: status.version,
-		});
+		if (compatible) {
+			let state;
+			// Ban peer if it is presented in the array of black listed peers
+			if (__private.isBlacklisted(peer.ip)) {
+				state = Peer.STATE.BANNED;
+			} else {
+				state = Peer.STATE.CONNECTED;
+			}
+
+			peer.applyHeaders({
+				broadhash: status.broadhash,
+				height: status.height,
+				httpPort: status.httpPort,
+				nonce: status.nonce,
+				os: status.os,
+				state,
+				version: status.version,
+				protocolVersion: status.protocolVersion,
+			});
+		}
 	}
 
 	library.logic.peers.upsert(peer, false);
@@ -358,8 +379,7 @@ __private.insertSeeds = function(cb) {
 __private.dbLoad = function(cb) {
 	let updated = 0;
 	library.logger.trace('Importing peers from database');
-	library.db.peers
-		.list()
+	library.storage.entities.Peer.get({}, { limit: null })
 		.then(rows => {
 			library.logger.info('Imported peers from database', {
 				count: rows.length,
@@ -429,10 +449,11 @@ __private.dbSave = function(cb) {
 	}
 
 	// Wrap sql queries in transaction and execute
-	return library.db
-		.tx('modules:peers:dbSave', t =>
-			t.peers.clear().then(() => t.peers.insert(peers))
+	return library.storage.entities.Peer.begin('modules:peers:dbSave', t =>
+		library.storage.entities.Peer.delete({}, {}, t).then(() =>
+			library.storage.entities.Peer.create(peers, {}, t)
 		)
+	)
 		.then(() => {
 			library.logger.info('Peers exported to database');
 			return setImmediate(cb);

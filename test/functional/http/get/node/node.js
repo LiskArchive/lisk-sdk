@@ -60,6 +60,14 @@ describe('GET /node', () => {
 				);
 		});
 
+		it('should return a result containing protocolVersion correctly formatted', () => {
+			return expect(constantsResponse)
+				.to.have.property('protocolVersion')
+				.to.match(
+					/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/
+				);
+		});
+
 		it('should return a result containing fees.send = 10000000', () => {
 			return expect(constantsResponse.fees.send).to.be.equal('10000000');
 		});

@@ -16,7 +16,7 @@
 
 const fs = require('fs');
 const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
-const DBSandbox = require('../common/db_sandbox').DBSandbox;
+const { StorageSandbox } = require('../common/storage_sandbox');
 
 describe('Dependency versions', () => {
 	describe('node version', () => {
@@ -27,28 +27,19 @@ describe('Dependency versions', () => {
 	});
 
 	describe('postgresql version', () => {
-		let dbSandbox;
+		let storageSandbox;
 
-		after(done => {
-			if (dbSandbox) {
-				dbSandbox.destroy();
-				done();
-			}
-		});
+		it('should be 10.x', async () => {
+			storageSandbox = new StorageSandbox(
+				__testContext.config.db,
+				'postgresql-version'
+			);
 
-		it('should be 10.x', done => {
-			dbSandbox = new DBSandbox(__testContext.config.db, 'postgresql-version');
-			dbSandbox.create((createErr, db) => {
-				const Queries = new QueriesHelper(null, db);
-				Queries.getPostgresVersion().then(data => {
-					try {
-						expect(data[0].version).to.contain('PostgreSQL 10.');
-						done(createErr);
-					} catch (getPostgresVersionErr) {
-						done(getPostgresVersionErr);
-					}
-				});
-			});
+			await storageSandbox.bootstrap();
+			const Queries = new QueriesHelper(null, storageSandbox);
+
+			const data = await Queries.getPostgresVersion();
+			expect(data[0].version).to.contain('PostgreSQL 10.');
 		});
 	});
 });

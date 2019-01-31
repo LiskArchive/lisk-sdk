@@ -102,8 +102,8 @@ describe('connect', () => {
 			});
 
 			afterEach(done => {
-				addConnectionOptionsSpySpy.reset();
-				addSocketSpy.reset();
+				addConnectionOptionsSpySpy.resetHistory();
+				addSocketSpy.resetHistory();
 				done();
 			});
 
@@ -156,12 +156,27 @@ describe('connect', () => {
 		let peerAsResult;
 
 		describe('addConnectionOptions', () => {
+			let originalSystemHeaders;
+
 			beforeEach(done => {
+				originalSystemHeaders = System.getHeaders();
+				System.setHeaders({
+					protocolVersion: 'aProtocolVersion',
+					version: 'aVersion',
+					nonce: 'aNonce',
+					wsPort: 'aWSPort',
+					httpPort: 'anHttpPort',
+					nethash: 'aNethash',
+				});
 				const addConnectionOptions = connectRewired.__get__(
 					'connectSteps.addConnectionOptions'
 				);
 				peerAsResult = addConnectionOptions(validPeer);
 				done();
+			});
+
+			afterEach(() => {
+				return System.setHeaders(originalSystemHeaders);
 			});
 
 			it('should add connectionOptions field to peer', () => {
@@ -188,8 +203,45 @@ describe('connect', () => {
 
 			it('should add connectionOptions containing query', () => {
 				return expect(peerAsResult)
-					.to.have.nested.property('connectionOptions.query')
-					.to.eql(System.getHeaders());
+					.to.have.nested.property('connectionOptions.query');
+			});
+
+			describe('connectionOptions.query', () => {
+				it('should contain protocolVersion if present on system headers', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.protocolVersion')
+						.to.eql(System.getHeaders().protocolVersion);
+				});
+
+				it('should contain version if present on system headers', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.version')
+						.to.eql(System.getHeaders().version);
+				});
+
+				it('should contain nonce if present on system headers', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.nonce')
+						.to.eql(System.getHeaders().nonce);
+				});
+
+				it('should contain wsPort if present on system headers', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.wsPort')
+						.to.eql(System.getHeaders().wsPort);
+				});
+
+				it('should contain httpPort if present on system headers', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.httpPort')
+						.to.eql(System.getHeaders().httpPort);
+				});
+
+				it('should contain nethash if present on system headers', () => {
+					return expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.nethash')
+						.to.eql(System.getHeaders().nethash);
+				});
 			});
 
 			it('should return [peer]', () => {
@@ -220,7 +272,7 @@ describe('connect', () => {
 				done();
 			});
 			afterEach(done => {
-				scClientConnectStub.reset();
+				scClientConnectStub.resetHistory();
 				done();
 			});
 			after(done => {
@@ -269,7 +321,7 @@ describe('connect', () => {
 				done();
 			});
 			afterEach(done => {
-				upgradeToWAMPSpy.reset();
+				upgradeToWAMPSpy.resetHistory();
 				done();
 			});
 			after(done => {
@@ -304,8 +356,8 @@ describe('connect', () => {
 			});
 			beforeEach(done => {
 				const registerRPC = connectRewired.__get__('connectSteps.registerRPC');
-				validRPCSocket.call.reset();
-				validRPCSocket.emit.reset();
+				validRPCSocket.call.resetHistory();
+				validRPCSocket.emit.resetHistory();
 				validPeer.socket = validRPCSocket;
 				peerAsResult = registerRPC(validPeer, loggerMock, masterWAMPServerMock);
 				done();
@@ -341,7 +393,7 @@ describe('connect', () => {
 					});
 					beforeEach(beforeEachCb => {
 						peerAsResult.socket.call.resolves(validRPCResult);
-						validRPCCallback.reset();
+						validRPCCallback.resetHistory();
 						peerAsResult.rpc[validRPCProcedureName](
 							validRPCArgument,
 							(...args) => {
@@ -396,7 +448,7 @@ describe('connect', () => {
 					describe('when peer.socket.call failed', () => {
 						const validRPCError = 'valid rpc error';
 						beforeEach(beforeEachCb => {
-							validRPCCallback.reset();
+							validRPCCallback.resetHistory();
 							peerAsResult.socket.call.rejects(validRPCError);
 							peerAsResult.rpc[validRPCProcedureName](
 								validRPCArgument,
@@ -446,7 +498,7 @@ describe('connect', () => {
 				done();
 			});
 			beforeEach(done => {
-				validSocket.on.reset();
+				validSocket.on.resetHistory();
 				const registerSocketListeners = connectRewired.__get__(
 					'connectSteps.registerSocketListeners'
 				);

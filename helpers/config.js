@@ -67,6 +67,11 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	// Define lisk network env variable to be used by child processes load config files
 	process.env.LISK_NETWORK = network;
 
+	const protocolVersion =
+		process.env.NODE_ENV === 'test'
+			? process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion
+			: packageJson.lisk.protocolVersion;
+
 	const genesisBlock = loadJSONFile(`./config/${network}/genesis_block.json`);
 
 	const defaultConstants = require('../config/default/constants.js');
@@ -89,6 +94,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		nonce: randomstring.generate(16),
 		version: packageJson.version,
 		minVersion: packageJson.lisk.minVersion,
+		protocolVersion,
 		nethash: genesisBlock.payloadHash,
 	};
 

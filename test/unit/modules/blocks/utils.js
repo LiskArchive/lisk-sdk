@@ -46,8 +46,245 @@ const fullBlocksListRows = [
 	},
 ];
 
+const storageBlocksListRows = [
+	{
+		id: '13068833527549895884',
+		height: 3, // Block 1
+		version: 0,
+		transactions: [
+			{
+				id: '6950874693022090568',
+				type: 5,
+				asset: {
+					dapp: {
+						category: 0,
+						description: 'my app desc',
+						icon: 'app.icon',
+						link: 'app-link.com',
+						name: 'App Name',
+						tags: null,
+						type: 0,
+					},
+				},
+			},
+		],
+	},
+	{
+		id: '13068833527549895884',
+		height: 3, // Block 1
+		version: '0',
+		transactions: [
+			{
+				id: '13831767660337349834',
+				type: 1,
+			},
+		],
+	},
+	{
+		id: '7018883617995376402',
+		height: 4, // Block 2
+		version: '1',
+		transactions: [
+			{
+				id: '10550826199952791739',
+				type: 2,
+			},
+		],
+	},
+	{
+		id: '7018883617995376402',
+		height: 4, // Block 2
+		version: 1,
+		transactions: [
+			{
+				id: '3502881310841638511',
+				type: 3,
+			},
+		],
+	},
+];
+
+const storageBlocksListRowsParsed = [
+	{
+		b_blockSignature: null,
+		b_generatorPublicKey: null,
+		b_height: 3,
+		b_id: '13068833527549895884',
+		b_numberOfTransactions: null,
+		b_payloadHash: null,
+		b_payloadLength: null,
+		b_previousBlock: null,
+		b_reward: null,
+		b_timestamp: null,
+		b_totalAmount: null,
+		b_totalFee: null,
+		b_version: 0,
+		d_username: null,
+		dapp_category: 0,
+		dapp_description: 'my app desc',
+		dapp_icon: 'app.icon',
+		dapp_link: 'app-link.com',
+		dapp_name: 'App Name',
+		dapp_tags: null,
+		dapp_type: 0,
+		in_dappId: null,
+		m_keysgroup: null,
+		m_lifetime: null,
+		m_min: null,
+		ot_dappId: null,
+		ot_outTransactionId: null,
+		s_publicKey: null,
+		t_amount: null,
+		t_fee: null,
+		t_id: '6950874693022090568',
+		t_recipientId: null,
+		t_requesterPublicKey: null,
+		t_senderId: null,
+		t_senderPublicKey: null,
+		t_signSignature: null,
+		t_signature: null,
+		t_signatures: null,
+		t_timestamp: null,
+		t_type: 5,
+		tf_data: null,
+		v_votes: null,
+	},
+	{
+		b_blockSignature: null,
+		b_generatorPublicKey: null,
+		b_height: 3,
+		b_id: '13068833527549895884',
+		b_numberOfTransactions: null,
+		b_payloadHash: null,
+		b_payloadLength: null,
+		b_previousBlock: null,
+		b_reward: null,
+		b_timestamp: null,
+		b_totalAmount: null,
+		b_totalFee: null,
+		b_version: 0,
+		d_username: null,
+		dapp_category: null,
+		dapp_description: null,
+		dapp_icon: null,
+		dapp_link: null,
+		dapp_name: null,
+		dapp_tags: null,
+		dapp_type: null,
+		in_dappId: null,
+		m_keysgroup: null,
+		m_lifetime: null,
+		m_min: null,
+		ot_dappId: null,
+		ot_outTransactionId: null,
+		s_publicKey: null,
+		t_amount: null,
+		t_fee: null,
+		t_id: '13831767660337349834',
+		t_recipientId: null,
+		t_requesterPublicKey: null,
+		t_senderId: null,
+		t_senderPublicKey: null,
+		t_signSignature: null,
+		t_signature: null,
+		t_signatures: null,
+		t_timestamp: null,
+		t_type: 1,
+		tf_data: null,
+		v_votes: null,
+	},
+	{
+		b_blockSignature: null,
+		b_generatorPublicKey: null,
+		b_height: 4,
+		b_id: '7018883617995376402',
+		b_numberOfTransactions: null,
+		b_payloadHash: null,
+		b_payloadLength: null,
+		b_previousBlock: null,
+		b_reward: null,
+		b_timestamp: null,
+		b_totalAmount: null,
+		b_totalFee: null,
+		b_version: 1,
+		d_username: null,
+		dapp_category: null,
+		dapp_description: null,
+		dapp_icon: null,
+		dapp_link: null,
+		dapp_name: null,
+		dapp_tags: null,
+		dapp_type: null,
+		in_dappId: null,
+		m_keysgroup: null,
+		m_lifetime: null,
+		m_min: null,
+		ot_dappId: null,
+		ot_outTransactionId: null,
+		s_publicKey: null,
+		t_amount: null,
+		t_fee: null,
+		t_id: '10550826199952791739',
+		t_recipientId: null,
+		t_requesterPublicKey: null,
+		t_senderId: null,
+		t_senderPublicKey: null,
+		t_signSignature: null,
+		t_signature: null,
+		t_signatures: null,
+		t_timestamp: null,
+		t_type: 2,
+		tf_data: null,
+		v_votes: null,
+	},
+	{
+		b_blockSignature: null,
+		b_generatorPublicKey: null,
+		b_height: 4,
+		b_id: '7018883617995376402',
+		b_numberOfTransactions: null,
+		b_payloadHash: null,
+		b_payloadLength: null,
+		b_previousBlock: null,
+		b_reward: null,
+		b_timestamp: null,
+		b_totalAmount: null,
+		b_totalFee: null,
+		b_version: 1,
+		d_username: null,
+		dapp_category: null,
+		dapp_description: null,
+		dapp_icon: null,
+		dapp_link: null,
+		dapp_name: null,
+		dapp_tags: null,
+		dapp_type: null,
+		in_dappId: null,
+		m_keysgroup: null,
+		m_lifetime: null,
+		m_min: null,
+		ot_dappId: null,
+		ot_outTransactionId: null,
+		s_publicKey: null,
+		t_amount: null,
+		t_fee: null,
+		t_id: '3502881310841638511',
+		t_recipientId: null,
+		t_requesterPublicKey: null,
+		t_senderId: null,
+		t_senderPublicKey: null,
+		t_signSignature: null,
+		t_signature: null,
+		t_signatures: null,
+		t_timestamp: null,
+		t_type: 3,
+		tf_data: null,
+		v_votes: null,
+	},
+];
+
 describe('blocks/utils', () => {
-	let dbStub;
+	let storageStub;
 	let loggerStub;
 	let blockMock;
 	let transactionMock;
@@ -59,21 +296,17 @@ describe('blocks/utils', () => {
 	let modules;
 
 	beforeEach(done => {
-		dbStub = {
-			blocks: {
-				getIdSequence: sinonSandbox.stub().resolves(),
-				getHeightByLastId: sinonSandbox.stub().resolves(['1']),
-				loadLastBlock: sinonSandbox.stub().resolves(fullBlocksListRows),
-				loadBlocksData: sinonSandbox.stub(),
-				aggregateBlocksReward: sinonSandbox.stub().resolves(),
+		storageStub = {
+			entities: {
+				Account: {
+					delegateBlocksRewards: sinonSandbox.stub().resolves(),
+				},
+				Block: {
+					get: sinonSandbox.stub().resolves(['1']),
+					getFirstBlockIdOfLastRounds: sinonSandbox.stub().resolves(),
+				},
 			},
 		};
-
-		dbStub.blocks.loadBlocksData
-			.withArgs(sinonSandbox.match({ id: '13068833527549895884' }))
-			.resolves(fullBlocksListRows)
-			.withArgs(sinonSandbox.match({ id: '1' }))
-			.resolves([]);
 
 		loggerStub = {
 			trace: sinonSandbox.spy(),
@@ -84,6 +317,9 @@ describe('blocks/utils', () => {
 		blockMock = {
 			dbRead(input) {
 				return { id: input.b_id, height: input.b_height };
+			},
+			storageRead(input) {
+				return { id: input.id, height: input.height };
 			},
 		};
 
@@ -110,7 +346,7 @@ describe('blocks/utils', () => {
 			accountMock,
 			blockMock,
 			transactionMock,
-			dbStub,
+			storageStub,
 			modulesLoader.scope.genesisBlock
 		);
 
@@ -126,6 +362,7 @@ describe('blocks/utils', () => {
 				},
 				utils: {
 					readDbRows: blocksUtilsModule.readDbRows,
+					readStorageRows: blocksUtilsModule.readStorageRows,
 				},
 			},
 		};
@@ -141,13 +378,13 @@ describe('blocks/utils', () => {
 	});
 
 	afterEach(() => {
-		return sinonSandbox.reset();
+		return sinonSandbox.resetHistory();
 	});
 
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
-			expect(library.db).to.eql(dbStub);
+			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.account).to.eql(accountMock);
 			expect(library.logic.block).to.eql(blockMock);
 			return expect(library.logic.transaction).to.eql(transactionMock);
@@ -259,9 +496,12 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadBlocksPart', () => {
-		it('should return error when library.db.blocks.loadBlocksData fails', done => {
-			library.db.blocks.loadBlocksData = sinonSandbox
+		it('should return error when library.storage.entities.Block.get fails', done => {
+			library.storage.entities.Block.get = sinonSandbox
 				.stub()
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
 				.throws(new Error('An error'));
 
 			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
@@ -273,9 +513,12 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return an array of blocks', done => {
-			library.db.blocks.loadBlocksData = sinonSandbox
+			library.storage.entities.Block.get = sinonSandbox
 				.stub()
-				.resolves(fullBlocksListRows);
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves(storageBlocksListRows);
 
 			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
 				expect(err).to.be.null;
@@ -287,16 +530,19 @@ describe('blocks/utils', () => {
 		});
 
 		it('should call self.readDbRows with the resolved rows', done => {
-			library.db.blocks.loadBlocksData = sinonSandbox
+			library.storage.entities.Block.get = sinonSandbox
 				.stub()
-				.resolves(fullBlocksListRows);
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves(storageBlocksListRows);
 
 			blocksUtilsModule.readDbRows = sinonSandbox.spy();
 
 			blocksUtilsModule.loadBlocksPart({}, () => {
 				expect(blocksUtilsModule.readDbRows).to.have.been.calledOnce;
 				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(
-					fullBlocksListRows
+					storageBlocksListRowsParsed
 				);
 				done();
 			});
@@ -304,12 +550,12 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadLastBlock', () => {
-		it('should return error when library.db.blocks.loadLastBlock fails', done => {
-			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(null);
+		it('should return error when library.storage.entities.Block.get fails', done => {
+			library.storage.entities.Block.get = sinonSandbox.stub().resolves(null);
 
 			blocksUtilsModule.loadLastBlock((err, block) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
-					"TypeError: Cannot read property 'length' of null"
+					"TypeError: Cannot read property 'map' of null"
 				);
 				expect(err).to.equal('Blocks#loadLastBlock error');
 				expect(block).to.be.undefined;
@@ -319,9 +565,9 @@ describe('blocks/utils', () => {
 
 		describe('sorting the block.transactions array', () => {
 			it('should call modules.blocks.lastBlock.set with block', done => {
-				library.db.blocks.loadLastBlock = sinonSandbox
+				library.storage.entities.Block.get = sinonSandbox
 					.stub()
-					.resolves(fullBlocksListRows);
+					.resolves(storageBlocksListRows);
 
 				modules.blocks.lastBlock.set = sinonSandbox.spy();
 
@@ -336,19 +582,22 @@ describe('blocks/utils', () => {
 	});
 
 	describe('getIdSequence', () => {
-		it('should call library.db.blocks.getIdSequence with proper params', done => {
+		it('should call library.storage.entities.Block.getFirstBlockIdOfLastRounds with proper params', done => {
 			blocksUtilsModule.getIdSequence(10, () => {
-				expect(library.db.blocks.getIdSequence).to.have.been.calledOnce;
-				expect(library.db.blocks.getIdSequence).to.have.been.calledWith({
+				expect(library.storage.entities.Block.getFirstBlockIdOfLastRounds).to
+					.have.been.calledOnce;
+				expect(
+					library.storage.entities.Block.getFirstBlockIdOfLastRounds
+				).to.have.been.calledWith({
 					height: 10,
-					limit: 5,
-					delegates: 101,
+					numberOfRounds: 5,
+					numberOfDelegates: 101,
 				});
 				done();
 			});
 		});
 
-		it('should return error when library.db.blocks.getIdSequence fails', done => {
+		it('should return error when library.storage.entities.Block.getFirstBlockIdOfLastRounds fails', done => {
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
@@ -360,7 +609,9 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return error when no row is found', done => {
-			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([]);
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
+				.stub()
+				.resolves([]);
 
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(err).to.equal('Failed to get id sequence for height: 10');
@@ -370,7 +621,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return valid block id list', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([
 					{ id: 1, height: 2 },
@@ -391,7 +642,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add genesis block to the set when library.genesisBlock is undefined', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: 1, height: 2 }]);
 
@@ -409,7 +660,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add genesis block to the set when library.genesisBlock.block is undefined', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: 1, height: 2 }]);
 
@@ -427,7 +678,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add genesis block to the set more than once', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: '6524861224470851795', height: 1 }]);
 
@@ -443,7 +694,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add last block when it is undefined', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: '6524861224470851795', height: 1 }]);
 
@@ -459,7 +710,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add last block to the set more than once', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: '9314232245035524467', height: 1 }]);
 
@@ -475,7 +726,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add resolved block to the set more than once', done => {
-			library.db.blocks.getIdSequence = sinonSandbox
+			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
 				.stub()
 				.resolves([{ id: 2, height: 3 }, { id: 2, height: 3 }]);
 
@@ -492,12 +743,17 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadBlocksData', () => {
-		it('should return error when library.db.blocks.loadBlocksData fails', done => {
-			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(null);
+		it('should return error when library.storage.entities.Block.get fails', done => {
+			library.storage.entities.Block.get = sinonSandbox
+				.stub()
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves(null);
 
 			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
-					"TypeError: Cannot read property 'length' of null"
+					"TypeError: Cannot read property 'forEach' of null"
 				);
 				expect(err).to.equal('Blocks#loadBlockData error');
 				expect(blocks).to.be.undefined;
@@ -506,7 +762,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return error when called with both id and lastId', done => {
-			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(['1']);
+			library.storage.entities.Block.get = sinonSandbox.stub().resolves(['1']);
 
 			blocksUtilsModule.loadBlocksData(
 				{ id: '1', lastId: '5' },
@@ -519,6 +775,13 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return empty row when called with invalid id', done => {
+			library.storage.entities.Block.get = sinonSandbox
+				.stub()
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves([]);
+
 			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
 				expect(err).to.be.null;
 				expect(blocks).to.an('array').that.is.empty;
@@ -527,6 +790,13 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return one row when called with valid id', done => {
+			library.storage.entities.Block.get = sinonSandbox
+				.stub()
+				.onCall(0)
+				.resolves(['1'])
+				.onCall(1)
+				.resolves(storageBlocksListRows);
+
 			blocksUtilsModule.loadBlocksData(
 				{ id: '13068833527549895884' },
 				(err, blocks) => {
@@ -599,7 +869,7 @@ describe('blocks/utils', () => {
 			);
 		});
 
-		it('should return error when library.db.blocks.aggregateBlocksReward fails', done => {
+		it('should return error when library.storage.entities.Account.delegateBlocksRewards fails', done => {
 			blocksUtilsModule.aggregateBlocksReward(
 				{ address: '1L' },
 				(err, data) => {
@@ -614,7 +884,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return error when account is not a delegate', done => {
-			library.db.blocks.aggregateBlocksReward = sinonSandbox
+			library.storage.entities.Account.delegateBlocksRewards = sinonSandbox
 				.stub()
 				.resolves([{ delegate: null }]);
 
@@ -629,7 +899,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return aggregate blocks rewards', done => {
-			library.db.blocks.aggregateBlocksReward = sinonSandbox
+			library.storage.entities.Account.delegateBlocksRewards = sinonSandbox
 				.stub()
 				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
 
@@ -648,7 +918,7 @@ describe('blocks/utils', () => {
 
 	describe('onBind', () => {
 		beforeEach(() => {
-			loggerStub.trace.reset();
+			loggerStub.trace.resetHistory();
 			return blocksUtilsModule.onBind(modulesStub);
 		});
 

@@ -50,7 +50,7 @@ class Accounts {
 	constructor(cb, scope) {
 		library = {
 			ed: scope.ed,
-			db: scope.db,
+			storage: scope.storage,
 			logger: scope.logger,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
@@ -209,7 +209,7 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 	// Force task to run in a db tx to make sure it always return the inserted account
 	const taskPromise = tx
 		? task(tx)
-		: library.db.tx('Accounts:setAccountAndGet', task);
+		: library.storage.entities.Account.begin('Accounts:setAccountAndGet', task);
 
 	return taskPromise
 		.then(taskPromiseData => setImmediate(cb, null, taskPromiseData))
@@ -255,17 +255,18 @@ Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 /**
  * Calls Vote.bind() with scope.
  *
- * @param {modules} scope - Loaded modules
+ * @param {modules} scopedModules - Loaded modules
  */
-Accounts.prototype.onBind = function(scope) {
+Accounts.prototype.onBind = function(scopedModules) {
 	modules = {
-		transactions: scope.transactions,
-		blocks: scope.blocks,
+		transactions: scopedModules.transactions,
+		blocks: scopedModules.blocks,
+		rounds: scopedModules.rounds,
 	};
 
-	__private.assetTypes[transactionTypes.VOTE].bind(scope.delegates);
+	__private.assetTypes[transactionTypes.VOTE].bind(scopedModules.delegates);
 
-	library.logic.account.bind(modules.blocks);
+	library.logic.account.bind(modules);
 };
 /**
  * Checks if modules is loaded.
@@ -274,87 +275,6 @@ Accounts.prototype.onBind = function(scope) {
  */
 Accounts.prototype.isLoaded = function() {
 	return !!modules;
-};
-
-// Shared API
-/**
- * Public methods, accessible via API.
- *
- * @property {function} getAccounts - Search accounts based on the query parameter passed
- */
-Accounts.prototype.shared = {
-	/**
-	 * Search accounts based on the query parameter passed.
-	 *
-	 * @func shared.getAccounts
-	 * @memberof modules.Accounts
-	 * @param {Object} filters - Filters applied to results
-	 * @param {string} filters.address - Account address
-	 * @param {string} filters.publicKey - Public key associated to account
-	 * @param {string} filters.secondPublicKey - Second public key associated to account
-	 * @param {string} filters.username - Username associated to account
-	 * @param {string} filters.sort - Field to sort results by
-	 * @param {int} filters.limit - Limit applied to results
-	 * @param {int} filters.offset - Offset value for results
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the return value
-	 */
-	getAccounts(filters, cb) {
-		const fields = [
-			'address',
-			'publicKey',
-			'secondPublicKey',
-			'secondSignature',
-			'u_secondSignature',
-			'username',
-			'balance',
-			'u_balance',
-			'vote',
-			'rewards',
-			'producedBlocks',
-			'missedBlocks',
-			'rank',
-			'approval',
-			'productivity',
-		];
-		library.logic.account.getAll(filters, fields, (err, accounts) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			accounts = accounts.map(account => {
-				let delegate = {};
-
-				// Only create delegate properties if account has a username
-				if (account.username) {
-					delegate = {
-						username: account.username,
-						vote: account.vote,
-						rewards: account.rewards,
-						producedBlocks: account.producedBlocks,
-						missedBlocks: account.missedBlocks,
-						rank: account.rank,
-						approval: account.approval,
-						productivity: account.productivity,
-					};
-				}
-
-				return {
-					address: account.address,
-					unconfirmedBalance: account.u_balance,
-					balance: account.balance,
-					publicKey: account.publicKey,
-					unconfirmedSignature: account.u_secondSignature,
-					secondSignature: account.secondSignature,
-					secondPublicKey: account.secondPublicKey,
-					delegate,
-				};
-			});
-
-			return setImmediate(cb, null, accounts);
-		});
-	},
 };
 
 // Export

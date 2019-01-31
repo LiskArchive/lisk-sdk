@@ -39,7 +39,7 @@ describe('rounds', () => {
 
 	localCommon.beforeBlock('lisk_functional_rounds', lib => {
 		library = lib;
-		Queries = new QueriesHelper(lib, lib.db);
+		Queries = new QueriesHelper(lib, lib.storage);
 
 		generateDelegateListPromise = Promise.promisify(
 			library.modules.delegates.generateDelegateList
@@ -58,6 +58,15 @@ describe('rounds', () => {
 		return Queries.getAccounts().then(rows => {
 			const accounts = {};
 			_.map(rows, acc => {
+				acc.nameExist = acc.nameexist;
+				acc.u_nameExist = acc.u_nameexist;
+				acc.multiLifetime = acc.multilifetime;
+				acc.u_multiLifetime = acc.u_multilifetime;
+				delete acc.nameexist;
+				delete acc.u_nameexist;
+				delete acc.multilifetime;
+				delete acc.u_multilifetime;
+
 				accounts[acc.address] = acc;
 			});
 			return _.cloneDeep(accounts);
