@@ -379,7 +379,7 @@ __private.insertSeeds = function(cb) {
 __private.dbLoad = function(cb) {
 	let updated = 0;
 	library.logger.trace('Importing peers from database');
-	library.storage.entities.Peer.get({}, { limit: 10000 }) // @TODO: Arbitrary limit set for now. Base issue should be addressed in storage module for this cases
+	library.storage.entities.Peer.get({}, { limit: null })
 		.then(rows => {
 			library.logger.info('Imported peers from database', {
 				count: rows.length,

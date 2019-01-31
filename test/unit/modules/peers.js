@@ -902,6 +902,12 @@ describe('peers', () => {
 						expect(peersLogicMock.upsert).calledWith(dbPeer, true);
 					});
 				});
+
+				it('should call storage get method with limit = null for pulling all peers', async () => {
+					expect(
+						storageMock.entities.Peer.get.firstCall.args[1].limit
+					).to.be.eql(null);
+				});
 			});
 		});
 
