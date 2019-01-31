@@ -320,13 +320,12 @@ describe('Peer', () => {
 
 		it('should create multiple objects successfully', async () => {
 			// Arrange
-			const peers = [
-				new peersFixtures.Peer(),
-				new peersFixtures.Peer(),
-			];
+			const peers = [new peersFixtures.Peer(), new peersFixtures.Peer()];
 			// Act
 			await storage.entities.Peer.create(peers);
-			const savedPeers = await storage.entities.Peer.get({ ip_in: [peers[0].ip, peers[1].ip] });
+			const savedPeers = await storage.entities.Peer.get({
+				ip_in: [peers[0].ip, peers[1].ip],
+			});
 			// Assert
 			expect(savedPeers).length.to.be(2);
 		});

@@ -33,7 +33,7 @@ let __private = {};
 function bind(scope) {
 	__private = {
 		config: scope.config,
-		cache: scope.modules.cache,
+		cache: scope.components ? scope.components.cache : undefined,
 		logger: scope.logger,
 	};
 }

@@ -173,14 +173,19 @@ describe('loader', () => {
 				},
 			};
 
-			const modulesStub = {
-				transactions: sinonSandbox.stub(),
-				blocks: { process: { loadBlocksOffset: loadBlocksOffsetStub } },
-				peers: sinonSandbox.stub(),
-				rounds: sinonSandbox.stub(),
-				transport: sinonSandbox.stub(),
-				multisignatures: sinonSandbox.stub(),
-				system: sinonSandbox.stub(),
+			const bindingsStub = {
+				components: {
+					cache: sinonSandbox.stub(),
+				},
+				modules: {
+					transactions: sinonSandbox.stub(),
+					blocks: { process: { loadBlocksOffset: loadBlocksOffsetStub } },
+					peers: sinonSandbox.stub(),
+					rounds: sinonSandbox.stub(),
+					transport: sinonSandbox.stub(),
+					multisignatures: sinonSandbox.stub(),
+					system: sinonSandbox.stub(),
+				},
 				swagger: { definitions: null },
 			};
 
@@ -189,7 +194,7 @@ describe('loader', () => {
 			RewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());
 			new RewiredLoader((__err, __loader) => {
 				libraryVar = RewiredLoader.__get__('library');
-				__loader.onBind(modulesStub);
+				__loader.onBind(bindingsStub);
 				done();
 			}, validScope);
 		});

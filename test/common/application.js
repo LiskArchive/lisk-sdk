@@ -23,6 +23,7 @@ const async = require('async');
 const httpApi = require('../../helpers/http_api');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Sequence = require('../../helpers/sequence');
+const { createCacheComponent } = require('../../components/cache');
 const StorageSandbox = require('./storage_sandbox').StorageSandbox;
 
 let currentAppScope;
@@ -55,6 +56,7 @@ function __init(initScope, done) {
 
 	jobsQueue.jobs = {};
 	const modules = [];
+	const components = [];
 	const rewiredModules = {};
 	let storage = initScope.storage;
 
@@ -110,7 +112,6 @@ function __init(initScope, done) {
 		const modulesInit = {
 			accounts: '../../modules/accounts.js',
 			blocks: '../../modules/blocks.js',
-			cache: '../../modules/cache.js',
 			dapps: '../../modules/dapps.js',
 			delegates: '../../modules/delegates.js',
 			loader: '../../modules/loader.js',
@@ -173,19 +174,20 @@ function __init(initScope, done) {
 						app: require('express')(),
 					});
 				},
-				cache(cb) {
-					const RedisConnector = require('../../helpers/redis_connector.js');
-					const redisConnector = new RedisConnector(
-						__testContext.config.cacheEnabled,
+				components(cb) {
+					const cache = createCacheComponent(
 						__testContext.config.redis,
 						logger
 					);
-					redisConnector.connect((_, client) =>
-						cb(null, {
-							cacheEnabled: __testContext.config.cacheEnabled,
-							client,
-						})
-					);
+					return cache.bootstrap().then(err => {
+						if (err) {
+							return cb(err);
+						}
+						components.push(cache);
+						return cb(null, {
+							cache,
+						});
+					});
 				},
 				webSocket: [
 					'config',
@@ -235,7 +237,7 @@ function __init(initScope, done) {
 				],
 
 				swagger: [
-					'network',
+					'components',
 					'modules',
 					'logger',
 					function(scope, cb) {
@@ -443,7 +445,6 @@ function __init(initScope, done) {
 					'storage',
 					'logic',
 					'rpc',
-					'cache',
 					function(scope, cb) {
 						const tasks = {};
 						scope.rewiredModules = {};
@@ -462,6 +463,7 @@ function __init(initScope, done) {
 					},
 				],
 				ready: [
+					'components',
 					'swagger',
 					'modules',
 					'bus',
@@ -470,7 +472,7 @@ function __init(initScope, done) {
 						scope.modules.swagger = scope.swagger;
 
 						// Fire onBind event in every module
-						scope.bus.message('bind', scope.modules);
+						scope.bus.message('bind', scope);
 						scope.logic.peers.bindModules(scope.modules);
 						cb();
 					},
@@ -531,6 +533,9 @@ function __init(initScope, done) {
 }
 
 function cleanup(done) {
+	if (currentAppScope.components !== undefined) {
+		currentAppScope.components.cache.cleanup();
+	}
 	async.eachSeries(
 		currentAppScope.modules,
 		(module, cb) => {

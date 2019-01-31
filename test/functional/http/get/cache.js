@@ -18,7 +18,8 @@ require('../../functional.js');
 const Promise = require('bluebird');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
-const modulesLoader = require('../../../common/modules_loader');
+const { createCacheComponent } = require('../../../../components/cache');
+const Logger = require('../../../../logger');
 const apiHelpers = require('../../../common/helpers/api');
 const waitFor = require('../../../common/utils/wait_for');
 
@@ -28,29 +29,26 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('cached endpoints', () => {
 	let cache;
-	let getJsonForKeyPromise;
 
-	before(done => {
+	before(async () => {
 		__testContext.config.cacheEnabled = true;
-		modulesLoader.initCache((err, __cache) => {
-			cache = __cache;
-			getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
-			expect(err).to.not.exist;
-			expect(__cache).to.be.an('object');
-			return done(err);
+		this.logger = new Logger({
+			echo: null,
+			errorLevel: __testContext.config.fileLogLevel,
+			filename: __testContext.config.logFileName,
 		});
+		cache = createCacheComponent(__testContext.config.redis, this.logger);
+		await cache.bootstrap();
+		expect(cache).to.be.an('object');
 	});
 
-	afterEach(done => {
-		cache.flushDb((err, status) => {
-			expect(err).to.not.exist;
-			expect(status).to.equal('OK');
-			done(err);
-		});
+	afterEach(async () => {
+		const result = await cache.flushDb();
+		return expect(result).to.equal('OK');
 	});
 
-	after(done => {
-		cache.quit(done);
+	after(() => {
+		return cache.quit();
 	});
 
 	describe('@sequential tests', () => {
@@ -64,10 +62,9 @@ describe('cached endpoints', () => {
 
 				return transactionsEndpoint.makeRequest(params, 200).then(res => {
 					return Promise.all(
-						[0, 10, 100].map(delay => {
-							return Promise.delay(delay).then(() => {
-								return getJsonForKeyPromise(res.req.path);
-							});
+						[0, 10, 100].map(async delay => {
+							await Promise.delay(delay);
+							return cache.getJsonForKey(res.req.path);
 						})
 					).then(responses => {
 						expect(responses).to.deep.include(res.body);
@@ -86,7 +83,7 @@ describe('cached endpoints', () => {
 						.to.equal(400);
 					expect(res).to.have.nested.property('body.message');
 
-					return getJsonForKeyPromise(res.req.path).then(response => {
+					return cache.getJsonForKey(res.req.path).then(response => {
 						expect(response).to.eql(null);
 					});
 				});
@@ -109,7 +106,7 @@ describe('cached endpoints', () => {
 						return Promise.all(
 							[0, 10, 100].map(delay => {
 								return Promise.delay(delay).then(() => {
-									return getJsonForKeyPromise(res.req.path);
+									return cache.getJsonForKey(res.req.path);
 								});
 							})
 						);
@@ -124,7 +121,7 @@ describe('cached endpoints', () => {
 					.makeRequest({ height: -100 }, 400)
 					.then(res => {
 						expectSwaggerParamError(res, 'height');
-						return getJsonForKeyPromise(res.req.path);
+						return cache.getJsonForKey(res.req.path);
 					})
 					.then(response => {
 						expect(response).to.eql(null);
@@ -145,7 +142,7 @@ describe('cached endpoints', () => {
 						return Promise.all(
 							[0, 10, 100].map(delay => {
 								return Promise.delay(delay).then(() => {
-									return getJsonForKeyPromise(res.req.path);
+									return cache.getJsonForKey(res.req.path);
 								});
 							})
 						);
@@ -157,7 +154,7 @@ describe('cached endpoints', () => {
 						return waitForBlocksPromise(1, null);
 					})
 					.then(() => {
-						return getJsonForKeyPromise(initialResponse.req.path);
+						return cache.getJsonForKey(initialResponse.req.path);
 					})
 					.then(result => {
 						expect(result).to.eql(null);
@@ -173,7 +170,7 @@ describe('cached endpoints', () => {
 					return Promise.all(
 						[0, 10, 100].map(delay => {
 							return Promise.delay(delay).then(() => {
-								return getJsonForKeyPromise(res.req.path);
+								return cache.getJsonForKey(res.req.path);
 							});
 						})
 					).then(responses => {
@@ -188,7 +185,7 @@ describe('cached endpoints', () => {
 				};
 
 				return delegatesEndpoint.makeRequest(params, 400).then(res => {
-					return getJsonForKeyPromise(res.req.path).then(response => {
+					return cache.getJsonForKey(res.req.path).then(response => {
 						expect(response).to.not.exist;
 					});
 				});
@@ -212,13 +209,13 @@ describe('cached endpoints', () => {
 					return Promise.all(
 						[0, 10, 100].map(delay => {
 							return Promise.delay(delay).then(() => {
-								return getJsonForKeyPromise(res.req.path);
+								return cache.getJsonForKey(urlPath);
 							});
 						})
 					).then(responses => {
 						expect(responses).to.deep.include(res.body);
 						return onNewRoundPromise(null).then(() => {
-							return getJsonForKeyPromise(urlPath).then(result => {
+							return cache.getJsonForKey(urlPath).then(result => {
 								expect(result).to.not.exist;
 							});
 						});

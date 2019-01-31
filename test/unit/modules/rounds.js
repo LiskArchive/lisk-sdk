@@ -20,12 +20,14 @@ const rewire = require('rewire');
 const Rounds = rewire('../../../modules/rounds.js');
 const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../common/storage_sandbox');
+const { CACHE_KEYS_DELEGATES } = require('../../../components/cache');
 
 const sinon = sinonSandbox;
 
 describe('rounds', () => {
 	let rounds;
 	let scope;
+	let components;
 
 	// Init fake logger
 	const logger = {
@@ -60,13 +62,21 @@ describe('rounds', () => {
 
 	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
 
-	const modules = {
-		delegates: {
-			generateDelegateList: sinon.stub(),
-			clearDelegateListCache: sinon.stub(),
+	const bindings = {
+		components: {
+			cache: {
+				isReady: sinon.stub(),
+				removeByPattern: sinon.stub(),
+			},
 		},
-		accounts: {
-			generateAddressByPublicKey: sinon.stub(),
+		modules: {
+			delegates: {
+				generateDelegateList: sinon.stub(),
+				clearDelegateListCache: sinon.stub(),
+			},
+			accounts: {
+				generateAddressByPublicKey: sinon.stub(),
+			},
 		},
 	};
 
@@ -88,16 +98,21 @@ describe('rounds', () => {
 	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
 
-		modules.delegates.generateDelegateList.yields(null, [
+		bindings.modules.delegates.generateDelegateList.yields(null, [
 			'delegate1',
 			'delegate2',
 			'delegate3',
 		]);
-		modules.accounts.generateAddressByPublicKey.returnsArg(0);
+		bindings.modules.accounts.generateAddressByPublicKey.returnsArg(0);
 
 		new Rounds((err, __instance) => {
 			rounds = __instance;
-			rounds.onBind(modules);
+			rounds.onBind(bindings);
+			components = get('components');
+			components.cache = {
+				isReady: sinon.stub(),
+				removeByPattern: sinonSandbox.stub().callsArg(1),
+			};
 			done();
 		}, scope);
 	});
@@ -148,14 +163,21 @@ describe('rounds', () => {
 		it('should set modules', () => {
 			const variable = 'modules';
 			const backup = get(variable);
-			const value = {
-				blocks: 'blocks',
-				accounts: 'accounts',
-				delegates: 'delegates',
+			const roundBindings = {
+				modules: {
+					blocks: 'blocks',
+					accounts: 'accounts',
+					delegates: 'delegates',
+				},
 			};
-			rounds.onBind(value);
-			expect(get(variable)).to.deep.equal(value);
+			rounds.onBind(roundBindings);
+			expect(get(variable)).to.deep.equal(roundBindings.modules);
 			return set(variable, backup);
+		});
+
+		it('should assign component property', () => {
+			components = get('components');
+			return expect(components).to.have.property('cache');
 		});
 	});
 
@@ -172,17 +194,32 @@ describe('rounds', () => {
 	});
 
 	describe('onFinishRound', () => {
-		it('should call library.network.io.sockets.emit once, with proper params', () => {
+		beforeEach(() => {
+			components.cache.isReady.returns(true);
+			validScope.network.io.sockets.emit.resetHistory();
+			return components.cache.removeByPattern.resetHistory();
+		});
+
+		it('should call components.cache.removeByPattern once if cache is enabled', () => {
 			const round = 123;
+			const pattern = CACHE_KEYS_DELEGATES;
+			rounds.onFinishRound(round);
+
+			expect(components.cache.removeByPattern.called).to.be.true;
+			return expect(components.cache.removeByPattern.calledWith(pattern)).to.be
+				.true;
+		});
+
+		it('should call library.network.io.sockets.emit once, with proper params', () => {
+			const round = 124;
 			rounds.onFinishRound(round);
 
 			expect(validScope.network.io.sockets.emit.calledOnce).to.be.true;
-			expect(
+			return expect(
 				validScope.network.io.sockets.emit.calledWith('rounds/change', {
 					number: round,
 				})
 			).to.be.true;
-			return validScope.network.io.sockets.emit.resetHistory();
 		});
 	});
 
@@ -296,7 +333,7 @@ describe('rounds', () => {
 			describe('when generateDelegateList fails', () => {
 				beforeEach(async () => {
 					scope.block.height = 2;
-					modules.delegates.generateDelegateList.yields('error');
+					bindings.modules.delegates.generateDelegateList.yields('error');
 				});
 
 				it('should call a callback with error', done => {

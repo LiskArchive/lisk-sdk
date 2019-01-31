@@ -20,8 +20,6 @@ const async = require('async');
 const Sequence = require('../../helpers/sequence.js');
 const Logger = require('../../logger.js');
 const Z_schema = require('../../helpers/z_schema.js');
-const RedisConnector = require('../../helpers/redis_connector.js');
-const Cache = require('../../modules/cache.js');
 const ed = require('../../helpers/ed');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Transaction = require('../../logic/transaction.js');
@@ -109,7 +107,12 @@ const modulesLoader = new function() {
 				async.waterfall(
 					[
 						function(waterCb) {
-							return new Account(scope.storage, scope.schema, scope.logger, waterCb);
+							return new Account(
+								scope.storage,
+								scope.schema,
+								scope.logger,
+								waterCb
+							);
 						},
 						function(account, waterCb) {
 							return new Transaction(
@@ -242,27 +245,6 @@ const modulesLoader = new function() {
 			],
 			scope || {},
 			cb
-		);
-	};
-
-	/**
-	 * Initializes Cache module
-	 * @param {function} cb
-	 */
-	this.initCache = function(cb) {
-		const cacheEnabled = this.scope.config.cacheEnabled;
-		const cacheConfig = this.scope.config.redis;
-		const redisConnector = new RedisConnector(
-			cacheEnabled,
-			cacheConfig,
-			this.logger
-		);
-		redisConnector.connect((_, client) =>
-			this.initModule(
-				Cache,
-				Object.assign(this.scope, { cache: { client, cacheEnabled } }),
-				cb
-			)
 		);
 	};
 }();
