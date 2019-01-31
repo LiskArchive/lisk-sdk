@@ -16,8 +16,8 @@
 'use strict';
 
 const Promise = require('bluebird');
-const BaseAdapter = require('../../../../storage/adapters/base_adapter');
-const PgpAdapter = require('../../../../storage/adapters/pgp_adapter');
+const BaseAdapter = require('../../../../../framework/src/components/storage/adapters/base_adapter');
+const PgpAdapter = require('../../../../../framework/src/components/storage/adapters/pgp_adapter');
 
 const loggerStub = {
 	info: sinonSandbox.stub(),

@@ -19,7 +19,7 @@ const rewire = require('rewire');
 const {
 	createCacheComponent,
 	CACHE_KEYS_TRANSACTION_COUNT,
-} = require('../../../components/cache');
+} = require('../../../framework/src/components/cache');
 const transactionTypes = require('../../../helpers/transaction_types.js');
 const modulesLoader = require('../../common/modules_loader');
 const AccountLogic = require('../../../logic/account.js');

@@ -15,16 +15,19 @@
 
 'use strict';
 
-const { BaseEntity, Transaction } = require('../../../../storage/entities');
-const storageSandbox = require('../../../common/storage_sandbox');
-const seeder = require('../../../common/storage_seed');
-const transactionsFixtures = require('../../../fixtures').transactions;
-const transactionTypes = require('../../../../helpers/transaction_types');
+const {
+	BaseEntity,
+	Transaction,
+} = require('../../../../../framework/src/components/storage/entities');
+const storageSandbox = require('../../../../common/storage_sandbox');
+const seeder = require('../../../../common/storage_seed');
+const transactionsFixtures = require('../../../../fixtures').transactions;
+const transactionTypes = require('../../../../../helpers/transaction_types');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOperationError,
 	NonSupportedOptionError,
-} = require('../../../../storage/errors');
+} = require('../../../../../framework/src/components/storage/errors');
 
 const numSeedRecords = 5;
 const NON_EXISTENT_ID = '1234';

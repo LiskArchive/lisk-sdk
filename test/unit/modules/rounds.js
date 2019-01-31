@@ -20,7 +20,9 @@ const rewire = require('rewire');
 const Rounds = rewire('../../../modules/rounds.js');
 const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../common/storage_sandbox');
-const { CACHE_KEYS_DELEGATES } = require('../../../components/cache');
+const {
+	CACHE_KEYS_DELEGATES,
+} = require('../../../framework/src/components/cache');
 
 const sinon = sinonSandbox;
 

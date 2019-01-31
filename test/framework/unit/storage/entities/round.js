@@ -16,15 +16,18 @@
 'use strict';
 
 const BigNumber = require('bignumber.js');
-const { BaseEntity, Round } = require('../../../../storage/entities');
-const storageSandbox = require('../../../common/storage_sandbox');
-const seeder = require('../../../common/storage_seed');
-const accountsFixtures = require('../../../fixtures').accounts;
-const roundsFixtures = require('../../../fixtures').rounds;
+const {
+	BaseEntity,
+	Round,
+} = require('../../../../../framework/src/components/storage/entities');
+const storageSandbox = require('../../../../common/storage_sandbox');
+const seeder = require('../../../../common/storage_seed');
+const accountsFixtures = require('../../../../fixtures').accounts;
+const roundsFixtures = require('../../../../fixtures').rounds;
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-} = require('../../../../storage/errors');
+} = require('../../../../../framework/src/components/storage/errors');
 
 const checkTableExists = (adapter, tableName) => {
 	return adapter

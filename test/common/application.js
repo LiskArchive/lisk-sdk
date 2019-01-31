@@ -23,7 +23,9 @@ const async = require('async');
 const httpApi = require('../../helpers/http_api');
 const jobsQueue = require('../../helpers/jobs_queue');
 const Sequence = require('../../helpers/sequence');
-const { createCacheComponent } = require('../../components/cache');
+const {
+	createCacheComponent,
+} = require('../../framework/src/components/cache');
 const StorageSandbox = require('./storage_sandbox').StorageSandbox;
 
 let currentAppScope;

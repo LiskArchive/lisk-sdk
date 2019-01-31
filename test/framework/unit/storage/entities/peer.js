@@ -15,13 +15,16 @@
 
 'use strict';
 
-const { BaseEntity, Peer } = require('../../../../storage/entities');
-const storageSandbox = require('../../../common/storage_sandbox');
-const peersFixtures = require('../../../fixtures/peers');
+const {
+	BaseEntity,
+	Peer,
+} = require('../../../../../framework/src/components/storage/entities');
+const storageSandbox = require('../../../../common/storage_sandbox');
+const peersFixtures = require('../../../../fixtures/peers');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-} = require('../../../../storage/errors');
+} = require('../../../../../framework/src/components/storage/errors');
 
 // eslint-disable-next-line mocha/no-skipped-tests
 describe('Peer', () => {

@@ -15,7 +15,9 @@
 
 'use strict';
 
-const { BaseEntity } = require('../../../../storage/entities');
+const {
+	BaseEntity,
+} = require('../../../../../framework/src/components/storage/entities');
 
 describe('BaseEntity', () => {
 	let adapter;

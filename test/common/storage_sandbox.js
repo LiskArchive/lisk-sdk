@@ -16,8 +16,8 @@
 
 const child_process = require('child_process');
 const pgpLib = require('pg-promise');
-const Storage = require('../../storage/storage');
-const PgpAdapter = require('../../storage/adapters/pgp_adapter');
+const Storage = require('../../framework/src/components/storage/storage');
+const PgpAdapter = require('../../framework/src/components/storage/adapters/pgp_adapter');
 const {
 	Account,
 	Block,
@@ -26,7 +26,7 @@ const {
 	Round,
 	Transaction,
 	Migration,
-} = require('../../storage/entities');
+} = require('../../framework/src/components/storage/entities');
 
 const dbNames = [];
 
