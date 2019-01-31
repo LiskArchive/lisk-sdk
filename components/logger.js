@@ -54,10 +54,6 @@ function createLoggerComponent(config) {
 	child_process.execSync(`mkdir -p ${path.dirname(config.filename)}`);
 	const log_file = fs.createWriteStream(config.filename, { flags: 'a' });
 
-	exports.setLevel = function(errorLevel) {
-		config.errorLevel = errorLevel;
-	};
-
 	function snipFragileData(data) {
 		Object.keys(data).forEach(key => {
 			if (key.search(/passphrase|password/i) > -1) {
