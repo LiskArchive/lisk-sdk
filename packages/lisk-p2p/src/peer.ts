@@ -203,8 +203,12 @@ export class Peer extends EventEmitter {
 		return this._wsPort;
 	}
 
-	public static constructPeerId(ipAddress: string, port: number): string {
-		return `${ipAddress}:${port}`;
+	public static constructPeerId(ipAddress: string, wsPort: number): string {
+		return `${ipAddress}:${wsPort}`;
+	}
+
+	public static constructPeerIdFromPeerInfo(peerInfo: P2PPeerInfo): string {
+		return `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
 	}
 
 	/**
