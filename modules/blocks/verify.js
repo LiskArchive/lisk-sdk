@@ -864,12 +864,12 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 Verify.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
 	modules = {
-		accounts: scope.accounts,
-		blocks: scope.blocks,
-		delegates: scope.delegates,
-		transactions: scope.transactions,
-		system: scope.system,
-		transport: scope.transport,
+		accounts: scope.modules.accounts,
+		blocks: scope.modules.blocks,
+		delegates: scope.modules.delegates,
+		transactions: scope.modules.transactions,
+		system: scope.modules.system,
+		transport: scope.modules.transport,
 	};
 
 	// Set module as loaded

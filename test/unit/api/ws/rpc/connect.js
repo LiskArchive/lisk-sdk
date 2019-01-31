@@ -202,8 +202,9 @@ describe('connect', () => {
 			});
 
 			it('should add connectionOptions containing query', () => {
-				return expect(peerAsResult)
-					.to.have.nested.property('connectionOptions.query');
+				return expect(peerAsResult).to.have.nested.property(
+					'connectionOptions.query'
+				);
 			});
 
 			describe('connectionOptions.query', () => {

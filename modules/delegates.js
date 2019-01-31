@@ -962,17 +962,17 @@ Delegates.prototype.getForgersKeyPairs = function() {
  */
 Delegates.prototype.onBind = function(scope) {
 	modules = {
-		accounts: scope.accounts,
-		blocks: scope.blocks,
-		delegates: scope.delegates,
-		loader: scope.loader,
-		peers: scope.peers,
-		rounds: scope.rounds,
-		transactions: scope.transactions,
-		transport: scope.transport,
+		accounts: scope.modules.accounts,
+		blocks: scope.modules.blocks,
+		delegates: scope.modules.delegates,
+		loader: scope.modules.loader,
+		peers: scope.modules.peers,
+		rounds: scope.modules.rounds,
+		transactions: scope.modules.transactions,
+		transport: scope.modules.transport,
 	};
 
-	__private.assetTypes[transactionTypes.DELEGATE].bind(scope.accounts);
+	__private.assetTypes[transactionTypes.DELEGATE].bind(scope.modules.accounts);
 };
 
 /**

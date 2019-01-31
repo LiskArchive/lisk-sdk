@@ -15,7 +15,10 @@
 'use strict';
 
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
-const async = require('async');
+const {
+	CACHE_KEYS_BLOCKS,
+	CACHE_KEYS_TRANSACTIONS,
+} = require('../components/cache');
 // Submodules
 const BlocksVerify = require('./blocks/verify');
 const BlocksProcess = require('./blocks/process');
@@ -25,7 +28,7 @@ const BlocksChain = require('./blocks/chain');
 // Private fields
 let library;
 let self;
-let modules = {};
+let components = {};
 const __private = {};
 
 __private.lastBlock = {};
@@ -219,13 +222,13 @@ Blocks.prototype.isCleaning = {
 };
 
 /**
- * Handle modules initialization.
- * Modules are not required in this file.
+ * Handle components initialization.
+ * Components are not required in this file.
  */
 Blocks.prototype.onBind = function(scope) {
 	// TODO: move here blocks submodules modules load from app.js.
-	modules = {
-		cache: scope.cache,
+	components = {
+		cache: scope.components ? scope.components.cache : undefined,
 	};
 
 	// Set module as loaded
@@ -239,15 +242,30 @@ Blocks.prototype.onBind = function(scope) {
  * @todo Add description for the params
  * @todo Add @returns tag
  */
-Blocks.prototype.onNewBlock = function(block) {
-	const tasks = [
-		modules.cache.KEYS.blocksApi,
-		modules.cache.KEYS.transactionsApi,
-	].map(pattern => callback => modules.cache.clearCacheFor(pattern, callback));
+Blocks.prototype.onNewBlock = async function(block) {
+	if (components && components.cache && components.cache.isReady()) {
+		library.logger.debug(
+			['Cache - onNewBlock', '| Status:', components.cache.isReady()].join(' ')
+		);
+		const keys = [CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS];
+		const tasks = keys.map(key => components.cache.removeByPattern(key));
+		try {
+			await Promise.all(tasks);
+			library.logger.debug(
+				[
+					'Cache - Keys with patterns:',
+					keys,
+					'cleared from cache on new Block',
+				].join(' ')
+			);
+		} catch (removeByPatternErr) {
+			library.logger.error(
+				['Cache - Error clearing keys on new Block'].join(' ')
+			);
+		}
+	}
 
-	async.parallel(async.reflectAll(tasks), () =>
-		library.network.io.sockets.emit('blocks/change', block)
-	);
+	return library.network.io.sockets.emit('blocks/change', block);
 };
 
 /**
