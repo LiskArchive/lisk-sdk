@@ -39,7 +39,7 @@ export const discoverPeers = async (
 	const discoveredPeers = peersOfPeerFlat.reduce(
 		(uniquePeersArray: ReadonlyArray<P2PPeerInfo>, peer: P2PPeerInfo) => {
 			const found = uniquePeersArray.find(
-				findPeer => findPeer.ipAddress === peer.ipAddress,
+				findPeer => Peer.constructPeerIdFromPeerInfo(findPeer) === Peer.constructPeerIdFromPeerInfo(peer),
 			);
 
 			return found ? uniquePeersArray : [...uniquePeersArray, peer];
