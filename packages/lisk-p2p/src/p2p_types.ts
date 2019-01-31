@@ -30,6 +30,11 @@ export interface P2PMessagePacket {
 
 export interface P2PPenalty {}
 
+// Allows the user to provide custom fields.
+export interface P2PInfoOptions {
+	readonly [key: string]: unknown;
+}
+
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
@@ -43,11 +48,6 @@ export interface P2PPeerInfo {
 	// This is necessary because PeerInfo for a tried peer will likely have more properties.
 	/* tslint:disable-next-line:no-mixed-interface */
 	readonly isTriedPeer?: boolean;
-}
-
-// Allows the user to provide custom fields.
-export interface P2PInfoOptions {
-	readonly [key: string]: unknown;
 }
 
 export interface P2PNodeInfo {
