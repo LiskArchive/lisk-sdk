@@ -14,12 +14,12 @@
 
 'use strict';
 
-const CACHE_CONSTANTS = require('./constants');
+const constants = require('./constants');
 const Cache = require('./cache');
 
 function createCacheComponent(options, logger) {
 	// delete password key if it's value is null
-	const cacheConfigParam = Object.assign({}, options);
+	const cacheConfigParam = { ...options };
 	if (cacheConfigParam.password === null) {
 		delete cacheConfigParam.password;
 	}
@@ -27,6 +27,6 @@ function createCacheComponent(options, logger) {
 }
 
 module.exports = {
-	CACHE_CONSTANTS,
+	...constants,
 	createCacheComponent,
 };

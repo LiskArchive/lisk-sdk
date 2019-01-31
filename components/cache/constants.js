@@ -27,8 +27,8 @@
  * @todo Add description for the namespace and the properties.
  */
 module.exports = {
-	KEYS_BLOCKS: '/api/blocks*',
-	KEYS_DELEGATES: '/api/delegates*',
-	KEYS_TRANSACTIONS: '/api/transactions*',
-	KEYS_TRANSACTION_COUNT: 'transactionCount',
+	CACHE_KEYS_BLOCKS: '/api/blocks*',
+	CACHE_KEYS_DELEGATES: '/api/delegates*',
+	CACHE_KEYS_TRANSACTIONS: '/api/transactions*',
+	CACHE_KEYS_TRANSACTION_COUNT: 'transactionCount',
 };

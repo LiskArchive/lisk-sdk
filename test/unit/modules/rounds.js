@@ -20,7 +20,7 @@ const rewire = require('rewire');
 const Rounds = rewire('../../../modules/rounds.js');
 const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../common/storage_sandbox');
-const { CACHE_CONSTANTS } = require('../../../components/cache');
+const { CACHE_KEYS_DELEGATES } = require('../../../components/cache');
 
 const sinon = sinonSandbox;
 
@@ -195,13 +195,14 @@ describe('rounds', () => {
 
 	describe('onFinishRound', () => {
 		beforeEach(() => {
+			components.cache.isReady.returns(true);
 			validScope.network.io.sockets.emit.resetHistory();
 			return components.cache.removeByPattern.resetHistory();
 		});
 
 		it('should call components.cache.removeByPattern once if cache is enabled', () => {
 			const round = 123;
-			const pattern = CACHE_CONSTANTS.KEYS_DELEGATES;
+			const pattern = CACHE_KEYS_DELEGATES;
 			rounds.onFinishRound(round);
 
 			expect(components.cache.removeByPattern.called).to.be.true;

@@ -18,7 +18,7 @@ const async = require('async');
 const rewire = require('rewire');
 const {
 	createCacheComponent,
-	CACHE_CONSTANTS,
+	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../components/cache');
 const transactionTypes = require('../../../helpers/transaction_types.js');
 const modulesLoader = require('../../common/modules_loader');
@@ -641,7 +641,7 @@ describe('transactions', () => {
 						expect(async.waterfall).to.be.calledOnce;
 						expect(cache.getJsonForKey).to.be.calledOnce;
 						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
+							CACHE_KEYS_TRANSACTION_COUNT
 						);
 
 						done();
@@ -660,7 +660,7 @@ describe('transactions', () => {
 						expect(async.waterfall).to.be.calledOnce;
 						expect(cache.getJsonForKey).to.be.calledOnce;
 						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
+							CACHE_KEYS_TRANSACTION_COUNT
 						);
 						expect(storageStub.entities.Transaction.count).to.be.not.calledOnce;
 
@@ -682,7 +682,7 @@ describe('transactions', () => {
 						expect(async.waterfall).to.be.calledOnce;
 						expect(cache.getJsonForKey).to.be.calledOnce;
 						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
+							CACHE_KEYS_TRANSACTION_COUNT
 						);
 						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
 						expect(data.confirmed).to.be.eql(10);
@@ -701,7 +701,7 @@ describe('transactions', () => {
 						expect(async.waterfall).to.be.calledOnce;
 						expect(cache.getJsonForKey).to.be.calledOnce;
 						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
+							CACHE_KEYS_TRANSACTION_COUNT
 						);
 						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
 						expect(data.confirmed).to.be.eql(10);
@@ -720,14 +720,14 @@ describe('transactions', () => {
 						expect(async.waterfall).to.be.calledOnce;
 						expect(cache.getJsonForKey).to.be.calledOnce;
 						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
+							CACHE_KEYS_TRANSACTION_COUNT
 						);
 						expect(data.confirmed).to.be.eql(10);
 						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
 
 						expect(cache.setJsonForKey).to.be.calledOnce;
 						expect(cache.setJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
+							CACHE_KEYS_TRANSACTION_COUNT
 						);
 						expect(cache.setJsonForKey.firstCall.args[1]).to.be.eql({
 							confirmed: 10,
@@ -750,7 +750,7 @@ describe('transactions', () => {
 						expect(async.waterfall).to.be.calledOnce;
 						expect(cache.getJsonForKey).to.be.calledOnce;
 						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_CONSTANTS.KEYS_TRANSACTION_COUNT
+							CACHE_KEYS_TRANSACTION_COUNT
 						);
 						expect(data.confirmed).to.be.eql(999);
 						expect(storageStub.entities.Transaction.count).to.not.be.called;

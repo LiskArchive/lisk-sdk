@@ -17,7 +17,7 @@
 const Bignumber = require('bignumber.js');
 const async = require('async');
 // eslint-disable-next-line prefer-const
-const { CACHE_CONSTANTS } = require('../components/cache');
+const { CACHE_KEYS_DELEGATES } = require('../components/cache');
 const Round = require('../logic/round.js');
 const slots = require('../helpers/slots.js');
 
@@ -394,7 +394,7 @@ Rounds.prototype.onFinishRound = async function(round) {
 				' '
 			)
 		);
-		const pattern = CACHE_CONSTANTS.KEYS_DELEGATES;
+		const pattern = CACHE_KEYS_DELEGATES;
 		try {
 			await components.cache.removeByPattern(pattern);
 			library.logger.debug(

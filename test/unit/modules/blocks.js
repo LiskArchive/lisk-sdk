@@ -315,7 +315,7 @@ describe('blocks', () => {
 					components = Blocks.__get__('components');
 					components.cache = {
 						removeByPattern: sinonSandbox.stub().resolves(),
-						isReady: sinonSandbox.stub(),
+						isReady: sinonSandbox.stub().returns(true),
 					};
 					await blocksInstance.onNewBlock(block);
 					done();
