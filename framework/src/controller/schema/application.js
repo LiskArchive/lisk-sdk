@@ -22,7 +22,6 @@ module.exports = {
 		properties: {
 			filename: {
 				type: 'string',
-				default: '~/.lisk/my-app/logs/my-app.log',
 			},
 			fileLogLevel: {
 				type: 'string',
@@ -32,11 +31,14 @@ module.exports = {
 				type: 'string',
 				enum: ['info', 'debug', 'trace'],
 			},
+			echo: {
+				type: 'string',
+			},
 		},
 	},
 
-	settings: {
-		id: '#/app/settings',
+	config: {
+		id: '#/app/config',
 		type: 'object',
 		properties: {
 			components: {

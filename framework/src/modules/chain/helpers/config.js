@@ -72,16 +72,16 @@ function Config(packageJson, parseCommandLineOptions = true) {
 			? process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion
 			: packageJson.lisk.protocolVersion;
 
-	const genesisBlock = loadJSONFile(`./config/${network}/genesis_block.json`);
+	const genesisBlock = loadJSONFile(`../../../../config/${network}/genesis_block.json`);
 
-	const defaultConstants = require('../config/default/constants.js');
-	const networkConstants = require(`../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
+	const defaultConstants = require('../../../../../config/default/constants.js');
+	const networkConstants = require(`../../../../../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultExceptions = require('../config/default/exceptions.js');
-	const networkExceptions = require(`../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
+	const defaultExceptions = require('../../../../../config/default/exceptions.js');
+	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultConfig = loadJSONFile('config/default/config.json');
-	const networkConfig = loadJSONFile(`config/${network}/config.json`);
+	const defaultConfig = loadJSONFile('../../../../config/default/config.json');
+	const networkConfig = loadJSONFile(`../../../../config/${network}/config.json`);
 
 	let customConfig = {};
 	if (program.config || process.env.LISK_CONFIG_FILE) {

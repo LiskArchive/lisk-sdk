@@ -21,7 +21,7 @@
 	},
 	"main": "app.js",
 	"scripts": {
-		"start": "node app.js",
+		"start": "node src/index.js",
 		"console": "node scripts/console.js",
 		"lint": "./node_modules/.bin/eslint .",
 		"lint:fix": "./node_modules/.bin/eslint --fix .",

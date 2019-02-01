@@ -4,6 +4,9 @@ const defaults = require('./defaults');
 const version = require('../version');
 const validator = require('./helpers/validator');
 const schema = require('./schema/application');
+const { createLoggerComponent } = require('../components/logger');
+
+const ChainModule = require('../modules/chain');
 
 // Private scope used because private keyword is restricted
 const scope = {
@@ -16,7 +19,7 @@ const registerProcessHooks = app => {
 
 	process.on('uncaughtException', err => {
 		// Handle error safely
-		app.logger.error('System error', {
+		app.logger.error('System error: uncaughtException :', {
 			message: err.message,
 			stack: err.stack,
 		});
@@ -25,7 +28,7 @@ const registerProcessHooks = app => {
 
 	process.on('unhandledRejection', err => {
 		// Handle error safely
-		app.logger.logger.fatal('System error', {
+		app.logger.fatal('System error: unhandledRejection :', {
 			message: err.message,
 			stack: err.stack,
 		});
@@ -35,6 +38,10 @@ const registerProcessHooks = app => {
 	process.once('SIGTERM', () => app.shutdown(1));
 
 	process.once('SIGINT', () => app.shutdown(1));
+
+	process.once('cleanup', ((error, code) => app.shutdown(code, error)));
+
+	process.once('exit', ((error, code) => app.shutdown(code, error)));
 };
 
 module.exports = class Application {
@@ -43,34 +50,44 @@ module.exports = class Application {
 	 * @param {string} label
 	 * @param {Object} genesisBlock
 	 * @param {Object} [constants]
-	 * @param {Object} [settings]
-	 * @param {Object} [settings.components]
-	 * @param {Object} [settings.components.logger]
+	 * @param {Object} [config]
+	 * @param {Object} [config.components]
+	 * @param {Object} [config.components.logger]
 	 */
 	constructor(
 		label,
 		genesisBlock,
-		constants,
-		settings = { components: { logger: null } }
+		constants = {},
+		config = { components: { logger: null } }
 	) {
+		if (!config.components.logger) {
+			config.components.logger = {
+				filename: `~/.lisk/${label}/lisk.log`,
+			};
+		}
+
 		validator.loadSchema(schema);
 		validator.validate(schema.appLabel, label);
 		validator.validate(schema.constants, constants);
-		validator.validate(schema.settings, settings);
+		validator.validate(schema.config, config);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;
 		this.constants = Object.assign({}, defaults.constants, constants);
 		this.label = label;
-		this.banner = `${label || 'LiskApp'} - Framework ${version}`;
-		this.settings = settings;
+		this.banner = `${label || 'LiskApp'} - Lisk Framework(${version})`;
+		this.config = config;
 		this.controller = null;
+
+		this.logger = createLoggerComponent(this.config.components.logger);
 
 		scope.modules.set(this, {});
 		scope.transactions.set(this, {});
 
-		// this.registerModule(ChainModule, {});
-		// this.registerModule(P2PModule, {});
+		this.registerModule(ChainModule, {
+			genesisBlock: this.genesisBlock,
+			constants: this.constants,
+		});
 	}
 
 	/**
@@ -94,10 +111,17 @@ module.exports = class Application {
 		);
 
 		const modules = this.getModules();
-		modules[moduleAlias] = Object.freeze({
+		modules[moduleAlias] = {
 			spec: moduleSpec,
 			config: config || {},
-		});
+		};
+		scope.modules.set(this, modules);
+	}
+
+	overrideModuleConfig(alias, config) {
+		const modules = this.getModules();
+		const updatedConfig = Object.assign({}, modules[alias].config, config);
+		modules[alias].config = updatedConfig;
 		scope.modules.set(this, modules);
 	}
 
@@ -136,16 +160,20 @@ module.exports = class Application {
 	}
 
 	async run() {
-		this.logger.info(`Starting the app - ${this.label}`);
+		this.logger.info(`Starting the app - ${this.banner}`);
 		// Freeze every module and configuration so it would not interrupt the app execution
 		Object.freeze(this.genesisBlock);
 		Object.freeze(this.constants);
-		Object.freeze(this.exceptions);
 		Object.freeze(this.label);
+		Object.freeze(this.config);
 
 		registerProcessHooks(this);
 
-		this.controller = new Controller(this.getModules(), this.logger);
+		this.controller = new Controller(
+			this.getModules(),
+			this.config.components,
+			this.logger
+		);
 		return this.controller.load();
 	}
 
@@ -154,5 +182,6 @@ module.exports = class Application {
 			await this.controller.cleanup();
 		}
 		this.logger.log(`Shutting down with error code ${errorCode} ${message}`);
+		process.exit(errorCode);
 	}
 };

@@ -23,6 +23,13 @@ const strftime = require('strftime').utc();
 require('colors');
 
 class Logger {
+	/**
+	 *
+	 * @param {Object} config
+	 * @param {string} config.logFileName
+	 * @param {string} config.fileLogLevel
+	 * @param {string} config.consoleLogLevel
+	 */
 	constructor(config) {
 		this.levels = config.levels || {
 			none: 99,
@@ -45,17 +52,15 @@ class Logger {
 			fatal: 'FTL',
 		};
 
-		this.filename = `${process.cwd()}/${config.filename || 'logs.log'}`;
-
-		this.errorLevel = config.errorLevel || 'log';
-
-		this.echo = config.echo;
+		this.logFileName = `${process.cwd()}/${config.logFileName || 'logs.log'}`;
+		this.fileLogLevel = config.fileLogLevel || 'log';
+		this.consoleLogLevel = config.consoleLogLevel;
 	}
 
 	bootstrap() {
 		const logs = {};
-		child_process.execSync(`mkdir -p ${path.dirname(this.filename)}`);
-		const log_file = fs.createWriteStream(this.filename, {
+		child_process.execSync(`mkdir -p ${path.dirname(this.logFileName)}`);
+		const log_file = fs.createWriteStream(this.logFileName, {
 			flags: 'a',
 		});
 
@@ -82,7 +87,7 @@ class Logger {
 					? this.level_abbr[logContext.level]
 					: '???';
 
-				if (this.levels[this.errorLevel] <= this.levels[logContext.level]) {
+				if (this.levels[this.fileLogLevel] <= this.levels[logContext.level]) {
 					if (logContext.data) {
 						log_file.write(
 							util.format(
@@ -106,8 +111,8 @@ class Logger {
 				}
 
 				if (
-					this.echo &&
-					this.levels[this.echo] <= this.levels[logContext.level]
+					this.consoleLogLevel &&
+					this.levels[this.consoleLogLevel] <= this.levels[logContext.level]
 				) {
 					if (logContext.data) {
 						console.info(

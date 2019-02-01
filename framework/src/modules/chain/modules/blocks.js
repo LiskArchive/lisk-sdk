@@ -18,7 +18,7 @@ const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const {
 	CACHE_KEYS_BLOCKS,
 	CACHE_KEYS_TRANSACTIONS,
-} = require('../framework/src/components/cache');
+} = require('../../../../../framework/src/components/cache');
 // Submodules
 const BlocksVerify = require('./blocks/verify');
 const BlocksProcess = require('./blocks/process');

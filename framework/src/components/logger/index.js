@@ -17,7 +17,7 @@
 const Logger = require('./logger');
 
 function createLoggerComponent(config = {}) {
-	return new Logger(config);
+	return new Logger(config).bootstrap();
 }
 
 module.exports = {

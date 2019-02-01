@@ -18,7 +18,7 @@ const _ = require('lodash');
 const async = require('async');
 const {
 	CACHE_KEYS_TRANSACTION_COUNT,
-} = require('../framework/src/components/cache');
+} = require('../../../../../framework/src/components/cache');
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;

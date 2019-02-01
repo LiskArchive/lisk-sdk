@@ -20,8 +20,9 @@ const validateModuleSpec = moduleSpec => {
 };
 
 module.exports = class Controller {
-	constructor(modules, logger) {
+	constructor(modules, componentConfig, logger) {
 		this.logger = logger;
+		this.componentConfig = componentConfig;
 		this.logger.info('Initializing controller');
 		this.channel = null; // Channel for controller
 		this.channels = {}; // Keep track of all channels for modules
@@ -33,6 +34,7 @@ module.exports = class Controller {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._setupBus();
+		await this._setupControllerActions();
 		await this._loadModules();
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -76,6 +78,10 @@ module.exports = class Controller {
 				);
 			});
 		}
+	}
+
+	async _setupControllerActions() {
+		this.channel.action('getComponentConfig', action => this.componentConfig[action.params]);
 	}
 
 	async _loadModules() {
@@ -128,20 +134,18 @@ module.exports = class Controller {
 		});
 	}
 
-	async cleanup(reason) {
+	async cleanup(code, reason) {
 		this.logger.info('Cleanup controller...');
 
 		if (reason) {
 			this.logger.error(reason);
 		}
 
-		this.bus.rpcSocket.close();
-
 		try {
 			await this.unloadModules();
 			this.logger.info('Unload completed');
 		} catch (error) {
-			this.logger.error('Caused error during upload', error);
+			this.logger.error('Caused error during cleanup', error);
 		}
 	}
 };

@@ -22,7 +22,7 @@ const Bignum = require('../../helpers/bignum.js');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
-} = require('../../framework/src/components/cache');
+} = require('../../../../../../framework/src/components/cache');
 
 let components;
 let modules;

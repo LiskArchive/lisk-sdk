@@ -25,7 +25,7 @@ const {
 	Migration,
 } = require('./entities');
 
-module.exports = function createStorage(options, logger) {
+function createStorageComponent(options, logger) {
 	const storage = new Storage(options, logger);
 
 	storage.registerEntity('Account', Account);
@@ -37,4 +37,8 @@ module.exports = function createStorage(options, logger) {
 	storage.registerEntity('Transaction', Transaction);
 
 	return storage;
+}
+
+module.exports = {
+	createStorageComponent,
 };
