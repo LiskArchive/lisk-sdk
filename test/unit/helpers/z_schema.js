@@ -534,13 +534,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true for valid protocol version format', function() {
-			const validData = [
-				'1.0',
-				'111.12',
-				'11.11',
-				'999.999',
-				'999.0',
-			];
+			const validData = ['1.0', '111.12', '11.11', '999.999', '999.0'];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);
@@ -550,7 +544,6 @@ describe('schema - custom formats', () => {
 		shouldReturnFalseForEmptyNonStringValues();
 		shouldReturnTrueForEmptyStringValues();
 	});
-
 
 	describe('ipOrFQDN', () => {
 		beforeEach(function(done) {

@@ -109,9 +109,12 @@ describe('mem_accounts protection', () => {
 			'mem_accounts_protection_test'
 		);
 
-		storage.bootstrap().then(() => {
-			queries.insertAccount(validAccount, done);
-		}).catch(done);
+		storage
+			.bootstrap()
+			.then(() => {
+				queries.insertAccount(validAccount, done);
+			})
+			.catch(done);
 	});
 
 	after(done => {
