@@ -257,7 +257,8 @@ export class Peer extends EventEmitter {
 		if (!this._outboundSocket) {
 			this._outboundSocket = this._createOutboundSocket();
 		}
-		this._outboundSocket.emit(packet.event, {
+		this._outboundSocket.emit(REMOTE_EVENT_MESSAGE, {
+			event: packet.event,
 			data: packet.data,
 		});
 	}
