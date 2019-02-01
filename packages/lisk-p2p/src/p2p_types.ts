@@ -39,7 +39,7 @@ export interface P2PPeerInfo {
 	readonly isDiscoveredPeer?: boolean;
 }
 
-export interface DiscoveredPeerInfo extends P2PPeerInfo {
+export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly os: string;
 	readonly version: string;
 	// Add support for custom fields like broadhash or nonce.

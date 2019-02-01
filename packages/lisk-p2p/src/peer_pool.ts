@@ -24,7 +24,7 @@ import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
 import { P2PRequest } from './p2p_request';
 import {
-	DiscoveredPeerInfo,
+	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -158,9 +158,25 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
+	public addDiscoveredPeer(
+		detailedPeerInfo: P2PDiscoveredPeerInfo,
+		inboundSocket?: SCServerSocket,
+	): Peer {
+		const peer = new Peer(detailedPeerInfo, inboundSocket);
+		this._peerMap.set(peer.id, peer);
+		this._bindHandlersToPeer(peer);
+		if (this._nodeInfo) {
+			peer.applyNodeInfo(this._nodeInfo);
+		}
+		peer.updatePeerInfo(detailedPeerInfo);
+		peer.connect();
+
+		return peer;
+	}
+
 	public addInboundPeer(
 		peerId: string,
-		peerInfo: DiscoveredPeerInfo,
+		peerInfo: P2PDiscoveredPeerInfo,
 		socket: SCServerSocket,
 	): boolean {
 		const existingPeer = this.getPeer(peerId);
