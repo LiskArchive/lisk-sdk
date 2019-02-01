@@ -126,10 +126,9 @@ export class PeerPool extends EventEmitter {
 
 	public async requestPeer(
 		packet: P2PRequestPacket,
-		nodeInfo: P2PNodeInfo,
 	): Promise<P2PResponsePacket> {
 		const peerSelectionParams: PeerOptions = {
-			lastBlockHeight: nodeInfo.height,
+			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
 		};
 		const selectedPeer = this.selectPeers(peerSelectionParams, 1);
 
@@ -153,9 +152,9 @@ export class PeerPool extends EventEmitter {
 		return response;
 	}
 
-	public sendToPeers(message: P2PMessagePacket, nodeInfo: P2PNodeInfo): void {
+	public sendToPeers(message: P2PMessagePacket): void {
 		const peerSelectionParams: PeerOptions = {
-			lastBlockHeight: nodeInfo.height,
+			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
 		};
 		const selectedPeers = this.selectPeers(peerSelectionParams);
 
