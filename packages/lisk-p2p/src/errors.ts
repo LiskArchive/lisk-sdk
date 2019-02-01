@@ -13,7 +13,7 @@
  *
  */
 /* tslint:disable: max-classes-per-file */
-import VError from 'verror';
+import * as VError from 'verror';
 
 export class PeerTransportError extends VError {
 	public peerId: string;

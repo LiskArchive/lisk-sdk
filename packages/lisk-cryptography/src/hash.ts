@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { hexToBuffer } from './buffer';
 
 const cryptoHashSha256 = (data: Buffer): Buffer => {

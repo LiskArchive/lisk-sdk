@@ -14,9 +14,9 @@
  */
 
 import { EventEmitter } from 'events';
-import http, { Server } from 'http';
+import * as http from 'http';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
-import url from 'url';
+import * as url from 'url';
 
 import { RequestFailError } from './errors';
 import { Peer } from './peer';
@@ -63,7 +63,7 @@ const BASE_10_RADIX = 10;
 
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
-	private readonly _httpServer: Server;
+	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
 	private readonly _newPeers: Set<P2PPeerInfo>;
 	private readonly _triedPeers: Set<P2PPeerInfo>;
@@ -116,7 +116,7 @@ export class P2P extends EventEmitter {
 
 		this._peerPool = new PeerPool();
 		this._bindHandlersToPeerPool(this._peerPool);
-		
+
 		this._nodeInfo = config.nodeInfo;
 		this._peerPool.applyNodeInfo(this._nodeInfo);
 	}

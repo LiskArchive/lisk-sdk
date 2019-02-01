@@ -1,4 +1,5 @@
-// tslint:disable only-arrow-functions
+/// <reference types="node" />
 declare module 'buffer-reverse' {
-	export default function(buffer: Buffer): Buffer;
+	const reverse: (buffer: Buffer) => Buffer;
+	export = reverse;
 }

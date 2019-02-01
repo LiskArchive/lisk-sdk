@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 
 export const bigNumberToBuffer = (bignumber: string, size: number) =>
 	new BigNum(bignumber).toBuffer({ size, endian: 'big' });

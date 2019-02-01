@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import {
 	MULTISIGNATURE_FEE,
 	MULTISIGNATURE_MAX_KEYSGROUP,
@@ -238,7 +238,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 				min: this.asset.multisignature.min,
 				lifetime: this.asset.multisignature.lifetime,
 				keysgroup: [...this.asset.multisignature.keysgroup],
-			}
+			},
 		};
 	}
 
@@ -439,7 +439,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 		const errors = [...baseErrors];
 
-		const { multisignatures, multimin, multilifetime, ...strippedSender } = state.sender;
+		const {
+			multisignatures,
+			multimin,
+			multilifetime,
+			...strippedSender
+		} = state.sender;
 
 		return {
 			id: this.id,

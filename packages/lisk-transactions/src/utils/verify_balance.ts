@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import { TransactionError } from '../errors';
 import { Account, IsVerifiedResponseWithError } from '../transaction_types';
 import { convertBeddowsToLSK } from './';

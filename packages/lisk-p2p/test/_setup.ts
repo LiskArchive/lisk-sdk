@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import 'chai/register-expect';
-import sinonChai from 'sinon-chai';
-import sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
+import * as sinon from 'sinon';
 
 process.env.NODE_ENV = 'test';
 

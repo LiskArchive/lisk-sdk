@@ -23,7 +23,7 @@ import {
 	hexToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
@@ -156,8 +156,8 @@ export abstract class BaseTransaction {
 	}
 
 	public get fee(): BigNum {
-		if(!this._fee) {
-			throw new Error('fee is required to be set before use')
+		if (!this._fee) {
+			throw new Error('fee is required to be set before use');
 		}
 
 		return this._fee;
@@ -520,10 +520,7 @@ export abstract class BaseTransaction {
 		sender,
 	}: RequiredState): TransactionResponse {
 		const transactionBytes = this.signSignature
-			? Buffer.concat([
-					this.getBasicBytes(),
-					hexToBuffer(this.signature),
-			  ])
+			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
 			: this.getBasicBytes();
 
 		if (!sender.multimin) {

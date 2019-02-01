@@ -23,7 +23,7 @@ import {
 	TransactionMultiError,
 	TransactionPendingError,
 } from '../../src/errors';
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import { addTransactionFields, TestTransaction } from '../helpers';
 import {
 	validAccount as defaultSenderAccount,

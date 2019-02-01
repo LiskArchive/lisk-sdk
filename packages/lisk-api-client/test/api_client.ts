@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import os from 'os';
+import * as os from 'os';
 import { APIClient } from '../src/api_client';
 
 describe('APIClient module', () => {

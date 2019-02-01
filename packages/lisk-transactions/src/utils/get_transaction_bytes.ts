@@ -13,7 +13,7 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
 import {
 	DappAsset,

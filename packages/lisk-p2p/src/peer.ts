@@ -14,7 +14,7 @@
  */
 
 import { EventEmitter } from 'events';
-import querystring from 'querystring';
+import * as querystring from 'querystring';
 import { RPCResponseError } from './errors';
 
 import {
@@ -27,7 +27,7 @@ import {
 
 import { P2PRequest } from './p2p_request';
 
-import socketClusterClient, { SCClientSocket } from 'socketcluster-client';
+import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import {
 	validatePeerInfo,
@@ -35,6 +35,8 @@ import {
 	validateProtocolMessage,
 	validateRPCRequest,
 } from './validation';
+
+type SCClientSocket = socketClusterClient.SCClientSocket;
 
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';

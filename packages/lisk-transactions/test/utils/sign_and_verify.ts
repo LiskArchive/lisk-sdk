@@ -25,7 +25,7 @@ import {
 import { TransactionError, TransactionPendingError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
-import fixtureTransactions from '../../fixtures/transactions.json';
+import * as fixtureTransactions from '../../fixtures/transactions.json';
 import { Account, TransactionJSON } from '../../src/transaction_types';
 import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
 import {

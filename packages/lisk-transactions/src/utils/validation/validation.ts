@@ -15,7 +15,7 @@
 // tslint:disable-next-line no-reference
 /// <reference path="../../../types/browserify-bignum/index.d.ts" />
 import * as cryptography from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import {
 	MAX_ADDRESS_NUMBER,
 	MAX_PUBLIC_KEY_LENGTH,

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import tweetnacl from 'tweetnacl';
+import * as tweetnacl from 'tweetnacl';
 import { NaclInterface } from './nacl_types';
 
 export const box: NaclInterface['box'] = (
