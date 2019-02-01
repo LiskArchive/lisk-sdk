@@ -142,7 +142,7 @@ const assetAttributesMap = {
 		'asset.dapp.category',
 	],
 	6: ['asset.inTransfer.dappId'],
-	7: ['asset.outTransfer.dappId', ' asset.outTransfer.transactionId'],
+	7: ['asset.outTransfer.dappId', 'asset.outTransfer.transactionId'],
 };
 
 const sqlFiles = {
