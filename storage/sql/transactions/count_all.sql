@@ -14,5 +14,3 @@
 
 SELECT count(*)
 FROM trs;
-
-
