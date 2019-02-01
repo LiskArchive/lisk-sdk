@@ -207,20 +207,104 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		// TODO ASAP: Implement.
 		describe('P2P.request', () => {
-			it('should make request to the network; it should reach a single peer', () => {
-
+			beforeEach(async () => {
+				p2pNodeList.forEach(p2p => {
+					// Collect port numbers to check which peer handled which request.
+					p2p.on('requestReceived', request => {
+						request.end({
+							nodePort: p2p.nodeInfo.wsPort,
+							requestProcedure: request.procedure,
+							requestData: request.data
+						});
+					});
+				});
 			});
 
-			it('should be able to receive a response from the network; from a single peer', () => {
+			it('should make request to the network; it should reach a single peer', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const response = await firstP2PNode.request({procedure: 'foo', data: 'bar'});
+				expect(response).to.have.property('data');
+				expect(response.data).to.have.property('nodePort').which.is.a('number');
+				expect(response.data).to.have.property('requestProcedure').which.is.a('string');
+				expect(response.data).to.have.property('requestData').which.is.equal('bar');
+			});
 
+			// Check for even distribution of requests across the network. Account for an error margin.
+			it('requests made to the network should be distributed randomly', async () => {
+				const TOTAL_REQUESTS = 1000;
+				const firstP2PNode = p2pNodeList[0];
+				const nodePortToResponsesMap: any = {};
+
+				const expectedAverageRequestsPerNode = TOTAL_REQUESTS / NETWORK_PEER_COUNT;
+				const expectedRequestsLowerBound = expectedAverageRequestsPerNode * .5;
+				const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
+				
+				for (let i = 0; i < TOTAL_REQUESTS; i++) {
+					const response = await firstP2PNode.request({procedure: 'foo', data: i});
+					let resultData = response.data as any;
+					if (!nodePortToResponsesMap[resultData.nodePort]) {
+						nodePortToResponsesMap[resultData.nodePort] = [];
+					}
+					nodePortToResponsesMap[resultData.nodePort].push(resultData);
+				}
+
+				Object.values(nodePortToResponsesMap).forEach((requestsHandled: any) => {
+					expect(requestsHandled).to.be.an('array');
+					expect(requestsHandled.length).to.be.greaterThan(expectedRequestsLowerBound);
+					expect(requestsHandled.length).to.be.lessThan(expectedRequestsUpperBound);
+				});
+			});
+		});
+
+		describe('P2P.send', () => {
+			let collectedMessages: Array<any> = [];
+
+			beforeEach(async () => {
+				collectedMessages = [];
+				p2pNodeList.forEach(p2p => {
+					p2p.on('messageReceived', message => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							message
+						});
+					});
+				});
+			});
+
+			it('should send a message to a subset of peers within the network; should reach multiple peers with even distribution', async () => {
+				const TOTAL_SENDS = 100;
+				const firstP2PNode = p2pNodeList[0];
+				const nodePortToMessagesMap: any = {};
+
+				const expectedAverageMessagesPerNode = TOTAL_SENDS;
+				const expectedMessagesLowerBound = expectedAverageMessagesPerNode * .5;
+				const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
+
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					firstP2PNode.send({event: 'bar', data: i});
+				}
+
+				await wait(500);
+
+				collectedMessages.forEach((receivedMessageData: any) => {
+					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+					}
+					nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
+				});
+
+				Object.values(nodePortToMessagesMap).forEach((receivedMessages: any) => {
+					expect(receivedMessages).to.be.an('array');
+					expect(receivedMessages.length).to.be.greaterThan(expectedMessagesLowerBound);
+					expect(receivedMessages.length).to.be.lessThan(expectedMessagesUpperBound);
+				});
 			});
 		});
 
 		// TODO ASAP: Implement.
-		describe('P2P.send', () => {
-			it('should send a message to a subset of peers within the network; should reach multiple peers', () => {
+		describe('P2P.applyNodeStatus', () => {
+			it('should send the node status to a subset of peers within the network.', () => {
 
 			});
 		});
