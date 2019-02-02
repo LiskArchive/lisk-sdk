@@ -32,7 +32,6 @@ import {
 import {
 	Attributes,
 	BaseTransaction,
-	createBaseTransaction,
 	ENTITY_ACCOUNT,
 	EntityMap,
 	TransactionResponse,
@@ -78,7 +77,7 @@ export const transferAssetFormatSchema = {
 	},
 };
 
-const validateInputs = ({
+export const validateInputs = ({
 	amount,
 	recipientId,
 	recipientPublicKey,
@@ -138,55 +137,6 @@ export class TransferTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as TransferAsset;
 		this._fee = new BigNum(TRANSFER_FEE);
-	}
-
-	public static create(input: TransferInput): object {
-		validateInputs(input);
-		const {
-			amount,
-			recipientId: recipientIdInput,
-			recipientPublicKey,
-			data,
-			passphrase,
-			secondPassphrase,
-		} = input;
-
-		const recipientIdFromPublicKey = recipientPublicKey
-			? getAddressFromPublicKey(recipientPublicKey)
-			: undefined;
-
-		const recipientId = recipientIdInput
-			? recipientIdInput
-			: recipientIdFromPublicKey;
-
-		const transaction = {
-			...createBaseTransaction(input),
-			type: 0,
-			amount,
-			recipientId,
-			recipientPublicKey,
-			fee: TRANSFER_FEE.toString(),
-			asset: data ? { data } : {},
-		};
-
-		if (!passphrase) {
-			return transaction;
-		}
-
-		const transactionWithSenderInfo = {
-			...transaction,
-			// SenderId and SenderPublicKey are expected to be exist from base transaction
-			recipientId: recipientId as string,
-			senderId: transaction.senderId as string,
-			senderPublicKey: transaction.senderPublicKey as string,
-		};
-
-		const transferTransaction = new TransferTransaction(
-			transactionWithSenderInfo,
-		);
-		transferTransaction.sign(passphrase, secondPassphrase);
-
-		return transferTransaction.toJSON();
 	}
 
 	protected getAssetBytes(): Buffer {

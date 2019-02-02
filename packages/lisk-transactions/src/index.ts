@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { transfer } from './0_transfer';
 import { registerMultisignature } from './4_register_multisignature_account';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
@@ -27,8 +28,6 @@ import {
 } from './transactions';
 import * as utils from './utils';
 
-// tslint:disable-next-line no-unbound-method
-const transfer = TransferTransaction.create;
 // tslint:disable-next-line no-unbound-method
 const registerSecondPassphrase = SecondSignatureTransaction.create;
 // tslint:disable-next-line no-unbound-method
