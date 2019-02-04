@@ -33,7 +33,7 @@ const executeWithIstanbul = (path, mochaArguments) => {
 	const istanbulArguments = coverageArguments.concat(mochaArguments);
 
 	return child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
-		cwd: `${__dirname}/../..`,
+		cwd: `${__dirname}/../../..`,
 		detached: true,
 		stdio: 'inherit',
 	});
@@ -44,21 +44,21 @@ const getSuiteFolder = (suite, section) => {
 
 	switch (suite) {
 		case 'unit':
-			suiteFolder = 'test/unit/';
+			suiteFolder = 'framework/test/unit/';
 			break;
 		case 'functional':
 			switch (section) {
 				case 'get':
-					suiteFolder = 'test/functional/http/get/';
+					suiteFolder = 'framework/test/functional/http/get/';
 					break;
 				case 'post':
-					suiteFolder = 'test/functional/http/post/';
+					suiteFolder = 'framework/test/functional/http/post/';
 					break;
 				case 'ws':
-					suiteFolder = 'test/functional/ws/';
+					suiteFolder = 'framework/test/functional/ws/';
 					break;
 				case undefined:
-					suiteFolder = 'test/functional/';
+					suiteFolder = 'framework/test/functional/';
 					break;
 				default:
 					console.warn('Invalid section argument. Options are: get, post, ws');
@@ -67,7 +67,7 @@ const getSuiteFolder = (suite, section) => {
 			}
 			break;
 		case 'integration':
-			suiteFolder = 'test/integration/';
+			suiteFolder = 'framework/test/integration/';
 			break;
 
 		default:
