@@ -23,7 +23,7 @@ const transactionTypes = require('../../../../../../src/modules/chain/helpers/tr
 
 const { FEES } = __testContext.config.constants;
 
-const Block = rewire('../../../logic/block.js');
+const Block = rewire('../../../../../../src/modules/chain/logic/block.js');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
@@ -395,7 +395,7 @@ describe('block', async () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(
-						async () => transactionsByTypes[transactionTypes.MULTI]
+						() => transactionsByTypes[transactionTypes.MULTI]
 					);
 					data.transactions = multipleMultisigTx.concat(transactions);
 					generatedBlock = block.create(data);
@@ -418,7 +418,7 @@ describe('block', async () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(
-						async () => transactionsByTypes[transactionTypes.MULTI]
+						() => transactionsByTypes[transactionTypes.MULTI]
 					);
 					// Add multisig transactions after the 3rd transaction in array
 					transactions.splice(...[3, 0].concat(multipleMultisigTx));
@@ -443,7 +443,7 @@ describe('block', async () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(
-						async () => transactionsByTypes[transactionTypes.MULTI]
+						() => transactionsByTypes[transactionTypes.MULTI]
 					);
 					data.transactions = transactions.concat(multipleMultisigTx);
 					generatedBlock = block.create(data);
@@ -467,7 +467,7 @@ describe('block', async () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(
-						async () => transactionsByTypes[transactionTypes.MULTI]
+						() => transactionsByTypes[transactionTypes.MULTI]
 					);
 					data.transactions = _.shuffle(
 						transactions.concat(multipleMultisigTx)

@@ -23,7 +23,9 @@ const modulesLoader = require('../../../../../common/modules_loader');
 const random = require('../../../../../common/utils/random');
 const SchemaDynamicTest = require('../common/schema_dynamic_test.js');
 
-const Delegate = rewire('../../../logic/delegate.js');
+const Delegate = rewire(
+	'../../../../../../src/modules/chain/logic/delegate.js'
+);
 
 const { FEES } = global.constants;
 const validPassphrase =

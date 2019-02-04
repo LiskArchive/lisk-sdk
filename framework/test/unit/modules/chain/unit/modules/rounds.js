@@ -17,12 +17,12 @@
 // Init tests dependencies
 const rewire = require('rewire');
 // Instantiate test subject
-const Rounds = rewire('../../../modules/rounds.js');
-const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
+const Rounds = rewire('../../../../../../src/modules/chain/modules/rounds.js');
+const Round = rewire('../../../../../../src/modules/chain/logic/round.js'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../../../../common/storage_sandbox');
 const {
 	CACHE_KEYS_DELEGATES,
-} = require('.../../../../../../src/components/cache');
+} = require('../../../../../../src/components/cache');
 
 const sinon = sinonSandbox;
 

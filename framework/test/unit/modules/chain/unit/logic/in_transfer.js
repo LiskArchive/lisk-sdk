@@ -21,7 +21,9 @@ const slots = require('../../../../../../src/modules/chain/helpers/slots');
 const typesRepresentatives = require('../../../../../fixtures/types_representatives');
 const modulesLoader = require('../../../../../common/modules_loader');
 
-const InTransfer = rewire('../../../logic/in_transfer.js');
+const InTransfer = rewire(
+	'../../../../../../src/modules/chain/logic/in_transfer.js'
+);
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 const validKeypair = ed.makeKeypair(

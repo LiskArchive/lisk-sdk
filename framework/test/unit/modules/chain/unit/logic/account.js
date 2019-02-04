@@ -20,7 +20,7 @@ const application = require('../../../../../common/application.js');
 const modulesLoader = require('../../../../../common/modules_loader');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
 
-const Account = rewire('../../../logic/account.js');
+const Account = rewire('../../../../../../src/modules/chain/logic/account.js');
 
 const { ACTIVE_DELEGATES } = global.constants;
 

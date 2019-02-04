@@ -23,7 +23,9 @@ const testData = require('./test_data/out_transfer');
 
 const { FEES } = __testContext.config.constants;
 const exceptions = __testContext.config.exceptions;
-const OutTransfer = rewire('../../../logic/out_transfer');
+const OutTransfer = rewire(
+	'../../../../../../src/modules/chain/logic/out_transfer'
+);
 const validKeypair = testData.validKeypair;
 const validSender = testData.validSender;
 const validTransaction = testData.validTransaction;

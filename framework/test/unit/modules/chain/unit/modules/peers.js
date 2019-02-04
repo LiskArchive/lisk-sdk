@@ -53,7 +53,7 @@ describe('peers', async () => {
 			},
 		};
 
-		PeersRewired = rewire('../../../modules/peers');
+		PeersRewired = rewire('../../../../../../src/modules/chain/modules/peers');
 		__private = PeersRewired.__get__('__private');
 
 		peersLogicMock = {

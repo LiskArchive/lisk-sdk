@@ -109,19 +109,19 @@ function __init(initScope, done) {
 		};
 
 		const modulesInit = {
-			accounts: '../../modules/accounts.js',
-			blocks: '../../modules/blocks.js',
-			dapps: '../../modules/dapps.js',
-			delegates: '../../modules/delegates.js',
-			loader: '../../modules/loader.js',
-			multisignatures: '../../modules/multisignatures.js',
-			node: '../../modules/node.js',
-			peers: '../../modules/peers.js',
-			rounds: '../../modules/rounds.js',
-			signatures: '../../modules/signatures.js',
-			system: '../../modules/system.js',
-			transactions: '../../modules/transactions.js',
-			transport: '../../modules/transport.js',
+			accounts: '../../src/modules/chain/modules/accounts.js',
+			blocks: '../../src/modules/chain/modules/blocks.js',
+			dapps: '../../src/modules/chain/modules/dapps.js',
+			delegates: '../../src/modules/chain/modules/delegates.js',
+			loader: '../../src/modules/chain/modules/loader.js',
+			multisignatures: '../../src/modules/chain/modules/multisignatures.js',
+			node: '../../src/modules/chain/modules/node.js',
+			peers: '../../src/modules/chain/modules/peers.js',
+			rounds: '../../src/modules/chain/modules/rounds.js',
+			signatures: '../../src/modules/chain/modules/signatures.js',
+			system: '../../src/modules/chain/modules/system.js',
+			transactions: '../../src/modules/chain/modules/transactions.js',
+			transport: '../../src/modules/chain/modules/transport.js',
 		};
 
 		// Init limited application layer

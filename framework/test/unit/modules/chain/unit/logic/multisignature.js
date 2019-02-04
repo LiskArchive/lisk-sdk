@@ -1081,8 +1081,7 @@ describe('multisignature', async () => {
 				const keysgroup = Array(
 					...Array(MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS + 1)
 				).map(
-					async () =>
-						`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
+					() => `${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
 				);
 				const multisigRegistration14 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
@@ -1101,8 +1100,7 @@ describe('multisignature', async () => {
 
 		it('should return transaction when created using createMultisignature', async () => {
 			const keysgroup = Array(...Array(10)).map(
-				async () =>
-					`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
+				() => `${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
 			);
 
 			const multisigRegistration15 = lisk.transaction.registerMultisignature({

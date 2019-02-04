@@ -18,7 +18,9 @@ const rewire = require('rewire');
 const Promise = require('bluebird');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum.js');
 
-const BlocksProcess = rewire('../../../../modules/blocks/process.js');
+const BlocksProcess = rewire(
+	'../../../../../../../src/modules/chain/modules/blocks/process.js'
+);
 
 describe('blocks/process', async () => {
 	let __private;
@@ -99,8 +101,8 @@ describe('blocks/process', async () => {
 			});
 
 		peersStub = {
-			create: async () => peerStub,
-			me: async () => 'me',
+			create: () => peerStub,
+			me: () => 'me',
 			applyHeaders: peerStub.applyHeaders,
 			ban: sinonSandbox.stub(),
 			unban: sinonSandbox.stub(),

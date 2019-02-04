@@ -392,7 +392,7 @@ __private.loadBlockChain = function() {
 				},
 				loadBlocksOffset(seriesCb) {
 					async.until(
-						async () => count < offset,
+						() => count < offset,
 						cb => {
 							if (count > 1) {
 								library.logger.info(
@@ -786,7 +786,7 @@ __private.createSnapshot = height => {
 			},
 			loadBlocksOffset(seriesCb) {
 				async.until(
-					async () => targetHeight < currentHeight,
+					() => targetHeight < currentHeight,
 					untilCb => {
 						library.logger.info(
 							`Rebuilding accounts states, current round: ${slots.calcRound(
@@ -914,7 +914,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				}
 			);
 		},
-		async () => setImmediate(cb)
+		() => setImmediate(cb)
 	);
 };
 

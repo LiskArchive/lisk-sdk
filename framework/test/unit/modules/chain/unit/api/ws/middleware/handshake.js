@@ -243,7 +243,7 @@ describe('Handshake', async () => {
 				});
 
 				describe('height', async () => {
-					const validValues = _.map(new Array(10), async () =>
+					const validValues = _.map(new Array(10), () =>
 						Math.floor(Math.random() * Number.MAX_VALUE)
 					);
 

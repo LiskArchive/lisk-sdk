@@ -22,7 +22,9 @@ const System = require('../../../../../../../../src/modules/chain/modules/system
 const wsRPC = require('../../../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
 	.wsRPC;
 
-const connectRewired = rewire('../../../../../api/ws/rpc/connect');
+const connectRewired = rewire(
+	'../../../../../../../../src/modules/chain/api/ws/rpc/connect'
+);
 
 const validRPCProcedureName = 'rpcProcedureA';
 const validEventProcedureName = 'eventProcedureB';
