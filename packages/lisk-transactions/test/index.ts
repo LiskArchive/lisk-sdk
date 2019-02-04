@@ -23,12 +23,6 @@ describe('transaction', () => {
 				.and.be.a('function');
 		});
 
-		it('should have #castVotes', () => {
-			return expect(transaction)
-				.to.have.property('castVotes')
-				.and.be.a('function');
-		});
-
 		it('should have #registerMultisignature', () => {
 			return expect(transaction)
 				.to.have.property('registerMultisignature')
