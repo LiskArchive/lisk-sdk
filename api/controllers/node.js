@@ -122,7 +122,7 @@ NodeController.getStatus = async (context, next) => {
 		);
 		const { height } = lastBlock;
 
-		// TODO: Replace all library.modules calls after chain module extraction is done.
+		// TODO: Replace all library.modules calls after chain module extraction is done as part of https://github.com/LiskHQ/lisk/issues/2763.
 		const data = {
 			broadhash: library.modules.system.getBroadhash(),
 			consensus: library.modules.peers.getLastConsensus() || 0,
