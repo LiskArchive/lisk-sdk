@@ -41,7 +41,7 @@ describe('duplicate_signatures', async () => {
 		);
 	});
 
-	const prepareMultisignatureAccountRegistration = async () => {
+	const prepareMultisignatureAccountRegistration = () => {
 		const accounts = {
 			multisignatureMembers: [],
 		};

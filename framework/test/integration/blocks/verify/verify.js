@@ -232,7 +232,9 @@ describe('blocks/verify', async () => {
 		let RewiredVerify;
 
 		before(done => {
-			RewiredVerify = rewire('../../../../modules/blocks/verify.js');
+			RewiredVerify = rewire(
+				'../../../../src/modules/chain/modules/blocks/verify.js'
+			);
 			const verify = new RewiredVerify(
 				library.logger,
 				library.logic.block,
