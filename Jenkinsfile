@@ -24,7 +24,7 @@ def setup() {
 		killall --verbose --wait node || true
 		dropdb --if-exists lisk_dev
 		createdb lisk_dev
-		NODE_ENV=test node app.js >.app.log 2>&1 &
+		NODE_ENV=test npm start >.app.log 2>&1 &
 		'''
 	}
 	// wait for the Core API to be reachable
