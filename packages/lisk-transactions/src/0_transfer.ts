@@ -13,12 +13,14 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { TRANSFER_FEE } from './constants';
+import { BYTESIZES, TRANSFER_FEE } from './constants';
+import { TransferTransaction } from './transactions';
 import {
 	createBaseTransaction,
-	TransferTransaction,
-	validateInputs,
-} from './transactions';
+	validateAddress,
+	validatePublicKey,
+	validateTransferAmount,
+} from './utils';
 
 export interface TransferInputs {
 	readonly amount: string;
@@ -29,6 +31,45 @@ export interface TransferInputs {
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
 }
+
+const validateInputs = ({
+	amount,
+	recipientId,
+	recipientPublicKey,
+	data,
+}: TransferInputs): void => {
+	if (!validateTransferAmount(amount)) {
+		throw new Error('Amount must be a valid number in string format.');
+	}
+
+	if (!recipientId) {
+		throw new Error('`recipientId` must be provided.');
+	}
+
+	validateAddress(recipientId);
+
+	if (typeof recipientPublicKey !== 'undefined') {
+		validatePublicKey(recipientPublicKey);
+	}
+
+	if (
+		recipientPublicKey &&
+		recipientId !== getAddressFromPublicKey(recipientPublicKey)
+	) {
+		throw new Error('recipientId does not match recipientPublicKey.');
+	}
+
+	if (data && data.length > 0) {
+		if (typeof data !== 'string') {
+			throw new Error(
+				'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
+			);
+		}
+		if (data.length > BYTESIZES.DATA) {
+			throw new Error('Transaction data field cannot exceed 64 bytes.');
+		}
+	}
+};
 
 export const transfer = (inputs: TransferInputs): object => {
 	validateInputs(inputs);

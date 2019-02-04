@@ -16,6 +16,7 @@ import BigNum from 'browserify-bignum';
 import { DAPP_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
+import { createBaseTransaction, CreateBaseTransactionInput } from '../utils';
 import {
 	isTypedObjectArrayWithKeys,
 	stringEndsWith,
@@ -24,8 +25,6 @@ import {
 import {
 	Attributes,
 	BaseTransaction,
-	createBaseTransaction,
-	CreateBaseTransactionInput,
 	ENTITY_ACCOUNT,
 	ENTITY_TRANSACTION,
 	EntityMap,

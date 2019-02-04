@@ -17,7 +17,12 @@ import BigNum from 'browserify-bignum';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, Status, TransactionJSON } from '../transaction_types';
-import { prependMinusToPublicKeys, prependPlusToPublicKeys } from '../utils';
+import {
+	createBaseTransaction,
+	CreateBaseTransactionInput,
+	prependMinusToPublicKeys,
+	prependPlusToPublicKeys,
+} from '../utils';
 import {
 	isTypedObjectArrayWithKeys,
 	validateAddress,
@@ -27,8 +32,6 @@ import {
 import {
 	Attributes,
 	BaseTransaction,
-	createBaseTransaction,
-	CreateBaseTransactionInput,
 	ENTITY_ACCOUNT,
 	EntityMap,
 	RequiredState,

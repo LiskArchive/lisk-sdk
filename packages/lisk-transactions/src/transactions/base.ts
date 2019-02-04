@@ -17,7 +17,6 @@
 
 import {
 	bigNumberToBuffer,
-	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
@@ -40,7 +39,6 @@ import {
 	checkTypes,
 	convertBeddowsToLSK,
 	getId,
-	getTimeWithOffset,
 	validator,
 	verifyBalance,
 	verifyMultisignatures,
@@ -79,29 +77,6 @@ export interface RequiredState {
 
 export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
-export interface CreateBaseTransactionInput {
-	readonly passphrase?: string;
-	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
-}
-
-export const createBaseTransaction = ({
-	passphrase,
-	timeOffset,
-}: CreateBaseTransactionInput) => {
-	const { address: senderId, publicKey: senderPublicKey } = passphrase
-		? getAddressAndPublicKeyFromPassphrase(passphrase)
-		: { address: undefined, publicKey: undefined };
-	const timestamp = getTimeWithOffset(timeOffset);
-
-	return {
-		amount: '0',
-		recipientId: '',
-		senderId,
-		senderPublicKey,
-		timestamp,
-	};
-};
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
@@ -156,8 +131,8 @@ export abstract class BaseTransaction {
 	}
 
 	public get fee(): BigNum {
-		if(!this._fee) {
-			throw new Error('fee is required to be set before use')
+		if (!this._fee) {
+			throw new Error('fee is required to be set before use');
 		}
 
 		return this._fee;
@@ -520,10 +495,7 @@ export abstract class BaseTransaction {
 		sender,
 	}: RequiredState): TransactionResponse {
 		const transactionBytes = this.signSignature
-			? Buffer.concat([
-					this.getBasicBytes(),
-					hexToBuffer(this.signature),
-			  ])
+			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
 			: this.getBasicBytes();
 
 		if (!sender.multimin) {

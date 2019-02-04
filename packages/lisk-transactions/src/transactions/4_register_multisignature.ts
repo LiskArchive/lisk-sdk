@@ -28,17 +28,14 @@ import {
 	TransactionJSON,
 } from '../transaction_types';
 import {
+	createBaseTransaction,
+	CreateBaseTransactionInput,
 	isValidInteger,
 	prependPlusToPublicKeys,
 	validateKeysgroup,
 	validator,
 } from '../utils';
-import {
-	BaseTransaction,
-	createBaseTransaction,
-	CreateBaseTransactionInput,
-	TransactionResponse,
-} from './base';
+import { BaseTransaction, TransactionResponse } from './base';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
 

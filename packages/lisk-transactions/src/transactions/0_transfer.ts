@@ -14,7 +14,7 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../constants';
+import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
@@ -25,7 +25,6 @@ import {
 import {
 	isTypedObjectArrayWithKeys,
 	validateAddress,
-	validatePublicKey,
 	validateTransferAmount,
 	validator,
 } from '../utils';
@@ -38,16 +37,6 @@ import {
 } from './base';
 
 const TRANSACTION_TRANSFER_TYPE = 0;
-
-export interface TransferInput {
-	readonly amount: string;
-	readonly recipientId?: string;
-	readonly recipientPublicKey?: string;
-	readonly data?: string;
-	readonly passphrase?: string;
-	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
-}
 
 export interface RequiredTransferState {
 	readonly sender: Account;
@@ -75,45 +64,6 @@ export const transferAssetFormatSchema = {
 			maxLength: 64,
 		},
 	},
-};
-
-export const validateInputs = ({
-	amount,
-	recipientId,
-	recipientPublicKey,
-	data,
-}: TransferInput): void => {
-	if (!validateTransferAmount(amount)) {
-		throw new Error('Amount must be a valid number in string format.');
-	}
-
-	if (!recipientId) {
-		throw new Error('`recipientId` must be provided.');
-	}
-
-	validateAddress(recipientId);
-
-	if (typeof recipientPublicKey !== 'undefined') {
-		validatePublicKey(recipientPublicKey);
-	}
-
-	if (
-		recipientPublicKey &&
-		recipientId !== getAddressFromPublicKey(recipientPublicKey)
-	) {
-		throw new Error('recipientId does not match recipientPublicKey.');
-	}
-
-	if (data && data.length > 0) {
-		if (typeof data !== 'string') {
-			throw new Error(
-				'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
-			);
-		}
-		if (data.length > BYTESIZES.DATA) {
-			throw new Error('Transaction data field cannot exceed 64 bytes.');
-		}
-	}
 };
 
 export class TransferTransaction extends BaseTransaction {
