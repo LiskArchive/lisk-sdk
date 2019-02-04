@@ -14,6 +14,7 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BYTESIZES, TRANSFER_FEE } from './constants';
+import { TransactionJSON } from './transaction_types';
 import { TransferTransaction } from './transactions';
 import {
 	createBaseTransaction,
@@ -71,7 +72,7 @@ const validateInputs = ({
 	}
 };
 
-export const transfer = (inputs: TransferInputs): object => {
+export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const {
 		data,
