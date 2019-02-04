@@ -36,7 +36,7 @@ describe('cached endpoints', async () => {
 			echo: null,
 			errorLevel: __testContext.config.fileLogLevel,
 			filename: __testContext.config.logFileName,
-		}).bootstrap();
+		});
 
 		cache = createCacheComponent(__testContext.config.redis, this.logger);
 		await cache.bootstrap();
