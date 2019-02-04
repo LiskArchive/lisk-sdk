@@ -235,7 +235,7 @@ const modulesLoader = new function() {
 				{ peers: require('../../src/modules/chain/modules/peers') },
 				{ rounds: require('../../src/modules/chain/modules/rounds') },
 				{ signatures: require('../../src/modules/chain/modules/signatures') },
-				{ system: require('../../src/modules/chain/modules/system') },
+				{ system: require('../../src/components/system') },
 				{
 					transactions: require('../../src/modules/chain/modules/transactions'),
 				},

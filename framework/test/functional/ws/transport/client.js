@@ -19,7 +19,7 @@ const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 const connect = require('../../../../src/modules/chain/api/ws/rpc/connect');
 const wsRPC = require('../../../../src/modules/chain/api/ws/rpc/ws_rpc').wsRPC;
 const transport = require('../../../../src/modules/chain/api/ws/transport');
-const System = require('../../../../src/modules/chain/modules/system');
+const System = require('../../../../src/components/system');
 const WSServer = require('../../../common/ws/server_master');
 
 describe('RPC Client', async () => {

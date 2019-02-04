@@ -14,7 +14,7 @@
 
 'use strict';
 
-const System = require('../../../src/modules/chain/modules/system');
+const System = require('../../../src/components/system');
 const connect = require('../../../src/modules/chain/api/ws/rpc/connect');
 const WSServerMaster = require('./server_master');
 

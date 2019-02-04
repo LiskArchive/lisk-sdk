@@ -18,7 +18,7 @@ const rewire = require('rewire');
 const sinon = require('sinon');
 const prefixedPeer = require('../../../../../../../fixtures/peers')
 	.randomNormalizedPeer;
-const System = require('../../../../../../../../src/modules/chain/modules/system');
+const System = require('../../../../../../../../src/components/system');
 const wsRPC = require('../../../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
 	.wsRPC;
 

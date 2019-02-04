@@ -20,7 +20,7 @@ const typeRepresentatives = require('../../../../../../../fixtures/types_represe
 const Handshake = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/handshake');
 const failureCodes = require('../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
 const WSServerMaster = require('../../../../../../../common/ws/server_master');
-const System = require('../../../../../../../../src/modules/chain/modules/system');
+const System = require('../../../../../../../../src/components/system');
 
 const config = __testContext.config;
 
