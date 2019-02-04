@@ -35,6 +35,8 @@ export interface P2PInfoOptions {
 	readonly [key: string]: unknown;
 }
 
+// P2PPeerInfo and P2PNodeInfo are related.
+// P2PPeerInfo is the inbound info from a peer.
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
@@ -53,6 +55,8 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly options?: P2PInfoOptions;
 }
 
+// P2PPeerInfo and P2PNodeInfo are related.
+// P2PNodeInfo is the outbound info from our node.
 export interface P2PNodeInfo {
 	readonly os: string;
 	readonly version: string;
@@ -77,16 +81,29 @@ export interface P2PNetworkStatus {
 	readonly connectedPeers: ReadonlyArray<P2PPeerInfo>;
 }
 
-// This is a representation of the peer object according to the current protocol.
 // TODO later: Switch to LIP protocol format.
-export interface ProtocolPeerInfo {
+// This is a representation of the outbound peer object according to the current protocol.
+export interface ProtocolNodeInfo {
 	readonly broadhash: string;
 	readonly height: number;
-	readonly ip: string;
 	readonly nonce: string;
 	readonly os?: string;
 	readonly version: string;
-	readonly wsPort: string;
+	readonly wsPort: number;
+	readonly options?: P2PInfoOptions;
+}
+
+// This is a representation of the inbound peer object according to the current protocol.
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolPeerInfo {
+	readonly ip: string;
+	readonly broadhash: string;
+	readonly height: number;
+	readonly nonce: string;
+	readonly os?: string;
+	readonly version: string;
+	readonly wsPort: number;
+	readonly options?: P2PInfoOptions;
 }
 
 // This is a representation of the peer list according to the current protocol.

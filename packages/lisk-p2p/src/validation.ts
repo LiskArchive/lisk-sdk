@@ -36,8 +36,8 @@ interface RPCPeerListResponse {
 	readonly success?: boolean; // Could be used in future
 }
 
-export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
-	if ((!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) || !isPort(wsPort)) {
+export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
+	if ((!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) || !isPort(String(wsPort))) {
 		return false;
 	}
 
