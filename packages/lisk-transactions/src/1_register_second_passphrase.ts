@@ -12,13 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
+import { getKeys } from '@liskhq/lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
-import {
-	PartialTransaction,
-	SecondSignatureTransaction,
-} from './transaction_types';
-import { prepareTransaction } from './utils';
+import { TransactionJSON } from './transaction_types';
+import { SecondSignatureTransaction } from './transactions';
+import { createBaseTransaction } from './utils';
 
 export interface SecondPassphraseInputs {
 	readonly passphrase?: string;
@@ -38,25 +36,26 @@ const validateInputs = ({
 
 export const registerSecondPassphrase = (
 	inputs: SecondPassphraseInputs,
-): SecondSignatureTransaction => {
+): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { passphrase, secondPassphrase, timeOffset } = inputs;
-	const { publicKey } = cryptography.getKeys(secondPassphrase);
+	const { passphrase, secondPassphrase } = inputs;
+	const { publicKey } = getKeys(secondPassphrase);
 
-	const transaction: PartialTransaction = {
+	const transaction = {
+		...createBaseTransaction(inputs),
 		type: 1,
 		fee: SIGNATURE_FEE.toString(),
-		asset: {
-			signature: {
-				publicKey,
-			},
-		},
+		asset: { signature: { publicKey } },
 	};
 
-	return prepareTransaction(
-		transaction,
-		passphrase,
-		secondPassphrase,
-		timeOffset,
-	) as SecondSignatureTransaction;
+	if (!passphrase) {
+		return transaction;
+	}
+
+	const secondSignatureTransaction = new SecondSignatureTransaction(
+		transaction as TransactionJSON,
+	);
+	secondSignatureTransaction.sign(passphrase, secondPassphrase);
+
+	return secondSignatureTransaction.toJSON();
 };
