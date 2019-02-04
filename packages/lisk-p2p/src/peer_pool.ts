@@ -38,6 +38,7 @@ import {
 	ConnectionState,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
+	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	Peer,
@@ -53,6 +54,7 @@ import {
 export {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 };
@@ -65,6 +67,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 
 	public constructor() {
@@ -95,6 +98,10 @@ export class PeerPool extends EventEmitter {
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
+		};
+		this._handleFailedToPushNodeInfo = (error: Error) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		};
 	}
 
@@ -320,7 +327,7 @@ export class PeerPool extends EventEmitter {
 							: '',
 						os: peerDetailedInfo.os,
 						version: peerDetailedInfo.version,
-						wsPort: String(peerDetailedInfo.wsPort),
+						wsPort: peerDetailedInfo.wsPort,
 					};
 				},
 			)
@@ -339,6 +346,7 @@ export class PeerPool extends EventEmitter {
 		peer.on(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
 		peer.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peer.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
+		peer.on(EVENT_FAILED_TO_PUSH_NODE_INFO, this._handleFailedToPushNodeInfo);
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {
