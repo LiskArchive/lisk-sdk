@@ -20,9 +20,6 @@ const async = require('async');
 const semver = require('semver');
 
 // Private fields
-let __private = {};
-let modules;
-let library;
 let self;
 
 /**
@@ -45,274 +42,256 @@ let self;
  * @param {scope} scope - App instance
  */
 class System {
-	constructor(cb, scope) {
-		library = {
-			logger: scope.logger,
-			storage: scope.storage,
-			config: {
-				version: scope.config.version,
-				wsPort: scope.config.wsPort,
-				httpPort: scope.config.httpPort,
-				nethash: scope.config.nethash,
-				minVersion: scope.config.minVersion,
-				protocolVersion: scope.config.protocolVersion,
-				nonce: scope.config.nonce,
-			},
+	constructor(config, logger, storage) {
+		this.logger = logger;
+		this.storage = storage;
+		this.headers = {
+			os: os.platform() + os.release(),
+			version: config.version,
+			wsPort: config.wsPort,
+			httpPort: config.httpPort,
+			height: 1,
+			nethash: config.nethash,
+			broadhash: config.nethash,
+			minVersion: config.minVersion,
+			protocolVersion: config.protocolVersion,
+			nonce: config.nonce,
 		};
 
 		self = this;
+	}
 
-		__private.os = os.platform() + os.release();
-		__private.version = library.config.version;
-		__private.wsPort = library.config.wsPort;
-		__private.httpPort = library.config.httpPort;
-		__private.height = 1;
-		__private.nethash = library.config.nethash;
-		__private.broadhash = library.config.nethash;
-		__private.minVersion = library.config.minVersion;
-		__private.protocolVersion = library.config.protocolVersion;
-		__private.nonce = library.config.nonce;
+	/**
+	 * Sets the entire __private variable.
+	 *
+	 * @param {Object} headers
+	 * @todo Add description for the params
+	 */
+	setHeaders(headers) {
+		this.headers = headers;
+	}
 
-		setImmediate(cb, null, self);
+	/**
+	 * Returns all headers from __private variable.
+	 *
+	 * @returns {*} __private
+	 * @todo Add description for the return value
+	 */
+	getHeaders() {
+		return this.headers;
+	}
+
+	/**
+	 * Returns private variables object content.
+	 *
+	 * @returns {Object}
+	 * @todo Add description for the return value
+	 */
+	headers() {
+		return this.headers;
+	}
+
+	/**
+	 * Gets private variable `os`.
+	 *
+	 * @returns {string}
+	 * @todo Add description for the return value
+	 */
+	getOS() {
+		return this.headers.os;
+	}
+
+	/**
+	 * Gets private variable `version`.
+	 *
+	 * @returns {string}
+	 * @todo Add description for the return value
+	 */
+	getVersion() {
+		return this.headers.version;
+	}
+
+	/**
+	 * Gets private variable `port`.
+	 *
+	 * @returns {number}
+	 * @todo Add description for the return value
+	 */
+	getPort() {
+		return this.headers.wsPort;
+	}
+
+	/**
+	 * Gets private variable `height`.
+	 *
+	 * @returns {number}
+	 * @todo Add description for the return value
+	 */
+	getHeight() {
+		return this.headers.height;
+	}
+
+	/**
+	 * Gets private variable `nethash`.
+	 *
+	 * @returns {string} hash
+	 * @todo Add description for the return value
+	 */
+	getNethash() {
+		return this.headers.nethash;
+	}
+
+	/**
+	 * Gets private variable `nonce`.
+	 *
+	 * @returns {string} nonce
+	 * @todo Add description for the return value
+	 */
+	getNonce() {
+		return this.headers.nonce;
+	}
+
+	/**
+	 * Invokes cb with broadhash.
+	 *
+	 * @param {function} cb
+	 * @param {Error} err
+	 * @param {string} broadhash
+	 * @todo Add description for the params
+	 */
+	getBroadhash(cb) {
+		if (typeof cb !== 'function') {
+			return this.headers.broadhash;
+		}
+
+		return this.storage.entities.Block.get(
+			{},
+			{ limit: 5, sort: 'height:desc' }
+		)
+			.then(rows => {
+				if (rows.length <= 1) {
+					// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
+					return setImmediate(cb, null, self.headers.nethash);
+				}
+				const seed = rows.map(row => row.b_id).join('');
+				const broadhash = crypto
+					.createHash('sha256')
+					.update(seed, 'utf8')
+					.digest()
+					.toString('hex');
+
+				return setImmediate(cb, null, broadhash);
+			})
+			.catch(err => {
+				this.logger.error(err.stack);
+				return setImmediate(cb, err);
+			});
+	}
+
+	/**
+	 * Gets private variable `minVersion`.
+	 *
+	 * @returns {string}
+	 * @todo Add description for the return value
+	 */
+	getMinVersion() {
+		return this.headers.minVersion;
+	}
+
+	/**
+	 * Gets private variable `protocolVersion`
+	 *
+	 * @returns {string}
+	 */
+	getProtocolVersion() {
+		return this.headers.protocolVersion;
+	}
+
+	/**
+	 * Checks nethash (network) compatibility.
+	 *
+	 * @param {string} nethash
+	 * @returns {boolean}
+	 * @todo Add description for the params and the return value
+	 */
+	networkCompatible(nethash) {
+		return this.headers.nethash === nethash;
+	}
+
+	/**
+	 * Checks version compatibility from input param against private values.
+	 *
+	 * @param {string} version
+	 * @returns {boolean}
+	 * @todo Add description for the params and the return value
+	 */
+	versionCompatible(version) {
+		return semver.gte(version, this.headers.minVersion);
+	}
+
+	/**
+	 * Checks protocol version compatibility from input param against
+	 * private values.
+	 *
+	 * @param protocolVersion
+	 * @returns {boolean}
+	 */
+	protocolVersionCompatible(protocolVersion) {
+		const peerHard = parseInt(protocolVersion[0]);
+		const myHard = parseInt(this.headers.protocolVersion[0]);
+		return myHard === peerHard && peerHard >= 1;
+	}
+
+	/**
+	 * Checks nonce (unique app id) compatibility- compatible when different than given.
+	 *
+	 * @param nonce
+	 * @returns {boolean}
+	 * @todo Add description for the params and the return value
+	 */
+	nonceCompatible(nonce) {
+		return nonce && this.headers.nonce !== nonce;
+	}
+
+	/**
+	 * Updates private broadhash and height values.
+	 *
+	 * @param {Object} block - block
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb, err
+	 */
+	update(cb) {
+		async.series(
+			{
+				getBroadhash(seriesCb) {
+					self.getBroadhash((err, hash) => {
+						if (!err) {
+							self.broadhash = hash;
+						}
+
+						return setImmediate(seriesCb);
+					});
+				},
+				getHeight(seriesCb) {
+					return this.storage.entities.Block.get(
+						{},
+						{
+							limit: 5,
+							sort: 'height:desc',
+						}
+					).then(blocks => {
+						self.height = blocks[0].height;
+						return setImmediate(seriesCb);
+					});
+				},
+			},
+			err => {
+				this.logger.debug('System headers', this.headers);
+				return setImmediate(cb, err);
+			}
+		);
 	}
 }
-
-// Public methods
-
-/**
- * Sets the entire __private variable.
- *
- * @param {Object} headers
- * @todo Add description for the params
- */
-System.setHeaders = function(headers) {
-	__private = headers;
-};
-
-/**
- * Returns all headers from __private variable.
- *
- * @returns {*} __private
- * @todo Add description for the return value
- */
-System.getHeaders = function() {
-	return __private;
-};
-
-/**
- * Returns private variables object content.
- *
- * @returns {Object}
- * @todo Add description for the return value
- */
-System.prototype.headers = function() {
-	return __private;
-};
-
-/**
- * Gets private variable `os`.
- *
- * @returns {string}
- * @todo Add description for the return value
- */
-System.prototype.getOS = function() {
-	return __private.os;
-};
-
-/**
- * Gets private variable `version`.
- *
- * @returns {string}
- * @todo Add description for the return value
- */
-System.prototype.getVersion = function() {
-	return __private.version;
-};
-
-/**
- * Gets private variable `port`.
- *
- * @returns {number}
- * @todo Add description for the return value
- */
-System.prototype.getPort = function() {
-	return __private.wsPort;
-};
-
-/**
- * Gets private variable `height`.
- *
- * @returns {number}
- * @todo Add description for the return value
- */
-System.prototype.getHeight = function() {
-	return __private.height;
-};
-
-/**
- * Gets private variable `nethash`.
- *
- * @returns {string} hash
- * @todo Add description for the return value
- */
-System.prototype.getNethash = function() {
-	return __private.nethash;
-};
-
-/**
- * Gets private variable `nonce`.
- *
- * @returns {string} nonce
- * @todo Add description for the return value
- */
-System.prototype.getNonce = function() {
-	return __private.nonce;
-};
-
-/**
- * Invokes cb with broadhash.
- *
- * @param {function} cb
- * @param {Error} err
- * @param {string} broadhash
- * @todo Add description for the params
- */
-System.prototype.getBroadhash = function(cb) {
-	if (typeof cb !== 'function') {
-		return __private.broadhash;
-	}
-
-	return library.storage.entities.Block.get(
-		{},
-		{ limit: 5, sort: 'height:desc' }
-	)
-		.then(rows => {
-			if (rows.length <= 1) {
-				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
-				return setImmediate(cb, null, __private.nethash);
-			}
-			const seed = rows.map(row => row.b_id).join('');
-			const broadhash = crypto
-				.createHash('sha256')
-				.update(seed, 'utf8')
-				.digest()
-				.toString('hex');
-
-			return setImmediate(cb, null, broadhash);
-		})
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, err);
-		});
-};
-
-/**
- * Gets private variable `minVersion`.
- *
- * @returns {string}
- * @todo Add description for the return value
- */
-System.prototype.getMinVersion = function() {
-	return __private.minVersion;
-};
-
-/**
- * Gets private variable `protocolVersion`
- *
- * @returns {string}
- */
-System.prototype.getProtocolVersion = function() {
-	return __private.protocolVersion;
-};
-
-/**
- * Checks nethash (network) compatibility.
- *
- * @param {string} nethash
- * @returns {boolean}
- * @todo Add description for the params and the return value
- */
-System.prototype.networkCompatible = function(nethash) {
-	return __private.nethash === nethash;
-};
-
-/**
- * Checks version compatibility from input param against private values.
- *
- * @param {string} version
- * @returns {boolean}
- * @todo Add description for the params and the return value
- */
-System.prototype.versionCompatible = function(version) {
-	return semver.gte(version, __private.minVersion);
-};
-
-/**
- * Checks protocol version compatibility from input param against
- * private values.
- *
- * @param protocolVersion
- * @returns {boolean}
- */
-System.prototype.protocolVersionCompatible = function(protocolVersion) {
-	const peerHard = parseInt(protocolVersion[0]);
-	const myHard = parseInt(__private.protocolVersion[0]);
-	return myHard === peerHard && peerHard >= 1;
-};
-
-/**
- * Checks nonce (unique app id) compatibility- compatible when different than given.
- *
- * @param nonce
- * @returns {boolean}
- * @todo Add description for the params and the return value
- */
-System.prototype.nonceCompatible = function(nonce) {
-	return nonce && __private.nonce !== nonce;
-};
-
-/**
- * Updates private broadhash and height values.
- *
- * @param {Object} block - block
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- */
-System.prototype.update = function(cb) {
-	async.series(
-		{
-			getBroadhash(seriesCb) {
-				self.getBroadhash((err, hash) => {
-					if (!err) {
-						__private.broadhash = hash;
-					}
-
-					return setImmediate(seriesCb);
-				});
-			},
-			getHeight(seriesCb) {
-				__private.height = modules.blocks.lastBlock.get().height;
-				return setImmediate(seriesCb);
-			},
-		},
-		err => {
-			library.logger.debug('System headers', __private);
-			return setImmediate(cb, err);
-		}
-	);
-};
-
-// Events
-/**
- * Assigns used modules to modules variable.
- *
- * @param {modules} scope - Loaded modules
- */
-System.prototype.onBind = function(scope) {
-	modules = {
-		blocks: scope.modules.blocks,
-	};
-};
 
 // Export
 module.exports = System;
