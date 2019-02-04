@@ -203,7 +203,7 @@ describe('vote', async () => {
 	});
 
 	before(done => {
-		addVotes(votedDelegates.map(v => `+${v}`), async () => {
+		addVotes(votedDelegates.map(v => `+${v}`), () => {
 			// it's okay if it returns error, because that means I've already voted for these delegates
 			done();
 		});
@@ -346,7 +346,7 @@ describe('vote', async () => {
 		it('should return error for casting multiple votes for same account in a transaction', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(...Array(2)).map(
-				async () =>
+				() =>
 					'+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37'
 			);
 			vote.verify(transaction, validSender, err => {
@@ -701,8 +701,7 @@ describe('vote', async () => {
 			transaction.asset.votes = Array(
 				...Array(MAX_VOTES_PER_TRANSACTION + 1)
 			).map(
-				async () =>
-					`+${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
+				() => `+${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
 			);
 			return expect(() => {
 				vote.objectNormalize(transaction);
