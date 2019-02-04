@@ -64,7 +64,7 @@ class Peers {
  * @returns {Object} system headers and peer status
  */
 Peers.prototype.me = function() {
-	return Object.assign({}, components.system.getHeaders(), {
+	return Object.assign({}, components.system.headers, {
 		state: Peer.STATE.CONNECTED,
 	});
 };

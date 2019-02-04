@@ -660,10 +660,10 @@ Peers.prototype.acceptable = function(peers) {
 		.filter(peer => {
 			// Removing peers with private address or nonce equal to itself
 			if ((process.env.NODE_ENV || '').toUpperCase() === 'TEST') {
-				return peer.nonce !== components.system.getNonce();
+				return peer.nonce !== components.system.headers.nonce;
 			}
 			return (
-				!ip.isPrivate(peer.ip) && peer.nonce !== components.system.getNonce()
+				!ip.isPrivate(peer.ip) && peer.nonce !== components.system.headers.nonce
 			);
 		})
 		.value();

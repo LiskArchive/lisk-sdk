@@ -88,68 +88,17 @@ describe('system', async () => {
 
 		it('should return self', async () => {
 			expect(self).to.be.an('object');
-			expect(self.headers).to.be.a('function');
-			expect(self.getOS).to.be.a('function');
-			expect(self.getVersion).to.be.a('function');
-			expect(self.getProtocolVersion).to.be.a('function');
-			expect(self.getPort).to.be.a('function');
-			expect(self.getHeight).to.be.a('function');
-			expect(self.getNethash).to.be.a('function');
-			expect(self.getNonce).to.be.a('function');
+			expect(self.headers).to.be.an('object');
 			expect(self.getBroadhash).to.be.a('function');
-			expect(self.getMinVersion).to.be.a('function');
 			expect(self.networkCompatible).to.be.a('function');
 			expect(self.versionCompatible).to.be.a('function');
 			expect(self.protocolVersionCompatible).to.be.a('function');
 			expect(self.nonceCompatible).to.be.a('function');
-			expect(self.update).to.be.a('function');
-			return expect(self.onBind).to.be.a('function');
+			return expect(self.update).to.be.a('function');
 		});
 	});
 
 	/* eslint-disable mocha/no-pending-tests */
-	describe('static', async () => {
-		describe('setHeaders', async () => {
-			it('should assign the argument to __private');
-		});
-
-		describe('getHeaders', async () => {
-			it('should return __private');
-		});
-	});
-
-	describe('getOS', async () => {
-		it('should __private.os');
-	});
-
-	describe('getVersion', async () => {
-		it('should __private.version');
-	});
-
-	describe('getProtocolVersion', async () => {
-		it('should be equal to __private.protocolVersion', async () =>
-			// Assert
-			expect(systemModule.getProtocolVersion()).to.equal(
-				__private.protocolVersion
-			));
-	});
-
-	describe('getPort', async () => {
-		it('should __private.wsPort');
-	});
-
-	describe('getHeight', async () => {
-		it('should __private.height');
-	});
-
-	describe('getNethash', async () => {
-		it('should __private.nethash');
-	});
-
-	describe('getNonce', async () => {
-		it('should __private.nonce');
-	});
-
 	describe('getBroadhash', async () => {
 		describe('when argument is not a function', async () => {
 			it('should __private.broadhash');
@@ -188,10 +137,6 @@ describe('system', async () => {
 				});
 			});
 		});
-	});
-
-	describe('getMinVersion', async () => {
-		it('should __private.minVersion');
 	});
 
 	describe('networkCompatible', async () => {

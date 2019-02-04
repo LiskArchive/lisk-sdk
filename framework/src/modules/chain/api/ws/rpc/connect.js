@@ -42,7 +42,7 @@ const connect = (peer, logger, system) => {
 
 const connectSteps = {
 	addConnectionOptions: (peer, system) => {
-		const systemHeaders = system.getHeaders();
+		const systemHeaders = system.headers;
 		const queryParams = {};
 		if (systemHeaders.version) {
 			queryParams.version = systemHeaders.version;

@@ -62,96 +62,6 @@ class System {
 	}
 
 	/**
-	 * Sets the entire __private variable.
-	 *
-	 * @param {Object} headers
-	 * @todo Add description for the params
-	 */
-	setHeaders(headers) {
-		this.headers = headers;
-	}
-
-	/**
-	 * Returns all headers from __private variable.
-	 *
-	 * @returns {*} __private
-	 * @todo Add description for the return value
-	 */
-	getHeaders() {
-		return this.headers;
-	}
-
-	/**
-	 * Returns private variables object content.
-	 *
-	 * @returns {Object}
-	 * @todo Add description for the return value
-	 */
-	headers() {
-		return this.headers;
-	}
-
-	/**
-	 * Gets private variable `os`.
-	 *
-	 * @returns {string}
-	 * @todo Add description for the return value
-	 */
-	getOS() {
-		return this.headers.os;
-	}
-
-	/**
-	 * Gets private variable `version`.
-	 *
-	 * @returns {string}
-	 * @todo Add description for the return value
-	 */
-	getVersion() {
-		return this.headers.version;
-	}
-
-	/**
-	 * Gets private variable `port`.
-	 *
-	 * @returns {number}
-	 * @todo Add description for the return value
-	 */
-	getPort() {
-		return this.headers.wsPort;
-	}
-
-	/**
-	 * Gets private variable `height`.
-	 *
-	 * @returns {number}
-	 * @todo Add description for the return value
-	 */
-	getHeight() {
-		return this.headers.height;
-	}
-
-	/**
-	 * Gets private variable `nethash`.
-	 *
-	 * @returns {string} hash
-	 * @todo Add description for the return value
-	 */
-	getNethash() {
-		return this.headers.nethash;
-	}
-
-	/**
-	 * Gets private variable `nonce`.
-	 *
-	 * @returns {string} nonce
-	 * @todo Add description for the return value
-	 */
-	getNonce() {
-		return this.headers.nonce;
-	}
-
-	/**
 	 * Invokes cb with broadhash.
 	 *
 	 * @param {function} cb
@@ -186,25 +96,6 @@ class System {
 				this.logger.error(err.stack);
 				return setImmediate(cb, err);
 			});
-	}
-
-	/**
-	 * Gets private variable `minVersion`.
-	 *
-	 * @returns {string}
-	 * @todo Add description for the return value
-	 */
-	getMinVersion() {
-		return this.headers.minVersion;
-	}
-
-	/**
-	 * Gets private variable `protocolVersion`
-	 *
-	 * @returns {string}
-	 */
-	getProtocolVersion() {
-		return this.headers.protocolVersion;
 	}
 
 	/**

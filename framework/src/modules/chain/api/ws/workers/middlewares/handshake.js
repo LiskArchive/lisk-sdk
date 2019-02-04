@@ -94,7 +94,9 @@ const middleware = {
 						cb,
 						{
 							code: failureCodes.INCOMPATIBLE_NONCE,
-							description: `Expected nonce to be not equal to: ${system.getNonce()}`,
+							description: `Expected nonce to be not equal to: ${
+								system.headers.nonce
+							}`,
 						},
 						peer
 					);
@@ -105,9 +107,9 @@ const middleware = {
 						cb,
 						{
 							code: failureCodes.INCOMPATIBLE_NETWORK,
-							description: `Expected nethash: ${system.getNethash()} but received: ${
-								headers.nethash
-							}`,
+							description: `Expected nethash: ${
+								system.headers.hethash
+							} but received: ${headers.nethash}`,
 						},
 						peer
 					);
@@ -119,9 +121,9 @@ const middleware = {
 							cb,
 							{
 								code: failureCodes.INCOMPATIBLE_VERSION,
-								description: `Expected version: ${system.getMinVersion()} but received: ${
-									headers.version
-								}`,
+								description: `Expected version: ${
+									system.headers.minVersion
+								} but received: ${headers.version}`,
 							},
 							peer
 						);
@@ -131,9 +133,9 @@ const middleware = {
 						cb,
 						{
 							code: failureCodes.INCOMPATIBLE_PROTOCOL_VERSION,
-							description: `Expected protocol version: ${system.getProtocolVersion()} but received: ${
-								headers.protocolVersion
-							}`,
+							description: `Expected protocol version: ${
+								system.headers.protocolVersion
+							} but received: ${headers.protocolVersion}`,
 						},
 						peer
 					);

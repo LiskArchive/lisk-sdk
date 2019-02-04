@@ -156,15 +156,15 @@ describe('connect', async () => {
 			let originalSystemHeaders;
 
 			beforeEach(done => {
-				originalSystemHeaders = System.getHeaders();
-				System.setHeaders({
+				originalSystemHeaders = System.headers;
+				System.headers = {
 					protocolVersion: 'aProtocolVersion',
 					version: 'aVersion',
 					nonce: 'aNonce',
 					wsPort: 'aWSPort',
 					httpPort: 'anHttpPort',
 					nethash: 'aNethash',
-				});
+				};
 				const addConnectionOptions = connectRewired.__get__(
 					'connectSteps.addConnectionOptions'
 				);
@@ -172,7 +172,10 @@ describe('connect', async () => {
 				done();
 			});
 
-			afterEach(() => System.setHeaders(originalSystemHeaders));
+			afterEach(done => {
+				System.headers = originalSystemHeaders;
+				done();
+			});
 
 			it('should add connectionOptions field to peer', async () =>
 				expect(peerAsResult).to.have.property('connectionOptions'));
@@ -201,32 +204,32 @@ describe('connect', async () => {
 				it('should contain protocolVersion if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.protocolVersion')
-						.to.eql(System.getHeaders().protocolVersion));
+						.to.eql(System.headers.protocolVersion));
 
 				it('should contain version if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.version')
-						.to.eql(System.getHeaders().version));
+						.to.eql(System.headers.version));
 
 				it('should contain nonce if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nonce')
-						.to.eql(System.getHeaders().nonce));
+						.to.eql(System.headers.nonce));
 
 				it('should contain wsPort if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.wsPort')
-						.to.eql(System.getHeaders().wsPort));
+						.to.eql(System.headers.wsPort));
 
 				it('should contain httpPort if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.httpPort')
-						.to.eql(System.getHeaders().httpPort));
+						.to.eql(System.headers.httpPort));
 
 				it('should contain nethash if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nethash')
-						.to.eql(System.getHeaders().nethash));
+						.to.eql(System.headers.nethash));
 			});
 
 			it('should return [peer]', async () =>

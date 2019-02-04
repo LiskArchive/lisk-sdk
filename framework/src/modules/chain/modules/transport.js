@@ -684,7 +684,7 @@ Transport.prototype.shared = {
 	height(req, cb) {
 		return setImmediate(cb, null, {
 			success: true,
-			height: components.system.getHeight(),
+			height: components.system.headers.height,
 		});
 	},
 
@@ -696,7 +696,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	status(req, cb) {
-		const headers = components.system.headers();
+		const headers = components.system.headers;
 		return setImmediate(cb, null, {
 			success: true,
 			height: headers.height,
