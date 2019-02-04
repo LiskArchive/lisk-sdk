@@ -29,8 +29,6 @@ import {
 import * as utils from './utils';
 
 // tslint:disable-next-line no-unbound-method
-const registerDelegate = DelegateTransaction.create;
-// tslint:disable-next-line no-unbound-method
 const castVotes = VoteTransaction.create;
 // tslint:disable-next-line no-unbound-method
 const createDapp = DappTransaction.create;
@@ -44,7 +42,6 @@ export {
 	VoteTransaction,
 	InTransferTransaction,
 	transfer,
-	registerDelegate,
 	castVotes,
 	registerMultisignature,
 	createSignatureObject,
