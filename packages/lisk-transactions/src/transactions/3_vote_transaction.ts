@@ -27,9 +27,8 @@ import {
 	BaseTransaction,
 	createBaseTransaction,
 	CreateBaseTransactionInput,
-	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
+	StateStoreCache,
 } from './base';
 
 const PREFIX_UPVOTE = '+';
@@ -185,13 +184,13 @@ export class VoteTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepareTransaction(store: StateStoreCache): Promise<void> {
 		const publicKey = this.asset.votes.map(pkWithAction =>
 			pkWithAction.slice(1),
 		);
-		await store.prepare(ENTITY_ACCOUNT, {
-			address_in: [this.senderId],
-			publicKey_in: publicKey,
+		await store.account.cache({
+			address: [this.senderId],
+			publicKey: publicKey,
 		});
 	}
 
@@ -329,11 +328,10 @@ export class VoteTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		this.asset.votes.forEach(actionVotes => {
 			const vote = actionVotes.substring(1);
-			const { username } = store.get<Account>(
-				ENTITY_ACCOUNT,
+			const { username } = store.account.get<Account>(
 				'publicKey',
 				vote,
 			);
@@ -381,14 +379,14 @@ export class VoteTransaction extends BaseTransaction {
 			...sender,
 			votes,
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		store.account.set<Account>(updatedSender);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors = [];
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const upvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
 			.map(vote => vote.substring(1));
@@ -411,7 +409,7 @@ export class VoteTransaction extends BaseTransaction {
 			...sender,
 			votes,
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		store.account.set<Account>(updatedSender);
 
 		return errors;
 	}

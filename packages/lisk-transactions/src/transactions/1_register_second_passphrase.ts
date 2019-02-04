@@ -26,9 +26,8 @@ import { validator } from '../utils';
 import {
 	BaseTransaction,
 	createBaseTransaction,
-	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
+	StateStoreCache,
 } from './base';
 
 const TRANSACTION_SIGNATURE_TYPE = 1;
@@ -164,9 +163,9 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
-		await store.prepare(ENTITY_ACCOUNT, {
-			address_in: [this.senderId],
+	public async prepareTransaction(store: StateStoreCache): Promise<void> {
+		await store.account.cache({
+			address: [this.senderId],
 		});
 	}
 
@@ -246,7 +245,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		// Check if secondPublicKey already exists on account
 		if (sender.secondPublicKey) {
 			errors.push(
@@ -261,15 +260,15 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			...sender,
 			secondPublicKey: this.asset.signature.publicKey,
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		store.account.set<Account>(updatedSender);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const { secondPublicKey, ...strippedSender } = sender;
-		store.set<Account>(ENTITY_ACCOUNT, strippedSender);
+		store.account.set<Account>(strippedSender);
 
 		return [];
 	}

@@ -31,9 +31,8 @@ import {
 import {
 	BaseTransaction,
 	createBaseTransaction,
-	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
+	StateStoreCache,
 } from './base';
 
 const TRANSACTION_TRANSFER_TYPE = 0;
@@ -214,8 +213,8 @@ export class TransferTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
-		await store.prepare(ENTITY_ACCOUNT, {
+	public async prepareTransaction(store: StateStoreCache): Promise<void> {
+		await store.account.cache({
 			address: [this.senderId, this.recipientId],
 		});
 	}
@@ -228,7 +227,7 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(transferAssetFormatSchema, this.asset); 
+		validator.validate(transferAssetFormatSchema, this.asset);
 		const errors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -298,7 +297,7 @@ export class TransferTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
 		if (updatedSenderBalance.lt(0)) {
@@ -316,12 +315,8 @@ export class TransferTransaction extends BaseTransaction {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
-		const recipient = store.get<Account>(
-			ENTITY_ACCOUNT,
-			'address',
-			this.recipientId,
-		);
+		store.account.set(updatedSender);
+		const recipient = store.account.get<Account>('address', this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -335,14 +330,14 @@ export class TransferTransaction extends BaseTransaction {
 			...recipient,
 			balance: updatedRecipientBalance.toString(),
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedRecipient);
+		store.account.set(updatedRecipient);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
 
 		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
@@ -353,12 +348,8 @@ export class TransferTransaction extends BaseTransaction {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
-		const recipient = store.get<Account>(
-			ENTITY_ACCOUNT,
-			'address',
-			this.recipientId,
-		);
+		store.account.set<Account>(updatedSender);
+		const recipient = store.account.get<Account>('address', this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
@@ -379,7 +370,8 @@ export class TransferTransaction extends BaseTransaction {
 			...recipient,
 			balance: updatedRecipientBalance.toString(),
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedRecipient);
+
+		store.account.set<Account>(updatedRecipient);
 
 		return errors;
 	}

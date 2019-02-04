@@ -61,17 +61,26 @@ export interface Attributes {
 	};
 }
 
-export interface StateStorePrepare {
-	prepare<T>(
-		entity: string,
-		filter: { readonly [key: string]: ReadonlyArray<string> },
-	): Promise<ReadonlyArray<T>>;
+export type StateStoreCacheType = {
+	cache<T>(filter: {
+		readonly [key: string]: ReadonlyArray<string>;
+	}): Promise<ReadonlyArray<T>>;
+};
+
+export interface StateStoreCache {
+	account: StateStoreCacheType;
+	transaction: StateStoreCacheType;
 }
 
+export type StateStoreType = {
+	get<T>(key: string, value: string): T;
+	exists(key: string, value: string): boolean;
+	set<T>(value: T): void;
+};
+
 export interface StateStore {
-	get<T>(entity: string, key: string, value: string): T;
-	exists(entity: string, key: string, value: string): boolean;
-	set<T>(entity: string, value: T): void;
+	account: StateStoreType;
+	transaction: StateStoreType;
 }
 
 export enum MultisignatureStatus {
@@ -127,7 +136,7 @@ export abstract class BaseTransaction {
 	private _signSignature?: string;
 
 	public abstract assetToJSON(): object;
-	public abstract prepareTransaction(store: StateStorePrepare): Promise<void>;
+	public abstract prepareTransaction(store: StateStoreCache): Promise<void>;
 	protected abstract getAssetBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -276,7 +285,7 @@ export abstract class BaseTransaction {
 	}
 
 	public verify(store: StateStore): TransactionResponse {
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const errors: TransactionError[] = [];
 		// Check senderPublicKey
 		if (sender.publicKey !== this.senderPublicKey) {
@@ -404,7 +413,7 @@ export abstract class BaseTransaction {
 	}
 
 	public apply(store: StateStore): TransactionResponse {
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.gte(0)
@@ -417,7 +426,7 @@ export abstract class BaseTransaction {
 						this.id,
 					),
 			  ];
-		store.set<Account>(ENTITY_ACCOUNT, updatedAccount);
+		store.account.set<Account>(updatedAccount);
 		const assetErrors = this.applyAsset(store);
 		errors.push(...assetErrors);
 
@@ -430,13 +439,13 @@ export abstract class BaseTransaction {
 	}
 
 	public undo(store: StateStore): TransactionResponse {
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
 			? []
 			: [new TransactionError('Invalid balance amount', this.id)];
-		store.set<Account>(ENTITY_ACCOUNT, updatedAccount);
+		store.account.set<Account>(updatedAccount);
 		const assetErrors = this.undoAsset(store);
 		errors.push(...assetErrors);
 

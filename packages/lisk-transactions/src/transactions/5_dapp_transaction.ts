@@ -21,9 +21,8 @@ import {
 	BaseTransaction,
 	createBaseTransaction,
 	CreateBaseTransactionInput,
-	ENTITY_TRANSACTION,
 	StateStore,
-	StateStorePrepare,
+	StateStoreCache,
 } from './base';
 
 const TRANSACTION_DAPP_TYPE = 5;
@@ -250,10 +249,14 @@ export class DappTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
-		await store.prepare(ENTITY_TRANSACTION, {
-			dapp_name_in: [this.asset.dapp.name],
-			dapp_link_in: [this.asset.dapp.link],
+	public async prepareTransaction(store: StateStoreCache): Promise<void> {
+		await store.account.cache({
+			address: [this.senderId],
+		});
+
+		await store.transaction.cache({
+			dapp_name: [this.asset.dapp.name],
+			dapp_link: [this.asset.dapp.link],
 		});
 	}
 
@@ -377,8 +380,7 @@ export class DappTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const nameExists = store.exists(
-			ENTITY_TRANSACTION,
+		const nameExists = store.transaction.exists(
 			'asset.dapp.name',
 			this.asset.dapp.name,
 		);
@@ -392,8 +394,7 @@ export class DappTransaction extends BaseTransaction {
 			);
 		}
 
-		const linkExists = store.exists(
-			ENTITY_TRANSACTION,
+		const linkExists = store.transaction.exists(
 			'asset.dapp.link',
 			this.asset.dapp.name,
 		);

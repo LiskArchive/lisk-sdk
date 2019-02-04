@@ -28,7 +28,7 @@ import {
 	CreateBaseTransactionInput,
 	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
+	StateStoreCache,
 } from './base';
 
 const TRANSACTION_DELEGATE_TYPE = 2;
@@ -184,10 +184,10 @@ export class DelegateTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
-		await store.prepare(ENTITY_ACCOUNT, {
-			address_in: [this.senderId],
-			username_in: [this.asset.delegate.username],
+	public async prepareTransaction(store: StateStoreCache): Promise<void> {
+		await store.account.cache({
+			address: [this.senderId],
+			username: [this.asset.delegate.username],
 		});
 	}
 
@@ -256,10 +256,10 @@ export class DelegateTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 
 		if (
-			store.exists(ENTITY_ACCOUNT, 'username', this.asset.delegate.username)
+			store.account.exists('username', this.asset.delegate.username)
 		) {
 			errors.push(
 				new TransactionError(
@@ -283,15 +283,15 @@ export class DelegateTransaction extends BaseTransaction {
 			isDelegate: true,
 			username: this.asset.delegate.username,
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		store.account.set<Account>(updatedSender);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const { username, ...strippedSender } = sender;
-		store.set<Account>(ENTITY_ACCOUNT, strippedSender);
+		store.account.set<Account>(strippedSender);
 
 		return [];
 	}

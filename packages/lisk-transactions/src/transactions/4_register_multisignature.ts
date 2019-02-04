@@ -37,9 +37,8 @@ import {
 	BaseTransaction,
 	createBaseTransaction,
 	CreateBaseTransactionInput,
-	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
+	StateStoreCache,
 } from './base';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
@@ -240,9 +239,9 @@ export class MultisignatureTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
-		await store.prepare(ENTITY_ACCOUNT, {
-			address_in: [this.senderId],
+	public async prepareTransaction(store: StateStoreCache): Promise<void> {
+		await store.account.cache({
+			address: [this.senderId],
 		});
 	}
 
@@ -326,7 +325,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId); 
+		const sender = store.account.get<Account>('address', this.senderId); 
 
 		// Check if multisignatures already exists on account
 		if (
@@ -363,18 +362,18 @@ export class MultisignatureTransaction extends BaseTransaction {
 			multimin: this.asset.multisignature.min,
 			multilifetime: this.asset.multisignature.lifetime,
 		};
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		store.account.set<Account>(updatedSender);
 
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 
 		const { multisignatures, multimin, multilifetime, ...strippedSender } = sender;
 
-		store.set<Account>(ENTITY_ACCOUNT, strippedSender);
+		store.account.set<Account>(strippedSender);
 
 		return [];
 	}

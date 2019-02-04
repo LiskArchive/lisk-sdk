@@ -20,10 +20,8 @@ import { convertBeddowsToLSK } from '../utils';
 import { validator } from '../utils/validation';
 import {
 	BaseTransaction,
-	ENTITY_ACCOUNT,
-	ENTITY_TRANSACTION,
 	StateStore,
-	StateStorePrepare,
+	StateStoreCache,
 } from './base';
 
 const TRANSACTION_INTRANSFER_TYPE = 6;
@@ -109,9 +107,9 @@ export class InTransferTransaction extends BaseTransaction {
 		return Buffer.from(this.asset.inTransfer.dappId, 'utf8');
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
-		const transactions = await store.prepare(ENTITY_TRANSACTION, {
-			id_in: [this.asset.inTransfer.dappId],
+	public async prepareTransaction(store: StateStoreCache): Promise<void> {
+		const transactions = await store.transaction.cache({
+			id: [this.asset.inTransfer.dappId],
 		});
 
 		const dappTransaction = (transactions as ReadonlyArray<
@@ -120,13 +118,13 @@ export class InTransferTransaction extends BaseTransaction {
 
 		const filterObject = dappTransaction
 			? {
-					address_in: [this.senderId, dappTransaction.senderId as string],
+					address: [this.senderId, dappTransaction.senderId as string],
 			  }
 			: {
-					address_in: [this.senderId],
+					address: [this.senderId],
 			  };
 
-		await store.prepare(ENTITY_ACCOUNT, filterObject);
+		await store.account.cache(filterObject);
 	}
 
 	public assetToJSON(): object {
@@ -205,8 +203,7 @@ export class InTransferTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const idExists = store.exists(
-			ENTITY_TRANSACTION,
+		const idExists = store.transaction.exists(
 			'id',
 			this.asset.inTransfer.dappId,
 		);
@@ -219,7 +216,7 @@ export class InTransferTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 
 		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
 		if (updatedBalance.lt(0)) {
@@ -234,16 +231,14 @@ export class InTransferTransaction extends BaseTransaction {
 		}
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		store.account.set<Account>(updatedSender);
 
-		const dappTransaction = store.get<TransactionJSON>(
-			ENTITY_TRANSACTION,
+		const dappTransaction = store.transaction.get<TransactionJSON>(
 			'id',
 			this.asset.inTransfer.dappId,
 		);
 
-		const recipient = store.get<Account>(
-			ENTITY_ACCOUNT,
+		const recipient = store.account.get<Account>(
 			'address',
 			dappTransaction.senderId as string,
 		);
@@ -256,27 +251,25 @@ export class InTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.set<Account>(ENTITY_ACCOUNT, updatedRecipient);
+		store.account.set<Account>(updatedRecipient);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors = [];
-		const sender = store.get<Account>(ENTITY_ACCOUNT, 'address', this.senderId);
+		const sender = store.account.get<Account>('address', this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.amount);
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
-		store.set<Account>(ENTITY_ACCOUNT, updatedSender);
+		store.account.set<Account>(updatedSender);
 
-		const dappTransaction = store.get<TransactionJSON>(
-			ENTITY_TRANSACTION,
+		const dappTransaction = store.transaction.get<TransactionJSON>(
 			'id',
 			this.asset.inTransfer.dappId,
 		);
 
-		const recipient = store.get<Account>(
-			ENTITY_ACCOUNT,
+		const recipient = store.account.get<Account>(
 			'address',
 			dappTransaction.senderId as string,
 		);
@@ -300,7 +293,7 @@ export class InTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.set<Account>(ENTITY_ACCOUNT, updatedRecipient);
+		store.account.set<Account>(updatedRecipient);
 
 		return errors;
 	}
