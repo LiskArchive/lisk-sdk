@@ -38,7 +38,7 @@ SELECT
  	regexp_split_to_array("v_votes", ',') as "asset.votes",
  	"m_min" as "asset.multisignature.min",
  	"m_lifetime" as "asset.multisignature.lifetime",
- 	"m_keysgroup" as "asset.multisignature.keysgroup",
+	regexp_split_to_array("m_keysgroup", ',') as "asset.multisignature.keysgroup",
  	"dapp_type" as "asset.dapp.type",
  	"dapp_name" as "asset.dapp.name",
  	"dapp_description" as "asset.dapp.description",
@@ -58,4 +58,3 @@ WHERE "t_rowId" IS NOT NULL ${parsedFilters:raw}
 ${parsedSort:raw}
 
 LIMIT ${limit} OFFSET ${offset}
-
