@@ -19,13 +19,11 @@ import {
 	MULTISIGNATURE_MIN_KEYSGROUP,
 	MULTISIGNATURE_MIN_LIFETIME,
 } from './constants';
+import { TransactionJSON } from './transaction_types';
+import { MultisignatureTransaction } from './transactions';
 import {
-	MultiSignatureTransaction,
-	PartialTransaction,
-} from './transaction_types';
-import {
+	createBaseTransaction,
 	isValidInteger,
-	prepareTransaction,
 	prependPlusToPublicKeys,
 	validateKeysgroup,
 } from './utils';
@@ -78,20 +76,15 @@ const validateInputs = ({
 
 export const registerMultisignature = (
 	inputs: RegisterMultisignatureInputs,
-): MultiSignatureTransaction => {
+): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const {
-		keysgroup,
-		lifetime,
-		minimum,
-		passphrase,
-		secondPassphrase,
-		timeOffset,
-	} = inputs;
+	const { keysgroup, lifetime, minimum, passphrase, secondPassphrase } = inputs;
+
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
 	const keygroupFees = plusPrependedKeysgroup.length + 1;
 
-	const transaction: PartialTransaction = {
+	const transaction = {
+		...createBaseTransaction(inputs),
 		type: 4,
 		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		asset: {
@@ -103,10 +96,14 @@ export const registerMultisignature = (
 		},
 	};
 
-	return prepareTransaction(
-		transaction,
-		passphrase,
-		secondPassphrase,
-		timeOffset,
-	) as MultiSignatureTransaction;
+	if (!passphrase) {
+		return transaction;
+	}
+
+	const multisignatureTransaction = new MultisignatureTransaction(
+		transaction as TransactionJSON,
+	);
+	multisignatureTransaction.sign(passphrase, secondPassphrase);
+
+	return multisignatureTransaction.toJSON();
 };

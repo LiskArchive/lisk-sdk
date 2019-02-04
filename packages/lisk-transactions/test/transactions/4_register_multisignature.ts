@@ -13,13 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import {
-	MULTISIGNATURE_FEE,
-	MULTISIGNATURE_MAX_KEYSGROUP,
-	MULTISIGNATURE_MIN_KEYSGROUP,
-	MULTISIGNATURE_MAX_LIFETIME,
-	MULTISIGNATURE_MIN_LIFETIME,
-} from '../../src/constants';
+import { MULTISIGNATURE_FEE } from '../../src/constants';
 import {
 	BaseTransaction,
 	MultisignatureTransaction,
@@ -31,7 +25,6 @@ import {
 	validMultisignatureRegistrationTransaction,
 	validTransaction,
 } from '../../fixtures';
-import * as utils from '../../src/utils';
 
 describe('Multisignature transaction class', () => {
 	const validMultisignatureTransaction = addTransactionFields(
@@ -98,175 +91,6 @@ describe('Multisignature transaction class', () => {
 				() =>
 					new MultisignatureTransaction(invalidMultisignatureTransactionData),
 			).to.throw('Invalid field types');
-		});
-	});
-
-	describe('#create', () => {
-		const timeWithOffset = 38350076;
-		const passphrase = 'secret';
-		const secondPassphrase = 'second secret';
-		let result: object;
-		let multisignatureAsset: object;
-
-		beforeEach(async () => {
-			sandbox.stub(utils, 'getTimeWithOffset').returns(timeWithOffset);
-			multisignatureAsset = {
-				min: 2,
-				lifetime: 1,
-				keysgroup:
-					validMultisignatureRegistrationTransaction.asset.multisignature
-						.keysgroup,
-			};
-		});
-
-		describe('when the transaction is created with one passphrase and multisignature asset', () => {
-			beforeEach(async () => {
-				result = MultisignatureTransaction.create({
-					passphrase,
-					min: 2,
-					lifetime: 1,
-					keysgroup: validMultisignatureRegistrationTransaction.asset.multisignature.keysgroup.map(
-						key => key.substring(1),
-					),
-				});
-			});
-
-			it('should create multisignature transaction ', async () => {
-				expect(result).to.have.property('id');
-				expect(result).to.have.property('type', 4);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property(
-					'fee',
-					(
-						MULTISIGNATURE_FEE *
-						(validTestTransaction.asset.multisignature.keysgroup.length + 1)
-					).toString(),
-				);
-				expect(result).to.have.property('senderId');
-				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect(result).to.have.property('signature').and.not.to.be.empty;
-				expect((result as any).asset.multisignature).to.eql(
-					multisignatureAsset,
-				);
-			});
-
-			it('should use time.getTimeWithOffset to calculate the timestamp', async () => {
-				expect(utils.getTimeWithOffset).to.be.calledWithExactly(undefined);
-			});
-
-			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', async () => {
-				const offset = -10;
-				MultisignatureTransaction.create({
-					passphrase,
-					min: 2,
-					lifetime: 1,
-					keysgroup: validMultisignatureRegistrationTransaction.asset.multisignature.keysgroup.map(
-						key => key.substring(1),
-					),
-					timeOffset: offset,
-				});
-				expect(utils.getTimeWithOffset).to.be.calledWithExactly(offset);
-			});
-		});
-
-		describe('when the transaction is created with one passphrase, second passphrase and multisignature asset', () => {
-			beforeEach(async () => {
-				result = MultisignatureTransaction.create({
-					passphrase,
-					secondPassphrase,
-					min: 2,
-					lifetime: 1,
-					keysgroup: validMultisignatureRegistrationTransaction.asset.multisignature.keysgroup.map(
-						key => key.substring(1),
-					),
-				});
-			});
-
-			it('should create multisignature transaction ', async () => {
-				expect(result).to.have.property('id');
-				expect(result).to.have.property('type', 4);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property(
-					'fee',
-					(
-						MULTISIGNATURE_FEE *
-						(validTestTransaction.asset.multisignature.keysgroup.length + 1)
-					).toString(),
-				);
-				expect(result).to.have.property('senderId');
-				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect(result).to.have.property('signature').and.not.to.be.empty;
-				expect(result).to.have.property('signSignature').and.not.to.be.empty;
-				expect((result as any).asset.multisignature).to.eql(
-					multisignatureAsset,
-				);
-			});
-		});
-
-		describe('when the transaction is created with invalid inputs', () => {
-			it('should throw an invalid input error when lifetime is not a valid integer', async () => {
-				expect(
-					MultisignatureTransaction.create.bind(undefined, {
-						passphrase,
-						min: 2,
-						lifetime: ('1' as unknown) as number,
-						keysgroup: validMultisignatureRegistrationTransaction.asset.multisignature.keysgroup.map(
-							key => key.substring(1),
-						),
-					}),
-				).to.throw(
-					`Please provide a valid lifetime value. Expected integer between ${MULTISIGNATURE_MIN_LIFETIME} and ${MULTISIGNATURE_MAX_LIFETIME}.`,
-				);
-			});
-
-			it('should throw an invalid input error when min is not a valid integer', async () => {
-				expect(
-					MultisignatureTransaction.create.bind(undefined, {
-						passphrase,
-						secondPassphrase,
-						min: ('2' as unknown) as number,
-						lifetime: 1,
-						keysgroup: validMultisignatureRegistrationTransaction.asset.multisignature.keysgroup.map(
-							key => key.substring(1),
-						),
-					}),
-				).to.throw(
-					`Please provide a valid minimum value. Expected integer between ${MULTISIGNATURE_MIN_KEYSGROUP} and ${MULTISIGNATURE_MAX_KEYSGROUP}.`,
-				);
-			});
-		});
-
-		describe('when the transaction is created without passphrase', () => {
-			beforeEach(async () => {
-				result = MultisignatureTransaction.create({
-					min: 2,
-					lifetime: 1,
-					keysgroup: validMultisignatureRegistrationTransaction.asset.multisignature.keysgroup.map(
-						key => key.substring(1),
-					),
-				});
-			});
-
-			it('should create multisignature transaction ', async () => {
-				expect(result).to.have.property('type', 4);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property(
-					'fee',
-					(
-						MULTISIGNATURE_FEE *
-						(validTestTransaction.asset.multisignature.keysgroup.length + 1)
-					).toString(),
-				);
-				expect(result)
-					.to.have.property('timestamp')
-					.and.equal(timeWithOffset);
-				expect((result as any).senderPublicKey).to.be.undefined;
-				expect(result).not.to.have.property('id');
-				expect(result).not.to.have.property('signature');
-				expect(result).not.to.have.property('signSignature');
-			});
 		});
 	});
 
