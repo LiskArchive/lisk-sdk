@@ -24,6 +24,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolNodeInfo,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -49,6 +50,7 @@ export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_DISCONNECT_OUTBOUND = 'disconnectOutbound';
+export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
@@ -223,10 +225,17 @@ export class Peer extends EventEmitter {
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = nodeInfo;
-		this.send({
-			event: REMOTE_RPC_NODE_INFO,
-			data: nodeInfo,
-		});
+		// TODO later: This conversion step will not be needed after switching to the new LIP protocol version.
+		const legacyNodeInfo = this._convertNodeInfoToLegacyFormat(this._nodeInfo);
+		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
+		try {
+			this.request({
+				procedure: REMOTE_RPC_NODE_INFO,
+				data: legacyNodeInfo,
+			});
+		} catch (error) {
+			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+		}
 	}
 
 	public get nodeInfo(): P2PNodeInfo | undefined {
@@ -325,6 +334,16 @@ export class Peer extends EventEmitter {
 		}
 	}
 
+	// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
+	private _convertNodeInfoToLegacyFormat(nodeInfo: P2PNodeInfo): ProtocolNodeInfo {
+		return {
+			...nodeInfo,
+			wsPort: nodeInfo.wsPort,
+			broadhash: nodeInfo.options ? nodeInfo.options.broadhash as string : '',
+			nonce: nodeInfo.options ? nodeInfo.options.nonce as string : '',
+		};
+	};
+
 	private _createOutboundSocket(): SCClientSocket {
 		const outboundSocket = socketClusterClient.create({
 			hostname: this._ipAddress,
@@ -385,7 +404,8 @@ export class Peer extends EventEmitter {
 	private _handlePeerInfo(request: P2PRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			const newPeerInfo = validatePeerInfo(request.data);
+			const protocolPeerInfo = {...request.data, ip: this._ipAddress};
+			const newPeerInfo = validatePeerInfo(protocolPeerInfo);
 			this.updatePeerInfo(newPeerInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
