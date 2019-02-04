@@ -14,20 +14,22 @@
 
 'use strict';
 
-const failureCodes = require('../../../api/ws/rpc/failure_codes');
-const modulesLoader = require('../../common/modules_loader');
-const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
-const RandomPeer = require('../../fixtures/peers').Peer;
-const Peers = require('../../../logic/peers.js');
-const Peer = require('../../../logic/peer.js');
-const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const failureCodes = require('../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
+const modulesLoader = require('../../../../../common/modules_loader');
+const prefixedPeer = require('../../../../../fixtures/peers')
+	.randomNormalizedPeer;
+const RandomPeer = require('../../../../../fixtures/peers').Peer;
+const Peers = require('../../../../../../src/modules/chain/logic/peers.js');
+const Peer = require('../../../../../../src/modules/chain/logic/peer.js');
+const wsRPC = require('../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
+	.wsRPC;
 
 let masterWAMPServerMock;
 
 const validRPCProcedureName = 'rpcProcedureA';
 const validEventProcedureName = 'eventProcedureB';
 
-describe('peers', () => {
+describe('peers', async () => {
 	let peersModuleMock;
 	let peers;
 	let validPeer;
@@ -74,12 +76,13 @@ describe('peers', () => {
 
 	function arePeersEqual(peerA, peerB) {
 		const allPeersProperties = function(peer) {
-			return _.keys(peer).every(property => (
+			return _.keys(peer).every(
+				property =>
 					Peer.prototype.properties
 						.concat(Peer.prototype.connectionProperties)
 						.concat(['string'])
 						.indexOf(property) !== -1
-				));
+			);
 		};
 
 		if (!allPeersProperties(peerA)) {
@@ -101,11 +104,13 @@ describe('peers', () => {
 			);
 		}
 
-		return commonProperties.every(property => peerA[property] === peerB[property]);
+		return commonProperties.every(
+			property => peerA[property] === peerB[property]
+		);
 	}
 
-	describe('create', () => {
-		it('should always return Peer instance', () => {
+	describe('create', async () => {
+		it('should always return Peer instance', async () => {
 			expect(peers.create()).to.be.an.instanceof(Peer);
 			expect(peers.create(validPeer)).to.be.an.instanceof(Peer);
 			return expect(peers.create(new Peer(validPeer))).to.be.an.instanceof(
@@ -114,32 +119,32 @@ describe('peers', () => {
 		});
 	});
 
-	describe('list', () => {
+	describe('list', async () => {
 		beforeEach(() => removeAll());
 
-		it('should list peers as Peer instances', () => {
+		it('should list peers as Peer instances', async () => {
 			peers.upsert(validPeer);
 			return peers.list().forEach(peer => {
 				expect(peer).to.be.an.instanceof(Peer);
 			});
 		});
 
-		it('should list peers with rpc', () => {
+		it('should list peers with rpc', async () => {
 			peers.upsert(validPeer);
 			return peers.list().forEach(peer => {
 				expect(peer).have.property('rpc');
 			});
 		});
 
-		describe('when normalized', () => {
-			it('should list peers as objects when normalized', () => {
+		describe('when normalized', async () => {
+			it('should list peers as objects when normalized', async () => {
 				peers.upsert(validPeer);
 				return peers.list(true).forEach(peer => {
 					expect(peer).to.be.an('object');
 				});
 			});
 
-			it('should not contain rpc property when normalized', () => {
+			it('should not contain rpc property when normalized', async () => {
 				peers.upsert(validPeer);
 				return peers.list(true).forEach(peer => {
 					expect(peer).not.to.have.property('rpc');
@@ -148,10 +153,10 @@ describe('peers', () => {
 		});
 	});
 
-	describe('listRandomConnected', () => {
+	describe('listRandomConnected', async () => {
 		beforeEach(() => removeAll());
 
-		it('should return list of peers', () => {
+		it('should return list of peers', async () => {
 			peers.upsert(validPeer);
 			const result = peers.listRandomConnected();
 			expect(result).to.be.an('array');
@@ -160,7 +165,7 @@ describe('peers', () => {
 			});
 		});
 
-		it('should return list of peers with maximum lengh determined by limit param', () => {
+		it('should return list of peers with maximum lengh determined by limit param', async () => {
 			for (let i = 0; i < 100; i++) {
 				peers.upsert(new RandomPeer());
 			}
@@ -169,7 +174,7 @@ describe('peers', () => {
 			).to.be.equal(20);
 		});
 
-		it('should return list of peers shuffled in random order', () => {
+		it('should return list of peers shuffled in random order', async () => {
 			for (let i = 0; i < 100; i++) {
 				peers.upsert(new RandomPeer());
 			}
@@ -183,15 +188,15 @@ describe('peers', () => {
 		});
 	});
 
-	describe('upsert', () => {
+	describe('upsert', async () => {
 		beforeEach(() => removeAll());
 
-		it('should insert new peers', () => {
+		it('should insert new peers', async () => {
 			peers.upsert(validPeer);
 			return expect(peers.list().length).equal(1);
 		});
 
-		it('should update height of existing peer', () => {
+		it('should update height of existing peer', async () => {
 			peers.upsert(validPeer);
 			let list = peers.list();
 			const inserted = list[0];
@@ -208,7 +213,7 @@ describe('peers', () => {
 			return expect(arePeersEqual(updated, validPeer)).to.be.not.ok;
 		});
 
-		it('should not update height with insertOnly param', () => {
+		it('should not update height with insertOnly param', async () => {
 			peers.upsert(validPeer);
 			let list = peers.list();
 			const inserted = list[0];
@@ -225,7 +230,7 @@ describe('peers', () => {
 			return expect(arePeersEqual(updated, validPeer)).to.be.ok;
 		});
 
-		it('should insert peer with different ports', () => {
+		it('should insert peer with different ports', async () => {
 			peers.upsert(validPeer);
 			expect(peers.list().length).equal(1);
 
@@ -242,7 +247,7 @@ describe('peers', () => {
 			return expect(_.isEqual(demandedPorts.sort(), listPorts.sort())).to.be.ok;
 		});
 
-		it('should insert peer with different ips', () => {
+		it('should insert peer with different ips', async () => {
 			peers.upsert(validPeer);
 			expect(peers.list().length).equal(1);
 
@@ -261,19 +266,20 @@ describe('peers', () => {
 			return expect(_.isEqual(demandedIps.sort(), listIps.sort())).to.be.ok;
 		});
 
-		describe('should fail with valid error code', () => {
-			it('INSERT_ONLY_FAILURE when insertOnly flag is present and peer already exists', () => {
+		describe('should fail with valid error code', async () => {
+			it('INSERT_ONLY_FAILURE when insertOnly flag is present and peer already exists', async () => {
 				peers.upsert(validPeer);
 				return expect(peers.upsert(validPeer, true)).to.equal(
 					failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE
 				);
 			});
 
-			it('INVALID_PEER when called with invalid peer', () => expect(peers.upsert({})).to.equal(
+			it('INVALID_PEER when called with invalid peer', async () =>
+				expect(peers.upsert({})).to.equal(
 					failureCodes.ON_MASTER.UPDATE.INVALID_PEER
 				));
 
-			it('NOT_ACCEPTED when called with the same as node nonce', () => {
+			it('NOT_ACCEPTED when called with the same as node nonce', async () => {
 				peersModuleMock.acceptable = sinonSandbox.stub().returns([]);
 				validPeer.nonce = validNodeNonce;
 				return expect(peers.upsert(validPeer)).to.equal(
@@ -283,10 +289,11 @@ describe('peers', () => {
 		});
 	});
 
-	describe('exists', () => {
+	describe('exists', async () => {
 		beforeEach(() => removeAll());
 
-		it('should return false if peer is not on the list', () => expect(
+		it('should return false if peer is not on the list', async () =>
+			expect(
 				peers.exists({
 					ip: '41.41.41.41',
 					wsPort: '4444',
@@ -294,7 +301,7 @@ describe('peers', () => {
 				})
 			).not.to.be.ok);
 
-		it('should return true if peer is on the list', () => {
+		it('should return true if peer is on the list', async () => {
 			peers.upsert(validPeer);
 			const list = peers.list(true);
 			expect(list.length).equal(1);
@@ -302,7 +309,7 @@ describe('peers', () => {
 		});
 
 		/* eslint-disable mocha/no-skipped-tests */
-		it.skip('should return true if peer with same nonce is on the list', () => {
+		it.skip('should return true if peer with same nonce is on the list', async () => {
 			const list = peers.list(true);
 			expect(list.length).equal(1);
 			return expect(
@@ -315,7 +322,7 @@ describe('peers', () => {
 		});
 		/* eslint-enable mocha/no-skipped-tests */
 
-		it('should return true if peer with same address is on the list', () => {
+		it('should return true if peer with same address is on the list', async () => {
 			peers.upsert(validPeer);
 			const list = peers.list(true);
 			expect(list.length).equal(1);
@@ -325,28 +332,29 @@ describe('peers', () => {
 		});
 	});
 
-	describe('get', () => {
+	describe('get', async () => {
 		beforeEach(() => removeAll());
 
-		it('should return inserted peer', () => {
+		it('should return inserted peer', async () => {
 			peers.upsert(validPeer);
 			const insertedPeer = peers.get(validPeer);
 			return expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
 		});
 
-		it('should return inserted peer by address', () => {
+		it('should return inserted peer by address', async () => {
 			peers.upsert(validPeer);
 			const insertedPeer = peers.get(`${validPeer.ip}:${validPeer.wsPort}`);
 			return expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
 		});
 
-		it('should return undefined if peer is not inserted', () => expect(peers.get(validPeer)).to.be.undefined);
+		it('should return undefined if peer is not inserted', async () =>
+			expect(peers.get(validPeer)).to.be.undefined);
 	});
 
-	describe('remove', () => {
+	describe('remove', async () => {
 		beforeEach(() => removeAll());
 
-		it('should remove added peer', () => {
+		it('should remove added peer', async () => {
 			peers.upsert(validPeer);
 			expect(peers.list().length).equal(1);
 			const result = peers.remove(validPeer);
@@ -354,7 +362,7 @@ describe('peers', () => {
 			return expect(peers.list().length).equal(0);
 		});
 
-		it('should return an error when trying to remove a non-existent peer', () => {
+		it('should return an error when trying to remove a non-existent peer', async () => {
 			const result = peers.remove(validPeer);
 			expect(result)
 				.to.be.a('number')

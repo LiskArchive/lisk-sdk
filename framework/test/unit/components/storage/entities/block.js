@@ -18,7 +18,7 @@
 const {
 	BaseEntity,
 	Block,
-} = require('../../../../../framework/src/components/storage/entities');
+} = require('../../../../../src/components/storage/entities');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const transactionsFixtures = require('../../../../fixtures').transactions;
 const blocksFixtures = require('../../../../fixtures/blocks');
@@ -26,9 +26,9 @@ const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 	NonSupportedOperationError,
-} = require('../../../../../framework/src/components/storage/errors');
+} = require('../../../../../src/components/storage/errors');
 
-describe('Block', () => {
+describe('Block', async () => {
 	let adapter;
 	let validBlockFields;
 	let validBlockSQLs;
@@ -241,7 +241,7 @@ describe('Block', () => {
 		expect(Block.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', () => {
+	describe('constructor()', async () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Block.prototype.constructor.length).to.be.eql(1);
 		});
@@ -282,7 +282,7 @@ describe('Block', () => {
 		});
 	});
 
-	describe('getOne()', () => {
+	describe('getOne()', async () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const block = new Block(adapter);
 			const _getResultsStub = sinonSandbox
@@ -323,7 +323,7 @@ describe('Block', () => {
 		});
 	});
 
-	describe('get()', () => {
+	describe('get()', async () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const block = new Block(adapter);
 			const _getResultsStub = sinonSandbox
@@ -384,7 +384,7 @@ describe('Block', () => {
 		});
 	});
 
-	describe('_getResults()', () => {
+	describe('_getResults()', async () => {
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
 			return expect(block.get(validFilter)).to.not.be.rejectedWith(
@@ -428,7 +428,7 @@ describe('Block', () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', () => {
+		describe('filters', async () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				const block = new Block(adapter);
@@ -439,7 +439,7 @@ describe('Block', () => {
 		});
 	});
 
-	describe('create()', () => {
+	describe('create()', async () => {
 		it('should call getValuesSet with proper params', async () => {
 			const localAdapter = {
 				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
@@ -461,7 +461,8 @@ describe('Block', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should reject with invalid data provided', async () => expect(storage.entities.Block.create(invalidBlock)).to.be.rejected);
+		it('should reject with invalid data provided', async () =>
+			expect(storage.entities.Block.create(invalidBlock)).to.be.rejected);
 
 		it('should create multiple objects successfully', async () => {
 			// Arrange
@@ -477,19 +478,19 @@ describe('Block', () => {
 		});
 	});
 
-	describe('update()', () => {
+	describe('update()', async () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Block.prototype.update).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('updateOne()', () => {
+	describe('updateOne()', async () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Block.prototype.updateOne).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('isPersisted()', () => {
+	describe('isPersisted()', async () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(
 				storage,
@@ -579,7 +580,7 @@ describe('Block', () => {
 		});
 	});
 
-	describe('delete', () => {
+	describe('delete', async () => {
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
 			expect(() => {
@@ -647,7 +648,7 @@ describe('Block', () => {
 		});
 	});
 
-	describe('count()', () => {
+	describe('count()', async () => {
 		let block;
 
 		before(async () => {
@@ -675,7 +676,7 @@ describe('Block', () => {
 		});
 	});
 
-	describe('mergeFilters()', () => {
+	describe('mergeFilters()', async () => {
 		it('should accept filters as single object', async () => {
 			const block = new Block(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(block, 'mergeFilters');

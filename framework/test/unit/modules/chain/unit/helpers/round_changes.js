@@ -14,9 +14,9 @@
 
 'use strict';
 
-const RoundChanges = require('../../../helpers/round_changes.js');
+const RoundChanges = require('../../../../../../src/modules/chain/helpers/round_changes.js');
 
-describe('RoundChanges', () => {
+describe('RoundChanges', async () => {
 	let validScope;
 
 	beforeEach(done => {
@@ -28,8 +28,8 @@ describe('RoundChanges', () => {
 		done();
 	});
 
-	describe('constructor', () => {
-		it('should accept valid scope', () => {
+	describe('constructor', async () => {
+		it('should accept valid scope', async () => {
 			const roundChanges = new RoundChanges(validScope);
 
 			expect(roundChanges.roundFees).equal(validScope.roundFees);
@@ -38,7 +38,7 @@ describe('RoundChanges', () => {
 			).to.be.ok;
 		});
 
-		it('should floor fees value', () => {
+		it('should floor fees value', async () => {
 			validScope.roundFees = 50.9999999999999; // Float
 
 			const roundChanges = new RoundChanges(validScope);
@@ -46,7 +46,7 @@ describe('RoundChanges', () => {
 			return expect(roundChanges.roundFees).equal(50);
 		});
 
-		it('should round up fees after exceeding precision', () => {
+		it('should round up fees after exceeding precision', async () => {
 			validScope.roundFees = 50.999999999999999; // Exceeded precision
 
 			const roundChanges = new RoundChanges(validScope);
@@ -54,7 +54,7 @@ describe('RoundChanges', () => {
 			return expect(roundChanges.roundFees).equal(51);
 		});
 
-		it('should accept Infinite fees as expected', () => {
+		it('should accept Infinite fees as expected', async () => {
 			validScope.roundFees = Number.MAX_VALUE * 2; // Infinity
 
 			const roundChanges = new RoundChanges(validScope);
@@ -63,8 +63,8 @@ describe('RoundChanges', () => {
 		});
 	});
 
-	describe('at', () => {
-		it('should calculate round changes from valid scope', () => {
+	describe('at', async () => {
+		it('should calculate round changes from valid scope', async () => {
 			const roundChanges = new RoundChanges(validScope);
 			const rewardsAt = 2;
 			const res = roundChanges.at(rewardsAt);
@@ -75,7 +75,7 @@ describe('RoundChanges', () => {
 			return expect(res.balance).equal(104);
 		});
 
-		it('should calculate round changes from Infinite fees', () => {
+		it('should calculate round changes from Infinite fees', async () => {
 			validScope.roundFees = Infinity;
 
 			const roundChanges = new RoundChanges(validScope);
@@ -88,7 +88,7 @@ describe('RoundChanges', () => {
 			return expect(res.balance).equal(Infinity);
 		});
 
-		it('should calculate round changes from Number.MAX_VALUE fees', () => {
+		it('should calculate round changes from Number.MAX_VALUE fees', async () => {
 			validScope.roundFees = Number.MAX_VALUE; // 1.7976931348623157e+308
 
 			const roundChanges = new RoundChanges(validScope);

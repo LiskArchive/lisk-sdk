@@ -14,12 +14,12 @@
 
 'use strict';
 
-const application = require('../../common/application');
-const transactionTypes = require('../../../helpers/transaction_types');
-const ApiError = require('../../../helpers/api_error');
+const application = require('../../../../../common/application');
+const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
+const ApiError = require('../../../../../../src/modules/chain/helpers/api_error');
 
 /* eslint-disable mocha/no-pending-tests */
-describe('signatures', () => {
+describe('signatures', async () => {
 	let library;
 
 	before(done => {
@@ -32,12 +32,12 @@ describe('signatures', () => {
 		);
 	});
 
-	describe('isLoaded', () => {
+	describe('isLoaded', async () => {
 		let revert;
 
 		afterEach(() => revert());
 
-		it('should return true if modules exists', () => {
+		it('should return true if modules exists', async () => {
 			// Arrange
 			revert = library.rewiredModules.signatures.__set__('modules', {
 				accounts: library.modules.accounts,
@@ -49,7 +49,7 @@ describe('signatures', () => {
 			return expect(library.modules.signatures.isLoaded()).to.be.true;
 		});
 
-		it('should return true if modules does not exist', () => {
+		it('should return true if modules does not exist', async () => {
 			// Arrange
 			revert = library.rewiredModules.signatures.__set__('modules', undefined);
 
@@ -58,7 +58,7 @@ describe('signatures', () => {
 		});
 	});
 
-	describe('onBind', () => {
+	describe('onBind', async () => {
 		let privateModules;
 
 		beforeEach(() => {
@@ -68,24 +68,27 @@ describe('signatures', () => {
 			});
 		});
 
-		describe('modules', () => {
-			it('should assign accounts', () => expect(privateModules).to.have.property(
+		describe('modules', async () => {
+			it('should assign accounts', async () =>
+				expect(privateModules).to.have.property(
 					'accounts',
 					library.modules.accounts
 				));
 
-			it('should assign transactions', () => expect(privateModules).to.have.property(
+			it('should assign transactions', async () =>
+				expect(privateModules).to.have.property(
 					'transactions',
 					library.modules.transactions
 				));
 
-			it('should assign transport', () => expect(privateModules).to.have.property(
+			it('should assign transport', async () =>
+				expect(privateModules).to.have.property(
 					'transport',
 					library.modules.transport
 				));
 		});
 
-		describe('assetTypes', () => {
+		describe('assetTypes', async () => {
 			let signatureLogicSpy;
 
 			before(done => {
@@ -100,13 +103,12 @@ describe('signatures', () => {
 
 			after(() => signatureLogicSpy.restore());
 
-			it('should call bind on signature logic with scope.accounts', () => expect(signatureLogicSpy).to.be.calledWith(
-					library.modules.accounts
-				));
+			it('should call bind on signature logic with scope.accounts', async () =>
+				expect(signatureLogicSpy).to.be.calledWith(library.modules.accounts));
 		});
 	});
 
-	describe('shared.postSignature', () => {
+	describe('shared.postSignature', async () => {
 		const req = {
 			body: {
 				signature: 'aSignature',
@@ -128,11 +130,12 @@ describe('signatures', () => {
 
 		afterEach(() => sinonSandbox.restore());
 
-		it('should call modules.transport.shared.postSignature with req.body', () => expect(postSignatureStub).to.be.calledWith({
+		it('should call modules.transport.shared.postSignature with req.body', async () =>
+			expect(postSignatureStub).to.be.calledWith({
 				signature: req.body,
 			}));
 
-		describe('when modules.transport.shared.postSignature fails with result', () => {
+		describe('when modules.transport.shared.postSignature fails with result', async () => {
 			it('should call callback with ApiError', done => {
 				// Arrange
 				postSignatureStub.yields(null, { success: false });
@@ -145,7 +148,7 @@ describe('signatures', () => {
 				});
 			});
 
-			describe('when result.message = "Invalid signature body"', () => {
+			describe('when result.message = "Invalid signature body"', async () => {
 				it('should call callback with ApiError containing code = 400', done => {
 					// Force library.modules.transport.shared.postSignature to fail with custom message
 					// Arrange
@@ -162,7 +165,7 @@ describe('signatures', () => {
 				});
 			});
 
-			describe('when result.message != "Invalid signature body"', () => {
+			describe('when result.message != "Invalid signature body"', async () => {
 				it('should call callback with ApiError containing code = 500', done => {
 					// Force library.modules.transport.shared.postSignature to fail with custom message
 					// Arrange
@@ -180,7 +183,7 @@ describe('signatures', () => {
 			});
 		});
 
-		describe('when modules.transport.shared.postSignature succeeds with result', () => {
+		describe('when modules.transport.shared.postSignature succeeds with result', async () => {
 			let postSignatureError;
 			let postSignatureResult;
 
@@ -202,11 +205,11 @@ describe('signatures', () => {
 
 			afterEach(() => postSignatureStub.restore());
 
-			it('should call callback with error = null', () => expect(postSignatureError).to.be.null);
+			it('should call callback with error = null', async () =>
+				expect(postSignatureError).to.be.null);
 
-			it('should call callback with result containing status = "Signature Accepted"', () => expect(postSignatureResult.status).to.equal(
-					'Signature Accepted'
-				));
+			it('should call callback with result containing status = "Signature Accepted"', async () =>
+				expect(postSignatureResult.status).to.equal('Signature Accepted'));
 		});
 	});
 });

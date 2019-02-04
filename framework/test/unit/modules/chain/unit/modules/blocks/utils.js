@@ -15,9 +15,11 @@
 'use strict';
 
 const rewire = require('rewire');
-const modulesLoader = require('../../../common/modules_loader');
+const modulesLoader = require('../../../../../../common/modules_loader');
 
-const BlocksUtils = rewire('../../../../modules/blocks/utils.js');
+const BlocksUtils = rewire(
+	'../../../../../../../src/modules/chain/modules/blocks/utils.js'
+);
 
 const fullBlocksListRows = [
 	{
@@ -283,7 +285,7 @@ const storageBlocksListRowsParsed = [
 	},
 ];
 
-describe('blocks/utils', () => {
+describe('blocks/utils', async () => {
 	let storageStub;
 	let loggerStub;
 	let blockMock;
@@ -381,8 +383,8 @@ describe('blocks/utils', () => {
 
 	afterEach(() => sinonSandbox.resetHistory());
 
-	describe('constructor', () => {
-		it('should assign params to library', () => {
+	describe('constructor', async () => {
+		it('should assign params to library', async () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.account).to.eql(accountMock);
@@ -390,17 +392,18 @@ describe('blocks/utils', () => {
 			return expect(library.logic.transaction).to.eql(transactionMock);
 		});
 
-		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', () => expect(loggerStub.trace.args[0][0]).to.equal(
+		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', async () =>
+			expect(loggerStub.trace.args[0][0]).to.equal(
 				'Blocks->Utils: Submodule initialized.'
 			));
 
-		it('should return self', () => {
+		it('should return self', async () => {
 			expect(blocksUtilsModule).to.be.an('object');
 			return expect(blocksUtilsModule.readDbRows).to.be.a('function');
 		});
 	});
 
-	describe('readDbRows', () => {
+	describe('readDbRows', async () => {
 		it('should call library.logic.block.dbRead with each block', done => {
 			library.logic.block.dbRead = sinonSandbox.spy();
 
@@ -425,9 +428,10 @@ describe('blocks/utils', () => {
 			done();
 		});
 
-		it('should read an empty array', () => expect(blocksUtilsModule.readDbRows([])).to.be.an('array'));
+		it('should read an empty array', async () =>
+			expect(blocksUtilsModule.readDbRows([])).to.be.an('array'));
 
-		describe('with 2 blocks each containing 2 transactions', () => {
+		describe('with 2 blocks each containing 2 transactions', async () => {
 			let blocks;
 
 			beforeEach(() => {
@@ -435,7 +439,7 @@ describe('blocks/utils', () => {
 				return expect(blocks).to.be.an('array');
 			});
 
-			it('should read the rows correctly', () => {
+			it('should read the rows correctly', async () => {
 				// Block 1
 				expect(blocks[0]).to.be.an('object');
 				expect(blocks[0].id).to.equal('13068833527549895884');
@@ -462,7 +466,7 @@ describe('blocks/utils', () => {
 			});
 		});
 
-		it('should generate fake signature for genesis block', () => {
+		it('should generate fake signature for genesis block', async () => {
 			const genesisBlock_view_full_blocks_list = [
 				{
 					b_id: '6524861224470851795',
@@ -491,7 +495,7 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('loadBlocksPart', () => {
+	describe('loadBlocksPart', async () => {
 		it('should return error when library.storage.entities.Block.get fails', done => {
 			library.storage.entities.Block.get = sinonSandbox
 				.stub()
@@ -535,7 +539,7 @@ describe('blocks/utils', () => {
 
 			blocksUtilsModule.readDbRows = sinonSandbox.spy();
 
-			blocksUtilsModule.loadBlocksPart({}, () => {
+			blocksUtilsModule.loadBlocksPart({}, async () => {
 				expect(blocksUtilsModule.readDbRows).to.have.been.calledOnce;
 				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(
 					storageBlocksListRowsParsed
@@ -545,7 +549,7 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('loadLastBlock', () => {
+	describe('loadLastBlock', async () => {
 		it('should return error when library.storage.entities.Block.get fails', done => {
 			library.storage.entities.Block.get = sinonSandbox.stub().resolves(null);
 
@@ -559,7 +563,7 @@ describe('blocks/utils', () => {
 			});
 		});
 
-		describe('sorting the block.transactions array', () => {
+		describe('sorting the block.transactions array', async () => {
 			it('should call modules.blocks.lastBlock.set with block', done => {
 				library.storage.entities.Block.get = sinonSandbox
 					.stub()
@@ -577,9 +581,9 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('getIdSequence', () => {
+	describe('getIdSequence', async () => {
 		it('should call library.storage.entities.Block.getFirstBlockIdOfLastRounds with proper params', done => {
-			blocksUtilsModule.getIdSequence(10, () => {
+			blocksUtilsModule.getIdSequence(10, async () => {
 				expect(library.storage.entities.Block.getFirstBlockIdOfLastRounds).to
 					.have.been.calledOnce;
 				expect(
@@ -738,7 +742,7 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('loadBlocksData', () => {
+	describe('loadBlocksData', async () => {
 		it('should return error when library.storage.entities.Block.get fails', done => {
 			library.storage.entities.Block.get = sinonSandbox
 				.stub()
@@ -805,10 +809,10 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('getBlockProgressLogger', () => {
+	describe('getBlockProgressLogger', async () => {
 		let testTracker;
 
-		it('should initialize BlockProgressLogger', () => {
+		it('should initialize BlockProgressLogger', async () => {
 			testTracker = blocksUtilsModule.getBlockProgressLogger(
 				1,
 				1,
@@ -818,7 +822,7 @@ describe('blocks/utils', () => {
 			return expect(testTracker.step).to.eql(1);
 		});
 
-		it('should return valid log information when call applyNext()', () => {
+		it('should return valid log information when call applyNext()', async () => {
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
 			return expect(loggerStub.info.args[0][1]).to.equal(
@@ -826,11 +830,12 @@ describe('blocks/utils', () => {
 			);
 		});
 
-		it('should throw error when times applied >= transactionsCount', () => expect(() => {
+		it('should throw error when times applied >= transactionsCount', async () =>
+			expect(() => {
 				testTracker.applyNext();
 			}).to.throw('Cannot apply transaction over the limit: 1'));
 
-		it('should return valid log information when reset tracker and call applyNext()', () => {
+		it('should return valid log information when reset tracker and call applyNext()', async () => {
 			testTracker.reset();
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
@@ -840,7 +845,7 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('aggregateBlocksReward', () => {
+	describe('aggregateBlocksReward', async () => {
 		it('should return error when account.get fails', done => {
 			blocksUtilsModule.aggregateBlocksReward(
 				{ address: 'ERRL' },
@@ -910,18 +915,21 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('onBind', () => {
+	describe('onBind', async () => {
 		beforeEach(() => {
 			loggerStub.trace.resetHistory();
 			return blocksUtilsModule.onBind(bindingsStub);
 		});
 
-		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', () => expect(loggerStub.trace.args[0][0]).to.equal(
+		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', async () =>
+			expect(loggerStub.trace.args[0][0]).to.equal(
 				'Blocks->Utils: Shared modules bind.'
 			));
 
-		it('should create a modules object { blocks: scope.blocks }', () => expect(modules.blocks).to.equal(bindingsStub.modules.blocks));
+		it('should create a modules object { blocks: scope.blocks }', async () =>
+			expect(modules.blocks).to.equal(bindingsStub.modules.blocks));
 
-		it('should set __private.loaded to true', () => expect(__private.loaded).to.be.true);
+		it('should set __private.loaded to true', async () =>
+			expect(__private.loaded).to.be.true);
 	});
 });

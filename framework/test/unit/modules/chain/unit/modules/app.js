@@ -16,7 +16,8 @@
 
 const config = __testContext.config;
 
-describe('app', () => {
+// TODO: Need to refactored completely
+describe('app', async () => {
 	before(done => {
 		// Run the app on a different than default port
 		process.argv.splice(2, 0, '--');
@@ -25,7 +26,7 @@ describe('app', () => {
 		process.argv.splice(2, 0, (config.wsPort += 1).toString());
 		process.argv.splice(2, 0, '-p');
 
-		require('../../../app');
+		// require('../../../app');
 		// Wait for modules to be initialized
 		setTimeout(done, 5000);
 	});

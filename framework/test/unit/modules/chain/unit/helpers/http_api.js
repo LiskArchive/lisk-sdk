@@ -15,9 +15,9 @@
 'use strict';
 
 const rewire = require('rewire');
-const apiCodes = require('../../../helpers/api_codes');
+const apiCodes = require('../../../../../../src/modules/chain/helpers/api_codes');
 
-const httpApi = rewire('../../../helpers/http_api');
+const httpApi = rewire('../../../../../../src/modules/chain/helpers/http_api');
 
 const validUrl = 'api/url';
 const validOriginalUrl = 'org/url';
@@ -33,7 +33,7 @@ let resMock;
 let loggerMock;
 let checkIpInListStub;
 
-describe('httpApi', () => {
+describe('httpApi', async () => {
 	before(done => {
 		validError = {
 			message: 'validError',
@@ -42,7 +42,7 @@ describe('httpApi', () => {
 		done();
 	});
 
-	describe('middleware', () => {
+	describe('middleware', async () => {
 		before(done => {
 			validSendObject = {
 				success: false,
@@ -94,7 +94,7 @@ describe('httpApi', () => {
 			done();
 		});
 
-		describe('errorLogger', () => {
+		describe('errorLogger', async () => {
 			beforeEach(done => {
 				httpApi.middleware.errorLogger(
 					loggerMock,
@@ -106,7 +106,7 @@ describe('httpApi', () => {
 				done();
 			});
 
-			describe('when error is null', () => {
+			describe('when error is null', async () => {
 				before(done => {
 					validError = null;
 					done();
@@ -123,7 +123,7 @@ describe('httpApi', () => {
 				});
 			});
 
-			describe('when error is not null', () => {
+			describe('when error is not null', async () => {
 				before(done => {
 					validError = { message: 'validError' };
 					done();
@@ -152,7 +152,7 @@ describe('httpApi', () => {
 			});
 		});
 
-		describe('logClientConnections', () => {
+		describe('logClientConnections', async () => {
 			before(done => {
 				validRes = null;
 				done();
@@ -180,7 +180,7 @@ describe('httpApi', () => {
 			});
 		});
 
-		describe('attachResponseHeader', () => {
+		describe('attachResponseHeader', async () => {
 			let validHeaderKey;
 			let validHeaderValue;
 
@@ -214,7 +214,7 @@ describe('httpApi', () => {
 			});
 		});
 
-		describe('applyAPIAccessRules', () => {
+		describe('applyAPIAccessRules', async () => {
 			let validConfig;
 
 			beforeEach(done => {
@@ -317,6 +317,6 @@ describe('httpApi', () => {
 			});
 		});
 
-		describe('queryParser', () => {});
+		describe('queryParser', async () => {});
 	});
 });

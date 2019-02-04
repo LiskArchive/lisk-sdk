@@ -16,15 +16,15 @@
 
 const rewire = require('rewire');
 const Promise = require('bluebird');
-const Bignum = require('../../../helpers/bignum.js');
-const { TestStorageSandbox } = require('../../common/storage_sandbox');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const { TestStorageSandbox } = require('../../../../../common/storage_sandbox');
 
 const Round = rewire('../../../logic/round.js');
 const genesisBlock = __testContext.config.genesisBlock;
 
 const { ACTIVE_DELEGATES } = global.constants;
 
-describe('round', () => {
+describe('round', async () => {
 	let scope;
 	let round;
 	let task;
@@ -106,17 +106,18 @@ describe('round', () => {
 		return typeof obj.then === 'function';
 	}
 
-	describe('constructor', () => {
-		describe('when calling with required properties', () => {
-			it('should return Round instance', () => expect(round).to.be.instanceof(Round));
+	describe('constructor', async () => {
+		describe('when calling with required properties', async () => {
+			it('should return Round instance', async () =>
+				expect(round).to.be.instanceof(Round));
 
-			it('should set scope', () => expect(round.scope).to.be.eql(scope));
+			it('should set scope', async () => expect(round.scope).to.be.eql(scope));
 
-			it('should set t', () => expect(round.t).to.be.eql(task));
+			it('should set t', async () => expect(round.t).to.be.eql(task));
 		});
 
-		describe('when calling with missing properties', () => {
-			describe('round', () => {
+		describe('when calling with missing properties', async () => {
+			describe('round', async () => {
 				it('should throw', done => {
 					const property = 'round';
 					delete scope[property];
@@ -131,7 +132,7 @@ describe('round', () => {
 				});
 			});
 
-			describe('backwards', () => {
+			describe('backwards', async () => {
 				it('should throw', done => {
 					const property = 'backwards';
 					delete scope[property];
@@ -146,14 +147,14 @@ describe('round', () => {
 				});
 			});
 
-			describe('when finish round', () => {
+			describe('when finish round', async () => {
 				beforeEach(done => {
 					// Set finishRound, so now we need additional properties
 					scope.finishRound = true;
 					done();
 				});
 
-				describe('roundFees', () => {
+				describe('roundFees', async () => {
 					it('should throw', done => {
 						const property = 'roundFees';
 						delete scope[property];
@@ -168,7 +169,7 @@ describe('round', () => {
 					});
 				});
 
-				describe('roundRewards', () => {
+				describe('roundRewards', async () => {
 					it('should throw', done => {
 						const property = 'roundRewards';
 						delete scope[property];
@@ -183,7 +184,7 @@ describe('round', () => {
 					});
 				});
 
-				describe('roundDelegates', () => {
+				describe('roundDelegates', async () => {
 					it('should throw', done => {
 						const property = 'roundDelegates';
 						delete scope[property];
@@ -198,7 +199,7 @@ describe('round', () => {
 					});
 				});
 
-				describe('roundOutsiders', () => {
+				describe('roundOutsiders', async () => {
 					it('should throw', done => {
 						const property = 'roundOutsiders';
 						delete scope[property];
@@ -216,8 +217,8 @@ describe('round', () => {
 		});
 	});
 
-	describe('mergeBlockGenerator', () => {
-		describe('when going forward', () => {
+	describe('mergeBlockGenerator', async () => {
+		describe('when going forward', async () => {
 			let args = null;
 
 			beforeEach(() => {
@@ -232,12 +233,13 @@ describe('round', () => {
 				return round.mergeBlockGenerator();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with proper params', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with proper params', async () =>
+				expect(
 					round.scope.modules.accounts.mergeAccountAndGet
 				).to.be.calledWith(args));
 		});
 
-		describe('when going backwards', () => {
+		describe('when going backwards', async () => {
 			let args = null;
 
 			beforeEach(() => {
@@ -252,29 +254,30 @@ describe('round', () => {
 				return round.mergeBlockGenerator();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with proper params', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with proper params', async () =>
+				expect(
 					round.scope.modules.accounts.mergeAccountAndGet
 				).to.be.calledWith(args));
 		});
 	});
 
-	describe('updateMissedBlocks', () => {
+	describe('updateMissedBlocks', async () => {
 		let stub;
 		let res;
 
-		describe('when there are no outsiders', () => {
+		describe('when there are no outsiders', async () => {
 			beforeEach(done => {
 				res = round.updateMissedBlocks();
 				done();
 			});
 
-			it('should return t object', () => {
+			it('should return t object', async () => {
 				expect(res).to.not.be.instanceOf(Promise);
 				return expect(res).to.deep.equal(task);
 			});
 		});
 
-		describe('when there are outsiders', () => {
+		describe('when there are outsiders', async () => {
 			beforeEach(done => {
 				scope.roundOutsiders = ['abc'];
 				round = new Round(scope, task);
@@ -291,9 +294,11 @@ describe('round', () => {
 				done();
 			});
 
-			it('should return promise', () => expect(isPromise(res)).to.be.true);
+			it('should return promise', async () =>
+				expect(isPromise(res)).to.be.true);
 
-			it('query should be called with proper args', () => res.then(response => {
+			it('query should be called with proper args', async () =>
+				res.then(response => {
 					expect(response).to.equal('success');
 					expect(stub).to.be.calledWith(
 						{ address_in: scope.roundOutsiders },
@@ -305,7 +310,7 @@ describe('round', () => {
 		});
 	});
 
-	describe('getVotes', () => {
+	describe('getVotes', async () => {
 		let stub;
 		let res;
 
@@ -316,15 +321,16 @@ describe('round', () => {
 			done();
 		});
 
-		it('should return promise', () => expect(isPromise(res)).to.be.true);
+		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
-		it('query should be called with proper args', () => res.then(response => {
+		it('query should be called with proper args', async () =>
+			res.then(response => {
 				expect(response).to.equal('success');
 				expect(stub.calledWith({ round: scope.round })).to.be.true;
 			}));
 	});
 
-	describe('updateVotes', () => {
+	describe('updateVotes', async () => {
 		let getVotes_stub;
 		let updateVotes_stub;
 		let res;
@@ -364,26 +370,30 @@ describe('round', () => {
 				await res;
 			});
 
-			it('should return promise', () => expect(isPromise(res)).to.be.true);
+			it('should return promise', async () =>
+				expect(isPromise(res)).to.be.true);
 
-			it('getVotes query should be called with proper args', () => expect(getVotes_stub.calledWith({ round: scope.round })).to.be
-					.true);
+			it('getVotes query should be called with proper args', async () =>
+				expect(getVotes_stub.calledWith({ round: scope.round })).to.be.true);
 
-			it('updateVotes should be called twice', () => expect(updateVotes_stub.callCount).to.be.eql(2));
+			it('updateVotes should be called twice', async () =>
+				expect(updateVotes_stub.callCount).to.be.eql(2));
 
-			it('updateVotes query should be called with proper args', () => expect(updateVotes_stub).to.be.calledWith(
+			it('updateVotes query should be called with proper args', async () =>
+				expect(updateVotes_stub).to.be.calledWith(
 					{ address: delegate.address },
 					'vote',
 					delegate.amount,
 					sinonSandbox.match.any
 				));
 
-			it('getVotes result should contain 2 queries', () => res.then(response => {
+			it('getVotes result should contain 2 queries', async () =>
+				res.then(response => {
 					expect(response).to.deep.equal(['QUERY', 'QUERY']);
 				}));
 		});
 
-		describe('when getVotes returns no entries', () => {
+		describe('when getVotes returns no entries', async () => {
 			beforeEach(async () => {
 				delegate = {
 					amount: 10000,
@@ -406,16 +416,18 @@ describe('round', () => {
 				res = round.updateVotes();
 			});
 
-			it('should return promise', () => expect(isPromise(res)).to.be.true);
+			it('should return promise', async () =>
+				expect(isPromise(res)).to.be.true);
 
-			it('getVotes query should be called with proper args', () => expect(getVotes_stub.calledWith({ round: scope.round })).to.be
-					.true);
+			it('getVotes query should be called with proper args', async () =>
+				expect(getVotes_stub.calledWith({ round: scope.round })).to.be.true);
 
-			it('updateVotes should be not called', () => expect(updateVotes_stub.called).to.be.false);
+			it('updateVotes should be not called', async () =>
+				expect(updateVotes_stub.called).to.be.false);
 		});
 	});
 
-	describe('flushRound', () => {
+	describe('flushRound', async () => {
 		let stub;
 		let res;
 
@@ -425,7 +437,7 @@ describe('round', () => {
 			res = round.flushRound();
 		});
 
-		it('should return promise', () => expect(isPromise(res)).to.be.true);
+		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
 		it('query should be called with proper args', async () => {
 			const response = await res;
@@ -434,7 +446,7 @@ describe('round', () => {
 		});
 	});
 
-	describe('updateDelegatesRanks', () => {
+	describe('updateDelegatesRanks', async () => {
 		let stub;
 		let res;
 
@@ -447,15 +459,16 @@ describe('round', () => {
 			done();
 		});
 
-		it('should return promise', () => expect(isPromise(res)).to.be.true);
+		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
-		it('query should be called with proper args', () => res.then(response => {
+		it('query should be called with proper args', async () =>
+			res.then(response => {
 				expect(response).to.equal('success');
 				expect(stub.calledOnce).to.be.true;
 			}));
 	});
 
-	describe('restoreRoundSnapshot', () => {
+	describe('restoreRoundSnapshot', async () => {
 		let res;
 		let stub;
 
@@ -466,15 +479,16 @@ describe('round', () => {
 			done();
 		});
 
-		it('should return promise', () => expect(isPromise(res)).to.be.true);
+		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
-		it('query should be called with no args', () => res.then(response => {
+		it('query should be called with no args', async () =>
+			res.then(response => {
 				expect(response).to.equal('success');
 				expect(stub.calledWith()).to.be.true;
 			}));
 	});
 
-	describe('restoreVotesSnapshot', () => {
+	describe('restoreVotesSnapshot', async () => {
 		let stub;
 		let res;
 
@@ -485,15 +499,16 @@ describe('round', () => {
 			done();
 		});
 
-		it('should return promise', () => expect(isPromise(res)).to.be.true);
+		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
-		it('query should be called with no args', () => res.then(response => {
+		it('query should be called with no args', async () =>
+			res.then(response => {
 				expect(response).to.equal('success');
 				expect(stub.calledWith()).to.be.true;
 			}));
 	});
 
-	describe('checkSnapshotAvailability', () => {
+	describe('checkSnapshotAvailability', async () => {
 		const stubs = {};
 		let res;
 
@@ -505,7 +520,7 @@ describe('round', () => {
 			done();
 		});
 
-		it('should return promise', () => {
+		it('should return promise', async () => {
 			stubs.checkSnapshotAvailability.resolves();
 			stubs.countRoundSnapshot.resolves();
 			scope.round = 1;
@@ -515,7 +530,7 @@ describe('round', () => {
 			return expect(isPromise(res)).to.be.true;
 		});
 
-		it('should resolve without any error when checkSnapshotAvailability query returns 1', () => {
+		it('should resolve without any error when checkSnapshotAvailability query returns 1', async () => {
 			stubs.checkSnapshotAvailability.withArgs(1).resolves(1);
 			scope.round = 1;
 			round = new Round(scope, task);
@@ -527,7 +542,7 @@ describe('round', () => {
 			});
 		});
 
-		it('should resolve without any error when checkSnapshotAvailability query returns null and table is empty', () => {
+		it('should resolve without any error when checkSnapshotAvailability query returns null and table is empty', async () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(0);
 			scope.round = 2;
@@ -540,7 +555,7 @@ describe('round', () => {
 			});
 		});
 
-		it('should be rejected with proper error when checkSnapshotAvailability query returns null and table is not empty', () => {
+		it('should be rejected with proper error when checkSnapshotAvailability query returns null and table is not empty', async () => {
 			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
 			stubs.countRoundSnapshot.resolves(1);
 			scope.round = 2;
@@ -553,7 +568,7 @@ describe('round', () => {
 		});
 	});
 
-	describe('deleteRoundRewards', () => {
+	describe('deleteRoundRewards', async () => {
 		let stub;
 		let res;
 
@@ -565,15 +580,16 @@ describe('round', () => {
 			done();
 		});
 
-		it('should return promise', () => expect(isPromise(res)).to.be.true);
+		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
-		it('query should be called with no args', () => res.then(response => {
+		it('query should be called with no args', async () =>
+			res.then(response => {
 				expect(response).to.equal('success');
 				expect(stub).to.have.been.calledWith(scope.round);
 			}));
 	});
 
-	describe('applyRound', () => {
+	describe('applyRound', async () => {
 		let res;
 		let insertRoundRewards_stub;
 
@@ -624,8 +640,8 @@ describe('round', () => {
 			insertRoundRewards_stub.reset();
 		});
 
-		describe('with only one delegate', () => {
-			describe('when there are no remaining fees', () => {
+		describe('with only one delegate', async () => {
+			describe('when there are no remaining fees', async () => {
 				const forwardResults = [];
 				const backwardsResults = [];
 
@@ -635,7 +651,7 @@ describe('round', () => {
 					done();
 				});
 
-				describe('forward', () => {
+				describe('forward', async () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -649,7 +665,7 @@ describe('round', () => {
 						expect(res).to.be.eql(['mergeAccountAndGet', 'insertRoundRewards']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
+					it('should call mergeAccountAndGet with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -681,11 +697,13 @@ describe('round', () => {
 						return expect(result).to.be.eql(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (for apply remaining fees)', () => expect(
+					it('should not call mergeAccountAndGet another time (for apply remaining fees)', async () =>
+						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
-					it('should call insertRoundRewards with proper args', () => expect(insertRoundRewards_stub).to.have.been.calledWith(
+					it('should call insertRoundRewards with proper args', async () =>
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
 							{
 								timestamp: scope.block.timestamp,
 								fees: forwardResults[0].fees.toString(),
@@ -697,7 +715,7 @@ describe('round', () => {
 						));
 				});
 
-				describe('backwards', () => {
+				describe('backwards', async () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -711,7 +729,7 @@ describe('round', () => {
 						expect(res).to.be.eql(['mergeAccountAndGet']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
+					it('should call mergeAccountAndGet with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -743,14 +761,16 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (for apply remaining fees)', () => expect(
+					it('should not call mergeAccountAndGet another time (for apply remaining fees)', async () =>
+						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
-					it('should not call insertRoundRewards', () => expect(insertRoundRewards_stub).to.have.not.been.called);
+					it('should not call insertRoundRewards', async () =>
+						expect(insertRoundRewards_stub).to.have.not.been.called);
 				});
 
-				describe('consistency checks for each delegate', () => {
+				describe('consistency checks for each delegate', async () => {
 					let result;
 
 					before(done => {
@@ -758,25 +778,29 @@ describe('round', () => {
 						done();
 					});
 
-					it('balance should sum to 0', () => _.each(result, response => {
+					it('balance should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.balance).to.equal(0);
 						}));
 
-					it('u_balance should sum to 0', () => _.each(result, response => {
+					it('u_balance should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.u_balance).to.equal(0);
 						}));
 
-					it('fees should sum to 0', () => _.each(result, response => {
+					it('fees should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.fees).to.equal(0);
 						}));
 
-					it('rewards should sum to 0', () => _.each(result, response => {
+					it('rewards should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.rewards).to.equal(0);
 						}));
 				});
 			});
 
-			describe('when there are remaining fees', () => {
+			describe('when there are remaining fees', async () => {
 				const forwardResults = [];
 				const backwardsResults = [];
 
@@ -786,7 +810,7 @@ describe('round', () => {
 					done();
 				});
 
-				describe('forward', () => {
+				describe('forward', async () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -804,7 +828,7 @@ describe('round', () => {
 						]);
 					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
+					it('should call mergeAccountAndGet with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -836,7 +860,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', () => {
+					it('should call mergeAccountAndGet with proper args (fees)', async () => {
 						const index = 0; // Delegate index on list
 						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
@@ -861,11 +885,13 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', () => expect(
+					it('should not call mergeAccountAndGet another time (completed)', async () =>
+						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
-					it('should call insertRoundRewards with proper args', () => expect(insertRoundRewards_stub).to.have.been.calledWith(
+					it('should call insertRoundRewards with proper args', async () =>
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
 							{
 								timestamp: scope.block.timestamp,
 								fees: (
@@ -879,7 +905,7 @@ describe('round', () => {
 						));
 				});
 
-				describe('backwards', () => {
+				describe('backwards', async () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -893,7 +919,7 @@ describe('round', () => {
 						expect(res).to.be.eql(['mergeAccountAndGet', 'mergeAccountAndGet']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
+					it('should call mergeAccountAndGet with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -925,7 +951,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', () => {
+					it('should call mergeAccountAndGet with proper args (fees)', async () => {
 						const index = 0; // Delegate index on list
 						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
@@ -950,14 +976,16 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', () => expect(
+					it('should not call mergeAccountAndGet another time (completed)', async () =>
+						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
-					it('should not call insertRoundRewards', () => expect(insertRoundRewards_stub).to.have.not.been.called);
+					it('should not call insertRoundRewards', async () =>
+						expect(insertRoundRewards_stub).to.have.not.been.called);
 				});
 
-				describe('consistency checks for each delegate', () => {
+				describe('consistency checks for each delegate', async () => {
 					let result;
 
 					before(done => {
@@ -965,27 +993,31 @@ describe('round', () => {
 						done();
 					});
 
-					it('balance should sum to 0', () => _.each(result, response => {
+					it('balance should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.balance).to.equal(0);
 						}));
 
-					it('u_balance should sum to 0', () => _.each(result, response => {
+					it('u_balance should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.u_balance).to.equal(0);
 						}));
 
-					it('fees should sum to 0', () => _.each(result, response => {
+					it('fees should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.fees).to.equal(0);
 						}));
 
-					it('rewards should sum to 0', () => _.each(result, response => {
+					it('rewards should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.rewards).to.equal(0);
 						}));
 				});
 			});
 		});
 
-		describe('with 3 delegates', () => {
-			describe('when there are no remaining fees', () => {
+		describe('with 3 delegates', async () => {
+			describe('when there are no remaining fees', async () => {
 				const forwardResults = [];
 				const backwardsResults = [];
 
@@ -1000,7 +1032,7 @@ describe('round', () => {
 					done();
 				});
 
-				describe('forward', () => {
+				describe('forward', async () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -1021,7 +1053,7 @@ describe('round', () => {
 						]);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1053,7 +1085,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1085,7 +1117,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1117,11 +1149,12 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (for applying remaining fees)', () => expect(
+					it('should not call mergeAccountAndGet another time (for applying remaining fees)', async () =>
+						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
-					it('should call insertRoundRewards with proper args', () => {
+					it('should call insertRoundRewards with proper args', async () => {
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
 							{
 								timestamp: scope.block.timestamp,
@@ -1155,7 +1188,7 @@ describe('round', () => {
 					});
 				});
 
-				describe('backwards', () => {
+				describe('backwards', async () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -1173,7 +1206,7 @@ describe('round', () => {
 						]);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1205,7 +1238,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1237,7 +1270,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1269,14 +1302,16 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (for applying remaining fees)', () => expect(
+					it('should not call mergeAccountAndGet another time (for applying remaining fees)', async () =>
+						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
-					it('should not call insertRoundRewards', () => expect(insertRoundRewards_stub).to.have.not.been.called);
+					it('should not call insertRoundRewards', async () =>
+						expect(insertRoundRewards_stub).to.have.not.been.called);
 				});
 
-				describe('consistency checks for each delegate', () => {
+				describe('consistency checks for each delegate', async () => {
 					let result;
 
 					before(done => {
@@ -1284,25 +1319,29 @@ describe('round', () => {
 						done();
 					});
 
-					it('balance should sum to 0', () => _.each(result, response => {
+					it('balance should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.balance).to.equal(0);
 						}));
 
-					it('u_balance should sum to 0', () => _.each(result, response => {
+					it('u_balance should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.u_balance).to.equal(0);
 						}));
 
-					it('fees should sum to 0', () => _.each(result, response => {
+					it('fees should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.fees).to.equal(0);
 						}));
 
-					it('rewards should sum to 0', () => _.each(result, response => {
+					it('rewards should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.rewards).to.equal(0);
 						}));
 				});
 			});
 
-			describe('when there are remaining fees', () => {
+			describe('when there are remaining fees', async () => {
 				const forwardResults = [];
 				const backwardsResults = [];
 
@@ -1317,7 +1356,7 @@ describe('round', () => {
 					done();
 				});
 
-				describe('forward', () => {
+				describe('forward', async () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -1339,7 +1378,7 @@ describe('round', () => {
 						]);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1371,7 +1410,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1403,7 +1442,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1435,7 +1474,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', () => {
+					it('should call mergeAccountAndGet with proper args (fees)', async () => {
 						const index = 2; // Delegate index on list
 						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
@@ -1460,7 +1499,8 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', () => expect(
+					it('should not call mergeAccountAndGet another time (completed)', async () =>
+						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
@@ -1500,7 +1540,7 @@ describe('round', () => {
 					});
 				});
 
-				describe('backwards', () => {
+				describe('backwards', async () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -1519,7 +1559,7 @@ describe('round', () => {
 						]);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1551,7 +1591,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1583,7 +1623,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1615,7 +1655,7 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', () => {
+					it('should call mergeAccountAndGet with proper args (fees)', async () => {
 						const index = 2; // Delegate index on list
 						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
@@ -1640,14 +1680,16 @@ describe('round', () => {
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', () => expect(
+					it('should not call mergeAccountAndGet another time (completed)', async () =>
+						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
-					it('should not call insertRoundRewards', () => expect(insertRoundRewards_stub).to.have.not.been.called);
+					it('should not call insertRoundRewards', async () =>
+						expect(insertRoundRewards_stub).to.have.not.been.called);
 				});
 
-				describe('consistency checks for each delegate', () => {
+				describe('consistency checks for each delegate', async () => {
 					let result;
 
 					before(done => {
@@ -1655,19 +1697,23 @@ describe('round', () => {
 						done();
 					});
 
-					it('balance should sum to 0', () => _.each(result, response => {
+					it('balance should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.balance).to.equal(0);
 						}));
 
-					it('u_balance should sum to 0', () => _.each(result, response => {
+					it('u_balance should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.u_balance).to.equal(0);
 						}));
 
-					it('fees should sum to 0', () => _.each(result, response => {
+					it('fees should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.fees).to.equal(0);
 						}));
 
-					it('rewards should sum to 0', () => _.each(result, response => {
+					it('rewards should sum to 0', async () =>
+						_.each(result, response => {
 							expect(response.rewards).to.equal(0);
 						}));
 				});
@@ -1675,7 +1721,7 @@ describe('round', () => {
 		});
 	});
 
-	describe('land', () => {
+	describe('land', async () => {
 		let increaseFieldBy_stub;
 		let decreaseFieldBy_stub;
 		let getVotes_stub;
@@ -1727,33 +1773,33 @@ describe('round', () => {
 			await res;
 		});
 
-		it('should return promise', () => expect(isPromise(res)).to.be.true);
+		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
-		it('query getVotes should be called twice', () =>
+		it('query getVotes should be called twice', async () =>
 			// 2x updateVotes which calls 1x getVotes
-			 expect(getVotes_stub.callCount).to.be.eql(2)
-		);
+			expect(getVotes_stub.callCount).to.be.eql(2));
 
-		it('query increaseFieldBy should be called 3 times', () =>
+		it('query increaseFieldBy should be called 3 times', async () =>
 			// 2 for updating vote and 1 for updating missedBlocks
-			 expect(increaseFieldBy_stub.callCount).to.equal(3)
-		);
+			expect(increaseFieldBy_stub.callCount).to.equal(3));
 
-		it('query decreaseFieldBy should be called once', () => expect(decreaseFieldBy_stub.callCount).to.equal(0));
+		it('query decreaseFieldBy should be called once', async () =>
+			expect(decreaseFieldBy_stub.callCount).to.equal(0));
 
-		it('query flushRound should be called twice', () => expect(flush_stub.callCount).to.equal(2));
+		it('query flushRound should be called twice', async () =>
+			expect(flush_stub.callCount).to.equal(2));
 
-		it('query updateDelegatesRanks should be called once', () => expect(syncDelegatesRanks_stub.callCount).to.equal(1));
+		it('query updateDelegatesRanks should be called once', async () =>
+			expect(syncDelegatesRanks_stub.callCount).to.equal(1));
 
-		it('modules.accounts.mergeAccountAndGet should be called 4 times', () =>
+		it('modules.accounts.mergeAccountAndGet should be called 4 times', async () =>
 			// 3x delegates + 1x remaining fees
-			 expect(
+			expect(
 				round.scope.modules.accounts.mergeAccountAndGet.callCount
-			).to.equal(4)
-		);
+			).to.equal(4));
 	});
 
-	describe('backwardLand', () => {
+	describe('backwardLand', async () => {
 		let increaseFieldBy_stub;
 		let decreaseFieldBy_stub;
 		let getVotes_stub;
@@ -1810,31 +1856,39 @@ describe('round', () => {
 			await res;
 		});
 
-		it('should return promise', () => expect(isPromise(res)).to.be.true);
+		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
-		it('query getVotes should not be called', () => expect(getVotes_stub.called).to.be.false);
+		it('query getVotes should not be called', async () =>
+			expect(getVotes_stub.called).to.be.false);
 
-		it('query increaseFieldBy not be called', () => expect(increaseFieldBy_stub.called).to.be.false);
+		it('query increaseFieldBy not be called', async () =>
+			expect(increaseFieldBy_stub.called).to.be.false);
 
-		it('query decreaseFieldBy not be called', () => expect(decreaseFieldBy_stub.called).to.be.false);
+		it('query decreaseFieldBy not be called', async () =>
+			expect(decreaseFieldBy_stub.called).to.be.false);
 
-		it('query syncDelegatesRanks should be called once', () => expect(syncDelegatesRanks_stub.callCount).to.equal(1));
+		it('query syncDelegatesRanks should be called once', async () =>
+			expect(syncDelegatesRanks_stub.callCount).to.equal(1));
 
-		it('query flushRound should be called once', () => expect(flush_stub.callCount).to.equal(1));
+		it('query flushRound should be called once', async () =>
+			expect(flush_stub.callCount).to.equal(1));
 
-		it('modules.accounts.mergeAccountAndGet should be called 4 times', () =>
+		it('modules.accounts.mergeAccountAndGet should be called 4 times', async () =>
 			// 3x delegates + 1x remaining fees
-			 expect(
+			expect(
 				round.scope.modules.accounts.mergeAccountAndGet.callCount
-			).to.equal(4)
-		);
+			).to.equal(4));
 
-		it('query checkSnapshotAvailability should be called once', () => expect(checkSnapshotAvailability_stub.callCount).to.equal(1));
+		it('query checkSnapshotAvailability should be called once', async () =>
+			expect(checkSnapshotAvailability_stub.callCount).to.equal(1));
 
-		it('query restoreRoundSnapshot should be called once', () => expect(restoreRoundSnapshot_stub.callCount).to.equal(1));
+		it('query restoreRoundSnapshot should be called once', async () =>
+			expect(restoreRoundSnapshot_stub.callCount).to.equal(1));
 
-		it('query restoreVotesSnapshot should be called once', () => expect(restoreVotesSnapshot_stub.callCount).to.equal(1));
+		it('query restoreVotesSnapshot should be called once', async () =>
+			expect(restoreVotesSnapshot_stub.callCount).to.equal(1));
 
-		it('query deleteRoundRewards should be called once', () => expect(deleteRoundRewards_stub.callCount).to.equal(1));
+		it('query deleteRoundRewards should be called once', async () =>
+			expect(deleteRoundRewards_stub.callCount).to.equal(1));
 	});
 });

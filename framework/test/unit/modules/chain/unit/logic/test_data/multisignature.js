@@ -15,7 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const ed = require('../../../../helpers/ed');
+const ed = require('../../../../../../../src/modules/chain/helpers/ed');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';

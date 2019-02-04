@@ -14,13 +14,13 @@
 
 'use strict';
 
-const blockVersion = require('../../../logic/block_version.js');
+const blockVersion = require('../../../../../../src/modules/chain/logic/block_version.js');
 
 const exceptions = global.exceptions;
 
-describe('block_version', () => {
-	describe('isValid', () => {
-		describe('when no exceptions present', () => {
+describe('block_version', async () => {
+	describe('isValid', async () => {
+		describe('when no exceptions present', async () => {
 			// When no exceptions are present current version (1) should be always valid for all heights,
 			// and all other versions should be rejected
 			before(done => {
@@ -28,63 +28,63 @@ describe('block_version', () => {
 				done();
 			});
 
-			it('should return false for version = 1, height = undefined', () => {
+			it('should return false for version = 1, height = undefined', async () => {
 				const height = undefined;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return true for version = 1, height = 1', () => {
+			it('should return true for version = 1, height = 1', async () => {
 				const height = 1;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return true for version = 1, height = 101', () => {
+			it('should return true for version = 1, height = 101', async () => {
 				const height = 101;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return false for version = 0, height = undefined', () => {
+			it('should return false for version = 0, height = undefined', async () => {
 				const height = undefined;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 0, height = 1', () => {
+			it('should return false for version = 0, height = 1', async () => {
 				const height = 1;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 0, height = 101', () => {
+			it('should return false for version = 0, height = 101', async () => {
 				const height = 101;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 3, height = undefined', () => {
+			it('should return false for version = 3, height = undefined', async () => {
 				const height = undefined;
 				const version = 3;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 3, height = 1', () => {
+			it('should return false for version = 3, height = 1', async () => {
 				const height = 1;
 				const version = 3;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 3, height = 101', () => {
+			it('should return false for version = 3, height = 101', async () => {
 				const height = 101;
 				const version = 3;
 
@@ -92,7 +92,7 @@ describe('block_version', () => {
 			});
 		});
 
-		describe('when 1 exception present', () => {
+		describe('when 1 exception present', async () => {
 			// When 1 exception is present current version (1) should be valid only if height is not
 			// in exception's range, exception's version should be valid for its height range
 			before(done => {
@@ -102,63 +102,63 @@ describe('block_version', () => {
 				done();
 			});
 
-			it('should return false for version = 0, height = undefined', () => {
+			it('should return false for version = 0, height = undefined', async () => {
 				const height = undefined;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return true for version = 0, height = 1', () => {
+			it('should return true for version = 0, height = 1', async () => {
 				const height = 1;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return true for version = 0, height = 101', () => {
+			it('should return true for version = 0, height = 101', async () => {
 				const height = 101;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return false for version = 1, height = 101', () => {
+			it('should return false for version = 1, height = 101', async () => {
 				const height = 101;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return true for version = 1, height = 102', () => {
+			it('should return true for version = 1, height = 102', async () => {
 				const height = 102;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return true for version = 1, height = 202', () => {
+			it('should return true for version = 1, height = 202', async () => {
 				const height = 202;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return false for version = 2, height = 1', () => {
+			it('should return false for version = 2, height = 1', async () => {
 				const height = 1;
 				const version = 2;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 2, height = 101', () => {
+			it('should return false for version = 2, height = 101', async () => {
 				const height = 101;
 				const version = 2;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 2, height = 102', () => {
+			it('should return false for version = 2, height = 102', async () => {
 				const height = 102;
 				const version = 2;
 
@@ -166,7 +166,7 @@ describe('block_version', () => {
 			});
 		});
 
-		describe('when more than 1 exceptions present', () => {
+		describe('when more than 1 exceptions present', async () => {
 			before(done => {
 				exceptions.blockVersions = {
 					0: { start: 0, end: 101 },
@@ -176,105 +176,105 @@ describe('block_version', () => {
 				done();
 			});
 
-			it('should return false for version = 0, height = undefined', () => {
+			it('should return false for version = 0, height = undefined', async () => {
 				const height = undefined;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return true for version = 0, height = 1', () => {
+			it('should return true for version = 0, height = 1', async () => {
 				const height = 1;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return true for version = 0, height = 101', () => {
+			it('should return true for version = 0, height = 101', async () => {
 				const height = 101;
 				const version = 0;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return false for version = 1, height = 101', () => {
+			it('should return false for version = 1, height = 101', async () => {
 				const height = 101;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return true for version = 1, height = 102', () => {
+			it('should return true for version = 1, height = 102', async () => {
 				const height = 102;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return true for version = 1, height = 202', () => {
+			it('should return true for version = 1, height = 202', async () => {
 				const height = 202;
 				const version = 1;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return false for version = 2, height = 1', () => {
+			it('should return false for version = 2, height = 1', async () => {
 				const height = 1;
 				const version = 2;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 2, height = 101', () => {
+			it('should return false for version = 2, height = 101', async () => {
 				const height = 101;
 				const version = 2;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 2, height = 202', () => {
+			it('should return false for version = 2, height = 202', async () => {
 				const height = 202;
 				const version = 2;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return true for version = 2, height = 203', () => {
+			it('should return true for version = 2, height = 203', async () => {
 				const height = 203;
 				const version = 2;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return true for version = 2, height > 203', () => {
+			it('should return true for version = 2, height > 203', async () => {
 				const height = 203;
 				const version = 2;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(true);
 			});
 
-			it('should return false for version = 3, height = 1', () => {
+			it('should return false for version = 3, height = 1', async () => {
 				const height = 1;
 				const version = 3;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 3, height = 101', () => {
+			it('should return false for version = 3, height = 101', async () => {
 				const height = 101;
 				const version = 3;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 3, height = 202', () => {
+			it('should return false for version = 3, height = 202', async () => {
 				const height = 202;
 				const version = 3;
 
 				return expect(blockVersion.isValid(version, height)).to.equal(false);
 			});
 
-			it('should return false for version = 3, height > 202', () => {
+			it('should return false for version = 3, height > 202', async () => {
 				const height = 203;
 				const version = 3;
 

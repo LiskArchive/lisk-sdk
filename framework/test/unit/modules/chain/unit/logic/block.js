@@ -16,10 +16,10 @@
 
 const crypto = require('crypto');
 const rewire = require('rewire');
-const ed = require('../../../helpers/ed');
-const Bignum = require('../../../helpers/bignum.js');
-const modulesLoader = require('../../common/modules_loader');
-const transactionTypes = require('../../../helpers/transaction_types.js');
+const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const modulesLoader = require('../../../../../common/modules_loader');
+const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 
 const { FEES } = __testContext.config.constants;
 
@@ -310,7 +310,7 @@ function expectedOrderOfTransactions(sortedTransactions) {
 	return sorted;
 }
 
-describe('block', () => {
+describe('block', async () => {
 	let block;
 	let data;
 	let transactionStub;
@@ -336,7 +336,7 @@ describe('block', () => {
 		done();
 	});
 
-	describe('create', () => {
+	describe('create', async () => {
 		let blockNormalizeStub;
 
 		before(() => {
@@ -354,7 +354,7 @@ describe('block', () => {
 			return transactionStub.objectNormalize.resetHistory();
 		});
 
-		describe('when each of all supported', () => {
+		describe('when each of all supported', async () => {
 			let generatedBlock;
 			let transactionsOrder;
 			const correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
@@ -366,10 +366,11 @@ describe('block', () => {
 				done();
 			});
 
-			it('should sort transactions in the correct order', () => expect(transactionsOrder).to.eql(correctOrder));
+			it('should sort transactions in the correct order', async () =>
+				expect(transactionsOrder).to.eql(correctOrder));
 		});
 
-		describe('when there are multiple multisignature transactions', () => {
+		describe('when there are multiple multisignature transactions', async () => {
 			const correctOrderOfTransactions = [
 				0,
 				1,
@@ -386,21 +387,23 @@ describe('block', () => {
 				4,
 			];
 
-			describe('in the beginning', () => {
+			describe('in the beginning', async () => {
 				let multipleMultisigTx;
 				let generatedBlock;
 				let transactionsOrder;
 
 				beforeEach(done => {
 					// Create 6 multisignature transactions
-					multipleMultisigTx = Array(...Array(5)).map(() => transactionsByTypes[transactionTypes.MULTI]);
+					multipleMultisigTx = Array(...Array(5)).map(
+						async () => transactionsByTypes[transactionTypes.MULTI]
+					);
 					data.transactions = multipleMultisigTx.concat(transactions);
 					generatedBlock = block.create(data);
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 					done();
 				});
 
-				it('should sort transactions in the correct order', () => {
+				it('should sort transactions in the correct order', async () => {
 					expect(
 						expectedOrderOfTransactions(generatedBlock.transactions)
 					).to.equal(true);
@@ -408,13 +411,15 @@ describe('block', () => {
 				});
 			});
 
-			describe('at the middle', () => {
+			describe('at the middle', async () => {
 				let multipleMultisigTx;
 				let generatedBlock;
 				let transactionsOrder;
 
 				beforeEach(done => {
-					multipleMultisigTx = Array(...Array(5)).map(() => transactionsByTypes[transactionTypes.MULTI]);
+					multipleMultisigTx = Array(...Array(5)).map(
+						async () => transactionsByTypes[transactionTypes.MULTI]
+					);
 					// Add multisig transactions after the 3rd transaction in array
 					transactions.splice(...[3, 0].concat(multipleMultisigTx));
 					data.transactions = transactions;
@@ -423,7 +428,7 @@ describe('block', () => {
 					done();
 				});
 
-				it('should sort transactions in the correct order', () => {
+				it('should sort transactions in the correct order', async () => {
 					expect(
 						expectedOrderOfTransactions(generatedBlock.transactions)
 					).to.equal(true);
@@ -431,20 +436,22 @@ describe('block', () => {
 				});
 			});
 
-			describe('at the end', () => {
+			describe('at the end', async () => {
 				let multipleMultisigTx;
 				let generatedBlock;
 				let transactionsOrder;
 
 				beforeEach(done => {
-					multipleMultisigTx = Array(...Array(5)).map(() => transactionsByTypes[transactionTypes.MULTI]);
+					multipleMultisigTx = Array(...Array(5)).map(
+						async () => transactionsByTypes[transactionTypes.MULTI]
+					);
 					data.transactions = transactions.concat(multipleMultisigTx);
 					generatedBlock = block.create(data);
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 					done();
 				});
 
-				it('should sort transactions in the correct order', () => {
+				it('should sort transactions in the correct order', async () => {
 					expect(
 						expectedOrderOfTransactions(generatedBlock.transactions)
 					).to.equal(true);
@@ -452,14 +459,16 @@ describe('block', () => {
 				});
 			});
 
-			describe('shuffled', () => {
+			describe('shuffled', async () => {
 				let multipleMultisigTx;
 				let generatedBlock;
 				let transactionsOrder;
 
 				beforeEach(done => {
 					// Create 6 multisignature transactions
-					multipleMultisigTx = Array(...Array(5)).map(() => transactionsByTypes[transactionTypes.MULTI]);
+					multipleMultisigTx = Array(...Array(5)).map(
+						async () => transactionsByTypes[transactionTypes.MULTI]
+					);
 					data.transactions = _.shuffle(
 						transactions.concat(multipleMultisigTx)
 					);
@@ -468,7 +477,7 @@ describe('block', () => {
 					done();
 				});
 
-				it('should sort transactions in the correct order', () => {
+				it('should sort transactions in the correct order', async () => {
 					expect(
 						expectedOrderOfTransactions(generatedBlock.transactions)
 					).to.equal(true);
@@ -478,16 +487,18 @@ describe('block', () => {
 		});
 	});
 
-	describe('sign', () => {
-		it('should throw error for empty block and validKeypair', () => expect(() => {
+	describe('sign', async () => {
+		it('should throw error for empty block and validKeypair', async () =>
+			expect(() => {
 				block.sign({}, validKeypair);
 			}).to.throw());
 
-		it('should throw error for invalid key pair and valid blockData', () => expect(() => {
+		it('should throw error for invalid key pair and valid blockData', async () =>
+			expect(() => {
 				block.sign(blockData, 'this is invalid key pair');
 			}).to.throw());
 
-		it('should throw error for a block with unknown fields', () => {
+		it('should throw error for a block with unknown fields', async () => {
 			const unknownBlock = {
 				verson: 0,
 				totlFee: '&**&^&',
@@ -499,27 +510,29 @@ describe('block', () => {
 			}).to.throw();
 		});
 
-		it('should return valid signature when sign block using valid keypair', () => {
+		it('should return valid signature when sign block using valid keypair', async () => {
 			const signature = block.sign(blockData, validKeypair);
 			expect(signature).to.be.a('string');
 			return expect(signature).to.have.length.of(128);
 		});
 	});
 
-	describe('getBytes', () => {
-		it('should throw error for invalid block', () => expect(() => {
+	describe('getBytes', async () => {
+		it('should throw error for invalid block', async () =>
+			expect(() => {
 				block.getBytes(invalidBlock);
 			}).to.throw());
 
-		it('should return a buffer for a given block', () => expect(block.getBytes(blockData)).to.be.an.instanceof(Buffer));
+		it('should return a buffer for a given block', async () =>
+			expect(block.getBytes(blockData)).to.be.an.instanceof(Buffer));
 
-		it('should return same bytes for a given block', () => {
+		it('should return same bytes for a given block', async () => {
 			const bytes1 = block.getBytes(blockData);
 			const bytes2 = block.getBytes(blockData);
 			return expect(bytes1).to.deep.equal(bytes2);
 		});
 
-		it('should return different bytes for different blocks', () => {
+		it('should return different bytes for different blocks', async () => {
 			const bytes1 = block.getBytes(blockData);
 			const blockDataCopy = Object.assign({}, blockData);
 			blockDataCopy.height = 100;
@@ -530,76 +543,78 @@ describe('block', () => {
 		});
 	});
 
-	describe('verifySignature', () => {
-		it('should throw error for invalid block', () => expect(() => {
+	describe('verifySignature', async () => {
+		it('should throw error for invalid block', async () =>
+			expect(() => {
 				block.verifySignature(invalidBlock);
 			}).to.throw());
 
-		it('should return true for a good block', () => expect(block.verifySignature(blockData)).to.be.true);
+		it('should return true for a good block', async () =>
+			expect(block.verifySignature(blockData)).to.be.true);
 
-		it('should return false for a block with modified version', () => {
+		it('should return false for a block with modified version', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.version += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified timestamp', () => {
+		it('should return false for a block with modified timestamp', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.timestamp += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified previousBlock', () => {
+		it('should return false for a block with modified previousBlock', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.previousBlock = '1111112222333333';
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified numberOfTransactions', () => {
+		it('should return false for a block with modified numberOfTransactions', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.numberOfTransactions += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified totalAmount', () => {
+		it('should return false for a block with modified totalAmount', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.totalAmount += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified totalFee', () => {
+		it('should return false for a block with modified totalFee', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.totalFee += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified reward', () => {
+		it('should return false for a block with modified reward', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.reward += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified payloadLength', () => {
+		it('should return false for a block with modified payloadLength', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.payloadLength += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified payloadHash', () => {
+		it('should return false for a block with modified payloadHash', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.payloadHash =
 				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified generatorPublicKey', () => {
+		it('should return false for a block with modified generatorPublicKey', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.generatorPublicKey =
 				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
-		it('should return false for a block with modified blockSignature', () => {
+		it('should return false for a block with modified blockSignature', async () => {
 			const blockCopy = Object.assign({}, blockData);
 			blockCopy.blockSignature =
 				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
@@ -607,35 +622,40 @@ describe('block', () => {
 		});
 	});
 
-	describe('getId', () => {
-		it('should throw an error for empty block', () => expect(() => {
+	describe('getId', async () => {
+		it('should throw an error for empty block', async () =>
+			expect(() => {
 				block.getId({});
 			}).to.throw());
 
-		it('should return the id for a given block', () => expect(block.getId(blockData))
+		it('should return the id for a given block', async () =>
+			expect(block.getId(blockData))
 				.to.be.a('string')
 				.which.is.equal(blockData.id));
 	});
 
-	describe('getHash', () => {
-		it('should throw error for invalid block', () => expect(() => {
+	describe('getHash', async () => {
+		it('should throw error for invalid block', async () =>
+			expect(() => {
 				block.getHash(invalidBlock);
 			}).to.throw());
 
-		it('should return a hash for a given block', () => expect(block.getHash(blockData)).to.be.an.instanceof(Buffer));
+		it('should return a hash for a given block', async () =>
+			expect(block.getHash(blockData)).to.be.an.instanceof(Buffer));
 	});
 
-	describe('calculateFee', () => {
-		it('should return the constant fee', () => expect(block.calculateFee(blockData).isEqualTo(FEES.SEND)).to.be
-				.true);
+	describe('calculateFee', async () => {
+		it('should return the constant fee', async () =>
+			expect(block.calculateFee(blockData).isEqualTo(FEES.SEND)).to.be.true);
 	});
 
-	describe('dbRead', () => {
-		it('should throw error for null values', () => expect(() => {
+	describe('dbRead', async () => {
+		it('should throw error for null values', async () =>
+			expect(() => {
 				block.dbRead(null);
 			}).to.throw());
 
-		it('should return raw block data', () => {
+		it('should return raw block data', async () => {
 			const rawBlock = {
 				b_version: 0,
 				b_totalAmount: 0,

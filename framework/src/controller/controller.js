@@ -81,7 +81,10 @@ module.exports = class Controller {
 	}
 
 	async _setupControllerActions() {
-		this.channel.action('getComponentConfig', action => this.componentConfig[action.params]);
+		this.channel.action(
+			'getComponentConfig',
+			action => this.componentConfig[action.params]
+		);
 	}
 
 	async _loadModules() {

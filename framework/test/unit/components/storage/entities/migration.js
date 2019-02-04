@@ -20,15 +20,15 @@ const fs = require('fs-extra');
 const {
 	BaseEntity,
 	Migration,
-} = require('../../../../../framework/src/components/storage/entities');
+} = require('../../../../../src/components/storage/entities');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 	NonSupportedOperationError,
-} = require('../../../../../framework/src/components/storage/errors');
+} = require('../../../../../src/components/storage/errors');
 
-describe('Migration', () => {
+describe('Migration', async () => {
 	let adapter;
 	let validMigrationFields;
 	let validMigrationSQLs;
@@ -112,7 +112,7 @@ describe('Migration', () => {
 		expect(Migration.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', () => {
+	describe('constructor()', async () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Migration.prototype.constructor.length).to.be.eql(1);
 		});
@@ -152,7 +152,7 @@ describe('Migration', () => {
 		it('should setup specific filters');
 	});
 
-	describe('getOne()', () => {
+	describe('getOne()', async () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const migration = new Migration(adapter);
 			const _getResultsStub = sinonSandbox
@@ -164,7 +164,7 @@ describe('Migration', () => {
 		});
 	});
 
-	describe('get()', () => {
+	describe('get()', async () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const migration = new Migration(adapter);
 			const _getResultsStub = sinonSandbox
@@ -176,7 +176,7 @@ describe('Migration', () => {
 		});
 	});
 
-	describe('_getResults()', () => {
+	describe('_getResults()', async () => {
 		it('should accept only valid filters', async () => {
 			const migration = new Migration(adapter);
 			expect(() => {
@@ -220,7 +220,7 @@ describe('Migration', () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', () => {
+		describe('filters', async () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				const migration = new Migration(adapter);
@@ -231,19 +231,19 @@ describe('Migration', () => {
 		});
 	});
 
-	describe('update()', () => {
+	describe('update()', async () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Migration.prototype.update).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('delete()', () => {
+	describe('delete()', async () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Migration.prototype.delete).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('isPersisted()', () => {
+	describe('isPersisted()', async () => {
 		it('should accept only valid filters', async () => {
 			const migration = new Migration(adapter);
 			expect(() => {
@@ -327,7 +327,7 @@ describe('Migration', () => {
 		});
 	});
 
-	describe('mergeFilters()', () => {
+	describe('mergeFilters()', async () => {
 		it('should accept filters as single object', async () => {
 			const migration = new Migration(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(migration, 'mergeFilters');
@@ -351,7 +351,7 @@ describe('Migration', () => {
 		);
 	});
 
-	describe('Schema Updates methods', () => {
+	describe('Schema Updates methods', async () => {
 		let files;
 		let fileIds;
 
@@ -366,7 +366,7 @@ describe('Migration', () => {
 			sinonSandbox.restore();
 		});
 
-		describe('hasMigrations()', () => {
+		describe('hasMigrations()', async () => {
 			it('should resolve with true if migrations table exists', async () => {
 				expect(await storage.entities.Migration.hasMigrations()).to.be.true;
 			});
@@ -386,7 +386,7 @@ describe('Migration', () => {
 			});
 		});
 
-		describe('getLastId', () => {
+		describe('getLastId', async () => {
 			it('should use the correct filters for get', async () => {
 				sinonSandbox.spy(storage.entities.Migration, 'get');
 				await storage.entities.Migration.getLastId();
@@ -403,7 +403,7 @@ describe('Migration', () => {
 			});
 		});
 
-		describe('readPending', () => {
+		describe('readPending', async () => {
 			it('should resolve with list of pending files if there exists any', async () => {
 				const pending = (await storage.entities.Migration.readPending(
 					fileIds[0]
@@ -433,7 +433,7 @@ describe('Migration', () => {
 			});
 		});
 
-		describe('applyAll()', () => {
+		describe('applyAll()', async () => {
 			let updates;
 
 			beforeEach(async () => {
@@ -488,7 +488,7 @@ describe('Migration', () => {
 		});
 
 		/* eslint-disable mocha/no-skipped-tests */
-		describe('applyRuntime()', () => {
+		describe('applyRuntime()', async () => {
 			it.skip('should use the correct SQL while in transaction context');
 			it.skip('should start a transaction context if no transaction exists');
 			it.skip('should copy mem_accounts2delegates to mem_accounts2u_delegates');

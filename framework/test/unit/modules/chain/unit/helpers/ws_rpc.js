@@ -14,15 +14,16 @@
 
 'use strict';
 
-const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const wsRPC = require('../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
+	.wsRPC;
 
-describe('wsRPC', () => {
-	describe('setServer', () => {
+describe('wsRPC', async () => {
+	describe('setServer', async () => {
 		before(() => wsRPC.setServer(null));
 
 		after(() => wsRPC.setServer(null));
 
-		it('should return server instance after setting it', () => {
+		it('should return server instance after setting it', async () => {
 			wsRPC.setServer({ name: 'my ws server' });
 			const wsRPCServer = wsRPC.getServer();
 			return expect(wsRPCServer)
@@ -30,22 +31,22 @@ describe('wsRPC', () => {
 				.eql({ name: 'my ws server' });
 		});
 
-		describe('getter', () => {
-			it('should throw an error when setting server to null', () => {
+		describe('getter', async () => {
+			it('should throw an error when setting server to null', async () => {
 				wsRPC.setServer(null);
 				return expect(wsRPC.getServer).to.throw(
 					'WS server has not been initialized!'
 				);
 			});
 
-			it('should throw an error when setting server to 0', () => {
+			it('should throw an error when setting server to 0', async () => {
 				wsRPC.setServer(0);
 				return expect(wsRPC.getServer).to.throw(
 					'WS server has not been initialized!'
 				);
 			});
 
-			it('should throw an error when setting server to undefined', () => {
+			it('should throw an error when setting server to undefined', async () => {
 				wsRPC.setServer(undefined);
 				return expect(wsRPC.getServer).to.throw(
 					'WS server has not been initialized!'
@@ -54,16 +55,15 @@ describe('wsRPC', () => {
 		});
 	});
 
-	describe('getServer', () => {
+	describe('getServer', async () => {
 		before(() => wsRPC.setServer(null));
 
 		after(() => wsRPC.setServer(null));
 
-		it('should throw an error when WS server has not been initialized', () => expect(wsRPC.getServer).to.throw(
-				'WS server has not been initialized!'
-			));
+		it('should throw an error when WS server has not been initialized', async () =>
+			expect(wsRPC.getServer).to.throw('WS server has not been initialized!'));
 
-		it('should return WS server if set before', () => {
+		it('should return WS server if set before', async () => {
 			wsRPC.setServer({ name: 'my ws server' });
 			expect(wsRPC.getServer).not.to.throw;
 			return expect(wsRPC.getServer())

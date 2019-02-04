@@ -15,41 +15,49 @@
 
 'use strict';
 
-const inputSerializers = require('../../../../../framework/src/components/storage/utils/inputSerializers');
+const inputSerializers = require('../../../../../src/components/storage/utils/inputSerializers');
 
-describe('inputSerializers', () => {
+describe('inputSerializers', async () => {
 	afterEach(() => sinonSandbox.restore());
 
-	it('should export three functions', () => expect(Object.keys(inputSerializers)).to.be.eql([
+	it('should export three functions', async () =>
+		expect(Object.keys(inputSerializers)).to.be.eql([
 			'defaultInput',
 			'booleanToInt',
 			'stringToByte',
 		]));
 
-	describe('defaultInput', () => {
-		it('should accept four parameters', () => expect(inputSerializers.defaultInput).to.have.length(4));
+	describe('defaultInput', async () => {
+		it('should accept four parameters', async () =>
+			expect(inputSerializers.defaultInput).to.have.length(4));
 
-		it('should return proper value', () => expect(
+		it('should return proper value', async () =>
+			expect(
 				inputSerializers.defaultInput('value', 'mode', 'alias', 'name')
 			).to.be.eql('${alias}'));
 	});
 
-	describe('booleanToInt', () => {
-		it('should accept four parameters', () => expect(inputSerializers.booleanToInt).to.have.length(4));
+	describe('booleanToInt', async () => {
+		it('should accept four parameters', async () =>
+			expect(inputSerializers.booleanToInt).to.have.length(4));
 
-		it('should return proper value', () => expect(
+		it('should return proper value', async () =>
+			expect(
 				inputSerializers.booleanToInt('value', 'mode', 'alias', 'name')
 			).to.be.eql('${alias}::int'));
 	});
 
-	describe('stringToByte', () => {
-		it('should accept four parameters', () => expect(inputSerializers.stringToByte).to.have.length(4));
+	describe('stringToByte', async () => {
+		it('should accept four parameters', async () =>
+			expect(inputSerializers.stringToByte).to.have.length(4));
 
-		it('should return decoded value if value present', () => expect(
+		it('should return decoded value if value present', async () =>
+			expect(
 				inputSerializers.stringToByte('value', 'mode', 'alias', 'name')
 			).to.be.eql("DECODE(${alias}, 'hex')"));
 
-		it('should return NULL if value not present', () => expect(
+		it('should return NULL if value not present', async () =>
+			expect(
 				inputSerializers.stringToByte(undefined, 'mode', 'alias', 'name')
 			).to.be.eql('NULL'));
 	});

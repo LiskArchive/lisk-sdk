@@ -14,16 +14,17 @@
 
 'use strict';
 
-const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
-const Peer = require('../../../logic/peer');
-const BanManager = require('../../../helpers/ban_manager');
+const prefixedPeer = require('../../../../../fixtures/peers')
+	.randomNormalizedPeer;
+const Peer = require('../../../../../../src/modules/chain/logic/peer');
+const BanManager = require('../../../../../../src/modules/chain/helpers/ban_manager');
 
 let configWithBlackListStub;
 let loggerStub;
 let banManagerInstance;
 const twoMinTimeout = 120000;
 
-describe('BanManager', () => {
+describe('BanManager', async () => {
 	before(done => {
 		loggerStub = {
 			error: sinonSandbox.stub(),
@@ -46,20 +47,22 @@ describe('BanManager', () => {
 		return done();
 	});
 
-	describe('constructor', () => {
-		it('should have empty bannedPeers map after initialization', () => expect(banManagerInstance).to.have.property('bannedPeers').to.be
-				.empty);
+	describe('constructor', async () => {
+		it('should have empty bannedPeers map after initialization', async () =>
+			expect(banManagerInstance).to.have.property('bannedPeers').to.be.empty);
 
-		it('should have logger assigned after initialization', () => expect(banManagerInstance)
+		it('should have logger assigned after initialization', async () =>
+			expect(banManagerInstance)
 				.to.have.property('logger')
 				.equal(loggerStub));
 
-		it('should have config assigned after initialization', () => expect(banManagerInstance)
+		it('should have config assigned after initialization', async () =>
+			expect(banManagerInstance)
 				.to.have.property('config')
 				.equal(configWithBlackListStub));
 	});
 
-	describe('banTemporarily', () => {
+	describe('banTemporarily', async () => {
 		let validPeer;
 		let onBanFinishedSpy;
 		before(done => {
@@ -75,17 +78,18 @@ describe('BanManager', () => {
 			return done();
 		});
 
-		describe('when peer is in config.json blackList', () => {
+		describe('when peer is in config.json blackList', async () => {
 			before(done => {
 				configWithBlackListStub.peers.access.blackList = [validPeer.ip];
 				return done();
 			});
-			it('should not add validPeer to bannedPeers map', () => expect(banManagerInstance.bannedPeers).not.to.have.property(
+			it('should not add validPeer to bannedPeers map', async () =>
+				expect(banManagerInstance.bannedPeers).not.to.have.property(
 					validPeer.string
 				));
 		});
 
-		describe('when peer is not in config.json blackList', () => {
+		describe('when peer is not in config.json blackList', async () => {
 			let clock;
 			before(done => {
 				configWithBlackListStub.peers.access.blackList = [];
@@ -97,31 +101,38 @@ describe('BanManager', () => {
 				return done();
 			});
 
-			describe('when peer was not banned before', () => {
-				it('should add validPeer to bannedPeers map', () => expect(banManagerInstance.bannedPeers).to.have.property(
+			describe('when peer was not banned before', async () => {
+				it('should add validPeer to bannedPeers map', async () =>
+					expect(banManagerInstance.bannedPeers).to.have.property(
 						validPeer.string
 					));
-				it('should add an entry to bannedPeers containing validPeer', () => expect(banManagerInstance.bannedPeers[validPeer.string])
+				it('should add an entry to bannedPeers containing validPeer', async () =>
+					expect(banManagerInstance.bannedPeers[validPeer.string])
 						.to.have.property('peer')
 						.equal(validPeer));
-				it('should add an entry to bannedPeers containing banTimeoutId as a Timeout', () => expect(banManagerInstance.bannedPeers[validPeer.string])
+				it('should add an entry to bannedPeers containing banTimeoutId as a Timeout', async () =>
+					expect(banManagerInstance.bannedPeers[validPeer.string])
 						.to.have.nested.property('banTimeoutId.id')
 						.to.be.a('number'));
-				describe('when 2 min have not passed', () => {
+				describe('when 2 min have not passed', async () => {
 					beforeEach(done => {
 						clock.tick(twoMinTimeout - 1);
 						return done();
 					});
-					it('should not call onBanFinished', () => expect(onBanFinishedSpy).not.to.be.called);
+					it('should not call onBanFinished', async () =>
+						expect(onBanFinishedSpy).not.to.be.called);
 				});
-				describe('when 2 min have passed', () => {
+				describe('when 2 min have passed', async () => {
 					beforeEach(done => {
 						clock.tick(twoMinTimeout);
 						return done();
 					});
-					it('should call onBanFinished', () => expect(onBanFinishedSpy).to.be.called);
-					it('should call onBanFinished with validPeer', () => expect(onBanFinishedSpy).to.be.calledWith(validPeer));
-					it('should remove entry from bannedPeers', () => expect(banManagerInstance.bannedPeers).not.to.have.property(
+					it('should call onBanFinished', async () =>
+						expect(onBanFinishedSpy).to.be.called);
+					it('should call onBanFinished with validPeer', async () =>
+						expect(onBanFinishedSpy).to.be.calledWith(validPeer));
+					it('should remove entry from bannedPeers', async () =>
+						expect(banManagerInstance.bannedPeers).not.to.have.property(
 							validPeer.string
 						));
 				});

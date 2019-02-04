@@ -983,7 +983,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 				balancesSequenceCb
 			);
 		},
-		() => setImmediate(cb)
+		async () => setImmediate(cb)
 	);
 };
 

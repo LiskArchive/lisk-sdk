@@ -15,10 +15,10 @@
 
 'use strict';
 
-const Field = require('../../../../../framework/src/components/storage/utils/field');
-const inputSerializers = require('../../../../../framework/src/components/storage/utils/inputSerializers');
+const Field = require('../../../../../src/components/storage/utils/field');
+const inputSerializers = require('../../../../../src/components/storage/utils/inputSerializers');
 
-describe('Field', () => {
+describe('Field', async () => {
 	beforeEach(async () => {
 		sinonSandbox
 			.stub(Field.prototype, 'generateFilters')
@@ -31,16 +31,18 @@ describe('Field', () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('constructor()', () => {
-		it('should fail without required param "name"', () => expect(() => {
+	describe('constructor()', async () => {
+		it('should fail without required param "name"', async () =>
+			expect(() => {
 				new Field();
 			}).to.throw('Name is required to initialize field.'));
 
-		it('should fail without required param "type"', () => expect(() => {
+		it('should fail without required param "type"', async () =>
+			expect(() => {
 				new Field('name');
 			}).to.throw('Type is required to initialize field.'));
 
-		it('should assign param and data members properly if optional attributes not provided', () => {
+		it('should assign param and data members properly if optional attributes not provided', async () => {
 			const field = new Field('name', 'type');
 
 			expect(field.name).to.be.eql('name');
@@ -50,7 +52,7 @@ describe('Field', () => {
 			return expect(field.filterCondition).to.be.eql(undefined);
 		});
 
-		it('should assign filters if filter type provided', () => {
+		it('should assign filters if filter type provided', async () => {
 			const field = new Field('name', 'type', {
 				filter: 'TEXT',
 				fieldName: 'fieldName',
@@ -69,8 +71,8 @@ describe('Field', () => {
 		});
 	});
 
-	describe('getFilters()', () => {
-		it('should return the filters', () => {
+	describe('getFilters()', async () => {
+		it('should return the filters', async () => {
 			const field = new Field('name', 'type', {
 				filter: 'TEXT',
 				fieldName: 'fieldName',
@@ -81,8 +83,8 @@ describe('Field', () => {
 		});
 	});
 
-	describe('serializeValue()', () => {
-		it('should return serialized value for field', () => {
+	describe('serializeValue()', async () => {
+		it('should return serialized value for field', async () => {
 			const field = new Field('name', 'type', {
 				filter: 'TEXT',
 				fieldName: 'fieldName',

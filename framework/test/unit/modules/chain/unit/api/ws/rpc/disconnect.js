@@ -15,10 +15,11 @@
 'use strict';
 
 const sinon = require('sinon');
-const disconnect = require('../../../../../api/ws/rpc/disconnect');
-const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
+const disconnect = require('../../../../../../../../src/modules/chain/api/ws/rpc/disconnect');
+const prefixedPeer = require('../../../../../../../fixtures/peers')
+	.randomNormalizedPeer;
 
-describe('disconnect', () => {
+describe('disconnect', async () => {
 	let validPeer;
 	let socket;
 
@@ -27,9 +28,10 @@ describe('disconnect', () => {
 		done();
 	});
 
-	it('should return passed peer', () => expect(disconnect(validPeer)).equal(validPeer));
+	it('should return passed peer', async () =>
+		expect(disconnect(validPeer)).equal(validPeer));
 
-	describe('when peer contains socket with disconnect function', () => {
+	describe('when peer contains socket with disconnect function', async () => {
 		beforeEach(done => {
 			socket = {
 				disconnect: sinon.spy(),
@@ -39,7 +41,7 @@ describe('disconnect', () => {
 			done();
 		});
 
-		it('should call peer.socket.disconnect', () => {
+		it('should call peer.socket.disconnect', async () => {
 			disconnect(validPeer);
 			// The socket should be deleted.
 			expect(validPeer.socket.destroy).to.be.calledOnce;

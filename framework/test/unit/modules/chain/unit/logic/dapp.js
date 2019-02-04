@@ -17,20 +17,20 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const randomstring = require('randomstring');
-const modulesLoader = require('../../common/modules_loader.js');
-const randomUtil = require('../../common/utils/random');
-const typeRepresentatives = require('../../fixtures/types_representatives.js');
-const transactionTypes = require('../../../helpers/transaction_types');
+const modulesLoader = require('../../../../../common/modules_loader.js');
+const randomUtil = require('../../../../../common/utils/random');
+const typeRepresentatives = require('../../../../../fixtures/types_representatives.js');
+const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
 const testData = require('./test_data/dapp.js');
 
 const { FEES } = __testContext.config.constants;
-const Dapp = rewire('../../../logic/dapp.js');
+const Dapp = rewire('../../../../../../src/modules/chain/logic/dapp.js');
 const validKeypair = testData.validKeypair;
 const validSender = testData.validSender;
 const validTransaction = testData.validTransaction;
 const rawValidTransaction = testData.rawValidTransaction;
 
-describe('dapp', () => {
+describe('dapp', async () => {
 	let dapp;
 	let storageStub;
 
@@ -57,7 +57,7 @@ describe('dapp', () => {
 		done();
 	});
 
-	describe('with dummy data', () => {
+	describe('with dummy data', async () => {
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			rawTransaction = _.cloneDeep(rawValidTransaction);
@@ -65,8 +65,8 @@ describe('dapp', () => {
 			done();
 		});
 
-		describe('constructor', () => {
-			describe('private library object', () => {
+		describe('constructor', async () => {
+			describe('private library object', async () => {
 				let library;
 
 				beforeEach(done => {
@@ -80,29 +80,33 @@ describe('dapp', () => {
 					done();
 				});
 
-				it('should be updated with storage stub object', () => expect(library.storage).to.eql(storageStub));
+				it('should be updated with storage stub object', async () =>
+					expect(library.storage).to.eql(storageStub));
 
-				it('should be loaded schema from modulesLoader', () => expect(library.schema).to.eql(modulesLoader.scope.schema));
+				it('should be loaded schema from modulesLoader', async () =>
+					expect(library.schema).to.eql(modulesLoader.scope.schema));
 
-				it('should be loaded logger from modulesLoader', () => expect(library.logger).to.eql(modulesLoader.scope.logger));
+				it('should be loaded logger from modulesLoader', async () =>
+					expect(library.logger).to.eql(modulesLoader.scope.logger));
 
-				it('should be loaded network from modulesLoader', () => expect(library.network).to.eql(modulesLoader.scope.network));
+				it('should be loaded network from modulesLoader', async () =>
+					expect(library.network).to.eql(modulesLoader.scope.network));
 			});
 		});
 
-		describe('bind', () => {
-			it('should be okay with empty params', () => dapp.bind());
+		describe('bind', async () => {
+			it('should be okay with empty params', async () => dapp.bind());
 		});
 
-		describe('calculateFee', () => {
-			it('should return FEES.DAPP_REGISTRATION', () => expect(
-					dapp.calculateFee(transaction).isEqualTo(FEES.DAPP_REGISTRATION)
-				).to.be.true);
+		describe('calculateFee', async () => {
+			it('should return FEES.DAPP_REGISTRATION', async () =>
+				expect(dapp.calculateFee(transaction).isEqualTo(FEES.DAPP_REGISTRATION))
+					.to.be.true);
 		});
 
-		describe('verify', () => {
-			describe('with invalid transaction', () => {
-				describe('when receipientId exists', () => {
+		describe('verify', async () => {
+			describe('with invalid transaction', async () => {
+				describe('when receipientId exists', async () => {
 					it('should call callback with error = "Invalid recipient"', done => {
 						transaction.recipientId = '4835566122337813671L';
 
@@ -113,7 +117,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when amount is not equal to 0', () => {
+				describe('when amount is not equal to 0', async () => {
 					it('should call callback with error = "Invalid transaction amount"', done => {
 						transaction.amount = 1;
 
@@ -124,7 +128,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp category is undefined', () => {
+				describe('when dapp category is undefined', async () => {
 					it('should call callback with error "Invalid application category"', done => {
 						transaction.asset.dapp.category = undefined;
 
@@ -135,7 +139,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp category not found', () => {
+				describe('when dapp category not found', async () => {
 					it('should call callback with error "Application category not found"', done => {
 						transaction.asset.dapp.category = 9;
 
@@ -146,7 +150,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp icon is not link', () => {
+				describe('when dapp icon is not link', async () => {
 					it('should call callback with error = "Invalid application icon link"', done => {
 						transaction.asset.dapp.icon = 'random string';
 
@@ -157,7 +161,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp icon link is invalid', () => {
+				describe('when dapp icon link is invalid', async () => {
 					it('should call callback with error = "Invalid application icon file type"', done => {
 						transaction.asset.dapp.icon =
 							'https://www.youtube.com/watch?v=de1-igivvda';
@@ -169,7 +173,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp type is invalid', () => {
+				describe('when dapp type is invalid', async () => {
 					it('should call callback with error = "Invalid application type"', done => {
 						transaction.asset.dapp.type = -1;
 
@@ -180,7 +184,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp link is not in a valid url format', () => {
+				describe('when dapp link is not in a valid url format', async () => {
 					it('should call callback with error = "Invalid application link"', done => {
 						transaction.asset.dapp.link = 'random string';
 
@@ -191,7 +195,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp link is invalid', () => {
+				describe('when dapp link is invalid', async () => {
 					it('should call callback with error = "Invalid application file type"', done => {
 						transaction.asset.dapp.link =
 							'https://www.youtube.com/watch?v=de1-igivvda';
@@ -203,7 +207,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp name is blank', () => {
+				describe('when dapp name is blank', async () => {
 					it('should call callback with error = "Application name must not be blank"', done => {
 						transaction.asset.dapp.name = '  ';
 
@@ -214,7 +218,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp name starts and ends with space', () => {
+				describe('when dapp name starts and ends with space', async () => {
 					it('should call callback with error = "Application name must not be blank"', done => {
 						transaction.asset.dapp.name = ' randomname ';
 
@@ -225,7 +229,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp name is longer than 32 characters', () => {
+				describe('when dapp name is longer than 32 characters', async () => {
 					it('should call callback with error = "Application name is too long. Maximum is 32 characters"', done => {
 						transaction.asset.dapp.name = Array(...Array(33))
 							.map(() => 'a')
@@ -240,7 +244,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp description is longer than 160 characters', () => {
+				describe('when dapp description is longer than 160 characters', async () => {
 					it('should call callback with error = "Application description is too long. Maximum is 160 characters"', done => {
 						transaction.asset.dapp.description = Array(...Array(161))
 							.map(() => 'a')
@@ -255,7 +259,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp tags are longer than 160 characters', () => {
+				describe('when dapp tags are longer than 160 characters', async () => {
 					it('should call callback with error = "Application tags is too long. Maximum is 160 characters"', done => {
 						transaction.asset.dapp.tags = Array(...Array(161))
 							.map(() => 'a')
@@ -270,7 +274,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dapp tags duplicate', () => {
+				describe('when dapp tags duplicate', async () => {
 					it('should call callback with error = "Encountered duplicate tag: a in application"', done => {
 						transaction.asset.dapp.tags = Array(...Array(3))
 							.map(() => 'a')
@@ -285,7 +289,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dbStub rejects proimse', () => {
+				describe('when dbStub rejects proimse', async () => {
 					const dbError = new Error();
 
 					it('should call callback with error = "DApp#verify error"', done => {
@@ -304,7 +308,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('when dbStub resolves with application', () => {
+				describe('when dbStub resolves with application', async () => {
 					let dappParams;
 
 					beforeEach(done => {
@@ -389,7 +393,7 @@ describe('dapp', () => {
 				});
 			});
 
-			describe('when transaction is valid', () => {
+			describe('when transaction is valid', async () => {
 				let dappParams;
 				beforeEach(() => {
 					dappParams = [
@@ -420,7 +424,7 @@ describe('dapp', () => {
 				});
 
 				it('should call storageStub.entities.Transaction.get with correct params', done => {
-					dapp.verify(transaction, sender, () => {
+					dapp.verify(transaction, sender, async () => {
 						expect(storageStub.entities.Transaction.get.calledOnce).to.equal(
 							true
 						);
@@ -445,54 +449,60 @@ describe('dapp', () => {
 			});
 		});
 
-		describe('process', () => {
-			describe('with valid transaction', () => {
+		describe('process', async () => {
+			describe('with valid transaction', async () => {
 				it('should call the callback with error = null', done => {
 					dapp.process(transaction, sender, done);
 				});
 			});
 		});
 
-		describe('getBytes', () => {
-			describe('when transaction.asset.dapp = undefined', () => {
+		describe('getBytes', async () => {
+			describe('when transaction.asset.dapp = undefined', async () => {
 				beforeEach(done => {
 					transaction.asset.dapp = undefined;
 					done();
 				});
 
-				it('should throw', () => expect(dapp.getBytes.bind(null, transaction)).to.throw());
+				it('should throw', async () =>
+					expect(dapp.getBytes.bind(null, transaction)).to.throw());
 			});
 
-			describe('when transaction.asset.dapp.category = undefined', () => {
+			describe('when transaction.asset.dapp.category = undefined', async () => {
 				beforeEach(done => {
 					transaction.asset.dapp.category = undefined;
 					done();
 				});
 
-				it('should throw', () => expect(dapp.getBytes.bind(null, transaction)).to.throw());
+				it('should throw', async () =>
+					expect(dapp.getBytes.bind(null, transaction)).to.throw());
 			});
 
-			describe('when transaction.asset.dapp.type = undefined', () => {
+			describe('when transaction.asset.dapp.type = undefined', async () => {
 				beforeEach(done => {
 					transaction.asset.dapp.type = undefined;
 					done();
 				});
 
-				it('should throw', () => expect(dapp.getBytes.bind(null, transaction)).to.throw());
+				it('should throw', async () =>
+					expect(dapp.getBytes.bind(null, transaction)).to.throw());
 			});
 
-			describe('when transaction.asset.dapp is a valid asset', () => {
-				it('should not throw', () => expect(dapp.getBytes.bind(null, transaction)).not.to.throw());
+			describe('when transaction.asset.dapp is a valid asset', async () => {
+				it('should not throw', async () =>
+					expect(dapp.getBytes.bind(null, transaction)).not.to.throw());
 
-				it('should get bytes of valid transaction', () => expect(dapp.getBytes(transaction).toString('hex')).to.equal(
+				it('should get bytes of valid transaction', async () =>
+					expect(dapp.getBytes(transaction).toString('hex')).to.equal(
 						'414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000'
 					));
 
-				it('should return result as a Buffer type', () => expect(dapp.getBytes(transaction)).to.be.instanceOf(Buffer));
+				it('should return result as a Buffer type', async () =>
+					expect(dapp.getBytes(transaction)).to.be.instanceOf(Buffer));
 			});
 		});
 
-		describe('applyConfirmed', () => {
+		describe('applyConfirmed', async () => {
 			const dummyBlock = {
 				id: '9314232245035524467',
 				height: 1,
@@ -508,22 +518,22 @@ describe('dapp', () => {
 			});
 
 			it('should update private unconfirmed name variable', done => {
-				dapp.applyConfirmed(transaction, dummyBlock, sender, () => {
+				dapp.applyConfirmed(transaction, dummyBlock, sender, async () => {
 					expect(unconfirmedNames[transaction.asset.dapp.name]).to.not.exist;
 					done();
 				});
 			});
 
 			it('should update private unconfirmed links variable', done => {
-				dapp.applyConfirmed(transaction, dummyBlock, sender, () => {
+				dapp.applyConfirmed(transaction, dummyBlock, sender, async () => {
 					expect(unconfirmedLinks[transaction.asset.dapp.link]).to.not.exist;
 					done();
 				});
 			});
 		});
 
-		describe('undoConfirmed', () => {
-			describe('with vaid parameters', () => {
+		describe('undoConfirmed', async () => {
+			describe('with vaid parameters', async () => {
 				const dummyBlock = {
 					id: '9314232245035524467',
 					height: 1,
@@ -535,8 +545,8 @@ describe('dapp', () => {
 			});
 		});
 
-		describe('applyUnconfirmed', () => {
-			describe('when unconfirmed names already exists', () => {
+		describe('applyUnconfirmed', async () => {
+			describe('when unconfirmed names already exists', async () => {
 				beforeEach(() => {
 					const dappNames = {};
 					dappNames[transaction.asset.dapp.name] = true;
@@ -552,7 +562,7 @@ describe('dapp', () => {
 				});
 			});
 
-			describe('when unconfirmed link already exists', () => {
+			describe('when unconfirmed link already exists', async () => {
 				beforeEach(() => {
 					const dappLinks = {};
 					dappLinks[transaction.asset.dapp.link] = true;
@@ -568,7 +578,7 @@ describe('dapp', () => {
 				});
 			});
 
-			describe('when unconfirmed dapp does not exist', () => {
+			describe('when unconfirmed dapp does not exist', async () => {
 				let unconfirmedNames;
 				let unconfirmedLinks;
 
@@ -583,7 +593,7 @@ describe('dapp', () => {
 				});
 
 				it('should update unconfirmed name private variable', done => {
-					dapp.applyUnconfirmed(transaction, sender, () => {
+					dapp.applyUnconfirmed(transaction, sender, async () => {
 						expect(unconfirmedNames[transaction.asset.dapp.name]).to.equal(
 							true
 						);
@@ -592,7 +602,7 @@ describe('dapp', () => {
 				});
 
 				it('should update unconfirmed link private variable', done => {
-					dapp.applyUnconfirmed(transaction, sender, () => {
+					dapp.applyUnconfirmed(transaction, sender, async () => {
 						expect(unconfirmedLinks[transaction.asset.dapp.link]).to.equal(
 							true
 						);
@@ -601,14 +611,14 @@ describe('dapp', () => {
 				});
 
 				it('should call callback with error = undefined', done => {
-					dapp.applyUnconfirmed(transaction, sender, () => {
+					dapp.applyUnconfirmed(transaction, sender, async () => {
 						done();
 					});
 				});
 			});
 		});
 
-		describe('undoUnconfirmed', () => {
+		describe('undoUnconfirmed', async () => {
 			let unconfirmedNames;
 			let unconfirmedLinks;
 
@@ -623,28 +633,28 @@ describe('dapp', () => {
 			});
 
 			it('should delete unconfirmed name private variable', done => {
-				dapp.undoUnconfirmed(transaction, sender, () => {
+				dapp.undoUnconfirmed(transaction, sender, async () => {
 					expect(unconfirmedNames[transaction.asset.dapp.name]).not.exist;
 					done();
 				});
 			});
 
 			it('should delete unconfirmed link private variable', done => {
-				dapp.undoUnconfirmed(transaction, sender, () => {
+				dapp.undoUnconfirmed(transaction, sender, async () => {
 					expect(unconfirmedLinks[transaction.asset.dapp.link]).not.exist;
 					done();
 				});
 			});
 
 			it('should call callback with error = undefined', done => {
-				dapp.undoUnconfirmed(transaction, sender, () => {
+				dapp.undoUnconfirmed(transaction, sender, async () => {
 					done();
 				});
 			});
 		});
 
-		describe('objectNormalize', () => {
-			describe('using undefined properties in the dapp asset', () => {
+		describe('objectNormalize', async () => {
+			describe('using undefined properties in the dapp asset', async () => {
 				const invalidProperties = {
 					dummyUndefinedProperty: undefined,
 					dummpyNullProperty: null,
@@ -658,20 +668,20 @@ describe('dapp', () => {
 					done();
 				});
 
-				it('should remove undefined properties', () => {
+				it('should remove undefined properties', async () => {
 					transaction = dapp.objectNormalize(transaction);
 					return expect(transaction).to.not.have.property(
 						'dummyUndefinedProperty'
 					);
 				});
 
-				it('should remove null properties', () => {
+				it('should remove null properties', async () => {
 					transaction = dapp.objectNormalize(transaction);
 					return expect(transaction).to.not.have.property('dummpyNullProperty');
 				});
 			});
 
-			describe('schema properties', () => {
+			describe('schema properties', async () => {
 				let library;
 				let schemaSpy;
 
@@ -683,7 +693,7 @@ describe('dapp', () => {
 
 				afterEach(() => schemaSpy.restore());
 
-				it('should use the correct format to validate against', () => {
+				it('should use the correct format to validate against', async () => {
 					dapp.objectNormalize(transaction);
 					expect(schemaSpy.calledOnce).to.equal(true);
 					return expect(
@@ -695,8 +705,8 @@ describe('dapp', () => {
 				});
 			});
 
-			describe('dynamic schema tests', () => {
-				describe('category', () => {
+			describe('dynamic schema tests', async () => {
+				describe('category', async () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
@@ -710,7 +720,7 @@ describe('dapp', () => {
 					const validCategories = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
 					invalidTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.category = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -723,7 +733,7 @@ describe('dapp', () => {
 					});
 
 					otherTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.category = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -732,7 +742,7 @@ describe('dapp', () => {
 					});
 
 					invalidCategoriesNumber.forEach(input => {
-						it(`should throw error for value: ${input}`, () => {
+						it(`should throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.category = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -741,14 +751,14 @@ describe('dapp', () => {
 					});
 
 					validCategories.forEach(input => {
-						it(`should not throw error for valid value: ${input}`, () => {
+						it(`should not throw error for valid value: ${input}`, async () => {
 							transaction.asset.dapp.category = input;
 							return dapp.objectNormalize(transaction);
 						});
 					});
 				});
 
-				describe('name', () => {
+				describe('name', async () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -762,10 +772,12 @@ describe('dapp', () => {
 						_.fill(new Array(33), 'a'),
 						_.fill(new Array(34), 'b'),
 					];
-					const validNames = _.fill(new Array(5), 'a').map(() => randomUtil.applicationName());
+					const validNames = _.fill(new Array(5), 'a').map(() =>
+						randomUtil.applicationName()
+					);
 
 					invalidTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.name = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -778,7 +790,7 @@ describe('dapp', () => {
 					});
 
 					otherTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.name = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -787,7 +799,7 @@ describe('dapp', () => {
 					});
 
 					invalidNames.forEach(input => {
-						it(`should throw error for value: ${input}`, () => {
+						it(`should throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.name = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -796,7 +808,7 @@ describe('dapp', () => {
 					});
 
 					validNames.forEach(input => {
-						it(`should not throw error for value: ${input}`, () => {
+						it(`should not throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.name = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -805,7 +817,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('description', () => {
+				describe('description', async () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -816,10 +828,12 @@ describe('dapp', () => {
 						_.fill(new Array(161), 'a'),
 						_.fill(new Array(162), 'b'),
 					];
-					const validDescriptions = _.fill(new Array(33), 'a').map(() => randomstring.generate(Math.random() * 160));
+					const validDescriptions = _.fill(new Array(33), 'a').map(() =>
+						randomstring.generate(Math.random() * 160)
+					);
 
 					invalidTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.description = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -832,7 +846,7 @@ describe('dapp', () => {
 					});
 
 					invalidDescriptions.forEach(input => {
-						it(`should throw error for value: ${input}`, () => {
+						it(`should throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.description = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -841,7 +855,7 @@ describe('dapp', () => {
 					});
 
 					validDescriptions.forEach(input => {
-						it(`should not throw error for value: ${input}`, () => {
+						it(`should not throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.description = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -850,7 +864,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('tags', () => {
+				describe('tags', async () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -871,7 +885,7 @@ describe('dapp', () => {
 					];
 
 					invalidTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.tags = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -884,7 +898,7 @@ describe('dapp', () => {
 					});
 
 					invalidTags.forEach(input => {
-						it(`should throw error for value: ${input}`, () => {
+						it(`should throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.tags = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -893,7 +907,7 @@ describe('dapp', () => {
 					});
 
 					validTags.forEach(input => {
-						it(`should not throw error for value: ${input}`, () => {
+						it(`should not throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.tags = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -902,7 +916,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('type', () => {
+				describe('type', async () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
@@ -918,7 +932,7 @@ describe('dapp', () => {
 						_.map(typeRepresentatives.positiveIntegers, 'input')
 					);
 					invalidTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.type = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -931,7 +945,7 @@ describe('dapp', () => {
 					});
 
 					otherTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.type = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -940,7 +954,7 @@ describe('dapp', () => {
 					});
 
 					invalidTypes.forEach(input => {
-						it(`should throw error for value: ${input}`, () => {
+						it(`should throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.type = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -949,7 +963,7 @@ describe('dapp', () => {
 					});
 
 					validTypes.forEach(input => {
-						it(`should not throw error for value: ${input}`, () => {
+						it(`should not throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.type = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -958,7 +972,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('link', () => {
+				describe('link', async () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -971,10 +985,12 @@ describe('dapp', () => {
 						_.fill(new Array(2002), 'a'),
 						_.fill(new Array(2001), 'a'),
 					];
-					const validLinks = _.fill(new Array(5), '').map(() => randomUtil.applicationName());
+					const validLinks = _.fill(new Array(5), '').map(() =>
+						randomUtil.applicationName()
+					);
 
 					invalidTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.link = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -987,7 +1003,7 @@ describe('dapp', () => {
 					});
 
 					invalidLinks.forEach(input => {
-						it(`should throw error for value: ${input}`, () => {
+						it(`should throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.link = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -996,7 +1012,7 @@ describe('dapp', () => {
 					});
 
 					validLinks.forEach(input => {
-						it(`should not throw error for value: ${input}`, () => {
+						it(`should not throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.link = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -1005,7 +1021,7 @@ describe('dapp', () => {
 					});
 				});
 
-				describe('icon', () => {
+				describe('icon', async () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -1018,10 +1034,12 @@ describe('dapp', () => {
 						_.fill(new Array(2002), 'a'),
 						_.fill(new Array(2001), 'a'),
 					];
-					const validIcons = _.fill(new Array(5), '').map(() => randomUtil.applicationName());
+					const validIcons = _.fill(new Array(5), '').map(() =>
+						randomUtil.applicationName()
+					);
 
 					invalidTypes.forEach(type => {
-						it(`should throw error for: ${type.description}`, () => {
+						it(`should throw error for: ${type.description}`, async () => {
 							transaction.asset.dapp.icon = type.input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -1034,7 +1052,7 @@ describe('dapp', () => {
 					});
 
 					invalidIcons.forEach(input => {
-						it(`should throw error for value: ${input}`, () => {
+						it(`should throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.icon = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -1043,7 +1061,7 @@ describe('dapp', () => {
 					});
 
 					validIcons.forEach(input => {
-						it(`should not throw error for value: ${input}`, () => {
+						it(`should not throw error for value: ${input}`, async () => {
 							transaction.asset.dapp.icon = input;
 							return expect(
 								dapp.objectNormalize.bind(null, transaction)
@@ -1053,59 +1071,70 @@ describe('dapp', () => {
 				});
 			});
 
-			it('should return transaction when asset is valid', () => expect(dapp.objectNormalize(transaction)).to.eql(transaction));
+			it('should return transaction when asset is valid', async () =>
+				expect(dapp.objectNormalize(transaction)).to.eql(transaction));
 		});
 
-		describe('dbRead', () => {
-			describe('when rawTransaction.dapp_name does not exist', () => {
-				beforeEach(() => delete rawTransaction.dapp_name);
+		describe('dbRead', async () => {
+			describe('when rawTransaction.dapp_name does not exist', async () => {
+				beforeEach(async () => delete rawTransaction.dapp_name);
 
-				it('should return null', () => expect(dapp.dbRead(rawTransaction)).to.eql(null));
+				it('should return null', async () =>
+					expect(dapp.dbRead(rawTransaction)).to.eql(null));
 			});
 
-			describe('when rawTransaction.dapp_name exists', () => {
-				it('should return result containing dapp property', () => expect(dapp.dbRead(rawTransaction)).to.have.property('dapp'));
+			describe('when rawTransaction.dapp_name exists', async () => {
+				it('should return result containing dapp property', async () =>
+					expect(dapp.dbRead(rawTransaction)).to.have.property('dapp'));
 
-				it('should return result containing nested dapp_category property', () => expect(dapp.dbRead(rawTransaction))
+				it('should return result containing nested dapp_category property', async () =>
+					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.category')
 						.to.equal(rawTransaction.dapp_category));
 
-				it('should return result containing nested dapp_description property', () => expect(dapp.dbRead(rawTransaction))
+				it('should return result containing nested dapp_description property', async () =>
+					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.description')
 						.to.eql(rawTransaction.dapp_description));
 
-				it('should return result containing nested dapp.icon property', () => expect(dapp.dbRead(rawTransaction))
+				it('should return result containing nested dapp.icon property', async () =>
+					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.icon')
 						.to.eql(rawTransaction.dapp_icon));
 
-				it('should return result containing nested dapp.link property', () => expect(dapp.dbRead(rawTransaction))
+				it('should return result containing nested dapp.link property', async () =>
+					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.link')
 						.to.eql(rawTransaction.dapp_link));
 
-				it('should return result containing nested dapp.name property', () => expect(dapp.dbRead(rawTransaction))
+				it('should return result containing nested dapp.name property', async () =>
+					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.name')
 						.to.eql(rawTransaction.dapp_name));
 
-				it('should return result containing nested dapp.tags property', () => expect(dapp.dbRead(rawTransaction))
+				it('should return result containing nested dapp.tags property', async () =>
+					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.tags')
 						.to.eql(rawTransaction.dapp_tags));
 
-				it('should return result containing nested dapp.type property', () => expect(dapp.dbRead(rawTransaction))
+				it('should return result containing nested dapp.type property', async () =>
+					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.type')
 						.to.eql(rawTransaction.dapp_type));
 			});
 		});
 
-		describe('ready', () => {
-			it('should return true for single signature transaction', () => expect(dapp.ready(transaction, sender)).to.equal(true));
+		describe('ready', async () => {
+			it('should return true for single signature transaction', async () =>
+				expect(dapp.ready(transaction, sender)).to.equal(true));
 
-			it('should return false for multi signature transaction with less signatures', () => {
+			it('should return false for multi signature transaction with less signatures', async () => {
 				sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 
 				return expect(dapp.ready(transaction, sender)).to.equal(false);
 			});
 
-			it('should return true for multi signature transaction with alteast min signatures', () => {
+			it('should return true for multi signature transaction with alteast min signatures', async () => {
 				sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 				sender.multiMin = 1;
 

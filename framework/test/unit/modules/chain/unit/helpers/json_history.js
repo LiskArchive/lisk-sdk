@@ -14,13 +14,13 @@
 
 'use strict';
 
-const JSONHistory = require('../../../helpers/json_history.js');
+const JSONHistory = require('../../../../../../src/modules/chain/helpers/json_history.js');
 
 const historyTitle = 'config history';
 let history;
 let loggerStub;
 
-describe('helpers/JSONHistory', () => {
+describe('helpers/JSONHistory', async () => {
 	beforeEach(() => {
 		loggerStub = {
 			info: sinonSandbox.stub(),
@@ -31,39 +31,47 @@ describe('helpers/JSONHistory', () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('constructor function', () => {
-		it('should be a constructor function', () => expect(JSONHistory).to.be.a('function'));
-		it('should accept two arguments', () => expect(JSONHistory.length).to.be.eql(2));
-		it('should return a history object', () => expect(history).to.be.an('object'));
+	describe('constructor function', async () => {
+		it('should be a constructor function', async () =>
+			expect(JSONHistory).to.be.a('function'));
+		it('should accept two arguments', async () =>
+			expect(JSONHistory.length).to.be.eql(2));
+		it('should return a history object', async () =>
+			expect(history).to.be.an('object'));
 	});
 
-	describe('history object', () => {
-		it('should assign title argument', () => expect(history.title).to.be.eql(historyTitle));
-		it('should assign logger argument', () => expect(history.logger).to.be.eql(loggerStub));
-		it('should expose a function version() accepting 2 arguments', () => {
+	describe('history object', async () => {
+		it('should assign title argument', async () =>
+			expect(history.title).to.be.eql(historyTitle));
+		it('should assign logger argument', async () =>
+			expect(history.logger).to.be.eql(loggerStub));
+		it('should expose a function version() accepting 2 arguments', async () => {
 			expect(history.version).to.be.a('function');
 			return expect(history.version.length).to.be.eql(2);
 		});
-		it('should expose a function migrate() accepting 4 arguments', () => {
+		it('should expose a function migrate() accepting 4 arguments', async () => {
 			expect(history.migrate).to.be.a('function');
 			return expect(history.migrate.length).to.be.eql(4);
 		});
-		it('should expose a function getVersions() accepting 0 arguments', () => {
+		it('should expose a function getVersions() accepting 0 arguments', async () => {
 			expect(history.getVersions).to.be.a('function');
 			return expect(history.getVersions.length).to.be.eql(0);
 		});
 
-		describe('history.version()', () => {
-			it('should be ok to call without callback', () => expect(() => history.version('1.1.0')).to.not.throw());
-			it('should throw error if called without version name', () => expect(() => history.version()).to.throw(
-					'Invalid version specified.'
-				));
-			it('should throw error if version is not valid semver', () => expect(() => history.version('nazar')).to.throw(
+		describe('history.version()', async () => {
+			it('should be ok to call without callback', async () =>
+				expect(() => history.version('1.1.0')).to.not.throw());
+			it('should throw error if called without version name', async () =>
+				expect(() => history.version()).to.throw('Invalid version specified.'));
+			it('should throw error if version is not valid semver', async () =>
+				expect(() => history.version('nazar')).to.throw(
 					'Invalid version or version range specified.'
 				));
-			it('should accept version with support wildcard version (0.9.x)', () => expect(() => history.version('0.9.x')).to.not.throw());
-			it('should accept version with support of range (>=0.9.0 <0.10.0)', () => expect(() => history.version('>=0.9.0 <0.10.0')).to.not.throw());
-			it('should throw error if called with duplicate version', () => {
+			it('should accept version with support wildcard version (0.9.x)', async () =>
+				expect(() => history.version('0.9.x')).to.not.throw());
+			it('should accept version with support of range (>=0.9.0 <0.10.0)', async () =>
+				expect(() => history.version('>=0.9.0 <0.10.0')).to.not.throw());
+			it('should throw error if called with duplicate version', async () => {
 				history.version('1.1.0');
 				return expect(() => history.version('1.1.0')).to.throw(
 					'Version 1.1.0 already declared.'
@@ -72,12 +80,12 @@ describe('helpers/JSONHistory', () => {
 			it('should add version to internal collection of versions', done => {
 				validVersionsExpectations(history, done);
 			});
-			it('should call the callback if given', () => {
+			it('should call the callback if given', async () => {
 				const spy = sinonSandbox.spy();
 				history.version('1.1.0', spy);
 				return expect(spy).to.be.calledOnce;
 			});
-			it('should pass "version" object to the callback as first argument', () => {
+			it('should pass "version" object to the callback as first argument', async () => {
 				const spy = sinonSandbox.spy();
 				history.version('1.1.0', spy);
 				const versionObject = spy.firstCall.args[0];
@@ -87,19 +95,19 @@ describe('helpers/JSONHistory', () => {
 			});
 		});
 
-		describe('history.getVersions()', () => {
+		describe('history.getVersions()', async () => {
 			it('should return list of declared versions', done => {
 				validVersionsExpectations(history, done);
 			});
 		});
 
-		describe('history.getChangeSet()', () => {
+		describe('history.getChangeSet()', async () => {
 			it('should return list of declared changes', done => {
 				validChangeSetExpectations(history, done);
 			});
 		});
 
-		describe('history.migrate()', () => {
+		describe('history.migrate()', async () => {
 			beforeEach('prepare history to migrate', done => {
 				history.version('1.0.0', version => {
 					version.change('add 1', config => {
@@ -127,14 +135,18 @@ describe('helpers/JSONHistory', () => {
 				done();
 			});
 
-			it('should throw error if called without json', () => expect(() => history.migrate()).to.throw(
+			it('should throw error if called without json', async () =>
+				expect(() => history.migrate()).to.throw(
 					'Invalid json object to migrate.'
 				));
-			it('should throw error if called without invalid json', () => expect(() => history.migrate('string')).to.throw(
+			it('should throw error if called without invalid json', async () =>
+				expect(() => history.migrate('string')).to.throw(
 					'Invalid json object to migrate.'
 				));
-			it('should be ok if called with empty json', () => expect(() => history.migrate({}, () => {})).to.not.throw());
-			it('should throw error if called without invalid start version', () => expect(() => history.migrate({}, 'nazar', () => {})).to.throw(
+			it('should be ok if called with empty json', async () =>
+				expect(() => history.migrate({}, async () => {})).to.not.throw());
+			it('should throw error if called without invalid start version', async () =>
+				expect(() => history.migrate({}, 'nazar', async () => {})).to.throw(
 					'Invalid start version specified to migrate.'
 				));
 			it('should return same config if called with valid non-existing start version', done => {
@@ -145,21 +157,25 @@ describe('helpers/JSONHistory', () => {
 				});
 			});
 			it('should print the message if called with valid non-existing start version', done => {
-				history.migrate({ config: 1 }, '5.0.0', () => {
+				history.migrate({ config: 1 }, '5.0.0', async () => {
 					expect(loggerStub.info).to.be.calledWithExactly(
 						'No migration found applicable from version "5.0.0"'
 					);
 					done();
 				});
 			});
-			it('should throw error if called without invalid end version', () => expect(() =>
-					history.migrate({}, '1.0.0', 'nazar', () => {})
+			it('should throw error if called without invalid end version', async () =>
+				expect(() =>
+					history.migrate({}, '1.0.0', 'nazar', async () => {})
 				).to.throw('Invalid end version specified to migrate.'));
-			it('should throw error if called without callback', () => expect(() => history.migrate({}, '1.0.0', '2.0.0')).to.throw(
+			it('should throw error if called without callback', async () =>
+				expect(() => history.migrate({}, '1.0.0', '2.0.0')).to.throw(
 					'Invalid callback specified to migrate.'
 				));
-			it('should be ok if called without start and end version', () => expect(() => history.migrate({}, () => {})).to.not.throw());
-			it('should be ok if called without end version', () => expect(() => history.migrate({}, () => {})).to.not.throw());
+			it('should be ok if called without start and end version', async () =>
+				expect(() => history.migrate({}, async () => {})).to.not.throw());
+			it('should be ok if called without end version', async () =>
+				expect(() => history.migrate({}, async () => {})).to.not.throw());
 			it('should provide any error as first argument of the callback', done => {
 				history.version('5.0.0', version => {
 					version.change('make an error here', (config, cb) => {
@@ -239,7 +255,7 @@ describe('helpers/JSONHistory', () => {
 		});
 	});
 
-	describe('version object', () => {
+	describe('version object', async () => {
 		it('should have a property version assigned as current version', done => {
 			history.version('1.1.0', version => {
 				expect(version.version).to.be.eql('1.1.0');
@@ -255,7 +271,7 @@ describe('helpers/JSONHistory', () => {
 			});
 		});
 
-		describe('version.change()', () => {
+		describe('version.change()', async () => {
 			it('should throw error if called without title', done => {
 				history.version('1.1.0', version => {
 					expect(() => version.change()).to.throw(
@@ -282,9 +298,9 @@ describe('helpers/JSONHistory', () => {
 			});
 			it('should throw error if called without callback without one argument', done => {
 				history.version('1.1.0', version => {
-					expect(() => version.change('a dummy change', () => {})).to.throw(
-						'Callback for the change accepts up-to two arguments.'
-					);
+					expect(() =>
+						version.change('a dummy change', async () => {})
+					).to.throw('Callback for the change accepts up-to two arguments.');
 					done();
 				});
 			});

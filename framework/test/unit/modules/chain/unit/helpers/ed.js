@@ -15,10 +15,10 @@
 'use strict';
 
 const crypto = require('crypto');
-const ed = require('../../../helpers/ed');
+const ed = require('../../../../../../src/modules/chain/helpers/ed');
 
-describe('ed', () => {
-	describe('makeKeypair', () => {
+describe('ed', async () => {
+	describe('makeKeypair', async () => {
 		let keys;
 
 		before(done => {
@@ -48,7 +48,7 @@ describe('ed', () => {
 		});
 	});
 
-	describe('sign', () => {
+	describe('sign', async () => {
 		let keys;
 		const messageToSign = {
 			field: 'value',
@@ -97,7 +97,7 @@ describe('ed', () => {
 		});
 	});
 
-	describe('verify', () => {
+	describe('verify', async () => {
 		let keys;
 		let signature;
 		const messageToSign = {
@@ -177,15 +177,15 @@ describe('ed', () => {
 		});
 	});
 
-	describe('hexToString', () => {
-		it('should throw error if the hex is not a string', () => {
+	describe('hexToString', async () => {
+		it('should throw error if the hex is not a string', async () => {
 			const buff = Buffer.from('ABC', 'utf8');
 			return expect(() => ed.hexToBuffer(buff)).to.throw(
 				'Argument must be a string.'
 			);
 		});
 
-		it('should throw error if the hex string has invalid characters', () => {
+		it('should throw error if the hex string has invalid characters', async () => {
 			const hex =
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6z';
 			return expect(() => ed.hexToBuffer(hex)).to.throw(
@@ -193,7 +193,7 @@ describe('ed', () => {
 			);
 		});
 
-		it('should throw error if the hex string has invalid number of characters', () => {
+		it('should throw error if the hex string has invalid number of characters', async () => {
 			const hex =
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f0';
 			return expect(() => ed.hexToBuffer(hex)).to.throw(
@@ -201,13 +201,13 @@ describe('ed', () => {
 			);
 		});
 
-		it('should return buffer for a valid hex string', () => {
+		it('should return buffer for a valid hex string', async () => {
 			const hex =
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f';
 			return expect(ed.hexToBuffer(hex)).to.be.an.instanceof(Buffer);
 		});
 
-		it('should return buffer for a valid hex string with capital letters', () => {
+		it('should return buffer for a valid hex string with capital letters', async () => {
 			const hex =
 				'C094EBEE7EC0C50EBEE32918655E089F6E1A604B83BCAA760293C61E0F18AB6F';
 			return expect(ed.hexToBuffer(hex)).to.be.an.instanceof(Buffer);

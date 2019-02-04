@@ -15,13 +15,15 @@
 'use strict';
 
 const rewire = require('rewire');
-const Bignum = require('../../../../helpers/bignum.js');
+const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum.js');
 
-const BlocksVerify = rewire('../../../../modules/blocks/verify.js');
+const BlocksVerify = rewire(
+	'../../../../../../../src/modules/chain/modules/blocks/verify.js'
+);
 
 const exceptions = global.exceptions;
 
-describe('blocks/verify', () => {
+describe('blocks/verify', async () => {
 	let library;
 	let __private;
 	let loggerStub;
@@ -137,8 +139,8 @@ describe('blocks/verify', () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('constructor', () => {
-		it('should assign params to library', () => {
+	describe('constructor', async () => {
+		it('should assign params to library', async () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.block).to.eql(logicBlockStub);
@@ -146,16 +148,17 @@ describe('blocks/verify', () => {
 			return expect(library.logic.transaction).to.eql(logicTransactionStub);
 		});
 
-		it('should initialize __private.blockReward', () => {
+		it('should initialize __private.blockReward', async () => {
 			expect(__private.blockReward).to.be.an('object');
 			return expect(__private.blockReward.calcReward).to.be.a('function');
 		});
 
-		it('should call library.logger.trace with "Blocks->Verify: Submodule initialized."', () => expect(loggerStub.trace.args[0][0]).to.equal(
+		it('should call library.logger.trace with "Blocks->Verify: Submodule initialized."', async () =>
+			expect(loggerStub.trace.args[0][0]).to.equal(
 				'Blocks->Verify: Submodule initialized.'
 			));
 
-		it('should return self', () => {
+		it('should return self', async () => {
 			expect(blocksVerifyModule).to.be.an('object');
 			expect(blocksVerifyModule.verifyReceipt).to.be.a('function');
 			expect(blocksVerifyModule.onBlockchainReady).to.be.a('function');
@@ -168,11 +171,11 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.checkTransaction', () => {
+	describe('__private.checkTransaction', async () => {
 		const dummyBlock = { id: '5', height: 5 };
 		const dummyTransaction = { id: '5', type: 0 };
 
-		describe('when library.logic.transaction.getId fails', () => {
+		describe('when library.logic.transaction.getId fails', async () => {
 			beforeEach(() => library.logic.transaction.getId.throws('getId-ERR'));
 
 			it('should call a callback with error', done => {
@@ -183,15 +186,13 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when library.logic.transaction.getId succeeds', () => {
+		describe('when library.logic.transaction.getId succeeds', async () => {
 			beforeEach(() => library.logic.transaction.getId.returns('4'));
 
-			describe('when modules.accounts.getAccount fails', () => {
-				beforeEach(() => modules.accounts.getAccount.callsArgWith(
-						1,
-						'getAccount-ERR',
-						null
-					));
+			describe('when modules.accounts.getAccount fails', async () => {
+				beforeEach(() =>
+					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
+				);
 
 				it('should call a callback with error', done => {
 					__private.checkTransaction(
@@ -206,11 +207,15 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when modules.accounts.getAccount succeeds', () => {
-				beforeEach(() => modules.accounts.getAccount.callsArgWith(1, null, true));
+			describe('when modules.accounts.getAccount succeeds', async () => {
+				beforeEach(() =>
+					modules.accounts.getAccount.callsArgWith(1, null, true)
+				);
 
-				describe('when library.logic.transaction.verify succeeds', () => {
-					beforeEach(() => library.logic.transaction.verify.callsArgWith(4, null, true));
+				describe('when library.logic.transaction.verify succeeds', async () => {
+					beforeEach(() =>
+						library.logic.transaction.verify.callsArgWith(4, null, true)
+					);
 
 					it('should call a callback with no error', done => {
 						__private.checkTransaction(
@@ -225,12 +230,10 @@ describe('blocks/verify', () => {
 					});
 				});
 
-				describe('when library.logic.transaction.verify fails', () => {
-					beforeEach(() => library.logic.transaction.verify.callsArgWith(
-							4,
-							'verify-ERR',
-							null
-						));
+				describe('when library.logic.transaction.verify fails', async () => {
+					beforeEach(() =>
+						library.logic.transaction.verify.callsArgWith(4, 'verify-ERR', null)
+					);
 
 					it('should call a callback with error', done => {
 						__private.checkTransaction(
@@ -244,7 +247,7 @@ describe('blocks/verify', () => {
 						);
 					});
 
-					describe('when failure is related to fork 2', () => {
+					describe('when failure is related to fork 2', async () => {
 						beforeEach(() => {
 							library.logic.transaction.verify.callsArgWith(
 								4,
@@ -299,7 +302,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.setHeight', () => {
+	describe('__private.setHeight', async () => {
 		const dummyBlock = {
 			id: '6',
 			height: 4,
@@ -309,22 +312,21 @@ describe('blocks/verify', () => {
 			height: 5,
 		};
 
-		it('should return block with increased height based on last block', () => expect(
-				__private.setHeight(dummyBlock, dummyLastBlock)
-			).to.deep.equal({
+		it('should return block with increased height based on last block', async () =>
+			expect(__private.setHeight(dummyBlock, dummyLastBlock)).to.deep.equal({
 				id: '6',
 				height: 6,
 			}));
 	});
 
-	describe('__private.verifySignature', () => {
-		describe('when library.logic.block.verifySignature fails', () => {
-			describe('if throws error', () => {
-				beforeEach(() => library.logic.block.verifySignature.throws(
-						'verifySignature-ERR'
-					));
+	describe('__private.verifySignature', async () => {
+		describe('when library.logic.block.verifySignature fails', async () => {
+			describe('if throws error', async () => {
+				beforeEach(() =>
+					library.logic.block.verifySignature.throws('verifySignature-ERR')
+				);
 
-				it('should return error', () => {
+				it('should return error', async () => {
 					const verifySignature = __private.verifySignature(
 						{ id: 6 },
 						{ errors: [] }
@@ -336,10 +338,10 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if is not valid', () => {
+			describe('if is not valid', async () => {
 				beforeEach(() => library.logic.block.verifySignature.returns(false));
 
-				it('should return error', () => {
+				it('should return error', async () => {
 					const verifySignature = __private.verifySignature(
 						{ id: 6 },
 						{ errors: [] }
@@ -351,10 +353,10 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when library.logic.block.verifySignature succeeds', () => {
+		describe('when library.logic.block.verifySignature succeeds', async () => {
 			beforeEach(() => library.logic.block.verifySignature.returns(true));
 
-			it('should return no error', () => {
+			it('should return no error', async () => {
 				const verifySignature = __private.verifySignature(
 					{ id: 6 },
 					{ errors: [] }
@@ -364,9 +366,9 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('when __private.verifyPreviousBlock fails', () => {
-		describe('if block.previousBlock is not defined and height != 1', () => {
-			it('should return error', () => {
+	describe('when __private.verifyPreviousBlock fails', async () => {
+		describe('if block.previousBlock is not defined and height != 1', async () => {
+			it('should return error', async () => {
 				const verifyPreviousBlock = __private.verifyPreviousBlock(
 					{ id: 6, height: 3 },
 					{ errors: [] }
@@ -378,9 +380,9 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('when __private.verifyPreviousBlock succeeds', () => {
-		describe('if block.previousBlock is not defined and height = 1', () => {
-			it('should return no error', () => {
+	describe('when __private.verifyPreviousBlock succeeds', async () => {
+		describe('if block.previousBlock is not defined and height = 1', async () => {
+			it('should return no error', async () => {
 				const verifyPreviousBlock = __private.verifyPreviousBlock(
 					{ id: 6, height: 1 },
 					{ errors: [] }
@@ -389,8 +391,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('if block.previousBlock is defined and block.height != 1', () => {
-			it('should return no error', () => {
+		describe('if block.previousBlock is defined and block.height != 1', async () => {
+			it('should return no error', async () => {
 				const verifyPreviousBlock = __private.verifyPreviousBlock(
 					{ id: 6, previousBlock: 5, height: 3 },
 					{ errors: [] }
@@ -399,8 +401,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('if block.previousBlock is defined and block.height = 1', () => {
-			it('should return no error', () => {
+		describe('if block.previousBlock is defined and block.height = 1', async () => {
+			it('should return no error', async () => {
 				const verifyPreviousBlock = __private.verifyPreviousBlock(
 					{ id: 6, previousBlock: 5, height: 1 },
 					{ errors: [] }
@@ -410,7 +412,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyAgainstLastNBlockIds', () => {
+	describe('__private.verifyAgainstLastNBlockIds', async () => {
 		let lastNBlockIdsTemp;
 
 		beforeEach(done => {
@@ -424,7 +426,7 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		it('should return error when block is in list', () => {
+		it('should return error when block is in list', async () => {
 			const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
 				{ id: 3 },
 				{ errors: [] }
@@ -434,7 +436,7 @@ describe('blocks/verify', () => {
 			);
 		});
 
-		it('should return no error when block is not in list', () => {
+		it('should return no error when block is not in list', async () => {
 			const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
 				{ id: 5 },
 				{ errors: [] }
@@ -443,12 +445,12 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyVersion', () => {
+	describe('__private.verifyVersion', async () => {
 		let verifyVersion;
 
-		describe('when there are no exceptions for block versions', () => {
-			describe('when block height provided', () => {
-				it('should return no error when block version = 1', () => {
+		describe('when there are no exceptions for block versions', async () => {
+			describe('when block height provided', async () => {
+				it('should return no error when block version = 1', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 1, height: 1 },
 						{ errors: [] }
@@ -456,7 +458,7 @@ describe('blocks/verify', () => {
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
-				it('should return error when block version = 0', () => {
+				it('should return error when block version = 0', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 0, height: 1 },
 						{ errors: [] }
@@ -466,7 +468,7 @@ describe('blocks/verify', () => {
 					);
 				});
 
-				it('should return error when block version 2', () => {
+				it('should return error when block version 2', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 2, height: 1 },
 						{ errors: [] }
@@ -477,8 +479,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when block height is missing', () => {
-				it('should return no error when block version = 1', () => {
+			describe('when block height is missing', async () => {
+				it('should return no error when block version = 1', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 1 },
 						{ errors: [] }
@@ -486,7 +488,7 @@ describe('blocks/verify', () => {
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
-				it('should return error when block version = 2', () => {
+				it('should return error when block version = 2', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 2 },
 						{ errors: [] }
@@ -496,7 +498,7 @@ describe('blocks/verify', () => {
 					);
 				});
 
-				it('should return error when block version = 3', () => {
+				it('should return error when block version = 3', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 3 },
 						{ errors: [] }
@@ -508,7 +510,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when there are proper exceptions set for block versions', () => {
+		describe('when there are proper exceptions set for block versions', async () => {
 			before(done => {
 				// Set proper exceptions for blocks versions
 				exceptions.blockVersions = {
@@ -523,8 +525,8 @@ describe('blocks/verify', () => {
 				done();
 			});
 
-			describe('when block height provided', () => {
-				it('should return no error when block version = 0', () => {
+			describe('when block height provided', async () => {
+				it('should return no error when block version = 0', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 0, height: 1 },
 						{ errors: [] }
@@ -532,7 +534,7 @@ describe('blocks/verify', () => {
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
-				it('should return error when block version = 1', () => {
+				it('should return error when block version = 1', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 1, height: 1 },
 						{ errors: [] }
@@ -542,7 +544,7 @@ describe('blocks/verify', () => {
 					);
 				});
 
-				it('should return error when block version = 2', () => {
+				it('should return error when block version = 2', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 2, height: 1 },
 						{ errors: [] }
@@ -553,8 +555,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when block height is missing', () => {
-				it('should return no error when block version = 1', () => {
+			describe('when block height is missing', async () => {
+				it('should return no error when block version = 1', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 1 },
 						{ errors: [] }
@@ -562,7 +564,7 @@ describe('blocks/verify', () => {
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
-				it('should return error when block version = 2', () => {
+				it('should return error when block version = 2', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 2 },
 						{ errors: [] }
@@ -572,7 +574,7 @@ describe('blocks/verify', () => {
 					);
 				});
 
-				it('should return error when block version = 3', () => {
+				it('should return error when block version = 3', async () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 3 },
 						{ errors: [] }
@@ -585,7 +587,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyReward', () => {
+	describe('__private.verifyReward', async () => {
 		let verifyReward;
 		let blockRewardTemp;
 		let exceptionsTemp;
@@ -608,11 +610,11 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when __private.blockReward.calcReward succeeds', () => {
+		describe('when __private.blockReward.calcReward succeeds', async () => {
 			beforeEach(() => __private.blockReward.calcReward.returns(new Bignum(5)));
 
-			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
-				it('should return error', () => {
+			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', async () => {
+				it('should return error', async () => {
 					verifyReward = __private.verifyReward(
 						{ height: 5, reward: 1, id: 5 },
 						{ errors: [] }
@@ -623,8 +625,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
-				it('should return no error', () => {
+			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) != -1', async () => {
+				it('should return no error', async () => {
 					verifyReward = __private.verifyReward(
 						{ height: 5, reward: 1, id: 3 },
 						{ errors: [] }
@@ -633,8 +635,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if block.height != 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
-				it('should return no error', () => {
+			describe('if block.height != 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) = -1', async () => {
+				it('should return no error', async () => {
 					verifyReward = __private.verifyReward(
 						{ height: 5, reward: 5, id: 3 },
 						{ errors: [] }
@@ -643,8 +645,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if block.height != 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
-				it('should return no error', () => {
+			describe('if block.height != 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) != -1', async () => {
+				it('should return no error', async () => {
 					verifyReward = __private.verifyReward(
 						{ height: 5, reward: 5, id: 5 },
 						{ errors: [] }
@@ -653,8 +655,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if block.height = 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
-				it('should return no error', () => {
+			describe('if block.height = 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', async () => {
+				it('should return no error', async () => {
 					verifyReward = __private.verifyReward(
 						{ height: 1, reward: 1, id: 5 },
 						{ errors: [] }
@@ -663,8 +665,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if block.height = 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
-				it('should return no error', () => {
+			describe('if block.height = 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) != -1', async () => {
+				it('should return no error', async () => {
 					verifyReward = __private.verifyReward(
 						{ height: 1, reward: 1, id: 3 },
 						{ errors: [] }
@@ -673,8 +675,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if block.height = 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
-				it('should return no error', () => {
+			describe('if block.height = 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) = -1', async () => {
+				it('should return no error', async () => {
 					verifyReward = __private.verifyReward(
 						{ height: 1, reward: 5, id: 5 },
 						{ errors: [] }
@@ -683,8 +685,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if block.height = 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
-				it('should return no error', () => {
+			describe('if block.height = 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) != -1', async () => {
+				it('should return no error', async () => {
 					verifyReward = __private.verifyReward(
 						{ height: 1, reward: 5, id: 3 },
 						{ errors: [] }
@@ -695,11 +697,11 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyId', () => {
+	describe('__private.verifyId', async () => {
 		let verifyId;
 
-		describe('when block = undefined', () => {
-			it('should return error', () => {
+		describe('when block = undefined', async () => {
+			it('should return error', async () => {
 				verifyId = __private.verifyId(undefined, { errors: [] });
 				return expect(verifyId.errors[0]).to.equal(
 					"TypeError: Cannot set property 'id' of undefined"
@@ -707,26 +709,26 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when library.logic.block.getId fails', () => {
+		describe('when library.logic.block.getId fails', async () => {
 			beforeEach(() => library.logic.block.getId.throws('getId-ERR'));
 
-			it('should return error', () => {
+			it('should return error', async () => {
 				verifyId = __private.verifyId({ id: 5 }, { errors: [] });
 				return expect(verifyId.errors[0]).to.equal('getId-ERR');
 			});
 		});
 
-		describe('when library.logic.block.getId succeeds', () => {
+		describe('when library.logic.block.getId succeeds', async () => {
 			beforeEach(() => library.logic.block.getId.returns(5));
 
-			it('should return no error', () => {
+			it('should return no error', async () => {
 				verifyId = __private.verifyId({ id: 5 }, { errors: [] });
 				return expect(verifyId.errors.length).to.equal(0);
 			});
 		});
 	});
 
-	describe('__private.verifyPayload', () => {
+	describe('__private.verifyPayload', async () => {
 		let verifyPayload;
 		const dummyBlock = {
 			payloadLength: 2,
@@ -749,13 +751,15 @@ describe('blocks/verify', () => {
 			],
 		};
 
-		describe('when __private.verifyPayload fails', () => {
-			afterEach(() => expect(verifyPayload.errors)
+		describe('when __private.verifyPayload fails', async () => {
+			afterEach(() =>
+				expect(verifyPayload.errors)
 					.to.be.an('array')
-					.with.lengthOf(1));
+					.with.lengthOf(1)
+			);
 
-			describe('when payload lenght is too long', () => {
-				it('should return error', () => {
+			describe('when payload lenght is too long', async () => {
+				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.payloadLength = 1048577;
 					verifyPayload = __private.verifyPayload(dummyBlockERR, {
@@ -767,8 +771,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when transactions do not match block transactions count', () => {
-				it('should return error', () => {
+			describe('when transactions do not match block transactions count', async () => {
+				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.numberOfTransactions = 4;
 					verifyPayload = __private.verifyPayload(dummyBlockERR, {
@@ -780,8 +784,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when number of transactions exceeds maximum per block', () => {
-				it('should return error', () => {
+			describe('when number of transactions exceeds maximum per block', async () => {
+				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.numberOfTransactions = 32;
 					dummyBlockERR.transactions = dummyBlockERR.transactions.concat(
@@ -796,24 +800,26 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('library.logic.transaction.getBytes fails', () => {
-				describe('when throws error', () => {
-					beforeEach(() => library.logic.transaction.getBytes
+			describe('library.logic.transaction.getBytes fails', async () => {
+				describe('when throws error', async () => {
+					beforeEach(() =>
+						library.logic.transaction.getBytes
 							.onCall(0)
 							.throws('getBytes-ERR')
 							.onCall(1)
-							.returns(0));
+							.returns(0)
+					);
 
-					it('should return error', () => {
+					it('should return error', async () => {
 						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
 						return expect(verifyPayload.errors[0]).to.equal('getBytes-ERR');
 					});
 				});
 
-				describe('when returns invalid bytes', () => {
+				describe('when returns invalid bytes', async () => {
 					beforeEach(() => library.logic.transaction.getBytes.returns('abc'));
 
-					it('should return error', () => {
+					it('should return error', async () => {
 						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
 						return expect(verifyPayload.errors[0]).to.equal(
 							'Invalid payload hash'
@@ -822,8 +828,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when encountered duplicate transaction', () => {
-				it('should return error', () => {
+			describe('when encountered duplicate transaction', async () => {
+				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.transactions[1].id = 1;
 					verifyPayload = __private.verifyPayload(dummyBlockERR, {
@@ -835,8 +841,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when payload hash is invalid', () => {
-				it('should return error', () => {
+			describe('when payload hash is invalid', async () => {
+				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.payloadHash = 'abc';
 					verifyPayload = __private.verifyPayload(dummyBlockERR, {
@@ -848,8 +854,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when total amount is invalid', () => {
-				it('should return error', () => {
+			describe('when total amount is invalid', async () => {
+				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.totalAmount = 1;
 					verifyPayload = __private.verifyPayload(dummyBlockERR, {
@@ -861,8 +867,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when total fee is invalid', () => {
-				it('should return error', () => {
+			describe('when total fee is invalid', async () => {
+				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.totalFee = 1;
 					verifyPayload = __private.verifyPayload(dummyBlockERR, {
@@ -873,28 +879,28 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when __private.verifyPayload succeeds', () => {
-			it('should return no error', () => {
+		describe('when __private.verifyPayload succeeds', async () => {
+			it('should return no error', async () => {
 				verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
 				return expect(verifyPayload.errors.length).to.equal(0);
 			});
 		});
 	});
 
-	describe('__private.verifyForkOne', () => {
+	describe('__private.verifyForkOne', async () => {
 		let verifyForkOne;
 		let block;
 		let lastBlock;
 
-		describe('when __private.verifyForkOne fails', () => {
-			describe('when block.previousBlock && block.previousBlock != lastBlock.id', () => {
+		describe('when __private.verifyForkOne fails', async () => {
+			describe('when block.previousBlock && block.previousBlock != lastBlock.id', async () => {
 				afterEach(() => {
 					expect(modules.delegates.fork.calledOnce).to.be.true;
 					expect(modules.delegates.fork.args[0][0]).to.deep.equal(block);
 					return expect(modules.delegates.fork.args[0][1]).to.equal(1);
 				});
 
-				it('should return error', () => {
+				it('should return error', async () => {
 					block = { previousBlock: 4 };
 					lastBlock = { id: 5 };
 					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
@@ -907,11 +913,13 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when __private.verifyForkOne succeeds', () => {
-			describe('when block.previousBlock = undefined', () => {
-				afterEach(() => expect(modules.delegates.fork.calledOnce).to.be.false);
+		describe('when __private.verifyForkOne succeeds', async () => {
+			describe('when block.previousBlock = undefined', async () => {
+				afterEach(
+					async () => expect(modules.delegates.fork.calledOnce).to.be.false
+				);
 
-				it('should return no error', () => {
+				it('should return no error', async () => {
 					block = { id: 6 };
 					lastBlock = { id: 5 };
 					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
@@ -921,10 +929,12 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when block.previousBlock = lastBlock.id', () => {
-				afterEach(() => expect(modules.delegates.fork.calledOnce).to.be.false);
+			describe('when block.previousBlock = lastBlock.id', async () => {
+				afterEach(
+					async () => expect(modules.delegates.fork.calledOnce).to.be.false
+				);
 
-				it('should return no error', () => {
+				it('should return no error', async () => {
 					block = { previousBlock: 5 };
 					lastBlock = { id: 5 };
 					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
@@ -936,7 +946,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyBlockSlot', () => {
+	describe('__private.verifyBlockSlot', async () => {
 		let verifyBlockSlot;
 		let block;
 		let lastBlock;
@@ -946,7 +956,7 @@ describe('blocks/verify', () => {
 		beforeEach(done => {
 			slots = BlocksVerify.__get__('slots');
 			slotsTemp = slots;
-			slots.getSlotNumber = input => input === undefined ? 4 : input;
+			slots.getSlotNumber = input => (input === undefined ? 4 : input);
 			done();
 		});
 
@@ -955,9 +965,9 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when __private.verifyBlockSlot fails', () => {
-			describe('when blockSlotNumber > slots.getSlotNumber()', () => {
-				it('should return error', () => {
+		describe('when __private.verifyBlockSlot fails', async () => {
+			describe('when blockSlotNumber > slots.getSlotNumber()', async () => {
+				it('should return error', async () => {
 					block = { timestamp: 5 };
 					lastBlock = { timestamp: 5 };
 					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
@@ -969,8 +979,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when blockSlotNumber <= lastBlockSlotNumber', () => {
-				it('should return error', () => {
+			describe('when blockSlotNumber <= lastBlockSlotNumber', async () => {
+				it('should return error', async () => {
 					block = { timestamp: 3 };
 					lastBlock = { timestamp: 3 };
 					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
@@ -983,8 +993,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when __private.verifyBlockSlot succeeds', () => {
-			it('should return no error', () => {
+		describe('when __private.verifyBlockSlot succeeds', async () => {
+			it('should return no error', async () => {
 				block = { timestamp: 4 };
 				lastBlock = { timestamp: 3 };
 				verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
@@ -995,7 +1005,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyBlockSlotWindow', () => {
+	describe('__private.verifyBlockSlotWindow', async () => {
 		let verifyBlockSlotWindow;
 		let slots;
 		let slotsTemp;
@@ -1003,7 +1013,7 @@ describe('blocks/verify', () => {
 		beforeEach(done => {
 			slots = BlocksVerify.__get__('slots');
 			slotsTemp = slots;
-			slots.getSlotNumber = input => input === undefined ? 100 : input;
+			slots.getSlotNumber = input => (input === undefined ? 100 : input);
 			done();
 		});
 
@@ -1012,9 +1022,9 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when __private.verifyBlockSlotWindow fails', () => {
-			describe('when currentApplicationSlot - blockSlot > BLOCK_SLOT_WINDOW', () => {
-				it('should return error', () => {
+		describe('when __private.verifyBlockSlotWindow fails', async () => {
+			describe('when currentApplicationSlot - blockSlot > BLOCK_SLOT_WINDOW', async () => {
+				it('should return error', async () => {
 					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
 						{ timestamp: 10 },
 						{ errors: [] }
@@ -1025,8 +1035,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('currentApplicationSlot < blockSlot', () => {
-				it('should return error', () => {
+			describe('currentApplicationSlot < blockSlot', async () => {
+				it('should return error', async () => {
 					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
 						{ timestamp: 110 },
 						{ errors: [] }
@@ -1038,8 +1048,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when __private.verifyBlockSlotWindow succeeds', () => {
-			it('should return no error', () => {
+		describe('when __private.verifyBlockSlotWindow succeeds', async () => {
+			it('should return no error', async () => {
 				verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
 					{ timestamp: 99 },
 					{ errors: [] }
@@ -1049,7 +1059,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('verifyReceipt', () => {
+	describe('verifyReceipt', async () => {
 		let privateTemp;
 		let verifyReceipt;
 		const dummyBlock = { id: 5 };
@@ -1128,7 +1138,7 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		it('should call private functions with correct parameters', () => {
+		it('should call private functions with correct parameters', async () => {
 			verifyReceipt = blocksVerifyModule.verifyReceipt(dummyBlock);
 			return expect(verifyReceipt).to.deep.equal({
 				verified: true,
@@ -1137,11 +1147,11 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('onBlockchainReady', () => {
-		describe('when library.storage.entities.Block.get fails', () => {
-			beforeEach(() => library.storage.entities.Block.get.rejects(
-					'loadLastNBlockIds-ERR'
-				));
+	describe('onBlockchainReady', async () => {
+		describe('when library.storage.entities.Block.get fails', async () => {
+			beforeEach(() =>
+				library.storage.entities.Block.get.rejects('loadLastNBlockIds-ERR')
+			);
 
 			afterEach(() => {
 				expect(loggerStub.error.args[0][0]).to.equal(
@@ -1152,58 +1162,61 @@ describe('blocks/verify', () => {
 				);
 			});
 
-			it('should log error', () => blocksVerifyModule.onBlockchainReady());
+			it('should log error', async () =>
+				blocksVerifyModule.onBlockchainReady());
 		});
 
-		describe('when library.storage.entities.Block.get succeeds', () => {
-			beforeEach(() => library.storage.entities.Block.get.resolves([
+		describe('when library.storage.entities.Block.get succeeds', async () => {
+			beforeEach(() =>
+				library.storage.entities.Block.get.resolves([
 					{ id: 1 },
 					{ id: 2 },
 					{ id: 3 },
 					{ id: 4 },
-				]));
+				])
+			);
 
 			afterEach(() => {
 				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4]);
 				return expect(loggerStub.error.args.length).to.equal(0);
 			});
 
-			it('should log error', () => blocksVerifyModule.onBlockchainReady());
+			it('should log error', async () =>
+				blocksVerifyModule.onBlockchainReady());
 		});
 	});
 
-	describe('onNewBlock', () => {
-		describe('when __private.lastNBlockIds.length > BLOCK_SLOT_WINDOW', () => {
+	describe('onNewBlock', async () => {
+		describe('when __private.lastNBlockIds.length > BLOCK_SLOT_WINDOW', async () => {
 			beforeEach(done => {
 				__private.lastNBlockIds = [1, 2, 3, 4, 5, 6];
 				done();
 			});
 
-			afterEach(() => expect(__private.lastNBlockIds).to.deep.equal([
-					2,
-					3,
-					4,
-					5,
-					6,
-					7,
-				]));
+			afterEach(() =>
+				expect(__private.lastNBlockIds).to.deep.equal([2, 3, 4, 5, 6, 7])
+			);
 
-			it('should add new id to the end of lastNBlockIds array and delete first one', () => blocksVerifyModule.onNewBlock({ id: 7 }));
+			it('should add new id to the end of lastNBlockIds array and delete first one', async () =>
+				blocksVerifyModule.onNewBlock({ id: 7 }));
 		});
 
-		describe('when __private.lastNBlockIds.length <= BLOCK_SLOT_WINDOW', () => {
+		describe('when __private.lastNBlockIds.length <= BLOCK_SLOT_WINDOW', async () => {
 			beforeEach(done => {
 				__private.lastNBlockIds = [1, 2, 3, 4];
 				done();
 			});
 
-			afterEach(() => expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4, 5]));
+			afterEach(() =>
+				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4, 5])
+			);
 
-			it('should add new id to the end of lastNBlockIds array', () => blocksVerifyModule.onNewBlock({ id: 5 }));
+			it('should add new id to the end of lastNBlockIds array', async () =>
+				blocksVerifyModule.onNewBlock({ id: 5 }));
 		});
 	});
 
-	describe('verifyBlock', () => {
+	describe('verifyBlock', async () => {
 		let privateTemp;
 		let verifyReceipt;
 		const dummyBlock = { id: 5 };
@@ -1284,7 +1297,7 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		it('should call private functions with correct parameters', () => {
+		it('should call private functions with correct parameters', async () => {
 			verifyReceipt = blocksVerifyModule.verifyBlock(dummyBlock);
 			return expect(verifyReceipt).to.deep.equal({
 				verified: true,
@@ -1293,7 +1306,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('addBlockProperties', () => {
+	describe('addBlockProperties', async () => {
 		let dummyBlockReturned;
 		const dummyBlock = {
 			id: 1,
@@ -1308,8 +1321,8 @@ describe('blocks/verify', () => {
 
 		afterEach(() => expect(dummyBlockReturned).to.deep.equal(dummyBlock));
 
-		describe('when block.version = undefined', () => {
-			it('should add version = 0', () => {
+		describe('when block.version = undefined', async () => {
+			it('should add version = 0', async () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
 				delete dummyBlockReduced.version;
 				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
@@ -1319,9 +1332,9 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.numberOfTransactions = undefined', () => {
-			describe('and block.transactions = undefined', () => {
-				it('should add numberOfTransactions = 0', () => {
+		describe('when block.numberOfTransactions = undefined', async () => {
+			describe('and block.transactions = undefined', async () => {
+				it('should add numberOfTransactions = 0', async () => {
 					const dummyBlockReduced = _.cloneDeep(dummyBlock);
 					delete dummyBlockReduced.numberOfTransactions;
 					delete dummyBlockReduced.transactions;
@@ -1332,8 +1345,8 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('and block.transactions != undefined', () => {
-				it('should add numberOfTransactions = block.transactions.length', () => {
+			describe('and block.transactions != undefined', async () => {
+				it('should add numberOfTransactions = block.transactions.length', async () => {
 					const dummyBlockReduced = _.cloneDeep(dummyBlock);
 					delete dummyBlockReduced.numberOfTransactions;
 					dummyBlockReturned = blocksVerifyModule.addBlockProperties(
@@ -1344,8 +1357,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.totalAmount = undefined', () => {
-			it('should add totalAmount = 0', () => {
+		describe('when block.totalAmount = undefined', async () => {
+			it('should add totalAmount = 0', async () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
 				delete dummyBlockReduced.totalAmount;
 				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
@@ -1355,8 +1368,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.totalFee = undefined', () => {
-			it('should add totalFee = 0', () => {
+		describe('when block.totalFee = undefined', async () => {
+			it('should add totalFee = 0', async () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
 				delete dummyBlockReduced.totalFee;
 				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
@@ -1366,8 +1379,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.payloadLength = undefined', () => {
-			it('should add payloadLength = 0', () => {
+		describe('when block.payloadLength = undefined', async () => {
+			it('should add payloadLength = 0', async () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
 				delete dummyBlockReduced.payloadLength;
 				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
@@ -1377,8 +1390,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.reward = undefined', () => {
-			it('should add reward = 0', () => {
+		describe('when block.reward = undefined', async () => {
+			it('should add reward = 0', async () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
 				delete dummyBlockReduced.reward;
 				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
@@ -1388,8 +1401,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.transactions = undefined', () => {
-			it('should add transactions = []', () => {
+		describe('when block.transactions = undefined', async () => {
+			it('should add transactions = []', async () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
 				delete dummyBlockReduced.transactions;
 				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
@@ -1400,7 +1413,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('deleteBlockProperties', () => {
+	describe('deleteBlockProperties', async () => {
 		let dummyBlockReduced;
 		const dummyBlock = {
 			id: 1,
@@ -1413,7 +1426,7 @@ describe('blocks/verify', () => {
 			reward: new Bignum(1),
 		};
 
-		describe('when block.version = 0', () => {
+		describe('when block.version = 0', async () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.not.have.property('version');
 				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
@@ -1424,7 +1437,7 @@ describe('blocks/verify', () => {
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
 
-			it('should delete version property', () => {
+			it('should delete version property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.version = 0;
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
@@ -1434,7 +1447,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.numberOfTransactions = number', () => {
+		describe('when block.numberOfTransactions = number', async () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
 				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
@@ -1445,7 +1458,7 @@ describe('blocks/verify', () => {
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
 
-			it('should delete numberOfTransactions property', () => {
+			it('should delete numberOfTransactions property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
@@ -1454,7 +1467,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.totalAmount = 0', () => {
+		describe('when block.totalAmount = 0', async () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
 				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
@@ -1465,7 +1478,7 @@ describe('blocks/verify', () => {
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
 
-			it('should delete totalAmount property', () => {
+			it('should delete totalAmount property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.totalAmount = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
@@ -1475,7 +1488,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.totalFee = 0', () => {
+		describe('when block.totalFee = 0', async () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
 				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
@@ -1486,7 +1499,7 @@ describe('blocks/verify', () => {
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
 
-			it('should delete totalFee property', () => {
+			it('should delete totalFee property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.totalFee = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
@@ -1496,7 +1509,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.payloadLength = 0', () => {
+		describe('when block.payloadLength = 0', async () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
 				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
@@ -1507,7 +1520,7 @@ describe('blocks/verify', () => {
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
 
-			it('should delete totalFee property', () => {
+			it('should delete totalFee property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.payloadLength = 0;
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
@@ -1517,7 +1530,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.reward = 0', () => {
+		describe('when block.reward = 0', async () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
 				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
@@ -1528,7 +1541,7 @@ describe('blocks/verify', () => {
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
 
-			it('should delete totalFee property', () => {
+			it('should delete totalFee property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.reward = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
@@ -1538,7 +1551,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.transactions.length = 0', () => {
+		describe('when block.transactions.length = 0', async () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
 				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
@@ -1549,7 +1562,7 @@ describe('blocks/verify', () => {
 				return expect(dummyBlockReduced).to.not.have.property('transactions');
 			});
 
-			it('should delete totalFee property', () => {
+			it('should delete totalFee property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.transactions = [];
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
@@ -1560,7 +1573,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.addBlockProperties', () => {
+	describe('__private.addBlockProperties', async () => {
 		let addBlockPropertiesTemp;
 		const dummyBlock = { id: 1 };
 
@@ -1575,11 +1588,11 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when broadcast = false', () => {
-			describe('when self.addBlockProperties fails', () => {
-				beforeEach(() => blocksVerifyModule.addBlockProperties.throws(
-						'addBlockProperties-ERR'
-					));
+		describe('when broadcast = false', async () => {
+			describe('when self.addBlockProperties fails', async () => {
+				beforeEach(() =>
+					blocksVerifyModule.addBlockProperties.throws('addBlockProperties-ERR')
+				);
 
 				it('should call a callback with error', done => {
 					__private.addBlockProperties(dummyBlock, false, err => {
@@ -1589,11 +1602,13 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when self.addBlockProperties succeeds', () => {
-				beforeEach(() => blocksVerifyModule.addBlockProperties.returns({
+			describe('when self.addBlockProperties succeeds', async () => {
+				beforeEach(() =>
+					blocksVerifyModule.addBlockProperties.returns({
 						id: 1,
 						version: 0,
-					}));
+					})
+				);
 
 				it('should call a callback with no error', done => {
 					__private.addBlockProperties(dummyBlock, false, err => {
@@ -1604,11 +1619,13 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when broadcast = true', () => {
-			beforeEach(() => blocksVerifyModule.addBlockProperties.returns({
+		describe('when broadcast = true', async () => {
+			beforeEach(() =>
+				blocksVerifyModule.addBlockProperties.returns({
 					id: 1,
 					version: 0,
-				}));
+				})
+			);
 
 			it('should call a callback with no error', done => {
 				__private.addBlockProperties(dummyBlock, true, err => {
@@ -1619,13 +1636,13 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.normalizeBlock', () => {
+	describe('__private.normalizeBlock', async () => {
 		const dummyBlock = { id: 1 };
 
-		describe('when library.logic.block.objectNormalize fails', () => {
-			beforeEach(() => library.logic.block.objectNormalize.throws(
-					'objectNormalize-ERR'
-				));
+		describe('when library.logic.block.objectNormalize fails', async () => {
+			beforeEach(() =>
+				library.logic.block.objectNormalize.throws('objectNormalize-ERR')
+			);
 
 			it('should call a callback with error', done => {
 				__private.normalizeBlock(dummyBlock, err => {
@@ -1635,11 +1652,13 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when library.logic.block.objectNormalize succeeds', () => {
-			beforeEach(() => library.logic.block.objectNormalize.returns({
+		describe('when library.logic.block.objectNormalize succeeds', async () => {
+			beforeEach(() =>
+				library.logic.block.objectNormalize.returns({
 					id: 1,
 					version: 0,
-				}));
+				})
+			);
 
 			it('should call a callback with no error', done => {
 				__private.normalizeBlock(dummyBlock, err => {
@@ -1650,7 +1669,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyBlock', () => {
+	describe('__private.verifyBlock', async () => {
 		let verifyBlockTemp;
 		const dummyBlock = { id: 1 };
 
@@ -1665,11 +1684,13 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when self.verifyBlock fails', () => {
-			beforeEach(() => blocksVerifyModule.verifyBlock.returns({
+		describe('when self.verifyBlock fails', async () => {
+			beforeEach(() =>
+				blocksVerifyModule.verifyBlock.returns({
 					verified: false,
 					errors: ['verifyBlock-ERR'],
-				}));
+				})
+			);
 
 			afterEach(() => {
 				expect(loggerStub.error.args[0][0]).to.be.equal(
@@ -1688,11 +1709,13 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when self.verifyBlock succeeds', () => {
-			beforeEach(() => blocksVerifyModule.verifyBlock.returns({
+		describe('when self.verifyBlock succeeds', async () => {
+			beforeEach(() =>
+				blocksVerifyModule.verifyBlock.returns({
 					verified: true,
 					errors: [],
-				}));
+				})
+			);
 
 			it('should call a callback with no error', done => {
 				__private.verifyBlock(dummyBlock, err => {
@@ -1703,7 +1726,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.broadcastBlock', () => {
+	describe('__private.broadcastBlock', async () => {
 		let broadcastReducedBlockTemp;
 		let deleteBlockPropertiesTemp;
 		const dummyBlock = { id: 1, version: 0 };
@@ -1725,14 +1748,19 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when broadcast = true', () => {
-			describe('when self.deleteBlockProperties fails', () => {
-				beforeEach(() => blocksVerifyModule.deleteBlockProperties.throws(
+		describe('when broadcast = true', async () => {
+			describe('when self.deleteBlockProperties fails', async () => {
+				beforeEach(() =>
+					blocksVerifyModule.deleteBlockProperties.throws(
 						'deleteBlockProperties-ERR'
-					));
+					)
+				);
 
-				afterEach(() => expect(modules.blocks.chain.broadcastReducedBlock.calledOnce)
-						.to.be.false);
+				afterEach(
+					async () =>
+						expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
+							.false
+				);
 
 				it('should call a callback with error', done => {
 					__private.broadcastBlock(dummyBlock, true, err => {
@@ -1742,10 +1770,10 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when self.deleteBlockProperties succeeds', () => {
-				beforeEach(() => blocksVerifyModule.deleteBlockProperties.returns(
-						dummyBlockReduced
-					));
+			describe('when self.deleteBlockProperties succeeds', async () => {
+				beforeEach(() =>
+					blocksVerifyModule.deleteBlockProperties.returns(dummyBlockReduced)
+				);
 
 				afterEach(() => {
 					expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
@@ -1764,7 +1792,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when broadcast = false', () => {
+		describe('when broadcast = false', async () => {
 			afterEach(() => {
 				expect(blocksVerifyModule.deleteBlockProperties.calledOnce).to.be.false;
 				return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to
@@ -1780,17 +1808,17 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.checkExists', () => {
+	describe('__private.checkExists', async () => {
 		const dummyBlock = { id: 1 };
 
-		describe('when library.storage.entities.Block.isPersisted fails', () => {
-			beforeEach(() => library.storage.entities.Block.isPersisted.rejects(
-					'blockExists-ERR'
-				));
+		describe('when library.storage.entities.Block.isPersisted fails', async () => {
+			beforeEach(() =>
+				library.storage.entities.Block.isPersisted.rejects('blockExists-ERR')
+			);
 
-			afterEach(() => expect(loggerStub.error.args[0][0].name).to.equal(
-					'blockExists-ERR'
-				));
+			afterEach(() =>
+				expect(loggerStub.error.args[0][0].name).to.equal('blockExists-ERR')
+			);
 
 			it('should call a callback with error', done => {
 				__private.checkExists(dummyBlock, err => {
@@ -1800,9 +1828,11 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when library.storage.entities.Block.isPersisted succeeds', () => {
-			describe('if rows = true', () => {
-				beforeEach(() => library.storage.entities.Block.isPersisted.resolves(true));
+		describe('when library.storage.entities.Block.isPersisted succeeds', async () => {
+			describe('if rows = true', async () => {
+				beforeEach(() =>
+					library.storage.entities.Block.isPersisted.resolves(true)
+				);
 
 				it('should call a callback with error', done => {
 					__private.checkExists(dummyBlock, err => {
@@ -1812,8 +1842,10 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('if rows = false', () => {
-				beforeEach(() => library.storage.entities.Block.isPersisted.resolves(false));
+			describe('if rows = false', async () => {
+				beforeEach(() =>
+					library.storage.entities.Block.isPersisted.resolves(false)
+				);
 
 				it('should call a callback with no error', done => {
 					__private.checkExists(dummyBlock, err => {
@@ -1825,15 +1857,17 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.validateBlockSlot', () => {
+	describe('__private.validateBlockSlot', async () => {
 		const dummyBlock = { id: 1 };
 
-		describe('when modules.delegates.validateBlockSlot fails', () => {
-			beforeEach(() => modules.delegates.validateBlockSlot.callsArgWith(
+		describe('when modules.delegates.validateBlockSlot fails', async () => {
+			beforeEach(() =>
+				modules.delegates.validateBlockSlot.callsArgWith(
 					1,
 					'validateBlockSlot-ERR',
 					null
-				));
+				)
+			);
 
 			afterEach(() => {
 				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
@@ -1848,8 +1882,10 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when modules.delegates.validateBlockSlot succeeds', () => {
-			beforeEach(() => modules.delegates.validateBlockSlot.callsArgWith(1, null, true));
+		describe('when modules.delegates.validateBlockSlot succeeds', async () => {
+			beforeEach(() =>
+				modules.delegates.validateBlockSlot.callsArgWith(1, null, true)
+			);
 
 			afterEach(() => {
 				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
@@ -1865,7 +1901,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.checkTransactions', () => {
+	describe('__private.checkTransactions', async () => {
 		let checkTransactionTemp;
 		let dummyBlock;
 
@@ -1880,8 +1916,10 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when block.transactions is empty', () => {
-			afterEach(() => expect(__private.checkTransaction.called).to.be.false);
+		describe('when block.transactions is empty', async () => {
+			afterEach(
+				async () => expect(__private.checkTransaction.called).to.be.false
+			);
 
 			it('should call a callback with no error', done => {
 				dummyBlock = { id: 1, transactions: [] };
@@ -1892,15 +1930,19 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when block.transactions is not empty', () => {
-			afterEach(() => expect(__private.checkTransaction.called).to.be.true);
+		describe('when block.transactions is not empty', async () => {
+			afterEach(
+				async () => expect(__private.checkTransaction.called).to.be.true
+			);
 
-			describe('when __private.checkTransaction fails', () => {
-				beforeEach(() => __private.checkTransaction.callsArgWith(
+			describe('when __private.checkTransaction fails', async () => {
+				beforeEach(() =>
+					__private.checkTransaction.callsArgWith(
 						2,
 						'checkTransaction-ERR',
 						null
-					));
+					)
+				);
 
 				it('should call a callback with error', done => {
 					dummyBlock = { id: 1, transactions: [{ id: 1 }] };
@@ -1911,8 +1953,10 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when __private.checkTransaction succeeds', () => {
-				beforeEach(() => __private.checkTransaction.callsArgWith(2, null, true));
+			describe('when __private.checkTransaction succeeds', async () => {
+				beforeEach(() =>
+					__private.checkTransaction.callsArgWith(2, null, true)
+				);
 
 				it('should call a callback with no error', done => {
 					dummyBlock = { id: 1, transactions: [{ id: 1 }] };
@@ -1925,7 +1969,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('processBlock', () => {
+	describe('processBlock', async () => {
 		let privateTemp;
 		const dummyBlock = { id: 5 };
 		let broadcast;
@@ -1978,7 +2022,7 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('system update', () => {
+		describe('system update', async () => {
 			it('should be called if snapshotting was not activated', done => {
 				blocksVerifyModule.processBlock(
 					dummyBlock,
@@ -2016,8 +2060,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when broadcast = true', () => {
-			describe('when saveBlock = true', () => {
+		describe('when broadcast = true', async () => {
+			describe('when saveBlock = true', async () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = true;
 					saveBlock = true;
@@ -2035,7 +2079,7 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when saveBlock = false', () => {
+			describe('when saveBlock = false', async () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = true;
 					saveBlock = false;
@@ -2054,8 +2098,8 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when broadcast = false', () => {
-			describe('when saveBlock = true', () => {
+		describe('when broadcast = false', async () => {
+			describe('when saveBlock = true', async () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = false;
 					saveBlock = true;
@@ -2073,7 +2117,7 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when saveBlock = false', () => {
+			describe('when saveBlock = false', async () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = false;
 					saveBlock = false;
@@ -2091,7 +2135,7 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when broadcast = true and saveBlock = true', () => {
+			describe('when broadcast = true and saveBlock = true', async () => {
 				it('should call all functions in the correct order', done => {
 					broadcast = true;
 					saveBlock = true;
@@ -2123,7 +2167,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('onBind', () => {
+	describe('onBind', async () => {
 		beforeEach(done => {
 			loggerStub.trace.resetHistory();
 			__private.loaded = false;
@@ -2131,7 +2175,8 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		it('should call library.logger.trace with "Blocks->Verify: Shared modules bind."', () => expect(loggerStub.trace.args[0][0]).to.equal(
+		it('should call library.logger.trace with "Blocks->Verify: Shared modules bind."', async () =>
+			expect(loggerStub.trace.args[0][0]).to.equal(
 				'Blocks->Verify: Shared modules bind.'
 			));
 
@@ -2145,6 +2190,7 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		it('should set __private.loaded to true', () => expect(__private.loaded).to.be.true);
+		it('should set __private.loaded to true', async () =>
+			expect(__private.loaded).to.be.true);
 	});
 });

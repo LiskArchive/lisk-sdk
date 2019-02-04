@@ -17,10 +17,10 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const randomstring = require('randomstring');
-const connectionsTable = require('../../../../../api/ws/workers/connections_table');
-const emitMiddleware = require('../../../../../api/ws/workers/middlewares/emit');
+const connectionsTable = require('../../../../../../../../src/modules/chain/api/ws/workers/connections_table');
+const emitMiddleware = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/emit');
 
-describe('emitMiddleware', () => {
+describe('emitMiddleware', async () => {
 	let validReq;
 	let validNext;
 
@@ -29,7 +29,7 @@ describe('emitMiddleware', () => {
 		done();
 	});
 
-	describe('when valid req and next params provided', () => {
+	describe('when valid req and next params provided', async () => {
 		const validSocketId = 0;
 		before(done => {
 			validReq = {
@@ -44,9 +44,9 @@ describe('emitMiddleware', () => {
 
 		afterEach(() => validNext.resetHistory());
 
-		it('should call validNext', () => expect(validNext).calledOnce);
+		it('should call validNext', async () => expect(validNext).calledOnce);
 
-		describe('when req.event is one of the events responsible for receiving data on P2P layer', () => {
+		describe('when req.event is one of the events responsible for receiving data on P2P layer', async () => {
 			const receiveDataEvents = [
 				'postBlock',
 				'postTransactions',
@@ -65,28 +65,29 @@ describe('emitMiddleware', () => {
 					done();
 				});
 
-				it('should call connectionsTable.getNonce', () => expect(connectionsTable.getNonce).calledOnce);
+				it('should call connectionsTable.getNonce', async () =>
+					expect(connectionsTable.getNonce).calledOnce);
 
-				it('should call connectionsTable.getNonce with [validSocketId]', () => expect(connectionsTable.getNonce).calledWithExactly(
-						validSocketId
-					));
+				it('should call connectionsTable.getNonce with [validSocketId]', async () =>
+					expect(connectionsTable.getNonce).calledWithExactly(validSocketId));
 
-				describe('when nonce is not matched with [validSocketId] in connectionsTables', () => {
-					it('should add nonce = undefined property to req.data', () => expect(validReq.data).to.have.property('nonce').to.be
-							.undefined);
+				describe('when nonce is not matched with [validSocketId] in connectionsTables', async () => {
+					it('should add nonce = undefined property to req.data', async () =>
+						expect(validReq.data).to.have.property('nonce').to.be.undefined);
 
-					describe('when req.data = null', () => {
+					describe('when req.data = null', async () => {
 						before(done => {
 							validReq.data = null;
 							done();
 						});
-						it('should change req.data to an object', () => expect(validNext).calledOnce);
-						it('should add nonce = undefined property to req.data', () => expect(validReq.data).to.have.property('nonce').to.be
-								.undefined);
+						it('should change req.data to an object', async () =>
+							expect(validNext).calledOnce);
+						it('should add nonce = undefined property to req.data', async () =>
+							expect(validReq.data).to.have.property('nonce').to.be.undefined);
 					});
 				});
 
-				describe('when nonce is matched with [validSocketId] in connectionsTables', () => {
+				describe('when nonce is matched with [validSocketId] in connectionsTables', async () => {
 					const validNonce = randomstring.generate(16);
 					before(done => {
 						connectionsTable.getNonce.returns(validNonce);
@@ -98,7 +99,8 @@ describe('emitMiddleware', () => {
 						done();
 					});
 
-					it('should add nonce = undefined property to req.data', () => expect(validReq.data)
+					it('should add nonce = undefined property to req.data', async () =>
+						expect(validReq.data)
 							.to.have.property('nonce')
 							.to.equal(validNonce));
 				});

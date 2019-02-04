@@ -15,7 +15,7 @@
 'use strict';
 
 const util = require('util');
-const typesRepresentatives = require('../../fixtures/types_representatives');
+const typesRepresentatives = require('../../../../../fixtures/types_representatives');
 
 const assign = _.assign;
 const difference = _.difference;
@@ -317,7 +317,9 @@ SchemaDynamicTest.prototype.testRequired = function(
 			eachCb();
 		});
 	}.bind(this);
-	const missingFieldsDescriptions = properties.map(property => ({ description: property }));
+	const missingFieldsDescriptions = properties.map(property => ({
+		description: property,
+	}));
 	this.carpetTesting(
 		test,
 		missingFieldsDescriptions,

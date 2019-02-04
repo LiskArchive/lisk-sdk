@@ -14,15 +14,16 @@
 
 'use strict';
 
-const failureCodes = require('../../../../../api/ws/rpc/failure_codes');
-const PeerUpdateError = require('../../../../../api/ws/rpc/failure_codes')
+const failureCodes = require('../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
+const PeerUpdateError = require('../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes')
 	.PeerUpdateError;
-const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
-const connectionsTable = require('../../../../../api/ws/workers/connections_table');
-const PeersUpdateRules = require('../../../../../api/ws/workers/peers_update_rules');
-const Rules = require('../../../../../api/ws/workers/rules');
+const prefixedPeer = require('../../../../../../../fixtures/peers')
+	.randomNormalizedPeer;
+const connectionsTable = require('../../../../../../../../src/modules/chain/api/ws/workers/connections_table');
+const PeersUpdateRules = require('../../../../../../../../src/modules/chain/api/ws/workers/peers_update_rules');
+const Rules = require('../../../../../../../../src/modules/chain/api/ws/workers/rules');
 
-describe('PeersUpdateRules', () => {
+describe('PeersUpdateRules', async () => {
 	let slaveWAMPServerMock;
 	let peersUpdateRules;
 	let validConnectionId;
@@ -51,7 +52,7 @@ describe('PeersUpdateRules', () => {
 		done();
 	});
 
-	describe('constructor', () => {
+	describe('constructor', async () => {
 		it('should have empty slaveToMasterSender object assigned', done => {
 			expect(peersUpdateRules)
 				.to.have.property('slaveToMasterSender')
@@ -67,7 +68,7 @@ describe('PeersUpdateRules', () => {
 		});
 	});
 
-	describe('insert', () => {
+	describe('insert', async () => {
 		it('should return an error when invoked with callback only', done => {
 			peersUpdateRules.insert(undefined, undefined, err => {
 				expect(err).to.be.an('error');
@@ -170,7 +171,7 @@ describe('PeersUpdateRules', () => {
 			peersUpdateRules.slaveToMasterSender.send = sinonSandbox
 				.stub(peersUpdateRules.slaveToMasterSender, 'send')
 				.callsArgWith(3, 'On insert error');
-			peersUpdateRules.insert(validPeer, validConnectionId, () => {
+			peersUpdateRules.insert(validPeer, validConnectionId, async () => {
 				expect(connectionsTable.nonceToConnectionIdMap)
 					.to.have.property(validPeer.nonce)
 					.equal(validConnectionId);
@@ -186,7 +187,7 @@ describe('PeersUpdateRules', () => {
 			peersUpdateRules.slaveToMasterSender.send = sinonSandbox
 				.stub(peersUpdateRules.slaveToMasterSender, 'send')
 				.callsArgWith(3, { code: validErrorCode });
-			peersUpdateRules.insert(validPeer, validConnectionId, () => {
+			peersUpdateRules.insert(validPeer, validConnectionId, async () => {
 				expect(connectionsTable.nonceToConnectionIdMap)
 					.to.have.property(validPeer.nonce)
 					.equal(validConnectionId);
@@ -197,7 +198,7 @@ describe('PeersUpdateRules', () => {
 			});
 		});
 
-		describe('multiple valid entries', () => {
+		describe('multiple valid entries', async () => {
 			let validPeerA;
 			let validPeerB;
 			const validConnectionIdA = `${validConnectionId}A`;
@@ -247,7 +248,7 @@ describe('PeersUpdateRules', () => {
 		});
 	});
 
-	describe('remove', () => {
+	describe('remove', async () => {
 		it('should return an error when invoked with callback only', done => {
 			peersUpdateRules.remove(undefined, undefined, err => {
 				expect(err).to.be.an('error');
@@ -300,7 +301,7 @@ describe('PeersUpdateRules', () => {
 			done();
 		});
 
-		describe('after peer is added', () => {
+		describe('after peer is added', async () => {
 			beforeEach(done => {
 				peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
 				peersUpdateRules.slaveToMasterSender.send.restore();
@@ -379,7 +380,7 @@ describe('PeersUpdateRules', () => {
 				peersUpdateRules.slaveToMasterSender.send = sinonSandbox
 					.stub(peersUpdateRules.slaveToMasterSender, 'send')
 					.callsArgWith(3, { code: validErrorCode });
-				peersUpdateRules.remove(validPeer, validConnectionId, () => {
+				peersUpdateRules.remove(validPeer, validConnectionId, async () => {
 					expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
 					expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
 					done();
@@ -388,7 +389,7 @@ describe('PeersUpdateRules', () => {
 		});
 	});
 
-	describe('block', () => {
+	describe('block', async () => {
 		const validFailureCode = 4100;
 
 		it('should return the PeerUpdateError when called', done => {
@@ -404,7 +405,7 @@ describe('PeersUpdateRules', () => {
 		});
 	});
 
-	describe('internal.update', () => {
+	describe('internal.update', async () => {
 		let insertStub;
 		let removeStub;
 		let blockStub;
@@ -446,10 +447,10 @@ describe('PeersUpdateRules', () => {
 				.returns(presence);
 		}
 
-		describe('insert', () => {
+		describe('insert', async () => {
 			const INSERT = Rules.UPDATES.INSERT;
 
-			describe('when peer is present on master', () => {
+			describe('when peer is present on master', async () => {
 				const onMasterPresence = true;
 
 				beforeEach(done => {
@@ -512,7 +513,7 @@ describe('PeersUpdateRules', () => {
 				});
 			});
 
-			describe('when peer is not present on master', () => {
+			describe('when peer is not present on master', async () => {
 				const onMasterPresence = false;
 
 				beforeEach(done => {
@@ -576,10 +577,10 @@ describe('PeersUpdateRules', () => {
 			});
 		});
 
-		describe('remove', () => {
+		describe('remove', async () => {
 			const REMOVE = Rules.UPDATES.REMOVE;
 
-			describe('when peer is present on master', () => {
+			describe('when peer is present on master', async () => {
 				const onMasterPresence = true;
 
 				beforeEach(done => {
@@ -642,7 +643,7 @@ describe('PeersUpdateRules', () => {
 				});
 			});
 
-			describe('when peer is not present on master', () => {
+			describe('when peer is not present on master', async () => {
 				const onMasterPresence = false;
 
 				beforeEach(done => {
@@ -707,7 +708,7 @@ describe('PeersUpdateRules', () => {
 		});
 	});
 
-	describe('external.update', () => {
+	describe('external.update', async () => {
 		let minimalValidUpdateRequest;
 
 		beforeEach(done => {
@@ -720,7 +721,7 @@ describe('PeersUpdateRules', () => {
 			done();
 		});
 
-		describe('schema', () => {
+		describe('schema', async () => {
 			it('should reject empty requests', done => {
 				peersUpdateRules.external.update(undefined, err => {
 					expect(err).to.equal('Expected type object but found type undefined');

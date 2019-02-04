@@ -15,18 +15,18 @@
 'use strict';
 
 const rewire = require('rewire');
-const jobsQueue = require('../../../helpers/jobs_queue.js');
+const jobsQueue = require('../../../../../../src/modules/chain/helpers/jobs_queue.js');
 
-const peers = rewire('../../../modules/peers');
+const peers = rewire('../../../../../../src/modules/chain/modules/peers');
 
 // These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
-describe('helpers/jobsQueue', () => {
+describe('helpers/jobsQueue', async () => {
 	// Test global variables
 	let recallInterval = 1000;
 	let execTimeInterval = 1;
 
-	describe('register', () => {
-		describe('should throw an erorr', () => {
+	describe('register', async () => {
+		describe('should throw an erorr', async () => {
 			let validFunction;
 
 			beforeEach(done => {
@@ -39,20 +39,23 @@ describe('helpers/jobsQueue', () => {
 				done();
 			});
 
-			it('should throw an error when trying to pass job that is not a function', () => expect(() => {
+			it('should throw an error when trying to pass job that is not a function', async () =>
+				expect(() => {
 					jobsQueue.register('test_job', 'test', recallInterval);
 				}).to.throw('Syntax error - invalid parameters supplied'));
 
-			it('should throw an error when trying to pass name that is not a string', () => expect(() => {
+			it('should throw an error when trying to pass name that is not a string', async () =>
+				expect(() => {
 					jobsQueue.register(123, validFunction, recallInterval);
 				}).to.throw('Syntax error - invalid parameters supplied'));
 
-			it('should throw an error when trying to pass time that is not integer', () => expect(() => {
+			it('should throw an error when trying to pass time that is not integer', async () =>
+				expect(() => {
 					jobsQueue.register('test_job', validFunction, 0.22);
 				}).to.throw('Syntax error - invalid parameters supplied'));
 		});
 
-		describe('should register', () => {
+		describe('should register', async () => {
 			function dummyFunction(cb) {
 				setTimeout(cb, execTimeInterval);
 			}
@@ -116,7 +119,7 @@ describe('helpers/jobsQueue', () => {
 				done();
 			});
 
-			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', () => {
+			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', async () => {
 				const name = 'job1';
 				const spy = sinonSandbox.spy(dummyFunction);
 				const job = jobsQueue.register(name, spy, recallInterval);
@@ -126,7 +129,7 @@ describe('helpers/jobsQueue', () => {
 				return testExecution(job, name, spy);
 			});
 
-			it('should register second new job correctly and call properly (job exec: 10s, job recall: 1s)', () => {
+			it('should register second new job correctly and call properly (job exec: 10s, job recall: 1s)', async () => {
 				execTimeInterval = 10000;
 
 				const name = 'job2';
@@ -138,7 +141,7 @@ describe('helpers/jobsQueue', () => {
 				return testExecution(job, name, spy);
 			});
 
-			it('should register third new job correctly call properly (job exec: 2s, job recall: 10s)', () => {
+			it('should register third new job correctly call properly (job exec: 2s, job recall: 10s)', async () => {
 				recallInterval = 10000;
 				execTimeInterval = 2000;
 
@@ -151,7 +154,7 @@ describe('helpers/jobsQueue', () => {
 				return testExecution(job, name, spy);
 			});
 
-			it('should throw an error immediately when trying to register same job twice', () => {
+			it('should throw an error immediately when trying to register same job twice', async () => {
 				const name = 'job4';
 				const spy = sinonSandbox.spy(dummyFunction);
 				const job = jobsQueue.register(name, spy, recallInterval);
@@ -165,7 +168,7 @@ describe('helpers/jobsQueue', () => {
 				}).to.throw('Synchronous job job4 already registered');
 			});
 
-			it('should use same instance when required in different module (because of modules cache)', () => {
+			it('should use same instance when required in different module (because of modules cache)', async () => {
 				const jobsQueuePeers = peers.__get__('jobsQueue');
 				// Instances should be the same
 				expect(jobsQueuePeers).to.equal(jobsQueue);

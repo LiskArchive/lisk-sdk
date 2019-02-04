@@ -103,7 +103,11 @@ module.exports = class Chain {
 		}
 
 		global.constants = this.options.constants;
-		global.exceptions = Object.assign({}, defaults.exceptions, this.options.exceptions);
+		global.exceptions = Object.assign(
+			{},
+			defaults.exceptions,
+			this.options.exceptions
+		);
 
 		// Domain error handler
 		d.on('error', err => {
@@ -464,7 +468,7 @@ module.exports = class Chain {
 							new MasterWAMPServer(scope.socketCluster, childProcessOptions)
 						);
 
-						scope.socketCluster.on('ready', () => {
+						scope.socketCluster.on('ready', async () => {
 							scope.logger.info(
 								'Socket Cluster ready for incoming connections'
 							);

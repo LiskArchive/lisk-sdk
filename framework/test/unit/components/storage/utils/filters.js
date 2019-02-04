@@ -15,13 +15,13 @@
 
 'use strict';
 
-const filterTypes = require('../../../../../framework/src/components/storage/utils/filter_types');
-const inputSerializers = require('../../../../../framework/src/components/storage/utils/inputSerializers');
-const filters = require('../../../../../framework/src/components/storage/utils/filters');
+const filterTypes = require('../../../../../src/components/storage/utils/filter_types');
+const inputSerializers = require('../../../../../src/components/storage/utils/inputSerializers');
+const filters = require('../../../../../src/components/storage/utils/filters');
 
 const customSerializer = sinonSandbox.stub().returns('custom serialized value');
 
-describe('filters', () => {
+describe('filters', async () => {
 	beforeEach(async () => {
 		sinonSandbox
 			.stub(inputSerializers, 'defaultInput')
@@ -30,23 +30,25 @@ describe('filters', () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	it('should export one function', () => {
+	it('should export one function', async () => {
 		expect(Object.keys(filters).length).to.be.eql(1);
 		expect(Object.keys(filters)[0]).to.be.eql('filterGenerator');
 		return expect(filters.filterGenerator).to.be.a('function');
 	});
 
-	describe('filterGenerator', () => {
+	describe('filterGenerator', async () => {
 		const filterGenerator = filters.filterGenerator;
 
-		it('should accept 5 parameters', () => expect(filterGenerator.length).to.be.eql(5));
+		it('should accept 5 parameters', async () =>
+			expect(filterGenerator.length).to.be.eql(5));
 
-		describe('filter types', () => {
+		describe('filter types', async () => {
 			['defaultInput', 'custom'].forEach(serializer => {
-				describe(`using ${serializer} serializer`, () => {
+				describe(`using ${serializer} serializer`, async () => {
 					const ser = serializer === 'custom' ? customSerializer : null;
 
-					it('should return appropriate filters for BOOLEAN type', () => expect(
+					it('should return appropriate filters for BOOLEAN type', async () =>
+						expect(
 							filterGenerator(filterTypes.BOOLEAN, 'alias', 'name', ser)
 						).to.be.eql({
 							alias: `"name" = ${serializer} serialized value`,
@@ -54,7 +56,8 @@ describe('filters', () => {
 							alias_ne: `"name" <> ${serializer} serialized value`,
 						}));
 
-					it('should return appropriate filters for TEXT type', () => expect(
+					it('should return appropriate filters for TEXT type', async () =>
+						expect(
 							filterGenerator(filterTypes.TEXT, 'alias', 'name', ser)
 						).to.be.eql({
 							alias: `"name" = ${serializer} serialized value`,
@@ -64,7 +67,8 @@ describe('filters', () => {
 							alias_ne: `"name" <> ${serializer} serialized value`,
 						}));
 
-					it('should return appropriate filters for NUMBER type', () => expect(
+					it('should return appropriate filters for NUMBER type', async () =>
+						expect(
 							filterGenerator(filterTypes.NUMBER, 'alias', 'name', ser)
 						).to.be.eql({
 							alias: `"name" = ${serializer} serialized value`,
@@ -79,8 +83,9 @@ describe('filters', () => {
 				});
 			});
 
-			describe('custom filter type', () => {
-				it('should use defaultInput condition if specified', () => expect(
+			describe('custom filter type', async () => {
+				it('should use defaultInput condition if specified', async () =>
+					expect(
 						filterGenerator(
 							filterTypes.CUSTOM,
 							'alias',
@@ -90,7 +95,8 @@ describe('filters', () => {
 						)
 					).to.be.eql({ alias: '${alias} - custom condition' }));
 
-				it('should use serializer if condition not provided', () => expect(
+				it('should use serializer if condition not provided', async () =>
+					expect(
 						filterGenerator(
 							filterTypes.CUSTOM,
 							'alias',
@@ -99,14 +105,14 @@ describe('filters', () => {
 						)
 					).to.be.eql({ alias: '"name" = custom serialized value' }));
 
-				it('should use defaultInput serializer if serializer and condition not provided', () => expect(
+				it('should use defaultInput serializer if serializer and condition not provided', async () =>
+					expect(
 						filterGenerator(filterTypes.CUSTOM, 'alias', 'name')
 					).to.be.eql({ alias: '"name" = defaultInput serialized value' }));
 			});
 
-			it('throw error if invalid filter type provided', () => expect(() =>
-					filterGenerator('invalidType', 'alias', 'name')
-				).to.throw(
+			it('throw error if invalid filter type provided', async () =>
+				expect(() => filterGenerator('invalidType', 'alias', 'name')).to.throw(
 					'"invalidType" not supported filter type. Supported types are: TEXT,BINARY,NUMBER,BOOLEAN,CUSTOM.'
 				));
 		});

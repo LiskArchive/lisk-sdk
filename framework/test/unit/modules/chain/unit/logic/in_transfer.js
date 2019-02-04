@@ -16,10 +16,10 @@
 
 const crypto = require('crypto');
 const rewire = require('rewire');
-const ed = require('../../../helpers/ed');
-const slots = require('../../../helpers/slots');
-const typesRepresentatives = require('../../fixtures/types_representatives');
-const modulesLoader = require('../../common/modules_loader');
+const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const slots = require('../../../../../../src/modules/chain/helpers/slots');
+const typesRepresentatives = require('../../../../../fixtures/types_representatives');
+const modulesLoader = require('../../../../../common/modules_loader');
 
 const InTransfer = rewire('../../../logic/in_transfer.js');
 const validPassphrase =
@@ -96,7 +96,7 @@ const validGetGensisResult = {
 	authorId: 'validAuthorId',
 };
 
-describe('inTransfer', () => {
+describe('inTransfer', async () => {
 	let inTransfer;
 	let sharedStub;
 	let accountsStub;
@@ -148,8 +148,8 @@ describe('inTransfer', () => {
 		done();
 	});
 
-	describe('constructor', () => {
-		describe('library', () => {
+	describe('constructor', async () => {
+		describe('library', async () => {
 			let library;
 
 			beforeEach(done => {
@@ -158,17 +158,19 @@ describe('inTransfer', () => {
 				done();
 			});
 
-			it('should assign storage', () => expect(library)
+			it('should assign storage', async () =>
+				expect(library)
 					.to.have.property('storage')
 					.eql(storageStub));
 
-			it('should assign schema', () => expect(library)
+			it('should assign schema', async () =>
+				expect(library)
 					.to.have.property('schema')
 					.eql(modulesLoader.scope.schema));
 		});
 	});
 
-	describe('bind', () => {
+	describe('bind', async () => {
 		let modules;
 		let shared;
 
@@ -179,28 +181,30 @@ describe('inTransfer', () => {
 			done();
 		});
 
-		describe('modules', () => {
-			it('should assign accounts', () => expect(modules)
+		describe('modules', async () => {
+			it('should assign accounts', async () =>
+				expect(modules)
 					.to.have.property('accounts')
 					.eql(accountsStub));
 
-			it('should assign blocks', () => expect(modules)
+			it('should assign blocks', async () =>
+				expect(modules)
 					.to.have.property('blocks')
 					.eql(blocksStub));
 		});
 
-		it('should assign shared', () => expect(shared).to.eql(sharedStub));
+		it('should assign shared', async () => expect(shared).to.eql(sharedStub));
 	});
 
-	describe('calculateFee', () => {
-		it('should return FEES.SEND', () => expect(inTransfer.calculateFee(trs).isEqualTo(FEES.SEND)).to.be
-				.true);
+	describe('calculateFee', async () => {
+		it('should return FEES.SEND', async () =>
+			expect(inTransfer.calculateFee(trs).isEqualTo(FEES.SEND)).to.be.true);
 	});
 
-	describe('verify', () => {
+	describe('verify', async () => {
 		beforeEach(() => inTransfer.bind(accountsStub, blocksStub, sharedStub));
 
-		describe('when trs.recipientId exists', () => {
+		describe('when trs.recipientId exists', async () => {
 			it('should call callback with error = "Transaction type 6 is frozen"', done => {
 				trs.recipientId = '4835566122337813671L';
 				inTransfer.verify(trs, sender, err => {
@@ -210,8 +214,8 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when trs.amount = 0', () => {
-			describe('when type 6 is frozen', () => {
+		describe('when trs.amount = 0', async () => {
+			describe('when type 6 is frozen', async () => {
 				it('should call callback with error = "Transaction type 6 is frozen"', done => {
 					trs.amount = 0;
 					inTransfer.verify(trs, sender, err => {
@@ -221,7 +225,7 @@ describe('inTransfer', () => {
 				});
 			});
 
-			describe('when type 6 is not frozen', () => {
+			describe('when type 6 is not frozen', async () => {
 				it('should call callback with error = "Invalid transaction amount"', done => {
 					const originalLimit = exceptions.precedent.disableDappTransfer;
 					exceptions.precedent.disableDappTransfer = 5;
@@ -235,8 +239,8 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when trs.amount is less than zero', () => {
-			describe('when type 6 is frozen', () => {
+		describe('when trs.amount is less than zero', async () => {
+			describe('when type 6 is frozen', async () => {
 				it('should call callback with error = "Transaction type 6 is frozen"', done => {
 					trs.amount = -1;
 					inTransfer.verify(trs, sender, err => {
@@ -246,7 +250,7 @@ describe('inTransfer', () => {
 				});
 			});
 
-			describe('when type 6 is not frozen', () => {
+			describe('when type 6 is not frozen', async () => {
 				it('should call callback with error = "Invalid transaction amount"', done => {
 					const originalLimit = exceptions.precedent.disableDappTransfer;
 					exceptions.precedent.disableDappTransfer = 5;
@@ -260,7 +264,7 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when trs.asset does not exist', () => {
+		describe('when trs.asset does not exist', async () => {
 			it('should call callback with error = "Transaction type 6 is frozen"', done => {
 				trs.asset = undefined;
 				inTransfer.verify(trs, sender, err => {
@@ -270,7 +274,7 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when trs.asset.inTransfer does not exist', () => {
+		describe('when trs.asset.inTransfer does not exist', async () => {
 			it('should call callback with error = "Transaction type 6 is frozen"', done => {
 				trs.asset.inTransfer = undefined;
 				inTransfer.verify(trs, sender, err => {
@@ -280,7 +284,7 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when trs.asset.inTransfer = 0', () => {
+		describe('when trs.asset.inTransfer = 0', async () => {
 			it('should call callback with error = "Transaction type 6 is frozen"', done => {
 				trs.asset.inTransfer = 0;
 				inTransfer.verify(trs, sender, err => {
@@ -291,7 +295,7 @@ describe('inTransfer', () => {
 		});
 
 		it('should call entities.Transaction.isPersisted', done => {
-			inTransfer.verify(trs, sender, () => {
+			inTransfer.verify(trs, sender, async () => {
 				expect(storageStub.entities.Transaction.isPersisted.calledOnce).to.be
 					.false;
 				done();
@@ -299,7 +303,7 @@ describe('inTransfer', () => {
 		});
 
 		it('should call entities.Transaction.isPersisted with trs.asset.inTransfer.dappId', done => {
-			inTransfer.verify(trs, sender, () => {
+			inTransfer.verify(trs, sender, async () => {
 				expect(
 					storageStub.entities.Transaction.isPersisted.calledWith(
 						trs.asset.inTransfer.dappId
@@ -309,7 +313,7 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when entities.Transaction.isPersisted fails', () => {
+		describe('when entities.Transaction.isPersisted fails', async () => {
 			beforeEach(done => {
 				storageStub.entities.Transaction.isPersisted = sinonSandbox
 					.stub()
@@ -325,8 +329,8 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when entities.Transaction.isPersisted succeeds', () => {
-			describe('when dapp does not exist', () => {
+		describe('when entities.Transaction.isPersisted succeeds', async () => {
+			describe('when dapp does not exist', async () => {
 				beforeEach(done => {
 					storageStub.entities.Transaction.isPersisted = sinonSandbox
 						.stub()
@@ -342,7 +346,7 @@ describe('inTransfer', () => {
 				});
 			});
 
-			describe('when dapp exists', () => {
+			describe('when dapp exists', async () => {
 				beforeEach(done => {
 					storageStub.entities.Transaction.isPersisted = sinonSandbox
 						.stub()
@@ -367,7 +371,7 @@ describe('inTransfer', () => {
 		});
 	});
 
-	describe('process', () => {
+	describe('process', async () => {
 		it('should call callback with error = null', done => {
 			inTransfer.process(trs, sender, err => {
 				expect(err).to.be.null;
@@ -383,41 +387,47 @@ describe('inTransfer', () => {
 		});
 	});
 
-	describe('getBytes', () => {
-		describe('when trs.asset.inTransfer.dappId = undefined', () => {
+	describe('getBytes', async () => {
+		describe('when trs.asset.inTransfer.dappId = undefined', async () => {
 			beforeEach(done => {
 				trs.asset.inTransfer.dappId = undefined;
 				done();
 			});
 
-			it('should throw', () => expect(inTransfer.getBytes.bind(null, trs)).to.throw);
+			it('should throw', async () =>
+				expect(inTransfer.getBytes.bind(null, trs)).to.throw);
 		});
 
-		describe('when trs.asset.inTransfer.dappId is a valid dapp id', () => {
-			it('should not throw', () => expect(inTransfer.getBytes.bind(null, trs)).not.to.throw);
+		describe('when trs.asset.inTransfer.dappId is a valid dapp id', async () => {
+			it('should not throw', async () =>
+				expect(inTransfer.getBytes.bind(null, trs)).not.to.throw);
 
-			it('should get bytes of valid transaction', () => expect(inTransfer.getBytes(trs).toString('utf8')).to.equal(
+			it('should get bytes of valid transaction', async () =>
+				expect(inTransfer.getBytes(trs).toString('utf8')).to.equal(
 					validTransaction.asset.inTransfer.dappId
 				));
 
-			it('should return result as a Buffer type', () => expect(inTransfer.getBytes(trs)).to.be.instanceOf(Buffer));
+			it('should return result as a Buffer type', async () =>
+				expect(inTransfer.getBytes(trs)).to.be.instanceOf(Buffer));
 		});
 	});
 
-	describe('applyConfirmed', () => {
+	describe('applyConfirmed', async () => {
 		beforeEach(done => {
 			inTransfer.applyConfirmed(trs, dummyBlock, sender, done);
 		});
 
-		it('should call shared.getGenesis', () => expect(sharedStub.getGenesis.calledOnce).to.be.true);
+		it('should call shared.getGenesis', async () =>
+			expect(sharedStub.getGenesis.calledOnce).to.be.true);
 
-		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', () => expect(
+		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', async () =>
+			expect(
 				sharedStub.getGenesis.calledWith({
 					dappid: trs.asset.inTransfer.dappId,
 				})
 			).to.be.true);
 
-		describe('when shared.getGenesis fails', () => {
+		describe('when shared.getGenesis fails', async () => {
 			beforeEach(done => {
 				sharedStub.getGenesis = sinonSandbox
 					.stub()
@@ -425,45 +435,51 @@ describe('inTransfer', () => {
 				done();
 			});
 
-			it('should call callback with error', () => inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
+			it('should call callback with error', async () =>
+				inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				}));
 		});
 
-		describe('when shared.getGenesis succeeds', () => {
+		describe('when shared.getGenesis succeeds', async () => {
 			beforeEach(done => {
 				sharedStub.getGenesis = sinonSandbox.stub().callsArg(1);
 				done();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet', () => expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true);
+			it('should call modules.accounts.mergeAccountAndGet', async () =>
+				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true);
 
-			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', async () =>
+				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ address: validGetGensisResult.authorId })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount', async () =>
+				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ balance: trs.amount })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount', async () =>
+				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: trs.amount })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
+				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ round: slots.calcRound(dummyBlock.height) })
 					)
 				).to.be.true);
 		});
 
-		describe('when modules.accounts.mergeAccountAndGet fails', () => {
+		describe('when modules.accounts.mergeAccountAndGet fails', async () => {
 			beforeEach(done => {
 				accountsStub.mergeAccountAndGet = sinonSandbox
 					.stub()
@@ -471,41 +487,41 @@ describe('inTransfer', () => {
 				done();
 			});
 
-			it('should call callback with error', () => inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
+			it('should call callback with error', async () =>
+				inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				}));
 		});
 
-		describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
-			it('should call callback with error = undefined', () => inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
+		describe('when modules.accounts.mergeAccountAndGet succeeds', async () => {
+			it('should call callback with error = undefined', async () =>
+				inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
 				}));
 
-			it('should call callback with result = undefined', () => inTransfer.applyConfirmed(
-					trs,
-					dummyBlock,
-					sender,
-					(err, res) => {
-						expect(res).to.be.undefined;
-					}
-				));
+			it('should call callback with result = undefined', async () =>
+				inTransfer.applyConfirmed(trs, dummyBlock, sender, (err, res) => {
+					expect(res).to.be.undefined;
+				}));
 		});
 	});
 
-	describe('undoConfirmed', () => {
+	describe('undoConfirmed', async () => {
 		beforeEach(done => {
 			inTransfer.undoConfirmed(trs, dummyBlock, sender, done);
 		});
 
-		it('should call shared.getGenesis', () => expect(sharedStub.getGenesis.calledOnce).to.be.true);
+		it('should call shared.getGenesis', async () =>
+			expect(sharedStub.getGenesis.calledOnce).to.be.true);
 
-		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', () => expect(
+		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', async () =>
+			expect(
 				sharedStub.getGenesis.calledWith({
 					dappid: trs.asset.inTransfer.dappId,
 				})
 			).to.be.true);
 
-		describe('when shared.getGenesis fails', () => {
+		describe('when shared.getGenesis fails', async () => {
 			beforeEach(done => {
 				sharedStub.getGenesis = sinonSandbox
 					.stub()
@@ -513,45 +529,51 @@ describe('inTransfer', () => {
 				done();
 			});
 
-			it('should call callback with error', () => inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
+			it('should call callback with error', async () =>
+				inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				}));
 		});
 
-		describe('when shared.getGenesis succeeds', () => {
+		describe('when shared.getGenesis succeeds', async () => {
 			beforeEach(done => {
 				sharedStub.getGenesis = sinonSandbox.stub().callsArg(1);
 				done();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet', () => expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true);
+			it('should call modules.accounts.mergeAccountAndGet', async () =>
+				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true);
 
-			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', async () =>
+				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ address: validGetGensisResult.authorId })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.mergeAccountAndGet with balance = -trs.amount', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with balance = -trs.amount', async () =>
+				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ balance: -trs.amount })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', async () =>
+				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: -trs.amount })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', () => expect(
+			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
+				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ round: slots.calcRound(dummyBlock.height) })
 					)
 				).to.be.true);
 		});
 
-		describe('when modules.accounts.mergeAccountAndGet fails', () => {
+		describe('when modules.accounts.mergeAccountAndGet fails', async () => {
 			beforeEach(done => {
 				accountsStub.mergeAccountAndGet = sinonSandbox
 					.stub()
@@ -559,23 +581,26 @@ describe('inTransfer', () => {
 				done();
 			});
 
-			it('should call callback with error', () => inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
+			it('should call callback with error', async () =>
+				inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				}));
 		});
 
-		describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
-			it('should call callback with error = undefined', () => inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
+		describe('when modules.accounts.mergeAccountAndGet succeeds', async () => {
+			it('should call callback with error = undefined', async () =>
+				inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
 				}));
 
-			it('should call callback with result = undefined', () => inTransfer.undoConfirmed(trs, dummyBlock, sender, (err, res) => {
+			it('should call callback with result = undefined', async () =>
+				inTransfer.undoConfirmed(trs, dummyBlock, sender, (err, res) => {
 					expect(res).to.be.undefined;
 				}));
 		});
 	});
 
-	describe('applyUnconfirmed', () => {
+	describe('applyUnconfirmed', async () => {
 		it('should call callback with error = undefined', done => {
 			inTransfer.applyUnconfirmed(trs, sender, err => {
 				expect(err).to.be.undefined;
@@ -591,7 +616,7 @@ describe('inTransfer', () => {
 		});
 	});
 
-	describe('undoUnconfirmed', () => {
+	describe('undoUnconfirmed', async () => {
 		it('should call callback with error = undefined', done => {
 			inTransfer.undoUnconfirmed(trs, sender, err => {
 				expect(err).to.be.undefined;
@@ -607,7 +632,7 @@ describe('inTransfer', () => {
 		});
 	});
 
-	describe('objectNormalize', () => {
+	describe('objectNormalize', async () => {
 		let library;
 		let schemaSpy;
 
@@ -619,83 +644,91 @@ describe('inTransfer', () => {
 
 		afterEach(() => schemaSpy.restore());
 
-		it('should call library.schema.validate', () => {
+		it('should call library.schema.validate', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.calledOnce).to.be.true;
 		});
 
-		it('should call library.schema.validate with trs.asset.inTransfer', () => {
+		it('should call library.schema.validate with trs.asset.inTransfer', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.calledWith(trs.asset.inTransfer)).to.be.true;
 		});
 
-		it('should call library.schema.validate InTransfer.prototype.schema', () => {
+		it('should call library.schema.validate InTransfer.prototype.schema', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.args[0][1]).to.eql(InTransfer.prototype.schema);
 		});
 
-		describe('when transaction.asset.inTransfer is invalid object argument', () => {
+		describe('when transaction.asset.inTransfer is invalid object argument', async () => {
 			typesRepresentatives.nonObjects.forEach(nonObject => {
 				it(`should throw for transaction.asset.inTransfer = ${
 					nonObject.description
-				}`, () => expect(
+				}`, async () =>
+					expect(
 						inTransfer.objectNormalize.bind(null, nonObject.input)
 					).to.throw());
 			});
 		});
 
-		describe('when transaction.asset.inTransfer.dappId is invalid string argument', () => {
+		describe('when transaction.asset.inTransfer.dappId is invalid string argument', async () => {
 			typesRepresentatives.nonStrings.forEach(nonString => {
 				it(`should throw for transaction.asset.inTransfer.dappId = ${
 					nonString.description
-				}`, () => {
+				}`, async () => {
 					trs.asset.inTransfer.dappId = nonString.input;
 					return expect(inTransfer.objectNormalize.bind(null, trs)).to.throw();
 				});
 			});
 		});
 
-		describe('when when transaction.asset.inTransfer is valid', () => {
-			it('should return transaction', () => expect(inTransfer.objectNormalize(trs)).to.eql(trs));
+		describe('when when transaction.asset.inTransfer is valid', async () => {
+			it('should return transaction', async () =>
+				expect(inTransfer.objectNormalize(trs)).to.eql(trs));
 		});
 	});
 
-	describe('dbRead', () => {
-		describe('when raw.in_dappId does not exist', () => {
-			beforeEach(() => delete rawTrs.in_dappId);
+	describe('dbRead', async () => {
+		describe('when raw.in_dappId does not exist', async () => {
+			beforeEach(async () => delete rawTrs.in_dappId);
 
-			it('should return null', () => expect(inTransfer.dbRead(rawTrs)).to.eql(null));
+			it('should return null', async () =>
+				expect(inTransfer.dbRead(rawTrs)).to.eql(null));
 		});
 
-		describe('when raw.in_dappId exists', () => {
-			it('should return result containing inTransfer', () => expect(inTransfer.dbRead(rawTrs)).to.have.property('inTransfer'));
+		describe('when raw.in_dappId exists', async () => {
+			it('should return result containing inTransfer', async () =>
+				expect(inTransfer.dbRead(rawTrs)).to.have.property('inTransfer'));
 
-			it('should return result containing inTransfer.dappId = raw.dapp_id', () => expect(inTransfer.dbRead(rawTrs))
+			it('should return result containing inTransfer.dappId = raw.dapp_id', async () =>
+				expect(inTransfer.dbRead(rawTrs))
 					.to.have.nested.property('inTransfer.dappId')
 					.equal(rawTrs.in_dappId));
 		});
 	});
 
-	describe('afterSave', () => {
-		it('should call callback with error = undefined', () => inTransfer.afterSave(trs, err => {
+	describe('afterSave', async () => {
+		it('should call callback with error = undefined', async () =>
+			inTransfer.afterSave(trs, err => {
 				expect(err).to.be.undefined;
 			}));
 
-		it('should call callback with result = undefined', () => inTransfer.afterSave(trs, (err, res) => {
+		it('should call callback with result = undefined', async () =>
+			inTransfer.afterSave(trs, (err, res) => {
 				expect(res).to.be.undefined;
 			}));
 	});
 
-	describe('ready', () => {
-		it('should return true for single signature trs', () => expect(inTransfer.ready(trs, sender)).to.equal(true));
+	describe('ready', async () => {
+		it('should return true for single signature trs', async () =>
+			expect(inTransfer.ready(trs, sender)).to.equal(true));
 
-		it('should return false for multi signature transaction with less signatures', () => {
+		it('should return false for multi signature transaction with less signatures', async () => {
 			sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 
 			return expect(inTransfer.ready(trs, sender)).to.equal(false);
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', () => {
+		it('should return true for multi signature transaction with alteast min signatures', async () => {
 			sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 			sender.multiMin = 1;
 

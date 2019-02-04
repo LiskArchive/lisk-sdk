@@ -1,8 +1,10 @@
 const rewire = require('rewire');
 
-const Broadcaster = rewire('../../../logic/broadcaster');
+const Broadcaster = rewire(
+	'../../../../../../src/modules/chain/logic/broadcaster'
+);
 
-describe('Broadcaster', () => {
+describe('Broadcaster', async () => {
 	const force = true;
 	const params = { limit: 10, broadhash: '123' };
 	const options = {
@@ -108,12 +110,13 @@ describe('Broadcaster', () => {
 		return sinonSandbox.restore();
 	});
 
-	describe('constructor', () => {
-		it('should throw error with no params', () => expect(() => {
+	describe('constructor', async () => {
+		it('should throw error with no params', async () =>
+			expect(() => {
 				new Broadcaster();
 			}).to.throw());
 
-		it('should load libraries', () => {
+		it('should load libraries', async () => {
 			expect(library.logger).to.deep.equal(loggerStub);
 			expect(library.logic.peers).to.deep.equal(peersStub);
 			expect(library.config).to.deep.equal({
@@ -123,7 +126,7 @@ describe('Broadcaster', () => {
 			return expect(library.logic.transaction).to.deep.equal(transactionStub);
 		});
 
-		it('should return Broadcaster instance', () => {
+		it('should return Broadcaster instance', async () => {
 			expect(broadcaster).to.be.instanceOf(Broadcaster);
 			expect(broadcaster)
 				.to.have.property('queue')
@@ -136,7 +139,7 @@ describe('Broadcaster', () => {
 				.that.is.an('Array');
 		});
 
-		it('should register jobsQueue', () => {
+		it('should register jobsQueue', async () => {
 			const auxNextRelease = Broadcaster.__get__('nextRelease');
 			expect(jobsQueue.register.calledOnce).to.be.true;
 			return expect(jobsQueue.register).calledWith(
@@ -147,8 +150,9 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('getPeers', () => {
-		it('should throw error for empty params', () => expect(() => {
+	describe('getPeers', async () => {
+		it('should throw error for empty params', async () =>
+			expect(() => {
 				broadcaster.getPeers(null);
 			}).to.throw());
 
@@ -176,7 +180,7 @@ describe('Broadcaster', () => {
 		it('should reach consensus', done => {
 			const peerParams = _.cloneDeep(params);
 			peerParams.limit = 100;
-			broadcaster.getPeers(peerParams, () => {
+			broadcaster.getPeers(peerParams, async () => {
 				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
 				expect(peersStub.listRandomConnected.args[0][0]).to.deep.equal(
 					peerParams
@@ -189,7 +193,7 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('broadcast', () => {
+	describe('broadcast', async () => {
 		beforeEach(done => {
 			broadcaster.getPeers = sinonSandbox
 				.stub()
@@ -258,14 +262,15 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('enqueue', () => {
-		it('should throw error for no params', () => expect(() => {
+	describe('enqueue', async () => {
+		it('should throw error for no params', async () =>
+			expect(() => {
 				broadcaster.enqueue();
 			})
 				.to.throw()
 				.to.be.instanceOf(Error));
 
-		it('should push params and options to queue', () => {
+		it('should push params and options to queue', async () => {
 			const auxParams = {};
 			const auxOptions = {};
 			expect(broadcaster.enqueue(auxParams, auxOptions)).to.eql(1);
@@ -273,13 +278,15 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('maxRelays', () => {
-		it('should return true if exhausted', () => expect(broadcaster.maxRelays({ relays: 11 })).to.be.true);
+	describe('maxRelays', async () => {
+		it('should return true if exhausted', async () =>
+			expect(broadcaster.maxRelays({ relays: 11 })).to.be.true);
 
-		it('should return false if max relay is less than relay limit', () => expect(broadcaster.maxRelays({ relays: 9 })).to.be.false);
+		it('should return false if max relay is less than relay limit', async () =>
+			expect(broadcaster.maxRelays({ relays: 9 })).to.be.false);
 	});
 
-	describe('nextRelease', () => {
+	describe('nextRelease', async () => {
 		it('should be able to invoke next release', done => {
 			const releaseQueueSpy = sinonSandbox.stub().callsArgWith(0, null);
 			Broadcaster.__set__('__private.releaseQueue', releaseQueueSpy);
@@ -303,7 +310,7 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('filterQueue', () => {
+	describe('filterQueue', async () => {
 		const validTransaction = { id: '321' };
 		const validSignature = { transactionId: '123' };
 		beforeEach('having empty broadcasts queue', done => {
@@ -311,7 +318,7 @@ describe('Broadcaster', () => {
 			done();
 		});
 
-		describe('having one transaction broadcast in queue with immediate = true', () => {
+		describe('having one transaction broadcast in queue with immediate = true', async () => {
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
@@ -333,7 +340,7 @@ describe('Broadcaster', () => {
 			});
 		});
 
-		describe('having one transaction broadcast in queue of transaction = undefined', () => {
+		describe('having one transaction broadcast in queue of transaction = undefined', async () => {
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
@@ -353,7 +360,7 @@ describe('Broadcaster', () => {
 			});
 		});
 
-		describe('having one signature broadcast in queue', () => {
+		describe('having one signature broadcast in queue', async () => {
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
 					api: 'postSignatures',
@@ -373,7 +380,7 @@ describe('Broadcaster', () => {
 			});
 		});
 
-		describe('having one transaction broadcast in queue', () => {
+		describe('having one transaction broadcast in queue', async () => {
 			let broadcast;
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
@@ -404,7 +411,7 @@ describe('Broadcaster', () => {
 				});
 			});
 
-			describe('when [validTransaction] exists in transaction pool', () => {
+			describe('when [validTransaction] exists in transaction pool', async () => {
 				beforeEach(done => {
 					modulesStub.transactions.transactionInPool.returns(true);
 					done();
@@ -419,12 +426,12 @@ describe('Broadcaster', () => {
 				});
 			});
 
-			describe('when [validTransaction] does not exist in transaction pool', () => {
+			describe('when [validTransaction] does not exist in transaction pool', async () => {
 				beforeEach(done => {
 					modulesStub.transactions.transactionInPool.returns(false);
 					done();
 				});
-				describe('when [validTransaction] is confirmed', () => {
+				describe('when [validTransaction] is confirmed', async () => {
 					beforeEach(done => {
 						transactionStub.checkConfirmed.callsArgWith(1, null, true);
 						done();
@@ -438,7 +445,7 @@ describe('Broadcaster', () => {
 						});
 					});
 				});
-				describe('when [validTransaction] is not confirmed', () => {
+				describe('when [validTransaction] is not confirmed', async () => {
 					beforeEach(done => {
 						transactionStub.checkConfirmed.callsArgWith(1, null, false);
 						done();
@@ -452,7 +459,7 @@ describe('Broadcaster', () => {
 						});
 					});
 				});
-				describe('when error occurs while checking if [validTransaction] is confirmed', () => {
+				describe('when error occurs while checking if [validTransaction] is confirmed', async () => {
 					beforeEach(done => {
 						transactionStub.checkConfirmed.callsArgWith(
 							1,
@@ -473,7 +480,7 @@ describe('Broadcaster', () => {
 			});
 		});
 
-		describe('having many transaction and signatures broadcasts in queue', () => {
+		describe('having many transaction and signatures broadcasts in queue', async () => {
 			const auxBroadcasts = [];
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
@@ -569,7 +576,7 @@ describe('Broadcaster', () => {
 				done();
 			});
 
-			describe('when all of them exist in transaction pool', () => {
+			describe('when all of them exist in transaction pool', async () => {
 				beforeEach(done => {
 					modulesStub.transactions.transactionInPool.returns(true);
 					done();
@@ -586,13 +593,13 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('squashQueue', () => {
-		it('should return empty array for no params and empty object', () => {
+	describe('squashQueue', async () => {
+		it('should return empty array for no params and empty object', async () => {
 			expect(squashQueue({})).to.eql([]);
 			return expect(squashQueue()).to.eql([]);
 		});
 
-		it('should be able to squash the queue', () => {
+		it('should be able to squash the queue', async () => {
 			const auxBroadcasts = {
 				broadcast: {
 					options: { api: 'postTransactions', data: { peer: {}, block: {} } },
@@ -612,7 +619,7 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('releaseQueue', () => {
+	describe('releaseQueue', async () => {
 		beforeEach(done => {
 			broadcaster.getPeers = sinonSandbox
 				.stub()

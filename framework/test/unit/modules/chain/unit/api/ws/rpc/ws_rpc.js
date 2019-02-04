@@ -19,7 +19,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 
-const ws_rpc = rewire('../../../../../api/ws/rpc/ws_rpc');
+const ws_rpc = rewire(
+	'../../../../../../../../src/modules/chain/api/ws/rpc/ws_rpc'
+);
 const wsRPC = ws_rpc.wsRPC;
 const slaveRPCStub = ws_rpc.slaveRPCStub;
 
@@ -28,7 +30,7 @@ let serverMock;
 let authKeyMock;
 let error;
 
-describe('ws_rpc', () => {
+describe('ws_rpc', async () => {
 	beforeEach(done => {
 		authKeyMock = 'valid auth key';
 		serverMock = {
@@ -41,9 +43,9 @@ describe('ws_rpc', () => {
 		done();
 	});
 
-	describe('wsRPC', () => {
-		describe('get/set server', () => {
-			describe('setServer', () => {
+	describe('wsRPC', async () => {
+		describe('get/set server', async () => {
+			describe('setServer', async () => {
 				let wsServerInternal;
 
 				beforeEach(done => {
@@ -52,10 +54,11 @@ describe('ws_rpc', () => {
 					done();
 				});
 
-				it('should set the wsServer internally to the correct object', () => expect(wsServerInternal).to.equal(serverMock));
+				it('should set the wsServer internally to the correct object', async () =>
+					expect(wsServerInternal).to.equal(serverMock));
 			});
 
-			describe('getServer', () => {
+			describe('getServer', async () => {
 				beforeEach(done => {
 					ws_rpc.__set__({
 						wsServer: serverMock,
@@ -64,28 +67,30 @@ describe('ws_rpc', () => {
 					done();
 				});
 
-				it('should return the internal wsServer', () => expect(result).to.equal(serverMock));
+				it('should return the internal wsServer', async () =>
+					expect(result).to.equal(serverMock));
 			});
 		});
 
 		// Other functions which rely on setServer and getServer.
-		describe('other functions', () => {
+		describe('other functions', async () => {
 			beforeEach(done => {
 				wsRPC.setServer(serverMock);
 				done();
 			});
 
-			describe('getServerAuthKey', () => {
-				describe('when wsServer is defined', () => {
+			describe('getServerAuthKey', async () => {
+				describe('when wsServer is defined', async () => {
 					beforeEach(done => {
 						result = wsRPC.getServerAuthKey();
 						done();
 					});
 
-					it('should return the authKey of the wsServer', () => expect(result).to.equal(authKeyMock));
+					it('should return the authKey of the wsServer', async () =>
+						expect(result).to.equal(authKeyMock));
 				});
 
-				describe('when wsServer is undefined', () => {
+				describe('when wsServer is undefined', async () => {
 					beforeEach(done => {
 						wsRPC.setServer(undefined);
 						error = null;
@@ -97,14 +102,15 @@ describe('ws_rpc', () => {
 						done();
 					});
 
-					it('should throw an Error to indicate that the wsServer has not been initialized', () => expect(error).to.be.an.instanceOf(Error));
+					it('should throw an Error to indicate that the wsServer has not been initialized', async () =>
+						expect(error).to.be.an.instanceOf(Error));
 				});
 			});
 		});
 	});
 
-	describe('slaveRPCStub', () => {
-		describe('updateMyself', () => {
+	describe('slaveRPCStub', async () => {
+		describe('updateMyself', async () => {
 			beforeEach(done => {
 				error = null;
 				try {
@@ -116,7 +122,8 @@ describe('ws_rpc', () => {
 			});
 
 			// Cannot be invoked directly.
-			it('should throw an error', () => expect(error).to.be.an.instanceOf(Error));
+			it('should throw an error', async () =>
+				expect(error).to.be.an.instanceOf(Error));
 		});
 	});
 });

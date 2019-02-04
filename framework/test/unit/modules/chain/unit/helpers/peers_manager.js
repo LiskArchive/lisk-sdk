@@ -14,10 +14,12 @@
 
 'use strict';
 
-const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
-const Peer = require('../../../logic/peer');
-const PeersManager = require('../../../helpers/peers_manager');
-const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const prefixedPeer = require('../../../../../fixtures/peers')
+	.randomNormalizedPeer;
+const Peer = require('../../../../../../src/modules/chain/logic/peer');
+const PeersManager = require('../../../../../../src/modules/chain/helpers/peers_manager');
+const wsRPC = require('../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
+	.wsRPC;
 
 let peersManagerInstance;
 let masterWAMPServerMock;
@@ -25,7 +27,7 @@ let masterWAMPServerMock;
 const validRPCProcedureName = 'rpcProcedureA';
 const validEventProcedureName = 'eventProcedureB';
 
-describe('PeersManager', () => {
+describe('PeersManager', async () => {
 	beforeEach(done => {
 		peersManagerInstance = new PeersManager({
 			error: sinonSandbox.stub(),
@@ -49,17 +51,20 @@ describe('PeersManager', () => {
 		done();
 	});
 
-	describe('constructor', () => {
-		it('should have empty peers map after initialization', () => expect(peersManagerInstance).to.have.property('peers').to.be.empty);
+	describe('constructor', async () => {
+		it('should have empty peers map after initialization', async () =>
+			expect(peersManagerInstance).to.have.property('peers').to.be.empty);
 
-		it('should have empty addressToNonceMap map after initialization', () => expect(peersManagerInstance).to.have.property('addressToNonceMap')
-				.to.be.empty);
+		it('should have empty addressToNonceMap map after initialization', async () =>
+			expect(peersManagerInstance).to.have.property('addressToNonceMap').to.be
+				.empty);
 
-		it('should have empty nonceToConnectionIdMap map after initialization', () => expect(peersManagerInstance).to.have.property('nonceToAddressMap')
-				.to.be.empty);
+		it('should have empty nonceToConnectionIdMap map after initialization', async () =>
+			expect(peersManagerInstance).to.have.property('nonceToAddressMap').to.be
+				.empty);
 	});
 
-	describe('method', () => {
+	describe('method', async () => {
 		let validPeer;
 
 		beforeEach(done => {
@@ -70,43 +75,47 @@ describe('PeersManager', () => {
 			done();
 		});
 
-		describe('add', () => {
-			it('should return false when invoked without arguments', () => expect(peersManagerInstance.add()).not.to.be.ok);
+		describe('add', async () => {
+			it('should return false when invoked without arguments', async () =>
+				expect(peersManagerInstance.add()).not.to.be.ok);
 
-			it('should return false when invoked with peer equal null', () => expect(peersManagerInstance.add(null)).not.to.be.ok);
+			it('should return false when invoked with peer equal null', async () =>
+				expect(peersManagerInstance.add(null)).not.to.be.ok);
 
-			it('should return false when invoked with peer equal 0', () => expect(peersManagerInstance.add(0)).not.to.be.ok);
+			it('should return false when invoked with peer equal 0', async () =>
+				expect(peersManagerInstance.add(0)).not.to.be.ok);
 
-			it('should return false when invoked with peer has no string field', () => expect(peersManagerInstance.add({})).not.to.be.ok);
+			it('should return false when invoked with peer has no string field', async () =>
+				expect(peersManagerInstance.add({})).not.to.be.ok);
 
-			it('should add entry to peers when invoked with valid arguments', () => {
+			it('should add entry to peers when invoked with valid arguments', async () => {
 				peersManagerInstance.add(validPeer);
 				return expect(peersManagerInstance.peers)
 					.to.have.property(validPeer.string)
 					.eql(validPeer);
 			});
 
-			it('should add entry to addressToNonceMap when invoked with valid arguments', () => {
+			it('should add entry to addressToNonceMap when invoked with valid arguments', async () => {
 				peersManagerInstance.add(validPeer);
 				return expect(peersManagerInstance.addressToNonceMap)
 					.to.have.property(validPeer.string)
 					.eql(validPeer.nonce);
 			});
 
-			it('should add entry to nonceToAddressMap when invoked with valid arguments', () => {
+			it('should add entry to nonceToAddressMap when invoked with valid arguments', async () => {
 				peersManagerInstance.add(validPeer);
 				return expect(peersManagerInstance.nonceToAddressMap)
 					.to.have.property(validPeer.nonce)
 					.eql(validPeer.string);
 			});
 
-			it('should prevent from adding peer with the same nonce but different address', () => {
+			it('should prevent from adding peer with the same nonce but different address', async () => {
 				expect(peersManagerInstance.add(validPeer)).to.be.ok;
 				validPeer.string = 'DIFFERENT';
 				return expect(peersManagerInstance.add(validPeer)).not.to.be.ok;
 			});
 
-			it('should update data on peers list', () => {
+			it('should update data on peers list', async () => {
 				expect(peersManagerInstance.add(validPeer)).to.be.ok;
 				validPeer.height = 'DIFFERENT';
 				expect(peersManagerInstance.add(validPeer)).to.be.ok;
@@ -115,7 +124,7 @@ describe('PeersManager', () => {
 				);
 			});
 
-			it('should remove old entry when nonce is different', () => {
+			it('should remove old entry when nonce is different', async () => {
 				expect(peersManagerInstance.add(validPeer)).to.be.ok;
 				validPeer.nonce = 'DIFFERENT';
 				expect(peersManagerInstance.add(validPeer)).to.be.ok;
@@ -125,7 +134,7 @@ describe('PeersManager', () => {
 				);
 			});
 
-			describe('multiple valid entries', () => {
+			describe('multiple valid entries', async () => {
 				let validPeerA;
 				let validPeerB;
 
@@ -142,7 +151,7 @@ describe('PeersManager', () => {
 					return expect(peersManagerInstance.add(validPeerB)).to.be.ok;
 				});
 
-				it('should contain multiple entries in peers after multiple valid entries added', () => {
+				it('should contain multiple entries in peers after multiple valid entries added', async () => {
 					expect(Object.keys(peersManagerInstance.peers).length).to.equal(2);
 					expect(peersManagerInstance.peers)
 						.to.have.property(validPeerA.string)
@@ -152,7 +161,7 @@ describe('PeersManager', () => {
 						.eql(validPeerB);
 				});
 
-				it('should contain multiple entries in addressToNonceMap after multiple valid entries added', () => {
+				it('should contain multiple entries in addressToNonceMap after multiple valid entries added', async () => {
 					expect(
 						Object.keys(peersManagerInstance.addressToNonceMap).length
 					).to.equal(2);
@@ -164,7 +173,7 @@ describe('PeersManager', () => {
 						.equal(validPeerB.nonce);
 				});
 
-				it('should contain multiple entries in nonceToAddressMap after multiple valid entries added', () => {
+				it('should contain multiple entries in nonceToAddressMap after multiple valid entries added', async () => {
 					expect(
 						Object.keys(peersManagerInstance.addressToNonceMap).length
 					).to.equal(2);
@@ -177,49 +186,58 @@ describe('PeersManager', () => {
 				});
 			});
 
-			describe('when peer gets added nonce = undefined', () => {
+			describe('when peer gets added nonce = undefined', async () => {
 				beforeEach(done => {
 					validPeer.nonce = undefined;
 					peersManagerInstance.add(validPeer);
 					done();
 				});
 
-				it('should not create any entry in addressToNonce map', () => expect(
-						peersManagerInstance.addressToNonceMap
-					).not.to.have.property(validPeer.string));
+				it('should not create any entry in addressToNonce map', async () =>
+					expect(peersManagerInstance.addressToNonceMap).not.to.have.property(
+						validPeer.string
+					));
 
-				it('should not create any entry in nonceToAddress map', () => expect(peersManagerInstance.nonceToAddressMap).to.be.empty);
+				it('should not create any entry in nonceToAddress map', async () =>
+					expect(peersManagerInstance.nonceToAddressMap).to.be.empty);
 
-				describe('when peer is updated with defined nonce = "validNonce"', () => {
+				describe('when peer is updated with defined nonce = "validNonce"', async () => {
 					beforeEach(done => {
 						validPeer.nonce = 'validNonce';
 						peersManagerInstance.add(validPeer);
 						done();
 					});
 
-					it('should update an entry [validPeer.string] = "validNonce" in addressToNonce map', () => expect(peersManagerInstance.addressToNonceMap)
+					it('should update an entry [validPeer.string] = "validNonce" in addressToNonce map', async () =>
+						expect(peersManagerInstance.addressToNonceMap)
 							.to.have.property(validPeer.string)
 							.to.equal('validNonce'));
 
-					it('should add an entry "validNonce" = [peer.string] in nonceToAddress map', () => expect(peersManagerInstance.nonceToAddressMap)
+					it('should add an entry "validNonce" = [peer.string] in nonceToAddress map', async () =>
+						expect(peersManagerInstance.nonceToAddressMap)
 							.to.have.property('validNonce')
 							.equal(validPeer.string));
 				});
 			});
 		});
 
-		describe('remove', () => {
-			it('should return false when invoked without arguments', () => expect(peersManagerInstance.remove()).not.to.be.ok);
+		describe('remove', async () => {
+			it('should return false when invoked without arguments', async () =>
+				expect(peersManagerInstance.remove()).not.to.be.ok);
 
-			it('should return false when invoked with null', () => expect(peersManagerInstance.remove(null)).not.to.be.ok);
+			it('should return false when invoked with null', async () =>
+				expect(peersManagerInstance.remove(null)).not.to.be.ok);
 
-			it('should return false when invoked with 0', () => expect(peersManagerInstance.remove(0)).not.to.be.ok);
+			it('should return false when invoked with 0', async () =>
+				expect(peersManagerInstance.remove(0)).not.to.be.ok);
 
-			it('should return false when invoked with peer without string property', () => expect(peersManagerInstance.remove({})).not.to.be.ok);
+			it('should return false when invoked with peer without string property', async () =>
+				expect(peersManagerInstance.remove({})).not.to.be.ok);
 
-			it('should return false when invoked with peer while attempt to remove not existing peer', () => expect(peersManagerInstance.remove(validPeer)).not.to.be.ok);
+			it('should return false when invoked with peer while attempt to remove not existing peer', async () =>
+				expect(peersManagerInstance.remove(validPeer)).not.to.be.ok);
 
-			it('should not change a state of connections table when removing not existing entry', () => {
+			it('should not change a state of connections table when removing not existing entry', async () => {
 				peersManagerInstance.remove(validPeer);
 				expect(peersManagerInstance).to.have.property('peers').to.be.empty;
 				expect(peersManagerInstance).to.have.property('addressToNonceMap').to.be
@@ -229,7 +247,7 @@ describe('PeersManager', () => {
 				).to.be.empty;
 			});
 
-			it('should remove previously added valid entry', () => {
+			it('should remove previously added valid entry', async () => {
 				peersManagerInstance.add(validPeer);
 				expect(peersManagerInstance.peers)
 					.to.have.property(validPeer.string)
@@ -244,13 +262,15 @@ describe('PeersManager', () => {
 			});
 		});
 
-		describe('getNonce', () => {
-			it('should return undefined when invoked without arguments', () => expect(peersManagerInstance.getNonce()).to.be.undefined);
+		describe('getNonce', async () => {
+			it('should return undefined when invoked without arguments', async () =>
+				expect(peersManagerInstance.getNonce()).to.be.undefined);
 
-			it('should return undefined when asking of not existing entry', () => expect(peersManagerInstance.getNonce(validPeer.string)).to.be
+			it('should return undefined when asking of not existing entry', async () =>
+				expect(peersManagerInstance.getNonce(validPeer.string)).to.be
 					.undefined);
 
-			it('should return nonce assigned to connection id when entry exists', () => {
+			it('should return nonce assigned to connection id when entry exists', async () => {
 				peersManagerInstance.add(validPeer);
 				return expect(peersManagerInstance.getNonce(validPeer.string)).to.equal(
 					validPeer.nonce
@@ -258,13 +278,15 @@ describe('PeersManager', () => {
 			});
 		});
 
-		describe('getAddress', () => {
-			it('should return undefined when invoked without arguments', () => expect(peersManagerInstance.getAddress()).to.be.undefined);
+		describe('getAddress', async () => {
+			it('should return undefined when invoked without arguments', async () =>
+				expect(peersManagerInstance.getAddress()).to.be.undefined);
 
-			it('should return undefined when asking of not existing entry', () => expect(peersManagerInstance.getAddress(validPeer.nonce)).to.be
+			it('should return undefined when asking of not existing entry', async () =>
+				expect(peersManagerInstance.getAddress(validPeer.nonce)).to.be
 					.undefined);
 
-			it('should return nonce assigned to connection id when entry exists', () => {
+			it('should return nonce assigned to connection id when entry exists', async () => {
 				peersManagerInstance.add(validPeer);
 				return expect(
 					peersManagerInstance.getAddress(validPeer.nonce)
@@ -272,10 +294,11 @@ describe('PeersManager', () => {
 			});
 		});
 
-		describe('getAll', () => {
-			it('should return empty object if no peers were added before', () => expect(peersManagerInstance.getAll()).to.be.empty);
+		describe('getAll', async () => {
+			it('should return empty object if no peers were added before', async () =>
+				expect(peersManagerInstance.getAll()).to.be.empty);
 
-			it('should return map of added peers', () => {
+			it('should return map of added peers', async () => {
 				peersManagerInstance.add(validPeer);
 				const validResult = {};
 				validResult[validPeer.string] = validPeer;
@@ -285,13 +308,15 @@ describe('PeersManager', () => {
 			});
 		});
 
-		describe('getByNonce', () => {
-			it('should return undefined when invoked without arguments', () => expect(peersManagerInstance.getByNonce()).to.be.undefined);
+		describe('getByNonce', async () => {
+			it('should return undefined when invoked without arguments', async () =>
+				expect(peersManagerInstance.getByNonce()).to.be.undefined);
 
-			it('should return undefined when asking of not existing entry', () => expect(peersManagerInstance.getByNonce(validPeer.nonce)).to.be
+			it('should return undefined when asking of not existing entry', async () =>
+				expect(peersManagerInstance.getByNonce(validPeer.nonce)).to.be
 					.undefined);
 
-			it('should return previously added peer when asking with valid nonce', () => {
+			it('should return previously added peer when asking with valid nonce', async () => {
 				peersManagerInstance.add(validPeer);
 				return expect(peersManagerInstance.getByNonce(validPeer.nonce)).eql(
 					validPeer
@@ -299,13 +324,15 @@ describe('PeersManager', () => {
 			});
 		});
 
-		describe('getByAddress', () => {
-			it('should return undefined when invoked without arguments', () => expect(peersManagerInstance.getByAddress()).to.be.undefined);
+		describe('getByAddress', async () => {
+			it('should return undefined when invoked without arguments', async () =>
+				expect(peersManagerInstance.getByAddress()).to.be.undefined);
 
-			it('should return undefined when asking of not existing entry', () => expect(peersManagerInstance.getByAddress(validPeer.string)).to.be
+			it('should return undefined when asking of not existing entry', async () =>
+				expect(peersManagerInstance.getByAddress(validPeer.string)).to.be
 					.undefined);
 
-			it('should return previously added peer when asking with valid nonce', () => {
+			it('should return previously added peer when asking with valid nonce', async () => {
 				peersManagerInstance.add(validPeer);
 				return expect(peersManagerInstance.getByAddress(validPeer.string)).eql(
 					validPeer
@@ -314,8 +341,8 @@ describe('PeersManager', () => {
 		});
 	});
 
-	describe('multiple instances', () => {
-		describe('when required 2 times', () => {
+	describe('multiple instances', async () => {
+		describe('when required 2 times', async () => {
 			let peersManagerInstanceA;
 			let peersManagerInstanceB;
 
@@ -330,7 +357,7 @@ describe('PeersManager', () => {
 				});
 				done();
 			});
-			describe('when [peersManagerInstanceA] adds data', () => {
+			describe('when [peersManagerInstanceA] adds data', async () => {
 				let validPeer;
 
 				beforeEach(done => {
@@ -339,13 +366,15 @@ describe('PeersManager', () => {
 					done();
 				});
 
-				it('should be reflected in [peersManagerInstanceA]', () => expect(
-						peersManagerInstanceA.getByAddress(validPeer.string)
-					).eql(validPeer));
+				it('should be reflected in [peersManagerInstanceA]', async () =>
+					expect(peersManagerInstanceA.getByAddress(validPeer.string)).eql(
+						validPeer
+					));
 
-				it('should not be reflected in [peersManagerInstanceB]', () => expect(
-						peersManagerInstanceB.getByAddress(validPeer.string)
-					).not.eql(validPeer));
+				it('should not be reflected in [peersManagerInstanceB]', async () =>
+					expect(peersManagerInstanceB.getByAddress(validPeer.string)).not.eql(
+						validPeer
+					));
 			});
 		});
 	});

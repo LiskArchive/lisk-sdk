@@ -16,8 +16,8 @@
 'use strict';
 
 const Promise = require('bluebird');
-const BaseAdapter = require('../../../../../framework/src/components/storage/adapters/base_adapter');
-const PgpAdapter = require('../../../../../framework/src/components/storage/adapters/pgp_adapter');
+const BaseAdapter = require('../../../../../src/components/storage/adapters/base_adapter');
+const PgpAdapter = require('../../../../../src/components/storage/adapters/pgp_adapter');
 
 const loggerStub = {
 	info: sinonSandbox.stub(),
@@ -30,26 +30,27 @@ const validOptions = {
 	logger: loggerStub,
 };
 
-describe('PgpAdapter', () => {
+describe('PgpAdapter', async () => {
 	afterEach(() => sinonSandbox.restore());
 
-	it('should be a constructable function', () => {
+	it('should be a constructable function', async () => {
 		expect(PgpAdapter.prototype).to.be.not.null;
 		return expect(PgpAdapter.prototype.constructor.name).to.be.eql(
 			'PgpAdapter'
 		);
 	});
 
-	it('should extend BaseAdapter', () => expect(PgpAdapter.prototype).to.be.an.instanceof(BaseAdapter));
+	it('should extend BaseAdapter', async () =>
+		expect(PgpAdapter.prototype).to.be.an.instanceof(BaseAdapter));
 
-	describe('constructor()', () => {
-		it('should call super with proper params', () => {
+	describe('constructor()', async () => {
+		it('should call super with proper params', async () => {
 			const adapter = new PgpAdapter(validOptions);
 			expect(adapter.engineName).to.be.eql('pgp');
 			return expect(adapter.inTest).to.be.eql(validOptions.inTest);
 		});
 
-		it('should set the parameters correctly', () => {
+		it('should set the parameters correctly', async () => {
 			const adapter = new PgpAdapter(validOptions);
 
 			expect(adapter.options).to.be.eql(validOptions);
@@ -64,7 +65,7 @@ describe('PgpAdapter', () => {
 		});
 	});
 
-	describe('connect()', () => {
+	describe('connect()', async () => {
 		it('should detach pgp-monitor if already attached');
 		it('should attach pgp-monitor');
 		it('should set the logger for monitor');
@@ -77,13 +78,13 @@ describe('PgpAdapter', () => {
 		it('should reject if connection cause any error');
 	});
 
-	describe('disconnect()', () => {
+	describe('disconnect()', async () => {
 		it('should log the disconnecting message');
 		it('should detach pgp-monitor if already attached');
 		it('disconnect the existing connection to postgres');
 	});
 
-	describe('executeFile()', () => {
+	describe('executeFile()', async () => {
 		it('should accept four parameters');
 		it('should execute proper method based on expectedResult');
 		it('should throw error if first parameter is not a file');
@@ -92,7 +93,7 @@ describe('PgpAdapter', () => {
 		it('should return the promise');
 	});
 
-	describe('execute()', () => {
+	describe('execute()', async () => {
 		it('should accept four parameters');
 		it('should execute proper method based on expectedResult');
 		it('should throw error if first parameter is not a string');
@@ -101,7 +102,7 @@ describe('PgpAdapter', () => {
 		it('should return the promise');
 	});
 
-	describe('transaction()', () => {
+	describe('transaction()', async () => {
 		it('should accept three parameters');
 		it('should execute "tx" method for the database');
 		it('should execute "tx" on transaction context if provided');
@@ -109,7 +110,7 @@ describe('PgpAdapter', () => {
 		it('should return the promise');
 	});
 
-	describe('task()', () => {
+	describe('task()', async () => {
 		it('should accept three parameters');
 		it('should execute "task" method for the database');
 		it('should execute "task" on transaction context if provided');
@@ -117,14 +118,14 @@ describe('PgpAdapter', () => {
 		it('should return the promise');
 	});
 
-	describe('loadSQLFile()', () => {
+	describe('loadSQLFile()', async () => {
 		it('should accept one parameter');
 		it('should throw error if sql file path does not exists');
 		it('should exit the process if there is any error loading the sql file');
 		it('should return a file object');
 	});
 
-	describe('parseQueryComponent()', () => {
+	describe('parseQueryComponent()', async () => {
 		it('should accept two parameters');
 		it('should throw error if there is invalid SQL');
 		it('should return formatted SQL string');

@@ -19,11 +19,11 @@ const randomstring = require('randomstring');
 const {
 	BaseEntity,
 	Account,
-} = require('../../../../../framework/src/components/storage/entities');
+} = require('../../../../../src/components/storage/entities');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-} = require('../../../../../framework/src/components/storage/errors');
+} = require('../../../../../src/components/storage/errors');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const seeder = require('../../../../common/storage_seed');
 const accountFixtures = require('../../../../fixtures').accounts;
@@ -62,7 +62,7 @@ const dependentFieldsTableMap = {
 	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
 };
 
-describe('Account', () => {
+describe('Account', async () => {
 	let adapter;
 	let storage;
 	let AccountEntity;
@@ -334,7 +334,7 @@ describe('Account', () => {
 		expect(account.defaultOptions.sort).to.be.eql('balance:asc');
 	});
 
-	describe('constructor()', () => {
+	describe('constructor()', async () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Account.prototype.constructor.length).to.be.eql(1);
 		});
@@ -375,7 +375,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('getOne()', () => {
+	describe('getOne()', async () => {
 		it('should call _getResults with proper param for extended=false', async () => {
 			const anAccount = new accountFixtures.Account();
 			await AccountEntity.create(anAccount);
@@ -436,7 +436,7 @@ describe('Account', () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', () => {
+		describe('filters', async () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				expect(AccountEntity.getFilters()).to.eql(validFilters);
@@ -446,7 +446,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('get()', () => {
+	describe('get()', async () => {
 		it('should return data without any error', async () => {
 			expect(AccountEntity.get()).to.be.fulfilled;
 		});
@@ -495,7 +495,7 @@ describe('Account', () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('dynamic fields', () => {
+		describe('dynamic fields', async () => {
 			it('should fetch "votedDelegatesPublicKeys" with correct query', async () => {
 				const accounts = await AccountEntity.get({}, { extended: true });
 
@@ -595,7 +595,7 @@ describe('Account', () => {
 			});
 		});
 
-		describe('data casting', () => {
+		describe('data casting', async () => {
 			const options = { extended: true, limit: 1 };
 			const filters = {};
 
@@ -650,7 +650,7 @@ describe('Account', () => {
 			});
 		});
 
-		describe('functions', () => {
+		describe('functions', async () => {
 			const options = { extended: true, limit: 1 };
 			let filters = null;
 			let validAccount = null;
@@ -692,7 +692,7 @@ describe('Account', () => {
 			});
 		});
 
-		describe('filters', () => {
+		describe('filters', async () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				expect(AccountEntity.getFilters()).to.eql(validFilters);
@@ -701,8 +701,8 @@ describe('Account', () => {
 			it('should return matching result for provided filter');
 		});
 
-		describe('options', () => {
-			describe('sort', () => {
+		describe('options', async () => {
+			describe('sort', async () => {
 				it('should sort by address in ascending if sort="address"', async () => {
 					const data = await AccountEntity.get(
 						{},
@@ -752,7 +752,7 @@ describe('Account', () => {
 				it('should fail if unknown sort field is specified');
 			});
 
-			describe('limit & offset', () => {
+			describe('limit & offset', async () => {
 				it('should return default limit results if no limit is specified', async () => {
 					AccountEntity.extendDefaultOptions({ limit: 2 });
 					const accounts = await AccountEntity.get({});
@@ -796,7 +796,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('_getResults()', () => {
+	describe('_getResults()', async () => {
 		const accounts = [
 			new accountFixtures.Account(),
 			new accountFixtures.Account(),
@@ -841,7 +841,7 @@ describe('Account', () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', () => {
+		describe('filters', async () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				// Arrange
@@ -853,7 +853,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('create()', () => {
+	describe('create()', async () => {
 		it('should throw error when address is missing', async () => {
 			expect(() => {
 				AccountEntity.create({ foo: 'bar', baz: 'qux' }, validOptions);
@@ -963,7 +963,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('update()', () => {
+	describe('update()', async () => {
 		it('should accept only valid filters', async () => {
 			// Arrange
 			const invalidFilter = {
@@ -1138,7 +1138,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('upsert', () => {
+	describe('upsert', async () => {
 		it('should throw error if no filter specified', async () => {
 			const account = new accountFixtures.Account();
 			expect(AccountEntity.upsert({}, account)).to.be.rejectedWith(
@@ -1212,7 +1212,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('updateOne()', () => {
+	describe('updateOne()', async () => {
 		it('should throw error for in-valid filters', async () => {
 			// Arrange
 			const invalidFilter = {
@@ -1342,7 +1342,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('isPersisted()', () => {
+	describe('isPersisted()', async () => {
 		it('should throw error for in-valid filters', async () => {
 			// Arrange
 			const invalidFilter = {
@@ -1422,7 +1422,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('delete()', () => {
+	describe('delete()', async () => {
 		it('should remove an existing account', async () => {
 			const account = await adapter.execute(
 				'SELECT * FROM mem_accounts LIMIT 1'
@@ -1439,7 +1439,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('aggregateBlocksReward()', () => {
+	describe('aggregateBlocksReward()', async () => {
 		it('should use the correct SQL file with three parameters', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const params = {
@@ -1460,7 +1460,8 @@ describe('Account', () => {
 			expect(adapter.executeFile).to.be.calledOnce;
 		});
 
-		it('should throw error if invalid public key is passed', async () => expect(
+		it('should throw error if invalid public key is passed', async () =>
+			expect(
 				AccountEntity.delegateBlocksRewards({
 					generatorPublicKey: 'xxxxxxxxx',
 					start: (+new Date() / 1000).toFixed(),
@@ -1535,7 +1536,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('mergeFilters()', () => {
+	describe('mergeFilters()', async () => {
 		it('should accept filters as single object', async () => {
 			// Arrange
 			const validFilter = {
@@ -1567,7 +1568,7 @@ describe('Account', () => {
 		);
 	});
 
-	describe('resetUnconfirmedState()', () => {
+	describe('resetUnconfirmedState()', async () => {
 		it('should use the correct SQL to fetch the count', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await AccountEntity.resetUnconfirmedState();
@@ -1690,7 +1691,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('resetMemTables()', () => {
+	describe('resetMemTables()', async () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await AccountEntity.resetMemTables();
@@ -1759,7 +1760,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('increaseFieldBy()', () => {
+	describe('increaseFieldBy()', async () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const address = '12L';
@@ -1806,7 +1807,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('decreaseFieldBy()', () => {
+	describe('decreaseFieldBy()', async () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const address = '12L';
@@ -1853,7 +1854,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('createDependentRecord()', () => {
+	describe('createDependentRecord()', async () => {
 		it('should throw error if wrong dependency is passed', async () => {
 			expect(() =>
 				AccountEntity.createDependentRecord('unknown', '12L', '12345')
@@ -1866,7 +1867,7 @@ describe('Account', () => {
 			'membersPublicKeys',
 			'u_membersPublicKeys',
 		].forEach(dependentTable => {
-			describe(`${dependentTable}`, () => {
+			describe(`${dependentTable}`, async () => {
 				it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
 					const accounts = await AccountEntity.get({}, { limit: 2 });
 
@@ -1911,7 +1912,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('deleteDependentRecord()', () => {
+	describe('deleteDependentRecord()', async () => {
 		it('should throw error if wrong dependency is passed', async () => {
 			expect(() =>
 				AccountEntity.deleteDependentRecord('unknown', '12L', '12345')
@@ -1954,7 +1955,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('syncDelegatesRanks', () => {
+	describe('syncDelegatesRanks', async () => {
 		it('should use the correct SQL', async () => {
 			// Arrange
 			sinonSandbox.spy(adapter, 'executeFile');
@@ -1974,7 +1975,7 @@ describe('Account', () => {
 		it('should not throw error if there is no delegate available');
 	});
 
-	describe('countDuplicatedDelegates()', () => {
+	describe('countDuplicatedDelegates()', async () => {
 		it('should use the correct SQL no with parameter', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await AccountEntity.countDuplicatedDelegates();
@@ -2054,7 +2055,7 @@ describe('Account', () => {
 		});
 	});
 
-	describe('insertFork()', () => {
+	describe('insertFork()', async () => {
 		it('should use the correct SQL with given params', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const fork = new forksFixtures.Fork();
@@ -2100,9 +2101,10 @@ describe('Account', () => {
 			const params = Object.assign({}, fork);
 			delete params[attr];
 
-			it(`should be rejected with error if param "${attr}" is missing`, () => expect(
-					AccountEntity.insertFork(params)
-				).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`));
+			it(`should be rejected with error if param "${attr}" is missing`, async () =>
+				expect(AccountEntity.insertFork(params)).to.be.eventually.rejectedWith(
+					`Property '${attr}' doesn't exist.`
+				));
 		});
 	});
 });

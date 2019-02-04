@@ -19,7 +19,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 
-const failureCodesRewired = rewire('../../../../../api/ws/rpc/failure_codes');
+const failureCodesRewired = rewire(
+	'../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes'
+);
 const PeerUpdateError = failureCodesRewired.PeerUpdateError;
 
 let peerUpdateErrorInstance;
@@ -28,7 +30,7 @@ let errorMessage;
 let errorDesc;
 let result;
 
-describe('failure_codes', () => {
+describe('failure_codes', async () => {
 	beforeEach(done => {
 		errorCode = 1234;
 		errorMessage = 'Peer failed...';
@@ -41,8 +43,8 @@ describe('failure_codes', () => {
 		done();
 	});
 
-	describe('PeerUpdateError', () => {
-		describe('constructor', () => {
+	describe('PeerUpdateError', async () => {
+		describe('constructor', async () => {
 			beforeEach(done => {
 				peerUpdateErrorInstance = new PeerUpdateError(
 					errorCode,
@@ -52,28 +54,33 @@ describe('failure_codes', () => {
 				done();
 			});
 
-			it('should be an instance of Error', () => expect(peerUpdateErrorInstance).to.be.an.instanceOf(Error));
+			it('should be an instance of Error', async () =>
+				expect(peerUpdateErrorInstance).to.be.an.instanceOf(Error));
 
-			it('should have a valid code property', () => expect(peerUpdateErrorInstance)
+			it('should have a valid code property', async () =>
+				expect(peerUpdateErrorInstance)
 					.to.have.property('code')
 					.which.equals(errorCode));
 
-			it('should have a valid message property', () => expect(peerUpdateErrorInstance)
+			it('should have a valid message property', async () =>
+				expect(peerUpdateErrorInstance)
 					.to.have.property('message')
 					.which.equals(errorMessage));
 
-			it('should have a valid description property', () => expect(peerUpdateErrorInstance)
+			it('should have a valid description property', async () =>
+				expect(peerUpdateErrorInstance)
 					.to.have.property('description')
 					.which.equals(errorDesc));
 		});
 
-		describe('toString', () => {
+		describe('toString', async () => {
 			beforeEach(done => {
 				result = peerUpdateErrorInstance.toString();
 				done();
 			});
 
-			it('should return a JSON string representation of the error', () => expect(result).to.equal(
+			it('should return a JSON string representation of the error', async () =>
+				expect(result).to.equal(
 					'{"code":1234,"message":"Peer failed...","description":"Something went wrong."}'
 				));
 		});

@@ -16,15 +16,15 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const typeRepresentatives = require('../../../../fixtures/types_representatives.js');
-const Handshake = require('../../../../../api/ws/workers/middlewares/handshake');
-const failureCodes = require('../../../../../api/ws/rpc/failure_codes');
-const WSServerMaster = require('../../../../common/ws/server_master');
-const System = require('../../../../../modules/system');
+const typeRepresentatives = require('../../../../../../../fixtures/types_representatives.js');
+const Handshake = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/handshake');
+const failureCodes = require('../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
+const WSServerMaster = require('../../../../../../../common/ws/server_master');
+const System = require('../../../../../../../../src/modules/chain/modules/system');
 
 const config = __testContext.config;
 
-describe('Handshake', () => {
+describe('Handshake', async () => {
 	let system;
 	let handshake;
 	const minVersion = '1.0.0';
@@ -54,7 +54,7 @@ describe('Handshake', () => {
 		}, validConfig);
 	});
 
-	describe('compatibility', () => {
+	describe('compatibility', async () => {
 		let versionCompatibleStub;
 		beforeEach(done => {
 			versionCompatibleStub = sinonSandbox.stub(system, 'versionCompatible');
@@ -144,7 +144,7 @@ describe('Handshake', () => {
 			delete validHeaders.protocolVersion;
 
 			// Act
-			handshake(validHeaders, () => {
+			handshake(validHeaders, async () => {
 				// Assert
 				expect(versionCompatibleStub).to.be.called;
 				done();
@@ -159,7 +159,7 @@ describe('Handshake', () => {
 			nonce: '0123456789ABCDEF',
 		});
 
-		describe('schema tests', () => {
+		describe('schema tests', async () => {
 			let headers;
 
 			beforeEach(beforeDone => {
@@ -167,7 +167,7 @@ describe('Handshake', () => {
 				beforeDone();
 			});
 
-			describe('handshake', () => {
+			describe('handshake', async () => {
 				const invalidTypes = _.difference(
 					typeRepresentatives.allTypes,
 					typeRepresentatives.objects
@@ -195,13 +195,15 @@ describe('Handshake', () => {
 					});
 				});
 
-				describe('nonce', () => {
+				describe('nonce', async () => {
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
 
-					const validValues = _.map(new Array(10), () => randomstring.generate(16));
+					const validValues = _.map(new Array(10), async () =>
+						randomstring.generate(16)
+					);
 
 					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
@@ -240,8 +242,10 @@ describe('Handshake', () => {
 					});
 				});
 
-				describe('height', () => {
-					const validValues = _.map(new Array(10), () => Math.floor(Math.random() * Number.MAX_VALUE));
+				describe('height', async () => {
+					const validValues = _.map(new Array(10), async () =>
+						Math.floor(Math.random() * Number.MAX_VALUE)
+					);
 
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
@@ -290,7 +294,7 @@ describe('Handshake', () => {
 					});
 				});
 
-				describe('nethash', () => {
+				describe('nethash', async () => {
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
@@ -325,7 +329,7 @@ describe('Handshake', () => {
 					});
 				});
 
-				describe('version', () => {
+				describe('version', async () => {
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
@@ -360,7 +364,7 @@ describe('Handshake', () => {
 					});
 				});
 
-				describe('protocolVersion', () => {
+				describe('protocolVersion', async () => {
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings

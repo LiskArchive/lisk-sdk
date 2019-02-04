@@ -18,16 +18,16 @@
 const {
 	BaseEntity,
 	Transaction,
-} = require('../../../../../framework/src/components/storage/entities');
+} = require('../../../../../src/components/storage/entities');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const seeder = require('../../../../common/storage_seed');
 const transactionsFixtures = require('../../../../fixtures').transactions;
-const transactionTypes = require('../../../../../helpers/transaction_types');
+const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOperationError,
 	NonSupportedOptionError,
-} = require('../../../../../framework/src/components/storage/errors');
+} = require('../../../../../src/components/storage/errors');
 
 const numSeedRecords = 5;
 const NON_EXISTENT_ID = '1234';
@@ -77,7 +77,7 @@ const expectValidTransaction = (result, transaction, extended = true) => {
 	}
 };
 
-describe('Transaction', () => {
+describe('Transaction', async () => {
 	let adapter;
 	let storage;
 	let validTransactionSQLs;
@@ -250,7 +250,7 @@ describe('Transaction', () => {
 		expect(Transaction.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', () => {
+	describe('constructor()', async () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Transaction.prototype.constructor.length).to.be.eql(1);
 		});
@@ -288,7 +288,7 @@ describe('Transaction', () => {
 		});
 	});
 
-	describe('getOne()', () => {
+	describe('getOne()', async () => {
 		it('should accept only valid filters', async () => {
 			// Arrange
 			const aTransaction = new transactionsFixtures.Transaction({
@@ -385,7 +385,7 @@ describe('Transaction', () => {
 			// Assert
 		});
 
-		describe('filters', () => {
+		describe('filters', async () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				// Arrange
@@ -398,7 +398,7 @@ describe('Transaction', () => {
 		});
 	});
 
-	describe('get()', () => {
+	describe('get()', async () => {
 		beforeEach(() => sinonSandbox.restore());
 		it('should accept only valid filters', async () => {
 			// Arrange
@@ -621,7 +621,7 @@ describe('Transaction', () => {
 			expect(result).to.be.eql(_.orderBy(result, 'id', 'desc'));
 		});
 
-		describe('filters', () => {
+		describe('filters', async () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				const transaction = new Transaction(adapter);
@@ -632,13 +632,13 @@ describe('Transaction', () => {
 		});
 	});
 
-	describe('delete()', () => {
+	describe('delete()', async () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Transaction.prototype.delete).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('isPersisted()', () => {
+	describe('isPersisted()', async () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'trs');
 		});
@@ -811,7 +811,7 @@ describe('Transaction', () => {
 		});
 	});
 
-	describe('count()', () => {
+	describe('count()', async () => {
 		it('should accept only valid filters');
 		it('should throw error for invalid filters');
 		it('should resolve with integer value if matching record found', async () => {
@@ -844,7 +844,7 @@ describe('Transaction', () => {
 		});
 	});
 
-	describe('create()', () => {
+	describe('create()', async () => {
 		it('should save single transaction', async () => {
 			const block = seeder.getLastBlock();
 			const transaction = new transactionsFixtures.Transaction({

@@ -15,7 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const Z_schema = require('../../../helpers/z_schema.js');
+const Z_schema = require('../../../../../../src/modules/chain/helpers/z_schema.js');
 
 const { ADDITIONAL_DATA } = __testContext.config.constants;
 
@@ -65,8 +65,8 @@ const shouldReturnTrueForEmptyStringValues = function() {
 	});
 };
 
-describe('schema - custom formats', () => {
-	describe('id', () => {
+describe('schema - custom formats', async () => {
+	describe('id', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'id',
@@ -98,7 +98,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('additionalData', () => {
+	describe('additionalData', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'additionalData',
@@ -132,7 +132,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('address', () => {
+	describe('address', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'address',
@@ -200,7 +200,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('username', () => {
+	describe('username', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'username',
@@ -226,7 +226,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('hex', () => {
+	describe('hex', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'hex',
@@ -250,7 +250,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('publicKey', () => {
+	describe('publicKey', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'publicKey',
@@ -294,7 +294,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('csv', () => {
+	describe('csv', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'csv',
@@ -324,7 +324,7 @@ describe('schema - custom formats', () => {
 		shouldReturnFalseForEmptyNonStringValues();
 	});
 
-	describe('signature', () => {
+	describe('signature', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'signature',
@@ -368,7 +368,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('queryList', () => {
+	describe('queryList', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'queryList',
@@ -392,7 +392,7 @@ describe('schema - custom formats', () => {
 		});
 	});
 
-	describe('delegatesList', () => {
+	describe('delegatesList', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'delegatesList',
@@ -416,7 +416,7 @@ describe('schema - custom formats', () => {
 		});
 	});
 
-	describe('parsedInt', () => {
+	describe('parsedInt', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'parsedInt',
@@ -443,7 +443,7 @@ describe('schema - custom formats', () => {
 		shouldReturnFalseForEmptyNonStringValues();
 	});
 
-	describe('os', () => {
+	describe('os', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'os',
@@ -465,7 +465,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('version', () => {
+	describe('version', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'version',
@@ -510,7 +510,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('protocolVersion', () => {
+	describe('protocolVersion', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'protocolVersion',
@@ -545,7 +545,7 @@ describe('schema - custom formats', () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('ipOrFQDN', () => {
+	describe('ipOrFQDN', async () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'ipOrFQDN',

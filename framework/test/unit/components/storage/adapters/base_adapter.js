@@ -16,67 +16,77 @@
 'use strict';
 
 const { EventEmitter } = require('events');
-const BaseAdapter = require('../../../../../framework/src/components/storage/adapters/base_adapter');
+const BaseAdapter = require('../../../../../src/components/storage/adapters/base_adapter');
 const {
 	ImplementationPendingError,
-} = require('../../../../../framework/src/components/storage/errors');
+} = require('../../../../../src/components/storage/errors');
 
-describe('BaseAdapter', () => {
-	it('should be a constructable function', () => {
+describe('BaseAdapter', async () => {
+	it('should be a constructable function', async () => {
 		expect(BaseAdapter.prototype).to.be.not.null;
 		return expect(BaseAdapter.prototype.constructor.name).to.be.eql(
 			'BaseAdapter'
 		);
 	});
 
-	it('should be be inherited by EventEmitter', () => expect(BaseAdapter.prototype).to.be.an.instanceof(EventEmitter));
+	it('should be be inherited by EventEmitter', async () =>
+		expect(BaseAdapter.prototype).to.be.an.instanceof(EventEmitter));
 
-	describe('constructor()', () => {
-		it('should accept only one parameter', () => expect(BaseAdapter).to.have.length(1));
+	describe('constructor()', async () => {
+		it('should accept only one parameter', async () =>
+			expect(BaseAdapter).to.have.length(1));
 
-		it('should assign proper parameters', () => {
+		it('should assign proper parameters', async () => {
 			const adapter = new BaseAdapter({ engineName: 'my-name', inTest: true });
 			expect(adapter.engineName).to.be.eql('my-name');
 			return expect(adapter.inTest).to.be.eql(true);
 		});
 	});
 
-	describe('interfaces', () => {
+	describe('interfaces', async () => {
 		let adapter;
 		beforeEach(async () => {
 			adapter = new BaseAdapter({ engineName: 'my-name', inTest: true });
 		});
 
-		describe('connect', () => {
-			it('should throw error', () => expect(adapter.connect).to.throw(ImplementationPendingError));
+		describe('connect', async () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('disconnect', () => {
-			it('should throw error', () => expect(adapter.connect).to.throw(ImplementationPendingError));
+		describe('disconnect', async () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('execute', () => {
-			it('should throw error', () => expect(adapter.connect).to.throw(ImplementationPendingError));
+		describe('execute', async () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('executeFile', () => {
-			it('should throw error', () => expect(adapter.connect).to.throw(ImplementationPendingError));
+		describe('executeFile', async () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('transaction', () => {
-			it('should throw error', () => expect(adapter.connect).to.throw(ImplementationPendingError));
+		describe('transaction', async () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('task', () => {
-			it('should throw error', () => expect(adapter.connect).to.throw(ImplementationPendingError));
+		describe('task', async () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('loadSQLFile', () => {
-			it('should throw error', () => expect(adapter.connect).to.throw(ImplementationPendingError));
+		describe('loadSQLFile', async () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('parseQueryComponent', () => {
-			it('should throw error', () => expect(adapter.connect).to.throw(ImplementationPendingError));
+		describe('parseQueryComponent', async () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 	});
 });

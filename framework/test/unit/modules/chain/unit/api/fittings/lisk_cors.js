@@ -15,10 +15,10 @@
 'use strict';
 
 const httpMocks = require('node-mocks-http');
-const swaggerModuleRegistry = require('../../../../helpers/swagger_module_registry');
-const fitting = require('../../../../api/fittings/lisk_cors');
+const swaggerModuleRegistry = require('../../../../../../../src/modules/chain/helpers/swagger_module_registry');
+const fitting = require('../../../../../../../src/modules/chain/api/fittings/lisk_cors');
 
-describe('lisk_cors', () => {
+describe('lisk_cors', async () => {
 	let context;
 	let cors_fititng;
 	let next;

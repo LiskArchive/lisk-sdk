@@ -17,13 +17,13 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
-const Bignum = require('../../../helpers/bignum.js');
-const swaggerHelper = require('../../../helpers/swagger');
-const WSServer = require('../../common/ws/server_master');
-const generateRandomActivePeer = require('../../fixtures/peers')
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const swaggerHelper = require('../../../../../../src/modules/chain/helpers/swagger');
+const WSServer = require('../../../../../common/ws/server_master');
+const generateRandomActivePeer = require('../../../../../fixtures/peers')
 	.generateRandomActivePeer;
-const Block = require('../../fixtures/blocks').Block;
-const Rules = require('../../../api/ws/workers/rules');
+const Block = require('../../../../../fixtures/blocks').Block;
+const Rules = require('../../../../../../src/modules/chain/api/ws/workers/rules');
 
 const TransportModule = rewire('../../../modules/transport.js');
 
@@ -31,7 +31,7 @@ const { MAX_PEERS, MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 const expect = chai.expect;
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
-describe('transport', () => {
+describe('transport', async () => {
 	let storageStub;
 	let loggerStub;
 	let busStub;
@@ -175,7 +175,7 @@ describe('transport', () => {
 		schemaStub = {};
 		networkStub = {};
 		balancesSequenceStub = {
-			add: () => {},
+			add: async () => {},
 		};
 
 		transactionStub = {
@@ -188,7 +188,7 @@ describe('transport', () => {
 		restoreRewiredTopDeps = TransportModule.__set__({
 			// eslint-disable-next-line object-shorthand
 			Broadcaster: function() {
-				this.bind = () => {};
+				this.bind = async () => {};
 				broadcasterStubRef = this;
 			},
 		});
@@ -239,8 +239,8 @@ describe('transport', () => {
 		done();
 	});
 
-	describe('constructor', () => {
-		describe('library', () => {
+	describe('constructor', async () => {
+		describe('library', async () => {
 			let localTransportInstance;
 			let transportSelf;
 
@@ -255,7 +255,7 @@ describe('transport', () => {
 				}, defaultScope);
 			});
 
-			it('should assign scope variables when instantiating', () => {
+			it('should assign scope variables when instantiating', async () => {
 				expect(library)
 					.to.have.property('storage')
 					.which.is.equal(storageStub);
@@ -297,7 +297,7 @@ describe('transport', () => {
 		});
 	});
 
-	describe('__private', () => {
+	describe('__private', async () => {
 		let __privateOriginal;
 		let restoreRewiredDeps;
 
@@ -366,8 +366,8 @@ describe('transport', () => {
 			done();
 		});
 
-		describe('removePeer', () => {
-			describe('when options.nonce is undefined', () => {
+		describe('removePeer', async () => {
+			describe('when options.nonce is undefined', async () => {
 				let result;
 
 				beforeEach(done => {
@@ -375,17 +375,17 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should call library.logger.debug with "Cannot remove peer without nonce"', () => {
+				it('should call library.logger.debug with "Cannot remove peer without nonce"', async () => {
 					expect(library.logger.debug.called).to.be.true;
 					return expect(
 						library.logger.debug.calledWith('Cannot remove peer without nonce')
 					).to.be.true;
 				});
 
-				it('should return false', () => expect(result).to.be.false);
+				it('should return false', async () => expect(result).to.be.false);
 			});
 
-			describe('when options.nonce is defined', () => {
+			describe('when options.nonce is defined', async () => {
 				let removeSpy;
 				let auxValidNonce;
 
@@ -415,15 +415,17 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should call library.logger.debug', () => expect(library.logger.debug.called).to.be.true);
+				it('should call library.logger.debug', async () =>
+					expect(library.logger.debug.called).to.be.true);
 
-				it('should call modules.peers.remove with options.peer', () => expect(removeSpy.calledWith(peerMock)).to.be.true);
+				it('should call modules.peers.remove with options.peer', async () =>
+					expect(removeSpy.calledWith(peerMock)).to.be.true);
 			});
 		});
 
-		describe('receiveSignatures', () => {
-			describe('for every signature in signatures', () => {
-				describe('when __private.receiveSignature succeeds', () => {
+		describe('receiveSignatures', async () => {
+			describe('for every signature in signatures', async () => {
+				describe('when __private.receiveSignature succeeds', async () => {
 					beforeEach(done => {
 						__private.receiveSignature = sinonSandbox.stub().callsArg(1);
 						__private.receiveSignatures([
@@ -433,7 +435,7 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should call __private.receiveSignature with signature', () => {
+					it('should call __private.receiveSignature with signature', async () => {
 						expect(__private.receiveSignature.calledTwice).to.be.true;
 						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1)).to
 							.be.true;
@@ -443,7 +445,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when __private.receiveSignature fails', () => {
+				describe('when __private.receiveSignature fails', async () => {
 					let receiveSignatureError;
 
 					beforeEach(done => {
@@ -458,7 +460,7 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should call library.logger.debug with err and signature', () => {
+					it('should call library.logger.debug with err and signature', async () => {
 						// If any of the __private.receiveSignature calls fail, the rest of
 						// the batch should still be processed.
 						expect(__private.receiveSignature.calledTwice).to.be.true;
@@ -479,7 +481,7 @@ describe('transport', () => {
 			});
 		});
 
-		describe('receiveSignature', () => {
+		describe('receiveSignature', async () => {
 			beforeEach(done => {
 				library.schema = {
 					validate: sinonSandbox.stub().callsArg(2),
@@ -492,8 +494,8 @@ describe('transport', () => {
 				done();
 			});
 
-			describe('when library.schema.validate succeeds', () => {
-				describe('when modules.multisignatures.processSignature succeeds', () => {
+			describe('when library.schema.validate succeeds', async () => {
+				describe('when modules.multisignatures.processSignature succeeds', async () => {
 					beforeEach(done => {
 						modules.multisignatures.processSignature = sinonSandbox
 							.stub()
@@ -505,7 +507,7 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call library.schema.validate with signature', () => {
+					it('should call library.schema.validate with signature', async () => {
 						expect(error).to.equal(undefined);
 						expect(library.schema.validate.calledOnce).to.be.true;
 						return expect(
@@ -513,7 +515,7 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call modules.multisignatures.processSignature with signature', () => {
+					it('should call modules.multisignatures.processSignature with signature', async () => {
 						expect(error).to.equal(undefined);
 						return expect(
 							modules.multisignatures.processSignature.calledWith(
@@ -522,10 +524,11 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call callback with error = undefined', () => expect(error).to.equal(undefined));
+					it('should call callback with error = undefined', async () =>
+						expect(error).to.equal(undefined));
 				});
 
-				describe('when modules.multisignatures.processSignature fails', () => {
+				describe('when modules.multisignatures.processSignature fails', async () => {
 					let processSignatureError;
 
 					beforeEach(done => {
@@ -540,13 +543,14 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call callback with error', () => expect(error).to.equal(
+					it('should call callback with error', async () =>
+						expect(error).to.equal(
 							`Error processing signature: ${processSignatureError.message}`
 						));
 				});
 			});
 
-			describe('when library.schema.validate fails', () => {
+			describe('when library.schema.validate fails', async () => {
 				let validateErr;
 
 				beforeEach(done => {
@@ -562,13 +566,14 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call callback with error = "Invalid signature body"', () => expect(error).to.equal(
+				it('should call callback with error = "Invalid signature body"', async () =>
+					expect(error).to.equal(
 						`Invalid signature body ${validateErr.message}`
 					));
 			});
 		});
 
-		describe('receiveTransactions', () => {
+		describe('receiveTransactions', async () => {
 			beforeEach(done => {
 				library.schema = {
 					validate: sinonSandbox.stub().callsArg(2),
@@ -585,7 +590,7 @@ describe('transport', () => {
 				done();
 			});
 
-			describe('when transactions argument is undefined', () => {
+			describe('when transactions argument is undefined', async () => {
 				beforeEach(done => {
 					__private.receiveTransactions(undefined, peerMock, '');
 					done();
@@ -593,12 +598,13 @@ describe('transport', () => {
 
 				// If a single transaction within the batch fails, it is not going to
 				// send back an error.
-				it('should should not call __private.receiveTransaction', () => expect(__private.receiveTransaction.notCalled).to.be.true);
+				it('should should not call __private.receiveTransaction', async () =>
+					expect(__private.receiveTransaction.notCalled).to.be.true);
 			});
 
-			describe('for every transaction in transactions', () => {
-				describe('when transaction is defined', () => {
-					describe('when call __private.receiveTransaction succeeds', () => {
+			describe('for every transaction in transactions', async () => {
+				describe('when transaction is defined', async () => {
+					describe('when call __private.receiveTransaction succeeds', async () => {
 						beforeEach(done => {
 							__private.receiveTransactions(
 								transactionsList,
@@ -608,11 +614,13 @@ describe('transport', () => {
 							done();
 						});
 
-						it('should set transaction.bundled = true', () => expect(transactionsList[0])
+						it('should set transaction.bundled = true', async () =>
+							expect(transactionsList[0])
 								.to.have.property('bundled')
 								.which.equals(true));
 
-						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => expect(
+						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', async () =>
+							expect(
 								__private.receiveTransaction.calledWith(
 									transactionsList[0],
 									peerMock,
@@ -621,7 +629,7 @@ describe('transport', () => {
 							).to.be.true);
 					});
 
-					describe('when call __private.receiveTransaction fails', () => {
+					describe('when call __private.receiveTransaction fails', async () => {
 						let receiveTransactionError;
 
 						beforeEach(done => {
@@ -638,7 +646,8 @@ describe('transport', () => {
 							done();
 						});
 
-						it('should call library.logger.debug with error and transaction', () => expect(
+						it('should call library.logger.debug with error and transaction', async () =>
+							expect(
 								library.logger.debug.calledWith(
 									receiveTransactionError,
 									transactionsList[0]
@@ -649,7 +658,7 @@ describe('transport', () => {
 			});
 		});
 
-		describe('receiveTransaction', () => {
+		describe('receiveTransaction', async () => {
 			let peerAddressString;
 
 			beforeEach(done => {
@@ -686,25 +695,28 @@ describe('transport', () => {
 				done();
 			});
 
-			describe('when transaction and peer are defined', () => {
+			describe('when transaction and peer are defined', async () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
 						validNonce,
 						'This is a log message',
-						() => {
+						async () => {
 							done();
 						}
 					);
 				});
 
-				it('should call library.logic.transaction.objectNormalize with transaction', () => expect(
+				it('should call library.logic.transaction.objectNormalize with transaction', async () =>
+					expect(
 						library.logic.transaction.objectNormalize.calledWith(transaction)
 					).to.be.true);
 
-				it('should call library.balancesSequence.add', () => expect(library.balancesSequence.add.called).to.be.true);
+				it('should call library.balancesSequence.add', async () =>
+					expect(library.balancesSequence.add.called).to.be.true);
 
-				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', () => expect(
+				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', async () =>
+					expect(
 						modules.transactions.processUnconfirmedTransaction.calledWith(
 							transaction,
 							true
@@ -712,7 +724,7 @@ describe('transport', () => {
 					).to.be.true);
 			});
 
-			describe('when library.logic.transaction.objectNormalize throws', () => {
+			describe('when library.logic.transaction.objectNormalize throws', async () => {
 				let extraLogMessage;
 				let objectNormalizeError;
 
@@ -736,7 +748,7 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call library.logger.debug with "Transaction normalization failed" error message and error details object', () => {
+				it('should call library.logger.debug with "Transaction normalization failed" error message and error details object', async () => {
 					const errorDetails = {
 						id: transaction.id,
 						err: 'Unknown transaction type 0',
@@ -751,50 +763,53 @@ describe('transport', () => {
 					).to.be.true;
 				});
 
-				it('should call __private.removePeer with peer details object', () => {
+				it('should call __private.removePeer with peer details object', async () => {
 					const peerDetails = { nonce: validNonce, code: 'ETRANSACTION' };
 					return expect(
 						__private.removePeer.calledWith(peerDetails, extraLogMessage)
 					).to.be.true;
 				});
 
-				it('should call callback with error = "Invalid transaction body"', () => expect(error).to.equal(
+				it('should call callback with error = "Invalid transaction body"', async () =>
+					expect(error).to.equal(
 						`Invalid transaction body - ${objectNormalizeError}`
 					));
 			});
 
-			describe('when nonce is undefined', () => {
+			describe('when nonce is undefined', async () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
 						undefined,
 						'This is a log message',
-						() => {
+						async () => {
 							done();
 						}
 					);
 				});
 
-				it('should call library.logger.debug with "Received transaction " + transaction.id + " from public client"', () => expect(
+				it('should call library.logger.debug with "Received transaction " + transaction.id + " from public client"', async () =>
+					expect(
 						library.logger.debug.calledWith(
 							`Received transaction ${transaction.id} from public client`
 						)
 					).to.be.true);
 			});
 
-			describe('when nonce is defined', () => {
+			describe('when nonce is defined', async () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
 						validNonce,
 						'This is a log message',
-						() => {
+						async () => {
 							done();
 						}
 					);
 				});
 
-				it('should call library.logger.debug with "Received transaction " + transaction.id + " from peer ..."', () => expect(
+				it('should call library.logger.debug with "Received transaction " + transaction.id + " from peer ..."', async () =>
+					expect(
 						library.logger.debug.calledWith(
 							`Received transaction ${
 								transaction.id
@@ -802,12 +817,13 @@ describe('transport', () => {
 						)
 					).to.be.true);
 
-				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', () => expect(
+				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', async () =>
+					expect(
 						library.logic.peers.peersManager.getAddress.calledWith(validNonce)
 					).to.be.true);
 			});
 
-			describe('when modules.transactions.processUnconfirmedTransaction fails', () => {
+			describe('when modules.transactions.processUnconfirmedTransaction fails', async () => {
 				let processUnconfirmedTransactionError;
 
 				beforeEach(done => {
@@ -829,23 +845,25 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', () => expect(
+				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', async () =>
+					expect(
 						library.logger.debug.calledWith(
 							`Transaction ${transaction.id}`,
 							processUnconfirmedTransactionError
 						)
 					).to.be.true);
 
-				describe('when transaction is defined', () => {
-					it('should call library.logger.debug with "Transaction" and transaction as arguments', () => expect(
-							library.logger.debug.calledWith('Transaction', transaction)
-						).to.be.true);
+				describe('when transaction is defined', async () => {
+					it('should call library.logger.debug with "Transaction" and transaction as arguments', async () =>
+						expect(library.logger.debug.calledWith('Transaction', transaction))
+							.to.be.true);
 				});
 
-				it('should call callback with err.toString()', () => expect(error).to.equal(processUnconfirmedTransactionError));
+				it('should call callback with err.toString()', async () =>
+					expect(error).to.equal(processUnconfirmedTransactionError));
 			});
 
-			describe('when modules.transactions.processUnconfirmedTransaction succeeds', () => {
+			describe('when modules.transactions.processUnconfirmedTransaction succeeds', async () => {
 				let result;
 
 				beforeEach(done => {
@@ -861,13 +879,15 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call callback with error = null', () => expect(error).to.equal(null));
+				it('should call callback with error = null', async () =>
+					expect(error).to.equal(null));
 
-				it('should call callback with result = transaction.id', () => expect(result).to.equal(transaction.id));
+				it('should call callback with result = transaction.id', async () =>
+					expect(result).to.equal(transaction.id));
 			});
 		});
 
-		describe('__private.checkInternalAccess', () => {
+		describe('__private.checkInternalAccess', async () => {
 			let query;
 			let result;
 
@@ -882,12 +902,13 @@ describe('transport', () => {
 				});
 			});
 
-			it('should call library.schema.validate with query and definitions.WSAccessObject', () => expect(
+			it('should call library.schema.validate with query and definitions.WSAccessObject', async () =>
+				expect(
 					library.schema.validate.calledWith(query, definitions.WSAccessObject)
 				).to.be.true);
 
-			describe('when library.schema.validate succeeds', () => {
-				describe('when query.authKey != wsRPC.getServerAuthKey()', () => {
+			describe('when library.schema.validate succeeds', async () => {
+				describe('when query.authKey != wsRPC.getServerAuthKey()', async () => {
 					beforeEach(done => {
 						query = {
 							authKey: SAMPLE_AUTH_KEY,
@@ -901,17 +922,20 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call callback with error = "Unable to access internal function - Incorrect authKey"', () => expect(error).to.equal(
+					it('should call callback with error = "Unable to access internal function - Incorrect authKey"', async () =>
+						expect(error).to.equal(
 							'Unable to access internal function - Incorrect authKey'
 						));
 				});
 
-				it('should call callback with error = null', () => expect(error).to.equal(null));
+				it('should call callback with error = null', async () =>
+					expect(error).to.equal(null));
 
-				it('should call callback with result = undefined', () => expect(result).to.equal(undefined));
+				it('should call callback with result = undefined', async () =>
+					expect(result).to.equal(undefined));
 			});
 
-			describe('when library.schema.validate fails', () => {
+			describe('when library.schema.validate fails', async () => {
 				let validateErr;
 
 				beforeEach(done => {
@@ -930,12 +954,13 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call callback with error = err[0].message', () => expect(error).to.equal(validateErr.message));
+				it('should call callback with error = err[0].message', async () =>
+					expect(error).to.equal(validateErr.message));
 			});
 		});
 	});
 
-	describe('Transport', () => {
+	describe('Transport', async () => {
 		let restoreRewiredTransportDeps;
 
 		beforeEach(done => {
@@ -1054,48 +1079,51 @@ describe('transport', () => {
 			done();
 		});
 
-		describe('poorConsensus', () => {
+		describe('poorConsensus', async () => {
 			let isPoorConsensusResult;
 
-			describe('when library.config.forging.force is true', () => {
+			describe('when library.config.forging.force is true', async () => {
 				beforeEach(done => {
 					library.config.forging.force = true;
 					isPoorConsensusResult = transportInstance.poorConsensus();
 					done();
 				});
 
-				it('should return false', () => expect(isPoorConsensusResult).to.be.false);
+				it('should return false', async () =>
+					expect(isPoorConsensusResult).to.be.false);
 			});
 
-			describe('when library.config.forging.force is false', () => {
+			describe('when library.config.forging.force is false', async () => {
 				beforeEach(done => {
 					library.config.forging.force = false;
 					done();
 				});
 
-				describe('when modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS', () => {
+				describe('when modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS', async () => {
 					beforeEach(done => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
 						isPoorConsensusResult = transportInstance.poorConsensus();
 						done();
 					});
 
-					it('should return true', () => expect(isPoorConsensusResult).to.be.true);
+					it('should return true', async () =>
+						expect(isPoorConsensusResult).to.be.true);
 				});
 
-				describe('when modules.peers.calculateConsensus() >= MIN_BROADHASH_CONSENSUS', () => {
+				describe('when modules.peers.calculateConsensus() >= MIN_BROADHASH_CONSENSUS', async () => {
 					beforeEach(done => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
 						isPoorConsensusResult = transportInstance.poorConsensus();
 						done();
 					});
 
-					it('should return false', () => expect(isPoorConsensusResult).to.be.false);
+					it('should return false', async () =>
+						expect(isPoorConsensusResult).to.be.false);
 				});
 			});
 		});
 
-		describe('onBind', () => {
+		describe('onBind', async () => {
 			beforeEach(done => {
 				// Create a new TransportModule instance.
 				// We want to check that internal variables are being set correctly so we don't
@@ -1107,7 +1135,8 @@ describe('transport', () => {
 				}, defaultScope);
 			});
 
-			it('should call __private.broadcaster.bind with scope.peers, scope.transport and scope.transactions as arguments', () => expect(
+			it('should call __private.broadcaster.bind with scope.peers, scope.transport and scope.transactions as arguments', async () =>
+				expect(
 					__private.broadcaster.bind.calledWith(
 						defaultScope.peers,
 						defaultScope.transport,
@@ -1115,7 +1144,7 @@ describe('transport', () => {
 					)
 				).to.be.true);
 
-			describe('modules', () => {
+			describe('modules', async () => {
 				let modulesObject;
 
 				beforeEach(done => {
@@ -1123,7 +1152,7 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', () => {
+				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', async () => {
 					expect(modulesObject).to.have.property('blocks');
 					expect(modulesObject).to.have.property('dapps');
 					expect(modulesObject).to.have.property('loader');
@@ -1134,7 +1163,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('definitions', () => {
+			describe('definitions', async () => {
 				let definitionsObject;
 
 				beforeEach(done => {
@@ -1142,14 +1171,13 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should assign definitions object', () => expect(definitionsObject).to.equal(
-						defaultScope.swagger.definitions
-					));
+				it('should assign definitions object', async () =>
+					expect(definitionsObject).to.equal(defaultScope.swagger.definitions));
 			});
 		});
 
-		describe('onSignature', () => {
-			describe('when broadcast is defined', () => {
+		describe('onSignature', async () => {
+			describe('when broadcast is defined', async () => {
 				beforeEach(done => {
 					__private.broadcaster = {
 						maxRelays: sinonSandbox.stub().returns(false),
@@ -1159,15 +1187,15 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should call __private.broadcaster.maxRelays with signature', () => {
+				it('should call __private.broadcaster.maxRelays with signature', async () => {
 					expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
 					return expect(
 						__private.broadcaster.maxRelays.calledWith(SAMPLE_SIGNATURE_1)
 					).to.be.true;
 				});
 
-				describe('when result of __private.broadcaster.maxRelays is false', () => {
-					it('should call __private.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', () => {
+				describe('when result of __private.broadcaster.maxRelays is false', async () => {
+					it('should call __private.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', async () => {
 						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
 							__private.broadcaster.enqueue.calledWith(
@@ -1180,7 +1208,7 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call library.network.io.sockets.emit with "signature/change" and signature', () => {
+					it('should call library.network.io.sockets.emit with "signature/change" and signature', async () => {
 						expect(library.network.io.sockets.emit.calledOnce).to.be.true;
 						return expect(
 							library.network.io.sockets.emit.calledWith(
@@ -1193,7 +1221,7 @@ describe('transport', () => {
 			});
 		});
 
-		describe('onUnconfirmedTransaction', () => {
+		describe('onUnconfirmedTransaction', async () => {
 			beforeEach(done => {
 				transaction = {
 					id: '222675625422353767',
@@ -1216,14 +1244,14 @@ describe('transport', () => {
 				done();
 			});
 
-			describe('when broadcast is defined', () => {
-				it('should call __private.broadcaster.maxRelays with transaction', () => {
+			describe('when broadcast is defined', async () => {
+				it('should call __private.broadcaster.maxRelays with transaction', async () => {
 					expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
 					return expect(__private.broadcaster.maxRelays.calledWith(transaction))
 						.to.be.true;
 				});
 
-				describe('when result of __private.broadcaster.maxRelays is false', () => {
+				describe('when result of __private.broadcaster.maxRelays is false', async () => {
 					beforeEach(done => {
 						__private.broadcaster = {
 							maxRelays: sinonSandbox.stub().returns(false),
@@ -1233,7 +1261,7 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', () => {
+					it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', async () => {
 						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
 							__private.broadcaster.enqueue.calledWith(
@@ -1246,7 +1274,7 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call library.network.io.sockets.emit with "transactions/change" and transaction as arguments', () => {
+					it('should call library.network.io.sockets.emit with "transactions/change" and transaction as arguments', async () => {
 						expect(library.network.io.sockets.emit.calledOnce).to.be.true;
 						return expect(
 							library.network.io.sockets.emit.calledWith(
@@ -1259,12 +1287,12 @@ describe('transport', () => {
 			});
 		});
 
-		describe('broadcastHeaders', () => {
+		describe('broadcastHeaders', async () => {
 			beforeEach(done => {
 				transportInstance.broadcastHeaders(done);
 			});
 
-			it('should call ibrary.logic.peers.listRandomConnected with {limit: MAX_PEERS}', () => {
+			it('should call ibrary.logic.peers.listRandomConnected with {limit: MAX_PEERS}', async () => {
 				expect(library.logic.peers.listRandomConnected.calledOnce).to.be.true;
 				return expect(
 					library.logic.peers.listRandomConnected.calledWith({
@@ -1273,7 +1301,7 @@ describe('transport', () => {
 				).to.be.true;
 			});
 
-			describe('when peers.length = 0', () => {
+			describe('when peers.length = 0', async () => {
 				beforeEach(done => {
 					library.logic.peers.listRandomConnected = sinonSandbox
 						.stub()
@@ -1281,21 +1309,23 @@ describe('transport', () => {
 					transportInstance.broadcastHeaders(done);
 				});
 
-				it('should call library.logger.debug with proper message', () => expect(
+				it('should call library.logger.debug with proper message', async () =>
+					expect(
 						library.logger.debug.calledWith(
 							'Transport->broadcastHeaders: No peers found'
 						)
 					).to.be.true);
 			});
 
-			describe('for every filtered peer in peers', () => {
-				it('should call peer.rpc.updateMyself with the result of library.logic.peers.me()', () => peersList.forEach(peer => {
+			describe('for every filtered peer in peers', async () => {
+				it('should call peer.rpc.updateMyself with the result of library.logic.peers.me()', async () =>
+					peersList.forEach(peer => {
 						expect(peer.rpc.updateMyself.calledOnce).to.be.true;
 						expect(peer.rpc.updateMyself.calledWith(library.logic.peers.me()))
 							.to.be.true;
 					}));
 
-				describe('when peer.rpc.updateMyself fails', () => {
+				describe('when peer.rpc.updateMyself fails', async () => {
 					const rpcFailure = 'RPC failure';
 
 					beforeEach(done => {
@@ -1310,7 +1340,8 @@ describe('transport', () => {
 						transportInstance.broadcastHeaders(done);
 					});
 
-					it('should call library.logger.debug with proper message', () => expect(
+					it('should call library.logger.debug with proper message', async () =>
+						expect(
 							library.logger.debug.calledWith(
 								'Transport->broadcastHeaders: Failed to notify peer about self',
 								{
@@ -1321,7 +1352,7 @@ describe('transport', () => {
 						).to.be.true);
 				});
 
-				describe('when peer.rpc.updateMyself succeeds', () => {
+				describe('when peer.rpc.updateMyself succeeds', async () => {
 					beforeEach(done => {
 						peerMock = generateRandomActivePeer();
 						peerMock.rpc = {
@@ -1334,7 +1365,8 @@ describe('transport', () => {
 						transportInstance.broadcastHeaders(done);
 					});
 
-					it('should call library.logger.debug with proper message', () => expect(
+					it('should call library.logger.debug with proper message', async () =>
+						expect(
 							library.logger.debug.calledWith(
 								'Transport->broadcastHeaders: Successfully notified peer about self',
 								{ peer: peerMock.string }
@@ -1344,8 +1376,8 @@ describe('transport', () => {
 			});
 		});
 
-		describe('onBroadcastBlock', () => {
-			describe('when broadcast is defined', () => {
+		describe('onBroadcastBlock', async () => {
+			describe('when broadcast is defined', async () => {
 				beforeEach(done => {
 					block = {
 						id: '6258354802676165798',
@@ -1368,41 +1400,44 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should call __private.broadcaster.maxRelays with block', () => {
+				it('should call __private.broadcaster.maxRelays with block', async () => {
 					expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
 					return expect(__private.broadcaster.maxRelays.calledWith(block)).to.be
 						.true;
 				});
 
-				describe('when __private.broadcaster.maxRelays returns true', () => {
+				describe('when __private.broadcaster.maxRelays returns true', async () => {
 					beforeEach(done => {
 						__private.broadcaster.maxRelays = sinonSandbox.stub().returns(true);
 						transportInstance.onBroadcastBlock(block, true);
 						done();
 					});
 
-					it('should call library.logger.debug with proper error message', () => expect(
+					it('should call library.logger.debug with proper error message', async () =>
+						expect(
 							library.logger.debug.calledWith(
 								'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
 							)
 						).to.be.true);
 				});
 
-				describe('when modules.loader.syncing = true', () => {
+				describe('when modules.loader.syncing = true', async () => {
 					beforeEach(done => {
 						modules.loader.syncing = sinonSandbox.stub().returns(true);
 						transportInstance.onBroadcastBlock(block, true);
 						done();
 					});
 
-					it('should call library.logger.debug with proper error message', () => expect(
+					it('should call library.logger.debug with proper error message', async () =>
+						expect(
 							library.logger.debug.calledWith(
 								'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 							)
 						).to.be.true);
 				});
 
-				it('should call __private.broadcaster.broadcast with {broadhash: modules.system.getBroadhash()}', () => expect(
+				it('should call __private.broadcaster.broadcast with {broadhash: modules.system.getBroadhash()}', async () =>
+					expect(
 						__private.broadcaster.broadcast.calledWith(
 							{
 								broadhash:
@@ -1414,15 +1449,15 @@ describe('transport', () => {
 			});
 		});
 
-		describe('Transport.prototype.shared', () => {
+		describe('Transport.prototype.shared', async () => {
 			let result;
 			let query;
 			let req;
 
-			describe('blocksCommon', () => {
+			describe('blocksCommon', async () => {
 				let validateErr;
 
-				describe('when query is undefined', () => {
+				describe('when query is undefined', async () => {
 					beforeEach(done => {
 						query = undefined;
 						validateErr = new Error('Query did not match schema');
@@ -1438,10 +1473,11 @@ describe('transport', () => {
 						});
 					});
 
-					it('should send back error due to schema validation failure', () => expect(error).to.equal(`${validateErr.message}: undefined`));
+					it('should send back error due to schema validation failure', async () =>
+						expect(error).to.equal(`${validateErr.message}: undefined`));
 				});
 
-				describe('when query is specified', () => {
+				describe('when query is specified', async () => {
 					beforeEach(done => {
 						query = { ids: '"1","2","3"' };
 						transportInstance.shared.blocksCommon(query, err => {
@@ -1450,7 +1486,7 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call library.schema.validate with query and schema.commonBlock', () => {
+					it('should call library.schema.validate with query and schema.commonBlock', async () => {
 						expect(library.schema.validate.calledOnce).to.be.true;
 						return expect(
 							library.schema.validate.calledWith(
@@ -1460,7 +1496,7 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					describe('when library.schema.validate fails', () => {
+					describe('when library.schema.validate fails', async () => {
 						beforeEach(done => {
 							validateErr = new Error('Query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
@@ -1475,7 +1511,7 @@ describe('transport', () => {
 							});
 						});
 
-						it('should call library.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', () => {
+						it('should call library.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', async () => {
 							expect(library.logger.debug.calledOnce).to.be.true;
 							return expect(
 								library.logger.debug.calledWith(
@@ -1485,13 +1521,12 @@ describe('transport', () => {
 							).to.be.true;
 						});
 
-						it('should call callback with error', () => expect(error).to.equal(
-								`${validateErr.message}: undefined`
-							));
+						it('should call callback with error', async () =>
+							expect(error).to.equal(`${validateErr.message}: undefined`));
 					});
 
-					describe('when library.schema.validate succeeds', () => {
-						describe('when escapedIds.length = 0', () => {
+					describe('when library.schema.validate succeeds', async () => {
+						describe('when escapedIds.length = 0', async () => {
 							beforeEach(done => {
 								// All ids will be filtered out because they are non-numeric.
 								query = { ids: '"abc","def","ghi"', peer: peerMock };
@@ -1501,7 +1536,7 @@ describe('transport', () => {
 								});
 							});
 
-							it('should call library.logger.debug with "Common block request validation failed" and {err: "ESCAPE", req: query.ids}', () => {
+							it('should call library.logger.debug with "Common block request validation failed" and {err: "ESCAPE", req: query.ids}', async () => {
 								expect(library.logger.debug.calledOnce).to.be.true;
 								return expect(
 									library.logger.debug.calledWith(
@@ -1511,14 +1546,15 @@ describe('transport', () => {
 								).to.be.true;
 							});
 
-							it('should call callback with error = "Invalid block id sequence"', () => expect(error).to.be.equal('Invalid block id sequence'));
+							it('should call callback with error = "Invalid block id sequence"', async () =>
+								expect(error).to.be.equal('Invalid block id sequence'));
 						});
 					});
 				});
 			});
 
-			describe('blocks', () => {
-				describe('when query is undefined', () => {
+			describe('blocks', async () => {
+				describe('when query is undefined', async () => {
 					beforeEach(done => {
 						query = undefined;
 
@@ -1533,7 +1569,7 @@ describe('transport', () => {
 						});
 					});
 
-					it('should send back empty blocks', () => {
+					it('should send back empty blocks', async () => {
 						expect(error).to.equal(null);
 						return expect(result)
 							.to.have.property('blocks')
@@ -1541,7 +1577,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when query is defined', () => {
+				describe('when query is defined', async () => {
 					beforeEach(done => {
 						query = {
 							lastBlockId: '6258354802676165798',
@@ -1554,14 +1590,15 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', () => expect(
+					it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () =>
+						expect(
 							modules.blocks.utils.loadBlocksData.calledWith({
 								limit: 34,
 								lastId: query.lastBlockId,
 							})
 						).to.be.true);
 
-					describe('when modules.blocks.utils.loadBlocksData fails', () => {
+					describe('when modules.blocks.utils.loadBlocksData fails', async () => {
 						let loadBlockFailed;
 
 						beforeEach(done => {
@@ -1577,16 +1614,18 @@ describe('transport', () => {
 							});
 						});
 
-						it('should call callback with error = null', () => expect(error).to.be.equal(null));
+						it('should call callback with error = null', async () =>
+							expect(error).to.be.equal(null));
 
-						it('should call callback with result = { blocks: [] }', () => expect(result)
+						it('should call callback with result = { blocks: [] }', async () =>
+							expect(result)
 								.to.have.property('blocks')
 								.which.is.an('array').that.is.empty);
 					});
 				});
 			});
 
-			describe('postBlock', () => {
+			describe('postBlock', async () => {
 				let postBlockQuery;
 
 				beforeEach(done => {
@@ -1600,29 +1639,31 @@ describe('transport', () => {
 					done();
 				});
 
-				describe('when library.config.broadcasts.active option is false', () => {
+				describe('when library.config.broadcasts.active option is false', async () => {
 					beforeEach(done => {
 						library.config.broadcasts.active = false;
 						transportInstance.shared.postBlock(postBlockQuery);
 						done();
 					});
 
-					it('should call library.logger.debug', () => expect(
+					it('should call library.logger.debug', async () =>
+						expect(
 							library.logger.debug.calledWith(
 								'Receiving blocks disabled by user through config.json'
 							)
 						).to.be.true);
 
-					it('should not call library.schema.validate; function should return before', () => expect(library.schema.validate.called).to.be.false);
+					it('should not call library.schema.validate; function should return before', async () =>
+						expect(library.schema.validate.called).to.be.false);
 				});
 
-				describe('when query is specified', () => {
+				describe('when query is specified', async () => {
 					beforeEach(done => {
 						transportInstance.shared.postBlock(postBlockQuery);
 						done();
 					});
 
-					describe('when it throws', () => {
+					describe('when it throws', async () => {
 						const blockValidationError = 'Failed to validate block schema';
 
 						beforeEach(done => {
@@ -1633,7 +1674,8 @@ describe('transport', () => {
 							done();
 						});
 
-						it('should call library.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', () => expect(
+						it('should call library.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () =>
+							expect(
 								library.logger.debug.calledWith('Block normalization failed', {
 									err: blockValidationError.toString(),
 									module: 'transport',
@@ -1641,7 +1683,8 @@ describe('transport', () => {
 								})
 							).to.be.true);
 
-						it('should call __private.removePeer with {peer: query.peer, code: "EBLOCK"}', () => expect(
+						it('should call __private.removePeer with {peer: query.peer, code: "EBLOCK"}', async () =>
+							expect(
 								__private.removePeer.calledWith({
 									nonce: validNonce,
 									code: 'EBLOCK',
@@ -1649,7 +1692,7 @@ describe('transport', () => {
 							).to.be.true);
 					});
 
-					describe('when it does not throw', () => {
+					describe('when it does not throw', async () => {
 						beforeEach(done => {
 							library.logic.block.objectNormalize = sinonSandbox
 								.stub()
@@ -1658,27 +1701,28 @@ describe('transport', () => {
 							done();
 						});
 
-						describe('when query.block is defined', () => {
-							it('should call modules.blocks.verify.addBlockProperties with query.block', () => expect(
+						describe('when query.block is defined', async () => {
+							it('should call modules.blocks.verify.addBlockProperties with query.block', async () =>
+								expect(
 									modules.blocks.verify.addBlockProperties.calledWith(
 										postBlockQuery.block
 									)
 								).to.be.true);
 						});
 
-						it('should call library.logic.block.objectNormalize with block', () => expect(
-								library.logic.block.objectNormalize.calledWith(blockMock)
-							).to.be.true);
+						it('should call library.logic.block.objectNormalize with block', async () =>
+							expect(library.logic.block.objectNormalize.calledWith(blockMock))
+								.to.be.true);
 
-						it('should call library.bus.message with "receiveBlock" and block', () => expect(
-								library.bus.message.calledWith('receiveBlock', blockMock)
-							).to.be.true);
+						it('should call library.bus.message with "receiveBlock" and block', async () =>
+							expect(library.bus.message.calledWith('receiveBlock', blockMock))
+								.to.be.true);
 					});
 				});
 			});
 
-			describe('list', () => {
-				describe('when req is undefined', () => {
+			describe('list', async () => {
+				describe('when req is undefined', async () => {
 					beforeEach(done => {
 						req = undefined;
 						modules.peers.list = sinonSandbox.stub().callsArgWith(1, null, []);
@@ -1689,7 +1733,7 @@ describe('transport', () => {
 						});
 					});
 
-					it('should invoke callback with empty result', () => {
+					it('should invoke callback with empty result', async () => {
 						expect(modules.peers.list.calledOnce).to.be.true;
 						expect(modules.peers.list.calledWith({ limit: MAX_PEERS })).to.be
 							.true;
@@ -1703,7 +1747,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when req is specified', () => {
+				describe('when req is specified', async () => {
 					beforeEach(done => {
 						req = {
 							query: {
@@ -1723,7 +1767,7 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call the correct peersFinder function with the sanitized query as argument', () => {
+					it('should call the correct peersFinder function with the sanitized query as argument', async () => {
 						expect(error).to.equal(null);
 						expect(
 							modules.peers.shared.getPeers.calledWith({
@@ -1733,7 +1777,7 @@ describe('transport', () => {
 						return expect(modules.peers.list.called).to.be.false;
 					});
 
-					describe('when peersFinder fails', () => {
+					describe('when peersFinder fails', async () => {
 						const failedToFindPeerError = 'Failed to find peer ...';
 
 						beforeEach(done => {
@@ -1757,7 +1801,7 @@ describe('transport', () => {
 							});
 						});
 
-						it('should invoke the callback with empty peers list and success set to false', () => {
+						it('should invoke the callback with empty peers list and success set to false', async () => {
 							expect(error).to.equal(null);
 							expect(result)
 								.to.have.property('peers')
@@ -1774,7 +1818,7 @@ describe('transport', () => {
 						});
 					});
 
-					it('should return callback with error = null and result = {success: true, peers: peers}', () => {
+					it('should return callback with error = null and result = {success: true, peers: peers}', async () => {
 						expect(error).to.be.equal(null);
 						expect(result)
 							.to.have.property('success')
@@ -1786,7 +1830,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('height', () => {
+			describe('height', async () => {
 				let currentHeight;
 
 				beforeEach(done => {
@@ -1800,9 +1844,10 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call callback with error = null', () => expect(error).to.be.equal(null));
+				it('should call callback with error = null', async () =>
+					expect(error).to.be.equal(null));
 
-				it('should call callback with result = {success: true, height: currentHeight}', () => {
+				it('should call callback with result = {success: true, height: currentHeight}', async () => {
 					expect(result)
 						.to.have.property('success')
 						.which.is.equal(true);
@@ -1812,7 +1857,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('status', () => {
+			describe('status', async () => {
 				let headers;
 
 				beforeEach(done => {
@@ -1834,34 +1879,41 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call callback with error = null', () => expect(error).to.be.equal(null));
+				it('should call callback with error = null', async () =>
+					expect(error).to.be.equal(null));
 
-				it('should call callback with a result containing status = true', () => expect(result)
+				it('should call callback with a result containing status = true', async () =>
+					expect(result)
 						.to.have.property('success')
 						.which.equals(true));
 
-				it('should call callback with a result containing height = 123', () => expect(result)
+				it('should call callback with a result containing height = 123', async () =>
+					expect(result)
 						.to.have.property('height')
 						.which.equals(headers.height));
 
-				it('should call callback with a result containing broadhash = "258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea"', () => expect(result)
+				it('should call callback with a result containing broadhash = "258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea"', async () =>
+					expect(result)
 						.to.have.property('broadhash')
 						.which.equals(headers.broadhash));
 
-				it('should call callback with a result containing httpPort = 8000', () => expect(result)
+				it('should call callback with a result containing httpPort = 8000', async () =>
+					expect(result)
 						.to.have.property('httpPort')
 						.which.equals(headers.httpPort));
 
-				it('should call callback with a result containing version = "v0.8.0"', () => expect(result)
+				it('should call callback with a result containing version = "v0.8.0"', async () =>
+					expect(result)
 						.to.have.property('version')
 						.which.equals(headers.version));
 
-				it('should call callback with a result containing os = "debian"', () => expect(result)
+				it('should call callback with a result containing os = "debian"', async () =>
+					expect(result)
 						.to.have.property('os')
 						.which.equals(headers.os));
 			});
 
-			describe('postSignature', () => {
+			describe('postSignature', async () => {
 				beforeEach(done => {
 					query = {
 						signature: SAMPLE_SIGNATURE_1,
@@ -1874,11 +1926,12 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call __private.receiveSignature with query.signature as argument', () => expect(__private.receiveSignature.calledWith(query.signature))
-						.to.be.true);
+				it('should call __private.receiveSignature with query.signature as argument', async () =>
+					expect(__private.receiveSignature.calledWith(query.signature)).to.be
+						.true);
 
-				describe('when __private.receiveSignature succeeds', () => {
-					it('should invoke callback with object { success: true }', () => {
+				describe('when __private.receiveSignature succeeds', async () => {
+					it('should invoke callback with object { success: true }', async () => {
 						expect(error).to.equal(null);
 						return expect(result)
 							.to.have.property('success')
@@ -1886,7 +1939,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when __private.receiveSignature fails', () => {
+				describe('when __private.receiveSignature fails', async () => {
 					const receiveSignatureError = 'Invalid signature body ...';
 
 					beforeEach(done => {
@@ -1903,7 +1956,7 @@ describe('transport', () => {
 						});
 					});
 
-					it('should invoke callback with object { success: false, message: err }', () => {
+					it('should invoke callback with object { success: false, message: err }', async () => {
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('success')
@@ -1915,7 +1968,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('postSignatures', () => {
+			describe('postSignatures', async () => {
 				beforeEach(done => {
 					query = {
 						signatures: [SAMPLE_SIGNATURE_1],
@@ -1924,7 +1977,7 @@ describe('transport', () => {
 					done();
 				});
 
-				describe('when library.config.broadcasts.active option is false', () => {
+				describe('when library.config.broadcasts.active option is false', async () => {
 					beforeEach(done => {
 						library.config.broadcasts.active = false;
 						library.schema.validate = sinonSandbox.stub().callsArg(2);
@@ -1932,26 +1985,28 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should call library.logger.debug', () => expect(
+					it('should call library.logger.debug', async () =>
+						expect(
 							library.logger.debug.calledWith(
 								'Receiving signatures disabled by user through config.json'
 							)
 						).to.be.true);
 
-					it('should not call library.schema.validate; function should return before', () => expect(library.schema.validate.called).to.be.false);
+					it('should not call library.schema.validate; function should return before', async () =>
+						expect(library.schema.validate.called).to.be.false);
 				});
 
-				describe('when library.schema.validate succeeds', () => {
+				describe('when library.schema.validate succeeds', async () => {
 					beforeEach(done => {
 						transportInstance.shared.postSignatures(query);
 						done();
 					});
 
-					it('should call __private.receiveSignatures with query.signatures as argument', () => expect(
-							__private.receiveSignatures.calledWith(query.signatures)
-						).to.be.true);
+					it('should call __private.receiveSignatures with query.signatures as argument', async () =>
+						expect(__private.receiveSignatures.calledWith(query.signatures)).to
+							.be.true);
 				});
-				describe('when library.schema.validate fails', () => {
+				describe('when library.schema.validate fails', async () => {
 					let validateErr;
 
 					beforeEach(done => {
@@ -1965,7 +2020,8 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should call library.logger.debug with "Invalid signatures body" and err as arguments', () => expect(
+					it('should call library.logger.debug with "Invalid signatures body" and err as arguments', async () =>
+						expect(
 							library.logger.debug.calledWith(
 								'Invalid signatures body',
 								validateErr
@@ -1974,7 +2030,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('getSignatures', () => {
+			describe('getSignatures', async () => {
 				let getSignaturesReq;
 
 				beforeEach(done => {
@@ -1992,17 +2048,19 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', () => expect(
+				it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
+					expect(
 						modules.transactions.getMultisignatureTransactionList.calledWith(
 							true,
 							MAX_SHARED_TRANSACTIONS
 						)
 					).to.be.true);
 
-				describe('when all transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature transactions', () => {
-					it('should call callback with error = null', () => expect(error).to.equal(null));
+				describe('when all transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature transactions', async () => {
+					it('should call callback with error = null', async () =>
+						expect(error).to.equal(null));
 
-					it('should call callback with result = {success: true, signatures: signatures} where signatures contains all transactions', () => {
+					it('should call callback with result = {success: true, signatures: signatures} where signatures contains all transactions', async () => {
 						expect(result)
 							.to.have.property('success')
 							.which.equals(true);
@@ -2014,7 +2072,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions', () => {
+				describe('when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions', async () => {
 					beforeEach(done => {
 						getSignaturesReq = {};
 						// Make it so that the first transaction in the list is a multisignature registration transaction.
@@ -2045,9 +2103,10 @@ describe('transport', () => {
 						);
 					});
 
-					it('should call callback with error = null', () => expect(error).to.equal(null));
+					it('should call callback with error = null', async () =>
+						expect(error).to.equal(null));
 
-					it('should call callback with result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', () => {
+					it('should call callback with result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', async () => {
 						expect(result)
 							.to.have.property('success')
 							.which.equals(true);
@@ -2060,7 +2119,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('getTransactions', () => {
+			describe('getTransactions', async () => {
 				beforeEach(done => {
 					query = {};
 					transportInstance.shared.getTransactions(query, (err, res) => {
@@ -2070,16 +2129,18 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', () => expect(
+				it('should call modules.transactions.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
+					expect(
 						modules.transactions.getMergedTransactionList.calledWith(
 							true,
 							MAX_SHARED_TRANSACTIONS
 						)
 					).to.be.true);
 
-				it('should call callback with error = null', () => expect(error).to.equal(null));
+				it('should call callback with error = null', async () =>
+					expect(error).to.equal(null));
 
-				it('should call callback with result = {success: true, transactions: transactions}', () => {
+				it('should call callback with result = {success: true, transactions: transactions}', async () => {
 					expect(result)
 						.to.have.property('success')
 						.which.is.equal(true);
@@ -2091,7 +2152,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('postTransaction', () => {
+			describe('postTransaction', async () => {
 				beforeEach(done => {
 					query = {
 						transaction,
@@ -2108,7 +2169,8 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call __private.receiveTransaction with query.transaction, query.peer and query.extraLogMessage as arguments', () => expect(
+				it('should call __private.receiveTransaction with query.transaction, query.peer and query.extraLogMessage as arguments', async () =>
+					expect(
 						__private.receiveTransaction.calledWith(
 							query.transaction,
 							validNonce,
@@ -2116,8 +2178,8 @@ describe('transport', () => {
 						)
 					).to.be.true);
 
-				describe('when __private.receiveTransaction succeeds', () => {
-					it('should invoke callback with object { success: true, transactionId: id }', () => {
+				describe('when __private.receiveTransaction succeeds', async () => {
+					it('should invoke callback with object { success: true, transactionId: id }', async () => {
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('transactionId')
@@ -2128,7 +2190,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when __private.receiveTransaction fails', () => {
+				describe('when __private.receiveTransaction fails', async () => {
 					const receiveTransactionError = 'Invalid transaction body ...';
 
 					beforeEach(done => {
@@ -2142,7 +2204,7 @@ describe('transport', () => {
 						});
 					});
 
-					it('should invoke callback with object { success: false, message: err }', () => {
+					it('should invoke callback with object { success: false, message: err }', async () => {
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('success')
@@ -2154,8 +2216,8 @@ describe('transport', () => {
 				});
 			});
 
-			describe('postTransactions', () => {
-				describe('when library.config.broadcasts.active option is false', () => {
+			describe('postTransactions', async () => {
+				describe('when library.config.broadcasts.active option is false', async () => {
 					beforeEach(done => {
 						library.config.broadcasts.active = false;
 						library.schema.validate = sinonSandbox.stub().callsArg(2);
@@ -2163,16 +2225,18 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should call library.logger.debug', () => expect(
+					it('should call library.logger.debug', async () =>
+						expect(
 							library.logger.debug.calledWith(
 								'Receiving transactions disabled by user through config.json'
 							)
 						).to.be.true);
 
-					it('should not call library.schema.validate; function should return before', () => expect(library.schema.validate.called).to.be.false);
+					it('should not call library.schema.validate; function should return before', async () =>
+						expect(library.schema.validate.called).to.be.false);
 				});
 
-				describe('when library.schema.validate succeeds', () => {
+				describe('when library.schema.validate succeeds', async () => {
 					beforeEach(done => {
 						query = {
 							transactions: transactionsList,
@@ -2184,7 +2248,8 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should call __private.receiveTransactions with query.transaction, query.peer and query.extraLogMessage as arguments', () => expect(
+					it('should call __private.receiveTransactions with query.transaction, query.peer and query.extraLogMessage as arguments', async () =>
+						expect(
 							__private.receiveTransactions.calledWith(
 								query.transactions,
 								validNonce,
@@ -2193,7 +2258,7 @@ describe('transport', () => {
 						).to.be.true);
 				});
 
-				describe('when library.schema.validate fails', () => {
+				describe('when library.schema.validate fails', async () => {
 					let validateErr;
 
 					beforeEach(done => {
@@ -2207,7 +2272,7 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should invoke callback with error = null and result = {success: false, message: message}', () => {
+					it('should invoke callback with error = null and result = {success: false, message: message}', async () => {
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('success')
@@ -2220,10 +2285,10 @@ describe('transport', () => {
 			});
 		});
 
-		describe('Transport.prototype.internal', () => {
+		describe('Transport.prototype.internal', async () => {
 			let query;
 
-			describe('updatePeer', () => {
+			describe('updatePeer', async () => {
 				beforeEach(done => {
 					query = {
 						updateType: Rules.UPDATES.INSERT,
@@ -2235,10 +2300,10 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call __private.checkInternalAccess with query', () => expect(__private.checkInternalAccess.calledWith(query)).to.be
-						.true);
+				it('should call __private.checkInternalAccess with query', async () =>
+					expect(__private.checkInternalAccess.calledWith(query)).to.be.true);
 
-				describe('when __private.checkInternalAccess fails', () => {
+				describe('when __private.checkInternalAccess fails', async () => {
 					let validateErr;
 
 					beforeEach(done => {
@@ -2256,17 +2321,18 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call callback wit error = err', () => expect(error).to.equal(validateErr));
+					it('should call callback wit error = err', async () =>
+						expect(error).to.equal(validateErr));
 				});
 
-				describe('when __private.checkInternalAccess succeeds', () => {
-					describe('updateResult', () => {
-						describe('when query.updateType = 0 (insert)', () => {
-							it('should call modules.peers.update with query.peer', () => expect(modules.peers.update.calledWith(query.peer)).to.be
-									.true);
+				describe('when __private.checkInternalAccess succeeds', async () => {
+					describe('updateResult', async () => {
+						describe('when query.updateType = 0 (insert)', async () => {
+							it('should call modules.peers.update with query.peer', async () =>
+								expect(modules.peers.update.calledWith(query.peer)).to.be.true);
 						});
 
-						describe('when query.updateType = 1 (remove)', () => {
+						describe('when query.updateType = 1 (remove)', async () => {
 							beforeEach(done => {
 								query = {
 									updateType: Rules.UPDATES.REMOVE,
@@ -2280,12 +2346,12 @@ describe('transport', () => {
 								});
 							});
 
-							it('should call modules.peers.remove with query.peer', () => expect(modules.peers.remove.calledWith(query.peer)).to.be
-									.true);
+							it('should call modules.peers.remove with query.peer', async () =>
+								expect(modules.peers.remove.calledWith(query.peer)).to.be.true);
 						});
 					});
 
-					describe('when updateResult !== true', () => {
+					describe('when updateResult !== true', async () => {
 						const errorCode = 4102;
 						beforeEach(done => {
 							query = {
@@ -2300,7 +2366,7 @@ describe('transport', () => {
 							});
 						});
 
-						it('should call callback with error = new PeerUpdateError(updateResult, "Request is made on the wrong network")', () => {
+						it('should call callback with error = new PeerUpdateError(updateResult, "Request is made on the wrong network")', async () => {
 							expect(error)
 								.to.have.property('code')
 								.which.equals(errorCode);
@@ -2311,8 +2377,9 @@ describe('transport', () => {
 						});
 					});
 
-					describe('when updateResult = true', () => {
-						it('should call callback with error = null', () => expect(error).to.equal(null));
+					describe('when updateResult = true', async () => {
+						it('should call callback with error = null', async () =>
+							expect(error).to.equal(null));
 					});
 				});
 			});

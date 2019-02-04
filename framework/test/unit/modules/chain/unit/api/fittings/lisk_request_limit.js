@@ -15,9 +15,9 @@
 'use strict';
 
 const httpMocks = require('node-mocks-http');
-const fitting = require('../../../../api/fittings/lisk_request_limit');
+const fitting = require('../../../../../../../src/modules/chain/api/fittings/lisk_request_limit');
 
-describe('lisk_request_limit', () => {
+describe('lisk_request_limit', async () => {
 	let context;
 	let limit_fititng;
 	let next;

@@ -17,15 +17,17 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const lisk = require('lisk-elements').default;
-const modulesLoader = require('../../common/modules_loader');
-const randomUtil = require('../../common/utils/random');
-const accountFixtures = require('../../fixtures/accounts');
-const slots = require('../../../helpers/slots');
-const Diff = require('../../../helpers/diff');
+const modulesLoader = require('../../../../../common/modules_loader');
+const randomUtil = require('../../../../../common/utils/random');
+const accountFixtures = require('../../../../../fixtures/accounts');
+const slots = require('../../../../../../src/modules/chain/helpers/slots');
+const Diff = require('../../../../../../src/modules/chain/helpers/diff');
 const testData = require('./test_data/multisignature');
 
 const { MULTISIG_CONSTRAINTS } = __testContext.config.constants;
-const Multisignature = rewire('../../../logic/multisignature');
+const Multisignature = rewire(
+	'../../../../../../src/modules/chain/logic/multisignature'
+);
 const validKeypair = testData.validKeypair;
 const validSender = testData.validSender;
 const validTransaction = testData.validTransaction;
@@ -33,7 +35,7 @@ const rawValidTransaction = testData.rawValidTransaction;
 const multiSigAccount1 = testData.multiSigAccount1;
 const multiSigAccount2 = testData.multiSigAccount2;
 
-describe('multisignature', () => {
+describe('multisignature', async () => {
 	let transactionMock;
 	// logic is singular, modules are plural
 	let accountMock;
@@ -81,7 +83,7 @@ describe('multisignature', () => {
 		return accountsMock.setAccountAndGet.resetHistory();
 	});
 
-	describe('constructor', () => {
+	describe('constructor', async () => {
 		let library;
 
 		beforeEach(done => {
@@ -96,20 +98,25 @@ describe('multisignature', () => {
 			done();
 		});
 
-		it('should attach schema to library variable', () => expect(library.schema).to.eql(modulesLoader.scope.schema));
+		it('should attach schema to library variable', async () =>
+			expect(library.schema).to.eql(modulesLoader.scope.schema));
 
-		it('should attach network to library variable', () => expect(library.network).to.eql(modulesLoader.scope.network));
+		it('should attach network to library variable', async () =>
+			expect(library.network).to.eql(modulesLoader.scope.network));
 
-		it('should attach logger to library variable', () => expect(library.logger).to.eql(modulesLoader.logger));
+		it('should attach logger to library variable', async () =>
+			expect(library.logger).to.eql(modulesLoader.logger));
 
-		it('should attach logic.transaction to library variable', () => expect(library.logic.transaction).to.eql(transactionMock));
+		it('should attach logic.transaction to library variable', async () =>
+			expect(library.logic.transaction).to.eql(transactionMock));
 
-		it('should attach account to library variable', () => expect(library.logic.account).to.eql(accountMock));
+		it('should attach account to library variable', async () =>
+			expect(library.logic.account).to.eql(accountMock));
 	});
 
-	describe('bind', () => {
-		describe('modules', () => {
-			it('should assign accounts', () => {
+	describe('bind', async () => {
+		describe('modules', async () => {
+			it('should assign accounts', async () => {
 				multisignature.bind(accountsMock);
 				const modules = Multisignature.__get__('modules');
 
@@ -120,8 +127,8 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('calculateFee', () => {
-		it('should return correct fee based on formula for 1 keysgroup', () => {
+	describe('calculateFee', async () => {
+		it('should return correct fee based on formula for 1 keysgroup', async () => {
 			transaction.asset.multisignature.keysgroup = [
 				`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`,
 			];
@@ -130,7 +137,7 @@ describe('multisignature', () => {
 			).to.be.true;
 		});
 
-		it('should return correct fee based on formula for 4 keysgroup', () => {
+		it('should return correct fee based on formula for 4 keysgroup', async () => {
 			transaction.asset.multisignature.keysgroup = new Array(4).fill(
 				`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
 			);
@@ -140,7 +147,7 @@ describe('multisignature', () => {
 			).to.be.true;
 		});
 
-		it('should return correct fee based on formula for 8 keysgroup', () => {
+		it('should return correct fee based on formula for 8 keysgroup', async () => {
 			transaction.asset.multisignature.keysgroup = new Array(8).fill(
 				`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
 			);
@@ -150,7 +157,7 @@ describe('multisignature', () => {
 			).to.be.true;
 		});
 
-		it('should return correct fee based on formula for 16 keysgroup', () => {
+		it('should return correct fee based on formula for 16 keysgroup', async () => {
 			transaction.asset.multisignature.keysgroup = new Array(16).fill(
 				`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
 			);
@@ -161,8 +168,8 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('verify', () => {
-		describe('from multisignature.verify tests', () => {
+	describe('verify', async () => {
+		describe('from multisignature.verify tests', async () => {
 			it('should return error when min value is smaller than minimum acceptable value', done => {
 				const minimum = MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
 				const keysgroup = [
@@ -215,7 +222,7 @@ describe('multisignature', () => {
 			);
 		});
 
-		describe('when asset = undefined', () => {
+		describe('when asset = undefined', async () => {
 			it('should call callback with error = "Invalid transaction asset"', done => {
 				delete transaction.asset;
 
@@ -226,7 +233,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when asset.multisignature = undefined', () => {
+		describe('when asset.multisignature = undefined', async () => {
 			it('should call callback with error = "Invalid transaction asset"', done => {
 				delete transaction.asset.multisignature;
 
@@ -237,7 +244,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when asset.multisignature = []', () => {
+		describe('when asset.multisignature = []', async () => {
 			it('should call callback with error = "Invalid multisignature keysgroup. Must not be empty"', done => {
 				transaction.asset.multisignature.keysgroup = [];
 
@@ -250,7 +257,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when min <= 1', () => {
+		describe('when min <= 1', async () => {
 			it('should call callback with error = "Invalid multisignature min. Must be between 1 and 16"', done => {
 				transaction.asset.multisignature.min = 0;
 
@@ -263,7 +270,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when min >= 16', () => {
+		describe('when min >= 16', async () => {
 			it('should call callback with error = "Invalid multisignature min. Must be between 1 and 15"', done => {
 				transaction.asset.multisignature.min = 16;
 
@@ -276,7 +283,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when min = 2', () => {
+		describe('when min = 2', async () => {
 			it('should call callback with error = null', done => {
 				transaction.asset.multisignature.min = 2;
 
@@ -287,10 +294,13 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when min = 15', () => {
+		describe('when min = 15', async () => {
 			before(done => {
 				transaction.asset.multisignature.min = 15;
-				transaction.asset.keysgroup = _.map(new Array(16), () => `${randomUtil.account().publicKey}`);
+				transaction.asset.keysgroup = _.map(
+					new Array(16),
+					async () => `${randomUtil.account().publicKey}`
+				);
 				done();
 			});
 
@@ -302,7 +312,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when lifetime < 1', () => {
+		describe('when lifetime < 1', async () => {
 			it('should call callback with error = "Invalid multisignature lifetime. Must be between 1 and 72"', done => {
 				transaction.asset.multisignature.lifetime = 0;
 
@@ -315,7 +325,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when lifetime > 72', () => {
+		describe('when lifetime > 72', async () => {
 			it('should call callback with error = "Invalid multisignature lifetime. Must be between 1 and 72"', done => {
 				transaction.asset.multisignature.lifetime = 73;
 
@@ -328,7 +338,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when sender has multisignature enbled', () => {
+		describe('when sender has multisignature enbled', async () => {
 			it('should call callback with error = "Account already has multisignatures enabled"', done => {
 				sender.membersPublicKeys = [
 					lisk.cryptography.getKeys(randomUtil.password()).publicKey,
@@ -341,7 +351,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when keysgroup contains sender', () => {
+		describe('when keysgroup contains sender', async () => {
 			// check for case where we have a ready transaction - nit done; (reference confusion)
 			it('should call callback with error = "Invalid multisignature keysgroup. Can not contain sender"', done => {
 				transaction.asset.multisignature.keysgroup.push(`+${sender.publicKey}`);
@@ -355,7 +365,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when keysgroup has an entry which does not start with + character', () => {
+		describe('when keysgroup has an entry which does not start with + character', async () => {
 			it('should call callback with error = "Invalid math operator in multisignature keysgroup"', done => {
 				transaction.asset.multisignature.keysgroup.push(
 					`-${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
@@ -370,7 +380,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when multisignature keysgroup has an entry which is null', () => {
+		describe('when multisignature keysgroup has an entry which is null', async () => {
 			it('should call callback with error = "Invalid member in keysgroup"', done => {
 				transaction.asset.multisignature.keysgroup.push(null);
 
@@ -381,7 +391,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when multisignature keysgroup has an entry which is undefined', () => {
+		describe('when multisignature keysgroup has an entry which is undefined', async () => {
 			it('should return error = "Invalid member in keysgroup"', done => {
 				transaction.asset.multisignature.keysgroup.push(undefined);
 
@@ -392,7 +402,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when multisignature keysgroup has an entry which is an integer', () => {
+		describe('when multisignature keysgroup has an entry which is an integer', async () => {
 			it('should return error = "Invalid member in keysgroup"', done => {
 				transaction.asset.multisignature.keysgroup.push(1);
 
@@ -403,7 +413,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when multisignature keysgroup has an entry which is not an hex string', () => {
+		describe('when multisignature keysgroup has an entry which is not an hex string', async () => {
 			it('should call callback with error = Invalid member in keysgroup', done => {
 				transaction.asset.multisignature.keysgroup.push(1);
 
@@ -414,7 +424,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when multisignature keysgroup has non unique elements', () => {
+		describe('when multisignature keysgroup has non unique elements', async () => {
 			it('should call callback with error = Encountered duplicate public key in multisignature keysgroup', done => {
 				transaction.asset.multisignature.keysgroup.push(
 					transaction.asset.multisignature.keysgroup[0]
@@ -438,7 +448,7 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('process', () => {
+	describe('process', async () => {
 		it('should call callback with error = null', done => {
 			multisignature.process(transaction, sender, err => {
 				expect(err).to.be.null;
@@ -454,24 +464,22 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('getBytes', () => {
-		describe('when transaction.asset.multisignature.keysgroup is undefined', () => {
+	describe('getBytes', async () => {
+		describe('when transaction.asset.multisignature.keysgroup is undefined', async () => {
 			beforeEach(done => {
 				transaction.asset.multisignature.keysgroup = undefined;
 				done();
 			});
 
-			it('should throw', () => expect(
-					multisignature.getBytes.bind(null, transaction)
-				).to.throw());
+			it('should throw', async () =>
+				expect(multisignature.getBytes.bind(null, transaction)).to.throw());
 		});
 
-		describe('when transaction.asset.multisignature.keysgroup is a valid keysgroup', () => {
-			it('should not throw', () => expect(
-					multisignature.getBytes.bind(null, transaction)
-				).not.to.throw());
+		describe('when transaction.asset.multisignature.keysgroup is a valid keysgroup', async () => {
+			it('should not throw', async () =>
+				expect(multisignature.getBytes.bind(null, transaction)).not.to.throw());
 
-			it('should get bytes of valid transaction', () => {
+			it('should get bytes of valid transaction', async () => {
 				const bytes = multisignature.getBytes(transaction);
 				expect(bytes.toString('utf8')).to.equal(
 					'\u0002\u0002+bd6d0388dcc0b07ab2035689c60a78d3ebb27901c5a5ed9a07262eab1a2e9bd2+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
@@ -479,19 +487,18 @@ describe('multisignature', () => {
 				return expect(bytes.length).to.equal(132);
 			});
 
-			it('should return result as a Buffer type', () => expect(multisignature.getBytes(transaction)).to.be.instanceOf(
-					Buffer
-				));
+			it('should return result as a Buffer type', async () =>
+				expect(multisignature.getBytes(transaction)).to.be.instanceOf(Buffer));
 		});
 	});
 
-	describe('applyConfirmed', () => {
+	describe('applyConfirmed', async () => {
 		beforeEach(done => {
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
 			multisignature.applyConfirmed(transaction, dummyBlock, sender, done);
 		});
 
-		it('should set __private.unconfirmedSignatures[sender.address] = false', () => {
+		it('should set __private.unconfirmedSignatures[sender.address] = false', async () => {
 			const unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
@@ -500,11 +507,13 @@ describe('multisignature', () => {
 				.equal(false);
 		});
 
-		it('should call library.logic.account.merge', () => expect(accountMock.merge.calledOnce).to.be.true);
+		it('should call library.logic.account.merge', async () =>
+			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call library.logic.account.merge with sender.address', () => expect(accountMock.merge.calledWith(sender.address)).to.be.true);
+		it('should call library.logic.account.merge with sender.address', async () =>
+			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call library.logic.account.merge with expected params', () => {
+		it('should call library.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				membersPublicKeys: transaction.asset.multisignature.keysgroup,
 				multiMin: transaction.asset.multisignature.min,
@@ -514,36 +523,34 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when library.logic.account.merge fails', () => {
+		describe('when library.logic.account.merge fails', async () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
 			});
 
-			it('should call callback with error', () => multisignature.applyConfirmed(
-					transaction,
-					dummyBlock,
-					sender,
-					err => {
-						expect(err).not.to.be.empty;
-					}
-				));
+			it('should call callback with error', async () =>
+				multisignature.applyConfirmed(transaction, dummyBlock, sender, err => {
+					expect(err).not.to.be.empty;
+				}));
 		});
 
-		describe('when library.logic.account.merge succeeds', () => {
-			describe('for every keysgroup member', () => {
+		describe('when library.logic.account.merge succeeds', async () => {
+			describe('for every keysgroup member', async () => {
 				validTransaction.asset.multisignature.keysgroup.forEach(member => {
-					it('should call modules.accounts.generateAddressByPublicKey', () => expect(
-							accountsMock.generateAddressByPublicKey.callCount
-						).to.equal(validTransaction.asset.multisignature.keysgroup.length));
+					it('should call modules.accounts.generateAddressByPublicKey', async () =>
+						expect(accountsMock.generateAddressByPublicKey.callCount).to.equal(
+							validTransaction.asset.multisignature.keysgroup.length
+						));
 
-					it('should call modules.accounts.generateAddressByPublicKey with member.substring(1)', () => expect(
+					it('should call modules.accounts.generateAddressByPublicKey with member.substring(1)', async () =>
+						expect(
 							accountsMock.generateAddressByPublicKey.calledWith(
 								member.substring(1)
 							)
 						).to.be.true);
 
-					describe('when key and the address', () => {
+					describe('when key and the address', async () => {
 						let key;
 						let address;
 
@@ -553,23 +560,26 @@ describe('multisignature', () => {
 							done();
 						});
 
-						it('should call library.logic.account.setAccountAndGet', () => expect(accountsMock.setAccountAndGet.callCount).to.equal(
+						it('should call library.logic.account.setAccountAndGet', async () =>
+							expect(accountsMock.setAccountAndGet.callCount).to.equal(
 								validTransaction.asset.multisignature.keysgroup.length
 							));
 
-						it('should call library.logic.account.setAccountAndGet with {address: address}', () => expect(
+						it('should call library.logic.account.setAccountAndGet with {address: address}', async () =>
+							expect(
 								accountsMock.setAccountAndGet.calledWith(
 									sinonSandbox.match({ address })
 								)
 							).to.be.true);
 
-						it('should call library.logic.account.setAccountAndGet with sender.address', () => expect(
+						it('should call library.logic.account.setAccountAndGet with sender.address', async () =>
+							expect(
 								accountsMock.setAccountAndGet.calledWith(
 									sinonSandbox.match({ publicKey: key })
 								)
 							).to.be.true);
 
-						describe('when modules.accounts.setAccountAndGet fails', () => {
+						describe('when modules.accounts.setAccountAndGet fails', async () => {
 							beforeEach(done => {
 								accountsMock.setAccountAndGet = sinonSandbox
 									.stub()
@@ -577,7 +587,8 @@ describe('multisignature', () => {
 								done();
 							});
 
-							it('should call callback with error', () => multisignature.applyConfirmed(
+							it('should call callback with error', async () =>
+								multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -587,8 +598,9 @@ describe('multisignature', () => {
 								));
 						});
 
-						describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
-							it('should call callback with error = null', () => multisignature.applyConfirmed(
+						describe('when modules.accounts.mergeAccountAndGet succeeds', async () => {
+							it('should call callback with error = null', async () =>
+								multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -597,7 +609,8 @@ describe('multisignature', () => {
 									}
 								));
 
-							it('should call callback with result = undefined', () => multisignature.applyConfirmed(
+							it('should call callback with result = undefined', async () =>
+								multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -612,7 +625,7 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('undoConfirmed', () => {
+	describe('undoConfirmed', async () => {
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
@@ -620,7 +633,7 @@ describe('multisignature', () => {
 		});
 		/* eslint-enable */
 
-		it('should set __private.unconfirmedSignatures[sender.address] = true', () => {
+		it('should set __private.unconfirmedSignatures[sender.address] = true', async () => {
 			const unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
@@ -629,11 +642,13 @@ describe('multisignature', () => {
 				.equal(true);
 		});
 
-		it('should call library.logic.account.merge', () => expect(accountMock.merge.calledOnce).to.be.true);
+		it('should call library.logic.account.merge', async () =>
+			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call library.logic.account.merge with sender.address', () => expect(accountMock.merge.calledWith(sender.address)).to.be.true);
+		it('should call library.logic.account.merge with sender.address', async () =>
+			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call library.logic.account.merge with expected params', () => {
+		it('should call library.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
@@ -645,33 +660,26 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when library.logic.account.merge fails', () => {
+		describe('when library.logic.account.merge fails', async () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
 			});
 
-			it('should call callback with error', () => multisignature.undoConfirmed(
-					transaction,
-					dummyBlock,
-					sender,
-					err => {
-						expect(err).not.to.be.empty;
-					}
-				));
+			it('should call callback with error', async () =>
+				multisignature.undoConfirmed(transaction, dummyBlock, sender, err => {
+					expect(err).not.to.be.empty;
+				}));
 		});
 
-		describe('when library.logic.account.merge succeeds', () => {
-			it('should call callback with error = null', () => multisignature.applyConfirmed(
-					transaction,
-					dummyBlock,
-					sender,
-					err => {
-						expect(err).to.be.null;
-					}
-				));
+		describe('when library.logic.account.merge succeeds', async () => {
+			it('should call callback with error = null', async () =>
+				multisignature.applyConfirmed(transaction, dummyBlock, sender, err => {
+					expect(err).to.be.null;
+				}));
 
-			it('should call callback with result = undefined', () => multisignature.applyConfirmed(
+			it('should call callback with result = undefined', async () =>
+				multisignature.applyConfirmed(
 					transaction,
 					dummyBlock,
 					sender,
@@ -683,8 +691,8 @@ describe('multisignature', () => {
 		/* eslint-enable */
 	});
 
-	describe('applyUnconfirmed', () => {
-		describe('when transaction is pending for confirmation', () => {
+	describe('applyUnconfirmed', async () => {
+		describe('when transaction is pending for confirmation', async () => {
 			beforeEach(done => {
 				const unconfirmedSignatures = Multisignature.__get__(
 					'__private.unconfirmedSignatures'
@@ -703,7 +711,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('when transaction is not pending confirmation', () => {
+		describe('when transaction is not pending confirmation', async () => {
 			beforeEach(done => {
 				const unconfirmedSignatures = Multisignature.__get__(
 					'__private.unconfirmedSignatures'
@@ -716,7 +724,7 @@ describe('multisignature', () => {
 				const unconfirmedSignatures = Multisignature.__get__(
 					'__private.unconfirmedSignatures'
 				);
-				multisignature.applyUnconfirmed(transaction, sender, () => {
+				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(unconfirmedSignatures)
 						.to.contain.property(sender.address)
 						.equal(true);
@@ -725,14 +733,14 @@ describe('multisignature', () => {
 			});
 
 			it('should call library.logic.account.merge', done => {
-				multisignature.applyUnconfirmed(transaction, sender, () => {
+				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(accountMock.merge.calledOnce).to.be.true;
 					done();
 				});
 			});
 
 			it('should call library.logic.account.merge with sender.address', done => {
-				multisignature.applyUnconfirmed(transaction, sender, () => {
+				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(accountMock.merge.calledWith(sender.address)).to.be.true;
 					done();
 				});
@@ -744,13 +752,13 @@ describe('multisignature', () => {
 					u_multiMin: transaction.asset.multisignature.min,
 					u_multiLifetime: transaction.asset.multisignature.lifetime,
 				};
-				multisignature.applyUnconfirmed(transaction, sender, () => {
+				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 					done();
 				});
 			});
 
-			describe('when library.logic.account.merge fails', () => {
+			describe('when library.logic.account.merge fails', async () => {
 				beforeEach(() => accountMock.merge.callsArgWith(2, 'merge error'));
 
 				afterEach(() => accountMock.merge.resetHistory());
@@ -764,7 +772,7 @@ describe('multisignature', () => {
 				});
 			});
 
-			describe('when library.logic.account.merge succeeds', () => {
+			describe('when library.logic.account.merge succeeds', async () => {
 				it('should call callback with error = null', done => {
 					multisignature.applyUnconfirmed(transaction, sender, err => {
 						expect(err).to.be.not.exist;
@@ -782,13 +790,13 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('undoUnconfirmed', () => {
+	describe('undoUnconfirmed', async () => {
 		beforeEach(done => {
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
 			multisignature.undoUnconfirmed(transaction, sender, done);
 		});
 
-		it('should set __private.unconfirmedSignatures[sender.address] = false', () => {
+		it('should set __private.unconfirmedSignatures[sender.address] = false', async () => {
 			const unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
@@ -797,11 +805,13 @@ describe('multisignature', () => {
 				.equal(false);
 		});
 
-		it('should call library.logic.account.merge', () => expect(accountMock.merge.calledOnce).to.be.true);
+		it('should call library.logic.account.merge', async () =>
+			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call library.logic.account.merge with sender.address', () => expect(accountMock.merge.calledWith(sender.address)).to.be.true);
+		it('should call library.logic.account.merge with sender.address', async () =>
+			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call library.logic.account.merge with expected params', () => {
+		it('should call library.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				u_membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
@@ -812,33 +822,26 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when library.logic.account.merge fails', () => {
+		describe('when library.logic.account.merge fails', async () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
 			});
 
-			it('should call callback with error', () => multisignature.undoConfirmed(
-					transaction,
-					dummyBlock,
-					sender,
-					err => {
-						expect(err).not.to.be.empty;
-					}
-				));
+			it('should call callback with error', async () =>
+				multisignature.undoConfirmed(transaction, dummyBlock, sender, err => {
+					expect(err).not.to.be.empty;
+				}));
 		});
 
-		describe('when library.logic.account.merge succeeds', () => {
-			it('should call callback with error = null', () => multisignature.applyConfirmed(
-					transaction,
-					dummyBlock,
-					sender,
-					err => {
-						expect(err).to.be.null;
-					}
-				));
+		describe('when library.logic.account.merge succeeds', async () => {
+			it('should call callback with error = null', async () =>
+				multisignature.applyConfirmed(transaction, dummyBlock, sender, err => {
+					expect(err).to.be.null;
+				}));
 
-			it('should call callback with result = undefined', () => multisignature.applyConfirmed(
+			it('should call callback with result = undefined', async () =>
+				multisignature.applyConfirmed(
 					transaction,
 					dummyBlock,
 					sender,
@@ -849,9 +852,9 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('objectNormalize', () => {
-		describe('min', () => {
-			it('should return error when value is not an integer', () => {
+	describe('objectNormalize', async () => {
+		describe('min', async () => {
+			it('should return error when value is not an integer', async () => {
 				const minimum = '2';
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -872,7 +875,7 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when value is a negative integer', () => {
+			it('should return error when value is a negative integer', async () => {
 				const minimum = -1;
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -893,7 +896,7 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when value is smaller than minimum acceptable value', () => {
+			it('should return error when value is smaller than minimum acceptable value', async () => {
 				const minimum = MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -913,7 +916,7 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when value is greater than maximum acceptable value', () => {
+			it('should return error when value is greater than maximum acceptable value', async () => {
 				const minimum = MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -933,7 +936,7 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when value is an overflow number', () => {
+			it('should return error when value is an overflow number', async () => {
 				const minimum = Number.MAX_VALUE + 1;
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -955,8 +958,8 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('lifetime', () => {
-			it('should return error when value is not an integer', () => {
+		describe('lifetime', async () => {
+			it('should return error when value is not an integer', async () => {
 				const lifetime = '2';
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -977,7 +980,7 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when value is smaller than minimum acceptable value', () => {
+			it('should return error when value is smaller than minimum acceptable value', async () => {
 				const lifetime = MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1;
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -997,7 +1000,7 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when value is greater than maximum acceptable value', () => {
+			it('should return error when value is greater than maximum acceptable value', async () => {
 				const lifetime = MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1;
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -1017,7 +1020,7 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when value is an overflow number', () => {
+			it('should return error when value is an overflow number', async () => {
 				const lifetime = Number.MAX_VALUE;
 				const keysgroup = [
 					multiSigAccount1.publicKey,
@@ -1039,8 +1042,8 @@ describe('multisignature', () => {
 			});
 		});
 
-		describe('keysgroup', () => {
-			it('should return error when it is not an array', () => {
+		describe('keysgroup', async () => {
+			it('should return error when it is not an array', async () => {
 				const keysgroup = [multiSigAccount1.publicKey];
 				const multisigRegistration12 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
@@ -1057,7 +1060,7 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when array length is smaller than minimum acceptable value', () => {
+			it('should return error when array length is smaller than minimum acceptable value', async () => {
 				const keysgroup = [multiSigAccount1.publicKey];
 				const multisigRegistration13 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
@@ -1074,12 +1077,13 @@ describe('multisignature', () => {
 				);
 			});
 
-			it('should return error when array length is greater than maximum acceptable value', () => {
+			it('should return error when array length is greater than maximum acceptable value', async () => {
 				const keysgroup = Array(
 					...Array(MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS + 1)
-				).map(() => `${
-						lisk.cryptography.getKeys(randomUtil.password()).publicKey
-					}`);
+				).map(
+					async () =>
+						`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
+				);
 				const multisigRegistration14 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
@@ -1095,8 +1099,11 @@ describe('multisignature', () => {
 			});
 		});
 
-		it('should return transaction when created using createMultisignature', () => {
-			const keysgroup = Array(...Array(10)).map(() => `${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`);
+		it('should return transaction when created using createMultisignature', async () => {
+			const keysgroup = Array(...Array(10)).map(
+				async () =>
+					`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
+			);
 
 			const multisigRegistration15 = lisk.transaction.registerMultisignature({
 				passphrase: accountFixtures.genesis.passphrase,
@@ -1110,7 +1117,7 @@ describe('multisignature', () => {
 			).to.eql(multisigRegistration15);
 		});
 
-		it('should use the correct format to validate against', () => {
+		it('should use the correct format to validate against', async () => {
 			const library = Multisignature.__get__('library');
 			const schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 			multisignature.objectNormalize(transaction);
@@ -1124,7 +1131,7 @@ describe('multisignature', () => {
 			return schemaSpy.restore();
 		});
 
-		it('should return error asset schema is invalid', () => {
+		it('should return error asset schema is invalid', async () => {
 			transaction.asset.multisignature.min = -1;
 
 			return expect(() => {
@@ -1134,65 +1141,71 @@ describe('multisignature', () => {
 			);
 		});
 
-		it('should return transaction when asset is valid', () => expect(multisignature.objectNormalize(transaction)).to.eql(
-				transaction
-			));
+		it('should return transaction when asset is valid', async () =>
+			expect(multisignature.objectNormalize(transaction)).to.eql(transaction));
 	});
 
-	describe('dbRead', () => {
-		describe('when raw.m_keysgroup does not exist', () => {
-			beforeEach(() => delete rawTransaction.m_keysgroup);
+	describe('dbRead', async () => {
+		describe('when raw.m_keysgroup does not exist', async () => {
+			beforeEach(async () => delete rawTransaction.m_keysgroup);
 
-			it('should return null', () => expect(multisignature.dbRead(rawTransaction)).to.eql(null));
+			it('should return null', async () =>
+				expect(multisignature.dbRead(rawTransaction)).to.eql(null));
 		});
 
-		describe('when raw.m_keysgroup exists', () => {
-			it('should return result containing multisignature', () => expect(multisignature.dbRead(rawTransaction)).to.have.property(
+		describe('when raw.m_keysgroup exists', async () => {
+			it('should return result containing multisignature', async () =>
+				expect(multisignature.dbRead(rawTransaction)).to.have.property(
 					'multisignature'
 				));
 
-			it('should return result containing multisignature.min = raw.m_min', () => expect(multisignature.dbRead(rawTransaction))
+			it('should return result containing multisignature.min = raw.m_min', async () =>
+				expect(multisignature.dbRead(rawTransaction))
 					.to.have.nested.property('multisignature.min')
 					.equal(rawTransaction.m_min));
 
-			it('should return result containing multisignature.lifetime = raw.lifetime', () => expect(multisignature.dbRead(rawTransaction))
+			it('should return result containing multisignature.lifetime = raw.lifetime', async () =>
+				expect(multisignature.dbRead(rawTransaction))
 					.to.have.nested.property('multisignature.lifetime')
 					.equal(rawTransaction.m_lifetime));
 
-			describe('when raw.m_keysgroup is not a string', () => {
+			describe('when raw.m_keysgroup is not a string', async () => {
 				beforeEach(done => {
 					rawTransaction.m_keysgroup = {};
 					done();
 				});
 
-				it('should return result containing multisignature.keysgroup = []', () => expect(multisignature.dbRead(rawTransaction))
+				it('should return result containing multisignature.keysgroup = []', async () =>
+					expect(multisignature.dbRead(rawTransaction))
 						.to.have.nested.property('multisignature.keysgroup')
 						.eql([]));
 			});
 
-			describe('when raw.m_keysgroup = "a,b,c"', () => {
+			describe('when raw.m_keysgroup = "a,b,c"', async () => {
 				beforeEach(done => {
 					rawTransaction.m_keysgroup = 'a,b,c';
 					done();
 				});
 
-				it('should return result containing multisignature.keysgroup = ["a", "b", "c"]', () => expect(multisignature.dbRead(rawTransaction))
+				it('should return result containing multisignature.keysgroup = ["a", "b", "c"]', async () =>
+					expect(multisignature.dbRead(rawTransaction))
 						.to.have.nested.property('multisignature.keysgroup')
 						.eql(['a', 'b', 'c']));
 			});
 		});
 	});
 
-	describe('ready', () => {
-		it('should return true for single signature transaction', () => expect(multisignature.ready(transaction, sender)).to.equal(true));
+	describe('ready', async () => {
+		it('should return true for single signature transaction', async () =>
+			expect(multisignature.ready(transaction, sender)).to.equal(true));
 
-		it('should return false for multi signature transaction with less signatures', () => {
+		it('should return false for multi signature transaction with less signatures', async () => {
 			sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 
 			return expect(multisignature.ready(transaction, sender)).to.equal(false);
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', () => {
+		it('should return true for multi signature transaction with alteast min signatures', async () => {
 			sender.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 			sender.multiMin = 1;
 

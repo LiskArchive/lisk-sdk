@@ -15,10 +15,11 @@
 'use strict';
 
 const ip = require('ip');
-const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
-const Peer = require('../../../logic/peer.js');
+const prefixedPeer = require('../../../../../fixtures/peers')
+	.randomNormalizedPeer;
+const Peer = require('../../../../../../src/modules/chain/logic/peer.js');
 
-describe('peer', () => {
+describe('peer', async () => {
 	let peer;
 
 	beforeEach(done => {
@@ -26,8 +27,8 @@ describe('peer', () => {
 		done();
 	});
 
-	describe('constructor', () => {
-		it('should create Peer with all properties implemented', () => {
+	describe('constructor', async () => {
+		it('should create Peer with all properties implemented', async () => {
 			const __peer = new Peer({ ip: '127.0.0.1', wsPort: 4000 });
 			expect(__peer)
 				.to.have.property('ip')
@@ -44,8 +45,8 @@ describe('peer', () => {
 		});
 	});
 
-	describe('accept', () => {
-		it('should accept valid peer', () => {
+	describe('accept', async () => {
+		it('should accept valid peer', async () => {
 			const auxPeer = new Peer({});
 			const __peer = auxPeer.accept(prefixedPeer);
 			['height', 'ip', 'wsPort', 'state'].forEach(property => {
@@ -56,7 +57,7 @@ describe('peer', () => {
 			);
 		});
 
-		it('should accept empty peer and set default values', () => {
+		it('should accept empty peer and set default values', async () => {
 			const __peer = peer.accept({});
 			expect(__peer.wsPort).to.equal(0);
 			expect(__peer.ip).to.be.undefined;
@@ -65,32 +66,33 @@ describe('peer', () => {
 			return expect(__peer.string).to.be.undefined;
 		});
 
-		it('should accept peer with ip as long', () => {
+		it('should accept peer with ip as long', async () => {
 			const __peer = peer.accept({ ip: ip.toLong(prefixedPeer.ip) });
 			return expect(__peer.ip).to.equal(prefixedPeer.ip);
 		});
 	});
 
-	describe('parseInt', () => {
-		it('should always return a number', () => {
+	describe('parseInt', async () => {
+		it('should always return a number', async () => {
 			expect(peer.parseInt('1')).to.equal(1);
 			return expect(peer.parseInt(1)).to.equal(1);
 		});
 
-		it('should return default value when NaN passed', () => {
+		it('should return default value when NaN passed', async () => {
 			expect(peer.parseInt('not a number', 1)).to.equal(1);
 			expect(peer.parseInt(undefined, 1)).to.equal(1);
 			return expect(peer.parseInt(null, 1)).to.equal(1);
 		});
 	});
 
-	describe('applyHeaders', () => {
-		it('should not apply random values to the peer scope', () => {
+	describe('applyHeaders', async () => {
+		it('should not apply random values to the peer scope', async () => {
 			peer.applyHeaders({ headerA: 'HeaderA' });
 			return expect(peer.headerA).to.not.exist;
 		});
 
-		it('should apply defined values as headers', () => peer.headers.forEach(header => {
+		it('should apply defined values as headers', async () =>
+			peer.headers.forEach(header => {
 				delete peer[header];
 				if (prefixedPeer[header]) {
 					const headers = {};
@@ -100,7 +102,8 @@ describe('peer', () => {
 				}
 			}));
 
-		it('should not apply nulls or undefined values as headers', () => peer.headers.forEach(header => {
+		it('should not apply nulls or undefined values as headers', async () =>
+			peer.headers.forEach(header => {
 				delete peer[header];
 				if (
 					prefixedPeer[header] === null ||
@@ -113,7 +116,7 @@ describe('peer', () => {
 				}
 			}));
 
-		it('should parse height and port', () => {
+		it('should parse height and port', async () => {
 			const appliedHeaders = peer.applyHeaders({ wsPort: '4000', height: '1' });
 
 			expect(appliedHeaders.wsPort).to.equal(4000);
@@ -121,18 +124,18 @@ describe('peer', () => {
 		});
 	});
 
-	describe('update', () => {
-		it('should not apply random values to the peer scope', () => {
+	describe('update', async () => {
+		it('should not apply random values to the peer scope', async () => {
 			peer.update({ someProp: 'someValue' });
 			return expect(peer.someProp).to.not.exist;
 		});
 
-		it('should not apply undefined to the peer scope', () => {
+		it('should not apply undefined to the peer scope', async () => {
 			peer.update({ someProp: undefined });
 			return expect(peer.someProp).to.not.exist;
 		});
 
-		it('should not apply null to the peer scope', () => {
+		it('should not apply null to the peer scope', async () => {
 			peer.update({ someProp: null });
 			return expect(peer.someProp).to.not.exist;
 		});
@@ -148,7 +151,7 @@ describe('peer', () => {
 			done();
 		});
 
-		it('should update defined values', () => {
+		it('should update defined values', async () => {
 			const updateData = {
 				os: 'test os',
 				version: '0.0.0',
@@ -166,7 +169,7 @@ describe('peer', () => {
 			});
 		});
 
-		it('should not update required properties once peer is created', () => {
+		it('should not update required properties once peer is created', async () => {
 			const peerBeforeUpdate = _.clone(peer);
 			const updateRequiredData = {
 				ip: prefixedPeer.ip,
@@ -183,7 +186,7 @@ describe('peer', () => {
 			});
 		});
 
-		it('should update the optional properties only for the first time', () => {
+		it('should update the optional properties only for the first time', async () => {
 			const updateOptionalData = {
 				httpPort: prefixedPeer.httpPort,
 				nonce: 'nonce added first time after peer creation',
@@ -204,7 +207,7 @@ describe('peer', () => {
 			return expect(peer).to.not.include(updateOptionalDataForSecondTime);
 		});
 
-		it('should not delete values which were previously set but are not updated now', () => {
+		it('should not delete values which were previously set but are not updated now', async () => {
 			const updateData = {
 				os: 'test os',
 				version: '0.0.0',
@@ -222,8 +225,8 @@ describe('peer', () => {
 		});
 	});
 
-	describe('object', () => {
-		it('should create proper copy of peer', () => {
+	describe('object', async () => {
+		it('should create proper copy of peer', async () => {
 			const __peer = new Peer(prefixedPeer);
 			const peerCopy = __peer.object();
 			return _.keys(prefixedPeer).forEach(property => {

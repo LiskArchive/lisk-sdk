@@ -14,9 +14,9 @@
 
 'use strict';
 
-const Bignum = require('../../../helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
 
-describe('BigNumber', () => {
+describe('BigNumber', async () => {
 	let validBuf;
 	let validOpts;
 	let bignumResult;
@@ -25,15 +25,15 @@ describe('BigNumber', () => {
 	let validBufferSeedSize2;
 	let validBufferSeedMpint;
 
-	describe('exponential values', () => {
-		it('should not return exponential value for a long number', () => {
+	describe('exponential values', async () => {
+		it('should not return exponential value for a long number', async () => {
 			const amount = '10000000000000000000000000000000000000000000000000000';
 			const value = new Bignum(amount).toString();
 			return expect(value.match(/[e]/i)).to.be.null;
 		});
 	});
 
-	describe('fromBuffer', () => {
+	describe('fromBuffer', async () => {
 		before(done => {
 			validSeed = '782910138827292261791972728324982';
 			validBufferSeed = Buffer.from('Jpm3GDWJ6Efns5p1Q3Y=', 'base64');
@@ -41,8 +41,8 @@ describe('BigNumber', () => {
 			done();
 		});
 
-		describe('when it throws an error', () => {
-			describe('when passed a buffer not divisible by the size option', () => {
+		describe('when it throws an error', async () => {
+			describe('when passed a buffer not divisible by the size option', async () => {
 				before(done => {
 					validOpts = {
 						size: 3,
@@ -61,7 +61,7 @@ describe('BigNumber', () => {
 			});
 		});
 
-		describe('when it does not throw an error', () => {
+		describe('when it does not throw an error', async () => {
 			before(done => {
 				validBuf = validBufferSeed;
 				validOpts = {};
@@ -73,15 +73,15 @@ describe('BigNumber', () => {
 				done();
 			});
 
-			describe('when opts does not have a size attribute', () => {
+			describe('when opts does not have a size attribute', async () => {
 				it('should set opts to an empty object', done => {
 					expect(bignumResult).to.eql(new Bignum(validSeed));
 					done();
 				});
 			});
 
-			describe('when opts have a size attribute', () => {
-				describe('when opts.size = 2 and endian = little', () => {
+			describe('when opts have a size attribute', async () => {
+				describe('when opts.size = 2 and endian = little', async () => {
 					before(done => {
 						validOpts = {
 							size: 2,
@@ -97,7 +97,7 @@ describe('BigNumber', () => {
 					});
 				});
 
-				describe('when opts.size = 2 and endian = big', () => {
+				describe('when opts.size = 2 and endian = big', async () => {
 					before(done => {
 						validOpts = {
 							size: 2,
@@ -113,7 +113,7 @@ describe('BigNumber', () => {
 					});
 				});
 
-				describe('when endian = big', () => {
+				describe('when endian = big', async () => {
 					before(done => {
 						validOpts = {
 							endian: 'big',
@@ -131,7 +131,7 @@ describe('BigNumber', () => {
 		});
 	});
 
-	describe('toBuffer', () => {
+	describe('toBuffer', async () => {
 		before(done => {
 			validSeed = '782910138827292261791972728324982';
 			validBufferSeed = Buffer.from('Jpm3GDWJ6Efns5p1Q3Y=', 'base64');
@@ -140,8 +140,8 @@ describe('BigNumber', () => {
 			done();
 		});
 
-		describe('when it throws an error', () => {
-			describe('when opts equal an unsupported string', () => {
+		describe('when it throws an error', async () => {
+			describe('when opts equal an unsupported string', async () => {
 				before(done => {
 					validOpts = 'notmpint';
 					done();
@@ -160,7 +160,7 @@ describe('BigNumber', () => {
 				});
 			});
 
-			describe('when Bignumber is negative', () => {
+			describe('when Bignumber is negative', async () => {
 				before(done => {
 					validOpts = {};
 					validSeed = '-782910138827292261791972728324982';
@@ -181,7 +181,7 @@ describe('BigNumber', () => {
 			});
 		});
 
-		describe('when it does not throw an error', () => {
+		describe('when it does not throw an error', async () => {
 			let toBufferResult;
 
 			before(done => {
@@ -195,7 +195,7 @@ describe('BigNumber', () => {
 				done();
 			});
 
-			describe('when passed no options', () => {
+			describe('when passed no options', async () => {
 				before(done => {
 					validOpts = null;
 					done();
@@ -207,7 +207,7 @@ describe('BigNumber', () => {
 				});
 			});
 
-			describe('when passed size 1 and big endian options', () => {
+			describe('when passed size 1 and big endian options', async () => {
 				before(done => {
 					validOpts = { size: 1, endian: 'big' };
 					done();
@@ -219,7 +219,7 @@ describe('BigNumber', () => {
 				});
 			});
 
-			describe('when passed size 2 buffer and little endian', () => {
+			describe('when passed size 2 buffer and little endian', async () => {
 				before(done => {
 					validOpts = { size: 2, endian: 'little' };
 					done();
@@ -231,7 +231,7 @@ describe('BigNumber', () => {
 				});
 			});
 
-			describe('when passed only a size option', () => {
+			describe('when passed only a size option', async () => {
 				before(done => {
 					validOpts = { size: 1 };
 					done();
@@ -243,7 +243,7 @@ describe('BigNumber', () => {
 				});
 			});
 
-			describe('when passed only big endian option', () => {
+			describe('when passed only big endian option', async () => {
 				before(done => {
 					validOpts = { endian: 'big' };
 					done();
@@ -255,7 +255,7 @@ describe('BigNumber', () => {
 				});
 			});
 
-			describe('when passed only little endian option', () => {
+			describe('when passed only little endian option', async () => {
 				before(done => {
 					validOpts = { endian: 'little' };
 					done();
@@ -267,7 +267,7 @@ describe('BigNumber', () => {
 				});
 			});
 
-			describe('when passed a supported buffer option (mpint)', () => {
+			describe('when passed a supported buffer option (mpint)', async () => {
 				before(done => {
 					validOpts = 'mpint';
 					done();

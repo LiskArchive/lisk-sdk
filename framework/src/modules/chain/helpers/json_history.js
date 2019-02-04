@@ -192,7 +192,7 @@ function JSONHistory(title, logger) {
 		let currentVersionIndex = startIndex;
 
 		return async.whilst(
-			() => currentVersionIndex <= tillIndex,
+			async () => currentVersionIndex <= tillIndex,
 			whileCb => {
 				applyChangesOfVersion(
 					currentVersionIndex,
@@ -208,8 +208,8 @@ function JSONHistory(title, logger) {
 		);
 	};
 
-	this.getVersions = () => versions;
-	this.getChangeSet = () => changes;
+	this.getVersions = async () => versions;
+	this.getChangeSet = async () => changes;
 
 	return self;
 }

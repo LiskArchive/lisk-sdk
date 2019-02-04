@@ -16,7 +16,7 @@
 
 /* eslint-disable mocha/no-pending-tests */
 
-describe('lisk_response_formatter', () => {
+describe('lisk_response_formatter', async () => {
 	it('should be a factory function that names 2 argument');
 
 	it('should create a middleware accepting 2 arguments');

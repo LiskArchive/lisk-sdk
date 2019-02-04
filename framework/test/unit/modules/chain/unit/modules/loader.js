@@ -15,11 +15,11 @@
 'use strict';
 
 const rewire = require('rewire');
-const application = require('../../common/application');
+const application = require('../../../../../common/application');
 
 const { ACTIVE_DELEGATES } = __testContext.config.constants;
 
-describe('loader', () => {
+describe('loader', async () => {
 	let library;
 	let __private;
 	let loader_module;
@@ -42,7 +42,7 @@ describe('loader', () => {
 		application.cleanup(done);
 	});
 
-	describe('findGoodPeers', () => {
+	describe('findGoodPeers', async () => {
 		const HEIGHT_TWO = 2;
 		let getLastBlockStub;
 
@@ -55,7 +55,7 @@ describe('loader', () => {
 
 		afterEach(() => getLastBlockStub.restore());
 
-		it('should return peers list sorted by height', () => {
+		it('should return peers list sorted by height', async () => {
 			const peers = [
 				{
 					ip: '1.1.1.1',
@@ -107,15 +107,14 @@ describe('loader', () => {
 							height: 2,
 						},
 					],
-					(a, b) => (
-							a.ip === b.ip && a.wsPort === b.wsPort && a.height === b.height
-						)
+					(a, b) =>
+						a.ip === b.ip && a.wsPort === b.wsPort && a.height === b.height
 				)
 			).to.be.ok;
 		});
 	});
 
-	describe('__private.createSnapshot', () => {
+	describe('__private.createSnapshot', async () => {
 		let __privateVar;
 		let libraryVar;
 		let validScope;
@@ -238,7 +237,7 @@ describe('loader', () => {
 			__privateVar.createSnapshot(ACTIVE_DELEGATES);
 		});
 
-		describe('should emit an event with no error', () => {
+		describe('should emit an event with no error', async () => {
 			let blocksAvailable;
 			let deleteBlocksAfterHeight;
 			let snapshotRound;
@@ -357,7 +356,7 @@ describe('loader', () => {
 		});
 	});
 
-	describe('__private.loadBlocksFromNetwork', () => {
+	describe('__private.loadBlocksFromNetwork', async () => {
 		let getRandomPeerFromNetworkStub;
 		let getCommonBlockStub;
 		let loadBlocksFromPeerStub;
@@ -385,8 +384,8 @@ describe('loader', () => {
 
 		afterEach(() => sinonSandbox.restore());
 
-		describe('when getRandomPeerFromNetwork fails', () => {
-			it('should call callback with error = null after 5 tries', () => {
+		describe('when getRandomPeerFromNetwork fails', async () => {
+			it('should call callback with error = null after 5 tries', async () => {
 				getRandomPeerFromNetworkStub.callsArgWith(
 					0,
 					'Failed to get random peer from network'
@@ -401,8 +400,8 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when getCommonBlock fails', () => {
-			it('should call callback with error = null after 5 tries', () => {
+		describe('when getCommonBlock fails', async () => {
+			it('should call callback with error = null after 5 tries', async () => {
 				const peer = {
 					ip: '2.2.2.2',
 					wsPort: '4000',
@@ -425,8 +424,8 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when no common block found', () => {
-			it('should call callback with error = null after 5 tries', () => {
+		describe('when no common block found', async () => {
+			it('should call callback with error = null after 5 tries', async () => {
 				const peer = {
 					ip: '2.2.2.2',
 					wsPort: '4000',
@@ -451,8 +450,8 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when height is 0 (Genesis block)', () => {
-			it('should not call getCommonBlock', () => {
+		describe('when height is 0 (Genesis block)', async () => {
+			it('should not call getCommonBlock', async () => {
 				const peer = {
 					ip: '2.2.2.2',
 					wsPort: '4000',
@@ -483,8 +482,8 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when loadBlocksFromPeerStub fails', () => {
-			it('should call callback with error = null after 5 tries', () => {
+		describe('when loadBlocksFromPeerStub fails', async () => {
+			it('should call callback with error = null after 5 tries', async () => {
 				const peer = {
 					ip: '2.2.2.2',
 					wsPort: '4000',
@@ -513,8 +512,8 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when getCommonBlock starts failing after the first call', () => {
-			it('should call callback with error = null after 6 tries', () => {
+		describe('when getCommonBlock starts failing after the first call', async () => {
+			it('should call callback with error = null after 6 tries', async () => {
 				const peer = {
 					ip: '2.2.2.2',
 					wsPort: '4000',
@@ -546,8 +545,8 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when a batch of blocks is sucessfully loaded', () => {
-			it('should reset counter of failed attemps to load', () => {
+		describe('when a batch of blocks is sucessfully loaded', async () => {
+			it('should reset counter of failed attemps to load', async () => {
 				const peer = {
 					ip: '2.2.2.2',
 					wsPort: '4000',
@@ -583,7 +582,7 @@ describe('loader', () => {
 		});
 	});
 
-	describe('__private.getRandomPeerFromNetwork', () => {
+	describe('__private.getRandomPeerFromNetwork', async () => {
 		let listRandomConnectedStub;
 		let findGoodPeersSpy;
 
@@ -598,8 +597,8 @@ describe('loader', () => {
 
 		afterEach(() => sinonSandbox.restore());
 
-		describe('when there are good peers', () => {
-			it('should call callback with error = null and result = random peer', () => {
+		describe('when there are good peers', async () => {
+			it('should call callback with error = null and result = random peer', async () => {
 				const peers = [
 					{
 						ip: '2.2.2.2',
@@ -618,8 +617,8 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when there are no good peers', () => {
-			it('should call callback with error = "Failed to find enough good peers"', () => {
+		describe('when there are no good peers', async () => {
+			it('should call callback with error = "Failed to find enough good peers"', async () => {
 				const peers = [
 					{
 						ip: '2.2.2.2',

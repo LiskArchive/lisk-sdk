@@ -16,13 +16,13 @@
 
 const crypto = require('crypto');
 const randomstring = require('randomstring');
-const accountFixtures = require('../../fixtures/accounts');
-const modulesLoader = require('../../common/modules_loader');
-const application = require('../../common/application');
-const transactionTypes = require('../../../helpers/transaction_types');
-const ed = require('../../../helpers/ed');
-const Bignum = require('../../../helpers/bignum.js');
-const Transfer = require('../../../logic/transfer');
+const accountFixtures = require('../../../../../fixtures/accounts');
+const modulesLoader = require('../../../../../common/modules_loader');
+const application = require('../../../../../common/application');
+const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
+const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
 
 const { FEES, ADDITIONAL_DATA } = __testContext.config.constants;
 const validPassphrase =
@@ -99,7 +99,7 @@ const rawValidTransaction = {
 	confirmations: 8343,
 };
 
-describe('transfer', () => {
+describe('transfer', async () => {
 	let transfer;
 	let transactionLogic;
 	let transferBindings;
@@ -129,20 +129,22 @@ describe('transfer', () => {
 		application.cleanup(done);
 	});
 
-	describe('bind', () => {
-		it('should be okay with correct params', () => expect(() => {
+	describe('bind', async () => {
+		it('should be okay with correct params', async () =>
+			expect(() => {
 				transfer.bind(transferBindings.account);
 			}).to.not.throw());
 
 		after(() => transfer.bind(transferBindings.account));
 	});
 
-	describe('calculateFee', () => {
-		it('should return the correct fee for a transfer', () => expect(
+	describe('calculateFee', async () => {
+		it('should return the correct fee for a transfer', async () =>
+			expect(
 				transfer.calculateFee(validTransaction).isEqualTo(new Bignum(FEES.SEND))
 			).to.be.true);
 
-		it('should return the same fee for a transfer with additional data', () => {
+		it('should return the same fee for a transfer with additional data', async () => {
 			const transaction = _.clone(validTransaction);
 			transaction.asset = {
 				data: '0',
@@ -155,7 +157,7 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('verify', () => {
+	describe('verify', async () => {
 		it('should return error if recipientId is not set', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
@@ -181,16 +183,17 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('process', () => {
+	describe('process', async () => {
 		it('should be okay', done => {
 			transfer.process(validTransaction, validSender, done);
 		});
 	});
 
-	describe('getBytes', () => {
-		it('should return null for empty asset', () => expect(transfer.getBytes(validTransaction)).to.eql(null));
+	describe('getBytes', async () => {
+		it('should return null for empty asset', async () =>
+			expect(transfer.getBytes(validTransaction)).to.eql(null));
 
-		it('should return bytes of data asset', () => {
+		it('should return bytes of data asset', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const data = "1'";
 			transaction.asset = {
@@ -202,7 +205,7 @@ describe('transfer', () => {
 			);
 		});
 
-		it('should be okay for utf-8 data value', () => {
+		it('should be okay for utf-8 data value', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const data = 'Zażółć gęślą jaźń';
 			transaction.asset = {
@@ -215,7 +218,7 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('applyConfirmed', () => {
+	describe('applyConfirmed', async () => {
 		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -248,7 +251,7 @@ describe('transfer', () => {
 						validTransaction,
 						dummyBlock,
 						validSender,
-						() => {
+						async () => {
 							expect(err).to.not.exist;
 							accountModule.getAccount(
 								{ address: validTransaction.recipientId },
@@ -273,7 +276,7 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('undoConfirmed', () => {
+	describe('undoConfirmed', async () => {
 		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -336,20 +339,20 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('applyUnconfirmed', () => {
+	describe('applyUnconfirmed', async () => {
 		it('should be okay with valid params', done => {
 			transfer.applyUnconfirmed(validTransaction, validSender, done);
 		});
 	});
 
-	describe('undoUnconfirmed', () => {
+	describe('undoUnconfirmed', async () => {
 		it('should be okay with valid params', done => {
 			transfer.undoUnconfirmed(validTransaction, validSender, done);
 		});
 	});
 
-	describe('objectNormalize', () => {
-		it('should remove blockId from transaction', () => {
+	describe('objectNormalize', async () => {
+		it('should remove blockId from transaction', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.blockId = '9314232245035524467';
 
@@ -358,7 +361,7 @@ describe('transfer', () => {
 			);
 		});
 
-		it('should not remove data field', () => {
+		it('should not remove data field', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: '123',
@@ -369,7 +372,7 @@ describe('transfer', () => {
 			);
 		});
 
-		it('should throw error if value is null', () => {
+		it('should throw error if value is null', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: null,
@@ -382,7 +385,7 @@ describe('transfer', () => {
 			);
 		});
 
-		it('should throw error if value is undefined', () => {
+		it('should throw error if value is undefined', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: undefined,
@@ -397,7 +400,7 @@ describe('transfer', () => {
 
 		it(`should throw error if data field length is greater than ${
 			ADDITIONAL_DATA.MAX_LENGTH
-		} characters`, () => {
+		} characters`, async () => {
 			const invalidString = randomstring.generate(
 				ADDITIONAL_DATA.MAX_LENGTH + 1
 			);
@@ -415,7 +418,7 @@ describe('transfer', () => {
 
 		it(`should throw error if data field length is greater than ${
 			ADDITIONAL_DATA.MAX_LENGTH
-		} bytes`, () => {
+		} bytes`, async () => {
 			const invalidString = `${randomstring.generate(
 				ADDITIONAL_DATA.MAX_LENGTH - 1
 			)}现`;
@@ -432,10 +435,11 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('dbRead', () => {
-		it('should return null when data field is not set', () => expect(transfer.dbRead(rawValidTransaction)).to.eql(null));
+	describe('dbRead', async () => {
+		it('should return null when data field is not set', async () =>
+			expect(transfer.dbRead(rawValidTransaction)).to.eql(null));
 
-		it('should be okay when data field is set', () => {
+		it('should be okay when data field is set', async () => {
 			const rawTransaction = _.cloneDeep(rawValidTransaction);
 			const data = '123';
 			rawTransaction.tf_data = data;
@@ -446,12 +450,11 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('ready', () => {
-		it('should return true for single signature transaction', () => expect(transfer.ready(validTransaction, validSender)).to.equal(
-				true
-			));
+	describe('ready', async () => {
+		it('should return true for single signature transaction', async () =>
+			expect(transfer.ready(validTransaction, validSender)).to.equal(true));
 
-		it('should return false for multi signature transaction with less signatures', () => {
+		it('should return false for multi signature transaction with less signatures', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(validSender);
 			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
@@ -459,7 +462,7 @@ describe('transfer', () => {
 			return expect(transactionLogic.ready(transaction, vs)).to.equal(false);
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', () => {
+		it('should return true for multi signature transaction with alteast min signatures', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(validSender);
 			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];

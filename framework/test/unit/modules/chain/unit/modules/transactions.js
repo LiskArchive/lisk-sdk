@@ -19,26 +19,28 @@ const rewire = require('rewire');
 const {
 	createCacheComponent,
 	CACHE_KEYS_TRANSACTION_COUNT,
-} = require('../../../framework/src/components/cache');
-const transactionTypes = require('../../../helpers/transaction_types.js');
-const modulesLoader = require('../../common/modules_loader');
-const AccountLogic = require('../../../logic/account.js');
-const TransactionLogic = require('../../../logic/transaction.js');
-const DelegateModule = require('../../../modules/delegates.js');
-const AccountModule = require('../../../modules/accounts.js');
-const LoaderModule = require('../../../modules/loader.js');
-const VoteLogic = require('../../../logic/vote.js');
-const TransferLogic = require('../../../logic/transfer.js');
-const DelegateLogic = require('../../../logic/delegate.js');
-const SignatureLogic = require('../../../logic/signature.js');
-const MultisignatureLogic = require('../../../logic/multisignature.js');
-const DappLogic = require('../../../logic/dapp.js');
-const InTransferLogic = require('../../../logic/in_transfer.js');
-const OutTransferLogic = require('../../../logic/out_transfer.js');
+} = require('../../../../../../src/components/cache');
+const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
+const modulesLoader = require('../../../../../common/modules_loader');
+const AccountLogic = require('../../../../../../src/modules/chain/logic/account.js');
+const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction.js');
+const DelegateModule = require('../../../../../../src/modules/chain/modules/delegates.js');
+const AccountModule = require('../../../../../../src/modules/chain/modules/accounts.js');
+const LoaderModule = require('../../../../../../src/modules/chain/modules/loader.js');
+const VoteLogic = require('../../../../../../src/modules/chain/logic/vote.js');
+const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer.js');
+const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate.js');
+const SignatureLogic = require('../../../../../../src/modules/chain/logic/signature.js');
+const MultisignatureLogic = require('../../../../../../src/modules/chain/logic/multisignature.js');
+const DappLogic = require('../../../../../../src/modules/chain/logic/dapp.js');
+const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_transfer.js');
+const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer.js');
 
-const TransactionModule = rewire('../../../modules/transactions.js');
+const TransactionModule = rewire(
+	'../../../../../../src/modules/chain/modules/transactions.js'
+);
 
-describe('transactions', () => {
+describe('transactions', async () => {
 	let transactionsModule;
 	let cache;
 	let storageStub;
@@ -275,8 +277,8 @@ describe('transactions', () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('Transaction', () => {
-		describe('getTransaction', () => {
+	describe('Transaction', async () => {
+		describe('getTransaction', async () => {
 			function getTransactionsById(id, done) {
 				transactionsModule.getTransactions({ id }, done);
 			}
@@ -595,8 +597,8 @@ describe('transactions', () => {
 			/* eslint-enable mocha/no-pending-tests */
 		});
 
-		describe('shared', () => {
-			describe('getTransactionsCount', () => {
+		describe('shared', async () => {
+			describe('getTransactionsCount', async () => {
 				beforeEach(() => {
 					sinonSandbox.spy(async, 'waterfall');
 					return storageStub.entities.Transaction.count.onCall(0).resolves(10);

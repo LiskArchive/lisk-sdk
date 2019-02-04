@@ -14,9 +14,9 @@
 
 'use strict';
 
-const AccountModule = require('../../../modules/accounts.js');
-const accountFixtures = require('../../fixtures').accounts;
-const application = require('../../common/application');
+const AccountModule = require('../../../../../../src/modules/chain/modules/accounts.js');
+const accountFixtures = require('../../../../../fixtures').accounts;
+const application = require('../../../../../common/application');
 
 const validAccount = {
 	username: 'genesis_100',
@@ -47,7 +47,7 @@ const validAccount = {
 	rewards: '0',
 };
 
-describe('accounts', () => {
+describe('accounts', async () => {
 	let accounts;
 	let accountLogic;
 	let storage;
@@ -70,20 +70,22 @@ describe('accounts', () => {
 		application.cleanup(done);
 	});
 
-	describe('constructor', () => {
-		it('should throw with no params', () => expect(() => {
+	describe('constructor', async () => {
+		it('should throw with no params', async () =>
+			expect(() => {
 				new AccountModule();
 			}).to.throw());
 	});
 
-	describe('generateAddressByPublicKey', () => {
-		it('should generate correct address for the publicKey provided', () => expect(
+	describe('generateAddressByPublicKey', async () => {
+		it('should generate correct address for the publicKey provided', async () =>
+			expect(
 				accounts.generateAddressByPublicKey(validAccount.publicKey)
 			).to.equal(validAccount.address));
 
 		/* eslint-disable mocha/no-skipped-tests */
 		// TODO: Design a throwable test
-		it.skip('should throw error for invalid publicKey', () => {
+		it.skip('should throw error for invalid publicKey', async () => {
 			const invalidPublicKey = 'invalidPublicKey';
 
 			return expect(() => {
@@ -93,7 +95,7 @@ describe('accounts', () => {
 		/* eslint-enable mocha/no-skipped-tests */
 	});
 
-	describe('getAccount', () => {
+	describe('getAccount', async () => {
 		it('should convert publicKey filter to address and call account.get', done => {
 			const getAccountStub = sinonSandbox.stub(accountLogic, 'get');
 
@@ -116,7 +118,7 @@ describe('accounts', () => {
 		});
 	});
 
-	describe('getAccounts', () => {
+	describe('getAccounts', async () => {
 		it('should get accounts for the filter provided', done => {
 			accounts.getAccounts({ secondSignature: false }, (err, res) => {
 				expect(err).to.not.exist;
@@ -141,7 +143,7 @@ describe('accounts', () => {
 		});
 	});
 
-	describe('setAccountAndGet', () => {
+	describe('setAccountAndGet', async () => {
 		it('should fail if address and publicKey is missing', done => {
 			const account = new accountFixtures.Account();
 
@@ -233,11 +235,13 @@ describe('accounts', () => {
 		});
 	});
 
-	describe('onBind', () => {
-		it('should throw error with empty params', () => expect(accounts.onBind).to.throw());
+	describe('onBind', async () => {
+		it('should throw error with empty params', async () =>
+			expect(accounts.onBind).to.throw());
 	});
 
-	describe('isLoaded', () => {
-		it('should return true when modules are loaded', () => expect(accounts.isLoaded).to.be.ok);
+	describe('isLoaded', async () => {
+		it('should return true when modules are loaded', async () =>
+			expect(accounts.isLoaded).to.be.ok);
 	});
 });

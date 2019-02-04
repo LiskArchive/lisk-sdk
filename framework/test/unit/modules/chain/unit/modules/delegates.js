@@ -15,17 +15,17 @@
 'use strict';
 
 const lisk = require('lisk-elements').cryptography;
-const genesisDelegates = require('../../data/genesis_delegates.json');
-const delegatesRoundsList = require('../../data/delegates_rounds_list.json');
-const accountFixtures = require('../../fixtures/accounts');
-const application = require('../../common/application');
-const seeder = require('../../common/storage_seed');
+const genesisDelegates = require('../../../../../data/genesis_delegates.json');
+const delegatesRoundsList = require('../../../../../data/delegates_rounds_list.json');
+const accountFixtures = require('../../../../../fixtures/accounts');
+const application = require('../../../../../common/application');
+const seeder = require('../../../../../common/storage_seed');
 
 let storage;
 
 const exceptions = global.exceptions;
 
-describe('delegates', () => {
+describe('delegates', async () => {
 	let library;
 
 	before(done => {
@@ -50,8 +50,8 @@ describe('delegates', () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('__private', () => {
-		describe('loadDelegates', () => {
+	describe('__private', async () => {
+		describe('loadDelegates', async () => {
 			let loadDelegates;
 			let config;
 			let __private;
@@ -492,7 +492,7 @@ describe('delegates', () => {
 			});
 		});
 
-		describe('getDelegateKeypairForCurrentSlot', () => {
+		describe('getDelegateKeypairForCurrentSlot', async () => {
 			let delegates;
 			let __private;
 			let originalGenerateDelegateList;
@@ -667,15 +667,15 @@ describe('delegates', () => {
 			});
 		});
 
-		describe('__private.delegatesListCache operations', () => {
+		describe('__private.delegatesListCache operations', async () => {
 			let __private;
 			beforeEach(done => {
 				__private = library.rewiredModules.delegates.__get__('__private');
 				done();
 			});
 
-			describe('__private.updateDelegateListCache', () => {
-				it('should insert the given delegateList array to __private.delegateListCache for given round.', () => {
+			describe('__private.updateDelegateListCache', async () => {
+				it('should insert the given delegateList array to __private.delegateListCache for given round.', async () => {
 					// Arrange
 					__private.delegatesListCache = {};
 					const delegateListArray = ['a', 'b', 'c'];
@@ -691,7 +691,7 @@ describe('delegates', () => {
 					);
 				});
 
-				it('should sort rounds in ascending order.', () => {
+				it('should sort rounds in ascending order.', async () => {
 					// Arrange
 					__private.delegatesListCache = {
 						2: ['x', 'y', 'z'],
@@ -708,7 +708,7 @@ describe('delegates', () => {
 					).to.deep.equal(['1', '2']);
 				});
 
-				it('should keep only the last two rounds in the __private.delegateListCache.', () => {
+				it('should keep only the last two rounds in the __private.delegateListCache.', async () => {
 					// Arrange
 					const initialSate = {
 						1: ['j', 'k', 'l'],
@@ -735,7 +735,7 @@ describe('delegates', () => {
 				});
 
 				// See: https://github.com/LiskHQ/lisk/issues/2652
-				it('ensures ordering rounds correctly', () => {
+				it('ensures ordering rounds correctly', async () => {
 					// Arrange
 					const initialSate = {
 						9: ['j', 'k', 'l'],
@@ -762,8 +762,8 @@ describe('delegates', () => {
 				});
 			});
 
-			describe('__private.clearDelegateListCache', () => {
-				it('should clear __private.delegateListCache object.', () => {
+			describe('__private.clearDelegateListCache', async () => {
+				it('should clear __private.delegateListCache object.', async () => {
 					// Arrange
 					const initialSate = {
 						1: ['j', 'k', 'l'],
@@ -778,7 +778,7 @@ describe('delegates', () => {
 					return expect(__private.delegatesListCache).to.deep.equal({});
 				});
 
-				it('should not mutate empty __private.delegateListCache object.', () => {
+				it('should not mutate empty __private.delegateListCache object.', async () => {
 					// Arrange
 					__private.delegatesListCache = {};
 
@@ -792,7 +792,7 @@ describe('delegates', () => {
 		});
 	});
 
-	describe('generateDelegateList', () => {
+	describe('generateDelegateList', async () => {
 		let __private;
 		let sourceStub;
 		let originalExceptions;
@@ -895,10 +895,10 @@ describe('delegates', () => {
 		});
 	});
 
-	describe('shared', () => {
+	describe('shared', async () => {
 		const validDelegate = genesisDelegates.delegates[0];
 
-		describe('getForgingStatistics', () => {
+		describe('getForgingStatistics', async () => {
 			it('should fail if invalid address is passed', done => {
 				library.modules.delegates.shared.getForgingStatistics(
 					{ address: 'InvalidAddress' },

@@ -16,21 +16,21 @@
 
 const crypto = require('crypto');
 const lisk = require('lisk-elements').default;
-const accountFixtures = require('../../fixtures/accounts');
-const modulesLoader = require('../../common/modules_loader');
-const application = require('../../common/application');
-const ed = require('../../../helpers/ed');
-const Bignum = require('../../../helpers/bignum.js');
-const transactionTypes = require('../../../helpers/transaction_types');
-const slots = require('../../../helpers/slots');
-const Vote = require('../../../logic/vote');
-const Transfer = require('../../../logic/transfer');
-const Delegate = require('../../../logic/delegate');
-const Signature = require('../../../logic/signature');
-const Multisignature = require('../../../logic/multisignature');
-const Dapp = require('../../../logic/dapp');
-const InTransfer = require('../../../logic/in_transfer');
-const OutTransfer = require('../../../logic/out_transfer');
+const accountFixtures = require('../../../../../fixtures/accounts');
+const modulesLoader = require('../../../../../common/modules_loader');
+const application = require('../../../../../common/application');
+const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
+const slots = require('../../../../../../src/modules/chain/helpers/slots');
+const Vote = require('../../../../../../src/modules/chain/logic/vote');
+const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
+const Delegate = require('../../../../../../src/modules/chain/logic/delegate');
+const Signature = require('../../../../../../src/modules/chain/logic/signature');
+const Multisignature = require('../../../../../../src/modules/chain/logic/multisignature');
+const Dapp = require('../../../../../../src/modules/chain/logic/dapp');
+const InTransfer = require('../../../../../../src/modules/chain/logic/in_transfer');
+const OutTransfer = require('../../../../../../src/modules/chain/logic/out_transfer');
 const MultisignatureMocks = require('./test_data/multisignature.js');
 
 const { TOTAL_AMOUNT } = __testContext.config.constants;
@@ -163,7 +163,7 @@ const unconfirmedTransaction = {
 	id: '16580139363949197645',
 };
 
-describe('transaction', () => {
+describe('transaction', async () => {
 	let transactionLogic;
 	let accountModule;
 
@@ -188,8 +188,9 @@ describe('transaction', () => {
 		application.cleanup(done);
 	});
 
-	describe('sign', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.sign).to.throw());
+	describe('sign', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.sign).to.throw());
 
 		it('should throw an error Argument must be a valid hex string.', done => {
 			const invalidTransaction = Object.assign({}, validTransaction);
@@ -206,13 +207,14 @@ describe('transaction', () => {
 			done();
 		});
 
-		it('should sign transaction', () => expect(transactionLogic.sign(keyPair, validTransaction))
+		it('should sign transaction', async () =>
+			expect(transactionLogic.sign(keyPair, validTransaction))
 				.to.be.a('string')
 				.which.is.equal(
 					'8f9c4242dc562599f95f5481469d22567987536112663156761e4b2b3f1142c4f5355a2a7c7b254f40d370bef7e76b4a11c8a1836e0c9b0bcab3e834ca1e7502'
 				));
 
-		it('should update signature when data is changed', () => {
+		it('should update signature when data is changed', async () => {
 			const originalSignature = validTransaction.signature;
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.data = '123';
@@ -223,22 +225,26 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('multisign', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.multisign).to.throw());
+	describe('multisign', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.multisign).to.throw());
 
-		it('should multisign the transaction', () => expect(
-				transactionLogic.multisign(keyPair, validTransaction)
-			).to.equal(validTransaction.signature));
+		it('should multisign the transaction', async () =>
+			expect(transactionLogic.multisign(keyPair, validTransaction)).to.equal(
+				validTransaction.signature
+			));
 	});
 
-	describe('getId', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.getId).to.throw());
+	describe('getId', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.getId).to.throw());
 
-		it('should generate the id of the transaction', () => expect(transactionLogic.getId(validTransaction))
+		it('should generate the id of the transaction', async () =>
+			expect(transactionLogic.getId(validTransaction))
 				.to.be.a('string')
 				.which.is.equal(validTransaction.id));
 
-		it('should update id if a field in transaction value changes', () => {
+		it('should update id if a field in transaction value changes', async () => {
 			const id = validTransaction.id;
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = 4000;
@@ -247,10 +253,11 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('getHash', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.getHash).to.throw());
+	describe('getHash', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.getHash).to.throw());
 
-		it('should return hash for transaction', () => {
+		it('should return hash for transaction', async () => {
 			const transaction = validTransaction;
 			const expectedHash =
 				'5164ef55fccefddf72360ea6e05f19eed7c8d2653c5069df4db899c47246dd2f';
@@ -260,7 +267,7 @@ describe('transaction', () => {
 				.which.is.equal(expectedHash);
 		});
 
-		it('should update hash if a field is transaction value changes', () => {
+		it('should update hash if a field is transaction value changes', async () => {
 			const originalTransactionHash =
 				'5164ef55fccefddf72360ea6e05f19eed7c8d2653c5069df4db899c47246dd2f';
 			const transaction = _.cloneDeep(validTransaction);
@@ -272,17 +279,18 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('getBytes', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.getBytes).to.throw());
+	describe('getBytes', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.getBytes).to.throw());
 
-		it('should return same result when called multiple times (without data field)', () => {
+		it('should return same result when called multiple times (without data field)', async () => {
 			const firstCalculation = transactionLogic.getBytes(validTransaction);
 			const secondCalculation = transactionLogic.getBytes(validTransaction);
 
 			return expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
 
-		it('should return same result of getBytes using /logic/transaction and lisk-elements package (without data field)', () => {
+		it('should return same result of getBytes using /logic/transaction and lisk-elements package (without data field)', async () => {
 			const transactionBytesFromLogic = transactionLogic.getBytes(
 				validTransaction
 			);
@@ -295,7 +303,7 @@ describe('transaction', () => {
 			).to.be.ok;
 		});
 
-		it('should skip signature, second signature for getting bytes', () => {
+		it('should skip signature, second signature for getting bytes', async () => {
 			const transactionBytes = transactionLogic.getBytes(
 				validTransaction,
 				true
@@ -305,10 +313,11 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('ready', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.ready).to.throw());
+	describe('ready', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.ready).to.throw());
 
-		it('should throw error when transaction type is invalid', () => {
+		it('should throw error when transaction type is invalid', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const invalidTransactionType = -1;
 			transaction.type = invalidTransactionType;
@@ -318,13 +327,13 @@ describe('transaction', () => {
 			}).to.throw(`Unknown transaction type ${invalidTransactionType}`);
 		});
 
-		it('should return false when sender not provided', () => expect(transactionLogic.ready(validTransaction)).to.equal(false));
+		it('should return false when sender not provided', async () =>
+			expect(transactionLogic.ready(validTransaction)).to.equal(false));
 
-		it('should return true for valid transaction and sender', () => expect(transactionLogic.ready(validTransaction, sender)).to.equal(
-				true
-			));
+		it('should return true for valid transaction and sender', async () =>
+			expect(transactionLogic.ready(validTransaction, sender)).to.equal(true));
 
-		it('should correct true property when signatures present and ready set to false', () => {
+		it('should correct true property when signatures present and ready set to false', async () => {
 			const transactionAllSignaturesReadyFalse = _.cloneDeep(
 				MultisignatureMocks.invalidAllSignaturesReadyFalse
 			);
@@ -335,7 +344,7 @@ describe('transaction', () => {
 			return expect(correctedTransaction).to.equal(true);
 		});
 
-		it('should correct true property when signatures not present and ready set to true', () => {
+		it('should correct true property when signatures not present and ready set to true', async () => {
 			const transactionNoSignaturesReadyTrue = _.cloneDeep(
 				MultisignatureMocks.invalidNoSignaturesReadyTrue
 			);
@@ -346,7 +355,7 @@ describe('transaction', () => {
 			return expect(correctedTransaction).to.equal(false);
 		});
 
-		it('should correct true property when signatures present but less than min, ready set to true', () => {
+		it('should correct true property when signatures present but less than min, ready set to true', async () => {
 			const transactionSomeSignaturesReadyTrue = _.cloneDeep(
 				MultisignatureMocks.invalidSomeSignaturesReadyTrue
 			);
@@ -358,17 +367,18 @@ describe('transaction', () => {
 			return expect(correctedTransaction).to.equal(false);
 		});
 
-		it('should set ready for type 0 if not present', () => {
+		it('should set ready for type 0 if not present', async () => {
 			const typeZero = _.cloneDeep(validTransaction);
 			const correctedTransaction = transactionLogic.ready(typeZero, sender);
 			return expect(correctedTransaction).to.equal(true);
 		});
 	});
 
-	describe('isConfirmed', () => {
-		it('should throw an error with no param', () => expect(
-				transactionLogic.isConfirmed.bind(transactionLogic)
-			).to.throw("Cannot read property 'id' of undefined"));
+	describe('isConfirmed', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.isConfirmed.bind(transactionLogic)).to.throw(
+				"Cannot read property 'id' of undefined"
+			));
 
 		it('should return false if transaction is not confirmed', done => {
 			transactionLogic.isConfirmed(validTransaction, (err, isConfirmed) => {
@@ -387,10 +397,11 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('checkConfirmed', () => {
-		it('should throw an error with no param', () => expect(
-				transactionLogic.checkConfirmed.bind(transactionLogic)
-			).to.throw('Callback must be a function'));
+	describe('checkConfirmed', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.checkConfirmed.bind(transactionLogic)).to.throw(
+				'Callback must be a function'
+			));
 
 		it('should return an error with no transaction', done => {
 			transactionLogic.checkConfirmed(null, err => {
@@ -428,10 +439,11 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('checkBalance', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.checkBalance).to.throw());
+	describe('checkBalance', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.checkBalance).to.throw());
 
-		it('should return error when sender has insufficiant balance', () => {
+		it('should return error when sender has insufficiant balance', async () => {
 			const amount = '9850458911801509';
 			const balanceKey = 'balance';
 			const res = transactionLogic.checkBalance(
@@ -445,7 +457,7 @@ describe('transaction', () => {
 			return expect(res.error).to.include('Account does not have enough LSK:');
 		});
 
-		it('should be okay if insufficient balance from genesis account', () => {
+		it('should be okay if insufficient balance from genesis account', async () => {
 			const amount = '999823366072900';
 			const balanceKey = 'balance';
 			const res = transactionLogic.checkBalance(
@@ -459,7 +471,7 @@ describe('transaction', () => {
 			return expect(res.error).to.not.exist;
 		});
 
-		it('should be okay if sender has sufficient balance', () => {
+		it('should be okay if sender has sufficient balance', async () => {
 			const balanceKey = 'balance';
 			const res = transactionLogic.checkBalance(
 				validTransaction.amount,
@@ -473,8 +485,9 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('process', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.process).to.throw());
+	describe('process', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.process).to.throw());
 
 		it('should return error sender is not supplied', done => {
 			transactionLogic.process(validTransaction, null, err => {
@@ -516,7 +529,7 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('verify', () => {
+	describe('verify', async () => {
 		function createAndProcess(transactionDataArg, senderArg, cb) {
 			const transferObject = {
 				amount: transactionDataArg.amount,
@@ -691,7 +704,9 @@ describe('transaction', () => {
 			const vs = _.cloneDeep(sender);
 			vs.membersPublicKeys = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
-			transaction.signatures = Array(...Array(2)).map(() => transactionLogic.sign(validKeypair, transaction));
+			transaction.signatures = Array(...Array(2)).map(() =>
+				transactionLogic.sign(validKeypair, transaction)
+			);
 			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.equal('Encountered duplicate signature in transaction');
@@ -874,13 +889,15 @@ describe('transaction', () => {
 			});
 		});
 
-		it('should throw an error with no param', () => expect(transactionLogic.verify).to.throw());
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.verify).to.throw());
 	});
 
-	describe('verifySignature', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.verifySignature).to.throw());
+	describe('verifySignature', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.verifySignature).to.throw());
 
-		it('should return false if transaction is changed', () => {
+		it('should return false if transaction is changed', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			// change transaction value
 			transaction.amount = 1001;
@@ -894,7 +911,8 @@ describe('transaction', () => {
 			).to.equal(false);
 		});
 
-		it('should return false if signature not provided', () => expect(
+		it('should return false if signature not provided', async () =>
+			expect(
 				transactionLogic.verifySignature(
 					validTransaction,
 					sender.publicKey,
@@ -902,7 +920,8 @@ describe('transaction', () => {
 				)
 			).to.equal(false));
 
-		it('should return valid signature for correct transaction', () => expect(
+		it('should return valid signature for correct transaction', async () =>
+			expect(
 				transactionLogic.verifySignature(
 					validTransaction,
 					sender.publicKey,
@@ -910,7 +929,7 @@ describe('transaction', () => {
 				)
 			).to.equal(true));
 
-		it('should throw if public key is invalid', () => {
+		it('should throw if public key is invalid', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			const invalidPublicKey = '123123123';
 
@@ -924,10 +943,11 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('verifySecondSignature', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.verifySecondSignature).to.throw());
+	describe('verifySecondSignature', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.verifySecondSignature).to.throw());
 
-		it('should verify the second signature correctly', () => {
+		it('should verify the second signature correctly', async () => {
 			const signature = transactionLogic.sign(validKeypair, validTransaction);
 
 			return expect(
@@ -940,10 +960,11 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('verifyBytes', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.verifyBytes).to.throw());
+	describe('verifyBytes', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.verifyBytes).to.throw());
 
-		it('should return when sender public is different', () => {
+		it('should return when sender public is different', async () => {
 			const transactionBytes = transactionLogic.getBytes(validTransaction);
 			const invalidPublicKey =
 				'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9';
@@ -957,7 +978,7 @@ describe('transaction', () => {
 			).to.equal(false);
 		});
 
-		it('should throw when publickey is not in the right format', () => {
+		it('should throw when publickey is not in the right format', async () => {
 			const transactionBytes = transactionLogic.getBytes(validTransaction);
 			const invalidPublicKey =
 				'iddb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9';
@@ -971,7 +992,7 @@ describe('transaction', () => {
 			}).to.throw();
 		});
 
-		it('should be okay for valid bytes', () => {
+		it('should be okay for valid bytes', async () => {
 			const transactionBytes = transactionLogic.getBytes(
 				validTransaction,
 				true,
@@ -987,7 +1008,7 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('applyConfirmed', () => {
+	describe('applyConfirmed', async () => {
 		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -997,7 +1018,8 @@ describe('transaction', () => {
 			transactionLogic.undoConfirmed(transaction, dummyBlock, senderArg, done);
 		}
 
-		it('should throw an error with no param', () => expect(() => {
+		it('should throw an error with no param', async () =>
+			expect(() => {
 				transactionLogic.applyConfirmed();
 			}).to.throw());
 
@@ -1033,7 +1055,7 @@ describe('transaction', () => {
 						validTransaction,
 						dummyBlock,
 						sender,
-						() => {
+						async () => {
 							accountModule.getAccount(
 								{ publicKey: validTransaction.senderPublicKey },
 								(err, accountAfter) => {
@@ -1056,7 +1078,7 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('undoConfirmed', () => {
+	describe('undoConfirmed', async () => {
 		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -1066,7 +1088,8 @@ describe('transaction', () => {
 			transactionLogic.applyConfirmed(transaction, dummyBlock, senderArg, done);
 		}
 
-		it('should throw an error with no param', () => expect(transactionLogic.undoConfirmed).to.throw());
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.undoConfirmed).to.throw());
 
 		it('should not update sender balance when transaction is invalid', done => {
 			const transaction = _.cloneDeep(validTransaction);
@@ -1084,7 +1107,7 @@ describe('transaction', () => {
 						transaction,
 						dummyBlock,
 						sender,
-						() => {
+						async () => {
 							accountModule.getAccount(
 								{ publicKey: transaction.senderPublicKey },
 								(err, accountAfter) => {
@@ -1123,7 +1146,7 @@ describe('transaction', () => {
 						transaction,
 						dummyBlock,
 						sender,
-						() => {
+						async () => {
 							accountModule.getAccount(
 								{ publicKey: transaction.senderPublicKey },
 								(err, accountAfter) => {
@@ -1145,12 +1168,13 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('applyUnconfirmed', () => {
+	describe('applyUnconfirmed', async () => {
 		function undoUnconfirmedTransaction(transaction, senderArg, done) {
 			transactionLogic.undoUnconfirmed(transaction, senderArg, done);
 		}
 
-		it('should throw an error with no param', () => expect(() => {
+		it('should throw an error with no param', async () =>
+			expect(() => {
 				transactionLogic.applyUnconfirmed();
 			}).to.throw());
 
@@ -1177,12 +1201,13 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('undoUnconfirmed', () => {
+	describe('undoUnconfirmed', async () => {
 		function applyUnconfirmedTransaction(transaction, senderArg, done) {
 			transactionLogic.applyUnconfirmed(transaction, senderArg, done);
 		}
 
-		it('should throw an error with no param', () => expect(transactionLogic.undoUnconfirmed).to.throw());
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.undoUnconfirmed).to.throw());
 
 		it('should be okay with valid params', done => {
 			transactionLogic.undoUnconfirmed(validTransaction, sender, err => {
@@ -1192,18 +1217,20 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('afterSave', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.afterSave).to.throw());
+	describe('afterSave', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.afterSave).to.throw());
 
 		it('should invoke the passed callback', done => {
 			transactionLogic.afterSave(validTransaction, done);
 		});
 	});
 
-	describe('objectNormalize', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.objectNormalize).to.throw());
+	describe('objectNormalize', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.objectNormalize).to.throw());
 
-		it('should remove keys with null or undefined attribute', () => {
+		it('should remove keys with null or undefined attribute', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = null;
 
@@ -1212,7 +1239,7 @@ describe('transaction', () => {
 			).to.not.include('recipientId');
 		});
 
-		it('should convert amount and fee to bignumber when values are null', () => {
+		it('should convert amount and fee to bignumber when values are null', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = null;
 			transaction.fee = null;
@@ -1222,7 +1249,7 @@ describe('transaction', () => {
 			return expect(fee).to.be.an.instanceOf(Bignum);
 		});
 
-		it('should convert amount and fee to bignumber when values are undefined', () => {
+		it('should convert amount and fee to bignumber when values are undefined', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = undefined;
 			transaction.fee = undefined;
@@ -1232,11 +1259,12 @@ describe('transaction', () => {
 			return expect(fee).to.be.an.instanceOf(Bignum);
 		});
 
-		it('should not remove any keys with valid entries', () => expect(
+		it('should not remove any keys with valid entries', async () =>
+			expect(
 				_.keys(transactionLogic.objectNormalize(validTransaction))
 			).to.have.length(12));
 
-		it('should not remove data field after normalization', () => {
+		it('should not remove data field after normalization', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: '123',
@@ -1250,7 +1278,7 @@ describe('transaction', () => {
 				.which.is.eql(transaction.asset);
 		});
 
-		it('should throw error for invalid schema types', () => {
+		it('should throw error for invalid schema types', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = 'Invalid value';
 			transaction.data = 124;
@@ -1260,7 +1288,7 @@ describe('transaction', () => {
 			}).to.throw();
 		});
 
-		it('should not throw for recipient address 0L', () => {
+		it('should not throw for recipient address 0L', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = '0L';
 			return expect(() => {
@@ -1268,7 +1296,7 @@ describe('transaction', () => {
 			}).not.to.throw();
 		});
 
-		it('should throw for recipient address with leading 0s', () => {
+		it('should throw for recipient address with leading 0s', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = '0123L';
 			return expect(() => {
@@ -1278,13 +1306,13 @@ describe('transaction', () => {
 			);
 		});
 
-		describe('recipientId with leading zeros', () => {
+		describe('recipientId with leading zeros', async () => {
 			afterEach(done => {
 				exceptions.recipientLeadingZero = {};
 				done();
 			});
 
-			it('should handle legacy transactions', () => {
+			it('should handle legacy transactions', async () => {
 				const transactionWithLeadingZero = _.cloneDeep(validTransaction);
 				transactionWithLeadingZero.recipientId = `0${
 					validTransaction.recipientId
@@ -1298,7 +1326,7 @@ describe('transaction', () => {
 				}).to.not.throw('');
 			});
 
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				const transactionWithLeadingZero = _.cloneDeep(validTransaction);
 				transactionWithLeadingZero.recipientId = `0${
 					validTransaction.recipientId
@@ -1314,13 +1342,13 @@ describe('transaction', () => {
 			});
 		});
 
-		describe('recipientId exceeding uint64 range', () => {
+		describe('recipientId exceeding uint64 range', async () => {
 			afterEach(done => {
 				exceptions.recipientExceedingUint64 = {};
 				done();
 			});
 
-			it('should throw for recipient address exceeding uint64 range', () => {
+			it('should throw for recipient address exceeding uint64 range', async () => {
 				const transaction = _.cloneDeep(validTransaction);
 				transaction.recipientId = '18446744073709551616L';
 				return expect(() => {
@@ -1330,7 +1358,7 @@ describe('transaction', () => {
 				);
 			});
 
-			it('should handle legacy transactions with recipient exceeding uint64 property', () => {
+			it('should handle legacy transactions with recipient exceeding uint64 property', async () => {
 				const withRecipientExceedingUint64 = _.cloneDeep(validTransaction);
 				withRecipientExceedingUint64.recipientId = '44444444444444444444L';
 				exceptions.recipientExceedingUint64[withRecipientExceedingUint64.id] =
@@ -1343,10 +1371,11 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('dbRead', () => {
-		it('should throw an error with no param', () => expect(transactionLogic.dbRead).to.throw());
+	describe('dbRead', async () => {
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.dbRead).to.throw());
 
-		it('should return transaction object with data field', () => {
+		it('should return transaction object with data field', async () => {
 			const rawTransactionClone = _.cloneDeep(rawTransaction);
 			const transactionFromDb = transactionLogic.dbRead(rawTransactionClone);
 
@@ -1354,7 +1383,7 @@ describe('transaction', () => {
 			return expect(transactionFromDb.asset).to.have.property('data');
 		});
 
-		it('should return null if id field is not present', () => {
+		it('should return null if id field is not present', async () => {
 			const rawTransactionClone = _.cloneDeep(rawTransaction);
 			delete rawTransactionClone.t_id;
 
@@ -1363,7 +1392,7 @@ describe('transaction', () => {
 			return expect(transaction).to.be.a('null');
 		});
 
-		it('should return transaction object with correct fields', () => {
+		it('should return transaction object with correct fields', async () => {
 			const transaction = transactionLogic.dbRead(rawTransaction);
 			const expectedKeys = [
 				'id',
@@ -1393,9 +1422,9 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('attachAssetType', () => {
+	describe('attachAssetType', async () => {
 		let appliedLogic;
-		it('should attach VOTE transaction types', () => {
+		it('should attach VOTE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.VOTE,
 				new Vote()
@@ -1403,7 +1432,7 @@ describe('transaction', () => {
 			return expect(appliedLogic).to.be.an.instanceof(Vote);
 		});
 
-		it('should attach SEND transaction types', () => {
+		it('should attach SEND transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.SEND,
 				new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema)
@@ -1411,7 +1440,7 @@ describe('transaction', () => {
 			return expect(appliedLogic).to.be.an.instanceof(Transfer);
 		});
 
-		it('should attach DELEGATE transaction types', () => {
+		it('should attach DELEGATE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.DELEGATE,
 				new Delegate()
@@ -1419,7 +1448,7 @@ describe('transaction', () => {
 			return expect(appliedLogic).to.be.an.instanceof(Delegate);
 		});
 
-		it('should attach SIGNATURE transaction types', () => {
+		it('should attach SIGNATURE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.SIGNATURE,
 				new Signature()
@@ -1427,7 +1456,7 @@ describe('transaction', () => {
 			return expect(appliedLogic).to.be.an.instanceof(Signature);
 		});
 
-		it('should attach MULTI transaction types', () => {
+		it('should attach MULTI transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.MULTI,
 				new Multisignature()
@@ -1435,7 +1464,7 @@ describe('transaction', () => {
 			return expect(appliedLogic).to.be.an.instanceof(Multisignature);
 		});
 
-		it('should attach DAPP transaction types', () => {
+		it('should attach DAPP transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.DAPP,
 				new Dapp()
@@ -1443,7 +1472,7 @@ describe('transaction', () => {
 			return expect(appliedLogic).to.be.an.instanceof(Dapp);
 		});
 
-		it('should attach IN_TRANSFER transaction types', () => {
+		it('should attach IN_TRANSFER transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.IN_TRANSFER,
 				new InTransfer()
@@ -1451,7 +1480,7 @@ describe('transaction', () => {
 			return expect(appliedLogic).to.be.an.instanceof(InTransfer);
 		});
 
-		it('should attach OUT_TRANSFER transaction types', () => {
+		it('should attach OUT_TRANSFER transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.OUT_TRANSFER,
 				new OutTransfer()
@@ -1459,11 +1488,13 @@ describe('transaction', () => {
 			return expect(appliedLogic).to.be.an.instanceof(OutTransfer);
 		});
 
-		it('should throw an error on invalid asset', () => expect(() => {
+		it('should throw an error on invalid asset', async () =>
+			expect(() => {
 				const invalidAsset = {};
 				transactionLogic.attachAssetType(-1, invalidAsset);
 			}).to.throw('Invalid instance interface'));
 
-		it('should throw an error with no param', () => expect(transactionLogic.attachAssetType).to.throw());
+		it('should throw an error with no param', async () =>
+			expect(transactionLogic.attachAssetType).to.throw());
 	});
 });

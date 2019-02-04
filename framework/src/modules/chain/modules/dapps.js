@@ -99,7 +99,7 @@ class DApps {
 		 *
 		 * @listens exit
 		 */
-		process.on('exit', () => {});
+		process.on('exit', async () => {});
 
 		setImmediate(cb, null, self);
 	}

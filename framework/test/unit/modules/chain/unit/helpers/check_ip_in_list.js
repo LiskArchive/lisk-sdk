@@ -14,10 +14,10 @@
 
 'use strict';
 
-const checkIpInList = require('../../../helpers/check_ip_in_list');
+const checkIpInList = require('../../../../../../src/modules/chain/helpers/check_ip_in_list');
 
-describe('checkIpInList', () => {
-	describe('CheckIpInList', () => {
+describe('checkIpInList', async () => {
+	describe('CheckIpInList', async () => {
 		let validList;
 		let validAddress;
 		let spyConsoleError;
@@ -35,7 +35,7 @@ describe('checkIpInList', () => {
 			done();
 		});
 
-		describe('when validList is not an array', () => {
+		describe('when validList is not an array', async () => {
 			before(done => {
 				validList = null;
 				done();
@@ -47,7 +47,7 @@ describe('checkIpInList', () => {
 			});
 		});
 
-		describe('when validList is an empty list', () => {
+		describe('when validList is an empty list', async () => {
 			before(done => {
 				validList = [];
 				done();
@@ -59,7 +59,7 @@ describe('checkIpInList', () => {
 			});
 		});
 
-		describe('when all the entries in validList are not in the right format', () => {
+		describe('when all the entries in validList are not in the right format', async () => {
 			before(done => {
 				validList = ['abcxyz', 'shzduvsg'];
 				done();
@@ -76,7 +76,7 @@ describe('checkIpInList', () => {
 			});
 		});
 
-		describe('when some entries in validList are not in the right format', () => {
+		describe('when some entries in validList are not in the right format', async () => {
 			before(done => {
 				validList = ['abcxyz', '1.2.3.4'];
 				done();
@@ -88,7 +88,7 @@ describe('checkIpInList', () => {
 			});
 		});
 
-		describe('when validList does not contain validAddress', () => {
+		describe('when validList does not contain validAddress', async () => {
 			before(done => {
 				validList = ['1.2.3.0/24', '5.6.7.8'];
 				validAddress = '127.0.0.1';
@@ -101,7 +101,7 @@ describe('checkIpInList', () => {
 			});
 		});
 
-		describe('when validList contains validAddress as subnet', () => {
+		describe('when validList contains validAddress as subnet', async () => {
 			before(done => {
 				validAddress = '1.2.3.4';
 				done();
@@ -113,7 +113,7 @@ describe('checkIpInList', () => {
 			});
 		});
 
-		describe('when validList contains validAddress', () => {
+		describe('when validList contains validAddress', async () => {
 			before(done => {
 				validAddress = '5.6.7.8';
 				done();

@@ -392,7 +392,7 @@ __private.loadBlockChain = function() {
 				},
 				loadBlocksOffset(seriesCb) {
 					async.until(
-						() => count < offset,
+						async () => count < offset,
 						cb => {
 							if (count > 1) {
 								library.logger.info(
@@ -423,7 +423,7 @@ __private.loadBlockChain = function() {
 					library.logger.error(err);
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
-						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
+						modules.blocks.chain.deleteFromBlockId(err.block.id, async () => {
 							library.logger.error('Blockchain clipped');
 							library.bus.message('blockchainReady');
 						});
@@ -786,7 +786,7 @@ __private.createSnapshot = height => {
 			},
 			loadBlocksOffset(seriesCb) {
 				async.until(
-					() => targetHeight < currentHeight,
+					async () => targetHeight < currentHeight,
 					untilCb => {
 						library.logger.info(
 							`Rebuilding accounts states, current round: ${slots.calcRound(
@@ -846,7 +846,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 	let loaded = false;
 
 	async.whilst(
-		() => !loaded && failedAttemptsToLoad < 5,
+		async () => !loaded && failedAttemptsToLoad < 5,
 		whilstCb => {
 			async.waterfall(
 				[
@@ -914,7 +914,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				}
 			);
 		},
-		() => setImmediate(cb)
+		async () => setImmediate(cb)
 	);
 };
 

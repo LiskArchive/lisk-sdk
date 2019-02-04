@@ -15,13 +15,13 @@
 
 'use strict';
 
-describe('Storage', () => {
-	describe('constructor()', () => {
+describe('Storage', async () => {
+	describe('constructor()', async () => {
 		it('should accept two parameters');
 		it('should assign parameters correctly');
 	});
 
-	describe('bootstrap()', () => {
+	describe('bootstrap()', async () => {
 		it('should resolved with status');
 		it('should reject in case of connection error');
 		it('should change isReady status');
@@ -30,7 +30,7 @@ describe('Storage', () => {
 		);
 	});
 
-	describe('registerEntity', () => {
+	describe('registerEntity', async () => {
 		it('should accept three parameters');
 		it('should throw error if identifier is not provided');
 		it('should throw error if Entity is not provided');
@@ -47,7 +47,7 @@ describe('Storage', () => {
 		);
 	});
 
-	describe('cleanup()', () => {
+	describe('cleanup()', async () => {
 		it('should resolved successfully');
 		it('should reject in case of any error on adapter layer');
 		it('should change isReady status');

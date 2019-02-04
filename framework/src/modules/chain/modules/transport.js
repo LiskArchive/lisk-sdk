@@ -412,7 +412,7 @@ Transport.prototype.broadcastHeaders = cb => {
 				return eachCb();
 			});
 		},
-		() => setImmediate(cb)
+		async () => setImmediate(cb)
 	);
 };
 
@@ -767,7 +767,7 @@ Transport.prototype.shared = {
 				}
 				return setImmediate(__cb);
 			},
-			() => setImmediate(cb, null, { success: true, signatures })
+			async () => setImmediate(cb, null, { success: true, signatures })
 		);
 	},
 

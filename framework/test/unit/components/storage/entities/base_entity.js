@@ -17,9 +17,9 @@
 
 const {
 	BaseEntity,
-} = require('../../../../../framework/src/components/storage/entities');
+} = require('../../../../../src/components/storage/entities');
 
-describe('BaseEntity', () => {
+describe('BaseEntity', async () => {
 	let adapter;
 	let defaultFilters;
 	let defaultOptions;
@@ -48,7 +48,7 @@ describe('BaseEntity', () => {
 		expect(BaseEntity.prototype.constructor.name).to.be.eql('BaseEntity');
 	});
 
-	describe('constructor()', () => {
+	describe('constructor()', async () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(BaseEntity.prototype.constructor.length).to.be.eql(1);
 		});
@@ -84,7 +84,7 @@ describe('BaseEntity', () => {
 		});
 	});
 
-	describe('loadSQLFiles()', () => {
+	describe('loadSQLFiles()', async () => {
 		let baseEntity;
 		let entityLabel;
 		let sqlFilesKeys;

@@ -16,12 +16,10 @@
 
 const {
 	createCacheComponent,
-} = require('../../../../framework/src/components/cache');
-const {
-	createLoggerComponent,
-} = require('../../../../framework/src/components/logger');
+} = require('../../../../src/components/cache/cache');
+const { createLoggerComponent } = require('../../../../src/components/logger');
 
-describe('components: cache', () => {
+describe('components: cache', async () => {
 	let cache;
 
 	before(async () => {
@@ -44,19 +42,19 @@ describe('components: cache', () => {
 
 	after(() => cache.quit());
 
-	describe('bootstrap', () => {});
+	describe('bootstrap', async () => {});
 
-	describe('_onConnectionError', () => {});
+	describe('_onConnectionError', async () => {});
 
-	describe('_onReady', () => {});
+	describe('_onReady', async () => {});
 
-	describe('isReady', () => {});
+	describe('isReady', async () => {});
 
-	describe('enable', () => {});
+	describe('enable', async () => {});
 
-	describe('disable', () => {});
+	describe('disable', async () => {});
 
-	describe('getJsonForKey', () => {
+	describe('getJsonForKey', async () => {
 		it('should return null for non-existent key', async () => {
 			const key = 'test_key';
 
@@ -86,7 +84,7 @@ describe('components: cache', () => {
 		});
 	});
 
-	describe('setJsonForKey', () => {
+	describe('setJsonForKey', async () => {
 		it('should set the key value correctly', async () => {
 			const key = 'test_key';
 			const value = {
@@ -114,7 +112,7 @@ describe('components: cache', () => {
 		});
 	});
 
-	describe('deleteJsonForKey', () => {
+	describe('deleteJsonForKey', async () => {
 		it('should return 0 for non-existent key', async () => {
 			const key = 'test_key';
 
@@ -150,7 +148,7 @@ describe('components: cache', () => {
 		});
 	});
 
-	describe('removeByPattern', () => {
+	describe('removeByPattern', async () => {
 		it('should remove keys matching the pattern', async () => {
 			const key = '/api/transactions?123';
 			const key2 = '/api/transactions?1234';
@@ -191,7 +189,7 @@ describe('components: cache', () => {
 		});
 	});
 
-	describe('flushDb', () => {
+	describe('flushDb', async () => {
 		it('should remove all keys from cache', async () => {
 			const keys = ['test_key1', 'test_key2'];
 			const dummyValue = {
@@ -222,7 +220,7 @@ describe('components: cache', () => {
 		});
 	});
 
-	describe('cleanup', () => {});
+	describe('cleanup', async () => {});
 
-	describe('quit', () => {});
+	describe('quit', async () => {});
 });

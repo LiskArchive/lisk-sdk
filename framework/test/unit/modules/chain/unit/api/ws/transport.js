@@ -19,7 +19,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 
-const TransportWSApi = rewire('../../../../api/ws/transport');
+const TransportWSApi = rewire(
+	'../../../../../../../src/modules/chain/api/ws/transport'
+);
 
 let transportModuleMock;
 let registerRPCEndpointsStub;
@@ -27,7 +29,7 @@ let registerEventEndpointsStub;
 let wsRPCMock;
 let slaveRPCStubStub;
 
-describe('TransportWSApi', () => {
+describe('TransportWSApi', async () => {
 	beforeEach(done => {
 		transportModuleMock = {
 			internal: {
@@ -63,9 +65,11 @@ describe('TransportWSApi', () => {
 		done();
 	});
 
-	it('should call wsRPC.getServer', () => expect(wsRPCMock.getServer).to.be.called);
+	it('should call wsRPC.getServer', async () =>
+		expect(wsRPCMock.getServer).to.be.called);
 
-	it('should call registerRPCEndpoints() on wsServer with object that has available RPC functions', () => expect(registerRPCEndpointsStub).to.be.calledWith({
+	it('should call registerRPCEndpoints() on wsServer with object that has available RPC functions', async () =>
+		expect(registerRPCEndpointsStub).to.be.calledWith({
 			updatePeer: transportModuleMock.internal.updatePeer,
 			blocksCommon: transportModuleMock.shared.blocksCommon,
 			blocks: transportModuleMock.shared.blocks,
@@ -76,11 +80,13 @@ describe('TransportWSApi', () => {
 			status: transportModuleMock.shared.status,
 		}));
 
-	it('should call registerEventEndpoints() on wsServer', () => expect(registerEventEndpointsStub).to.be.calledWith({
+	it('should call registerEventEndpoints() on wsServer', async () =>
+		expect(registerEventEndpointsStub).to.be.calledWith({
 			postBlock: transportModuleMock.shared.postBlock,
 			postSignatures: transportModuleMock.shared.postSignatures,
 			postTransactions: transportModuleMock.shared.postTransactions,
 		}));
 
-	it('should call registerRPCEndpoints() on wsServer with slaveRPCStub', () => expect(registerRPCEndpointsStub).to.be.calledWith(slaveRPCStubStub));
+	it('should call registerRPCEndpoints() on wsServer with slaveRPCStub', async () =>
+		expect(registerRPCEndpointsStub).to.be.calledWith(slaveRPCStubStub));
 });

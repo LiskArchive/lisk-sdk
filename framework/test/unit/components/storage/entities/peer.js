@@ -18,16 +18,16 @@
 const {
 	BaseEntity,
 	Peer,
-} = require('../../../../../framework/src/components/storage/entities');
+} = require('../../../../../src/components/storage/entities');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const peersFixtures = require('../../../../fixtures/peers');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-} = require('../../../../../framework/src/components/storage/errors');
+} = require('../../../../../src/components/storage/errors');
 
 // eslint-disable-next-line mocha/no-skipped-tests
-describe('Peer', () => {
+describe('Peer', async () => {
 	let adapter;
 	let validPeerFields;
 	let validPeerSQLs;
@@ -183,7 +183,7 @@ describe('Peer', () => {
 		expect(Peer.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', () => {
+	describe('constructor()', async () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Peer.prototype.constructor.length).to.be.eql(1);
 		});
@@ -221,7 +221,7 @@ describe('Peer', () => {
 		it('should setup specific filters');
 	});
 
-	describe('getOne()', () => {
+	describe('getOne()', async () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const peer = new Peer(adapter);
 			const _getResultsStub = sinonSandbox
@@ -233,7 +233,7 @@ describe('Peer', () => {
 		});
 	});
 
-	describe('get()', () => {
+	describe('get()', async () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const peer = new Peer(adapter);
 			const _getResultsStub = sinonSandbox
@@ -245,7 +245,7 @@ describe('Peer', () => {
 		});
 	});
 
-	describe('_getResults()', () => {
+	describe('_getResults()', async () => {
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -278,7 +278,7 @@ describe('Peer', () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', () => {
+		describe('filters', async () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				const peer = new Peer(adapter);
@@ -289,7 +289,7 @@ describe('Peer', () => {
 		});
 	});
 
-	describe('create()', () => {
+	describe('create()', async () => {
 		it('should call getValuesSet with proper params', async () => {
 			const localAdapter = {
 				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
@@ -317,7 +317,8 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should reject with invalid data provided', async () => expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected);
+		it('should reject with invalid data provided', async () =>
+			expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected);
 
 		it('should create multiple objects successfully', async () => {
 			// Arrange
@@ -332,7 +333,7 @@ describe('Peer', () => {
 		});
 	});
 
-	describe('update()', () => {
+	describe('update()', async () => {
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -431,12 +432,12 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should not throw error if no matching record found', async () => expect(
-				storage.entities.Peer.update({ ip: '1.1.1.1' }, { ip: '2.2.2.2' })
-			).not.to.be.rejected);
+		it('should not throw error if no matching record found', async () =>
+			expect(storage.entities.Peer.update({ ip: '1.1.1.1' }, { ip: '2.2.2.2' }))
+				.not.to.be.rejected);
 	});
 
-	describe('updateOne()', () => {
+	describe('updateOne()', async () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
 		});
@@ -541,12 +542,13 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should not throw error if no matching record found', async () => expect(
+		it('should not throw error if no matching record found', async () =>
+			expect(
 				storage.entities.Peer.updateOne({ ip: '1.1.1.1' }, { ip: '2.2.2.2' })
 			).not.to.be.rejected);
 	});
 
-	describe('isPersisted()', () => {
+	describe('isPersisted()', async () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
 		});
@@ -628,7 +630,7 @@ describe('Peer', () => {
 		});
 	});
 
-	describe('mergeFilters()', () => {
+	describe('mergeFilters()', async () => {
 		it('should accept filters as single object', async () => {
 			const peer = new Peer(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(peer, 'mergeFilters');
@@ -652,7 +654,7 @@ describe('Peer', () => {
 		);
 	});
 
-	describe('delete', () => {
+	describe('delete', async () => {
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
