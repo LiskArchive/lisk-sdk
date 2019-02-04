@@ -357,7 +357,10 @@ describe('Migration', async () => {
 
 		before(async () => {
 			files = await fs.readdir(
-				path.join(__dirname, '../../../../storage/sql/migrations/updates')
+				path.join(
+					__dirname,
+					'../../../../../src/components/storage/sql/migrations/updates'
+				)
 			);
 			fileIds = files.map(f => f.match(/(\d+)_(.+).sql/)[1]).sort();
 		});
