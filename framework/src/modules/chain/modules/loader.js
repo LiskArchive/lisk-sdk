@@ -846,7 +846,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 	let loaded = false;
 
 	async.whilst(
-		async () => !loaded && failedAttemptsToLoad < 5,
+		() => !loaded && failedAttemptsToLoad < 5,
 		whilstCb => {
 			async.waterfall(
 				[
