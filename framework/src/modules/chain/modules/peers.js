@@ -22,7 +22,7 @@ const jobsQueue = require('../helpers/jobs_queue.js');
 const Peer = require('../logic/peer.js');
 
 // Private fields
-let modules;
+let components;
 let library;
 let self;
 const { MAX_PEERS } = global.constants;
@@ -36,7 +36,7 @@ const peerDiscoveryFrequency = 30000;
  *
  * @class
  * @memberof modules
- * @see Parent: {@link modules}
+ * @see Parent: {@link components}
  * @requires async
  * @requires lodash
  * @requires ip
@@ -274,7 +274,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 		let compatible = false;
 		// Check needed for compatibility with older nodes
 		if (!status.protocolVersion) {
-			if (!modules.system.versionCompatible(status.version)) {
+			if (!components.system.versionCompatible(status.version)) {
 				library.logger.debug(
 					`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
 						peer.string
@@ -284,7 +284,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 				compatible = true;
 			}
 		} else if (
-			!modules.system.protocolVersionCompatible(status.protocolVersion)
+			!components.system.protocolVersionCompatible(status.protocolVersion)
 		) {
 			library.logger.debug(
 				`Peers->updatePeerStatus Incompatible protocol version, rejecting peer: ${
@@ -488,7 +488,7 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 		library.logic.peers
 			.list(true)
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	const broadhash = modules.system.getBroadhash();
+	const broadhash = components.system.getBroadhash();
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
@@ -660,9 +660,11 @@ Peers.prototype.acceptable = function(peers) {
 		.filter(peer => {
 			// Removing peers with private address or nonce equal to itself
 			if ((process.env.NODE_ENV || '').toUpperCase() === 'TEST') {
-				return peer.nonce !== modules.system.getNonce();
+				return peer.nonce !== components.system.getNonce();
 			}
-			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
+			return (
+				!ip.isPrivate(peer.ip) && peer.nonce !== components.system.getNonce()
+			);
 		})
 		.value();
 };
@@ -683,7 +685,7 @@ Peers.prototype.acceptable = function(peers) {
  */
 Peers.prototype.list = function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const broadhash = options.broadhash || modules.system.getBroadhash();
+	const broadhash = options.broadhash || components.system.getBroadhash();
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
 		options.attempt === 0 || options.attempt === 1 ? [options.attempt] : [1, 0];
@@ -793,8 +795,8 @@ Peers.prototype.networkHeight = function(options, cb) {
  * @todo Add description for the params
  */
 Peers.prototype.onBind = function(scope) {
-	modules = {
-		system: scope.modules.system,
+	components = {
+		system: scope.components.system,
 	};
 
 	definitions = scope.swagger.definitions;
@@ -937,12 +939,12 @@ Peers.prototype.cleanup = function(cb) {
 };
 
 /**
- * Checks if `modules` is loaded.
+ * Checks if `components` is loaded.
  *
  * @returns {boolean} True if `modules` is loaded
  */
 Peers.prototype.isLoaded = function() {
-	return !!modules;
+	return !!components;
 };
 
 /**

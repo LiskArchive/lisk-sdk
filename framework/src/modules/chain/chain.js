@@ -15,6 +15,7 @@ const swaggerHelper = require('./helpers/swagger');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
+const { createSystemComponent } = require('./modules/system');
 const defaults = require('./defaults');
 
 // Define workers_controller path
@@ -53,7 +54,6 @@ const config = {
 		multisignatures: './modules/multisignatures.js',
 		node: './modules/node.js',
 		peers: './modules/peers.js',
-		system: './modules/system.js',
 		signatures: './modules/signatures.js',
 		transactions: './modules/transactions.js',
 		transport: './modules/transport.js',
@@ -132,6 +132,15 @@ module.exports = class Chain {
 		this.logger.debug('Initiating storage...');
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
+		// System
+		this.logger.debug('Initiating system...');
+		const system = createSystemComponent(
+			this.options.config,
+			this.logger,
+			storage
+		);
+
+		// Config
 		const appConfig = this.options.config;
 		const self = this;
 
@@ -403,14 +412,20 @@ module.exports = class Chain {
 						});
 				},
 
+				system(cb) {
+					return cb(null, system);
+				},
+
 				components: [
 					'cache',
 					'storage',
+					'system',
 					(scope, cb) => {
 						cb(null, {
 							cache: scope.cache,
 							storage: scope.storage,
 							logger: scope.logger,
+							system: scope.system,
 						});
 					},
 				],
@@ -495,7 +510,7 @@ module.exports = class Chain {
 				],
 
 				logic: [
-					'storage',
+					'components',
 					'bus',
 					'schema',
 					'genesisBlock',
@@ -670,7 +685,7 @@ module.exports = class Chain {
 						// Fire onBind event in every module
 						scope.bus.message('bind', scope);
 
-						scope.logic.peers.bindModules(scope.modules);
+						scope.logic.peers.bindModules(scope.modules, scope.components);
 						cb();
 					},
 				],
@@ -797,7 +812,9 @@ module.exports = class Chain {
 		}
 
 		if (this.scope.components !== undefined) {
-			this.scope.components.map(component => component.cleanup());
+			this.scope.components
+				.filter(component => typeof component.cleanup === 'function')
+				.map(component => component.cleanup());
 		}
 
 		// Run cleanup operation on each module before shutting down the node;

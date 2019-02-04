@@ -18,7 +18,6 @@ const _ = require('lodash');
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const failureCodes = require('../../../api/ws/rpc/failure_codes');
-const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 const Peer = require('../../../logic/peer');
 
@@ -27,10 +26,10 @@ const TIMEOUT = 2000;
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
 
-const connect = (peer, logger) => {
+const connect = (peer, logger, system) => {
 	const wsServer = wsRPC.getServer();
 
-	connectSteps.addConnectionOptions(peer);
+	connectSteps.addConnectionOptions(peer, system);
 	connectSteps.addSocket(peer, logger);
 	connectSteps.upgradeSocketAsWAMPClient(peer);
 	connectSteps.upgradeSocketAsWAMPServer(peer, wsServer);
@@ -42,8 +41,8 @@ const connect = (peer, logger) => {
 };
 
 const connectSteps = {
-	addConnectionOptions: peer => {
-		const systemHeaders = System.getHeaders();
+	addConnectionOptions: (peer, system) => {
+		const systemHeaders = system.getHeaders();
 		const queryParams = {};
 		if (systemHeaders.version) {
 			queryParams.version = systemHeaders.version;

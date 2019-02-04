@@ -21,6 +21,7 @@ const slots = require('../helpers/slots.js');
 const { EPOCH_TIME, FEES } = global.constants;
 
 // Private fields
+let components;
 let modules;
 let library;
 let blockReward;
@@ -181,7 +182,7 @@ Node.prototype.shared = {
 			{ normalized: false },
 			(err, networkHeight) => {
 				setImmediate(cb, null, {
-					broadhash: modules.system.getBroadhash(),
+					broadhash: components.system.getBroadhash(),
 					consensus: modules.peers.getLastConsensus(),
 					currentTime: Date.now(),
 					secondsSinceEpoch: slots.getTime(),
@@ -202,11 +203,14 @@ Node.prototype.shared = {
  * @param {modules} scope - Loaded modules
  */
 Node.prototype.onBind = function(scope) {
+	components = {
+		system: scope.components.system,
+	};
+
 	modules = {
 		blocks: scope.modules.blocks,
 		loader: scope.modules.loader,
 		peers: scope.modules.peers,
-		system: scope.modules.system,
 		delegates: scope.modules.delegates,
 	};
 	loaded = true;

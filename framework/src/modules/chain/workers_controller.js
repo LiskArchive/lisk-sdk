@@ -23,7 +23,7 @@ const async = require('async');
 const SCWorker = require('socketcluster/scworker');
 const SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 const Peer = require('./logic/peer');
-const System = require('./modules/system');
+const { createSystemComponent } = require('./modules/system');
 const Handshake = require('./api/ws/workers/middlewares/handshake').middleware
 	.Handshake;
 const extractHeaders = require('./api/ws/workers/middlewares/handshake')
@@ -105,7 +105,7 @@ SCWorker.create({
 				system: [
 					'config',
 					function(scope, cb) {
-						new System(cb, { config: scope.config });
+						cb(null, createSystemComponent(scope.config, scope.logger));
 					},
 				],
 

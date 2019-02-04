@@ -17,7 +17,6 @@
 const _ = require('lodash');
 const failureCodes = require('../api/ws/rpc/failure_codes.js');
 const Peer = require('../logic/peer.js');
-const System = require('../modules/system.js');
 const PeersManager = require('../helpers/peers_manager.js');
 const BanManager = require('../helpers/ban_manager.js');
 
@@ -25,6 +24,7 @@ const BanManager = require('../helpers/ban_manager.js');
 let self;
 let library;
 let modules;
+let components;
 
 /**
  * Main peers logic. Initializes library.
@@ -64,7 +64,7 @@ class Peers {
  * @returns {Object} system headers and peer status
  */
 Peers.prototype.me = function() {
-	return Object.assign({}, System.getHeaders(), {
+	return Object.assign({}, components.system.getHeaders(), {
 		state: Peer.STATE.CONNECTED,
 	});
 };
@@ -341,7 +341,11 @@ Peers.prototype.listRandomConnected = function(options) {
  *
  * @param {Object} __modules - Peers module
  */
-Peers.prototype.bindModules = function(__modules) {
+Peers.prototype.bindModules = function(__modules, __components) {
+	components = {
+		system: __components.system,
+	};
+
 	modules = {
 		peers: __modules.peers,
 	};

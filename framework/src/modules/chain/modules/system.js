@@ -273,7 +273,7 @@ class System {
 					});
 				},
 				getHeight(seriesCb) {
-					return this.storage.entities.Block.get(
+					return self.storage.entities.Block.get(
 						{},
 						{
 							limit: 5,
@@ -293,5 +293,10 @@ class System {
 	}
 }
 
-// Export
-module.exports = System;
+function createSystemComponent(config, logger, storage) {
+	return new System(config, logger, storage);
+}
+
+module.exports = {
+	createSystemComponent,
+};

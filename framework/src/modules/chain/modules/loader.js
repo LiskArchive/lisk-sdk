@@ -955,7 +955,7 @@ __private.sync = function(cb) {
 			},
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				modules.system.update(seriesCb);
+				components.system.update(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
@@ -1160,6 +1160,7 @@ Loader.prototype.onPeersReady = function() {
 Loader.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
+		system: scope.components.system,
 	};
 
 	modules = {
@@ -1169,7 +1170,6 @@ Loader.prototype.onBind = function(scope) {
 		rounds: scope.modules.rounds,
 		transport: scope.modules.transport,
 		multisignatures: scope.modules.multisignatures,
-		system: scope.modules.system,
 	};
 
 	definitions = scope.swagger.definitions;

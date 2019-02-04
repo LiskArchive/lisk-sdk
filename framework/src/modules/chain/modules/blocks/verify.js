@@ -21,6 +21,7 @@ const slots = require('../../helpers/slots.js');
 const blockVersion = require('../../logic/block_version.js');
 const Bignum = require('../../helpers/bignum.js');
 
+let components;
 let modules;
 let library;
 let self;
@@ -845,7 +846,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
 				!library.config.loading.snapshotRound
-					? modules.system.update(seriesCb)
+					? components.system.update(seriesCb)
 					: seriesCb();
 			},
 			broadcastHeaders(seriesCb) {
@@ -870,12 +871,15 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
  */
 Verify.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
+	components = {
+		system: scope.components.system,
+	};
+
 	modules = {
 		accounts: scope.modules.accounts,
 		blocks: scope.modules.blocks,
 		delegates: scope.modules.delegates,
 		transactions: scope.modules.transactions,
-		system: scope.modules.system,
 		transport: scope.modules.transport,
 	};
 
