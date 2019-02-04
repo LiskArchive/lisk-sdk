@@ -116,12 +116,19 @@ NodeController.getStatus = async (context, next) => {
 			normalized: false,
 		});
 
+		const [lastBlock] = await library.storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1 }
+		);
+		const { height } = lastBlock;
+
+		// TODO: Replace all library.modules calls after chain module extraction is done.
 		const data = {
 			broadhash: library.modules.system.getBroadhash(),
 			consensus: library.modules.peers.getLastConsensus() || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch: slots.getTime(),
-			height: library.modules.blocks.lastBlock.get().height,
+			height,
 			loaded: library.modules.loader.loaded(),
 			networkHeight: networkHeight || 0,
 			syncing: library.modules.loader.syncing(),
