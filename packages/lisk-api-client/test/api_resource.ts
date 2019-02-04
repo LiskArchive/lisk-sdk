@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { APIClient } from '../src/api_client';
 import { APIResource } from '../src/api_resource';
-import sinon from 'sinon';
+import * as sinon from 'sinon';
 // Required for stub
 const axios = require('axios');
 

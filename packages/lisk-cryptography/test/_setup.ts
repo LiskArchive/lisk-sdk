@@ -14,7 +14,7 @@
  */
 import { Assertion } from 'chai';
 import 'chai/register-expect';
-import sinon from 'sinon';
+import * as sinon from 'sinon';
 
 process.env.NODE_ENV = 'test';
 

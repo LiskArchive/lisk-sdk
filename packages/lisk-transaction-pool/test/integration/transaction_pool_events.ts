@@ -7,7 +7,7 @@ import {
 	fakeCheckFunctionGenerator,
 	fakeCheckerFunctionGenerator,
 } from './helpers/common';
-import transactionObjects from '../../fixtures/transactions.json';
+import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 import { expect } from 'chai';
 

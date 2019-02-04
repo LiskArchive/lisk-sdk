@@ -12,19 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import sinon from 'sinon';
-import chai, { Assertion } from 'chai';
+import * as sinon from 'sinon';
+import * as chai from 'chai';
 import 'chai/register-expect';
-import sinonChai from 'sinon-chai';
+import * as sinonChai from 'sinon-chai';
 
 process.env.NODE_ENV = 'test';
 
-Assertion.addProperty('hexString', function handleAssert(
+chai.Assertion.addProperty('hexString', function handleAssert(
 	this: Chai.ChaiStatic,
 ) {
 	const actual = this._obj;
 
-	new Assertion(actual).to.be.a('string');
+	new chai.Assertion(actual).to.be.a('string');
 
 	const expected = Buffer.from(actual, 'hex').toString('hex');
 	this.assert(
@@ -34,10 +34,12 @@ Assertion.addProperty('hexString', function handleAssert(
 	);
 });
 
-Assertion.addProperty('integer', function handleAssert(this: Chai.ChaiStatic) {
+chai.Assertion.addProperty('integer', function handleAssert(
+	this: Chai.ChaiStatic,
+) {
 	const actual = this._obj;
 
-	new Assertion(actual).to.be.a('number');
+	new chai.Assertion(actual).to.be.a('number');
 
 	const expected = parseInt(actual, 10);
 	this.assert(

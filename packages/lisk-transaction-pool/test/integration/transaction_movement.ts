@@ -9,7 +9,7 @@ import {
 	wrapExpectationInNextTick,
 } from './helpers/common';
 import { returnTrueUntilLimit } from '../../src/queue_checkers';
-import transactionObjects from '../../fixtures/transactions.json';
+import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 import { SinonFakeTimers } from 'sinon';
 import { expect } from 'chai';

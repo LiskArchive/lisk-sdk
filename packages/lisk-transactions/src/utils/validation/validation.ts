@@ -15,7 +15,7 @@
 // tslint:disable-next-line no-reference
 /// <reference path="../../../types/browserify-bignum/index.d.ts" />
 import * as cryptography from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import {
 	MAX_ADDRESS_NUMBER,
 	MAX_PUBLIC_KEY_LENGTH,
@@ -37,22 +37,20 @@ export const validatePublicKey = (publicKey: string) => {
 };
 
 export const validateUsername = (username: string) => {
-	if (
-		username !== username.trim().toLowerCase()
-	) {
+	if (username !== username.trim().toLowerCase()) {
 		return false;
 	}
 
-	if(( /^[0-9]{1,21}[L|l]$/g).test(username)) {
+	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
 		return false;
 	}
 
-	if(!(/^[a-z0-9!@$&_.]+$/g).test(username)) {
+	if (!/^[a-z0-9!@$&_.]+$/g.test(username)) {
 		return false;
 	}
 
 	return true;
-} 
+};
 
 export const validateSignature = (signature: string) =>
 	/^[a-f0-9]{128}$/i.test(signature);

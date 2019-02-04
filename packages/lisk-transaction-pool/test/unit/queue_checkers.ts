@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { Transaction } from '../../src/transaction_pool';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 import * as queueCheckers from '../../src/queue_checkers';
-import transactionObjects from '../../fixtures/transactions.json';
+import * as transactionObjects from '../../fixtures/transactions.json';
 import { SinonStub } from 'sinon';
 
 describe('queueCheckers', () => {

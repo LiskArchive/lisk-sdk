@@ -13,8 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import fixtures from '../../../fixtures/transactions.json';
-import invalidFixtures from '../../../fixtures/invalid_transactions.json';
+import * as fixtures from '../../../fixtures/transactions.json';
+import * as invalidFixtures from '../../../fixtures/invalid_transactions.json';
 import { validateTransaction } from '../../../src/utils/validation/validate_transaction';
 import { TransactionJSON } from '../../../src/transaction_types';
 import { ErrorObject } from 'ajv';

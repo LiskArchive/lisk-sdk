@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Mnemonic from 'bip39';
+import * as Mnemonic from 'bip39';
 
 interface PassphraseRegularExpression {
 	readonly uppercaseRegExp: RegExp;

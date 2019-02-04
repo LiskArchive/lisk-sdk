@@ -13,7 +13,7 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {

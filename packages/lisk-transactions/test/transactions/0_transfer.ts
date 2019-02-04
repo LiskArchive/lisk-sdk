@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import { expect } from 'chai';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../../src/constants';
 import { Attributes, TransferTransaction } from '../../src/transactions';

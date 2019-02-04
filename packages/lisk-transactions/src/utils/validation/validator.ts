@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Ajv from 'ajv';
-import addKeywords from 'ajv-merge-patch';
-import BigNum from 'browserify-bignum';
+import * as Ajv from 'ajv';
+// tslint:disable-next-line no-require-imports
+import addKeywords = require('ajv-merge-patch');
+import * as BigNum from 'browserify-bignum';
 import * as schemas from './schema';
 import {
 	isGreaterThanMaxTransactionId,
@@ -124,6 +125,5 @@ validator.addKeyword('uniqueSignedPublicKeys', {
 	compile: () => (data: ReadonlyArray<string>) =>
 		new Set(data.map((key: string) => key.slice(1))).size === data.length,
 });
-
 
 validator.addSchema(schemas.baseTransaction);

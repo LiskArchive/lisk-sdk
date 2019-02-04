@@ -19,7 +19,7 @@ import {
 	checkTransactionsWithPassAndFail,
 } from '../../src/check_transactions';
 import { expect } from 'chai';
-import transactionObjects from '../../fixtures/transactions.json';
+import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 
 describe('#checkTransactions', () => {
