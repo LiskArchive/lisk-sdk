@@ -50,12 +50,6 @@ const connectSteps = {
 		if (systemHeaders.protocolVersion) {
 			queryParams.protocolVersion = systemHeaders.protocolVersion;
 		}
-		if (systemHeaders.wsPort) {
-			queryParams.wsPort = systemHeaders.wsPort;
-		}
-		if (systemHeaders.httpPort) {
-			queryParams.httpPort = systemHeaders.httpPort;
-		}
 		if (systemHeaders.nethash) {
 			queryParams.nethash = systemHeaders.nethash;
 		}

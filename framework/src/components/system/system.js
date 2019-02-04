@@ -48,13 +48,11 @@ class System {
 		this.headers = {
 			os: os.platform() + os.release(),
 			version: config.version,
-			wsPort: config.wsPort,
-			httpPort: config.httpPort,
+			minVersion: config.minVersion,
+			protocolVersion: config.protocolVersion,
 			height: 1,
 			nethash: config.nethash,
 			broadhash: config.nethash,
-			minVersion: config.minVersion,
-			protocolVersion: config.protocolVersion,
 			nonce: config.nonce,
 		};
 

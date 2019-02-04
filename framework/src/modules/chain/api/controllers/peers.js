@@ -44,8 +44,6 @@ PeersController.getPeers = function(context, next) {
 
 	let filters = {
 		ip: params.ip.value,
-		wsPort: params.wsPort.value,
-		httpPort: params.httpPort.value,
 		state: params.state.value,
 		os: params.os.value,
 		version: params.version.value,

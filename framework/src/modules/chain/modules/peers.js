@@ -962,8 +962,6 @@ Peers.prototype.shared = {
 	 *
 	 * @param {Object} parameters - Object of all parameters
 	 * @param {string} parameters.ip - IP of the peer
-	 * @param {string} parameters.wsPort - WS Port of the peer
-	 * @param {string} parameters.httpPort - Web Socket Port of the peer
 	 * @param {string} parameters.os - OS of the peer
 	 * @param {string} parameters.version - Version the peer is running
 	 * @param {int} parameters.state - Peer State
@@ -986,8 +984,6 @@ Peers.prototype.shared = {
 	 *
 	 * @param {Object} parameters - Object of all parameters
 	 * @param {string} parameters.ip - IP of the peer
-	 * @param {string} parameters.wsPort - WS Port of the peer
-	 * @param {string} parameters.httpPort - Web Socket Port of the peer
 	 * @param {string} parameters.os - OS of the peer
 	 * @param {string} parameters.version - Version the peer is running
 	 * @param {int} parameters.state - Peer State

@@ -216,16 +216,6 @@ describe('connect', async () => {
 						.to.have.nested.property('connectionOptions.query.nonce')
 						.to.eql(System.headers.nonce));
 
-				it('should contain wsPort if present on system headers', async () =>
-					expect(peerAsResult)
-						.to.have.nested.property('connectionOptions.query.wsPort')
-						.to.eql(System.headers.wsPort));
-
-				it('should contain httpPort if present on system headers', async () =>
-					expect(peerAsResult)
-						.to.have.nested.property('connectionOptions.query.httpPort')
-						.to.eql(System.headers.httpPort));
-
 				it('should contain nethash if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nethash')
