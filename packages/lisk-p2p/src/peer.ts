@@ -71,6 +71,12 @@ export interface PeerConnectionState {
 	readonly outbound: ConnectionState;
 }
 
+export const constructPeerId = (ipAddress: string, wsPort: number): string =>
+	`${ipAddress}:${wsPort}`
+
+export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
+	`${peerInfo.ipAddress}:${peerInfo.wsPort}`
+
 export class Peer extends EventEmitter {
 	private readonly _id: string;
 	private readonly _ipAddress: string;
@@ -91,7 +97,7 @@ export class Peer extends EventEmitter {
 		this._peerInfo = peerInfo;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
-		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
+		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -201,14 +207,6 @@ export class Peer extends EventEmitter {
 
 	public get wsPort(): number {
 		return this._wsPort;
-	}
-
-	public static constructPeerId(ipAddress: string, wsPort: number): string {
-		return `${ipAddress}:${wsPort}`;
-	}
-
-	public static constructPeerIdFromPeerInfo(peerInfo: P2PPeerInfo): string {
-		return `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
 	}
 
 	/**

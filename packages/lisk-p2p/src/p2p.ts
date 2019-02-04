@@ -23,7 +23,7 @@ interface SCServerUpdated extends SCServer {
 }
 
 import { RequestFailError } from './errors';
-import { Peer } from './peer';
+import { constructPeerId, constructPeerIdFromPeerInfo, Peer } from './peer';
 import { PeerOptions } from './peer_selection';
 
 import {
@@ -105,7 +105,7 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerConnect = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			const peerId = Peer.constructPeerIdFromPeerInfo(peerInfo);
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (!this._triedPeers.has(peerId)) {
 				this._triedPeers.set(peerId, peerInfo);
 			}
@@ -113,7 +113,7 @@ export class P2P extends EventEmitter {
 		};
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			const peerId = Peer.constructPeerIdFromPeerInfo(peerInfo);
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (this._triedPeers.has(peerId)) {
 				this._triedPeers.delete(peerId);
 			}
@@ -223,7 +223,7 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
 				} else {
 					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
+					const peerId = constructPeerId(socket.remoteAddress, wsPort);
 
 					const incomingPeerInfo: P2PPeerInfo = {
 						...queryObject,
@@ -296,7 +296,7 @@ export class P2P extends EventEmitter {
 			this._config.blacklistedPeers,
 		);
 		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
-			const peerId = Peer.constructPeerIdFromPeerInfo(peerInfo);
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
 				this._newPeers.set(peerId, peerInfo);
 			}
