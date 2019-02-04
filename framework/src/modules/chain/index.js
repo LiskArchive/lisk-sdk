@@ -15,7 +15,7 @@ module.exports = {
 	actions: {},
 	async load(channel, options) {
 		blockchain = new Chain(channel, options);
-		channel.once('lisk:ready', async () => {
+		channel.once('lisk:ready', () => {
 			blockchain.bootstrap();
 		});
 	},

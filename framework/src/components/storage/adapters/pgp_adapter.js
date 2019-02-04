@@ -43,13 +43,13 @@ class PgpAdapter extends BaseAdapter {
 			capSQL: true,
 			promiseLib: Promise,
 			noLocking: options.inTest,
-			connect: async () => {
+			connect: () => {
 				this.emit(this.EVENT_CONNECT);
 			},
-			error: async () => {
+			error: () => {
 				this.emit(this.EVENT_ERROR);
 			},
-			disconnect: async () => {
+			disconnect: () => {
 				this.emit(this.EVENT_DISCONNECT);
 			},
 		};

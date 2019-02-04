@@ -358,7 +358,7 @@ __private.insertSeeds = function(cb) {
 			}
 			return setImmediate(eachCb);
 		},
-		async () => {
+		() => {
 			library.logger.trace('Peers->insertSeeds - Peers discovered', {
 				updated,
 				total: library.config.peers.list.length,
@@ -415,7 +415,7 @@ __private.dbLoad = function(cb) {
 					}
 					return setImmediate(eachCb);
 				},
-				async () => {
+				() => {
 					library.logger.trace('Peers->dbLoad Peers discovered', {
 						updated,
 						total: rows.length,
@@ -630,7 +630,7 @@ Peers.prototype.discover = function(cb) {
 					return setImmediate(eachCb);
 				});
 			},
-			async () => {
+			() => {
 				library.logger.trace('Peers discovered', peers.length);
 				return setImmediate(waterCb);
 			}
@@ -819,7 +819,7 @@ Peers.prototype.onBlockchainReady = function() {
 				self.discover(() => setImmediate(seriesCb));
 			},
 		},
-		async () => {
+		() => {
 			library.bus.message('peersReady');
 		}
 	);
@@ -891,7 +891,7 @@ Peers.prototype.onPeersReady = function() {
 							}
 							return setImmediate(eachCb);
 						},
-						async () => {
+						() => {
 							library.logger.trace('Peers updated', {
 								updated,
 								total: peers.length,
@@ -901,7 +901,7 @@ Peers.prototype.onPeersReady = function() {
 					);
 				},
 			},
-			async () => setImmediate(cb)
+			() => setImmediate(cb)
 		);
 	}
 

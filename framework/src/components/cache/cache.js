@@ -168,7 +168,7 @@ class Cache {
 		let keys;
 		let cursor = 0;
 
-		const scan = async () =>
+		const scan = () =>
 			this.scanAsync(cursor, 'MATCH', pattern).then((res, err) => {
 				if (err) throw err;
 

@@ -63,7 +63,7 @@ WSServer.prototype.start = function() {
 
 		self.socketCluster = new SocketCluster(self.options);
 
-		self.socketCluster.on('ready', async () => {
+		self.socketCluster.on('ready', () => {
 			self.socketClient = new WSClient(self.options.headers);
 			self.rpcServer = new MasterWAMPServer(
 				self.socketCluster,
@@ -105,7 +105,7 @@ WSServer.prototype.start = function() {
 			reject(error);
 		});
 
-		self.socketCluster.on('error', async () => {
+		self.socketCluster.on('error', () => {
 			self.stop();
 		});
 	}).catch(err => {
@@ -136,10 +136,10 @@ server
 		server.stop();
 	});
 
-process.on('close', async () => {
+process.on('close', () => {
 	server.stop();
 });
 
-process.on('exit', async () => {
+process.on('exit', () => {
 	server.stop();
 });

@@ -35,9 +35,9 @@ const registerProcessHooks = app => {
 		app.shutdown(1);
 	});
 
-	process.once('SIGTERM', async () => app.shutdown(1));
+	process.once('SIGTERM', () => app.shutdown(1));
 
-	process.once('SIGINT', async () => app.shutdown(1));
+	process.once('SIGINT', () => app.shutdown(1));
 
 	process.once('cleanup', (error, code) => app.shutdown(code, error));
 

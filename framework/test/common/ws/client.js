@@ -51,7 +51,7 @@ WSClient.prototype.start = function() {
 	// Call updateMyself RPC on the peer to:
 	// 1. Initialize the connection.
 	// 2. Send our headers to the peer.
-	this.client.rpc.updateMyself(this.headers, async () => {});
+	this.client.rpc.updateMyself(this.headers, () => {});
 };
 
 /**

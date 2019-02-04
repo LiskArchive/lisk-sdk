@@ -154,7 +154,7 @@ const runParallelTests = (suiteFolder, mochaArguments) =>
 
 		const completedFiles = {};
 
-		const next = async () => {
+		const next = () => {
 			const testFile = allFiles.splice(0, 1);
 			spawnParallelTest(testFile, mochaArguments)
 				.then(testFileAfter => {

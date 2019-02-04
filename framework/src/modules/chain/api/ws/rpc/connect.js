@@ -128,7 +128,7 @@ const connectSteps = {
 				peerExtendedWithRPC.rpc[rpcProcedureName] = (data, rpcCallback) => {
 					// Provide default parameters if called with non standard parameter, callback
 					if (typeof rpcCallback !== 'function') {
-						rpcCallback = async () => {};
+						rpcCallback = () => {};
 					}
 					if (typeof data === 'function') {
 						rpcCallback = data;
@@ -195,7 +195,7 @@ const connectSteps = {
 	registerSocketListeners: (peer, logger) => {
 		const socket = peer.socket;
 
-		socket.on('connect', async () => {
+		socket.on('connect', () => {
 			logger.trace(
 				`[Outbound socket :: connect] Peer connection to ${
 					peer.string
@@ -203,7 +203,7 @@ const connectSteps = {
 			);
 		});
 
-		socket.on('disconnect', async () => {
+		socket.on('disconnect', () => {
 			logger.trace(
 				`[Outbound socket :: disconnect] Peer connection to ${
 					peer.string
@@ -213,7 +213,7 @@ const connectSteps = {
 
 		// When handshake process will fail - disconnect
 		// ToDo: Use parameters code and description returned while handshake fails
-		socket.on('connectAbort', async () => {
+		socket.on('connectAbort', () => {
 			socket.disconnect(
 				failureCodes.HANDSHAKE_ERROR,
 				failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]

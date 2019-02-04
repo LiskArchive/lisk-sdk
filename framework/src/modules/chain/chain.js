@@ -5,6 +5,8 @@ const dns = require('dns');
 const net = require('net');
 const SocketCluster = require('socketcluster');
 const async = require('async');
+const randomstring = require('randomstring');
+const packageJSON = require('../../../../package.json');
 const wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 const WsTransport = require('./api/ws/transport');
 const git = require('./helpers/git.js');
@@ -131,6 +133,10 @@ module.exports = class Chain {
 		appConfig.genesisBlock = this.options.genesisBlock;
 		appConfig.nethash = this.options.genesisBlock.payloadHash;
 		appConfig.root = path.dirname(path.join(__filename));
+		appConfig.version = packageJSON.version;
+		appConfig.minVersion = packageJSON.lisk.minVersion;
+		appConfig.protocolVersion = packageJSON.lisk.protocolVersion;
+		appConfig.nonce = randomstring.generate(16);
 
 		const self = this;
 
@@ -468,7 +474,7 @@ module.exports = class Chain {
 							new MasterWAMPServer(scope.socketCluster, childProcessOptions)
 						);
 
-						scope.socketCluster.on('ready', async () => {
+						scope.socketCluster.on('ready', () => {
 							scope.logger.info(
 								'Socket Cluster ready for incoming connections'
 							);

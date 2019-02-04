@@ -221,7 +221,7 @@ SCWorker.create({
 						Rules.UPDATES.REMOVE,
 						socket,
 						new Peer(headers).object(),
-						async () => {}
+						() => {}
 					);
 				}
 

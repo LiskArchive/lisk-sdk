@@ -74,7 +74,7 @@ application.init(
 			console.info(data);
 		};
 
-		replServer.on('exit', async () => {
+		replServer.on('exit', () => {
 			console.info('Goodbye! See you later.');
 			process.exit();
 		});

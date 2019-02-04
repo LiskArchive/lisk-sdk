@@ -67,7 +67,7 @@ class StorageSandbox extends Storage {
 			});
 		};
 
-		process.on('exit', async () => {
+		process.on('exit', () => {
 			dropCreatedDatabases();
 		});
 
@@ -99,9 +99,7 @@ class StorageSandbox extends Storage {
 
 	_dropDB() {
 		return new Promise(resolve => {
-			child_process.exec(`dropdb ${this.options.database}`, async () =>
-				resolve()
-			);
+			child_process.exec(`dropdb ${this.options.database}`, () => resolve());
 		});
 	}
 

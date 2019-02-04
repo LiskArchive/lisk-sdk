@@ -171,7 +171,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 
 			request.catch(err => doWhilstCb(err));
 		},
-		async () => height < target,
+		() => height < target,
 		err => {
 			if (err) {
 				return setImmediate(cb, err);
