@@ -482,13 +482,13 @@ Peers.prototype.getLastConsensus = function() {
  * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as system broadhash
  * @returns {number} Consensus or undefined if config.forging.force = true
  */
-Peers.prototype.calculateConsensus = function(active, matched) {
+Peers.prototype.calculateConsensus = async function(active, matched) {
 	active =
 		active ||
 		library.logic.peers
 			.list(true)
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	const broadhash = components.system.getBroadhash();
+	const broadhash = await components.system.getBroadhash();
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
@@ -683,9 +683,10 @@ Peers.prototype.acceptable = function(peers) {
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, peers
  */
-Peers.prototype.list = function(options, cb) {
+Peers.prototype.list = async function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const broadhash = options.broadhash || components.system.getBroadhash();
+	const broadhash =
+		options.broadhash || (await components.system.getBroadhash());
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
 		options.attempt === 0 || options.attempt === 1 ? [options.attempt] : [1, 0];
@@ -908,11 +909,12 @@ Peers.prototype.onPeersReady = function() {
 	}
 
 	function calculateConsensus(cb) {
-		self.calculateConsensus();
-		library.logger.debug(
-			['Broadhash consensus:', self.getLastConsensus(), '%'].join(' ')
-		);
-		return setImmediate(cb);
+		return self.calculateConsensus().then(() => {
+			library.logger.debug(
+				['Broadhash consensus:', self.getLastConsensus(), '%'].join(' ')
+			);
+			return setImmediate(cb);
+		});
 	}
 	// Loop in 30 sec intervals for less new insertion after removal
 	jobsQueue.register(

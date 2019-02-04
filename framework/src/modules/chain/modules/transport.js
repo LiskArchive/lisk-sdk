@@ -427,7 +427,7 @@ Transport.prototype.broadcastHeaders = cb => {
  * @param {boolean} broadcast - Signal flag for broadcast
  * @emits blocks/change
  */
-Transport.prototype.onBroadcastBlock = function(block, broadcast) {
+Transport.prototype.onBroadcastBlock = async function(block, broadcast) {
 	// Exit immediately when 'broadcast' flag is not set
 	if (!broadcast) return;
 
@@ -456,10 +456,12 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	if (block.reward) {
 		block.reward = block.reward.toNumber();
 	}
+
+	const broadhash = await components.system.getBroadhash();
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
 		{
-			broadhash: components.system.getBroadhash(),
+			broadhash,
 		},
 		{ api: 'postBlock', data: { block }, immediate: true }
 	);

@@ -180,18 +180,19 @@ Node.prototype.shared = {
 		}
 		return modules.peers.networkHeight(
 			{ normalized: false },
-			(err, networkHeight) => {
-				setImmediate(cb, null, {
-					broadhash: components.system.getBroadhash(),
-					consensus: modules.peers.getLastConsensus(),
-					currentTime: Date.now(),
-					secondsSinceEpoch: slots.getTime(),
-					height: modules.blocks.lastBlock.get().height,
-					loaded: modules.loader.loaded(),
-					networkHeight,
-					syncing: modules.loader.syncing(),
-				});
-			}
+			(err, networkHeight) =>
+				components.system.getBroadhash().then(broadhash =>
+					setImmediate(cb, null, {
+						broadhash,
+						consensus: modules.peers.getLastConsensus(),
+						currentTime: Date.now(),
+						secondsSinceEpoch: slots.getTime(),
+						height: modules.blocks.lastBlock.get().height,
+						loaded: modules.loader.loaded(),
+						networkHeight,
+						syncing: modules.loader.syncing(),
+					})
+				)
 		);
 	},
 };

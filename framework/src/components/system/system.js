@@ -16,30 +16,25 @@
 
 const os = require('os');
 const crypto = require('crypto');
-const async = require('async');
 const semver = require('semver');
 
-// Private fields
-let self;
-
 /**
- * Main system methods. Initializes library with scope content and private variables:
+ * Main system methods. Initializes library with scope content and headers:
  * - os
  * - version
- * - port
+ * - minVersion
+ * - protocolVersion
  * - height
  * - nethash
  * - broadhash
- * - minVersion
  * - nonce
  *
  * @class
- * @requires async
  * @requires crypto
  * @requires os
  * @requires semver
- * @param {setImmediateCallback} cb - Callback function
- * @param {scope} scope - App instance
+ * @param {Object} options - System options
+ * @param {Object} logger
  */
 class System {
 	constructor(config, logger, storage) {
@@ -55,45 +50,39 @@ class System {
 			broadhash: config.nethash,
 			nonce: config.nonce,
 		};
-
-		self = this;
 	}
 
 	/**
-	 * Invokes cb with broadhash.
+	 * It calculates and returns broadhash.
 	 *
-	 * @param {function} cb
 	 * @param {Error} err
-	 * @param {string} broadhash
-	 * @todo Add description for the params
+	 * @returns {string} broadhash
 	 */
-	getBroadhash(cb) {
-		if (typeof cb !== 'function') {
-			return this.headers.broadhash;
-		}
-
-		return this.storage.entities.Block.get(
-			{},
-			{ limit: 5, sort: 'height:desc' }
-		)
-			.then(rows => {
-				if (rows.length <= 1) {
-					// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
-					return setImmediate(cb, null, self.headers.nethash);
+	async getBroadhash() {
+		try {
+			const blocks = await this.storage.entities.Block.get(
+				{},
+				{
+					limit: 5,
+					sort: 'height:desc',
 				}
-				const seed = rows.map(row => row.b_id).join('');
-				const broadhash = crypto
-					.createHash('sha256')
-					.update(seed, 'utf8')
-					.digest()
-					.toString('hex');
+			);
+			if (blocks.length <= 1) {
+				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
+				return this.headers.nethash;
+			}
+			const seed = blocks.map(row => row.b_id).join('');
+			const broadhash = crypto
+				.createHash('sha256')
+				.update(seed, 'utf8')
+				.digest()
+				.toString('hex');
 
-				return setImmediate(cb, null, broadhash);
-			})
-			.catch(err => {
-				this.logger.error(err.stack);
-				return setImmediate(cb, err);
-			});
+			return broadhash;
+		} catch (err) {
+			this.logger.error(err.stack);
+			return err;
+		}
 	}
 
 	/**
@@ -101,7 +90,6 @@ class System {
 	 *
 	 * @param {string} nethash
 	 * @returns {boolean}
-	 * @todo Add description for the params and the return value
 	 */
 	networkCompatible(nethash) {
 		return this.headers.nethash === nethash;
@@ -112,7 +100,6 @@ class System {
 	 *
 	 * @param {string} version
 	 * @returns {boolean}
-	 * @todo Add description for the params and the return value
 	 */
 	versionCompatible(version) {
 		return semver.gte(version, this.headers.minVersion);
@@ -136,7 +123,6 @@ class System {
 	 *
 	 * @param nonce
 	 * @returns {boolean}
-	 * @todo Add description for the params and the return value
 	 */
 	nonceCompatible(nonce) {
 		return nonce && this.headers.nonce !== nonce;
@@ -146,39 +132,25 @@ class System {
 	 * Updates private broadhash and height values.
 	 *
 	 * @param {Object} block - block
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
+	 * @returns Promise.resolves | err
 	 */
-	update(cb) {
-		async.series(
-			{
-				getBroadhash(seriesCb) {
-					self.getBroadhash((err, hash) => {
-						if (!err) {
-							self.broadhash = hash;
-						}
-
-						return setImmediate(seriesCb);
-					});
-				},
-				getHeight(seriesCb) {
-					return self.storage.entities.Block.get(
-						{},
-						{
-							limit: 5,
-							sort: 'height:desc',
-						}
-					).then(blocks => {
-						self.height = blocks[0].height;
-						return setImmediate(seriesCb);
-					});
-				},
-			},
-			err => {
-				this.logger.debug('System headers', this.headers);
-				return setImmediate(cb, err);
-			}
-		);
+	async update() {
+		try {
+			const hash = await this.getBroadhash();
+			this.headers.broadhash = hash;
+			const blocks = await this.storage.entities.Block.get(
+				{},
+				{
+					limit: 5,
+					sort: 'height:desc',
+				}
+			);
+			this.height = blocks[0].height;
+			return Promise.resolves();
+		} catch (err) {
+			this.logger.debug('System headers', this.headers);
+			return err;
+		}
 	}
 }
 

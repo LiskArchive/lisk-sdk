@@ -845,9 +845,10 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'false' if block comes from chain synchronisation process
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				!library.config.loading.snapshotRound
-					? components.system.update(seriesCb)
-					: seriesCb();
+				if (!library.config.loading.snapshotRound) {
+					return components.system.update().then(() => seriesCb());
+				}
+				return seriesCb();
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers

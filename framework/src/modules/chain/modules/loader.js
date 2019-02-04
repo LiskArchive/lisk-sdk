@@ -945,27 +945,31 @@ __private.sync = function(cb) {
 	async.series(
 		{
 			calculateConsensusBefore(seriesCb) {
-				library.logger.debug(
-					`Establishing broadhash consensus before sync: ${modules.peers.calculateConsensus()} %`
-				);
-				return seriesCb();
+				return modules.peers.calculateConsensus().then(consensus => {
+					library.logger.debug(
+						`Establishing broadhash consensus before sync: ${consensus} %`
+					);
+					return seriesCb();
+				});
 			},
 			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				components.system.update(seriesCb);
+				return components.system.update().then(() => seriesCb());
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
 				modules.transport.broadcastHeaders(seriesCb);
 			},
 			calculateConsensusAfter(seriesCb) {
-				library.logger.debug(
-					`Establishing broadhash consensus after sync: ${modules.peers.calculateConsensus()} %`
-				);
-				return seriesCb();
+				return modules.peers.calculateConsensus().then(consensus => {
+					library.logger.debug(
+						`Establishing broadhash consensus after sync: ${consensus} %`
+					);
+					return seriesCb();
+				});
 			},
 		},
 		err => {
