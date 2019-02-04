@@ -293,10 +293,4 @@ class System {
 	}
 }
 
-function createSystemComponent(config, logger, storage) {
-	return new System(config, logger, storage);
-}
-
-module.exports = {
-	createSystemComponent,
-};
+module.exports = System;

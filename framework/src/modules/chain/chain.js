@@ -15,7 +15,7 @@ const swaggerHelper = require('./helpers/swagger');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { createSystemComponent } = require('./modules/system');
+const { createSystemComponent } = require('../../components/system');
 const defaults = require('./defaults');
 
 // Define workers_controller path
