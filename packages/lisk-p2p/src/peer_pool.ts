@@ -256,8 +256,9 @@ export class PeerPool extends EventEmitter {
 				(peer: Peer): ProtocolPeerInfo | undefined => {
 					const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined = peer.detailedPeerInfo;
 					if (!peerDetailedInfo) {
-						return;
+						return undefined;
 					}
+					
 					return {
 						broadhash: peerDetailedInfo.options
 							? (peerDetailedInfo.options.broadhash as string)
