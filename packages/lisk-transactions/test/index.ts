@@ -29,12 +29,6 @@ describe('transaction', () => {
 				.and.be.a('function');
 		});
 
-		it('should have #createDapp', () => {
-			return expect(transaction)
-				.to.have.property('createDapp')
-				.and.be.a('function');
-		});
-
 		it('should have #createSignatureObject', () => {
 			return expect(transaction)
 				.to.have.property('createSignatureObject')

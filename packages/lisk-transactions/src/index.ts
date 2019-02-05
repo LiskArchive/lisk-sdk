@@ -18,7 +18,6 @@ import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
 import {
 	BaseTransaction,
-	DappTransaction,
 	DelegateTransaction,
 	InTransferTransaction,
 	MultisignatureTransaction,
@@ -27,9 +26,6 @@ import {
 	VoteTransaction,
 } from './transactions';
 import * as utils from './utils';
-
-// tslint:disable-next-line no-unbound-method
-const createDapp = DappTransaction.create;
 
 export {
 	BaseTransaction,
@@ -42,7 +38,6 @@ export {
 	transfer,
 	registerMultisignature,
 	createSignatureObject,
-	createDapp,
 	utils,
 	constants,
 };

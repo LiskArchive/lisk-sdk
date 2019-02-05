@@ -21,7 +21,6 @@ import {
 import { validDappTransactions, validVoteTransactions } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
 import * as utils from '../../src/utils';
-import { DAPP_FEE } from '../../src/constants';
 
 describe('Dapp transaction class', () => {
 	const defaultValidDappTransaction = validDappTransactions[0];
@@ -52,130 +51,6 @@ describe('Dapp transaction class', () => {
 			expect(() => new DappTransaction(invalidDappTransactionData)).to.throw(
 				'Invalid field types.',
 			);
-		});
-	});
-
-	describe('#create', () => {
-		const timeWithOffset = 38350076;
-		const passphrase = 'secret';
-		const secondPassphrase = 'second secret';
-		const defaultOptions = {
-			name: 'bitbooks',
-			type: 0,
-			link: 'https://github.com/VivekAusekar/liskApp/archive/stage.zip',
-			category: 0,
-		};
-
-		let result: object;
-
-		beforeEach(async () => {
-			sandbox.stub(utils, 'getTimeWithOffset').returns(timeWithOffset);
-		});
-
-		describe('when the transaction is created with one passphrase and minimum options', () => {
-			beforeEach(async () => {
-				result = DappTransaction.create({
-					passphrase,
-					options: defaultOptions,
-				});
-			});
-
-			it('should create dapp transaction ', async () => {
-				expect(result).to.have.property('id');
-				expect(result).to.have.property('type', 5);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property('fee', DAPP_FEE.toString());
-				expect(result).to.have.property('senderId');
-				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property('recipientId', '');
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect(result).to.have.property('signature').and.not.to.be.empty;
-				expect((result as any).asset.dapp).to.eql(defaultOptions);
-			});
-
-			it('should use time.getTimeWithOffset to calculate the timestamp', async () => {
-				expect(utils.getTimeWithOffset).to.be.calledWithExactly(undefined);
-			});
-
-			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', async () => {
-				const offset = -10;
-				DappTransaction.create({
-					passphrase,
-					options: defaultOptions,
-					timeOffset: offset,
-				});
-				expect(utils.getTimeWithOffset).to.be.calledWithExactly(offset);
-			});
-		});
-
-		describe('when the transaction is created with first and second passphrase', () => {
-			beforeEach(async () => {
-				result = DappTransaction.create({
-					passphrase,
-					secondPassphrase,
-					options: defaultOptions,
-				});
-			});
-
-			it('should create dapp transaction ', async () => {
-				expect(result).to.have.property('id');
-				expect(result).to.have.property('type', 5);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property('fee', DAPP_FEE.toString());
-				expect(result).to.have.property('senderId');
-				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property('recipientId', '');
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect(result).to.have.property('signature').and.not.to.be.empty;
-				expect(result).to.have.property('signSignature').and.not.to.be.empty;
-				expect((result as any).asset.dapp).to.eql(defaultOptions);
-			});
-		});
-
-		describe('when the transaction is created with invalid inputs', () => {
-			it('should throw an invalid input error when option is empty object', () => {
-				expect(
-					DappTransaction.create.bind(undefined, {
-						passphrase,
-						secondPassphrase,
-						options: {} as any,
-					}),
-				).to.throw('Invalid field types.');
-			});
-
-			it('should throw an invalid input error when name exceeds 20 characters', () => {
-				expect(
-					DappTransaction.create.bind(undefined, {
-						passphrase,
-						secondPassphrase,
-						options: {} as any,
-					}),
-				).to.throw('Invalid field types.');
-			});
-		});
-
-		describe('when the transaction is created without passphrase', () => {
-			beforeEach(async () => {
-				result = DappTransaction.create({
-					options: defaultOptions,
-				});
-			});
-
-			it('should create vote transaction ', async () => {
-				expect(result).to.have.property('type', 5);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property('fee', DAPP_FEE.toString());
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect((result as any).asset.dapp).to.eql(defaultOptions);
-
-				expect((result as any).senderId).to.be.undefined;
-				expect((result as any).senderPublicKey).to.be.undefined;
-				expect(result).to.have.property('recipientId', '');
-
-				expect(result).not.to.have.property('id');
-				expect(result).not.to.have.property('signature');
-				expect(result).not.to.have.property('signSignature');
-			});
 		});
 	});
 
