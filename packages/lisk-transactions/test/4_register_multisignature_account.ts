@@ -155,9 +155,8 @@ describe('#registerMultisignature transaction', () => {
 			});
 
 			it('second signature property should be undefined', () => {
-				return expect(
-					registerMultisignatureTransaction.signSignature,
-				).to.be.eql(undefined);
+				return expect(registerMultisignatureTransaction.signSignature).to.be
+					.undefined;
 			});
 
 			describe('multisignature asset', () => {

@@ -251,7 +251,7 @@ describe('#createDapp transaction', () => {
 			});
 
 			it('second signature property should be undefined', () => {
-				return expect(createDappTransaction.signSignature).to.be.eql(undefined);
+				return expect(createDappTransaction.signSignature).to.be.undefined;
 			});
 
 			it('should have asset', () => {

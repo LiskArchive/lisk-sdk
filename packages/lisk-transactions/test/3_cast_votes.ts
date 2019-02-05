@@ -134,7 +134,7 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('second signature property should be undefined', () => {
-				return expect(castVotesTransaction.signSignature).to.be.eql(undefined);
+				return expect(castVotesTransaction.signSignature).to.be.undefined;
 			});
 
 			it('should have asset', () => {
