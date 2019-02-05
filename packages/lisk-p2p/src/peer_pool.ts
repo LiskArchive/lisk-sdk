@@ -28,6 +28,7 @@ import {
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	ProtocolPeerInfo,
 	ProtocolPeerInfoList,
 } from './p2p_types';
 import {
@@ -250,37 +251,32 @@ export class PeerPool extends EventEmitter {
 		const protocolPeerInfoList: ProtocolPeerInfoList = {
 			success: true,
 			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
-			peers: this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE).map(
-				(peer: Peer) => {
-					const peerDetailedInfo = peer.detailedPeerInfo;
-					const peerInfo = peer.peerInfo;
-
-					if (peerDetailedInfo) {
-						return {
-							broadhash: peerDetailedInfo.options
-								? (peerDetailedInfo.options.broadhash as string)
-								: '',
-							height: peerDetailedInfo.height,
-							ip: peerDetailedInfo.ipAddress,
-							nonce: peerDetailedInfo.options
-								? (peerDetailedInfo.options.nonce as string)
-								: '',
-							os: peerDetailedInfo.os ? peerDetailedInfo.os : '',
-							version: peerDetailedInfo.version ? peerDetailedInfo.version : '',
-							wsPort: String(peerInfo.wsPort),
-						};
+			peers: this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE)
+			.map(
+				(peer: Peer): ProtocolPeerInfo | undefined => {
+					const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined = peer.detailedPeerInfo;
+					if (!peerDetailedInfo) {
+						return;
 					}
-
 					return {
-						broadhash: '',
-						height: peerInfo.height,
-						ip: peerInfo.ipAddress,
-						nonce: '',
-						os: '',
-						version: '',
-						wsPort: String(peerInfo.wsPort),
+						broadhash: peerDetailedInfo.options
+							? (peerDetailedInfo.options.broadhash as string)
+							: '',
+						height: peerDetailedInfo.height,
+						ip: peerDetailedInfo.ipAddress,
+						nonce: peerDetailedInfo.options
+							? (peerDetailedInfo.options.nonce as string)
+							: '',
+						os: peerDetailedInfo.os ? peerDetailedInfo.os : '',
+						version: peerDetailedInfo.version ? peerDetailedInfo.version : '',
+						wsPort: String(peerDetailedInfo.wsPort),
 					};
 				},
+			)
+			.filter((peerDetailedInfo: ProtocolPeerInfo | undefined) => !!peerDetailedInfo)
+			.map(
+				(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
+					peerDetailedInfo as ProtocolPeerInfo
 			),
 		};
 
