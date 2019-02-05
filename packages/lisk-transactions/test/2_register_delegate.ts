@@ -14,11 +14,7 @@
  */
 import { expect } from 'chai';
 import { registerDelegate } from '../src/2_register_delegate';
-import {
-	DelegateAsset,
-	DelegateTransaction as iDelegateTransaction,
-	TransactionJSON,
-} from '../src/transaction_types';
+import { DelegateAsset, TransactionJSON } from '../src/transaction_types';
 // Require is used for stubbing
 import * as utils from '../src/utils';
 
@@ -35,9 +31,7 @@ describe('#registerDelegate transaction', () => {
 	const amount = '0';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let registerDelegateTransaction: Partial<
-		iDelegateTransaction | TransactionJSON
-	>;
+	let registerDelegateTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

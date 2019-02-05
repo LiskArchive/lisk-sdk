@@ -15,11 +15,7 @@
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/4_register_multisignature_account';
-import {
-	MultiSignatureAsset,
-	MultiSignatureTransaction as iMultiSignatureTransaction,
-	TransactionJSON,
-} from '../src/transaction_types';
+import { MultiSignatureAsset, TransactionJSON } from '../src/transaction_types';
 // Require is used for stubbing
 import * as utils from '../src/utils';
 
@@ -44,9 +40,7 @@ describe('#registerMultisignature transaction', () => {
 	let plusPrependedPublicKeyKeysgroup: Array<string>;
 	let keysgroup: Array<string>;
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let registerMultisignatureTransaction: Partial<
-		iMultiSignatureTransaction | TransactionJSON
-	>;
+	let registerMultisignatureTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

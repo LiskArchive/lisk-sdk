@@ -13,10 +13,7 @@
  *
  */
 import { DAPP_FEE } from './constants';
-import {
-	DappTransaction as iDappTransaction,
-	TransactionJSON,
-} from './transaction_types';
+import { TransactionJSON } from './transaction_types';
 import { DappTransaction } from './transactions';
 import { createBaseTransaction, isValidInteger } from './utils';
 
@@ -69,9 +66,7 @@ const validateInputs = ({ options }: DappInputs): void => {
 	}
 };
 
-export const createDapp = (
-	inputs: DappInputs,
-): Partial<iDappTransaction | TransactionJSON> => {
+export const createDapp = (inputs: DappInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase, options } = inputs;
 

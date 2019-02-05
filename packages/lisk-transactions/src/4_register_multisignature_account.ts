@@ -19,10 +19,7 @@ import {
 	MULTISIGNATURE_MIN_KEYSGROUP,
 	MULTISIGNATURE_MIN_LIFETIME,
 } from './constants';
-import {
-	MultiSignatureTransaction as iMultiSignatureTransaction,
-	TransactionJSON,
-} from './transaction_types';
+import { TransactionJSON } from './transaction_types';
 import { MultisignatureTransaction } from './transactions';
 import {
 	createBaseTransaction,
@@ -79,7 +76,7 @@ const validateInputs = ({
 
 export const registerMultisignature = (
 	inputs: RegisterMultisignatureInputs,
-): Partial<iMultiSignatureTransaction | TransactionJSON> => {
+): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { keysgroup, lifetime, minimum, passphrase, secondPassphrase } = inputs;
 

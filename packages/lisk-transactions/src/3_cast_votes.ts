@@ -13,10 +13,7 @@
  *
  */
 import { VOTE_FEE } from './constants';
-import {
-	TransactionJSON,
-	VoteTransaction as iVoteTransaction,
-} from './transaction_types';
+import { TransactionJSON } from './transaction_types';
 import { VoteTransaction } from './transactions';
 import {
 	createBaseTransaction,
@@ -53,9 +50,7 @@ const validateInputs = ({ votes = [], unvotes = [] }: VotesObject): void => {
 	validatePublicKeys([...votes, ...unvotes]);
 };
 
-export const castVotes = (
-	inputs: CastVoteInputs,
-): Partial<iVoteTransaction | TransactionJSON> => {
+export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase, votes = [], unvotes = [] } = inputs;
 

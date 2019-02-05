@@ -14,10 +14,7 @@
  */
 import { getKeys } from '@liskhq/lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
-import {
-	SecondSignatureTransaction as iSecondSignatureTransaction,
-	TransactionJSON,
-} from './transaction_types';
+import { TransactionJSON } from './transaction_types';
 import { SecondSignatureTransaction } from './transactions';
 import { createBaseTransaction } from './utils';
 
@@ -39,7 +36,7 @@ const validateInputs = ({
 
 export const registerSecondPassphrase = (
 	inputs: SecondPassphraseInputs,
-): Partial<iSecondSignatureTransaction | TransactionJSON> => {
+): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase } = inputs;
 	const { publicKey } = getKeys(secondPassphrase);
