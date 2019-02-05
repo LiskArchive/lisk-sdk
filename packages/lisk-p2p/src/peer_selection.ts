@@ -14,7 +14,6 @@
  */
 import { NotEnoughPeersError } from './errors';
 import { P2PPeerInfo } from './p2p_types';
-import { Peer } from './peer';
 
 export interface PeerOptions {
 	readonly [key: string]: string | number;
@@ -32,13 +31,13 @@ interface HistogramValues {
 // TODO ASAP: Consider changing selectPeers function to handle P2PDiscoveredPeerInfo instead of Peer objects.
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
-	peers: ReadonlyArray<Peer>,
+	peers: ReadonlyArray<P2PPeerInfo>,
 	selectionParams: PeerOptions = { lastBlockHeight: 0 },
 	numOfPeers: number = 0,
-): ReadonlyArray<Peer> => {
+): ReadonlyArray<P2PPeerInfo> => {
 	const filteredPeers = peers.filter(
 		// Remove unreachable peers or heights below last block height
-		(peer: Peer) => peer.height >= selectionParams.lastBlockHeight,
+		(peer: P2PPeerInfo) => peer.height >= selectionParams.lastBlockHeight,
 	);
 
 	if (filteredPeers.length === 0) {
@@ -51,7 +50,7 @@ export const selectPeers = (
 	const aggregation = 2;
 
 	const calculatedHistogramValues = sortedPeers.reduce(
-		(histogramValues: HistogramValues, peer: Peer) => {
+		(histogramValues: HistogramValues, peer: P2PPeerInfo) => {
 			const val = Math.floor(peer.height / aggregation) * aggregation;
 			histogramValues.histogram[val] =
 				(histogramValues.histogram[val] ? histogramValues.histogram[val] : 0) +
@@ -67,10 +66,11 @@ export const selectPeers = (
 	);
 
 	// Perform histogram cut of peers too far from histogram maximum
-	const processedPeers = sortedPeers.filter(peer => peer &&
-		Math.abs(
-			calculatedHistogramValues.height - peer.height
-		) < aggregation + 1
+	const processedPeers = sortedPeers.filter(
+		peer =>
+			peer &&
+			Math.abs(calculatedHistogramValues.height - peer.height) <
+				aggregation + 1,
 	);
 
 	if (numOfPeers <= 0) {
@@ -91,7 +91,7 @@ export const selectPeers = (
 	}
 
 	if (numOfPeers === 1) {
-		const goodPeer: ReadonlyArray<Peer> = [
+		const goodPeer: ReadonlyArray<P2PPeerInfo> = [
 			processedPeers[Math.floor(Math.random() * processedPeers.length)],
 		];
 
@@ -106,7 +106,7 @@ export const selectPeers = (
 			const peer = peerListObject.processedPeersArray[index];
 			// This will ensure that the selected peer is not choosen again by the random function above
 			const tempProcessedPeers = peerListObject.processedPeersArray.filter(
-				(findPeer: Peer) => findPeer !== peer,
+				(findPeer: P2PPeerInfo) => findPeer !== peer,
 			);
 
 			return {
