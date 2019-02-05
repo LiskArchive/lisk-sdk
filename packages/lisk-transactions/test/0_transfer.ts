@@ -139,7 +139,7 @@ describe('#transfer transaction', () => {
 			});
 
 			it('second signature property should be undefined', () => {
-				return expect(transferTransaction.signSignature).to.be.eql(undefined);
+				return expect(transferTransaction.signSignature).to.be.undefined;
 			});
 		});
 
