@@ -66,7 +66,6 @@ describe('system test (blocks) - process', () => {
 							'trs WHERE "blockId" != \'6524861224470851795\'',
 							"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
 							'forks_stat',
-							'votes WHERE "transactionId" = \'17502993173215211070\'',
 						],
 						(table, everyCb) => {
 							clearDatabaseTable(storage, modulesLoader.logger, table)
