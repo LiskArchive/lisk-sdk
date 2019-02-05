@@ -287,7 +287,6 @@ class Transaction extends BaseEntity {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	count(filters, _options = {}, tx) {
-		filters = Transaction._sanitizeFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters, {
 			filterPrefix: 'AND',
@@ -423,8 +422,6 @@ class Transaction extends BaseEntity {
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
-		filters = Transaction._sanitizeFilters(filters);
-
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters, {
 			filterPrefix: 'AND',
@@ -461,24 +458,6 @@ class Transaction extends BaseEntity {
 			{ expectedResultCount },
 			tx
 		);
-	}
-
-	static _sanitizeFilters(filters = {}) {
-		const sanitizeFilterObject = filterObject => {
-			if (filterObject.data_like) {
-				filterObject.data_like = Buffer.from(filterObject.data_like, 'utf8');
-			}
-			return filterObject;
-		};
-
-		// PostgresSQL does not support null byte buffer so have to parse in javascript
-		if (Array.isArray(filters)) {
-			filters = filters.map(sanitizeFilterObject);
-		} else {
-			filters = sanitizeFilterObject(filters);
-		}
-
-		return filters;
 	}
 }
 
