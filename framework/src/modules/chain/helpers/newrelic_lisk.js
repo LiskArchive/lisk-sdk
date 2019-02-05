@@ -28,7 +28,7 @@ newrelicLisk.instrumentBackgroundJobs();
 // TOFIX: fix callbackMethods converted to async in #2579
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
-	'./componentes/cache/cache': {
+	'./components/cache': {
 		identifier: 'components.cache',
 		callbackMethods: [
 			'getJsonForKey',
@@ -36,6 +36,10 @@ const modulesToInstrument = {
 			'deleteJsonForKey',
 			'removeByPattern',
 		],
+	},
+	'./componentes/system': {
+		identifier: 'components.system',
+		callbackMethods: ['update'],
 	},
 	'./helpers/sequence.js': {
 		identifier: 'helpers.sequence',
@@ -72,10 +76,6 @@ const modulesToInstrument = {
 	'./modules/signatures.js': {
 		identifier: 'modules.signatures',
 		callbackMethods: ['shared.postSignature', 'shared.postSignatures'],
-	},
-	'./modules/system.js': {
-		identifier: 'modules.system',
-		callbackMethods: ['update'],
 	},
 	'./modules/transactions.js': {
 		identifier: 'modules.transactions',
