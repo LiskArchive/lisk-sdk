@@ -32,7 +32,7 @@ import {
 	BaseTransaction,
 	createBaseTransaction,
 	StateStore,
-	StateStoreCache,
+	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_TRANSFER_TYPE = 0;
@@ -213,10 +213,15 @@ export class TransferTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStoreCache): Promise<void> {
-		await store.account.cache({
-			address: [this.senderId, this.recipientId],
-		});
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+			{
+				address: this.recipientId,
+			},
+		]);
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
@@ -297,7 +302,7 @@ export class TransferTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
 		if (updatedSenderBalance.lt(0)) {
@@ -315,8 +320,8 @@ export class TransferTransaction extends BaseTransaction {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
-		store.account.set(updatedSender);
-		const recipient = store.account.get<Account>('address', this.recipientId);
+		store.account.set(updatedSender.address, updatedSender);
+		const recipient = store.account.get(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -330,14 +335,14 @@ export class TransferTransaction extends BaseTransaction {
 			...recipient,
 			balance: updatedRecipientBalance.toString(),
 		};
-		store.account.set(updatedRecipient);
+		store.account.set(updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
 
 		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
@@ -348,8 +353,8 @@ export class TransferTransaction extends BaseTransaction {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
-		store.account.set<Account>(updatedSender);
-		const recipient = store.account.get<Account>('address', this.recipientId);
+		store.account.set(updatedSender.address, updatedSender);
+		const recipient = store.account.get(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
@@ -371,7 +376,7 @@ export class TransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.account.set<Account>(updatedRecipient);
+		store.account.set(updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}

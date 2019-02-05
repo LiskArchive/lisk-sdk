@@ -16,7 +16,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Account, Status, TransactionJSON } from '../transaction_types';
+import { Status, TransactionJSON } from '../transaction_types';
 import { prependMinusToPublicKeys, prependPlusToPublicKeys } from '../utils';
 import {
 	validateAddress,
@@ -28,7 +28,7 @@ import {
 	createBaseTransaction,
 	CreateBaseTransactionInput,
 	StateStore,
-	StateStoreCache,
+	StateStorePrepare,
 } from './base';
 
 const PREFIX_UPVOTE = '+';
@@ -184,14 +184,23 @@ export class VoteTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStoreCache): Promise<void> {
-		const publicKey = this.asset.votes.map(pkWithAction =>
-			pkWithAction.slice(1),
-		);
-		await store.account.cache({
-			address: [this.senderId],
-			publicKey: publicKey,
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		const publicKeyObjectArray = this.asset.votes.map(pkWithAction => {
+			const publicKey = pkWithAction.slice(1);
+
+			return {
+				publicKey,
+			};
 		});
+
+		const filterArray = [
+			{
+				address: this.senderId,
+			},
+			...publicKeyObjectArray,
+		];
+
+		await store.account.cache(filterArray);
 	}
 
 	protected verifyAgainstTransactions(
@@ -328,14 +337,17 @@ export class VoteTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 		this.asset.votes.forEach(actionVotes => {
 			const vote = actionVotes.substring(1);
-			const { username } = store.account.get<Account>(
-				'publicKey',
-				vote,
+			const voteAccount = store.account.find(
+				account => account.publicKey === vote,
 			);
-			if (username === undefined || username === '') {
+			if (
+				!voteAccount ||
+				(voteAccount &&
+					(voteAccount.username === undefined || voteAccount.username === ''))
+			) {
 				errors.push(
 					new TransactionError(`${vote} is not a delegate.`, this.id),
 				);
@@ -379,14 +391,14 @@ export class VoteTransaction extends BaseTransaction {
 			...sender,
 			votes,
 		};
-		store.account.set<Account>(updatedSender);
+		store.account.set(updatedSender.address, updatedSender);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors = [];
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 		const upvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
 			.map(vote => vote.substring(1));
@@ -409,7 +421,7 @@ export class VoteTransaction extends BaseTransaction {
 			...sender,
 			votes,
 		};
-		store.account.set<Account>(updatedSender);
+		store.account.set(updatedSender.address, updatedSender);
 
 		return errors;
 	}

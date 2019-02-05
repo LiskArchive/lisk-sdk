@@ -17,7 +17,6 @@ import * as BigNum from 'browserify-bignum';
 import { SIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
-	Account,
 	SecondSignatureAsset,
 	Status,
 	TransactionJSON,
@@ -27,7 +26,7 @@ import {
 	BaseTransaction,
 	createBaseTransaction,
 	StateStore,
-	StateStoreCache,
+	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_SIGNATURE_TYPE = 1;
@@ -163,10 +162,12 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStoreCache): Promise<void> {
-		await store.account.cache({
-			address: [this.senderId],
-		});
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
 	}
 
 	protected verifyAgainstTransactions(
@@ -245,7 +246,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 		// Check if secondPublicKey already exists on account
 		if (sender.secondPublicKey) {
 			errors.push(
@@ -260,15 +261,15 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			...sender,
 			secondPublicKey: this.asset.signature.publicKey,
 		};
-		store.account.set<Account>(updatedSender);
+		store.account.set(updatedSender.address, updatedSender);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 		const { secondPublicKey, ...strippedSender } = sender;
-		store.account.set<Account>(strippedSender);
+		store.account.set(strippedSender.address, strippedSender);
 
 		return [];
 	}

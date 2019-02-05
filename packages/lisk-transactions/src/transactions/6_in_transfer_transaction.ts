@@ -15,14 +15,10 @@
 import * as BigNum from 'browserify-bignum';
 import { IN_TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Account, Status, TransactionJSON } from '../transaction_types';
+import { Status, TransactionJSON } from '../transaction_types';
 import { convertBeddowsToLSK } from '../utils';
 import { validator } from '../utils/validation';
-import {
-	BaseTransaction,
-	StateStore,
-	StateStoreCache,
-} from './base';
+import { BaseTransaction, StateStore, StateStorePrepare } from './base';
 
 const TRANSACTION_INTRANSFER_TYPE = 6;
 
@@ -107,24 +103,22 @@ export class InTransferTransaction extends BaseTransaction {
 		return Buffer.from(this.asset.inTransfer.dappId, 'utf8');
 	}
 
-	public async prepareTransaction(store: StateStoreCache): Promise<void> {
-		const transactions = await store.transaction.cache({
-			id: [this.asset.inTransfer.dappId],
-		});
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([{ address: this.senderId }]);
+
+		const transactions = await store.transaction.cache([
+			{
+				id: this.asset.inTransfer.dappId,
+			},
+		]);
 
 		const dappTransaction = (transactions as ReadonlyArray<
 			TransactionJSON
 		>).find(tx => tx.id === this.asset.inTransfer.dappId);
 
-		const filterObject = dappTransaction
-			? {
-					address: [this.senderId, dappTransaction.senderId as string],
-			  }
-			: {
-					address: [this.senderId],
-			  };
-
-		await store.account.cache(filterObject);
+		if (dappTransaction) {
+			await store.account.cache([{ id: dappTransaction.senderId as string }]);
+		}
 	}
 
 	public assetToJSON(): object {
@@ -203,9 +197,9 @@ export class InTransferTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const idExists = store.transaction.exists(
-			'id',
-			this.asset.inTransfer.dappId,
+		const idExists = store.transaction.find(
+			(transaction: TransactionJSON) =>
+				transaction.id === this.asset.inTransfer.dappId,
 		);
 
 		if (!idExists) {
@@ -216,7 +210,7 @@ export class InTransferTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 
 		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
 		if (updatedBalance.lt(0)) {
@@ -231,17 +225,11 @@ export class InTransferTransaction extends BaseTransaction {
 		}
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
-		store.account.set<Account>(updatedSender);
+		store.account.set(updatedSender.address, updatedSender);
 
-		const dappTransaction = store.transaction.get<TransactionJSON>(
-			'id',
-			this.asset.inTransfer.dappId,
-		);
+		const dappTransaction = store.transaction.get(this.asset.inTransfer.dappId);
 
-		const recipient = store.account.get<Account>(
-			'address',
-			dappTransaction.senderId as string,
-		);
+		const recipient = store.account.get(dappTransaction.senderId as string);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -251,28 +239,22 @@ export class InTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.account.set<Account>(updatedRecipient);
+		store.account.set(updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors = [];
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.amount);
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
-		store.account.set<Account>(updatedSender);
+		store.account.set(updatedSender.address, updatedSender);
 
-		const dappTransaction = store.transaction.get<TransactionJSON>(
-			'id',
-			this.asset.inTransfer.dappId,
-		);
+		const dappTransaction = store.transaction.get(this.asset.inTransfer.dappId);
 
-		const recipient = store.account.get<Account>(
-			'address',
-			dappTransaction.senderId as string,
-		);
+		const recipient = store.account.get(dappTransaction.senderId as string);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
@@ -293,7 +275,7 @@ export class InTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.account.set<Account>(updatedRecipient);
+		store.account.set(updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}

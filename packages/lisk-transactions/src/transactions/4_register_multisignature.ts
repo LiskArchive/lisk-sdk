@@ -22,7 +22,6 @@ import {
 } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
-	Account,
 	MultiSignatureAsset,
 	Status,
 	TransactionJSON,
@@ -38,7 +37,7 @@ import {
 	createBaseTransaction,
 	CreateBaseTransactionInput,
 	StateStore,
-	StateStoreCache,
+	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
@@ -239,10 +238,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStoreCache): Promise<void> {
-		await store.account.cache({
-			address: [this.senderId],
-		});
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
 	}
 
 	protected verifyAgainstTransactions(
@@ -268,15 +269,15 @@ export class MultisignatureTransaction extends BaseTransaction {
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(multisignatureAssetFormatSchema, this.asset);
 		const errors = validator.errors
-		? validator.errors.map(
-				error =>
-					new TransactionError(
-						`'${error.dataPath}' ${error.message}`,
-						this.id,
-						error.dataPath,
-					),
-		  )
-		: [];
+			? validator.errors.map(
+					error =>
+						new TransactionError(
+							`'${error.dataPath}' ${error.message}`,
+							this.id,
+							error.dataPath,
+						),
+			  )
+			: [];
 
 		if (this.type !== TRANSACTION_MULTISIGNATURE_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
@@ -325,13 +326,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get<Account>('address', this.senderId); 
+		const sender = store.account.get(this.senderId);
 
 		// Check if multisignatures already exists on account
-		if (
-			sender.multisignatures &&
-			sender.multisignatures.length > 0
-		) {
+		if (sender.multisignatures && sender.multisignatures.length > 0) {
 			errors.push(
 				new TransactionError(
 					'Register multisignature only allowed once per account.',
@@ -342,9 +340,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check if multisignatures includes sender's own publicKey
-		if (
-			this.asset.multisignature.keysgroup.includes(`+${sender.publicKey}`)
-		) {
+		if (this.asset.multisignature.keysgroup.includes(`+${sender.publicKey}`)) {
 			errors.push(
 				new TransactionError(
 					'Invalid multisignature keysgroup. Can not contain sender',
@@ -362,18 +358,22 @@ export class MultisignatureTransaction extends BaseTransaction {
 			multimin: this.asset.multisignature.min,
 			multilifetime: this.asset.multisignature.lifetime,
 		};
-		store.account.set<Account>(updatedSender);
-
+		store.account.set(updatedSender.address, updatedSender);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 
-		const { multisignatures, multimin, multilifetime, ...strippedSender } = sender;
+		const {
+			multisignatures,
+			multimin,
+			multilifetime,
+			...strippedSender
+		} = sender;
 
-		store.account.set<Account>(strippedSender);
+		store.account.set(strippedSender.address, strippedSender);
 
 		return [];
 	}

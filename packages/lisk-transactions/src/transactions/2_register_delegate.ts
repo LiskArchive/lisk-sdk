@@ -28,7 +28,7 @@ import {
 	CreateBaseTransactionInput,
 	ENTITY_ACCOUNT,
 	StateStore,
-	StateStoreCache,
+	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_DELEGATE_TYPE = 2;
@@ -184,11 +184,15 @@ export class DelegateTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStoreCache): Promise<void> {
-		await store.account.cache({
-			address: [this.senderId],
-			username: [this.asset.delegate.username],
-		});
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+			{
+				username: this.asset.delegate.username,
+			},
+		]);
 	}
 
 	protected verifyAgainstTransactions(
@@ -256,11 +260,12 @@ export class DelegateTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
+		const usernameExists = store.account.find(
+			(account: Account) => account.username === this.asset.delegate.username,
+		);
 
-		if (
-			store.account.exists('username', this.asset.delegate.username)
-		) {
+		if (usernameExists) {
 			errors.push(
 				new TransactionError(
 					`Username is not unique.`,
@@ -283,15 +288,15 @@ export class DelegateTransaction extends BaseTransaction {
 			isDelegate: true,
 			username: this.asset.delegate.username,
 		};
-		store.account.set<Account>(updatedSender);
+		store.account.set(updatedSender.address, updatedSender);
 
 		return errors;
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get<Account>('address', this.senderId);
+		const sender = store.account.get(this.senderId);
 		const { username, ...strippedSender } = sender;
-		store.account.set<Account>(strippedSender);
+		store.account.set(strippedSender.address, strippedSender);
 
 		return [];
 	}

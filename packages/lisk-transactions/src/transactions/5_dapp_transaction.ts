@@ -22,7 +22,7 @@ import {
 	createBaseTransaction,
 	CreateBaseTransactionInput,
 	StateStore,
-	StateStoreCache,
+	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_DAPP_TYPE = 5;
@@ -249,15 +249,19 @@ export class DappTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStoreCache): Promise<void> {
-		await store.account.cache({
-			address: [this.senderId],
-		});
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
 
-		await store.transaction.cache({
-			dapp_name: [this.asset.dapp.name],
-			dapp_link: [this.asset.dapp.link],
-		});
+		await store.transaction.cache([
+			{
+				dapp_name: this.asset.dapp.name,
+			},
+			{ dapp_link: this.asset.dapp.link },
+		]);
 	}
 
 	protected verifyAgainstTransactions(
@@ -380,9 +384,8 @@ export class DappTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const nameExists = store.transaction.exists(
-			'asset.dapp.name',
-			this.asset.dapp.name,
+		const nameExists = store.transaction.find((transaction: TransactionJSON) => 
+			(transaction.asset as DappAsset).dapp.name === this.asset.dapp.name,
 		);
 
 		if (nameExists) {
@@ -394,10 +397,8 @@ export class DappTransaction extends BaseTransaction {
 			);
 		}
 
-		const linkExists = store.transaction.exists(
-			'asset.dapp.link',
-			this.asset.dapp.name,
-		);
+		const linkExists = store.transaction.find((transaction: TransactionJSON) => 
+			(transaction.asset as DappAsset).dapp.link === this.asset.dapp.link);
 
 		if (linkExists) {
 			errors.push(
