@@ -181,7 +181,11 @@ function __init(initScope, done) {
 						__testContext.config.redis,
 						logger
 					);
-					const system = createSystemComponent(__testContext.config, logger);
+					const system = createSystemComponent(
+						__testContext.config,
+						logger,
+						storage
+					);
 					return cache.bootstrap().then(err => {
 						if (err) {
 							return cb(err);

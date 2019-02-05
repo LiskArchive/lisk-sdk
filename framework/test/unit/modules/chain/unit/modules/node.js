@@ -519,12 +519,10 @@ describe('node', async () => {
 					});
 				});
 
-				it('should call callback with result containing broadhash = modules.system.getBroadhash() result', done => {
-					node_module.shared.getStatus(null, (err, status) => {
-						expect(status.broadhash).to.equal(
-							library.modules.system.getBroadhash()
-						);
-						done();
+				it('should call callback with result containing broadhash = library.components.system.getBroadhash() result', async () => {
+					const broadhash = await library.components.system.getBroadhash();
+					return node_module.shared.getStatus(null, (err, status) => {
+						return expect(status.broadhash).to.equal(broadhash);
 					});
 				});
 
@@ -642,18 +640,27 @@ describe('node', async () => {
 				done();
 			});
 
-			it('should assign system', done => {
-				expect(privateModules).to.have.property(
-					'system',
-					library.modules.system
-				);
-				done();
-			});
-
 			it('should assign delegates', done => {
 				expect(privateModules).to.have.property(
 					'delegates',
 					library.modules.delegates
+				);
+				done();
+			});
+		});
+
+		describe('components', async () => {
+			let privateComponents;
+
+			before(done => {
+				privateComponents = rewiredNodeModule.__get__('components');
+				done();
+			});
+
+			it('should assign blocks', done => {
+				expect(privateComponents).to.have.property(
+					'system',
+					library.components.system
 				);
 				done();
 			});
