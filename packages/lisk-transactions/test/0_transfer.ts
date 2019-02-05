@@ -138,10 +138,8 @@ describe('#transfer transaction', () => {
 					.and.be.an('object').and.be.empty;
 			});
 
-			it.skip('should not have the second signature property', () => {
-				return expect(transferTransaction).not.to.have.property(
-					'signSignature',
-				);
+			it('second signature property should be undefined', () => {
+				return expect(transferTransaction.signSignature).to.be.eql(undefined);
 			});
 		});
 
@@ -274,7 +272,7 @@ describe('#transfer transaction', () => {
 				);
 			});
 
-			it.skip('should set recipientId when recipientId was not provided but recipientPublicKey was provided', () => {
+			it('should set recipientId when recipientId was not provided but recipientPublicKey was provided', () => {
 				const tx = transfer({
 					amount,
 					passphrase,

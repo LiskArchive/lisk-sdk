@@ -154,10 +154,10 @@ describe('#registerMultisignature transaction', () => {
 				).and.not.be.empty;
 			});
 
-			it.skip('should not have a second signature', () => {
-				return expect(registerMultisignatureTransaction).not.to.have.property(
-					'signSignature',
-				);
+			it('second signature property should be undefined', () => {
+				return expect(
+					registerMultisignatureTransaction.signSignature,
+				).to.be.eql(undefined);
 			});
 
 			describe('multisignature asset', () => {

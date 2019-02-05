@@ -250,10 +250,8 @@ describe('#createDapp transaction', () => {
 					.be.hexString;
 			});
 
-			it.skip('should not have the second signature property', () => {
-				return expect(createDappTransaction).not.to.have.property(
-					'signSignature',
-				);
+			it('second signature property should be undefined', () => {
+				return expect(createDappTransaction.signSignature).to.be.eql(undefined);
 			});
 
 			it('should have asset', () => {

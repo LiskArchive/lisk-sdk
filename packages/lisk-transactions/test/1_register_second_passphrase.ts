@@ -132,10 +132,10 @@ describe('#registerSecondPassphrase transaction', () => {
 			).and.not.be.empty;
 		});
 
-		it.skip('should not have a signSignature property', () => {
-			return expect(registerSecondPassphraseTransaction).not.to.have.property(
-				'signSignature',
-			);
+		it('should have a signSignature property when passphrase is provided', () => {
+			return expect(
+				registerSecondPassphraseTransaction.signSignature,
+			).not.to.be.eql(null);
 		});
 
 		describe('signature asset', () => {

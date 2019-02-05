@@ -133,10 +133,8 @@ describe('#castVotes transaction', () => {
 					.hexString;
 			});
 
-			it.skip('should not have the second signature property', () => {
-				return expect(castVotesTransaction).not.to.have.property(
-					'signSignature',
-				);
+			it('second signature property should be undefined', () => {
+				return expect(castVotesTransaction.signSignature).to.be.eql(undefined);
 			});
 
 			it('should have asset', () => {

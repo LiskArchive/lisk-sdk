@@ -119,9 +119,9 @@ describe('#registerDelegate transaction', () => {
 				.and.be.hexString;
 		});
 
-		it.skip('should not have the second signature property', () => {
-			return expect(registerDelegateTransaction).not.to.have.property(
-				'signSignature',
+		it('second signature property should be undefined', () => {
+			return expect(registerDelegateTransaction.signSignature).to.be.eql(
+				undefined,
 			);
 		});
 

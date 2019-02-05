@@ -58,6 +58,7 @@ const validateInputs = ({
 	}
 
 	if (
+		recipientId &&
 		recipientPublicKey &&
 		recipientId !== getAddressFromPublicKey(recipientPublicKey)
 	) {
