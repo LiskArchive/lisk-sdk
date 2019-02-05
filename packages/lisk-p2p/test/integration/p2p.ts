@@ -312,7 +312,6 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		// TODO ASAP: Implement.
 		describe('P2P.applyNodeInfo', () => {
 			let collectedMessages: Array<any> = [];
 
