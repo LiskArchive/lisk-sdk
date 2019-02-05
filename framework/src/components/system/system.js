@@ -71,7 +71,7 @@ class System {
 				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
 				return this.headers.nethash;
 			}
-			const seed = blocks.map(row => row.b_id).join('');
+			const seed = blocks.map(row => row.id).join('');
 			const broadhash = crypto
 				.createHash('sha256')
 				.update(seed, 'utf8')
@@ -145,8 +145,8 @@ class System {
 					sort: 'height:desc',
 				}
 			);
-			this.height = blocks[0].height;
-			return Promise.resolves();
+			this.headers.height = blocks[0].height;
+			return Promise.resolve();
 		} catch (err) {
 			this.logger.debug('System headers', this.headers);
 			return err;
