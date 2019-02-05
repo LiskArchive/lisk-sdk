@@ -72,6 +72,12 @@ export interface PeerConnectionState {
 	readonly outbound: ConnectionState;
 }
 
+export const constructPeerId = (ipAddress: string, wsPort: number): string =>
+	`${ipAddress}:${wsPort}`
+
+export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
+	`${peerInfo.ipAddress}:${peerInfo.wsPort}`
+
 export class Peer extends EventEmitter {
 	private readonly _id: string;
 	private readonly _ipAddress: string;
@@ -93,7 +99,7 @@ export class Peer extends EventEmitter {
 		this._peerInfo = peerInfo;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
-		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
+		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -211,10 +217,6 @@ export class Peer extends EventEmitter {
 		return this._wsPort;
 	}
 
-	public static constructPeerId(ipAddress: string, port: number): string {
-		return `${ipAddress}:${port}`;
-	}
-
 	/**
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on the socket to pass it the new node status.
@@ -261,7 +263,8 @@ export class Peer extends EventEmitter {
 		if (!this._outboundSocket) {
 			this._outboundSocket = this._createOutboundSocket();
 		}
-		this._outboundSocket.emit(packet.event, {
+		this._outboundSocket.emit(REMOTE_EVENT_MESSAGE, {
+			event: packet.event,
 			data: packet.data,
 		});
 	}

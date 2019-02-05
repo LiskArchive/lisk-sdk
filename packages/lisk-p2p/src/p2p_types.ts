@@ -30,6 +30,11 @@ export interface P2PMessagePacket {
 
 export interface P2PPenalty {}
 
+// Allows the user to provide custom fields.
+export interface P2PInfoOptions {
+	readonly [key: string]: unknown;
+}
+
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
@@ -46,11 +51,6 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
 	/* tslint:disable-next-line:no-mixed-interface */
 	readonly options?: P2PInfoOptions;
-}
-
-// Allows the user to provide custom fields.
-export interface P2PInfoOptions {
-	readonly [key: string]: unknown;
 }
 
 export interface P2PNodeInfo {

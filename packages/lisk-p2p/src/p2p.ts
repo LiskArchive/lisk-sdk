@@ -18,8 +18,12 @@ import * as http from 'http';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 
+interface SCServerUpdated extends SCServer {
+	readonly isReady: boolean;
+}
+
 import { RequestFailError } from './errors';
-import { Peer } from './peer';
+import { constructPeerId, constructPeerIdFromPeerInfo, Peer } from './peer';
 import { PeerOptions } from './peer_selection';
 
 import {
@@ -66,12 +70,12 @@ export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
-	private readonly _newPeers: Set<P2PPeerInfo>;
-	private readonly _triedPeers: Set<P2PPeerInfo>;
+	private readonly _newPeers: Map<string, P2PPeerInfo>;
+	private readonly _triedPeers: Map<string, P2PPeerInfo>;
 
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
-	private readonly _scServer: SCServer;
+	private readonly _scServer: SCServerUpdated;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
@@ -82,11 +86,11 @@ export class P2P extends EventEmitter {
 		super();
 		this._config = config;
 		this._isActive = false;
-		this._newPeers = new Set();
-		this._triedPeers = new Set();
+		this._newPeers = new Map();
+		this._triedPeers = new Map();
 
 		this._httpServer = http.createServer();
-		this._scServer = attach(this._httpServer);
+		this._scServer = attach(this._httpServer) as SCServerUpdated;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -102,15 +106,17 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerConnect = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			if (!this._triedPeers.has(peerInfo)) {
-				this._triedPeers.add(peerInfo);
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			if (!this._triedPeers.has(peerId)) {
+				this._triedPeers.set(peerId, peerInfo);
 			}
 			this.emit(EVENT_CONNECT_OUTBOUND);
 		};
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			if (this._triedPeers.has(peerInfo)) {
-				this._triedPeers.delete(peerInfo);
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			if (this._triedPeers.has(peerId)) {
+				this._triedPeers.delete(peerId);
 			}
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND);
 		};
@@ -218,7 +224,7 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
 				} else {
 					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
+					const peerId = constructPeerId(socket.remoteAddress, wsPort);
 
 					const incomingPeerInfo: P2PDiscoveredPeerInfo = {
 						...queryObject,
@@ -238,15 +244,19 @@ export class P2P extends EventEmitter {
 					if (isNewPeer) {
 						this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 						this.emit(EVENT_NEW_PEER, incomingPeerInfo);
-
-						if (!this._newPeers.has(incomingPeerInfo)) {
-							this._newPeers.add(incomingPeerInfo);
+						if (!this._newPeers.has(peerId)) {
+							this._newPeers.set(peerId, incomingPeerInfo);
 						}
 					}
 				}
 			},
 		);
 		this._httpServer.listen(this._nodeInfo.wsPort, NODE_HOST_IP);
+		if (this._scServer.isReady) {
+			this._isActive = true;
+
+			return;
+		}
 
 		return new Promise<void>(resolve => {
 			this._scServer.once('ready', () => {
@@ -287,8 +297,9 @@ export class P2P extends EventEmitter {
 			this._config.blacklistedPeers,
 		);
 		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
-			if (!this._triedPeers.has(peerInfo) && !this._newPeers.has(peerInfo)) {
-				this._newPeers.add(peerInfo);
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
+				this._newPeers.set(peerId, peerInfo);
 			}
 		});
 
@@ -298,7 +309,7 @@ export class P2P extends EventEmitter {
 	public async start(): Promise<void> {
 		await this._startPeerServer();
 		await this._runPeerDiscovery(this._config.seedPeers);
-		this._peerPool.selectPeersAndConnect([...this._newPeers]);
+		this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
 	}
 
 	public async stop(): Promise<void> {

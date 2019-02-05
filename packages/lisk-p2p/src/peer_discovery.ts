@@ -13,7 +13,7 @@
  *
  */
 import { P2PPeerInfo } from './p2p_types';
-import { Peer } from './peer';
+import { constructPeerIdFromPeerInfo, Peer } from './peer';
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
 	readonly blacklist: ReadonlyArray<string>;
@@ -39,7 +39,7 @@ export const discoverPeers = async (
 	const discoveredPeers = peersOfPeerFlat.reduce(
 		(uniquePeersArray: ReadonlyArray<P2PPeerInfo>, peer: P2PPeerInfo) => {
 			const found = uniquePeersArray.find(
-				findPeer => findPeer.ipAddress === peer.ipAddress,
+				findPeer => constructPeerIdFromPeerInfo(findPeer) === constructPeerIdFromPeerInfo(peer),
 			);
 
 			return found ? uniquePeersArray : [...uniquePeersArray, peer];
