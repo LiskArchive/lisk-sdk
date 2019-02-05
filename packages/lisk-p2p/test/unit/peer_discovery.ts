@@ -26,25 +26,19 @@ describe('peer discovery', () => {
 	const validatedPeer1: P2PPeerInfo = {
 		ipAddress: '196.34.89.90',
 		wsPort: 5393,
-		os: 'darwin',
 		height: 23232,
-		version: '1.1.2',
 	};
 
 	const validatedPeer2: P2PPeerInfo = {
 		ipAddress: '128.38.75.9',
 		wsPort: 5393,
-		os: 'darwin',
 		height: 23232,
-		version: '1.1.2',
 	};
 
 	const validatedPeer3: P2PPeerInfo = {
 		ipAddress: '12.23.11.31',
 		wsPort: 5393,
-		os: 'darwin',
 		height: 23232,
-		version: '1.1.2',
 	};
 
 	describe('#discoverPeer', () => {
