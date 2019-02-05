@@ -22,9 +22,7 @@ interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
 
-import { RequestFailError } from './errors';
-import { constructPeerId, constructPeerIdFromPeerInfo, Peer } from './peer';
-import { PeerOptions } from './peer_selection';
+import { constructPeerId, constructPeerIdFromPeerInfo } from './peer';
 
 import {
 	INVALID_CONNECTION_QUERY_CODE,
