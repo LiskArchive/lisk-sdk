@@ -262,14 +262,16 @@ describe('#transfer transaction', () => {
 				).to.not.throw();
 			});
 
-			it('should throw error when both recipientId and recipientPublicKey were not provided', () => {
+			it('should throw error when neither recipientId nor recipientPublicKey were provided', () => {
 				return expect(
 					transfer.bind(null, {
 						amount,
 						passphrase,
 						data: Buffer.from('hello'),
 					}),
-				).to.throw('`recipientId` must be provided.');
+				).to.throw(
+					'Either recipientId or recipientPublicKey must be provided.',
+				);
 			});
 
 			it.skip('should set recipientId when recipientId was not provided but recipientPublicKey was provided', () => {

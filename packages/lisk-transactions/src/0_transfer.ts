@@ -43,11 +43,15 @@ const validateInputs = ({
 		throw new Error('Amount must be a valid number in string format.');
 	}
 
-	if (!recipientId) {
-		throw new Error('`recipientId` must be provided.');
+	if (!recipientId && !recipientPublicKey) {
+		throw new Error(
+			'Either recipientId or recipientPublicKey must be provided.',
+		);
 	}
 
-	validateAddress(recipientId);
+	if (typeof recipientId !== 'undefined') {
+		validateAddress(recipientId);
+	}
 
 	if (typeof recipientPublicKey !== 'undefined') {
 		validatePublicKey(recipientPublicKey);
