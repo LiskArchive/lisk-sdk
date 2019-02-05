@@ -24,6 +24,7 @@ const httpApi = require('../../src/modules/chain/helpers/http_api');
 const jobsQueue = require('../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../src/components/cache');
+const { createSystemComponent } = require('../../src/components/system');
 const StorageSandbox = require('./storage_sandbox').StorageSandbox;
 
 let currentAppScope;
@@ -119,7 +120,6 @@ function __init(initScope, done) {
 			peers: '../../src/modules/chain/modules/peers.js',
 			rounds: '../../src/modules/chain/modules/rounds.js',
 			signatures: '../../src/modules/chain/modules/signatures.js',
-			system: '../../src/modules/chain/modules/system.js',
 			transactions: '../../src/modules/chain/modules/transactions.js',
 			transport: '../../src/modules/chain/modules/transport.js',
 		};
@@ -167,6 +167,7 @@ function __init(initScope, done) {
 					const Z_schema = require('../../src/modules/chain/helpers/z_schema.js');
 					cb(null, new Z_schema());
 				},
+
 				network(cb) {
 					// Init with empty function
 					cb(null, {
@@ -174,21 +175,26 @@ function __init(initScope, done) {
 						app: require('express')(),
 					});
 				},
+
 				components(cb) {
 					const cache = createCacheComponent(
 						__testContext.config.redis,
 						logger
 					);
+					const system = createSystemComponent(__testContext.config, logger);
 					return cache.bootstrap().then(err => {
 						if (err) {
 							return cb(err);
 						}
 						components.push(cache);
+						components.push(system);
 						return cb(null, {
 							cache,
+							system,
 						});
 					});
 				},
+
 				webSocket: [
 					'config',
 					'logger',
@@ -210,6 +216,7 @@ function __init(initScope, done) {
 						cb();
 					},
 				],
+
 				logger(cb) {
 					cb(null, logger);
 				},
@@ -225,6 +232,7 @@ function __init(initScope, done) {
 						cb(null, sequence);
 					},
 				],
+
 				balancesSequence: [
 					'logger',
 					function(scope, cb) {
@@ -292,12 +300,14 @@ function __init(initScope, done) {
 						cb(null, bus);
 					},
 				],
+
 				storage: [
 					'config',
 					function(scope, cb) {
 						cb(!storage.isReady, storage);
 					},
 				],
+
 				rpc: [
 					'storage',
 					'bus',
@@ -319,7 +329,9 @@ function __init(initScope, done) {
 						cb();
 					},
 				],
+
 				logic: [
+					'components',
 					'storage',
 					'bus',
 					'schema',
@@ -413,7 +425,12 @@ function __init(initScope, done) {
 									'config',
 									'storage',
 									function(peersScope, peerscb) {
-										new Peers(peersScope.logger, peersScope.config, peerscb);
+										new Peers(
+											peersScope.config,
+											peersScope.logger,
+											scope.components.system,
+											peerscb
+										);
 									},
 								],
 								multisignature: [
@@ -437,6 +454,7 @@ function __init(initScope, done) {
 						);
 					},
 				],
+
 				modules: [
 					'network',
 					'webSocket',
@@ -464,6 +482,7 @@ function __init(initScope, done) {
 						});
 					},
 				],
+
 				ready: [
 					'components',
 					'swagger',

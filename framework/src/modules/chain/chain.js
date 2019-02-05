@@ -608,7 +608,12 @@ module.exports = class Chain {
 									'logger',
 									'config',
 									function(peersScope, peersCb) {
-										new Peers(peersScope.logger, peersScope.config, peersCb);
+										new Peers(
+											peersScope.config,
+											peersScope.logger,
+											scope.system,
+											peersCb
+										);
 									},
 								],
 							},
@@ -685,7 +690,7 @@ module.exports = class Chain {
 						// Fire onBind event in every module
 						scope.bus.message('bind', scope);
 
-						scope.logic.peers.bindModules(scope.modules, scope.components);
+						scope.logic.peers.bindModules(scope.modules);
 						cb();
 					},
 				],

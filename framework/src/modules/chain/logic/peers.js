@@ -24,7 +24,6 @@ const BanManager = require('../helpers/ban_manager.js');
 let self;
 let library;
 let modules;
-let components;
 
 /**
  * Main peers logic. Initializes library.
@@ -34,8 +33,8 @@ let components;
  * @see Parent: {@link logic}
  * @requires lodash
  * @requires api/ws/rpc/failure_codes
- * @requires logic/peer
- * @requires modules/system
+ * @requires modules/peer
+ * @requires components/system
  * @requires helpers/peers_manager
  * @param {Object} logger
  * @param {function} cb - Callback function
@@ -43,13 +42,13 @@ let components;
  * @todo Add description for the params
  */
 class Peers {
-	constructor(logger, config, cb) {
+	constructor(config, logger, system, cb) {
 		library = {
 			logger,
 		};
 		self = this;
-
-		this.peersManager = new PeersManager(logger);
+		this.system = system;
+		this.peersManager = new PeersManager(logger, system);
 		this.banManager = new BanManager(logger, config);
 
 		return setImmediate(cb, null, this);
@@ -64,7 +63,7 @@ class Peers {
  * @returns {Object} system headers and peer status
  */
 Peers.prototype.me = function() {
-	return Object.assign({}, components.system.headers, {
+	return Object.assign({}, this.system.headers, {
 		state: Peer.STATE.CONNECTED,
 	});
 };
@@ -341,11 +340,7 @@ Peers.prototype.listRandomConnected = function(options) {
  *
  * @param {Object} __modules - Peers module
  */
-Peers.prototype.bindModules = function(__modules, __components) {
-	components = {
-		system: __components.system,
-	};
-
+Peers.prototype.bindModules = function(__modules) {
 	modules = {
 		peers: __modules.peers,
 	};
