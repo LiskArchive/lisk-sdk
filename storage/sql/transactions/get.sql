@@ -13,32 +13,36 @@
  */
 
 SELECT
-	"t_id" as "id",
-	"b_id" as "blockId",
-	"b_height" as "height",
-	"t_type" as "type",
-	"t_timestamp" as "timestamp",
-	"t_senderId" as "senderId",
-	"t_recipientId" as "recipientId",
-	"t_amount" as "amount",
-	"t_fee" as "fee",
-	"t_signature" as "signature",
-	"t_signSignature" as "signSignature",
-	regexp_split_to_array("t_signatures", ',') as "signatures",
-	"t_senderPublicKey" as "senderPublicKey",
-	"t_recipientPublicKey" as "recipientPublicKey",
-	"t_requesterPublicKey" as "requesterPublicKey",
-	(( SELECT (blocks.height + 1)
-           FROM blocks
-          ORDER BY blocks.height DESC
-         LIMIT 1) - b.height) AS confirmations
-FROM
-	(full_blocks_list fbl
-	LEFT JOIN blocks b ON (((fbl."b_id")::text = (b.id)::text)))
+	t."id" AS "id",
+	b."height" AS "height",
+	t."blockId" AS "blockId",
+	t."type" AS "type",
+	t."timestamp" AS "timestamp",
+	t."senderPublicKey" AS "senderPublicKey",
+	m."publicKey" AS "recipientPublicKey",
+	upper(t."senderId"::text) AS "senderId",
+	upper(t."recipientId"::text) AS "recipientId",
+	encode(t."requesterPublicKey", 'hex'::text) AS "requesterPublicKey",
+	t."amount" AS "amount",
+	t."fee" AS "fee",
+	encode(t."signature", 'hex'::text) AS "signature",
+	encode(t."signSignature", 'hex'::text) AS "signSignature",
+	t.signatures AS "signatures",
+	t."asset" AS "asset",
+	(( SELECT blocks.height + 1
+		FROM blocks
+		ORDER BY blocks.height DESC
+		LIMIT 1)) - b.height AS "confirmations",
+	t."rowId" AS "rowId"
 
-WHERE "t_rowId" IS NOT NULL  ${parsedFilters:raw}
+FROM trs t
+	LEFT JOIN blocks b ON t."blockId"::text = b.id::text
+	LEFT JOIN mem_accounts m ON t."recipientId"::text = m.address::text
+
+WHERE t."rowId" IS NOT NULL ${parsedFilters:raw}
 
 ${parsedSort:raw}
 
 LIMIT ${limit} OFFSET ${offset}
 
+-- regexp_split_to_array("t_signatures", ',') as "signatures",
