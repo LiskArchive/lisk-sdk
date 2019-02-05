@@ -132,15 +132,6 @@ const sqlFiles = {
 	create: 'transactions/create.sql',
 };
 
-// eslint-disable-next-line no-unused-vars
-const stringToByteOnlyInsert = (value, mode, alias, fieldName) => {
-	if (mode === 'select') {
-		return `$\{${alias}}`;
-	}
-
-	return value ? `DECODE($\{${alias}}, 'hex')` : 'NULL';
-};
-
 class Transaction extends BaseEntity {
 	/**
 	 * Constructor
@@ -150,85 +141,85 @@ class Transaction extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
+		this.addField('rowId', 'string', {
+			fieldName: 'trs.rowId',
+		});
+
 		this.addField('id', 'string', {
 			filter: filterTypes.TEXT,
-			fieldName: 't_id',
+			fieldName: 'trs.id',
 		});
+
 		this.addField('blockId', 'string', {
 			filter: filterTypes.TEXT,
-			fieldName: 'b_id',
 		});
+
 		this.addField('blockHeight', 'string', {
 			filter: filterTypes.NUMBER,
-			fieldName: 'b_height',
+			fieldName: 'height',
 		});
+
 		this.addField('type', 'number', {
 			filter: filterTypes.NUMBER,
-			fieldName: 't_type',
 		});
+
 		this.addField('timestamp', 'number', {
 			filter: filterTypes.NUMBER,
-			fieldName: 't_timestamp',
+			fieldName: 'trs.timestamp',
 		});
+
 		this.addField(
 			'senderPublicKey',
 			'string',
 			{
 				filter: filterTypes.TEXT,
 				format: 'publicKey',
-				fieldName: 't_senderPublicKey',
 			},
-			stringToByteOnlyInsert
+			stringToByte
 		);
+
 		this.addField(
 			'recipientPublicKey',
 			'string',
 			{
 				filter: filterTypes.TEXT,
 				format: 'publicKey',
-				fieldName: 't_recipientPublicKey',
+				fieldName: 'm.publicKey',
 			},
-			stringToByteOnlyInsert
+			stringToByte
 		);
+
 		this.addField(
 			'requesterPublicKey',
 			'string',
 			{
 				filter: filterTypes.TEXT,
 				format: 'publicKey',
-				fieldName: 't_requesterPublicKey',
 			},
-			stringToByteOnlyInsert
+			stringToByte
 		);
+
 		this.addField('senderId', 'string', {
 			filter: filterTypes.TEXT,
-			fieldName: 't_senderId',
 		});
+
 		this.addField('recipientId', 'string', {
 			filter: filterTypes.TEXT,
-			fieldName: 't_recipientId',
 		});
+
 		this.addField('amount', 'string', {
 			filter: filterTypes.NUMBER,
-			fieldName: 't_amount',
 		});
+
 		this.addField('fee', 'string', {
 			filter: filterTypes.NUMBER,
-			fieldName: 't_fee',
 		});
-		this.addField(
-			'signature',
-			'string',
-			{ fieldName: 't_signature' },
-			stringToByte
-		);
-		this.addField(
-			'signSignature',
-			'string',
-			{ fieldName: 't_SignSignature' },
-			stringToByte
-		);
-		this.addField('signatures', 'string', { fieldName: 't_signatures' });
+
+		this.addField('signature', 'string', {}, stringToByte);
+
+		this.addField('signSignature', 'string', {}, stringToByte);
+
+		this.addField('signatures', 'string');
 
 		this.addField('asset', 'string');
 
@@ -291,9 +282,7 @@ class Transaction extends BaseEntity {
 	// eslint-disable-next-line no-unused-vars
 	count(filters, _options = {}, tx) {
 		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters, {
-			filterPrefix: 'AND',
-		});
+		const parsedFilters = this.parseFilters(mergedFilters);
 
 		const params = {
 			parsedFilters,
@@ -426,9 +415,7 @@ class Transaction extends BaseEntity {
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
 		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters, {
-			filterPrefix: 'AND',
-		});
+		const parsedFilters = this.parseFilters(mergedFilters);
 
 		const parsedOptions = _.defaults(
 			{},
@@ -438,12 +425,11 @@ class Transaction extends BaseEntity {
 
 		// To have deterministic pagination add extra sorting
 		if (parsedOptions.sort) {
-			parsedOptions.sort = _.flatten([
-				parsedOptions.sort,
-				't_rowId:asc',
-			]).filter(Boolean);
+			parsedOptions.sort = _.flatten([parsedOptions.sort, 'rowId:asc']).filter(
+				Boolean
+			);
 		} else {
-			parsedOptions.sort = ['t_rowId:asc'];
+			parsedOptions.sort = ['rowId:asc'];
 		}
 
 		let parsedSort = this.parseSort(parsedOptions.sort);

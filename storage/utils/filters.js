@@ -30,50 +30,55 @@ function filterGenerator(
 	const getValue = filterAlias =>
 		serializer.call(null, null, 'select', filterAlias, fieldName);
 
+	fieldName = fieldName
+		.split('.')
+		.map(f => `"${f}"`)
+		.join('.');
+
 	switch (filterType) {
 		case filterTypes.BOOLEAN:
-			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+			filters[alias] = `${fieldName} = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `${fieldName} = ${getValue(`${alias}_eql`)}`;
+			filters[`${alias}_ne`] = `${fieldName} <> ${getValue(`${alias}_ne`)}`;
 			break;
 
 		case filterTypes.TEXT:
-			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+			filters[alias] = `${fieldName} = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `${fieldName} = ${getValue(`${alias}_eql`)}`;
+			filters[`${alias}_ne`] = `${fieldName} <> ${getValue(`${alias}_ne`)}`;
 
-			filters[`${alias}_in`] = `"${fieldName}" IN ($\{${alias}_in:csv})`;
-			filters[`${alias}_like`] = `"${fieldName}" LIKE ($\{${alias}_like})`;
+			filters[`${alias}_in`] = `${fieldName} IN ($\{${alias}_in:csv})`;
+			filters[`${alias}_like`] = `${fieldName} LIKE ($\{${alias}_like})`;
 			break;
 
 		case filterTypes.BINARY:
-			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+			filters[alias] = `${fieldName} = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `${fieldName} = ${getValue(`${alias}_eql`)}`;
+			filters[`${alias}_ne`] = `${fieldName} <> ${getValue(`${alias}_ne`)}`;
 
 			filters[
 				`${alias}_in`
-			] = `ENCODE("${fieldName}", 'hex') IN ($\{${alias}_in:csv})`;
-			filters[`${alias}_like`] = `"${fieldName}" LIKE ($\{${alias}_like})`;
+			] = `ENCODE(${fieldName}, 'hex') IN ($\{${alias}_in:csv})`;
+			filters[`${alias}_like`] = `${fieldName} LIKE ($\{${alias}_like})`;
 			break;
 
 		case filterTypes.NUMBER:
-			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+			filters[alias] = `${fieldName} = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `${fieldName} = ${getValue(`${alias}_eql`)}`;
+			filters[`${alias}_ne`] = `${fieldName} <> ${getValue(`${alias}_ne`)}`;
 
-			filters[`${alias}_gt`] = `"${fieldName}" > ${getValue(`${alias}_gt`)}`;
-			filters[`${alias}_gte`] = `"${fieldName}" >= ${getValue(`${alias}_gte`)}`;
-			filters[`${alias}_lt`] = `"${fieldName}" < ${getValue(`${alias}_lt`)}`;
-			filters[`${alias}_lte`] = `"${fieldName}" <= ${getValue(`${alias}_lte`)}`;
-			filters[`${alias}_in`] = `"${fieldName}" IN ($\{${alias}_in:csv})`;
+			filters[`${alias}_gt`] = `${fieldName} > ${getValue(`${alias}_gt`)}`;
+			filters[`${alias}_gte`] = `${fieldName} >= ${getValue(`${alias}_gte`)}`;
+			filters[`${alias}_lt`] = `${fieldName} < ${getValue(`${alias}_lt`)}`;
+			filters[`${alias}_lte`] = `${fieldName} <= ${getValue(`${alias}_lte`)}`;
+			filters[`${alias}_in`] = `${fieldName} IN ($\{${alias}_in:csv})`;
 			break;
 
 		case filterTypes.CUSTOM:
 			if (condition) {
 				filters[alias] = condition;
 			} else {
-				filters[alias] = `"${fieldName}" = ${serializer.call(
+				filters[alias] = `${fieldName} = ${serializer.call(
 					null,
 					null,
 					'select',
