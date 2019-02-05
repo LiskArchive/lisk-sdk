@@ -122,10 +122,6 @@ __private.list = async function(params = {}, cb) {
 		extended: true,
 	};
 
-	if (params.data) {
-		filters.data_like = Buffer.from(params.data, 'utf8');
-	}
-
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 	options = _.pickBy(options, v => !(v === undefined || v === null));
