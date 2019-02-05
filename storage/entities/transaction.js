@@ -122,29 +122,6 @@ const BaseEntity = require('./base_entity');
  * @typedef {Object} filters.Transaction
  */
 
-const assetAttributesMap = {
-	0: ['asset.data'],
-	1: ['asset.signature.publicKey'],
-	2: ['asset.delegate.username'],
-	3: ['asset.votes'],
-	4: [
-		'asset.multisignature.min',
-		'asset.multisignature.lifetime',
-		'asset.multisignature.keysgroup',
-	],
-	5: [
-		'asset.dapp.type',
-		'asset.dapp.name',
-		'asset.dapp.description',
-		'asset.dapp.tags',
-		'asset.dapp.link',
-		'asset.dapp.icon',
-		'asset.dapp.category',
-	],
-	6: ['asset.inTransfer.dappId'],
-	7: ['asset.outTransfer.dappId', 'asset.outTransfer.transactionId'],
-};
-
 const sqlFiles = {
 	select: 'transactions/get.sql',
 	selectExtended: 'transactions/get_extended.sql',
@@ -152,14 +129,6 @@ const sqlFiles = {
 	count: 'transactions/count.sql',
 	count_all: 'transactions/count_all.sql',
 	create: 'transactions/create.sql',
-	createType0: 'transactions/create_type_0.sql',
-	createType1: 'transactions/create_type_1.sql',
-	createType2: 'transactions/create_type_2.sql',
-	createType3: 'transactions/create_type_3.sql',
-	createType4: 'transactions/create_type_4.sql',
-	createType5: 'transactions/create_type_5.sql',
-	createType6: 'transactions/create_type_6.sql',
-	createType7: 'transactions/create_type_7.sql',
 };
 
 // eslint-disable-next-line no-unused-vars
@@ -356,6 +325,7 @@ class Transaction extends BaseEntity {
 			t.amount = t.amount.toString();
 			t.fee = t.fee.toString();
 			t.recipientId = t.recipientId || null;
+			t.asset = t.asset ? JSON.stringify(t.asset) : null;
 		});
 
 		const trsFields = [
@@ -372,138 +342,14 @@ class Transaction extends BaseEntity {
 			'signature',
 			'signSignature',
 			'signatures',
+			'asset',
 		];
 
 		const createSet = this.getValuesSet(transactions, trsFields);
 
-		const task = dbTx => {
-			const batch = [];
-
-			batch.push(
-				this.adapter.executeFile(
-					this.SQLs.create,
-					{ values: createSet, attributes: trsFields },
-					{ expectedResultCount: 0 },
-					dbTx
-				)
-			);
-
-			const groupedTransactions = _.groupBy(transactions, 'type');
-
-			Object.keys(groupedTransactions).forEach(type => {
-				batch.push(
-					this._createSubTransactions(
-						parseInt(type),
-						groupedTransactions[type],
-						dbTx
-					)
-				);
-			});
-
-			return dbTx.batch(batch).then(() => true);
-		};
-
-		if (tx) {
-			return task(tx);
-		}
-
-		return this.begin('transactions:create', task);
-	}
-
-	_createSubTransactions(type, transactions, tx) {
-		let fields;
-		let values;
-
-		switch (type) {
-			case 0:
-				fields = ['transactionId', 'data'];
-				values = transactions
-					.filter(transaction => transaction.asset && transaction.asset.data)
-					.map(transaction => ({
-						transactionId: transaction.id,
-						data: Buffer.from(transaction.asset.data, 'utf8'),
-					}));
-				break;
-			case 1:
-				fields = ['transactionId', 'publicKey'];
-				values = transactions.map(transaction => ({
-					transactionId: transaction.id,
-					publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex'),
-				}));
-				break;
-			case 2:
-				fields = ['transactionId', 'username'];
-				values = transactions.map(transaction => ({
-					transactionId: transaction.id,
-					username: transaction.asset.delegate.username,
-				}));
-				break;
-			case 3:
-				fields = ['transactionId', 'votes'];
-				values = transactions.map(transaction => ({
-					votes: Array.isArray(transaction.asset.votes)
-						? transaction.asset.votes.join()
-						: null,
-					transactionId: transaction.id,
-				}));
-				break;
-			case 4:
-				fields = ['transactionId', 'min', 'lifetime', 'keysgroup'];
-				values = transactions.map(transaction => ({
-					min: transaction.asset.multisignature.min,
-					lifetime: transaction.asset.multisignature.lifetime,
-					keysgroup: transaction.asset.multisignature.keysgroup.join(),
-					transactionId: transaction.id,
-				}));
-				break;
-			case 5:
-				fields = [
-					'transactionId',
-					'type',
-					'name',
-					'description',
-					'tags',
-					'link',
-					'icon',
-					'category',
-				];
-				values = transactions.map(transaction => ({
-					type: transaction.asset.dapp.type,
-					name: transaction.asset.dapp.name,
-					description: transaction.asset.dapp.description || null,
-					tags: transaction.asset.dapp.tags || null,
-					link: transaction.asset.dapp.link || null,
-					icon: transaction.asset.dapp.icon || null,
-					category: transaction.asset.dapp.category,
-					transactionId: transaction.id,
-				}));
-				break;
-			case 6:
-				fields = ['transactionId', 'dappId'];
-				values = transactions.map(transaction => ({
-					dappId: transaction.asset.inTransfer.dappId,
-					transactionId: transaction.id,
-				}));
-				break;
-			case 7:
-				fields = ['transactionId', 'dappId', 'outTransactionId'];
-				values = transactions.map(transaction => ({
-					dappId: transaction.asset.outTransfer.dappId,
-					outTransactionId: transaction.asset.outTransfer.transactionId,
-					transactionId: transaction.id,
-				}));
-				break;
-			default:
-				throw new Error(`Unsupported transaction type: ${type}`);
-		}
-
-		if (values.length < 1) {
-			return Promise.resolve(null);
-		}
-
 		return this.adapter.executeFile(
-			this.SQLs[`createType${type}`],
-			{ values: this.getValuesSet(values, fields, { useRawObject: true }) },
+			this.SQLs.create,
+			{ values: createSet, attributes: trsFields },
 			{ expectedResultCount: 0 },
 			tx
 		);
@@ -609,62 +455,12 @@ class Transaction extends BaseEntity {
 			parsedFilters,
 		};
 
-		return this.adapter
-			.executeFile(
-				parsedOptions.extended ? this.SQLs.selectExtended : this.SQLs.select,
-				params,
-				{ expectedResultCount },
-				tx
-			)
-			.then(data => {
-				if (expectedResultCount === 1) {
-					return Transaction._formatTransactionResult(
-						data,
-						parsedOptions.extended
-					);
-				}
-
-				return data.map(row =>
-					Transaction._formatTransactionResult(row, parsedOptions.extended)
-				);
-			});
-	}
-
-	static _formatTransactionResult(row, extended) {
-		const transaction = extended ? { asset: {} } : {};
-
-		Object.keys(row).forEach(k => {
-			if (!k.match(/^asset./)) {
-				transaction[k] = row[k];
-			}
-		});
-
-		const transactionAssetAttributes =
-			assetAttributesMap[transaction.type] || [];
-
-		transactionAssetAttributes.forEach(assetKey => {
-			// We only want to skip null and undefined, not other falsy values
-			if (row[assetKey] !== null && row[assetKey] !== undefined) {
-				_.set(transaction, assetKey, row[assetKey]);
-			}
-		});
-
-		if (transaction.type === 0 && transaction.asset && transaction.asset.data) {
-			try {
-				transaction.asset.data = transaction.asset.data.toString('utf8');
-			} catch (e) {
-				// TODO: Add logging support
-				// library.logger.error(
-				// 	'Logic-Transfer-dbRead: Failed to convert data field into utf8'
-				// );
-				delete transaction.asset;
-			}
-		}
-
-		if (transaction.signatures) {
-			transaction.signatures = transaction.signatures.filter(Boolean);
-		}
-		return transaction;
+		return this.adapter.executeFile(
+			parsedOptions.extended ? this.SQLs.selectExtended : this.SQLs.select,
+			params,
+			{ expectedResultCount },
+			tx
+		);
 	}
 
 	static _sanitizeFilters(filters = {}) {
