@@ -14,7 +14,11 @@
  */
 import { expect } from 'chai';
 import { castVotes } from '../src/3_cast_votes';
-import { TransactionJSON, VoteAsset } from '../src/transaction_types';
+import {
+	TransactionJSON,
+	VoteAsset,
+	VoteTransaction as iVoteTransaction,
+} from '../src/transaction_types';
 // Require is used for stubbing
 import * as utils from '../src/utils';
 
@@ -43,7 +47,7 @@ describe('#castVotes transaction', () => {
 	const fee = (1 * fixedPoint).toString();
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let castVotesTransaction: Partial<TransactionJSON>;
+	let castVotesTransaction: Partial<iVoteTransaction | TransactionJSON>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

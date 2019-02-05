@@ -15,6 +15,7 @@
 import { expect } from 'chai';
 import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
 import {
+	SecondSignatureTransaction as iSecondSignatureTransaction,
 	SecondSignatureAsset,
 	TransactionJSON,
 } from '../src/transaction_types';
@@ -37,7 +38,9 @@ describe('#registerSecondPassphrase transaction', () => {
 	const amount = '0';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let registerSecondPassphraseTransaction: Partial<TransactionJSON>;
+	let registerSecondPassphraseTransaction: Partial<
+		iSecondSignatureTransaction | TransactionJSON
+	>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

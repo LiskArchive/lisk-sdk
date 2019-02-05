@@ -16,7 +16,10 @@ import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/0_transfer';
 import * as utils from '../src/utils';
-import { TransactionJSON } from '../src/transaction_types';
+import {
+	TransactionJSON,
+	TransferTransaction as iTransferTransaction,
+} from '../src/transaction_types';
 
 describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -36,7 +39,7 @@ describe('#transfer transaction', () => {
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let transferTransaction: Partial<TransactionJSON>;
+	let transferTransaction: Partial<iTransferTransaction | TransactionJSON>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

@@ -14,7 +14,11 @@
  */
 import { expect } from 'chai';
 import { createDapp, DappOptions } from '../src/5_create_dapp';
-import { DappAsset, TransactionJSON } from '../src/transaction_types';
+import {
+	DappAsset,
+	DappTransaction as iDappTransaction,
+	TransactionJSON,
+} from '../src/transaction_types';
 // Require is used for stubbing
 import * as utils from '../src/utils';
 
@@ -50,7 +54,7 @@ describe('#createDapp transaction', () => {
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let options: DappOptions;
-	let createDappTransaction: Partial<TransactionJSON>;
+	let createDappTransaction: Partial<iDappTransaction | TransactionJSON>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

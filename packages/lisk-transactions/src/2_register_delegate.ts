@@ -13,7 +13,10 @@
  *
  */
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
-import { TransactionJSON } from './transaction_types';
+import {
+	DelegateTransaction as iDelegateTransaction,
+	TransactionJSON,
+} from './transaction_types';
 import { DelegateTransaction } from './transactions';
 import { createBaseTransaction } from './utils';
 
@@ -38,7 +41,7 @@ const validateInputs = ({ username }: { readonly username: string }): void => {
 
 export const registerDelegate = (
 	inputs: RegisterDelegateInputs,
-): Partial<TransactionJSON> => {
+): Partial<iDelegateTransaction | TransactionJSON> => {
 	validateInputs(inputs);
 	const { username, passphrase, secondPassphrase } = inputs;
 
