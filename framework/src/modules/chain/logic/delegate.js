@@ -18,9 +18,9 @@ const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 
 const { FEES } = global.constants;
-let modules;
-let library;
 let self;
+
+const __private = {};
 
 /**
  * Main delegate logic. Initializes library.
@@ -34,11 +34,13 @@ let self;
  * @todo Add description for the params
  */
 class Delegate {
-	constructor(logger, schema) {
+	constructor({ library, modules }) {
 		self = this;
-		library = {
-			schema,
-			logger,
+		__private.library = {
+			schema: library.schema,
+		};
+		__private.modules = {
+			accounts: modules.accounts,
 		};
 	}
 }
@@ -46,16 +48,6 @@ class Delegate {
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
 /**
- * Binds input parameters to private variables modules.
- *
- * @param {Accounts} accounts
- * @todo Add description for the params
- */
-Delegate.prototype.bind = function(accounts) {
-	modules = {
-		accounts,
-	};
-};
 
 /**
  * Obtains constant fee delegate.
@@ -194,12 +186,12 @@ Delegate.prototype.checkDuplicates = function(
 				const query = {};
 				query[isDelegate] = true;
 				query.publicKey = transaction.senderPublicKey;
-				return modules.accounts.getAccount(query, [username], eachCb, tx);
+				return __private.modules.accounts.getAccount(query, [username], eachCb, tx);
 			},
 			duplicatedUsername(eachCb) {
 				const query = {};
 				query[username] = transaction.asset.delegate.username;
-				return modules.accounts.getAccount(query, [username], eachCb, tx);
+				return __private.modules.accounts.getAccount(query, [username], eachCb, tx);
 			},
 		},
 		(err, res) => {
@@ -285,7 +277,7 @@ Delegate.prototype.applyConfirmed = function(
 				self.checkConfirmed(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				modules.accounts.setAccountAndGet(data, seriesCb, tx);
+				__private.modules.accounts.setAccountAndGet(data, seriesCb, tx);
 			},
 		],
 		cb
@@ -316,7 +308,7 @@ Delegate.prototype.undoConfirmed = function(
 		username: null,
 	};
 
-	modules.accounts.setAccountAndGet(data, cb, tx);
+	__private.modules.accounts.setAccountAndGet(data, cb, tx);
 };
 
 /**
@@ -341,7 +333,7 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 				self.checkUnconfirmed(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				modules.accounts.setAccountAndGet(data, seriesCb, tx);
+				__private.modules.accounts.setAccountAndGet(data, seriesCb, tx);
 			},
 		],
 		cb
@@ -363,7 +355,7 @@ Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 		u_username: null,
 	};
 
-	modules.accounts.setAccountAndGet(data, cb, tx);
+	__private.modules.accounts.setAccountAndGet(data, cb, tx);
 };
 
 Delegate.prototype.schema = {
@@ -387,13 +379,13 @@ Delegate.prototype.schema = {
  * @todo Add description for the params
  */
 Delegate.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __private.library.schema.validate(
 		transaction.asset.delegate,
 		Delegate.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate delegate schema: ${library.schema
+		throw `Failed to validate delegate schema: ${__private.library.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
