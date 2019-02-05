@@ -50,7 +50,6 @@ export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_DISCONNECT_OUTBOUND = 'disconnectOutbound';
-export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
@@ -79,6 +78,16 @@ export const constructPeerId = (ipAddress: string, wsPort: number): string =>
 
 export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 	`${peerInfo.ipAddress}:${peerInfo.wsPort}`
+
+// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
+const convertNodeInfoToLegacyFormat = (nodeInfo: P2PNodeInfo): ProtocolNodeInfo => (
+	{
+		...nodeInfo,
+		wsPort: nodeInfo.wsPort,
+		broadhash: nodeInfo.options ? nodeInfo.options.broadhash as string : '',
+		nonce: nodeInfo.options ? nodeInfo.options.nonce as string : '',
+	}
+);
 
 export class Peer extends EventEmitter {
 	private readonly _id: string;
@@ -223,19 +232,15 @@ export class Peer extends EventEmitter {
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on the socket to pass it the new node status.
 	 */
-	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
+	public async applyNodeInfo(nodeInfo: P2PNodeInfo): Promise<void> {
 		this._nodeInfo = nodeInfo;
 		// TODO later: This conversion step will not be needed after switching to the new LIP protocol version.
-		const legacyNodeInfo = this._convertNodeInfoToLegacyFormat(this._nodeInfo);
+		const legacyNodeInfo = convertNodeInfoToLegacyFormat(this._nodeInfo);
 		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
-		try {
-			this.request({
-				procedure: REMOTE_RPC_NODE_INFO,
-				data: legacyNodeInfo,
-			});
-		} catch (error) {
-			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
-		}
+		await this.request({
+			procedure: REMOTE_RPC_NODE_INFO,
+			data: legacyNodeInfo,
+		});
 	}
 
 	public get nodeInfo(): P2PNodeInfo | undefined {
@@ -334,18 +339,8 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
-	private _convertNodeInfoToLegacyFormat(nodeInfo: P2PNodeInfo): ProtocolNodeInfo {
-		return {
-			...nodeInfo,
-			wsPort: nodeInfo.wsPort,
-			broadhash: nodeInfo.options ? nodeInfo.options.broadhash as string : '',
-			nonce: nodeInfo.options ? nodeInfo.options.nonce as string : '',
-		};
-	};
-
 	private _createOutboundSocket(): SCClientSocket {
-		const legacyNodeInfo = this._nodeInfo ? this._convertNodeInfoToLegacyFormat(this._nodeInfo) : undefined;
+		const legacyNodeInfo = this._nodeInfo ? convertNodeInfoToLegacyFormat(this._nodeInfo) : undefined;
 
 		const outboundSocket = socketClusterClient.create({
 			hostname: this._ipAddress,

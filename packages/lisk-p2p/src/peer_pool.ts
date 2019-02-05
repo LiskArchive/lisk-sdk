@@ -38,7 +38,6 @@ import {
 	ConnectionState,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	Peer,
@@ -51,10 +50,11 @@ import {
 	selectPeers,
 } from './peer_selection';
 
+export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
+
 export {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 };
@@ -67,7 +67,6 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
-	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 
 	public constructor() {
@@ -99,17 +98,13 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
-		this._handleFailedToPushNodeInfo = (error: Error) => {
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
-		};
 	}
 
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = nodeInfo;
 		const peerList = this.getAllPeers();
-		peerList.forEach(peer => {
-			peer.applyNodeInfo(nodeInfo);
+		peerList.forEach(async peer => {
+			this._applyNodeInfoOnPeer(peer, nodeInfo);
 		});
 	}
 
@@ -209,7 +204,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
-			peer.applyNodeInfo(this._nodeInfo);
+			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 		peer.connect();
 
@@ -224,7 +219,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
-			peer.applyNodeInfo(this._nodeInfo);
+			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 		peer.updatePeerInfo(detailedPeerInfo);
 		peer.connect();
@@ -295,6 +290,17 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.delete(peerId);
 	}
 
+	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
+		// tslint:disable-next-line no-floating-promises
+		(async () => {
+			try {
+				await peer.applyNodeInfo(nodeInfo);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+			}
+		})();
+	}
+
 	private _pickRandomPeers(count: number): ReadonlyArray<Peer> {
 		const discoveredPeerList: ReadonlyArray<Peer> = [
 			...this._peerMap.values(),
@@ -346,7 +352,6 @@ export class PeerPool extends EventEmitter {
 		peer.on(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
 		peer.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peer.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
-		peer.on(EVENT_FAILED_TO_PUSH_NODE_INFO, this._handleFailedToPushNodeInfo);
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {
