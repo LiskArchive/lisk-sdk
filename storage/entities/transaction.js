@@ -433,6 +433,7 @@ class Transaction extends BaseEntity {
 		}
 
 		let parsedSort = this.parseSort(parsedOptions.sort);
+		parsedSort = parsedSort.replace('"rowId"', 'trs."rowId"');
 		parsedSort = parsedSort.replace('"dapp_name"', "asset->'dapp'->>'name'");
 
 		const params = {

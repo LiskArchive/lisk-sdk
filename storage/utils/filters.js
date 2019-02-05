@@ -30,6 +30,7 @@ function filterGenerator(
 	const getValue = filterAlias =>
 		serializer.call(null, null, 'select', filterAlias, fieldName);
 
+	// Allow to use table name as prefix (example: table.field)
 	fieldName = fieldName
 		.split('.')
 		.map(f => `"${f}"`)
