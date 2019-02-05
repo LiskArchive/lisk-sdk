@@ -38,6 +38,7 @@ describe('#registerSecondPassphrase transaction', () => {
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let registerSecondPassphraseTransaction: Partial<TransactionJSON>;
+	let signSignature: string | undefined;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
@@ -47,6 +48,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			passphrase,
 			secondPassphrase,
 		});
+		signSignature = registerSecondPassphraseTransaction.signSignature;
 		return Promise.resolve();
 	});
 
@@ -135,7 +137,7 @@ describe('#registerSecondPassphrase transaction', () => {
 		it('should have a signSignature property when passphrase is provided', () => {
 			return expect(
 				registerSecondPassphraseTransaction.signSignature,
-			).not.to.be.eql(null);
+			).to.be.eql(signSignature);
 		});
 
 		describe('signature asset', () => {
