@@ -39,6 +39,7 @@ const BaseEntity = require('./base_entity');
  * @property {string} signature
  * @property {string} signSignature
  * @property {Array.<string>} signatures
+ * @property {json} asset
  */
 
 /**
@@ -229,16 +230,18 @@ class Transaction extends BaseEntity {
 		);
 		this.addField('signatures', 'string', { fieldName: 't_signatures' });
 
+		this.addField('asset', 'string');
+
 		this.addFilter('data_like', filterTypes.CUSTOM, {
-			condition: '"tf_data" LIKE ${data_like}',
+			condition: "asset->>'data' LIKE ${data_like}",
 		});
 
 		this.addFilter('dapp_name', filterTypes.CUSTOM, {
-			condition: '"dapp_name" = ${dapp_name}',
+			condition: "asset->'dapp'->>'name' = ${dapp_name}",
 		});
 
 		this.addFilter('dapp_link', filterTypes.CUSTOM, {
-			condition: '"dapp_link" = ${dapp_link}',
+			condition: "asset->'dapp'->>'link' = ${dapp_link}",
 		});
 
 		this.SQLs = this.loadSQLFiles('transaction', sqlFiles);
@@ -443,7 +446,8 @@ class Transaction extends BaseEntity {
 			parsedOptions.sort = ['t_rowId:asc'];
 		}
 
-		const parsedSort = this.parseSort(parsedOptions.sort);
+		let parsedSort = this.parseSort(parsedOptions.sort);
+		parsedSort = parsedSort.replace('"dapp_name"', "asset->'dapp'->>'name'");
 
 		const params = {
 			limit: parsedOptions.limit,
@@ -452,12 +456,24 @@ class Transaction extends BaseEntity {
 			parsedFilters,
 		};
 
-		return this.adapter.executeFile(
-			parsedOptions.extended ? this.SQLs.selectExtended : this.SQLs.select,
-			params,
-			{ expectedResultCount },
-			tx
-		);
+		return this.adapter
+			.executeFile(
+				parsedOptions.extended ? this.SQLs.selectExtended : this.SQLs.select,
+				params,
+				{ expectedResultCount },
+				tx
+			)
+			.then(resp => {
+				if (expectedResultCount === 1) {
+					resp.asset = resp.asset ? resp.asset : {};
+					return resp;
+				}
+
+				resp.forEach(item => {
+					item.asset = item.asset ? item.asset : {};
+				});
+				return resp;
+			});
 	}
 }
 
