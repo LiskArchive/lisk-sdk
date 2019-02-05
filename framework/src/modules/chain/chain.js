@@ -812,9 +812,9 @@ module.exports = class Chain {
 		}
 
 		if (this.scope.components !== undefined) {
-			this.scope.components
-				.filter(component => typeof component.cleanup === 'function')
-				.map(component => component.cleanup());
+			Object.keys(this.scope.components)
+				.filter(key => typeof this.scope.components[key].cleanup === 'function')
+				.map(key => this.scope.components[key].cleanup());
 		}
 
 		// Run cleanup operation on each module before shutting down the node;

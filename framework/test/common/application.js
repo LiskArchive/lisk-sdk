@@ -536,7 +536,11 @@ function __init(initScope, done) {
 
 function cleanup(done) {
 	if (currentAppScope.components !== undefined) {
-		currentAppScope.components.cache.cleanup();
+		Object.keys(currentAppScope.components)
+			.filter(
+				key => typeof currentAppScope.components[key].cleanup === 'function'
+			)
+			.map(key => currentAppScope.components[key].cleanup());
 	}
 	async.eachSeries(
 		currentAppScope.modules,
