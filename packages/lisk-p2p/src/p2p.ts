@@ -22,9 +22,7 @@ interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
 
-import { RequestFailError } from './errors';
-import { constructPeerId, constructPeerIdFromPeerInfo, Peer } from './peer';
-import { PeerOptions } from './peer_selection';
+import { constructPeerId, constructPeerIdFromPeerInfo } from './peer';
 
 import {
 	INVALID_CONNECTION_QUERY_CODE,
@@ -171,30 +169,13 @@ export class P2P extends EventEmitter {
 
 	// TODO ASAP: Change selectPeers to return PeerInfo list and then make request on peerPool itself; pass peerInfo as argument.
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const peerSelectionParams: PeerOptions = {
-			lastBlockHeight: this._nodeInfo.height,
-		};
-		const selectedPeer = this._peerPool.selectPeers(peerSelectionParams, 1);
-
-		if (selectedPeer.length <= 0) {
-			throw new RequestFailError(
-				'Request failed due to no peers found in peer selection',
-			);
-		}
-		const response: P2PResponsePacket = await selectedPeer[0].request(packet);
+		const response = await this._peerPool.requestPeer(packet);
 
 		return response;
 	}
 
 	public send(message: P2PMessagePacket): void {
-		const peerSelectionParams: PeerOptions = {
-			lastBlockHeight: this._nodeInfo.height,
-		};
-		const selectedPeers = this._peerPool.selectPeers(peerSelectionParams);
-
-		selectedPeers.forEach((peer: Peer) => {
-			peer.send(message);
-		});
+		this._peerPool.sendToPeers(message);
 	}
 
 	private async _startPeerServer(): Promise<void> {
