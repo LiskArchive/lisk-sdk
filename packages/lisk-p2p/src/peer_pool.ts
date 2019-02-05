@@ -267,8 +267,8 @@ export class PeerPool extends EventEmitter {
 						nonce: peerDetailedInfo.options
 							? (peerDetailedInfo.options.nonce as string)
 							: '',
-						os: peerDetailedInfo.os ? peerDetailedInfo.os : '',
-						version: peerDetailedInfo.version ? peerDetailedInfo.version : '',
+						os: peerDetailedInfo.os,
+						version: peerDetailedInfo.version,
 						wsPort: String(peerDetailedInfo.wsPort),
 					};
 				},
