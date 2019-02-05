@@ -24,6 +24,7 @@ describe('blocks/chain', async () => {
 	let __private;
 	let library;
 	let modules;
+	let components;
 	let blocksChainModule;
 	let storageStub;
 	let loggerStub;
@@ -156,10 +157,6 @@ describe('blocks/chain', async () => {
 			tick: sinonSandbox.stub(),
 		};
 
-		const modulesSystemStub = {
-			update: sinonSandbox.stub(),
-		};
-
 		const modulesTransportStub = {
 			broadcastHeaders: sinonSandbox.stub(),
 		};
@@ -174,14 +171,21 @@ describe('blocks/chain', async () => {
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
 
+		const componentsSystemStub = {
+			update: sinonSandbox.stub(),
+		};
+
 		bindingsStub = {
 			modules: {
 				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
-				system: modulesSystemStub,
 				transport: modulesTransportStub,
+			},
+
+			components: {
+				system: componentsSystemStub,
 			},
 		};
 
@@ -189,6 +193,7 @@ describe('blocks/chain', async () => {
 
 		blocksChainModule.onBind(bindingsStub);
 		modules = BlocksChain.__get__('modules');
+		components = BlocksChain.__get__('components');
 		done();
 	});
 
@@ -1545,7 +1550,7 @@ describe('blocks/chain', async () => {
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
-			modules.system.update.callsArgWith(0, null, true);
+			components.system.update.resolves();
 			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
@@ -1623,7 +1628,7 @@ describe('blocks/chain', async () => {
 								'receiveTransactions-ERR'
 							);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-							expect(modules.system.update.calledOnce).to.be.true;
+							expect(components.system.update.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						});
@@ -1640,7 +1645,7 @@ describe('blocks/chain', async () => {
 							expect(err).to.be.null;
 							expect(newLastBlock).to.deep.equal(blockWithTransactions);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-							expect(modules.system.update.calledOnce).to.be.true;
+							expect(components.system.update.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						});
@@ -1721,7 +1726,7 @@ describe('blocks/chain', async () => {
 			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
-			expect(modules.system).to.equal(bindingsStub.modules.system);
+			expect(components.system).to.equal(bindingsStub.components.system);
 			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			return expect(modules.transactions).to.equal(
 				bindingsStub.modules.transactions

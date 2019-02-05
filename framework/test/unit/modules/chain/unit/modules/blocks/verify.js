@@ -34,6 +34,7 @@ describe('blocks/verify', async () => {
 	let blocksVerifyModule;
 	let bindingsStub;
 	let modules;
+	let components;
 
 	beforeEach(done => {
 		// Logic
@@ -100,10 +101,6 @@ describe('blocks/verify', async () => {
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
 
-		const modulesSystemStub = {
-			update: sinonSandbox.stub(),
-		};
-
 		const modulesTransportStub = {
 			broadcastHeaders: sinonSandbox.stub(),
 		};
@@ -121,19 +118,27 @@ describe('blocks/verify', async () => {
 			},
 		};
 
+		const componentsSystemStub = {
+			update: sinonSandbox.stub(),
+		};
+
 		bindingsStub = {
 			modules: {
 				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
 				transactions: modulesTransactionsStub,
-				system: modulesSystemStub,
 				transport: modulesTransportStub,
+			},
+
+			components: {
+				system: componentsSystemStub,
 			},
 		};
 
 		blocksVerifyModule.onBind(bindingsStub);
 		modules = BlocksVerify.__get__('modules');
+		components = BlocksVerify.__get__('components');
 		done();
 	});
 
@@ -1995,7 +2000,7 @@ describe('blocks/verify', async () => {
 			__private.broadcastBlock = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, true);
-			modules.system.update.callsArgWith(0, null, true);
+			components.system.update.resolves();
 			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
@@ -2030,7 +2035,7 @@ describe('blocks/verify', async () => {
 					saveBlock,
 					err => {
 						expect(err).to.be.null;
-						expect(modules.system.update.calledOnce).to.be.true;
+						expect(components.system.update.calledOnce).to.be.true;
 						done();
 					}
 				);
@@ -2053,7 +2058,7 @@ describe('blocks/verify', async () => {
 					saveBlock,
 					err => {
 						expect(err).to.be.null;
-						expect(modules.system.update.calledOnce).to.be.false;
+						expect(components.system.update.calledOnce).to.be.false;
 						done();
 					}
 				);
@@ -2155,7 +2160,7 @@ describe('blocks/verify', async () => {
 								__private.validateBlockSlot,
 								__private.checkTransactions,
 								modules.blocks.chain.applyBlock,
-								modules.system.update,
+								components.system.update,
 								modules.transport.broadcastHeaders
 							);
 
@@ -2185,7 +2190,7 @@ describe('blocks/verify', async () => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.system).to.equal(bindingsStub.modules.system);
+			expect(components.system).to.equal(bindingsStub.components.system);
 			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			done();
 		});
