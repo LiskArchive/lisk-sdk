@@ -91,11 +91,12 @@ export abstract class BaseTransaction {
 	public readonly containsUniqueData?: boolean;
 
 	protected _fee: BigNum;
-	private _id?: string;
+	protected _id?: string;
+	protected _signature?: string;
+	protected _signSignature?: string;
+
 	private _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
-	private _signature?: string;
-	private _signSignature?: string;
 
 	public abstract assetToJSON(): object;
 	public abstract verifyAgainstOtherTransactions(

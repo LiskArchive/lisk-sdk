@@ -55,7 +55,7 @@ export const registerSecondPassphrase = (
 	const secondSignatureTransaction = new SecondSignatureTransaction(
 		transaction as TransactionJSON,
 	);
-	secondSignatureTransaction.sign(passphrase, secondPassphrase);
+	secondSignatureTransaction.sign(passphrase);
 
 	return secondSignatureTransaction.toJSON();
 };

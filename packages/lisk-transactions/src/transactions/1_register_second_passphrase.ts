@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { hexToBuffer } from '@liskhq/lisk-cryptography';
+import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import { SIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
@@ -22,7 +22,7 @@ import {
 	Status,
 	TransactionJSON,
 } from '../transaction_types';
-import { validator } from '../utils';
+import { getId, validator } from '../utils';
 import { BaseTransaction, TransactionResponse } from './base';
 
 const TRANSACTION_SIGNATURE_TYPE = 1;
@@ -274,5 +274,12 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			errors,
 			state: { sender: strippedSender },
 		};
+	}
+
+	public sign(passphrase: string): void {
+		this._signature = undefined;
+		this._signSignature = undefined;
+		this._signature = signData(hash(this.getBytes()), passphrase);
+		this._id = getId(this.getBytes());
 	}
 }
