@@ -18,6 +18,7 @@ import * as querystring from 'querystring';
 import { RPCResponseError } from './errors';
 
 import {
+	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -71,12 +72,19 @@ export interface PeerConnectionState {
 	readonly outbound: ConnectionState;
 }
 
+export const constructPeerId = (ipAddress: string, wsPort: number): string =>
+	`${ipAddress}:${wsPort}`
+
+export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
+	`${peerInfo.ipAddress}:${peerInfo.wsPort}`
+
 export class Peer extends EventEmitter {
 	private readonly _id: string;
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
 	private _peerInfo: P2PPeerInfo;
+	private _peerDetailedInfo: P2PDiscoveredPeerInfo | undefined;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
@@ -91,7 +99,7 @@ export class Peer extends EventEmitter {
 		this._peerInfo = peerInfo;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
-		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
+		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? peerInfo.height : 0;
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -168,17 +176,23 @@ export class Peer extends EventEmitter {
 		this._outboundSocket = scClientSocket;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
+	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
 		this._peerInfo = {
-			...newPeerInfo,
+			height: newPeerInfo.height,
 			ipAddress: this._peerInfo.ipAddress,
 			wsPort: this._peerInfo.wsPort,
-			isTriedPeer: true,
+			isDiscoveredPeer: true,
 		};
+
+		this._peerDetailedInfo = newPeerInfo;
 	}
 
 	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
+	}
+
+	public get detailedPeerInfo(): P2PDiscoveredPeerInfo | undefined {
+		return this._peerDetailedInfo;
 	}
 
 	public get state(): PeerConnectionState {
@@ -201,10 +215,6 @@ export class Peer extends EventEmitter {
 
 	public get wsPort(): number {
 		return this._wsPort;
-	}
-
-	public static constructPeerId(ipAddress: string, port: number): string {
-		return `${ipAddress}:${port}`;
 	}
 
 	/**
@@ -253,7 +263,8 @@ export class Peer extends EventEmitter {
 		if (!this._outboundSocket) {
 			this._outboundSocket = this._createOutboundSocket();
 		}
-		this._outboundSocket.emit(packet.event, {
+		this._outboundSocket.emit(REMOTE_EVENT_MESSAGE, {
+			event: packet.event,
 			data: packet.data,
 		});
 	}
@@ -365,6 +376,10 @@ export class Peer extends EventEmitter {
 	): void {
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+	}
+
+	public static constructPeerIdFromPeerInfo(peerInfo: P2PPeerInfo): string {
+		return `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
 	}
 
 	private _handlePeerInfo(request: P2PRequest): void {

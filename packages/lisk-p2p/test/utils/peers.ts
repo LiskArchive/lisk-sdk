@@ -20,40 +20,30 @@ export const initializePeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
-		version: '1.0.1',
-		os: 'darwin',
 	};
 
 	const peerOption2: P2PPeerInfo = {
 		ipAddress: '127.0.0.1',
 		wsPort: 5002,
 		height: 545981,
-		version: '1.0.1',
-		os: 'darwin',
 	};
 
 	const peerOption3: P2PPeerInfo = {
 		ipAddress: '18.28.48.1',
 		wsPort: 5008,
 		height: 645980,
-		version: '1.4.1',
-		os: 'darwin',
 	};
 
 	const peerOption4: P2PPeerInfo = {
 		ipAddress: '192.28.138.1',
 		wsPort: 5006,
 		height: 645982,
-		version: '1.0.1',
-		os: 'darwin',
 	};
 
 	const peerOption5: P2PPeerInfo = {
 		ipAddress: '178.21.90.199',
 		wsPort: 5001,
 		height: 645980,
-		version: '1.0.1',
-		os: 'darwin',
 	};
 
 	return [peerOption1, peerOption2, peerOption3, peerOption4, peerOption5];

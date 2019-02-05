@@ -22,11 +22,16 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
+import { RequestFailError } from './errors';
 import { P2PRequest } from './p2p_request';
 import {
+	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PRequestPacket,
+	P2PResponsePacket,
+	ProtocolPeerInfo,
 	ProtocolPeerInfoList,
 } from './p2p_types';
 import {
@@ -108,14 +113,61 @@ export class PeerPool extends EventEmitter {
 	public selectPeers(
 		selectionParams: PeerOptions,
 		numOfPeers?: number,
-	): ReadonlyArray<Peer> {
+	): ReadonlyArray<P2PPeerInfo> {
+		const listOfPeerInfo = [...this._peerMap.values()].map(
+			(peer: Peer) => peer.peerInfo,
+		);
 		const selectedPeers = selectPeers(
-			[...this._peerMap.values()],
+			listOfPeerInfo,
 			selectionParams,
 			numOfPeers,
 		);
 
 		return selectedPeers;
+	}
+
+	public async requestPeer(
+		packet: P2PRequestPacket,
+	): Promise<P2PResponsePacket> {
+		const peerSelectionParams: PeerOptions = {
+			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
+		};
+		const selectedPeer = this.selectPeers(peerSelectionParams, 1);
+
+		if (selectedPeer.length <= 0) {
+			throw new RequestFailError(
+				'Request failed due to no peers found in peer selection',
+			);
+		}
+
+		const selectedPeerId = Peer.constructPeerIdFromPeerInfo(selectedPeer[0]);
+		const peer = this._peerMap.get(selectedPeerId);
+
+		if (!peer) {
+			throw new RequestFailError(
+				`No such Peer exist in PeerPool with the selected peer with Id: ${selectedPeerId}`,
+			);
+		}
+
+		const response: P2PResponsePacket = await peer.request(packet);
+
+		return response;
+	}
+
+	public sendToPeers(message: P2PMessagePacket): void {
+		const peerSelectionParams: PeerOptions = {
+			lastBlockHeight: this._nodeInfo ? this._nodeInfo.height : 0,
+		};
+		const selectedPeers = this.selectPeers(peerSelectionParams);
+
+		selectedPeers.forEach((peerInfo: P2PPeerInfo) => {
+			const selectedPeerId = Peer.constructPeerIdFromPeerInfo(peerInfo);
+			const peer = this._peerMap.get(selectedPeerId);
+
+			if (peer) {
+				peer.send(message);
+			}
+		});
 	}
 
 	public async runDiscovery(
@@ -157,9 +209,25 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
+	public addDiscoveredPeer(
+		detailedPeerInfo: P2PDiscoveredPeerInfo,
+		inboundSocket?: SCServerSocket,
+	): Peer {
+		const peer = new Peer(detailedPeerInfo, inboundSocket);
+		this._peerMap.set(peer.id, peer);
+		this._bindHandlersToPeer(peer);
+		if (this._nodeInfo) {
+			peer.applyNodeInfo(this._nodeInfo);
+		}
+		peer.updatePeerInfo(detailedPeerInfo);
+		peer.connect();
+
+		return peer;
+	}
+
 	public addInboundPeer(
 		peerId: string,
-		peerInfo: P2PPeerInfo,
+		peerInfo: P2PDiscoveredPeerInfo,
 		socket: SCServerSocket,
 	): boolean {
 		const existingPeer = this.getPeer(peerId);
@@ -176,7 +244,14 @@ export class PeerPool extends EventEmitter {
 			return false;
 		}
 
-		this.addPeer({ ...peerInfo }, socket);
+		this.addPeer(
+			{
+				ipAddress: peerInfo.ipAddress,
+				wsPort: peerInfo.wsPort,
+				height: peerInfo.height,
+			},
+			socket,
+		);
 
 		return true;
 	}
@@ -216,7 +291,7 @@ export class PeerPool extends EventEmitter {
 	private _pickRandomPeers(count: number): ReadonlyArray<Peer> {
 		const discoveredPeerList: ReadonlyArray<Peer> = [
 			...this._peerMap.values(),
-		].filter(peer => peer.peerInfo.isTriedPeer);
+		].filter(peer => peer.peerInfo.isDiscoveredPeer);
 
 		return shuffle(discoveredPeerList).slice(0, count);
 	}
@@ -226,22 +301,33 @@ export class PeerPool extends EventEmitter {
 		const protocolPeerInfoList: ProtocolPeerInfoList = {
 			success: true,
 			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
-			peers: this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE).map(
-				(peer: Peer) => {
-					const peerInfo = peer.peerInfo;
-
+			peers: this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE)
+			.map(
+				(peer: Peer): ProtocolPeerInfo | undefined => {
+					const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined = peer.detailedPeerInfo;
+					if (!peerDetailedInfo) {
+						return undefined;
+					}
+					
 					return {
-						broadhash: peerInfo.options
-							? (peerInfo.options.broadhash as string)
+						broadhash: peerDetailedInfo.options
+							? (peerDetailedInfo.options.broadhash as string)
 							: '',
-						height: peerInfo.height,
-						ip: peerInfo.ipAddress,
-						nonce: peerInfo.options ? (peerInfo.options.nonce as string) : '',
-						os: peerInfo.os ? peerInfo.os : '',
-						version: peerInfo.version ? peerInfo.version : '',
-						wsPort: String(peerInfo.wsPort),
+						height: peerDetailedInfo.height,
+						ip: peerDetailedInfo.ipAddress,
+						nonce: peerDetailedInfo.options
+							? (peerDetailedInfo.options.nonce as string)
+							: '',
+						os: peerDetailedInfo.os,
+						version: peerDetailedInfo.version,
+						wsPort: String(peerDetailedInfo.wsPort),
 					};
 				},
+			)
+			.filter((peerDetailedInfo: ProtocolPeerInfo | undefined) => !!peerDetailedInfo)
+			.map(
+				(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
+					peerDetailedInfo as ProtocolPeerInfo
 			),
 		};
 
