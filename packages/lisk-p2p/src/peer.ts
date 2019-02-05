@@ -345,10 +345,12 @@ export class Peer extends EventEmitter {
 	};
 
 	private _createOutboundSocket(): SCClientSocket {
+		const legacyNodeInfo = this._nodeInfo ? this._convertNodeInfoToLegacyFormat(this._nodeInfo) : undefined;
+
 		const outboundSocket = socketClusterClient.create({
 			hostname: this._ipAddress,
 			port: this._wsPort,
-			query: querystring.stringify(this._nodeInfo),
+			query: querystring.stringify(legacyNodeInfo),
 			autoConnect: false,
 		});
 
