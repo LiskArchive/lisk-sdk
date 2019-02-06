@@ -336,34 +336,25 @@ class BaseEntity {
 	}
 
 	parseFilters(filters, options = { filterPrefix: 'WHERE' }) {
-		let filterString = '';
-
 		const parseFilterObject = object =>
-			`(${Object.keys(object)
+			Object.keys(object).length ? `(${Object.keys(object)
 				.map(key => this.filters[key])
-				.join(' AND ')})`;
+				.join(' AND ')})` : '';
 
-		if (Array.isArray(filters)) {
-			filterString = filters
-				.map(filterObject => parseFilterObject(filterObject))
-				.join(' OR ');
-		} else if (typeof filters === 'object') {
-			filterString = parseFilterObject(filters);
-		}
+		const subQueries = (Array.isArray(filters) ? filters : [filters]).reduce((accQueries, filterObject) => {
+			const filterString = parseFilterObject(filterObject);
 
-		const filtersObject = Array.isArray(filters)
-			? filters.reduce((acc, curr) => ({ ...acc, ...curr }), {})
-			: filters;
+			if (filterString === '') {
+				return accQueries;
+			}
 
-		// TODO: refactor this logic
-		if (filterString !== '()') {
-			return `${options.filterPrefix} ${this.adapter.parseQueryComponent(
+			return [...accQueries, `${this.adapter.parseQueryComponent(
 				filterString,
-				filtersObject
-			)}`;
-		}
+				filterObject
+			)}`];
+		}, []);
 
-		return '';
+		return subQueries.length === 0 ? '' : `${options.filterPrefix} ${subQueries.join(' OR ')}`;
 	}
 
 	/**
