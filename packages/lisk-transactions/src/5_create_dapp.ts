@@ -31,6 +31,7 @@ export interface DappInputs {
 	readonly options: DappOptions;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
 }
 
 const validateInputs = ({ options }: DappInputs): void => {

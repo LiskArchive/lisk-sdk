@@ -20,6 +20,7 @@ import { createBaseTransaction } from './utils';
 export interface RegisterDelegateInputs {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
 	readonly username: string;
 }
 
