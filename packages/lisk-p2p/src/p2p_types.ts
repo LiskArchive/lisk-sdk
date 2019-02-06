@@ -101,7 +101,6 @@ export interface ProtocolNodeInfo {
 export interface ProtocolPeerInfo {
 	readonly ip: string;
 	readonly broadhash: string;
-	readonly nethash: string;
 	readonly height: number;
 	readonly nonce: string;
 	readonly os?: string;
