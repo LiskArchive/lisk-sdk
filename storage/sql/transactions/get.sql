@@ -28,7 +28,6 @@ SELECT
 	encode(trs."signature", 'hex'::text) AS "signature",
 	encode(trs."signSignature", 'hex'::text) AS "signSignature",
 	regexp_split_to_array(trs."signatures", ',') as "signatures",
-	trs."asset" AS "asset",
 	(( SELECT blocks.height + 1
 		FROM blocks
 		ORDER BY blocks.height DESC

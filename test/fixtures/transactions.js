@@ -132,7 +132,6 @@ const Transaction = stampit({
 					transactionId: inTransfer
 						? inTransfer.id
 						: randomstring.generate({ length: 20, charset: 'numeric' }),
-					outTransactionId: this.id,
 				});
 				break;
 

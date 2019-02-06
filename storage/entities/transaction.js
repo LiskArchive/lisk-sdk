@@ -451,15 +451,19 @@ class Transaction extends BaseEntity {
 				tx
 			)
 			.then(resp => {
+				const parseResponse = transaction => {
+					if (parsedOptions.extended) {
+						transaction.asset = transaction.asset ? transaction.asset : {};
+					}
+					transaction.signatures = transaction.signatures.filter(Boolean);
+					return transaction;
+				};
+
 				if (expectedResultCount === 1) {
-					resp.asset = resp.asset ? resp.asset : {};
-					return resp;
+					return parseResponse(resp);
 				}
 
-				resp.forEach(item => {
-					item.asset = item.asset ? item.asset : {};
-				});
-				return resp;
+				return resp.map(parseResponse);
 			});
 	}
 }

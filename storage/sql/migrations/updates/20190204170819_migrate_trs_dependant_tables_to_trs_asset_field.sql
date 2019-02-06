@@ -92,7 +92,7 @@ where type = 6;
 -- Migrate outtransfer table into trs asset field
 UPDATE trs
 SET asset = (
-        SELECT concat('{"outTransfer":{"dappId":"',ot."dappId",'","outTransactionId":"',ot."outTransactionId",'"}}')::json
+        SELECT concat('{"outTransfer":{"dappId":"',ot."dappId",'","transactionId":"',ot."outTransactionId",'"}}')::json
         FROM outtransfer as ot
         WHERE ot."transactionId" = trs.id
     )

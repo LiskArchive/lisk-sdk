@@ -22,6 +22,7 @@ SELECT
 	encode(m."publicKey", 'hex'::text) AS "recipientPublicKey",
 	upper(trs."senderId"::text) AS "senderId",
 	upper(trs."recipientId"::text) AS "recipientId",
+	encode(trs."requesterPublicKey", 'hex'::text) AS "requesterPublicKey",
 	trs."amount" AS "amount",
 	trs."fee" AS "fee",
 	encode(trs."signature", 'hex'::text) AS "signature",
