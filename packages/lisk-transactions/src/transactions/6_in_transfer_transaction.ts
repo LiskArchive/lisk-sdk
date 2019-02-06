@@ -99,21 +99,6 @@ export class InTransferTransaction extends BaseTransaction {
 		this._fee = new BigNum(IN_TRANSFER_FEE);
 	}
 
-	public static fromJSON(tx: TransactionJSON): InTransferTransaction {
-		const transaction = new InTransferTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
-	}
-
 	protected getAssetBytes(): Buffer {
 		return Buffer.from(this.asset.inTransfer.dappId, 'utf8');
 	}

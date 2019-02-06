@@ -13,8 +13,9 @@
  *
  */
 import { DAPP_FEE } from './constants';
-import { DappTransaction, PartialTransaction } from './transaction_types';
-import { isValidInteger, prepareTransaction } from './utils';
+import { TransactionJSON } from './transaction_types';
+import { DappTransaction } from './transactions';
+import { createBaseTransaction, isValidInteger } from './utils';
 
 export interface DappOptions {
 	readonly category: number;
@@ -65,30 +66,31 @@ const validateInputs = ({ options }: DappInputs): void => {
 	}
 };
 
-export const createDapp = (inputs: DappInputs): DappTransaction => {
+export const createDapp = (inputs: DappInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { passphrase, secondPassphrase, timeOffset, options } = inputs;
+	const { passphrase, secondPassphrase, options } = inputs;
 
-	const transaction: PartialTransaction = {
+	const transaction = {
+		...createBaseTransaction(inputs),
 		type: 5,
 		fee: DAPP_FEE.toString(),
 		asset: {
-			dapp: {
-				category: options.category,
-				name: options.name,
-				description: options.description,
-				tags: options.tags,
-				type: options.type,
-				link: options.link,
-				icon: options.icon,
-			},
+			dapp: options,
 		},
 	};
 
-	return prepareTransaction(
-		transaction,
-		passphrase,
-		secondPassphrase,
-		timeOffset,
-	) as DappTransaction;
+	if (!passphrase) {
+		return transaction;
+	}
+
+	const transactionWithSenderInfo = {
+		...transaction,
+		senderId: transaction.senderId as string,
+		senderPublicKey: transaction.senderPublicKey as string,
+	};
+
+	const dappTransaction = new DappTransaction(transactionWithSenderInfo);
+	dappTransaction.sign(passphrase, secondPassphrase);
+
+	return dappTransaction.toJSON();
 };

@@ -13,7 +13,7 @@
  *
  */
 import * as BigNum from 'browserify-bignum';
-import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from '../constants';
+import { DELEGATE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
@@ -21,13 +21,11 @@ import {
 	Status,
 	TransactionJSON,
 } from '../transaction_types';
-import { validator } from '../utils';
+import { CreateBaseTransactionInput, validator } from '../utils';
 import { isTypedObjectArrayWithKeys } from '../utils/validation';
 import {
 	Attributes,
 	BaseTransaction,
-	createBaseTransaction,
-	CreateBaseTransactionInput,
 	ENTITY_ACCOUNT,
 	EntityMap,
 	TransactionResponse,
@@ -92,12 +90,6 @@ export interface CreateDelegateRegistrationInput {
 export type RegisterDelegateInput = CreateBaseTransactionInput &
 	CreateDelegateRegistrationInput;
 
-const validateInput = ({ username }: RegisterDelegateInput): void => {
-	if (!username || typeof username !== 'string') {
-		throw new Error('Please provide a username. Expected string.');
-	}
-};
-
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
 	public readonly containsUniqueData = true;
@@ -122,54 +114,6 @@ export class DelegateTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as DelegateAsset;
 		this._fee = new BigNum(DELEGATE_FEE);
-	}
-
-	public static create(input: RegisterDelegateInput): object {
-		validateInput(input);
-		const { username, passphrase, secondPassphrase } = input;
-
-		if (!username || typeof username !== 'string') {
-			throw new Error('Please provide a username. Expected string.');
-		}
-
-		if (username.length > USERNAME_MAX_LENGTH) {
-			throw new Error(
-				`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
-			);
-		}
-
-		const transaction = {
-			...createBaseTransaction(input),
-			type: 2,
-			fee: DELEGATE_FEE.toString(),
-			asset: { delegate: { username } },
-		};
-
-		if (!passphrase) {
-			return transaction;
-		}
-
-		const delegateTransaction = new DelegateTransaction(
-			transaction as TransactionJSON,
-		);
-		delegateTransaction.sign(passphrase, secondPassphrase);
-
-		return delegateTransaction.toJSON();
-	}
-
-	public static fromJSON(tx: TransactionJSON): DelegateTransaction {
-		const transaction = new DelegateTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {
