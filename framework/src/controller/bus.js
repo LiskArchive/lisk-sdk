@@ -2,6 +2,8 @@ const Promise = require('bluebird');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
+const CONTROLLER_IDENTIFIER = 'lisk';
+
 /**
  * Bus responsible to maintain communication between modules
  *
@@ -46,7 +48,7 @@ module.exports = class Bus extends EventEmitter2 {
 	invoke(actionData) {
 		const action = Action.deserialize(actionData);
 
-		if (action.module === 'lisk') {
+		if (action.module === CONTROLLER_IDENTIFIER) {
 			return this.controller.channel.invoke(action);
 		}
 
