@@ -50,7 +50,7 @@ __private.unconfirmedSignatures = {};
  * @todo Add description for the params
  */
 class Multisignature {
-	constructor({ components, libraries, modules }) {
+	constructor({ components, libraries }) {
 		__private.components = {
 			logger: components.logger,
 		};
@@ -62,14 +62,24 @@ class Multisignature {
 				account: libraries.logic.account,
 			},
 		};
-		__private.modules = {
-			accounts: modules.accounts,
-		};
+		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds input parameters to private variable modules.
+ *
+ * @param {Accounts} accounts
+ * @todo Add description for the params
+ */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
+Multisignature.prototype.bind = function(accounts) {
+	__private.modules = {
+		accounts,
+	};
+};
 
 /**
  * Obtains constant fee multisignature and multiply by quantity of signatures.
@@ -336,7 +346,7 @@ Multisignature.prototype.applyConfirmed = function(
 ) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	__private.components.logic.account.merge(
+	__private.libraries.logic.account.merge(
 		sender.address,
 		{
 			membersPublicKeys: transaction.asset.multisignature.keysgroup,
@@ -518,13 +528,13 @@ Multisignature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
-	const report = __private.components.schema.validate(
+	const report = __private.libraries.schema.validate(
 		transaction.asset.multisignature,
 		Multisignature.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate multisignature schema: ${__private.components.schema
+		throw `Failed to validate multisignature schema: ${__private.libraries.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

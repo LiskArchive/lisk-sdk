@@ -20,7 +20,6 @@ const dappCategories = require('../helpers/dapp_categories.js');
 const transactionTypes = require('../helpers/transaction_types');
 const Bignum = require('../helpers/bignum.js');
 
-let library;
 const { FEES } = global.constants;
 
 const __private = {};
@@ -64,6 +63,7 @@ class DApp {
 /**
  * Binds scope.modules to private variable modules.
  */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
 DApp.prototype.bind = function() {};
 
 /**
@@ -205,7 +205,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		},
 	];
 
-	return library.storage.entities.Transaction.get(
+	return __private.components.storage.entities.Transaction.get(
 		filter,
 		{ extended: true },
 		tx
@@ -231,7 +231,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 			return setImmediate(cb, null, transaction);
 		})
 		.catch(err => {
-			library.logger.error(err.stack);
+			__private.components.logger.error(err.stack);
 			return setImmediate(cb, 'DApp#verify error');
 		});
 };

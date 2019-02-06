@@ -94,8 +94,6 @@ const rawValidTransaction = {
 describe('delegate', () => {
 	let accountsMock;
 	let delegate;
-	let loggerMock;
-
 	let dummyBlock;
 	let transaction;
 	let rawTransaction;
@@ -114,43 +112,43 @@ describe('delegate', () => {
 			setAccountAndGet: sinonSandbox.stub().callsArg(1),
 		};
 
-		loggerMock = {
-			debug: sinonSandbox.spy(),
-		};
+		delegate = new Delegate({
+			libraries: {
+				schema: modulesLoader.scope.schema,
+			},
+		});
 
-		delegate = new Delegate(loggerMock, modulesLoader.scope.schema);
 		return delegate.bind(accountsMock);
 	});
 
 	describe('constructor', () => {
-		it('should attach schema to library variable', async () => {
-			const library = Delegate.__get__('library');
-			return expect(library)
-				.to.have.property('schema')
-				.equal(modulesLoader.scope.schema);
+		let __private;
+
+		beforeEach(done => {
+			__private = Delegate.__get__('__private');
+			done();
 		});
 
-		it('should attach logger to library variable', async () => {
-			const library = Delegate.__get__('library');
-			return expect(library)
-				.to.have.property('logger')
-				.equal(loggerMock);
+		it('should attach schema to __private.libraries', async () => {
+			return expect(__private.libraries)
+				.to.have.property('schema')
+				.equal(modulesLoader.scope.schema);
 		});
 	});
 
 	describe('bind', () => {
-		it('should attach empty object to private modules.accounts variable', async () => {
+		it('should attach empty object to __private.modules.accounts', async () => {
 			delegate.bind({});
-			const modules = Delegate.__get__('modules');
+			const modules = Delegate.__get__('__private.modules');
 
 			return expect(modules).to.eql({
 				accounts: {},
 			});
 		});
 
-		it('should bind modules with accounts object', async () => {
+		it('should bind __private.modules with accounts object', async () => {
 			delegate.bind(accountsMock);
-			const modules = Delegate.__get__('modules');
+			const modules = Delegate.__get__('__private.modules');
 
 			return expect(modules).to.eql({
 				accounts: accountsMock,
@@ -944,8 +942,8 @@ describe('delegate', () => {
 
 	describe('objectNormalize', () => {
 		it('should use the correct format to validate against', async () => {
-			const library = Delegate.__get__('library');
-			const schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+			const libraries = Delegate.__get__('__private.libraries');
+			const schemaSpy = sinonSandbox.spy(libraries.schema, 'validate');
 			delegate.objectNormalize(transaction);
 			expect(schemaSpy.calledOnce).to.equal(true);
 			expect(
@@ -957,7 +955,7 @@ describe('delegate', () => {
 			return schemaSpy.restore();
 		});
 
-		describe('when library.schema.validate fails', () => {
+		describe('when __private.libraries.schema.validate fails', () => {
 			const schemaDynamicTest = new SchemaDynamicTest({
 				testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
 				customPropertyAssertion(input, expectedType, property, err) {
@@ -999,7 +997,7 @@ describe('delegate', () => {
 			});
 		});
 
-		describe('when library.schema.validate succeeds', () => {
+		describe('when __private.libraries.schema.validate succeeds', () => {
 			it('should return transaction', async () =>
 				expect(delegate.objectNormalize(transaction)).to.eql(transaction));
 		});

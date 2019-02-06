@@ -102,12 +102,17 @@ describe('signature', () => {
 		accountsMock = {
 			setAccountAndGet: sinonSandbox.mock().callsArg(1),
 		};
-		signature = new Signature(
-			modulesLoader.scope.schema,
-			modulesLoader.scope.components.logger
-		);
-		signature.bind(accountsMock);
 
+		signature = new Signature({
+			components: {
+				logger: modulesLoader.scope.components.logger,
+			},
+			libraries: {
+				schema: modulesLoader.scope.schema,
+			},
+		});
+
+		signature.bind(accountsMock);
 		done();
 	});
 
@@ -126,29 +131,35 @@ describe('signature', () => {
 		});
 
 		describe('constructor', () => {
-			let library;
+			let __private;
 
 			beforeEach(done => {
-				new Signature(
-					modulesLoader.scope.schema,
-					modulesLoader.scope.components.logger
-				);
-				library = Signature.__get__('library');
+				new Signature({
+					components: {
+						logger: modulesLoader.scope.components.logger,
+					},
+					libraries: {
+						schema: modulesLoader.scope.schema,
+					},
+				});
+				__private = Signature.__get__('__private');
 				done();
 			});
 
-			it('should attach schema to library variable', async () =>
-				expect(library.schema).to.eql(modulesLoader.scope.schema));
+			it('should attach schema to __private.libraries', async () =>
+				expect(__private.libraries.schema).to.eql(modulesLoader.scope.schema));
 
-			it('should attach logger to library variable', async () =>
-				expect(library.logger).to.eql(modulesLoader.scope.components.logger));
+			it('should attach logger to __private.components', async () =>
+				expect(__private.components.logger).to.eql(
+					modulesLoader.scope.components.logger
+				));
 		});
 
 		describe('bind', () => {
 			describe('modules', () => {
 				it('should assign accounts', async () => {
 					signature.bind(accountsMock);
-					const modules = Signature.__get__('modules');
+					const modules = Signature.__get__('__private.modules');
 					return expect(modules).to.eql({
 						accounts: accountsMock,
 					});
@@ -293,24 +304,24 @@ describe('signature', () => {
 				signature.applyConfirmed(validTransaction, dummyBlock, sender, done);
 			});
 
-			it('should call modules.accounts.setAccountAndGet', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet', async () =>
 				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with address = sender.address', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with address = sender.address', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ address: sender.address })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with secondSignature = 1', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with secondSignature = 1', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ secondSignature: 1 })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({
@@ -325,24 +336,24 @@ describe('signature', () => {
 				signature.undoConfirmed(validTransaction, dummyBlock, sender, done);
 			});
 
-			it('should call modules.accounts.setAccountAndGet', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet', async () =>
 				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with address = sender.address', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with address = sender.address', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ address: sender.address })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with secondSignature = 0', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with secondSignature = 0', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ secondSignature: 0 })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with secondPublicKey = null', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with secondPublicKey = null', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ secondPublicKey: null })
@@ -383,17 +394,17 @@ describe('signature', () => {
 				signature.applyUnconfirmed(validTransaction, sender, done);
 			});
 
-			it('should call modules.accounts.setAccountAndGet', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet', async () =>
 				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with address = sender.address', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with address = sender.address', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ address: sender.address })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with u_secondSignature = 1', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ u_secondSignature: 1 })
@@ -406,17 +417,17 @@ describe('signature', () => {
 				signature.undoUnconfirmed(validTransaction, sender, done);
 			});
 
-			it('should call modules.accounts.setAccountAndGet', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet', async () =>
 				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with address = sender.address', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with address = sender.address', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ address: sender.address })
 					)
 				).to.be.true);
 
-			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', async () =>
+			it('should call __private.modules.accounts.setAccountAndGet with u_secondSignature = 0', async () =>
 				expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ u_secondSignature: 0 })
@@ -426,12 +437,12 @@ describe('signature', () => {
 
 		describe('objectNormalize', () => {
 			describe('schema.validate should validate against signature schema', () => {
-				let library;
+				let __private;
 				let schemaSpy;
 
 				beforeEach(() => {
-					library = Signature.__get__('library');
-					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+					__private = Signature.__get__('__private');
+					schemaSpy = sinonSandbox.spy(__private.libraries.schema, 'validate');
 					return signature.objectNormalize(transaction);
 				});
 
@@ -492,7 +503,7 @@ describe('signature', () => {
 				});
 			});
 
-			describe('when library.schema.validate succeeds', () => {
+			describe('when __private.libraries.schema.validate succeeds', () => {
 				it('should return transaction', async () =>
 					expect(signature.objectNormalize(transaction)).to.eql(transaction));
 			});

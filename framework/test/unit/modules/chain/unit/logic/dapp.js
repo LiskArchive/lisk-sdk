@@ -47,13 +47,16 @@ describe('dapp', () => {
 				},
 			},
 		};
-
-		dapp = new Dapp(
-			storageStub,
-			modulesLoader.scope.components.logger,
-			modulesLoader.scope.schema,
-			modulesLoader.scope.network
-		);
+		dapp = new Dapp({
+			components: {
+				storage: storageStub,
+				logger: modulesLoader.scope.components.logger,
+			},
+			libraries: {
+				network: modulesLoader.scope.network,
+				schema: modulesLoader.scope.schema,
+			},
+		});
 		done();
 	});
 
@@ -66,31 +69,41 @@ describe('dapp', () => {
 		});
 
 		describe('constructor', () => {
-			describe('private library object', () => {
-				let library;
+			describe('__private object', () => {
+				let __private;
 
 				beforeEach(done => {
-					new Dapp(
-						storageStub,
-						modulesLoader.scope.logger,
-						modulesLoader.scope.schema,
-						modulesLoader.scope.network
-					);
-					library = Dapp.__get__('library');
+					new Dapp({
+						components: {
+							storage: storageStub,
+							logger: modulesLoader.scope.components.logger,
+						},
+						libraries: {
+							network: modulesLoader.scope.network,
+							schema: modulesLoader.scope.schema,
+						},
+					});
+					__private = Dapp.__get__('__private');
 					done();
 				});
 
 				it('should be updated with storage stub object', async () =>
-					expect(library.storage).to.eql(storageStub));
+					expect(__private.components.storage).to.eql(storageStub));
 
 				it('should be loaded schema from modulesLoader', async () =>
-					expect(library.schema).to.eql(modulesLoader.scope.schema));
+					expect(__private.libraries.schema).to.eql(
+						modulesLoader.scope.schema
+					));
 
 				it('should be loaded logger from modulesLoader', async () =>
-					expect(library.logger).to.eql(modulesLoader.scope.logger));
+					expect(__private.components.logger).to.eql(
+						modulesLoader.scope.logger
+					));
 
 				it('should be loaded network from modulesLoader', async () =>
-					expect(library.network).to.eql(modulesLoader.scope.network));
+					expect(__private.libraries.network).to.eql(
+						modulesLoader.scope.network
+					));
 			});
 		});
 

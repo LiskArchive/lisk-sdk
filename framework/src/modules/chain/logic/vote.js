@@ -52,7 +52,7 @@ let self;
  * @todo Add description for the params
  */
 class Vote {
-	constructor({ components, libraries, modules }) {
+	constructor({ components, libraries }) {
 		self = this;
 		__private.components = {
 			logger: components.logger,
@@ -61,9 +61,7 @@ class Vote {
 			schema: libraries.schema,
 			account: libraries.account,
 		};
-		__private.modules = {
-			delegates: modules.delegates,
-		};
+		// TODO: Add modules to contructor argument and assign delegates module to __private.modules.delegates
 	}
 
 	/**
@@ -128,6 +126,18 @@ class Vote {
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds module content to private object modules.
+ *
+ * @param {Delegates} delegates
+ * @todo Add description for the params
+ */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
+Vote.prototype.bind = function(delegates) {
+	__private.modules = {
+		delegates,
+	};
+};
 
 /**
  * Obtains constant fee vote.

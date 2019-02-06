@@ -45,7 +45,7 @@ __private.unconfirmedOutTansfers = {};
  * @todo Add description for the params
  */
 class OutTransfer {
-	constructor({ components, libraries, modules }) {
+	constructor({ components, libraries }) {
 		__private.components = {
 			storage: components.storage,
 			logger: components.logger,
@@ -53,14 +53,24 @@ class OutTransfer {
 		__private.libraries = {
 			schema: libraries.schema,
 		};
-		__private.modules = {
-			accounts: modules.accounts,
-		};
+		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds input modules to private variable module.
+ *
+ * @param {Accounts} accounts
+ * @todo Add description for the params
+ */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
+OutTransfer.prototype.bind = function(accounts) {
+	__private.modules = {
+		accounts,
+	};
+};
 
 /**
  * Returns send fee from constants.

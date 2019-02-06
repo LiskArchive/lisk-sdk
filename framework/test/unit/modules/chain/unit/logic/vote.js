@@ -15,6 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const rewire = require('rewire');
 const async = require('async');
 const lisk = require('lisk-elements').default;
 const accountFixtures = require('../../../../../fixtures/accounts');
@@ -25,8 +26,9 @@ const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const diff = require('../../../../../../src/modules/chain/helpers/diff');
 const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
-const Vote = require('../../../../../../src/modules/chain/logic/vote');
 const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
+
+const Vote = rewire('../../../../../../src/modules/chain/logic/vote');
 
 const { FEES, MAX_VOTES_PER_TRANSACTION } = __testContext.config.constants;
 const validPassphrase =
@@ -79,6 +81,7 @@ describe('vote', () => {
 	let voteBindings;
 	let vote;
 	let accountsModule;
+	let accountLogic;
 	let delegatesModule;
 	let transactionLogic;
 	const dummyBlock = {
@@ -139,11 +142,17 @@ describe('vote', () => {
 			(err, scope) => {
 				accountsModule = scope.modules.accounts;
 				delegatesModule = scope.modules.delegates;
-				vote = new Vote(
-					modulesLoader.scope.logger,
-					modulesLoader.scope.schema,
-					scope.logic.account
-				);
+
+				vote = new Vote({
+					components: {
+						logger: modulesLoader.scope.logger,
+					},
+					libraries: {
+						schema: modulesLoader.scope.schema,
+						account: scope.logic.account,
+					},
+				});
+
 				voteBindings = {
 					delegate: delegatesModule,
 					account: accountsModule,
@@ -155,6 +164,7 @@ describe('vote', () => {
 					},
 				});
 				transactionLogic = scope.logic.transaction;
+				accountLogic = scope.logic.account;
 				transactionLogic.attachAssetType(transactionTypes.VOTE, vote);
 				done();
 			}
@@ -167,7 +177,14 @@ describe('vote', () => {
 	/* eslint-disable mocha/no-sibling-hooks */
 	before(done => {
 		// create new account for testing;
-		const transfer = new Transfer();
+		const transfer = new Transfer({
+			components: {
+				logger: modulesLoader.logger,
+			},
+			libraries: {
+				schema: modulesLoader.scope.schema,
+			},
+		});
 		transfer.bind(voteBindings.account);
 		transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
 
@@ -209,6 +226,31 @@ describe('vote', () => {
 		});
 	});
 	/* eslint-enable mocha/no-sibling-hooks */
+
+	describe('constructor', () => {
+		let __private;
+
+		beforeEach(done => {
+			__private = Vote.__get__('__private');
+			done();
+		});
+
+		it('should assign logger to __private.components', () => {
+			return expect(__private.components.logger).to.equal(
+				modulesLoader.scope.logger
+			);
+		});
+
+		it('should assign schema to __private.libraries', () => {
+			return expect(__private.libraries.schema).to.equal(
+				modulesLoader.scope.schema
+			);
+		});
+
+		it('should assign account to __private.libraries', () => {
+			return expect(__private.libraries.account).to.equal(accountLogic);
+		});
+	});
 
 	describe('bind', () => {
 		it('should be okay with correct params', async () =>

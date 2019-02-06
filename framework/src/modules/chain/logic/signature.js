@@ -38,21 +38,31 @@ const __private = {};
  * @todo Add description for the params
  */
 class Signature {
-	constructor({ components, libraries, modules }) {
+	constructor({ components, libraries }) {
 		__private.libraries = {
 			schema: libraries.schema,
 		};
 		__private.components = {
 			logger: components.logger,
 		};
-		__private.modules = {
-			accounts: modules.accounts,
-		};
+		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds input parameters to private variable modules.
+ *
+ * @param {Accounts} accounts
+ * @todo Add description for the params
+ */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
+Signature.prototype.bind = function(accounts) {
+	__private.modules = {
+		accounts,
+	};
+};
 
 /**
  * Obtains constant fee secondSignature.

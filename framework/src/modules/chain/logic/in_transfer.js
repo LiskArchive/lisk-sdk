@@ -42,7 +42,7 @@ const __private = {};
  * @todo Add description for the params
  */
 class InTransfer {
-	constructor({ components, libraries, modules }) {
+	constructor({ components, libraries }) {
 		__private.components = {
 			storage: components.storage,
 		};
@@ -50,14 +50,26 @@ class InTransfer {
 			schema: libraries.schema,
 			shared: libraries.sharedApi,
 		};
-		__private.modules = {
-			accounts: modules.accounts,
-		};
+		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds input parameters to private variables modules and shared.
+ *
+ * @param {Accounts} accounts
+ * @param {Object} sharedApi
+ * @todo Add description for the params
+ */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
+InTransfer.prototype.bind = function(accounts, sharedApi) {
+	__private.modules = {
+		accounts,
+	};
+	__private.libraries.shared = sharedApi;
+};
 
 /**
  * Returns send fee from constants.
@@ -175,7 +187,7 @@ InTransfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.library.shared.getGenesis(
+	__private.libraries.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
