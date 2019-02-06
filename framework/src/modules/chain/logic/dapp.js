@@ -22,8 +22,8 @@ const Bignum = require('../helpers/bignum.js');
 
 let library;
 const { FEES } = global.constants;
-const __private = {};
 
+const __private = {};
 __private.unconfirmedNames = {};
 __private.unconfirmedLinks = {};
 __private.unconfirmedAscii = {};
@@ -44,12 +44,14 @@ __private.unconfirmedAscii = {};
  * @todo Add description for the params
  */
 class DApp {
-	constructor(storage, logger, schema, network) {
-		library = {
-			storage,
-			logger,
-			schema,
-			network,
+	constructor({ components, libraries }) {
+		__private.components = {
+			storage: components.storage,
+			logger: components.logger,
+		};
+		__private.libraries = {
+			network: libraries.network,
+			schema: libraries.schema,
 		};
 	}
 }
@@ -454,13 +456,13 @@ DApp.prototype.objectNormalize = function(transaction) {
 		}
 	});
 
-	const report = library.schema.validate(
+	const report = __private.libraries.schema.validate(
 		transaction.asset.dapp,
 		DApp.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate dapp schema: ${library.schema
+		throw `Failed to validate dapp schema: ${__private.libraries.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
@@ -502,8 +504,8 @@ DApp.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 DApp.prototype.afterSave = function(transaction, cb) {
-	if (library) {
-		library.network.io.sockets.emit('dapps/change', {});
+	if (__private.libraries) {
+		__private.libraries.network.io.sockets.emit('dapps/change', {});
 	}
 	return setImmediate(cb);
 };
