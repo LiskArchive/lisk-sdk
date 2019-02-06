@@ -384,8 +384,11 @@ export class DappTransaction extends BaseTransaction {
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
-		const nameExists = store.transaction.find((transaction: TransactionJSON) => 
-			(transaction.asset as DappAsset).dapp.name === this.asset.dapp.name,
+		const nameExists = store.transaction.find(
+			(transaction: TransactionJSON) =>
+				transaction.type === TRANSACTION_DAPP_TYPE &&
+				(transaction.asset as DappAsset).dapp &&
+				(transaction.asset as DappAsset).dapp.name === this.asset.dapp.name,
 		);
 
 		if (nameExists) {
@@ -397,8 +400,12 @@ export class DappTransaction extends BaseTransaction {
 			);
 		}
 
-		const linkExists = store.transaction.find((transaction: TransactionJSON) => 
-			(transaction.asset as DappAsset).dapp.link === this.asset.dapp.link);
+		const linkExists = store.transaction.find(
+			(transaction: TransactionJSON) =>
+				transaction.type === TRANSACTION_DAPP_TYPE &&
+				(transaction.asset as DappAsset).dapp &&
+				(transaction.asset as DappAsset).dapp.link === this.asset.dapp.link,
+		);
 
 		if (linkExists) {
 			errors.push(

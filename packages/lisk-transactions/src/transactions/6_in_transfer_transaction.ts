@@ -20,6 +20,7 @@ import { convertBeddowsToLSK } from '../utils';
 import { validator } from '../utils/validation';
 import { BaseTransaction, StateStore, StateStorePrepare } from './base';
 
+const TRANSACTION_DAPP_TYPE = 5;
 const TRANSACTION_INTRANSFER_TYPE = 6;
 
 export interface InTransferAsset {
@@ -112,9 +113,11 @@ export class InTransferTransaction extends BaseTransaction {
 			},
 		]);
 
-		const dappTransaction = (transactions as ReadonlyArray<
-			TransactionJSON
-		>).find(tx => tx.id === this.asset.inTransfer.dappId);
+		const dappTransaction = transactions.find(
+			tx =>
+				tx.type === TRANSACTION_DAPP_TYPE &&
+				tx.id === this.asset.inTransfer.dappId,
+		);
 
 		if (dappTransaction) {
 			await store.account.cache([{ id: dappTransaction.senderId as string }]);
@@ -199,6 +202,7 @@ export class InTransferTransaction extends BaseTransaction {
 		const errors: TransactionError[] = [];
 		const idExists = store.transaction.find(
 			(transaction: TransactionJSON) =>
+				transaction.type === TRANSACTION_DAPP_TYPE &&
 				transaction.id === this.asset.inTransfer.dappId,
 		);
 

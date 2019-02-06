@@ -75,15 +75,15 @@ export interface StateStore {
 	readonly transaction: StateStoreGetter<TransactionJSON>;
 }
 
-export interface StateStoreCache {
-	cache<T>(
+export interface StateStoreCache<T> {
+	cache(
 		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
 	): Promise<ReadonlyArray<T>>;
 }
 
 export interface StateStorePrepare {
-	readonly account: StateStoreCache;
-	readonly transaction: StateStoreCache;
+	readonly account: StateStoreCache<Account>;
+	readonly transaction: StateStoreCache<TransactionJSON>;
 }
 
 export enum MultisignatureStatus {
