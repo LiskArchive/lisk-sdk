@@ -17,7 +17,6 @@
 
 import {
 	bigNumberToBuffer,
-	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
@@ -40,7 +39,6 @@ import {
 	checkTypes,
 	convertBeddowsToLSK,
 	getId,
-	getTimeWithOffset,
 	validator,
 	verifyBalance,
 	verifyMultisignatures,
@@ -95,29 +93,6 @@ export enum MultisignatureStatus {
 
 export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
-export interface CreateBaseTransactionInput {
-	readonly passphrase?: string;
-	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
-}
-
-export const createBaseTransaction = ({
-	passphrase,
-	timeOffset,
-}: CreateBaseTransactionInput) => {
-	const { address: senderId, publicKey: senderPublicKey } = passphrase
-		? getAddressAndPublicKeyFromPassphrase(passphrase)
-		: { address: undefined, publicKey: undefined };
-	const timestamp = getTimeWithOffset(timeOffset);
-
-	return {
-		amount: '0',
-		recipientId: '',
-		senderId,
-		senderPublicKey,
-		timestamp,
-	};
-};
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
@@ -132,11 +107,12 @@ export abstract class BaseTransaction {
 	public readonly containsUniqueData?: boolean;
 
 	protected _fee: BigNum;
-	private _id?: string;
+	protected _id?: string;
+	protected _signature?: string;
+	protected _signSignature?: string;
+
 	private _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
-	private _signature?: string;
-	private _signSignature?: string;
 
 	public abstract assetToJSON(): object;
 	public abstract prepareTransaction(store: StateStorePrepare): Promise<void>;

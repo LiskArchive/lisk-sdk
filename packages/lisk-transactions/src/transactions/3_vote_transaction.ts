@@ -16,19 +16,16 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Status, TransactionJSON } from '../transaction_types';
-import { prependMinusToPublicKeys, prependPlusToPublicKeys } from '../utils';
+import { TransactionJSON } from '../transaction_types';
+import { CreateBaseTransactionInput } from '../utils';
 import {
 	validateAddress,
-	validatePublicKeys,
 	validator,
 } from '../utils/validation';
 import {
 	BaseTransaction,
-	createBaseTransaction,
-	CreateBaseTransactionInput,
 	StateStore,
-	StateStorePrepare,
+	StateStorePrepare
 } from './base';
 
 const PREFIX_UPVOTE = '+';
@@ -79,23 +76,6 @@ export const voteAssetFormatSchema = {
 	},
 };
 
-const validateInputs = ({
-	votes = [],
-	unvotes = [],
-}: CreateVoteAssetInput): void => {
-	if (!Array.isArray(votes)) {
-		throw new Error(
-			'Please provide a valid votes value. Expected an array if present.',
-		);
-	}
-	if (!Array.isArray(unvotes)) {
-		throw new Error(
-			'Please provide a valid unvotes value. Expected an array if present.',
-		);
-	}
-	validatePublicKeys([...votes, ...unvotes]);
-};
-
 export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData = true;
 	public readonly asset: VoteAsset;
@@ -118,60 +98,6 @@ export class VoteTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as VoteAsset;
 		this._fee = new BigNum(VOTE_FEE);
-	}
-
-	public static create(input: CastVoteInput): object {
-		validateInputs(input);
-		const { passphrase, secondPassphrase, votes = [], unvotes = [] } = input;
-
-		const plusPrependedVotes = prependPlusToPublicKeys(votes);
-		const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
-		const allVotes: ReadonlyArray<string> = [
-			...plusPrependedVotes,
-			...minusPrependedUnvotes,
-		];
-
-		const transaction = {
-			...createBaseTransaction(input),
-			type: 3,
-			fee: VOTE_FEE.toString(),
-			asset: {
-				votes: allVotes,
-			},
-		};
-
-		if (!passphrase) {
-			return transaction;
-		}
-
-		const transactionWithSenderInfo = {
-			...transaction,
-			// SenderId and SenderPublicKey are expected to be exist from base transaction
-			senderId: transaction.senderId as string,
-			senderPublicKey: transaction.senderPublicKey as string,
-			recipientId: transaction.senderId as string,
-			recipientPublicKey: transaction.senderPublicKey,
-		};
-
-		const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
-		voteTransaction.sign(passphrase, secondPassphrase);
-
-		return voteTransaction.toJSON();
-	}
-
-	public static fromJSON(tx: TransactionJSON): VoteTransaction {
-		const transaction = new VoteTransaction(tx);
-		const { errors, status } = transaction.validate();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {

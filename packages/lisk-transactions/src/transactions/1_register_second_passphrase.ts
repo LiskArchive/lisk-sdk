@@ -12,19 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getKeys, hexToBuffer } from '@liskhq/lisk-cryptography';
+import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import { SIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	SecondSignatureAsset,
-	Status,
 	TransactionJSON,
 } from '../transaction_types';
-import { validator } from '../utils';
+import { getId, validator } from '../utils';
 import {
 	BaseTransaction,
-	createBaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base';
@@ -37,12 +35,6 @@ export interface SignatureObject {
 
 export interface SecondSignatureAsset {
 	readonly signature: SignatureObject;
-}
-
-export interface SecondSignatureInput {
-	readonly passphrase: string;
-	readonly secondPassphrase: string;
-	readonly timeOffset?: number;
 }
 
 export const secondSignatureAssetTypeSchema = {
@@ -78,12 +70,6 @@ export const secondSignatureAssetFormatSchema = {
 	},
 };
 
-const validateInputs = ({ secondPassphrase }: SecondSignatureInput): void => {
-	if (typeof secondPassphrase !== 'string') {
-		throw new Error('Please provide a secondPassphrase. Expected string.');
-	}
-};
-
 export class SecondSignatureTransaction extends BaseTransaction {
 	public readonly asset: SecondSignatureAsset;
 	public constructor(tx: TransactionJSON) {
@@ -107,45 +93,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as SecondSignatureAsset;
 		this._fee = new BigNum(SIGNATURE_FEE);
-	}
-
-	public static create(input: SecondSignatureInput): object {
-		validateInputs(input);
-		const { passphrase, secondPassphrase } = input;
-		const { publicKey } = getKeys(secondPassphrase);
-
-		const transaction = {
-			...createBaseTransaction(input),
-			type: 1,
-			fee: SIGNATURE_FEE.toString(),
-			asset: { signature: { publicKey } },
-		};
-
-		if (!passphrase) {
-			return transaction;
-		}
-
-		const secondSignatureTransaction = new SecondSignatureTransaction(
-			transaction as TransactionJSON,
-		);
-		secondSignatureTransaction.sign(passphrase, secondPassphrase);
-
-		return secondSignatureTransaction.toJSON();
-	}
-
-	public static fromJSON(tx: TransactionJSON): SecondSignatureTransaction {
-		const transaction = new SecondSignatureTransaction(tx);
-		const { errors, status } = transaction.validate();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {
@@ -272,5 +219,12 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		store.account.set(strippedSender.address, strippedSender);
 
 		return [];
+	}
+
+	public sign(passphrase: string): void {
+		this._signature = undefined;
+		this._signSignature = undefined;
+		this._signature = signData(hash(this.getBytes()), passphrase);
+		this._id = getId(this.getBytes());
 	}
 }

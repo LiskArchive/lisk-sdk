@@ -23,27 +23,9 @@ describe('transaction', () => {
 				.and.be.a('function');
 		});
 
-		it('should have #registerDelegate', () => {
-			return expect(transaction)
-				.to.have.property('registerDelegate')
-				.and.be.a('function');
-		});
-
-		it('should have #castVotes', () => {
-			return expect(transaction)
-				.to.have.property('castVotes')
-				.and.be.a('function');
-		});
-
 		it('should have #registerMultisignature', () => {
 			return expect(transaction)
 				.to.have.property('registerMultisignature')
-				.and.be.a('function');
-		});
-
-		it('should have #createDapp', () => {
-			return expect(transaction)
-				.to.have.property('createDapp')
 				.and.be.a('function');
 		});
 

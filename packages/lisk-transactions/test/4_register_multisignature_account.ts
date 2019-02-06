@@ -15,12 +15,9 @@
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/4_register_multisignature_account';
-import {
-	MultiSignatureAsset,
-	MultiSignatureTransaction,
-} from '../src/transaction_types';
+import { MultiSignatureAsset, TransactionJSON } from '../src/transaction_types';
 // Require is used for stubbing
-const time = require('../src/utils/time');
+import * as utils from '../src/utils';
 
 describe('#registerMultisignature transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -43,11 +40,11 @@ describe('#registerMultisignature transaction', () => {
 	let plusPrependedPublicKeyKeysgroup: Array<string>;
 	let keysgroup: Array<string>;
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let registerMultisignatureTransaction: MultiSignatureTransaction;
+	let registerMultisignatureTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(time, 'getTimeWithOffset')
+			.stub(utils, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		keysgroup = [
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -157,10 +154,9 @@ describe('#registerMultisignature transaction', () => {
 				).and.not.be.empty;
 			});
 
-			it('should not have a second signature', () => {
-				return expect(registerMultisignatureTransaction).not.to.have.property(
-					'signSignature',
-				);
+			it('second signature property should be undefined', () => {
+				return expect(registerMultisignatureTransaction.signSignature).to.be
+					.undefined;
 			});
 
 			describe('multisignature asset', () => {
@@ -469,7 +465,7 @@ describe('#registerMultisignature transaction', () => {
 				);
 			});
 
-			it('should have the asset with the multisignature with the min, lifetime and keysgroup', () => {
+			it('should have the asset with the multisignature with the minimum, lifetime and keysgroup', () => {
 				return expect(registerMultisignatureTransaction)
 					.to.have.nested.property('asset.multisignature')
 					.with.all.keys('min', 'lifetime', 'keysgroup');

@@ -15,12 +15,11 @@
 import * as BigNum from 'browserify-bignum';
 import { DAPP_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Status, TransactionJSON } from '../transaction_types';
+import { TransactionJSON } from '../transaction_types';
+import { CreateBaseTransactionInput } from '../utils';
 import { stringEndsWith, validator } from '../utils/validation';
 import {
 	BaseTransaction,
-	createBaseTransaction,
-	CreateBaseTransactionInput,
 	StateStore,
 	StateStorePrepare,
 } from './base';
@@ -162,49 +161,6 @@ export class DappTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as DappAsset;
 		this._fee = new BigNum(DAPP_FEE);
-	}
-
-	public static create(input: CreateDappInput): object {
-		const { passphrase, secondPassphrase, options } = input;
-
-		const transaction = {
-			...createBaseTransaction(input),
-			type: 5,
-			fee: DAPP_FEE.toString(),
-			asset: {
-				dapp: options,
-			},
-		};
-
-		if (!passphrase) {
-			return transaction;
-		}
-
-		const transactionWithSenderInfo = {
-			...transaction,
-			senderId: transaction.senderId as string,
-			senderPublicKey: transaction.senderPublicKey as string,
-		};
-
-		const dappTransaction = new DappTransaction(transactionWithSenderInfo);
-		dappTransaction.sign(passphrase, secondPassphrase);
-
-		return dappTransaction.toJSON();
-	}
-
-	public static fromJSON(tx: TransactionJSON): DappTransaction {
-		const transaction = new DappTransaction(tx);
-		const { errors, status } = transaction.validate();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {

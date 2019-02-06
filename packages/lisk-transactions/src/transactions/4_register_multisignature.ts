@@ -12,33 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import * as BigNum from 'browserify-bignum';
-import {
-	MULTISIGNATURE_FEE,
-	MULTISIGNATURE_MAX_KEYSGROUP,
-	MULTISIGNATURE_MAX_LIFETIME,
-	MULTISIGNATURE_MIN_KEYSGROUP,
-	MULTISIGNATURE_MIN_LIFETIME,
-} from '../constants';
+
+import { MULTISIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	MultiSignatureAsset,
-	Status,
-	TransactionJSON,
-} from '../transaction_types';
-import {
-	isValidInteger,
-	prependPlusToPublicKeys,
-	validateKeysgroup,
-	validator,
-} from '../utils';
-import {
-	BaseTransaction,
-	createBaseTransaction,
-	CreateBaseTransactionInput,
-	StateStore,
-	StateStorePrepare,
-} from './base';
+import { MultiSignatureAsset, TransactionJSON } from '../transaction_types';
+import { CreateBaseTransactionInput, validator } from '../utils';
+import { BaseTransaction, StateStore, StateStorePrepare } from './base';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
 
@@ -109,39 +90,6 @@ export interface CreateMultisignatureInput {
 export type RegisterMultisignatureInput = CreateBaseTransactionInput &
 	CreateMultisignatureInput;
 
-const validateInput = ({
-	keysgroup,
-	lifetime,
-	min,
-}: RegisterMultisignatureInput): void => {
-	if (
-		!isValidInteger(lifetime) ||
-		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
-		lifetime > MULTISIGNATURE_MAX_LIFETIME
-	) {
-		throw new Error(
-			`Please provide a valid lifetime value. Expected integer between ${MULTISIGNATURE_MIN_LIFETIME} and ${MULTISIGNATURE_MAX_LIFETIME}.`,
-		);
-	}
-
-	if (
-		!isValidInteger(min) ||
-		min < MULTISIGNATURE_MIN_KEYSGROUP ||
-		min > MULTISIGNATURE_MAX_KEYSGROUP
-	) {
-		throw new Error(
-			`Please provide a valid minimum value. Expected integer between ${MULTISIGNATURE_MIN_KEYSGROUP} and ${MULTISIGNATURE_MAX_KEYSGROUP}.`,
-		);
-	}
-
-	if (keysgroup.length < min) {
-		throw new Error(
-			'Minimum number of signatures is larger than the number of keys in the keysgroup.',
-		);
-	}
-	validateKeysgroup(keysgroup);
-};
-
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	public constructor(tx: TransactionJSON) {
@@ -168,53 +116,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 		this._fee = new BigNum(MULTISIGNATURE_FEE).mul(
 			this.asset.multisignature.keysgroup.length + 1,
 		);
-	}
-
-	public static create(input: RegisterMultisignatureInput): object {
-		validateInput(input);
-		const { keysgroup, lifetime, min, passphrase, secondPassphrase } = input;
-
-		const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
-		const keygroupFees = plusPrependedKeysgroup.length + 1;
-
-		const transaction = {
-			...createBaseTransaction(input),
-			type: 4,
-			fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
-			asset: {
-				multisignature: {
-					min,
-					lifetime,
-					keysgroup: plusPrependedKeysgroup,
-				},
-			},
-		};
-
-		if (!passphrase) {
-			return transaction;
-		}
-
-		const multisignatureTransaction = new MultisignatureTransaction(
-			transaction as TransactionJSON,
-		);
-		multisignatureTransaction.sign(passphrase, secondPassphrase);
-
-		return multisignatureTransaction.toJSON();
-	}
-
-	public static fromJSON(tx: TransactionJSON): MultisignatureTransaction {
-		const transaction = new MultisignatureTransaction(tx);
-		const { errors, status } = transaction.validate();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {

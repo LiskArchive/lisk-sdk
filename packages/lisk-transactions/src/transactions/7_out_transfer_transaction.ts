@@ -15,7 +15,7 @@
 import * as BigNum from 'browserify-bignum';
 import { MAX_TRANSACTION_AMOUNT, OUT_TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Status, TransactionJSON } from '../transaction_types';
+import { TransactionJSON } from '../transaction_types';
 import { convertBeddowsToLSK } from '../utils';
 import { validator } from '../utils/validation';
 import { BaseTransaction, StateStore, StateStorePrepare } from './base';
@@ -91,21 +91,6 @@ export class OutTransferTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as OutTransferAsset;
 		this._fee = new BigNum(OUT_TRANSFER_FEE);
-	}
-
-	public static fromJSON(tx: TransactionJSON): OutTransferTransaction {
-		const transaction = new OutTransferTransaction(tx);
-		const { errors, status } = transaction.validate();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	public async prepareTransaction(store: StateStorePrepare): Promise<void> {

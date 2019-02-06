@@ -24,6 +24,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolNodeInfo,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -77,6 +78,16 @@ export const constructPeerId = (ipAddress: string, wsPort: number): string =>
 
 export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 	`${peerInfo.ipAddress}:${peerInfo.wsPort}`
+
+// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
+const convertNodeInfoToLegacyFormat = (nodeInfo: P2PNodeInfo): ProtocolNodeInfo => (
+	{
+		...nodeInfo,
+		wsPort: nodeInfo.wsPort,
+		broadhash: nodeInfo.options ? nodeInfo.options.broadhash as string : '',
+		nonce: nodeInfo.options ? nodeInfo.options.nonce as string : '',
+	}
+);
 
 export class Peer extends EventEmitter {
 	private readonly _id: string;
@@ -221,11 +232,14 @@ export class Peer extends EventEmitter {
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on the socket to pass it the new node status.
 	 */
-	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
+	public async applyNodeInfo(nodeInfo: P2PNodeInfo): Promise<void> {
 		this._nodeInfo = nodeInfo;
-		this.send({
-			event: REMOTE_RPC_NODE_INFO,
-			data: nodeInfo,
+		// TODO later: This conversion step will not be needed after switching to the new LIP protocol version.
+		const legacyNodeInfo = convertNodeInfoToLegacyFormat(this._nodeInfo);
+		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
+		await this.request({
+			procedure: REMOTE_RPC_NODE_INFO,
+			data: legacyNodeInfo,
 		});
 	}
 
@@ -326,10 +340,16 @@ export class Peer extends EventEmitter {
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
+		const legacyNodeInfo = this._nodeInfo ? convertNodeInfoToLegacyFormat(this._nodeInfo) : undefined;
+
 		const outboundSocket = socketClusterClient.create({
 			hostname: this._ipAddress,
 			port: this._wsPort,
-			query: querystring.stringify(this._nodeInfo),
+			query: querystring.stringify({
+				...legacyNodeInfo,
+				options: legacyNodeInfo && legacyNodeInfo.options ?
+					JSON.stringify(legacyNodeInfo.options) : undefined,
+			}),
 			autoConnect: false,
 		});
 
@@ -385,7 +405,8 @@ export class Peer extends EventEmitter {
 	private _handlePeerInfo(request: P2PRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			const newPeerInfo = validatePeerInfo(request.data);
+			const protocolPeerInfo = {...request.data, ip: this._ipAddress};
+			const newPeerInfo = validatePeerInfo(protocolPeerInfo);
 			this.updatePeerInfo(newPeerInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);

@@ -14,38 +14,25 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../constants';
+import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
-	Status,
 	TransactionJSON,
 	TransferAsset,
 } from '../transaction_types';
 import {
 	validateAddress,
-	validatePublicKey,
 	validateTransferAmount,
 	validator,
 } from '../utils';
 import {
 	BaseTransaction,
-	createBaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_TRANSFER_TYPE = 0;
-
-export interface TransferInput {
-	readonly amount: string;
-	readonly recipientId?: string;
-	readonly recipientPublicKey?: string;
-	readonly data?: string;
-	readonly passphrase?: string;
-	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
-}
 
 export interface RequiredTransferState {
 	readonly sender: Account;
@@ -75,45 +62,6 @@ export const transferAssetFormatSchema = {
 	},
 };
 
-const validateInputs = ({
-	amount,
-	recipientId,
-	recipientPublicKey,
-	data,
-}: TransferInput): void => {
-	if (!validateTransferAmount(amount)) {
-		throw new Error('Amount must be a valid number in string format.');
-	}
-
-	if (!recipientId) {
-		throw new Error('`recipientId` must be provided.');
-	}
-
-	validateAddress(recipientId);
-
-	if (typeof recipientPublicKey !== 'undefined') {
-		validatePublicKey(recipientPublicKey);
-	}
-
-	if (
-		recipientPublicKey &&
-		recipientId !== getAddressFromPublicKey(recipientPublicKey)
-	) {
-		throw new Error('recipientId does not match recipientPublicKey.');
-	}
-
-	if (data && data.length > 0) {
-		if (typeof data !== 'string') {
-			throw new Error(
-				'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
-			);
-		}
-		if (data.length > BYTESIZES.DATA) {
-			throw new Error('Transaction data field cannot exceed 64 bytes.');
-		}
-	}
-};
-
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
 
@@ -135,70 +83,6 @@ export class TransferTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as TransferAsset;
 		this._fee = new BigNum(TRANSFER_FEE);
-	}
-
-	public static create(input: TransferInput): object {
-		validateInputs(input);
-		const {
-			amount,
-			recipientId: recipientIdInput,
-			recipientPublicKey,
-			data,
-			passphrase,
-			secondPassphrase,
-		} = input;
-
-		const recipientIdFromPublicKey = recipientPublicKey
-			? getAddressFromPublicKey(recipientPublicKey)
-			: undefined;
-
-		const recipientId = recipientIdInput
-			? recipientIdInput
-			: recipientIdFromPublicKey;
-
-		const transaction = {
-			...createBaseTransaction(input),
-			type: 0,
-			amount,
-			recipientId,
-			recipientPublicKey,
-			fee: TRANSFER_FEE.toString(),
-			asset: data ? { data } : {},
-		};
-
-		if (!passphrase) {
-			return transaction;
-		}
-
-		const transactionWithSenderInfo = {
-			...transaction,
-			// SenderId and SenderPublicKey are expected to be exist from base transaction
-			recipientId: recipientId as string,
-			senderId: transaction.senderId as string,
-			senderPublicKey: transaction.senderPublicKey as string,
-		};
-
-		const transferTransaction = new TransferTransaction(
-			transactionWithSenderInfo,
-		);
-		transferTransaction.sign(passphrase, secondPassphrase);
-
-		return transferTransaction.toJSON();
-	}
-
-	public static fromJSON(tx: TransactionJSON): TransferTransaction {
-		const transaction = new TransferTransaction(tx);
-		const { errors, status } = transaction.validate();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
 	}
 
 	protected getAssetBytes(): Buffer {
