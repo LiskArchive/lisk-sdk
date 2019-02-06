@@ -5,8 +5,6 @@ const dns = require('dns');
 const net = require('net');
 const SocketCluster = require('socketcluster');
 const async = require('async');
-const randomstring = require('randomstring');
-const packageJSON = require('../../../../package.json');
 const wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 const WsTransport = require('./api/ws/transport');
 const git = require('./helpers/git.js');
@@ -134,16 +132,7 @@ module.exports = class Chain {
 		this.logger.debug('Initiating storage...');
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
-		// Config
 		const appConfig = this.options.config;
-		appConfig.genesisBlock = this.options.genesisBlock;
-		appConfig.nethash = this.options.genesisBlock.payloadHash;
-		appConfig.root = path.dirname(path.join(__filename));
-		appConfig.version = packageJSON.version;
-		appConfig.minVersion = packageJSON.lisk.minVersion;
-		appConfig.protocolVersion = packageJSON.lisk.protocolVersion;
-		appConfig.nonce = randomstring.generate(16);
-
 		const self = this;
 
 		async.auto(
