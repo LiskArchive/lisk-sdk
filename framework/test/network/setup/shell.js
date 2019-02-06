@@ -35,7 +35,7 @@ module.exports = {
 
 	launchTestNodes(cb) {
 		child_process.exec(
-			'node_modules/.bin/pm2 start test/network/pm2.network.json',
+			'node_modules/.bin/pm2 start framework/test/network/pm2.network.json',
 			err => {
 				return cb(err);
 			}

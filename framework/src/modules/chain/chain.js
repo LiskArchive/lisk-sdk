@@ -228,7 +228,7 @@ module.exports = class Chain {
 						if (appConfig.coverage) {
 							// eslint-disable-next-line import/no-extraneous-dependencies
 							const im = require('istanbul-middleware');
-							this.logger.debug(
+							self.logger.debug(
 								'Hook loader for coverage - Do not use in production environment!'
 							);
 							im.hookLoader(__dirname);

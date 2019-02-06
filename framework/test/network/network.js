@@ -472,7 +472,7 @@ class Network {
 
 		await new Promise((resolve, reject) => {
 			childProcess.exec(
-				`node_modules/.bin/pm2 reload test/network/pm2.network.json --only ${nodeName}${update}`,
+				`node_modules/.bin/pm2 reload framework/test/network/pm2.network.json --only ${nodeName}${update}`,
 				err => {
 					if (err) {
 						return reject(

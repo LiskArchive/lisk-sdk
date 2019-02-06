@@ -1,40 +1,35 @@
-const _ = require('lodash');
 const { Application } = require('../framework/src');
-const genesisBlock = require('../config/devnet/genesis_block');
-const constants = require('../config/devnet/constants');
-const exceptions = require('../config/devnet/exceptions');
-const defaultConfig = require('../config/default/config');
-const networkConfig = require('../config/devnet/config');
 
-const config = _.mergeWith(
-	{},
-	defaultConfig,
-	networkConfig,
-	(objValue, srcValue) => {
-		if (_.isArray(objValue)) {
-			return srcValue;
-		}
-		return undefined;
-	}
-);
+// TODO: Remove the use this config helper
+const packageJSON = require('../package');
+const appConfig = require('../framework/src/modules/chain/helpers/config');
+
+const config = appConfig(packageJSON);
 
 try {
-	const app = new Application('devnet', genesisBlock, constants, {
-		components: {
-			logger: {
-				filename: config.logFileName,
-				consoleLogLevel: 'debug',
-				fileLogLevel: 'debug',
+	// To run multiple applications for same network for integration tests
+	// TODO: Refactored the way to find unique name for the app
+	const app = new Application(
+		`${config.network}-${config.httpPort}`,
+		config.genesisBlock,
+		config.constants,
+		{
+			components: {
+				logger: {
+					filename: config.logFileName,
+					consoleLogLevel: 'debug',
+					fileLogLevel: 'debug',
+				},
+				cache: {
+					...config.redis,
+					enabled: config.cacheEnabled,
+				},
+				storage: config.db,
 			},
-			cache: {
-				...config.redis,
-				enabled: config.cacheEnabled,
-			},
-			storage: config.db,
-		},
-	});
+		}
+	);
 
-	app.overrideModuleConfig('chain', { exceptions, config });
+	app.overrideModuleConfig('chain', { exceptions: config.exceptions, config });
 
 	app
 		.run()
