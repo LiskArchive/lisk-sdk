@@ -37,7 +37,7 @@ interface RPCPeerListResponse {
 }
 
 export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
-	if ((!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) || !isPort(String(wsPort))) {
+	if ((!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) || !isPort(wsPort.toString())) {
 		return false;
 	}
 
