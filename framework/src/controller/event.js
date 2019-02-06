@@ -3,12 +3,18 @@ const assert = require('assert');
 const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9]*$/;
 const eventWithModuleNameReg = /^([a-zA-Z][a-zA-Z0-9]*)((?::[a-zA-Z][a-zA-Z0-9]*)+)$/;
 
+/**
+ * An event class which instance will be received by every event listener
+ *
+ * @namespace Framework
+ * @type {module.Event}
+ */
 module.exports = class Event {
 	/**
 	 *
 	 * @param name - Can be simple event or be combination of module:event
-	 * @param source - Source module which triggers the event
 	 * @param data - Data associated with the event
+	 * @param source - Source module which triggers the event
 	 */
 	constructor(name, data = null, source = null) {
 		assert(

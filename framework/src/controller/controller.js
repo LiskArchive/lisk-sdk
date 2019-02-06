@@ -19,6 +19,12 @@ const validateModuleSpec = moduleSpec => {
 	assert(moduleSpec.unload, 'Module unload actions is required.');
 };
 
+/**
+ * Controller logic responsible to run the application instance
+ *
+ * @namespace Framework
+ * @type {module.Controller}
+ */
 module.exports = class Controller {
 	constructor(modules, componentConfig, logger) {
 		this.logger = logger;

@@ -10,6 +10,12 @@ const internalEvents = [
 	'loading:finished',
 ];
 
+/**
+ * Base Channel class responsible which used as reference to implement others channels for bus to module communication
+ *
+ * @namespace Framework.channels
+ * @type {module.Base}
+ */
 module.exports = class Base {
 	constructor(moduleAlias, events, actions, options = {}) {
 		this.moduleAlias = moduleAlias;

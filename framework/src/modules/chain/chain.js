@@ -63,6 +63,12 @@ const config = {
 };
 const modules = [];
 
+/**
+ * Chain Module
+ *
+ * @namespace Framework.modules.chain
+ * @type {module.Chain}
+ */
 module.exports = class Chain {
 	constructor(channel, options) {
 		this.channel = channel;

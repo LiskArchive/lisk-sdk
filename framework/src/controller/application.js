@@ -44,15 +44,33 @@ const registerProcessHooks = app => {
 	process.once('exit', (error, code) => app.shutdown(code, error));
 };
 
+/**
+ * Application class to start the block chain instance
+ *
+ * @namespace Framework
+ * @type {module.Application}
+ */
 module.exports = class Application {
 	/**
+	 * Create the application object
 	 *
-	 * @param {string} label
-	 * @param {Object} genesisBlock
-	 * @param {Object} [constants]
-	 * @param {Object} [config]
-	 * @param {Object} [config.components]
-	 * @param {Object} [config.components.logger]
+	 * @example
+	 *    const app = new Application('my-app-devnet', myGenesisBlock)
+	 * @example
+	 *    const app = new Application('my-app-devnet', myGenesisBlock, myConstants)
+	 *
+	 * @param {string} label - Application label used in logs. Useful if you have multiple networks for same application.
+	 * @param {Object} genesisBlock - Genesis block object
+	 * @param {Object} [constants] - Override constants
+	 * @param {Object} [config] - Main configuration object
+	 * @param {Object} [config.components] - Configurations for components
+	 * @param {Object} [config.components.logger] - Configuration for logger component
+	 * @param {Object} [config.modules] - Configurations for modules
+	 * @param {string} [config.version] - Version of the application
+	 * @param {string} [config.minVersion] - Minimum compatible version on the network
+	 * @param {string} [config.protocolVersion] - Compatible protocol version application is using
+	 *
+	 * @throws Framework.errors.SchemaValidationError
 	 */
 	constructor(
 		label,
@@ -93,9 +111,10 @@ module.exports = class Application {
 	/**
 	 * Register module with the application
 	 *
-	 * @param {Object} moduleSpec
-	 * @param {Object} config
-	 * @param {string} [alias] - Will use this alias or fallback to moduleSpec.alias
+	 * @param {Object} moduleSpec - Module specification
+	 *  @see {@link '../modules/README.md'}
+	 * @param {Object} [config] - Modules configuration object. Provided config will override `moduleSpec.defaults` to generate final configuration used for the module
+	 * @param {string} [alias] - Will use this alias or fallback to `moduleSpec.alias`
 	 */
 	registerModule(moduleSpec, config = {}, alias = undefined) {
 		assert(moduleSpec, 'ModuleSpec is required');
@@ -120,16 +139,26 @@ module.exports = class Application {
 
 	/**
 	 * Override the module's configuration
-	 * @param {string} moduleName
-	 * @param {Object} config
+	 *
+	 * @param {string} alias - Alias of module used during registration
+	 * @param {Object} config - Override configurations, these will override existing configurations.
 	 */
-	overrideModuleConfig(moduleName, config) {
+	overrideModuleConfig(alias, config) {
 		const modules = this.getModules();
-		assert(Object.keys(modules).includes(moduleName), `No module ${moduleName} is registered`);
-		modules[moduleName].config = Object.assign({}, modules[moduleName].config, config);
+		assert(
+			Object.keys(modules).includes(alias),
+			`No module ${alias} is registered`
+		);
+		modules[alias].config = Object.assign({}, modules[alias].config, config);
 		scope.modules.set(this, modules);
 	}
 
+	/**
+	 * Register a transaction
+	 *
+	 * @param {constructor} Transaction - Transaction class
+	 * @param {string} alias - Will use this alias or fallback to `Transaction.alias`
+	 */
 	registerTransaction(Transaction, alias) {
 		assert(Transaction, 'Transaction is required');
 		assert(alias, 'Transaction is required');
@@ -148,22 +177,49 @@ module.exports = class Application {
 		scope.transactions.set(this, transactions);
 	}
 
+	/**
+	 * Get list of all transactions registered with the application
+	 *
+	 * @return {Object}
+	 */
 	getTransactions() {
 		return scope.transactions.get(this);
 	}
 
+	/**
+	 * Get one transaction for provided alias
+	 *
+	 * @param {string} alias - Alias for transaction used during registration
+	 * @return {constructor|undefined}
+	 */
 	getTransaction(alias) {
 		return scope.transactions.get(this)[alias];
 	}
 
+	/**
+	 * Get one module for provided alias
+	 *
+	 * @param {string} alias - Alias for module used during registration
+	 * @return {{spec: Object, config: Object}}
+	 */
 	getModule(alias) {
 		return scope.modules.get(this)[alias];
 	}
 
+	/**
+	 * Get all registered modules
+	 *
+	 * @return {Array.<Object>}
+	 */
 	getModules() {
 		return scope.modules.get(this);
 	}
 
+	/**
+	 * Run the application
+	 *
+	 * @return {Promise<*>}
+	 */
 	async run() {
 		this.logger.info(`Starting the app - ${this.banner}`);
 		// Freeze every module and configuration so it would not interrupt the app execution
@@ -182,6 +238,13 @@ module.exports = class Application {
 		return this.controller.load();
 	}
 
+	/**
+	 * Stop the running application
+	 *
+	 * @param {number} [errorCode=0] - Error code
+	 * @param {string} [message] - Message specifying exit reason
+	 * @return {Promise<void>}
+	 */
 	async shutdown(errorCode = 0, message = '') {
 		if (this.controller) {
 			await this.controller.cleanup();

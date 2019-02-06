@@ -3,12 +3,18 @@ const assert = require('assert');
 const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9]*$/;
 const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][a-zA-Z0-9]*$/;
 
+/**
+ * An action class which instance will be received by every event listener
+ *
+ * @namespace Framework
+ * @type {module.Action}
+ */
 module.exports = class Action {
 	/**
 	 *
-	 * @param eventName - Can be simple event or be combination of module:event
+	 * @param name - Can be simple event or be combination of module:event
 	 * @param {array} params - Params associated with the action
-	 * @param moduleName - Module name if event name does not have its prefix
+	 * @param source - Module name if event name does not have its prefix
 	 */
 	constructor(name, params = null, source = null) {
 		assert(

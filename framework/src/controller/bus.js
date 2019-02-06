@@ -2,6 +2,12 @@ const Promise = require('bluebird');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
+/**
+ * Bus responsible to maintain communication between modules
+ *
+ * @namespace Framework
+ * @type {module.Bus}
+ */
 module.exports = class Bus extends EventEmitter2 {
 	constructor(controller, options) {
 		super(options);

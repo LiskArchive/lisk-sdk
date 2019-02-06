@@ -2,6 +2,12 @@ const Event = require('../event');
 const Action = require('../action');
 const BaseChannel = require('./base');
 
+/**
+ * Channel responsible to communicate with bus for modules running in same process
+ *
+ * @namespace Framework.channels
+ * @type {module.EventEmitterChannel}
+ */
 module.exports = class EventEmitterChannel extends BaseChannel {
 	constructor(moduleAlias, events, actions, bus, options = {}) {
 		super(moduleAlias, events, actions, options);

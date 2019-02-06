@@ -3,6 +3,12 @@ const Chain = require('./chain');
 
 let blockchain = null;
 
+/**
+ * Chain Module specification
+ *
+ * @namespace Framework.modules.chain
+ * @type {{defaults, load(*=, *=): Promise<void>, unload(*, *): Promise<*>, alias: string, actions: {}, events: Array, info: {author: string, name: string, version: string}}}
+ */
 module.exports = {
 	alias: 'chain',
 	info: {
