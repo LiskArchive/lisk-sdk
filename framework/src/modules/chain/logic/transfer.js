@@ -18,9 +18,8 @@ const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 
 const { ADDITIONAL_DATA, FEES } = global.constants;
+const __private = {};
 
-let modules;
-let library;
 
 /**
  * Main transfer logic.
@@ -35,27 +34,21 @@ let library;
  * @todo Add description for the params
  */
 class Transfer {
-	constructor(logger, schema) {
-		library = {
-			logger,
-			schema,
+	constructor({ components, libraries, modules }) {
+		__private.libraries = {
+			schema: libraries.schema,
+		};
+		__private.components = {
+			logger: components.logger,
+		};
+		__private.modules = {
+			accounts: modules.accounts,
 		};
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
-/**
- * Binds input parameters to private variable modules.
- *
- * @param {Accounts} accounts
- * @todo Add description for the params
- */
-Transfer.prototype.bind = function(accounts) {
-	modules = {
-		accounts,
-	};
-};
 
 /**
  * Returns send fees from constants.
@@ -138,14 +131,14 @@ Transfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	modules.accounts.setAccountAndGet(
+	__private.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return modules.accounts.mergeAccountAndGet(
+			return __private.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: transaction.amount,
@@ -178,14 +171,14 @@ Transfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	modules.accounts.setAccountAndGet(
+	__private.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return modules.accounts.mergeAccountAndGet(
+			return __private.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: -transaction.amount,
@@ -257,13 +250,13 @@ Transfer.prototype.objectNormalize = function(transaction) {
 		return transaction;
 	}
 
-	const report = library.schema.validate(
+	const report = __private.libraries.schema.validate(
 		transaction.asset,
 		Transfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate transfer schema: ${library.schema
+		throw `Failed to validate transfer schema: ${__private.libraries.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
@@ -285,7 +278,7 @@ Transfer.prototype.dbRead = function(raw) {
 			const data = raw.tf_data.toString('utf8');
 			return { data };
 		} catch (e) {
-			library.logger.error(
+			__private.components.logger.error(
 				'Logic-Transfer-dbRead: Failed to convert data field into utf8'
 			);
 			return null;
