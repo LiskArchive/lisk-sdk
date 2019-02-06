@@ -34,10 +34,10 @@ const __private = {};
  * @todo Add description for the params
  */
 class Delegate {
-	constructor({ library, modules }) {
+	constructor({ libraries, modules }) {
 		self = this;
-		__private.library = {
-			schema: library.schema,
+		__private.libraries = {
+			schema: libraries.schema,
 		};
 		__private.modules = {
 			accounts: modules.accounts,
@@ -379,13 +379,13 @@ Delegate.prototype.schema = {
  * @todo Add description for the params
  */
 Delegate.prototype.objectNormalize = function(transaction) {
-	const report = __private.library.schema.validate(
+	const report = __private.libraries.schema.validate(
 		transaction.asset.delegate,
 		Delegate.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate delegate schema: ${__private.library.schema
+		throw `Failed to validate delegate schema: ${__private.libraries.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
