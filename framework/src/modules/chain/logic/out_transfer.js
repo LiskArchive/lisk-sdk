@@ -18,12 +18,10 @@ const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 
-let modules;
-let library;
 const { FEES } = global.constants;
 const exceptions = global.exceptions;
-const __private = {};
 
+const __private = {};
 __private.unconfirmedOutTansfers = {};
 
 /**
@@ -38,29 +36,22 @@ __private.unconfirmedOutTansfers = {};
  * @todo Add description for the params
  */
 class OutTransfer {
-	constructor(storage, schema, logger) {
-		library = {
-			storage,
-			schema,
-			logger,
+	constructor({ components, libraries, modules }) {
+		__private.components = {
+			storage: components.storage,
+			logger: components.logger,
+		};
+		__private.libraries = {
+			schema: libraries.schema,
+		};
+		__private.modules = {
+			accounts: modules.accounts,
 		};
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
-/**
- * Binds input modules to private variable module.
- *
- * @param {Accounts} accounts
- * @todo Add description for the params
- */
-OutTransfer.prototype.bind = function(accounts, blocks) {
-	modules = {
-		accounts,
-		blocks,
-	};
-};
 
 /**
  * Returns send fee from constants.
@@ -80,8 +71,13 @@ OutTransfer.prototype.calculateFee = function() {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-OutTransfer.prototype.verify = function(transaction, sender, cb) {
-	const lastBlock = modules.blocks.lastBlock.get();
+OutTransfer.prototype.verify = async (transaction, sender, cb) => {
+	let lastBlock = await __private.components.storage.entities.Block.get(
+		{},
+		{ sort: 'height:desc', limit: 1 }
+	);
+	lastBlock = lastBlock[0];
+
 	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
 		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
 	}
@@ -121,7 +117,7 @@ OutTransfer.prototype.verify = function(transaction, sender, cb) {
  * @todo Add description for the params
  */
 OutTransfer.prototype.process = function(transaction, sender, cb) {
-	library.storage.entities.Transaction.isPersisted(
+	__private.components.storage.entities.Transaction.isPersisted(
 		{
 			id: transaction.asset.outTransfer.dappId,
 			type: transactionTypes.DAPP,
@@ -149,7 +145,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 				);
 			}
 
-			return library.storage.entities.Transaction.isPersisted({
+			return __private.components.storage.entities.Transaction.isPersisted({
 				id: transaction.asset.outTransfer.transactionId,
 				type: transactionTypes.OUT_TRANSFER,
 			})
@@ -217,14 +213,14 @@ OutTransfer.prototype.applyConfirmed = function(
 		transaction.asset.outTransfer.transactionId
 	] = false;
 
-	modules.accounts.setAccountAndGet(
+	__private.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return modules.accounts.mergeAccountAndGet(
+			return __private.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: transaction.amount,
@@ -262,13 +258,13 @@ OutTransfer.prototype.undoConfirmed = function(
 		transaction.asset.outTransfer.transactionId
 	] = true;
 
-	modules.accounts.setAccountAndGet(
+	__private.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
-			return modules.accounts.mergeAccountAndGet(
+			return __private.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: -transaction.amount,
@@ -344,13 +340,13 @@ OutTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 OutTransfer.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __private.libraries.schema.validate(
 		transaction.asset.outTransfer,
 		OutTransfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate outTransfer schema: ${library.schema
+		throw `Failed to validate outTransfer schema: ${__private.libraries.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
