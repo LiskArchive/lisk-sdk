@@ -83,6 +83,7 @@ class Transport {
 				broadcasts: {
 					active: scope.config.broadcasts.active,
 				},
+				httpPort: scope.config.httpPort,
 			},
 		};
 		self = this;
@@ -711,7 +712,7 @@ Transport.prototype.shared = {
 			height: headers.height,
 			broadhash: headers.broadhash,
 			nonce: headers.nonce,
-			httpPort: headers.httpPort,
+			httpPort: library.config.httpPort,
 			version: headers.version,
 			protocolVersion: headers.protocolVersion,
 			os: headers.os,

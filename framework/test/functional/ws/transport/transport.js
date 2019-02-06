@@ -146,6 +146,7 @@ describe('RPC', async () => {
 	describe('status', async () => {
 		it('should return height, broadhash, nonce, os, version and httpPort', done => {
 			connectedPeer.rpc.status((err, result) => {
+				expect(err).to.be.null;
 				expect(result).to.have.property('success').to.be.ok;
 				expect(result)
 					.to.have.property('broadhash')

@@ -19,7 +19,6 @@ const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 const connect = require('../../../../src/modules/chain/api/ws/rpc/connect');
 const wsRPC = require('../../../../src/modules/chain/api/ws/rpc/ws_rpc').wsRPC;
 const transport = require('../../../../src/modules/chain/api/ws/transport');
-const System = require('../../../../src/components/system');
 const WSServer = require('../../../common/ws/server_master');
 
 describe('RPC Client', async () => {
@@ -30,6 +29,7 @@ describe('RPC Client', async () => {
 	let socketClusterMock;
 	let closeErrorCode;
 	let closeErrorReason;
+	let peersHeaders = {};
 
 	function createLoggerMock() {
 		const loggerMock = {
@@ -42,7 +42,11 @@ describe('RPC Client', async () => {
 		return loggerMock;
 	}
 
-	function reconnect(ip = validWSServerIp, wsPort = validWSServerPort) {
+	function reconnect(
+		ip = validWSServerIp,
+		wsPort = validWSServerPort,
+		validPeersHeaders = peersHeaders
+	) {
 		if (
 			validPeerStub &&
 			validPeerStub.socket &&
@@ -51,7 +55,8 @@ describe('RPC Client', async () => {
 			validPeerStub.socket.disconnect();
 		}
 		const loggerMock = createLoggerMock();
-		validPeerStub = connect({ ip, wsPort }, loggerMock);
+
+		validPeerStub = connect({ ip, wsPort }, loggerMock, validPeersHeaders);
 		validClientRPCStub = validPeerStub.rpc;
 	}
 
@@ -134,7 +139,7 @@ describe('RPC Client', async () => {
 
 		beforeEach(done => {
 			validHeaders = WSServer.generatePeerHeaders();
-			System.setHeaders(validHeaders);
+			peersHeaders = validHeaders;
 			reconnect();
 			done();
 		});
@@ -159,7 +164,7 @@ describe('RPC Client', async () => {
 			describe('without port', async () => {
 				beforeEach(done => {
 					delete validHeaders.wsPort;
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					captureConnectionResult();
 					done();
@@ -188,7 +193,7 @@ describe('RPC Client', async () => {
 			describe('with valid port as string', async () => {
 				beforeEach(done => {
 					validHeaders.wsPort = validHeaders.wsPort.toString();
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					done();
 				});
@@ -204,7 +209,7 @@ describe('RPC Client', async () => {
 			describe('with too short nonce', async () => {
 				beforeEach(done => {
 					validHeaders.nonce = 'TOO_SHORT';
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					captureConnectionResult();
 					done();
@@ -233,7 +238,7 @@ describe('RPC Client', async () => {
 			describe('with too long nonce', async () => {
 				beforeEach(done => {
 					validHeaders.nonce = 'NONCE_LONGER_THAN_16_CHARS';
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					captureConnectionResult();
 					done();
@@ -262,7 +267,7 @@ describe('RPC Client', async () => {
 			describe('without nonce', async () => {
 				beforeEach(done => {
 					delete validHeaders.nonce;
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					captureConnectionResult();
 					done();
@@ -289,7 +294,7 @@ describe('RPC Client', async () => {
 			describe('without nethash', async () => {
 				beforeEach(done => {
 					delete validHeaders.nethash;
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					captureConnectionResult();
 					done();
@@ -318,7 +323,7 @@ describe('RPC Client', async () => {
 			describe('without height', async () => {
 				beforeEach(done => {
 					delete validHeaders.height;
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					done();
 				});
@@ -334,7 +339,7 @@ describe('RPC Client', async () => {
 			describe('without version', async () => {
 				beforeEach(done => {
 					delete validHeaders.version;
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					captureConnectionResult();
 					done();
@@ -363,13 +368,13 @@ describe('RPC Client', async () => {
 
 		describe('makes request to itself', async () => {
 			beforeEach(done => {
-				System.setHeaders(validHeaders);
+				peersHeaders = validHeaders;
 				reconnect();
 				// First connect is just to get the node's nonce.
 				validClientRPCStub.status((err, data) => {
 					// Then connect to the node with its own nonce.
 					validHeaders.nonce = data.nonce;
-					System.setHeaders(validHeaders);
+					peersHeaders = validHeaders;
 					reconnect();
 					validClientRPCStub.status(() => {});
 					captureConnectionResult(() => {
@@ -392,7 +397,7 @@ describe('RPC Client', async () => {
 				// Set a non-matching nethash.
 				validHeaders.nethash =
 					'123f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d';
-				System.setHeaders(validHeaders);
+				peersHeaders = validHeaders;
 				reconnect();
 				validClientRPCStub.status(() => {});
 				captureConnectionResult(() => {
@@ -413,7 +418,7 @@ describe('RPC Client', async () => {
 			beforeEach(done => {
 				// Set a non-matching version.
 				validHeaders.protocolVersion = '0.0';
-				System.setHeaders(validHeaders);
+				peersHeaders = validHeaders;
 				reconnect();
 				validClientRPCStub.status(() => {});
 				captureConnectionResult(() => {
@@ -438,7 +443,7 @@ describe('RPC Client', async () => {
 				validHeaders.version = '0.0.0-beta.1';
 				// Remove protocol version information to simulate old versioning schema.
 				delete validHeaders.protocolVersion;
-				System.setHeaders(validHeaders);
+				peersHeaders = validHeaders;
 				reconnect();
 				validClientRPCStub.status(() => {});
 				captureConnectionResult(() => {
@@ -459,7 +464,7 @@ describe('RPC Client', async () => {
 
 		describe('cannot connect - socket hung up', async () => {
 			beforeEach(done => {
-				System.setHeaders(validHeaders);
+				peersHeaders = validHeaders;
 				// Target unused port.
 				reconnect(validWSServerIp, 4567);
 				validClientRPCStub.status(() => {});

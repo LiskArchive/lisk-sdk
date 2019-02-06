@@ -26,10 +26,10 @@ const TIMEOUT = 2000;
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
 
-const connect = (peer, logger, system) => {
+const connect = (peer, logger, peersHeaders) => {
 	const wsServer = wsRPC.getServer();
 
-	connectSteps.addConnectionOptions(peer, system);
+	connectSteps.addConnectionOptions(peer, peersHeaders);
 	connectSteps.addSocket(peer, logger);
 	connectSteps.upgradeSocketAsWAMPClient(peer);
 	connectSteps.upgradeSocketAsWAMPServer(peer, wsServer);
@@ -59,7 +59,7 @@ const connectSteps = {
 		if (systemHeaders.wsPort) {
 			queryParams.wsPort = systemHeaders.wsPort;
 		}
-		if (systemHeaders.wsPort) {
+		if (systemHeaders.httpPort) {
 			queryParams.httpPort = systemHeaders.httpPort;
 		}
 
