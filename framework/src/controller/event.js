@@ -22,11 +22,9 @@ module.exports = class Event {
 			`Event name "${name}" must be a valid name with module name.`
 		);
 
-		const matches = eventWithModuleNameReg.exec(name);
-		// eslint-disable-next-line prefer-destructuring
-		this.module = matches[1];
+		[, this.module, this.name] = eventWithModuleNameReg.exec(name);
 		// Remove the first prefixed ':' symbol
-		this.name = matches[2].substring(1);
+		this.name = this.name.substring(1);
 		this.data = data;
 
 		if (source) {
