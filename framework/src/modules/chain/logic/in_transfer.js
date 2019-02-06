@@ -20,9 +20,8 @@ const transactionTypes = require('../helpers/transaction_types.js');
 
 const { FEES } = global.constants;
 const exceptions = global.exceptions;
-let modules;
-let library;
-let shared;
+
+const __private = {};
 
 /**
  * Main InTransfer logic. Initializes library.
@@ -37,30 +36,22 @@ let shared;
  * @todo Add description for the params
  */
 class InTransfer {
-	constructor(storage, schema) {
-		library = {
-			schema,
-			storage,
+	constructor({ components, libraries, modules }) {
+		__private.components = {
+			storage: components.storage,
+		};
+		__private.libraries = {
+			schema: libraries.schema,
+			shared: libraries.sharedApi,
+		};
+		__private.modules = {
+			accounts: modules.accounts,
 		};
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
-/**
- * Binds input parameters to private variables modules and shared.
- *
- * @param {Accounts} accounts
- * @param {Object} sharedApi
- * @todo Add description for the params
- */
-InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
-	modules = {
-		accounts,
-		blocks,
-	};
-	shared = sharedApi;
-};
 
 /**
  * Returns send fee from constants.
@@ -82,8 +73,13 @@ InTransfer.prototype.calculateFee = function() {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
-	const lastBlock = modules.blocks.lastBlock.get();
+InTransfer.prototype.verify = async (transaction, sender, cb, tx) => {
+	let lastBlock = await __private.components.storage.entities.Block.get(
+		{},
+		{ sort: 'height:desc', limit: 1 }
+	);
+	lastBlock = lastBlock[0];
+
 	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
 		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
 	}
@@ -101,7 +97,7 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	return library.storage.entities.Transaction.isPersisted(
+	return __private.components.storage.entities.Transaction.isPersisted(
 		{
 			id: transaction.asset.inTransfer.dappId,
 			type: transactionTypes.DAPP,
@@ -173,13 +169,13 @@ InTransfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	shared.getGenesis(
+	__private.library.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			return modules.accounts.mergeAccountAndGet(
+			return __private.modules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: transaction.amount,
@@ -213,13 +209,13 @@ InTransfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	shared.getGenesis(
+	__private.libraries.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			return modules.accounts.mergeAccountAndGet(
+			return __private.modules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: -transaction.amount,
@@ -283,13 +279,13 @@ InTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 InTransfer.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __private.libraries.schema.validate(
 		transaction.asset.inTransfer,
 		InTransfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate inTransfer schema: ${library.schema
+		throw `Failed to validate inTransfer schema: ${__private.library.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
