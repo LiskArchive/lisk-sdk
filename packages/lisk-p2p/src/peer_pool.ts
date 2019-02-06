@@ -50,6 +50,8 @@ import {
 	selectPeers,
 } from './peer_selection';
 
+export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
+
 export {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -102,7 +104,7 @@ export class PeerPool extends EventEmitter {
 		this._nodeInfo = nodeInfo;
 		const peerList = this.getAllPeers();
 		peerList.forEach(peer => {
-			peer.applyNodeInfo(nodeInfo);
+			this._applyNodeInfoOnPeer(peer, nodeInfo);
 		});
 	}
 
@@ -202,7 +204,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
-			peer.applyNodeInfo(this._nodeInfo);
+			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 		peer.connect();
 
@@ -217,7 +219,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
-			peer.applyNodeInfo(this._nodeInfo);
+			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 		peer.updatePeerInfo(detailedPeerInfo);
 		peer.connect();
@@ -288,6 +290,17 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.delete(peerId);
 	}
 
+	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
+		// tslint:disable-next-line no-floating-promises
+		(async () => {
+			try {
+				await peer.applyNodeInfo(nodeInfo);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+			}
+		})();
+	}
+
 	private _pickRandomPeers(count: number): ReadonlyArray<Peer> {
 		const discoveredPeerList: ReadonlyArray<Peer> = [
 			...this._peerMap.values(),
@@ -320,7 +333,7 @@ export class PeerPool extends EventEmitter {
 							: '',
 						os: peerDetailedInfo.os,
 						version: peerDetailedInfo.version,
-						wsPort: String(peerDetailedInfo.wsPort),
+						wsPort: peerDetailedInfo.wsPort,
 					};
 				},
 			)
