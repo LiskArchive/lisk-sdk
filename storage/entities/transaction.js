@@ -455,7 +455,9 @@ class Transaction extends BaseEntity {
 					if (parsedOptions.extended) {
 						transaction.asset = transaction.asset ? transaction.asset : {};
 					}
-					transaction.signatures = transaction.signatures.filter(Boolean);
+					transaction.signatures = transaction.signatures
+						? transaction.signatures.filter(Boolean)
+						: [];
 					return transaction;
 				};
 
