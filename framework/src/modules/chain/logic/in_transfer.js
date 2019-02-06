@@ -31,8 +31,14 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires helpers/milestones
  * @requires helpers/slots
- * @param {ZSchema} schema
- * @param {Storage} storage
+ * @param {Object} dependencies
+ * @param {Object} dependencies.components
+ * @param {Object} dependencies.libraries
+ * @param {Object} dependencies.modules
+ * @param {Storage} dependencies.components.storage
+ * @param {ZSchema} dependencies.libraries.schema
+ * @param {Object} dependencies.libraries.sharedApi
+ * @param {Accounts} dependencies.modules.accounts
  * @todo Add description for the params
  */
 class InTransfer {

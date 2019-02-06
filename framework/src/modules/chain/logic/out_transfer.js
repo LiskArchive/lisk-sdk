@@ -33,6 +33,15 @@ __private.unconfirmedOutTansfers = {};
  * @param {ZSchema} schema
  * @param {Object} logger
  * @param {Storage} storage
+ *
+ * @param {Object} dependencies
+ * @param {Object} dependencies.components
+ * @param {Object} dependencies.libraries
+ * @param {Object} dependencies.modules
+ * @param {Storage} dependencies.components.storage
+ * @param {logger} dependencies.components.logger
+ * @param {ZSchema} dependencies.libraries.schema
+ * @param {Accounts} dependencies.modules.accounts
  * @todo Add description for the params
  */
 class OutTransfer {

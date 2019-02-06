@@ -37,10 +37,13 @@ __private.unconfirmedAscii = {};
  * @requires bytebuffer
  * @requires valid
  * @requires helpers/dapp_categories
- * @param {Storage} storage
- * @param {Object} logger
- * @param {ZSchema} schema
- * @param {Object} network
+ * @param {Object} dependencies
+ * @param {Object} dependencies.components
+ * @param {Object} dependencies.libraries
+ * @param {Storage} dependencies.components.storage
+ * @param {logger} dependencies.components.logger
+ * @param {ZSchema} dependencies.libraries.schema
+ * @param {Object} dependencies,libraries.network
  * @todo Add description for the params
  */
 class DApp {

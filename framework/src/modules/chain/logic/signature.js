@@ -28,8 +28,13 @@ const __private = {};
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires bytebuffer
- * @param {ZSchema} schema
- * @param {Object} logger
+ * @param {Object} dependencies
+ * @param {Object} dependencies.components
+ * @param {Object} dependencies.libraries
+ * @param {Object} dependencies.modules
+ * @param {logger} dependencies.components.logger
+ * @param {ZSchema} dependencies.libraries.schema
+ * @param {Accounts} dependencies.modules.accounts
  * @todo Add description for the params
  */
 class Signature {

@@ -37,10 +37,16 @@ __private.unconfirmedSignatures = {};
  * @requires bytebuffer
  * @requires helpers/diff
  * @requires helpers/slots
- * @param {ZSchema} schema
- * @param {Object} network
- * @param {Transaction} transaction
- * @param {Object} logger
+ * @param {Object} dependencies
+ * @param {Object} dependencies.components
+ * @param {Object} dependencies.libraries
+ * @param {Object} dependencies.modules
+ * @param {logger} dependencies.components.logger
+ * @param {ZSchema} dependencies.libraries.schem
+ * @param {Object} dependencies.libraries.network
+ * @param {Transaction} dependencies.libraries.logic.transaction
+ * @param {Account} dependencies.libraries.logic.account
+ * @param {Accounts} dependencies.modules.accounts
  * @todo Add description for the params
  */
 class Multisignature {
@@ -348,7 +354,9 @@ Multisignature.prototype.applyConfirmed = function(
 				transaction.asset.multisignature.keysgroup,
 				(transactionToGetKey, eachSeriesCb) => {
 					const key = transactionToGetKey.substring(1);
-					const address = __private.modules.accounts.generateAddressByPublicKey(key);
+					const address = __private.modules.accounts.generateAddressByPublicKey(
+						key
+					);
 
 					// Create accounts
 					__private.modules.accounts.setAccountAndGet(
@@ -559,7 +567,10 @@ Multisignature.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
-	__private.libraries.network.io.sockets.emit('multisignatures/change', transaction);
+	__private.libraries.network.io.sockets.emit(
+		'multisignatures/change',
+		transaction
+	);
 	return setImmediate(cb);
 };
 

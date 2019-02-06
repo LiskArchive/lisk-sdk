@@ -20,7 +20,6 @@ const Bignum = require('../helpers/bignum.js');
 const { ADDITIONAL_DATA, FEES } = global.constants;
 const __private = {};
 
-
 /**
  * Main transfer logic.
  *
@@ -29,8 +28,13 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires helpers/bignum
  * @requires helpers/slots
- * @param {Object} logger
- * @param {Object} schema
+ * @param {Object} dependencies
+ * @param {Object} dependencies.components
+ * @param {Object} dependencies.libraries
+ * @param {Object} dependencies.modules
+ * @param {logger} dependencies.components.logger
+ * @param {ZSchema} dependencies.libraries.schema
+ * @param {Accounts} dependencies.modules.accounts
  * @todo Add description for the params
  */
 class Transfer {

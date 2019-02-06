@@ -40,6 +40,15 @@ let self;
  * @requires helpers/slots
  * @param {Object} logger
  * @param {ZSchema} schema
+ *
+ * @param {Object} dependencies
+ * @param {Object} dependencies.components
+ * @param {Object} dependencies.libraries
+ * @param {Object} dependencies.modules
+ * @param {logger} dependencies.components.logger
+ * @param {ZSchema} dependencies.libraries.schema
+ * @param {Account} dependencies.libraries.account
+ * @param {Delegates} dependencies.modules.delegates
  * @todo Add description for the params
  */
 class Vote {
@@ -77,7 +86,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		return library.account.merge(
+		return __private.libraries.account.merge(
 			sender.address,
 			{
 				votedDelegatesPublicKeys: votesInvert,
@@ -107,7 +116,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		return library.account.merge(
+		return __private.libraries.account.merge(
 			sender.address,
 			{ u_votedDelegatesPublicKeys: votesInvert },
 			mergeErr => setImmediate(cb, mergeErr),
@@ -201,13 +210,13 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 		waterErr => {
 			if (waterErr) {
 				if (exceptions.votes.includes(transaction.id)) {
-					library.logger.warn(
+					__private.components.logger.warn(
 						`vote.verify: Invalid transaction identified as exception "${
 							transaction.id
 						}"`
 					);
-					library.logger.error(waterErr);
-					library.logger.debug(JSON.stringify(transaction));
+					__private.components.logger.error(waterErr);
+					__private.components.logger.debug(JSON.stringify(transaction));
 				} else {
 					return setImmediate(cb, waterErr);
 				}
@@ -256,13 +265,13 @@ Vote.prototype.verifyVote = function(vote, cb) {
  * @todo Add description for the params
  */
 Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
-	modules.delegates.checkConfirmedDelegates(
+	__private.modules.delegates.checkConfirmedDelegates(
 		transaction.senderPublicKey,
 		transaction.asset.votes,
 		err => {
 			if (err && exceptions.votes.includes(transaction.id)) {
-				library.logger.debug(err);
-				library.logger.debug(JSON.stringify(transaction));
+				__private.components.logger.debug(err);
+				__private.components.logger.debug(JSON.stringify(transaction));
 				err = null;
 			}
 
@@ -281,13 +290,13 @@ Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
  * @todo Add description for the params
  */
 Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
-	modules.delegates.checkUnconfirmedDelegates(
+	__private.modules.delegates.checkUnconfirmedDelegates(
 		transaction.senderPublicKey,
 		transaction.asset.votes,
 		err => {
 			if (err && exceptions.votes.includes(transaction.id)) {
-				library.logger.debug(err);
-				library.logger.debug(JSON.stringify(transaction));
+				__private.components.logger.debug(err);
+				__private.components.logger.debug(JSON.stringify(transaction));
 				err = null;
 			}
 
@@ -346,7 +355,7 @@ Vote.prototype.applyConfirmed = function(transaction, block, sender, cb, tx) {
 				self.checkConfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function() {
-				library.account.merge(
+				__private.libraries.account.merge(
 					sender.address,
 					{
 						votedDelegatesPublicKeys: transaction.asset.votes,
@@ -377,7 +386,7 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 				self.checkUnconfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				library.account.merge(
+				__private.libraries.account.merge(
 					sender.address,
 					{
 						u_votedDelegatesPublicKeys: transaction.asset.votes,
@@ -420,13 +429,13 @@ Vote.prototype.schema = {
  * @todo Add description for the params
  */
 Vote.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __private.libraries.schema.validate(
 		transaction.asset,
 		Vote.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate vote schema: ${library.schema
+		throw `Failed to validate vote schema: ${__private.libraries.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

@@ -29,8 +29,11 @@ const __private = {};
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires async
- * @param {logger} logger
- * @param {ZSchema} schema
+ * @param {Object} dependencies
+ * @param {Object} dependencies.libraries
+ * @param {Object} dependencies.modules
+ * @param {ZSchema} dependencies.libraries.schema
+ * @param {Accounts} dependencies.modules.accounts
  * @todo Add description for the params
  */
 class Delegate {
@@ -186,12 +189,22 @@ Delegate.prototype.checkDuplicates = function(
 				const query = {};
 				query[isDelegate] = true;
 				query.publicKey = transaction.senderPublicKey;
-				return __private.modules.accounts.getAccount(query, [username], eachCb, tx);
+				return __private.modules.accounts.getAccount(
+					query,
+					[username],
+					eachCb,
+					tx
+				);
 			},
 			duplicatedUsername(eachCb) {
 				const query = {};
 				query[username] = transaction.asset.delegate.username;
-				return __private.modules.accounts.getAccount(query, [username], eachCb, tx);
+				return __private.modules.accounts.getAccount(
+					query,
+					[username],
+					eachCb,
+					tx
+				);
 			},
 		},
 		(err, res) => {
