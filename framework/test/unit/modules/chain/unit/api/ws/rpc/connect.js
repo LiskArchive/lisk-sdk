@@ -38,7 +38,7 @@ describe('connect', async () => {
 	let registerRPCSpy;
 	let registerSocketListenersSpy;
 	let loggerMock;
-	let systemMock;
+	let peersHeadersMock;
 	let masterWAMPServerMock;
 
 	before('spy on connectSteps', done => {
@@ -74,9 +74,7 @@ describe('connect', async () => {
 			trace: sinonSandbox.stub(),
 		};
 
-		systemMock = {
-			headers: {},
-		};
+		peersHeadersMock = {};
 
 		masterWAMPServerMock = {
 			upgradeToWAMP: sinon.stub(),
@@ -106,7 +104,7 @@ describe('connect', async () => {
 	describe('connect', async () => {
 		describe('connectSteps order', async () => {
 			beforeEach(done => {
-				connectResult = connectRewired(validPeer, loggerMock, systemMock);
+				connectResult = connectRewired(validPeer, loggerMock, peersHeadersMock);
 				done();
 			});
 
@@ -161,8 +159,8 @@ describe('connect', async () => {
 			let originalSystemHeaders;
 
 			beforeEach(done => {
-				originalSystemHeaders = systemMock.headers;
-				systemMock.headers = {
+				originalSystemHeaders = peersHeadersMock;
+				peersHeadersMock = {
 					protocolVersion: 'aProtocolVersion',
 					version: 'aVersion',
 					nonce: 'aNonce',
@@ -173,12 +171,12 @@ describe('connect', async () => {
 				const addConnectionOptions = connectRewired.__get__(
 					'connectSteps.addConnectionOptions'
 				);
-				peerAsResult = addConnectionOptions(validPeer, systemMock);
+				peerAsResult = addConnectionOptions(validPeer, peersHeadersMock);
 				done();
 			});
 
 			afterEach(done => {
-				systemMock.headers = originalSystemHeaders;
+				peersHeadersMock = originalSystemHeaders;
 				done();
 			});
 
@@ -206,25 +204,35 @@ describe('connect', async () => {
 				));
 
 			describe('connectionOptions.query', async () => {
-				it('should contain protocolVersion if present on system headers', async () =>
+				it('should contain protocolVersion if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.protocolVersion')
-						.to.eql(systemMock.headers.protocolVersion));
+						.to.eql(peersHeadersMock.protocolVersion));
 
-				it('should contain version if present on system headers', async () =>
+				it('should contain version if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.version')
-						.to.eql(systemMock.headers.version));
+						.to.eql(peersHeadersMock.version));
 
-				it('should contain nonce if present on system headers', async () =>
+				it('should contain nonce if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nonce')
-						.to.eql(systemMock.headers.nonce));
+						.to.eql(peersHeadersMock.nonce));
 
-				it('should contain nethash if present on system headers', async () =>
+				it('should contain nethash if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nethash')
-						.to.eql(systemMock.headers.nethash));
+						.to.eql(peersHeadersMock.nethash));
+
+				it('should contain wsPort if present on peers headers', async () =>
+					expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.wsPort')
+						.to.eql(peersHeadersMock.wsPort));
+
+				it('should contain httpPort if present on peers headers', async () =>
+					expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.httpPort')
+						.to.eql(peersHeadersMock.httpPort));
 			});
 
 			it('should return [peer]', async () =>

@@ -34,7 +34,6 @@ let modules;
  * @requires lodash
  * @requires api/ws/rpc/failure_codes
  * @requires modules/peer
- * @requires components/system
  * @requires helpers/peers_manager
  * @param {Object} logger
  * @param {function} cb - Callback function
@@ -42,13 +41,21 @@ let modules;
  * @todo Add description for the params
  */
 class Peers {
-	constructor(config, logger, system, cb) {
+	constructor(config, logger, cb) {
 		library = {
 			logger,
 		};
 		self = this;
-		this.system = system;
-		this.peersManager = new PeersManager(logger, system);
+		this.peersHeaders = {
+			version: config.version,
+			minVersion: config.minVersion,
+			protocolVersion: config.protocolVersion,
+			nethash: config.nethash,
+			nonce: config.nonce,
+			wsPort: config.wsPort,
+			httpPort: config.httpPort,
+		};
+		this.peersManager = new PeersManager(logger, this.peersHeaders);
 		this.banManager = new BanManager(logger, config);
 
 		return setImmediate(cb, null, this);
@@ -63,7 +70,7 @@ class Peers {
  * @returns {Object} system headers and peer status
  */
 Peers.prototype.me = function() {
-	return Object.assign({}, this.system.headers, {
+	return Object.assign({}, this.peersHeaders, {
 		state: Peer.STATE.CONNECTED,
 	});
 };

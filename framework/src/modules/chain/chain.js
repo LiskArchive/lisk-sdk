@@ -614,12 +614,7 @@ module.exports = class Chain {
 									'logger',
 									'config',
 									function(peersScope, peersCb) {
-										new Peers(
-											peersScope.config,
-											peersScope.logger,
-											scope.system,
-											peersCb
-										);
+										new Peers(peersScope.config, peersScope.logger, peersCb);
 									},
 								],
 							},

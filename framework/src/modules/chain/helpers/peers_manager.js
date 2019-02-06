@@ -25,8 +25,8 @@ const disconnect = require('../api/ws/rpc/disconnect');
  * @see Parent: {@link helpers}
  * @todo Add description for the class
  */
-function PeersManager(logger, system) {
-	this.system = system;
+function PeersManager(logger, peersHeaders) {
+	this.peersHeaders = peersHeaders;
 	this.peers = {};
 	this.addressToNonceMap = {};
 	this.nonceToAddressMap = {};
@@ -65,7 +65,7 @@ PeersManager.prototype.add = function(peer) {
 		peer.socket.connect();
 	} else {
 		// Create client WS connection to peer
-		connect(peer, this.logger, this.system);
+		connect(peer, this.logger, this.peersHeaders);
 	}
 	if (peer.nonce) {
 		this.addressToNonceMap[peer.string] = peer.nonce;

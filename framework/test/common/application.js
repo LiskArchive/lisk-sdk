@@ -429,12 +429,7 @@ function __init(initScope, done) {
 									'config',
 									'storage',
 									function(peersScope, peerscb) {
-										new Peers(
-											peersScope.config,
-											peersScope.logger,
-											scope.components.system,
-											peerscb
-										);
+										new Peers(peersScope.config, peersScope.logger, peerscb);
 									},
 								],
 								multisignature: [

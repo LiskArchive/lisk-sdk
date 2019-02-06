@@ -41,8 +41,8 @@ const connect = (peer, logger, system) => {
 };
 
 const connectSteps = {
-	addConnectionOptions: (peer, system) => {
-		const systemHeaders = system.headers;
+	addConnectionOptions: (peer, peersHeaders) => {
+		const systemHeaders = peersHeaders;
 		const queryParams = {};
 		if (systemHeaders.version) {
 			queryParams.version = systemHeaders.version;
@@ -56,6 +56,13 @@ const connectSteps = {
 		if (systemHeaders.nonce) {
 			queryParams.nonce = systemHeaders.nonce;
 		}
+		if (systemHeaders.wsPort) {
+			queryParams.wsPort = systemHeaders.wsPort;
+		}
+		if (systemHeaders.wsPort) {
+			queryParams.httpPort = systemHeaders.httpPort;
+		}
+
 		peer.connectionOptions = {
 			autoConnect: false, // Lazy connection establishment
 			autoReconnect: false,
