@@ -31,7 +31,7 @@ describe('response handlers', () => {
 		describe('for valid peer response object', () => {
 			const peer: unknown = {
 				ip: '12.23.54.3',
-				wsPort: '5393',
+				wsPort: 5393,
 				os: 'darwin',
 				height: '23232',
 				version: '1.1.2',
@@ -39,7 +39,7 @@ describe('response handlers', () => {
 
 			const peerWithInvalidHeightValue: unknown = {
 				ip: '12.23.54.3',
-				wsPort: '5393',
+				wsPort: 5393,
 				os: '778',
 				height: '2323wqdqd2',
 				version: '3.4.5-alpha.9',
@@ -47,7 +47,7 @@ describe('response handlers', () => {
 
 			const peerWithInvalidOsValue: unknown = {
 				ip: '12.23.54.3',
-				wsPort: '5393',
+				wsPort: 5393,
 				os: '778',
 				height: '23232',
 				version: '3.4.5-alpha.9',
@@ -102,7 +102,7 @@ describe('response handlers', () => {
 			it('should throw InvalidPeer error for invalid peer ip or port', async () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.uhig3',
-					wsPort: '53937888',
+					wsPort: 53937888,
 					os: 'darwin',
 					height: '23232',
 				};
@@ -115,7 +115,7 @@ describe('response handlers', () => {
 			it('should throw an InvalidPeer error for invalid peer version', async () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.23',
-					wsPort: '5390',
+					wsPort: 5390,
 					os: 'darwin',
 					height: '23232',
 					version: '1222.22',
@@ -132,7 +132,7 @@ describe('response handlers', () => {
 		it('should return true for correct IPv4', async () => {
 			const peer = {
 				ip: '12.12.12.12',
-				wsPort: '4001',
+				wsPort: 4001,
 			};
 
 			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
@@ -141,7 +141,7 @@ describe('response handlers', () => {
 		it('should return true for correct IPv6', async () => {
 			const peer = {
 				ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
-				wsPort: '4001',
+				wsPort: 4001,
 			};
 
 			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
@@ -150,7 +150,7 @@ describe('response handlers', () => {
 		it('should return false for incorrect ip', async () => {
 			const peerWithIncorrectIp = {
 				ip: '12.12.hh12.12',
-				wsPort: '4001',
+				wsPort: 4001,
 			};
 
 			expect(
@@ -161,7 +161,7 @@ describe('response handlers', () => {
 		it('should return false for incorrect port', async () => {
 			const peerWithIncorrectPort = {
 				ip: '12.12.12.12',
-				wsPort: '400f1',
+				wsPort: NaN,
 			};
 
 			expect(
@@ -176,7 +176,7 @@ describe('response handlers', () => {
 	describe('#validatePeerInfoList', () => {
 		const peer1 = {
 			ip: '12.12.12.12',
-			wsPort: '5001',
+			wsPort: 5001,
 			height: '545776',
 			version: '1.0.1',
 			os: 'darwin',
@@ -184,7 +184,7 @@ describe('response handlers', () => {
 
 		const peer2 = {
 			ip: '127.0.0.1',
-			wsPort: '5002',
+			wsPort: 5002,
 			height: '545981',
 			version: '1.0.1',
 			os: 'darwin',
@@ -223,7 +223,7 @@ describe('response handlers', () => {
 				peers: [
 					{
 						ip: '127.0.0.1',
-						wsPort: '5002dd',
+						wsPort: NaN,
 						height: '545981',
 						version: '1.0.1',
 						os: 'darwin',
