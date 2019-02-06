@@ -108,7 +108,7 @@ const middleware = {
 						{
 							code: failureCodes.INCOMPATIBLE_NETWORK,
 							description: `Expected nethash: ${
-								system.headers.hethash
+								system.headers.nethash
 							} but received: ${headers.nethash}`,
 						},
 						peer

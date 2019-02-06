@@ -18,7 +18,6 @@ const rewire = require('rewire');
 const sinon = require('sinon');
 const prefixedPeer = require('../../../../../../../fixtures/peers')
 	.randomNormalizedPeer;
-const System = require('../../../../../../../../src/components/system');
 const wsRPC = require('../../../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
 	.wsRPC;
 
@@ -39,6 +38,7 @@ describe('connect', async () => {
 	let registerRPCSpy;
 	let registerSocketListenersSpy;
 	let loggerMock;
+	let systemMock;
 	let masterWAMPServerMock;
 
 	before('spy on connectSteps', done => {
@@ -64,16 +64,6 @@ describe('connect', async () => {
 		done();
 	});
 
-	after('restore spies on connectSteps', done => {
-		addConnectionOptionsSpySpy.restore();
-		addSocketSpy.restore();
-		upgradeSocketAsClientSpy.restore();
-		upgradeSocketAsServerSpy.restore();
-		registerRPCSpy.restore();
-		registerSocketListenersSpy.restore();
-		done();
-	});
-
 	beforeEach('provide non-mutated peer each time', done => {
 		validPeer = Object.assign({}, prefixedPeer);
 		loggerMock = {
@@ -83,6 +73,11 @@ describe('connect', async () => {
 			debug: sinonSandbox.stub(),
 			trace: sinonSandbox.stub(),
 		};
+
+		systemMock = {
+			headers: {},
+		};
+
 		masterWAMPServerMock = {
 			upgradeToWAMP: sinon.stub(),
 			endpoints: {
@@ -98,10 +93,20 @@ describe('connect', async () => {
 		done();
 	});
 
+	after('restore spies on connectSteps', done => {
+		addConnectionOptionsSpySpy.restore();
+		addSocketSpy.restore();
+		upgradeSocketAsClientSpy.restore();
+		upgradeSocketAsServerSpy.restore();
+		registerRPCSpy.restore();
+		registerSocketListenersSpy.restore();
+		done();
+	});
+
 	describe('connect', async () => {
 		describe('connectSteps order', async () => {
 			beforeEach(done => {
-				connectResult = connectRewired(validPeer, loggerMock);
+				connectResult = connectRewired(validPeer, loggerMock, systemMock);
 				done();
 			});
 
@@ -156,8 +161,8 @@ describe('connect', async () => {
 			let originalSystemHeaders;
 
 			beforeEach(done => {
-				originalSystemHeaders = System.headers;
-				System.headers = {
+				originalSystemHeaders = systemMock.headers;
+				systemMock.headers = {
 					protocolVersion: 'aProtocolVersion',
 					version: 'aVersion',
 					nonce: 'aNonce',
@@ -168,12 +173,12 @@ describe('connect', async () => {
 				const addConnectionOptions = connectRewired.__get__(
 					'connectSteps.addConnectionOptions'
 				);
-				peerAsResult = addConnectionOptions(validPeer);
+				peerAsResult = addConnectionOptions(validPeer, systemMock);
 				done();
 			});
 
 			afterEach(done => {
-				System.headers = originalSystemHeaders;
+				systemMock.headers = originalSystemHeaders;
 				done();
 			});
 
@@ -204,22 +209,22 @@ describe('connect', async () => {
 				it('should contain protocolVersion if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.protocolVersion')
-						.to.eql(System.headers.protocolVersion));
+						.to.eql(systemMock.headers.protocolVersion));
 
 				it('should contain version if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.version')
-						.to.eql(System.headers.version));
+						.to.eql(systemMock.headers.version));
 
 				it('should contain nonce if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nonce')
-						.to.eql(System.headers.nonce));
+						.to.eql(systemMock.headers.nonce));
 
 				it('should contain nethash if present on system headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nethash')
-						.to.eql(System.headers.nethash));
+						.to.eql(systemMock.headers.nethash));
 			});
 
 			it('should return [peer]', async () =>
