@@ -21,12 +21,10 @@ const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 
-let modules;
-let library;
 const exceptions = global.exceptions;
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
-const __private = {};
 
+const __private = {};
 __private.unconfirmedSignatures = {};
 
 /**
@@ -46,32 +44,26 @@ __private.unconfirmedSignatures = {};
  * @todo Add description for the params
  */
 class Multisignature {
-	constructor(schema, network, transaction, account, logger) {
-		library = {
-			schema,
-			network,
-			logger,
+	constructor({ components, libraries, modules }) {
+		__private.components = {
+			logger: components.logger,
+		};
+		__private.libraries = {
+			schema: libraries.schema,
+			network: libraries.network,
 			logic: {
-				transaction,
-				account,
+				transaction: libraries.logic.transaction,
+				account: libraries.logic.account,
 			},
+		};
+		__private.modules = {
+			accounts: modules.accounts,
 		};
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
-/**
- * Binds input parameters to private variable modules.
- *
- * @param {Accounts} accounts
- * @todo Add description for the params
- */
-Multisignature.prototype.bind = function(accounts) {
-	modules = {
-		accounts,
-	};
-};
 
 /**
  * Obtains constant fee multisignature and multiply by quantity of signatures.
@@ -134,8 +126,8 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 			'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
 		if (exceptions.multisignatures.includes(transaction.id)) {
-			library.logger.debug(err);
-			library.logger.debug(JSON.stringify(transaction));
+			__private.components.logger.debug(err);
+			__private.components.logger.debug(JSON.stringify(transaction));
 		} else {
 			return setImmediate(cb, err);
 		}
@@ -179,7 +171,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 						) {
 							valid = false;
 						} else {
-							valid = library.logic.transaction.verifySignature(
+							valid = __private.libraries.logic.transaction.verifySignature(
 								transaction,
 								transaction.asset.multisignature.keysgroup[s].substring(1),
 								transaction.signatures[d]
@@ -196,7 +188,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 				}
 			}
 		} catch (e) {
-			library.logger.error(e.stack);
+			__private.components.logger.error(e.stack);
 			return setImmediate(
 				cb,
 				'Failed to verify signature in multisignature keysgroup'
@@ -241,7 +233,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 					);
 				}
 			} catch (e) {
-				library.logger.trace(e.stack);
+				__private.components.logger.trace(e.stack);
 				return setImmediate(
 					eachSeriesCb,
 					'Invalid public key in multisignature keysgroup'
@@ -338,7 +330,7 @@ Multisignature.prototype.applyConfirmed = function(
 ) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	library.logic.account.merge(
+	__private.components.logic.account.merge(
 		sender.address,
 		{
 			membersPublicKeys: transaction.asset.multisignature.keysgroup,
@@ -356,10 +348,10 @@ Multisignature.prototype.applyConfirmed = function(
 				transaction.asset.multisignature.keysgroup,
 				(transactionToGetKey, eachSeriesCb) => {
 					const key = transactionToGetKey.substring(1);
-					const address = modules.accounts.generateAddressByPublicKey(key);
+					const address = __private.modules.accounts.generateAddressByPublicKey(key);
 
 					// Create accounts
-					modules.accounts.setAccountAndGet(
+					__private.modules.accounts.setAccountAndGet(
 						{
 							address,
 							publicKey: key,
@@ -398,7 +390,7 @@ Multisignature.prototype.undoConfirmed = function(
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	library.logic.account.merge(
+	__private.libraries.logic.account.merge(
 		sender.address,
 		{
 			membersPublicKeys: multiInvert,
@@ -436,7 +428,7 @@ Multisignature.prototype.applyUnconfirmed = function(
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	return library.logic.account.merge(
+	return __private.libraries.logic.account.merge(
 		sender.address,
 		{
 			u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
@@ -469,7 +461,7 @@ Multisignature.prototype.undoUnconfirmed = function(
 
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	library.logic.account.merge(
+	__private.libraries.logic.account.merge(
 		sender.address,
 		{
 			u_membersPublicKeys: multiInvert,
@@ -518,13 +510,13 @@ Multisignature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __private.components.schema.validate(
 		transaction.asset.multisignature,
 		Multisignature.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate multisignature schema: ${library.schema
+		throw `Failed to validate multisignature schema: ${__private.components.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
@@ -567,7 +559,7 @@ Multisignature.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
-	library.network.io.sockets.emit('multisignatures/change', transaction);
+	__private.libraries.network.io.sockets.emit('multisignatures/change', transaction);
 	return setImmediate(cb);
 };
 
