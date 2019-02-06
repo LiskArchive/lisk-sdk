@@ -103,7 +103,7 @@ export class PeerPool extends EventEmitter {
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = nodeInfo;
 		const peerList = this.getAllPeers();
-		peerList.forEach(async peer => {
+		peerList.forEach(peer => {
 			this._applyNodeInfoOnPeer(peer, nodeInfo);
 		});
 	}

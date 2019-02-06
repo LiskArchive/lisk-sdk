@@ -215,12 +215,14 @@ export class P2P extends EventEmitter {
 					const peerId = constructPeerId(socket.remoteAddress, wsPort);
 
 					const incomingPeerInfo: P2PDiscoveredPeerInfo = {
-						...queryObject,
 						ipAddress: socket.remoteAddress,
 						wsPort,
 						height: queryObject.height ? +queryObject.height : 0,
+						isDiscoveredPeer: true,
 						os: queryObject.os,
 						version: queryObject.version,
+						options: typeof queryObject.options === 'string' ?
+							JSON.parse(queryObject.options) : undefined,
 					};
 
 					const isNewPeer = this._peerPool.addInboundPeer(
