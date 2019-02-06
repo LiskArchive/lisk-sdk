@@ -39,7 +39,7 @@ describe('peers', async () => {
 	let __private;
 
 	let peersLogicMock;
-	let systemModuleMock;
+	let systemComponentMock;
 	let transportModuleMock;
 
 	const NONCE = randomstring.generate(16);
@@ -64,12 +64,17 @@ describe('peers', async () => {
 			upsert: sinonSandbox.stub(),
 			remove: sinonSandbox.stub(),
 		};
-		systemModuleMock = {};
+		systemComponentMock = {
+			headers: {},
+		};
 		transportModuleMock = {};
 		bindings = {
 			modules: {
-				system: systemModuleMock,
 				transport: transportModuleMock,
+			},
+
+			components: {
+				system: systemComponentMock,
 			},
 		};
 
@@ -122,7 +127,7 @@ describe('peers', async () => {
 
 		describe('when logic.peers.list returns no records', async () => {
 			before(done => {
-				systemModuleMock.getBroadhash = sinonSandbox.stub().returns();
+				systemComponentMock.getBroadhash = sinonSandbox.stub().returns();
 				peersLogicMock.list = sinonSandbox.stub().returns([]);
 				done();
 			});
@@ -520,17 +525,17 @@ describe('peers', async () => {
 			validActive = null;
 			validMatched = null;
 			calculateConsensusResult = null;
-			systemModuleMock.getBroadhash = sinonSandbox.stub().returns();
+			systemComponentMock.getBroadhash = sinonSandbox.stub().returns();
 			peersLogicMock.list = sinonSandbox.stub().returns([]);
 			done();
 		});
 
-		beforeEach(done => {
-			calculateConsensusResult = peers.calculateConsensus(
+		beforeEach(async () => {
+			calculateConsensusResult = await peers.calculateConsensus(
 				validActive,
 				validMatched
 			);
-			done();
+			return null;
 		});
 
 		afterEach(() => peersLogicMock.list.resetHistory());
@@ -555,7 +560,7 @@ describe('peers', async () => {
 					const connectedPeer = _.assign({}, prefixedPeer);
 					connectedPeer.state = Peer.STATE.CONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
-					systemModuleMock.getBroadhash = sinonSandbox
+					systemComponentMock.getBroadhash = sinonSandbox
 						.stub()
 						.returns(connectedPeer.broadhash);
 					done();
@@ -570,7 +575,7 @@ describe('peers', async () => {
 					const bannedPeer = _.assign({}, prefixedPeer);
 					bannedPeer.state = Peer.STATE.BANNED;
 					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
-					systemModuleMock.getBroadhash = sinonSandbox
+					systemComponentMock.getBroadhash = sinonSandbox
 						.stub()
 						.returns(bannedPeer.broadhash);
 					done();
@@ -585,7 +590,7 @@ describe('peers', async () => {
 					const disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					systemModuleMock.getBroadhash = sinonSandbox
+					systemComponentMock.getBroadhash = sinonSandbox
 						.stub()
 						.returns(disconnectedPeer.broadhash);
 					done();
@@ -605,7 +610,7 @@ describe('peers', async () => {
 					generateRandomActivePeer()
 				);
 				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-				systemModuleMock.getBroadhash = sinonSandbox
+				systemComponentMock.getBroadhash = sinonSandbox
 					.stub()
 					.returns(broadhashes.matchedBroadhash);
 				validActive = oneHundredActivePeers;
@@ -727,7 +732,7 @@ describe('peers', async () => {
 
 	describe('acceptable', async () => {
 		before(done => {
-			systemModuleMock.getNonce = sinonSandbox.stub().returns(NONCE);
+			systemComponentMock.headers.nonce = NONCE;
 			process.env.NODE_ENV = 'DEV';
 			done();
 		});
@@ -935,8 +940,8 @@ describe('peers', async () => {
 					string: 'aPeerString',
 				};
 
-				bindings.modules.system.versionCompatible = sinonSandbox.stub();
-				bindings.modules.system.protocolVersionCompatible = sinonSandbox.stub();
+				bindings.components.system.versionCompatible = sinonSandbox.stub();
+				bindings.components.system.protocolVersionCompatible = sinonSandbox.stub();
 				__private.updatePeerStatus(undefined, status, peer);
 				done();
 			});
@@ -948,7 +953,7 @@ describe('peers', async () => {
 					delete status.protocolVersion;
 					__private.updatePeerStatus(undefined, status, peer);
 					return expect(
-						bindings.modules.system.versionCompatible
+						bindings.components.system.versionCompatible
 					).to.be.calledWith(status.version);
 				});
 			});
@@ -957,14 +962,14 @@ describe('peers', async () => {
 				it('should call protocolVersionCompatible() with status.protocolVersion', async () => {
 					__private.updatePeerStatus(undefined, status, peer);
 					return expect(
-						bindings.modules.system.protocolVersionCompatible
+						bindings.components.system.protocolVersionCompatible
 					).to.be.calledWith(status.protocolVersion);
 				});
 			});
 
 			describe('when the peer is compatible', async () => {
 				beforeEach(() => {
-					bindings.modules.system.protocolVersionCompatible = sinonSandbox
+					bindings.components.system.protocolVersionCompatible = sinonSandbox
 						.stub()
 						.returns(true);
 					return __private.updatePeerStatus(undefined, status, peer);
@@ -1005,13 +1010,13 @@ describe('peers', async () => {
 
 			it('should call library.logic.peers.upsert() with required args regardless if its compatible or not', done => {
 				// When it's compatible
-				bindings.modules.system.protocolVersionCompatible = sinonSandbox
+				bindings.components.system.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(true);
 				__private.updatePeerStatus(undefined, status, peer);
 				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
 				// When it's not compatible
-				bindings.modules.system.protocolVersionCompatible = sinonSandbox
+				bindings.components.system.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(false);
 				__private.updatePeerStatus(undefined, status, peer);

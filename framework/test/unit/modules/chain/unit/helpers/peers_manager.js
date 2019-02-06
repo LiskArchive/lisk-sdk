@@ -28,14 +28,22 @@ const validRPCProcedureName = 'rpcProcedureA';
 const validEventProcedureName = 'eventProcedureB';
 
 describe('PeersManager', async () => {
+	let systemComponentMock;
+
 	beforeEach(done => {
-		peersManagerInstance = new PeersManager({
-			error: sinonSandbox.stub(),
-			warn: sinonSandbox.stub(),
-			log: sinonSandbox.stub(),
-			debug: sinonSandbox.stub(),
-			trace: sinonSandbox.stub(),
-		});
+		systemComponentMock = {
+			headers: {},
+		};
+		peersManagerInstance = new PeersManager(
+			{
+				error: sinonSandbox.stub(),
+				warn: sinonSandbox.stub(),
+				log: sinonSandbox.stub(),
+				debug: sinonSandbox.stub(),
+				trace: sinonSandbox.stub(),
+			},
+			systemComponentMock
+		);
 		masterWAMPServerMock = {
 			upgradeToWAMP: sinonSandbox.stub(),
 			endpoints: {
@@ -347,14 +355,20 @@ describe('PeersManager', async () => {
 			let peersManagerInstanceB;
 
 			beforeEach(done => {
-				peersManagerInstanceA = new PeersManager({
-					debug: sinonSandbox.stub(),
-					trace: sinonSandbox.stub(),
-				});
-				peersManagerInstanceB = new PeersManager({
-					debug: sinonSandbox.stub(),
-					trace: sinonSandbox.stub(),
-				});
+				peersManagerInstanceA = new PeersManager(
+					{
+						debug: sinonSandbox.stub(),
+						trace: sinonSandbox.stub(),
+					},
+					systemComponentMock
+				);
+				peersManagerInstanceB = new PeersManager(
+					{
+						debug: sinonSandbox.stub(),
+						trace: sinonSandbox.stub(),
+					},
+					systemComponentMock
+				);
 				done();
 			});
 			describe('when [peersManagerInstanceA] adds data', async () => {
