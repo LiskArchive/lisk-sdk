@@ -118,10 +118,15 @@ module.exports = class Application {
 		scope.modules.set(this, modules);
 	}
 
-	overrideModuleConfig(alias, config) {
+	/**
+	 * Override the module's configuration
+	 * @param {string} moduleName
+	 * @param {Object} config
+	 */
+	overrideModuleConfig(moduleName, config) {
 		const modules = this.getModules();
-		const updatedConfig = Object.assign({}, modules[alias].config, config);
-		modules[alias].config = updatedConfig;
+		assert(Object.keys(modules).includes(moduleName), `No module ${moduleName} is registered`);
+		modules[moduleName].config = Object.assign({}, modules[moduleName].config, config);
 		scope.modules.set(this, modules);
 	}
 
