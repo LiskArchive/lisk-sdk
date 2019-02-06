@@ -19,9 +19,8 @@ const Bignum = require('../helpers/bignum.js');
 const ed = require('../helpers/ed.js');
 
 const { FEES } = global.constants;
-let modules;
-let library;
 
+const __private = {};
 /**
  * Main signature logic. Initializes library.
  *
@@ -34,27 +33,21 @@ let library;
  * @todo Add description for the params
  */
 class Signature {
-	constructor(schema, logger) {
-		library = {
-			schema,
-			logger,
+	constructor({ components, libraries, modules }) {
+		__private.libraries = {
+			schema: libraries.schema,
+		};
+		__private.components = {
+			logger: components.logger,
+		};
+		__private.modules = {
+			accounts: modules.accounts,
 		};
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
-/**
- * Binds input parameters to private variable modules.
- *
- * @param {Accounts} accounts
- * @todo Add description for the params
- */
-Signature.prototype.bind = function(accounts) {
-	modules = {
-		accounts,
-	};
-};
 
 /**
  * Obtains constant fee secondSignature.
@@ -93,7 +86,7 @@ Signature.prototype.verify = function(transaction, sender, cb) {
 			return setImmediate(cb, 'Invalid public key');
 		}
 	} catch (e) {
-		library.logger.error(e.stack);
+		__private.components.logger.error(e.stack);
 		return setImmediate(cb, 'Invalid public key');
 	}
 
@@ -157,7 +150,7 @@ Signature.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	modules.accounts.setAccountAndGet(
+	__private.modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,
 			secondSignature: 1,
@@ -184,7 +177,7 @@ Signature.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	modules.accounts.setAccountAndGet(
+	__private.modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,
 			secondSignature: 0,
@@ -210,7 +203,7 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Second signature already enabled');
 	}
 
-	return modules.accounts.setAccountAndGet(
+	return __private.modules.accounts.setAccountAndGet(
 		{ address: sender.address, u_secondSignature: 1 },
 		cb,
 		tx
@@ -227,7 +220,7 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @todo Add description for the params
  */
 Signature.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
-	modules.accounts.setAccountAndGet(
+	__private.modules.accounts.setAccountAndGet(
 		{ address: sender.address, u_secondSignature: 0 },
 		cb,
 		tx
@@ -257,13 +250,13 @@ Signature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Signature.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __private.libraries.schema.validate(
 		transaction.asset.signature,
 		Signature.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate signature schema: ${library.schema
+		throw `Failed to validate signature schema: ${__private.libraries.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
