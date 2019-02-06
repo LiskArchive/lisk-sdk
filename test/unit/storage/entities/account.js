@@ -1975,7 +1975,9 @@ describe('Account', () => {
 		it('should not throw error if there is no delegate available');
 	});
 
-	describe('countDuplicatedDelegates()', () => {
+	// countDuplicatedDelegates can potentially be removed completely as delegate table doesn't exsist anymore
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('countDuplicatedDelegates()', () => {
 		it('should use the correct SQL no with parameter', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await AccountEntity.countDuplicatedDelegates();

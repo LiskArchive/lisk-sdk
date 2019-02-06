@@ -461,7 +461,7 @@ __private.loadBlockChain = function() {
 			library.storage.entities.Block.count({}, {}, t),
 			library.storage.entities.Block.getOne({ height: 1 }, {}, t),
 			library.storage.entities.Round.getUniqueRounds(t),
-			library.storage.entities.Account.countDuplicatedDelegates(t),
+			// library.storage.entities.Account.countDuplicatedDelegates(t),
 		];
 
 		return t.batch(promises);
@@ -495,7 +495,7 @@ __private.loadBlockChain = function() {
 				blocksCount,
 				getGenesisBlock,
 				getMemRounds,
-				duplicatedDelegatesCount,
+				// duplicatedDelegatesCount,
 			] = result;
 
 			library.logger.info(`Blocks ${blocksCount}`);
@@ -524,12 +524,13 @@ __private.loadBlockChain = function() {
 				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
 			}
 
-			if (duplicatedDelegatesCount > 0) {
-				library.logger.error(
-					'Delegates table corrupted with duplicated entries'
-				);
-				return process.emit('exit');
-			}
+			// TODO: Double check if this is still required after moving delegate table into trs asset field.
+			// if (duplicatedDelegatesCount > 0) {
+			// 	library.logger.error(
+			// 		'Delegates table corrupted with duplicated entries'
+			// 	);
+			// 	return process.emit('exit');
+			// }
 
 			await library.storage.entities.Account.resetUnconfirmedState();
 			const delegatesPublicKeys = await library.storage.entities.Account.get(
