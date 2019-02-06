@@ -165,14 +165,14 @@ describe('BaseEntity', () => {
 			);
 		});
 
-		it('should create parse filters when is an object', async () => {
+		it('should create parse filters when filter is an object', async () => {
 			const filter = { id: 10, name: '2' };
 			expect(baseEntity.parseFilters(filter)).to.equal(
 				'WHERE ("id" = 10 AND "name" = \'2\')'
 			);
 		});
 
-		it('should create parse filters when is an array', async () => {
+		it('should create parse filters when filter is an array', async () => {
 			const filter = [{ id: 10, name: '2' }, { id: 2 }, { name: '4' }];
 			expect(baseEntity.parseFilters(filter)).to.equal(
 				'WHERE ("id" = 10 AND "name" = \'2\') OR ("id" = 2) OR ("name" = \'4\')'
