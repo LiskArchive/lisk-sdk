@@ -23,8 +23,7 @@ const Bignum = require('../helpers/bignum.js');
 const exceptions = global.exceptions;
 const { FEES, MAX_VOTES_PER_TRANSACTION } = global.constants;
 
-let modules;
-let library;
+const __private = {};
 let self;
 
 /**
@@ -44,12 +43,17 @@ let self;
  * @todo Add description for the params
  */
 class Vote {
-	constructor(logger, schema, account) {
+	constructor({ components, libraries, modules }) {
 		self = this;
-		library = {
-			logger,
-			schema,
-			account,
+		__private.components = {
+			logger: components.logger,
+		};
+		__private.libraries = {
+			schema: libraries.schema,
+			account: libraries.account,
+		};
+		__private.modules = {
+			delegates: modules.delegates,
 		};
 	}
 
@@ -115,17 +119,6 @@ class Vote {
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
-/**
- * Binds module content to private object modules.
- *
- * @param {Delegates} delegates
- * @todo Add description for the params
- */
-Vote.prototype.bind = function(delegates) {
-	modules = {
-		delegates,
-	};
-};
 
 /**
  * Obtains constant fee vote.
