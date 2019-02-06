@@ -42,6 +42,8 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	Peer,
 	REMOTE_RPC_GET_ALL_PEERS_LIST,
+	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_INBOUND_SOCKET_ERROR,
 } from './peer';
 import { discoverPeers } from './peer_discovery';
 import {
@@ -57,6 +59,8 @@ export {
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
+	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_INBOUND_SOCKET_ERROR,
 };
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -67,6 +71,8 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
+	private readonly _handlePeerInboundSocketError: (error: Error) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 
 	public constructor() {
@@ -97,6 +103,14 @@ export class PeerPool extends EventEmitter {
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
+		};
+		this._handlePeerOutboundSocketError = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
+		};
+		this._handlePeerInboundSocketError = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 	}
 
@@ -352,6 +366,8 @@ export class PeerPool extends EventEmitter {
 		peer.on(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
 		peer.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peer.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
+		peer.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handlePeerOutboundSocketError);
+		peer.on(EVENT_INBOUND_SOCKET_ERROR, this._handlePeerInboundSocketError);
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {
