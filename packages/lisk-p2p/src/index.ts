@@ -12,5 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+export * from './disconnect_status_codes';
 export * from './errors';
 export * from './p2p';
