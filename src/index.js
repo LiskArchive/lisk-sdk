@@ -36,8 +36,10 @@ try {
 
 	app.overrideModuleConfig('chain', { exceptions, config });
 
-	app.run();
-	app.logger.log('App started...');
+	app
+		.run()
+		.then(() => app.logger.log('App started...'))
+		.catch(err => app.logger.error('App stopped with error', err));
 } catch (e) {
 	console.error(e);
 }
