@@ -37,9 +37,7 @@ module.exports = class Action {
 	}
 
 	static deserialize(data) {
-		let object = null;
-		if (typeof data === 'string') object = JSON.parse(data);
-		else object = data;
+		const object = typeof data === 'string' ? JSON.parse(data) : data;
 		return new Action(
 			`${object.module}:${object.name}`,
 			object.params,
