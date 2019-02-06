@@ -15,21 +15,42 @@
 
 'use strict';
 
+const pgpLib = require('pg-promise');
+const filterTypes = require('../../../../storage/utils/filter_types.js');
 const { BaseEntity } = require('../../../../storage/entities');
 
 describe('BaseEntity', () => {
 	let adapter;
 	let defaultFilters;
 	let defaultOptions;
+	let defaultFields;
 
 	beforeEach(async () => {
+		const pgp = pgpLib();
 		adapter = {
 			loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+			parseQueryComponent: pgp.as.format,
 		};
 		defaultFilters = {
 			id: 1,
-			name: 'name',
+			name: 6,
 		};
+		defaultFields = [
+			{
+				name: 'id',
+				type: filterTypes.NUMBER,
+				options: {
+					filter: filterTypes.NUMBER,
+				},
+			},
+			{
+				name: 'name',
+				type: filterTypes.NUMBER,
+				options: {
+					filter: filterTypes.NUMBER,
+				},
+			},
+		];
 		defaultOptions = {
 			limit: 10,
 			offset: 0,
@@ -131,6 +152,36 @@ describe('BaseEntity', () => {
 			expect(adapter.loadSQLFile.callCount).to.eql(
 				Object.keys(sqlFiles).length
 			);
+		});
+	});
+
+	describe('parseFilters', () => {
+		let baseEntity;
+
+		beforeEach(async () => {
+			baseEntity = new BaseEntity(adapter, defaultFilters);
+			defaultFields.forEach(field =>
+				baseEntity.addField(field.name, field.type, field.options)
+			);
+		});
+
+		it('should create parse filters when is an object', async () => {
+			const filter = { id: 10, name: '2' };
+			expect(baseEntity.parseFilters(filter)).to.equal(
+				'WHERE ("id" = 10 AND "name" = \'2\')'
+			);
+		});
+
+		it('should create parse filters when is an array', async () => {
+			const filter = [{ id: 10, name: '2' }, { id: 2 }, { name: '4' }];
+			expect(baseEntity.parseFilters(filter)).to.equal(
+				'WHERE ("id" = 10 AND "name" = \'2\') OR ("id" = 2) OR ("name" = \'4\')'
+			);
+		});
+
+		it('should return an empty string when filter is an empty object', async () => {
+			const filter = {};
+			expect(baseEntity.parseFilters(filter)).to.equal('');
 		});
 	});
 });
