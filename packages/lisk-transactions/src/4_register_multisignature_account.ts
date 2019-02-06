@@ -34,7 +34,6 @@ export interface RegisterMultisignatureInputs {
 	readonly minimum: number;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 }
 
 const validateInputs = ({

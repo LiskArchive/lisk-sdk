@@ -25,7 +25,6 @@ import {
 export interface CastVoteInputs {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 	readonly unvotes?: ReadonlyArray<string>;
 	readonly votes?: ReadonlyArray<string>;
 }
