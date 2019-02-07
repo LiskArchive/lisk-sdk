@@ -202,7 +202,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 			if (regexpTester.testNullCharacter(tags[i])) {
 				return setImmediate(
 					cb,
-					'Application tags has invalid character. Null character is not allowed'
+					'Application tags has invalid character. Null character is not allowed.'
 				);
 			}
 
