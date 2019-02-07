@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
 import { VOTE_FEE } from './constants';
-import { PartialTransaction, VoteTransaction } from './transaction_types';
+import { TransactionJSON } from './transaction_types';
+import { VoteTransaction } from './transactions';
 import {
-	prepareTransaction,
+	createBaseTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validatePublicKeys,
@@ -50,18 +50,9 @@ const validateInputs = ({ votes = [], unvotes = [] }: VotesObject): void => {
 	validatePublicKeys([...votes, ...unvotes]);
 };
 
-export const castVotes = (inputs: CastVoteInputs): VoteTransaction => {
+export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const {
-		passphrase,
-		secondPassphrase,
-		timeOffset,
-		votes = [],
-		unvotes = [],
-	} = inputs;
-	const recipientId = passphrase
-		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
-		: '';
+	const { passphrase, secondPassphrase, votes = [], unvotes = [] } = inputs;
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
@@ -70,19 +61,30 @@ export const castVotes = (inputs: CastVoteInputs): VoteTransaction => {
 		...minusPrependedUnvotes,
 	];
 
-	const transaction: PartialTransaction = {
+	const transaction = {
+		...createBaseTransaction(inputs),
 		type: 3,
 		fee: VOTE_FEE.toString(),
-		recipientId,
 		asset: {
 			votes: allVotes,
 		},
 	};
 
-	return prepareTransaction(
-		transaction,
-		passphrase,
-		secondPassphrase,
-		timeOffset,
-	) as VoteTransaction;
+	if (!passphrase) {
+		return transaction;
+	}
+
+	const transactionWithSenderInfo = {
+		...transaction,
+		// SenderId and SenderPublicKey are expected to be exist from base transaction
+		senderId: transaction.senderId as string,
+		senderPublicKey: transaction.senderPublicKey as string,
+		recipientId: transaction.senderId as string,
+		recipientPublicKey: transaction.senderPublicKey,
+	};
+
+	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
+	voteTransaction.sign(passphrase, secondPassphrase);
+
+	return voteTransaction.toJSON();
 };

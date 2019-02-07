@@ -15,8 +15,8 @@
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/0_transfer';
-import { TransferTransaction } from '../src/transaction_types';
-import * as time from '../src/utils/time';
+import * as utils from '../src/utils';
+import { TransactionJSON } from '../src/transaction_types';
 
 describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -36,11 +36,11 @@ describe('#transfer transaction', () => {
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let transferTransaction: TransferTransaction;
+	let transferTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(time, 'getTimeWithOffset')
+			.stub(utils, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		return Promise.resolve();
 	});
@@ -138,10 +138,8 @@ describe('#transfer transaction', () => {
 					.and.be.an('object').and.be.empty;
 			});
 
-			it('should not have the second signature property', () => {
-				return expect(transferTransaction).not.to.have.property(
-					'signSignature',
-				);
+			it('second signature property should be undefined', () => {
+				return expect(transferTransaction.signSignature).to.be.undefined;
 			});
 		});
 
@@ -262,7 +260,7 @@ describe('#transfer transaction', () => {
 				).to.not.throw();
 			});
 
-			it('should throw error when both recipientId and recipientPublicKey were not provided', () => {
+			it('should throw error when neither recipientId nor recipientPublicKey were provided', () => {
 				return expect(
 					transfer.bind(null, {
 						amount,

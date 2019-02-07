@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import {
 	SecondSignatureTransaction,
 	Attributes,
@@ -24,9 +23,6 @@ import {
 	validTransaction,
 } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
-import { TransactionError } from '../../src/errors';
-import * as utils from '../../src/utils';
-import { SIGNATURE_FEE } from '../../src/constants';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
 describe('Second signature registration transaction class', () => {
@@ -65,79 +61,6 @@ describe('Second signature registration transaction class', () => {
 			expect(
 				() => new SecondSignatureTransaction(invalidSecondSignatureTransaction),
 			).to.throw('Invalid field types');
-		});
-	});
-
-	describe('#create', () => {
-		const timeWithOffset = 38350076;
-		const passphrase = 'secret';
-		const secondPassphrase = 'second secret';
-
-		let result: object;
-
-		beforeEach(async () => {
-			sandbox.stub(utils, 'getTimeWithOffset').returns(timeWithOffset);
-		});
-
-		describe('when the transaction is created with passphrase and second passphrase', () => {
-			beforeEach(async () => {
-				result = SecondSignatureTransaction.create({
-					passphrase,
-					secondPassphrase,
-				});
-			});
-
-			it('should create second signature registration transaction', async () => {
-				expect(result).to.have.property('id');
-				expect(result).to.have.property('type', 1);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property('fee', SIGNATURE_FEE.toString());
-				expect(result).to.have.property('senderId');
-				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property('recipientId', '');
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect(result).to.have.property('signature').and.not.to.be.empty;
-				expect((result as any).asset.signature.publicKey).to.eql(
-					'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f',
-				);
-			});
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox
-				.stub(SecondSignatureTransaction.prototype, 'validateSchema')
-				.returns({
-					id: validTestTransaction.id,
-					status: Status.OK,
-					errors: [],
-				});
-			validTestTransaction = SecondSignatureTransaction.fromJSON(
-				validRegisterSecondSignatureTransaction,
-			);
-		});
-
-		it('should create instance of SecondSignatureTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(SecondSignatureTransaction);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(SecondSignatureTransaction.prototype
-				.validateSchema as SinonStub).returns({
-				status: Status.FAIL,
-				errors: [new TransactionError()],
-			});
-			expect(
-				SecondSignatureTransaction.fromJSON.bind(
-					undefined,
-					validRegisterSecondSignatureTransaction,
-				),
-			).to.throw('Failed to validate schema.');
 		});
 	});
 

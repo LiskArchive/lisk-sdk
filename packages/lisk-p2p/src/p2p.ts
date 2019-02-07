@@ -49,6 +49,7 @@ export { P2PRequest };
 import {
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
+	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	PeerPool,
@@ -77,6 +78,7 @@ export class P2P extends EventEmitter {
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
+	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
 
@@ -117,6 +119,11 @@ export class P2P extends EventEmitter {
 				this._triedPeers.delete(peerId);
 			}
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND);
+		};
+
+		this._handleFailedToPushNodeInfo = (error: Error) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		};
 
 		this._peerPool = new PeerPool();
@@ -208,12 +215,16 @@ export class P2P extends EventEmitter {
 					const peerId = constructPeerId(socket.remoteAddress, wsPort);
 
 					const incomingPeerInfo: P2PDiscoveredPeerInfo = {
-						...queryObject,
 						ipAddress: socket.remoteAddress,
 						wsPort,
 						height: queryObject.height ? +queryObject.height : 0,
+						isDiscoveredPeer: true,
 						os: queryObject.os,
 						version: queryObject.version,
+						options:
+							typeof queryObject.options === 'string'
+								? JSON.parse(queryObject.options)
+								: undefined,
 					};
 
 					const isNewPeer = this._peerPool.addInboundPeer(
@@ -303,5 +314,9 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
 		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
+		peerPool.on(
+			EVENT_FAILED_TO_PUSH_NODE_INFO,
+			this._handleFailedToPushNodeInfo,
+		);
 	}
 }

@@ -50,6 +50,8 @@ import {
 	selectPeers,
 } from './peer_selection';
 
+export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
+
 export {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -102,7 +104,7 @@ export class PeerPool extends EventEmitter {
 		this._nodeInfo = nodeInfo;
 		const peerList = this.getAllPeers();
 		peerList.forEach(peer => {
-			peer.applyNodeInfo(nodeInfo);
+			this._applyNodeInfoOnPeer(peer, nodeInfo);
 		});
 	}
 
@@ -202,7 +204,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
-			peer.applyNodeInfo(this._nodeInfo);
+			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 		peer.connect();
 
@@ -217,7 +219,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
-			peer.applyNodeInfo(this._nodeInfo);
+			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 		peer.updatePeerInfo(detailedPeerInfo);
 		peer.connect();
@@ -288,6 +290,17 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.delete(peerId);
 	}
 
+	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
+		// tslint:disable-next-line no-floating-promises
+		(async () => {
+			try {
+				await peer.applyNodeInfo(nodeInfo);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+			}
+		})();
+	}
+
 	private _pickRandomPeers(count: number): ReadonlyArray<Peer> {
 		const discoveredPeerList: ReadonlyArray<Peer> = [
 			...this._peerMap.values(),
@@ -302,33 +315,37 @@ export class PeerPool extends EventEmitter {
 			success: true,
 			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
 			peers: this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE)
-			.map(
-				(peer: Peer): ProtocolPeerInfo | undefined => {
-					const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined = peer.detailedPeerInfo;
-					if (!peerDetailedInfo) {
-						return undefined;
-					}
-					
-					return {
-						broadhash: peerDetailedInfo.options
-							? (peerDetailedInfo.options.broadhash as string)
-							: '',
-						height: peerDetailedInfo.height,
-						ip: peerDetailedInfo.ipAddress,
-						nonce: peerDetailedInfo.options
-							? (peerDetailedInfo.options.nonce as string)
-							: '',
-						os: peerDetailedInfo.os,
-						version: peerDetailedInfo.version,
-						wsPort: String(peerDetailedInfo.wsPort),
-					};
-				},
-			)
-			.filter((peerDetailedInfo: ProtocolPeerInfo | undefined) => !!peerDetailedInfo)
-			.map(
-				(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
-					peerDetailedInfo as ProtocolPeerInfo
-			),
+				.map(
+					(peer: Peer): ProtocolPeerInfo | undefined => {
+						const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined =
+							peer.detailedPeerInfo;
+						if (!peerDetailedInfo) {
+							return undefined;
+						}
+
+						return {
+							broadhash: peerDetailedInfo.options
+								? (peerDetailedInfo.options.broadhash as string)
+								: '',
+							height: peerDetailedInfo.height,
+							ip: peerDetailedInfo.ipAddress,
+							nonce: peerDetailedInfo.options
+								? (peerDetailedInfo.options.nonce as string)
+								: '',
+							os: peerDetailedInfo.os,
+							version: peerDetailedInfo.version,
+							wsPort: peerDetailedInfo.wsPort,
+						};
+					},
+				)
+				.filter(
+					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
+						!!peerDetailedInfo,
+				)
+				.map(
+					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
+						peerDetailedInfo as ProtocolPeerInfo,
+				),
 		};
 
 		request.end(protocolPeerInfoList);

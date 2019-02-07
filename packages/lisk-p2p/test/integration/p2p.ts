@@ -6,7 +6,9 @@ import { platform } from 'os';
 describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
-	const ALL_NODE_PORTS: ReadonlyArray<number> = [...Array(NETWORK_PEER_COUNT).keys()].map(index => NETWORK_START_PORT + index);
+	const ALL_NODE_PORTS: ReadonlyArray<number> = [
+		...Array(NETWORK_PEER_COUNT).keys(),
+	].map(index => NETWORK_START_PORT + index);
 	const NETWORK_END_PORT = ALL_NODE_PORTS[ALL_NODE_PORTS.length - 1];
 
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -27,6 +29,7 @@ describe('Integration tests for P2P library', () => {
 						options: {
 							broadhash:
 								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: 'O2wTkjqplHII5wPv',
 						},
 					},
 				});
@@ -78,6 +81,7 @@ describe('Integration tests for P2P library', () => {
 						options: {
 							broadhash:
 								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: 'O2wTkjqplHII5wPv',
 						},
 					},
 				});
@@ -101,16 +105,21 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover seed peers and add them to connectedPeers list', () => {
 				p2pNodeList.forEach(p2p => {
-					let {connectedPeers} = p2p.getNetworkStatus();
+					let { connectedPeers } = p2p.getNetworkStatus();
 
-					const peerPorts = connectedPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const peerPorts = connectedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
 
 					const previousPeerPort = p2p.nodeInfo.wsPort - 1;
 					const nextPeerPort = p2p.nodeInfo.wsPort + 1;
 
 					const expectedPeerPorts = [
-						previousPeerPort < NETWORK_START_PORT ? NETWORK_END_PORT : previousPeerPort,
-						nextPeerPort > NETWORK_END_PORT ? NETWORK_START_PORT : nextPeerPort
+						previousPeerPort < NETWORK_START_PORT
+							? NETWORK_END_PORT
+							: previousPeerPort,
+						p2p.nodeInfo.wsPort,
+						nextPeerPort > NETWORK_END_PORT ? NETWORK_START_PORT : nextPeerPort,
 					].sort();
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
@@ -123,13 +132,17 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers = index === 0 ? [] : [
-					{
-						ipAddress: '127.0.0.1',
-						wsPort: NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
-						height: 0,
-					},
-				]; 
+				const seedPeers =
+					index === 0
+						? []
+						: [
+								{
+									ipAddress: '127.0.0.1',
+									wsPort:
+										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
+									height: 0,
+								},
+						  ];
 
 				return new P2P({
 					blacklistedPeers: [],
@@ -144,6 +157,7 @@ describe('Integration tests for P2P library', () => {
 						options: {
 							broadhash:
 								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: 'O2wTkjqplHII5wPv',
 						},
 					},
 				});
@@ -167,22 +181,30 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover all peers and add them to the connectedPeers list within each node', () => {
 				p2pNodeList.forEach(p2p => {
-					const {connectedPeers} = p2p.getNetworkStatus();
+					const { connectedPeers } = p2p.getNetworkStatus();
 
-					const peerPorts = connectedPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const peerPorts = connectedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
+
+					// Right now we do not care whether the node includes itself in its own peer list.
+					// TODO later: Formalize the correct approach and assert it here.
+					const peerPortsExcludingSelf = peerPorts.filter(
+						wsPort => wsPort !== p2p.nodeInfo.wsPort,
+					);
 
 					// The current node should not be in its own peer list.
 					const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPorts).to.be.eql(expectedPeerPorts);
+					expect(peerPortsExcludingSelf).to.be.eql(expectedPeerPorts);
 				});
 			});
 
 			it('should discover all peers and add them to the newPeers list within each node', () => {
 				p2pNodeList.forEach(p2p => {
-					const {newPeers} = p2p.getNetworkStatus();
+					const { newPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
@@ -193,16 +215,21 @@ describe('Integration tests for P2P library', () => {
 
 			it('should discover all peers and add them to the triedPeers list within each node', () => {
 				p2pNodeList.forEach(p2p => {
-					const {triedPeers} = p2p.getNetworkStatus();
+					const { triedPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = triedPeers.map(peerInfo => peerInfo.wsPort).sort();
+					// Right now we do not care whether the node includes itself in its own peer list.
+					// TODO later: Formalize the correct approach and assert it here.
+					const peerPortsExcludingSelf = peerPorts.filter(
+						wsPort => wsPort !== p2p.nodeInfo.wsPort,
+					);
 
 					// The current node should not be in its own peer list.
 					const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPorts).to.be.eql(expectedPeerPorts);
+					expect(peerPortsExcludingSelf).to.be.eql(expectedPeerPorts);
 				});
 			});
 		});
@@ -215,7 +242,7 @@ describe('Integration tests for P2P library', () => {
 						request.end({
 							nodePort: p2p.nodeInfo.wsPort,
 							requestProcedure: request.procedure,
-							requestData: request.data
+							requestData: request.data,
 						});
 					});
 				});
@@ -223,11 +250,20 @@ describe('Integration tests for P2P library', () => {
 
 			it('should make request to the network; it should reach a single peer', async () => {
 				const firstP2PNode = p2pNodeList[0];
-				const response = await firstP2PNode.request({procedure: 'foo', data: 'bar'});
+				const response = await firstP2PNode.request({
+					procedure: 'foo',
+					data: 'bar',
+				});
 				expect(response).to.have.property('data');
-				expect(response.data).to.have.property('nodePort').which.is.a('number');
-				expect(response.data).to.have.property('requestProcedure').which.is.a('string');
-				expect(response.data).to.have.property('requestData').which.is.equal('bar');
+				expect(response.data)
+					.to.have.property('nodePort')
+					.which.is.a('number');
+				expect(response.data)
+					.to.have.property('requestProcedure')
+					.which.is.a('string');
+				expect(response.data)
+					.to.have.property('requestData')
+					.which.is.equal('bar');
 			});
 
 			// Check for even distribution of requests across the network. Account for an error margin.
@@ -236,12 +272,16 @@ describe('Integration tests for P2P library', () => {
 				const firstP2PNode = p2pNodeList[0];
 				const nodePortToResponsesMap: any = {};
 
-				const expectedAverageRequestsPerNode = TOTAL_REQUESTS / NETWORK_PEER_COUNT;
-				const expectedRequestsLowerBound = expectedAverageRequestsPerNode * .5;
+				const expectedAverageRequestsPerNode =
+					TOTAL_REQUESTS / NETWORK_PEER_COUNT;
+				const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.5;
 				const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
-				
+
 				for (let i = 0; i < TOTAL_REQUESTS; i++) {
-					const response = await firstP2PNode.request({procedure: 'foo', data: i});
+					const response = await firstP2PNode.request({
+						procedure: 'foo',
+						data: i,
+					});
 					let resultData = response.data as any;
 					if (!nodePortToResponsesMap[resultData.nodePort]) {
 						nodePortToResponsesMap[resultData.nodePort] = [];
@@ -249,11 +289,17 @@ describe('Integration tests for P2P library', () => {
 					nodePortToResponsesMap[resultData.nodePort].push(resultData);
 				}
 
-				Object.values(nodePortToResponsesMap).forEach((requestsHandled: any) => {
-					expect(requestsHandled).to.be.an('array');
-					expect(requestsHandled.length).to.be.greaterThan(expectedRequestsLowerBound);
-					expect(requestsHandled.length).to.be.lessThan(expectedRequestsUpperBound);
-				});
+				Object.values(nodePortToResponsesMap).forEach(
+					(requestsHandled: any) => {
+						expect(requestsHandled).to.be.an('array');
+						expect(requestsHandled.length).to.be.greaterThan(
+							expectedRequestsLowerBound,
+						);
+						expect(requestsHandled.length).to.be.lessThan(
+							expectedRequestsUpperBound,
+						);
+					},
+				);
 			});
 		});
 
@@ -266,7 +312,7 @@ describe('Integration tests for P2P library', () => {
 					p2p.on('messageReceived', message => {
 						collectedMessages.push({
 							nodePort: p2p.nodeInfo.wsPort,
-							message
+							message,
 						});
 					});
 				});
@@ -278,34 +324,106 @@ describe('Integration tests for P2P library', () => {
 				const nodePortToMessagesMap: any = {};
 
 				const expectedAverageMessagesPerNode = TOTAL_SENDS;
-				const expectedMessagesLowerBound = expectedAverageMessagesPerNode * .5;
+				const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
 				const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
 
 				for (let i = 0; i < TOTAL_SENDS; i++) {
-					firstP2PNode.send({event: 'bar', data: i});
+					firstP2PNode.send({ event: 'bar', data: i });
 				}
 
-				await wait(500);
+				await wait(100);
 
 				collectedMessages.forEach((receivedMessageData: any) => {
 					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 					}
-					nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
+					nodePortToMessagesMap[receivedMessageData.nodePort].push(
+						receivedMessageData,
+					);
 				});
 
-				Object.values(nodePortToMessagesMap).forEach((receivedMessages: any) => {
-					expect(receivedMessages).to.be.an('array');
-					expect(receivedMessages.length).to.be.greaterThan(expectedMessagesLowerBound);
-					expect(receivedMessages.length).to.be.lessThan(expectedMessagesUpperBound);
-				});
+				Object.values(nodePortToMessagesMap).forEach(
+					(receivedMessages: any) => {
+						expect(receivedMessages).to.be.an('array');
+						expect(receivedMessages.length).to.be.greaterThan(
+							expectedMessagesLowerBound,
+						);
+						expect(receivedMessages.length).to.be.lessThan(
+							expectedMessagesUpperBound,
+						);
+					},
+				);
 			});
 		});
 
-		// TODO ASAP: Implement.
-		describe('P2P.applyNodeStatus', () => {
-			it('should send the node status to a subset of peers within the network.', () => {
+		describe('P2P.applyNodeInfo', () => {
+			let collectedMessages: Array<any> = [];
 
+			beforeEach(async () => {
+				collectedMessages = [];
+				p2pNodeList.forEach(p2p => {
+					p2p.on('requestReceived', request => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							request,
+						});
+					});
+				});
+			});
+
+			it('should send the node info to a subset of peers within the network.', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const nodePortToMessagesMap: any = {};
+
+				firstP2PNode.applyNodeInfo({
+					os: platform(),
+					version: firstP2PNode.nodeInfo.version,
+					wsPort: firstP2PNode.nodeInfo.wsPort,
+					height: 10,
+					options: firstP2PNode.nodeInfo.options,
+				});
+
+				await wait(100);
+
+				// Each peer of firstP2PNode should receive a message.
+				expect(collectedMessages.length).to.equal(9);
+
+				collectedMessages.forEach((receivedMessageData: any) => {
+					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+					}
+					nodePortToMessagesMap[receivedMessageData.nodePort].push(
+						receivedMessageData,
+					);
+				});
+
+				// Check that each message contains the updated P2PNodeInfo.
+				Object.values(nodePortToMessagesMap)
+					.filter(
+						(receivedMessages: any) =>
+							receivedMessages &&
+							receivedMessages[0] &&
+							receivedMessages[0].nodePort !== firstP2PNode.nodeInfo.wsPort,
+					)
+					.forEach((receivedMessages: any) => {
+						expect(receivedMessages.length).to.be.equal(1);
+						expect(receivedMessages[0].request).to.have.property('data');
+						expect(receivedMessages[0].request.data)
+							.to.have.property('height')
+							.which.equals(10);
+					});
+
+				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
+				p2pNodeList.slice(1).forEach(p2pNode => {
+					const networkStatus = p2pNode.getNetworkStatus();
+					const firstP2PNodePeerInfo = networkStatus.connectedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+					expect(firstP2PNodePeerInfo).to.exist;
+					expect(firstP2PNodePeerInfo)
+						.to.have.property('height')
+						.which.equals(10);
+				});
 			});
 		});
 	});

@@ -110,21 +110,6 @@ export class OutTransferTransaction extends BaseTransaction {
 		this.containsUniqueData = true;
 	}
 
-	public static fromJSON(tx: TransactionJSON): OutTransferTransaction {
-		const transaction = new OutTransferTransaction(tx);
-		const { errors, status } = transaction.validateSchema();
-
-		if (status === Status.FAIL && errors.length !== 0) {
-			throw new TransactionMultiError(
-				'Failed to validate schema.',
-				tx.id,
-				errors,
-			);
-		}
-
-		return transaction;
-	}
-
 	protected getAssetBytes(): Buffer {
 		const { dappId, transactionId } = this.asset.outTransfer;
 		const outAppIdBuffer = Buffer.from(dappId, 'utf8');

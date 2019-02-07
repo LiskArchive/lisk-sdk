@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import {
 	OutTransferTransaction,
 	Attributes,
@@ -21,7 +20,6 @@ import {
 } from '../../src/transactions';
 import { validOutTransferTransactions } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
-import { TransactionError } from '../../src/errors';
 
 describe('outTransfer transaction class', () => {
 	const defaultTransaction = validOutTransferTransactions[0];
@@ -75,40 +73,6 @@ describe('outTransfer transaction class', () => {
 			expect(
 				() => new OutTransferTransaction(invalidOutTransferTransactionData),
 			).to.throw('Invalid field types');
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox.stub(OutTransferTransaction.prototype, 'validateSchema').returns({
-				id: validTestTransaction.id,
-				status: Status.OK,
-				errors: [],
-			});
-			validTestTransaction = OutTransferTransaction.fromJSON(
-				validOutTransferTransactions[1],
-			);
-		});
-
-		it('should create instance of OutTransferTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(OutTransferTransaction);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(OutTransferTransaction.prototype.validateSchema as SinonStub).returns({
-				status: Status.FAIL,
-				errors: [new TransactionError()],
-			});
-			expect(
-				OutTransferTransaction.fromJSON.bind(
-					undefined,
-					validOutTransferTransactions[1],
-				),
-			).to.throw('Failed to validate schema.');
 		});
 	});
 

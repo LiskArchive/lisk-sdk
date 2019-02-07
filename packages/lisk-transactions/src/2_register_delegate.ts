@@ -13,8 +13,9 @@
  *
  */
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
-import { DelegateTransaction, PartialTransaction } from './transaction_types';
-import { prepareTransaction } from './utils';
+import { TransactionJSON } from './transaction_types';
+import { DelegateTransaction } from './transactions';
+import { createBaseTransaction } from './utils';
 
 export interface RegisterDelegateInputs {
 	readonly passphrase?: string;
@@ -37,24 +38,35 @@ const validateInputs = ({ username }: { readonly username: string }): void => {
 
 export const registerDelegate = (
 	inputs: RegisterDelegateInputs,
-): DelegateTransaction => {
+): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { passphrase, secondPassphrase, timeOffset, username } = inputs;
+	const { username, passphrase, secondPassphrase } = inputs;
 
-	const transaction: PartialTransaction = {
+	if (!username || typeof username !== 'string') {
+		throw new Error('Please provide a username. Expected string.');
+	}
+
+	if (username.length > USERNAME_MAX_LENGTH) {
+		throw new Error(
+			`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
+		);
+	}
+
+	const transaction = {
+		...createBaseTransaction(inputs),
 		type: 2,
 		fee: DELEGATE_FEE.toString(),
-		asset: {
-			delegate: {
-				username,
-			},
-		},
+		asset: { delegate: { username } },
 	};
 
-	return prepareTransaction(
-		transaction,
-		passphrase,
-		secondPassphrase,
-		timeOffset,
-	) as DelegateTransaction;
+	if (!passphrase) {
+		return transaction;
+	}
+
+	const delegateTransaction = new DelegateTransaction(
+		transaction as TransactionJSON,
+	);
+	delegateTransaction.sign(passphrase, secondPassphrase);
+
+	return delegateTransaction.toJSON();
 };

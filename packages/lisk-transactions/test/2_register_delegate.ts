@@ -14,9 +14,9 @@
  */
 import { expect } from 'chai';
 import { registerDelegate } from '../src/2_register_delegate';
-import { DelegateAsset, DelegateTransaction } from '../src/transaction_types';
+import { DelegateAsset, TransactionJSON } from '../src/transaction_types';
 // Require is used for stubbing
-const time = require('../src/utils/time');
+import * as utils from '../src/utils';
 
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -31,11 +31,11 @@ describe('#registerDelegate transaction', () => {
 	const amount = '0';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let registerDelegateTransaction: DelegateTransaction;
+	let registerDelegateTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(time, 'getTimeWithOffset')
+			.stub(utils, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		return Promise.resolve();
 	});
@@ -119,9 +119,9 @@ describe('#registerDelegate transaction', () => {
 				.and.be.hexString;
 		});
 
-		it('should not have the second signature property', () => {
-			return expect(registerDelegateTransaction).not.to.have.property(
-				'signSignature',
+		it('second signature property should be undefined', () => {
+			return expect(registerDelegateTransaction.signSignature).to.be.eql(
+				undefined,
 			);
 		});
 

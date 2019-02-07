@@ -12,6 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+export {
+	createBaseTransaction,
+	CreateBaseTransactionInput,
+} from './create_base_transaction';
 export { getTransactionBytes } from './get_transaction_bytes';
 export { getTransactionHash } from './get_transaction_hash';
 export { getId, getTransactionId } from './get_transaction_id';

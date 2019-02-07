@@ -126,5 +126,4 @@ validator.addKeyword('uniqueSignedPublicKeys', {
 		new Set(data.map((key: string) => key.slice(1))).size === data.length,
 });
 
-
 validator.addSchema(schemas.baseTransaction);

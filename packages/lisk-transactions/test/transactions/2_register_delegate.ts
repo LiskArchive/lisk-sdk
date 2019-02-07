@@ -13,12 +13,10 @@
  *
  */
 import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import {
 	Attributes,
 	BaseTransaction,
 	DelegateTransaction,
-	CreateDelegateRegistrationInput,
 } from '../../src/transactions';
 import {
 	validDelegateAccount,
@@ -26,9 +24,6 @@ import {
 	validTransaction,
 } from '../../fixtures';
 import { Account, Status, TransactionJSON } from '../../src/transaction_types';
-import { TransactionError } from '../../src/errors';
-import * as utils from '../../src/utils';
-import { DELEGATE_FEE } from '../../src/constants';
 
 describe('Delegate registration transaction class', () => {
 	let validTestTransaction: DelegateTransaction;
@@ -69,139 +64,6 @@ describe('Delegate registration transaction class', () => {
 			expect(
 				() => new DelegateTransaction(invalidDelegateTransactionData),
 			).to.throw('Invalid field types');
-		});
-	});
-
-	describe('#create', () => {
-		const timeWithOffset = 38350076;
-		const passphrase = 'secret';
-		const secondPassphrase = 'second secret';
-		const username = 'mitsujutsu';
-		let result: object;
-
-		beforeEach(async () => {
-			sandbox.stub(utils, 'getTimeWithOffset').returns(timeWithOffset);
-		});
-
-		describe('when the transaction is created with one passphrase and the username', () => {
-			beforeEach(async () => {
-				result = DelegateTransaction.create({ passphrase, username });
-			});
-
-			it('should create delegate transaction ', async () => {
-				expect(result).to.have.property('id');
-				expect(result).to.have.property('type', 2);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property('fee', DELEGATE_FEE.toString());
-				expect(result).to.have.property('senderId');
-				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property('recipientId', '');
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect(result).to.have.property('signature').and.not.to.be.empty;
-				expect((result as any).asset.delegate.username).to.eql(username);
-			});
-
-			it('should use time.getTimeWithOffset to calculate the timestamp', async () => {
-				expect(utils.getTimeWithOffset).to.be.calledWithExactly(undefined);
-			});
-
-			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', async () => {
-				const offset = -10;
-				DelegateTransaction.create({
-					passphrase,
-					username,
-					timeOffset: offset,
-				});
-				expect(utils.getTimeWithOffset).to.be.calledWithExactly(offset);
-			});
-		});
-
-		describe('when the transaction is created with first and second passphrase', () => {
-			beforeEach(async () => {
-				result = DelegateTransaction.create({
-					passphrase,
-					secondPassphrase,
-					username,
-				});
-			});
-
-			it('should create delegate transaction ', async () => {
-				expect(result).to.have.property('id');
-				expect(result).to.have.property('type', 2);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property('fee', DELEGATE_FEE.toString());
-				expect(result).to.have.property('senderId');
-				expect(result).to.have.property('senderPublicKey');
-				expect(result).to.have.property('recipientId', '');
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect(result).to.have.property('signature').and.not.to.be.empty;
-				expect(result).to.have.property('signSignature').and.not.to.be.empty;
-				expect((result as any).asset.delegate.username).to.eql(username);
-			});
-		});
-
-		describe('when the transaction is created with the invalid username', () => {
-			it('should throw an error when invalid username', async () => {
-				const invalidUsername = 123;
-				expect(
-					DelegateTransaction.create.bind(undefined, {
-						passphrase,
-						secondPassphrase,
-						username: (invalidUsername as unknown) as string,
-					}),
-				).to.throw();
-			});
-		});
-
-		describe('when the transaction is created without passphrase', () => {
-			beforeEach(async () => {
-				result = DelegateTransaction.create({
-					username,
-				} as CreateDelegateRegistrationInput);
-			});
-
-			it('should create delegate transaction ', async () => {
-				expect(result).to.have.property('type', 2);
-				expect(result).to.have.property('amount', '0');
-				expect(result).to.have.property('fee', DELEGATE_FEE.toString());
-				expect(result).to.have.property('timestamp', timeWithOffset);
-				expect((result as any).senderId).to.be.undefined;
-				expect((result as any).senderPublicKey).to.be.undefined;
-				expect(result).not.to.have.property('id');
-				expect(result).not.to.have.property('signature');
-				expect(result).not.to.have.property('signSignature');
-			});
-		});
-	});
-
-	describe('#fromJSON', () => {
-		beforeEach(async () => {
-			sandbox.stub(DelegateTransaction.prototype, 'validateSchema').returns({
-				id: validTestTransaction.id,
-				status: Status.OK,
-				errors: [],
-			});
-			validTestTransaction = DelegateTransaction.fromJSON(
-				validDelegateTransaction,
-			);
-		});
-
-		it('should create instance of DelegateTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(DelegateTransaction);
-		});
-
-		it('should call validateSchema', async () => {
-			expect(validTestTransaction.validateSchema).to.be.calledOnce;
-		});
-
-		it('should throw an error if validateSchema returns error', async () => {
-			(DelegateTransaction.prototype.validateSchema as SinonStub).returns({
-				status: Status.FAIL,
-				errors: [new TransactionError()],
-			});
-			expect(
-				DelegateTransaction.fromJSON.bind(undefined, validDelegateTransaction),
-			).to.throw('Failed to validate schema');
 		});
 	});
 

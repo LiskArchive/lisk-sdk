@@ -37,22 +37,20 @@ export const validatePublicKey = (publicKey: string) => {
 };
 
 export const validateUsername = (username: string) => {
-	if (
-		username !== username.trim().toLowerCase()
-	) {
+	if (username !== username.trim().toLowerCase()) {
 		return false;
 	}
 
-	if(( /^[0-9]{1,21}[L|l]$/g).test(username)) {
+	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
 		return false;
 	}
 
-	if(!(/^[a-z0-9!@$&_.]+$/g).test(username)) {
+	if (!/^[a-z0-9!@$&_.]+$/g.test(username)) {
 		return false;
 	}
 
 	return true;
-} 
+};
 
 export const validateSignature = (signature: string) =>
 	/^[a-f0-9]{128}$/i.test(signature);
