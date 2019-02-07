@@ -13,10 +13,9 @@
  *
  */
 import { expect } from 'chai';
+import { MockStateStore as store } from '../helpers';
 import {
 	DappTransaction,
-	Attributes,
-	BaseTransaction,
 } from '../../src/transactions';
 import { validDappTransactions, validVoteTransactions } from '../../fixtures';
 import { Status, TransactionJSON } from '../../src/transaction_types';
@@ -24,10 +23,18 @@ import * as utils from '../../src/utils';
 
 describe('Dapp transaction class', () => {
 	const defaultValidDappTransaction = validDappTransactions[0];
+	const defaultValidSender = {
+		address: '11262132350228604999L',
+		balance: '1000000000',
+		publicKey:
+			'f19d39b087a3174cbf113162f2dad498edbf84341ffbfeb650a365ac8a40ac04',
+	};
 	let validTestTransaction: DappTransaction;
 
 	beforeEach(async () => {
 		validTestTransaction = new DappTransaction(defaultValidDappTransaction);
+		store.account.get = () => defaultValidSender;
+		store.transaction.find = () => undefined;
 	});
 
 	describe('#constructor', () => {
@@ -161,190 +168,28 @@ describe('Dapp transaction class', () => {
 		});
 	});
 
-	describe('#getRequiredAttributes', () => {
-		let attribute: Attributes;
-
-		beforeEach(async () => {
-			attribute = validTestTransaction.getRequiredAttributes();
-		});
-
-		it('should return attribute including sender address', async () => {
-			expect(attribute.account.address).to.include(
-				defaultValidDappTransaction.senderId,
-			);
-		});
-
-		it('should return attribute including dapp name', async () => {
-			expect(attribute.transaction.dappName).to.include(
-				defaultValidDappTransaction.asset.dapp.name,
-			);
-		});
-
-		it('should return attribute including dapp link', async () => {
-			expect(attribute.transaction.dappLink).to.include(
-				defaultValidDappTransaction.asset.dapp.link,
-			);
-		});
-	});
-
-	describe('#processRequiredState', () => {
-		const sender = {
-			address: '11262132350228604999L',
-			publicKey:
-				'f19d39b087a3174cbf113162f2dad498edbf84341ffbfeb650a365ac8a40ac04',
-		};
-
-		it('should return sender and dependentState.transaction with empty array when key transaction does not exist', async () => {
-			const validEntity = {
-				account: [sender],
-			};
-			const requiredState = validTestTransaction.processRequiredState(
-				validEntity,
-			);
-			expect(requiredState.sender).to.eql(sender);
-			expect((requiredState.dependentState as any).transaction).to.be.an(
-				'array',
-			).and.empty;
-		});
-
-		it('should return sender and dependentState.transaction with empty array when the transaction with same type doesn`t exist', async () => {
-			const validEntity = {
-				account: [sender],
-				transaction: validVoteTransactions,
-			};
-			const requiredState = validTestTransaction.processRequiredState(
-				validEntity,
-			);
-			expect(requiredState.sender).to.eql(sender);
-			expect((requiredState.dependentState as any).transaction).to.be.an(
-				'array',
-			).and.empty;
-		});
-
-		it('should return sender and dependentState.transaction with empty array when the transaction with same dapp name doesn`t exist', async () => {
-			const validEntity = {
-				account: [sender],
-				transaction: [validDappTransactions[2]],
-			};
-			const requiredState = validTestTransaction.processRequiredState(
-				validEntity,
-			);
-			expect(requiredState.sender).to.eql(sender);
-			expect((requiredState.dependentState as any).transaction).to.be.an(
-				'array',
-			).and.empty;
-		});
-
-		it('should return sender and dependentState.transaction with the transaction with same dapp name', async () => {
-			const invalidDappTransaction = {
-				...validDappTransactions[2],
-				asset: {
-					dapp: {
-						...validDappTransactions[2].asset.dapp,
-						name: defaultValidDappTransaction.asset.dapp.name,
-					},
-				},
-			};
-			const validEntity = {
-				account: [sender],
-				transaction: [invalidDappTransaction],
-			};
-			const requiredState = validTestTransaction.processRequiredState(
-				validEntity,
-			);
-			expect(requiredState.sender).to.eql(sender);
-			expect((requiredState.dependentState as any).transaction).to.be.an(
-				'array',
-			);
-			expect(
-				(requiredState.dependentState as any).transaction[0].asset.dapp.name,
-			).to.equal(defaultValidDappTransaction.asset.dapp.name);
-		});
-
-		it('should throw an error when state does not have account key', async () => {
-			expect(
-				validTestTransaction.processRequiredState.bind(
-					validTestTransaction,
-					{},
-				),
-			).to.throw('Entity account is required.');
-		});
-
-		it('should throw an error when account state does not have address and public key', async () => {
-			const invalidEntity = {
-				account: [
-					{ balance: '0' },
-					{
-						address: '1L',
-						publicKey:
-							'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
-					},
-				],
-			};
-			expect(
-				validTestTransaction.processRequiredState.bind(
-					validTestTransaction,
-					invalidEntity,
-				),
-			).to.throw('Required state does not have valid account type.');
-		});
-
-		it('should throw an error when account state does not include the sender', async () => {
-			const invalidEntity = {
-				account: [
-					{
-						address: '1L',
-						publicKey:
-							'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
-					},
-				],
-			};
-			expect(
-				validTestTransaction.processRequiredState.bind(
-					validTestTransaction,
-					invalidEntity,
-				),
-			).to.throw('No sender account is found.');
-		});
-
-		it('should throw an error when transaction state includes non transaction', async () => {
-			const invalidEntity = {
-				account: [sender],
-				transaction: [sender],
-			};
-			expect(
-				validTestTransaction.processRequiredState.bind(
-					validTestTransaction,
-					invalidEntity,
-				),
-			).to.throw('Required state does not have valid transaction type.');
-		});
-	});
-
-	describe('#validateSchema', () => {
+	describe('#validateAsset', () => {
 		beforeEach(async () => {
 			sandbox.stub(utils, 'getId').returns(validTestTransaction.id);
 		});
 
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.validateSchema();
-			expect(status).to.equal(Status.OK);
+		it('should return no errors', async () => {
+			const errors = (validTestTransaction as any).validateAsset();
 			expect(errors).to.be.an('array').and.empty;
 		});
 
-		it('should return TransactionResponse with error when amount is not zero', async () => {
+		it('should return error when amount is not zero', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
 				amount: '100',
 			};
 			const transaction = new DappTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.equal('.amount');
 		});
 
-		it('should return TransactionResponse with error when link is in invalid suffix', async () => {
+		it('should return error when link is in invalid suffix', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
 				asset: {
@@ -356,13 +201,12 @@ describe('Dapp transaction class', () => {
 				},
 			};
 			const transaction = new DappTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.equal('.asset.dapp.link');
 		});
 
-		it('should return TransactionResponse with error when link is not url', async () => {
+		it('should return error when link is not url', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
 				asset: {
@@ -374,13 +218,12 @@ describe('Dapp transaction class', () => {
 				},
 			};
 			const transaction = new DappTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.equal('.asset.dapp.link');
+			expect(errors[0].dataPath).to.equal('.dapp.link');
 		});
 
-		it('should return TransactionResponse with error when icon is in invalid suffix', async () => {
+		it('should return error when icon is in invalid suffix', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
 				asset: {
@@ -391,13 +234,12 @@ describe('Dapp transaction class', () => {
 				},
 			};
 			const transaction = new DappTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.equal('.asset.dapp.icon');
 		});
 
-		it('should return TransactionResponse with error when type is not zero', async () => {
+		it('should return error when type is not zero', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
 				asset: {
@@ -408,13 +250,12 @@ describe('Dapp transaction class', () => {
 				},
 			};
 			const transaction = new DappTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.equal('.asset.dapp.type');
+			expect(errors[0].dataPath).to.equal('.dapp.type');
 		});
 
-		it('should return TransactionResponse with error when tags contains non unique key', async () => {
+		it('should return error when tags contains non unique key', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
 				asset: {
@@ -425,13 +266,12 @@ describe('Dapp transaction class', () => {
 				},
 			};
 			const transaction = new DappTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.equal('.asset.dapp.tags');
 		});
 
-		it('should return TransactionResponse with error when category is out of range', async () => {
+		it('should return error when category is out of range', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
 				asset: {
@@ -442,13 +282,12 @@ describe('Dapp transaction class', () => {
 				},
 			};
 			const transaction = new DappTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.equal('.asset.dapp.category');
+			expect(errors[0].dataPath).to.equal('.dapp.category');
 		});
 
-		it('should return TransactionResponse with error when dapp name exceeds maximum', async () => {
+		it('should return error when dapp name exceeds maximum', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
 				asset: {
@@ -460,59 +299,19 @@ describe('Dapp transaction class', () => {
 			};
 			const transaction = new DappTransaction(invalidTransaction);
 
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.equal('.asset.dapp.name');
+			expect(errors[0].dataPath).to.equal('.dapp.name');
 		});
 	});
 
-	describe('#verify', () => {
-		const defaultValidSender = {
-			address: '11262132350228604999L',
-			balance: '1000000000',
-			publicKey:
-				'f19d39b087a3174cbf113162f2dad498edbf84341ffbfeb650a365ac8a40ac04',
-		};
-
-		it('should call BaseTransaction verify', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'verify').returns({ errors: [] });
-			validTestTransaction.verify({
-				sender: defaultValidSender,
-				dependentState: { transaction: [] },
-			});
-			expect(BaseTransaction.prototype.verify).to.be.calledOnce;
-		});
-
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.verify({
-				sender: defaultValidSender,
-				dependentState: { transaction: [] },
-			});
-			expect(status).to.equal(Status.OK);
+	describe('#applyAsset', () => {
+		it('should return no errors', async () => {
+			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).to.be.empty;
 		});
 
-		it('should throw an error when dependent state does not exist', async () => {
-			expect(
-				validTestTransaction.verify.bind(validTestTransaction, {
-					sender: defaultValidSender,
-				}),
-			).to.throw('Dependent state is required for dapp transaction.');
-		});
-
-		it('should throw an error when dependent state does not include transaction', async () => {
-			expect(
-				validTestTransaction.verify.bind(validTestTransaction, {
-					sender: defaultValidSender,
-					dependentState: {} as any,
-				}),
-			).to.throw(
-				'Dependent transaction state is required for dapp transaction.',
-			);
-		});
-
-		it('should return TransactionResponse with error when dependent state includes the transaction with same dapp name', async () => {
+		it('should return error when store includes the transaction with same dapp name', async () => {
 			const invalidDappTransaction = {
 				...validDappTransactions[2],
 				asset: {
@@ -522,12 +321,18 @@ describe('Dapp transaction class', () => {
 					},
 				},
 			};
-			const { status, errors } = validTestTransaction.verify({
-				sender: defaultValidSender,
-				dependentState: { transaction: [invalidDappTransaction] },
-			});
-			expect(status).to.eql(Status.FAIL);
+			store.transaction.find = () => invalidDappTransaction;
+
+			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
+		});
+	});
+
+	describe('#undoAsset', () => {
+		it('should return no errors', async () => {
+			const errors = (validTestTransaction as any).undoAsset(store);
+
+			expect(errors).to.be.empty;
 		});
 	});
 });

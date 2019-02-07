@@ -157,6 +157,7 @@ export class DelegateTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
+		validator.validate(delegateAssetFormatSchema, this.asset);
 		const errors = validator.errors
 			? validator.errors.map(
 					error =>

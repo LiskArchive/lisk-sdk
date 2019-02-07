@@ -276,6 +276,16 @@ export class DappTransaction extends BaseTransaction {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
 		}
 
+		if (!this.amount.eq(0)) {
+			errors.push(
+				new TransactionError(
+					'Amount must be zero for vote transaction',
+					this.id,
+					'.amount',
+				),
+			);
+		}
+
 		if (this.recipientId) {
 			errors.push(
 				new TransactionError(`Invalid recipient id`, this.id, '.recipientId'),

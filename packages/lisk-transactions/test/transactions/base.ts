@@ -24,7 +24,11 @@ import {
 	TransactionPendingError,
 } from '../../src/errors';
 import * as BigNum from 'browserify-bignum';
-import { addTransactionFields, TestTransaction } from '../helpers';
+import {
+	addTransactionFields,
+	MockStateStore as store,
+	TestTransaction,
+} from '../helpers';
 import {
 	validAccount as defaultSenderAccount,
 	validMultisignatureAccount as defaultMultisignatureAccount,
@@ -56,6 +60,7 @@ describe('Base transaction class', () => {
 		validMultisignatureTestTransaction = new TestTransaction(
 			defaultMultisignatureTransaction,
 		);
+		store.account.get = () => defaultSenderAccount;
 	});
 
 	describe('#constructor', () => {
@@ -200,23 +205,17 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return true on verification of non-multisignature transaction', async () => {
-			validTestTransaction.verify({ sender: defaultSenderAccount });
-			expect(validTestTransaction.isReady()).to.be.true;
-		});
-
-		it('should return true on verification of multisignature transaction with required signatures', async () => {
-			validTestTransaction.verify({ sender: defaultSenderAccount });
+			validTestTransaction.verify(store);
 			expect(validTestTransaction.isReady()).to.be.true;
 		});
 
 		it('should return false on verification of multisignature transaction with missing signatures', async () => {
+			store.account.get = () => defaultMultisignatureAccount;
 			const multisignaturesTransaction = new TestTransaction({
 				...defaultMultisignatureTransaction,
 				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
 			});
-			multisignaturesTransaction.verify({
-				sender: defaultMultisignatureAccount,
-			});
+			multisignaturesTransaction.verify(store);
 
 			expect(validMultisignatureTestTransaction.isReady()).to.be.false;
 		});
@@ -393,11 +392,9 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a successful transaction response with a valid transaction', async () => {
-			const { id, status, errors } = validTestTransaction.validateSchema();
+			const errors = validTestTransaction.validateSchema();
 
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(errors).to.be.eql([]);
-			expect(status).to.eql(Status.OK);
+			expect(errors).to.be.empty;
 		});
 
 		it('should return a failed transaction response with invalid formatting', async () => {
@@ -416,13 +413,9 @@ describe('Base transaction class', () => {
 			const invalidTestTransaction = new TestTransaction(
 				invalidTransaction as any,
 			);
-			const { id, status, errors } = invalidTestTransaction.validateSchema();
+			const errors = invalidTestTransaction.validateSchema();
 
-			expect(id).to.be.eql(invalidTestTransaction.id);
-			(errors as ReadonlyArray<TransactionError>).forEach(error =>
-				expect(error).to.be.instanceof(TransactionError),
-			);
-			expect(status).to.eql(Status.FAIL);
+			expect(errors).to.not.be.empty;
 		});
 
 		it('should return a failed transaction response with unmatching senderId and senderPublicKey', async () => {
@@ -433,20 +426,9 @@ describe('Base transaction class', () => {
 			const invalidSenderIdTestTransaction = new TestTransaction(
 				invalidSenderIdTransaction as any,
 			);
-			const {
-				id,
-				status,
-				errors,
-			} = invalidSenderIdTestTransaction.validateSchema();
+			const errors = invalidSenderIdTestTransaction.validateSchema();
 
-			expect(id).to.be.eql(invalidSenderIdTestTransaction.id);
-			expect((errors as ReadonlyArray<TransactionError>)[1])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					'`senderId` does not match `senderPublicKey`',
-				);
-			expect(status).to.eql(Status.FAIL);
+			expect(errors).to.not.be.empty;
 		});
 
 		it('should return a failed transaction response with an invalid id', async () => {
@@ -458,13 +440,9 @@ describe('Base transaction class', () => {
 			const invalidIdTestTransaction = new TestTransaction(
 				invalidIdTransaction as any,
 			);
-			const { id, status, errors } = invalidIdTestTransaction.validateSchema();
+			const errors = invalidIdTestTransaction.validateSchema();
 
-			expect(id).to.be.eql(invalidIdTestTransaction.id);
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property('message', 'Invalid transaction id');
-			expect(status).to.eql(Status.FAIL);
+			expect(errors).to.not.be.empty;
 		});
 	});
 
@@ -514,7 +492,7 @@ describe('Base transaction class', () => {
 			const { id, status, errors } = validTestTransaction.validate();
 
 			expect(id).to.be.eql(validTestTransaction.id);
-			expect(errors).to.be.eql([]);
+			expect(errors).to.be.empty;
 			expect(status).to.eql(Status.OK);
 		});
 
@@ -567,49 +545,22 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe('#getRequiredAttributes', () => {
-		it('should call cryptography getAddressFromPublicKey', async () => {
-			const cryptographyGetAddressFromPublicKeyStub = sandbox
-				.stub(cryptography, 'getAddressFromPublicKey')
-				.returns('18278674964748191682L');
-			validTestTransaction.validateSchema();
-
-			expect(
-				cryptographyGetAddressFromPublicKeyStub,
-			).to.have.been.calledWithExactly(validTestTransaction.senderPublicKey);
-		});
-
-		it('should return an object with property `account` containing an array with address of sender', async () => {
-			const expectedAddressArray = { address: ['18278674964748191682L'] };
-			const requiredAttributes: any = validTestTransaction.getRequiredAttributes();
-			expect(requiredAttributes)
-				.to.be.an('object')
-				.and.to.have.property('account');
-
-			expect(requiredAttributes['account']).to.be.eql(expectedAddressArray);
-		});
-	});
-
 	describe('#verify', () => {
 		it('should call verifyBalance', async () => {
 			const verifyBalanceStub = sandbox
 				.stub(utils, 'verifyBalance')
 				.returns(true);
-			validTestTransaction.verify({ sender: defaultSenderAccount });
+			validTestTransaction.verify(store);
 
-			expect(verifyBalanceStub).to.be.calledWithExactly(
-				defaultSenderAccount,
-				validTestTransaction.fee,
-			);
+			expect(verifyBalanceStub).to.be.called;
 		});
 
 		it('should call verifySignature for second signature transaction', async () => {
+			store.account.get = () => defaultSecondSignatureAccount;
 			const verifySignatureStub = sandbox
 				.stub(utils, 'verifySignature')
 				.returns(true);
-			validSecondSignatureTestTransaction.verify({
-				sender: defaultSecondSignatureAccount,
-			});
+			validSecondSignatureTestTransaction.verify(store);
 
 			expect(verifySignatureStub).to.be.calledWithExactly(
 				defaultSecondSignatureAccount.secondPublicKey,
@@ -623,6 +574,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should call getBasicBytes for multisignature transaction', async () => {
+			store.account.get = () => defaultMultisignatureAccount;
 			const getBasicBytesStub = sandbox
 				.stub(validMultisignatureTestTransaction as any, 'getBasicBytes')
 				.returns(
@@ -631,14 +583,13 @@ describe('Base transaction class', () => {
 						'hex',
 					),
 				);
-			validMultisignatureTestTransaction.verify({
-				sender: defaultMultisignatureAccount,
-			});
+			validMultisignatureTestTransaction.verify(store);
 
 			expect(getBasicBytesStub).to.be.calledOnce;
 		});
 
 		it('should call verifyMultisignatures for multisignature transaction', async () => {
+			store.account.get = () => defaultMultisignatureAccount;
 			const verifyMultisignaturesStub = sandbox
 				.stub(utils, 'verifyMultisignatures')
 				.returns({
@@ -646,9 +597,7 @@ describe('Base transaction class', () => {
 					status: Status.OK,
 					errors: [],
 				});
-			validMultisignatureTestTransaction.verify({
-				sender: defaultMultisignatureAccount,
-			});
+			validMultisignatureTestTransaction.verify(store);
 
 			expect(verifyMultisignaturesStub).to.be.calledWithExactly(
 				defaultMultisignatureAccount.multisignatures,
@@ -662,24 +611,13 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it('should return a successful transaction response with valid transaction', async () => {
-			const { id, status, errors } = validTestTransaction.verify({
-				sender: defaultSenderAccount,
-			});
-
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(errors).to.be.eql([]);
-			expect(status).to.eql(Status.OK);
-		});
-
 		it('should return a failed transaction response with invalid account publicKey', async () => {
 			const invalidPublicKeyAccount = {
 				...defaultSenderAccount,
 				publicKey: defaultSenderAccount.publicKey.replace('0', '1'),
 			};
-			const { id, status, errors } = validTestTransaction.verify({
-				sender: invalidPublicKeyAccount,
-			});
+			store.account.get = () => invalidPublicKeyAccount;
+			const { id, status, errors } = validTestTransaction.verify(store);
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
@@ -693,9 +631,9 @@ describe('Base transaction class', () => {
 				...defaultSenderAccount,
 				address: defaultSenderAccount.address.replace('1', '0'),
 			};
-			const { id, status, errors } = validTestTransaction.verify({
-				sender: invalidAddressAccount,
-			});
+			store.account.get = () => invalidAddressAccount;
+
+			const { id, status, errors } = validTestTransaction.verify(store);
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
@@ -709,8 +647,9 @@ describe('Base transaction class', () => {
 				secondPublicKey,
 				...invalidSecondPublicKeySenderAccount
 			} = defaultSecondSignatureAccount;
+			store.account.get = () => invalidSecondPublicKeySenderAccount;
 			const { id, status, errors } = validSecondSignatureTestTransaction.verify(
-				{ sender: invalidSecondPublicKeySenderAccount },
+				store,
 			);
 
 			expect(id).to.be.eql(validSecondSignatureTestTransaction.id);
@@ -728,9 +667,8 @@ describe('Base transaction class', () => {
 				...defaultSenderAccount,
 				balance: '0',
 			};
-			const { id, status, errors } = validTestTransaction.verify({
-				sender: insufficientBalanceAccount,
-			});
+			store.account.get = () => insufficientBalanceAccount;
+			const { id, status, errors } = validTestTransaction.verify(store);
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
@@ -751,14 +689,12 @@ describe('Base transaction class', () => {
 			const invalidSecondSignatureTestTransaction = new TestTransaction(
 				invalidSignSignatureTransaction,
 			);
-
+			store.account.get = () => defaultSecondSignatureAccount;
 			const {
 				id,
 				status,
 				errors,
-			} = invalidSecondSignatureTestTransaction.verify({
-				sender: defaultSecondSignatureAccount,
-			});
+			} = invalidSecondSignatureTestTransaction.verify(store);
 
 			expect(id).to.be.eql(invalidSecondSignatureTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
@@ -778,8 +714,9 @@ describe('Base transaction class', () => {
 			const invalidSignSignatureTestTransaction = new TestTransaction(
 				invalidSignSignatureTransaction,
 			);
+			store.account.get = () => defaultSecondSignatureAccount;
 			const { id, status, errors } = invalidSignSignatureTestTransaction.verify(
-				{ sender: defaultSecondSignatureAccount },
+				store,
 			);
 
 			expect(id).to.be.eql(invalidSignSignatureTestTransaction.id);
@@ -797,8 +734,9 @@ describe('Base transaction class', () => {
 				...defaultSecondSignatureAccount,
 				secondPublicKey: defaultTransaction.senderPublicKey.replace('1', '0'),
 			};
+			store.account.get = () => invalidSecondPublicKeyAccount;
 			const { id, status, errors } = validSecondSignatureTestTransaction.verify(
-				{ sender: invalidSecondPublicKeyAccount },
+				store,
 			);
 
 			expect(id).to.be.eql(validSecondSignatureTestTransaction.id);
@@ -823,9 +761,8 @@ describe('Base transaction class', () => {
 			const invalidSignaturesTransaction = new TestTransaction(
 				multisignatureTransaction,
 			);
-			const { id, status, errors } = invalidSignaturesTransaction.verify({
-				sender: defaultMultisignatureAccount,
-			});
+			store.account.get = () => defaultMultisignatureAccount;
+			const { id, status, errors } = invalidSignaturesTransaction.verify(store);
 
 			expect(id).to.be.eql(invalidSignaturesTransaction.id);
 			expect(status).to.eql(Status.FAIL);
@@ -857,10 +794,9 @@ describe('Base transaction class', () => {
 					),
 				],
 			});
+			store.account.get = () => defaultMultisignatureAccount;
 
-			const { id, status, errors } = multisignaturesTransaction.verify({
-				sender: defaultMultisignatureAccount,
-			});
+			const { id, status, errors } = multisignaturesTransaction.verify(store);
 
 			expect(id).to.be.eql(multisignaturesTransaction.id);
 			expect(status).to.eql(Status.PENDING);
@@ -883,7 +819,7 @@ describe('Base transaction class', () => {
 				otherTransactions,
 			);
 			expect(id).to.be.eql(validTestTransaction.id);
-			expect(errors).to.be.eql([]);
+			expect(errors).to.be.empty;
 			expect(status).to.eql(Status.OK);
 		});
 	});
@@ -898,9 +834,9 @@ describe('Base transaction class', () => {
 				id,
 				status,
 				errors,
-			} = validMultisignatureTestTransaction.processMultisignatures({
-				sender: defaultMultisignatureAccount,
-			});
+			} = validMultisignatureTestTransaction.processMultisignatures(
+				defaultMultisignatureAccount,
+			);
 
 			expect(id).to.be.eql(validMultisignatureTestTransaction.id);
 			expect(errors).to.be.eql([]);
@@ -923,9 +859,9 @@ describe('Base transaction class', () => {
 				id,
 				status,
 				errors,
-			} = validMultisignatureTestTransaction.processMultisignatures({
-				sender: defaultMultisignatureAccount,
-			});
+			} = validMultisignatureTestTransaction.processMultisignatures(
+				defaultMultisignatureAccount,
+			);
 
 			expect(id).to.be.eql(validMultisignatureTestTransaction.id);
 			expect(errors).to.be.eql(pendingErrors);
@@ -969,25 +905,24 @@ describe('Base transaction class', () => {
 
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
-			const { id, status, state, errors } = validTestTransaction.apply({
-				sender: defaultSenderAccount,
-			});
+			const { id, status, state, errors } = validTestTransaction.apply(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.OK);
 			expect(state)
 				.to.be.an('object')
 				.and.to.have.property('sender');
 			expect((state as any).sender).to.have.property('balance', '0');
-			expect(errors).to.be.eql([]);
+			expect(errors).to.be.empty;
 		});
 
 		it('should return a failed transaction response with insufficient account balance', async () => {
-			const { id, status, state, errors } = validTestTransaction.apply({
-				sender: {
+			store.account.get = () => {
+				return {
 					...defaultSenderAccount,
 					balance: '0',
-				},
-			});
+				};
+			};
+			const { id, status, state, errors } = validTestTransaction.apply(store);
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);
@@ -1008,9 +943,7 @@ describe('Base transaction class', () => {
 
 	describe('#undo', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
-			const { id, status, state, errors } = validTestTransaction.undo({
-				sender: defaultSenderAccount,
-			});
+			const { id, status, state, errors } = validTestTransaction.undo(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.OK);
 			expect(state)
@@ -1021,12 +954,13 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response with account balance exceeding max amount', async () => {
-			const { id, status, state, errors } = validTestTransaction.undo({
-				sender: {
+			store.account.get = () => {
+				return {
 					...defaultSenderAccount,
 					balance: MAX_TRANSACTION_AMOUNT.toString(),
-				},
-			});
+				};
+			};
+			const { id, status, state, errors } = validTestTransaction.undo(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);
 			expect(state)

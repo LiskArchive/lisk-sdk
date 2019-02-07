@@ -15,11 +15,10 @@
 import { expect } from 'chai';
 import { MULTISIGNATURE_FEE } from '../../src/constants';
 import {
-	BaseTransaction,
 	MultisignatureTransaction,
 } from '../../src/transactions';
 import { Account, Status, TransactionJSON } from '../../src/transaction_types';
-import { addTransactionFields } from '../helpers';
+import { addTransactionFields,	MockStateStore as store } from '../helpers';
 import {
 	validMultisignatureAccount,
 	validMultisignatureRegistrationTransaction,
@@ -37,6 +36,7 @@ describe('Multisignature transaction class', () => {
 			validMultisignatureTransaction,
 		);
 		sender = validMultisignatureAccount;
+		store.account.get = () => sender;
 	});
 
 	describe('#constructor', () => {
@@ -150,13 +150,12 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#validateSchema', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.validateSchema();
-			expect(status).to.equal(Status.OK);
+		it('should return no errors', async () => {
+			const errors = (validTestTransaction as any).validateAsset();
 			expect(errors).to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when asset min is over limit', async () => {
+		it('should return error when asset min is over limit', async () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -167,12 +166,11 @@ describe('Multisignature transaction class', () => {
 				},
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when lifetime is under minimum', async () => {
+		it('should return error when lifetime is under minimum', async () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -183,12 +181,11 @@ describe('Multisignature transaction class', () => {
 				},
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when keysgroup includes invalid keys', async () => {
+		it('should return error when keysgroup includes invalid keys', async () => {
 			const invalidTransaction = {
 				...validMultisignatureTransaction,
 				asset: {
@@ -202,12 +199,11 @@ describe('Multisignature transaction class', () => {
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
 
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when keysgroup has too many keys', async () => {
+		it('should return error when keysgroup has too many keys', async () => {
 			const invalidTransaction = {
 				...validMultisignatureTransaction,
 				asset: {
@@ -236,159 +232,67 @@ describe('Multisignature transaction class', () => {
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
 
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = transaction.validateSchema();
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when recipientId is not empty', async () => {
+		it('should return error when recipientId is not empty', async () => {
 			const invalidTransaction = {
 				...validMultisignatureTransaction,
 				recipientId: '1L',
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
+			const errors = (transaction as any).validateAsset();
 
-			const { status, errors } = transaction.validateSchema();
-
-			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when recipientPublicKey is not empty', async () => {
+		it('should return error when recipientPublicKey is not empty', async () => {
 			const invalidTransaction = {
 				...validMultisignatureTransaction,
 				recipientPublicKey: '123',
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
 
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 		});
 	});
 
-	describe('#verify', () => {
-		it('should return TransactionResponse with status OK', async () => {
+	describe('#applyAsset', () => {
+		it('should return no errors', async () => {
 			const { multisignatures, ...nonMultisignatureAccount } = sender;
-			const { status, errors } = validTestTransaction.verify({
-				sender: nonMultisignatureAccount,
-			});
+			store.account.get = () => nonMultisignatureAccount;
+			const errors = (validTestTransaction as any).applyAsset(store);
 
-			expect(status).to.equal(Status.OK);
 			expect(errors).to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when account is already multisignature', async () => {
-			const { status, errors } = validTestTransaction.verify({
-				sender,
-			});
-			expect(status).to.equal(Status.FAIL);
+		it('should return error when account is already multisignature', async () => {
+			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.signatures');
 		});
 
-		it('should return TransactionResponse with error when keysgroup includes sender key', async () => {
-			const { status, errors } = validTestTransaction.verify({
-				sender: {
-					...sender,
-					multisignatures: [
-						...(sender as any).multisignatures,
-						sender.publicKey,
-					],
-				},
-			});
-			expect(status).to.equal(Status.FAIL);
+		it('should return error when keysgroup includes sender key', async () => {
+			const invalidSender = {
+				...sender,
+				multisignatures: [
+					...(sender as any).multisignatures,
+					sender.publicKey,
+				],
+			};
+			store.account.get = () => invalidSender;
+			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.signatures');
 		});
 	});
 
-	describe('#apply', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { multisignatures, ...nonMultisignatureAccount } = sender;
-			const { status, errors } = validTestTransaction.apply({
-				sender: nonMultisignatureAccount,
-			});
-
-			expect(status).to.equal(Status.OK);
+	describe('#undoAsset', () => {
+		it('should return no errors', async () => {
+			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
-		});
-
-		it('should return TransactionResponse with error when account is already multisignature', async () => {
-			const { status, errors } = validTestTransaction.apply({
-				sender,
-			});
-			expect(status).to.equal(Status.FAIL);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.signatures');
-		});
-
-		it('should return TransactionResponse with error when keysgroup includes sender key', async () => {
-			const { status, errors } = validTestTransaction.apply({
-				sender: {
-					...sender,
-					multisignatures: [
-						...(sender as any).multisignatures,
-						sender.publicKey,
-					],
-				},
-			});
-			expect(status).to.equal(Status.FAIL);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.signatures');
-		});
-
-		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'apply').returns({});
-			expect(
-				validTestTransaction.apply.bind(validMultisignatureTransaction, {
-					sender,
-				}),
-			).to.throw('State is required for applying transaction');
-		});
-
-		it('should return updated account state with multisignatures', async () => {
-			const { multisignatures, ...nonMultisignatureAccount } = sender;
-			const { state } = validTestTransaction.apply({
-				sender: nonMultisignatureAccount,
-			});
-			expect((state as any).sender.multisignatures).to.eql(
-				validMultisignatureAccount.multisignatures,
-			);
-		});
-	});
-
-	describe('#undo', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.undo({
-				sender,
-			});
-			expect(status).to.equal(Status.OK);
-			expect(errors).to.be.empty;
-		});
-
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.undo({
-				sender,
-			});
-			expect(status).to.equal(Status.OK);
-			expect(errors).to.be.empty;
-		});
-
-		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'undo').returns({});
-			expect(
-				validTestTransaction.undo.bind(validMultisignatureTransaction, {
-					sender,
-				}),
-			).to.throw('State is required for undoing transaction');
-		});
-
-		it('should return updated account state with removed username', async () => {
-			const { state } = validTestTransaction.undo({
-				sender,
-			});
-			expect((state as any).sender.multisignatures).to.not.exist;
 		});
 	});
 });
