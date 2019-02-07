@@ -96,7 +96,7 @@ const convertNodeInfoToLegacyFormat = (nodeInfo: P2PNodeInfo): ProtocolNodeInfo 
 		...nodeInfo,
 		httpPort: nodeInfo.options ? nodeInfo.options.httpPort as number : 0,
 		broadhash: nodeInfo.options ? nodeInfo.options.broadhash as string : '',
-		nonce: nodeInfo.options ? nodeInfo.options.nonce as string : ''
+		nonce: nodeInfo.options ? nodeInfo.options.nonce as string : '',
 	}
 );
 
