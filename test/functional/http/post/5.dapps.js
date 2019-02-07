@@ -552,7 +552,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with unicode special symbol should be ok', () => {
 				const application = randomUtil.application();
-				application.name += specialChar;
+				application.name = `lorem${specialChar}`;
 
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
@@ -567,7 +567,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with nullChar1 should fail', () => {
 				const application = randomUtil.application();
-				application.name += nullChar1;
+				application.name = `lorem${nullChar1}`;
 
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
@@ -587,7 +587,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with nullChar2 should fail', () => {
 				const application = randomUtil.application();
-				application.name += nullChar2;
+				application.name = `lorem${nullChar2}`;
 
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
@@ -607,7 +607,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with nullChar3 should fail', () => {
 				const application = randomUtil.application();
-				application.name += nullChar3;
+				application.name = `lorem${nullChar3}`;
 
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
@@ -627,7 +627,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with nullChar4 should fail', () => {
 				const application = randomUtil.application();
-				application.name += nullChar4;
+				application.name = `lorem${nullChar4}`;
 
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
