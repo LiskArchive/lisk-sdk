@@ -21,12 +21,13 @@
 module.exports = {
 	/**
 	 * Test presence of NULL character in a given string
+	 * NULL characters list: ['\0', '\x00', '\u0000', '\U00000000']
 	 *
 	 * @param {string} string - String to be tested.
 	 * @returns {boolean} True is Null character is present in the string. False otherwise.
 	 */
 	testNullCharacter(string) {
-		const metacharacter = new RegExp('\\0');
+		const metacharacter = new RegExp('\\0|\\U00000000');
 		return metacharacter.test(string);
 	},
 };
