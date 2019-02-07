@@ -25,6 +25,8 @@ interface SCServerUpdated extends SCServer {
 import { constructPeerId, constructPeerIdFromPeerInfo } from './peer';
 
 import {
+	INCOMPATIBLE_NETWORK_CODE,
+	INCOMPATIBLE_NETWORK_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
 	INVALID_CONNECTION_QUERY_REASON,
 	INVALID_CONNECTION_URL_CODE,
@@ -50,12 +52,19 @@ import {
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
+	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
 	PeerPool,
 } from './peer_pool';
 
-export { EVENT_REQUEST_RECEIVED, EVENT_MESSAGE_RECEIVED };
+export {
+	EVENT_REQUEST_RECEIVED,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_INBOUND_SOCKET_ERROR,
+};
 
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
@@ -81,6 +90,8 @@ export class P2P extends EventEmitter {
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handleOutboundSocketError: (error: Error) => void;
+	private readonly _handleInboundSocketError: (error: Error) => void;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -122,8 +133,18 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleFailedToPushNodeInfo = (error: Error) => {
-			// Re-emit the message to allow it to bubble up the class hierarchy.
+			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+		};
+
+		this._handleOutboundSocketError = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
+		};
+
+		this._handleInboundSocketError = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
 		this._peerPool = new PeerPool();
@@ -149,6 +170,7 @@ export class P2P extends EventEmitter {
 		this._nodeInfo = {
 			os: this._nodeInfo.os,
 			version: this._nodeInfo.version,
+			nethash: this._nodeInfo.nethash,
 			wsPort: this._nodeInfo.wsPort,
 			height: nodeInfo.height,
 			options: nodeInfo.options ? nodeInfo.options : {},
@@ -190,7 +212,9 @@ export class P2P extends EventEmitter {
 			'connection',
 			(socket: SCServerSocket): void => {
 				if (!socket.request.url) {
-					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
+					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, {
+						remoteAddress: socket.remoteAddress
+					});
 					socket.disconnect(
 						INVALID_CONNECTION_URL_CODE,
 						INVALID_CONNECTION_URL_REASON,
@@ -203,40 +227,57 @@ export class P2P extends EventEmitter {
 				if (
 					typeof queryObject.wsPort !== 'string' ||
 					typeof queryObject.os !== 'string' ||
-					typeof queryObject.version !== 'string'
+					typeof queryObject.version !== 'string' ||
+					typeof queryObject.nethash !== 'string'
 				) {
 					socket.disconnect(
 						INVALID_CONNECTION_QUERY_CODE,
 						INVALID_CONNECTION_QUERY_REASON,
 					);
-					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
-				} else {
-					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-					const peerId = constructPeerId(socket.remoteAddress, wsPort);
+					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, {
+						remoteAddress: socket.remoteAddress
+					});
 
-					const incomingPeerInfo: P2PDiscoveredPeerInfo = {
-						ipAddress: socket.remoteAddress,
-						wsPort,
-						height: queryObject.height ? +queryObject.height : 0,
-						isDiscoveredPeer: true,
-						os: queryObject.os,
-						version: queryObject.version,
-						options: typeof queryObject.options === 'string' ?
-							JSON.parse(queryObject.options) : undefined,
-					};
+					return;
+				}
 
-					const isNewPeer = this._peerPool.addInboundPeer(
-						peerId,
-						incomingPeerInfo,
-						socket,
+				if (queryObject.nethash !== this._nodeInfo.nethash) {
+					socket.disconnect(
+						INCOMPATIBLE_NETWORK_CODE,
+						INCOMPATIBLE_NETWORK_REASON,
 					);
+					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, {
+						remoteAddress: socket.remoteAddress
+					});
 
-					if (isNewPeer) {
-						this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
-						this.emit(EVENT_NEW_PEER, incomingPeerInfo);
-						if (!this._newPeers.has(peerId)) {
-							this._newPeers.set(peerId, incomingPeerInfo);
-						}
+					return;
+				}
+
+				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+				const peerId = constructPeerId(socket.remoteAddress, wsPort);
+
+				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
+					ipAddress: socket.remoteAddress,
+					wsPort,
+					height: queryObject.height ? +queryObject.height : 0,
+					isDiscoveredPeer: true,
+					os: queryObject.os,
+					version: queryObject.version,
+					options: typeof queryObject.options === 'string' ?
+						JSON.parse(queryObject.options) : undefined,
+				};
+
+				const isNewPeer = this._peerPool.addInboundPeer(
+					peerId,
+					incomingPeerInfo,
+					socket,
+				);
+
+				if (isNewPeer) {
+					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
+					if (!this._newPeers.has(peerId)) {
+						this._newPeers.set(peerId, incomingPeerInfo);
 					}
 				}
 			},
@@ -313,5 +354,7 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
 		peerPool.on(EVENT_FAILED_TO_PUSH_NODE_INFO, this._handleFailedToPushNodeInfo);
+		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
+		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
 	}
 }
