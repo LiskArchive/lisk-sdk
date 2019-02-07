@@ -86,7 +86,7 @@ name, type, and description of a function parameter. **Required** for each param
 
 ### Events
 
-`@event <className>#[event:]<eventName>`: **describes** an event, that the app is listening to.
+`@event <className>#[event:]<eventName>`: describes an event, that the app is listening to.
 
 ## Examples
 
@@ -96,9 +96,8 @@ For concrete examples, have a look in the aready existing JSDoc blocks in the co
 
 * [ ] JSDoc template
 * [ ] Markdown plugin
-* [ ] Patterns examples
-* [ ] More Lisk examples: callback, throws, class, nested objects
 * [ ] JSDoc tutorials for best practices
+* [ ] Patterns examples
 * [ ] Callback patterns
   * node style: cb(err, data); - `app.js`
   * setImmediate style: return setImmediate(cb, null, data); - `modules/blocks.js`
