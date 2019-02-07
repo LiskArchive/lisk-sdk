@@ -52,11 +52,12 @@ describe('errors', () => {
 
 	describe('#PeerInboundHandshakeError', () => {
 		const remoteAddress = '127.0.0.1';
+		const statusCode = 4501;
 		const defaultMessage = `Received inbound connection from peer ${remoteAddress} which is already in our triedPeers map.`;
 		let peerTransportError: PeerInboundHandshakeError;
 
 		beforeEach(async () => {
-			peerTransportError = new PeerInboundHandshakeError(defaultMessage, remoteAddress);
+			peerTransportError = new PeerInboundHandshakeError(defaultMessage, statusCode, remoteAddress);
 		});
 
 		it('should create a new instance of PeerInboundHandshakeError', async () => {
