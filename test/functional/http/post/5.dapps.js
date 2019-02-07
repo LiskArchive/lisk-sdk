@@ -328,7 +328,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with nullChar4 should fail', () => {
 				const application = randomUtil.application();
-				application.description = `lorem${nullChar4} ipsum`;
+				application.description = `lorem${nullChar4}`;
 
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
