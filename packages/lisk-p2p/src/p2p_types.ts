@@ -47,7 +47,7 @@ export interface P2PPeerInfo {
 }
 
 export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
-	readonly os: string;
+	readonly os?: string;
 	readonly version: string;
 	// Add support for custom fields like broadhash or nonce.
 	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
