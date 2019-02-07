@@ -413,8 +413,8 @@ export class Peer extends EventEmitter {
 
 	// All event handlers for the inbound socket should be bound in this method.
 	private _bindHandlersToInboundSocket(inboundSocket: SCServerSocket): void {
-		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST as any, this._handleRawRPC);
+		inboundSocket.on(REMOTE_EVENT_MESSAGE as any, this._handleRawMessage);
 		inboundSocket.on('error', this._handleInboundSocketError);
 	}
 
