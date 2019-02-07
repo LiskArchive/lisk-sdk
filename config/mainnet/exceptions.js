@@ -40,6 +40,9 @@ module.exports = {
 		'5676385569187187158', // 868797
 		'5384302058030309746', // 869890
 		'9352922026980330230', // 925165
+		// transfer transaction with null byte in the data field (Note that '\x250025' is the byte representation of '%\u0000%')
+		// SELECT * FROM transfer WHERE data LIKE '\x250025';
+		'11815860355204320743', // 7292474
 	],
 	multisignatures: [
 		'14122550998639658526', // 1189962
