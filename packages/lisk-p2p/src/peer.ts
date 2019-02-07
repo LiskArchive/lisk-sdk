@@ -38,6 +38,15 @@ import {
 	validateRPCRequest,
 } from './validation';
 
+// This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
+interface ClientOptionsUpdated {
+	readonly hostname: string;
+	readonly port: number;
+	readonly query: string;
+	readonly autoConnect: boolean;
+	readonly pingTimeoutDisabled: boolean;
+}
+
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
 // Local emitted events.
@@ -50,6 +59,8 @@ export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_DISCONNECT_OUTBOUND = 'disconnectOutbound';
+export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
+export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
@@ -84,7 +95,7 @@ const convertNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
 ): ProtocolNodeInfo => ({
 	...nodeInfo,
-	wsPort: nodeInfo.wsPort,
+	httpPort: nodeInfo.options ? (nodeInfo.options.httpPort as number) : 0,
 	broadhash: nodeInfo.options ? (nodeInfo.options.broadhash as string) : '',
 	nonce: nodeInfo.options ? (nodeInfo.options.nonce as string) : '',
 });
@@ -104,6 +115,7 @@ export class Peer extends EventEmitter {
 		respond: (responseError?: Error, responseData?: unknown) => void,
 	) => void;
 	private readonly _handleRawMessage: (packet: unknown) => void;
+	private readonly _handleInboundSocketError: (error: Error) => void;
 
 	public constructor(peerInfo: P2PPeerInfo, inboundSocket?: SCServerSocket) {
 		super();
@@ -155,6 +167,10 @@ export class Peer extends EventEmitter {
 			}
 
 			this.emit(EVENT_MESSAGE_RECEIVED, protocolMessage);
+		};
+
+		this._handleInboundSocketError = (error: Error) => {
+			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
 		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
@@ -344,7 +360,7 @@ export class Peer extends EventEmitter {
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
 
-		const outboundSocket = socketClusterClient.create({
+		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: querystring.stringify({
@@ -355,7 +371,10 @@ export class Peer extends EventEmitter {
 						: undefined,
 			}),
 			autoConnect: false,
-		});
+			pingTimeoutDisabled: true,
+		};
+
+		const outboundSocket = socketClusterClient.create(clientOptions);
 
 		this._bindHandlersToOutboundSocket(outboundSocket);
 
@@ -364,6 +383,10 @@ export class Peer extends EventEmitter {
 
 	// All event handlers for the outbound socket should be bound in this method.
 	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
+		outboundSocket.on('error', (error: Error) => {
+			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
+		});
+
 		outboundSocket.on('connect', () => {
 			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
 		});
@@ -392,6 +415,7 @@ export class Peer extends EventEmitter {
 	private _bindHandlersToInboundSocket(inboundSocket: SCServerSocket): void {
 		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		inboundSocket.on('error', this._handleInboundSocketError);
 	}
 
 	// All event handlers for the inbound socket should be unbound in this method.
@@ -400,6 +424,7 @@ export class Peer extends EventEmitter {
 	): void {
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		inboundSocket.off('error', this._handleInboundSocketError);
 	}
 
 	public static constructPeerIdFromPeerInfo(peerInfo: P2PPeerInfo): string {

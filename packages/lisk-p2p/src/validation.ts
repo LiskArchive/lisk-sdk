@@ -13,7 +13,7 @@
  *
  */
 import { valid as isValidVersion } from 'semver';
-import { isAlpha, isIP, isNumeric, isPort } from 'validator';
+import { isIP, isNumeric, isPort } from 'validator';
 import {
 	InvalidPeerError,
 	InvalidProtocolMessageError,
@@ -69,10 +69,7 @@ export const validatePeerInfo = (
 
 	const version = protocolPeer.version;
 	const wsPort = +protocolPeer.wsPort;
-	const os =
-		protocolPeer.os && isAlpha(protocolPeer.os.toString())
-			? protocolPeer.os
-			: '';
+	const os = protocolPeer.os ? protocolPeer.os : '';
 	const height =
 		protocolPeer.height && isNumeric(protocolPeer.height.toString())
 			? +protocolPeer.height

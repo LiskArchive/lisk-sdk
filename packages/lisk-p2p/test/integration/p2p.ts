@@ -23,6 +23,8 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					nodeInfo: {
 						wsPort: nodePort,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.0',
 						os: platform(),
 						height: 0,
@@ -75,6 +77,8 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					nodeInfo: {
 						wsPort: NETWORK_START_PORT + index,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.0',
 						os: platform(),
 						height: 0,
@@ -151,6 +155,8 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					nodeInfo: {
 						wsPort: NETWORK_START_PORT + index,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.0',
 						os: platform(),
 						height: 0,
@@ -377,6 +383,8 @@ describe('Integration tests for P2P library', () => {
 
 				firstP2PNode.applyNodeInfo({
 					os: platform(),
+					nethash:
+						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					version: firstP2PNode.nodeInfo.version,
 					wsPort: firstP2PNode.nodeInfo.wsPort,
 					height: 10,
