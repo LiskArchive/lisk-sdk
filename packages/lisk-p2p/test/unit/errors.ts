@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import {
 	InvalidPeerError,
 	NotEnoughPeersError,
-	PeerTransportError,
+	PeerInboundHandshakeError,
 	RPCResponseError,
 	InvalidRPCResponseError,
 	InvalidProtocolMessageError,
@@ -50,27 +50,27 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#PeerTransportError', () => {
-		const peerId = '0.0.0.0:80';
-		const defaultMessage = `Received inbound connection from peer ${peerId} which is already in our triedPeers map.`;
-		let peerTransportError: PeerTransportError;
+	describe('#PeerInboundHandshakeError', () => {
+		const remoteAddress = '127.0.0.1';
+		const defaultMessage = `Received inbound connection from peer ${remoteAddress} which is already in our triedPeers map.`;
+		let peerTransportError: PeerInboundHandshakeError;
 
 		beforeEach(async () => {
-			peerTransportError = new PeerTransportError(defaultMessage, peerId);
+			peerTransportError = new PeerInboundHandshakeError(defaultMessage, remoteAddress);
 		});
 
-		it('should create a new instance of PeerTransportError', async () => {
+		it('should create a new instance of PeerInboundHandshakeError', async () => {
 			expect(peerTransportError)
 				.to.be.an('object')
-				.and.be.instanceof(PeerTransportError);
+				.and.be.instanceof(PeerInboundHandshakeError);
 		});
 
-		it('should set error name to `PeerTransportError`', async () => {
-			expect(peerTransportError.name).to.eql('PeerTransportError');
+		it('should set error name to `PeerInboundHandshakeError`', async () => {
+			expect(peerTransportError.name).to.eql('PeerInboundHandshakeError');
 		});
 
-		it('should set error property peerId when passed as an argument', async () => {
-			expect(peerTransportError.peerId).to.eql(peerId);
+		it('should set error property remoteAddress when passed as an argument', async () => {
+			expect(peerTransportError.remoteAddress).to.eql(remoteAddress);
 		});
 	});
 
