@@ -271,7 +271,7 @@ describe('encrypt', () => {
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
-						encryptedPassphraseWithoutCipherText,
+						encryptedPassphraseWithoutCipherText as any,
 						defaultPassword,
 					),
 				).to.throw('Cipher text must be a string.');
@@ -282,7 +282,7 @@ describe('encrypt', () => {
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
-						encryptedPassphraseWithoutIv,
+						encryptedPassphraseWithoutIv as any,
 						defaultPassword,
 					),
 				).to.throw('IV must be a string.');
@@ -293,7 +293,7 @@ describe('encrypt', () => {
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
-						encryptedPassphraseWithoutSalt,
+						encryptedPassphraseWithoutSalt as any,
 						defaultPassword,
 					),
 				).to.throw('Salt must be a string.');
@@ -304,7 +304,7 @@ describe('encrypt', () => {
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
-						encryptedPassphraseWithoutTag,
+						encryptedPassphraseWithoutTag as any,
 						defaultPassword,
 					),
 				).to.throw('Tag must be a string.');

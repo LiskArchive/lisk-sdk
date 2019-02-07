@@ -53,7 +53,7 @@ describe('hash', () => {
 	});
 
 	it('should throw on unknown format when using an array', () => {
-		return expect(hashFunction.bind(null, arrayToHash)).to.throw(
+		return expect(hashFunction.bind(null, arrayToHash as any)).to.throw(
 			'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 		);
 	});
