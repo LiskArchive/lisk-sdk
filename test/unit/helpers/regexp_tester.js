@@ -17,7 +17,7 @@
 const regexpTester = require('../../../helpers/regexp_tester');
 
 /* eslint-disable no-useless-escape */
-describe('testNullCharacter', () => {
+describe('includeNullByte', () => {
 	const validStrings = [
 		'lorem ipsum',
 		'lorem\u0001 ipsum',
@@ -50,7 +50,7 @@ describe('testNullCharacter', () => {
 	describe('strings without null character should be return false', () => {
 		it('should return false for strings without null character', done => {
 			validStrings.forEach(string => {
-				const result = regexpTester.testNullCharacter(string);
+				const result = regexpTester.includeNullByte(string);
 				expect(result).to.false;
 			});
 			done();
@@ -60,7 +60,7 @@ describe('testNullCharacter', () => {
 	describe('strings with null character should be return true', () => {
 		it('should return false for strings without null character', done => {
 			invalidStrings.forEach(string => {
-				const result = regexpTester.testNullCharacter(string);
+				const result = regexpTester.includeNullByte(string);
 				expect(result).to.true;
 			});
 			done();

@@ -26,7 +26,7 @@ module.exports = {
 	 * @param {string} string - String to be tested.
 	 * @returns {boolean} True is Null character is present in the string. False otherwise.
 	 */
-	testNullCharacter(string) {
+	includeNullByte(string) {
 		const metacharacter = new RegExp('\\0|\\U00000000');
 		return metacharacter.test(string);
 	},

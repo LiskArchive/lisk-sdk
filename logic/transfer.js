@@ -84,7 +84,7 @@ Transfer.prototype.verify = function(transaction, sender, cb) {
 
 	if (
 		transaction.asset &&
-		regexpTester.testNullCharacter(transaction.asset.data)
+		regexpTester.includeNullByte(transaction.asset.data)
 	) {
 		return setImmediate(
 			cb,

@@ -99,7 +99,7 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Username is undefined');
 	}
 
-	if (regexpTester.testNullCharacter(transaction.asset.delegate.username)) {
+	if (regexpTester.includeNullByte(transaction.asset.delegate.username)) {
 		return setImmediate(
 			cb,
 			'Delegate name has invalid character. Null character is not allowed.'
