@@ -51,6 +51,7 @@ const httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 const swaggerHelper = require('./helpers/swagger');
 const createStorage = require('./storage');
+const { createCacheComponent } = require('./components/cache');
 
 /**
  * Main application entry point.
@@ -87,6 +88,7 @@ const createStorage = require('./storage');
  * @property {string} lastCommit
  * @property {Object} listen
  * @property {Object} logger
+ * @property {Object} components
  * @property {Object} logic
  * @property {Object} modules
  * @property {Object} network
@@ -138,13 +140,11 @@ const config = {
 	modules: {
 		accounts: './modules/accounts.js',
 		blocks: './modules/blocks.js',
-		cache: './modules/cache.js',
 		dapps: './modules/dapps.js',
 		delegates: './modules/delegates.js',
 		rounds: './modules/rounds.js',
 		loader: './modules/loader.js',
 		multisignatures: './modules/multisignatures.js',
-		node: './modules/node.js',
 		peers: './modules/peers.js',
 		system: './modules/system.js',
 		signatures: './modules/signatures.js',
@@ -201,6 +201,7 @@ d.on('error', err => {
 logger.info(`Starting lisk with "${appConfig.network}" genesis block.`);
 // Run domain
 d.run(() => {
+	const components = [];
 	const modules = [];
 	async.auto(
 		{
@@ -389,9 +390,9 @@ d.run(() => {
 			],
 
 			swagger: [
+				'components',
 				'modules',
 				'logger',
-				'cache',
 				/**
 				 * Description of the function.
 				 *
@@ -487,31 +488,24 @@ d.run(() => {
 					});
 			},
 
-			/**
-			 * Description of the function.
-			 *
-			 * @memberof! app
-			 * @param {function} cb
-			 * @todo Add description for the params
-			 */
-			cache(cb) {
-				const RedisConnector = require('./helpers/redis_connector.js');
-				logger.debug(
-					`Cache ${appConfig.cacheEnabled ? 'Enabled' : 'Disabled'}`
-				);
-				// delete password key if it's value is null
-				const cacheConfigParam = Object.assign({}, config.cache);
-				if (cacheConfigParam.password === null) {
-					delete cacheConfigParam.password;
+			components(cb) {
+				if (!config.cacheEnabled) {
+					logger.debug('Cache not enabled');
+					return cb();
 				}
-				const redisConnector = new RedisConnector(
-					config.cacheEnabled,
-					cacheConfigParam,
-					logger
-				);
-				redisConnector.connect((redisConnectError, redisClient) =>
-					cb(null, { cacheEnabled: config.cacheEnabled, client: redisClient })
-				);
+				logger.debug('Initiating cache...');
+				const cache = createCacheComponent(config.cache, logger);
+				return cache
+					.bootstrap()
+					.then(() => {
+						components.push(cache);
+						return cb(null, {
+							cache,
+						});
+					})
+					.catch(err => {
+						cb(err);
+					});
 			},
 
 			webSocket: [
@@ -709,7 +703,6 @@ d.run(() => {
 				'balancesSequence',
 				'storage',
 				'logic',
-				'cache',
 				/**
 				 * Description of the function.
 				 *
@@ -748,6 +741,7 @@ d.run(() => {
 			],
 
 			ready: [
+				'components',
 				'swagger',
 				'modules',
 				'bus',
@@ -765,7 +759,7 @@ d.run(() => {
 					scope.modules.swagger = scope.swagger;
 
 					// Fire onBind event in every module
-					scope.bus.message('bind', scope.modules);
+					scope.bus.message('bind', scope);
 
 					scope.logic.peers.bindModules(scope.modules);
 					cb();
@@ -879,6 +873,9 @@ d.run(() => {
 				if (scope.socketCluster) {
 					scope.socketCluster.removeAllListeners('fail');
 					scope.socketCluster.destroy();
+				}
+				if (components !== undefined) {
+					components.map(component => component.cleanup());
 				}
 				// Run cleanup operation on each module before shutting down the node;
 				// this includes operations like snapshotting database tables.

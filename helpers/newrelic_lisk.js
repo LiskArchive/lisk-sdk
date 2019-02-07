@@ -25,31 +25,29 @@ newrelicLisk.instrumentWeb();
 newrelicLisk.instrumentDatabase();
 newrelicLisk.instrumentBackgroundJobs();
 
+// TOFIX: fix callbackMethods converted to async in #2579
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
-	'./helpers/sequence.js': {
-		identifier: 'helpers.sequence',
-		callbackMethods: ['add'],
-	},
-	'./modules/node.js': {
-		identifier: 'modules.node',
-		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
-	},
-	'./modules/blocks.js': {
-		identifier: 'modules.blocks',
-		callbackMethods: ['shared.getBlocks'],
-	},
-	'./modules/cache.js': {
-		identifier: 'modules.cache',
+	'./componentes/cache/cache': {
+		identifier: 'components.cache',
 		callbackMethods: [
-			'onNewBlock',
-			'onFinishRound',
-			'onTransactionsSaved',
 			'getJsonForKey',
 			'setJsonForKey',
 			'deleteJsonForKey',
 			'removeByPattern',
 		],
+	},
+	'./helpers/sequence.js': {
+		identifier: 'helpers.sequence',
+		callbackMethods: ['add'],
+	},
+	'./modules/blocks.js': {
+		identifier: 'modules.blocks',
+		callbackMethods: ['shared.getBlocks'],
+	},
+	'./modules/dapps.js': {
+		identifier: 'modules.dapps',
+		callbackMethods: ['getDapps'],
 	},
 	'./modules/delegates.js': {
 		identifier: 'modules.delegates',

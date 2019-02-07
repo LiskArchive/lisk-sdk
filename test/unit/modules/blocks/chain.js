@@ -30,7 +30,7 @@ describe('blocks/chain', () => {
 	let busStub;
 	let balancesSequenceStub;
 	let genesisBlockStub;
-	let modulesStub;
+	let bindingsStub;
 
 	const blockWithEmptyTransactions = {
 		id: 1,
@@ -172,18 +172,20 @@ describe('blocks/chain', () => {
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
 
-		modulesStub = {
-			accounts: modulesAccountsStub,
-			blocks: modulesBlocksStub,
-			rounds: modulesRoundsStub,
-			transactions: modulesTransactionsStub,
-			system: modulesSystemStub,
-			transport: modulesTransportStub,
+		bindingsStub = {
+			modules: {
+				accounts: modulesAccountsStub,
+				blocks: modulesBlocksStub,
+				rounds: modulesRoundsStub,
+				transactions: modulesTransactionsStub,
+				system: modulesSystemStub,
+				transport: modulesTransportStub,
+			},
 		};
 
 		process.exit = sinonSandbox.stub().returns(0);
 
-		blocksChainModule.onBind(modulesStub);
+		blocksChainModule.onBind(bindingsStub);
 		modules = BlocksChain.__get__('modules');
 		done();
 	});
@@ -420,11 +422,6 @@ describe('blocks/chain', () => {
 		it('should call afterSave for all transactions', done => {
 			__private.afterSave(blockWithTransactions, () => {
 				expect(library.logic.transaction.afterSave.callCount).to.equal(3);
-				expect(library.bus.message.calledOnce).to.be.true;
-				expect(library.bus.message.args[0][0]).to.equal('transactionsSaved');
-				expect(library.bus.message.args[0][1]).to.deep.equal(
-					blockWithTransactions.transactions
-				);
 				done();
 			});
 		});
@@ -1795,7 +1792,7 @@ describe('blocks/chain', () => {
 		beforeEach(done => {
 			loggerStub.trace.resetHistory();
 			__private.loaded = false;
-			blocksChainModule.onBind(modulesStub);
+			blocksChainModule.onBind(bindingsStub);
 			done();
 		});
 
@@ -1806,12 +1803,14 @@ describe('blocks/chain', () => {
 		});
 
 		it('should assign params to modules', () => {
-			expect(modules.accounts).to.equal(modulesStub.accounts);
-			expect(modules.blocks).to.equal(modulesStub.blocks);
-			expect(modules.rounds).to.equal(modulesStub.rounds);
-			expect(modules.system).to.equal(modulesStub.system);
-			expect(modules.transport).to.equal(modulesStub.transport);
-			return expect(modules.transactions).to.equal(modulesStub.transactions);
+			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
+			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
+			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
+			expect(modules.system).to.equal(bindingsStub.modules.system);
+			expect(modules.transport).to.equal(bindingsStub.modules.transport);
+			return expect(modules.transactions).to.equal(
+				bindingsStub.modules.transactions
+			);
 		});
 
 		it('should set __private.loaded to true', () => {

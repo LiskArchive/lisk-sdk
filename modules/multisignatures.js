@@ -408,11 +408,11 @@ Multisignatures.prototype.getGroup = function(address, cb) {
  */
 Multisignatures.prototype.onBind = function(scope) {
 	modules = {
-		accounts: scope.accounts,
-		transactions: scope.transactions,
+		accounts: scope.modules.accounts,
+		transactions: scope.modules.transactions,
 	};
 
-	__private.assetTypes[transactionTypes.MULTI].bind(scope.accounts);
+	__private.assetTypes[transactionTypes.MULTI].bind(scope.modules.accounts);
 };
 
 /**

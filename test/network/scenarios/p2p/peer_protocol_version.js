@@ -97,11 +97,8 @@ module.exports = function(
 					.getEstablishedConnections(WSPORTS)
 					.then(establishedConnections => {
 						return expect(
-							establishedConnections -
-							NUMBER_OF_MONITORING_CONNECTIONS
-						).to.equal(
-							EXPECTED_TOTAL_CONNECTIONS
-						);
+							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
+						).to.equal(EXPECTED_TOTAL_CONNECTIONS);
 					});
 			});
 		});
