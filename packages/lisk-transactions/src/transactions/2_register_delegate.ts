@@ -100,7 +100,7 @@ const validateInput = ({ username }: RegisterDelegateInput): void => {
 
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
-	public readonly containsUniqueData = true;
+	public readonly containsUniqueData: boolean;
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -122,6 +122,7 @@ export class DelegateTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as DelegateAsset;
 		this._fee = new BigNum(DELEGATE_FEE);
+		this.containsUniqueData = true;
 	}
 
 	public static create(input: RegisterDelegateInput): object {

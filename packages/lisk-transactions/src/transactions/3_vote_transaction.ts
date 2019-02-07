@@ -107,7 +107,7 @@ const validateInputs = ({
 };
 
 export class VoteTransaction extends BaseTransaction {
-	public readonly containsUniqueData = true;
+	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
 
 	public constructor(tx: TransactionJSON) {
@@ -128,6 +128,7 @@ export class VoteTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as VoteAsset;
 		this._fee = new BigNum(VOTE_FEE);
+		this.containsUniqueData = true;
 	}
 
 	public static create(input: CastVoteInput): object {

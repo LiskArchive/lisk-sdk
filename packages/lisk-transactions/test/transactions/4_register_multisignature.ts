@@ -555,7 +555,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'apply').returns({});
+			sandbox.stub(BaseTransaction.prototype, 'apply').returns({} as any);
 			expect(
 				validTestTransaction.apply.bind(validMultisignatureTransaction, {
 					sender,
@@ -592,7 +592,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'undo').returns({});
+			sandbox.stub(BaseTransaction.prototype, 'undo').returns({} as any);
 			expect(
 				validTestTransaction.undo.bind(validMultisignatureTransaction, {
 					sender,

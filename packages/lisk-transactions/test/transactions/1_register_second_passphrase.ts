@@ -273,7 +273,7 @@ describe('Second signature registration transaction class', () => {
 		});
 
 		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'apply').returns({});
+			sandbox.stub(BaseTransaction.prototype, 'apply').returns({} as any);
 			expect(
 				validTestTransaction.apply.bind(validTransaction, {
 					sender,
@@ -312,7 +312,7 @@ describe('Second signature registration transaction class', () => {
 		});
 
 		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'undo').returns({});
+			sandbox.stub(BaseTransaction.prototype, 'undo').returns({} as any);
 			expect(
 				validTestTransaction.undo.bind(validTestTransaction, {
 					sender,

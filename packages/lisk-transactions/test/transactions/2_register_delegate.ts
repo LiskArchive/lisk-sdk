@@ -39,11 +39,12 @@ describe('Delegate registration transaction class', () => {
 		validTestTransaction = new DelegateTransaction(validDelegateTransaction);
 		sender = validDelegateAccount;
 		nonDelegateAccount = {
-			"address": "17676438278047402502L",
-			"balance": "15412982278208",
-			"publicKey": "dd786687dd2399605ce8fe70212d078db1a2fc6effba127defb176a004cec6d4",
-			"secondPublicKey": "",
-		}
+			address: '17676438278047402502L',
+			balance: '15412982278208',
+			publicKey:
+				'dd786687dd2399605ce8fe70212d078db1a2fc6effba127defb176a004cec6d4',
+			secondPublicKey: '',
+		};
 	});
 
 	describe('#constructor', () => {
@@ -146,7 +147,7 @@ describe('Delegate registration transaction class', () => {
 					DelegateTransaction.create.bind(undefined, {
 						passphrase,
 						secondPassphrase,
-						username: invalidUsername as unknown as string,
+						username: (invalidUsername as unknown) as string,
 					}),
 				).to.throw();
 			});
@@ -347,7 +348,6 @@ describe('Delegate registration transaction class', () => {
 
 			const { status, errors } = transaction.validateSchema();
 
-
 			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
 		});
@@ -471,7 +471,7 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'apply').returns({});
+			sandbox.stub(BaseTransaction.prototype, 'apply').returns({} as any);
 			expect(
 				validTestTransaction.apply.bind(validDelegateTransaction, {
 					sender,
@@ -505,7 +505,7 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'undo').returns({});
+			sandbox.stub(BaseTransaction.prototype, 'undo').returns({} as any);
 			expect(
 				validTestTransaction.undo.bind(validDelegateTransaction, {
 					sender,

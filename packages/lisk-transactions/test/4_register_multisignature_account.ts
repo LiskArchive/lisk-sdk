@@ -337,7 +337,7 @@ describe('#registerMultisignature transaction', () => {
 						return expect(
 							registerMultisignature.bind(null, {
 								keysgroup,
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 
@@ -346,7 +346,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: 23.45,
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 
@@ -355,7 +355,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: '123',
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 
@@ -364,7 +364,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: 73,
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 
@@ -373,7 +373,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: -1,
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 				});
@@ -388,7 +388,7 @@ describe('#registerMultisignature transaction', () => {
 						registerMultisignature.bind(null, {
 							keysgroup,
 							lifetime,
-						}),
+						} as any),
 					).to.throw(minimumErrorMessage);
 				});
 
@@ -408,7 +408,7 @@ describe('#registerMultisignature transaction', () => {
 							keysgroup,
 							lifetime,
 							minimum: '12',
-						}),
+						} as any),
 					).to.throw(minimumErrorMessage);
 				});
 

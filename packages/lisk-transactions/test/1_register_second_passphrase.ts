@@ -187,7 +187,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			});
 
 			it('should throw error when secondPassphrase was not provided', () => {
-				return expect(registerSecondPassphrase.bind(null, {})).to.throw(
+				return expect(registerSecondPassphrase.bind(null, {} as any)).to.throw(
 					'Please provide a secondPassphrase. Expected string.',
 				);
 			});

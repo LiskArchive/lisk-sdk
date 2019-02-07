@@ -353,7 +353,7 @@ describe('Base transaction class', () => {
 		it('should call toJSON', async () => {
 			const toJSONStub = sandbox
 				.stub(validTestTransaction, 'toJSON')
-				.returns({});
+				.returns({} as any);
 			validTestTransaction.validateSchema();
 
 			expect(toJSONStub).to.be.calledOnce;
@@ -496,7 +496,7 @@ describe('Base transaction class', () => {
 		it('should call verifySignature', async () => {
 			const verifySignatureStub = sandbox
 				.stub(utils, 'verifySignature')
-				.returns(true);
+				.returns(true as any);
 			validTestTransaction.validate();
 
 			expect(verifySignatureStub).to.be.calledWithExactly(
@@ -594,7 +594,7 @@ describe('Base transaction class', () => {
 		it('should call verifyBalance', async () => {
 			const verifyBalanceStub = sandbox
 				.stub(utils, 'verifyBalance')
-				.returns(true);
+				.returns(true as any);
 			validTestTransaction.verify({ sender: defaultSenderAccount });
 
 			expect(verifyBalanceStub).to.be.calledWithExactly(
@@ -606,7 +606,7 @@ describe('Base transaction class', () => {
 		it('should call verifySignature for second signature transaction', async () => {
 			const verifySignatureStub = sandbox
 				.stub(utils, 'verifySignature')
-				.returns(true);
+				.returns(true as any);
 			validSecondSignatureTestTransaction.verify({
 				sender: defaultSecondSignatureAccount,
 			});
@@ -645,7 +645,7 @@ describe('Base transaction class', () => {
 					id: validMultisignatureTestTransaction.id,
 					status: Status.OK,
 					errors: [],
-				});
+				} as any);
 			validMultisignatureTestTransaction.verify({
 				sender: defaultMultisignatureAccount,
 			});

@@ -634,7 +634,9 @@ describe('Dapp transaction class', () => {
 		};
 
 		it('should call BaseTransaction verify', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'verify').returns({ errors: [] });
+			sandbox
+				.stub(BaseTransaction.prototype, 'verify')
+				.returns({ errors: [] } as any);
 			validTestTransaction.verify({
 				sender: defaultValidSender,
 				dependentState: { transaction: [] },

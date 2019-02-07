@@ -155,7 +155,7 @@ export const dappAssetFormatSchema = {
 };
 
 export class DappTransaction extends BaseTransaction {
-	public readonly containsUniqueData = true;
+	public readonly containsUniqueData: boolean;
 	public readonly asset: DappAsset;
 
 	public constructor(tx: TransactionJSON) {
@@ -176,6 +176,7 @@ export class DappTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as DappAsset;
 		this._fee = new BigNum(DAPP_FEE);
+		this.containsUniqueData = true;
 	}
 
 	public static create(input: CreateDappInput): object {
