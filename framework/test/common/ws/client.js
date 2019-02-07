@@ -33,15 +33,6 @@ function WSClient(headers = WSServerMaster.generatePeerHeaders()) {
  * Start the client and register the handlers
  */
 WSClient.prototype.start = function() {
-	const peersHeaders = {
-		version: __testContext.config.version,
-		minVersion: __testContext.config.minVersion,
-		protocolVersion: __testContext.config.protocolVersion,
-		nethash: __testContext.config.nethash,
-		nonce: __testContext.config.nonce,
-		wsPort: __testContext.config.wsPort,
-		httpPort: __testContext.config.httpPort,
-	};
 	this.client = connect(
 		{
 			ip: __testContext.config.address,
@@ -53,7 +44,7 @@ WSClient.prototype.start = function() {
 			debug() {},
 			error() {},
 		},
-		peersHeaders,
+		this.headers,
 		this.stop.bind(this)
 	);
 	// Call updateMyself RPC on the peer to:
