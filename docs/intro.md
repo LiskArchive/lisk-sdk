@@ -28,194 +28,74 @@ This is an ongoing process
 Tags available should be declared in the following order:
 
 ```js
-@global
-
 @typedef
-@var
-@name
 @namespace
-@constructor
-@callback
+@class
 @event
-@function
+@func
 
-@augments
-@lends
-
-@type
-@prop
+@property
 
 @param
 @return
 
 @throws
-@fires
-@listens
 
-@ingroup
 @deprecated
 @see
 @todo
-@ignore
 ```
 
 ## Syntax
 
-### General
-
-`@description <some description>`:
-Can omit this tag if description is located at the beginning
-
 ### Membership
 
 `@namespace [[{<type>}] <SomeName>]`:
-an object creates a namespace for its members.
-
+describes a parent folder or object.
 `@memberof <parentNamepath>`:
-identifies a member symbol that belongs to a parent symbol.  
+identifies a member symbol that belongs to a parent symbol. Usable for code tagged as @class or @namespace.
 `@memberof! <parentNamepath>`:
 forces JSDoc to document a property of an object that is an instance member of a class.
 [Examples](http://usejsdoc.org/tags-memberof.html#examples)
-
-### Relational
-
-`@implements {typeExpression}`:
-a symbol implements an interface.
-
-`@interface [<name>]`:
-marks a symbol as an interface that other symbols can implement.
-
-`@external <NameOfExternal>`:
-identifies a class, namespace, or module that is defined outside of the current package.
-`@see <text|namepath>` to add a link
 
 ### Entities
 
 `@class [<type> <name>]`:
 marks a function as being a constructor, meant to be called with the new keyword to return an instance.
 
-`@function [<FunctionName>]`:
+`@func [<FunctionName>]`:
 marks an object as being a function, even though it may not appear to be one to the parser
 
 `@module [[{<type>}] module:<moduleName>]`:
 marks the current file as being its own module. All symbols in the file are assumed to be members of the module unless documented otherwise.
 
-`@static`:
-symbol is contained within a parent and can be accessed without instantiating the parent.
-
 #### Symbols, Parameters, Variables
-
-`@type {typeName}`:
-allows you to provide a type expression identifying the type of value that a symbol may contain, or the type of value returned by a function.
-[examples](http://usejsdoc.org/tags-type.html)
 
 `@typedef [<type>] <namepath>`:
 custom types, particularly if you wish to refer to them repeatedly.
 
-`@private | @public | @protected`:
-
-* public: JSDoc treats all symbols as public
-* proceted: a symbol is only available, or should only be used, within the current module.
-
-`@inner vs @global`:
-
-### Beavior
-
 `@param {type} name - description`:
-name, type, and description of a function parameter.
+name, type, and description of a function parameter. **Required** for each parameter of a function.
 [examples](http://usejsdoc.org/tags-param.html)
 
-`@returns`:
+### Behavior
 
-`@callback`:
-callback function that can be passed to other functions.
+`@return`: **required** for all functions with an explicit return statement.
 
-`@throws {<type>} free-form description`:
-an error that a function might throw.
+`@throws {<type>} free-form description`: an error that a function might throw.
 
 ### Events
 
-`@event <className>#[event:]<eventName>`:
-
-`@listens <eventName>`:
-indicates that a symbol listens for the specified event.
-
-`@fires <className>#[event:]<eventName>`:
-
-`@mixin`:
-This provides methods used for event handling
+`@event <className>#[event:]<eventName>`: **describes** an event, that the app is listening to.
 
 ## Examples
 
-#### document namespaces
-
-```js
-/** @namespace */
-hgm = {};
-
-/** @namespace */
-hgm.cookie = {
-	/** describe me */
-	get: function(name) {},
-
-	/** describe me */
-	set: function(name, value) {},
-
-	/** describe me */
-	remove: function(name) {},
-};
-```
-
-#### A namespace with defaults and nested default properties
-
-```js
-/**
- * @namespace
- * @property {Object} defaults - The default values for parties.
- * @property {number} defaults.players - The default number of players.
- * @property {string} defaults.level - The default level for the party.
- * @property {Object} defaults.treasure - The default treasure.
- * @property {number} defaults.treasure.gold - How much gold the party starts with.
- */
-var config = {
-	defaults: {
-		players: 1,
-		level: 'beginner',
-		treasure: {
-			gold: 0,
-		},
-	},
-};
-```
-
-#### Documenting large apps, group modules into categories
-
-> This is to represent and explore functional behavior.
-
-Example: Account module is composed by:
-
-* api
-* modules
-* logic
-* schema
-* helpers
-
-```js
-/**Parent module
- * @module package-name
- */
-
-/**Child of the parent module
- * @namespace firstChild
- * @memberof module:package-name
- */
-```
+For concrete examples, have a look in the aready existing JSDoc blocks in the code.
 
 #### ToDO
 
 * [ ] JSDoc template
 * [ ] Markdown plugin
-* [ ] Use categories tag: `@categories`
 * [ ] Patterns examples
 * [ ] More Lisk examples: callback, throws, class, nested objects
 * [ ] JSDoc tutorials for best practices
