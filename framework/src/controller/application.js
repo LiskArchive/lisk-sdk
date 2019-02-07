@@ -8,8 +8,8 @@ const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
 
-// Private scope used because private keyword is restricted
-const scope = {
+// Private __private used because private keyword is restricted
+const __private = {
 	modules: new WeakMap(),
 	transactions: new WeakMap(),
 };
@@ -99,8 +99,8 @@ module.exports = class Application {
 
 		this.logger = createLoggerComponent(this.config.components.logger);
 
-		scope.modules.set(this, {});
-		scope.transactions.set(this, {});
+		__private.modules.set(this, {});
+		__private.transactions.set(this, {});
 
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
@@ -134,7 +134,7 @@ module.exports = class Application {
 			spec: moduleSpec,
 			config: config || {},
 		};
-		scope.modules.set(this, modules);
+		__private.modules.set(this, modules);
 	}
 
 	/**
@@ -150,7 +150,7 @@ module.exports = class Application {
 			`No module ${alias} is registered`
 		);
 		modules[alias].config = Object.assign({}, modules[alias].config, config);
-		scope.modules.set(this, modules);
+		__private.modules.set(this, modules);
 	}
 
 	/**
@@ -174,7 +174,7 @@ module.exports = class Application {
 
 		const transactions = this.getTransactions();
 		transactions[alias] = Object.freeze(Transaction);
-		scope.transactions.set(this, transactions);
+		__private.transactions.set(this, transactions);
 	}
 
 	/**
@@ -183,7 +183,7 @@ module.exports = class Application {
 	 * @return {Object}
 	 */
 	getTransactions() {
-		return scope.transactions.get(this);
+		return __private.transactions.get(this);
 	}
 
 	/**
@@ -193,7 +193,7 @@ module.exports = class Application {
 	 * @return {constructor|undefined}
 	 */
 	getTransaction(alias) {
-		return scope.transactions.get(this)[alias];
+		return __private.transactions.get(this)[alias];
 	}
 
 	/**
@@ -203,7 +203,7 @@ module.exports = class Application {
 	 * @return {{spec: Object, config: Object}}
 	 */
 	getModule(alias) {
-		return scope.modules.get(this)[alias];
+		return __private.modules.get(this)[alias];
 	}
 
 	/**
@@ -212,7 +212,7 @@ module.exports = class Application {
 	 * @return {Array.<Object>}
 	 */
 	getModules() {
-		return scope.modules.get(this);
+		return __private.modules.get(this);
 	}
 
 	/**
