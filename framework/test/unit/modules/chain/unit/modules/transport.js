@@ -220,6 +220,7 @@ describe('transport', async () => {
 					broadcastInterval: 10000,
 					releaseLimit: 10,
 				},
+				httpPort: 8000,
 			},
 			modules: {},
 			components: {
@@ -1012,6 +1013,7 @@ describe('transport', async () => {
 						broadcasts: {
 							active: true,
 						},
+						httpPort: 8000,
 					},
 					network: {
 						io: {
@@ -1906,7 +1908,6 @@ describe('transport', async () => {
 						broadhash:
 							'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
 						nonce: 'sYHEDBKcScaAAAYg',
-						httpPort: 8000,
 						version: 'v0.8.0',
 						os: 'debian',
 					};
@@ -1939,7 +1940,7 @@ describe('transport', async () => {
 				it('should call callback with a result containing httpPort = 8000', async () =>
 					expect(result)
 						.to.have.property('httpPort')
-						.which.equals(components.system.headers.httpPort));
+						.which.equals(defaultScope.config.httpPort));
 
 				it('should call callback with a result containing version = "v0.8.0"', async () =>
 					expect(result)
