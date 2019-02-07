@@ -25,6 +25,13 @@ try {
 					enabled: config.cacheEnabled,
 				},
 				storage: config.db,
+				system: {
+					nethash: config.nethash,
+					version: config.version,
+					minVersion: config.minVersion,
+					protocolVersion: config.protocolVersion,
+					nonce: config.nonce,
+				},
 			},
 		}
 	);

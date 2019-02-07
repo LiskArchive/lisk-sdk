@@ -5,7 +5,6 @@ const dns = require('dns');
 const net = require('net');
 const SocketCluster = require('socketcluster');
 const async = require('async');
-const randomstring = require('randomstring');
 const wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 const WsTransport = require('./api/ws/transport');
 const git = require('./helpers/git.js');
@@ -18,7 +17,6 @@ const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const { createSystemComponent } = require('../../components/system');
 const defaults = require('./defaults');
-const packageJSON = require('../../../../package.json');
 
 // Define workers_controller path
 const workersControllerPath = path.join(__dirname, 'workers_controller');
@@ -92,6 +90,11 @@ module.exports = class Chain {
 			'cache'
 		);
 
+		const systemConfig = await this.channel.invoke(
+			'lisk:getComponentConfig',
+			'system'
+		);
+
 		this.logger = createLoggerComponent(loggerConfig);
 		const dbLogger =
 			storageConfig.logFileName &&
@@ -134,19 +137,12 @@ module.exports = class Chain {
 		this.logger.debug('Initiating storage...');
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
-		// Config
-		const appConfig = this.options.config;
-		appConfig.genesisBlock = this.options.genesisBlock;
-		appConfig.nethash = this.options.genesisBlock.payloadHash;
-		appConfig.root = path.dirname(path.join(__filename));
-		appConfig.version = packageJSON.version;
-		appConfig.minVersion = packageJSON.lisk.minVersion;
-		appConfig.protocolVersion = packageJSON.lisk.protocolVersion;
-		appConfig.nonce = randomstring.generate(16);
-
 		// System
 		this.logger.debug('Initiating system...');
-		const system = createSystemComponent(appConfig, this.logger, storage);
+		const system = createSystemComponent(systemConfig, this.logger, storage);
+
+		// Config
+		const appConfig = this.options.config;
 
 		const self = this;
 
