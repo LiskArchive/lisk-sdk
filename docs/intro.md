@@ -1,4 +1,4 @@
-![Lisk Logo](https://lisk.io/i/mediakit/logo_1.png)
+![Lisk Logo](https://lisk.io/content/12-brand-style-guide/modules/2-brand-site-logo-113kyc5/logo-dark.svg)
 
 # Lisk JSDoc Source code documentation
 
