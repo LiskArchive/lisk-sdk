@@ -318,8 +318,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 
 			describe('edge cases', () => {
-				it("using '\u0000 hey:)' should be ok", () => {
-					const additioinalData = '\u0000 hey:)';
+				it("using '❤ hey \x01 :)' should be ok", () => {
+					const additioinalData = '❤ hey \x01 :)';
 					const accountAdditionalData = randomUtil.account();
 					transaction = lisk.transaction.transfer({
 						amount: 1,
@@ -333,6 +333,91 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 							'Transaction(s) accepted'
 						);
 						goodTransactions.push(transaction);
+					});
+				});
+
+				it("using '\0 hey 1 :)' should fail", () => {
+					const additioinalData = '\u0000 hey:)';
+					const accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(
+						transaction,
+						errorCodes.PROCESSING_ERROR
+					).then(res => {
+						expect(res.body.message).to.be.equal(
+							'Transfer data field has invalid character. Null character is not allowed.'
+						);
+						badTransactions.push(transaction);
+					});
+				});
+
+				it("using '\x00 hey 2 :)' should fail", () => {
+					const additioinalData = '\u0000 hey:)';
+					const accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(
+						transaction,
+						errorCodes.PROCESSING_ERROR
+					).then(res => {
+						expect(res.body.message).to.be.equal(
+							'Transfer data field has invalid character. Null character is not allowed.'
+						);
+						badTransactions.push(transaction);
+					});
+				});
+
+				it("using '\u0000 hey 3 :)' should fail", () => {
+					const additioinalData = '\u0000 hey:)';
+					const accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(
+						transaction,
+						errorCodes.PROCESSING_ERROR
+					).then(res => {
+						expect(res.body.message).to.be.equal(
+							'Transfer data field has invalid character. Null character is not allowed.'
+						);
+						badTransactions.push(transaction);
+					});
+				});
+
+				// eslint-disable-next-line no-useless-escape
+				it("using 'U00000000 hey 4 :)' should fail", () => {
+					const additioinalData = '\u0000 hey:)';
+					const accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(
+						transaction,
+						errorCodes.PROCESSING_ERROR
+					).then(res => {
+						expect(res.body.message).to.be.equal(
+							'Transfer data field has invalid character. Null character is not allowed.'
+						);
+						badTransactions.push(transaction);
 					});
 				});
 			});
