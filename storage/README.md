@@ -2,7 +2,7 @@
 
 Entities describe a business entity persisted to storage layer.
 
-## How to use
+## How to use storage entities?
 
 The initial implementation includes CRUD operations for the entities `Account`, `Block` and `Transaction`.
 
@@ -54,11 +54,11 @@ const filter = { id: '123456789' };
 const isPersisted = await storage.entities.Transaction.isPersisted(filter);
 ```
 
-## Utility Methods
+## Utility methods
 
 The following utility methods are available each class extending `BaseEntity`.
 
-### addField
+### "addField" method
 
 It provides a basic structure to define fields for the entity.
 `addField(name, type, options)`
@@ -96,13 +96,13 @@ If you add a field using `addField('address', 'string', { filter: ft.TEXT })` th
 
 You can check the list of available filters for a entity by calling `<Entity>.getFilters()`.
 
-### Filter Combinator
+### Filter combinator
 
 If filters are provided as JSON objects, they will always be joined with an `AND` combinator. For instance, specifying filters as `{name: 'Alpha', description_like: 'Bravo'}` results in fetching all results which have a name equal to `Alpha` and description matching `Bravo`. Specifying filters as an array of objects, e.g. `[{name: 'Alpha'}, {description_like: 'Bravo'}]`, will result in joining objects with `OR` combinator, i.e. fetching data which name equal to `Alpha` or description like `Bravo`.
 
 You can register a `CUSTOM` filter, by defining your own key and a function which will return a custom condition.
 
-## How to create entity
+## How to create entity?
 
 This storage implementation was designed to be flexible and extensible. In order to achive that, a `BaseEntity` was implemented with some common methods and attributes that provides a generic structure to manage the entity.
 New entities are created by extending the `BaseEntity` and implementing the required interfaces.
