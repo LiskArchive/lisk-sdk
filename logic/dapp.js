@@ -18,6 +18,7 @@ const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
 const dappCategories = require('../helpers/dapp_categories.js');
 const Bignum = require('../helpers/bignum.js');
+const regexpTester = require('../helpers/regexp_tester.js');
 
 let library;
 const { FEES } = global.constants;
@@ -158,6 +159,13 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		);
 	}
 
+	if (regexpTester.testNullCharacter(transaction.asset.dapp.name)) {
+		return setImmediate(
+			cb,
+			'Application name has invalid character. Null character is not allowed.'
+		);
+	}
+
 	if (
 		transaction.asset.dapp.description &&
 		transaction.asset.dapp.description.length > 160
@@ -175,12 +183,29 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		);
 	}
 
+	if (
+		transaction.asset.dapp.description &&
+		regexpTester.testNullCharacter(transaction.asset.dapp.description)
+	) {
+		return setImmediate(
+			cb,
+			'Application description has invalid character. Null character is not allowed.'
+		);
+	}
+
 	if (transaction.asset.dapp.tags) {
 		let tags = transaction.asset.dapp.tags.split(',');
 
 		tags = tags.map(tag => tag.trim()).sort();
 
 		for (let i = 0; i < tags.length - 1; i++) {
+			if (regexpTester.testNullCharacter(tags[i])) {
+				return setImmediate(
+					cb,
+					'Application tags has invalid character. Null character is not allowed'
+				);
+			}
+
 			if (tags[i + 1] === tags[i]) {
 				return setImmediate(
 					cb,
