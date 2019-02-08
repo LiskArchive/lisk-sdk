@@ -238,6 +238,7 @@ module.exports = class Application {
 		registerProcessHooks(this);
 
 		this.controller = new Controller(
+			this.label,
 			this.getModules(),
 			this.config.components,
 			this.logger

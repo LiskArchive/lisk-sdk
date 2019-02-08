@@ -1,7 +1,7 @@
 const assert = require('assert');
 const Promise = require('bluebird');
 const fs = require('fs-extra');
-const config = require('./helpers/config');
+const systemDirs = require('./config/dirs');
 const EventEmitterChannel = require('./channels/event_emitter');
 const Bus = require('./bus');
 
@@ -33,20 +33,28 @@ const validateModuleSpec = moduleSpec => {
  */
 module.exports = class Controller {
 	/**
-	 * Create controller object.
+	 * Controller responsible to run the application
 	 *
-	 * @param {Array} modules - All registered modules
-	 * @param {Object} componentConfig - Configurations for components
-	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
+	 * @param {string} appLabel - Application label
+	 * @param {Object} modules - Modules objects
+	 * @param {Object} componentConfig - Component configuration provided by user
+	 * @param {Object} logger
 	 */
-	constructor(modules, componentConfig, logger) {
+	constructor(appLabel, modules, componentConfig, logger) {
 		this.logger = logger;
-		this.componentConfig = componentConfig;
 		this.logger.info('Initializing controller');
+
+		this.appLabel = appLabel;
+		this.componentConfig = componentConfig;
+		this.modules = modules;
+
 		this.channel = null; // Channel for controller
 		this.channels = {}; // Keep track of all channels for modules
 		this.bus = null;
-		this.modules = modules;
+
+		this.config = {
+			dirs: systemDirs(this.appLabel),
+		};
 	}
 
 	/**
@@ -76,10 +84,10 @@ module.exports = class Controller {
 	// eslint-disable-next-line class-methods-use-this
 	async _setupDirectories() {
 		// Make sure all directories exists
-		fs.emptyDirSync(config.dirs.temp);
-		fs.ensureDirSync(config.dirs.sockets);
-		fs.ensureDirSync(config.dirs.pids);
-		fs.writeFileSync(`${config.dirs.pids}/controller.pid`, process.pid);
+		fs.emptyDirSync(this.config.dirs.temp);
+		fs.ensureDirSync(this.config.dirs.sockets);
+		fs.ensureDirSync(this.config.dirs.pids);
+		fs.writeFileSync(`${this.config.dirs.pids}/controller.pid`, process.pid);
 	}
 
 	/**
