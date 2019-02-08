@@ -12,22 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const { transaction } = require('lisk-elements').default;
+const {
+	TransferTransaction,
+	SecondSignatureTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
+	DappTransaction,
+	InTransferTransaction,
+	OutTransferTransaction,
+} = require('@liskhq/lisk-transactions');
 
 class Transaction {
 	constructor(rawTx) {
 		const map = new Map([
-			[0, 'TransferTransaction'],
-			[1, 'SecondSignatureTransaction'],
-			[2, 'DelegateTransaction'],
-			[3, 'VoteTransaction'],
-			[4, 'MultisignatureTransaction'],
-			[5, 'DappTransaction'],
-			[6, 'InTransferTransaction'],
-			[7, 'OutTransferTransaction'],
+			[0, TransferTransaction],
+			[1, SecondSignatureTransaction],
+			[2, DelegateTransaction],
+			[3, VoteTransaction],
+			[4, MultisignatureTransaction],
+			[5, DappTransaction],
+			[6, InTransferTransaction],
+			[7, OutTransferTransaction],
 		]);
 
-		const TransactionClass = transaction[map.get(rawTx.type)];
+		const TransactionClass = map.get(rawTx.type);
 
 		if (!tx) {
 			throw new Error('Transaction type not found.');
