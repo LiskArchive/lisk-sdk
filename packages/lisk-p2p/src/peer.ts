@@ -67,6 +67,7 @@ export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
 export const REMOTE_EVENT_MESSAGE = 'remote-message';
 
 export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
+export const REMOTE_RPC_GET_NODE_INFO = 'status';
 export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
 type SCServerSocketUpdated = {
@@ -85,20 +86,20 @@ export interface PeerConnectionState {
 }
 
 export const constructPeerId = (ipAddress: string, wsPort: number): string =>
-	`${ipAddress}:${wsPort}`;
+	`${ipAddress}:${wsPort}`
 
 export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+	`${peerInfo.ipAddress}:${peerInfo.wsPort}`
 
 // Format the node info so that it will be valid from the perspective of both new and legacy nodes.
-const convertNodeInfoToLegacyFormat = (
-	nodeInfo: P2PNodeInfo,
-): ProtocolNodeInfo => ({
-	...nodeInfo,
-	httpPort: nodeInfo.options ? (nodeInfo.options.httpPort as number) : 0,
-	broadhash: nodeInfo.options ? (nodeInfo.options.broadhash as string) : '',
-	nonce: nodeInfo.options ? (nodeInfo.options.nonce as string) : '',
-});
+const convertNodeInfoToLegacyFormat = (nodeInfo: P2PNodeInfo): ProtocolNodeInfo => (
+	{
+		...nodeInfo,
+		httpPort: nodeInfo.options ? nodeInfo.options.httpPort as number : 0,
+		broadhash: nodeInfo.options ? nodeInfo.options.broadhash as string : '',
+		nonce: nodeInfo.options ? nodeInfo.options.nonce as string : '',
+	}
+);
 
 export class Peer extends EventEmitter {
 	private readonly _id: string;
@@ -116,12 +117,8 @@ export class Peer extends EventEmitter {
 	) => void;
 	private readonly _handleRawMessage: (packet: unknown) => void;
 	private readonly _handleRawLegacyMessagePostBlock: (packet: unknown) => void;
-	private readonly _handleRawLegacyMessagePostTransactions: (
-		packet: unknown,
-	) => void;
-	private readonly _handleRawLegacyMessagePostSignatures: (
-		packet: unknown,
-	) => void;
+	private readonly _handleRawLegacyMessagePostTransactions: (packet: unknown) => void;
+	private readonly _handleRawLegacyMessagePostSignatures: (packet: unknown) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
 	public constructor(peerInfo: P2PPeerInfo, inboundSocket?: SCServerSocket) {
@@ -155,6 +152,8 @@ export class Peer extends EventEmitter {
 
 			if (rawRequest.procedure === REMOTE_RPC_UPDATE_PEER_INFO) {
 				this._handleUpdatePeerInfo(request);
+			} else if (rawRequest.procedure === REMOTE_RPC_GET_NODE_INFO) {
+				this._handleGetNodeInfo(request);
 			}
 
 			this.emit(EVENT_REQUEST_RECEIVED, request);
@@ -400,19 +399,15 @@ export class Peer extends EventEmitter {
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
-		const legacyNodeInfo = this._nodeInfo
-			? convertNodeInfoToLegacyFormat(this._nodeInfo)
-			: undefined;
+		const legacyNodeInfo = this._nodeInfo ? convertNodeInfoToLegacyFormat(this._nodeInfo) : undefined;
 
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: querystring.stringify({
 				...legacyNodeInfo,
-				options:
-					legacyNodeInfo && legacyNodeInfo.options
-						? JSON.stringify(legacyNodeInfo.options)
-						: undefined,
+				options: legacyNodeInfo && legacyNodeInfo.options ?
+					JSON.stringify(legacyNodeInfo.options) : undefined,
 			}),
 			autoConnect: false,
 			pingTimeoutDisabled: true,
@@ -455,20 +450,16 @@ export class Peer extends EventEmitter {
 		outboundSocket.off();
 	}
 
+
+
 	// All event handlers for the inbound socket should be bound in this method.
 	private _bindHandlersToInboundSocket(inboundSocket: SCServerSocket): void {
 		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.on('error', this._handleInboundSocketError);
 		inboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
-		inboundSocket.on(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		inboundSocket.on(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
+		inboundSocket.on('postSignatures', this._handleRawLegacyMessagePostSignatures);
+		inboundSocket.on('postTransactions', this._handleRawLegacyMessagePostTransactions);
 	}
 
 	// All event handlers for the inbound socket should be unbound in this method.
@@ -479,24 +470,14 @@ export class Peer extends EventEmitter {
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.off('error', this._handleInboundSocketError);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
-		inboundSocket.off(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		inboundSocket.off(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
-	}
-
-	public static constructPeerIdFromPeerInfo(peerInfo: P2PPeerInfo): string {
-		return `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+		inboundSocket.off('postSignatures', this._handleRawLegacyMessagePostSignatures);
+		inboundSocket.off('postTransactions', this._handleRawLegacyMessagePostTransactions);
 	}
 
 	private _handleUpdatePeerInfo(request: P2PRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			const protocolPeerInfo = { ...request.data, ip: this._ipAddress };
+			const protocolPeerInfo = {...request.data, ip: this._ipAddress};
 			const newPeerInfo = validatePeerInfo(protocolPeerInfo);
 			this.updatePeerInfo(newPeerInfo);
 		} catch (error) {
@@ -508,5 +489,10 @@ export class Peer extends EventEmitter {
 
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 		request.end();
+	}
+
+	private _handleGetNodeInfo(request: P2PRequest): void {
+		const legacyNodeInfo = this._nodeInfo ? convertNodeInfoToLegacyFormat(this._nodeInfo) : {};
+		request.end(legacyNodeInfo);
 	}
 }
