@@ -549,7 +549,7 @@ describe('Base transaction class', () => {
 		it('should call verifyBalance', async () => {
 			const verifyBalanceStub = sandbox
 				.stub(utils, 'verifyBalance')
-				.returns(true);
+				.returns({ verified: true, error: undefined });
 			validTestTransaction.verify(store);
 
 			expect(verifyBalanceStub).to.be.called;
@@ -559,7 +559,7 @@ describe('Base transaction class', () => {
 			store.account.get = () => defaultSecondSignatureAccount;
 			const verifySignatureStub = sandbox
 				.stub(utils, 'verifySignature')
-				.returns(true);
+				.returns({ verified: true, error: undefined });
 			validSecondSignatureTestTransaction.verify(store);
 
 			expect(verifySignatureStub).to.be.calledWithExactly(
@@ -593,8 +593,7 @@ describe('Base transaction class', () => {
 			const verifyMultisignaturesStub = sandbox
 				.stub(utils, 'verifyMultisignatures')
 				.returns({
-					id: validMultisignatureTestTransaction.id,
-					status: Status.OK,
+					verified: true,
 					errors: [],
 				});
 			validMultisignatureTestTransaction.verify(store);
