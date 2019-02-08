@@ -17,19 +17,17 @@ import * as BigNum from 'browserify-bignum';
 import { SIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import {
-	Account,
 	SecondSignatureAsset,
-	Status,
 	TransactionJSON,
 } from '../transaction_types';
 import { getId, validator } from '../utils';
-import { BaseTransaction, TransactionResponse } from './base';
+import {
+	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
+} from './base';
 
 const TRANSACTION_SIGNATURE_TYPE = 1;
-
-export interface RequiredSecondSignatureState {
-	readonly sender: Account;
-}
 
 export interface SignatureObject {
 	readonly publicKey: string;
@@ -111,10 +109,18 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		};
 	}
 
-	public verifyAgainstOtherTransactions(
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
+	}
+
+	protected verifyAgainstTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
-		const errors = transactions
+	): ReadonlyArray<TransactionError> {
+		return transactions
 			.filter(
 				tx =>
 					tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
@@ -127,22 +133,11 @@ export class SecondSignatureTransaction extends BaseTransaction {
 						'.asset.signature',
 					),
 			);
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
 	}
 
-	public validateSchema(): TransactionResponse {
-		const { status, errors: baseErrors } = super.validateSchema();
-		const errors = [...baseErrors];
-		const valid = validator.validate(
-			secondSignatureAssetFormatSchema,
-			this.asset,
-		);
-		const assetErrors = validator.errors
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		validator.validate(secondSignatureAssetFormatSchema, this.asset);
+		const errors = validator.errors
 			? validator.errors.map(
 					error =>
 						new TransactionError(
@@ -152,8 +147,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 						),
 			  )
 			: [];
-
-		errors.push(...assetErrors);
 
 		if (this.type !== TRANSACTION_SIGNATURE_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
@@ -195,20 +188,13 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			);
 		}
 
-		return {
-			id: this.id,
-			status:
-				status === Status.OK && valid && errors.length === 0
-					? Status.OK
-					: Status.FAIL,
-			errors,
-		};
+		return errors;
 	}
 
-	public verify({ sender }: RequiredSecondSignatureState): TransactionResponse {
-		const { errors: baseErrors } = super.apply({ sender });
-		const errors = [...baseErrors];
-
+	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors: TransactionError[] = [];
+		const sender = store.account.get(this.senderId);
+		// Check if secondPublicKey already exists on account
 		if (sender.secondPublicKey) {
 			errors.push(
 				new TransactionError(
@@ -218,62 +204,21 @@ export class SecondSignatureTransaction extends BaseTransaction {
 				),
 			);
 		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
+		const updatedSender = {
+			...sender,
+			secondPublicKey: this.asset.signature.publicKey,
 		};
+		store.account.set(updatedSender.address, updatedSender);
+
+		return errors;
 	}
 
-	public apply({ sender }: RequiredSecondSignatureState): TransactionResponse {
-		const { errors: baseErrors, state } = super.apply({ sender });
-		if (!state) {
-			throw new Error('State is required for applying transaction.');
-		}
-		const errors = [...baseErrors];
-		const { sender: updatedSender } = state;
+	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const sender = store.account.get(this.senderId);
+		const { secondPublicKey, ...strippedSender } = sender;
+		store.account.set(strippedSender.address, strippedSender);
 
-		// Check if secondPublicKey already exists on account
-		if (updatedSender.secondPublicKey) {
-			errors.push(
-				new TransactionError(
-					'Register second signature only allowed once per account.',
-					this.id,
-					'.secondPublicKey',
-				),
-			);
-		}
-
-		return {
-			id: this.id,
-			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			state: {
-				sender: {
-					...updatedSender,
-					secondPublicKey: this.asset.signature.publicKey,
-				},
-			},
-			errors,
-		};
-	}
-
-	public undo({ sender }: RequiredSecondSignatureState): TransactionResponse {
-		const { errors: baseErrors, state } = super.undo({ sender });
-		if (!state) {
-			throw new Error('State is required for undoing transaction.');
-		}
-		const errors = [...baseErrors];
-		const { sender: updatedSender } = state as { readonly sender: Account };
-
-		const { secondPublicKey, ...strippedSender } = updatedSender;
-
-		return {
-			id: this.id,
-			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			errors,
-			state: { sender: strippedSender },
-		};
+		return [];
 	}
 
 	public sign(passphrase: string): void {

@@ -14,5 +14,5 @@
  */
 import { addTransactionFields } from './add_transaction_fields';
 import { TestTransaction } from './test_transaction_class';
-
-export { addTransactionFields, TestTransaction };
+import { MockStateStore } from './state_store';
+export { addTransactionFields, MockStateStore, TestTransaction };

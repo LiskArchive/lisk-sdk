@@ -18,17 +18,14 @@ import { TransactionError, TransactionMultiError } from '../errors';
 import {
 	Account,
 	DelegateAsset,
-	Status,
 	TransactionJSON,
 } from '../transaction_types';
 import { CreateBaseTransactionInput, validator } from '../utils';
-import { isTypedObjectArrayWithKeys } from '../utils/validation';
 import {
-	Attributes,
 	BaseTransaction,
 	ENTITY_ACCOUNT,
-	EntityMap,
-	TransactionResponse,
+	StateStore,
+	StateStorePrepare,
 } from './base';
 
 const TRANSACTION_DELEGATE_TYPE = 2;
@@ -130,21 +127,21 @@ export class DelegateTransaction extends BaseTransaction {
 		};
 	}
 
-	public getRequiredAttributes(): Attributes {
-		const attr = super.getRequiredAttributes();
-
-		return {
-			[ENTITY_ACCOUNT]: {
-				...attr[ENTITY_ACCOUNT],
-				username: [this.asset.delegate.username],
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
 			},
-		};
+			{
+				username: this.asset.delegate.username,
+			},
+		]);
 	}
 
-	public verifyAgainstOtherTransactions(
+	protected verifyAgainstTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
-		const errors = transactions
+	): ReadonlyArray<TransactionError> {
+		return transactions
 			.filter(
 				tx =>
 					tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
@@ -157,45 +154,11 @@ export class DelegateTransaction extends BaseTransaction {
 						'.asset.delegate',
 					),
 			);
-
-		return {
-			id: this.id,
-			errors,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-		};
 	}
 
-	public processRequiredState(state: EntityMap): RequiredDelegateState {
-		const { sender } = super.processRequiredState(state);
-		const accounts = state[ENTITY_ACCOUNT];
-
-		if (!accounts) {
-			throw new Error('Entity account is required.');
-		}
-		if (
-			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
-		) {
-			throw new Error('Required state does not have valid account type');
-		}
-
-		const dependentAccounts = accounts.filter(
-			acct => acct.username === this.asset.delegate.username,
-		);
-
-		return {
-			sender,
-			dependentState: {
-				[ENTITY_ACCOUNT]: dependentAccounts,
-			},
-		};
-	}
-
-	public validateSchema(): TransactionResponse {
-		const { status, errors: baseErrors } = super.validateSchema();
-		const valid = validator.validate(delegateAssetFormatSchema, this.asset);
-		const errors = [...baseErrors];
-
-		const assetErrors = validator.errors
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		validator.validate(delegateAssetFormatSchema, this.asset);
+		const errors = validator.errors
 			? validator.errors.map(
 					error =>
 						new TransactionError(
@@ -205,8 +168,6 @@ export class DelegateTransaction extends BaseTransaction {
 						),
 			  )
 			: [];
-
-		errors.push(...assetErrors);
 
 		if (this.type !== TRANSACTION_DELEGATE_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
@@ -238,29 +199,17 @@ export class DelegateTransaction extends BaseTransaction {
 			);
 		}
 
-		return {
-			id: this.id,
-			status:
-				status === Status.OK && valid && errors.length === 0
-					? Status.OK
-					: Status.FAIL,
-			errors,
-		};
+		return errors;
 	}
 
-	public verify({
-		sender,
-		dependentState,
-	}: RequiredDelegateState): TransactionResponse {
-		const { errors: baseErrors } = super.verify({ sender });
-		const errors = [...baseErrors];
-		const usernameUnique = dependentState
-			? dependentState[ENTITY_ACCOUNT].every(
-					({ username }) => username !== this.asset.delegate.username,
-			  )
-			: true;
+	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors: TransactionError[] = [];
+		const sender = store.account.get(this.senderId);
+		const usernameExists = store.account.find(
+			(account: Account) => account.username === this.asset.delegate.username,
+		);
 
-		if (!usernameUnique) {
+		if (usernameExists) {
 			errors.push(
 				new TransactionError(
 					`Username is not unique.`,
@@ -269,7 +218,6 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-
 		if (sender.isDelegate || sender.username) {
 			errors.push(
 				new TransactionError(
@@ -279,76 +227,21 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
+		const updatedSender = {
+			...sender,
+			isDelegate: true,
+			username: this.asset.delegate.username,
 		};
+		store.account.set(updatedSender.address, updatedSender);
+
+		return errors;
 	}
 
-	public apply({
-		sender,
-		dependentState,
-	}: RequiredDelegateState): TransactionResponse {
-		const { errors: baseErrors, state } = super.apply({ sender });
-		if (!state) {
-			throw new Error('State is required for applying transaction.');
-		}
-		const errors = [...baseErrors];
-		const usernameUnique = dependentState
-			? dependentState[ENTITY_ACCOUNT].every(
-					({ username }) => username !== this.asset.delegate.username,
-			  )
-			: true;
-		if (!usernameUnique) {
-			errors.push(
-				new TransactionError(
-					`Username is not unique.`,
-					this.id,
-					'.asset.delegate.username',
-				),
-			);
-		}
-		if (state.sender.isDelegate || state.sender.username) {
-			errors.push(
-				new TransactionError(
-					'Account is already a delegate',
-					this.id,
-					'.asset.delegate.username',
-				),
-			);
-		}
+	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const sender = store.account.get(this.senderId);
+		const { username, ...strippedSender } = sender;
+		store.account.set(strippedSender.address, strippedSender);
 
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-			state: {
-				sender: {
-					...state.sender,
-					isDelegate: true,
-					username: this.asset.delegate.username,
-				},
-			},
-		};
-	}
-
-	public undo({ sender }: RequiredDelegateState): TransactionResponse {
-		const { errors: baseErrors, state } = super.undo({ sender });
-		if (!state) {
-			throw new Error('State is required for undoing transaction.');
-		}
-		const errors = [...baseErrors];
-		const { username, ...strippedSender } = state.sender;
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-			state: {
-				sender: strippedSender,
-			},
-		};
+		return [];
 	}
 }

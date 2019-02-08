@@ -12,23 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import * as BigNum from 'browserify-bignum';
+
 import { MULTISIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	Account,
-	MultiSignatureAsset,
-	Status,
-	TransactionJSON,
-} from '../transaction_types';
+import { MultiSignatureAsset, TransactionJSON } from '../transaction_types';
 import { CreateBaseTransactionInput, validator } from '../utils';
-import { BaseTransaction, TransactionResponse } from './base';
+import { BaseTransaction, StateStore, StateStorePrepare } from './base';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
-
-export interface RequiredMultisignatureState {
-	readonly sender: Account;
-}
 
 export const multisignatureAssetTypeSchema = {
 	type: 'object',
@@ -146,9 +139,17 @@ export class MultisignatureTransaction extends BaseTransaction {
 		};
 	}
 
-	public verifyAgainstOtherTransactions(
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
+	}
+
+	protected verifyAgainstTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
+	): ReadonlyArray<TransactionError> {
 		const errors = transactions
 			.filter(
 				tx =>
@@ -163,21 +164,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 					),
 			);
 
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
+		return errors;
 	}
 
-	public validateSchema(): TransactionResponse {
-		const { status, errors: baseErrors } = super.validateSchema();
-		const valid = validator.validate(
-			multisignatureAssetFormatSchema,
-			this.asset,
-		);
-		const errors = [...baseErrors];
-		const assetErrors = validator.errors
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		validator.validate(multisignatureAssetFormatSchema, this.asset);
+		const errors = validator.errors
 			? validator.errors.map(
 					error =>
 						new TransactionError(
@@ -188,10 +180,18 @@ export class MultisignatureTransaction extends BaseTransaction {
 			  )
 			: [];
 
-		errors.push(...assetErrors);
-
 		if (this.type !== TRANSACTION_MULTISIGNATURE_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+		}
+
+		if (!this.amount.eq(0)) {
+			errors.push(
+				new TransactionError(
+					'Amount must be zero for multisignature registration transaction',
+					this.id,
+					'.asset',
+				),
+			);
 		}
 
 		if (
@@ -202,16 +202,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 					'Invalid multisignature min. Must be less than or equal to keysgroup size',
 					this.id,
 					'.asset.multisignature.min',
-				),
-			);
-		}
-
-		if (!this.amount.eq(0)) {
-			errors.push(
-				new TransactionError(
-					'Amount must be zero for multisignature registration transaction',
-					this.id,
-					'.asset',
 				),
 			);
 		}
@@ -232,28 +222,15 @@ export class MultisignatureTransaction extends BaseTransaction {
 			);
 		}
 
-		return {
-			id: this.id,
-			status:
-				status === Status.OK && valid && errors.length === 0
-					? Status.OK
-					: Status.FAIL,
-			errors,
-		};
+		return errors;
 	}
 
-	public verify({ sender }: RequiredMultisignatureState): TransactionResponse {
-		const { errors: baseErrors, state } = super.apply({ sender });
-		if (!state) {
-			throw new Error('State is required for applying transaction');
-		}
-		const errors = [...baseErrors];
+	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors: TransactionError[] = [];
+		const sender = store.account.get(this.senderId);
 
 		// Check if multisignatures already exists on account
-		if (
-			state.sender.multisignatures &&
-			state.sender.multisignatures.length > 0
-		) {
+		if (sender.multisignatures && sender.multisignatures.length > 0) {
 			errors.push(
 				new TransactionError(
 					'Register multisignature only allowed once per account.',
@@ -264,50 +241,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check if multisignatures includes sender's own publicKey
-		if (
-			this.asset.multisignature.keysgroup.includes(`+${state.sender.publicKey}`)
-		) {
-			errors.push(
-				new TransactionError(
-					'Invalid multisignature keysgroup. Can not contain sender',
-					this.id,
-					'.signatures',
-				),
-			);
-		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
-	}
-
-	public apply({ sender }: RequiredMultisignatureState): TransactionResponse {
-		const { errors: baseErrors, state } = super.apply({ sender });
-		if (!state) {
-			throw new Error('State is required for applying transaction');
-		}
-		const errors = [...baseErrors];
-
-		// Check if multisignatures already exists on account
-		if (
-			state.sender.multisignatures &&
-			state.sender.multisignatures.length > 0
-		) {
-			errors.push(
-				new TransactionError(
-					'Register multisignature only allowed once per account.',
-					this.id,
-					'.signatures',
-				),
-			);
-		}
-
-		// Check if multisignatures includes sender's own publicKey
-		if (
-			this.asset.multisignature.keysgroup.includes(`+${state.sender.publicKey}`)
-		) {
+		if (this.asset.multisignature.keysgroup.includes(`+${sender.publicKey}`)) {
 			errors.push(
 				new TransactionError(
 					'Invalid multisignature keysgroup. Can not contain sender',
@@ -318,45 +252,30 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		const updatedSender = {
-			...state.sender,
+			...sender,
 			multisignatures: this.asset.multisignature.keysgroup.map(key =>
 				key.substring(1),
 			),
 			multimin: this.asset.multisignature.min,
 			multilifetime: this.asset.multisignature.lifetime,
 		};
+		store.account.set(updatedSender.address, updatedSender);
 
-		return {
-			id: this.id,
-			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			errors,
-			state: {
-				sender: updatedSender,
-			},
-		};
+		return errors;
 	}
 
-	public undo({ sender }: RequiredMultisignatureState): TransactionResponse {
-		const { errors: baseErrors, state } = super.undo({ sender });
-		if (!state) {
-			throw new Error('State is required for undoing transaction');
-		}
-		const errors = [...baseErrors];
+	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const sender = store.account.get(this.senderId);
 
 		const {
 			multisignatures,
 			multimin,
 			multilifetime,
 			...strippedSender
-		} = state.sender;
+		} = sender;
 
-		return {
-			id: this.id,
-			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			errors,
-			state: {
-				sender: strippedSender,
-			},
-		};
+		store.account.set(strippedSender.address, strippedSender);
+
+		return [];
 	}
 }

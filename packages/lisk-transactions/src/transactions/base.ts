@@ -44,7 +44,6 @@ import {
 	verifyMultisignatures,
 	verifySignature,
 } from '../utils';
-import { isTypedObjectArrayWithKeys } from '../utils/validation';
 import * as schemas from '../utils/validation/schema';
 
 export interface TransactionResponse {
@@ -60,19 +59,36 @@ export interface Attributes {
 	};
 }
 
+export interface StateStoreGetter<T> {
+	get(key: string): T;
+	find(func: (item: T) => boolean): T | undefined;
+}
+
+export interface StateStoreSetter<T> {
+	set(key: string, value: T): void;
+}
+
+export interface StateStore {
+	readonly account: StateStoreGetter<Account> & StateStoreSetter<Account>;
+	readonly transaction: StateStoreGetter<TransactionJSON>;
+}
+
+export interface StateStoreCache<T> {
+	cache(
+		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+	): Promise<ReadonlyArray<T>>;
+}
+
+export interface StateStorePrepare {
+	readonly account: StateStoreCache<Account>;
+	readonly transaction: StateStoreCache<TransactionJSON>;
+}
+
 export enum MultisignatureStatus {
 	UNKNOWN = 0,
 	NONMULTISIGNATURE = 1,
 	PENDING = 2,
 	READY = 3,
-}
-
-export interface EntityMap {
-	readonly [name: string]: ReadonlyArray<unknown> | undefined;
-}
-
-export interface RequiredState {
-	readonly sender: Account;
 }
 
 export const ENTITY_ACCOUNT = 'account';
@@ -99,10 +115,18 @@ export abstract class BaseTransaction {
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract assetToJSON(): object;
-	public abstract verifyAgainstOtherTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse;
+	public abstract prepareTransaction(store: StateStorePrepare): Promise<void>;
 	protected abstract getAssetBytes(): Buffer;
+	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
+	protected abstract applyAsset(
+		store: StateStore,
+	): ReadonlyArray<TransactionError>;
+	protected abstract undoAsset(
+		store: StateStore,
+	): ReadonlyArray<TransactionError>;
+	protected abstract verifyAgainstTransactions(
+		transactions: ReadonlyArray<TransactionJSON>,
+	): ReadonlyArray<TransactionError>;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		const { valid, errors } = checkTypes(rawTransaction);
@@ -197,51 +221,9 @@ export abstract class BaseTransaction {
 		return transactionBytes;
 	}
 
-	public validateSchema(): TransactionResponse {
-		const transaction = this.toJSON();
-		const baseTransactionValidator = validator.compile(schemas.baseTransaction);
-		const valid = baseTransactionValidator(transaction) as boolean;
-		const errors = baseTransactionValidator.errors
-			? baseTransactionValidator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							transaction.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-
-		if (!errors.find(err => err.dataPath === '.senderPublicKey')) {
-			// `senderPublicKey` passed format check, safely check equality to senderId
-			if (
-				this.senderId.toUpperCase() !==
-				getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
-			) {
-				errors.push(
-					new TransactionError(
-						'`senderId` does not match `senderPublicKey`',
-						this.id,
-						'.senderId',
-					),
-				);
-			}
-		}
-		if (this.id !== getId(this.getBytes())) {
-			errors.push(
-				new TransactionError('Invalid transaction id', this.id, '.id'),
-			);
-		}
-
-		return {
-			id: this.id,
-			status: !valid || errors.length > 0 ? Status.FAIL : Status.OK,
-			errors,
-		};
-	}
-
 	public validate(): TransactionResponse {
-		const errors: TransactionError[] = [];
+		const errors = [...this.validateAsset()];
+
 		const transactionBytes = this.getBasicBytes();
 
 		const {
@@ -281,36 +263,8 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public getRequiredAttributes(): Attributes {
-		return {
-			[ENTITY_ACCOUNT]: {
-				address: [getAddressFromPublicKey(this.senderPublicKey)],
-			},
-		};
-	}
-
-	public processRequiredState(state: EntityMap): RequiredState {
-		const accounts = state[ENTITY_ACCOUNT];
-		if (!accounts) {
-			throw new Error('Entity account is required.');
-		}
-		if (
-			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
-		) {
-			throw new Error('Required state does not have valid account type.');
-		}
-
-		const sender = accounts.find(acct => acct.address === this.senderId);
-		if (!sender) {
-			throw new Error('No sender account is found.');
-		}
-
-		return {
-			sender,
-		};
-	}
-
-	public verify({ sender }: RequiredState): TransactionResponse {
+	public verify(store: StateStore): TransactionResponse {
+		const sender = store.account.get(this.senderId);
 		const errors: TransactionError[] = [];
 		// Check senderPublicKey
 		if (sender.publicKey !== this.senderPublicKey) {
@@ -404,7 +358,7 @@ export abstract class BaseTransaction {
 		const {
 			status,
 			errors: multisignatureErrors,
-		} = this.processMultisignatures({ sender });
+		} = this.processMultisignatures(sender);
 
 		if (status === Status.PENDING && errors.length === 0) {
 			return {
@@ -425,10 +379,20 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public apply({ sender }: RequiredState): TransactionResponse {
-		if (!sender) {
-			throw new Error('Sender is required.');
-		}
+	public verifyAgainstOtherTransactions(
+		transactions: ReadonlyArray<TransactionJSON>,
+	): TransactionResponse {
+		const errors = this.verifyAgainstTransactions(transactions);
+
+		return {
+			id: this.id,
+			status: errors.length === 0 ? Status.OK : Status.FAIL,
+			errors,
+		};
+	}
+
+	public apply(store: StateStore): TransactionResponse {
+		const sender = store.account.get(this.senderId);
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.gte(0)
@@ -441,6 +405,9 @@ export abstract class BaseTransaction {
 						this.id,
 					),
 			  ];
+		store.account.set(updatedAccount.address, updatedAccount);
+		const assetErrors = this.applyAsset(store);
+		errors.push(...assetErrors);
 
 		return {
 			id: this.id,
@@ -450,15 +417,16 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public undo({ sender }: RequiredState): TransactionResponse {
-		if (!sender) {
-			throw new Error('Sender is required.');
-		}
+	public undo(store: StateStore): TransactionResponse {
+		const sender = store.account.get(this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
 			? []
 			: [new TransactionError('Invalid balance amount', this.id)];
+		store.account.set(updatedAccount.address, updatedAccount);
+		const assetErrors = this.undoAsset(store);
+		errors.push(...assetErrors);
 
 		return {
 			id: this.id,
@@ -492,9 +460,7 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public processMultisignatures({
-		sender,
-	}: RequiredState): TransactionResponse {
+	public processMultisignatures(sender: Account): TransactionResponse {
 		const transactionBytes = this.signSignature
 			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
 			: this.getBasicBytes();
@@ -584,5 +550,43 @@ export abstract class BaseTransaction {
 			transactionAmount,
 			this.getAssetBytes(),
 		]);
+	}
+
+	public validateSchema(): ReadonlyArray<TransactionError> {
+		const transaction = this.toJSON();
+		const baseTransactionValidator = validator.compile(schemas.baseTransaction);
+		const errors = baseTransactionValidator.errors
+			? baseTransactionValidator.errors.map(
+					error =>
+						new TransactionError(
+							`'${error.dataPath}' ${error.message}`,
+							transaction.id,
+							error.dataPath,
+						),
+			  )
+			: [];
+
+		if (!errors.find(err => err.dataPath === '.senderPublicKey')) {
+			// `senderPublicKey` passed format check, safely check equality to senderId
+			if (
+				this.senderId.toUpperCase() !==
+				getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
+			) {
+				errors.push(
+					new TransactionError(
+						'`senderId` does not match `senderPublicKey`',
+						this.id,
+						'.senderId',
+					),
+				);
+			}
+		}
+		if (this.id !== getId(this.getBytes())) {
+			errors.push(
+				new TransactionError('Invalid transaction id', this.id, '.id'),
+			);
+		}
+
+		return errors;
 	}
 }

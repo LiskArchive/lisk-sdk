@@ -16,20 +16,16 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import { VOTE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Account, Status, TransactionJSON } from '../transaction_types';
+import { TransactionJSON } from '../transaction_types';
 import { CreateBaseTransactionInput } from '../utils';
 import {
-	isTypedObjectArrayWithKeys,
 	validateAddress,
 	validator,
 } from '../utils/validation';
 import {
-	Attributes,
 	BaseTransaction,
-	ENTITY_ACCOUNT,
-	EntityMap,
-	RequiredState,
-	TransactionResponse,
+	StateStore,
+	StateStorePrepare
 } from './base';
 
 const PREFIX_UPVOTE = '+';
@@ -49,12 +45,6 @@ export interface CreateVoteAssetInput {
 }
 
 export type CastVoteInput = CreateBaseTransactionInput & CreateVoteAssetInput;
-
-export interface RequiredVoteState extends RequiredState {
-	readonly dependentState?: {
-		readonly [ENTITY_ACCOUNT]: ReadonlyArray<Account>;
-	};
-}
 
 export const voteAssetTypeSchema = {
 	type: 'object',
@@ -120,23 +110,28 @@ export class VoteTransaction extends BaseTransaction {
 		};
 	}
 
-	public getRequiredAttributes(): Attributes {
-		const attr = super.getRequiredAttributes();
-		const publicKey = this.asset.votes.map(pkWithAction =>
-			pkWithAction.slice(1),
-		);
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		const publicKeyObjectArray = this.asset.votes.map(pkWithAction => {
+			const publicKey = pkWithAction.slice(1);
 
-		return {
-			[ENTITY_ACCOUNT]: {
-				...attr[ENTITY_ACCOUNT],
+			return {
 				publicKey,
+			};
+		});
+
+		const filterArray = [
+			{
+				address: this.senderId,
 			},
-		};
+			...publicKeyObjectArray,
+		];
+
+		await store.account.cache(filterArray);
 	}
 
-	public verifyAgainstOtherTransactions(
+	protected verifyAgainstTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
+	): ReadonlyArray<TransactionError> {
 		const sameTypeTransactions = transactions
 			.filter(
 				tx =>
@@ -145,7 +140,7 @@ export class VoteTransaction extends BaseTransaction {
 			.map(tx => new VoteTransaction(tx));
 		const publicKeys = this.asset.votes.map(vote => vote.substring(1));
 
-		const errors = sameTypeTransactions.reduce(
+		return sameTypeTransactions.reduce(
 			(previous, tx) => {
 				const conflictingVotes = tx.asset.votes
 					.map(vote => vote.substring(1))
@@ -165,46 +160,20 @@ export class VoteTransaction extends BaseTransaction {
 			},
 			[] as ReadonlyArray<TransactionError>,
 		);
-
-		return {
-			id: this.id,
-			errors,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-		};
 	}
 
-	public processRequiredState(state: EntityMap): RequiredVoteState {
-		const { sender } = super.processRequiredState(state);
-		const votes = this.asset.votes.map(vote => vote.substring(1));
-
-		const accounts = state[ENTITY_ACCOUNT];
-		if (!accounts) {
-			throw new Error('Entity account is required.');
-		}
-		if (
-			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'publicKey'])
-		) {
-			throw new Error('Required state does not have valid account type.');
-		}
-		const dependentAccounts = accounts.filter(acct =>
-			votes.includes(acct.publicKey),
-		);
-		if (votes.length !== dependentAccounts.length) {
-			throw new Error('Not enough accounts in dependent state.');
-		}
-
-		return {
-			sender,
-			dependentState: {
-				[ENTITY_ACCOUNT]: dependentAccounts,
-			},
-		};
-	}
-
-	public validateSchema(): TransactionResponse {
-		const { errors: baseErrors, status } = super.validateSchema();
-		const valid = validator.validate(voteAssetFormatSchema, this.asset);
-		const errors = [...baseErrors];
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		validator.validate(voteAssetFormatSchema, this.asset);
+		const errors = validator.errors
+			? validator.errors.map(
+					error =>
+						new TransactionError(
+							`'${error.dataPath}' ${error.message}`,
+							this.id,
+							error.dataPath,
+						),
+			  )
+			: [];
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
@@ -289,38 +258,24 @@ export class VoteTransaction extends BaseTransaction {
 			: [];
 		errors.push(...assetErrors);
 
-		return {
-			id: this.id,
-			status:
-				status === Status.OK && valid && errors.length === 0
-					? Status.OK
-					: Status.FAIL,
-			errors,
-		};
+		return errors;
 	}
 
-	public verify({
-		sender,
-		dependentState,
-	}: RequiredVoteState): TransactionResponse {
-		const { errors: baseErrors } = super.verify({ sender });
-		if (!dependentState) {
-			throw new Error('Dependent state is required for vote transaction.');
-		}
-		const errors = [...baseErrors];
-		const dependentAccounts = dependentState[ENTITY_ACCOUNT];
-		if (!dependentAccounts) {
-			throw new Error('Entity account is required.');
-		}
-		if (
-			!isTypedObjectArrayWithKeys<Account>(dependentAccounts, ['publicKey'])
-		) {
-			throw new Error('Required state does not have valid account type.');
-		}
-		dependentAccounts.forEach(({ publicKey, username }) => {
-			if (username === undefined || username === '') {
+	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors: TransactionError[] = [];
+		const sender = store.account.get(this.senderId);
+		this.asset.votes.forEach(actionVotes => {
+			const vote = actionVotes.substring(1);
+			const voteAccount = store.account.find(
+				account => account.publicKey === vote,
+			);
+			if (
+				!voteAccount ||
+				(voteAccount &&
+					(voteAccount.username === undefined || voteAccount.username === ''))
+			) {
 				errors.push(
-					new TransactionError(`${publicKey} is not a delegate.`, this.id),
+					new TransactionError(`${vote} is not a delegate.`, this.id),
 				);
 			}
 		});
@@ -340,39 +295,6 @@ export class VoteTransaction extends BaseTransaction {
 				);
 			}
 		});
-
-		const upvotes = this.asset.votes
-			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
-			.map(vote => vote.substring(1));
-		const unvotes = this.asset.votes
-			.filter(vote => vote.charAt(0) === PREFIX_UNVOTE)
-			.map(vote => vote.substring(1));
-		const votes: ReadonlyArray<string> = [...senderVotes, ...upvotes].filter(
-			vote => !unvotes.includes(vote),
-		);
-		if (votes.length > MAX_VOTE_PER_ACCOUNT) {
-			errors.push(
-				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}.`,
-					this.id,
-				),
-			);
-		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
-	}
-
-	public apply({ sender }: RequiredVoteState): TransactionResponse {
-		const { errors: baseErrors, state } = super.apply({ sender });
-		if (!state) {
-			throw new Error('State is required for applying transaction.');
-		}
-		const errors = [...baseErrors];
-		const { sender: updatedSender } = state;
 		const upvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
 			.map(vote => vote.substring(1));
@@ -391,27 +313,18 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-			state: {
-				sender: {
-					...updatedSender,
-					votes,
-				},
-			},
+		const updatedSender = {
+			...sender,
+			votes,
 		};
+		store.account.set(updatedSender.address, updatedSender);
+
+		return errors;
 	}
 
-	public undo({ sender }: RequiredVoteState): TransactionResponse {
-		const { errors: baseErrors, state } = super.undo({ sender });
-		if (!state) {
-			throw new Error('State is required for undoing transaction.');
-		}
-		const errors = [...baseErrors];
-		const { sender: updatedSender } = state;
+	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors = [];
+		const sender = store.account.get(this.senderId);
 		const upvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
 			.map(vote => vote.substring(1));
@@ -430,17 +343,12 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-			state: {
-				sender: {
-					...updatedSender,
-					votes,
-				},
-			},
+		const updatedSender = {
+			...sender,
+			votes,
 		};
+		store.account.set(updatedSender.address, updatedSender);
+
+		return errors;
 	}
 }
