@@ -244,7 +244,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Delegate name has invalid character. Null character is not allowed.'
+					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
 				);
 				badTransactions.push(transaction);
 			});
