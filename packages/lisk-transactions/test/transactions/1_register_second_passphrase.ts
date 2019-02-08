@@ -13,11 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import {
-	SecondSignatureTransaction,
-	Attributes,
-	BaseTransaction,
-} from '../../src/transactions';
+import { MockStateStore as store } from '../helpers';
+import { SecondSignatureTransaction } from '../../src/transactions';
 import {
 	validRegisterSecondSignatureTransaction,
 	validTransaction,
@@ -38,6 +35,9 @@ describe('Second signature registration transaction class', () => {
 		validTestTransaction = new SecondSignatureTransaction(
 			validRegisterSecondSignatureTransaction,
 		);
+		store.account.get = () => {
+			return sender;
+		};
 	});
 
 	describe('#constructor', () => {
@@ -76,29 +76,29 @@ describe('Second signature registration transaction class', () => {
 	});
 
 	describe('#verifyAgainstOtherTransactions', () => {
-		it('should return status true with non conflicting transactions', async () => {
+		it('should return a successful transaction response', async () => {
 			const {
+				id,
 				errors,
 				status,
 			} = validTestTransaction.verifyAgainstOtherTransactions([
 				{ ...validRegisterSecondSignatureTransaction, type: 0 },
 			] as ReadonlyArray<TransactionJSON>);
-			expect(errors)
-				.to.be.an('array')
-				.of.length(0);
+			expect(id).to.be.eql(validTestTransaction.id);
+			expect(errors).to.be.eql([]);
 			expect(status).to.equal(Status.OK);
 		});
 
 		it('should return status true with non related transactions', async () => {
 			const {
+				id,
 				errors,
 				status,
 			} = validTestTransaction.verifyAgainstOtherTransactions([
 				validTransaction,
 			] as ReadonlyArray<TransactionJSON>);
-			expect(errors)
-				.to.be.an('array')
-				.of.length(0);
+			expect(id).to.be.eql(validTestTransaction.id);
+			expect(errors).to.be.empty;
 			expect(status).to.equal(Status.OK);
 		});
 
@@ -109,48 +109,30 @@ describe('Second signature registration transaction class', () => {
 			} = validTestTransaction.verifyAgainstOtherTransactions([
 				validRegisterSecondSignatureTransaction,
 			] as ReadonlyArray<TransactionJSON>);
-			expect(errors)
-				.to.be.an('array')
-				.of.length(1);
+			expect(errors).to.not.be.empty;
 			expect(status).to.equal(Status.FAIL);
 		});
 	});
 
-	describe('#getRequiredAttributes', () => {
-		let attribute: Attributes;
+	describe('#validateAsset', () => {
+		it('should return no errors', async () => {
+			const errors = (validTestTransaction as any).validateAsset();
 
-		beforeEach(async () => {
-			attribute = validTestTransaction.getRequiredAttributes();
-		});
-
-		it('should return attribute including sender address', async () => {
-			expect(attribute.account.address).to.include(
-				validRegisterSecondSignatureTransaction.senderId,
-			);
-		});
-	});
-
-	describe('#validateSchema', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.validateSchema();
-
-			expect(status).to.equal(Status.OK);
 			expect(errors).to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when amount is non-zero', async () => {
+		it('should return error when amount is non-zero', async () => {
 			const invalidTransaction = {
 				...validRegisterSecondSignatureTransaction,
 				amount: '100',
 			};
 			const transaction = new SecondSignatureTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
+			const errors = (transaction as any).validateAsset();
 
-			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when asset includes invalid publicKey', async () => {
+		it('should return error when asset includes invalid publicKey', async () => {
 			const invalidTransaction = {
 				...validRegisterSecondSignatureTransaction,
 				asset: {
@@ -160,93 +142,36 @@ describe('Second signature registration transaction class', () => {
 				},
 			};
 			const transaction = new SecondSignatureTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
+			const errors = (transaction as any).validateAsset();
 
-			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
 		});
 	});
 
-	describe('#verify', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.verify({
-				sender,
-			});
-			expect(status).to.equal(Status.OK);
+	describe('#applyAsset', () => {
+		it('should return a successful transaction response', async () => {
+			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when state sender already has secondPublicKey', async () => {
-			const { status, errors } = validTestTransaction.verify({
-				sender: { ...sender, secondPublicKey: '123' },
-			});
-
-			expect(status).to.equal(Status.FAIL);
-			expect(errors).not.to.be.empty;
-		});
-	});
-
-	describe('#apply', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.apply({
-				sender,
-			});
-			expect(status).to.equal(Status.OK);
-			expect(errors).to.be.empty;
-		});
-
-		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'apply').returns({} as any);
-			expect(
-				validTestTransaction.apply.bind(validTransaction, {
-					sender,
-				}),
-			).to.throw('State is required for applying transaction.');
-		});
-
-		it('should return updated account state with added secondPublicKey', async () => {
-			const { state } = validTestTransaction.apply({
-				sender,
-			});
-			expect((state as any).sender.secondPublicKey).to.eql(
-				validTestTransaction.asset.signature.publicKey,
-			);
-		});
-
-		it('should return TransactionResponse with error when secondPublicKey exists on account', async () => {
-			const { status, errors } = validTestTransaction.apply({
-				sender: { ...sender, secondPublicKey: '1234' },
-			});
-			expect(status).to.equal(Status.FAIL);
-			expect(errors).not.to.be.empty;
+		it('should return error when secondPublicKey exists on account', async () => {
+			store.account.get = () => {
+				return {
+					...sender,
+					secondPublicKey: '123',
+				};
+			};
+			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).to.contains(
 				'Register second signature only allowed once per account.',
 			);
 		});
 	});
 
-	describe('#undo', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.undo({
-				sender,
-			});
-			expect(status).to.equal(Status.OK);
+	describe('#undoAsset', () => {
+		it('should return a successful transaction response', async () => {
+			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
-		});
-
-		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'undo').returns({} as any);
-			expect(
-				validTestTransaction.undo.bind(validTestTransaction, {
-					sender,
-				}),
-			).to.throw('State is required for undoing transaction.');
-		});
-
-		it('should return updated account state without secondPublicKey', async () => {
-			const { state } = validTestTransaction.undo({ sender });
-
-			expect((state as any).sender.secondPublicKey).not.to.exist;
 		});
 	});
 });

@@ -15,31 +15,17 @@
 import * as BigNum from 'browserify-bignum';
 import { IN_TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import { Account, Status, TransactionJSON } from '../transaction_types';
+import { TransactionJSON } from '../transaction_types';
 import { convertBeddowsToLSK } from '../utils';
-import { isTypedObjectArrayWithKeys, validator } from '../utils/validation';
-import {
-	Attributes,
-	BaseTransaction,
-	ENTITY_ACCOUNT,
-	ENTITY_TRANSACTION,
-	EntityMap,
-	RequiredState,
-	TransactionResponse,
-} from './base';
+import { validator } from '../utils/validation';
+import { BaseTransaction, StateStore, StateStorePrepare } from './base';
 
+const TRANSACTION_DAPP_TYPE = 5;
 const TRANSACTION_INTRANSFER_TYPE = 6;
 
 export interface InTransferAsset {
 	readonly inTransfer: {
 		readonly dappId: string;
-	};
-}
-
-export interface RequiredInTransferState extends RequiredState {
-	readonly recipient?: Account;
-	readonly dependentState?: {
-		readonly [ENTITY_TRANSACTION]: ReadonlyArray<TransactionJSON>;
 	};
 }
 
@@ -103,86 +89,51 @@ export class InTransferTransaction extends BaseTransaction {
 		return Buffer.from(this.asset.inTransfer.dappId, 'utf8');
 	}
 
+	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([{ address: this.senderId }]);
+
+		const transactions = await store.transaction.cache([
+			{
+				id: this.asset.inTransfer.dappId,
+			},
+		]);
+
+		const dappTransaction = transactions.find(
+			tx =>
+				tx.type === TRANSACTION_DAPP_TYPE &&
+				tx.id === this.asset.inTransfer.dappId,
+		);
+
+		if (dappTransaction) {
+			await store.account.cache([{ id: dappTransaction.senderId as string }]);
+		}
+	}
+
 	public assetToJSON(): object {
 		return {
 			...this.asset,
 		};
 	}
 
-	public getRequiredAttributes(): Attributes {
-		const attr = super.getRequiredAttributes();
-
-		return {
-			...attr,
-			[ENTITY_TRANSACTION]: {
-				id: [this.asset.inTransfer.dappId],
-			},
-		};
-	}
-
-	public verifyAgainstOtherTransactions(
+	// tslint:disable-next-line prefer-function-over-method
+	protected verifyAgainstTransactions(
 		_: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
-		return {
-			id: this.id,
-			errors: [],
-			status: Status.OK,
-		};
+	): ReadonlyArray<TransactionError> {
+		return [];
 	}
 
-	public processRequiredState(state: EntityMap): RequiredInTransferState {
-		const accounts = state[ENTITY_ACCOUNT];
-		if (!accounts) {
-			throw new Error('Entity account is required.');
-		}
-		if (
-			!isTypedObjectArrayWithKeys<Account>(accounts, ['address', 'balance'])
-		) {
-			throw new Error('Required state does not have valid account type.');
-		}
-
-		const sender = accounts.find(acct => acct.address === this.senderId);
-		if (!sender) {
-			throw new Error('No sender account is found.');
-		}
-
-		const transactions = state[ENTITY_TRANSACTION];
-		if (!transactions) {
-			throw new Error('Entity transaction is required.');
-		}
-
-		if (
-			!isTypedObjectArrayWithKeys<TransactionJSON>(transactions, [
-				'id',
-				'type',
-				'senderId',
-			])
-		) {
-			throw new Error('Required state does not have valid transaction type.');
-		}
-
-		// In valid case, transaction should not exist
-		const dependentDappTx = transactions.find(
-			tx => tx.id === this.asset.inTransfer.dappId,
-		);
-
-		const recipient = dependentDappTx
-			? accounts.find(acct => acct.address === dependentDappTx.senderId)
-			: undefined;
-
-		return {
-			sender,
-			recipient,
-			dependentState: {
-				[ENTITY_TRANSACTION]: dependentDappTx ? [dependentDappTx] : [],
-			},
-		};
-	}
-
-	public validateSchema(): TransactionResponse {
-		const { errors: baseErrors, status } = super.validateSchema();
-		const valid = validator.validate(inTransferAssetFormatSchema, this.asset);
-		const errors = [...baseErrors];
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		validator.validate(inTransferAssetFormatSchema, this.asset);
+		const errors = validator.errors
+			? validator.errors.map(
+					error =>
+						new TransactionError(
+							`'${error.dataPath}' ${error.message}`,
+							this.id,
+							error.dataPath,
+						),
+			  )
+			: [];
 
 		if (this.type !== TRANSACTION_INTRANSFER_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
@@ -198,6 +149,7 @@ export class InTransferTransaction extends BaseTransaction {
 				),
 			);
 		}
+
 		if (this.recipientPublicKey) {
 			errors.push(
 				new TransactionError(
@@ -217,17 +169,6 @@ export class InTransferTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const assetErrors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		errors.push(...assetErrors);
 
 		if (!this.fee.eq(IN_TRANSFER_FEE)) {
 			errors.push(
@@ -239,99 +180,28 @@ export class InTransferTransaction extends BaseTransaction {
 			);
 		}
 
-		return {
-			id: this.id,
-			status:
-				status === Status.OK && valid && errors.length === 0
-					? Status.OK
-					: Status.FAIL,
-			errors,
-		};
+		return errors;
 	}
 
-	public verify({
-		sender,
-		recipient,
-		dependentState,
-	}: RequiredInTransferState): TransactionResponse {
-		const { errors: baseErrors } = super.verify({ sender });
-		if (!dependentState) {
-			throw new Error(
-				'Dependent state is required for inTransfer transaction.',
-			);
-		}
-		const errors = [...baseErrors];
-		const balance = new BigNum(sender.balance);
-		const fee = new BigNum(this.fee);
-		const amount = new BigNum(this.amount);
-		if (
-			balance
-				.sub(fee)
-				.sub(amount)
-				.lt(0)
-		) {
-			errors.push(
-				new TransactionError(
-					`Account does not have enough LSK: ${
-						sender.address
-					}, balance: ${convertBeddowsToLSK(sender.balance)}.`,
-					this.id,
-				),
-			);
-		}
-
-		const dependentTransactions = dependentState[ENTITY_TRANSACTION];
-		if (!dependentTransactions) {
-			throw new Error('Entity transaction is required.');
-		}
-		if (
-			!isTypedObjectArrayWithKeys<TransactionJSON>(dependentTransactions, [
-				'id',
-				'senderId',
-			])
-		) {
-			throw new Error('Required state does not have valid transaction type.');
-		}
-
-		const dependentDappTx = dependentTransactions.find(
-			tx => tx.id === this.asset.inTransfer.dappId,
+	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors: TransactionError[] = [];
+		const idExists = store.transaction.find(
+			(transaction: TransactionJSON) =>
+				transaction.type === TRANSACTION_DAPP_TYPE &&
+				transaction.id === this.asset.inTransfer.dappId,
 		);
 
-		if (!dependentDappTx) {
+		if (!idExists) {
 			errors.push(
 				new TransactionError(
-					`Related transaction ${this.asset.inTransfer.dappId} does not exist.`,
+					`Application not found: ${this.asset.inTransfer.dappId}`,
 					this.id,
 				),
 			);
 		}
+		const sender = store.account.get(this.senderId);
 
-		if (dependentDappTx && !recipient) {
-			errors.push(
-				new TransactionError(
-					`Dapp owner account ${dependentDappTx.senderId} does not exist.`,
-					this.id,
-				),
-			);
-		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
-	}
-
-	public apply({
-		sender,
-		recipient,
-	}: RequiredInTransferState): TransactionResponse {
-		const { errors: baseErrors } = super.apply({ sender });
-		const errors = [...baseErrors];
-		// Ignore state from the base transaction
-		const updatedBalance = new BigNum(sender.balance)
-			.sub(this.fee)
-			.sub(this.amount);
+		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
 		if (updatedBalance.lt(0)) {
 			errors.push(
 				new TransactionError(
@@ -343,9 +213,12 @@ export class InTransferTransaction extends BaseTransaction {
 			);
 		}
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
-		if (!recipient) {
-			throw new Error('Recipient is required.');
-		}
+
+		store.account.set(updatedSender.address, updatedSender);
+
+		const dappTransaction = store.transaction.get(this.asset.inTransfer.dappId);
+
+		const recipient = store.account.get(dappTransaction.senderId as string);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -355,35 +228,27 @@ export class InTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-			state: {
-				sender: updatedSender,
-				recipient: updatedRecipient,
-			},
-		};
+		store.account.set(updatedRecipient.address, updatedRecipient);
+
+		return errors;
 	}
 
-	public undo({
-		sender,
-		recipient,
-	}: RequiredInTransferState): TransactionResponse {
-		const { errors: baseErrors } = super.undo({ sender });
-		const errors = [...baseErrors];
-		// Ignore state from the base transaction
-		const updatedBalance = new BigNum(sender.balance)
-			.add(this.fee)
-			.add(this.amount);
+	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+		const errors = [];
+		const sender = store.account.get(this.senderId);
+		const updatedBalance = new BigNum(sender.balance).add(this.amount);
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
-		if (!recipient) {
-			throw new Error('Recipient is required.');
-		}
+
+		store.account.set(updatedSender.address, updatedSender);
+
+		const dappTransaction = store.transaction.get(this.asset.inTransfer.dappId);
+
+		const recipient = store.account.get(dappTransaction.senderId as string);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
 		);
+
 		if (updatedRecipientBalance.lt(0)) {
 			errors.push(
 				new TransactionError(
@@ -399,14 +264,8 @@ export class InTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-			state: {
-				sender: updatedSender,
-				recipient: updatedRecipient,
-			},
-		};
+		store.account.set(updatedRecipient.address, updatedRecipient);
+
+		return errors;
 	}
 }
