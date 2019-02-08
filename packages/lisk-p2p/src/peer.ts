@@ -239,10 +239,10 @@ export class Peer extends EventEmitter {
 		};
 
 		this._peerDetailedInfo = {
+			...this._peerInfo,
 			os: newPeerInfo.os,
 			version: newPeerInfo.version,
 			options: newPeerInfo.options,
-			...this._peerInfo,
 		};
 	}
 
