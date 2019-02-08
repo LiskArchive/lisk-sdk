@@ -431,7 +431,7 @@ Transport.prototype.broadcastHeaders = cb => {
 Transport.prototype.onBroadcastBlock = async function(block, broadcast) {
 	// Exit immediately when 'broadcast' flag is not set
 	if (!broadcast) {
-		return null;
+		return;
 	}
 
 	// Check if we are free to broadcast
@@ -439,13 +439,13 @@ Transport.prototype.onBroadcastBlock = async function(block, broadcast) {
 		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
 		);
-		return null;
+		return;
 	}
 	if (modules.loader.syncing()) {
 		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 		);
-		return null;
+		return;
 	}
 
 	if (block.totalAmount) {
@@ -463,7 +463,7 @@ Transport.prototype.onBroadcastBlock = async function(block, broadcast) {
 	const broadhash = await components.system.getBroadhash();
 
 	// Perform actual broadcast operation
-	return __private.broadcaster.broadcast(
+	__private.broadcaster.broadcast(
 		{
 			broadhash,
 		},

@@ -143,26 +143,18 @@ class System {
 	/**
 	 * Updates private broadhash and height values.
 	 *
-	 * @param {Object} block - block
-	 * @returns Promise.resolve | err
 	 */
 	async update() {
-		try {
-			const hash = await this.getBroadhash();
-			this.headers.broadhash = hash;
-			const blocks = await this.storage.entities.Block.get(
-				{},
-				{
-					limit: 5,
-					sort: 'height:desc',
-				}
-			);
-			this.headers.height = blocks[0].height;
-			return Promise.resolve();
-		} catch (err) {
-			this.logger.debug('System headers', this.headers);
-			return err;
-		}
+		const hash = await this.getBroadhash();
+		this.headers.broadhash = hash;
+		const blocks = await this.storage.entities.Block.get(
+			{},
+			{
+				limit: 5,
+				sort: 'height:desc',
+			}
+		);
+		this.headers.height = blocks[0].height;
 	}
 }
 
