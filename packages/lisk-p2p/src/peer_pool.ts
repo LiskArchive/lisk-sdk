@@ -142,7 +142,7 @@ export class PeerPool extends EventEmitter {
 		return selectedPeers;
 	}
 
-	public async requestPeer(
+	public async requestFromPeer(
 		packet: P2PRequestPacket,
 	): Promise<P2PResponsePacket> {
 		const peerSelectionParams: PeerOptions = {

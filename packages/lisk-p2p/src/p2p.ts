@@ -199,7 +199,7 @@ export class P2P extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const response = await this._peerPool.requestPeer(packet);
+		const response = await this._peerPool.requestFromPeer(packet);
 
 		return response;
 	}
