@@ -198,7 +198,6 @@ export class P2P extends EventEmitter {
 		};
 	}
 
-	// TODO ASAP: Change selectPeers to return PeerInfo list and then make request on peerPool itself; pass peerInfo as argument.
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const response = await this._peerPool.requestPeer(packet);
 
