@@ -53,39 +53,6 @@ class System {
 	}
 
 	/**
-	 * It calculates and returns broadhash.
-	 *
-	 * @param {Error} err
-	 * @returns {string} broadhash
-	 */
-	async getBroadhash() {
-		try {
-			const blocks = await this.storage.entities.Block.get(
-				{},
-				{
-					limit: 5,
-					sort: 'height:desc',
-				}
-			);
-			if (blocks.length <= 1) {
-				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
-				return this.headers.nethash;
-			}
-			const seed = blocks.map(row => row.id).join('');
-			const broadhash = crypto
-				.createHash('sha256')
-				.update(seed, 'utf8')
-				.digest()
-				.toString('hex');
-
-			return broadhash;
-		} catch (err) {
-			this.logger.error(err.stack);
-			return err;
-		}
-	}
-
-	/**
 	 * Checks nethash (network) compatibility.
 	 *
 	 * @param {string} nethash
@@ -138,6 +105,39 @@ class System {
 			return false;
 		}
 		return nonce && this.headers.nonce !== nonce;
+	}
+
+	/**
+	 * It calculates and returns broadhash.
+	 *
+	 * @param {Error} err
+	 * @returns {string} broadhash
+	 */
+	async getBroadhash() {
+		try {
+			const blocks = await this.storage.entities.Block.get(
+				{},
+				{
+					limit: 5,
+					sort: 'height:desc',
+				}
+			);
+			if (blocks.length <= 1) {
+				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
+				return this.headers.nethash;
+			}
+			const seed = blocks.map(row => row.id).join('');
+			const broadhash = crypto
+				.createHash('sha256')
+				.update(seed, 'utf8')
+				.digest()
+				.toString('hex');
+
+			return broadhash;
+		} catch (err) {
+			this.logger.error(err.stack);
+			return err;
+		}
 	}
 
 	/**

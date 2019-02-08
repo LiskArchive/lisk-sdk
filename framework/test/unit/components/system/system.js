@@ -89,48 +89,6 @@ describe('components: system', async () => {
 		});
 	});
 
-	/* eslint-disable mocha/no-pending-tests */
-	describe('getBroadhash', async () => {
-		describe('when argument is not a function', async () => {
-			it('should this.broadhash');
-		});
-
-		describe('when argument is a function', async () => {
-			it('should call db.query with sql.getBroadhash');
-
-			it('should call db.query with limit = 5');
-
-			describe('when db.query fails', async () => {
-				it('should return error');
-
-				it('should call the logger.error with error stack');
-			});
-
-			describe('when db.query succeeds', async () => {
-				describe('and returns no or one result', async () => {
-					it('should return error = null');
-
-					it('should return this.headers.nethash');
-				});
-
-				describe('and returns more then one results', async () => {
-					it('should call crypto.createHash with sha256');
-
-					it('should call crypto.update with concatenation of results ids');
-
-					it('should call crypto.update with utf-8');
-
-					it('should call crypto.digest');
-
-					it('should return error = null');
-
-					it('should return correct hash');
-				});
-			});
-		});
-	});
-	/* eslint-enable mocha/no-pending-tests */
-
 	describe('networkCompatible', async () => {
 		describe('when there is no nethash', async () => {
 			it('should return false', async () =>
@@ -255,6 +213,46 @@ describe('components: system', async () => {
 	});
 
 	/* eslint-disable mocha/no-pending-tests */
+	describe('getBroadhash', async () => {
+		describe('when argument is not a function', async () => {
+			it('should this.broadhash');
+		});
+
+		describe('when argument is a function', async () => {
+			it('should call db.query with sql.getBroadhash');
+
+			it('should call db.query with limit = 5');
+
+			describe('when db.query fails', async () => {
+				it('should return error');
+
+				it('should call the logger.error with error stack');
+			});
+
+			describe('when db.query succeeds', async () => {
+				describe('and returns no or one result', async () => {
+					it('should return error = null');
+
+					it('should return this.headers.nethash');
+				});
+
+				describe('and returns more then one results', async () => {
+					it('should call crypto.createHash with sha256');
+
+					it('should call crypto.update with concatenation of results ids');
+
+					it('should call crypto.update with utf-8');
+
+					it('should call crypto.digest');
+
+					it('should return error = null');
+
+					it('should return correct hash');
+				});
+			});
+		});
+	});
+
 	describe('update', async () => {
 		it('should call getBroadhash with function');
 
