@@ -16,21 +16,9 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	Account,
-	TransactionJSON,
-	TransferAsset,
-} from '../transaction_types';
-import {
-	validateAddress,
-	validateTransferAmount,
-	validator,
-} from '../utils';
-import {
-	BaseTransaction,
-	StateStore,
-	StateStorePrepare,
-} from './base';
+import { Account, TransactionJSON, TransferAsset } from '../transaction_types';
+import { validateAddress, validateTransferAmount, validator } from '../utils';
+import { BaseTransaction, StateStore, StateStorePrepare } from './base';
 
 const TRANSACTION_TRANSFER_TYPE = 0;
 

@@ -57,7 +57,11 @@ describe('errors', () => {
 		let peerTransportError: PeerInboundHandshakeError;
 
 		beforeEach(async () => {
-			peerTransportError = new PeerInboundHandshakeError(defaultMessage, statusCode, remoteAddress);
+			peerTransportError = new PeerInboundHandshakeError(
+				defaultMessage,
+				statusCode,
+				remoteAddress,
+			);
 		});
 
 		it('should create a new instance of PeerInboundHandshakeError', async () => {
@@ -213,9 +217,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `InvalidRPCRequestError`', async () => {
-			expect(invalidRPCRequestError.name).to.eql(
-				'InvalidRPCRequestError',
-			);
+			expect(invalidRPCRequestError.name).to.eql('InvalidRPCRequestError');
 		});
 
 		it('should set error message when passed an argument', async () => {

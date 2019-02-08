@@ -49,7 +49,7 @@ describe('#getId', () => {
 	it('should call cryptography getFirstEightBytesReversed', async () => {
 		const cryptographygetFirstEightBytesReversedStub = sandbox
 			.stub(cryptography, 'getFirstEightBytesReversed')
-			.returns('db9620af8de763da');
+			.returns('db9620af8de763da' as any);
 
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
 		expect(cryptographygetFirstEightBytesReversedStub).to.be.calledOnce;

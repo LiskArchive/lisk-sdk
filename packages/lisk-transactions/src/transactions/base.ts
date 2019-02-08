@@ -495,8 +495,8 @@ export abstract class BaseTransaction {
 				errors[0] instanceof TransactionPendingError
 					? Status.PENDING
 					: verified
-						? Status.OK
-						: Status.FAIL,
+					? Status.OK
+					: Status.FAIL,
 			errors: (errors as ReadonlyArray<TransactionError>) || [],
 		};
 	}

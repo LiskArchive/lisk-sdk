@@ -1,6 +1,4 @@
-import {
-	BaseTransaction,
-} from '../../src/transactions/base';
+import { BaseTransaction } from '../../src/transactions/base';
 import { TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
 
@@ -19,7 +17,7 @@ export class TestTransaction extends BaseTransaction {
 
 	public validateAsset() {
 		return [];
-	} 
+	}
 
 	public applyAsset() {
 		return [];

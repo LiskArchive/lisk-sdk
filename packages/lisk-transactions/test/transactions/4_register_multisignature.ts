@@ -14,11 +14,9 @@
  */
 import { expect } from 'chai';
 import { MULTISIGNATURE_FEE } from '../../src/constants';
-import {
-	MultisignatureTransaction,
-} from '../../src/transactions';
+import { MultisignatureTransaction } from '../../src/transactions';
 import { Account, Status, TransactionJSON } from '../../src/transaction_types';
-import { addTransactionFields,	MockStateStore as store } from '../helpers';
+import { addTransactionFields, MockStateStore as store } from '../helpers';
 import {
 	validMultisignatureAccount,
 	validMultisignatureRegistrationTransaction,
@@ -277,10 +275,7 @@ describe('Multisignature transaction class', () => {
 		it('should return error when keysgroup includes sender key', async () => {
 			const invalidSender = {
 				...sender,
-				multisignatures: [
-					...(sender as any).multisignatures,
-					sender.publicKey,
-				],
+				multisignatures: [...(sender as any).multisignatures, sender.publicKey],
 			};
 			store.account.get = () => invalidSender;
 			const errors = (validTestTransaction as any).applyAsset(store);

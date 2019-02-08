@@ -14,9 +14,7 @@
  */
 import { expect } from 'chai';
 import { MockStateStore as store } from '../helpers';
-import {
-	DelegateTransaction,
-} from '../../src/transactions';
+import { DelegateTransaction } from '../../src/transactions';
 import {
 	validDelegateAccount,
 	validDelegateTransaction,
@@ -168,7 +166,7 @@ describe('Delegate registration transaction class', () => {
 			store.account.get = () => {
 				return {
 					...sender,
-					username: 'genesis_10'
+					username: 'genesis_10',
 				};
 			};
 			const errors = (validTestTransaction as any).applyAsset(store);
@@ -189,9 +187,9 @@ describe('Delegate registration transaction class', () => {
 			store.account.get = () => {
 				return {
 					...sender,
-					username: 'genesis_10'
+					username: 'genesis_10',
 				};
-			};			
+			};
 			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
 		});

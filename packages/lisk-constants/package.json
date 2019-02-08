@@ -57,16 +57,16 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@types/node": "10.10.1"
+		"@types/node": "10.12.21"
 	},
 	"devDependencies": {
-		"@types/chai": "4.1.5",
+		"@types/chai": "4.1.7",
 		"@types/expect": "1.20.3",
-		"@types/jquery": "3.3.9",
+		"@types/jquery": "3.3.29",
 		"@types/mocha": "5.2.5",
-		"browserify": "16.2.2",
-		"chai": "4.1.2",
-		"cypress": "3.1.0",
+		"browserify": "16.2.3",
+		"chai": "4.2.0",
+		"cypress": "3.1.5",
 		"eslint": "5.5.0",
 		"eslint-config-airbnb-base": "13.1.0",
 		"eslint-config-lisk-base": "1.0.0",
@@ -74,16 +74,16 @@
 		"eslint-plugin-mocha": "5.2.0",
 		"http-server": "0.11.1",
 		"mocha": "5.2.0",
-		"nyc": "13.0.1",
-		"prettier": "1.14.2",
-		"source-map-support": "0.5.9",
-		"ts-node": "7.0.1",
-		"tsconfig-paths": "3.6.0",
-		"tslint": "5.11.0",
-		"tslint-config-prettier": "1.15.0",
-		"tslint-immutable": "4.7.0",
-		"typescript": "3.0.3",
+		"nyc": "13.2.0",
+		"prettier": "1.16.4",
+		"source-map-support": "0.5.10",
+		"ts-node": "8.0.2",
+		"tsconfig-paths": "3.8.0",
+		"tslint": "5.12.1",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-immutable": "5.1.2",
+		"typescript": "3.3.1",
 		"uglify-es": "3.3.9",
-		"wait-on": "3.0.1"
+		"wait-on": "3.2.0"
 	}
 }

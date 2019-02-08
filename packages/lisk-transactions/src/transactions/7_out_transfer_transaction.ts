@@ -71,7 +71,7 @@ export const outTransferAssetFormatSchema = {
 
 export class OutTransferTransaction extends BaseTransaction {
 	public readonly asset: OutTransferAsset;
-	public readonly containsUniqueData = true;
+	public readonly containsUniqueData: boolean;
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -91,6 +91,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as OutTransferAsset;
 		this._fee = new BigNum(OUT_TRANSFER_FEE);
+		this.containsUniqueData = true;
 	}
 
 	public async prepareTransaction(store: StateStorePrepare): Promise<void> {

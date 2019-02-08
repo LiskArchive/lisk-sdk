@@ -1,30 +1,27 @@
-import {
-    validAccount,
-    validTransaction,
-} from '../../fixtures';
+import { validAccount, validTransaction } from '../../fixtures';
 
 const getter = {
-    get: () => {
-        return {...validTransaction};
-    },
-    find: () => []
-}
+	get: () => {
+		return { ...validTransaction };
+	},
+	find: () => [],
+};
 
 const setter = {
-    get: () => {
-        return {...validAccount};
-    },
-    set: () => {
-        return;
-    },
-    find: () => []
+	get: () => {
+		return { ...validAccount };
+	},
+	set: () => {
+		return;
+	},
+	find: () => [],
 };
 
 export const MockStateStore: any = {
-    account: {
-        ...setter,
-    },
-    transaction: {
-        ...getter,
-    },
+	account: {
+		...setter,
+	},
+	transaction: {
+		...getter,
+	},
 };

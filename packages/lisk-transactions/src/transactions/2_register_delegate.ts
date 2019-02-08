@@ -15,11 +15,7 @@
 import * as BigNum from 'browserify-bignum';
 import { DELEGATE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	Account,
-	DelegateAsset,
-	TransactionJSON,
-} from '../transaction_types';
+import { Account, DelegateAsset, TransactionJSON } from '../transaction_types';
 import { CreateBaseTransactionInput, validator } from '../utils';
 import {
 	BaseTransaction,
@@ -89,7 +85,7 @@ export type RegisterDelegateInput = CreateBaseTransactionInput &
 
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
-	public readonly containsUniqueData = true;
+	public readonly containsUniqueData: boolean;
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -111,6 +107,7 @@ export class DelegateTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as DelegateAsset;
 		this._fee = new BigNum(DELEGATE_FEE);
+		this.containsUniqueData = true;
 	}
 
 	protected getAssetBytes(): Buffer {

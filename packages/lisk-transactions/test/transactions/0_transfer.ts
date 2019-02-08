@@ -18,10 +18,7 @@ import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../../src/constants';
 import { TransferTransaction } from '../../src/transactions';
 import { Account, Status } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
-import {
-	addTransactionFields,
-	MockStateStore as store,
-} from '../helpers';
+import { addTransactionFields, MockStateStore as store } from '../helpers';
 import {
 	validTransferAccount,
 	validTransferTransactions,
@@ -205,10 +202,7 @@ describe('Transfer transaction class', () => {
 				};
 			};
 			const errors = (validTransferTestTransaction as any).undoAsset(store);
-			expect(errors[0]).and.to.have.property(
-				'message',
-				'Invalid amount',
-			);
+			expect(errors[0]).and.to.have.property('message', 'Invalid amount');
 		});
 	});
 });

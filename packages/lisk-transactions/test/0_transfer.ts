@@ -160,7 +160,7 @@ describe('#transfer transaction', () => {
 						recipientId,
 						amount,
 						passphrase,
-						data: Buffer.from('hello'),
+						data: Buffer.from('hello') as any,
 					}),
 				).to.throw(
 					'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
@@ -265,7 +265,7 @@ describe('#transfer transaction', () => {
 					transfer.bind(null, {
 						amount,
 						passphrase,
-						data: Buffer.from('hello'),
+						data: Buffer.from('hello') as any,
 					}),
 				).to.throw(
 					'Either recipientId or recipientPublicKey must be provided.',

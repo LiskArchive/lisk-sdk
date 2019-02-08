@@ -16,16 +16,9 @@ import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import { SIGNATURE_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	SecondSignatureAsset,
-	TransactionJSON,
-} from '../transaction_types';
+import { SecondSignatureAsset, TransactionJSON } from '../transaction_types';
 import { getId, validator } from '../utils';
-import {
-	BaseTransaction,
-	StateStore,
-	StateStorePrepare,
-} from './base';
+import { BaseTransaction, StateStore, StateStorePrepare } from './base';
 
 const TRANSACTION_SIGNATURE_TYPE = 1;
 

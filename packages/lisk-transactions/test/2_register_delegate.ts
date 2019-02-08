@@ -174,7 +174,7 @@ describe('#registerDelegate transaction', () => {
 			});
 
 			it('should throw error when username was not provided', () => {
-				return expect(registerDelegate.bind(null, {})).to.throw(
+				return expect(registerDelegate.bind(null, {} as any)).to.throw(
 					'Please provide a username. Expected string.',
 				);
 			});
