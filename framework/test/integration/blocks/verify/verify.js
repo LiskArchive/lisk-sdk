@@ -243,6 +243,7 @@ describe('blocks/verify', async () => {
 				library.config
 			);
 			verify.onBind({
+				components: library.components,
 				modules: library.modules,
 			});
 			privateFunctions = RewiredVerify.__get__('__private');
