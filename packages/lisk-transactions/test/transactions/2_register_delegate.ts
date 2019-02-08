@@ -13,9 +13,8 @@
  *
  */
 import { expect } from 'chai';
+import { MockStateStore as store } from '../helpers';
 import {
-	Attributes,
-	BaseTransaction,
 	DelegateTransaction,
 } from '../../src/transactions';
 import {
@@ -23,23 +22,15 @@ import {
 	validDelegateTransaction,
 	validTransaction,
 } from '../../fixtures';
-import { Account, Status, TransactionJSON } from '../../src/transaction_types';
+import { Account, TransactionJSON } from '../../src/transaction_types';
 
 describe('Delegate registration transaction class', () => {
 	let validTestTransaction: DelegateTransaction;
 	let sender: Account;
-	let nonDelegateAccount: Account;
 
 	beforeEach(async () => {
 		validTestTransaction = new DelegateTransaction(validDelegateTransaction);
 		sender = validDelegateAccount;
-		nonDelegateAccount = {
-			address: '17676438278047402502L',
-			balance: '15412982278208',
-			publicKey:
-				'dd786687dd2399605ce8fe70212d078db1a2fc6effba127defb176a004cec6d4',
-			secondPublicKey: '',
-		};
 	});
 
 	describe('#constructor', () => {
@@ -77,127 +68,33 @@ describe('Delegate registration transaction class', () => {
 	});
 
 	describe('#verifyAgainstOtherTransactions', () => {
-		it('should return status true with non conflicting transactions', async () => {
-			const {
-				errors,
-				status,
-			} = validTestTransaction.verifyAgainstOtherTransactions([
+		it('should return no errors with non conflicting transactions', async () => {
+			const { errors } = validTestTransaction.verifyAgainstOtherTransactions([
 				validTransaction,
 			] as ReadonlyArray<TransactionJSON>);
-
-			expect(errors)
-				.to.be.an('array')
-				.of.length(0);
-			expect(status).to.equal(Status.OK);
+			expect(errors).to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when other transaction from same account has the same type', async () => {
+		it('should return error when other transaction from same account has the same type', async () => {
 			const conflictTransaction = {
 				...validTransaction,
 				senderPublicKey: validDelegateTransaction.senderPublicKey,
 				type: 2,
 			};
-			const {
-				errors,
-				status,
-			} = validTestTransaction.verifyAgainstOtherTransactions([
+			const { errors } = validTestTransaction.verifyAgainstOtherTransactions([
 				conflictTransaction,
 			] as ReadonlyArray<TransactionJSON>);
-			expect(errors)
-				.to.be.an('array')
-				.of.length(1);
-			expect(status).to.equal(Status.FAIL);
+			expect(errors).to.not.be.empty;
 		});
 	});
 
-	describe('#getRequiredAttributes', () => {
-		let attribute: Attributes;
-
-		beforeEach(async () => {
-			attribute = validTestTransaction.getRequiredAttributes();
-		});
-
-		it('should return attribute including sender address', async () => {
-			expect(attribute.account.address).to.include(
-				validTestTransaction.senderId,
-			);
-		});
-	});
-
-	describe('#processRequiredState', () => {
-		beforeEach(async () => {
-			validTestTransaction = new DelegateTransaction(validDelegateTransaction);
-		});
-
-		it('should return sender and dependentState.account', async () => {
-			const validEntity = {
-				account: [sender],
-			};
-			expect(
-				validTestTransaction.processRequiredState(validEntity).sender,
-			).to.eql(sender);
-			expect(
-				validTestTransaction.processRequiredState(validEntity).dependentState,
-			)
-				.to.have.property('account')
-				.and.eql([sender]);
-		});
-
-		it('should throw an error when state does not have account key', async () => {
-			expect(
-				validTestTransaction.processRequiredState.bind(
-					validTestTransaction,
-					{},
-				),
-			).to.throw('Entity account is required.');
-		});
-
-		it('should throw an error when account state does not have address and public key', async () => {
-			const invalidEntity = {
-				account: [
-					{ balance: '0' },
-					{
-						address: '1L',
-						publicKey:
-							'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
-					},
-				],
-			};
-			expect(
-				validTestTransaction.processRequiredState.bind(
-					validTestTransaction,
-					invalidEntity,
-				),
-			).to.throw('Required state does not have valid account type.');
-		});
-
-		it('should throw an error when account state does not include the sender', async () => {
-			const invalidEntity = {
-				account: [
-					{
-						address: '1L',
-						publicKey:
-							'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
-					},
-				],
-			};
-			expect(
-				validTestTransaction.processRequiredState.bind(
-					validTestTransaction,
-					invalidEntity,
-				),
-			).to.throw('No sender account is found.');
-		});
-	});
-
-	describe('#validateSchema', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.validateSchema();
-			expect(status).to.equal(Status.OK);
+	describe('#validateAsset', () => {
+		it('should no errors', async () => {
+			const errors = (validTestTransaction as any).validateAsset();
 			expect(errors).to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when asset includes invalid characters', async () => {
+		it('should return error when asset includes invalid characters', async () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {
@@ -207,14 +104,11 @@ describe('Delegate registration transaction class', () => {
 				},
 			};
 			const transaction = new DelegateTransaction(invalidTransaction);
-
-			const { status, errors } = transaction.validateSchema();
-
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when asset includes uppercase', async () => {
+		it('should return error when asset includes uppercase', async () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {
@@ -224,12 +118,11 @@ describe('Delegate registration transaction class', () => {
 				},
 			};
 			const transaction = new DelegateTransaction(invalidTransaction);
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should throw TransactionResponse with error when asset is potential address', async () => {
+		it('should error when asset is potential address', async () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {
@@ -240,12 +133,11 @@ describe('Delegate registration transaction class', () => {
 			};
 			const transaction = new DelegateTransaction(invalidTransaction);
 
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should return TransactionResponse with error when recipientId is not empty', async () => {
+		it('should return error when recipientId is not empty', async () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				recipientId: '1L',
@@ -253,133 +145,55 @@ describe('Delegate registration transaction class', () => {
 			};
 			const transaction = new DelegateTransaction(invalidTransaction);
 
-			const { status, errors } = transaction.validateSchema();
+			const errors = (transaction as any).validateAsset();
 
-			expect(status).to.equal(Status.FAIL);
 			expect(errors).not.to.be.empty;
 		});
 
-		it('should throw TransactionResponse with error when recipientPublicKey is not empty', async () => {
+		it('should return error when recipientPublicKey is not empty', async () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				recipientPublicKey: '123',
 			};
 			const transaction = new DelegateTransaction(invalidTransaction);
 
-			const { status, errors } = transaction.validateSchema();
-			expect(status).to.equal(Status.FAIL);
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.recipientPublicKey');
 		});
 	});
 
-	describe('#verify', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.verify({
-				sender: nonDelegateAccount,
-			});
-
-			expect(status).to.equal(Status.OK);
-			expect(errors).to.be.empty;
-		});
-
-		it('should return TransactionResponse with error when dependent state includes account', async () => {
-			const { status, errors } = validTestTransaction.verify({
-				sender,
-				dependentState: { account: [sender] },
-			});
-			expect(status).to.equal(Status.FAIL);
+	describe('#applyAsset', () => {
+		it('should returnerror when store includes account', async () => {
+			store.account.get = () => {
+				return {
+					...sender,
+					username: 'genesis_10'
+				};
+			};
+			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
 		});
 
-		it('should return TransactionResponse with error when account is already delegate', async () => {
-			const { status, errors } = validTestTransaction.verify({
-				sender,
-				dependentState: { account: [sender] },
-			});
-			expect(status).to.equal(Status.FAIL);
+		it('should return an error when account is already delegate', async () => {
+			const errors = (validTestTransaction as any).applyAsset(store);
+
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
 		});
 	});
 
-	describe('#apply', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.apply({
-				sender: nonDelegateAccount,
-			});
-			expect(status).to.equal(Status.OK);
+	describe('#undoAsset', () => {
+		it('should return no errors', async () => {
+			store.account.get = () => {
+				return {
+					...sender,
+					username: 'genesis_10'
+				};
+			};			
+			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
-		});
-
-		it('should return TransactionResponse with error when dependent state includes account', async () => {
-			const { status, errors } = validTestTransaction.apply({
-				sender,
-				dependentState: { account: [sender] },
-			});
-			expect(status).to.equal(Status.FAIL);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
-		});
-
-		it('should return TransactionResponse with error when account is already delegate', async () => {
-			const { status, errors } = validTestTransaction.apply({
-				sender,
-			});
-			expect(status).to.equal(Status.FAIL);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
-		});
-
-		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'apply').returns({});
-			expect(
-				validTestTransaction.apply.bind(validDelegateTransaction, {
-					sender,
-				}),
-			).to.throw('State is required for applying transaction.');
-		});
-
-		it('should return updated account state with added username', async () => {
-			const { state } = validTestTransaction.apply({
-				sender: nonDelegateAccount,
-			});
-			expect((state as any).sender.username).to.eql('genesis_10');
-		});
-	});
-
-	describe('#undo', () => {
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.undo({
-				sender,
-			});
-			expect(status).to.equal(Status.OK);
-			expect(errors).to.be.empty;
-		});
-
-		it('should return TransactionResponse with status OK', async () => {
-			const { status, errors } = validTestTransaction.undo({
-				sender: nonDelegateAccount,
-			});
-			expect(status).to.equal(Status.OK);
-			expect(errors).to.be.empty;
-		});
-
-		it('should throw an error when state does not exist from the base transaction', async () => {
-			sandbox.stub(BaseTransaction.prototype, 'undo').returns({});
-			expect(
-				validTestTransaction.undo.bind(validDelegateTransaction, {
-					sender,
-				}),
-			).to.throw('State is required for undoing transaction.');
-		});
-
-		it('should return updated account state with removed username', async () => {
-			const { state } = validTestTransaction.undo({
-				sender,
-			});
-			expect((state as any).sender.username).to.not.exist;
 		});
 	});
 });
