@@ -66,7 +66,8 @@ export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
 export const REMOTE_EVENT_MESSAGE = 'remote-message';
 
-export const REMOTE_RPC_NODE_INFO = 'updateMyself';
+export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
+export const REMOTE_RPC_GET_NODE_INFO = 'status';
 export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
 type SCServerSocketUpdated = {
@@ -155,8 +156,10 @@ export class Peer extends EventEmitter {
 				respond,
 			);
 
-			if (rawRequest.procedure === REMOTE_RPC_NODE_INFO) {
-				this._handlePeerInfo(request);
+			if (rawRequest.procedure === REMOTE_RPC_UPDATE_PEER_INFO) {
+				this._handleUpdatePeerInfo(request);
+			} else if (rawRequest.procedure === REMOTE_RPC_GET_NODE_INFO) {
+				this._handleGetNodeInfo(request);
 			}
 
 			this.emit(EVENT_REQUEST_RECEIVED, request);
@@ -292,7 +295,7 @@ export class Peer extends EventEmitter {
 		const legacyNodeInfo = convertNodeInfoToLegacyFormat(this._nodeInfo);
 		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
 		await this.request({
-			procedure: REMOTE_RPC_NODE_INFO,
+			procedure: REMOTE_RPC_UPDATE_PEER_INFO,
 			data: legacyNodeInfo,
 		});
 	}
@@ -493,11 +496,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public static constructPeerIdFromPeerInfo(peerInfo: P2PPeerInfo): string {
-		return `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
-	}
-
-	private _handlePeerInfo(request: P2PRequest): void {
+	private _handleUpdatePeerInfo(request: P2PRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
 			const protocolPeerInfo = { ...request.data, ip: this._ipAddress };
@@ -512,5 +511,10 @@ export class Peer extends EventEmitter {
 
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 		request.end();
+	}
+
+	private _handleGetNodeInfo(request: P2PRequest): void {
+		const legacyNodeInfo = this._nodeInfo ? convertNodeInfoToLegacyFormat(this._nodeInfo) : {};
+		request.end(legacyNodeInfo);
 	}
 }

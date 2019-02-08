@@ -36,6 +36,7 @@ import {
 } from './p2p_types';
 import {
 	ConnectionState,
+	constructPeerIdFromPeerInfo,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_INBOUND_SOCKET_ERROR,
@@ -156,7 +157,7 @@ export class PeerPool extends EventEmitter {
 			);
 		}
 
-		const selectedPeerId = Peer.constructPeerIdFromPeerInfo(selectedPeer[0]);
+		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeer[0]);
 		const peer = this._peerMap.get(selectedPeerId);
 
 		if (!peer) {
@@ -177,7 +178,7 @@ export class PeerPool extends EventEmitter {
 		const selectedPeers = this.selectPeers(peerSelectionParams);
 
 		selectedPeers.forEach((peerInfo: P2PPeerInfo) => {
-			const selectedPeerId = Peer.constructPeerIdFromPeerInfo(peerInfo);
+			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
 			const peer = this._peerMap.get(selectedPeerId);
 
 			if (peer) {
