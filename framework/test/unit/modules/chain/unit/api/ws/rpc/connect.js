@@ -91,7 +91,7 @@ describe('connect', async () => {
 		done();
 	});
 
-	after('restore spies on connectSteps', done => {
+	afterEach('restore spies on connectSteps', done => {
 		addConnectionOptionsSpySpy.restore();
 		addSocketSpy.restore();
 		upgradeSocketAsClientSpy.restore();
@@ -105,12 +105,6 @@ describe('connect', async () => {
 		describe('connectSteps order', async () => {
 			beforeEach(done => {
 				connectResult = connectRewired(validPeer, loggerMock, peersHeadersMock);
-				done();
-			});
-
-			afterEach(done => {
-				addConnectionOptionsSpySpy.resetHistory();
-				addSocketSpy.resetHistory();
 				done();
 			});
 
@@ -130,22 +124,16 @@ describe('connect', async () => {
 				sinon.assert.callOrder(addSocketSpy, upgradeSocketAsClientSpy));
 
 			it('should call upgradeSocketAsServerSpy after addSocket', async () =>
-				sinon.assert.callOrder(addSocketSpy, upgradeSocketAsServerSpy));
-
-			it('should call registerRPCSpy after upgradeSocketAsClientSpy', async () =>
 				sinon.assert.callOrder(
 					upgradeSocketAsClientSpy,
-					registerSocketListenersSpy
+					upgradeSocketAsServerSpy
 				));
 
-			it('should call registerRPCSpy after upgradeSocketAsServerSpy', async () =>
-				sinon.assert.callOrder(
-					upgradeSocketAsServerSpy,
-					registerSocketListenersSpy
-				));
+			it('should call registerRPCSpy after upgradeSocketAsClientSpy', async () =>
+				sinon.assert.callOrder(upgradeSocketAsServerSpy, registerRPCSpy));
 
 			it('should call registerSocketListenersSpy after addSocket', async () =>
-				sinon.assert.callOrder(addSocketSpy, registerSocketListenersSpy));
+				sinon.assert.callOrder(registerRPCSpy, registerSocketListenersSpy));
 
 			it('should return passed peer', async () =>
 				expect(connectResult).equal(validPeer));
