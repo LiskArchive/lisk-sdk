@@ -551,7 +551,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with unicode special symbol should be ok', () => {
 				const application = randomUtil.application();
-				application.name = `lorem${specialChar}`;
+				// Add special charactr insuring the name is unique and isn't longer than maximun length
+				application.name = specialChar + application.name.substring(2);
 
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
