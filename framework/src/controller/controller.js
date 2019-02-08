@@ -1,9 +1,11 @@
 const assert = require('assert');
 const Promise = require('bluebird');
 const fs = require('fs-extra');
+const psList = require('ps-list');
 const systemDirs = require('./config/dirs');
 const EventEmitterChannel = require('./channels/event_emitter');
 const Bus = require('./bus');
+const { DuplicateAppInstanceError } = require('../errors');
 
 /* eslint-disable no-underscore-dangle */
 
@@ -18,6 +20,9 @@ const validateModuleSpec = moduleSpec => {
 	assert(moduleSpec.load, 'Module load action is required.');
 	assert(moduleSpec.unload, 'Module unload actions is required.');
 };
+
+const isPidRunning = async pid =>
+	psList().then(list => list.some(x => x.pid === pid));
 
 /**
  * Controller logic responsible to run the application instance
@@ -66,6 +71,7 @@ module.exports = class Controller {
 	async load() {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
+		await this._validatePidFile();
 		await this._setupBus();
 		await this._setupControllerActions();
 		await this._loadModules();
@@ -84,10 +90,28 @@ module.exports = class Controller {
 	// eslint-disable-next-line class-methods-use-this
 	async _setupDirectories() {
 		// Make sure all directories exists
-		fs.emptyDirSync(this.config.dirs.temp);
-		fs.ensureDirSync(this.config.dirs.sockets);
-		fs.ensureDirSync(this.config.dirs.pids);
-		fs.writeFileSync(`${this.config.dirs.pids}/controller.pid`, process.pid);
+		await fs.ensureDir(this.config.dirs.temp);
+		await fs.ensureDir(this.config.dirs.sockets);
+		await fs.ensureDir(this.config.dirs.pids);
+	}
+
+	async _validatePidFile() {
+		const pidPath = `${this.config.dirs.pids}/controller.pid`;
+		const pidExists = await fs.pathExists(pidPath);
+		if (pidExists) {
+			const pidRunning = await isPidRunning(
+				parseInt(await fs.readFile(pidPath))
+			);
+			if (pidRunning) {
+				this.logger.error(
+					`An instance of application "${
+						this.appLabel
+					}" is already running. You have to change application name to run another instance.`
+				);
+				throw new DuplicateAppInstanceError(this.appLabel, pidPath);
+			}
+		}
+		await fs.writeFile(pidPath, process.pid);
 	}
 
 	/**

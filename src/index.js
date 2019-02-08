@@ -34,7 +34,10 @@ try {
 	app
 		.run()
 		.then(() => app.logger.log('App started...'))
-		.catch(err => app.logger.error('App stopped with error', err));
+		.catch(err => {
+			app.logger.error('App stopped with error', err);
+			process.exit();
+		});
 } catch (e) {
 	console.error(e);
 }
