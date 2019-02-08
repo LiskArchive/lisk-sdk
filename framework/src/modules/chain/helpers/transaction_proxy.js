@@ -27,13 +27,13 @@ class Transaction {
 			[7, 'OutTransferTransaction'],
 		]);
 
-		const tx = transaction[map.get(rawTx.type)];
+		const TransactionClass = transaction[map.get(rawTx.type)];
 
 		if (!tx) {
 			throw new Error('Transaction type not found.');
 		}
 
-		return new tx(rawTransaction);
+		return new TransactionClass(rawTx);
 	}
 }
 
