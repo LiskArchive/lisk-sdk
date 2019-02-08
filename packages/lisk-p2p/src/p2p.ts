@@ -33,6 +33,8 @@ import {
 	INVALID_CONNECTION_URL_REASON,
 } from './disconnect_status_codes';
 
+import { PeerInboundHandshakeError } from './errors';
+
 import {
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
@@ -212,9 +214,15 @@ export class P2P extends EventEmitter {
 			'connection',
 			(socket: SCServerSocket): void => {
 				if (!socket.request.url) {
-					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, {
-						remoteAddress: socket.remoteAddress,
-					});
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
+						new PeerInboundHandshakeError(
+							INVALID_CONNECTION_URL_REASON,
+							INVALID_CONNECTION_URL_CODE,
+							socket.remoteAddress,
+							socket.request.url,
+						),
+					);
 					socket.disconnect(
 						INVALID_CONNECTION_URL_CODE,
 						INVALID_CONNECTION_URL_REASON,
@@ -226,7 +234,6 @@ export class P2P extends EventEmitter {
 
 				if (
 					typeof queryObject.wsPort !== 'string' ||
-					typeof queryObject.os !== 'string' ||
 					typeof queryObject.version !== 'string' ||
 					typeof queryObject.nethash !== 'string'
 				) {
@@ -234,9 +241,15 @@ export class P2P extends EventEmitter {
 						INVALID_CONNECTION_QUERY_CODE,
 						INVALID_CONNECTION_QUERY_REASON,
 					);
-					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, {
-						remoteAddress: socket.remoteAddress,
-					});
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
+						new PeerInboundHandshakeError(
+							INVALID_CONNECTION_QUERY_REASON,
+							INVALID_CONNECTION_QUERY_CODE,
+							socket.remoteAddress,
+							socket.request.url,
+						),
+					);
 
 					return;
 				}
@@ -246,9 +259,15 @@ export class P2P extends EventEmitter {
 						INCOMPATIBLE_NETWORK_CODE,
 						INCOMPATIBLE_NETWORK_REASON,
 					);
-					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, {
-						remoteAddress: socket.remoteAddress,
-					});
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
+						new PeerInboundHandshakeError(
+							INCOMPATIBLE_NETWORK_REASON,
+							INCOMPATIBLE_NETWORK_CODE,
+							socket.remoteAddress,
+							socket.request.url,
+						),
+					);
 
 					return;
 				}
@@ -261,7 +280,6 @@ export class P2P extends EventEmitter {
 					wsPort,
 					height: queryObject.height ? +queryObject.height : 0,
 					isDiscoveredPeer: true,
-					os: queryObject.os,
 					version: queryObject.version,
 					options:
 						typeof queryObject.options === 'string'

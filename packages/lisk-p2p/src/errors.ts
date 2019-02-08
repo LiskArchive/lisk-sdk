@@ -15,13 +15,22 @@
 /* tslint:disable: max-classes-per-file */
 import * as VError from 'verror';
 
-export class PeerTransportError extends VError {
-	public peerId: string;
+export class PeerInboundHandshakeError extends VError {
+	public statusCode: number;
+	public remoteAddress: string;
+	public handshakeURL?: string;
 
-	public constructor(message: string, peerId: string) {
+	public constructor(
+		message: string,
+		statusCode: number,
+		remoteAddress: string,
+		handshakeURL?: string,
+	) {
 		super(message);
-		this.name = 'PeerTransportError';
-		this.peerId = peerId;
+		this.name = 'PeerInboundHandshakeError';
+		this.statusCode = statusCode;
+		this.remoteAddress = remoteAddress;
+		this.handshakeURL = handshakeURL;
 	}
 }
 
