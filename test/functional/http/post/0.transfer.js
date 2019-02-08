@@ -28,6 +28,12 @@ const Bignum = require('../../../../helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
+const specialChar = '❤';
+const nullChar1 = '\0';
+const nullChar2 = '\x00';
+const nullChar3 = '\u0000';
+const nullChar4 = '\\U00000000';
+
 describe('POST /api/transactions (type 0) transfer funds', () => {
 	let transaction;
 	const goodTransaction = randomUtil.transaction();
@@ -318,8 +324,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 
 			describe('edge cases', () => {
-				it("using '❤ hey \x01 :)' should be ok", () => {
-					const additioinalData = '❤ hey \x01 :)';
+				it('using specialChar should be ok', () => {
+					const additioinalData = `${specialChar} hey \x01 :)`;
 					const accountAdditionalData = randomUtil.account();
 					transaction = lisk.transaction.transfer({
 						amount: 1,
@@ -336,8 +342,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					});
 				});
 
-				it("using '\0 hey 1 :)' should fail", () => {
-					const additioinalData = '\u0000 hey:)';
+				it('using nullChar1 should fail', () => {
+					const additioinalData = `${nullChar1} hey :)`;
 					const accountAdditionalData = randomUtil.account();
 					transaction = lisk.transaction.transfer({
 						amount: 1,
@@ -357,8 +363,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					});
 				});
 
-				it("using '\x00 hey 2 :)' should fail", () => {
-					const additioinalData = '\u0000 hey:)';
+				it('using nullChar2 should fail', () => {
+					const additioinalData = `${nullChar2} hey :)`;
 					const accountAdditionalData = randomUtil.account();
 					transaction = lisk.transaction.transfer({
 						amount: 1,
@@ -378,8 +384,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					});
 				});
 
-				it("using '\u0000 hey 3 :)' should fail", () => {
-					const additioinalData = '\u0000 hey:)';
+				it('using nullChar3 should fail', () => {
+					const additioinalData = `${nullChar3} hey :)`;
 					const accountAdditionalData = randomUtil.account();
 					transaction = lisk.transaction.transfer({
 						amount: 1,
@@ -399,9 +405,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					});
 				});
 
-				// eslint-disable-next-line no-useless-escape
-				it("using 'U00000000 hey 4 :)' should fail", () => {
-					const additioinalData = '\u0000 hey:)';
+				it('using nullChar4 should fail', () => {
+					const additioinalData = `${nullChar4} hey :)`;
 					const accountAdditionalData = randomUtil.account();
 					transaction = lisk.transaction.transfer({
 						amount: 1,

@@ -43,8 +43,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 	const nullChar1 = '\0';
 	const nullChar2 = '\x00';
 	const nullChar3 = '\u0000';
-	// eslint-disable-next-line no-useless-escape
-	const nullChar4 = 'U00000000';
+	const nullChar4 = '\\U00000000';
 
 	// Crediting accounts
 	before(() => {

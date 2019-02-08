@@ -16,7 +16,6 @@
 
 const regexpTester = require('../../../helpers/regexp_tester');
 
-/* eslint-disable no-useless-escape */
 describe('includeNullByte', () => {
 	const validStrings = [
 		'lorem ipsum',
@@ -41,10 +40,10 @@ describe('includeNullByte', () => {
 		'\u0000lorem',
 		'ipsum\u0000',
 		'lorem\u0000 ipsum',
-		'U00000000',
-		'U00000000lorem',
-		'ipsumU00000000',
-		'loremU00000000 ipsum',
+		'\\U00000000',
+		'\\U00000000lorem',
+		'ipsum\\U00000000',
+		'lorem\\U00000000 ipsum',
 	];
 
 	describe('strings without null character should be return false', () => {
