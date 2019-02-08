@@ -14,17 +14,17 @@
 
 'use strict';
 
-const os = require('os');
+const OS = require('os');
 
 const { createSystemComponent } = require('../../../../src/components/system');
 
-describe('system', async () => {
+describe('components: system', async () => {
 	let systemComponent;
 	let loggerStub;
 	let storageStub;
 	let dummyConfig;
 
-	before(async () => {
+	beforeEach(async () => {
 		// Library
 		loggerStub = {
 			trace: sinonSandbox.spy(),
@@ -52,21 +52,19 @@ describe('system', async () => {
 			loggerStub,
 			storageStub
 		);
-		return expect(systemComponent).to.be.an('object');
 	});
 
 	describe('constructor', async () => {
 		it('should assign params to library', async () => {
-			const headers = _.cloneDeep(systemComponent.headers);
-			delete headers.os;
+			const { os, ...headers } = systemComponent.headers;
 			expect(systemComponent.logger).to.eql(loggerStub);
 			expect(systemComponent.storage).to.eql(storageStub);
-			return expect(headers).to.deep.equal(dummyConfig);
+			expect(headers).to.deep.equal(dummyConfig);
 		});
 
 		it('should assign config to headers', async () => {
 			const headers = systemComponent.headers;
-			expect(headers.os).to.eql(os.platform() + os.release());
+			expect(headers.os).to.eql(OS.platform() + OS.release());
 			expect(headers.version).to.eql(dummyConfig.version);
 			expect(headers.wsPort).to.eql(dummyConfig.wsPort);
 			expect(headers.httpPort).to.eql(dummyConfig.httpPort);
@@ -76,7 +74,7 @@ describe('system', async () => {
 			expect(headers.broadhash).to.eql(dummyConfig.nethash);
 			expect(headers.minVersion).to.eql(dummyConfig.minVersion);
 			expect(headers.protocolVersion).to.eql(dummyConfig.protocolVersion);
-			return expect(headers.nonce).to.eql(dummyConfig.nonce);
+			expect(headers.nonce).to.eql(dummyConfig.nonce);
 		});
 
 		it('should create an object with several functions availables', async () => {
@@ -87,7 +85,7 @@ describe('system', async () => {
 			expect(systemComponent.versionCompatible).to.be.a('function');
 			expect(systemComponent.protocolVersionCompatible).to.be.a('function');
 			expect(systemComponent.nonceCompatible).to.be.a('function');
-			return expect(systemComponent.update).to.be.a('function');
+			expect(systemComponent.update).to.be.a('function');
 		});
 	});
 

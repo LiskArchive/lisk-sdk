@@ -15,7 +15,7 @@
 
 'use strict';
 
-describe('Storage', async () => {
+describe('components: storage', async () => {
 	describe('constructor()', async () => {
 		it('should accept two parameters');
 		it('should assign parameters correctly');

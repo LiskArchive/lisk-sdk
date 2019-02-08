@@ -144,7 +144,7 @@ class System {
 	 * Updates private broadhash and height values.
 	 *
 	 * @param {Object} block - block
-	 * @returns Promise.resolves | err
+	 * @returns Promise.resolve | err
 	 */
 	async update() {
 		try {
