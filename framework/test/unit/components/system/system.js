@@ -37,14 +37,15 @@ describe('system', async () => {
 		storageStub = sinonSandbox.stub();
 
 		dummyConfig = {
-			broadhash: 1,
 			height: 1,
+			nethash: 'test broadhash',
 			version: '1.0.0-beta.3',
-			nethash: 1,
 			minVersion: '1.0.0-beta.0',
 			protocolVersion: '1.0',
-			nonce: 1,
+			nonce: 'test nonce',
 		};
+
+		dummyConfig.broadhash = dummyConfig.nethash;
 
 		systemComponent = createSystemComponent(
 			dummyConfig,
@@ -71,6 +72,7 @@ describe('system', async () => {
 			expect(headers.httpPort).to.eql(dummyConfig.httpPort);
 			expect(headers.height).to.eql(1);
 			expect(headers.nethash).to.eql(dummyConfig.nethash);
+			// Broadhash should be assigned to the same as nethash at first instance
 			expect(headers.broadhash).to.eql(dummyConfig.nethash);
 			expect(headers.minVersion).to.eql(dummyConfig.minVersion);
 			expect(headers.protocolVersion).to.eql(dummyConfig.protocolVersion);
@@ -129,15 +131,53 @@ describe('system', async () => {
 			});
 		});
 	});
-
-	describe('networkCompatible', async () => {
-		it('should return true if argument is equal to this.headers.nethash');
-
-		it('should return false if argument is not equal to this.headers.nethash');
-	});
 	/* eslint-enable mocha/no-pending-tests */
 
+	describe('networkCompatible', async () => {
+		describe('when there is no nethash', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.networkCompatible()).to.be.false);
+		});
+		describe('when nethash is null', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.networkCompatible(null)).to.be.false);
+		});
+		describe('when nethash is undefined', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.networkCompatible(undefined)).to.be.false);
+		});
+		describe('when nethash is empty string', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.networkCompatible('')).to.be.false);
+		});
+		describe('when nethash is not equal to this.headers.nethash', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.networkCompatible('2')).to.be.false);
+		});
+		describe('when nethash is equal to this.headers.nethash', async () => {
+			it('should return true', async () =>
+				expect(systemComponent.networkCompatible(dummyConfig.nethash)).to.be
+					.true);
+		});
+	});
+
 	describe('versionCompatible', async () => {
+		describe('when there is no version', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.versionCompatible()).to.be.false);
+		});
+		describe('when version is null', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.versionCompatible(null)).to.be.false);
+		});
+		describe('when version is undefined', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.versionCompatible(undefined)).to.be.false);
+		});
+		describe('when version is empty string', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.versionCompatible('')).to.be.false);
+		});
 		describe('when version is equal to system version', async () => {
 			it('should return true', async () =>
 				expect(systemComponent.versionCompatible('1.0.0-beta.0')).to.be.true);
@@ -188,15 +228,35 @@ describe('system', async () => {
 		});
 	});
 
-	/* eslint-disable mocha/no-pending-tests */
 	describe('nonceCompatible', async () => {
-		it('should return if nonce exists and is different than the system nonce');
-
-		it('should return false if nonce does not exist');
-
-		it('should return false if nonce exists and is equal to the system nonce');
+		describe('when there is no nonce', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.nonceCompatible()).to.be.false);
+		});
+		describe('when nonce is null', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.nonceCompatible(null)).to.be.false);
+		});
+		describe('when nonce is undefined', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.nonceCompatible(undefined)).to.be.false);
+		});
+		describe('when nonce is empty string', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.nonceCompatible('')).to.be.false);
+		});
+		describe('when nonce is equal to system nonce', async () => {
+			it('should return false', async () =>
+				expect(systemComponent.nonceCompatible(dummyConfig.nonce)).to.be.false);
+		});
+		describe('when nonce is different than system nonce', async () => {
+			it('should return true', async () =>
+				expect(systemComponent.nonceCompatible(`another${dummyConfig.nonce}`))
+					.to.be.true);
+		});
 	});
 
+	/* eslint-disable mocha/no-pending-tests */
 	describe('update', async () => {
 		it('should call getBroadhash with function');
 

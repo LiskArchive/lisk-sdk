@@ -92,6 +92,9 @@ class System {
 	 * @returns {boolean}
 	 */
 	networkCompatible(nethash) {
+		if (!nethash) {
+			return false;
+		}
 		return this.headers.nethash === nethash;
 	}
 
@@ -102,6 +105,9 @@ class System {
 	 * @returns {boolean}
 	 */
 	versionCompatible(version) {
+		if (!version) {
+			return false;
+		}
 		return semver.gte(version, this.headers.minVersion);
 	}
 
@@ -113,6 +119,9 @@ class System {
 	 * @returns {boolean}
 	 */
 	protocolVersionCompatible(protocolVersion) {
+		if (!protocolVersion) {
+			return false;
+		}
 		const peerHard = parseInt(protocolVersion[0]);
 		const myHard = parseInt(this.headers.protocolVersion[0]);
 		return myHard === peerHard && peerHard >= 1;
@@ -125,6 +134,9 @@ class System {
 	 * @returns {boolean}
 	 */
 	nonceCompatible(nonce) {
+		if (!nonce) {
+			return false;
+		}
 		return nonce && this.headers.nonce !== nonce;
 	}
 
