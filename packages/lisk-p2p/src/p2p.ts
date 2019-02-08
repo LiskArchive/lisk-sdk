@@ -336,10 +336,10 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _runPeerDiscovery(
-		peers: ReadonlyArray<P2PPeerInfo>,
+		knownPeers: ReadonlyArray<P2PPeerInfo>,
 	): Promise<ReadonlyArray<P2PPeerInfo>> {
 		const discoveredPeers = await this._peerPool.runDiscovery(
-			peers,
+			knownPeers,
 			this._config.blacklistedPeers,
 		);
 		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
@@ -352,10 +352,15 @@ export class P2P extends EventEmitter {
 		return discoveredPeers;
 	}
 
+	private async _discoverPeers(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
+		const allKnownPeers = [...this._triedPeers.values()].concat(knownPeers);
+		await this._runPeerDiscovery(allKnownPeers);
+		this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
+	}
+
 	public async start(): Promise<void> {
 		await this._startPeerServer();
-		await this._runPeerDiscovery(this._config.seedPeers);
-		this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
+		await this._discoverPeers(this._config.seedPeers);
 	}
 
 	public async stop(): Promise<void> {

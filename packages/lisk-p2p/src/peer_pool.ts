@@ -35,6 +35,7 @@ import {
 	ProtocolPeerInfoList,
 } from './p2p_types';
 import {
+	constructPeerIdFromPeerInfo,
 	ConnectionState,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
@@ -156,7 +157,7 @@ export class PeerPool extends EventEmitter {
 			);
 		}
 
-		const selectedPeerId = Peer.constructPeerIdFromPeerInfo(selectedPeer[0]);
+		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeer[0]);
 		const peer = this._peerMap.get(selectedPeerId);
 
 		if (!peer) {
@@ -177,7 +178,7 @@ export class PeerPool extends EventEmitter {
 		const selectedPeers = this.selectPeers(peerSelectionParams);
 
 		selectedPeers.forEach((peerInfo: P2PPeerInfo) => {
-			const selectedPeerId = Peer.constructPeerIdFromPeerInfo(peerInfo);
+			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
 			const peer = this._peerMap.get(selectedPeerId);
 
 			if (peer) {
@@ -187,10 +188,10 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async runDiscovery(
-		peers: ReadonlyArray<P2PPeerInfo>,
+		knownPeers: ReadonlyArray<P2PPeerInfo>,
 		blacklist: ReadonlyArray<P2PPeerInfo>,
 	): Promise<ReadonlyArray<P2PPeerInfo>> {
-		const peersObjectList = peers.map((peerInfo: P2PPeerInfo) =>
+		const peersObjectList = knownPeers.map((peerInfo: P2PPeerInfo) =>
 			this.addPeer(peerInfo),
 		);
 

@@ -18,14 +18,14 @@ import { constructPeerIdFromPeerInfo, Peer } from './peer';
 export interface FilterPeerOptions {
 	readonly blacklist: ReadonlyArray<string>;
 }
-// TODO: Implement LIPS to handle fixed and white list
+// TODO later: Implement LIPS to handle fixed and white list
 export const discoverPeers = async (
-	peers: ReadonlyArray<Peer>,
+	knownPeers: ReadonlyArray<Peer>,
 	filterPeerOptions: FilterPeerOptions = { blacklist: [] },
 ): Promise<ReadonlyArray<P2PPeerInfo>> => {
 	const peersOfPeer: ReadonlyArray<
 		ReadonlyArray<P2PPeerInfo>
-	> = await Promise.all(peers.map(async peer => peer.fetchPeers()));
+	> = await Promise.all(knownPeers.map(async peer => peer.fetchPeers()));
 
 	const peersOfPeerFlat = peersOfPeer.reduce(
 		(flattenedPeersList: ReadonlyArray<P2PPeerInfo>, peersList) =>
