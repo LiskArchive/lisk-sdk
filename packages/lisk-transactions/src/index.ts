@@ -20,6 +20,9 @@ import { registerMultisignature } from './4_register_multisignature_account';
 import { createDapp } from './5_create_dapp';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
+import { TransactionError, TransactionMultiError } from './errors';
+import { Status, TransactionResponse } from './response';
+import { TransactionJSON } from './transaction_types';
 import {
 	BaseTransaction,
 	DelegateTransaction,
@@ -50,4 +53,9 @@ export {
 	createSignatureObject,
 	utils,
 	constants,
+	Status,
+	TransactionResponse,
+	TransactionJSON,
+	TransactionError,
+	TransactionMultiError,
 };

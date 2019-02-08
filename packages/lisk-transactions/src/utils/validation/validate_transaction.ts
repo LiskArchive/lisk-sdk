@@ -12,11 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { ErrorObject, ValidateFunction } from 'ajv';
+import { TransactionError } from '../../errors';
 import {
 	MultiSignatureTransaction,
 	TransactionJSON,
 } from '../../transaction_types';
+import { getId } from '../get_transaction_id';
 import * as schemas from './schema';
 import { validator } from './validator';
 
@@ -96,3 +99,31 @@ export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
 		errors,
 	};
 };
+
+export const isUnique = (values: ReadonlyArray<string>): boolean => {
+	const unique = [...new Set(values)];
+
+	return unique.length === values.length;
+};
+
+export const validateId = (
+	id: string,
+	bytes: Buffer,
+): TransactionError | undefined =>
+	id !== getId(bytes)
+		? new TransactionError('Invalid transaction id', id, '.id')
+		: undefined;
+
+export const validateSenderIdAndPublicKey = (
+	id: string,
+	senderId: string,
+	senderPublicKey: string,
+): TransactionError | undefined =>
+	senderId.toUpperCase() !==
+	getAddressFromPublicKey(senderPublicKey).toUpperCase()
+		? new TransactionError(
+				'`senderId` does not match `senderPublicKey`',
+				id,
+				'.senderId',
+		  )
+		: undefined;

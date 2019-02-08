@@ -47,3 +47,26 @@ export class TransactionPendingError extends TransactionError {
 		this.dataPath = dataPath;
 	}
 }
+
+interface ErrorObject {
+	readonly dataPath: string;
+	readonly message?: string;
+}
+
+export const convertToTransactionError = (
+	id: string,
+	errors: ReadonlyArray<ErrorObject> | undefined,
+): ReadonlyArray<TransactionError> => {
+	if (!errors) {
+		return [];
+	}
+
+	return errors.map(
+		error =>
+			new TransactionError(
+				`'${error.dataPath}' ${error.message}`,
+				id,
+				error.dataPath,
+			),
+	);
+};

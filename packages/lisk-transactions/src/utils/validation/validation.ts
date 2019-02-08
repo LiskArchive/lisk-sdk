@@ -162,3 +162,9 @@ export const validateFee = (data: string) =>
 
 export const isValidInteger = (num: unknown) =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
+
+export const isUnique = (values: ReadonlyArray<string>): boolean => {
+	const unique = [...new Set(values)];
+
+	return unique.length === values.length;
+};

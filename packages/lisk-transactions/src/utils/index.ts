@@ -30,8 +30,8 @@ export {
 	signTransaction,
 	secondSignTransaction,
 	multiSignTransaction,
-	verifyMultisignatures,
-	verifySignature,
+	validateMultisignatures,
+	validateSignature,
 	verifyTransaction,
 } from './sign_and_verify';
 export { signRawTransaction } from './sign_raw_transaction';
@@ -49,7 +49,10 @@ export {
 	isValidInteger,
 	isNumberString,
 	isTypedObjectArrayWithKeys,
+	isUnique,
+	validateId,
+	validateSenderIdAndPublicKey,
+	validateUsername,
 	validateTransaction,
 	validator,
 } from './validation';
-export { verifyBalance } from './verify_balance';
