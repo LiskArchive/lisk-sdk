@@ -38,7 +38,7 @@ class Transaction {
 
 		const TransactionClass = map.get(rawTx.type);
 
-		if (!tx) {
+		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
 
