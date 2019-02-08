@@ -114,6 +114,9 @@ const getMochaArguments = tag => {
 			);
 			break;
 	}
+
+	mochaArguments.push('--opts', './framework/test/mocha.opts');
+
 	return mochaArguments;
 };
 
