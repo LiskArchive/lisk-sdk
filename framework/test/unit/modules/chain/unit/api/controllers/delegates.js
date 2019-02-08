@@ -1,6 +1,6 @@
 const rewire = require('rewire');
-const Bignum = require('../../../../helpers/bignum.js');
-const BlockReward = require('../../../../logic/block_reward.js');
+const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
+const BlockReward = require('../../../../../../../src/modules/chain/logic/block_reward.js');
 
 const DelegatesController = rewire('../../../../api/controllers/delegates.js');
 
@@ -81,15 +81,21 @@ describe('delegates/api', () => {
 		});
 
 		it('should assign storage', () => {
-			return expect(DelegatesController.__get__('storage')).to.equal(storageStub);
+			return expect(DelegatesController.__get__('storage')).to.equal(
+				storageStub
+			);
 		});
 
 		it('should assign logger', () => {
-			return expect(DelegatesController.__get__('modules')).to.equal(modulesStub);
+			return expect(DelegatesController.__get__('modules')).to.equal(
+				modulesStub
+			);
 		});
 
 		it('should assign blockReward', () => {
-			return expect(DelegatesController.__get__('blockReward')).to.be.instanceOf(BlockReward);
+			return expect(
+				DelegatesController.__get__('blockReward')
+			).to.be.instanceOf(BlockReward);
 		});
 	});
 
