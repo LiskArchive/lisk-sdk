@@ -47,7 +47,7 @@ export interface P2PPeerInfo {
 }
 
 export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
-	readonly os: string;
+	readonly os?: string;
 	readonly version: string;
 	// Add support for custom fields like broadhash or nonce.
 	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
@@ -60,6 +60,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 export interface P2PNodeInfo {
 	readonly os: string;
 	readonly version: string;
+	readonly nethash: string;
 	readonly wsPort: number;
 	readonly height: number;
 	readonly options?: P2PInfoOptions;
@@ -85,11 +86,13 @@ export interface P2PNetworkStatus {
 // This is a representation of the outbound peer object according to the current protocol.
 export interface ProtocolNodeInfo {
 	readonly broadhash: string;
+	readonly nethash: string;
 	readonly height: number;
 	readonly nonce: string;
 	readonly os?: string;
 	readonly version: string;
 	readonly wsPort: number;
+	readonly httpPort: number;
 	readonly options?: P2PInfoOptions;
 }
 

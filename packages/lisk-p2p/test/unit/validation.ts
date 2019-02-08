@@ -45,14 +45,6 @@ describe('response handlers', () => {
 				version: '3.4.5-alpha.9',
 			};
 
-			const peerWithInvalidOsValue: unknown = {
-				ip: '12.23.54.3',
-				wsPort: 5393,
-				os: '778',
-				height: '23232',
-				version: '3.4.5-alpha.9',
-			};
-
 			it('should return P2PPeerInfo object', async () => {
 				expect(validatePeerInfo(peer))
 					.to.be.an('object')
@@ -71,20 +63,8 @@ describe('response handlers', () => {
 					.include({
 						ipAddress: '12.23.54.3',
 						wsPort: 5393,
-						os: '',
+						os: '778',
 						height: 0,
-						version: '3.4.5-alpha.9',
-					});
-			});
-
-			it('should return P2PPeerInfo and instance of Peer sets blank for invalid value of os', async () => {
-				expect(validatePeerInfo(peerWithInvalidOsValue))
-					.to.be.an('object')
-					.include({
-						ipAddress: '12.23.54.3',
-						wsPort: 5393,
-						os: '',
-						height: 23232,
 						version: '3.4.5-alpha.9',
 					});
 			});
