@@ -687,9 +687,6 @@ describe('GET /api/transactions', () => {
 					)
 					.then(res => {
 						expect(res.body.data.length).to.eql(0);
-						_.map(res.body.data, transaction => {
-							return expect(transaction.asset.data).to.include(dataFilter);
-						});
 					});
 			});
 
