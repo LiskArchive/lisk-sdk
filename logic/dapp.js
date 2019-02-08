@@ -159,7 +159,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		);
 	}
 
-	if (regexpTester.includeNullByte(transaction.asset.dapp.name)) {
+	if (regexpTester.isNullByteIncluded(transaction.asset.dapp.name)) {
 		return setImmediate(
 			cb,
 			'Application name has invalid character. Null character is not allowed.'
@@ -185,7 +185,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 
 	if (
 		transaction.asset.dapp.description &&
-		regexpTester.includeNullByte(transaction.asset.dapp.description)
+		regexpTester.isNullByteIncluded(transaction.asset.dapp.description)
 	) {
 		return setImmediate(
 			cb,
@@ -199,7 +199,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		tags = tags.map(tag => tag.trim()).sort();
 
 		for (let i = 0; i < tags.length - 1; i++) {
-			if (regexpTester.includeNullByte(tags[i])) {
+			if (regexpTester.isNullByteIncluded(tags[i])) {
 				return setImmediate(
 					cb,
 					'Application tags has invalid character. Null character is not allowed.'
