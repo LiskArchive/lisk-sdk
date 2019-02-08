@@ -115,7 +115,6 @@ function __init(initScope, done) {
 			delegates: '../../src/modules/chain/modules/delegates.js',
 			loader: '../../src/modules/chain/modules/loader.js',
 			multisignatures: '../../src/modules/chain/modules/multisignatures.js',
-			node: '../../src/modules/chain/modules/node.js',
 			peers: '../../src/modules/chain/modules/peers.js',
 			rounds: '../../src/modules/chain/modules/rounds.js',
 			signatures: '../../src/modules/chain/modules/signatures.js',
