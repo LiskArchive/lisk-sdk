@@ -22,17 +22,17 @@ class Transaction {
 			[2, 'DelegateTransaction'],
 			[3, 'VoteTransaction'],
 			[4, 'MultisignatureTransaction'],
-            [5, 'DappTransaction'],
-            [6, 'InTransferTransaction'],
-            [7, 'OutTransferTransaction'],
-        ]);
-        		
+			[5, 'DappTransaction'],
+			[6, 'InTransferTransaction'],
+			[7, 'OutTransferTransaction'],
+		]);
+
 		const tx = transaction[map.get(rawTx.type)];
-		
+
 		if (!tx) {
 			throw new Error('Transaction type not found.');
 		}
-		
+
 		return new tx(rawTransaction);
 	}
 }
