@@ -230,6 +230,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
+		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
 			height: newPeerInfo.height,
 			ipAddress: this._peerInfo.ipAddress,
@@ -237,9 +238,10 @@ export class Peer extends EventEmitter {
 			isDiscoveredPeer: true,
 		};
 
-		// Some fields from the main _peerInfo cannot be overridden.
 		this._peerDetailedInfo = {
-			...newPeerInfo,
+			os: newPeerInfo.os,
+			version: newPeerInfo.version,
+			options: newPeerInfo.options,
 			...this._peerInfo,
 		};
 	}
@@ -323,12 +325,10 @@ export class Peer extends EventEmitter {
 		if (!this._outboundSocket) {
 			this._outboundSocket = this._createOutboundSocket();
 		}
+
+		const legacyEvents = ['postBlock', 'postTransactions', 'postSignatures'];
 		// TODO later: Legacy events will no longer be required after migrating to the LIP protocol version.
-		if (
-			packet.event === 'postBlock' || 
-			packet.event === 'postTransactions' || 
-			packet.event === 'postSignatures'
-		) {
+		if (legacyEvents.includes(packet.event)) {
 			// Emit legacy remote events.
 			this._outboundSocket.emit(packet.event, packet.data);
 		} else {
