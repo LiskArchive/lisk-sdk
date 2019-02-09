@@ -15,7 +15,8 @@
 import { expect } from 'chai';
 import { MULTISIGNATURE_FEE } from '../../src/constants';
 import { MultisignatureTransaction } from '../../src/transactions';
-import { Account, Status, TransactionJSON } from '../../src/transaction_types';
+import { Account, TransactionJSON } from '../../src/transaction_types';
+import { Status } from '../../src/response';
 import { addTransactionFields, MockStateStore as store } from '../helpers';
 import {
 	validMultisignatureAccount,
@@ -230,7 +231,7 @@ describe('Multisignature transaction class', () => {
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
 
-			const errors = transaction.validateSchema();
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 		});
 

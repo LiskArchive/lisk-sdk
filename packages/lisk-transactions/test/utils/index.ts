@@ -30,9 +30,8 @@ import {
 	signRawTransaction,
 	signTransaction,
 	multiSignTransaction,
-	verifyBalance,
-	verifyMultisignatures,
-	verifySignature,
+	validateMultisignatures,
+	validateSignature,
 	verifyTransaction,
 	validateAddress,
 	validateNonTransferAmount,
@@ -110,15 +109,11 @@ describe('transaction utils', () => {
 		});
 
 		it('should have verifySignature', () => {
-			return expect(verifySignature).to.be.a('function');
+			return expect(validateSignature).to.be.a('function');
 		});
 
 		it('should have verifyMultisignatures', () => {
-			return expect(verifyMultisignatures).to.be.a('function');
-		});
-
-		it('should have verifyBalance', () => {
-			return expect(verifyBalance).to.be.a('function');
+			return expect(validateMultisignatures).to.be.a('function');
 		});
 
 		it('should have verifyTransaction', () => {

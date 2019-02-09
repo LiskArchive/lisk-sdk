@@ -16,7 +16,8 @@ import * as BigNum from 'browserify-bignum';
 import { expect } from 'chai';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../../src/constants';
 import { TransferTransaction } from '../../src/transactions';
-import { Account, Status } from '../../src/transaction_types';
+import { Account } from '../../src/transaction_types';
+import { Status } from '../../src/response';
 import { TransactionError } from '../../src/errors';
 import { addTransactionFields, MockStateStore as store } from '../helpers';
 import {

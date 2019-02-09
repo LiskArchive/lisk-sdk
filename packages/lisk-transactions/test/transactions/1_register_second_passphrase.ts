@@ -19,7 +19,8 @@ import {
 	validRegisterSecondSignatureTransaction,
 	validTransaction,
 } from '../../fixtures';
-import { Status, TransactionJSON } from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
+import { Status } from '../../src/response';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
 describe('Second signature registration transaction class', () => {

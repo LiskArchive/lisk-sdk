@@ -16,11 +16,11 @@ import * as BigNum from 'browserify-bignum';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
 import { MultisignatureStatus } from '../transactions/base';
+import { convertBeddowsToLSK } from '../utils/format';
 import {
-	convertBeddowsToLSK,
 	validateMultisignatures,
 	validateSignature,
-} from '../utils';
+} from '../utils/sign_and_verify';
 
 export const verifySenderPublicKey = (
 	id: string,

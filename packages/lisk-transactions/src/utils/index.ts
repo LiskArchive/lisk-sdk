@@ -56,3 +56,11 @@ export {
 	validateTransaction,
 	validator,
 } from './validation';
+export {
+	verifyFee,
+	verifyMultiSignature,
+	verifySecondSignature,
+	verifySecondSignatureWhenNotNeeded,
+	verifySenderId,
+	verifySenderPublicKey,
+} from './verify';
