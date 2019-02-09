@@ -15,11 +15,15 @@
 
 import * as BigNum from 'browserify-bignum';
 
-import { MULTISIGNATURE_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import { MultiSignatureAsset, TransactionJSON } from '../transaction_types';
-import { CreateBaseTransactionInput, validator } from '../utils';
-import { BaseTransaction, StateStore, StateStorePrepare } from './base';
+import {
+	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
+} from './base_transaction';
+import { MULTISIGNATURE_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { MultiSignatureAsset, TransactionJSON } from './transaction_types';
+import { CreateBaseTransactionInput, validator } from './utils';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
 

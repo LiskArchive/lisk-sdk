@@ -13,16 +13,16 @@
  *
  */
 import * as BigNum from 'browserify-bignum';
-import { DELEGATE_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import { Account, DelegateAsset, TransactionJSON } from '../transaction_types';
-import { CreateBaseTransactionInput, validator } from '../utils';
 import {
 	BaseTransaction,
 	ENTITY_ACCOUNT,
 	StateStore,
 	StateStorePrepare,
-} from './base';
+} from './base_transaction';
+import { DELEGATE_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { Account, DelegateAsset, TransactionJSON } from './transaction_types';
+import { CreateBaseTransactionInput, validator } from './utils';
 
 const TRANSACTION_DELEGATE_TYPE = 2;
 

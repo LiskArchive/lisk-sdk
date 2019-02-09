@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { DappTransaction } from './5_dapp_transaction';
 import { DAPP_FEE } from './constants';
 import { TransactionJSON } from './transaction_types';
-import { DappTransaction } from './transactions';
 import { createBaseTransaction, isValidInteger } from './utils';
 
 export interface DappOptions {

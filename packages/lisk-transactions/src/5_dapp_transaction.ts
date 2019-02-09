@@ -13,12 +13,16 @@
  *
  */
 import * as BigNum from 'browserify-bignum';
-import { DAPP_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import { TransactionJSON } from '../transaction_types';
-import { CreateBaseTransactionInput } from '../utils';
-import { stringEndsWith, validator } from '../utils/validation';
-import { BaseTransaction, StateStore, StateStorePrepare } from './base';
+import {
+	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
+} from './base_transaction';
+import { DAPP_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionJSON } from './transaction_types';
+import { CreateBaseTransactionInput } from './utils';
+import { stringEndsWith, validator } from './utils/validation';
 
 const TRANSACTION_DAPP_TYPE = 5;
 

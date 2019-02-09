@@ -13,11 +13,11 @@
  *
  */
 import { expect } from 'chai';
-import { MockStateStore as store } from '../helpers';
-import { InTransferTransaction } from '../../src/transactions';
-import { validInTransferTransactions } from '../../fixtures';
-import { TransactionJSON } from '../../src/transaction_types';
-import { Status } from '../../src/response';
+import { MockStateStore as store } from './helpers';
+import { InTransferTransaction } from '../src/6_in_transfer_transaction';
+import { validInTransferTransactions } from '../fixtures';
+import { TransactionJSON } from '../src/transaction_types';
+import { Status } from '../src/response';
 
 describe('InTransfer transaction class', () => {
 	const defaultTransaction = validInTransferTransactions[0];

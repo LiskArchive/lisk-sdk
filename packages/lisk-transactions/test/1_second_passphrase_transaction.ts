@@ -13,14 +13,14 @@
  *
  */
 import { expect } from 'chai';
-import { MockStateStore as store } from '../helpers';
-import { SecondSignatureTransaction } from '../../src/transactions';
+import { MockStateStore as store } from './helpers';
+import { SecondSignatureTransaction } from '../src/1_second_signature_transaction';
 import {
 	validRegisterSecondSignatureTransaction,
 	validTransaction,
-} from '../../fixtures';
-import { TransactionJSON } from '../../src/transaction_types';
-import { Status } from '../../src/response';
+} from '../fixtures';
+import { TransactionJSON } from '../src/transaction_types';
+import { Status } from '../src/response';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
 describe('Second signature registration transaction class', () => {

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { MultisignatureTransaction } from './4_multisignature_transaction';
 import {
 	MULTISIGNATURE_FEE,
 	MULTISIGNATURE_MAX_KEYSGROUP,
@@ -20,7 +21,6 @@ import {
 	MULTISIGNATURE_MIN_LIFETIME,
 } from './constants';
 import { TransactionJSON } from './transaction_types';
-import { MultisignatureTransaction } from './transactions';
 import {
 	createBaseTransaction,
 	isValidInteger,

@@ -13,16 +13,16 @@
  *
  */
 import { expect } from 'chai';
-import { MULTISIGNATURE_FEE } from '../../src/constants';
-import { MultisignatureTransaction } from '../../src/transactions';
-import { Account, TransactionJSON } from '../../src/transaction_types';
-import { Status } from '../../src/response';
-import { addTransactionFields, MockStateStore as store } from '../helpers';
+import { MULTISIGNATURE_FEE } from '../src/constants';
+import { MultisignatureTransaction } from '../src/4_multisignature_transaction';
+import { Account, TransactionJSON } from '../src/transaction_types';
+import { Status } from '../src/response';
+import { addTransactionFields, MockStateStore as store } from './helpers';
 import {
 	validMultisignatureAccount,
 	validMultisignatureRegistrationTransaction,
 	validTransaction,
-} from '../../fixtures';
+} from '../fixtures';
 
 describe('Multisignature transaction class', () => {
 	const validMultisignatureTransaction = addTransactionFields(

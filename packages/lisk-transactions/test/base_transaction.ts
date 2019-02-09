@@ -15,32 +15,29 @@
 import { expect } from 'chai';
 import { SinonStub } from 'sinon';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../../src/constants';
-import {
-	BaseTransaction,
-	MultisignatureStatus,
-} from '../../src/transactions/base';
-import { TransactionJSON } from '../../src/transaction_types';
-import { Status } from '../../src/response';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../src/constants';
+import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
+import { TransactionJSON } from '../src/transaction_types';
+import { Status } from '../src/response';
 import {
 	TransactionError,
 	TransactionMultiError,
 	TransactionPendingError,
-} from '../../src/errors';
+} from '../src/errors';
 import * as BigNum from 'browserify-bignum';
 import {
 	addTransactionFields,
 	MockStateStore as store,
 	TestTransaction,
-} from '../helpers';
+} from './helpers';
 import {
 	validAccount as defaultSenderAccount,
 	validMultisignatureAccount as defaultMultisignatureAccount,
 	validMultisignatureTransaction,
 	validTransaction,
 	validSecondSignatureTransaction,
-} from '../../fixtures';
-import * as utils from '../../src/utils';
+} from '../fixtures';
+import * as utils from '../src/utils';
 
 describe('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(validTransaction);

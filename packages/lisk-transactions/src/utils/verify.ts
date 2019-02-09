@@ -13,9 +13,9 @@
  *
  */
 import * as BigNum from 'browserify-bignum';
+import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
-import { MultisignatureStatus } from '../transactions/base';
 import { convertBeddowsToLSK } from '../utils/format';
 import {
 	validateMultisignatures,
