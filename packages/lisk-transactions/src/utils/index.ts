@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+export { validatePublicKeyMatchAddress } from './address';
 export {
 	createBaseTransaction,
 	CreateBaseTransactionInput,
@@ -50,7 +51,7 @@ export {
 	isNumberString,
 	isTypedObjectArrayWithKeys,
 	isUnique,
-	validateId,
+	validateTransactionId,
 	validateSenderIdAndPublicKey,
 	validateUsername,
 	validateTransaction,

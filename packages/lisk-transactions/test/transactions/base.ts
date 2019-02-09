@@ -362,18 +362,18 @@ describe('Base transaction class', () => {
 		});
 
 		it('should call cryptography getAddressFromPublicKey for transaction with valid senderPublicKey', async () => {
-			const cryptographyGetAddressFromPublicKeyStub = sandbox
+			sandbox
 				.stub(cryptography, 'getAddressFromPublicKey')
 				.returns('18278674964748191682L');
 			(validTestTransaction as any)._validateSchema();
 
 			expect(
-				cryptographyGetAddressFromPublicKeyStub,
+				cryptography.getAddressFromPublicKey,
 			).to.have.been.calledWithExactly(validTestTransaction.senderPublicKey);
 		});
 
 		it('should call getBytes', async () => {
-			const getBytesStub = sandbox
+			sandbox
 				.stub(validTestTransaction, 'getBytes')
 				.returns(
 					Buffer.from(
@@ -382,21 +382,18 @@ describe('Base transaction class', () => {
 					),
 				);
 			(validTestTransaction as any)._validateSchema();
-			expect(getBytesStub).to.be.calledOnce;
+			expect(validTestTransaction.getBytes).to.be.calledOnce;
 		});
 
-		it('should call getId', async () => {
-			const getIdStub = sandbox
-				.stub(utils, 'getId')
-				.returns('15822870279184933850');
+		it('should call validateTransactionId', async () => {
+			sandbox.stub(utils, 'validateTransactionId');
 			(validTestTransaction as any)._validateSchema();
 
-			expect(getIdStub).to.be.calledOnce;
+			expect(utils.validateTransactionId).to.be.calledOnce;
 		});
 
 		it('should return a successful transaction response with a valid transaction', async () => {
 			const errors = (validTestTransaction as any)._validateSchema();
-
 			expect(errors).to.be.empty;
 		});
 
@@ -540,10 +537,7 @@ describe('Base transaction class', () => {
 			expect(id).to.be.eql(invalidSignaturesTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					'Encountered duplicate signature in transaction',
-				);
+				.and.to.have.property('dataPath', '.signatures');
 			expect(status).to.eql(Status.FAIL);
 		});
 	});
@@ -641,13 +635,9 @@ describe('Base transaction class', () => {
 
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
-			const { id, status, state, errors } = validTestTransaction.apply(store);
+			const { id, status, errors } = validTestTransaction.apply(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.OK);
-			expect(state)
-				.to.be.an('object')
-				.and.to.have.property('sender');
-			expect((state as any).sender).to.have.property('balance', '0');
 			expect(errors).to.be.empty;
 		});
 
@@ -658,14 +648,10 @@ describe('Base transaction class', () => {
 					balance: '0',
 				};
 			};
-			const { id, status, state, errors } = validTestTransaction.apply(store);
+			const { id, status, errors } = validTestTransaction.apply(store);
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);
-			expect(state)
-				.to.be.an('object')
-				.and.to.have.property('sender');
-			expect((state as any).sender).to.have.property('balance', '-10000000');
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
@@ -679,13 +665,9 @@ describe('Base transaction class', () => {
 
 	describe('#undo', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
-			const { id, status, state, errors } = validTestTransaction.undo(store);
+			const { id, status, errors } = validTestTransaction.undo(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.OK);
-			expect(state)
-				.to.be.an('object')
-				.and.to.have.property('sender');
-			expect((state as any).sender).to.have.property('balance', '20000000');
 			expect(errors).to.be.eql([]);
 		});
 
@@ -696,18 +678,9 @@ describe('Base transaction class', () => {
 					balance: MAX_TRANSACTION_AMOUNT.toString(),
 				};
 			};
-			const { id, status, state, errors } = validTestTransaction.undo(store);
+			const { id, status, errors } = validTestTransaction.undo(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);
-			expect(state)
-				.to.be.an('object')
-				.and.to.have.property('sender');
-			expect((state as any).sender).to.have.property(
-				'balance',
-				new BigNum(MAX_TRANSACTION_AMOUNT)
-					.add(validTestTransaction.fee)
-					.toString(),
-			);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property('message', 'Invalid balance amount');

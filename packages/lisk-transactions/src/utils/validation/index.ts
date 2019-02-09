@@ -32,7 +32,7 @@ export {
 } from './validation';
 export {
 	validateTransaction,
-	validateId,
+	validateTransactionId,
 	validateSenderIdAndPublicKey,
 } from './validate_transaction';
 export { validator } from './validator';

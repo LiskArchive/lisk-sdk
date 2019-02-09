@@ -106,24 +106,31 @@ export const isUnique = (values: ReadonlyArray<string>): boolean => {
 	return unique.length === values.length;
 };
 
-export const validateId = (
+export const validateTransactionId = (
 	id: string,
 	bytes: Buffer,
-): TransactionError | undefined =>
-	id !== getId(bytes)
-		? new TransactionError('Invalid transaction id', id, '.id')
+): TransactionError | undefined => {
+	const acutalId = getId(bytes);
+
+	return id !== acutalId
+		? new TransactionError(`Invalid transaction id`, id, '.id', acutalId, id)
 		: undefined;
+};
 
 export const validateSenderIdAndPublicKey = (
 	id: string,
 	senderId: string,
 	senderPublicKey: string,
-): TransactionError | undefined =>
-	senderId.toUpperCase() !==
-	getAddressFromPublicKey(senderPublicKey).toUpperCase()
+): TransactionError | undefined => {
+	const actualAddress = getAddressFromPublicKey(senderPublicKey);
+
+	return senderId.toUpperCase() !== actualAddress.toUpperCase()
 		? new TransactionError(
 				'`senderId` does not match `senderPublicKey`',
 				id,
 				'.senderId',
+				actualAddress,
+				senderId,
 		  )
 		: undefined;
+};
