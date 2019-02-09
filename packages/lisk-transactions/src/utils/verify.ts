@@ -40,18 +40,18 @@ export const verifySenderId = (
 		? new TransactionError('Invalid sender address', id, '.senderId')
 		: undefined;
 
-export const verifyFee = (
+export const verifyBalance = (
 	id: string,
 	sender: Account,
 	fee: BigNum,
 ): TransactionError | undefined =>
 	new BigNum(sender.balance).lt(new BigNum(fee))
 		? new TransactionError(
-				id,
 				`Account does not have enough LSK: ${
 					sender.address
 				}, balance: ${convertBeddowsToLSK(sender.balance.toString())}`,
-				'.fee',
+				id,
+				'.balance',
 		  )
 		: undefined;
 

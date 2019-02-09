@@ -447,14 +447,12 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#validate', () => {
-		beforeEach(async () => {
-			sandbox
-				.stub(validTestTransaction, 'getBytes')
-				.returns(
-					Buffer.from(
-						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
-					),
-				);
+		it('should return a successful transaction response with a valid transaction', async () => {
+			const { id, status, errors } = validTestTransaction.validate();
+
+			expect(id).to.be.eql(validTestTransaction.id);
+			expect(errors).to.be.empty;
+			expect(status).to.eql(Status.OK);
 		});
 
 		it('should call getBasicBytes', async () => {
@@ -468,16 +466,14 @@ describe('Base transaction class', () => {
 				);
 			validTestTransaction.validate();
 
-			expect(getBasicBytesStub).to.be.calledOnce;
+			expect(getBasicBytesStub).to.be.calledTwice;
 		});
 
 		it('should call validateSignature', async () => {
-			const validateSignatureStub = sandbox
-				.stub(utils, 'validateSignature')
-				.returns(true as any);
+			sandbox.stub(utils, 'validateSignature').returns({ valid: true });
 			validTestTransaction.validate();
 
-			expect(validateSignatureStub).to.be.calledWithExactly(
+			expect(utils.validateSignature).to.be.calledWithExactly(
 				validTestTransaction.senderPublicKey,
 				validTestTransaction.signature,
 				Buffer.from(
@@ -486,14 +482,6 @@ describe('Base transaction class', () => {
 				),
 				validTestTransaction.id,
 			);
-		});
-
-		it('should return a successful transaction response with a valid transaction', async () => {
-			const { id, status, errors } = validTestTransaction.validate();
-
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(errors).to.be.empty;
-			expect(status).to.eql(Status.OK);
 		});
 
 		it('should return a failed transaction response with invalid signature', async () => {
@@ -505,9 +493,13 @@ describe('Base transaction class', () => {
 			const invalidSignatureTestTransaction = new TestTransaction(
 				invalidSignatureTransaction as any,
 			);
+			sandbox
+				.stub(invalidSignatureTestTransaction as any, '_validateSchema')
+				.returns([]);
 			const { id, status, errors } = invalidSignatureTestTransaction.validate();
 
 			expect(id).to.be.eql(invalidSignatureTestTransaction.id);
+			console.log(errors);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
@@ -652,6 +644,7 @@ describe('Base transaction class', () => {
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);
+			console.log(errors);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(

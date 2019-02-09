@@ -42,7 +42,7 @@ import {
 	validateSignature,
 	validateTransactionId,
 	validator,
-	verifyFee,
+	verifyBalance,
 	verifyMultiSignature,
 	verifySecondSignature,
 	verifySecondSignatureWhenNotNeeded,
@@ -397,7 +397,7 @@ export abstract class BaseTransaction {
 		return [
 			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
 			verifySenderId(this.id, sender, this.senderId),
-			verifyFee(this.id, sender, this.fee),
+			verifyBalance(this.id, sender, this.fee),
 			verifySecondSignatureWhenNotNeeded(this.id, sender, this.signSignature),
 			verifySecondSignature(
 				this.id,

@@ -58,7 +58,7 @@ export {
 	validator,
 } from './validation';
 export {
-	verifyFee,
+	verifyBalance,
 	verifyMultiSignature,
 	verifySecondSignature,
 	verifySecondSignatureWhenNotNeeded,
