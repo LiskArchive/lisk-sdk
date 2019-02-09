@@ -18,7 +18,7 @@ import {
 	SecondSignatureAsset,
 	TransactionJSON,
 } from '../src/transaction_types';
-import * as utils from '../src/utils';
+import * as time from '../src/utils/time';
 
 describe('#registerSecondPassphrase transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -41,7 +41,7 @@ describe('#registerSecondPassphrase transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		registerSecondPassphraseTransaction = registerSecondPassphrase({
 			passphrase,

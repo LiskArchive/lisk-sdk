@@ -15,8 +15,7 @@
 import { expect } from 'chai';
 import { createDapp, DappOptions } from '../src/5_create_dapp';
 import { DappAsset, TransactionJSON } from '../src/transaction_types';
-// Require is used for stubbing
-import * as utils from '../src/utils';
+import * as time from '../src/utils/time';
 
 describe('#createDapp transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -54,7 +53,7 @@ describe('#createDapp transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		options = {
 			...defaultOptions,

@@ -499,7 +499,6 @@ describe('Base transaction class', () => {
 			const { id, status, errors } = invalidSignatureTestTransaction.validate();
 
 			expect(id).to.be.eql(invalidSignatureTestTransaction.id);
-			console.log(errors);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(

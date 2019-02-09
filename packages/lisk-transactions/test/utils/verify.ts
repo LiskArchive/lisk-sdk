@@ -17,7 +17,7 @@ import { expect } from 'chai';
 import {
 	verifySenderPublicKey,
 	verifySenderId,
-	verifyFee,
+	verifyBalance,
 	verifySecondSignatureWhenNotNeeded,
 	verifySecondSignature,
 	verifyMultiSignature,
@@ -77,22 +77,22 @@ describe('#verify', () => {
 		});
 	});
 
-	describe('#verifyFee', () => {
+	describe('#verifyBalance', () => {
 		const defaultAccount = { balance: '1000000000' } as any;
 		it('should return undefined when sender has exact amount', async () => {
-			expect(verifyFee(defaultId, defaultAccount, new BigNum('1000000000'))).to
-				.be.undefined;
+			expect(verifyBalance(defaultId, defaultAccount, new BigNum('1000000000')))
+				.to.be.undefined;
 		});
 
 		it('should return undefined when sender has enoguh balance', async () => {
-			expect(verifyFee(defaultId, defaultAccount, new BigNum('100'))).to.be
+			expect(verifyBalance(defaultId, defaultAccount, new BigNum('100'))).to.be
 				.undefined;
 		});
 
 		it('should return TransactionError when sender does not have enoguh balance', async () => {
-			expect(verifyFee(defaultId, defaultAccount, new BigNum('1000000001')))
+			expect(verifyBalance(defaultId, defaultAccount, new BigNum('1000000001')))
 				.to.be.instanceOf(TransactionError)
-				.and.have.property('dataPath', '.fee');
+				.and.have.property('dataPath', '.balance');
 		});
 	});
 
