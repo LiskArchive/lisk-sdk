@@ -28,11 +28,8 @@ import {
 	checkRequiredFields,
 	isValidValue,
 } from '../../src/utils/get_transaction_bytes';
-import {
-	TransferTransaction,
-	TransactionJSON,
-	MultiSignatureAsset,
-} from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
+import { MultiSignatureAsset } from '../../src/4_multisignature_transaction';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';
@@ -91,7 +88,7 @@ describe('getTransactionBytes module', () => {
 			});
 
 			it('should return Buffer of type 0 (transfer LSK) with data', () => {
-				const transferTransaction: TransferTransaction = {
+				const transferTransaction: TransactionJSON = {
 					...defaultTransaction,
 					asset: {
 						data: 'Hello Lisk! Some data in here!...',
@@ -108,7 +105,7 @@ describe('getTransactionBytes module', () => {
 
 			it('should throw on type 0 with too much data', () => {
 				const maxDataLength = 64;
-				const transferTransaction: TransferTransaction = {
+				const transferTransaction: TransactionJSON = {
 					...defaultTransaction,
 					asset: {
 						data: new Array(maxDataLength + 1).fill('1').join(''),
@@ -505,7 +502,7 @@ describe('getTransactionBytes module', () => {
 			});
 
 			it('should return empty Buffer for no asset data', () => {
-				const assetDataBuffer = getAssetDataForTransferTransaction({});
+				const assetDataBuffer = getAssetDataForTransferTransaction({} as any);
 				return expect(assetDataBuffer).to.be.eql(defaultEmptyBuffer);
 			});
 		});
@@ -527,7 +524,7 @@ describe('getTransactionBytes module', () => {
 			it('should throw on missing publicKey in the signature asset', () => {
 				return expect(
 					getAssetDataForRegisterSecondSignatureTransaction.bind(null, {
-						signature: {},
+						signature: {} as any,
 					}),
 				).to.throw('publicKey is a required parameter.');
 			});
@@ -550,7 +547,7 @@ describe('getTransactionBytes module', () => {
 			it('should throw on missing username in the delegate asset', () => {
 				return expect(
 					getAssetDataForRegisterDelegateTransaction.bind(null, {
-						delegate: {},
+						delegate: {} as any,
 					}),
 				).to.throw('username is a required parameter.');
 			});
@@ -575,7 +572,7 @@ describe('getTransactionBytes module', () => {
 
 			it('should throw on missing votes in the vote asset', () => {
 				return expect(
-					getAssetDataForCastVotesTransaction.bind(null, { votes: {} }),
+					getAssetDataForCastVotesTransaction.bind(null, { votes: {} as any }),
 				).to.throw('votes parameter must be an Array.');
 			});
 		});
@@ -618,7 +615,7 @@ describe('getTransactionBytes module', () => {
 				const { min, ...multisigAsset } = multisignatureAsset.multisignature;
 				expect(
 					getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
-						multisignature: multisigAsset,
+						multisignature: multisigAsset as any,
 					}),
 				).to.throw(`min is a required parameter.`);
 			});
@@ -630,7 +627,7 @@ describe('getTransactionBytes module', () => {
 				} = multisignatureAsset.multisignature;
 				expect(
 					getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
-						multisignature: multisigAsset,
+						multisignature: multisigAsset as any,
 					}),
 				).to.throw(`lifetime is a required parameter.`);
 			});
@@ -642,7 +639,7 @@ describe('getTransactionBytes module', () => {
 				} = multisignatureAsset.multisignature;
 				expect(
 					getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
-						multisignature: multisigAsset,
+						multisignature: multisigAsset as any,
 					}),
 				).to.throw(`keysgroup is a required parameter.`);
 			});
@@ -721,7 +718,7 @@ describe('getTransactionBytes module', () => {
 					const { [parameter]: deletedValue, ...dappClone } = dapp;
 					expect(
 						getAssetDataForCreateDappTransaction.bind(null, {
-							dapp: dappClone,
+							dapp: dappClone as any,
 						}),
 					).to.throw(`${parameter} is a required parameter.`);
 				});
@@ -746,7 +743,7 @@ describe('getTransactionBytes module', () => {
 			it('should throw on missing votes in the vote asset', () => {
 				return expect(
 					getAssetDataForTransferIntoDappTransaction.bind(null, {
-						inTransfer: {},
+						inTransfer: {} as any,
 					}),
 				).to.throw('dappId is a required parameter.');
 			});
@@ -776,7 +773,7 @@ describe('getTransactionBytes module', () => {
 			it('should throw on missing votes in the vote asset', () => {
 				return expect(
 					getAssetDataForTransferOutOfDappTransaction.bind(null, {
-						outTransfer: {},
+						outTransfer: {} as any,
 					}),
 				).to.throw('dappId is a required parameter.');
 			});

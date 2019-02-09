@@ -14,7 +14,8 @@
  */
 import { expect } from 'chai';
 import { registerDelegate } from '../src/2_register_delegate';
-import { DelegateAsset, TransactionJSON } from '../src/transaction_types';
+import { DelegateAsset } from '../src/2_delegate_transaction';
+import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
 describe('#registerDelegate transaction', () => {

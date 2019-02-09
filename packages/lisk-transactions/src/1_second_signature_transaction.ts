@@ -21,17 +21,15 @@ import {
 } from './base_transaction';
 import { SIGNATURE_FEE } from './constants';
 import { TransactionError, TransactionMultiError } from './errors';
-import { SecondSignatureAsset, TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './transaction_types';
 import { getId, validator } from './utils';
 
 const TRANSACTION_SIGNATURE_TYPE = 1;
 
-export interface SignatureObject {
-	readonly publicKey: string;
-}
-
 export interface SecondSignatureAsset {
-	readonly signature: SignatureObject;
+	readonly signature: {
+		readonly publicKey: string;
+	};
 }
 
 export const secondSignatureAssetTypeSchema = {

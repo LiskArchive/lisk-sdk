@@ -14,10 +14,8 @@
  */
 import { expect } from 'chai';
 import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
-import {
-	SecondSignatureAsset,
-	TransactionJSON,
-} from '../src/transaction_types';
+import { SecondSignatureAsset } from '../src/1_second_signature_transaction';
+import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
 describe('#registerSecondPassphrase transaction', () => {

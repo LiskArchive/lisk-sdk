@@ -15,30 +15,20 @@
 import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
-	ENTITY_ACCOUNT,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
 import { DELEGATE_FEE } from './constants';
 import { TransactionError, TransactionMultiError } from './errors';
-import { Account, DelegateAsset, TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput, validator } from './utils';
 
 const TRANSACTION_DELEGATE_TYPE = 2;
 
-export interface RequiredDelegateState {
-	readonly sender: Account;
-	readonly dependentState?: {
-		readonly [ENTITY_ACCOUNT]: ReadonlyArray<Account>;
-	};
-}
-
-export interface DelegateObject {
-	readonly username: string;
-}
-
 export interface DelegateAsset {
-	readonly delegate: DelegateObject;
+	readonly delegate: {
+		readonly username: string;
+	};
 }
 
 export const delegateAssetTypeSchema = {

@@ -136,7 +136,7 @@ export class OutTransferTransaction extends BaseTransaction {
 				tx.type === this.type &&
 				'outTransfer' in tx.asset &&
 				this.asset.outTransfer.transactionId ===
-					tx.asset.outTransfer.transactionId,
+					(tx.asset as OutTransferAsset).outTransfer.transactionId,
 		);
 
 		return sameTypeTransactions.length > 0

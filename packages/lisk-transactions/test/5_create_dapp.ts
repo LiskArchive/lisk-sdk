@@ -14,7 +14,8 @@
  */
 import { expect } from 'chai';
 import { createDapp, DappOptions } from '../src/5_create_dapp';
-import { DappAsset, TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON } from '../src/transaction_types';
+import { DappAsset } from '../src/5_dapp_transaction';
 import * as time from '../src/utils/time';
 
 describe('#createDapp transaction', () => {
