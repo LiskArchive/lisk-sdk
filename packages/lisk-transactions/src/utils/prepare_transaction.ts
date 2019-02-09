@@ -14,9 +14,9 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { PartialTransaction, TransactionJSON } from '../transaction_types';
-import { getTransactionId } from './get_transaction_id';
-import { secondSignTransaction, signTransaction } from './sign_and_verify';
+import { secondSignTransaction, signTransaction } from './sign_and_validate';
 import { getTimeWithOffset } from './time';
+import { getTransactionId } from './transaction_id';
 
 // FIXME: Deprecated
 const validTransaction = (

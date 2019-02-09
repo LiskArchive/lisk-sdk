@@ -17,13 +17,14 @@ import { TransactionJSON } from '../transaction_types';
 import { prepareTransaction } from './prepare_transaction';
 import { getTimeWithOffset } from './time';
 
-interface SignRawTransactionInput {
+export interface SignRawTransactionInput {
 	readonly passphrase: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
 	readonly transaction: TransactionJSON;
 }
 
+// FIXME: Deprecated
 export const signRawTransaction = ({
 	transaction,
 	passphrase,

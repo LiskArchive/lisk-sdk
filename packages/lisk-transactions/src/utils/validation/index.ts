@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './check_types';
 export {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
@@ -30,9 +29,5 @@ export {
 	stringEndsWith,
 	isUnique,
 } from './validation';
-export {
-	validateTransaction,
-	validateTransactionId,
-	validateSenderIdAndPublicKey,
-} from './validate_transaction';
+export { validateTransaction } from './validate_transaction';
 export { validator } from './validator';

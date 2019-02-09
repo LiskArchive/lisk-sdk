@@ -15,15 +15,20 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { TransactionError } from '../errors';
 
-export const validatePublicKeyMatchAddress = (
+export const validateSenderIdAndPublicKey = (
 	id: string,
-	address: string,
-	publicKey: string,
-): TransactionError | undefined =>
-	address.toUpperCase() !== getAddressFromPublicKey(publicKey).toUpperCase()
+	senderId: string,
+	senderPublicKey: string,
+): TransactionError | undefined => {
+	const actualAddress = getAddressFromPublicKey(senderPublicKey);
+
+	return senderId.toUpperCase() !== actualAddress.toUpperCase()
 		? new TransactionError(
 				'`senderId` does not match `senderPublicKey`',
 				id,
 				'.senderId',
+				actualAddress,
+				senderId,
 		  )
 		: undefined;
+};

@@ -20,7 +20,7 @@ import { convertBeddowsToLSK } from '../utils/format';
 import {
 	validateMultisignatures,
 	validateSignature,
-} from '../utils/sign_and_verify';
+} from './sign_and_validate';
 
 export const verifySenderPublicKey = (
 	id: string,
