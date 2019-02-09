@@ -32,11 +32,6 @@ export interface Delegate {
 	readonly username: string;
 }
 
-export interface RequiredState {
-	readonly accounts: ReadonlyArray<Account>;
-	readonly transactions: ReadonlyArray<TransactionJSON>;
-}
-
 export interface TransactionJSON {
 	readonly amount: string;
 	readonly asset: object;
@@ -68,5 +63,3 @@ export interface IsVerifiedResponse {
 	readonly verified: boolean;
 	readonly errors?: ReadonlyArray<TransactionError>;
 }
-
-export type PartialTransaction = Partial<TransactionJSON>;

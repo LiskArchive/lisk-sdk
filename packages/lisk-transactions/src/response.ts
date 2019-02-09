@@ -24,9 +24,6 @@ export interface TransactionResponse {
 	readonly id: string;
 	readonly status: Status;
 	readonly errors: ReadonlyArray<TransactionError>;
-	// TODO: Remove state
-	// tslint:disable-next-line no-any
-	readonly state?: any;
 }
 
 export const createResponse = (
