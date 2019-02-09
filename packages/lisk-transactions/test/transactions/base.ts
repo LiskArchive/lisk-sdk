@@ -644,7 +644,6 @@ describe('Base transaction class', () => {
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);
-			console.log(errors);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
