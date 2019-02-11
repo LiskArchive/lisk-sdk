@@ -144,7 +144,8 @@ describe('expire transactions', async () => {
 			);
 		});
 
-		it('validate mem account balance and u_balance before transaction expiry', async () => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[UNCOFIRMED_STATE_REMOVAL] validate mem account balance and u_balance before transaction expiry', async () => {
 			return queries.getAccount(address).then(memAccountAfter => {
 				expect(
 					new Bignum(memAccountAfter[0].u_balance)
@@ -215,7 +216,8 @@ describe('expire transactions', async () => {
 			});
 		});
 
-		it('account should be transfer and updated with balance and u_balance @sequential', done => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[UNCOFIRMED_STATE_REMOVAL] account should be transfer and updated with balance and u_balance @sequential', done => {
 			queries
 				.getAccount(address)
 				.then(memAccountAfter => {

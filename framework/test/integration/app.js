@@ -260,7 +260,8 @@ describe('app', async () => {
 								return expect(Number(genesisAccount.balance)).to.be.below(0);
 							});
 
-							it('fields address, balance, publicKey should match genesis block transaction', done => {
+							// eslint-disable-next-line mocha/no-skipped-tests
+							it.skip('[UNCOFIRMED_STATE_REMOVAL] fields address, balance, publicKey should match genesis block transaction', done => {
 								expect(genesisAccount.address).to.equal(
 									genesisAccountTransaction.senderId
 								);
