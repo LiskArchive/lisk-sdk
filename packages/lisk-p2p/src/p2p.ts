@@ -73,6 +73,7 @@ export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
 
 export const NODE_HOST_IP = '0.0.0.0';
+export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 
 const BASE_10_RADIX = 10;
 
@@ -82,6 +83,8 @@ export class P2P extends EventEmitter {
 	private _isActive: boolean;
 	private readonly _newPeers: Map<string, P2PPeerInfo>;
 	private readonly _triedPeers: Map<string, P2PPeerInfo>;
+	private readonly _discoveryInterval: number;
+	private _discoveryIntervalId: NodeJS.Timer | undefined;
 
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
@@ -154,6 +157,8 @@ export class P2P extends EventEmitter {
 
 		this._nodeInfo = config.nodeInfo;
 		this._peerPool.applyNodeInfo(this._nodeInfo);
+
+		this._discoveryInterval = config.discoveryInterval ? config.discoveryInterval : DEFAULT_DISCOVERY_INTERVAL;
 	}
 
 	public get config(): P2PConfig {
@@ -335,11 +340,11 @@ export class P2P extends EventEmitter {
 		await this._stopHTTPServer();
 	}
 
-	private async _runPeerDiscovery(
-		knownPeers: ReadonlyArray<P2PPeerInfo>,
-	): Promise<ReadonlyArray<P2PPeerInfo>> {
+	private async _discoverPeers(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
+		const allKnownPeers = [...this._triedPeers.values()].concat(knownPeers);
+
 		const discoveredPeers = await this._peerPool.runDiscovery(
-			knownPeers,
+			allKnownPeers,
 			this._config.blacklistedPeers,
 		);
 		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
@@ -349,21 +354,40 @@ export class P2P extends EventEmitter {
 			}
 		});
 
-		return discoveredPeers;
-	}
-
-	private async _discoverPeers(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
-		const allKnownPeers = [...this._triedPeers.values()].concat(knownPeers);
-		await this._runPeerDiscovery(allKnownPeers);
 		this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
 	}
 
+	private async _startDiscovery(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
+		if (this._discoveryIntervalId) {
+			throw new Error('Discovery is already running');
+		}
+		this._discoveryIntervalId = setInterval(async () => {
+			await this._discoverPeers(knownPeers);
+		}, this._discoveryInterval);
+
+		await this._discoverPeers(knownPeers);
+	}
+
+	private _stopDiscovery(): void {
+		if (!this._discoveryIntervalId) {
+			throw new Error('Discovery is not running');
+		}
+		clearInterval(this._discoveryIntervalId);
+	}
+
 	public async start(): Promise<void> {
+		if (this._isActive) {
+			throw new Error('Cannot start the node because it is already active');
+		}
 		await this._startPeerServer();
-		await this._discoverPeers(this._config.seedPeers);
+		await this._startDiscovery(this._config.seedPeers);
 	}
 
 	public async stop(): Promise<void> {
+		if (!this._isActive) {
+			throw new Error('Cannot stop the node because it is not active');
+		}
+		this._stopDiscovery();
 		this._peerPool.removeAllPeers();
 		await this._stopPeerServer();
 	}

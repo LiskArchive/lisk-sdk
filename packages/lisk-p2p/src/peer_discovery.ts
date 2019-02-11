@@ -25,7 +25,17 @@ export const discoverPeers = async (
 ): Promise<ReadonlyArray<P2PPeerInfo>> => {
 	const peersOfPeer: ReadonlyArray<
 		ReadonlyArray<P2PPeerInfo>
-	> = await Promise.all(knownPeers.map(async peer => peer.fetchPeers()));
+	> = await Promise.all(
+		knownPeers.map(
+			async peer => {
+				try {
+					return await peer.fetchPeers();
+				} catch (error) {
+					return [];
+				}
+			}
+		)
+	);
 
 	const peersOfPeerFlat = peersOfPeer.reduce(
 		(flattenedPeersList: ReadonlyArray<P2PPeerInfo>, peersList) =>
