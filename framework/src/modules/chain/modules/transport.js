@@ -23,6 +23,7 @@ const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+const initTransaction = require('../helpers/init_transaction.js');
 
 const {
 	MIN_BROADHASH_CONSENSUS,
@@ -220,11 +221,9 @@ __private.receiveTransaction = function(
 	cb
 ) {
 	const id = transaction ? transaction.id : 'null';
-
+	let tx;
 	try {
-		// This sanitizes the transaction object and then validates it.
-		// Throws an error if validation fails.
-		transaction = library.logic.transaction.objectNormalize(transaction);
+		tx = initTransaction(transaction);
 	} catch (e) {
 		library.logger.debug('Transaction normalization failed', {
 			id,
@@ -236,6 +235,23 @@ __private.receiveTransaction = function(
 		__private.removePeer({ nonce, code: 'ETRANSACTION' }, extraLogMessage);
 
 		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
+	}
+
+	const { status, errors } = tx.validate();
+
+	if (status === 0 && errors.length > 0) {
+		errors.forEach(e => {
+			library.logger.debug('Transaction validation failed', {
+				id,
+				err: e.toString(),
+				module: 'transport',
+				transaction,
+			});
+		});
+
+		__private.removePeer({ nonce, code: 'ETRANSACTION' }, extraLogMessage);
+
+		return setImmediate(cb, `Invalid transaction body - ${errors.map(error => error.dataPath).join(',')}`);
 	}
 
 	if (transaction.requesterPublicKey) {
