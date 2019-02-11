@@ -493,7 +493,8 @@ describe('rounds', async () => {
 					);
 				});
 
-				it('accounts table states should match expected states', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] accounts table states should match expected states', done => {
 					let expected;
 
 					expected = expectedMemState(transactions, tick.before.accounts);
