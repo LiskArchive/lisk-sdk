@@ -61,7 +61,6 @@ export {
 	verifyBalance,
 	verifyMultiSignature,
 	verifySecondSignature,
-	verifySecondSignatureWhenNotNeeded,
 	verifySenderId,
 	verifySenderPublicKey,
 } from './verify';

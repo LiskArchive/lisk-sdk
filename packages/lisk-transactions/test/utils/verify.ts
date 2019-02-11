@@ -18,7 +18,6 @@ import {
 	verifySenderPublicKey,
 	verifySenderId,
 	verifyBalance,
-	verifySecondSignatureWhenNotNeeded,
 	verifySecondSignature,
 	verifyMultiSignature,
 } from '../../src/utils';
@@ -96,44 +95,12 @@ describe('#verify', () => {
 		});
 	});
 
-	describe('#verifySecondSignatureWhenNotNeeded', () => {
-		const defaultAccount = { balance: '1000000000' } as any;
-		it('should return undefined when sender has no second signature and signSignature is undefined', async () => {
-			expect(
-				verifySecondSignatureWhenNotNeeded(
-					defaultId,
-					defaultAccount,
-					undefined,
-				),
-			).to.be.undefined;
-		});
-
-		it('should return undefined when sender has second signature and signSignature is not undefined', async () => {
-			expect(
-				verifySecondSignatureWhenNotNeeded(
-					defaultId,
-					{ ...defaultAccount, secondPublicKey: 'second-public-key' },
-					'second-public-key',
-				),
-			).to.be.undefined;
-		});
-
-		it('should return TransactionError when sender does not have second signature but signSignature is provided', async () => {
-			expect(
-				verifySecondSignatureWhenNotNeeded(
-					defaultId,
-					defaultAccount,
-					'second-public-key',
-				),
-			)
-				.to.be.instanceOf(TransactionError)
-				.and.have.property('dataPath', '.signSignature');
-		});
-	});
-
 	describe('#verifySecondSignature', () => {
-		const defaultAccount = { balance: '1000000000' } as any;
 		const defaultPublicKey = 'default-public-key';
+		const defaultAccount = {
+			balance: '1000000000',
+			secondPublicKey: defaultPublicKey,
+		} as any;
 		const defaultSignSignature = 'default-sign-signature';
 		const fakeTransactionBuffer = Buffer.from(
 			'fake transaction buffer',
@@ -146,14 +113,27 @@ describe('#verify', () => {
 			sandbox.stub(validator, 'validateSignature').returns(successResult);
 		});
 
-		afterEach(() => sandbox.restore());
-
-		it('should return undefined when sender does not have second public key', async () => {
+		it('should return TransactionError when sender does not have second signature but signSignature is provided', async () => {
+			const { secondPublicKey, ...invalidAccount } = defaultAccount;
 			expect(
 				verifySecondSignature(
 					defaultId,
-					defaultAccount,
+					invalidAccount,
 					defaultSignSignature,
+					fakeTransactionBuffer,
+				),
+			)
+				.to.be.instanceOf(TransactionError)
+				.and.have.property('dataPath', '.signSignature');
+		});
+
+		it('should return undefined when sender does not have second public key and signSignature is not provided', async () => {
+			const { secondPublicKey, ...invalidAccount } = defaultAccount;
+			expect(
+				verifySecondSignature(
+					defaultId,
+					invalidAccount,
+					undefined,
 					fakeTransactionBuffer,
 				),
 			).to.be.undefined;
@@ -162,7 +142,7 @@ describe('#verify', () => {
 		it('should call validateSignature with currect arguments', async () => {
 			verifySecondSignature(
 				defaultId,
-				{ ...defaultAccount, secondPublicKey: defaultPublicKey },
+				defaultAccount,
 				defaultSignSignature,
 				fakeTransactionBuffer,
 			);
@@ -178,7 +158,7 @@ describe('#verify', () => {
 			expect(
 				verifySecondSignature(
 					defaultId,
-					{ ...defaultAccount, secondPublicKey: defaultPublicKey },
+					defaultAccount,
 					defaultSignSignature,
 					fakeTransactionBuffer,
 				),
@@ -190,7 +170,7 @@ describe('#verify', () => {
 			expect(
 				verifySecondSignature(
 					defaultId,
-					{ ...defaultAccount, secondPublicKey: defaultPublicKey },
+					defaultAccount,
 					defaultSignSignature,
 					fakeTransactionBuffer,
 				),
@@ -201,7 +181,7 @@ describe('#verify', () => {
 			expect(
 				verifySecondSignature(
 					defaultId,
-					{ ...defaultAccount, secondPublicKey: defaultPublicKey },
+					defaultAccount,
 					undefined,
 					fakeTransactionBuffer,
 				),
@@ -240,8 +220,6 @@ describe('#verify', () => {
 		beforeEach(async () => {
 			sandbox.stub(validator, 'validateMultisignatures').returns(successResult);
 		});
-
-		afterEach(() => sandbox.restore());
 
 		it('should return NONMULTISIGNATURE status without error if sender is not multi-signature account', async () => {
 			const { status, errors } = verifyMultiSignature(

@@ -45,7 +45,6 @@ import {
 	verifyBalance,
 	verifyMultiSignature,
 	verifySecondSignature,
-	verifySecondSignatureWhenNotNeeded,
 	verifySenderId,
 	verifySenderPublicKey,
 } from '../utils';
@@ -398,7 +397,6 @@ export abstract class BaseTransaction {
 			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
 			verifySenderId(this.id, sender, this.senderId),
 			verifyBalance(this.id, sender, this.fee),
-			verifySecondSignatureWhenNotNeeded(this.id, sender, this.signSignature),
 			verifySecondSignature(
 				this.id,
 				sender,

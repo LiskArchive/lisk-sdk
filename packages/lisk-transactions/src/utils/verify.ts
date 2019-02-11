@@ -55,25 +55,19 @@ export const verifyBalance = (
 		  )
 		: undefined;
 
-export const verifySecondSignatureWhenNotNeeded = (
-	id: string,
-	sender: Account,
-	signSignature?: string,
-): TransactionError | undefined =>
-	!sender.secondPublicKey && signSignature
-		? new TransactionError(
-				'Sender does not have a secondPublicKey',
-				id,
-				'.signSignature',
-		  )
-		: undefined;
-
 export const verifySecondSignature = (
 	id: string,
 	sender: Account,
 	signSignature: string | undefined,
 	transactionBytes: Buffer,
 ): TransactionError | undefined => {
+	if (!sender.secondPublicKey && signSignature) {
+		return new TransactionError(
+			'Sender does not have a secondPublicKey',
+			id,
+			'.signSignature',
+		);
+	}
 	if (!sender.secondPublicKey) {
 		return undefined;
 	}
