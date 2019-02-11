@@ -113,31 +113,34 @@ class System {
 	 * @param {Error} err
 	 * @returns {string} broadhash
 	 */
-	async getBroadhash() {
-		try {
-			const blocks = await this.storage.entities.Block.get(
-				{},
-				{
-					limit: 5,
-					sort: 'height:desc',
-				}
-			);
-			if (blocks.length <= 1) {
-				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
-				return this.headers.nethash;
-			}
-			const seed = blocks.map(row => row.id).join('');
-			const broadhash = crypto
-				.createHash('sha256')
-				.update(seed, 'utf8')
-				.digest()
-				.toString('hex');
-
-			return broadhash;
-		} catch (err) {
-			this.logger.error(err.stack);
-			return err;
+	getBroadhash(cb) {
+		if (typeof cb !== 'function') {
+			return this.headers.broadhash;
 		}
+		return this.storage.entities.Block.get(
+			{},
+			{
+				limit: 5,
+				sort: 'height:desc',
+			}
+		)
+			.then(blocks => {
+				if (blocks.length <= 1) {
+					// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
+					return setImmediate(cb, null, this.headers.nethash);
+				}
+				const seed = blocks.map(row => row.id).join('');
+				const broadhash = crypto
+					.createHash('sha256')
+					.update(seed, 'utf8')
+					.digest()
+					.toString('hex');
+				return setImmediate(cb, null, broadhash);
+			})
+			.catch(err => {
+				this.logger.error(err.stack);
+				return setImmediate(cb, err);
+			});
 	}
 
 	/**
@@ -145,7 +148,7 @@ class System {
 	 *
 	 */
 	async update() {
-		const hash = await this.getBroadhash();
+		const hash = this.getBroadhash();
 		this.headers.broadhash = hash;
 		const blocks = await this.storage.entities.Block.get(
 			{},
