@@ -18,7 +18,7 @@ export interface Account {
 	readonly address: string;
 	readonly balance: string;
 	readonly delegate?: Delegate;
-	readonly publicKey: string;
+	readonly publicKey?: string;
 	readonly secondPublicKey?: string;
 	readonly multisignatures?: ReadonlyArray<string>;
 	readonly multimin?: number;
