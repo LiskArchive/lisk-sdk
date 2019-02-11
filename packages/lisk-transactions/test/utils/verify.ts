@@ -221,7 +221,7 @@ describe('#verify', () => {
 			sandbox.stub(validator, 'validateMultisignatures').returns(successResult);
 		});
 
-		it('should return FAIL status without error if sender is not multi-signature account but signatures are provided', async () => {
+		it('should return FAIL status with error if sender is not multi-signature account but signatures are provided', async () => {
 			const { status, errors } = verifyMultiSignatures(
 				defaultId,
 				{} as any,
