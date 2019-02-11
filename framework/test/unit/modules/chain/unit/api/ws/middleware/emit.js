@@ -15,7 +15,6 @@
 'use strict';
 
 const expect = require('chai').expect;
-const sinon = require('sinon');
 const randomstring = require('randomstring');
 const connectionsTable = require('../../../../../../../../src/modules/chain/api/ws/workers/connections_table');
 const emitMiddleware = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/emit');
@@ -41,28 +40,27 @@ describe('emitMiddleware', async () => {
 					id: validSocketId,
 				},
 			};
-			validNext = sinon.spy();
+			validNext = sinonSandbox.spy();
+			connectionsTable.getNonce = sinonSandbox.stub();
 		});
 
-		afterEach(() => validNext.resetHistory());
+		afterEach(async () => {
+			validNext.resetHistory();
+			validReq.data = {};
+			connectionsTable.getNonce.reset();
+		});
 
 		it('should call validNext', async () => expect(validNext).calledOnce);
 
-		describe('when req.event is one of the events responsible for receiving data on P2P layer', async () => {
-			const receiveDataEvents = [
-				'postBlock',
-				'postTransactions',
-				'postSignatures',
-			];
-			receiveDataEvents.forEach(() => {
+		const receiveDataEvents = [
+			'postBlock',
+			'postTransactions',
+			'postSignatures',
+		];
+		receiveDataEvents.forEach(dataEvent => {
+			describe(`when req.event is '${dataEvent}' responsible for receiving data on P2P layer `, async () => {
 				before(async () => {
-					connectionsTable.getNonce = sinon.stub();
-					validReq.event = 'postBlock';
-				});
-
-				afterEach(async () => {
-					connectionsTable.getNonce.reset();
-					validReq.data = {};
+					validReq.event = dataEvent;
 				});
 
 				it('should call connectionsTable.getNonce', async () =>
@@ -79,8 +77,10 @@ describe('emitMiddleware', async () => {
 						before(async () => {
 							validReq.data = null;
 						});
+
 						it('should change req.data to an object', async () =>
 							expect(validNext).calledOnce);
+
 						it('should add nonce = undefined property to req.data', async () =>
 							expect(validReq.data).to.have.property('nonce').to.be.undefined);
 					});
@@ -90,10 +90,6 @@ describe('emitMiddleware', async () => {
 					const validNonce = randomstring.generate(16);
 					before(async () => {
 						connectionsTable.getNonce.returns(validNonce);
-					});
-
-					after(async () => {
-						connectionsTable.getNonce.reset();
 					});
 
 					it('should add nonce = undefined property to req.data', async () =>
