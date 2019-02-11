@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+'use strict';
+
 const {
 	TransferTransaction,
 	SecondSignatureTransaction,
@@ -23,8 +26,7 @@ const {
 	OutTransferTransaction,
 } = require('@liskhq/lisk-transactions');
 
-class Transaction {
-	constructor(rawTx) {
+module.exports = rawTx => {
 		const map = new Map([
 			[0, TransferTransaction],
 			[1, SecondSignatureTransaction],
@@ -43,7 +45,5 @@ class Transaction {
 		}
 
 		return new TransactionClass(rawTx);
-	}
-}
+};
 
-module.exports = Transaction;
