@@ -27,22 +27,23 @@ const {
 } = require('@liskhq/lisk-transactions');
 
 module.exports = rawTx => {
-	const map = new Map([
-		[0, TransferTransaction],
-		[1, SecondSignatureTransaction],
-		[2, DelegateTransaction],
-		[3, VoteTransaction],
-		[4, MultisignatureTransaction],
-		[5, DappTransaction],
-		[6, InTransferTransaction],
-		[7, OutTransferTransaction],
-	]);
+		const map = new Map([
+			[0, TransferTransaction],
+			[1, SecondSignatureTransaction],
+			[2, DelegateTransaction],
+			[3, VoteTransaction],
+			[4, MultisignatureTransaction],
+			[5, DappTransaction],
+			[6, InTransferTransaction],
+			[7, OutTransferTransaction],
+		]);
 
-	const TransactionClass = map.get(rawTx.type);
+		const TransactionClass = map.get(rawTx.type);
 
-	if (!TransactionClass) {
-		throw new Error('Transaction type not found.');
-	}
+		if (!TransactionClass) {
+			throw new Error('Transaction type not found.');
+		}
 
-	return new TransactionClass(rawTx);
+		return new TransactionClass(rawTx);
 };
+
