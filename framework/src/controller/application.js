@@ -65,7 +65,7 @@ module.exports = class Application {
 	 * @example
 	 *    const app = new Application('my-app-devnet', myGenesisBlock, myConstants)
 	 *
-	 * @param {string} label - Application label used in logs. Useful if you have multiple networks for same application.
+	 * @param {string|function} label - Application label used in logs. Useful if you have multiple networks for same application.
 	 * @param {Object} genesisBlock - Genesis block object
 	 * @param {Object} [constants] - Override constants
 	 * @param {Object} [config] - Main configuration object
@@ -88,6 +88,10 @@ module.exports = class Application {
 			config.components.logger = {
 				filename: `~/.lisk/${label}/lisk.log`,
 			};
+		}
+
+		if (typeof label === 'function') {
+			label = label.call();
 		}
 
 		validator.loadSchema(schema);
