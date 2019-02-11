@@ -4,14 +4,14 @@ import { VError } from 'verror';
 export class TransactionError extends VError {
 	public id: string;
 	public dataPath: string;
-	public actual?: string | number | object;
-	public expected?: string | number | object;
+	public actual?: string | number;
+	public expected?: string | number;
 	public constructor(
 		message: string = '',
 		id: string = '',
 		dataPath: string = '',
-		actual?: string | number | object,
-		expected?: string | number | object,
+		actual?: string | number,
+		expected?: string | number,
 	) {
 		super(message);
 		this.name = 'TransactionError';
@@ -22,9 +22,13 @@ export class TransactionError extends VError {
 	}
 
 	public toString(): string {
-		return `Transaction: ${this.id} failed at ${this.dataPath}: ${
+		const defaultMessage = `Transaction: ${this.id} failed at ${this.dataPath}: ${
 			this.message
-		} `;
+		}`;
+		const withActial = this.actual ? `${defaultMessage}, actual: ${this.actual}` : defaultMessage;
+		const withExpected = this.expected ? `${withActial}, expected: ${this.expected}` : withActial;
+
+		return withExpected;
 	}
 }
 
@@ -47,7 +51,7 @@ export class TransactionMultiError extends TransactionError {
 	public toString(): string {
 		return `Transaction: ${this.id} failed at ${this.dataPath}: ${
 			this.message
-		} `;
+		}`;
 	}
 }
 
