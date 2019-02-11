@@ -82,9 +82,11 @@ const uncofirmedFields = [
 	'u_delegates',
 	'u_multisignatures',
 	'u_multimin',
+	'u_multiMin',
 	'u_multilifetime',
+	'u_multiLifetime',
 	'u_nameexist',
-	'u_balance',
+	// 'u_balance',
 ];
 
 /**
@@ -409,8 +411,12 @@ class Account extends BaseEntity {
 		let values;
 
 		if (Array.isArray(data)) {
-			values = data.map(item => ({ ...item }));
+			values = data.map(item => {
+				item = Account.beforeSave(item);
+				return { ...item };
+			});
 		} else if (typeof data === 'object') {
+			data = Account.beforeSave(data);
 			values = [{ ...data }];
 		}
 
@@ -804,6 +810,8 @@ class Account extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const filedName = this.fields[field].fieldName;
 
+		value = Account.beforeUpdateField(field, value);
+
 		const params = {
 			parsedFilters,
 			field: filedName,
@@ -863,7 +871,7 @@ class Account extends BaseEntity {
 
 		if (uncofirmedFieldsFound.length > 0) {
 			const err = new Error(
-				'[UNCOFIRMED_STATE_REMOVAL]Removing unconfirmed fields from `data`.'
+				'[UNCOFIRMED_STATE_REMOVAL] Removing unconfirmed fields from `data`.'
 			);
 			logger.info(err.stack);
 			if (shouldThrow) {
@@ -872,6 +880,18 @@ class Account extends BaseEntity {
 		}
 		return newData;
 	}
+
+	static beforeUpdateField(field, value) {
+		if (uncofirmedFields.includes(field)) {
+			const logger = console;
+			const err = new Error(
+				`[UNCOFIRMED_STATE_REMOVAL] Setting uncofirmed field '${field}' value to 0.`
+			);
+			logger.info(err.stack);
+		}
+		return uncofirmedFields.includes(field) ? 0 : value;
+	}
+	// @TODO this is transitional should be removed once transactions are being processed in memory
 }
 
 module.exports = Account;
