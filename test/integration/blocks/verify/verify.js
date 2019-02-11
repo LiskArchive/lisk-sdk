@@ -34,6 +34,7 @@ const blockVersion = require('../../../../logic/block_version.js');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
+const exceptions = global.exceptions;
 
 const previousBlock = {
 	blockSignature:
@@ -109,6 +110,48 @@ const validBlock = {
 	],
 	version: 0,
 	id: '884740302254229983',
+};
+const removedNullByteTransaction = {
+	id: '12382488207223565768',
+	version: 1,
+	timestamp: 75352090,
+	height: 7292474,
+	numberOfTransactions: 1,
+	totalAmount: '90000000',
+	totalFee: '10000000',
+	reward: '400000000',
+	payloadLength: 134,
+	payloadHash:
+		'e70d93d3635efaa387dd636ba872d280818b032e5e4d7202c2c08e7352f74bd5',
+	generatorPublicKey:
+		'393f73238941510379d930e674e21ca4c00ba30c0877cd3728b5bd5874588671',
+	blockSignature:
+		'f533d4c2284cae05686bdd96d3c5970a294f3bff3856f5c9170b094a9540d8f6cbe5756e86a6df578f9066d29414ce11c29b64bbc282e6478bd547394b834305',
+	totalForged: '410000000',
+	generatorAddress: '11416406146107258985L',
+	previousBlockId: '1407218369485686224',
+	transactions: [
+		{
+			id: '11815860355204320743',
+			height: 7292474,
+			blockId: '12382488207223565768',
+			type: 0,
+			timestamp: 75352012,
+			senderPublicKey:
+				'61e1e99bd172e06757724af6fb7c5476bcd238c0316ec19af3ef674aec0fb016',
+			senderId: '15011062961963659434L',
+			recipientId: '3059689181059370761L',
+			recipientPublicKey:
+				'7ac57857e9cb61f2057c350cab411d25cd66f81dcb9b076d00d24a79c16bc7c4',
+			amount: '90000000',
+			fee: '10000000',
+			signature:
+				'8e54e8ea5374ab6cc0df5f874d33aff1c3379e14fd596c34f24e2448b52557010c25402e2835e258b04ee5666948c736b7cafaee5645af92e1478f86798b2b03',
+			asset: {
+				data: ' is valid UTF-8!',
+			},
+		},
+	],
 };
 
 const testAccount = {
@@ -548,6 +591,43 @@ describe('blocks/verify', () => {
 
 				validBlock.totalFee = totalFee;
 				done();
+			});
+
+			// Test exceptions when transaction has null byte in the data field
+			describe('when transaction data field has null byte', () => {
+				let originalException;
+
+				beforeEach(async () => {
+					originalException = exceptions.removedNullByteTransactions;
+				});
+
+				afterEach(async () => {
+					exceptions.removedNullByteTransactions = originalException;
+				});
+
+				it('should return `Invalid payload hash` when null byte tranaction is NOT in exceptions', done => {
+					const result = privateFunctions.verifyPayload(
+						removedNullByteTransaction,
+						results
+					);
+					expect(result.errors).to.be.eql(['Invalid payload hash']);
+					done();
+				});
+
+				it('should return no errors when null byte tranaction is in exceptions', done => {
+					// Define exception for null byte transaction
+					exceptions.removedNullByteTransactions = {
+						'11815860355204320743': {
+							originalDataField: '\u0000 is valid UTF-8!',
+						},
+					};
+					const result = privateFunctions.verifyPayload(
+						removedNullByteTransaction,
+						results
+					);
+					expect(result.errors).to.be.empty;
+					done();
+				});
 			});
 		});
 
