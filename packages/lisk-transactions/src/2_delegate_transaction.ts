@@ -100,7 +100,7 @@ export class DelegateTransaction extends BaseTransaction {
 		this.containsUniqueData = true;
 	}
 
-	protected getAssetBytes(): Buffer {
+	protected assetToBytes(): Buffer {
 		const {
 			delegate: { username },
 		} = this.asset;
@@ -114,7 +114,7 @@ export class DelegateTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
 				address: this.senderId,

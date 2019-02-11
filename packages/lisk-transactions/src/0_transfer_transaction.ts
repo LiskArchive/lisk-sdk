@@ -72,7 +72,7 @@ export class TransferTransaction extends BaseTransaction {
 		this._fee = new BigNum(TRANSFER_FEE);
 	}
 
-	protected getAssetBytes(): Buffer {
+	protected assetToBytes(): Buffer {
 		const { data } = this.asset;
 
 		return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
@@ -84,7 +84,7 @@ export class TransferTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
 				address: this.senderId,

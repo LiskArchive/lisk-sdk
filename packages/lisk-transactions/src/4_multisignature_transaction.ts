@@ -121,7 +121,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		);
 	}
 
-	protected getAssetBytes(): Buffer {
+	protected assetToBytes(): Buffer {
 		const {
 			multisignature: { min, lifetime, keysgroup },
 		} = this.asset;
@@ -142,7 +142,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
 				address: this.senderId,

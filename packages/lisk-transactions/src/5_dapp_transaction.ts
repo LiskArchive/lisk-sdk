@@ -143,7 +143,7 @@ export class DappTransaction extends BaseTransaction {
 		this.containsUniqueData = true;
 	}
 
-	protected getAssetBytes(): Buffer {
+	protected assetToBytes(): Buffer {
 		const DAPP_TYPE_LENGTH = 4;
 		const DAPP_CATEGORY_LENGTH = 4;
 		const {
@@ -185,7 +185,7 @@ export class DappTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
 				address: this.senderId,
