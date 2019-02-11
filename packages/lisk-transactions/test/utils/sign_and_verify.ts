@@ -110,7 +110,7 @@ describe('signAndVerify module', () => {
 				.to.be.instanceof(TransactionError)
 				.and.have.property(
 					'message',
-					`Failed to verify signature ${defaultSecondSignatureTransaction.signature.replace(
+					`Failed to validate signature ${defaultSecondSignatureTransaction.signature.replace(
 						'1',
 						'0',
 					)}`,
@@ -139,7 +139,7 @@ describe('signAndVerify module', () => {
 				.to.be.instanceof(TransactionError)
 				.and.have.property(
 					'message',
-					`Failed to verify signature ${defaultSecondSignatureTransaction.signSignature.replace(
+					`Failed to validate signature ${defaultSecondSignatureTransaction.signSignature.replace(
 						'1',
 						'0',
 					)}`,
@@ -187,7 +187,7 @@ describe('signAndVerify module', () => {
 					.to.be.instanceof(TransactionError)
 					.and.have.property(
 						'message',
-						`Failed to verify signature ${defaultMultisignatureTransaction.signatures[
+						`Failed to validate signature ${defaultMultisignatureTransaction.signatures[
 							i
 						].replace('1', '0')}`,
 					);

@@ -33,6 +33,7 @@ import {
 	convertToTransactionError,
 	TransactionError,
 	TransactionMultiError,
+	TransactionPendingError,
 } from '../errors';
 import { createResponse, Status } from '../response';
 import { Account, TransactionJSON } from '../transaction_types';
@@ -43,7 +44,7 @@ import {
 	validateTransactionId,
 	validator,
 	verifyBalance,
-	verifyMultiSignature,
+	verifyMultiSignatures,
 	verifySecondSignature,
 	verifySenderId,
 	verifySenderPublicKey,
@@ -263,16 +264,6 @@ export abstract class BaseTransaction {
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
-		if (
-			this._multisignatureStatus === MultisignatureStatus.PENDING &&
-			errors.length === 0
-		) {
-			return {
-				id: this.id,
-				status: Status.PENDING,
-				errors: [],
-			};
-		}
 
 		const sender = store.account.get(this.senderId);
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
@@ -280,6 +271,18 @@ export abstract class BaseTransaction {
 		store.account.set(updatedSender.address, updatedSender);
 		const assetErrors = this.applyAsset(store);
 		errors.push(...assetErrors);
+
+		if (
+			this._multisignatureStatus === MultisignatureStatus.PENDING &&
+			errors.length === 1 &&
+			errors[0] instanceof TransactionPendingError
+		) {
+			return {
+				id: this.id,
+				status: Status.PENDING,
+				errors,
+			};
+		}
 
 		return createResponse(this.id, errors);
 	}
@@ -316,7 +319,7 @@ export abstract class BaseTransaction {
 			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
 			: this.getBasicBytes();
 
-		const { status, errors } = verifyMultiSignature(
+		const { status, errors } = verifyMultiSignatures(
 			this.id,
 			sender,
 			this.signatures,

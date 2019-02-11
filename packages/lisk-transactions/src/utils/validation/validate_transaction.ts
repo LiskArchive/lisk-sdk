@@ -100,12 +100,6 @@ export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
 	};
 };
 
-export const isUnique = (values: ReadonlyArray<string>): boolean => {
-	const unique = [...new Set(values)];
-
-	return unique.length === values.length;
-};
-
 export const validateTransactionId = (
 	id: string,
 	bytes: Buffer,

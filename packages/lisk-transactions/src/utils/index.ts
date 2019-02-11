@@ -59,7 +59,7 @@ export {
 } from './validation';
 export {
 	verifyBalance,
-	verifyMultiSignature,
+	verifyMultiSignatures,
 	verifySecondSignature,
 	verifySenderId,
 	verifySenderPublicKey,

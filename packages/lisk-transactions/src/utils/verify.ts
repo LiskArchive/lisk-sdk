@@ -43,9 +43,9 @@ export const verifySenderId = (
 export const verifyBalance = (
 	id: string,
 	sender: Account,
-	fee: BigNum,
+	amount: BigNum,
 ): TransactionError | undefined =>
-	new BigNum(sender.balance).lt(new BigNum(fee))
+	new BigNum(sender.balance).lt(new BigNum(amount))
 		? new TransactionError(
 				`Account does not have enough LSK: ${
 					sender.address
@@ -92,7 +92,7 @@ interface VerifyMultiSignatureResult {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
-export const verifyMultiSignature = (
+export const verifyMultiSignatures = (
 	id: string,
 	sender: Account,
 	signatures: ReadonlyArray<string>,

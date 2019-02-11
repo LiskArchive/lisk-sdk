@@ -19,7 +19,7 @@ import {
 	verifySenderId,
 	verifyBalance,
 	verifySecondSignature,
-	verifyMultiSignature,
+	verifyMultiSignatures,
 } from '../../src/utils';
 import * as validator from '../../src/utils/sign_and_verify';
 import { TransactionError, TransactionPendingError } from '../../src/errors';
@@ -191,7 +191,7 @@ describe('#verify', () => {
 		});
 	});
 
-	describe('#verifyMultiSignature', () => {
+	describe('#verifyMultiSignatures', () => {
 		const defaultAccount = {
 			address: '123L',
 			multisignatures: [
@@ -222,7 +222,7 @@ describe('#verify', () => {
 		});
 
 		it('should return NONMULTISIGNATURE status without error if sender is not multi-signature account', async () => {
-			const { status, errors } = verifyMultiSignature(
+			const { status, errors } = verifyMultiSignatures(
 				defaultId,
 				{} as any,
 				signatures,
@@ -233,7 +233,7 @@ describe('#verify', () => {
 		});
 
 		it('should call validateMultisignature with correct argument', async () => {
-			verifyMultiSignature(
+			verifyMultiSignatures(
 				defaultId,
 				defaultAccount as any,
 				signatures,
@@ -249,7 +249,7 @@ describe('#verify', () => {
 		});
 
 		it('should return READY status without error if transaction is valid', async () => {
-			const { status, errors } = verifyMultiSignature(
+			const { status, errors } = verifyMultiSignatures(
 				defaultId,
 				defaultAccount as any,
 				signatures,
@@ -261,7 +261,7 @@ describe('#verify', () => {
 
 		it('should return PENDING status with pending error if only error is the pending error', async () => {
 			(validator.validateMultisignatures as any).returns(pendingResult);
-			const { status, errors } = verifyMultiSignature(
+			const { status, errors } = verifyMultiSignatures(
 				defaultId,
 				defaultAccount as any,
 				signatures,
@@ -274,7 +274,7 @@ describe('#verify', () => {
 
 		it('should return FAIL status with errors', async () => {
 			(validator.validateMultisignatures as any).returns(failResult);
-			const { status, errors } = verifyMultiSignature(
+			const { status, errors } = verifyMultiSignatures(
 				defaultId,
 				defaultAccount as any,
 				signatures,

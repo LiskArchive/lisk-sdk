@@ -63,7 +63,7 @@ export const validateSignature = (
 		valid,
 		error: !valid
 			? new TransactionError(
-					`Failed to verify signature ${signature}`,
+					`Failed to validate signature ${signature}`,
 					id,
 					'.signature',
 			  )
@@ -79,7 +79,7 @@ export const validateMultisignatures = (
 	id?: string,
 ): IsValidResponse => {
 	const checkedPublicKeys = new Set();
-	const verifiedSignatures = new Set();
+	const validSignatures = new Set();
 	// Check that signatures are unique
 	const uniqueSignatures: ReadonlyArray<string> = [...new Set(signatures)];
 	if (uniqueSignatures.length !== signatures.length) {
@@ -99,29 +99,26 @@ export const validateMultisignatures = (
 		signatures.forEach((signature: string) => {
 			// Avoid single key from verifying more than one signature.
 			// See issue: https://github.com/LiskHQ/lisk/issues/2540
-			if (
-				checkedPublicKeys.has(publicKey) ||
-				verifiedSignatures.has(signature)
-			) {
+			if (checkedPublicKeys.has(publicKey) || validSignatures.has(signature)) {
 				return;
 			}
 
-			const { valid: signatureVerified } = validateSignature(
+			const { valid: signatureValid } = validateSignature(
 				publicKey,
 				signature,
 				transactionBytes,
 				id,
 			);
 
-			if (signatureVerified) {
+			if (signatureValid) {
 				checkedPublicKeys.add(publicKey);
-				verifiedSignatures.add(signature);
+				validSignatures.add(signature);
 			}
 		});
 	});
 
-	const unverifiedTransactionSignatures = signatures.filter(
-		signature => !verifiedSignatures.has(signature),
+	const invalidTransactionSignatures = signatures.filter(
+		signature => !validSignatures.has(signature),
 	);
 
 	// Transaction is waiting for more signatures
@@ -136,14 +133,14 @@ export const validateMultisignatures = (
 
 	return {
 		valid:
-			verifiedSignatures.size >= minimumValidations &&
-			unverifiedTransactionSignatures.length === 0,
+			validSignatures.size >= minimumValidations &&
+			invalidTransactionSignatures.length === 0,
 		errors:
-			unverifiedTransactionSignatures.length > 0
-				? unverifiedTransactionSignatures.map(
+			invalidTransactionSignatures.length > 0
+				? invalidTransactionSignatures.map(
 						signature =>
 							new TransactionError(
-								`Failed to verify signature ${signature}`,
+								`Failed to validate signature ${signature}`,
 								id,
 								'.signature',
 							),

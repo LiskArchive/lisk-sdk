@@ -503,7 +503,7 @@ describe('Base transaction class', () => {
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
-					`Failed to verify signature ${invalidSignature}`,
+					`Failed to validate signature ${invalidSignature}`,
 				);
 			expect(status).to.eql(Status.FAIL);
 		});
@@ -551,7 +551,7 @@ describe('Base transaction class', () => {
 
 	describe('#processMultisignatures', () => {
 		it('should return a successful transaction response with valid signatures', async () => {
-			sandbox.stub(utils, 'verifyMultiSignature').returns({
+			sandbox.stub(utils, 'verifyMultiSignatures').returns({
 				status: MultisignatureStatus.READY,
 				errors: [],
 			});
@@ -574,7 +574,7 @@ describe('Base transaction class', () => {
 					'.signatures',
 				),
 			];
-			sandbox.stub(utils, 'verifyMultiSignature').returns({
+			sandbox.stub(utils, 'verifyMultiSignatures').returns({
 				status: MultisignatureStatus.PENDING,
 				errors: pendingErrors,
 			});
