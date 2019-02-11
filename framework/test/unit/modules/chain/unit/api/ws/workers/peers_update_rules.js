@@ -377,39 +377,29 @@ describe('PeersUpdateRules', async () => {
 		let removeStub;
 		let blockStub;
 
-		before(async () => {
+		beforeEach(async () => {
 			insertStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'insert');
 			removeStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'remove');
 			blockStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'block');
 			peersUpdateRules = new PeersUpdateRules(slaveWAMPServerMock);
-			connectionsTable.getNonce = sinonSandbox.stub(
-				connectionsTable,
-				'getNonce'
-			);
-			connectionsTable.getConnectionId = sinonSandbox.stub(
-				connectionsTable,
-				'getConnectionId'
-			);
+			connectionsTable.getNonce = sinonSandbox.stub();
+			connectionsTable.getConnectionId = sinonSandbox.stub();
 		});
 
-		beforeEach(async () => {
-			insertStub.resetHistory();
-			removeStub.resetHistory();
-			blockStub.resetHistory();
-			connectionsTable.getNonce.restore();
-			connectionsTable.getConnectionId.restore();
+		afterEach(async () => {
+			insertStub.restore();
+			removeStub.restore();
+			blockStub.restore();
+			connectionsTable.getNonce.reset();
+			connectionsTable.getConnectionId.reset();
 		});
 
 		function setNoncePresence(presence) {
-			connectionsTable.getNonce = sinonSandbox
-				.stub(connectionsTable, 'getNonce')
-				.returns(presence);
+			connectionsTable.getNonce.returns(presence);
 		}
 
 		function setConnectionIdPresence(presence) {
-			connectionsTable.getConnectionId = sinonSandbox
-				.stub(connectionsTable, 'getConnectionId')
-				.returns(presence);
+			connectionsTable.getConnectionId.returns(presence);
 		}
 
 		describe('insert', async () => {
