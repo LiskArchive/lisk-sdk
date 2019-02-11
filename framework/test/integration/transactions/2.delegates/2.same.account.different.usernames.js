@@ -66,7 +66,8 @@ describe('system test (type 2) - double delegate registrations', async () => {
 					});
 				});
 
-				it('adding to pool delegate registration from same account and different name should be ok', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] adding to pool delegate registration from same account and different name should be ok', done => {
 					transaction2 = lisk.transaction.registerDelegate({
 						passphrase: account.passphrase,
 						username: account.username,
@@ -84,7 +85,8 @@ describe('system test (type 2) - double delegate registrations', async () => {
 						});
 					});
 
-					it('first delegate registration to arrive should not be included', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCOFIRMED_STATE_REMOVAL] first delegate registration to arrive should not be included', done => {
 						const filter = {
 							id: transaction1.id,
 						};
@@ -102,7 +104,8 @@ describe('system test (type 2) - double delegate registrations', async () => {
 						);
 					});
 
-					it('last delegate registration to arrive should be included', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCOFIRMED_STATE_REMOVAL] last delegate registration to arrive should be included', done => {
 						const filter = {
 							id: transaction2.id,
 						};
@@ -121,7 +124,8 @@ describe('system test (type 2) - double delegate registrations', async () => {
 						);
 					});
 
-					it('adding to pool delegate registration from same account should fail', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCOFIRMED_STATE_REMOVAL] adding to pool delegate registration from same account should fail', done => {
 						transaction2 = lisk.transaction.registerDelegate({
 							passphrase: account.passphrase,
 							username: randomUtil.delegateName(),
