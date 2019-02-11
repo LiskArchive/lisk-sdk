@@ -50,7 +50,7 @@ module.exports = class Bus extends EventEmitter2 {
 	 * @param {Array.<module.Event>} events - List of events
 	 * @param {Array.<module.Action>} actions - List of actions
 	 * @param {Object} options - Options related to registering channel (unused variable)
-	 * 
+	 *
 	 * @throws {Error} If event name is already registered.
 	 */
 	// eslint-disable-next-line no-unused-vars
@@ -76,7 +76,7 @@ module.exports = class Bus extends EventEmitter2 {
 	 * Invoke action on bus.
 	 *
 	 * @param {Object|string} actionData - Object or stringified object containing action data like name, module, souce, and params.
-	 * 
+	 *
 	 * @throws {Error} If action is not registered to bus.
 	 */
 	invoke(actionData) {
@@ -98,7 +98,7 @@ module.exports = class Bus extends EventEmitter2 {
 	 *
 	 * @param {string} eventName - Name of the event
 	 * @param {string} eventValue - Attached value for event
-	 * 
+	 *
 	 * @throws {Error} If event name does not exist to bus.
 	 */
 	emit(eventName, eventValue) {

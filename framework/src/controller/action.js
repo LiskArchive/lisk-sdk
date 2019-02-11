@@ -13,7 +13,7 @@ const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][a-zA-Z0-9]*$/;
 module.exports = class Action {
 	/**
 	 * Create Action object.
-	 * 
+	 *
 	 * @param {string} name - Can be simple event or be combination of module:event
 	 * @param {Array} [params] - Params associated with the action
 	 * @param {string} [source] - Module name if event name does not have its prefix

@@ -14,7 +14,7 @@ const BaseChannel = require('./base');
 module.exports = class EventEmitterChannel extends BaseChannel {
 	/**
 	 * Create new evnt emitter channel for module.
-	 * 
+	 *
 	 * @param {string} moduleAlias - A unique module name accessed through out the system
 	 * @param {Array.<module.Event>} events - Array of events
 	 * @param {Array.<module.Action>} actions - Array of actions
@@ -30,7 +30,7 @@ module.exports = class EventEmitterChannel extends BaseChannel {
 
 	/**
 	 * Register new channel on bus.
-	 * 
+	 *
 	 * @async
 	 */
 	async registerToBus() {

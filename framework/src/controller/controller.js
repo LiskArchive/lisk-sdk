@@ -34,7 +34,7 @@ const validateModuleSpec = moduleSpec => {
 module.exports = class Controller {
 	/**
 	 * Create controller object.
-	 * 
+	 *
 	 * @param {Array} modules - All registered modules
 	 * @param {Object} componentConfig - Configurations for components
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output

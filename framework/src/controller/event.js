@@ -13,7 +13,7 @@ const eventWithModuleNameReg = /^([a-zA-Z][a-zA-Z0-9]*)((?::[a-zA-Z][a-zA-Z0-9]*
 module.exports = class Event {
 	/**
 	 * Create Event object.
-	 * 
+	 *
 	 * @param {string} name - Can be simple event or be combination of module:event
 	 * @param {string|Object} [data] - Data associated with the event
 	 * @param {string} [source] - Source module which triggers the event
@@ -38,7 +38,6 @@ module.exports = class Event {
 		}
 	}
 
-	
 	/**
 	 * Gets serialized data object for Event object.
 	 *
