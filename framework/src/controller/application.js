@@ -84,14 +84,14 @@ module.exports = class Application {
 		constants = {},
 		config = { components: { logger: null } }
 	) {
+		if (typeof label === 'function') {
+			label = label.call();
+		}
+
 		if (!config.components.logger) {
 			config.components.logger = {
 				filename: `~/.lisk/${label}/lisk.log`,
 			};
-		}
-
-		if (typeof label === 'function') {
-			label = label.call();
 		}
 
 		validator.loadSchema(schema);
