@@ -56,6 +56,8 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Partially connected network: All nodes launch at the same time; the seedPeers list of each node contains the next node in the sequence', () => {
+		const DISCOVERY_INTERVAL = 200;
+		
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
@@ -72,6 +74,8 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 5000,
 					seedPeers,
 					wsEngine: 'ws',
+					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
+					discoveryInterval: DISCOVERY_INTERVAL + index * 10,
 					nodeInfo: {
 						wsPort: NETWORK_START_PORT + index,
 						nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -91,7 +95,7 @@ describe('Integration tests for P2P library', () => {
 				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
-			await wait(500);
+			await wait(100);
 		});
 
 		afterEach(async () => {
@@ -117,6 +121,20 @@ describe('Integration tests for P2P library', () => {
 						p2p.nodeInfo.wsPort,
 						nextPeerPort > NETWORK_END_PORT ? NETWORK_START_PORT : nextPeerPort
 					].sort();
+
+					expect(peerPorts).to.be.eql(expectedPeerPorts);
+				});
+			});
+
+			it('should discover all peers in the network after a few cycles of discovery', async () => {
+				// Wait for 5 cycles of discovery.
+				await wait(DISCOVERY_INTERVAL * 5);
+
+				p2pNodeList.forEach(p2p => {
+					let {connectedPeers} = p2p.getNetworkStatus();
+
+					const peerPorts = connectedPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const expectedPeerPorts = ALL_NODE_PORTS;
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});

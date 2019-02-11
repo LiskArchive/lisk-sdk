@@ -28,8 +28,6 @@ describe('peer selector', () => {
 			netHash: '73458irc3yb7rg37r7326dbt7236',
 		};
 
-		// TODO ASAP: Consider updating failing test cases. The peer selector currently only returns Peer objects for tried peers for which we have complete info.
-		// TODO ASAP: We need to decide if this filtering needs to happen at the level of the peer selector or if there are other ways.
 		describe('get a list of n number of good peers', () => {
 			beforeEach(async () => {
 				peerList = initializePeerList();
