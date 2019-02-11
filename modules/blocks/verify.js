@@ -342,8 +342,21 @@ __private.verifyPayload = function(block, result) {
 		totalFee = totalFee.plus(transaction.fee);
 	}
 
-	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
+	const calculatedPayloadHash = payloadHash.digest().toString('hex');
+
+	if (calculatedPayloadHash !== block.payloadHash) {
 		result.errors.push('Invalid payload hash');
+
+		const exceptionItem = Object.values(
+			exceptions.removedNullByteTransactions
+		).filter(({ blockId }) => blockId === block.id);
+
+		if (
+			exceptionItem &&
+			exceptionItem.payloadHashWithoutNullByte === calculatedPayloadHash
+		) {
+			result.errors.pop();
+		}
 	}
 
 	if (!totalAmount.isEqualTo(block.totalAmount)) {

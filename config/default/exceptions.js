@@ -43,6 +43,7 @@ module.exports = {
 	rounds: {},
 	senderPublicKey: [],
 	signatures: [],
+	removedNullByteTransactions: {},
 	multisignatures: [],
 	votes: [],
 	inertTransactions: [],
