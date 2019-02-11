@@ -86,7 +86,7 @@ const uncofirmedFields = [
 	'u_multilifetime',
 	'u_multiLifetime',
 	'u_nameexist',
-	// 'u_balance',
+	'u_balance',
 ];
 
 /**

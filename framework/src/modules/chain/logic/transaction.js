@@ -1023,7 +1023,7 @@ class Transaction {
 
 		const senderBalance = this.checkBalance(
 			amount,
-			'u_balance',
+			'balance',
 			transaction,
 			sender
 		);
