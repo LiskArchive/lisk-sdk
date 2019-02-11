@@ -75,6 +75,18 @@ const sqlFiles = {
 	insertFork: 'accounts/insert_fork.sql',
 };
 
+const uncofirmedFields = [
+	'u_isDelegate',
+	'u_secondSignature',
+	'u_username',
+	'u_delegates',
+	'u_multisignatures',
+	'u_multimin',
+	'u_multilifetime',
+	'u_nameexist',
+	'u_balance',
+];
+
 /**
  * Basic Account
  * @typedef {Object} BasicAccount
@@ -430,6 +442,7 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	update(filters, data, _options, tx) {
+		data = Account.beforeSave(data);
 		const atLeastOneRequired = true;
 
 		this.validateFilters(filters, atLeastOneRequired);
@@ -463,6 +476,7 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	updateOne(filters, data, _options, tx) {
+		data = Account.beforeSave(data);
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
 
@@ -533,6 +547,7 @@ class Account extends BaseEntity {
 	 * @returns {Promise.<boolean, Error>}
 	 */
 	upsert(filters, data, updateData = {}, tx = null) {
+		data = Account.beforeSave(data);
 		const task = t =>
 			this.isPersisted(filters, {}, t).then(dataFound => {
 				if (dataFound) {
@@ -831,6 +846,31 @@ class Account extends BaseEntity {
 			{ expectedResultCount },
 			tx
 		);
+	}
+
+	// @TODO this is transitional should be removed once transactions are being processed in memory
+	static beforeSave(data, shouldThrow = false) {
+		const logger = console;
+
+		const fields = Object.keys(data);
+		const uncofirmedFieldsFound = fields.filter(aField =>
+			uncofirmedFields.includes(aField)
+		);
+		const newData = _.pick(
+			data,
+			Object.keys(data).filter(aField => !uncofirmedFields.includes(aField))
+		);
+
+		if (uncofirmedFieldsFound.length > 0) {
+			const err = new Error(
+				'[UNCOFIRMED_STATE_REMOVAL]Removing unconfirmed fields from `data`.'
+			);
+			logger.info(err.stack);
+			if (shouldThrow) {
+				throw err;
+			}
+		}
+		return newData;
 	}
 }
 
