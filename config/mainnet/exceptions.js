@@ -44,12 +44,10 @@ module.exports = {
 	// transfer transaction previously with null byte in the data field
 	// SELECT * FROM transfer WHERE position('\x00' in data) > 0;
 	removedNullByteTransactions: {
-		removedNullByteTransactions: {
-			'11815860355204320743': {
-				originalDataField: '\u0000 is valid UTF-8!',
-			},
-		}, // 7292474
-	},
+		'11815860355204320743': {
+			originalDataField: '\u0000 is valid UTF-8!',
+		},
+	}, // 7292474
 	multisignatures: [
 		'14122550998639658526', // 1189962
 	],
