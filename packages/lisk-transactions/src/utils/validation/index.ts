@@ -28,6 +28,11 @@ export {
 	isGreaterThanZero,
 	isNumberString,
 	stringEndsWith,
+	isUnique,
 } from './validation';
-export { validateTransaction } from './validate_transaction';
+export {
+	validateTransaction,
+	validateTransactionId,
+	validateSenderIdAndPublicKey,
+} from './validate_transaction';
 export { validator } from './validator';

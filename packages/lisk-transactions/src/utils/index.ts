@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+export { validatePublicKeyMatchAddress } from './address';
 export {
 	createBaseTransaction,
 	CreateBaseTransactionInput,
@@ -30,8 +31,8 @@ export {
 	signTransaction,
 	secondSignTransaction,
 	multiSignTransaction,
-	verifyMultisignatures,
-	verifySignature,
+	validateMultisignatures,
+	validateSignature,
 	verifyTransaction,
 } from './sign_and_verify';
 export { signRawTransaction } from './sign_raw_transaction';
@@ -49,7 +50,17 @@ export {
 	isValidInteger,
 	isNumberString,
 	isTypedObjectArrayWithKeys,
+	isUnique,
+	validateTransactionId,
+	validateSenderIdAndPublicKey,
+	validateUsername,
 	validateTransaction,
 	validator,
 } from './validation';
-export { verifyBalance } from './verify_balance';
+export {
+	verifyBalance,
+	verifyMultiSignatures,
+	verifySecondSignature,
+	verifySenderId,
+	verifySenderPublicKey,
+} from './verify';

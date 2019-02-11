@@ -16,7 +16,8 @@ import { expect } from 'chai';
 import { MockStateStore as store } from '../helpers';
 import { OutTransferTransaction } from '../../src/transactions';
 import { validOutTransferTransactions } from '../../fixtures';
-import { Status, TransactionJSON } from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
+import { Status } from '../../src/response';
 
 describe('outTransfer transaction class', () => {
 	const defaultTransaction = validOutTransferTransactions[0];

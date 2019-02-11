@@ -15,8 +15,7 @@
 import { expect } from 'chai';
 import { registerDelegate } from '../src/2_register_delegate';
 import { DelegateAsset, TransactionJSON } from '../src/transaction_types';
-// Require is used for stubbing
-import * as utils from '../src/utils';
+import * as time from '../src/utils/time';
 
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -35,7 +34,7 @@ describe('#registerDelegate transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		return Promise.resolve();
 	});

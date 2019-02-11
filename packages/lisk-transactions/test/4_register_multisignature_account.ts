@@ -16,8 +16,7 @@ import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/4_register_multisignature_account';
 import { MultiSignatureAsset, TransactionJSON } from '../src/transaction_types';
-// Require is used for stubbing
-import * as utils from '../src/utils';
+import * as time from '../src/utils/time';
 
 describe('#registerMultisignature transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -44,7 +43,7 @@ describe('#registerMultisignature transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		keysgroup = [
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',

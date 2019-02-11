@@ -16,7 +16,8 @@ import { expect } from 'chai';
 import { MockStateStore as store } from '../helpers';
 import { InTransferTransaction } from '../../src/transactions';
 import { validInTransferTransactions } from '../../fixtures';
-import { Status, TransactionJSON } from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
+import { Status } from '../../src/response';
 
 describe('InTransfer transaction class', () => {
 	const defaultTransaction = validInTransferTransactions[0];

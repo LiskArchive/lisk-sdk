@@ -4,15 +4,21 @@ import { VError } from 'verror';
 export class TransactionError extends VError {
 	public id: string;
 	public dataPath: string;
+	public actual?: string | number | object;
+	public expected?: string | number | object;
 	public constructor(
 		message: string = '',
 		id: string = '',
 		dataPath: string = '',
+		actual?: string | number | object,
+		expected?: string | number | object,
 	) {
 		super(message);
 		this.name = 'TransactionError';
 		this.id = id;
 		this.dataPath = dataPath;
+		this.actual = actual;
+		this.expected = expected;
 	}
 }
 
@@ -47,3 +53,26 @@ export class TransactionPendingError extends TransactionError {
 		this.dataPath = dataPath;
 	}
 }
+
+interface ErrorObject {
+	readonly dataPath: string;
+	readonly message?: string;
+}
+
+export const convertToTransactionError = (
+	id: string,
+	errors: ReadonlyArray<ErrorObject> | null | undefined,
+): ReadonlyArray<TransactionError> => {
+	if (!errors) {
+		return [];
+	}
+
+	return errors.map(
+		error =>
+			new TransactionError(
+				`'${error.dataPath}' ${error.message}`,
+				id,
+				error.dataPath,
+			),
+	);
+};

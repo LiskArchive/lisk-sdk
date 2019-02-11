@@ -17,7 +17,12 @@ import * as BigNum from 'browserify-bignum';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../constants';
 import { TransactionError, TransactionMultiError } from '../errors';
 import { Account, TransactionJSON, TransferAsset } from '../transaction_types';
-import { validateAddress, validateTransferAmount, validator } from '../utils';
+import {
+	validateAddress,
+	validateTransferAmount,
+	validator,
+	verifyBalance,
+} from '../utils';
 import { BaseTransaction, StateStore, StateStorePrepare } from './base';
 
 const TRANSACTION_TRANSFER_TYPE = 0;
@@ -175,18 +180,12 @@ export class TransferTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
-		if (updatedSenderBalance.lt(0)) {
-			errors.push(
-				new TransactionError(
-					`Account does not have enough LSK: ${sender.address}, balance: ${
-						sender.balance
-					}`,
-					this.id,
-				),
-			);
+		const balanceError = verifyBalance(this.id, sender, this.amount);
+		if (balanceError) {
+			errors.push(balanceError);
 		}
+		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
 		const updatedSender = {
 			...sender,
@@ -228,20 +227,15 @@ export class TransferTransaction extends BaseTransaction {
 		store.account.set(updatedSender.address, updatedSender);
 		const recipient = store.account.get(this.recipientId);
 
+		const balanceError = verifyBalance(this.id, recipient, this.amount);
+
+		if (balanceError) {
+			errors.push(balanceError);
+		}
+
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
 		);
-
-		if (updatedRecipientBalance.lt(0)) {
-			errors.push(
-				new TransactionError(
-					`Account does not have enough LSK: ${recipient.address}, balance: ${
-						recipient.balance
-					}`,
-					this.id,
-				),
-			);
-		}
 
 		const updatedRecipient = {
 			...recipient,

@@ -16,7 +16,8 @@ import { expect } from 'chai';
 import { MockStateStore as store } from '../helpers';
 import { VoteTransaction } from '../../src/transactions';
 import { validVoteTransactions } from '../../fixtures';
-import { Status, TransactionJSON } from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
+import { Status } from '../../src/response';
 import { generateRandomPublicKeys } from '../helpers/cryptography';
 
 describe('Vote transaction class', () => {

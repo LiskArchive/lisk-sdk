@@ -29,6 +29,7 @@ import {
 	VoteAsset,
 } from '../transaction_types';
 
+// FIXME: Deprecated
 export const isValidValue = (value: unknown): boolean => {
 	if (value === undefined) {
 		return false;
@@ -43,6 +44,7 @@ export const isValidValue = (value: unknown): boolean => {
 	return true;
 };
 
+// FIXME: Deprecated
 export const checkRequiredFields = (
 	requiredFields: ReadonlyArray<string>,
 	data: { readonly [key: string]: unknown },
@@ -57,6 +59,7 @@ export const checkRequiredFields = (
 	return true;
 };
 
+// FIXME: Deprecated
 export const getAssetDataForTransferTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
@@ -65,6 +68,7 @@ export const getAssetDataForTransferTransaction = (
 	return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
 };
 
+// FIXME: Deprecated
 export const getAssetDataForRegisterSecondSignatureTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
@@ -75,6 +79,7 @@ export const getAssetDataForRegisterSecondSignatureTransaction = (
 	return cryptography.hexToBuffer(publicKey);
 };
 
+// FIXME: Deprecated
 export const getAssetDataForRegisterDelegateTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
@@ -85,6 +90,7 @@ export const getAssetDataForRegisterDelegateTransaction = (
 	return Buffer.from(username, 'utf8');
 };
 
+// FIXME: Deprecated
 export const getAssetDataForCastVotesTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
@@ -96,6 +102,7 @@ export const getAssetDataForCastVotesTransaction = (
 	return Buffer.from(votes.join(''), 'utf8');
 };
 
+// FIXME: Deprecated
 export const getAssetDataForRegisterMultisignatureAccountTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
@@ -112,6 +119,7 @@ export const getAssetDataForRegisterMultisignatureAccountTransaction = (
 const DAPP_TYPE_LENGTH = 4;
 const DAPP_CATEGORY_LENGTH = 4;
 
+// FIXME: Deprecated
 export const getAssetDataForCreateDappTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
@@ -142,6 +150,7 @@ export const getAssetDataForCreateDappTransaction = (
 	]);
 };
 
+// FIXME: Deprecated
 export const getAssetDataForTransferIntoDappTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
@@ -152,6 +161,7 @@ export const getAssetDataForTransferIntoDappTransaction = (
 	return Buffer.from(dappId, 'utf8');
 };
 
+// FIXME: Deprecated
 export const getAssetDataForTransferOutOfDappTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
@@ -164,6 +174,7 @@ export const getAssetDataForTransferOutOfDappTransaction = (
 	return Buffer.concat([outAppIdBuffer, outTransactionIdBuffer]);
 };
 
+// FIXME: Deprecated
 const transactionTypeAssetGetBytesMap: {
 	readonly [type: number]: (asset: TransactionAsset) => Buffer;
 } = {
@@ -177,6 +188,7 @@ const transactionTypeAssetGetBytesMap: {
 	7: getAssetDataForTransferOutOfDappTransaction,
 };
 
+// FIXME: Deprecated
 export const getAssetBytes = (transaction: TransactionJSON): Buffer =>
 	transactionTypeAssetGetBytesMap[transaction.type](transaction.asset);
 
@@ -187,6 +199,7 @@ const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
 	'amount',
 ];
 
+// FIXME: Deprecated
 export const checkTransaction = (transaction: TransactionJSON): boolean => {
 	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
 	const {

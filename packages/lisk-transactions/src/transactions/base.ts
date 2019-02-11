@@ -30,19 +30,24 @@ import {
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from '../constants';
 import {
+	convertToTransactionError,
 	TransactionError,
 	TransactionMultiError,
 	TransactionPendingError,
 } from '../errors';
-import { Account, Status, TransactionJSON } from '../transaction_types';
+import { createResponse, Status } from '../response';
+import { Account, TransactionJSON } from '../transaction_types';
 import {
-	checkTypes,
-	convertBeddowsToLSK,
 	getId,
+	validateSenderIdAndPublicKey,
+	validateSignature,
+	validateTransactionId,
 	validator,
 	verifyBalance,
-	verifyMultisignatures,
-	verifySignature,
+	verifyMultiSignatures,
+	verifySecondSignature,
+	verifySenderId,
+	verifySenderPublicKey,
 } from '../utils';
 import * as schemas from '../utils/validation/schema';
 
@@ -50,7 +55,6 @@ export interface TransactionResponse {
 	readonly id: string;
 	readonly status: Status;
 	readonly errors: ReadonlyArray<TransactionError>;
-	readonly state?: { readonly sender: Account; readonly recipient?: Account };
 }
 
 export interface Attributes {
@@ -89,6 +93,7 @@ export enum MultisignatureStatus {
 	NONMULTISIGNATURE = 1,
 	PENDING = 2,
 	READY = 3,
+	FAIL = 4,
 }
 
 export const ENTITY_ACCOUNT = 'account';
@@ -129,12 +134,12 @@ export abstract class BaseTransaction {
 	): ReadonlyArray<TransactionError>;
 
 	public constructor(rawTransaction: TransactionJSON) {
-		const { valid, errors } = checkTypes(rawTransaction);
+		const valid = validator.validate(schemas.transaction, rawTransaction);
 		if (!valid) {
 			throw new TransactionMultiError(
 				'Invalid field types',
 				rawTransaction.id,
-				errors,
+				convertToTransactionError(rawTransaction.id || '', validator.errors),
 			);
 		}
 
@@ -222,161 +227,25 @@ export abstract class BaseTransaction {
 	}
 
 	public validate(): TransactionResponse {
-		const errors = [...this.validateAsset()];
+		const errors = [...this._validateSchema(), ...this.validateAsset()];
 
 		const transactionBytes = this.getBasicBytes();
 
 		const {
-			verified: signatureVerified,
+			valid: signatureValid,
 			error: verificationError,
-		} = verifySignature(
+		} = validateSignature(
 			this.senderPublicKey,
 			this.signature,
 			transactionBytes,
 			this.id,
 		);
 
-		if (!signatureVerified) {
-			errors.push(verificationError as TransactionError);
+		if (!signatureValid && verificationError) {
+			errors.push(verificationError);
 		}
 
-		if (Array.isArray(this.signatures) && this.signatures.length > 0) {
-			// Check that signatures are unique
-			const uniqueSignatures: ReadonlyArray<string> = [
-				...new Set(this.signatures),
-			];
-			if (uniqueSignatures.length !== this.signatures.length) {
-				errors.push(
-					new TransactionError(
-						'Encountered duplicate signature in transaction',
-						this.id,
-						'.signatures',
-					),
-				);
-			}
-		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
-	}
-
-	public verify(store: StateStore): TransactionResponse {
-		const sender = store.account.get(this.senderId);
-		const errors: TransactionError[] = [];
-		// Check senderPublicKey
-		if (sender.publicKey !== this.senderPublicKey) {
-			errors.push(
-				new TransactionError(
-					'Invalid sender publicKey',
-					this.id,
-					'.senderPublicKey',
-				),
-			);
-		}
-
-		// Check senderId
-		if (
-			typeof sender.address === 'string' &&
-			sender.address.toUpperCase() !== this.senderId.toUpperCase()
-		) {
-			errors.push(
-				new TransactionError('Invalid sender address', this.id, '.senderId'),
-			);
-		}
-
-		// Check missing secondPublicKey on account
-		if (this.signSignature && !sender.secondPublicKey) {
-			errors.push(
-				new TransactionError('Sender does not have a secondPublicKey', this.id),
-			);
-		}
-
-		// Balance verification
-		const { verified: balanceVerified, error: balanceError } = verifyBalance(
-			sender,
-			this.fee,
-		);
-
-		if (!balanceVerified && balanceError) {
-			errors.push(balanceError);
-		}
-
-		// Signature verifications
-
-		// Verify secondPublicKey
-		if (sender.secondPublicKey) {
-			// Check for missing signSignature
-			if (!this.signSignature) {
-				errors.push(
-					new TransactionError(
-						'Missing signSignature',
-						this.id,
-						'.signSignature',
-					),
-				);
-			} else {
-				const transactionBytes = Buffer.concat([
-					this.getBasicBytes(),
-					hexToBuffer(this.signature),
-				]);
-
-				const {
-					verified: signatureVerified,
-					error: verificationError,
-				} = verifySignature(
-					sender.secondPublicKey,
-					this.signSignature,
-					transactionBytes,
-					this.id,
-				);
-
-				if (!signatureVerified) {
-					errors.push(verificationError as TransactionError);
-				}
-			}
-		}
-		// Verify multisignatures
-		if (
-			!(
-				sender.multisignatures &&
-				sender.multisignatures.length > 0 &&
-				sender.multimin
-			)
-		) {
-			this._multisignatureStatus = MultisignatureStatus.NONMULTISIGNATURE;
-
-			return {
-				id: this.id,
-				status: errors.length === 0 ? Status.OK : Status.FAIL,
-				errors,
-			};
-		}
-		this._multisignatureStatus = MultisignatureStatus.PENDING;
-		const {
-			status,
-			errors: multisignatureErrors,
-		} = this.processMultisignatures(sender);
-
-		if (status === Status.PENDING && errors.length === 0) {
-			return {
-				id: this.id,
-				status,
-				errors: multisignatureErrors,
-			};
-		}
-
-		if (multisignatureErrors.length > 0) {
-			errors.push(...multisignatureErrors);
-		}
-
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
+		return createResponse(this.id, errors);
 	}
 
 	public verifyAgainstOtherTransactions(
@@ -384,37 +253,38 @@ export abstract class BaseTransaction {
 	): TransactionResponse {
 		const errors = this.verifyAgainstTransactions(transactions);
 
-		return {
-			id: this.id,
-			status: errors.length === 0 ? Status.OK : Status.FAIL,
-			errors,
-		};
+		return createResponse(this.id, errors);
 	}
 
 	public apply(store: StateStore): TransactionResponse {
+		const errors = this._verify(store) as TransactionError[];
+
+		// Verify MultiSignature
+		const { errors: multiSigError } = this.processMultisignatures(store);
+		if (multiSigError) {
+			errors.push(...multiSigError);
+		}
+
 		const sender = store.account.get(this.senderId);
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
-		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
-		const errors = updatedBalance.gte(0)
-			? []
-			: [
-					new TransactionError(
-						`Account does not have enough LSK: ${
-							sender.address
-						}, balance: ${convertBeddowsToLSK(sender.balance)}`,
-						this.id,
-					),
-			  ];
-		store.account.set(updatedAccount.address, updatedAccount);
+		const updatedSender = { ...sender, balance: updatedBalance.toString() };
+		store.account.set(updatedSender.address, updatedSender);
 		const assetErrors = this.applyAsset(store);
 		errors.push(...assetErrors);
 
-		return {
-			id: this.id,
-			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			state: { sender: updatedAccount },
-			errors,
-		};
+		if (
+			this._multisignatureStatus === MultisignatureStatus.PENDING &&
+			errors.length === 1 &&
+			errors[0] instanceof TransactionPendingError
+		) {
+			return {
+				id: this.id,
+				status: Status.PENDING,
+				errors,
+			};
+		}
+
+		return createResponse(this.id, errors);
 	}
 
 	public undo(store: StateStore): TransactionResponse {
@@ -428,77 +298,43 @@ export abstract class BaseTransaction {
 		const assetErrors = this.undoAsset(store);
 		errors.push(...assetErrors);
 
-		return {
-			id: this.id,
-			status: errors.length > 0 ? Status.FAIL : Status.OK,
-			state: { sender: updatedAccount },
-			errors,
-		};
+		return createResponse(this.id, errors);
 	}
 
 	public addVerifiedMultisignature(signature: string): TransactionResponse {
 		if (!this.signatures.includes(signature)) {
 			this.signatures.push(signature);
 
-			return {
-				id: this.id,
-				status: Status.OK,
-				errors: [],
-			};
+			return createResponse(this.id, []);
 		}
 
-		return {
-			id: this.id,
-			status: Status.FAIL,
-			errors: [
-				new TransactionError(
-					'Failed to add signature.',
-					this.id,
-					'.signatures',
-				),
-			],
-		};
+		return createResponse(this.id, [
+			new TransactionError('Failed to add signature.', this.id, '.signatures'),
+		]);
 	}
 
-	public processMultisignatures(sender: Account): TransactionResponse {
+	public processMultisignatures(store: StateStore): TransactionResponse {
+		const sender = store.account.get(this.senderId);
 		const transactionBytes = this.signSignature
 			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
 			: this.getBasicBytes();
 
-		if (!sender.multimin) {
+		const { status, errors } = verifyMultiSignatures(
+			this.id,
+			sender,
+			this.signatures,
+			transactionBytes,
+		);
+		this._multisignatureStatus = status;
+		if (this._multisignatureStatus === MultisignatureStatus.PENDING) {
 			return {
 				id: this.id,
-				status: Status.FAIL,
-				errors: [
-					new TransactionError('Sender does not have valid multimin', this.id),
-				],
+				status: Status.PENDING,
+				errors,
 			};
 		}
 
-		const { verified, errors } = verifyMultisignatures(
-			sender.multisignatures,
-			this.signatures,
-			sender.multimin,
-			transactionBytes,
-			this.id,
-		);
-
-		if (verified) {
-			this._multisignatureStatus = MultisignatureStatus.READY;
-		}
-
-		return {
-			id: this.id,
-			status:
-				Array.isArray(errors) &&
-				errors.length > 0 &&
-				errors[0] instanceof TransactionPendingError
-					? Status.PENDING
-					: verified
-					? Status.OK
-					: Status.FAIL,
-			errors: (errors as ReadonlyArray<TransactionError>) || [],
-		};
+		return createResponse(this.id, errors);
 	}
 
 	public isExpired(date: Date = new Date()): boolean {
@@ -552,39 +388,53 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public validateSchema(): ReadonlyArray<TransactionError> {
-		const transaction = this.toJSON();
-		const baseTransactionValidator = validator.compile(schemas.baseTransaction);
-		const errors = baseTransactionValidator.errors
-			? baseTransactionValidator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							transaction.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+	private _verify(store: StateStore): ReadonlyArray<TransactionError> {
+		const secondSignatureTxBytes = Buffer.concat([
+			this.getBasicBytes(),
+			hexToBuffer(this.signature),
+		]);
+		const sender = store.account.get(this.senderId);
 
-		if (!errors.find(err => err.dataPath === '.senderPublicKey')) {
+		// Verify Basic state
+		return [
+			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
+			verifySenderId(this.id, sender, this.senderId),
+			verifyBalance(this.id, sender, this.fee),
+			verifySecondSignature(
+				this.id,
+				sender,
+				this.signSignature,
+				secondSignatureTxBytes,
+			),
+		].filter(Boolean) as ReadonlyArray<TransactionError>;
+	}
+
+	private _validateSchema(): ReadonlyArray<TransactionError> {
+		const transaction = this.toJSON();
+		validator.validate(schemas.baseTransaction, transaction);
+		const errors = convertToTransactionError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
+
+		if (
+			!errors.find(
+				(err: TransactionError) => err.dataPath === '.senderPublicKey',
+			)
+		) {
 			// `senderPublicKey` passed format check, safely check equality to senderId
-			if (
-				this.senderId.toUpperCase() !==
-				getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
-			) {
-				errors.push(
-					new TransactionError(
-						'`senderId` does not match `senderPublicKey`',
-						this.id,
-						'.senderId',
-					),
-				);
+			const senderIdError = validateSenderIdAndPublicKey(
+				this.id,
+				this.senderId,
+				this.senderPublicKey,
+			);
+			if (senderIdError) {
+				errors.push(senderIdError);
 			}
 		}
-		if (this.id !== getId(this.getBytes())) {
-			errors.push(
-				new TransactionError('Invalid transaction id', this.id, '.id'),
-			);
+		const idError = validateTransactionId(this.id, this.getBytes());
+		if (idError) {
+			errors.push(idError);
 		}
 
 		return errors;

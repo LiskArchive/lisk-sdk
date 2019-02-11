@@ -15,8 +15,8 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { TransactionError, TransactionPendingError } from '../errors';
 import {
-	IsVerifiedResponse,
-	IsVerifiedResponseWithError,
+	IsValidResponse,
+	IsValidResponseWithError,
 	TransactionJSON,
 } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
@@ -49,25 +49,21 @@ export const multiSignTransaction = (
 	return cryptography.signData(transactionHash, passphrase);
 };
 
-export const verifySignature = (
+export const validateSignature = (
 	publicKey: string,
 	signature: string,
 	transactionBytes: Buffer,
 	id?: string,
-): IsVerifiedResponseWithError => {
+): IsValidResponseWithError => {
 	const transactionHash = cryptography.hash(transactionBytes);
 
-	const verified = cryptography.verifyData(
-		transactionHash,
-		signature,
-		publicKey,
-	);
+	const valid = cryptography.verifyData(transactionHash, signature, publicKey);
 
 	return {
-		verified,
-		error: !verified
+		valid,
+		error: !valid
 			? new TransactionError(
-					`Failed to verify signature ${signature}`,
+					`Failed to validate signature ${signature}`,
 					id,
 					'.signature',
 			  )
@@ -75,20 +71,20 @@ export const verifySignature = (
 	};
 };
 
-export const verifyMultisignatures = (
+export const validateMultisignatures = (
 	publicKeys: ReadonlyArray<string> = [],
 	signatures: ReadonlyArray<string>,
 	minimumValidations: number,
 	transactionBytes: Buffer,
 	id?: string,
-): IsVerifiedResponse => {
+): IsValidResponse => {
 	const checkedPublicKeys = new Set();
-	const verifiedSignatures = new Set();
+	const validSignatures = new Set();
 	// Check that signatures are unique
 	const uniqueSignatures: ReadonlyArray<string> = [...new Set(signatures)];
 	if (uniqueSignatures.length !== signatures.length) {
 		return {
-			verified: false,
+			valid: false,
 			errors: [
 				new TransactionError(
 					'Encountered duplicate signature in transaction',
@@ -103,35 +99,32 @@ export const verifyMultisignatures = (
 		signatures.forEach((signature: string) => {
 			// Avoid single key from verifying more than one signature.
 			// See issue: https://github.com/LiskHQ/lisk/issues/2540
-			if (
-				checkedPublicKeys.has(publicKey) ||
-				verifiedSignatures.has(signature)
-			) {
+			if (checkedPublicKeys.has(publicKey) || validSignatures.has(signature)) {
 				return;
 			}
 
-			const { verified: signatureVerified } = verifySignature(
+			const { valid: signatureValid } = validateSignature(
 				publicKey,
 				signature,
 				transactionBytes,
 				id,
 			);
 
-			if (signatureVerified) {
+			if (signatureValid) {
 				checkedPublicKeys.add(publicKey);
-				verifiedSignatures.add(signature);
+				validSignatures.add(signature);
 			}
 		});
 	});
 
-	const unverifiedTransactionSignatures = signatures.filter(
-		signature => !verifiedSignatures.has(signature),
+	const invalidTransactionSignatures = signatures.filter(
+		signature => !validSignatures.has(signature),
 	);
 
 	// Transaction is waiting for more signatures
 	if (signatures.length < minimumValidations) {
 		return {
-			verified: false,
+			valid: false,
 			errors: [
 				new TransactionPendingError(`Missing signatures`, id, '.signatures'),
 			],
@@ -139,15 +132,15 @@ export const verifyMultisignatures = (
 	}
 
 	return {
-		verified:
-			verifiedSignatures.size >= minimumValidations &&
-			unverifiedTransactionSignatures.length === 0,
+		valid:
+			validSignatures.size >= minimumValidations &&
+			invalidTransactionSignatures.length === 0,
 		errors:
-			unverifiedTransactionSignatures.length > 0
-				? unverifiedTransactionSignatures.map(
+			invalidTransactionSignatures.length > 0
+				? invalidTransactionSignatures.map(
 						signature =>
 							new TransactionError(
-								`Failed to verify signature ${signature}`,
+								`Failed to validate signature ${signature}`,
 								id,
 								'.signature',
 							),

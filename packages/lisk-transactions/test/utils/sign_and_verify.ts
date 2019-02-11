@@ -18,8 +18,8 @@ import { addTransactionFields } from '../helpers';
 import {
 	signTransaction,
 	multiSignTransaction,
-	verifyMultisignatures,
-	verifySignature,
+	validateMultisignatures,
+	validateSignature,
 	verifyTransaction,
 } from '../../src/utils';
 import { TransactionError, TransactionPendingError } from '../../src/errors';
@@ -40,7 +40,7 @@ const validTransactions = (fixtureTransactions as unknown) as ReadonlyArray<
 >;
 
 describe('signAndVerify module', () => {
-	describe('#verifySignature', () => {
+	describe('#validateSignature', () => {
 		const defaultSecondSignatureTransaction = addTransactionFields(
 			validSecondSignatureTransaction,
 		);
@@ -65,7 +65,7 @@ describe('signAndVerify module', () => {
 					),
 				);
 
-			verifySignature(
+			validateSignature(
 				defaultSecondSignatureTransaction.senderPublicKey,
 				defaultSecondSignatureTransaction.signature,
 				defaultTransactionBytes,
@@ -79,7 +79,7 @@ describe('signAndVerify module', () => {
 				.stub(cryptography, 'verifyData')
 				.returns(true);
 
-			verifySignature(
+			validateSignature(
 				defaultSecondSignatureTransaction.senderPublicKey,
 				defaultSecondSignatureTransaction.signature,
 				defaultTransactionBytes,
@@ -88,58 +88,58 @@ describe('signAndVerify module', () => {
 			expect(cryptographyVerifyDataStub).to.be.calledOnce;
 		});
 
-		it('should return a verified response with valid signature', async () => {
-			const { verified } = verifySignature(
+		it('should return a valid response with valid signature', async () => {
+			const { valid } = validateSignature(
 				defaultSecondSignatureTransaction.senderPublicKey,
 				defaultSecondSignatureTransaction.signature,
 				defaultTransactionBytes,
 			);
 
-			expect(verified).to.be.true;
+			expect(valid).to.be.true;
 		});
 
-		it('should return an unverified response with invalid signature', async () => {
-			const { verified, error } = verifySignature(
+		it('should return an unvalid response with invalid signature', async () => {
+			const { valid, error } = validateSignature(
 				defaultSecondSignatureTransaction.senderPublicKey,
 				defaultSecondSignatureTransaction.signature.replace('1', '0'),
 				Buffer.from(defaultTransactionBytes),
 			);
 
-			expect(verified).to.be.false;
+			expect(valid).to.be.false;
 			expect(error)
 				.to.be.instanceof(TransactionError)
 				.and.have.property(
 					'message',
-					`Failed to verify signature ${defaultSecondSignatureTransaction.signature.replace(
+					`Failed to validate signature ${defaultSecondSignatureTransaction.signature.replace(
 						'1',
 						'0',
 					)}`,
 				);
 		});
 
-		it('should return a verified response with valid signSignature', async () => {
-			const { verified } = verifySignature(
+		it('should return a valid response with valid signSignature', async () => {
+			const { valid } = validateSignature(
 				defaultSecondPublicKey,
 				defaultSecondSignatureTransaction.signSignature,
 				defaultSecondSignatureTransactionBytes,
 			);
 
-			expect(verified).to.be.true;
+			expect(valid).to.be.true;
 		});
 
-		it('should return an unverified response with invalid signSignature', async () => {
-			const { verified, error } = verifySignature(
+		it('should return an unvalid response with invalid signSignature', async () => {
+			const { valid, error } = validateSignature(
 				defaultSecondPublicKey,
 				defaultSecondSignatureTransaction.signSignature.replace('1', '0'),
 				defaultSecondSignatureTransactionBytes,
 			);
 
-			expect(verified).to.be.false;
+			expect(valid).to.be.false;
 			expect(error)
 				.to.be.instanceof(TransactionError)
 				.and.have.property(
 					'message',
-					`Failed to verify signature ${defaultSecondSignatureTransaction.signSignature.replace(
+					`Failed to validate signature ${defaultSecondSignatureTransaction.signSignature.replace(
 						'1',
 						'0',
 					)}`,
@@ -147,7 +147,7 @@ describe('signAndVerify module', () => {
 		});
 	});
 
-	describe('#verifyMultisignatures', () => {
+	describe('#validateMultisignatures', () => {
 		const defaultMultisignatureTransaction = addTransactionFields(
 			validMultisignatureTransaction,
 		);
@@ -160,19 +160,19 @@ describe('signAndVerify module', () => {
 			multisignatures: memberPublicKeys,
 		} = defaultMultisignatureAccount as Account;
 
-		it('should return a verified response with valid signatures', async () => {
-			const { verified } = verifyMultisignatures(
+		it('should return a valid response with valid signatures', async () => {
+			const { valid } = validateMultisignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures,
 				2,
 				defaultTransactionBytes,
 			);
 
-			expect(verified).to.be.true;
+			expect(valid).to.be.true;
 		});
 
 		it('should return a verification fail response with invalid signatures', async () => {
-			const { verified, errors } = verifyMultisignatures(
+			const { valid, errors } = validateMultisignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures.map((signature: string) =>
 					signature.replace('1', '0'),
@@ -181,13 +181,13 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(verified).to.be.false;
+			expect(valid).to.be.false;
 			(errors as ReadonlyArray<TransactionError>).forEach((error, i) => {
 				expect(error)
 					.to.be.instanceof(TransactionError)
 					.and.have.property(
 						'message',
-						`Failed to verify signature ${defaultMultisignatureTransaction.signatures[
+						`Failed to validate signature ${defaultMultisignatureTransaction.signatures[
 							i
 						].replace('1', '0')}`,
 					);
@@ -195,7 +195,7 @@ describe('signAndVerify module', () => {
 		});
 
 		it('should return a verification fail response with invalid extra signatures', async () => {
-			const { verified, errors } = verifyMultisignatures(
+			const { valid, errors } = validateMultisignatures(
 				memberPublicKeys,
 				[
 					...defaultMultisignatureTransaction.signatures,
@@ -205,14 +205,14 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(verified).to.be.false;
+			expect(valid).to.be.false;
 			(errors as ReadonlyArray<TransactionError>).forEach(error => {
 				expect(error).to.be.instanceof(TransactionError);
 			});
 		});
 
 		it('should return a verification fail response with duplicate signatures', async () => {
-			const { verified, errors } = verifyMultisignatures(
+			const { valid, errors } = validateMultisignatures(
 				memberPublicKeys,
 				[
 					...defaultMultisignatureTransaction.signatures,
@@ -222,21 +222,21 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(verified).to.be.false;
+			expect(valid).to.be.false;
 			(errors as ReadonlyArray<TransactionError>).forEach(error => {
 				expect(error).to.be.instanceof(TransactionError);
 			});
 		});
 
 		it('should return a transaction pending error when missing signatures', async () => {
-			const { verified, errors } = verifyMultisignatures(
+			const { valid, errors } = validateMultisignatures(
 				memberPublicKeys,
 				defaultMultisignatureTransaction.signatures.slice(0, 2),
 				3,
 				defaultTransactionBytes,
 			);
 
-			expect(verified).to.be.false;
+			expect(valid).to.be.false;
 			(errors as ReadonlyArray<TransactionError>).forEach(error => {
 				expect(error)
 					.to.be.instanceof(TransactionPendingError)
