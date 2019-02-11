@@ -31,7 +31,7 @@ let errorDesc;
 let result;
 
 describe('failure_codes', async () => {
-	beforeEach(done => {
+	beforeEach(async () => {
 		errorCode = 1234;
 		errorMessage = 'Peer failed...';
 		errorDesc = 'Something went wrong.';
@@ -40,18 +40,20 @@ describe('failure_codes', async () => {
 			errorMessage,
 			errorDesc
 		);
-		done();
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('PeerUpdateError', async () => {
 		describe('constructor', async () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				peerUpdateErrorInstance = new PeerUpdateError(
 					errorCode,
 					errorMessage,
 					errorDesc
 				);
-				done();
 			});
 
 			it('should be an instance of Error', async () =>
@@ -74,9 +76,8 @@ describe('failure_codes', async () => {
 		});
 
 		describe('toString', async () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				result = peerUpdateErrorInstance.toString();
-				done();
 			});
 
 			it('should return a JSON string representation of the error', async () =>

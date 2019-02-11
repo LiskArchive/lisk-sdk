@@ -14,7 +14,6 @@
 
 'use strict';
 
-const sinon = require('sinon');
 const disconnect = require('../../../../../../../../src/modules/chain/api/ws/rpc/disconnect');
 const prefixedPeer = require('../../../../../../../fixtures/peers')
 	.randomNormalizedPeer;
@@ -23,22 +22,24 @@ describe('disconnect', async () => {
 	let validPeer;
 	let socket;
 
-	beforeEach('provide non-mutated peer each time', done => {
+	beforeEach('provide non-mutated peer each time', async () => {
 		validPeer = Object.assign({}, prefixedPeer);
-		done();
+	});
+
+	after(async () => {
+		sinonSandbox.restore();
 	});
 
 	it('should return passed peer', async () =>
 		expect(disconnect(validPeer)).equal(validPeer));
 
 	describe('when peer contains socket with disconnect function', async () => {
-		beforeEach(done => {
+		beforeEach(async () => {
 			socket = {
-				disconnect: sinon.spy(),
-				destroy: sinon.spy(),
+				disconnect: sinonSandbox.spy(),
+				destroy: sinonSandbox.spy(),
 			};
 			validPeer.socket = socket;
-			done();
 		});
 
 		it('should call peer.socket.disconnect', async () => {

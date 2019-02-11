@@ -31,7 +31,7 @@ let authKeyMock;
 let error;
 
 describe('ws_rpc', async () => {
-	beforeEach(done => {
+	beforeEach(async () => {
 		authKeyMock = 'valid auth key';
 		serverMock = {
 			socketCluster: {
@@ -40,7 +40,10 @@ describe('ws_rpc', async () => {
 				},
 			},
 		};
-		done();
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('wsRPC', async () => {
@@ -48,10 +51,9 @@ describe('ws_rpc', async () => {
 			describe('setServer', async () => {
 				let wsServerInternal;
 
-				beforeEach(done => {
+				beforeEach(async () => {
 					wsRPC.setServer(serverMock);
 					wsServerInternal = ws_rpc.__get__('wsServer');
-					done();
 				});
 
 				it('should set the wsServer internally to the correct object', async () =>
@@ -59,12 +61,11 @@ describe('ws_rpc', async () => {
 			});
 
 			describe('getServer', async () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					ws_rpc.__set__({
 						wsServer: serverMock,
 					});
 					result = wsRPC.getServer(serverMock);
-					done();
 				});
 
 				it('should return the internal wsServer', async () =>
@@ -74,16 +75,14 @@ describe('ws_rpc', async () => {
 
 		// Other functions which rely on setServer and getServer.
 		describe('other functions', async () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				wsRPC.setServer(serverMock);
-				done();
 			});
 
 			describe('getServerAuthKey', async () => {
 				describe('when wsServer is defined', async () => {
-					beforeEach(done => {
+					beforeEach(async () => {
 						result = wsRPC.getServerAuthKey();
-						done();
 					});
 
 					it('should return the authKey of the wsServer', async () =>
@@ -91,7 +90,7 @@ describe('ws_rpc', async () => {
 				});
 
 				describe('when wsServer is undefined', async () => {
-					beforeEach(done => {
+					beforeEach(async () => {
 						wsRPC.setServer(undefined);
 						error = null;
 						try {
@@ -99,7 +98,6 @@ describe('ws_rpc', async () => {
 						} catch (err) {
 							error = err;
 						}
-						done();
 					});
 
 					it('should throw an Error to indicate that the wsServer has not been initialized', async () =>
@@ -111,14 +109,13 @@ describe('ws_rpc', async () => {
 
 	describe('slaveRPCStub', async () => {
 		describe('updateMyself', async () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				error = null;
 				try {
 					slaveRPCStub.updateMyself();
 				} catch (err) {
 					error = err;
 				}
-				done();
 			});
 
 			// Cannot be invoked directly.

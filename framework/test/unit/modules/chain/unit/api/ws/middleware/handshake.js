@@ -55,15 +55,18 @@ describe('Handshake', async () => {
 
 	const storageStub = sinonSandbox.stub();
 
-	before(done => {
+	before(async () => {
 		system = createSystemComponent(validConfig.config, loggerStub, storageStub);
 		handshake = new Handshake.middleware.Handshake(system, validConfig.config);
-		done();
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('compatibility', async () => {
 		let versionCompatibleStub;
-		beforeEach(done => {
+		beforeEach(async () => {
 			versionCompatibleStub = sinonSandbox.stub(system, 'versionCompatible');
 
 			validHeaders = WSServerMaster.generatePeerHeaders({
@@ -71,12 +74,11 @@ describe('Handshake', async () => {
 				protocolVersion,
 				nonce: validPeerNonce,
 			});
-			done();
 		});
 
 		afterEach(() => sinonSandbox.restore());
 
-		it('should return an error when nonce is identical to server', done => {
+		it('should return an error when nonce is identical to server', async () => {
 			validHeaders.nonce = validConfig.config.nonce;
 			handshake(validHeaders, err => {
 				expect(err)
@@ -87,11 +89,10 @@ describe('Handshake', async () => {
 					.equal(
 						`Expected nonce to be not equal to: ${validConfig.config.nonce}`
 					);
-				done();
 			});
 		});
 
-		it('should return an error when nethash does not match', done => {
+		it('should return an error when nethash does not match', async () => {
 			validHeaders.nethash = 'DIFFERENT_NETWORK_NETHASH';
 			handshake(validHeaders, err => {
 				expect(err)
@@ -104,11 +105,10 @@ describe('Handshake', async () => {
 							validHeaders.nethash
 						}`
 					);
-				done();
 			});
 		});
 
-		it('should return an error when version is incompatible', done => {
+		it('should return an error when version is incompatible', async () => {
 			validHeaders.version = '0.0.0';
 			delete validHeaders.protocolVersion;
 			handshake(validHeaders, err => {
@@ -122,11 +122,10 @@ describe('Handshake', async () => {
 							validHeaders.version
 						}`
 					);
-				done();
 			});
 		});
 
-		it('should return an error when protocol version is incompatible', done => {
+		it('should return an error when protocol version is incompatible', async () => {
 			// Arrange
 			validHeaders.protocolVersion = '0.1';
 			// Act
@@ -142,11 +141,10 @@ describe('Handshake', async () => {
 							validHeaders.protocolVersion
 						}`
 					);
-				done();
 			});
 		});
 
-		it('should check version information if no protocol version attribute is present for backwards compatibility', done => {
+		it('should check version information if no protocol version attribute is present for backwards compatibility', async () => {
 			// Arrange
 			delete validHeaders.protocolVersion;
 
@@ -154,12 +152,11 @@ describe('Handshake', async () => {
 			handshake(validHeaders, async () => {
 				// Assert
 				expect(versionCompatibleStub).to.be.called;
-				done();
 			});
 		});
 	});
 
-	after(done => {
+	after(async () => {
 		validHeaders = WSServerMaster.generatePeerHeaders({
 			version: minVersion,
 			protocolVersion,
@@ -169,9 +166,8 @@ describe('Handshake', async () => {
 		describe('schema tests', async () => {
 			let headers;
 
-			beforeEach(beforeDone => {
+			beforeEach(async () => {
 				headers = _.cloneDeep(validHeaders);
-				beforeDone();
 			});
 
 			describe('handshake', async () => {
@@ -420,6 +416,5 @@ describe('Handshake', async () => {
 				});
 			});
 		});
-		done();
 	});
 });

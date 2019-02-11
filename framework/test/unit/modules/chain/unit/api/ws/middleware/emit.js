@@ -24,14 +24,17 @@ describe('emitMiddleware', async () => {
 	let validReq;
 	let validNext;
 
-	beforeEach(done => {
+	beforeEach(async () => {
 		emitMiddleware(validReq, validNext);
-		done();
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('when valid req and next params provided', async () => {
 		const validSocketId = 0;
-		before(done => {
+		before(async () => {
 			validReq = {
 				data: {},
 				socket: {
@@ -39,7 +42,6 @@ describe('emitMiddleware', async () => {
 				},
 			};
 			validNext = sinon.spy();
-			done();
 		});
 
 		afterEach(() => validNext.resetHistory());
@@ -53,16 +55,14 @@ describe('emitMiddleware', async () => {
 				'postSignatures',
 			];
 			receiveDataEvents.forEach(() => {
-				before(done => {
+				before(async () => {
 					connectionsTable.getNonce = sinon.stub();
 					validReq.event = 'postBlock';
-					done();
 				});
 
-				afterEach(done => {
+				afterEach(async () => {
 					connectionsTable.getNonce.reset();
 					validReq.data = {};
-					done();
 				});
 
 				it('should call connectionsTable.getNonce', async () =>
@@ -76,9 +76,8 @@ describe('emitMiddleware', async () => {
 						expect(validReq.data).to.have.property('nonce').to.be.undefined);
 
 					describe('when req.data = null', async () => {
-						before(done => {
+						before(async () => {
 							validReq.data = null;
-							done();
 						});
 						it('should change req.data to an object', async () =>
 							expect(validNext).calledOnce);
@@ -89,14 +88,12 @@ describe('emitMiddleware', async () => {
 
 				describe('when nonce is matched with [validSocketId] in connectionsTables', async () => {
 					const validNonce = randomstring.generate(16);
-					before(done => {
+					before(async () => {
 						connectionsTable.getNonce.returns(validNonce);
-						done();
 					});
 
-					after(done => {
+					after(async () => {
 						connectionsTable.getNonce.reset();
-						done();
 					});
 
 					it('should add nonce = undefined property to req.data', async () =>
