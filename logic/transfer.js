@@ -18,6 +18,8 @@ const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 const regexpTester = require('../helpers/regexp_tester.js');
 
+const exceptions = global.exceptions;
+
 const { ADDITIONAL_DATA, FEES } = global.constants;
 
 let modules;
@@ -86,10 +88,15 @@ Transfer.prototype.verify = function(transaction, sender, cb) {
 		transaction.asset &&
 		regexpTester.isNullByteIncluded(transaction.asset.data)
 	) {
-		return setImmediate(
-			cb,
-			'Transfer data field has invalid character. Null character is not allowed.'
-		);
+		// Accept and remove null byte if transaction in exception
+		if (exceptions.removedNullByteTransactions[transaction.id]) {
+			transaction.asset.data = transaction.asset.data.replace(/\0/g, '');
+		} else {
+			return setImmediate(
+				cb,
+				'Transfer data field has invalid character. Null character is not allowed.'
+			);
+		}
 	}
 
 	const amount = new Bignum(transaction.amount);
@@ -123,9 +130,19 @@ Transfer.prototype.process = function(transaction, sender, cb) {
  */
 Transfer.prototype.getBytes = function(transaction) {
 	try {
-		return transaction.asset && transaction.asset.data
-			? Buffer.from(transaction.asset.data, 'utf8')
-			: null;
+		if (!transaction.asset || !transaction.asset.data) {
+			return null;
+		}
+
+		// Because null bytes from data field was removed and in order to keep the same ID, payload and signature
+		// the original data field (with null byte) has to be used when calculating the transaction bytes
+		return exceptions.removedNullByteTransactions[transaction.id]
+			? Buffer.from(
+					exceptions.removedNullByteTransactions[transaction.id]
+						.originalDataField,
+					'utf8'
+				)
+			: Buffer.from(transaction.asset.data, 'utf8');
 	} catch (ex) {
 		throw ex;
 	}

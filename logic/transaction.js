@@ -541,12 +541,7 @@ class Transaction {
 		if (!valid) {
 			err = 'Failed to verify signature';
 
-			if (
-				exceptions.signatures.includes(transaction.id) ||
-				Object.keys(exceptions.removedNullByteTransactions).includes(
-					transaction.id
-				)
-			) {
+			if (exceptions.signatures.includes(transaction.id)) {
 				this.scope.logger.error(err);
 				this.scope.logger.debug(JSON.stringify(transaction));
 				valid = true;

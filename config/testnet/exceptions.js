@@ -28,14 +28,12 @@ module.exports = {
 		'16896494584440078079', // 631670
 	],
 	// transfer transaction previously with null byte in the data field
-	// SELECT * FROM transfer WHERE data LIKE '\x250025'; (Note that '\x250025' is the byte representation of '%\u0000%')
+	// SELECT * FROM transfer WHERE position('\x00' in data) > 0;
 	removedNullByteTransactions: {
-		'10589655532517440995': {
-			blockId: '13881093277298040279',
-			payloadHashWithNullByte:
-				'e3bd73b59903f6928a6a3abe73bf4a5f24a76aada259c7d7bbf79a6d1e506b4d',
-			payloadHashWithoutNullByte:
-				'bc44ff9c046efdc3de2347bb9b18894e44d6474e59c069e6a7a2fbc338c29a9b',
+		removedNullByteTransactions: {
+			'10589655532517440995': {
+				originalDataField: '\u0000hey:)',
+			},
 		}, // 6109391
 	},
 	multisignatures: [

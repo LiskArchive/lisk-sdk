@@ -43,9 +43,8 @@ CREATE FUNCTION binary_replace(str bytea, s1 bytea, s2 bytea)
 	END
 	$$ language plpgsql immutable;
 
--- Note that '\x250025' is the byte representation of '%\u0000%' and '\x00' is the byte representation of '\u0000'
 UPDATE transfer
 SET data = binary_replace(data, '\x00', ''::bytea)
-WHERE data LIKE '\x250025';
+WHERE position('\x00' in data) > 0;
 
 DROP FUNCTION IF EXISTS binary_replace(bytea, bytea, bytea);
