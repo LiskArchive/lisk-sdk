@@ -7,14 +7,16 @@ const eventWithModuleNameReg = /^([a-zA-Z][a-zA-Z0-9]*)((?::[a-zA-Z][a-zA-Z0-9]*
  * An event class which instance will be received by every event listener
  *
  * @namespace Framework
+ * @requires assert
  * @type {module.Event}
  */
 module.exports = class Event {
 	/**
-	 *
-	 * @param name - Can be simple event or be combination of module:event
-	 * @param data - Data associated with the event
-	 * @param source - Source module which triggers the event
+	 * Create Event object.
+	 * 
+	 * @param {string} name - Can be simple event or be combination of module:event
+	 * @param {string|Object} [data] - Data associated with the event
+	 * @param {string} [source] - Source module which triggers the event
 	 */
 	constructor(name, data = null, source = null) {
 		assert(
@@ -36,6 +38,12 @@ module.exports = class Event {
 		}
 	}
 
+	
+	/**
+	 * Gets serialized data object for Event object.
+	 *
+	 * @return {Object}
+	 */
 	serialize() {
 		return {
 			name: this.name,
@@ -45,14 +53,30 @@ module.exports = class Event {
 		};
 	}
 
+	/**
+	 * Getter function for source and event label data.
+	 *
+	 * @return {string} stringified event object
+	 */
 	toString() {
 		return `${this.source} -> ${this.module}:${this.name}`;
 	}
 
+	/**
+	 * Getter function for event label data.
+	 *
+	 * @return {string} event label: key
+	 */
 	key() {
 		return `${this.module}:${this.name}`;
 	}
 
+	/**
+	 * Converts data to Event object.
+	 *
+	 * @param {Object|string} data - Data for Event object serialized or as object.
+	 * @return {module.Event}
+	 */
 	static deserialize(data) {
 		let object = null;
 		if (typeof data === 'string') object = JSON.parse(data);
