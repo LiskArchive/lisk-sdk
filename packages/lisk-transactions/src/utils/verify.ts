@@ -42,14 +42,14 @@ export const verifySenderId = (
 
 export const verifyBalance = (
 	id: string,
-	sender: Account,
+	account: Account,
 	amount: BigNum,
 ): TransactionError | undefined =>
-	new BigNum(sender.balance).lt(new BigNum(amount))
+	new BigNum(account.balance).lt(new BigNum(amount))
 		? new TransactionError(
 				`Account does not have enough LSK: ${
-					sender.address
-				}, balance: ${convertBeddowsToLSK(sender.balance.toString())}`,
+					account.address
+				}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
 				id,
 				'.balance',
 		  )
