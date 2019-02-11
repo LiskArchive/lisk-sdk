@@ -26,7 +26,7 @@ try {
 		},
 	});
 
-	app.overrideModuleConfig('chain', { exceptions: config.exceptions, config });
+	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
 
 	app
 		.run()

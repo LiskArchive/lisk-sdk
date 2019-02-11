@@ -10,10 +10,10 @@ const { DuplicateAppInstanceError } = require('../errors');
 /* eslint-disable no-underscore-dangle */
 
 const validateModuleSpec = moduleSpec => {
-	assert(moduleSpec.alias, 'Module alias is required.');
-	assert(moduleSpec.info.name, 'Module name is required.');
-	assert(moduleSpec.info.author, 'Module author is required.');
-	assert(moduleSpec.info.version, 'Module version is required.');
+	assert(moduleSpec.constructor.alias, 'Module alias is required.');
+	assert(moduleSpec.constructor.info.name, 'Module name is required.');
+	assert(moduleSpec.constructor.info.author, 'Module author is required.');
+	assert(moduleSpec.constructor.info.version, 'Module version is required.');
 	assert(moduleSpec.defaults, 'Module default options are required.');
 	assert(moduleSpec.events, 'Module events are required.');
 	assert(moduleSpec.actions, 'Module actions are required.');
@@ -40,41 +40,37 @@ module.exports = class Controller {
 	/**
 	 * Controller responsible to run the application
 	 *
-	 * @param {string} appLabel - Application label
-	 * @param {Object} modules - Modules objects
-	 * @param {Object} componentConfig - Component configuration provided by user
-	 * @param {Object} logger
+	 * @param {Object} componentConfig - Configurations for components
+	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
 	 */
-	constructor(appLabel, modules, componentConfig, logger) {
+	constructor(componentConfig, logger) {
 		this.logger = logger;
 		this.logger.info('Initializing controller');
 
-		this.appLabel = appLabel;
 		this.componentConfig = componentConfig;
-		this.modules = modules;
-
 		this.channel = null; // Channel for controller
-		this.channels = {}; // Keep track of all channels for modules
+		this.modulesChannels = {}; // Keep track of all channels for modules
 		this.bus = null;
-
 		this.config = {
 			dirs: systemDirs(this.appLabel),
 		};
+		this.modules = {};
 	}
 
 	/**
 	 * Load the initial state and start listening for events or triggering actions.
 	 * Publishes 'lisk:ready' state on the bus.
 	 *
+	 * @param modules
 	 * @async
 	 */
-	async load() {
+	async load(modules) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._setupBus();
 		await this._setupControllerActions();
-		await this._loadModules();
+		await this._loadModules(modules);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
@@ -160,31 +156,37 @@ module.exports = class Controller {
 		);
 	}
 
-	async _loadModules() {
-		return Promise.each(Object.keys(this.modules), m =>
-			this._loadInMemoryModule(m)
+	async _loadModules(modules) {
+		return Promise.each(Object.keys(modules), alias =>
+			this._loadInMemoryModule(
+				alias,
+				modules[alias].klass,
+				modules[alias].options
+			)
 		);
 	}
 
-	async _loadInMemoryModule(alias) {
-		const module = this.modules[alias].spec;
-		const moduleConfig = this.modules[alias].config;
+	async _loadInMemoryModule(alias, Klass, options) {
+		const module = new Klass(options);
 		validateModuleSpec(module);
 
+		const moduleAlias = module.constructor.alias;
+		const moduleInfo = module.constructor.info;
+
 		this.logger.info(
-			`Loading module with alias: ${module.alias}(${module.info.name}:${
-				module.info.version
+			`Loading module with alias: ${moduleAlias}(${moduleInfo.name}:${
+				moduleInfo.version
 			})`
 		);
 
 		const channel = new EventEmitterChannel(
-			module.alias,
+			moduleAlias,
 			module.events,
 			Object.keys(module.actions),
 			this.bus,
 			{}
 		);
-		this.channels[alias] = channel;
+		this.modulesChannels[moduleAlias] = channel;
 
 		await channel.registerToBus();
 
@@ -192,22 +194,27 @@ module.exports = class Controller {
 			channel.action(action, module.actions[action]);
 		});
 
-		channel.publish(`${module.alias}:registeredToBus`);
-		channel.publish(`${module.alias}:loading:started`);
-		await module.load(channel, moduleConfig);
-		channel.publish(`${module.alias}:loading:finished`);
+		channel.publish(`${moduleAlias}:registeredToBus`);
+		channel.publish(`${moduleAlias}:loading:started`);
+		await module.load(channel);
+		channel.publish(`${moduleAlias}:loading:finished`);
+
+		this.modules[moduleAlias] = module;
 		this.logger.info(
-			`Module ready with alias: ${module.alias}(${module.info.name}:${
-				module.info.version
+			`Module ready with alias: ${moduleAlias}(${moduleInfo.name}:${
+				moduleInfo.version
 			})`
 		);
 	}
 
 	async unloadModules(modules = null) {
-		return Promise.mapSeries(modules || Object.keys(this.modules), async m => {
-			await this.modules[m].spec.unload();
-			delete this.modules[m];
-		});
+		return Promise.mapSeries(
+			modules || Object.keys(this.modules),
+			async alias => {
+				await this.modules[alias].unload();
+				delete this.modules[alias];
+			}
+		);
 	}
 
 	async cleanup(code, reason) {
