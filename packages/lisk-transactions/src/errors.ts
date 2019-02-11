@@ -20,6 +20,12 @@ export class TransactionError extends VError {
 		this.actual = actual;
 		this.expected = expected;
 	}
+
+	public toString(): string {
+		return `Transaction: ${this.id} failed at ${this.dataPath}: ${
+			this.message
+		} `;
+	}
 }
 
 export class TransactionMultiError extends TransactionError {
@@ -34,8 +40,14 @@ export class TransactionMultiError extends TransactionError {
 		super(message);
 		this.name = 'TransactionMultiError';
 		this.id = id;
-		this.dataPath = errors.map(error => error.dataPath).join(':');
+		this.dataPath = errors.map(error => error.dataPath).join(',');
 		this.errors = errors;
+	}
+
+	public toString(): string {
+		return `Transaction: ${this.id} failed at ${this.dataPath}: ${
+			this.message
+		} `;
 	}
 }
 
@@ -51,6 +63,12 @@ export class TransactionPendingError extends TransactionError {
 		this.name = 'TransactionPendingError';
 		this.id = id;
 		this.dataPath = dataPath;
+	}
+
+	public toString(): string {
+		return `Transaction: ${this.id} failed at ${this.dataPath}: ${
+			this.message
+		} `;
 	}
 }
 

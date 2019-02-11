@@ -108,7 +108,7 @@ describe('TransactionMultiError', () => {
 		});
 
 		it('should have a `dataPath` string', () => {
-			expect(TxMultiError.dataPath).to.eql('.senderPublicKey:.senderId:.id');
+			expect(TxMultiError.dataPath).to.eql('.senderPublicKey,.senderId,.id');
 			return expect(TxMultiError)
 				.to.have.property('dataPath')
 				.and.be.a('string');
