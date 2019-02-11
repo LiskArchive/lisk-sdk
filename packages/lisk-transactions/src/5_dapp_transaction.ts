@@ -13,12 +13,15 @@
  *
  */
 import * as BigNum from 'browserify-bignum';
-import { DAPP_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import { TransactionJSON } from '../transaction_types';
-import { CreateBaseTransactionInput } from '../utils';
-import { stringEndsWith, validator } from '../utils/validation';
-import { BaseTransaction, StateStore, StateStorePrepare } from './base';
+import {
+	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
+} from './base_transaction';
+import { DAPP_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionJSON } from './transaction_types';
+import { stringEndsWith, validator } from './utils/validation';
 
 const TRANSACTION_DAPP_TYPE = 5;
 
@@ -33,26 +36,6 @@ export interface DappAsset {
 		readonly type: number;
 	};
 }
-
-export interface DappOptions {
-	readonly category: number;
-	readonly description?: string;
-	readonly icon?: string;
-	readonly link: string;
-	readonly name: string;
-	readonly tags?: string;
-	readonly type: number;
-}
-
-export interface CreateDappAssetInput {
-	readonly options: DappOptions;
-}
-
-export type CreateDappInput = CreateBaseTransactionInput & CreateDappAssetInput;
-
-export type Dapp = DappOptions & {
-	readonly id: string;
-};
 
 export const dappAssetTypeSchema = {
 	type: 'object',
@@ -226,7 +209,9 @@ export class DappTransaction extends BaseTransaction {
 
 		const errors =
 			sameTypeTransactions.filter(
-				tx => 'dapp' in tx.asset && tx.asset.dapp.name === this.asset.dapp.name,
+				tx =>
+					'dapp' in tx.asset &&
+					(tx.asset as DappAsset).dapp.name === this.asset.dapp.name,
 			).length > 0
 				? [
 						new TransactionError(
@@ -241,7 +226,7 @@ export class DappTransaction extends BaseTransaction {
 				tx =>
 					'dapp' in tx.asset &&
 					this.asset.dapp.link &&
-					this.asset.dapp.link === tx.asset.dapp.link,
+					this.asset.dapp.link === (tx.asset as DappAsset).dapp.link,
 			).length > 0
 		) {
 			errors.push(

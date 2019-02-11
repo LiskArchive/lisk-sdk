@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { VoteTransaction } from './3_vote_transaction';
 import { VOTE_FEE } from './constants';
 import { TransactionJSON } from './transaction_types';
-import { VoteTransaction } from './transactions';
 import {
 	createBaseTransaction,
 	prependMinusToPublicKeys,

@@ -15,7 +15,8 @@
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/4_register_multisignature_account';
-import { MultiSignatureAsset, TransactionJSON } from '../src/transaction_types';
+import { MultiSignatureAsset } from '../src/4_multisignature_transaction';
+import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
 describe('#registerMultisignature transaction', () => {

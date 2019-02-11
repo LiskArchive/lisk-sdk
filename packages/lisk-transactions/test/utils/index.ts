@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import {
 	checkPublicKeysForDuplicates,
-	checkTypes,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	getTimeFromBlockchainEpoch,
@@ -102,10 +101,6 @@ describe('transaction utils', () => {
 
 		it('should have multiSignTransaction', () => {
 			return expect(multiSignTransaction).to.be.a('function');
-		});
-
-		it('should have checkTypes', () => {
-			return expect(checkTypes).to.be.a('function');
 		});
 
 		it('should have verifySignature', () => {

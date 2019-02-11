@@ -15,10 +15,7 @@
 import { expect } from 'chai';
 import { prepareTransaction } from '../../src/utils/prepare_transaction';
 import { getTimeWithOffset } from '../../src/utils/time';
-import {
-	TransactionJSON,
-	PartialTransaction,
-} from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
 
 describe('#prepareTransaction', () => {
 	const passphrase = 'secret';
@@ -42,7 +39,7 @@ describe('#prepareTransaction', () => {
 		asset: {},
 		signatures: [],
 	};
-	let inputTransaction: PartialTransaction;
+	let inputTransaction: Partial<TransactionJSON>;
 	let preparedTransaction: TransactionJSON;
 
 	beforeEach(() => {

@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { DelegateTransaction } from './2_delegate_transaction';
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
 import { TransactionJSON } from './transaction_types';
-import { DelegateTransaction } from './transactions';
 import { createBaseTransaction } from './utils';
 
 export interface RegisterDelegateInputs {

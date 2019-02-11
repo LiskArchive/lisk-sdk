@@ -12,14 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { ErrorObject, ValidateFunction } from 'ajv';
-import { TransactionError } from '../../errors';
-import {
-	MultiSignatureTransaction,
-	TransactionJSON,
-} from '../../transaction_types';
-import { getId } from '../get_transaction_id';
+import { MultiSignatureAsset } from '../../4_multisignature_transaction';
+import { TransactionJSON } from '../../transaction_types';
 import * as schemas from './schema';
 import { validator } from './validator';
 
@@ -43,15 +38,16 @@ const getTransactionSchemaValidator = (type: number): ValidateFunction => {
 	return schema;
 };
 
-interface ValidationResult {
+export interface ValidationResult {
 	readonly errors?: ReadonlyArray<ErrorObject>;
 	readonly valid: boolean;
 }
 
-const validateMultiTransaction = (
-	tx: MultiSignatureTransaction,
-): ValidationResult => {
-	if (tx.asset.multisignature.min > tx.asset.multisignature.keysgroup.length) {
+const validateMultiTransaction = (tx: TransactionJSON): ValidationResult => {
+	if (
+		(tx.asset as MultiSignatureAsset).multisignature.min >
+		(tx.asset as MultiSignatureAsset).multisignature.keysgroup.length
+	) {
 		return {
 			valid: false,
 			errors: [
@@ -72,11 +68,6 @@ const validateMultiTransaction = (
 	};
 };
 
-const isMultiSignatureTransaction = (
-	tx: TransactionJSON,
-): tx is MultiSignatureTransaction =>
-	tx.type === TRANSACTION_TYPE_MULTI_SIGNATURE;
-
 export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
 	if (tx.type === undefined || tx.type === null) {
 		throw new Error('Transaction type is required.');
@@ -90,7 +81,7 @@ export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
 				(e: { readonly keyword: string }) => e.keyword !== '$merge',
 		  )
 		: undefined;
-	if (valid && isMultiSignatureTransaction(tx)) {
+	if (valid && tx.type === TRANSACTION_TYPE_MULTI_SIGNATURE) {
 		return validateMultiTransaction(tx);
 	}
 
@@ -98,33 +89,4 @@ export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
 		valid,
 		errors,
 	};
-};
-
-export const validateTransactionId = (
-	id: string,
-	bytes: Buffer,
-): TransactionError | undefined => {
-	const acutalId = getId(bytes);
-
-	return id !== acutalId
-		? new TransactionError(`Invalid transaction id`, id, '.id', acutalId, id)
-		: undefined;
-};
-
-export const validateSenderIdAndPublicKey = (
-	id: string,
-	senderId: string,
-	senderPublicKey: string,
-): TransactionError | undefined => {
-	const actualAddress = getAddressFromPublicKey(senderPublicKey);
-
-	return senderId.toUpperCase() !== actualAddress.toUpperCase()
-		? new TransactionError(
-				'`senderId` does not match `senderPublicKey`',
-				id,
-				'.senderId',
-				actualAddress,
-				senderId,
-		  )
-		: undefined;
 };

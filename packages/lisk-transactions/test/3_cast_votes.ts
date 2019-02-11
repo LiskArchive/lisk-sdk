@@ -14,7 +14,8 @@
  */
 import { expect } from 'chai';
 import { castVotes } from '../src/3_cast_votes';
-import { TransactionJSON, VoteAsset } from '../src/transaction_types';
+import { VoteAsset } from '../src/3_vote_transaction';
+import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
 describe('#castVotes transaction', () => {

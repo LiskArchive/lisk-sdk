@@ -13,14 +13,14 @@
  *
  */
 import * as BigNum from 'browserify-bignum';
+import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
-import { MultisignatureStatus } from '../transactions/base';
 import { convertBeddowsToLSK } from '../utils/format';
 import {
 	validateMultisignatures,
 	validateSignature,
-} from '../utils/sign_and_verify';
+} from './sign_and_validate';
 
 export const verifySenderPublicKey = (
 	id: string,

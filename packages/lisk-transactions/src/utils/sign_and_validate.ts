@@ -21,23 +21,6 @@ import {
 } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
-export const signTransaction = (
-	transaction: TransactionJSON,
-	passphrase: string,
-): string => {
-	const transactionHash = getTransactionHash(transaction);
-
-	return cryptography.signData(transactionHash, passphrase);
-};
-
-export const secondSignTransaction = (
-	transaction: TransactionJSON,
-	secondPassphrase: string,
-): TransactionJSON => ({
-	...transaction,
-	signSignature: signTransaction(transaction, secondPassphrase),
-});
-
 export const multiSignTransaction = (
 	transaction: TransactionJSON,
 	passphrase: string,
@@ -148,6 +131,25 @@ export const validateMultisignatures = (
 				: [],
 	};
 };
+
+// FIXME: Deprecated
+export const signTransaction = (
+	transaction: TransactionJSON,
+	passphrase: string,
+): string => {
+	const transactionHash = getTransactionHash(transaction);
+
+	return cryptography.signData(transactionHash, passphrase);
+};
+
+// FIXME: Deprecated
+export const secondSignTransaction = (
+	transaction: TransactionJSON,
+	secondPassphrase: string,
+): TransactionJSON => ({
+	...transaction,
+	signSignature: signTransaction(transaction, secondPassphrase),
+});
 
 // FIXME: Deprecated
 export const verifyTransaction = (

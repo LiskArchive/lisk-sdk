@@ -21,9 +21,9 @@ import {
 	verifySecondSignature,
 	verifyMultiSignatures,
 } from '../../src/utils';
-import * as validator from '../../src/utils/sign_and_verify';
+import * as validator from '../../src/utils/sign_and_validate';
 import { TransactionError, TransactionPendingError } from '../../src/errors';
-import { MultisignatureStatus } from '../../src/transactions';
+import { MultisignatureStatus } from '../../src/base_transaction';
 
 describe('#verify', () => {
 	const defaultId = '4838520211125422557';

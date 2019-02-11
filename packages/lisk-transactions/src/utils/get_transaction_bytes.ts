@@ -14,20 +14,16 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
+import { TransferAsset } from '../0_transfer_transaction';
+import { SecondSignatureAsset } from '../1_second_signature_transaction';
+import { DelegateAsset } from '../2_delegate_transaction';
+import { VoteAsset } from '../3_vote_transaction';
+import { MultiSignatureAsset } from '../4_multisignature_transaction';
+import { DappAsset } from '../5_dapp_transaction';
+import { InTransferAsset } from '../6_in_transfer_transaction';
+import { OutTransferAsset } from '../7_out_transfer_transaction';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
-import {
-	DappAsset,
-	DelegateAsset,
-	InTransferAsset,
-	MultiSignatureAsset,
-	OutTransferAsset,
-	SecondSignatureAsset,
-	TransactionAsset,
-	TransactionJSON,
-	TransferAsset,
-	TransferTransaction,
-	VoteAsset,
-} from '../transaction_types';
+import { TransactionJSON } from '../transaction_types';
 
 // FIXME: Deprecated
 export const isValidValue = (value: unknown): boolean => {
@@ -60,19 +56,15 @@ export const checkRequiredFields = (
 };
 
 // FIXME: Deprecated
-export const getAssetDataForTransferTransaction = (
-	asset: TransactionAsset,
-): Buffer => {
-	const { data } = asset as TransferAsset;
-
-	return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
-};
+export const getAssetDataForTransferTransaction = ({
+	data,
+}: TransferAsset): Buffer =>
+	data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
 
 // FIXME: Deprecated
-export const getAssetDataForRegisterSecondSignatureTransaction = (
-	asset: TransactionAsset,
-): Buffer => {
-	const { signature } = asset as SecondSignatureAsset;
+export const getAssetDataForRegisterSecondSignatureTransaction = ({
+	signature,
+}: SecondSignatureAsset): Buffer => {
 	checkRequiredFields(['publicKey'], signature);
 	const { publicKey } = signature;
 
@@ -80,10 +72,9 @@ export const getAssetDataForRegisterSecondSignatureTransaction = (
 };
 
 // FIXME: Deprecated
-export const getAssetDataForRegisterDelegateTransaction = (
-	asset: TransactionAsset,
-): Buffer => {
-	const { delegate } = asset as DelegateAsset;
+export const getAssetDataForRegisterDelegateTransaction = ({
+	delegate,
+}: DelegateAsset): Buffer => {
 	checkRequiredFields(['username'], delegate);
 	const { username } = delegate;
 
@@ -91,10 +82,9 @@ export const getAssetDataForRegisterDelegateTransaction = (
 };
 
 // FIXME: Deprecated
-export const getAssetDataForCastVotesTransaction = (
-	asset: TransactionAsset,
-): Buffer => {
-	const { votes } = asset as VoteAsset;
+export const getAssetDataForCastVotesTransaction = ({
+	votes,
+}: VoteAsset): Buffer => {
 	if (!Array.isArray(votes)) {
 		throw new Error('votes parameter must be an Array.');
 	}
@@ -103,10 +93,9 @@ export const getAssetDataForCastVotesTransaction = (
 };
 
 // FIXME: Deprecated
-export const getAssetDataForRegisterMultisignatureAccountTransaction = (
-	asset: TransactionAsset,
-): Buffer => {
-	const { multisignature } = asset as MultiSignatureAsset;
+export const getAssetDataForRegisterMultisignatureAccountTransaction = ({
+	multisignature,
+}: MultiSignatureAsset): Buffer => {
 	checkRequiredFields(['min', 'lifetime', 'keysgroup'], multisignature);
 	const { min, lifetime, keysgroup } = multisignature;
 	const minBuffer = Buffer.alloc(1, min);
@@ -120,10 +109,9 @@ const DAPP_TYPE_LENGTH = 4;
 const DAPP_CATEGORY_LENGTH = 4;
 
 // FIXME: Deprecated
-export const getAssetDataForCreateDappTransaction = (
-	asset: TransactionAsset,
-): Buffer => {
-	const { dapp } = asset as DappAsset;
+export const getAssetDataForCreateDappTransaction = ({
+	dapp,
+}: DappAsset): Buffer => {
 	checkRequiredFields(['name', 'link', 'type', 'category'], dapp);
 	const { name, description, tags, link, icon, type, category } = dapp;
 	const nameBuffer = Buffer.from(name, 'utf8');
@@ -151,10 +139,9 @@ export const getAssetDataForCreateDappTransaction = (
 };
 
 // FIXME: Deprecated
-export const getAssetDataForTransferIntoDappTransaction = (
-	asset: TransactionAsset,
-): Buffer => {
-	const { inTransfer } = asset as InTransferAsset;
+export const getAssetDataForTransferIntoDappTransaction = ({
+	inTransfer,
+}: InTransferAsset): Buffer => {
 	checkRequiredFields(['dappId'], inTransfer);
 	const { dappId } = inTransfer;
 
@@ -162,10 +149,9 @@ export const getAssetDataForTransferIntoDappTransaction = (
 };
 
 // FIXME: Deprecated
-export const getAssetDataForTransferOutOfDappTransaction = (
-	asset: TransactionAsset,
-): Buffer => {
-	const { outTransfer } = asset as OutTransferAsset;
+export const getAssetDataForTransferOutOfDappTransaction = ({
+	outTransfer,
+}: OutTransferAsset): Buffer => {
 	checkRequiredFields(['dappId', 'transactionId'], outTransfer);
 	const { dappId, transactionId } = outTransfer;
 	const outAppIdBuffer = Buffer.from(dappId, 'utf8');
@@ -176,7 +162,8 @@ export const getAssetDataForTransferOutOfDappTransaction = (
 
 // FIXME: Deprecated
 const transactionTypeAssetGetBytesMap: {
-	readonly [type: number]: (asset: TransactionAsset) => Buffer;
+	// tslint:disable-next-line no-any
+	readonly [type: number]: (asset: any) => Buffer;
 } = {
 	0: getAssetDataForTransferTransaction,
 	1: getAssetDataForRegisterSecondSignatureTransaction,
@@ -202,9 +189,7 @@ const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
 // FIXME: Deprecated
 export const checkTransaction = (transaction: TransactionJSON): boolean => {
 	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
-	const {
-		asset: { data },
-	} = transaction as TransferTransaction;
+	const { data } = transaction.asset as TransferAsset;
 	if (data && data.length > BYTESIZES.DATA) {
 		throw new Error(
 			`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`,

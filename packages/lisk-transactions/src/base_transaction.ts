@@ -13,7 +13,7 @@
  *
  */
 // tslint:disable-next-line no-reference
-/// <reference path="../../types/browserify-bignum/index.d.ts" />
+/// <reference path="../types/browserify-bignum/index.d.ts" />
 
 import {
 	bigNumberToBuffer,
@@ -28,15 +28,15 @@ import {
 	MAX_TRANSACTION_AMOUNT,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
-} from '../constants';
+} from './constants';
 import {
 	convertToTransactionError,
 	TransactionError,
 	TransactionMultiError,
 	TransactionPendingError,
-} from '../errors';
-import { createResponse, Status } from '../response';
-import { Account, TransactionJSON } from '../transaction_types';
+} from './errors';
+import { createResponse, Status } from './response';
+import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
 	validateSenderIdAndPublicKey,
@@ -48,8 +48,8 @@ import {
 	verifySecondSignature,
 	verifySenderId,
 	verifySenderPublicKey,
-} from '../utils';
-import * as schemas from '../utils/validation/schema';
+} from './utils';
+import * as schemas from './utils/validation/schema';
 
 export interface TransactionResponse {
 	readonly id: string;
@@ -275,7 +275,7 @@ export abstract class BaseTransaction {
 		if (
 			this._multisignatureStatus === MultisignatureStatus.PENDING &&
 			errors.length === 1 &&
-			errors[0] instanceof TransactionPendingError
+			errors[0] instanceof TransactionPendingError 
 		) {
 			return {
 				id: this.id,
