@@ -124,7 +124,8 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 			);
 		});
 
-		describe('undoUnconfirmedList', async () => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		describe.skip('[UNCOFIRMED_STATE_REMOVAL] undoUnconfirmedList', async () => {
 			let transaction3;
 			let transaction4;
 
@@ -242,7 +243,8 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 					library.modules.blocks.chain.applyBlock(block, true, done);
 				});
 
-				it('should applyUnconfirmedStep for block transactions', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] should applyUnconfirmedStep for block transactions', done => {
 					async.forEach(
 						[blockAccount1, blockAccount2],
 						(account, eachCb) => {
