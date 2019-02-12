@@ -22,7 +22,12 @@ import {
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
 import { TransactionError, TransactionMultiError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import { validateAddress, validateTransferAmount, validator, verifyBalance } from './utils';
+import {
+	validateAddress,
+	validateTransferAmount,
+	validator,
+	verifyBalance,
+} from './utils';
 
 const TRANSACTION_TRANSFER_TYPE = 0;
 
@@ -186,7 +191,7 @@ export class TransferTransaction extends BaseTransaction {
 			balance: updatedSenderBalance.toString(),
 		};
 		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.get(this.recipientId);
+		const recipient = store.account.getOrDefault(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -219,7 +224,7 @@ export class TransferTransaction extends BaseTransaction {
 			balance: updatedSenderBalance.toString(),
 		};
 		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.get(this.recipientId);
+		const recipient = store.account.getOrDefault(this.recipientId);
 
 		const balanceError = verifyBalance(this.id, recipient, this.amount);
 
