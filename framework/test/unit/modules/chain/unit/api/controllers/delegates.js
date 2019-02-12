@@ -2,7 +2,9 @@ const rewire = require('rewire');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
 const BlockReward = require('../../../../../../../src/modules/chain/logic/block_reward.js');
 
-const DelegatesController = rewire('../../../../api/controllers/delegates.js');
+const DelegatesController = rewire(
+	'../../../../../../../src/modules/chain/api/controllers/delegates.js'
+);
 
 describe('delegates/api', () => {
 	const __private = {};
