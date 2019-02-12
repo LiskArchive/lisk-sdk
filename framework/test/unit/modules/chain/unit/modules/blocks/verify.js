@@ -2000,7 +2000,7 @@ describe('blocks/verify', async () => {
 			__private.broadcastBlock = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, true);
-			components.system.update.resolves();
+			components.system.update.callsArgWith(0, null, true);
 			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});

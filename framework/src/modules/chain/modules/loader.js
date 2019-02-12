@@ -955,7 +955,7 @@ __private.sync = function(cb) {
 			},
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				return components.system.update().then(() => seriesCb());
+				components.system.update(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers

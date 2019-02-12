@@ -15,8 +15,11 @@
 'use strict';
 
 const os = require('os');
+const async = require('async');
 const crypto = require('crypto');
 const semver = require('semver');
+
+let self;
 
 /**
  * Main system methods. Initializes library with scope content and headers:
@@ -50,6 +53,8 @@ class System {
 			broadhash: config.nethash,
 			nonce: config.nonce,
 		};
+
+		self = this;
 	}
 
 	/**
@@ -117,6 +122,7 @@ class System {
 		if (typeof cb !== 'function') {
 			return this.headers.broadhash;
 		}
+
 		return this.storage.entities.Block.get(
 			{},
 			{
@@ -146,18 +152,40 @@ class System {
 	/**
 	 * Updates private broadhash and height values.
 	 *
+	 * @param {Object} block - block
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb, err
 	 */
-	async update() {
-		const hash = this.getBroadhash();
-		this.headers.broadhash = hash;
-		const blocks = await this.storage.entities.Block.get(
-			{},
+	update(cb) {
+		async.series(
 			{
-				limit: 5,
-				sort: 'height:desc',
+				getBroadhash(seriesCb) {
+					self.getBroadhash((err, hash) => {
+						if (!err) {
+							self.headers.broadhash = hash;
+						}
+
+						return setImmediate(seriesCb);
+					});
+				},
+				getHeight(seriesCb) {
+					self.storage.entities.Block.get(
+						{},
+						{
+							limit: 1,
+							sort: 'height:desc',
+						}
+					).then(blocks => {
+						self.headers.height = blocks[0].height;
+						return setImmediate(seriesCb);
+					});
+				},
+			},
+			err => {
+				this.logger.debug('System headers', this.headers);
+				return setImmediate(cb, err);
 			}
 		);
-		this.headers.height = blocks[0].height;
 	}
 }
 

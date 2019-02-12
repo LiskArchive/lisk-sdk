@@ -1550,7 +1550,7 @@ describe('blocks/chain', async () => {
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
-			components.system.update.resolves();
+			components.system.update.callsArgWith(0, null, true);
 			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
