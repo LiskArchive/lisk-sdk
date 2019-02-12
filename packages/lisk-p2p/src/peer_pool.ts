@@ -65,6 +65,9 @@ export {
 };
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
+export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
+
+const selectRandomPeerSample = (peerList:ReadonlyArray<Peer>, count: number): ReadonlyArray<Peer> => shuffle(peerList).slice(0, count);
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -143,7 +146,7 @@ export class PeerPool extends EventEmitter {
 		return selectedPeers;
 	}
 
-	public async requestPeer(
+	public async requestFromPeer(
 		packet: P2PRequestPacket,
 	): Promise<P2PResponsePacket> {
 		const peerSelectionParams: PeerOptions = {
@@ -188,14 +191,20 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async runDiscovery(
-		peers: ReadonlyArray<P2PPeerInfo>,
+		knownPeers: ReadonlyArray<P2PPeerInfo>,
 		blacklist: ReadonlyArray<P2PPeerInfo>,
 	): Promise<ReadonlyArray<P2PPeerInfo>> {
-		const peersObjectList = peers.map((peerInfo: P2PPeerInfo) =>
+			// TODO 2: Only handle a shuffled subset of knownPeers
+		const peersObjectList = knownPeers.map((peerInfo: P2PPeerInfo) =>
 			this.addPeer(peerInfo),
 		);
 
-		const disoveredPeers = await discoverPeers(peersObjectList, {
+		const peerSampleToProbe = selectRandomPeerSample(
+			peersObjectList,
+			MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE,
+		);
+
+		const disoveredPeers = await discoverPeers(peerSampleToProbe, {
 			blacklist: blacklist.map(peer => peer.ipAddress),
 		});
 
@@ -316,12 +325,12 @@ export class PeerPool extends EventEmitter {
 		})();
 	}
 
-	private _pickRandomPeers(count: number): ReadonlyArray<Peer> {
+	private _pickRandomDiscoveredPeers(count: number): ReadonlyArray<Peer> {
 		const discoveredPeerList: ReadonlyArray<Peer> = [
 			...this._peerMap.values(),
 		].filter(peer => peer.peerInfo.isDiscoveredPeer);
 
-		return shuffle(discoveredPeerList).slice(0, count);
+		return selectRandomPeerSample(discoveredPeerList, count);
 	}
 
 	private _handleGetAllPeersRequest(request: P2PRequest): void {
@@ -329,7 +338,7 @@ export class PeerPool extends EventEmitter {
 		const protocolPeerInfoList: ProtocolPeerInfoList = {
 			success: true,
 			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
-			peers: this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE)
+			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
 				.map(
 					(peer: Peer): ProtocolPeerInfo | undefined => {
 						const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined =
