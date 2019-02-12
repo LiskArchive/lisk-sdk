@@ -29,6 +29,7 @@ describe('components: cache', async () => {
 		});
 		cache = createCacheComponent(__testContext.config.redis, this.logger);
 		await cache.bootstrap();
+		await cache.enable();
 		return expect(cache).to.be.an('object');
 	});
 
