@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for framework/src/modules/chain/helpers/bignum.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../../../index.html">all files</a> / <a href="index.html">framework/src/modules/chain/helpers/</a> bignum.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">7.69% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>5/65</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/50</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/2</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">7.81% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>5/64</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/* eslint-disable no-bitwise */
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+&nbsp;
+'use strict';
+&nbsp;
+/**
+ * Buffer functions that implements bignumber.
+ *
+ * @class
+ * @memberof helpers
+ *
+ * @requires bignumber
+ */
+const BigNumber = require('bignumber.js');
+&nbsp;
+// The BigNumber by default beyond a number range
+// converts the number representation to exponential format
+// In our application we are using BigNumber everywhere for amount field
+// due to which the signatures can lead to different results
+// in order to keep the consistency updating BigNumber config to
+// Almost never return exponential notation: ref http://mikemcl.github.io/bignumber.js/#exponential-at
+BigNumber.config({ EXPONENTIAL_AT: 1e9 });
+&nbsp;
+/**
+ * Creates an instance from a Buffer.
+ *
+ * @param {ArrayBuffer} buf
+ * @param {Object} opts
+ * @returns {ArrayBuffer} New BigNumber instance
+ * @throws {RangeError} If description multiple of size
+ * @todo Add description for the params
+ */
+BigNumber.fromBuffer = <span class="fstat-no" title="function not covered" >function(buf, opts) {</span>
+<span class="cstat-no" title="statement not covered" >	if (!opts) {</span>
+<span class="cstat-no" title="statement not covered" >		opts = {};</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	const endian =</span>
+		{ 1: 'big', '-1': 'little' }[opts.endian] || opts.endian || 'big';
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	const size = opts.size === 'auto' ? Math.ceil(buf.length) : opts.size || 1;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (buf.length % size !== 0) {</span>
+<span class="cstat-no" title="statement not covered" >		throw new RangeError(</span>
+			`Buffer length (${buf.length}) must be a multiple of size (${size})`
+		);
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	const hex = [];</span>
+<span class="cstat-no" title="statement not covered" >	for (let i = 0; i &lt; buf.length; i += size) {</span>
+<span class="cstat-no" title="statement not covered" >		const chunk = [];</span>
+<span class="cstat-no" title="statement not covered" >		for (let j = 0; j &lt; size; j++) {</span>
+<span class="cstat-no" title="statement not covered" >			chunk.push(buf[i + (endian === 'big' ? j : size - j - 1)]);</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		hex.push(chunk.map(c =&gt; <span class="cstat-no" title="statement not covered" >(c &lt; 16 ? '0' : '') + c.toString(16))</span>.join(''));</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return new BigNumber(hex.join(''), 16);</span>
+};
+&nbsp;
+/**
+ * Returns an instance as Buffer.
+ *
+ * @param {Object} opts
+ * @returns {ArrayBuffer} New buffer or error message
+ * @todo Add description for the params
+ */
+BigNumber.prototype.toBuffer = <span class="fstat-no" title="function not covered" >function(opts) {</span>
+<span class="cstat-no" title="statement not covered" >	const abs = this.abs();</span>
+<span class="cstat-no" title="statement not covered" >	const isNeg = this.lt(0);</span>
+<span class="cstat-no" title="statement not covered" >	let buf;</span>
+<span class="cstat-no" title="statement not covered" >	let len;</span>
+<span class="cstat-no" title="statement not covered" >	let ret;</span>
+<span class="cstat-no" title="statement not covered" >	let hex = this.toString(16);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (typeof opts === 'string') {</span>
+<span class="cstat-no" title="statement not covered" >		if (opts !== 'mpint') {</span>
+<span class="cstat-no" title="statement not covered" >			return 'Unsupported Buffer representation';</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		buf = abs.toBuffer({ size: 1, endian: 'big' });</span>
+<span class="cstat-no" title="statement not covered" >		len = buf.length === 1 &amp;&amp; buf[0] === 0 ? 0 : buf.length;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (buf[0] &amp; 0x80) {</span>
+<span class="cstat-no" title="statement not covered" >			len++;</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		ret = Buffer.alloc(4 + len);</span>
+<span class="cstat-no" title="statement not covered" >		if (len &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >			buf.copy(ret, 4 + (buf[0] &amp; 0x80 ? 1 : 0));</span>
+		}
+<span class="cstat-no" title="statement not covered" >		if (buf[0] &amp; 0x80) {</span>
+<span class="cstat-no" title="statement not covered" >			ret[4] = 0;</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		ret[0] = len &amp; (0xff &lt;&lt; 24);</span>
+<span class="cstat-no" title="statement not covered" >		ret[1] = len &amp; (0xff &lt;&lt; 16);</span>
+<span class="cstat-no" title="statement not covered" >		ret[2] = len &amp; (0xff &lt;&lt; 8);</span>
+<span class="cstat-no" title="statement not covered" >		ret[3] = len &amp; (0xff &lt;&lt; 0);</span>
+&nbsp;
+		// Two's compliment for negative integers
+<span class="cstat-no" title="statement not covered" >		if (isNeg) {</span>
+<span class="cstat-no" title="statement not covered" >			for (let i = 4; i &lt; ret.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >				ret[i] = 0xff - ret[i];</span>
+			}
+		}
+<span class="cstat-no" title="statement not covered" >		ret[4] = (ret[4] &amp; 0x7f) | (isNeg ? 0x80 : 0);</span>
+<span class="cstat-no" title="statement not covered" >		if (isNeg) {</span>
+<span class="cstat-no" title="statement not covered" >			ret[ret.length - 1]++;</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return ret;</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (!opts) {</span>
+<span class="cstat-no" title="statement not covered" >		opts = {};</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	const endian =</span>
+		{
+			1: 'big',
+			'-1': 'little',
+		}[opts.endian] ||
+		opts.endian ||
+		'big';
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (hex.charAt(0) === '-') {</span>
+<span class="cstat-no" title="statement not covered" >		throw new Error('Converting negative numbers to Buffers not supported yet');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	const size =</span>
+		opts.size2 === 'auto' ? Math.ceil(hex.length / 2) : opts.size || 1;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	len = Math.ceil(hex.length / (2 * size)) * size;</span>
+<span class="cstat-no" title="statement not covered" >	buf = Buffer.alloc(len);</span>
+&nbsp;
+	// Zero-pad the hex string so the chunks are all `size` long
+<span class="cstat-no" title="statement not covered" >	while (hex.length &lt; 2 * len) {</span>
+<span class="cstat-no" title="statement not covered" >		hex = `0${hex}`;</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	const hx = hex</span>
+		.split(new RegExp(`(.{${2 * size}})`))
+		.filter(s =&gt; <span class="cstat-no" title="statement not covered" >s.length &gt; 0)</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	hx.forEach((chunk, hxI) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >		for (let j = 0; j &lt; size; j++) {</span>
+<span class="cstat-no" title="statement not covered" >			const ix = hxI * size + (endian === 'big' ? j : size - j - 1);</span>
+<span class="cstat-no" title="statement not covered" >			buf[ix] = parseInt(chunk.slice(j * 2, j * 2 + 2), 16);</span>
+		}
+	});
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return buf;</span>
+};
+&nbsp;
+module.exports = BigNumber;
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Feb 11 2019 17:50:55 GMT+0100 (Central European Standard Time)
+</div>
+</div>
+<script src="../../../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../../../sorter.js"></script>
+</body>
+</html>

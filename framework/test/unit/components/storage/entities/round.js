@@ -730,6 +730,13 @@ describe('Round', async () => {
 		afterEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with one parameter', async () => {
+			const before = await checkTableExists(adapter, 'mem_round_snapshot');
+			// eslint-disable-next-line no-console
+			console.log(before);
+
+			// eslint-disable-next-line no-console
+			console.log('Testing if mem_round_snapshot exists');
+
 			// Perform round snapshot
 			await RoundEntity.performRoundSnapshot();
 

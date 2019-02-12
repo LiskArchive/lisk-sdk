@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for framework/src/modules/chain/logic/peer.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../../../index.html">all files</a> / <a href="index.html">framework/src/modules/chain/logic/</a> peer.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">21.28% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>10/47</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/29</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/7</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">21.28% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>10/47</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+&nbsp;
+'use strict';
+&nbsp;
+const _ = require('lodash');
+const ip = require('ip');
+&nbsp;
+/**
+ * Main peer logic. Creates a peer.
+ *
+ * @class
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires lodash
+ * @requires ip
+ * @requires api/ws/rpc/ws_rpc
+ * @param {peer} peer
+ * @returns Calls accept method
+ * @todo Add description for the params
+ */
+class Peer {
+	constructor<span class="fstat-no" title="function not covered" >(peer) {</span>
+<span class="cstat-no" title="statement not covered" >		return this.accept(peer || {});</span>
+	}
+&nbsp;
+	/**
+	 * Checks peer properties and adjusts according rules.
+	 *
+	 * @param {peer} peer
+	 * @returns {Object} this
+	 * @todo Add description for the params
+	 */
+	accept<span class="fstat-no" title="function not covered" >(peer) {</span>
+		// Normalize peer data
+<span class="cstat-no" title="statement not covered" >		peer = this.normalize(peer);</span>
+&nbsp;
+		// Accept only supported and defined properties
+<span class="cstat-no" title="statement not covered" >		_.each(this.properties, key =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			if (peer[key] !== null &amp;&amp; peer[key] !== undefined) {</span>
+<span class="cstat-no" title="statement not covered" >				this[key] = peer[key];</span>
+			}
+		});
+&nbsp;
+		// Adjust properties according to rules
+<span class="cstat-no" title="statement not covered" >		if (/^[0-9]+$/.test(this.ip)) {</span>
+<span class="cstat-no" title="statement not covered" >			this.ip = ip.fromLong(this.ip);</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (this.ip &amp;&amp; this.wsPort) {</span>
+<span class="cstat-no" title="statement not covered" >			this.string = `${this.ip}:${this.wsPort}`;</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return this;</span>
+	}
+&nbsp;
+	/**
+	 * Normalizes peer data.
+	 *
+	 * @param {peer} peer
+	 * @returns {peer}
+	 * @todo Add description for the params
+	 */
+	normalize<span class="fstat-no" title="function not covered" >(peer) {</span>
+<span class="cstat-no" title="statement not covered" >		if (peer.height) {</span>
+<span class="cstat-no" title="statement not covered" >			peer.height = this.parseInt(peer.height, 1);</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		peer.wsPort = this.parseInt(peer.wsPort, 0);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (peer.httpPort) {</span>
+<span class="cstat-no" title="statement not covered" >			peer.httpPort = this.parseInt(peer.httpPort, 0);</span>
+		}
+<span class="cstat-no" title="statement not covered" >		peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return peer;</span>
+	}
+&nbsp;
+	/**
+	 * Normalizes headers.
+	 *
+	 * @param {Object} headers
+	 * @returns {Object} Normalized headers
+	 * @todo Add description for the params
+	 */
+	applyHeaders<span class="fstat-no" title="function not covered" >(headers) {</span>
+<span class="cstat-no" title="statement not covered" >		headers = headers || {};</span>
+<span class="cstat-no" title="statement not covered" >		headers = this.normalize(headers);</span>
+<span class="cstat-no" title="statement not covered" >		this.update(headers);</span>
+<span class="cstat-no" title="statement not covered" >		return headers;</span>
+	}
+&nbsp;
+	/**
+	 * Updates peer values if mutable.
+	 *
+	 * @param {peer} peer
+	 * @returns {Object} this
+	 * @todo Add description for the params
+	 */
+	update<span class="fstat-no" title="function not covered" >(peer) {</span>
+<span class="cstat-no" title="statement not covered" >		peer = this.normalize(peer);</span>
+&nbsp;
+		// Accept only supported properties
+<span class="cstat-no" title="statement not covered" >		_.each(this.properties, key =&gt; {</span>
+			// Change value only when is defined
+<span class="cstat-no" title="statement not covered" >			if (peer[key] &amp;&amp; !this.required.includes(key)) {</span>
+				// Update optional httpPort and nonce
+				// for the first time when peer object
+				// has httpPort and nonce as undefined
+<span class="cstat-no" title="statement not covered" >				const isOptional = this.optional.includes(key);</span>
+<span class="cstat-no" title="statement not covered" >				const isExists = this[key];</span>
+<span class="cstat-no" title="statement not covered" >				if (!isOptional || (!isExists &amp;&amp; isOptional)) {</span>
+<span class="cstat-no" title="statement not covered" >					this[key] = peer[key];</span>
+				}
+			}
+		});
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return this;</span>
+	}
+&nbsp;
+	/**
+	 * Description of the function.
+	 *
+	 * @returns {peer} Clone of peer
+	 * @todo Add description for the function
+	 */
+	object<span class="fstat-no" title="function not covered" >() {</span>
+<span class="cstat-no" title="statement not covered" >		const copy = {};</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		_.each(this.properties, key =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			copy[key] = this[key];</span>
+		});
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		delete copy.rpc;</span>
+<span class="cstat-no" title="statement not covered" >		return copy;</span>
+	}
+}
+&nbsp;
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * @typedef {Object} peer
+ * @property {string} ip
+ * @property {number} wsPort - Between 1 and 65535
+ * @property {number} httpPort - Between 1 and 65535
+ * @property {number} state - Between 0 and 2. (banned = 0, unbanned = 1, active = 2)
+ * @property {string} os - Between 1 and 64 chars
+ * @property {string} version - Between 5 and 12 chars
+ * @property {string} broadhash
+ * @property {number} height - Minimum 1
+ * @property {Date} updated
+ * @property {string} nonce
+ * @property {string} string
+ */
+Peer.prototype.properties = [
+	'ip',
+	'wsPort',
+	'state',
+	'os',
+	'version',
+	'protocolVersion',
+	'broadhash',
+	'height',
+	'updated',
+	'nonce',
+	'httpPort',
+];
+&nbsp;
+Peer.prototype.required = ['ip', 'wsPort', 'string'];
+&nbsp;
+Peer.prototype.optional = ['httpPort', 'nonce'];
+&nbsp;
+Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
+&nbsp;
+Peer.prototype.headers = [
+	'os',
+	'version',
+	'protocolVersion',
+	'broadhash',
+	'height',
+	'nonce',
+];
+&nbsp;
+Peer.STATE = {
+	BANNED: 0,
+	DISCONNECTED: 1,
+	CONNECTED: 2,
+};
+&nbsp;
+/**
+ * Checks number or assigns default value from parameter.
+ *
+ * @param {number} integer
+ * @param {number} [fallback]
+ * @returns {number} If not integer returns fallback
+ * @todo Add description for the params
+ */
+Peer.prototype.parseInt = <span class="fstat-no" title="function not covered" >function(integer, fallback) {</span>
+<span class="cstat-no" title="statement not covered" >	integer = parseInt(integer);</span>
+<span class="cstat-no" title="statement not covered" >	integer = Number.isNaN(integer) ? fallback : integer;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return integer;</span>
+};
+&nbsp;
+module.exports = Peer;
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Feb 11 2019 17:50:55 GMT+0100 (Central European Standard Time)
+</div>
+</div>
+<script src="../../../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../../../sorter.js"></script>
+</body>
+</html>
