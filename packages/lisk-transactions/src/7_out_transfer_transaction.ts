@@ -98,7 +98,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		this.containsUniqueData = true;
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
 				address: this.senderId,
@@ -114,7 +114,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		]);
 	}
 
-	protected getAssetBytes(): Buffer {
+	protected assetToBytes(): Buffer {
 		const { dappId, transactionId } = this.asset.outTransfer;
 		const outAppIdBuffer = Buffer.from(dappId, 'utf8');
 		const outTransactionIdBuffer = Buffer.from(transactionId, 'utf8');

@@ -98,7 +98,7 @@ export class VoteTransaction extends BaseTransaction {
 		this.containsUniqueData = true;
 	}
 
-	protected getAssetBytes(): Buffer {
+	protected assetToBytes(): Buffer {
 		return Buffer.from(this.asset.votes.join(''), 'utf8');
 	}
 
@@ -108,7 +108,7 @@ export class VoteTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepare(store: StateStorePrepare): Promise<void> {
 		const publicKeyObjectArray = this.asset.votes.map(pkWithAction => {
 			const publicKey = pkWithAction.slice(1);
 

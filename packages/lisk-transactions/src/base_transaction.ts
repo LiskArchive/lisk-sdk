@@ -68,12 +68,18 @@ export interface StateStoreGetter<T> {
 	find(func: (item: T) => boolean): T | undefined;
 }
 
+export interface StateStoreDefaultGetter<T> {
+	getOrDefault(key: string): T;
+}
+
 export interface StateStoreSetter<T> {
 	set(key: string, value: T): void;
 }
 
 export interface StateStore {
-	readonly account: StateStoreGetter<Account> & StateStoreSetter<Account>;
+	readonly account: StateStoreGetter<Account> &
+		StateStoreDefaultGetter<Account> &
+		StateStoreSetter<Account>;
 	readonly transaction: StateStoreGetter<TransactionJSON>;
 }
 
@@ -120,8 +126,8 @@ export abstract class BaseTransaction {
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract assetToJSON(): object;
-	public abstract prepareTransaction(store: StateStorePrepare): Promise<void>;
-	protected abstract getAssetBytes(): Buffer;
+	public abstract prepare(store: StateStorePrepare): Promise<void>;
+	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
@@ -275,7 +281,7 @@ export abstract class BaseTransaction {
 		if (
 			this._multisignatureStatus === MultisignatureStatus.PENDING &&
 			errors.length === 1 &&
-			errors[0] instanceof TransactionPendingError 
+			errors[0] instanceof TransactionPendingError
 		) {
 			return {
 				id: this.id,
@@ -384,7 +390,7 @@ export abstract class BaseTransaction {
 			transactionSenderPublicKey,
 			transactionRecipientID,
 			transactionAmount,
-			this.getAssetBytes(),
+			this.assetToBytes(),
 		]);
 	}
 

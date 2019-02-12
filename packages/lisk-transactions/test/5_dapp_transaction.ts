@@ -60,7 +60,7 @@ describe('Dapp transaction class', () => {
 		});
 	});
 
-	describe('#getAssetBytes', () => {
+	describe('#assetToBytes', () => {
 		const defaultCategory = 0;
 		const defaultDappName = 'Lisk Guestbook';
 		const defaultDescription = 'The official Lisk guestbook';
@@ -111,7 +111,7 @@ describe('Dapp transaction class', () => {
 					icon: defaultIcon,
 				},
 			};
-			const assetBytes = (validTestTransaction as any).getAssetBytes();
+			const assetBytes = (validTestTransaction as any).assetToBytes();
 			expect(assetBytes).to.eql(expectedBuffer);
 		});
 	});

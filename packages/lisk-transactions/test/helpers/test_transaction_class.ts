@@ -21,11 +21,11 @@ export class TestTransaction extends BaseTransaction {
 		return {};
 	}
 
-	public async prepareTransaction() {
+	public async prepare() {
 		return;
 	}
 
-	public getAssetBytes(): Buffer {
+	public assetToBytes(): Buffer {
 		return Buffer.alloc(0);
 	}
 
