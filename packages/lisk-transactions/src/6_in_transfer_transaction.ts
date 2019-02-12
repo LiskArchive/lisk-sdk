@@ -89,11 +89,11 @@ export class InTransferTransaction extends BaseTransaction {
 		this._fee = new BigNum(IN_TRANSFER_FEE);
 	}
 
-	protected getAssetBytes(): Buffer {
+	protected assetToBytes(): Buffer {
 		return Buffer.from(this.asset.inTransfer.dappId, 'utf8');
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([{ address: this.senderId }]);
 
 		const transactions = await store.transaction.cache([

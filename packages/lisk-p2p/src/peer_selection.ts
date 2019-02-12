@@ -28,7 +28,6 @@ interface HistogramValues {
 	max: number;
 }
 
-// TODO ASAP: Consider changing selectPeers function to handle P2PDiscoveredPeerInfo instead of Peer objects.
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<P2PPeerInfo>,

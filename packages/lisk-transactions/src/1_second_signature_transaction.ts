@@ -90,7 +90,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		this._fee = new BigNum(SIGNATURE_FEE);
 	}
 
-	protected getAssetBytes(): Buffer {
+	protected assetToBytes(): Buffer {
 		const {
 			signature: { publicKey },
 		} = this.asset;
@@ -104,7 +104,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		};
 	}
 
-	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
+	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
 				address: this.senderId,

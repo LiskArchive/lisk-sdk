@@ -65,9 +65,9 @@ describe('Second signature registration transaction class', () => {
 		});
 	});
 
-	describe('#getAssetBytes', () => {
+	describe('#assetToBytes', () => {
 		it('should return valid buffer', async () => {
-			const assetBytes = (validTestTransaction as any).getAssetBytes();
+			const assetBytes = (validTestTransaction as any).assetToBytes();
 			expect(assetBytes).to.eql(
 				hexToBuffer(
 					validRegisterSecondSignatureTransaction.asset.signature.publicKey,

@@ -64,10 +64,10 @@ describe('Transfer transaction class', () => {
 		});
 	});
 
-	describe('#getAssetBytes', () => {
+	describe('#assetToBytes', () => {
 		it('should return a buffer', async () => {
 			const expectedBytes = '61';
-			const assetBytes = (validSelfTransferTestTransaction as any).getAssetBytes();
+			const assetBytes = (validSelfTransferTestTransaction as any).assetToBytes();
 			expect(assetBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
 		});
 	});
@@ -170,6 +170,11 @@ describe('Transfer transaction class', () => {
 			store.account.get = () => {
 				return {
 					...sender,
+				};
+			};
+			store.account.getOrDefault = () => {
+				return {
+					...recipient,
 					balance: new BigNum(MAX_TRANSACTION_AMOUNT),
 				};
 			};
@@ -180,7 +185,7 @@ describe('Transfer transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should return error when recipient balance is insufficient', async () => {
-			store.account.get = () => {
+			store.account.getOrDefault = () => {
 				return {
 					...recipient,
 					balance: new BigNum('0'),
