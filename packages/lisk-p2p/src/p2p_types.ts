@@ -73,6 +73,7 @@ export interface P2PConfig {
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
+	readonly discoveryInterval?: number;
 }
 
 // Network info exposed by the P2P library.

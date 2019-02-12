@@ -55,7 +55,7 @@ export const validateSignature = (
 };
 
 export const validateMultisignatures = (
-	publicKeys: ReadonlyArray<string> = [],
+	publicKeys: ReadonlyArray<string>,
 	signatures: ReadonlyArray<string>,
 	minimumValidations: number,
 	transactionBytes: Buffer,

@@ -377,10 +377,14 @@ export class Peer extends EventEmitter {
 							return;
 						}
 
-						// TODO ASAP: Create new Error type in errors/ directory.
-						const error = new Error('RPC response format was invalid');
-						error.name = 'InvalidPeerResponseError';
-						reject(error);
+						reject(
+							new RPCResponseError(
+								`Failed to handle response for procedure ${packet.procedure}`,
+								new Error('RPC response format was invalid'),
+								this.ipAddress,
+								this.wsPort
+							)
+						);
 					},
 				);
 			},
@@ -396,7 +400,7 @@ export class Peer extends EventEmitter {
 			return validatePeerInfoList(response.data);
 		} catch (error) {
 			throw new RPCResponseError(
-				`Error when fetching peerlist of a peer`,
+				'Failed to fetch peerlist of a peer',
 				error,
 				this.ipAddress,
 				this.wsPort,
