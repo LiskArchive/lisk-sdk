@@ -836,7 +836,7 @@ Chain.prototype.deleteLastBlock = function(cb) {
 			},
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				modules.system.update(seriesCb);
+				components.system.update(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
@@ -882,11 +882,7 @@ Chain.prototype.recoverChain = function(cb) {
 };
 
 /**
- * Handle modules initialization:
- * - accounts
- * - blocks
- * - rounds
- * - transactions
+ * Handle modules & components initialization
  *
  * @param {modules} scope - Exposed modules
  */
@@ -894,6 +890,7 @@ Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
+		system: scope.components.system,
 	};
 
 	modules = {
@@ -901,7 +898,6 @@ Chain.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		rounds: scope.modules.rounds,
 		transactions: scope.modules.transactions,
-		system: scope.modules.system,
 		transport: scope.modules.transport,
 	};
 
