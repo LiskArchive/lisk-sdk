@@ -33,9 +33,9 @@ export interface Delegate {
 }
 
 export interface TransactionJSON {
-	readonly amount: string;
+	readonly amount: string | number;
 	readonly asset: object;
-	readonly fee: string;
+	readonly fee: string | number;
 	readonly id?: string;
 	readonly recipientId: string;
 	readonly recipientPublicKey?: string;
