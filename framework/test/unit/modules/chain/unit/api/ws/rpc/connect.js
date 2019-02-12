@@ -15,10 +15,8 @@
 'use strict';
 
 const rewire = require('rewire');
-const sinon = require('sinon');
 const prefixedPeer = require('../../../../../../../fixtures/peers')
 	.randomNormalizedPeer;
-const System = require('../../../../../../../../src/modules/chain/modules/system');
 const wsRPC = require('../../../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
 	.wsRPC;
 
@@ -39,42 +37,32 @@ describe('connect', () => {
 	let registerRPCSpy;
 	let registerSocketListenersSpy;
 	let loggerMock;
+	let peersHeadersMock;
 	let masterWAMPServerMock;
 
-	before('spy on connectSteps', done => {
+	before('spy on connectSteps', async () => {
 		const connectionSteps = connectRewired.__get__('connectSteps');
-		addConnectionOptionsSpySpy = sinon.spy(
+		addConnectionOptionsSpySpy = sinonSandbox.spy(
 			connectionSteps,
 			'addConnectionOptions'
 		);
-		addSocketSpy = sinon.spy(connectionSteps, 'addSocket');
-		upgradeSocketAsClientSpy = sinon.spy(
+		addSocketSpy = sinonSandbox.spy(connectionSteps, 'addSocket');
+		upgradeSocketAsClientSpy = sinonSandbox.spy(
 			connectionSteps,
 			'upgradeSocketAsWAMPClient'
 		);
-		upgradeSocketAsServerSpy = sinon.spy(
+		upgradeSocketAsServerSpy = sinonSandbox.spy(
 			connectionSteps,
 			'upgradeSocketAsWAMPServer'
 		);
-		registerRPCSpy = sinon.spy(connectionSteps, 'registerRPC');
-		registerSocketListenersSpy = sinon.spy(
+		registerRPCSpy = sinonSandbox.spy(connectionSteps, 'registerRPC');
+		registerSocketListenersSpy = sinonSandbox.spy(
 			connectionSteps,
 			'registerSocketListeners'
 		);
-		done();
 	});
 
-	after('restore spies on connectSteps', done => {
-		addConnectionOptionsSpySpy.restore();
-		addSocketSpy.restore();
-		upgradeSocketAsClientSpy.restore();
-		upgradeSocketAsServerSpy.restore();
-		registerRPCSpy.restore();
-		registerSocketListenersSpy.restore();
-		done();
-	});
-
-	beforeEach('provide non-mutated peer each time', done => {
+	beforeEach('provide non-mutated peer each time', async () => {
 		validPeer = Object.assign({}, prefixedPeer);
 		loggerMock = {
 			error: sinonSandbox.stub(),
@@ -83,32 +71,40 @@ describe('connect', () => {
 			debug: sinonSandbox.stub(),
 			trace: sinonSandbox.stub(),
 		};
+
+		peersHeadersMock = {};
+
 		masterWAMPServerMock = {
-			upgradeToWAMP: sinon.stub(),
+			upgradeToWAMP: sinonSandbox.stub(),
 			endpoints: {
 				rpc: {
-					[validRPCProcedureName]: sinon.stub().callsArg(1),
+					[validRPCProcedureName]: sinonSandbox.stub().callsArg(1),
 				},
 				event: {
-					[validEventProcedureName]: sinon.stub(),
+					[validEventProcedureName]: sinonSandbox.stub(),
 				},
 			},
 		};
-		wsRPC.getServer = sinon.stub().returns(masterWAMPServerMock);
-		done();
+		wsRPC.getServer = sinonSandbox.stub().returns(masterWAMPServerMock);
+	});
+
+	afterEach('restore spies on connectSteps', async () => {
+		addConnectionOptionsSpySpy.restore();
+		addSocketSpy.restore();
+		upgradeSocketAsClientSpy.restore();
+		upgradeSocketAsServerSpy.restore();
+		registerRPCSpy.restore();
+		registerSocketListenersSpy.restore();
+	});
+
+	after(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('connect', () => {
 		describe('connectSteps order', () => {
-			beforeEach(done => {
-				connectResult = connectRewired(validPeer, loggerMock);
-				done();
-			});
-
-			afterEach(done => {
-				addConnectionOptionsSpySpy.resetHistory();
-				addSocketSpy.resetHistory();
-				done();
+			beforeEach(async () => {
+				connectResult = connectRewired(validPeer, loggerMock, peersHeadersMock);
 			});
 
 			it('should call all connectSteps', async () => {
@@ -121,28 +117,31 @@ describe('connect', () => {
 			});
 
 			it('should call addSocket after addConnectionOptions', async () =>
-				sinon.assert.callOrder(addConnectionOptionsSpySpy, addSocketSpy));
-
-			it('should call upgradeSocketAsClientSpy after addSocket', async () =>
-				sinon.assert.callOrder(addSocketSpy, upgradeSocketAsClientSpy));
-
-			it('should call upgradeSocketAsServerSpy after addSocket', async () =>
-				sinon.assert.callOrder(addSocketSpy, upgradeSocketAsServerSpy));
-
-			it('should call registerRPCSpy after upgradeSocketAsClientSpy', async () =>
-				sinon.assert.callOrder(
-					upgradeSocketAsClientSpy,
-					registerSocketListenersSpy
+				sinonSandbox.assert.callOrder(
+					addConnectionOptionsSpySpy,
+					addSocketSpy
 				));
 
-			it('should call registerRPCSpy after upgradeSocketAsServerSpy', async () =>
-				sinon.assert.callOrder(
+			it('should call upgradeSocketAsClientSpy after addSocket', async () =>
+				sinonSandbox.assert.callOrder(addSocketSpy, upgradeSocketAsClientSpy));
+
+			it('should call upgradeSocketAsServerSpy after addSocket', async () =>
+				sinonSandbox.assert.callOrder(
+					upgradeSocketAsClientSpy,
+					upgradeSocketAsServerSpy
+				));
+
+			it('should call registerRPCSpy after upgradeSocketAsClientSpy', async () =>
+				sinonSandbox.assert.callOrder(
 					upgradeSocketAsServerSpy,
-					registerSocketListenersSpy
+					registerRPCSpy
 				));
 
 			it('should call registerSocketListenersSpy after addSocket', async () =>
-				sinon.assert.callOrder(addSocketSpy, registerSocketListenersSpy));
+				sinonSandbox.assert.callOrder(
+					registerRPCSpy,
+					registerSocketListenersSpy
+				));
 
 			it('should return passed peer', async () =>
 				expect(connectResult).equal(validPeer));
@@ -155,24 +154,25 @@ describe('connect', () => {
 		describe('addConnectionOptions', () => {
 			let originalSystemHeaders;
 
-			beforeEach(done => {
-				originalSystemHeaders = System.getHeaders();
-				System.setHeaders({
+			beforeEach(async () => {
+				originalSystemHeaders = peersHeadersMock;
+				peersHeadersMock = {
 					protocolVersion: 'aProtocolVersion',
 					version: 'aVersion',
 					nonce: 'aNonce',
 					wsPort: 'aWSPort',
 					httpPort: 'anHttpPort',
 					nethash: 'aNethash',
-				});
+				};
 				const addConnectionOptions = connectRewired.__get__(
 					'connectSteps.addConnectionOptions'
 				);
-				peerAsResult = addConnectionOptions(validPeer);
-				done();
+				peerAsResult = addConnectionOptions(validPeer, peersHeadersMock);
 			});
 
-			afterEach(() => System.setHeaders(originalSystemHeaders));
+			afterEach(async () => {
+				peersHeadersMock = originalSystemHeaders;
+			});
 
 			it('should add connectionOptions field to peer', async () =>
 				expect(peerAsResult).to.have.property('connectionOptions'));
@@ -198,35 +198,35 @@ describe('connect', () => {
 				));
 
 			describe('connectionOptions.query', () => {
-				it('should contain protocolVersion if present on system headers', async () =>
+				it('should contain protocolVersion if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.protocolVersion')
-						.to.eql(System.getHeaders().protocolVersion));
+						.to.eql(peersHeadersMock.protocolVersion));
 
-				it('should contain version if present on system headers', async () =>
+				it('should contain version if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.version')
-						.to.eql(System.getHeaders().version));
+						.to.eql(peersHeadersMock.version));
 
-				it('should contain nonce if present on system headers', async () =>
+				it('should contain nonce if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nonce')
-						.to.eql(System.getHeaders().nonce));
+						.to.eql(peersHeadersMock.nonce));
 
-				it('should contain wsPort if present on system headers', async () =>
-					expect(peerAsResult)
-						.to.have.nested.property('connectionOptions.query.wsPort')
-						.to.eql(System.getHeaders().wsPort));
-
-				it('should contain httpPort if present on system headers', async () =>
-					expect(peerAsResult)
-						.to.have.nested.property('connectionOptions.query.httpPort')
-						.to.eql(System.getHeaders().httpPort));
-
-				it('should contain nethash if present on system headers', async () =>
+				it('should contain nethash if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nethash')
-						.to.eql(System.getHeaders().nethash));
+						.to.eql(peersHeadersMock.nethash));
+
+				it('should contain wsPort if present on peers headers', async () =>
+					expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.wsPort')
+						.to.eql(peersHeadersMock.wsPort));
+
+				it('should contain httpPort if present on peers headers', async () =>
+					expect(peerAsResult)
+						.to.have.nested.property('connectionOptions.query.httpPort')
+						.to.eql(peersHeadersMock.httpPort));
 			});
 
 			it('should return [peer]', async () =>
@@ -236,30 +236,28 @@ describe('connect', () => {
 		describe('addSocket', () => {
 			let scClientConnectStub;
 			let validConnectionOptions;
-			before(done => {
+			before(async () => {
 				validConnectionOptions = {
 					validProperty: 'validString',
 				};
-				scClientConnectStub = sinon.stub(
+				scClientConnectStub = sinonSandbox.stub(
 					connectRewired.__get__('scClient'),
 					'connect'
 				);
-				done();
 			});
-			beforeEach(done => {
-				scClientConnectStub.callsFake(() => ({ options: {} }));
+			beforeEach(async () => {
+				scClientConnectStub.callsFake(() => ({
+					options: {},
+				}));
 				const addSocket = connectRewired.__get__('connectSteps.addSocket');
 				validPeer.connectionOptions = validConnectionOptions;
 				peerAsResult = addSocket(validPeer, loggerMock);
-				done();
 			});
-			afterEach(done => {
+			afterEach(async () => {
 				scClientConnectStub.resetHistory();
-				done();
 			});
-			after(done => {
+			after(async () => {
 				scClientConnectStub.restore();
-				done();
 			});
 
 			it('should call scClient.connect', async () =>
@@ -280,31 +278,27 @@ describe('connect', () => {
 		describe('upgradeSocketAsWAMPClient', () => {
 			let upgradeToWAMPSpy;
 			let validSocket;
-			before(done => {
+			before(async () => {
 				validSocket = {
 					validProperty: 'validString',
 				};
-				upgradeToWAMPSpy = sinon.stub(
+				upgradeToWAMPSpy = sinonSandbox.stub(
 					connectRewired.__get__('wampClient'),
 					'upgradeToWAMP'
 				);
-				done();
 			});
-			beforeEach(done => {
+			beforeEach(async () => {
 				const upgradeSocketAsWAMPClient = connectRewired.__get__(
 					'connectSteps.upgradeSocketAsWAMPClient'
 				);
 				validPeer.socket = validSocket;
 				peerAsResult = upgradeSocketAsWAMPClient(validPeer);
-				done();
 			});
-			afterEach(done => {
+			afterEach(async () => {
 				upgradeToWAMPSpy.resetHistory();
-				done();
 			});
-			after(done => {
+			after(async () => {
 				upgradeToWAMPSpy.restore();
-				done();
 			});
 
 			it('should call scClient.connect', async () =>
@@ -320,20 +314,18 @@ describe('connect', () => {
 		describe('registerRPC', () => {
 			let validRPCSocket;
 
-			before(done => {
+			before(async () => {
 				validRPCSocket = {
-					call: sinon.stub(),
-					emit: sinon.stub(),
+					call: sinonSandbox.stub(),
+					emit: sinonSandbox.stub(),
 				};
-				done();
 			});
-			beforeEach(done => {
+			beforeEach(async () => {
 				const registerRPC = connectRewired.__get__('connectSteps.registerRPC');
 				validRPCSocket.call.resetHistory();
 				validRPCSocket.emit.resetHistory();
 				validPeer.socket = validRPCSocket;
 				peerAsResult = registerRPC(validPeer, loggerMock, masterWAMPServerMock);
-				done();
 			});
 
 			describe('when wsRPC.getServer returns servers with event and rpc methods', () => {
@@ -356,10 +348,9 @@ describe('connect', () => {
 					let validRPCArgument;
 					let validRPCCallback;
 					const validRPCResult = 'valid rpc result';
-					before(done => {
+					before(async () => {
 						validRPCArgument = 'valid string argument';
-						validRPCCallback = sinon.stub();
-						done();
+						validRPCCallback = sinonSandbox.stub();
 					});
 					beforeEach(beforeEachCb => {
 						peerAsResult.socket.call.resolves(validRPCResult);
@@ -390,14 +381,12 @@ describe('connect', () => {
 
 					describe('when RPC method is called without an argument', () => {
 						let originalValidRPCArgument;
-						before(done => {
+						before(async () => {
 							originalValidRPCArgument = validRPCArgument;
 							validRPCArgument = null;
-							done();
 						});
-						after(done => {
+						after(async () => {
 							validRPCArgument = originalValidRPCArgument;
-							done();
 						});
 						it('should call peer.socket.call with [validRPCProcedureName] and {}', async () =>
 							expect(peerAsResult.socket.call).calledWith(
@@ -451,21 +440,19 @@ describe('connect', () => {
 
 		describe('registerSocketListeners', () => {
 			let validSocket;
-			before(done => {
+			before(async () => {
 				validSocket = {
-					off: sinon.stub(),
-					on: sinon.stub(),
+					off: sinonSandbox.stub(),
+					on: sinonSandbox.stub(),
 				};
-				done();
 			});
-			beforeEach(done => {
+			beforeEach(async () => {
 				validSocket.on.resetHistory();
 				const registerSocketListeners = connectRewired.__get__(
 					'connectSteps.registerSocketListeners'
 				);
 				validPeer.socket = validSocket;
 				peerAsResult = registerSocketListeners(validPeer, loggerMock);
-				done();
 			});
 
 			it('should call peer.socket.on with "connectAbort"', async () =>
