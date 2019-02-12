@@ -13,12 +13,16 @@
  *
  */
 import * as BigNum from 'browserify-bignum';
-import { IN_TRANSFER_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import { TransactionJSON } from '../transaction_types';
-import { convertBeddowsToLSK } from '../utils';
-import { validator } from '../utils/validation';
-import { BaseTransaction, StateStore, StateStorePrepare } from './base';
+import {
+	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
+} from './base_transaction';
+import { IN_TRANSFER_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionJSON } from './transaction_types';
+import { convertBeddowsToLSK } from './utils';
+import { validator } from './utils/validation';
 
 const TRANSACTION_DAPP_TYPE = 5;
 const TRANSACTION_INTRANSFER_TYPE = 6;

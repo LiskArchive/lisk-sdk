@@ -14,19 +14,16 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
-import { VOTE_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import { TransactionJSON } from '../transaction_types';
-import { CreateBaseTransactionInput } from '../utils';
-import {
-	validateAddress,
-	validator,
-} from '../utils/validation';
 import {
 	BaseTransaction,
 	StateStore,
-	StateStorePrepare
-} from './base';
+	StateStorePrepare,
+} from './base_transaction';
+import { VOTE_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionJSON } from './transaction_types';
+import { CreateBaseTransactionInput } from './utils';
+import { validateAddress, validator } from './utils/validation';
 
 const PREFIX_UPVOTE = '+';
 const PREFIX_UNVOTE = '-';
@@ -77,7 +74,7 @@ export const voteAssetFormatSchema = {
 };
 
 export class VoteTransaction extends BaseTransaction {
-	public readonly containsUniqueData = true;
+	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
 
 	public constructor(tx: TransactionJSON) {
@@ -98,6 +95,7 @@ export class VoteTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as VoteAsset;
 		this._fee = new BigNum(VOTE_FEE);
+		this.containsUniqueData = true;
 	}
 
 	protected getAssetBytes(): Buffer {

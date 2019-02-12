@@ -337,34 +337,39 @@ export class PeerPool extends EventEmitter {
 		// TODO later: Remove fields that are specific to the current Lisk protocol.
 		const protocolPeerInfoList: ProtocolPeerInfoList = {
 			success: true,
+			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
 			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
-			.map(
-				(peer: Peer): ProtocolPeerInfo | undefined => {
-					const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined = peer.detailedPeerInfo;
-					if (!peerDetailedInfo) {
-						return undefined;
-					}
-					
-					return {
-						broadhash: peerDetailedInfo.options
-							? (peerDetailedInfo.options.broadhash as string)
-							: '',
-						height: peerDetailedInfo.height,
-						ip: peerDetailedInfo.ipAddress,
-						nonce: peerDetailedInfo.options
-							? (peerDetailedInfo.options.nonce as string)
-							: '',
-						os: peerDetailedInfo.os,
-						version: peerDetailedInfo.version,
-						wsPort: peerDetailedInfo.wsPort,
-					};
-				},
-			)
-			.filter((peerDetailedInfo: ProtocolPeerInfo | undefined) => !!peerDetailedInfo)
-			.map(
-				(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
-					peerDetailedInfo as ProtocolPeerInfo
-			),
+				.map(
+					(peer: Peer): ProtocolPeerInfo | undefined => {
+						const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined =
+							peer.detailedPeerInfo;
+						if (!peerDetailedInfo) {
+							return undefined;
+						}
+
+						return {
+							broadhash: peerDetailedInfo.options
+								? (peerDetailedInfo.options.broadhash as string)
+								: '',
+							height: peerDetailedInfo.height,
+							ip: peerDetailedInfo.ipAddress,
+							nonce: peerDetailedInfo.options
+								? (peerDetailedInfo.options.nonce as string)
+								: '',
+							os: peerDetailedInfo.os,
+							version: peerDetailedInfo.version,
+							wsPort: peerDetailedInfo.wsPort,
+						};
+					},
+				)
+				.filter(
+					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
+						!!peerDetailedInfo,
+				)
+				.map(
+					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
+						peerDetailedInfo as ProtocolPeerInfo,
+				),
 		};
 
 		request.end(protocolPeerInfoList);

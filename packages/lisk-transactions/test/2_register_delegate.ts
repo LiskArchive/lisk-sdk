@@ -14,9 +14,9 @@
  */
 import { expect } from 'chai';
 import { registerDelegate } from '../src/2_register_delegate';
-import { DelegateAsset, TransactionJSON } from '../src/transaction_types';
-// Require is used for stubbing
-import * as utils from '../src/utils';
+import { DelegateAsset } from '../src/2_delegate_transaction';
+import { TransactionJSON } from '../src/transaction_types';
+import * as time from '../src/utils/time';
 
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -35,7 +35,7 @@ describe('#registerDelegate transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		return Promise.resolve();
 	});
@@ -174,7 +174,7 @@ describe('#registerDelegate transaction', () => {
 			});
 
 			it('should throw error when username was not provided', () => {
-				return expect(registerDelegate.bind(null, {})).to.throw(
+				return expect(registerDelegate.bind(null, {} as any)).to.throw(
 					'Please provide a username. Expected string.',
 				);
 			});

@@ -13,12 +13,11 @@
  *
  */
 import { expect } from 'chai';
-import { MockStateStore as store } from '../helpers';
-import {
-	OutTransferTransaction,
-} from '../../src/transactions';
-import { validOutTransferTransactions } from '../../fixtures';
-import { Status, TransactionJSON } from '../../src/transaction_types';
+import { MockStateStore as store } from './helpers';
+import { OutTransferTransaction } from '../src/7_out_transfer_transaction';
+import { validOutTransferTransactions } from '../fixtures';
+import { TransactionJSON } from '../src/transaction_types';
+import { Status } from '../src/response';
 
 describe('outTransfer transaction class', () => {
 	const defaultTransaction = validOutTransferTransactions[0];
@@ -33,7 +32,7 @@ describe('outTransfer transaction class', () => {
 
 	beforeEach(async () => {
 		validTestTransaction = new OutTransferTransaction(defaultTransaction);
-		store.account.get = () => defaultValidSender;		
+		store.account.get = () => defaultValidSender;
 	});
 
 	describe('#constructor', () => {
@@ -138,7 +137,7 @@ describe('outTransfer transaction class', () => {
 	describe('#validateAsset', () => {
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).validateAsset();
-			expect(errors).to.be.empty;		
+			expect(errors).to.be.empty;
 		});
 
 		it('should return error when asset includes non id format dappId', async () => {
@@ -170,7 +169,7 @@ describe('outTransfer transaction class', () => {
 				},
 			};
 			const transaction = new OutTransferTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset()
+			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.equal('.outTransfer.transactionId');
 		});

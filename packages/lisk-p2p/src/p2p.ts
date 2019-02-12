@@ -33,7 +33,7 @@ import {
 	INVALID_CONNECTION_URL_REASON,
 } from './disconnect_status_codes';
 
-import { PeerInboundHandshakeError } from './errors'
+import { PeerInboundHandshakeError } from './errors';
 
 import {
 	P2PConfig,
@@ -245,13 +245,14 @@ export class P2P extends EventEmitter {
 						INVALID_CONNECTION_QUERY_CODE,
 						INVALID_CONNECTION_QUERY_REASON,
 					);
-					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER,
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
 						new PeerInboundHandshakeError(
 							INVALID_CONNECTION_QUERY_REASON,
 							INVALID_CONNECTION_QUERY_CODE,
 							socket.remoteAddress,
 							socket.request.url,
-						),	
+						),
 					);
 
 					return;
@@ -262,13 +263,14 @@ export class P2P extends EventEmitter {
 						INCOMPATIBLE_NETWORK_CODE,
 						INCOMPATIBLE_NETWORK_REASON,
 					);
-					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER,
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
 						new PeerInboundHandshakeError(
 							INCOMPATIBLE_NETWORK_REASON,
 							INCOMPATIBLE_NETWORK_CODE,
 							socket.remoteAddress,
 							socket.request.url,
-						),	
+						),
 					);
 
 					return;
@@ -283,8 +285,10 @@ export class P2P extends EventEmitter {
 					height: queryObject.height ? +queryObject.height : 0,
 					isDiscoveredPeer: true,
 					version: queryObject.version,
-					options: typeof queryObject.options === 'string' ?
-						JSON.parse(queryObject.options) : undefined,
+					options:
+						typeof queryObject.options === 'string'
+							? JSON.parse(queryObject.options)
+							: undefined,
 				};
 
 				const isNewPeer = this._peerPool.addInboundPeer(
@@ -397,7 +401,10 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
 		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
-		peerPool.on(EVENT_FAILED_TO_PUSH_NODE_INFO, this._handleFailedToPushNodeInfo);
+		peerPool.on(
+			EVENT_FAILED_TO_PUSH_NODE_INFO,
+			this._handleFailedToPushNodeInfo,
+		);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
 	}

@@ -13,16 +13,14 @@
  *
  */
 import { expect } from 'chai';
-import { MockStateStore as store } from '../helpers';
-import {
-	DelegateTransaction,
-} from '../../src/transactions';
+import { MockStateStore as store } from './helpers';
+import { DelegateTransaction } from '../src/2_delegate_transaction';
 import {
 	validDelegateAccount,
 	validDelegateTransaction,
 	validTransaction,
-} from '../../fixtures';
-import { Account, TransactionJSON } from '../../src/transaction_types';
+} from '../fixtures';
+import { Account, TransactionJSON } from '../src/transaction_types';
 
 describe('Delegate registration transaction class', () => {
 	let validTestTransaction: DelegateTransaction;
@@ -168,7 +166,7 @@ describe('Delegate registration transaction class', () => {
 			store.account.get = () => {
 				return {
 					...sender,
-					username: 'genesis_10'
+					username: 'genesis_10',
 				};
 			};
 			const errors = (validTestTransaction as any).applyAsset(store);
@@ -189,9 +187,9 @@ describe('Delegate registration transaction class', () => {
 			store.account.get = () => {
 				return {
 					...sender,
-					username: 'genesis_10'
+					username: 'genesis_10',
 				};
-			};			
+			};
 			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
 		});

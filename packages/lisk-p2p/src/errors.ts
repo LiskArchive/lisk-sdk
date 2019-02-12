@@ -20,7 +20,12 @@ export class PeerInboundHandshakeError extends VError {
 	public remoteAddress: string;
 	public handshakeURL?: string;
 
-	public constructor(message: string, statusCode: number, remoteAddress: string, handshakeURL?: string) {
+	public constructor(
+		message: string,
+		statusCode: number,
+		remoteAddress: string,
+		handshakeURL?: string,
+	) {
 		super(message);
 		this.name = 'PeerInboundHandshakeError';
 		this.statusCode = statusCode;

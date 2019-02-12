@@ -14,18 +14,13 @@
  */
 import * as BigNum from 'browserify-bignum';
 import { expect } from 'chai';
-import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../../src/constants';
-import { TransferTransaction } from '../../src/transactions';
-import { Account, Status } from '../../src/transaction_types';
-import { TransactionError } from '../../src/errors';
-import {
-	addTransactionFields,
-	MockStateStore as store,
-} from '../helpers';
-import {
-	validTransferAccount,
-	validTransferTransactions,
-} from '../../fixtures';
+import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../src/constants';
+import { TransferTransaction } from '../src/0_transfer_transaction';
+import { Account } from '../src/transaction_types';
+import { Status } from '../src/response';
+import { TransactionError } from '../src/errors';
+import { addTransactionFields, MockStateStore as store } from './helpers';
+import { validTransferAccount, validTransferTransactions } from '../fixtures';
 
 describe('Transfer transaction class', () => {
 	const validTransferTransaction = addTransactionFields(
@@ -205,10 +200,7 @@ describe('Transfer transaction class', () => {
 				};
 			};
 			const errors = (validTransferTestTransaction as any).undoAsset(store);
-			expect(errors[0]).and.to.have.property(
-				'message',
-				'Invalid amount',
-			);
+			expect(errors[0]).and.to.have.property('message', 'Invalid amount');
 		});
 	});
 });

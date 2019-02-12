@@ -14,8 +14,7 @@
  */
 
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-
-import { getTimeWithOffset } from './';
+import { getTimeWithOffset } from './time';
 
 export interface CreateBaseTransactionInput {
 	readonly passphrase?: string;

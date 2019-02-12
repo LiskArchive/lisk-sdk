@@ -14,9 +14,9 @@
  */
 import { expect } from 'chai';
 import { castVotes } from '../src/3_cast_votes';
-import { TransactionJSON, VoteAsset } from '../src/transaction_types';
-// Require is used for stubbing
-import * as utils from '../src/utils';
+import { VoteAsset } from '../src/3_vote_transaction';
+import { TransactionJSON } from '../src/transaction_types';
+import * as time from '../src/utils/time';
 
 describe('#castVotes transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -47,7 +47,7 @@ describe('#castVotes transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		return Promise.resolve();
 	});

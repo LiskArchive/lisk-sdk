@@ -15,9 +15,9 @@
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/4_register_multisignature_account';
-import { MultiSignatureAsset, TransactionJSON } from '../src/transaction_types';
-// Require is used for stubbing
-import * as utils from '../src/utils';
+import { MultiSignatureAsset } from '../src/4_multisignature_transaction';
+import { TransactionJSON } from '../src/transaction_types';
+import * as time from '../src/utils/time';
 
 describe('#registerMultisignature transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -44,7 +44,7 @@ describe('#registerMultisignature transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		keysgroup = [
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -333,7 +333,7 @@ describe('#registerMultisignature transaction', () => {
 						return expect(
 							registerMultisignature.bind(null, {
 								keysgroup,
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 
@@ -342,7 +342,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: 23.45,
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 
@@ -351,7 +351,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: '123',
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 
@@ -360,7 +360,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: 73,
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 
@@ -369,7 +369,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: -1,
-							}),
+							} as any),
 						).to.throw(lifetimeErrorMessage);
 					});
 				});
@@ -384,7 +384,7 @@ describe('#registerMultisignature transaction', () => {
 						registerMultisignature.bind(null, {
 							keysgroup,
 							lifetime,
-						}),
+						} as any),
 					).to.throw(minimumErrorMessage);
 				});
 
@@ -404,7 +404,7 @@ describe('#registerMultisignature transaction', () => {
 							keysgroup,
 							lifetime,
 							minimum: '12',
-						}),
+						} as any),
 					).to.throw(minimumErrorMessage);
 				});
 

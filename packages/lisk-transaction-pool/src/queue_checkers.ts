@@ -19,6 +19,7 @@ export const returnTrueUntilLimit = (
 	// tslint:disable-next-line:no-let
 	let current = 0;
 
+	// tslint:disable-next-line:increment-decrement
 	return _ => current++ < limit;
 };
 
@@ -54,7 +55,7 @@ export const checkTransactionForSenderIdWithRecipientIds = (
 	transactions: ReadonlyArray<Transaction>,
 ): ((transaction: Transaction) => boolean) => {
 	const recipientProperty: TransactionFilterableKeys = 'recipientId';
-	const senderId: TransactionFilterableKeys = 'senderId'
+	const senderId: TransactionFilterableKeys = 'senderId';
 	const recipients = transactions.map(
 		transaction => transaction[recipientProperty],
 	);

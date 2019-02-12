@@ -13,12 +13,16 @@
  *
  */
 import * as BigNum from 'browserify-bignum';
-import { MAX_TRANSACTION_AMOUNT, OUT_TRANSFER_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import { TransactionJSON } from '../transaction_types';
-import { convertBeddowsToLSK } from '../utils';
-import { validator } from '../utils/validation';
-import { BaseTransaction, StateStore, StateStorePrepare } from './base';
+import {
+	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
+} from './base_transaction';
+import { MAX_TRANSACTION_AMOUNT, OUT_TRANSFER_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionJSON } from './transaction_types';
+import { convertBeddowsToLSK } from './utils';
+import { validator } from './utils/validation';
 
 const TRANSACTION_OUTTRANSFER_TYPE = 7;
 
@@ -71,7 +75,7 @@ export const outTransferAssetFormatSchema = {
 
 export class OutTransferTransaction extends BaseTransaction {
 	public readonly asset: OutTransferAsset;
-	public readonly containsUniqueData = true;
+	public readonly containsUniqueData: boolean;
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
@@ -91,6 +95,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		}
 		this.asset = tx.asset as OutTransferAsset;
 		this._fee = new BigNum(OUT_TRANSFER_FEE);
+		this.containsUniqueData = true;
 	}
 
 	public async prepareTransaction(store: StateStorePrepare): Promise<void> {
@@ -131,7 +136,7 @@ export class OutTransferTransaction extends BaseTransaction {
 				tx.type === this.type &&
 				'outTransfer' in tx.asset &&
 				this.asset.outTransfer.transactionId ===
-					tx.asset.outTransfer.transactionId,
+					(tx.asset as OutTransferAsset).outTransfer.transactionId,
 		);
 
 		return sameTypeTransactions.length > 0

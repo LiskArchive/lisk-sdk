@@ -56,6 +56,7 @@ export const signDetached: NaclInterface['signDetached'] = (
 ) => Buffer.from(tweetnacl.sign.detached(messageBytes, privateKeyBytes));
 
 export const verifyDetached: NaclInterface['verifyDetached'] =
+	// tslint:disable-next-line no-unbound-method
 	tweetnacl.sign.detached.verify;
 
 export const getRandomBytes: NaclInterface['getRandomBytes'] = length =>

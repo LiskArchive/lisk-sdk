@@ -14,11 +14,9 @@
  */
 import { expect } from 'chai';
 import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
-import {
-	SecondSignatureAsset,
-	TransactionJSON,
-} from '../src/transaction_types';
-import * as utils from '../src/utils';
+import { SecondSignatureAsset } from '../src/1_second_signature_transaction';
+import { TransactionJSON } from '../src/transaction_types';
+import * as time from '../src/utils/time';
 
 describe('#registerSecondPassphrase transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -41,7 +39,7 @@ describe('#registerSecondPassphrase transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		registerSecondPassphraseTransaction = registerSecondPassphrase({
 			passphrase,
@@ -186,7 +184,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			});
 
 			it('should throw error when secondPassphrase was not provided', () => {
-				return expect(registerSecondPassphrase.bind(null, {})).to.throw(
+				return expect(registerSecondPassphrase.bind(null, {} as any)).to.throw(
 					'Please provide a secondPassphrase. Expected string.',
 				);
 			});

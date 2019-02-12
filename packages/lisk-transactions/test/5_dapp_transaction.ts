@@ -13,13 +13,12 @@
  *
  */
 import { expect } from 'chai';
-import { MockStateStore as store } from '../helpers';
-import {
-	DappTransaction,
-} from '../../src/transactions';
-import { validDappTransactions, validVoteTransactions } from '../../fixtures';
-import { Status, TransactionJSON } from '../../src/transaction_types';
-import * as utils from '../../src/utils';
+import { MockStateStore as store } from './helpers';
+import { DappTransaction } from '../src/5_dapp_transaction';
+import { validDappTransactions, validVoteTransactions } from '../fixtures';
+import { TransactionJSON } from '../src/transaction_types';
+import { Status } from '../src/response';
+import * as utils from '../src/utils';
 
 describe('Dapp transaction class', () => {
 	const defaultValidDappTransaction = validDappTransactions[0];

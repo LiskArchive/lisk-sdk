@@ -15,11 +15,15 @@
 
 import * as BigNum from 'browserify-bignum';
 
-import { MULTISIGNATURE_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import { MultiSignatureAsset, TransactionJSON } from '../transaction_types';
-import { CreateBaseTransactionInput, validator } from '../utils';
-import { BaseTransaction, StateStore, StateStorePrepare } from './base';
+import {
+	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
+} from './base_transaction';
+import { MULTISIGNATURE_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionJSON } from './transaction_types';
+import { validator } from './utils';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
 
@@ -81,14 +85,13 @@ export const multisignatureAssetFormatSchema = {
 	},
 };
 
-export interface CreateMultisignatureInput {
-	readonly keysgroup: ReadonlyArray<string>;
-	readonly lifetime: number;
-	readonly min: number;
+export interface MultiSignatureAsset {
+	readonly multisignature: {
+		readonly keysgroup: ReadonlyArray<string>;
+		readonly lifetime: number;
+		readonly min: number;
+	};
 }
-
-export type RegisterMultisignatureInput = CreateBaseTransactionInput &
-	CreateMultisignatureInput;
 
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;

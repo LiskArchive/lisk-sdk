@@ -101,7 +101,7 @@ describe('API resource module', () => {
 			requestStub = sandbox.stub(axios, 'request').resolves({
 				status: 200,
 				data: sendRequestResult,
-			});
+			} as any);
 			handleRetryStub = sandbox.stub(resource, 'handleRetry');
 			return Promise.resolve();
 		});
@@ -253,7 +253,7 @@ describe('API resource module', () => {
 			defaultError = new Error('could not connect to a node');
 			requestStub = sandbox
 				.stub(resource, 'request')
-				.returns(Promise.resolve(sendRequestResult.body));
+				.returns(Promise.resolve(sendRequestResult.body) as any);
 			return Promise.resolve();
 		});
 

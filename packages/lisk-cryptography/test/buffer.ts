@@ -38,21 +38,21 @@ describe('buffer', () => {
 		});
 
 		it('should throw TypeError with number', () => {
-			return expect(hexToBuffer.bind(null, 123)).to.throw(
+			return expect(hexToBuffer.bind(null, 123 as any)).to.throw(
 				TypeError,
 				'Argument must be a string.',
 			);
 		});
 
 		it('should throw TypeError with object', () => {
-			return expect(hexToBuffer.bind(null, {})).to.throw(
+			return expect(hexToBuffer.bind(null, {} as any)).to.throw(
 				TypeError,
 				'Argument must be a string.',
 			);
 		});
 
 		it('should throw an error for a non-string input with custom argument name', () => {
-			return expect(hexToBuffer.bind(null, {}, 'Custom')).to.throw(
+			return expect(hexToBuffer.bind(null, {} as any, 'Custom')).to.throw(
 				'Custom must be a string.',
 			);
 		});

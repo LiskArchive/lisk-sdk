@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/0_transfer';
-import * as utils from '../src/utils';
+import * as time from '../src/utils/time';
 import { TransactionJSON } from '../src/transaction_types';
 
 describe('#transfer transaction', () => {
@@ -40,7 +40,7 @@ describe('#transfer transaction', () => {
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
-			.stub(utils, 'getTimeWithOffset')
+			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		return Promise.resolve();
 	});
@@ -160,7 +160,7 @@ describe('#transfer transaction', () => {
 						recipientId,
 						amount,
 						passphrase,
-						data: Buffer.from('hello'),
+						data: Buffer.from('hello') as any,
 					}),
 				).to.throw(
 					'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
@@ -265,7 +265,7 @@ describe('#transfer transaction', () => {
 					transfer.bind(null, {
 						amount,
 						passphrase,
-						data: Buffer.from('hello'),
+						data: Buffer.from('hello') as any,
 					}),
 				).to.throw(
 					'Either recipientId or recipientPublicKey must be provided.',

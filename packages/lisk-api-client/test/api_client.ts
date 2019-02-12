@@ -159,10 +159,9 @@ describe('APIClient module', () => {
 		});
 
 		it('should throw an error if first argument passed to constructor is not array', () => {
-			return expect(apiClient.initialize.bind(apiClient, 'non-array')).to.throw(
-				Error,
-				'APIClient requires nodes for initialization.',
-			);
+			return expect(
+				apiClient.initialize.bind(apiClient, 'non-array' as any),
+			).to.throw(Error, 'APIClient requires nodes for initialization.');
 		});
 
 		it('should throw an error if first argument passed to constructor is empty array', () => {
@@ -174,7 +173,11 @@ describe('APIClient module', () => {
 
 		it('should throw an error if second argument passed to constructor is a string', () => {
 			return expect(
-				apiClient.initialize.bind(apiClient, defaultNodes, 'option string'),
+				apiClient.initialize.bind(
+					apiClient,
+					defaultNodes,
+					'option string' as any,
+				),
 			).to.throw(
 				Error,
 				'APIClient takes an optional object as the second parameter.',
@@ -183,7 +186,7 @@ describe('APIClient module', () => {
 
 		it('should throw an error if second argument passed to constructor is an array', () => {
 			return expect(
-				apiClient.initialize.bind(apiClient, defaultNodes, []),
+				apiClient.initialize.bind(apiClient, defaultNodes, [] as any),
 			).to.throw(
 				Error,
 				'APIClient takes an optional object as the second parameter.',

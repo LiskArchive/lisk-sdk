@@ -12,40 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
-import { SIGNATURE_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	SecondSignatureAsset,
-	TransactionJSON,
-} from '../transaction_types';
-import { getId, validator } from '../utils';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
-} from './base';
+} from './base_transaction';
+import { DELEGATE_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { Account, TransactionJSON } from './transaction_types';
+import { CreateBaseTransactionInput, validator } from './utils';
 
-const TRANSACTION_SIGNATURE_TYPE = 1;
+const TRANSACTION_DELEGATE_TYPE = 2;
 
-export interface SignatureObject {
-	readonly publicKey: string;
+export interface DelegateAsset {
+	readonly delegate: {
+		readonly username: string;
+	};
 }
 
-export interface SecondSignatureAsset {
-	readonly signature: SignatureObject;
-}
-
-export const secondSignatureAssetTypeSchema = {
+export const delegateAssetTypeSchema = {
 	type: 'object',
-	required: ['signature'],
+	required: ['delegate'],
 	properties: {
-		signature: {
+		delegate: {
 			type: 'object',
-			required: ['publicKey'],
+			required: ['username'],
 			properties: {
-				publicKey: {
+				username: {
 					type: 'string',
 				},
 			},
@@ -53,31 +47,39 @@ export const secondSignatureAssetTypeSchema = {
 	},
 };
 
-export const secondSignatureAssetFormatSchema = {
+export const delegateAssetFormatSchema = {
 	type: 'object',
-	required: ['signature'],
+	required: ['delegate'],
 	properties: {
-		signature: {
+		delegate: {
 			type: 'object',
-			required: ['publicKey'],
+			required: ['username'],
 			properties: {
-				publicKey: {
+				username: {
 					type: 'string',
-					format: 'publicKey',
+					minLength: 1,
+					maxLength: 20,
+					format: 'username',
 				},
 			},
 		},
 	},
 };
 
-export class SecondSignatureTransaction extends BaseTransaction {
-	public readonly asset: SecondSignatureAsset;
+export interface CreateDelegateRegistrationInput {
+	readonly username: string;
+}
+
+export type RegisterDelegateInput = CreateBaseTransactionInput &
+	CreateDelegateRegistrationInput;
+
+export class DelegateTransaction extends BaseTransaction {
+	public readonly asset: DelegateAsset;
+	public readonly containsUniqueData: boolean;
+
 	public constructor(tx: TransactionJSON) {
 		super(tx);
-		const typeValid = validator.validate(
-			secondSignatureAssetTypeSchema,
-			tx.asset,
-		);
+		const typeValid = validator.validate(delegateAssetTypeSchema, tx.asset);
 		const errors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -89,21 +91,24 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			  )
 			: [];
 		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, errors);
+			throw new TransactionMultiError('Invalid field types', tx.id, [
+				...errors,
+			]);
 		}
-		this.asset = tx.asset as SecondSignatureAsset;
-		this._fee = new BigNum(SIGNATURE_FEE);
+		this.asset = tx.asset as DelegateAsset;
+		this._fee = new BigNum(DELEGATE_FEE);
+		this.containsUniqueData = true;
 	}
 
 	protected getAssetBytes(): Buffer {
 		const {
-			signature: { publicKey },
+			delegate: { username },
 		} = this.asset;
 
-		return hexToBuffer(publicKey);
+		return Buffer.from(username, 'utf8');
 	}
 
-	public assetToJSON(): object {
+	public assetToJSON(): DelegateAsset {
 		return {
 			...this.asset,
 		};
@@ -113,6 +118,9 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		await store.account.cache([
 			{
 				address: this.senderId,
+			},
+			{
+				username: this.asset.delegate.username,
 			},
 		]);
 	}
@@ -128,15 +136,15 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			.map(
 				tx =>
 					new TransactionError(
-						'Register second signature only allowed once per account.',
+						'Register delegate only allowed once per account.',
 						tx.id,
-						'.asset.signature',
+						'.asset.delegate',
 					),
 			);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(secondSignatureAssetFormatSchema, this.asset);
+		validator.validate(delegateAssetFormatSchema, this.asset);
 		const errors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -148,26 +156,16 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			  )
 			: [];
 
-		if (this.type !== TRANSACTION_SIGNATURE_TYPE) {
+		if (this.type !== TRANSACTION_DELEGATE_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
 		}
 
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
-					'Amount must be zero for second signature registration transaction',
+					'Amount must be zero for delegate registration transaction',
 					this.id,
 					'.amount',
-				),
-			);
-		}
-
-		if (!this.fee.eq(SIGNATURE_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${SIGNATURE_FEE}`,
-					this.id,
-					'.fee',
 				),
 			);
 		}
@@ -194,19 +192,32 @@ export class SecondSignatureTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-		// Check if secondPublicKey already exists on account
-		if (sender.secondPublicKey) {
+		const usernameExists = store.account.find(
+			(account: Account) => account.username === this.asset.delegate.username,
+		);
+
+		if (usernameExists) {
 			errors.push(
 				new TransactionError(
-					'Register second signature only allowed once per account.',
+					`Username is not unique.`,
 					this.id,
-					'.secondPublicKey',
+					'.asset.delegate.username',
+				),
+			);
+		}
+		if (sender.isDelegate || sender.username) {
+			errors.push(
+				new TransactionError(
+					'Account is already a delegate',
+					this.id,
+					'.asset.delegate.username',
 				),
 			);
 		}
 		const updatedSender = {
 			...sender,
-			secondPublicKey: this.asset.signature.publicKey,
+			isDelegate: true,
+			username: this.asset.delegate.username,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -215,16 +226,9 @@ export class SecondSignatureTransaction extends BaseTransaction {
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const sender = store.account.get(this.senderId);
-		const { secondPublicKey, ...strippedSender } = sender;
+		const { username, ...strippedSender } = sender;
 		store.account.set(strippedSender.address, strippedSender);
 
 		return [];
-	}
-
-	public sign(passphrase: string): void {
-		this._signature = undefined;
-		this._signSignature = undefined;
-		this._signature = signData(hash(this.getBytes()), passphrase);
-		this._id = getId(this.getBytes());
 	}
 }

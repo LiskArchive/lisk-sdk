@@ -12,21 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import * as transactions from '../../src/transactions';
+import { TransactionError } from './errors';
 
-describe('transactions', () => {
-	describe('exports', () => {
-		it('should have BaseTransaction', () => {
-			return expect(transactions)
-				.to.have.property('BaseTransaction')
-				.and.be.a('function');
-		});
+export enum Status {
+	FAIL = 0,
+	OK = 1,
+	PENDING = 2,
+}
 
-		it('should have TransferTransaction', () => {
-			return expect(transactions)
-				.to.have.property('TransferTransaction')
-				.and.be.a('function');
-        });
-    });
+export interface TransactionResponse {
+	readonly id: string;
+	readonly status: Status;
+	readonly errors: ReadonlyArray<TransactionError>;
+}
+
+export const createResponse = (
+	id: string,
+	errors?: ReadonlyArray<TransactionError>,
+) => ({
+	id,
+	status: errors && errors.length > 0 ? Status.FAIL : Status.OK,
+	errors: errors ? errors : [],
 });

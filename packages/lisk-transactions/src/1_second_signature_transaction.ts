@@ -12,48 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
-import { DELEGATE_FEE } from '../constants';
-import { TransactionError, TransactionMultiError } from '../errors';
-import {
-	Account,
-	DelegateAsset,
-	TransactionJSON,
-} from '../transaction_types';
-import { CreateBaseTransactionInput, validator } from '../utils';
 import {
 	BaseTransaction,
-	ENTITY_ACCOUNT,
 	StateStore,
 	StateStorePrepare,
-} from './base';
+} from './base_transaction';
+import { SIGNATURE_FEE } from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionJSON } from './transaction_types';
+import { getId, validator } from './utils';
 
-const TRANSACTION_DELEGATE_TYPE = 2;
+const TRANSACTION_SIGNATURE_TYPE = 1;
 
-export interface RequiredDelegateState {
-	readonly sender: Account;
-	readonly dependentState?: {
-		readonly [ENTITY_ACCOUNT]: ReadonlyArray<Account>;
+export interface SecondSignatureAsset {
+	readonly signature: {
+		readonly publicKey: string;
 	};
 }
 
-export interface DelegateObject {
-	readonly username: string;
-}
-
-export interface DelegateAsset {
-	readonly delegate: DelegateObject;
-}
-
-export const delegateAssetTypeSchema = {
+export const secondSignatureAssetTypeSchema = {
 	type: 'object',
-	required: ['delegate'],
+	required: ['signature'],
 	properties: {
-		delegate: {
+		signature: {
 			type: 'object',
-			required: ['username'],
+			required: ['publicKey'],
 			properties: {
-				username: {
+				publicKey: {
 					type: 'string',
 				},
 			},
@@ -61,39 +48,31 @@ export const delegateAssetTypeSchema = {
 	},
 };
 
-export const delegateAssetFormatSchema = {
+export const secondSignatureAssetFormatSchema = {
 	type: 'object',
-	required: ['delegate'],
+	required: ['signature'],
 	properties: {
-		delegate: {
+		signature: {
 			type: 'object',
-			required: ['username'],
+			required: ['publicKey'],
 			properties: {
-				username: {
+				publicKey: {
 					type: 'string',
-					minLength: 1,
-					maxLength: 20,
-					format: 'username',
+					format: 'publicKey',
 				},
 			},
 		},
 	},
 };
 
-export interface CreateDelegateRegistrationInput {
-	readonly username: string;
-}
-
-export type RegisterDelegateInput = CreateBaseTransactionInput &
-	CreateDelegateRegistrationInput;
-
-export class DelegateTransaction extends BaseTransaction {
-	public readonly asset: DelegateAsset;
-	public readonly containsUniqueData = true;
-
+export class SecondSignatureTransaction extends BaseTransaction {
+	public readonly asset: SecondSignatureAsset;
 	public constructor(tx: TransactionJSON) {
 		super(tx);
-		const typeValid = validator.validate(delegateAssetTypeSchema, tx.asset);
+		const typeValid = validator.validate(
+			secondSignatureAssetTypeSchema,
+			tx.asset,
+		);
 		const errors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -105,23 +84,21 @@ export class DelegateTransaction extends BaseTransaction {
 			  )
 			: [];
 		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, [
-				...errors,
-			]);
+			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
-		this.asset = tx.asset as DelegateAsset;
-		this._fee = new BigNum(DELEGATE_FEE);
+		this.asset = tx.asset as SecondSignatureAsset;
+		this._fee = new BigNum(SIGNATURE_FEE);
 	}
 
 	protected getAssetBytes(): Buffer {
 		const {
-			delegate: { username },
+			signature: { publicKey },
 		} = this.asset;
 
-		return Buffer.from(username, 'utf8');
+		return hexToBuffer(publicKey);
 	}
 
-	public assetToJSON(): DelegateAsset {
+	public assetToJSON(): object {
 		return {
 			...this.asset,
 		};
@@ -131,9 +108,6 @@ export class DelegateTransaction extends BaseTransaction {
 		await store.account.cache([
 			{
 				address: this.senderId,
-			},
-			{
-				username: this.asset.delegate.username,
 			},
 		]);
 	}
@@ -149,15 +123,15 @@ export class DelegateTransaction extends BaseTransaction {
 			.map(
 				tx =>
 					new TransactionError(
-						'Register delegate only allowed once per account.',
+						'Register second signature only allowed once per account.',
 						tx.id,
-						'.asset.delegate',
+						'.asset.signature',
 					),
 			);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(delegateAssetFormatSchema, this.asset);
+		validator.validate(secondSignatureAssetFormatSchema, this.asset);
 		const errors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -169,16 +143,26 @@ export class DelegateTransaction extends BaseTransaction {
 			  )
 			: [];
 
-		if (this.type !== TRANSACTION_DELEGATE_TYPE) {
+		if (this.type !== TRANSACTION_SIGNATURE_TYPE) {
 			errors.push(new TransactionError('Invalid type', this.id, '.type'));
 		}
 
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
-					'Amount must be zero for delegate registration transaction',
+					'Amount must be zero for second signature registration transaction',
 					this.id,
 					'.amount',
+				),
+			);
+		}
+
+		if (!this.fee.eq(SIGNATURE_FEE)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${SIGNATURE_FEE}`,
+					this.id,
+					'.fee',
 				),
 			);
 		}
@@ -205,32 +189,19 @@ export class DelegateTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-		const usernameExists = store.account.find(
-			(account: Account) => account.username === this.asset.delegate.username,
-		);
-
-		if (usernameExists) {
+		// Check if secondPublicKey already exists on account
+		if (sender.secondPublicKey) {
 			errors.push(
 				new TransactionError(
-					`Username is not unique.`,
+					'Register second signature only allowed once per account.',
 					this.id,
-					'.asset.delegate.username',
-				),
-			);
-		}
-		if (sender.isDelegate || sender.username) {
-			errors.push(
-				new TransactionError(
-					'Account is already a delegate',
-					this.id,
-					'.asset.delegate.username',
+					'.secondPublicKey',
 				),
 			);
 		}
 		const updatedSender = {
 			...sender,
-			isDelegate: true,
-			username: this.asset.delegate.username,
+			secondPublicKey: this.asset.signature.publicKey,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -239,9 +210,16 @@ export class DelegateTransaction extends BaseTransaction {
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const sender = store.account.get(this.senderId);
-		const { username, ...strippedSender } = sender;
+		const { secondPublicKey, ...strippedSender } = sender;
 		store.account.set(strippedSender.address, strippedSender);
 
 		return [];
+	}
+
+	public sign(passphrase: string): void {
+		this._signature = undefined;
+		this._signSignature = undefined;
+		this._signature = signData(hash(this.getBytes()), passphrase);
+		this._id = getId(this.getBytes());
 	}
 }
