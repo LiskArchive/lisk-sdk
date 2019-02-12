@@ -22,11 +22,15 @@ export class TransactionError extends VError {
 	}
 
 	public toString(): string {
-		const defaultMessage = `Transaction: ${this.id} failed at ${this.dataPath}: ${
-			this.message
-		}`;
-		const withActial = this.actual ? `${defaultMessage}, actual: ${this.actual}` : defaultMessage;
-		const withExpected = this.expected ? `${withActial}, expected: ${this.expected}` : withActial;
+		const defaultMessage = `Transaction: ${this.id} failed at ${
+			this.dataPath
+		}: ${this.message}`;
+		const withActual = this.actual
+			? `${defaultMessage}, actual: ${this.actual}`
+			: defaultMessage;
+		const withExpected = this.expected
+			? `${withActual}, expected: ${this.expected}`
+			: withActual;
 
 		return withExpected;
 	}
@@ -34,7 +38,6 @@ export class TransactionError extends VError {
 
 export class TransactionMultiError extends TransactionError {
 	public id: string;
-	public dataPath: string;
 	public errors: ReadonlyArray<TransactionError>;
 	public constructor(
 		message: string = '',
@@ -44,14 +47,18 @@ export class TransactionMultiError extends TransactionError {
 		super(message);
 		this.name = 'TransactionMultiError';
 		this.id = id;
-		this.dataPath = errors.map(error => error.dataPath).join(',');
 		this.errors = errors;
 	}
 
 	public toString(): string {
-		return `Transaction: ${this.id} failed at ${this.dataPath}: ${
+		const errMessages = this.errors.reduce(
+			(prev, current) => `${prev}, ${current.toString()}`,
+			'',
+		);
+
+		return `Transaction: ${this.id} failed: ${
 			this.message
-		}`;
+		} with errors ${errMessages}`;
 	}
 }
 
