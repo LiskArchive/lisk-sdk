@@ -21,7 +21,7 @@ docs/jsdoc/
 logs/*
 npm-debug.log
 tmux-client-*.log
-test/network/logs/
+framework/test/network/logs/
 stacktrace*
 
 # IDE directories
@@ -31,12 +31,13 @@ Session.vim
 
 # Config files
 sftp-config.json
-test/network/pm2.network.json
-test/network/configs/
-test/network/networkTestsLogger.logs
+framework/test/network/pm2.network.json
+framework/test/network/configs/
+framework/test/network/networkTestsLogger.logs
 
 # Coverage directory used by tools like istanbul
 test/.coverage-unit/
+framework/test/.coverage-unit/
 
 # Local config file useful for development
 config.local.json
