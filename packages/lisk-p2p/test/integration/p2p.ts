@@ -13,7 +13,7 @@ describe('Integration tests for P2P library', () => {
 
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	describe('Disconnected network: All nodes launch at the same time; each node has an empty seedPeers list', () => {
+	describe('Disconnected network: All nodes launch at the same time. Each node has an empty seedPeers list', () => {
 		beforeEach(async () => {
 			p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
 				return new P2P({
@@ -58,7 +58,7 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Partially connected network: All nodes launch at the same time; the seedPeers list of each node contains the next node in the sequence', () => {
+	describe('Partially connected network: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
@@ -132,7 +132,7 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Partially connected network which becomes fully connected: All nodes launch at the same time; the seedPeers list of each node contains the next node in the sequence. Discovery interval runs multiple times.', () => {
+	describe('Partially connected network which becomes fully connected: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence. Discovery interval runs multiple times.', () => {
 		const DISCOVERY_INTERVAL = 100;
 		
 		beforeEach(async () => {
@@ -201,7 +201,7 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Fully connected network: Nodes are started gradually, one at a time; the seedPeers list of each node contains the previously launched node', () => {
+	describe('Fully connected network: Nodes are started gradually, one at a time. The seedPeers list of each node contains the previously launched node', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
