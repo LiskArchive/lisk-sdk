@@ -13,7 +13,7 @@ describe('Integration tests for P2P library', () => {
 
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	describe('Disconnected network: All nodes launch at the same time; each node has an empty seedPeers list', () => {
+	describe('Disconnected network: All nodes launch at the same time. Each node has an empty seedPeers list', () => {
 		beforeEach(async () => {
 			p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
 				return new P2P({
@@ -58,7 +58,7 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Partially connected network: All nodes launch at the same time; the seedPeers list of each node contains the next node in the sequence', () => {
+	describe('Partially connected network: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
@@ -95,7 +95,7 @@ describe('Integration tests for P2P library', () => {
 				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
-			await wait(500);
+			await wait(100);
 		});
 
 		afterEach(async () => {
@@ -132,7 +132,76 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Fully connected network: Nodes are started gradually, one at a time; the seedPeers list of each node contains the previously launched node', () => {
+	describe('Partially connected network which becomes fully connected: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence. Discovery interval runs multiple times.', () => {
+		const DISCOVERY_INTERVAL = 100;
+		
+		beforeEach(async () => {
+			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
+				// Each node will have the next node in the sequence as a seed peer.
+				const seedPeers = [
+					{
+						ipAddress: '127.0.0.1',
+						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
+						height: 0,
+					},
+				];
+
+				return new P2P({
+					blacklistedPeers: [],
+					connectTimeout: 5000,
+					seedPeers,
+					wsEngine: 'ws',
+					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
+					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
+					nodeInfo: {
+						wsPort: NETWORK_START_PORT + index,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.0',
+						os: platform(),
+						height: 0,
+						options: {
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: 'O2wTkjqplHII5wPv',
+						},
+					},
+				});
+			});
+
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
+			);
+			await Promise.all(peerStartPromises);
+			await wait(100);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList.map(p2p => {
+					return p2p.stop();
+				}),
+			);
+		});
+
+		describe('Peer discovery', () => {
+			it('should discover all peers in the network after a few cycles of discovery', async () => {
+				// Wait for 10 cycles of discovery.
+				await wait(DISCOVERY_INTERVAL * 10);
+
+				p2pNodeList.forEach(p2p => {
+					let {connectedPeers} = p2p.getNetworkStatus();
+
+					const peerPorts = connectedPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const expectedPeerPorts = ALL_NODE_PORTS;
+
+					expect(peerPorts).to.be.eql(expectedPeerPorts);
+				});
+			});
+		});
+	});
+
+	describe('Fully connected network: Nodes are started gradually, one at a time. The seedPeers list of each node contains the previously launched node', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.

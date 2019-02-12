@@ -221,11 +221,23 @@ describe('#verify', () => {
 			sandbox.stub(validator, 'validateMultisignatures').returns(successResult);
 		});
 
-		it('should return NONMULTISIGNATURE status without error if sender is not multi-signature account', async () => {
+		it('should return FAIL status with error if sender is not multi-signature account but signatures are provided', async () => {
 			const { status, errors } = verifyMultiSignatures(
 				defaultId,
 				{} as any,
 				signatures,
+				fakeTransactionBuffer,
+			);
+			expect(status).to.equal(MultisignatureStatus.FAIL);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.equal('.signatures');
+		});
+
+		it('should return NONMULTISIGNATURE status without error if sender is not multi-signature account and signatures are not provided', async () => {
+			const { status, errors } = verifyMultiSignatures(
+				defaultId,
+				{} as any,
+				[],
 				fakeTransactionBuffer,
 			);
 			expect(status).to.equal(MultisignatureStatus.NONMULTISIGNATURE);
