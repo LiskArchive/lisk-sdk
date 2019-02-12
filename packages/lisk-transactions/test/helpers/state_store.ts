@@ -19,6 +19,7 @@ const getter = {
 		return { ...validTransaction };
 	},
 	find: () => [],
+	cache: () => {}
 };
 
 const setter = {
@@ -32,6 +33,7 @@ const setter = {
 		return;
 	},
 	find: () => [],
+	cache: () => {}
 };
 
 export const MockStateStore: any = {

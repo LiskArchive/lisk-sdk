@@ -65,5 +65,31 @@
 				"icon": "http://www.webopixel.net/blog/wp-content/uploads/2014/04/d3-icon.png"
 			}
 		}
+	},
+	{
+		"id": "13227044664082109069",
+		"type": 5,
+		"timestamp": 59721988,
+		"senderPublicKey":
+			"305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad",
+		"senderId": "13155556493249255133L",
+		"recipientId": "",
+		"recipientPublicKey": "",
+		"amount": "0",
+		"fee": "2500000000",
+		"signature":
+			"09f5e6b20e4b6eea012d7d6da487cc0c72fc8dfd53806882a65a8ecdeaa3dd07ea36356e8075e5c6c7e8515f664d81d59fa6ebb9c622a730de39bdf7c5cb7903",
+		"signatures": [],
+		"asset": {
+			"dapp": {
+				"name": "abcdemo",
+				"description": "demo",
+				"tags": "demo",
+				"type": 1,
+				"link": "http://google.de/abc.zip",
+				"category": 1,
+				"icon": "http://google.de/test.png"
+			}
+		}
 	}
 ]

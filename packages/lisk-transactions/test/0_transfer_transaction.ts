@@ -33,6 +33,9 @@ describe('Transfer transaction class', () => {
 	let validSelfTransferTestTransaction: TransferTransaction;
 	let sender: Account;
 	let recipient: Account;
+	let storeAccountCacheStub: sinon.SinonStub;
+	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountSetStub: sinon.SinonStub;
 
 	beforeEach(async () => {
 		validTransferTestTransaction = new TransferTransaction(
@@ -43,7 +46,9 @@ describe('Transfer transaction class', () => {
 		);
 		sender = validTransferAccount[0];
 		recipient = validTransferAccount[1];
-		store.get = () => sender;
+		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
+		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
+		storeAccountSetStub = sandbox.stub(store.account, 'set');
 	});
 
 	describe('#constructor', () => {
@@ -91,6 +96,16 @@ describe('Transfer transaction class', () => {
 				.to.be.an('object')
 				.and.to.have.property('data')
 				.that.is.a('string');
+		});
+	});
+
+	describe('#prepare', async () => {
+		it('should call state store', async () => {
+			await validSelfTransferTestTransaction.prepare(store);
+			expect(storeAccountCacheStub).to.have.been.calledOnceWithExactly([
+				{ address: validSelfTransferTestTransaction.senderId },
+				{ address: validSelfTransferTestTransaction.recipientId },
+			]);
 		});
 	});
 
@@ -153,13 +168,42 @@ describe('Transfer transaction class', () => {
 			expect(errors).to.be.empty;
 		});
 
-		it('should return error when sender balance is insufficient', async () => {
-			store.account.get = () => {
-				return {
+		it('should call state store', async () => {
+			storeAccountGetStub.onCall(1).returns(recipient);
+			(validTransferTestTransaction as any).applyAsset(store);
+			expect(
+				storeAccountGetStub
+					.getCall(0)
+					.calledWithExactly(validTransferTestTransaction.senderId),
+			).to.be.true;
+			expect(
+				storeAccountSetStub.getCall(0).calledWithExactly(sender.address, {
 					...sender,
-					balance: new BigNum('0'),
-				};
-			};
+					balance: new BigNum(sender.balance)
+						.sub(validTransferTestTransaction.amount)
+						.toString(),
+				}),
+			).to.be.true;
+			expect(
+				storeAccountGetStub
+					.getCall(1)
+					.calledWithExactly(validTransferTestTransaction.recipientId),
+			).to.be.true;
+			expect(
+				storeAccountSetStub.getCall(1).calledWithExactly(recipient.address, {
+					...recipient,
+					balance: new BigNum(recipient.balance)
+						.add(validTransferTestTransaction.amount)
+						.toString(),
+				}),
+			).to.be.true;
+		});
+
+		it('should return error when sender balance is insufficient', async () => {
+			storeAccountGetStub.returns({
+				...sender,
+				balance: new BigNum('0'),
+			});
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).to.equal(
 				`Account does not have enough LSK: ${sender.address}, balance: 0`,
@@ -167,23 +211,47 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should return error when recipient balance is over maximum amount', async () => {
-			store.account.get = () => {
-				return {
-					...sender,
-				};
-			};
-			store.account.getOrDefault = () => {
-				return {
-					...recipient,
-					balance: new BigNum(MAX_TRANSACTION_AMOUNT),
-				};
-			};
+			storeAccountGetStub.returns({
+				...sender,
+				balance: new BigNum(MAX_TRANSACTION_AMOUNT),
+			});
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
 			expect(errors[0]).and.to.have.property('message', 'Invalid amount');
 		});
 	});
 
 	describe('#undoAsset', () => {
+		it('should call state store', async () => {
+			storeAccountGetStub.onCall(1).returns(recipient);
+			(validTransferTestTransaction as any).undoAsset(store);
+			expect(
+				storeAccountGetStub
+					.getCall(0)
+					.calledWithExactly(validTransferTestTransaction.senderId),
+			).to.be.true;
+			expect(
+				storeAccountSetStub.getCall(0).calledWithExactly(sender.address, {
+					...sender,
+					balance: new BigNum(sender.balance)
+						.add(validTransferTestTransaction.amount)
+						.toString(),
+				}),
+			).to.be.true;
+			expect(
+				storeAccountGetStub
+					.getCall(1)
+					.calledWithExactly(validTransferTestTransaction.recipientId),
+			).to.be.true;
+			expect(
+				storeAccountSetStub.getCall(1).calledWithExactly(recipient.address, {
+					...recipient,
+					balance: new BigNum(recipient.balance)
+						.sub(validTransferTestTransaction.amount)
+						.toString(),
+				}),
+			).to.be.true;
+		});
+
 		it('should return error when recipient balance is insufficient', async () => {
 			store.account.getOrDefault = () => {
 				return {

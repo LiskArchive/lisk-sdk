@@ -12,27 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from 'browserify-bignum';
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
 import { OutTransferTransaction } from '../src/7_out_transfer_transaction';
-import { validOutTransferTransactions } from '../fixtures';
+import {
+	validOutTransferTransactions,
+	validDappTransactions,
+} from '../fixtures';
 import { TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
 
 describe('outTransfer transaction class', () => {
-	const defaultTransaction = validOutTransferTransactions[0];
+	const defaultTransaction = validOutTransferTransactions[3];
 	const defaultValidSender = {
 		address: '13155556493249255133L',
-		balance: '500010000000',
+		balance: '4700483466477',
 		publicKey:
 			'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
 	};
+	const dappRegistrationTx = validDappTransactions[3];
 
 	let validTestTransaction: OutTransferTransaction;
+	let storeTransactionCacheStub: sinon.SinonStub;
+	let storeTransactionGetStub: sinon.SinonStub;
+	let storeTransactionFindStub: sinon.SinonStub;
+	let storeAccountCacheStub: sinon.SinonStub;
+	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountSetStub: sinon.SinonStub;
 
 	beforeEach(async () => {
 		validTestTransaction = new OutTransferTransaction(defaultTransaction);
-		store.account.get = () => defaultValidSender;
+		storeTransactionCacheStub = sandbox.stub(store.transaction, 'cache');
+		storeTransactionGetStub = sandbox
+			.stub(store.transaction, 'get')
+			.returns(dappRegistrationTx);
+		storeTransactionFindStub = sandbox.stub(store.transaction, 'find');
+		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
+		storeAccountGetStub = sandbox
+			.stub(store.account, 'get')
+			.returns(defaultValidSender);
+		storeAccountSetStub = sandbox.stub(store.account, 'set');
 	});
 
 	describe('#constructor', () => {
@@ -102,7 +122,7 @@ describe('outTransfer transaction class', () => {
 				errors,
 				status,
 			} = validTestTransaction.verifyAgainstOtherTransactions([
-				validOutTransferTransactions[1],
+				validDappTransactions[1],
 			] as ReadonlyArray<TransactionJSON>);
 			expect(errors)
 				.to.be.an('array')
@@ -131,6 +151,28 @@ describe('outTransfer transaction class', () => {
 				.to.be.an('array')
 				.of.length(1);
 			expect(errors[0].dataPath).to.equal('.asset.outTransfer.transactionId');
+		});
+	});
+
+	describe('#assetToJSON', async () => {
+		it('should return an object of type transfer asset', async () => {
+			expect(validTestTransaction.assetToJSON())
+				.to.be.an('object')
+				.and.to.have.property('outTransfer');
+		});
+	});
+
+	describe('#prepare', async () => {
+		it('should call state store', async () => {
+			await validTestTransaction.prepare(store);
+			expect(storeAccountCacheStub).to.be.calledWithExactly([
+				{ address: validTestTransaction.senderId },
+				{ address: validTestTransaction.recipientId },
+			]);
+			expect(storeTransactionCacheStub).to.be.calledWithExactly([
+				{ id: validTestTransaction.asset.outTransfer.dappId },
+				{ id: validTestTransaction.asset.outTransfer.transactionId },
+			]);
 		});
 	});
 
@@ -196,6 +238,96 @@ describe('outTransfer transaction class', () => {
 			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.equal('.amount');
+		});
+	});
+
+	describe('#applyAsset', () => {
+		it('should return no errors', async () => {
+			const errors = (validTestTransaction as any).applyAsset(store);
+			expect(errors).to.be.empty;
+		});
+
+		it('should call state store', async () => {
+			(validTestTransaction as any).applyAsset(store);
+			expect(storeTransactionGetStub).to.be.calledWithExactly(
+				validTestTransaction.asset.outTransfer.dappId,
+			);
+			expect(storeTransactionFindStub).to.be.calledOnce;
+			expect(
+				storeAccountGetStub
+					.getCall(0)
+					.calledWithExactly(validTestTransaction.senderId),
+			).to.be.true;
+			expect(
+				storeAccountSetStub
+					.getCall(0)
+					.calledWithExactly(defaultValidSender.address, {
+						...defaultValidSender,
+						balance: new BigNum(defaultValidSender.balance)
+							.sub(validTestTransaction.amount)
+							.toString(),
+					}),
+			).to.be.true;
+			expect(
+				storeAccountGetStub
+					.getCall(1)
+					.calledWithExactly(validTestTransaction.recipientId),
+			).to.be.true;
+		});
+
+		it('should return error when not sent from owner of dapp', async () => {
+			const invalidTestTransaction = new OutTransferTransaction({
+				...defaultTransaction,
+				senderId: '123L',
+			});
+			const errors = (invalidTestTransaction as any).applyAsset(store);
+			expect(errors[0].message).to.equal(
+				`Out transaction must be sent from owner of the Dapp.`,
+			);
+		});
+
+		it('should return error if out transfer exists', async () => {
+			storeTransactionFindStub.returns(defaultTransaction);
+			const errors = (validTestTransaction as any).applyAsset(store);
+			expect(errors[0].message).to.equal(
+				`Transaction ${
+					validTestTransaction.asset.outTransfer.transactionId
+				} is already processed.`,
+			);
+		});
+
+		it('should return error when sender balance is insufficient', async () => {
+			storeAccountGetStub.returns({
+				...defaultValidSender,
+				balance: '0',
+			});
+			const errors = (validTestTransaction as any).applyAsset(store);
+			expect(errors[0].message).to.equal(
+				`Account does not have enough LSK: ${
+					defaultValidSender.address
+				}, balance: 0.`,
+			);
+		});
+	});
+
+	describe('#undoAsset', () => {
+		it('should call state store', async () => {
+			(validTestTransaction as any).undoAsset(store);
+			expect(
+				storeAccountGetStub
+					.getCall(0)
+					.calledWithExactly(validTestTransaction.senderId),
+			).to.be.true;
+			expect(
+				storeAccountGetStub
+					.getCall(1)
+					.calledWithExactly(validTestTransaction.recipientId),
+			).to.be.true;
+		});
+
+		it('should return no errors', async () => {
+			const errors = (validTestTransaction as any).undoAsset(store);
+			expect(errors).to.be.empty;
 		});
 	});
 });
