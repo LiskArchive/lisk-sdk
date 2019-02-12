@@ -25,6 +25,9 @@ const setter = {
 	get: () => {
 		return { ...validAccount };
 	},
+	getOrDefault: () => {
+		return { ...validAccount };
+	},
 	set: () => {
 		return;
 	},
