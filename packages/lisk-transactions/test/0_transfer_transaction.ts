@@ -64,10 +64,10 @@ describe('Transfer transaction class', () => {
 		});
 	});
 
-	describe('#getAssetBytes', () => {
+	describe('#assetToBytes', () => {
 		it('should return a buffer', async () => {
 			const expectedBytes = '61';
-			const assetBytes = (validSelfTransferTestTransaction as any).getAssetBytes();
+			const assetBytes = (validSelfTransferTestTransaction as any).assetToBytes();
 			expect(assetBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
 		});
 	});

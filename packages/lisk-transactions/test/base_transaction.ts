@@ -191,10 +191,10 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe('#getAssetBytes', () => {
+	describe('#assetToBytes', () => {
 		it('should return a buffer', async () => {
 			expect(
-				(validTestTransaction as TestTransaction).getAssetBytes(),
+				(validTestTransaction as TestTransaction).assetToBytes(),
 			).to.be.an.instanceOf(Buffer);
 		});
 	});
@@ -252,7 +252,7 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it('should call getAssetBytes for transaction with asset', async () => {
+		it('should call assetToBytes for transaction with asset', async () => {
 			const transactionWithAsset = {
 				...defaultTransaction,
 				asset: { data: 'data' },
@@ -260,12 +260,12 @@ describe('Base transaction class', () => {
 			const testTransactionWithAsset = new TestTransaction(
 				transactionWithAsset,
 			);
-			const getAssetBytesStub = sandbox
-				.stub(testTransactionWithAsset, 'getAssetBytes')
+			const assetToBytesStub = sandbox
+				.stub(testTransactionWithAsset, 'assetToBytes')
 				.returns(Buffer.from('data'));
 			(testTransactionWithAsset as any).getBasicBytes();
 
-			expect(getAssetBytesStub).to.be.calledOnce;
+			expect(assetToBytesStub).to.be.calledOnce;
 		});
 
 		it('should return a buffer without signatures bytes', async () => {
