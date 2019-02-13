@@ -23,9 +23,22 @@ const validateModuleSpec = moduleSpec => {
  * Controller logic responsible to run the application instance
  *
  * @namespace Framework
+ * @requires assert
+ * @requires bluebird
+ * @requires fs-extra
+ * @requires helpers/config
+ * @requires channels/event_emitter
+ * @requires module.Bus
  * @type {module.Controller}
  */
 module.exports = class Controller {
+	/**
+	 * Create controller object.
+	 *
+	 * @param {Array} modules - All registered modules
+	 * @param {Object} componentConfig - Configurations for components
+	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
+	 */
 	constructor(modules, componentConfig, logger) {
 		this.logger = logger;
 		this.componentConfig = componentConfig;
@@ -36,6 +49,12 @@ module.exports = class Controller {
 		this.modules = modules;
 	}
 
+	/**
+	 * Load the initial state and start listening for events or triggering actions.
+	 * Publishes 'lisk:ready' state on the bus.
+	 *
+	 * @async
+	 */
 	async load() {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
@@ -49,6 +68,11 @@ module.exports = class Controller {
 		this.channel.publish('lisk:ready', {});
 	}
 
+	/**
+	 * Verify existence of required directories.
+	 *
+	 * @async
+	 */
 	// eslint-disable-next-line class-methods-use-this
 	async _setupDirectories() {
 		// Make sure all directories exists
@@ -58,6 +82,11 @@ module.exports = class Controller {
 		fs.writeFileSync(`${config.dirs.pids}/controller.pid`, process.pid);
 	}
 
+	/**
+	 * Initialize bus
+	 *
+	 * @async
+	 */
 	async _setupBus() {
 		this.bus = new Bus(this, {
 			wildcard: true,
@@ -86,6 +115,12 @@ module.exports = class Controller {
 		}
 	}
 
+	/**
+	 * Setup Controller actions.
+	 * Create action for getting component config.
+	 *
+	 * @async
+	 */
 	async _setupControllerActions() {
 		this.channel.action(
 			'getComponentConfig',
