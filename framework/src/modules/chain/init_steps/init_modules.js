@@ -16,6 +16,8 @@ module.exports = async ({
 	sequence,
 	balanceSequence,
 	logic,
+	lastCommit,
+	build,
 }) => {
 	const modules = [];
 	const tasks = {};
@@ -47,6 +49,8 @@ module.exports = async ({
 					sequence,
 					balanceSequence,
 					logic,
+					lastCommit,
+					build,
 				});
 				modules.push(obj);
 			});
