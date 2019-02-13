@@ -44,7 +44,9 @@ interface ClientOptionsUpdated {
 	readonly port: number;
 	readonly query: string;
 	readonly autoConnect: boolean;
+	readonly autoReconnect: boolean;
 	readonly pingTimeoutDisabled: boolean;
+	readonly multiplex: boolean;
 }
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
@@ -58,7 +60,7 @@ export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
-export const EVENT_DISCONNECT_OUTBOUND = 'disconnectOutbound';
+export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
 export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 
@@ -423,7 +425,9 @@ export class Peer extends EventEmitter {
 						? JSON.stringify(legacyNodeInfo.options)
 						: undefined,
 			}),
+			multiplex: false,
 			autoConnect: false,
+			autoReconnect: false,
 			pingTimeoutDisabled: true,
 		};
 
@@ -441,15 +445,16 @@ export class Peer extends EventEmitter {
 		});
 
 		outboundSocket.on('connect', () => {
-			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
+			this.emit(EVENT_CONNECT_OUTBOUND, this);
 		});
 
 		outboundSocket.on('connectAbort', () => {
-			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
+			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this);
 		});
 
 		outboundSocket.on('close', (code, reason) => {
-			this.emit(EVENT_DISCONNECT_OUTBOUND, {
+			this.emit(EVENT_CLOSE_OUTBOUND, {
+				peerInfo: this._peerInfo,
 				code,
 				reason,
 			});
@@ -461,7 +466,11 @@ export class Peer extends EventEmitter {
 	private _unbindHandlersFromOutboundSocket(
 		outboundSocket: SCClientSocket,
 	): void {
-		outboundSocket.off();
+		// Do not unbind the error handler because error could still throw after disconnect.
+		// We don't want to have uncaught errors.
+		outboundSocket.off('connect');
+		outboundSocket.off('connectAbort');
+		outboundSocket.off('close');
 	}
 
 	// All event handlers for the inbound socket should be bound in this method.
@@ -488,7 +497,6 @@ export class Peer extends EventEmitter {
 	): void {
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.off('error', this._handleInboundSocketError);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
 		inboundSocket.off(
 			'postSignatures',

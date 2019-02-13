@@ -36,6 +36,7 @@ import {
 import { PeerInboundHandshakeError } from './errors';
 
 import {
+	P2PClosePacket,
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
@@ -51,6 +52,7 @@ import { P2PRequest } from './p2p_request';
 export { P2PRequest };
 
 import {
+	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
@@ -62,6 +64,9 @@ import {
 } from './peer_pool';
 
 export {
+	EVENT_CLOSE_OUTBOUND,
+	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_CONNECT_OUTBOUND,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
@@ -95,6 +100,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
@@ -126,15 +132,21 @@ export class P2P extends EventEmitter {
 			if (!this._triedPeers.has(peerId)) {
 				this._triedPeers.set(peerId, peerInfo);
 			}
-			this.emit(EVENT_CONNECT_OUTBOUND);
+			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
+
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (this._triedPeers.has(peerId)) {
 				this._triedPeers.delete(peerId);
 			}
-			this.emit(EVENT_CONNECT_ABORT_OUTBOUND);
+			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
+		};
+
+		this._handlePeerClose = (closePacket: P2PClosePacket) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 
 		this._handleFailedToPushNodeInfo = (error: Error) => {
@@ -324,7 +336,6 @@ export class P2P extends EventEmitter {
 	private async _stopHTTPServer(): Promise<void> {
 		return new Promise<void>(resolve => {
 			this._httpServer.close(() => {
-				this._isActive = false;
 				resolve();
 			});
 		});
@@ -333,7 +344,6 @@ export class P2P extends EventEmitter {
 	private async _stopWSServer(): Promise<void> {
 		return new Promise<void>(resolve => {
 			this._scServer.close(() => {
-				this._isActive = false;
 				resolve();
 			});
 		});
@@ -342,6 +352,7 @@ export class P2P extends EventEmitter {
 	private async _stopPeerServer(): Promise<void> {
 		await this._stopWSServer();
 		await this._stopHTTPServer();
+		this._isActive = false;
 	}
 
 	private async _discoverPeers(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
@@ -401,6 +412,7 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
 		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
+		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
 		peerPool.on(
 			EVENT_FAILED_TO_PUSH_NODE_INFO,
 			this._handleFailedToPushNodeInfo,

@@ -66,6 +66,12 @@ export interface P2PNodeInfo {
 	readonly options?: P2PInfoOptions;
 }
 
+export interface P2PClosePacket {
+	readonly peerInfo: P2PPeerInfo,
+	readonly code: number,
+	readonly reason?: string,
+}
+
 export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly connectTimeout: number;

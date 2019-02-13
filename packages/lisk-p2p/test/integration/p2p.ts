@@ -186,8 +186,8 @@ describe('Integration tests for P2P library', () => {
 
 		describe('Peer discovery', () => {
 			it('should discover all peers in the network after a few cycles of discovery', async () => {
-				// Wait for 10 cycles of discovery.
-				await wait(DISCOVERY_INTERVAL * 10);
+				// Wait for a few cycles of discovery.
+				await wait(DISCOVERY_INTERVAL * 5);
 
 				p2pNodeList.forEach(p2p => {
 					let {connectedPeers} = p2p.getNetworkStatus();
@@ -243,12 +243,15 @@ describe('Integration tests for P2P library', () => {
 				await p2p.start();
 				await wait(100);
 			}
+			await wait(100);
 		});
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(p2p => {
-					return p2p.stop();
+				p2pNodeList.map(async p2p => {
+					try {
+						await p2p.stop();
+					} catch (error) {} // Ignore. This can happen if a test case intentionally stops a node.
 				}),
 			);
 		});
@@ -306,6 +309,32 @@ describe('Integration tests for P2P library', () => {
 
 					expect(peerPortsExcludingSelf).to.be.eql(expectedPeerPorts);
 				});
+			});
+		});
+
+		describe('Cleanup unresponsive peers', () => {
+			it('should remove peers which we cannot connect to', async () => {
+				const initialNetworkStatus = p2pNodeList[2].getNetworkStatus();
+				const initialPeerPorts = initialNetworkStatus.connectedPeers
+					.map(peerInfo => peerInfo.wsPort)
+					.sort();
+
+				expect(initialPeerPorts).to.be.eql(ALL_NODE_PORTS);
+
+				await p2pNodeList[0].stop();
+				await wait(500);
+
+				const networkStatusAfterPeerCrash = p2pNodeList[2].getNetworkStatus();
+
+				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
+					.map(peerInfo => peerInfo.wsPort)
+					.sort();
+
+				const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
+					return port !== 5000;
+				});
+
+				expect(peerPortsAfterPeerCrash).to.be.eql(expectedPeerPortsAfterPeerCrash);
 			});
 		});
 
