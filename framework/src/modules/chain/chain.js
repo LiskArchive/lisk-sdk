@@ -116,7 +116,7 @@ module.exports = class Chain {
 						self.logger.warn('Main queue', current);
 					},
 				}),
-				balanceSequence: new Sequence({
+				balancesSequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Balance queue', current);
 					},
@@ -149,9 +149,11 @@ module.exports = class Chain {
 
 			// TODO: Identify why its used
 			scope.modules.swagger = scope.swagger;
-
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
+
+			// Fire onBind event in every module
+			scope.bus.message('bind', scope);
 
 			// Listen to websockets
 			if (scope.config.peers.enabled) {
