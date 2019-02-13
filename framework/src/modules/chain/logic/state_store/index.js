@@ -8,14 +8,27 @@ class StateStoreManager {
 			Transaction: storage.entities.Transaction,
 		};
 
+		this.sandbox = {};
+
 		return setImmediate(cb, null, this);
 	}
 
 	createSandbox(options) {
-		return {
+		this.sandbox = {
 			account: new AccountStore(this.entities.Account, options),
 			transaction: new TransactionStore(this.entities.Transaction, options),
 		};
+		return this.sandbox;
+	}
+
+	createSnapshot() {
+		this.sandbox.account.createSnapshot();
+		this.sandbox.transaction.createSnapshot();
+	}
+
+	restoreSnapshot() {
+		this.sandbox.account.restoreSnapshot();
+		this.sandbox.transaction.restoreSnapshot();
 	}
 }
 

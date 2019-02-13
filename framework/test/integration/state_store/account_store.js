@@ -113,23 +113,6 @@ describe('system test - account store', () => {
 				Object.keys(updatedData)
 			);
 		});
-
-		it('should not update accounts if mutate option is set to false', async () => {
-			const accountStoreWithoutMutation = new AccountStore(
-				library.storage.entities.Account,
-				{ mutate: false }
-			);
-			accounts = await accountStoreWithoutMutation.cache(accountQuery);
-			const updateToAccount = {
-				...accounts[0],
-				...updatedData,
-			};
-			accountStoreWithoutMutation.set(updateToAccount.address, updateToAccount);
-			const accountAfterSet = accountStoreWithoutMutation.get(
-				updateToAccount.address
-			);
-			expect(accountAfterSet).to.deep.equal(accounts[0]);
-		});
 	});
 
 	describe('finalize', () => {

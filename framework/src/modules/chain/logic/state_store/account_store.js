@@ -33,12 +33,24 @@ class AccountStore {
 		this.primaryKey = 'address';
 		this.name = 'Account';
 		this.mutate = mutate;
+		this.originalData = [];
+		this.originalUpdatedKeys = {};
 	}
 
 	async cache(filter, tx) {
 		const result = await this.account.get(filter, {}, tx);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
 		return result;
+	}
+
+	createSnapshot() {
+		this.originalData = _.clone(this.data);
+		this.updatedKeys = _.clone(this.updatedKeys);
+	}
+
+	restoreSnapshot() {
+		this.data = this.originalData;
+		this.updatedKeys = {};
 	}
 
 	get(primaryValue) {
@@ -62,6 +74,7 @@ class AccountStore {
 				...defaultAccount,
 				[this.primaryKey]: primaryValue,
 			};
+			this.data.push(element);
 		}
 		return element;
 	}
@@ -71,10 +84,6 @@ class AccountStore {
 	}
 
 	set(primaryValue, updatedElement) {
-		if (!this.mutate) {
-			return;
-		}
-
 		const elementIndex = this.data.findIndex(
 			item => item[this.primaryKey] === primaryValue
 		);

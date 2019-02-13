@@ -1,18 +1,31 @@
 const _ = require('lodash');
 
 class TransactionStore {
-	constructor(transactionEntity, { mutate } = { mutate: true }) {
+	constructor(transactionEntity) {
 		this.transaction = transactionEntity;
 		this.data = [];
 		this.primaryKey = 'id';
 		this.name = 'Transaction';
-		this.mutate = mutate;
 	}
 
 	async cache(filter, tx) {
 		const result = await this.transaction.get(filter, {}, tx);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
 		return result;
+	}
+
+	add(element) {
+		this.data.push(element);
+	}
+
+	createSnapshot() {
+		this.originalData = _.clone(this.data);
+		this.originalUpdatedKeys = _.clone(this.updatedKeys);
+	}
+
+	restoreSnapshot() {
+		this.data = _.clone(this.originalData);
+		this.updatedKeys = _.clone(this.originalUpdatedKeys);
 	}
 
 	get(primaryValue) {
