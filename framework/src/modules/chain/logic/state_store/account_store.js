@@ -37,8 +37,8 @@ class AccountStore {
 		this.originalUpdatedKeys = {};
 	}
 
-	async cache(filter, tx) {
-		const result = await this.account.get(filter, {}, tx);
+	async cache(filter) {
+		const result = await this.account.get(filter, {});
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
 		return result;
 	}
