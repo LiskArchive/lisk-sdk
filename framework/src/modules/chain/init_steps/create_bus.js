@@ -21,7 +21,9 @@ module.exports = async () => {
 				}
 
 				if (module.submodules) {
-					module.submodules.forEach(submodule => {
+					Object.keys(module.submodules).forEach(subModuleKey => {
+						const submodule = module.submodules[subModuleKey];
+
 						if (submodule && typeof submodule[eventName] === 'function') {
 							submodule[eventName].apply(submodule[eventName], args);
 						}

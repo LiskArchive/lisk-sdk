@@ -105,7 +105,10 @@ SCWorker.create({
 				system: [
 					'config',
 					function(scope, cb) {
-						new System(cb, { config: scope.config });
+						new System(cb, {
+							config: scope.config,
+							components: { logger: scope.logger },
+						});
 					},
 				],
 
