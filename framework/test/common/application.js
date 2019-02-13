@@ -127,6 +127,11 @@ function __init(initScope, done) {
 		async.auto(
 			{
 				config(cb) {
+					__testContext.config.syncing.active = false;
+					__testContext.config = Object.assign(
+						__testContext.config,
+						initScope.config || {}
+					);
 					// In case domain names are used, resolve those to IP addresses.
 					const peerDomainLookupTasks = __testContext.config.peers.list.map(
 						peer => callback => {
