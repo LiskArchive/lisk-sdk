@@ -40,7 +40,7 @@ describe('Handshake', () => {
 			protocolVersion,
 			nethash: config.nethash,
 			nonce: validNodeNonce,
-			blackListedPeers: [],
+			blackListedPeers: ['9.9.9.9'],
 		},
 	};
 	let validHeaders;
@@ -158,6 +158,22 @@ describe('Handshake', () => {
 				// Assert
 				expect(versionCompatibleStub).to.be.called;
 				done();
+			});
+		});
+
+		it('should return error when ip blacklisted', async () => {
+			// Arrange
+			validHeaders.ip = validConfig.config.blackListedPeers[0];
+
+			// Act
+			handshake(validHeaders, err => {
+				// Assert
+				expect(err)
+					.to.have.property('code')
+					.equal(failureCodes.BLACKLISTED_PEER);
+				expect(err)
+					.to.have.property('description')
+					.equal(failureCodes.errorMessages[failureCodes.BLACKLISTED_PEER]);
 			});
 		});
 	});
