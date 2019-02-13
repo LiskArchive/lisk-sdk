@@ -18,7 +18,7 @@ const Promise = require('bluebird');
 const utils = require('../../utils');
 
 module.exports = function(configurations, network) {
-	describe('@propagation : blocks', async () => {
+	describe('@propagation : blocks', () => {
 		let nodesBlocks;
 
 		before(() => {

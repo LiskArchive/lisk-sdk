@@ -31,7 +31,7 @@ const validSender = testData.validSender;
 const validTransaction = testData.validTransaction;
 const rawValidTransaction = testData.rawValidTransaction;
 
-describe('outTransfer', async () => {
+describe('outTransfer', () => {
 	let outTransfer;
 	let storageStub;
 	let accountsStub;
@@ -80,8 +80,8 @@ describe('outTransfer', async () => {
 		return outTransfer.bind(accountsStub);
 	});
 
-	describe('constructor', async () => {
-		describe('library', async () => {
+	describe('constructor', () => {
+		describe('library', () => {
 			let library;
 
 			beforeEach(done => {
@@ -111,7 +111,7 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('bind', async () => {
+	describe('bind', () => {
 		let modules;
 
 		beforeEach(done => {
@@ -120,7 +120,7 @@ describe('outTransfer', async () => {
 			done();
 		});
 
-		describe('modules', async () => {
+		describe('modules', () => {
 			it('should assign accounts', async () =>
 				expect(modules)
 					.to.have.property('accounts')
@@ -133,16 +133,16 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('calculateFee', async () => {
+	describe('calculateFee', () => {
 		it('should return constants.fees.send', async () =>
 			expect(outTransfer.calculateFee(transaction).isEqualTo(FEES.SEND)).to.be
 				.true);
 	});
 
-	describe('verify', async () => {
+	describe('verify', () => {
 		beforeEach(() => outTransfer.bind(accountsStub, blocksStub));
 
-		describe('when transaction.recipientId does not exist', async () => {
+		describe('when transaction.recipientId does not exist', () => {
 			it('should call callback with error = "Transaction type 7 is frozen"', done => {
 				delete transaction.recipientId;
 				outTransfer.verify(transaction, sender, err => {
@@ -152,8 +152,8 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.amount = 0', async () => {
-			describe('when type 7 is frozen', async () => {
+		describe('when transaction.amount = 0', () => {
+			describe('when type 7 is frozen', () => {
 				it('should call callback with error = "Transaction type 7 is frozen"', done => {
 					transaction.amount = 0;
 					outTransfer.verify(transaction, sender, err => {
@@ -162,7 +162,7 @@ describe('outTransfer', async () => {
 					});
 				});
 			});
-			describe('when type 7 is not frozen', async () => {
+			describe('when type 7 is not frozen', () => {
 				it('should call callback with error = "Invalid transaction amount"', done => {
 					const originalLimit = exceptions.precedent.disableDappTransfer;
 					exceptions.precedent.disableDappTransfer = 5;
@@ -176,8 +176,8 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.amount is less than zero', async () => {
-			describe('when type 7 is frozen', async () => {
+		describe('when transaction.amount is less than zero', () => {
+			describe('when type 7 is frozen', () => {
 				it('should call callback with error = "Transaction type 7 is frozen"', done => {
 					transaction.amount = -1;
 					outTransfer.verify(transaction, sender, err => {
@@ -186,7 +186,7 @@ describe('outTransfer', async () => {
 					});
 				});
 			});
-			describe('when type 7 is not frozen', async () => {
+			describe('when type 7 is not frozen', () => {
 				it('should call callback with error = "Invalid transaction amount"', done => {
 					const originalLimit = exceptions.precedent.disableDappTransfer;
 					exceptions.precedent.disableDappTransfer = 5;
@@ -200,7 +200,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.asset does not exist', async () => {
+		describe('when transaction.asset does not exist', () => {
 			it('should call callback with error = "Transaction type 7 is frozen"', done => {
 				delete transaction.asset;
 				outTransfer.verify(transaction, sender, err => {
@@ -210,7 +210,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.asset.outTransfer does not exist', async () => {
+		describe('when transaction.asset.outTransfer does not exist', () => {
 			it('should call callback with error = "Transaction type 7 is frozen"', done => {
 				delete transaction.asset.outTransfer;
 				outTransfer.verify(transaction, sender, err => {
@@ -220,7 +220,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.asset.outTransfer = 0', async () => {
+		describe('when transaction.asset.outTransfer = 0', () => {
 			it('should call callback with error = "Transaction type 7 is frozen"', done => {
 				transaction.asset.outTransfer = 0;
 				outTransfer.verify(transaction, sender, err => {
@@ -230,7 +230,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.asset.outTransfer.dappId is invalid', async () => {
+		describe('when transaction.asset.outTransfer.dappId is invalid', () => {
 			it('should call callback with error = "Transaction type 7 is frozen"', done => {
 				transaction.asset.outTransfer.dappId = 'ab1231';
 				outTransfer.verify(transaction, sender, err => {
@@ -240,7 +240,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.asset.outTransfer.transactionId is invalid', async () => {
+		describe('when transaction.asset.outTransfer.transactionId is invalid', () => {
 			it('should call callback with error = "Transaction type 7 is frozen"', done => {
 				transaction.asset.outTransfer.transactionId = 'ab1231';
 				outTransfer.verify(transaction, sender, err => {
@@ -250,7 +250,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction is valid', async () => {
+		describe('when transaction is valid', () => {
 			it('should call callback with error = null', done => {
 				outTransfer.verify(transaction, sender, err => {
 					expect(err).to.equal('Transaction type 7 is frozen');
@@ -267,7 +267,7 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('process', async () => {
+	describe('process', () => {
 		beforeEach(() =>
 			OutTransfer.__set__('__private.unconfirmedOutTansfers', {})
 		);
@@ -304,7 +304,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when storageStub.entities.Transaction.isPersisted fails', async () => {
+		describe('when storageStub.entities.Transaction.isPersisted fails', () => {
 			beforeEach(done => {
 				storageStub.entities.Transaction.isPersisted = sinonSandbox
 					.stub()
@@ -320,8 +320,8 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when storageStub.entities.Transaction.isPersisted succeeds', async () => {
-			describe('when dapp does not exist', async () => {
+		describe('when storageStub.entities.Transaction.isPersisted succeeds', () => {
+			describe('when dapp does not exist', () => {
 				beforeEach(done => {
 					storageStub.entities.Transaction.isPersisted = sinonSandbox
 						.stub()
@@ -339,7 +339,7 @@ describe('outTransfer', async () => {
 				});
 			});
 
-			describe('when dapp exists', async () => {
+			describe('when dapp exists', () => {
 				beforeEach(done => {
 					storageStub.entities.Transaction.isPersisted = sinonSandbox
 						.stub()
@@ -347,7 +347,7 @@ describe('outTransfer', async () => {
 					done();
 				});
 
-				describe('when unconfirmed out transfer exists', async () => {
+				describe('when unconfirmed out transfer exists', () => {
 					beforeEach(() => {
 						const unconfirmedTransactionExistsMap = {};
 						unconfirmedTransactionExistsMap[
@@ -372,7 +372,7 @@ describe('outTransfer', async () => {
 					});
 				});
 
-				describe('when unconfirmed out transfer does not exist', async () => {
+				describe('when unconfirmed out transfer does not exist', () => {
 					beforeEach(() =>
 						OutTransfer.__set__('__private.unconfirmedOutTansfers', {})
 					);
@@ -396,7 +396,7 @@ describe('outTransfer', async () => {
 						});
 					});
 
-					describe('when storageStub.entities.Transaction.isPersisted fails on call', async () => {
+					describe('when storageStub.entities.Transaction.isPersisted fails on call', () => {
 						beforeEach(() =>
 							storageStub.entities.Transaction.isPersisted
 								.withArgs({ id: transaction.id }, {})
@@ -412,8 +412,8 @@ describe('outTransfer', async () => {
 						});
 					});
 
-					describe('when library.db.one succeeds on the second call', async () => {
-						describe('when confirmed outTransfer transaction exists', async () => {
+					describe('when library.db.one succeeds on the second call', () => {
+						describe('when confirmed outTransfer transaction exists', () => {
 							beforeEach(() =>
 								storageStub.entities.Transaction.isPersisted
 									.withArgs(transaction.id)
@@ -432,7 +432,7 @@ describe('outTransfer', async () => {
 							});
 						});
 
-						describe('when confirmed outTransfer transaction does not exist', async () => {
+						describe('when confirmed outTransfer transaction does not exist', () => {
 							beforeEach(done => {
 								storageStub.entities.Transaction.isPersisted = sinonSandbox
 									.stub()
@@ -463,8 +463,8 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('getBytes', async () => {
-		describe('when transaction.asset.outTransfer.dappId = undefined', async () => {
+	describe('getBytes', () => {
+		describe('when transaction.asset.outTransfer.dappId = undefined', () => {
 			beforeEach(done => {
 				transaction.asset.outTransfer.dappId = undefined;
 				done();
@@ -474,8 +474,8 @@ describe('outTransfer', async () => {
 				expect(outTransfer.getBytes.bind(null, transaction)).to.throw);
 		});
 
-		describe('when transaction.asset.outTransfer.dappId is a valid dapp id', async () => {
-			describe('when transaction.asset.outTransfer.transactionId = undefined', async () => {
+		describe('when transaction.asset.outTransfer.dappId is a valid dapp id', () => {
+			describe('when transaction.asset.outTransfer.transactionId = undefined', () => {
 				beforeEach(done => {
 					transaction.asset.outTransfer.transactionId = undefined;
 					done();
@@ -485,7 +485,7 @@ describe('outTransfer', async () => {
 					expect(outTransfer.getBytes.bind(null, transaction)).to.throw);
 			});
 
-			describe('when transaction.asset.outTransfer.transactionId is valid transaction id', async () => {
+			describe('when transaction.asset.outTransfer.transactionId is valid transaction id', () => {
 				it('should not throw', async () =>
 					expect(outTransfer.getBytes.bind(null, transaction)).not.to.throw);
 
@@ -500,7 +500,7 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('applyConfirmed', async () => {
+	describe('applyConfirmed', () => {
 		beforeEach(done => {
 			outTransfer.applyConfirmed(transaction, dummyBlock, sender, done);
 		});
@@ -524,7 +524,7 @@ describe('outTransfer', async () => {
 				})
 			).to.be.true);
 
-		describe('when modules.accounts.setAccountAndGet fails', async () => {
+		describe('when modules.accounts.setAccountAndGet fails', () => {
 			beforeEach(done => {
 				accountsStub.setAccountAndGet = sinonSandbox
 					.stub()
@@ -538,7 +538,7 @@ describe('outTransfer', async () => {
 				}));
 		});
 
-		describe('when modules.accounts.setAccountAndGet succeeds', async () => {
+		describe('when modules.accounts.setAccountAndGet succeeds', () => {
 			beforeEach(done => {
 				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArg(1);
 				done();
@@ -575,7 +575,7 @@ describe('outTransfer', async () => {
 					)
 				).to.be.true);
 
-			describe('when modules.accounts.mergeAccountAndGet fails', async () => {
+			describe('when modules.accounts.mergeAccountAndGet fails', () => {
 				beforeEach(done => {
 					accountsStub.mergeAccountAndGet = sinonSandbox
 						.stub()
@@ -589,7 +589,7 @@ describe('outTransfer', async () => {
 					}));
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet succeeds', async () => {
+			describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 				it('should call callback with error = undefined', async () =>
 					outTransfer.applyConfirmed(transaction, dummyBlock, sender, err => {
 						expect(err).to.be.undefined;
@@ -608,7 +608,7 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('undoConfirmed', async () => {
+	describe('undoConfirmed', () => {
 		beforeEach(done => {
 			outTransfer.undoConfirmed(transaction, dummyBlock, sender, done);
 		});
@@ -632,7 +632,7 @@ describe('outTransfer', async () => {
 				})
 			).to.be.true);
 
-		describe('when modules.accounts.setAccountAndGet fails', async () => {
+		describe('when modules.accounts.setAccountAndGet fails', () => {
 			beforeEach(done => {
 				accountsStub.setAccountAndGet = sinonSandbox
 					.stub()
@@ -646,7 +646,7 @@ describe('outTransfer', async () => {
 				}));
 		});
 
-		describe('when modules.accounts.setAccountAndGet succeeds', async () => {
+		describe('when modules.accounts.setAccountAndGet succeeds', () => {
 			beforeEach(done => {
 				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArg(1);
 				done();
@@ -684,7 +684,7 @@ describe('outTransfer', async () => {
 				).to.be.true);
 		});
 
-		describe('when modules.accounts.mergeAccountAndGet fails', async () => {
+		describe('when modules.accounts.mergeAccountAndGet fails', () => {
 			beforeEach(done => {
 				accountsStub.mergeAccountAndGet = sinonSandbox
 					.stub()
@@ -698,7 +698,7 @@ describe('outTransfer', async () => {
 				}));
 		});
 
-		describe('when modules.accounts.mergeAccountAndGet succeeds', async () => {
+		describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', async () =>
 				outTransfer.undoConfirmed(transaction, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
@@ -716,7 +716,7 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('applyUnconfirmed', async () => {
+	describe('applyUnconfirmed', () => {
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true', done => {
 			const unconfirmedOutTransfers = OutTransfer.__get__(
 				'__private.unconfirmedOutTansfers'
@@ -744,7 +744,7 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('undoUnconfirmed', async () => {
+	describe('undoUnconfirmed', () => {
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false', done => {
 			const unconfirmedOutTransfers = OutTransfer.__get__(
 				'__private.unconfirmedOutTansfers'
@@ -772,7 +772,7 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('objectNormalize', async () => {
+	describe('objectNormalize', () => {
 		let library;
 		let schemaSpy;
 
@@ -800,7 +800,7 @@ describe('outTransfer', async () => {
 			return expect(schemaSpy.args[0][1]).to.eql(OutTransfer.prototype.schema);
 		});
 
-		describe('when transaction.asset.outTransfer is invalid object argument', async () => {
+		describe('when transaction.asset.outTransfer is invalid object argument', () => {
 			typesRepresentatives.nonObjects.forEach(nonObject => {
 				it(`should throw for transaction.asset.outTransfer = ${
 					nonObject.description
@@ -811,7 +811,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.asset.outTransfer.dappId is invalid string argument', async () => {
+		describe('when transaction.asset.outTransfer.dappId is invalid string argument', () => {
 			typesRepresentatives.nonStrings.forEach(nonString => {
 				it(`should throw for transaction.asset.outTransfer.dappId = ${
 					nonString.description
@@ -824,7 +824,7 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when transaction.asset.outTransfer.transactionId is invalid string argument', async () => {
+		describe('when transaction.asset.outTransfer.transactionId is invalid string argument', () => {
 			typesRepresentatives.nonStrings.forEach(nonString => {
 				it(`should throw for transaction.asset.outTransfer.transactionId = ${
 					nonString.description
@@ -837,21 +837,21 @@ describe('outTransfer', async () => {
 			});
 		});
 
-		describe('when when transaction.asset.outTransfer is valid', async () => {
+		describe('when when transaction.asset.outTransfer is valid', () => {
 			it('should return transaction', async () =>
 				expect(outTransfer.objectNormalize(transaction)).to.eql(transaction));
 		});
 	});
 
-	describe('dbRead', async () => {
-		describe('when raw.ot_dappId does not exist', async () => {
+	describe('dbRead', () => {
+		describe('when raw.ot_dappId does not exist', () => {
 			beforeEach(async () => delete rawTransaction.ot_dappId);
 
 			it('should return null', async () =>
 				expect(outTransfer.dbRead(rawTransaction)).to.eql(null));
 		});
 
-		describe('when raw.in_dappId exists', async () => {
+		describe('when raw.in_dappId exists', () => {
 			it('should return result containing outTransfer', async () =>
 				expect(outTransfer.dbRead(rawTransaction)).to.have.property(
 					'outTransfer'
@@ -869,7 +869,7 @@ describe('outTransfer', async () => {
 		});
 	});
 
-	describe('ready', async () => {
+	describe('ready', () => {
 		it('should return true for single signature transaction', async () =>
 			expect(outTransfer.ready(transaction, sender)).to.equal(true));
 

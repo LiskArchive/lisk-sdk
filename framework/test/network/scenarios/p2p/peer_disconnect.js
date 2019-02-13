@@ -32,8 +32,8 @@ module.exports = function(
 	const EXPECTED_MONITORING_CONNECTIONS_AFTER_STOPPING_A_NODE =
 		NUMBER_OF_MONITORING_CONNECTIONS - 2;
 
-	describe('@p2p : peer Disconnect', async () => {
-		describe('when a node is stopped', async () => {
+	describe('@p2p : peer Disconnect', () => {
+		describe('when a node is stopped', () => {
 			before(() => {
 				// Disconnecting the node number 9 which is not producing any blocks
 				return network.stopNode('node_9').then(() => {
@@ -61,7 +61,7 @@ module.exports = function(
 			});
 		});
 
-		describe('when a stopped node is started', async () => {
+		describe('when a stopped node is started', () => {
 			before(() => {
 				return network.startNode('node_9', true).then(() => {
 					// Make sure that there is enough time for monitoring connection

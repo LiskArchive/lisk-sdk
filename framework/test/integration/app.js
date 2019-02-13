@@ -21,12 +21,12 @@ const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
 const accountsFixtures = require('../fixtures/accounts');
 const roundsFixtures = require('../fixtures/rounds').rounds;
 
-describe('app', async () => {
+describe('app', () => {
 	let library;
 	let keypairs;
 	let Queries;
 
-	describe('init', async () => {
+	describe('init', () => {
 		it('should init successfully without any error', done => {
 			application.init({ sandbox: { name: 'lisk_test_app' } }, (err, lib) => {
 				library = lib;
@@ -36,7 +36,7 @@ describe('app', async () => {
 		});
 	});
 
-	describe('genesis block', async () => {
+	describe('genesis block', () => {
 		let genesisBlock;
 
 		before(() => {
@@ -46,7 +46,7 @@ describe('app', async () => {
 			});
 		});
 
-		describe('consistency', async () => {
+		describe('consistency', () => {
 			it('should contain transactions', async () => {
 				return expect(
 					library.genesisBlock.block.transactions.length
@@ -54,8 +54,8 @@ describe('app', async () => {
 			});
 		});
 
-		describe('after insert to database', async () => {
-			describe('database block at height 1', async () => {
+		describe('after insert to database', () => {
+			describe('database block at height 1', () => {
 				it('ID should match genesis block ID', async () => {
 					return expect(genesisBlock.id).to.equal(
 						library.genesisBlock.block.id
@@ -81,7 +81,7 @@ describe('app', async () => {
 				});
 			});
 
-			describe('mem_accounts (delegates)', async () => {
+			describe('mem_accounts (delegates)', () => {
 				let delegates;
 				let delegateTransactions;
 
@@ -106,7 +106,7 @@ describe('app', async () => {
 					return expect(delegateTransactions.length).to.equal(delegates.length);
 				});
 
-				describe('delegates rows', async () => {
+				describe('delegates rows', () => {
 					it('should have proper fields', done => {
 						_.each(delegates, delegate => {
 							expect(delegate).to.be.an('object');
@@ -119,7 +119,7 @@ describe('app', async () => {
 						done();
 					});
 
-					describe('values', async () => {
+					describe('values', () => {
 						it('fields transactionId, username, address, publicKey should match genesis block transactions', done => {
 							let found;
 							_.each(delegates, delegate => {
@@ -193,7 +193,7 @@ describe('app', async () => {
 				});
 			});
 
-			describe('mem_accounts (other accounts)', async () => {
+			describe('mem_accounts (other accounts)', () => {
 				let accounts;
 				let genesisAccounts;
 				let genesisAddress;
@@ -223,7 +223,7 @@ describe('app', async () => {
 					return expect(accounts.length).to.equal(genesisAccounts.length);
 				});
 
-				describe('accounts rows', async () => {
+				describe('accounts rows', () => {
 					it('should have proper fields', done => {
 						_.each(accounts, delegate => {
 							expect(delegate).to.be.an('object');
@@ -234,8 +234,8 @@ describe('app', async () => {
 						done();
 					});
 
-					describe('values', async () => {
-						describe('genesis account', async () => {
+					describe('values', () => {
+						describe('genesis account', () => {
 							let genesisAccount;
 							let genesisAccountTransaction;
 
@@ -284,7 +284,7 @@ describe('app', async () => {
 							});
 						});
 
-						describe('all accounts', async () => {
+						describe('all accounts', () => {
 							it('balances should be valid against blockchain balances', async () => {
 								// Perform validation of accounts balances against blockchain
 								return expect(
@@ -298,7 +298,7 @@ describe('app', async () => {
 		});
 	});
 
-	describe('modules.delegates', async () => {
+	describe('modules.delegates', () => {
 		let generateDelegateListPromise;
 
 		before(done => {
@@ -308,7 +308,7 @@ describe('app', async () => {
 			done();
 		});
 
-		describe('__private.delegatesList', async () => {
+		describe('__private.delegatesList', () => {
 			let delegatesList;
 
 			before(() => {
@@ -343,7 +343,7 @@ describe('app', async () => {
 			});
 		});
 
-		describe('__private.loadDelegates', async () => {
+		describe('__private.loadDelegates', () => {
 			before(done => {
 				const loadDelegates = library.rewiredModules.delegates.__get__(
 					'__private.loadDelegates'
@@ -354,7 +354,7 @@ describe('app', async () => {
 				});
 			});
 
-			describe('__private.keypairs', async () => {
+			describe('__private.keypairs', () => {
 				it('should not be empty', async () => {
 					expect(keypairs).to.be.an('object');
 					return expect(Object.keys(keypairs).length).to.be.above(0);
@@ -378,7 +378,7 @@ describe('app', async () => {
 		});
 	});
 
-	describe('cleanup', async () => {
+	describe('cleanup', () => {
 		it('should cleanup sandboxed application successfully', done => {
 			application.cleanup(done);
 		});

@@ -19,7 +19,7 @@ const application = require('../../../../../common/application');
 
 const { ACTIVE_DELEGATES } = __testContext.config.constants;
 
-describe('loader', async () => {
+describe('loader', () => {
 	let library;
 	let __private;
 	let loader_module;
@@ -42,7 +42,7 @@ describe('loader', async () => {
 		application.cleanup(done);
 	});
 
-	describe('findGoodPeers', async () => {
+	describe('findGoodPeers', () => {
 		const HEIGHT_TWO = 2;
 		let getLastBlockStub;
 
@@ -114,7 +114,7 @@ describe('loader', async () => {
 		});
 	});
 
-	describe('__private.createSnapshot', async () => {
+	describe('__private.createSnapshot', () => {
 		let __privateVar;
 		let libraryVar;
 		let validScope;
@@ -238,7 +238,7 @@ describe('loader', async () => {
 			__privateVar.createSnapshot(ACTIVE_DELEGATES);
 		});
 
-		describe('should emit an event with no error', async () => {
+		describe('should emit an event with no error', () => {
 			let blocksAvailable;
 			let deleteBlocksAfterHeight;
 			let snapshotRound;
@@ -357,7 +357,7 @@ describe('loader', async () => {
 		});
 	});
 
-	describe('__private.loadBlocksFromNetwork', async () => {
+	describe('__private.loadBlocksFromNetwork', () => {
 		let getRandomPeerFromNetworkStub;
 		let getCommonBlockStub;
 		let loadBlocksFromPeerStub;
@@ -385,7 +385,7 @@ describe('loader', async () => {
 
 		afterEach(() => sinonSandbox.restore());
 
-		describe('when getRandomPeerFromNetwork fails', async () => {
+		describe('when getRandomPeerFromNetwork fails', () => {
 			it('should call callback with error = null after 5 tries', async () => {
 				getRandomPeerFromNetworkStub.callsArgWith(
 					0,
@@ -401,7 +401,7 @@ describe('loader', async () => {
 			});
 		});
 
-		describe('when getCommonBlock fails', async () => {
+		describe('when getCommonBlock fails', () => {
 			it('should call callback with error = null after 5 tries', async () => {
 				const peer = {
 					ip: '2.2.2.2',
@@ -425,7 +425,7 @@ describe('loader', async () => {
 			});
 		});
 
-		describe('when no common block found', async () => {
+		describe('when no common block found', () => {
 			it('should call callback with error = null after 5 tries', async () => {
 				const peer = {
 					ip: '2.2.2.2',
@@ -451,7 +451,7 @@ describe('loader', async () => {
 			});
 		});
 
-		describe('when height is 0 (Genesis block)', async () => {
+		describe('when height is 0 (Genesis block)', () => {
 			it('should not call getCommonBlock', async () => {
 				const peer = {
 					ip: '2.2.2.2',
@@ -483,7 +483,7 @@ describe('loader', async () => {
 			});
 		});
 
-		describe('when loadBlocksFromPeerStub fails', async () => {
+		describe('when loadBlocksFromPeerStub fails', () => {
 			it('should call callback with error = null after 5 tries', async () => {
 				const peer = {
 					ip: '2.2.2.2',
@@ -513,7 +513,7 @@ describe('loader', async () => {
 			});
 		});
 
-		describe('when getCommonBlock starts failing after the first call', async () => {
+		describe('when getCommonBlock starts failing after the first call', () => {
 			it('should call callback with error = null after 6 tries', async () => {
 				const peer = {
 					ip: '2.2.2.2',
@@ -546,7 +546,7 @@ describe('loader', async () => {
 			});
 		});
 
-		describe('when a batch of blocks is sucessfully loaded', async () => {
+		describe('when a batch of blocks is sucessfully loaded', () => {
 			it('should reset counter of failed attemps to load', async () => {
 				const peer = {
 					ip: '2.2.2.2',
@@ -583,7 +583,7 @@ describe('loader', async () => {
 		});
 	});
 
-	describe('__private.getRandomPeerFromNetwork', async () => {
+	describe('__private.getRandomPeerFromNetwork', () => {
 		let listRandomConnectedStub;
 		let findGoodPeersSpy;
 
@@ -598,7 +598,7 @@ describe('loader', async () => {
 
 		afterEach(() => sinonSandbox.restore());
 
-		describe('when there are good peers', async () => {
+		describe('when there are good peers', () => {
 			it('should call callback with error = null and result = random peer', async () => {
 				const peers = [
 					{
@@ -618,7 +618,7 @@ describe('loader', async () => {
 			});
 		});
 
-		describe('when there are no good peers', async () => {
+		describe('when there are no good peers', () => {
 			it('should call callback with error = "Failed to find enough good peers"', async () => {
 				const peers = [
 					{

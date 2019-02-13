@@ -24,7 +24,7 @@ let loggerStub;
 let banManagerInstance;
 const twoMinTimeout = 120000;
 
-describe('BanManager', async () => {
+describe('BanManager', () => {
 	before(done => {
 		loggerStub = {
 			error: sinonSandbox.stub(),
@@ -47,7 +47,7 @@ describe('BanManager', async () => {
 		return done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should have empty bannedPeers map after initialization', async () =>
 			expect(banManagerInstance).to.have.property('bannedPeers').to.be.empty);
 
@@ -62,7 +62,7 @@ describe('BanManager', async () => {
 				.equal(configWithBlackListStub));
 	});
 
-	describe('banTemporarily', async () => {
+	describe('banTemporarily', () => {
 		let validPeer;
 		let onBanFinishedSpy;
 		before(done => {
@@ -78,7 +78,7 @@ describe('BanManager', async () => {
 			return done();
 		});
 
-		describe('when peer is in config.json blackList', async () => {
+		describe('when peer is in config.json blackList', () => {
 			before(done => {
 				configWithBlackListStub.peers.access.blackList = [validPeer.ip];
 				return done();
@@ -89,7 +89,7 @@ describe('BanManager', async () => {
 				));
 		});
 
-		describe('when peer is not in config.json blackList', async () => {
+		describe('when peer is not in config.json blackList', () => {
 			let clock;
 			before(done => {
 				configWithBlackListStub.peers.access.blackList = [];
@@ -101,7 +101,7 @@ describe('BanManager', async () => {
 				return done();
 			});
 
-			describe('when peer was not banned before', async () => {
+			describe('when peer was not banned before', () => {
 				it('should add validPeer to bannedPeers map', async () =>
 					expect(banManagerInstance.bannedPeers).to.have.property(
 						validPeer.string
@@ -114,7 +114,7 @@ describe('BanManager', async () => {
 					expect(banManagerInstance.bannedPeers[validPeer.string])
 						.to.have.nested.property('banTimeoutId.id')
 						.to.be.a('number'));
-				describe('when 2 min have not passed', async () => {
+				describe('when 2 min have not passed', () => {
 					beforeEach(done => {
 						clock.tick(twoMinTimeout - 1);
 						return done();
@@ -122,7 +122,7 @@ describe('BanManager', async () => {
 					it('should not call onBanFinished', async () =>
 						expect(onBanFinishedSpy).not.to.be.called);
 				});
-				describe('when 2 min have passed', async () => {
+				describe('when 2 min have passed', () => {
 					beforeEach(done => {
 						clock.tick(twoMinTimeout);
 						return done();

@@ -25,12 +25,12 @@ const apiHelpers = require('../../../../common/helpers/api');
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /accounts', async () => {
+describe('GET /accounts', () => {
 	const account = randomUtil.account();
 	const accountsEndpoint = new SwaggerEndpoint('GET /accounts');
 
-	describe('?', async () => {
-		describe('address', async () => {
+	describe('?', () => {
+		describe('address', () => {
 			it('using known address should be ok', async () => {
 				return accountsEndpoint.makeRequest(
 					{ address: accountFixtures.genesis.address },
@@ -83,7 +83,7 @@ describe('GET /accounts', async () => {
 			});
 		});
 
-		describe('publicKey', async () => {
+		describe('publicKey', () => {
 			it('using known publicKey should be ok', async () => {
 				return accountsEndpoint.makeRequest(
 					{ publicKey: accountFixtures.genesis.publicKey },
@@ -177,7 +177,7 @@ describe('GET /accounts', async () => {
 			});
 		});
 
-		describe('secondPublicKey', async () => {
+		describe('secondPublicKey', () => {
 			const secondPublicKeyAccount = randomUtil.account();
 			const creditTransaction = lisk.transaction.transfer({
 				amount: FEES.SECOND_SIGNATURE,
@@ -235,7 +235,7 @@ describe('GET /accounts', async () => {
 			});
 		});
 
-		describe('username', async () => {
+		describe('username', () => {
 			it('using empty username name should fail', async () => {
 				return accountsEndpoint.makeRequest({ username: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'username');
@@ -271,7 +271,7 @@ describe('GET /accounts', async () => {
 			});
 		});
 
-		describe('limit', async () => {
+		describe('limit', () => {
 			it('using limit = 0 should return error', async () => {
 				return accountsEndpoint.makeRequest({ limit: 0 }, 400).then(res => {
 					expectSwaggerParamError(res, 'limit');
@@ -291,7 +291,7 @@ describe('GET /accounts', async () => {
 			});
 		});
 
-		describe('sort', async () => {
+		describe('sort', () => {
 			it('using sort = invalid should return error', async () => {
 				return accountsEndpoint.makeRequest({ sort: 'invalid' }, 400);
 			});
@@ -334,7 +334,7 @@ describe('GET /accounts', async () => {
 			});
 		});
 
-		describe('offset', async () => {
+		describe('offset', () => {
 			it('using offset = -1 should return error', async () => {
 				return accountsEndpoint.makeRequest({ offset: -1 }, 400).then(res => {
 					expectSwaggerParamError(res, 'offset');
@@ -358,7 +358,7 @@ describe('GET /accounts', async () => {
 			});
 		});
 
-		describe('sort, offset & limit together', async () => {
+		describe('sort, offset & limit together', () => {
 			it('using sort = balance:asc and offset = 1 and limit = 5 should return 5 accounts sorted by balance', async () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc', offset: 1, limit: 5 }, 200)

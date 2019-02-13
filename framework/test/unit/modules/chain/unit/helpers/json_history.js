@@ -20,7 +20,7 @@ const historyTitle = 'config history';
 let history;
 let loggerStub;
 
-describe('helpers/JSONHistory', async () => {
+describe('helpers/JSONHistory', () => {
 	beforeEach(() => {
 		loggerStub = {
 			info: sinonSandbox.stub(),
@@ -31,7 +31,7 @@ describe('helpers/JSONHistory', async () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('constructor function', async () => {
+	describe('constructor function', () => {
 		it('should be a constructor function', async () =>
 			expect(JSONHistory).to.be.a('function'));
 		it('should accept two arguments', async () =>
@@ -40,7 +40,7 @@ describe('helpers/JSONHistory', async () => {
 			expect(history).to.be.an('object'));
 	});
 
-	describe('history object', async () => {
+	describe('history object', () => {
 		it('should assign title argument', async () =>
 			expect(history.title).to.be.eql(historyTitle));
 		it('should assign logger argument', async () =>
@@ -58,7 +58,7 @@ describe('helpers/JSONHistory', async () => {
 			return expect(history.getVersions.length).to.be.eql(0);
 		});
 
-		describe('history.version()', async () => {
+		describe('history.version()', () => {
 			it('should be ok to call without callback', async () =>
 				expect(() => history.version('1.1.0')).to.not.throw());
 			it('should throw error if called without version name', async () =>
@@ -95,19 +95,19 @@ describe('helpers/JSONHistory', async () => {
 			});
 		});
 
-		describe('history.getVersions()', async () => {
+		describe('history.getVersions()', () => {
 			it('should return list of declared versions', done => {
 				validVersionsExpectations(history, done);
 			});
 		});
 
-		describe('history.getChangeSet()', async () => {
+		describe('history.getChangeSet()', () => {
 			it('should return list of declared changes', done => {
 				validChangeSetExpectations(history, done);
 			});
 		});
 
-		describe('history.migrate()', async () => {
+		describe('history.migrate()', () => {
 			beforeEach('prepare history to migrate', done => {
 				history.version('1.0.0', version => {
 					version.change('add 1', config => {
@@ -255,7 +255,7 @@ describe('helpers/JSONHistory', async () => {
 		});
 	});
 
-	describe('version object', async () => {
+	describe('version object', () => {
 		it('should have a property version assigned as current version', done => {
 			history.version('1.1.0', version => {
 				expect(version.version).to.be.eql('1.1.0');
@@ -271,7 +271,7 @@ describe('helpers/JSONHistory', async () => {
 			});
 		});
 
-		describe('version.change()', async () => {
+		describe('version.change()', () => {
 			it('should throw error if called without title', done => {
 				history.version('1.1.0', version => {
 					expect(() => version.change()).to.throw(

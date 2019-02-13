@@ -26,7 +26,7 @@ const {
 
 const sinon = sinonSandbox;
 
-describe('rounds', async () => {
+describe('rounds', () => {
 	let rounds;
 	let scope;
 	let components;
@@ -124,7 +124,7 @@ describe('rounds', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should return Rounds instance', async () =>
 			expect(rounds).to.be.instanceof(Rounds));
 
@@ -137,7 +137,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('loaded', async () => {
+	describe('loaded', () => {
 		it('should return __private.loaded', async () => {
 			const variable = '__private.loaded';
 			const backup = get(variable);
@@ -148,7 +148,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('ticking', async () => {
+	describe('ticking', () => {
 		it('should return __private.ticking', async () => {
 			const variable = '__private.ticking';
 			const backup = get(variable);
@@ -159,7 +159,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('onBind', async () => {
+	describe('onBind', () => {
 		it('should set modules', async () => {
 			const variable = 'modules';
 			const backup = get(variable);
@@ -181,7 +181,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('onBlockchainReady', async () => {
+	describe('onBlockchainReady', () => {
 		it('should set __private.loaded = true', async () => {
 			const variable = '__private.loaded ';
 			const backup = get(variable);
@@ -193,7 +193,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('onFinishRound', async () => {
+	describe('onFinishRound', () => {
 		beforeEach(() => {
 			components.cache.isReady.returns(true);
 			validScope.network.io.sockets.emit.resetHistory();
@@ -223,7 +223,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('cleanup', async () => {
+	describe('cleanup', () => {
 		it('should set __private.loaded = false and call a callback', done => {
 			const variable = '__private.loaded ';
 			const backup = get(variable);
@@ -237,14 +237,14 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('__private.getOutsiders', async () => {
+	describe('__private.getOutsiders', () => {
 		let getOutsiders;
 
 		beforeEach(async () => {
 			getOutsiders = get('__private.getOutsiders');
 		});
 
-		describe('when scope.block.height = 1', async () => {
+		describe('when scope.block.height = 1', () => {
 			beforeEach(async () => {
 				scope.block = { height: 1 };
 			});
@@ -257,13 +257,13 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('when scope.block.height != 1', async () => {
+		describe('when scope.block.height != 1', () => {
 			beforeEach(async () => {
 				scope.block = { height: 2 };
 			});
 
-			describe('when generateDelegateList is successful', async () => {
-				describe('when all delegates are on list (no outsiders)', async () => {
+			describe('when generateDelegateList is successful', () => {
+				describe('when all delegates are on list (no outsiders)', () => {
 					beforeEach(async () => {
 						scope.roundDelegates = ['delegate1', 'delegate2', 'delegate3'];
 						scope.roundOutsiders = [];
@@ -284,7 +284,7 @@ describe('rounds', async () => {
 					});
 				});
 
-				describe('when 1 delegates is not on list (outsider)', async () => {
+				describe('when 1 delegates is not on list (outsider)', () => {
 					beforeEach(async () => {
 						scope.roundDelegates = ['delegate2', 'delegate3'];
 						scope.roundOutsiders = [];
@@ -305,7 +305,7 @@ describe('rounds', async () => {
 					});
 				});
 
-				describe('when 2 delegates are not on list (outsiders)', async () => {
+				describe('when 2 delegates are not on list (outsiders)', () => {
 					beforeEach(async () => {
 						scope.roundDelegates = ['delegate3'];
 						scope.roundOutsiders = [];
@@ -330,7 +330,7 @@ describe('rounds', async () => {
 				});
 			});
 
-			describe('when generateDelegateList fails', async () => {
+			describe('when generateDelegateList fails', () => {
 				beforeEach(async () => {
 					scope.block.height = 2;
 					bindings.modules.delegates.generateDelegateList.yields('error');
@@ -346,7 +346,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('__private.sumRound', async () => {
+	describe('__private.sumRound', () => {
 		let sumRound;
 
 		beforeEach(done => {
@@ -354,7 +354,7 @@ describe('rounds', async () => {
 			done();
 		});
 
-		describe('when last block is genesis block', async () => {
+		describe('when last block is genesis block', () => {
 			beforeEach(async () => {
 				scope.round = 1;
 				scope.block = {
@@ -396,8 +396,8 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('when last block is not genesis block', async () => {
-			describe('when summedRound query is successful', async () => {
+		describe('when last block is not genesis block', () => {
+			describe('when summedRound query is successful', () => {
 				beforeEach(async () => {
 					scope.round = 1;
 					scope.block = { height: 2 };
@@ -445,7 +445,7 @@ describe('rounds', async () => {
 				});
 			});
 
-			describe('when summedRound query fails', async () => {
+			describe('when summedRound query fails', () => {
 				beforeEach(done => {
 					// Because for genesis block we don't invoke summedRound
 					scope.block = { height: 2 };
@@ -463,7 +463,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('tick', async () => {
+	describe('tick', () => {
 		let block;
 		let roundScope;
 
@@ -496,10 +496,10 @@ describe('rounds', async () => {
 			set('__private.getOutsiders', getOutsiders_stub);
 		});
 
-		describe('testing branches', async () => {
-			describe('scope properties', async () => {
-				describe('finishRound', async () => {
-					describe('when block height = 1', async () => {
+		describe('testing branches', () => {
+			describe('scope properties', () => {
+				describe('finishRound', () => {
+					describe('when block height = 1', () => {
 						it('should be set to true', done => {
 							block = { height: 1 };
 							rounds.tick(block, err => {
@@ -510,7 +510,7 @@ describe('rounds', async () => {
 						});
 					});
 
-					describe('when block height = 101', async () => {
+					describe('when block height = 101', () => {
 						it('should be set to true', done => {
 							block = { height: 101 };
 							rounds.tick(block, err => {
@@ -521,7 +521,7 @@ describe('rounds', async () => {
 						});
 					});
 
-					describe('when round !== nextRound', async () => {
+					describe('when round !== nextRound', () => {
 						it('should be set to true', done => {
 							block = { height: 202 };
 							rounds.tick(block, err => {
@@ -532,7 +532,7 @@ describe('rounds', async () => {
 						});
 					});
 
-					describe('when other height supplied (middle-round)', async () => {
+					describe('when other height supplied (middle-round)', () => {
 						it('should be set to false', done => {
 							block = { height: 203 };
 							rounds.tick(block, err => {
@@ -546,7 +546,7 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('scope.finishRound', async () => {
+		describe('scope.finishRound', () => {
 			let bus;
 
 			beforeEach(() => {
@@ -554,7 +554,7 @@ describe('rounds', async () => {
 				return bus.resetHistory();
 			});
 
-			describe('when true', async () => {
+			describe('when true', () => {
 				beforeEach(done => {
 					scope.finishRound = true;
 					block = { height: 1 };
@@ -587,7 +587,7 @@ describe('rounds', async () => {
 				});
 			});
 
-			describe('when false', async () => {
+			describe('when false', () => {
 				beforeEach(done => {
 					block = { height: 203 };
 					rounds.tick(block, err => {
@@ -618,7 +618,7 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('performing round snapshot (queries)', async () => {
+		describe('performing round snapshot (queries)', () => {
 			afterEach(async () => {
 				clearRoundSnapshot_stub.reset();
 				performRoundSnapshot_stub.reset();
@@ -626,7 +626,7 @@ describe('rounds', async () => {
 				performVotesSnapshot_stub.reset();
 			});
 
-			describe('when (block.height+1) % ACTIVE_DELEGATES === 0', async () => {
+			describe('when (block.height+1) % ACTIVE_DELEGATES === 0', () => {
 				beforeEach(async () => {
 					clearRoundSnapshot_stub = storageStubs.Round.clearRoundSnapshot.resolves();
 					performRoundSnapshot_stub = storageStubs.Round.performRoundSnapshot.resolves();
@@ -642,7 +642,7 @@ describe('rounds', async () => {
 					Rounds.__set__('Round', RoundLogic);
 				});
 
-				describe('when queries are successful', async () => {
+				describe('when queries are successful', () => {
 					let res;
 
 					beforeEach(done => {
@@ -669,7 +669,7 @@ describe('rounds', async () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true);
 				});
 
-				describe('when clearRoundSnapshot query fails', async () => {
+				describe('when clearRoundSnapshot query fails', () => {
 					let res;
 
 					beforeEach(done => {
@@ -702,7 +702,7 @@ describe('rounds', async () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true);
 				});
 
-				describe('when performRoundSnapshot query fails', async () => {
+				describe('when performRoundSnapshot query fails', () => {
 					let res;
 
 					beforeEach(done => {
@@ -735,7 +735,7 @@ describe('rounds', async () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true);
 				});
 
-				describe('when clearVotesSnapshot query fails', async () => {
+				describe('when clearVotesSnapshot query fails', () => {
 					let res;
 
 					beforeEach(done => {
@@ -768,7 +768,7 @@ describe('rounds', async () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true);
 				});
 
-				describe('when performVotesSnapshot query fails', async () => {
+				describe('when performVotesSnapshot query fails', () => {
 					let res;
 
 					beforeEach(done => {
@@ -802,7 +802,7 @@ describe('rounds', async () => {
 				});
 			});
 
-			describe('when (block.height+1) % ACTIVE_DELEGATES !== 0', async () => {
+			describe('when (block.height+1) % ACTIVE_DELEGATES !== 0', () => {
 				beforeEach(done => {
 					block = { height: 101 };
 					rounds.tick(block, err => {
@@ -826,7 +826,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('backwardTick', async () => {
+	describe('backwardTick', () => {
 		let block;
 		let previousBlock;
 		let roundScope;
@@ -858,10 +858,10 @@ describe('rounds', async () => {
 			getOutsiders_stub.resetHistory();
 		});
 
-		describe('testing branches', async () => {
-			describe('scope properties', async () => {
-				describe('finishRound', async () => {
-					describe('when block height = 1', async () => {
+		describe('testing branches', () => {
+			describe('scope properties', () => {
+				describe('finishRound', () => {
+					describe('when block height = 1', () => {
 						it('should be set to true', done => {
 							block = { height: 1 };
 							previousBlock = { height: 1 };
@@ -878,7 +878,7 @@ describe('rounds', async () => {
 						});
 					});
 
-					describe('when block height = 101', async () => {
+					describe('when block height = 101', () => {
 						it('should be set to true', done => {
 							block = { height: 101 };
 							previousBlock = { height: 1 };
@@ -895,7 +895,7 @@ describe('rounds', async () => {
 						});
 					});
 
-					describe('prevRound === round && nextRound !== round', async () => {
+					describe('prevRound === round && nextRound !== round', () => {
 						it('should be set to true', done => {
 							block = { height: 202 };
 							previousBlock = { height: 202 };
@@ -907,7 +907,7 @@ describe('rounds', async () => {
 						});
 					});
 
-					describe('when other height supplied (middle-round)', async () => {
+					describe('when other height supplied (middle-round)', () => {
 						it('should be set to false', done => {
 							block = { height: 203 };
 							previousBlock = { height: 203 };
@@ -922,8 +922,8 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('scope.finishRound', async () => {
-			describe('when true', async () => {
+		describe('scope.finishRound', () => {
+			describe('when true', () => {
 				beforeEach(done => {
 					block = { height: 1 };
 					previousBlock = { height: 1 };
@@ -947,7 +947,7 @@ describe('rounds', async () => {
 					expect(getOutsiders_stub.calledOnce).to.be.true);
 			});
 
-			describe('when false', async () => {
+			describe('when false', () => {
 				beforeEach(done => {
 					block = { height: 5 };
 					previousBlock = { height: 5 };
@@ -973,7 +973,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('createRoundInformationWithAmount', async () => {
+	describe('createRoundInformationWithAmount', () => {
 		const params = {
 			address: '123L',
 			amount: '456',
@@ -1026,7 +1026,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('createRoundInformationWithDelegate', async () => {
+	describe('createRoundInformationWithDelegate', () => {
 		const params = {
 			address: '123L',
 			delegatePublicKey: 'delegate1',
@@ -1050,7 +1050,7 @@ describe('rounds', async () => {
 			createRoundStub.reset();
 		});
 
-		describe('when mode is "+"', async () => {
+		describe('when mode is "+"', () => {
 			beforeEach(async () => {
 				params.mode = '+';
 
@@ -1084,7 +1084,7 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('when mode is "-"', async () => {
+		describe('when mode is "-"', () => {
 			beforeEach(async () => {
 				params.mode = '-';
 

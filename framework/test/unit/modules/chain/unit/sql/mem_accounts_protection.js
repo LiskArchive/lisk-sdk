@@ -92,7 +92,7 @@ const queries = {
 	},
 };
 
-describe('mem_accounts protection', async () => {
+describe('mem_accounts protection', () => {
 	before(done => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.db,
@@ -111,8 +111,8 @@ describe('mem_accounts protection', async () => {
 		queries.deleteAccount(validAccount, done);
 	});
 
-	describe('username update', async () => {
-		describe('when account with username exists', async () => {
+	describe('username update', () => {
+		describe('when account with username exists', () => {
 			before(done => {
 				queries.getAccountByAddress(validAccount.address, (err, account) => {
 					expect(account).to.be.an('object').and.to.be.not.empty;
@@ -121,7 +121,7 @@ describe('mem_accounts protection', async () => {
 				});
 			});
 
-			describe('for value != null', async () => {
+			describe('for value != null', () => {
 				const nonNullValidUsername =
 					validAccount.username + randomstring.generate(1).toLowerCase();
 
@@ -142,7 +142,7 @@ describe('mem_accounts protection', async () => {
 				});
 			});
 
-			describe('for value = null', async () => {
+			describe('for value = null', () => {
 				before(done => {
 					queries.updateUsername(validAccount, null, done);
 				});
@@ -160,7 +160,7 @@ describe('mem_accounts protection', async () => {
 			});
 		});
 
-		describe('when account with username = null exists', async () => {
+		describe('when account with username = null exists', () => {
 			let noUsernameAccount;
 
 			before(done => {
@@ -181,7 +181,7 @@ describe('mem_accounts protection', async () => {
 				queries.deleteAccount(noUsernameAccount, done);
 			});
 
-			describe('for valid username', async () => {
+			describe('for valid username', () => {
 				const auxValidUsername = randomstring.generate(10).toLowerCase();
 
 				before(done => {
@@ -204,8 +204,8 @@ describe('mem_accounts protection', async () => {
 		});
 	});
 
-	describe('u_username update', async () => {
-		describe('when account with u_username exists', async () => {
+	describe('u_username update', () => {
+		describe('when account with u_username exists', () => {
 			before(done => {
 				queries.getAccountByAddress(validAccount.address, (err, account) => {
 					expect(account).to.be.an('object').and.to.be.not.empty;
@@ -214,7 +214,7 @@ describe('mem_accounts protection', async () => {
 				});
 			});
 
-			describe('for value != null', async () => {
+			describe('for value != null', () => {
 				const nonNullValidUsername =
 					validAccount.username + randomstring.generate(1).toLowerCase();
 
@@ -236,7 +236,7 @@ describe('mem_accounts protection', async () => {
 				});
 			});
 
-			describe('for value = null', async () => {
+			describe('for value = null', () => {
 				before(done => {
 					queries.updateU_username(validAccount, null, done);
 				});
@@ -254,7 +254,7 @@ describe('mem_accounts protection', async () => {
 			});
 		});
 
-		describe('when account with u_username = null exists', async () => {
+		describe('when account with u_username = null exists', () => {
 			let noU_usernameAccount;
 
 			before(done => {
@@ -275,7 +275,7 @@ describe('mem_accounts protection', async () => {
 				queries.deleteAccount(noU_usernameAccount, done);
 			});
 
-			describe('for valid u_username', async () => {
+			describe('for valid u_username', () => {
 				const validU_username = randomstring.generate(10).toLowerCase();
 
 				before(done => {

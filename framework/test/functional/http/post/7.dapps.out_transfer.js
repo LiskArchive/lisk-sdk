@@ -30,7 +30,7 @@ const common = require('./common');
 const { FEES, NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 7) outTransfer dapp', async () => {
+describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -96,10 +96,10 @@ describe('POST /api/transactions (type 7) outTransfer dapp', async () => {
 	});
 
 	/* eslint-disable mocha/no-skipped-tests */
-	describe.skip('schema validations', async () => {
+	describe.skip('schema validations', () => {
 		common.invalidAssets('outTransfer', badTransactions);
 
-		describe('dappId', async () => {
+		describe('dappId', () => {
 			it('without should fail', async () => {
 				transaction = lisk.transfer.createOutTransfer(
 					randomUtil.guestbookDapp.id,
@@ -247,7 +247,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', async () => {
 			});
 		});
 
-		describe('transactionId', async () => {
+		describe('transactionId', () => {
 			it('without should fail', async () => {
 				transaction = lisk.transfer.createOutTransfer(
 					randomUtil.guestbookDapp.id,
@@ -395,7 +395,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', async () => {
 			});
 		});
 
-		describe('recipientId', async () => {
+		describe('recipientId', () => {
 			it('with integer should fail', async () => {
 				transaction = lisk.transfer.createOutTransfer(
 					randomUtil.guestbookDapp.id,
@@ -499,7 +499,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', async () => {
 			});
 		});
 
-		describe('amount', async () => {
+		describe('amount', () => {
 			it('using < 0 should fail', async () => {
 				transaction = lisk.transfer.createOutTransfer(
 					randomUtil.guestbookDapp.id,
@@ -555,7 +555,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', async () => {
 		});
 	});
 
-	describe.skip('transactions processing', async () => {
+	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', async () => {
 			const unknownDappId = '1';
 			transaction = lisk.transfer.createOutTransfer(
@@ -633,7 +633,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', async () => {
 			});
 		});
 
-		describe('from the author itself', async () => {
+		describe('from the author itself', () => {
 			it('with minimal funds should fail', async () => {
 				transaction = lisk.transfer.createOutTransfer(
 					randomUtil.blockDataDapp.id,
@@ -671,12 +671,12 @@ describe('POST /api/transactions (type 7) outTransfer dapp', async () => {
 		});
 	});
 
-	describe.skip('confirmation', async () => {
+	describe.skip('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 	/* eslint-enable mocha/no-skipped-tests */
 
-	describe('check frozen type', async () => {
+	describe('check frozen type', () => {
 		it('transaction should be rejected', async () => {
 			transaction = {
 				amount: '100000000',

@@ -22,7 +22,7 @@ const randomUtil = require('../../../common/utils/random');
 const wsRPC = require('../../../../src/modules/chain/api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');
 
-describe('Posting transaction (type 0)', async () => {
+describe('Posting transaction (type 0)', () => {
 	let transaction;
 	const goodTransactions = [];
 	const badTransactions = [];
@@ -54,7 +54,7 @@ describe('Posting transaction (type 0)', async () => {
 		done();
 	});
 
-	describe('transaction processing', async () => {
+	describe('transaction processing', () => {
 		it('when sender has no funds should broadcast transaction but not confirm', done => {
 			transaction = lisk.transaction.transfer({
 				amount: 1,
@@ -74,7 +74,7 @@ describe('Posting transaction (type 0)', async () => {
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

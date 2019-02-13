@@ -22,7 +22,7 @@ const application = require('../../../../../common/application');
 
 const exceptions = global.exceptions;
 
-describe('delegates', async () => {
+describe('delegates', () => {
 	let library;
 
 	before(done => {
@@ -45,8 +45,8 @@ describe('delegates', async () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('__private', async () => {
-		describe('loadDelegates', async () => {
+	describe('__private', () => {
+		describe('loadDelegates', () => {
 			let loadDelegates;
 			let config;
 			let __private;
@@ -487,7 +487,7 @@ describe('delegates', async () => {
 			});
 		});
 
-		describe('getDelegateKeypairForCurrentSlot', async () => {
+		describe('getDelegateKeypairForCurrentSlot', () => {
 			let delegates;
 			let __private;
 			let originalGenerateDelegateList;
@@ -662,14 +662,14 @@ describe('delegates', async () => {
 			});
 		});
 
-		describe('__private.delegatesListCache operations', async () => {
+		describe('__private.delegatesListCache operations', () => {
 			let __private;
 			beforeEach(done => {
 				__private = library.rewiredModules.delegates.__get__('__private');
 				done();
 			});
 
-			describe('__private.updateDelegateListCache', async () => {
+			describe('__private.updateDelegateListCache', () => {
 				it('should insert the given delegateList array to __private.delegateListCache for given round.', async () => {
 					// Arrange
 					__private.delegatesListCache = {};
@@ -757,7 +757,7 @@ describe('delegates', async () => {
 				});
 			});
 
-			describe('__private.clearDelegateListCache', async () => {
+			describe('__private.clearDelegateListCache', () => {
 				it('should clear __private.delegateListCache object.', async () => {
 					// Arrange
 					const initialSate = {
@@ -787,7 +787,7 @@ describe('delegates', async () => {
 		});
 	});
 
-	describe('generateDelegateList', async () => {
+	describe('generateDelegateList', () => {
 		let __private;
 		let sourceStub;
 		let originalExceptions;

@@ -23,7 +23,7 @@ const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
-describe('delegate', async () => {
+describe('delegate', () => {
 	let library;
 	let storage;
 
@@ -44,7 +44,7 @@ describe('delegate', async () => {
 		});
 	});
 
-	describe('with funds inside account', async () => {
+	describe('with funds inside account', () => {
 		let delegateAccount;
 
 		beforeEach('send funds to delegate account', done => {
@@ -57,7 +57,7 @@ describe('delegate', async () => {
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
-		describe('with delegate transaction in unconfirmed state', async () => {
+		describe('with delegate transaction in unconfirmed state', () => {
 			let delegateTransaction;
 			let username;
 
@@ -77,7 +77,7 @@ describe('delegate', async () => {
 				);
 			});
 
-			describe('when receiving block with same transaction', async () => {
+			describe('when receiving block with same transaction', () => {
 				beforeEach(done => {
 					localCommon.createValidBlock(
 						library,
@@ -90,7 +90,7 @@ describe('delegate', async () => {
 					);
 				});
 
-				describe('unconfirmed state', async () => {
+				describe('unconfirmed state', () => {
 					it('should update unconfirmed columns related to delegate', done => {
 						library.sequence.add(seqCb => {
 							localCommon
@@ -106,7 +106,7 @@ describe('delegate', async () => {
 					});
 				});
 
-				describe('confirmed state', async () => {
+				describe('confirmed state', () => {
 					it('should update confirmed columns related to delegate', done => {
 						library.sequence.add(seqCb => {
 							localCommon
@@ -123,7 +123,7 @@ describe('delegate', async () => {
 				});
 			});
 
-			describe('when receiving block with delegate transaction with different id', async () => {
+			describe('when receiving block with delegate transaction with different id', () => {
 				let delegateTransaction2;
 				let username2;
 
@@ -147,7 +147,7 @@ describe('delegate', async () => {
 					);
 				});
 
-				describe('unconfirmed state', async () => {
+				describe('unconfirmed state', () => {
 					it('should update unconfirmed columns related to delegate', done => {
 						library.sequence.add(seqCb => {
 							localCommon
@@ -163,7 +163,7 @@ describe('delegate', async () => {
 					});
 				});
 
-				describe('confirmed state', async () => {
+				describe('confirmed state', () => {
 					it('should update confirmed columns related to delegate', done => {
 						library.sequence.add(seqCb => {
 							localCommon

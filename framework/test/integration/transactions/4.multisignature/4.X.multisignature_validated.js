@@ -20,7 +20,7 @@ const Scenarios = require('../../../common/scenarios');
 const transactionTypes = require('../../../../src/modules/chain/helpers/transaction_types.js');
 const localCommon = require('../../common');
 
-describe('system test (type 4) - checking registered multisignature transaction against other transaction types', async () => {
+describe('system test (type 4) - checking registered multisignature transaction against other transaction types', () => {
 	let library;
 
 	const scenarios = {
@@ -76,7 +76,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		);
 	});
 
-	describe('after forging one block', async () => {
+	describe('after forging one block', () => {
 		before(done => {
 			localCommon.forge(library, async () => {
 				done();
@@ -116,7 +116,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 			});
 		});
 
-		describe('adding to pool other transaction types from the same account', async () => {
+		describe('adding to pool other transaction types from the same account', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;

@@ -89,7 +89,7 @@ const rawValidTransaction = {
 		'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
 };
 
-describe('signature', async () => {
+describe('signature', () => {
 	let accountsMock;
 	let signature;
 	let dummyBlock;
@@ -113,7 +113,7 @@ describe('signature', async () => {
 
 	afterEach(() => accountsMock.setAccountAndGet.resetHistory());
 
-	describe('with transaction and sender objects', async () => {
+	describe('with transaction and sender objects', () => {
 		let transaction;
 		let rawTransaction;
 		let sender;
@@ -125,7 +125,7 @@ describe('signature', async () => {
 			done();
 		});
 
-		describe('constructor', async () => {
+		describe('constructor', () => {
 			let library;
 
 			beforeEach(done => {
@@ -141,8 +141,8 @@ describe('signature', async () => {
 				expect(library.logger).to.eql(modulesLoader.scope.logger));
 		});
 
-		describe('bind', async () => {
-			describe('modules', async () => {
+		describe('bind', () => {
+			describe('modules', () => {
 				it('should assign accounts', async () => {
 					signature.bind(accountsMock);
 					const modules = Signature.__get__('modules');
@@ -153,7 +153,7 @@ describe('signature', async () => {
 			});
 		});
 
-		describe('calculateFee', async () => {
+		describe('calculateFee', () => {
 			let fee;
 
 			beforeEach(done => {
@@ -165,9 +165,9 @@ describe('signature', async () => {
 				expect(fee.isEqualTo(FEES.SECOND_SIGNATURE)).to.be.true);
 		});
 
-		describe('verify', async () => {
-			describe('when transaction is invalid', async () => {
-				describe('when asset = undefined', async () => {
+		describe('verify', () => {
+			describe('when transaction is invalid', () => {
+				describe('when asset = undefined', () => {
 					it('should call callback with error = "Invalid transaction asset"', done => {
 						delete transaction.asset;
 
@@ -178,7 +178,7 @@ describe('signature', async () => {
 					});
 				});
 
-				describe('when signature = undefined', async () => {
+				describe('when signature = undefined', () => {
 					it('should call callback with error = "Invalid transaction asset', done => {
 						delete transaction.asset.signature;
 
@@ -189,7 +189,7 @@ describe('signature', async () => {
 					});
 				});
 
-				describe('when amount != 0', async () => {
+				describe('when amount != 0', () => {
 					it('should call callback with error = "Invalid transaction amount', done => {
 						transaction.amount = 1;
 
@@ -200,7 +200,7 @@ describe('signature', async () => {
 					});
 				});
 
-				describe('when publicKey = undefined', async () => {
+				describe('when publicKey = undefined', () => {
 					it('should call callback with error = "Invalid public key', done => {
 						delete transaction.asset.signature.publicKey;
 
@@ -211,7 +211,7 @@ describe('signature', async () => {
 					});
 				});
 
-				describe('when publicKey is invalid', async () => {
+				describe('when publicKey is invalid', () => {
 					it('should call callback with error = "Invalid public key', done => {
 						transaction.asset.signature.publicKey = 'invalid-public-key';
 
@@ -223,14 +223,14 @@ describe('signature', async () => {
 				});
 			});
 
-			describe('when transaction is valid', async () => {
+			describe('when transaction is valid', () => {
 				it('should call callback with error = null', done => {
 					signature.verify(transaction, sender, done);
 				});
 			});
 		});
 
-		describe('process', async () => {
+		describe('process', () => {
 			it('should call callback with error = null', done => {
 				signature.process(transaction, sender, done);
 			});
@@ -243,9 +243,9 @@ describe('signature', async () => {
 			});
 		});
 
-		describe('getBytes', async () => {
-			describe('when asset is invalid', async () => {
-				describe('when transaction.asset.signature.publicKey is a number', async () => {
+		describe('getBytes', () => {
+			describe('when asset is invalid', () => {
+				describe('when transaction.asset.signature.publicKey is a number', () => {
 					const validNumber = 1;
 
 					beforeEach(done => {
@@ -257,7 +257,7 @@ describe('signature', async () => {
 						expect(signature.getBytes.bind(transaction)).to.throw());
 				});
 
-				describe('when transaction.asset = undefined', async () => {
+				describe('when transaction.asset = undefined', () => {
 					beforeEach(async () => delete transaction.asset);
 
 					it('should throw', async () =>
@@ -265,8 +265,8 @@ describe('signature', async () => {
 				});
 			});
 
-			describe('when asset is valid', async () => {
-				describe('when transaction.asset.signature.publicKey is defined', async () => {
+			describe('when asset is valid', () => {
+				describe('when transaction.asset.signature.publicKey is defined', () => {
 					let signatureBytes;
 
 					beforeEach(done => {
@@ -285,7 +285,7 @@ describe('signature', async () => {
 			});
 		});
 
-		describe('applyConfirmed', async () => {
+		describe('applyConfirmed', () => {
 			beforeEach(done => {
 				signature.applyConfirmed(validTransaction, dummyBlock, sender, done);
 			});
@@ -317,7 +317,7 @@ describe('signature', async () => {
 				).to.be.true);
 		});
 
-		describe('undoConfirmed', async () => {
+		describe('undoConfirmed', () => {
 			beforeEach(done => {
 				signature.undoConfirmed(validTransaction, dummyBlock, sender, done);
 			});
@@ -347,8 +347,8 @@ describe('signature', async () => {
 				).to.be.true);
 		});
 
-		describe('applyUnconfirmed', async () => {
-			describe('when sender has u_secondSignature', async () => {
+		describe('applyUnconfirmed', () => {
+			describe('when sender has u_secondSignature', () => {
 				beforeEach(done => {
 					sender.u_secondSignature = 'some-second-siganture';
 					done();
@@ -362,7 +362,7 @@ describe('signature', async () => {
 				});
 			});
 
-			describe('when sender has secondSignature', async () => {
+			describe('when sender has secondSignature', () => {
 				beforeEach(done => {
 					sender.secondSignature = 'some-second-siganture';
 					done();
@@ -398,7 +398,7 @@ describe('signature', async () => {
 				).to.be.true);
 		});
 
-		describe('undoUnconfirmed', async () => {
+		describe('undoUnconfirmed', () => {
 			beforeEach(done => {
 				signature.undoUnconfirmed(validTransaction, sender, done);
 			});
@@ -421,8 +421,8 @@ describe('signature', async () => {
 				).to.be.true);
 		});
 
-		describe('objectNormalize', async () => {
-			describe('schema.validate should validate against signature schema', async () => {
+		describe('objectNormalize', () => {
+			describe('schema.validate should validate against signature schema', () => {
 				let library;
 				let schemaSpy;
 
@@ -446,8 +446,8 @@ describe('signature', async () => {
 					).to.equal(true));
 			});
 
-			describe('when schema.validate fails', async () => {
-				describe('for non-string types', async () => {
+			describe('when schema.validate fails', () => {
+				describe('for non-string types', () => {
 					const nonStrings = _.difference(
 						typesRepresentatives.allTypes,
 						typesRepresentatives.strings
@@ -469,7 +469,7 @@ describe('signature', async () => {
 					});
 				});
 
-				describe('for non-publicKey format strings', async () => {
+				describe('for non-publicKey format strings', () => {
 					const nonEmptyStrings = typesRepresentatives.nonEmptyStrings;
 
 					nonEmptyStrings.forEach(type => {
@@ -489,21 +489,21 @@ describe('signature', async () => {
 				});
 			});
 
-			describe('when library.schema.validate succeeds', async () => {
+			describe('when library.schema.validate succeeds', () => {
 				it('should return transaction', async () =>
 					expect(signature.objectNormalize(transaction)).to.eql(transaction));
 			});
 		});
 
-		describe('dbRead', async () => {
-			describe('when publicKey is undefined', async () => {
+		describe('dbRead', () => {
+			describe('when publicKey is undefined', () => {
 				beforeEach(async () => delete rawTransaction.s_publicKey);
 
 				it('should return null', async () =>
 					expect(signature.dbRead(rawTransaction)).to.eql(null));
 			});
 
-			describe('with valid signature properties', async () => {
+			describe('with valid signature properties', () => {
 				const publicKey =
 					'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7';
 				const transactionId = '5197781214824378819';
@@ -520,7 +520,7 @@ describe('signature', async () => {
 			});
 		});
 
-		describe('ready', async () => {
+		describe('ready', () => {
 			it('should return true for single signature transaction', async () =>
 				expect(signature.ready(transaction, sender)).to.equal(true));
 

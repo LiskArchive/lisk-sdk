@@ -17,7 +17,7 @@
 const httpMocks = require('node-mocks-http');
 const fitting = require('../../../../../../../src/modules/chain/api/fittings/lisk_request_limit');
 
-describe('lisk_request_limit', async () => {
+describe('lisk_request_limit', () => {
 	let context;
 	let limit_fititng;
 	let next;

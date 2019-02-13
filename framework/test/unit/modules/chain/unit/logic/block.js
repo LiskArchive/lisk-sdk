@@ -310,7 +310,7 @@ function expectedOrderOfTransactions(sortedTransactions) {
 	return sorted;
 }
 
-describe('block', async () => {
+describe('block', () => {
 	let block;
 	let data;
 	let transactionStub;
@@ -336,7 +336,7 @@ describe('block', async () => {
 		done();
 	});
 
-	describe('create', async () => {
+	describe('create', () => {
 		let blockNormalizeStub;
 
 		before(() => {
@@ -354,7 +354,7 @@ describe('block', async () => {
 			return transactionStub.objectNormalize.resetHistory();
 		});
 
-		describe('when each of all supported', async () => {
+		describe('when each of all supported', () => {
 			let generatedBlock;
 			let transactionsOrder;
 			const correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
@@ -370,7 +370,7 @@ describe('block', async () => {
 				expect(transactionsOrder).to.eql(correctOrder));
 		});
 
-		describe('when there are multiple multisignature transactions', async () => {
+		describe('when there are multiple multisignature transactions', () => {
 			const correctOrderOfTransactions = [
 				0,
 				1,
@@ -387,7 +387,7 @@ describe('block', async () => {
 				4,
 			];
 
-			describe('in the beginning', async () => {
+			describe('in the beginning', () => {
 				let multipleMultisigTx;
 				let generatedBlock;
 				let transactionsOrder;
@@ -411,7 +411,7 @@ describe('block', async () => {
 				});
 			});
 
-			describe('at the middle', async () => {
+			describe('at the middle', () => {
 				let multipleMultisigTx;
 				let generatedBlock;
 				let transactionsOrder;
@@ -436,7 +436,7 @@ describe('block', async () => {
 				});
 			});
 
-			describe('at the end', async () => {
+			describe('at the end', () => {
 				let multipleMultisigTx;
 				let generatedBlock;
 				let transactionsOrder;
@@ -459,7 +459,7 @@ describe('block', async () => {
 				});
 			});
 
-			describe('shuffled', async () => {
+			describe('shuffled', () => {
 				let multipleMultisigTx;
 				let generatedBlock;
 				let transactionsOrder;
@@ -487,7 +487,7 @@ describe('block', async () => {
 		});
 	});
 
-	describe('sign', async () => {
+	describe('sign', () => {
 		it('should throw error for empty block and validKeypair', async () =>
 			expect(() => {
 				block.sign({}, validKeypair);
@@ -517,7 +517,7 @@ describe('block', async () => {
 		});
 	});
 
-	describe('getBytes', async () => {
+	describe('getBytes', () => {
 		it('should throw error for invalid block', async () =>
 			expect(() => {
 				block.getBytes(invalidBlock);
@@ -543,7 +543,7 @@ describe('block', async () => {
 		});
 	});
 
-	describe('verifySignature', async () => {
+	describe('verifySignature', () => {
 		it('should throw error for invalid block', async () =>
 			expect(() => {
 				block.verifySignature(invalidBlock);
@@ -622,7 +622,7 @@ describe('block', async () => {
 		});
 	});
 
-	describe('getId', async () => {
+	describe('getId', () => {
 		it('should throw an error for empty block', async () =>
 			expect(() => {
 				block.getId({});
@@ -634,7 +634,7 @@ describe('block', async () => {
 				.which.is.equal(blockData.id));
 	});
 
-	describe('getHash', async () => {
+	describe('getHash', () => {
 		it('should throw error for invalid block', async () =>
 			expect(() => {
 				block.getHash(invalidBlock);
@@ -644,12 +644,12 @@ describe('block', async () => {
 			expect(block.getHash(blockData)).to.be.an.instanceof(Buffer));
 	});
 
-	describe('calculateFee', async () => {
+	describe('calculateFee', () => {
 		it('should return the constant fee', async () =>
 			expect(block.calculateFee(blockData).isEqualTo(FEES.SEND)).to.be.true);
 	});
 
-	describe('dbRead', async () => {
+	describe('dbRead', () => {
 		it('should throw error for null values', async () =>
 			expect(() => {
 				block.dbRead(null);

@@ -27,7 +27,7 @@ const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /api/voters', async () => {
+describe('GET /api/voters', () => {
 	const votersEndpoint = new SwaggerEndpoint('GET /voters');
 	const validVotedDelegate = accountFixtures.existingDelegate;
 	const validNotVotedDelegate = accountFixtures.genesis;
@@ -42,9 +42,9 @@ describe('GET /api/voters', async () => {
 		expect(res.body.data.voters).to.be.empty;
 	}
 
-	describe('?', async () => {
-		describe('required fields', async () => {
-			describe('when params are not defined', async () => {
+	describe('?', () => {
+		describe('required fields', () => {
+			describe('when params are not defined', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votersEndpoint.makeRequest({}, 400).then(res => {
 						expect(res.body.errors).to.have.length(4);
@@ -56,7 +56,7 @@ describe('GET /api/voters', async () => {
 				});
 			});
 
-			describe('when only sort param provided', async () => {
+			describe('when only sort param provided', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votersEndpoint
 						.makeRequest({ sort: 'publicKey:asc' }, 400)
@@ -70,7 +70,7 @@ describe('GET /api/voters', async () => {
 				});
 			});
 
-			describe('when only offset param provided', async () => {
+			describe('when only offset param provided', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votersEndpoint.makeRequest({ offset: 1 }, 400).then(res => {
 						expect(res.body.errors).to.have.length(4);
@@ -82,7 +82,7 @@ describe('GET /api/voters', async () => {
 				});
 			});
 
-			describe('when sort params provided', async () => {
+			describe('when sort params provided', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votersEndpoint
 						.makeRequest({ sort: 'publicKey:asc' }, 400)
@@ -96,7 +96,7 @@ describe('GET /api/voters', async () => {
 				});
 			});
 
-			describe('when all required params (address, publicKey, username) provided', async () => {
+			describe('when all required params (address, publicKey, username) provided', () => {
 				it('should return the expected result as when db has only 101 delegates', async () => {
 					return votersEndpoint
 						.makeRequest(
@@ -114,7 +114,7 @@ describe('GET /api/voters', async () => {
 			});
 		});
 
-		describe('publicKey', async () => {
+		describe('publicKey', () => {
 			it('using no publicKey should fail', async () => {
 				return votersEndpoint.makeRequest({ publicKey: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'publicKey');
@@ -152,7 +152,7 @@ describe('GET /api/voters', async () => {
 			});
 		});
 
-		describe('secondPublicKey', async () => {
+		describe('secondPublicKey', () => {
 			it('using no secondPublicKey should fail', async () => {
 				return votersEndpoint
 					.makeRequest({ secondPublicKey: '' }, 400)
@@ -180,7 +180,7 @@ describe('GET /api/voters', async () => {
 			});
 		});
 
-		describe('address', async () => {
+		describe('address', () => {
 			it('using no address should fail', async () => {
 				return votersEndpoint.makeRequest({ address: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'address');
@@ -215,7 +215,7 @@ describe('GET /api/voters', async () => {
 			});
 		});
 
-		describe('username', async () => {
+		describe('username', () => {
 			it('using no username should fail', async () => {
 				return votersEndpoint.makeRequest({ username: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'username');
@@ -237,7 +237,7 @@ describe('GET /api/voters', async () => {
 			});
 		});
 
-		describe('sort', async () => {
+		describe('sort', () => {
 			const validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
@@ -295,8 +295,8 @@ describe('GET /api/voters', async () => {
 					});
 			});
 
-			describe('sort with any of required field (username)', async () => {
-				describe('publicKey', async () => {
+			describe('sort with any of required field (username)', () => {
+				describe('publicKey', () => {
 					it('should return voters in ascending order', async () => {
 						return votersEndpoint
 							.makeRequest(
@@ -345,7 +345,7 @@ describe('GET /api/voters', async () => {
 					});
 				});
 
-				describe('balance', async () => {
+				describe('balance', () => {
 					it('should return voters in ascending order', async () => {
 						return votersEndpoint
 							.makeRequest(
@@ -389,7 +389,7 @@ describe('GET /api/voters', async () => {
 					});
 				});
 
-				describe('username', async () => {
+				describe('username', () => {
 					it('should return voters in ascending order', async () => {
 						return votersEndpoint
 							.makeRequest(
@@ -435,8 +435,8 @@ describe('GET /api/voters', async () => {
 			});
 		});
 
-		describe('limit & offset', async () => {
-			describe('limit=2', async () => {
+		describe('limit & offset', () => {
+			describe('limit=2', () => {
 				it('should return 2 voters', async () => {
 					return votersEndpoint
 						.makeRequest(
@@ -449,7 +449,7 @@ describe('GET /api/voters', async () => {
 				});
 			});
 
-			describe('limit=2 & offset=1', async () => {
+			describe('limit=2 & offset=1', () => {
 				it('should return 2 voters, containing 1 from the previous result', done => {
 					let voters = null;
 

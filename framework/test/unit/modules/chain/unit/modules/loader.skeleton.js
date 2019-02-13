@@ -15,9 +15,9 @@
 'use strict';
 
 /* eslint-disable mocha/no-pending-tests */
-describe('loader', async () => {
-	describe('constructor', async () => {
-		describe('library', async () => {
+describe('loader', () => {
+	describe('constructor', () => {
+		describe('library', () => {
 			it('should assign logger');
 
 			it('should assign db');
@@ -34,7 +34,7 @@ describe('loader', async () => {
 
 			it('should assign balancesSequence');
 
-			describe('logic', async () => {
+			describe('logic', () => {
 				it('should assign logic.transaction');
 
 				it('should assign logic.account');
@@ -42,14 +42,14 @@ describe('loader', async () => {
 				it('should assign logic.peers');
 			});
 
-			describe('config', async () => {
+			describe('config', () => {
 				it('should assign config.loading.snapshotRound');
 			});
 		});
 
 		it('should call __private.initialize');
 
-		describe('__private', async () => {
+		describe('__private', () => {
 			it('should assign genesisBlock');
 
 			it('should assign lastBlock');
@@ -60,7 +60,7 @@ describe('loader', async () => {
 		it('should return Loader instance');
 	});
 
-	describe('findGoodPeers', async () => {
+	describe('findGoodPeers', () => {
 		it('should call modules.blocks.lastBlock.get');
 
 		it('should call library.logger.trace');
@@ -75,25 +75,25 @@ describe('loader', async () => {
 			'should call library.logger.trace second time with "Good peers - filtered"'
 		);
 
-		describe('when peers = []', async () => {
+		describe('when peers = []', () => {
 			it('should call library.logger.trace second time with {count: 0}');
 
 			it('should return result = {height: 0, peers: []}');
 		});
 
-		describe('when peers = [null]', async () => {
+		describe('when peers = [null]', () => {
 			it('should call library.logger.trace second time with {count: 0}');
 
 			it('should return result = {height: 0, peers: []}');
 		});
 
-		describe('when peers have height < modules.blocks.lastBlock.get().height', async () => {
+		describe('when peers have height < modules.blocks.lastBlock.get().height', () => {
 			it('should call library.logger.trace second time with {count: 0}');
 
 			it('should return result = {height: 0, peers: []}');
 		});
 
-		describe('when peers have height >= modules.blocks.lastBlock.get().height', async () => {
+		describe('when peers have height >= modules.blocks.lastBlock.get().height', () => {
 			it(
 				'should call library.logger.trace second time with {count: peers.length}'
 			);
@@ -106,7 +106,7 @@ describe('loader', async () => {
 
 			it('should return result containing height of the highest peer');
 
-			describe('given not accepted peers have heights that differs more than 2 than the highest', async () => {
+			describe('given not accepted peers have heights that differs more than 2 than the highest', () => {
 				it(
 					'should call library.logger.trace third time with {count: accepted.length}'
 				);
@@ -118,7 +118,7 @@ describe('loader', async () => {
 				it('should return result containing accepted only');
 			});
 
-			describe('when peers have heights that differs less than 2 than the highest', async () => {
+			describe('when peers have heights that differs less than 2 than the highest', () => {
 				it(
 					'should call library.logger.trace third time with {count: peers.length}'
 				);
@@ -134,19 +134,19 @@ describe('loader', async () => {
 		});
 	});
 
-	describe('syncing', async () => {
+	describe('syncing', () => {
 		it('should return true if __private.syncIntervalId exists');
 
 		it('should return false if __private.syncIntervalId does not exist');
 	});
 
-	describe('isLoaded', async () => {
+	describe('isLoaded', () => {
 		it('should return true if modules exists');
 
 		it('should return false if modules does not exist');
 	});
 
-	describe('onPeersReady', async () => {
+	describe('onPeersReady', () => {
 		it('should call library.logger.trace');
 
 		it('should call library.logger.trace with "Peers ready"');
@@ -155,10 +155,10 @@ describe('loader', async () => {
 
 		it('should call __private.syncTimer');
 
-		describe('when __private.loaded = true', async () => {
+		describe('when __private.loaded = true', () => {
 			it('should call __private.loadTransactions');
 
-			describe('when __private.loadTransactions fails', async () => {
+			describe('when __private.loadTransactions fails', () => {
 				it('should call library.logger.error');
 
 				it(
@@ -174,10 +174,10 @@ describe('loader', async () => {
 				it('should call __private.initialize');
 			});
 
-			describe('when __private.loadTransactions succeeds', async () => {
+			describe('when __private.loadTransactions succeeds', () => {
 				it('should call __private.loadSignatures');
 
-				describe('when __private.loadSignatures fails', async () => {
+				describe('when __private.loadSignatures fails', () => {
 					it('should call library.logger.error');
 
 					it('should call library.logger.error with "Signatures loader"');
@@ -200,8 +200,8 @@ describe('loader', async () => {
 		);
 	});
 
-	describe('onBind', async () => {
-		describe('modules', async () => {
+	describe('onBind', () => {
+		describe('modules', () => {
 			it('should assign transactions');
 
 			it('should assign blocks');
@@ -218,11 +218,11 @@ describe('loader', async () => {
 		it('should call __private.loadBlockChain');
 	});
 
-	describe('onBlockchainReady', async () => {
+	describe('onBlockchainReady', () => {
 		it('should assign __private.loaded = true');
 	});
 
-	describe('cleanup', async () => {
+	describe('cleanup', () => {
 		it('should assign __private.loaded = false');
 
 		it('should call callback with error = undefined');

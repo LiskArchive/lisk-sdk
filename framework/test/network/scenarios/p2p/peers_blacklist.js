@@ -38,8 +38,8 @@ module.exports = function(
 	const EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING =
 		(TOTAL_PEERS - 2) * (TOTAL_PEERS - 1) * 2;
 
-	describe('@p2p : peer Blacklisted', async () => {
-		describe('when a node blacklists an ip', async () => {
+	describe('@p2p : peer Blacklisted', () => {
+		describe('when a node blacklists an ip', () => {
 			before(() => {
 				// Blacklisting ip on the node number 9 which is not producing any blocks
 				configurations[9].peers.access.blackList.push('127.0.0.1');
@@ -104,7 +104,7 @@ module.exports = function(
 			});
 		});
 
-		describe('when the node remove the just blacklisted ip', async () => {
+		describe('when the node remove the just blacklisted ip', () => {
 			before(() => {
 				configurations[9].peers.access.blackList = [];
 				return fs_writeFile(

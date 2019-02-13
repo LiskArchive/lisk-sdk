@@ -28,7 +28,7 @@ const {
 	NonSupportedOperationError,
 } = require('../../../../../src/components/storage/errors');
 
-describe('Block', async () => {
+describe('Block', () => {
 	let adapter;
 	let validBlockFields;
 	let validBlockSQLs;
@@ -241,7 +241,7 @@ describe('Block', async () => {
 		expect(Block.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', async () => {
+	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Block.prototype.constructor.length).to.be.eql(1);
 		});
@@ -282,7 +282,7 @@ describe('Block', async () => {
 		});
 	});
 
-	describe('getOne()', async () => {
+	describe('getOne()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const block = new Block(adapter);
 			const _getResultsStub = sinonSandbox
@@ -323,7 +323,7 @@ describe('Block', async () => {
 		});
 	});
 
-	describe('get()', async () => {
+	describe('get()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const block = new Block(adapter);
 			const _getResultsStub = sinonSandbox
@@ -384,7 +384,7 @@ describe('Block', async () => {
 		});
 	});
 
-	describe('_getResults()', async () => {
+	describe('_getResults()', () => {
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
 			return expect(block.get(validFilter)).to.not.be.rejectedWith(
@@ -428,7 +428,7 @@ describe('Block', async () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', async () => {
+		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				const block = new Block(adapter);
@@ -439,7 +439,7 @@ describe('Block', async () => {
 		});
 	});
 
-	describe('create()', async () => {
+	describe('create()', () => {
 		it('should call getValuesSet with proper params', async () => {
 			const localAdapter = {
 				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
@@ -478,19 +478,19 @@ describe('Block', async () => {
 		});
 	});
 
-	describe('update()', async () => {
+	describe('update()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Block.prototype.update).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('updateOne()', async () => {
+	describe('updateOne()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Block.prototype.updateOne).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('isPersisted()', async () => {
+	describe('isPersisted()', () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(
 				storage,
@@ -580,7 +580,7 @@ describe('Block', async () => {
 		});
 	});
 
-	describe('delete', async () => {
+	describe('delete', () => {
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
 			expect(() => {
@@ -648,7 +648,7 @@ describe('Block', async () => {
 		});
 	});
 
-	describe('count()', async () => {
+	describe('count()', () => {
 		let block;
 
 		before(async () => {
@@ -676,7 +676,7 @@ describe('Block', async () => {
 		});
 	});
 
-	describe('mergeFilters()', async () => {
+	describe('mergeFilters()', () => {
 		it('should accept filters as single object', async () => {
 			const block = new Block(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(block, 'mergeFilters');

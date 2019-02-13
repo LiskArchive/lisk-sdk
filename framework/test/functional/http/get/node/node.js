@@ -20,8 +20,8 @@ const apiHelpers = require('../../../../common/helpers/api');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /node', async () => {
-	describe('/constants', async () => {
+describe('GET /node', () => {
+	describe('/constants', () => {
 		const endPoint = new SwaggerEndpoint('GET /node/constants 200');
 
 		let constantsResponse;
@@ -107,14 +107,14 @@ describe('GET /node', async () => {
 		});
 	});
 
-	describe('/status', async () => {
+	describe('/status', () => {
 		const ndoeStatusEndpoint = new SwaggerEndpoint('GET /node/status 200');
 
 		it('should return node status', async () => {
 			return ndoeStatusEndpoint.makeRequest();
 		});
 
-		describe('GET /forging', async () => {
+		describe('GET /forging', () => {
 			const forgingEndpoint = new SwaggerEndpoint('GET /node/status/forging');
 
 			/* eslint-disable mocha/no-pending-tests */

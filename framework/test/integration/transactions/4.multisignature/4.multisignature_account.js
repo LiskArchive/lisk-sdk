@@ -22,7 +22,7 @@ const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 4) - effect of multisignature registration on memory tables', async () => {
+describe('system test (type 4) - effect of multisignature registration on memory tables', () => {
 	let library;
 	let multisigSender;
 
@@ -56,7 +56,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 		);
 	});
 
-	describe('forge block with multisignature transaction', async () => {
+	describe('forge block with multisignature transaction', () => {
 		before('forge block with multisignature transaction', done => {
 			const keysgroup = [signer1.publicKey, signer2.publicKey];
 
@@ -80,7 +80,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			localCommon.addTransactionsAndForge(library, [multisigTransaction], done);
 		});
 
-		describe('check sender db rows', async () => {
+		describe('check sender db rows', () => {
 			let accountRow;
 
 			before(
@@ -145,7 +145,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 		});
 
-		describe('check sender account', async () => {
+		describe('check sender account', () => {
 			let account;
 
 			before('get multisignature account', done => {
@@ -198,13 +198,13 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 		});
 
-		describe('after deleting block', async () => {
+		describe('after deleting block', () => {
 			before('delete last block', done => {
 				library.modules.blocks.lastBlock.get();
 				library.modules.blocks.chain.deleteLastBlock(done);
 			});
 
-			describe('sender db rows', async () => {
+			describe('sender db rows', () => {
 				let accountRow;
 
 				before(
@@ -243,7 +243,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				});
 			});
 
-			describe('sender account', async () => {
+			describe('sender account', () => {
 				let account;
 
 				before('get multisignature account', done => {
@@ -284,7 +284,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 		});
 	});
 
-	describe('apply unconfirmed transaction', async () => {
+	describe('apply unconfirmed transaction', () => {
 		before('apply unconfirmed multisig transaction', done => {
 			const keysgroup = [signer1.publicKey, signer2.publicKey];
 			multisigTransaction = lisk.transaction.registerMultisignature({
@@ -314,7 +314,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			);
 		});
 
-		describe('check sender db rows', async () => {
+		describe('check sender db rows', () => {
 			let accountRow;
 
 			before(
@@ -366,7 +366,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 		});
 
-		describe('check sender account', async () => {
+		describe('check sender account', () => {
 			let account;
 
 			before('get multisignature account', done => {
@@ -400,7 +400,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 		});
 
-		describe('with another multisig transaction', async () => {
+		describe('with another multisig transaction', () => {
 			let multisigTransaction2;
 			const signer3 = randomUtil.account();
 			const signer4 = randomUtil.account();
@@ -432,7 +432,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				);
 			});
 
-			describe('from the same account', async () => {
+			describe('from the same account', () => {
 				before('get multisignature account', done => {
 					library.logic.account.get(
 						{ address: multisigAccount.address },

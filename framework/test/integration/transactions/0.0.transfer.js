@@ -21,7 +21,7 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 0) - double transfers', async () => {
+describe('system test (type 0) - double transfers', () => {
 	let library;
 	localCommon.beforeBlock('system_0_0_transfer', lib => {
 		library = lib;
@@ -32,7 +32,7 @@ describe('system test (type 0) - double transfers', async () => {
 
 	/* eslint-disable no-loop-func */
 	while (i < 1) {
-		describe('executing 30 times', async () => {
+		describe('executing 30 times', () => {
 			const account = randomUtil.account();
 			const transaction = lisk.transaction.transfer({
 				amount: 1100 * NORMALIZER,
@@ -78,7 +78,7 @@ describe('system test (type 0) - double transfers', async () => {
 				});
 			});
 
-			describe('after forging one block', async () => {
+			describe('after forging one block', () => {
 				before(done => {
 					localCommon.forge(library, async () => {
 						done();

@@ -29,7 +29,7 @@ const common = require('./common');
 const { FEES, NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 5) register dapp', async () => {
+describe('POST /api/transactions (type 5) register dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -87,10 +87,10 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 			});
 	});
 
-	describe('schema validations', async () => {
+	describe('schema validations', () => {
 		common.invalidAssets('dapp', badTransactions);
 
-		describe('category', async () => {
+		describe('category', () => {
 			it('without should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
@@ -174,7 +174,7 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 			});
 		});
 
-		describe('description', async () => {
+		describe('description', () => {
 			it('without should be ok', async () => {
 				const application = randomUtil.application();
 				delete application.description;
@@ -245,7 +245,7 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 			});
 		});
 
-		describe('icon', async () => {
+		describe('icon', () => {
 			it('without should be ok', async () => {
 				const application = randomUtil.application();
 				delete application.icon;
@@ -318,7 +318,7 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 			});
 		});
 
-		describe('link', async () => {
+		describe('link', () => {
 			it('with empty string should fail', async () => {
 				const application = randomUtil.application();
 				application.link = '';
@@ -374,7 +374,7 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 			});
 		});
 
-		describe('name', async () => {
+		describe('name', () => {
 			it('without should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
@@ -449,7 +449,7 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 			});
 		});
 
-		describe('tags', async () => {
+		describe('tags', () => {
 			it('without should be ok', async () => {
 				const application = randomUtil.application();
 				delete application.tags;
@@ -556,7 +556,7 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 			});
 		});
 
-		describe('type', async () => {
+		describe('type', () => {
 			it('without should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
@@ -624,7 +624,7 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 		});
 	});
 
-	describe('transactions processing', async () => {
+	describe('transactions processing', () => {
 		it('using registered name should fail', async () => {
 			const dapp = randomUtil.application();
 			dapp.name = randomUtil.guestbookDapp.name;
@@ -707,7 +707,7 @@ describe('POST /api/transactions (type 5) register dapp', async () => {
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

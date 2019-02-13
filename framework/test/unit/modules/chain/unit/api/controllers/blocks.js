@@ -20,7 +20,7 @@ const BlocksController = rewire(
 	'../../../../../../../src/modules/chain/api/controllers/blocks'
 );
 
-describe('blocks/api', async () => {
+describe('blocks/api', () => {
 	let _list;
 	let library;
 	let loggerSpy;
@@ -62,7 +62,7 @@ describe('blocks/api', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should assign params to library', async () => {
 			expect(library.logger).to.eql(loggerSpy);
 			expect(library.storage).to.eql(storageStub);
@@ -70,14 +70,14 @@ describe('blocks/api', async () => {
 		});
 	});
 
-	describe('_list', async () => {
-		describe('list', async () => {
+	describe('_list', () => {
+		describe('list', () => {
 			afterEach(done => {
 				storageStub.entities.Block.get = sinonSandbox.stub().resolves([]);
 				done();
 			});
 
-			describe('filters with where clauses', async () => {
+			describe('filters with where clauses', () => {
 				it('should query storage with id param when filter.id exists', done => {
 					_list({ id: 1 }, async () => {
 						expect(storageStub.entities.Block.get.args[0][0].id).to.equal(1);
@@ -157,8 +157,8 @@ describe('blocks/api', async () => {
 				});
 			});
 
-			describe('filters without where clauses', async () => {
-				describe('limit', async () => {
+			describe('filters without where clauses', () => {
+				describe('limit', () => {
 					it('should query storage with limit param when filter.limit exists and is number', done => {
 						_list({ limit: 1 }, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
@@ -192,7 +192,7 @@ describe('blocks/api', async () => {
 					});
 				});
 
-				describe('offset', async () => {
+				describe('offset', () => {
 					it('should query storage with offset param when filter.offset exists and is number', done => {
 						_list({ offset: 10 }, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
@@ -220,7 +220,7 @@ describe('blocks/api', async () => {
 					});
 				});
 
-				describe('sort', async () => {
+				describe('sort', () => {
 					it('should query storage with sort param when filter.sort exists', done => {
 						_list({ sort: 'numberOfTransactions:desc' }, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
@@ -248,7 +248,7 @@ describe('blocks/api', async () => {
 				});
 			});
 
-			describe('when storageStub.entities.Block.get fails', async () => {
+			describe('when storageStub.entities.Block.get fails', () => {
 				it('should call callback with Blocks#list error', done => {
 					storageStub.entities.Block.get = sinonSandbox.stub().rejects();
 					_list({ limit: 1 }, err => {

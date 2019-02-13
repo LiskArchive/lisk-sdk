@@ -28,7 +28,7 @@ const {
 	NonSupportedOperationError,
 } = require('../../../../../src/components/storage/errors');
 
-describe('Migration', async () => {
+describe('Migration', () => {
 	let adapter;
 	let validMigrationFields;
 	let validMigrationSQLs;
@@ -112,7 +112,7 @@ describe('Migration', async () => {
 		expect(Migration.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', async () => {
+	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Migration.prototype.constructor.length).to.be.eql(1);
 		});
@@ -152,7 +152,7 @@ describe('Migration', async () => {
 		it('should setup specific filters');
 	});
 
-	describe('getOne()', async () => {
+	describe('getOne()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const migration = new Migration(adapter);
 			const _getResultsStub = sinonSandbox
@@ -164,7 +164,7 @@ describe('Migration', async () => {
 		});
 	});
 
-	describe('get()', async () => {
+	describe('get()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const migration = new Migration(adapter);
 			const _getResultsStub = sinonSandbox
@@ -176,7 +176,7 @@ describe('Migration', async () => {
 		});
 	});
 
-	describe('_getResults()', async () => {
+	describe('_getResults()', () => {
 		it('should accept only valid filters', async () => {
 			const migration = new Migration(adapter);
 			expect(() => {
@@ -220,7 +220,7 @@ describe('Migration', async () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', async () => {
+		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				const migration = new Migration(adapter);
@@ -231,19 +231,19 @@ describe('Migration', async () => {
 		});
 	});
 
-	describe('update()', async () => {
+	describe('update()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Migration.prototype.update).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('delete()', async () => {
+	describe('delete()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Migration.prototype.delete).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('isPersisted()', async () => {
+	describe('isPersisted()', () => {
 		it('should accept only valid filters', async () => {
 			const migration = new Migration(adapter);
 			expect(() => {
@@ -327,7 +327,7 @@ describe('Migration', async () => {
 		});
 	});
 
-	describe('mergeFilters()', async () => {
+	describe('mergeFilters()', () => {
 		it('should accept filters as single object', async () => {
 			const migration = new Migration(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(migration, 'mergeFilters');
@@ -351,7 +351,7 @@ describe('Migration', async () => {
 		);
 	});
 
-	describe('Schema Updates methods', async () => {
+	describe('Schema Updates methods', () => {
 		let files;
 		let fileIds;
 
@@ -369,7 +369,7 @@ describe('Migration', async () => {
 			sinonSandbox.restore();
 		});
 
-		describe('hasMigrations()', async () => {
+		describe('hasMigrations()', () => {
 			it('should resolve with true if migrations table exists', async () => {
 				expect(await storage.entities.Migration.hasMigrations()).to.be.true;
 			});
@@ -389,7 +389,7 @@ describe('Migration', async () => {
 			});
 		});
 
-		describe('getLastId', async () => {
+		describe('getLastId', () => {
 			it('should use the correct filters for get', async () => {
 				sinonSandbox.spy(storage.entities.Migration, 'get');
 				await storage.entities.Migration.getLastId();
@@ -406,7 +406,7 @@ describe('Migration', async () => {
 			});
 		});
 
-		describe('readPending', async () => {
+		describe('readPending', () => {
 			it('should resolve with list of pending files if there exists any', async () => {
 				const pending = (await storage.entities.Migration.readPending(
 					fileIds[0]
@@ -436,7 +436,7 @@ describe('Migration', async () => {
 			});
 		});
 
-		describe('applyAll()', async () => {
+		describe('applyAll()', () => {
 			let updates;
 
 			beforeEach(async () => {
@@ -491,7 +491,7 @@ describe('Migration', async () => {
 		});
 
 		/* eslint-disable mocha/no-skipped-tests */
-		describe('applyRuntime()', async () => {
+		describe('applyRuntime()', () => {
 			it.skip('should use the correct SQL while in transaction context');
 			it.skip('should start a transaction context if no transaction exists');
 			it.skip('should copy mem_accounts2delegates to mem_accounts2u_delegates');

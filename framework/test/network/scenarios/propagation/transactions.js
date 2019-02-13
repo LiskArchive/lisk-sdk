@@ -17,7 +17,7 @@
 const Promise = require('bluebird');
 
 module.exports = function(configurations, network) {
-	describe('@propagation : transactions', async () => {
+	describe('@propagation : transactions', () => {
 		let nodesTransactions = [];
 
 		before(() => {

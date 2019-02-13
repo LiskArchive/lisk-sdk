@@ -21,7 +21,7 @@ const {
 	ImplementationPendingError,
 } = require('../../../../../src/components/storage/errors');
 
-describe('BaseAdapter', async () => {
+describe('BaseAdapter', () => {
 	it('should be a constructable function', async () => {
 		expect(BaseAdapter.prototype).to.be.not.null;
 		return expect(BaseAdapter.prototype.constructor.name).to.be.eql(
@@ -32,7 +32,7 @@ describe('BaseAdapter', async () => {
 	it('should be be inherited by EventEmitter', async () =>
 		expect(BaseAdapter.prototype).to.be.an.instanceof(EventEmitter));
 
-	describe('constructor()', async () => {
+	describe('constructor()', () => {
 		it('should accept only one parameter', async () =>
 			expect(BaseAdapter).to.have.length(1));
 
@@ -43,48 +43,48 @@ describe('BaseAdapter', async () => {
 		});
 	});
 
-	describe('interfaces', async () => {
+	describe('interfaces', () => {
 		let adapter;
 		beforeEach(async () => {
 			adapter = new BaseAdapter({ engineName: 'my-name', inTest: true });
 		});
 
-		describe('connect', async () => {
+		describe('connect', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('disconnect', async () => {
+		describe('disconnect', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('execute', async () => {
+		describe('execute', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('executeFile', async () => {
+		describe('executeFile', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('transaction', async () => {
+		describe('transaction', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('task', async () => {
+		describe('task', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('loadSQLFile', async () => {
+		describe('loadSQLFile', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
-		describe('parseQueryComponent', async () => {
+		describe('parseQueryComponent', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});

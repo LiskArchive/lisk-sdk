@@ -20,7 +20,7 @@ const Scenarios = require('../../../common/scenarios');
 const transactionTypes = require('../../../../src/modules/chain/helpers/transaction_types.js');
 const localCommon = require('../../common');
 
-describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', async () => {
+describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
 	let library;
 
 	const scenarios = {
@@ -65,7 +65,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 		);
 	});
 
-	describe('adding to pool other transactions from same account', async () => {
+	describe('adding to pool other transactions from same account', () => {
 		Object.keys(transactionTypes).forEach((key, index) => {
 			if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 				return true;

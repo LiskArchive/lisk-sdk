@@ -21,7 +21,7 @@ const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
 
-describe('system test (blocks) - chain/popLastBlock', async () => {
+describe('system test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
 	let library;
 	let storage;
@@ -71,9 +71,9 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 		});
 	});
 
-	describe('popLastBlock', async () => {
-		describe('when popLastBlock fails', async () => {
-			describe('when loadBlockSecondLastBlockStep fails', async () => {
+	describe('popLastBlock', () => {
+		describe('when popLastBlock fails', () => {
+			describe('when loadBlockSecondLastBlockStep fails', () => {
 				beforeEach(done => {
 					block.previousBlock = null;
 					library.modules.blocks.lastBlock.set(block);
@@ -89,7 +89,7 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 				});
 			});
 
-			describe('when undoConfirmedStep fails', async () => {
+			describe('when undoConfirmedStep fails', () => {
 				let setAccountAndGet;
 				beforeEach(done => {
 					// Artifically fail setAccountAndGet so we can check that test fails
@@ -131,7 +131,7 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 				});
 			});
 
-			describe('when undoUnconfirmStep fails', async () => {
+			describe('when undoUnconfirmStep fails', () => {
 				let merge;
 				beforeEach(done => {
 					// Artifically fail setAccountAndGet so we can check that test fails
@@ -191,7 +191,7 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 				});
 			});
 
-			describe('when backwardTickStep fails', async () => {
+			describe('when backwardTickStep fails', () => {
 				let backwardTick;
 				beforeEach(done => {
 					// Artifically fail setAccountAndGet so we can check that test fails
@@ -260,7 +260,7 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 				});
 			});
 
-			describe('when deleteBlockStep fails', async () => {
+			describe('when deleteBlockStep fails', () => {
 				let deleteBlock;
 				beforeEach(done => {
 					// Artifically fail setAccountAndGet so we can check that test fails
@@ -348,7 +348,7 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 			});
 		});
 
-		describe('when deleteLastBlock succeeds', async () => {
+		describe('when deleteLastBlock succeeds', () => {
 			it('should not return an error', done => {
 				library.modules.blocks.chain.deleteLastBlock(err => {
 					expect(err).to.not.exist;
