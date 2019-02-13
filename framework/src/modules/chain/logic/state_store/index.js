@@ -22,13 +22,13 @@ class StateStoreManager {
 	}
 
 	createSnapshot() {
-		this.sandbox.account.createSnapshot();
-		this.sandbox.transaction.createSnapshot();
+		this.stateStore.account.createSnapshot();
+		this.stateStore.transaction.createSnapshot();
 	}
 
 	restoreSnapshot() {
-		this.sandbox.account.restoreSnapshot();
-		this.sandbox.transaction.restoreSnapshot();
+		this.stateStore.account.restoreSnapshot();
+		this.stateStore.transaction.restoreSnapshot();
 	}
 }
 
