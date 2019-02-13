@@ -33,6 +33,7 @@ export interface DelegateAsset {
 
 export const delegateAssetTypeSchema = {
 	type: 'object',
+	additionalProperties: false,
 	required: ['delegate'],
 	properties: {
 		delegate: {
@@ -49,6 +50,7 @@ export const delegateAssetTypeSchema = {
 
 export const delegateAssetFormatSchema = {
 	type: 'object',
+	additionalProperties: false,
 	required: ['delegate'],
 	properties: {
 		delegate: {

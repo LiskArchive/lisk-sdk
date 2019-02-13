@@ -29,6 +29,7 @@ const TRANSACTION_MULTISIGNATURE_TYPE = 4;
 
 export const multisignatureAssetTypeSchema = {
 	type: 'object',
+	additionalProperties: false,
 	required: ['multisignature'],
 	properties: {
 		multisignature: {
@@ -54,6 +55,7 @@ export const multisignatureAssetTypeSchema = {
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
+	additionalProperties: false,
 	required: ['multisignature'],
 	properties: {
 		multisignature: {
