@@ -454,7 +454,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
 		{
-			broadhash: components.system.getBroadhash(),
+			broadhash: components.system.headers.broadhash,
 		},
 		{ api: 'postBlock', data: { block }, immediate: true }
 	);

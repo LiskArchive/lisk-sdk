@@ -123,10 +123,6 @@ class System {
 	 * @returns {string} broadhash
 	 */
 	getBroadhash(cb) {
-		if (typeof cb !== 'function') {
-			return this.headers.broadhash;
-		}
-
 		return this.storage.entities.Block.get(
 			{},
 			{

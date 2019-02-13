@@ -488,7 +488,7 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 		library.logic.peers
 			.list(true)
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	const broadhash = components.system.getBroadhash();
+	const broadhash = components.system.headers.broadhash;
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
@@ -685,7 +685,7 @@ Peers.prototype.acceptable = function(peers) {
  */
 Peers.prototype.list = function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const broadhash = options.broadhash || components.system.getBroadhash();
+	const broadhash = options.broadhash || components.system.headers.broadhash;
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
 		options.attempt === 0 || options.attempt === 1 ? [options.attempt] : [1, 0];

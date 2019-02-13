@@ -525,7 +525,6 @@ describe('peers', () => {
 			validActive = null;
 			validMatched = null;
 			calculateConsensusResult = null;
-			systemComponentMock.getBroadhash = sinonSandbox.stub().returns();
 			peersLogicMock.list = sinonSandbox.stub().returns([]);
 			done();
 		});
@@ -560,9 +559,7 @@ describe('peers', () => {
 					const connectedPeer = _.assign({}, prefixedPeer);
 					connectedPeer.state = Peer.STATE.CONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
-					systemComponentMock.getBroadhash = sinonSandbox
-						.stub()
-						.returns(connectedPeer.broadhash);
+					systemComponentMock.headers.broadhash = connectedPeer.broadhash;
 					done();
 				});
 
@@ -575,9 +572,7 @@ describe('peers', () => {
 					const bannedPeer = _.assign({}, prefixedPeer);
 					bannedPeer.state = Peer.STATE.BANNED;
 					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
-					systemComponentMock.getBroadhash = sinonSandbox
-						.stub()
-						.returns(bannedPeer.broadhash);
+					systemComponentMock.headers.broadhash = bannedPeer.broadhash;
 					done();
 				});
 
@@ -590,9 +585,7 @@ describe('peers', () => {
 					const disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					systemComponentMock.getBroadhash = sinonSandbox
-						.stub()
-						.returns(disconnectedPeer.broadhash);
+					systemComponentMock.headers.broadhash = disconnectedPeer.broadhash;
 					done();
 				});
 
@@ -610,9 +603,7 @@ describe('peers', () => {
 					generateRandomActivePeer()
 				);
 				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-				systemComponentMock.getBroadhash = sinonSandbox
-					.stub()
-					.returns(broadhashes.matchedBroadhash);
+				systemComponentMock.headers.broadhash = broadhashes.matchedBroadhash;
 				validActive = oneHundredActivePeers;
 				done();
 			});

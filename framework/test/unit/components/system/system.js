@@ -216,10 +216,6 @@ describe('components: system', async () => {
 
 	/* eslint-disable mocha/no-pending-tests */
 	describe('getBroadhash', async () => {
-		describe('when argument is not a function', async () => {
-			it('should this.broadhash');
-		});
-
 		describe('when argument is a function', async () => {
 			it('should call db.query with sql.getBroadhash');
 

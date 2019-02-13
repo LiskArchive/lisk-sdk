@@ -348,11 +348,10 @@ describe('transport', () => {
 				components = {
 					system: {
 						update: sinonSandbox.stub().callsArg(0),
-						getBroadhash: sinonSandbox
-							.stub()
-							.returns(
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b'
-							),
+						headers: {
+							broadhash:
+								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+						},
 					},
 				};
 
@@ -1072,13 +1071,11 @@ describe('transport', () => {
 
 				components = {
 					system: {
-						headers: {},
 						update: sinonSandbox.stub().callsArg(0),
-						getBroadhash: sinonSandbox
-							.stub()
-							.returns(
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b'
-							),
+						headers: {
+							broadhash:
+								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+						},
 					},
 				};
 
