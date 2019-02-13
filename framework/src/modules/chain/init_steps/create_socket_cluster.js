@@ -6,7 +6,7 @@ const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 const workersControllerPath = path.join(__dirname, '../workers_controller');
 
-module.exports = async (config, logger, network) => {
+module.exports = async ({ config, network, components: { logger } }) => {
 	if (!config.peers.enabled) {
 		logger.info(
 			'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
