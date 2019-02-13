@@ -66,17 +66,18 @@ class AccountStore {
 	}
 
 	getOrDefault(primaryValue) {
-		let element = this.data.find(
+		const element = this.data.find(
 			item => item[this.primaryKey] === primaryValue
 		);
-		if (!element) {
-			element = {
-				...defaultAccount,
-				[this.primaryKey]: primaryValue,
-			};
-			this.data.push(element);
+		if (element) {
+			return element;
 		}
-		return element;
+		const defaultElement = {
+			...defaultAccount,
+			[this.primaryKey]: primaryValue,
+		};
+		this.data.push(defaultElement);
+		return defaultElement;
 	}
 
 	find(fn) {
