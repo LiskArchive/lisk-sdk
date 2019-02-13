@@ -6,13 +6,13 @@ const BaseChannel = require('./base');
  * Channel responsible to communicate with bus for modules running in same process
  *
  * @class
- * @memberof controller.channels
+ * @memberof framework.controller.channels
  * @requires module.Event
  * @requires module.Action
  * @requires channels/base
  * @type {module.EventEmitterChannel}
  */
-module.exports = class EventEmitterChannel extends BaseChannel {
+class EventEmitterChannel extends BaseChannel {
 	/**
 	 * Create new evnt emitter channel for module.
 	 *
@@ -116,4 +116,6 @@ module.exports = class EventEmitterChannel extends BaseChannel {
 
 		return this.bus.invoke(action.serialize());
 	}
-};
+}
+
+module.exports = EventEmitterChannel;

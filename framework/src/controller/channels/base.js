@@ -14,12 +14,12 @@ const internalEvents = [
  * BaseChannel class which used as reference to implement others channels for bus to module communication
  *
  * @class
- * @memberof controller.channels
+ * @memberof framework.controller.channels
  * @requires modules.Event
  * @requires modules.Action
  * @type {module.BaseChannel}
  */
-module.exports = class BaseChannel {
+class BaseChannel {
 	/**
 	 * Create the baseChannel object
 	 *
@@ -108,4 +108,6 @@ module.exports = class BaseChannel {
 		}
 		return result;
 	}
-};
+}
+
+module.exports = BaseChannel;

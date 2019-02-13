@@ -1,8 +1,7 @@
 const constants = require('./constants');
 
 /**
- * @namespace defaults
- * @memberof controller
+ * @namespace framework.controller.defaults
  * @see Parent: {@link controller}
  * @type {{constants}}
  */

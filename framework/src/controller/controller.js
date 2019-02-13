@@ -23,7 +23,7 @@ const validateModuleSpec = moduleSpec => {
  * Controller logic responsible to run the application instance
  *
  * @class
- * @memberof controller
+ * @memberof framework.controller
  * @requires assert
  * @requires bluebird
  * @requires fs-extra

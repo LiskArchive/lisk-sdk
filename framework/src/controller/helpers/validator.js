@@ -6,7 +6,6 @@ const validator = new Ajv({ allErrors: true, schemaId: 'auto' });
 /**
  * Function helps with loading and validating schemas.
  *
- * @memberof controller.helpers
  * @type {{loadSchema: module.exports.loadSchema, validate: (function(*=, *=): boolean)}}
  */
 module.exports = {

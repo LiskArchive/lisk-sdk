@@ -48,7 +48,7 @@ const registerProcessHooks = app => {
  * Application class to start the block chain instance
  *
  * @class
- * @memberof controller
+ * @memberof framework.controller
  * @requires assert
  * @requires Controller
  * @requires module.defaults
@@ -56,7 +56,7 @@ const registerProcessHooks = app => {
  * @requires schema/application
  * @requires components/logger
  */
-module.exports = class Application {
+class Application {
 	/**
 	 * Create the application object
 	 *
@@ -259,4 +259,6 @@ module.exports = class Application {
 		this.logger.log(`Shutting down with error code ${errorCode} ${message}`);
 		process.exit(errorCode);
 	}
-};
+}
+
+module.exports = Application;
