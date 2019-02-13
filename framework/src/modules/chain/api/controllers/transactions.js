@@ -36,7 +36,7 @@ let storage;
  */
 function TransactionsController(scope) {
 	modules = scope.modules;
-	storage = scope.storage;
+	storage = scope.components.storage;
 }
 
 function transactionFormatter(transaction) {
