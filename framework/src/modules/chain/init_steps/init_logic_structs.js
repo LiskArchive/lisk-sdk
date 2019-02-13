@@ -1,10 +1,9 @@
 module.exports = async ({
 	config,
-	storage,
-	logger,
 	ed,
 	schema,
 	genesisBlock,
+	components: { storage, logger },
 }) => {
 	const Transaction = require('../logic/transaction.js');
 	const Block = require('../logic/block.js');

@@ -9,7 +9,7 @@ const startServer = async (server, port, host) =>
 		server.listen({ host, port }, err => (err ? reject(err) : resolve()));
 	});
 
-module.exports = async (config, logger) => {
+module.exports = async ({ config, components: { logger } }) => {
 	const app = express();
 
 	if (config.coverage) {

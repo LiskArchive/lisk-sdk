@@ -1,4 +1,4 @@
-module.exports = async (storage, logger, accountLimit) =>
+module.exports = async ({ components: { storage, logger } }, accountLimit) =>
 	storage
 		.bootstrap()
 		.then(async status => {

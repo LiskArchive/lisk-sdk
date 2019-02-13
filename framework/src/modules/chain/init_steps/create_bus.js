@@ -1,14 +1,20 @@
 const changeCase = require('change-case');
 
-module.exports = async modules => {
+module.exports = async () => {
 	const Bus = function() {
+		this.modules = null;
+
+		this.registerModules = modules => {
+			this.modules = modules;
+		};
+
 		this.message = function(...args) {
 			const topic = args.shift();
 			const eventName = `on${changeCase.pascalCase(topic)}`;
 
 			// Iterate over modules and execute event functions (on*)
-			Object.keys(modules).forEach(key => {
-				const module = modules[key];
+			Object.keys(this.modules).forEach(key => {
+				const module = this.modules[key];
 
 				if (typeof module[eventName] === 'function') {
 					module[eventName].apply(module[eventName], args);

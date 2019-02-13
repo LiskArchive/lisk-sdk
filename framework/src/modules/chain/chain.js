@@ -35,22 +35,6 @@ if (typeof gc !== 'undefined') {
 	}, 60000);
 }
 
-const modulesList = {
-	accounts: './modules/accounts.js',
-	blocks: './modules/blocks.js',
-	dapps: './modules/dapps.js',
-	delegates: './modules/delegates.js',
-	rounds: './modules/rounds.js',
-	loader: './modules/loader.js',
-	multisignatures: './modules/multisignatures.js',
-	node: './modules/node.js',
-	peers: './modules/peers.js',
-	system: './modules/system.js',
-	signatures: './modules/signatures.js',
-	transactions: './modules/transactions.js',
-	transport: './modules/transport.js',
-};
-
 /**
  * Chain Module
  *
@@ -62,9 +46,8 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
-		this.modules = null;
-		this.components = null;
-		this.webSocket = null;
+
+		this.scope = null;
 	}
 
 	async bootstrap() {
@@ -116,92 +99,69 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			const self = this;
-			const appConfig = this.options.config;
-			const genesisBlock = { block: appConfig.genesisBlock };
-			const schema = swaggerHelper.getValidator();
-			const sequence = new Sequence({
-				onWarning(current) {
-					self.logger.warn('Main queue', current);
-				},
-			});
-			const balanceSequence = new Sequence({
-				onWarning(current) {
-					self.logger.warn('Balance queue', current);
-				},
-			});
-
-			if (!appConfig.nethash) {
+			if (!this.options.config) {
 				throw Error('Failed to assign nethash from genesis block');
 			}
 
+			const self = this;
+			const scope = {
+				lastCommit,
+				ed,
+				build: versionBuild,
+				config: this.options.config,
+				genesisBlock: { block: this.options.config.genesisBlock },
+				schema: swaggerHelper.getValidator(),
+				sequence: new Sequence({
+					onWarning(current) {
+						self.logger.warn('Main queue', current);
+					},
+				}),
+				balanceSequence: new Sequence({
+					onWarning(current) {
+						self.logger.warn('Balance queue', current);
+					},
+				}),
+				components: {
+					storage,
+					cache,
+					logger: this.logger,
+				},
+			};
+
 			// Lookup for peers ips from dns
-			appConfig.peers.list = await initSteps.lookupPeerIPs(
-				appConfig.peers.list,
-				appConfig.peers.enabled
+			scope.config.peers.list = await initSteps.lookupPeerIPs(
+				scope.config.peers.list,
+				scope.config.peers.enabled
 			);
 
 			await initSteps.bootstrapStorage(
-				storage,
-				self.logger,
+				scope,
 				global.constants.ACTIVE_DELEGATES
 			);
-			await initSteps.bootstrapCache(cache, self.logger);
-			const network = await initSteps.createHttpServer(appConfig, self.logger);
-			const components = { logger: self.logger, cache, storage };
-			const bus = await initSteps.createBus(modulesList);
-			const webSocket = await initSteps.createSocketCluster(
-				appConfig,
-				self.logger,
-				network
-			);
-			const logic = await initSteps.initLogicStructure({
-				config: appConfig,
-				storage,
-				logger: self.logger,
-				ed,
-				schema,
-				genesisBlock,
-			});
-			const modules = await initSteps.initModules({
-				modulesList,
-				config: appConfig,
-				storage,
-				logger: self.logger,
-				schema,
-				genesisBlock,
-				network,
-				webSocket,
-				bus,
-				sequence,
-				balanceSequence,
-				logic,
-				lastCommit,
-				build: versionBuild,
-			});
-			const swagger = await initSteps.attachSwagger({
-				config: appConfig,
-				logger: self.logger,
-				network,
-				scope: { modules, config: appConfig },
-			});
-			modules.swagger = swagger;
+			await initSteps.bootstrapCache(scope);
+
+			scope.network = await initSteps.createHttpServer(scope);
+			scope.bus = await initSteps.createBus();
+			scope.webSocket = await initSteps.createSocketCluster(scope);
+			scope.logic = await initSteps.initLogicStructure(scope);
+			scope.modules = await initSteps.initModules(scope);
+			scope.swagger = await initSteps.attachSwagger(scope);
+
+			// TODO: Identify why its used
+			scope.modules.swagger = scope.swagger;
 
 			// Ready to bind modules
-			bus.message('bind', { modules });
-			logic.peers.bindModules(modules);
+			scope.logic.peers.bindModules(scope.modules);
 
 			// Listen to websockets
-			if (appConfig.peers.enabled) {
-				new WsTransport(modules.transport);
+			if (scope.config.peers.enabled) {
+				new WsTransport(scope.modules.transport);
 			}
 			// Listen to http, https servers
-			await network.listen();
+			await scope.network.listen();
 			self.logger.info('Modules ready and launched');
 
-			self.modules = modules;
-			self.components = components;
-			self.webSocket = webSocket;
+			self.scope = scope;
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
 				message: error.message,
@@ -212,6 +172,7 @@ module.exports = class Chain {
 	}
 
 	async cleanup(code, error) {
+		const { webSocket, modules, components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());
 			if (code === undefined) {
@@ -221,26 +182,27 @@ module.exports = class Chain {
 			code = 0;
 		}
 		this.logger.info('Cleaning chain...');
-		if (this.webSocket) {
-			this.webSocket.removeAllListeners('fail');
-			this.webSocket.destroy();
+
+		if (webSocket) {
+			webSocket.removeAllListeners('fail');
+			webSocket.destroy();
 		}
 
-		if (this.components !== undefined) {
-			this.components.map(component => component.cleanup());
+		if (components !== undefined) {
+			components.map(component => component.cleanup());
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
 		// this includes operations like snapshotting database tables.
 		await Promise.all(
-			this.modules.map(module => {
+			modules.map(module => {
 				if (typeof module.cleanup === 'function') {
 					return util.promisify(module.cleanup)();
 				}
 				return true;
 			})
-		).catch(mdouleCleanupError => {
-			this.logger.error(mdouleCleanupError);
+		).catch(moduleCleanupError => {
+			this.logger.error(moduleCleanupError);
 		});
 
 		this.logger.info('Cleaned up successfully');
