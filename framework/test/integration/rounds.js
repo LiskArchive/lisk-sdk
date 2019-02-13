@@ -447,7 +447,8 @@ describe('rounds', async () => {
 				);
 			});
 
-			it('unconfirmed account balances should match confirmed account balances', done => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] unconfirmed account balances should match confirmed account balances', done => {
 				_.each(tick.after.accounts, account => {
 					expect(account.u_balance).to.be.equal(account.balance);
 				});
@@ -493,7 +494,8 @@ describe('rounds', async () => {
 					);
 				});
 
-				it('accounts table states should match expected states', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] accounts table states should match expected states', done => {
 					let expected;
 
 					expected = expectedMemState(transactions, tick.before.accounts);

@@ -132,13 +132,15 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				);
 			});
 
-			it('should set u_multimin field set on mem_accounts', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should set u_multimin field set on mem_accounts', async () => {
 				return expect(accountRow.mem_accounts.u_multimin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
-			it('should set u_multilifetime field set on mem_accounts', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should set u_multilifetime field set on mem_accounts', async () => {
 				return expect(accountRow.mem_accounts.u_multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
@@ -185,13 +187,15 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				);
 			});
 
-			it('should have u_multimin field set on account', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should have u_multimin field set on account', async () => {
 				return expect(account.u_multiMin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
-			it('should have u_multilifetime field set on account', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should have u_multilifetime field set on account', async () => {
 				return expect(account.u_multiLifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
@@ -353,13 +357,15 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				);
 			});
 
-			it('should set u_multimin field set on mem_accounts', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should set u_multimin field set on mem_accounts', async () => {
 				return expect(accountRow.mem_accounts.u_multimin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
-			it('should set u_multilifetime field set on mem_accounts', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should set u_multilifetime field set on mem_accounts', async () => {
 				return expect(accountRow.mem_accounts.u_multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
@@ -380,20 +386,23 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				);
 			});
 
-			it('should have u_multisignatures field set on account', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should have u_multisignatures field set on account', async () => {
 				return expect(account.u_membersPublicKeys).to.include(
 					signer1.publicKey,
 					signer2.publicKey
 				);
 			});
 
-			it('should have multimin field set on account', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should have multimin field set on account', async () => {
 				return expect(account.u_multiMin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
-			it('should have multilifetime field set on account', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should have multilifetime field set on account', async () => {
 				return expect(account.u_multiLifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);

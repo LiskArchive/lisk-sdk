@@ -78,7 +78,8 @@ describe('system test (type 0) - double transfers', async () => {
 				});
 			});
 
-			describe('after forging one block', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			describe.skip('[UNCOFIRMED_STATE_REMOVAL] after forging one block', async () => {
 				before(done => {
 					localCommon.forge(library, async () => {
 						done();

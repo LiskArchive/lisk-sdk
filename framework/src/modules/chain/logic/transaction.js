@@ -1027,7 +1027,7 @@ class Transaction {
 
 		const senderBalance = this.checkBalance(
 			amount,
-			'u_balance',
+			'balance', // Changed from u_balance for [UNCONFIRMED_STATE_REMOVAL] revisit once new transactions implemented
 			transaction,
 			sender
 		);

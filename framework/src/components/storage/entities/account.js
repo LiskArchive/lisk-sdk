@@ -75,6 +75,20 @@ const sqlFiles = {
 	insertFork: 'accounts/insert_fork.sql',
 };
 
+const unconfirmedFields = [
+	'u_isDelegate',
+	'u_secondSignature',
+	'u_username',
+	'u_delegates',
+	'u_multisignatures',
+	'u_multimin',
+	'u_multiMin',
+	'u_multilifetime',
+	'u_multiLifetime',
+	'u_nameexist',
+	'u_balance',
+];
+
 /**
  * Basic Account
  * @typedef {Object} BasicAccount
@@ -397,8 +411,12 @@ class Account extends BaseEntity {
 		let values;
 
 		if (Array.isArray(data)) {
-			values = data.map(item => ({ ...item }));
+			values = data.map(item => {
+				item = Account.beforeSave(item);
+				return { ...item };
+			});
 		} else if (typeof data === 'object') {
+			data = Account.beforeSave(data);
 			values = [{ ...data }];
 		}
 
@@ -430,6 +448,7 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	update(filters, data, _options, tx) {
+		data = Account.beforeSave(data);
 		const atLeastOneRequired = true;
 
 		this.validateFilters(filters, atLeastOneRequired);
@@ -463,6 +482,7 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	updateOne(filters, data, _options, tx) {
+		data = Account.beforeSave(data);
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
 
@@ -533,6 +553,7 @@ class Account extends BaseEntity {
 	 * @returns {Promise.<boolean, Error>}
 	 */
 	upsert(filters, data, updateData = {}, tx = null) {
+		data = Account.beforeSave(data);
 		const task = t =>
 			this.isPersisted(filters, {}, t).then(dataFound => {
 				if (dataFound) {
@@ -789,6 +810,8 @@ class Account extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const filedName = this.fields[field].fieldName;
 
+		value = Account.beforeUpdateField(field, value);
+
 		const params = {
 			parsedFilters,
 			field: filedName,
@@ -832,6 +855,43 @@ class Account extends BaseEntity {
 			tx
 		);
 	}
+
+	// @TODO this is transitional should be removed once transactions are being processed in memory
+	static beforeSave(data, shouldThrow = false) {
+		const logger = console;
+
+		const fields = Object.keys(data);
+		const unconfirmedFieldsFound = fields.filter(aField =>
+			unconfirmedFields.includes(aField)
+		);
+		const newData = _.pick(
+			data,
+			Object.keys(data).filter(aField => !unconfirmedFields.includes(aField))
+		);
+
+		if (unconfirmedFieldsFound.length > 0) {
+			const err = new Error(
+				'[UNCONFIRMED_STATE_REMOVAL] Removing unconfirmed fields from `data`.'
+			);
+			logger.info(err.stack);
+			if (shouldThrow) {
+				throw err;
+			}
+		}
+		return newData;
+	}
+
+	static beforeUpdateField(field, value) {
+		if (unconfirmedFields.includes(field)) {
+			const logger = console;
+			const err = new Error(
+				`[UNCONFIRMED_STATE_REMOVAL] Setting unconfirmed field '${field}' value to 0.`
+			);
+			logger.info(err.stack);
+		}
+		return unconfirmedFields.includes(field) ? 0 : value;
+	}
+	// @TODO this is transitional should be removed once transactions are being processed in memory
 }
 
 module.exports = Account;
