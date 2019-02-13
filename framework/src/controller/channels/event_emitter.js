@@ -5,7 +5,8 @@ const BaseChannel = require('./base');
 /**
  * Channel responsible to communicate with bus for modules running in same process
  *
- * @namespace Framework.channels
+ * @class
+ * @memberof controller.channels
  * @requires module.Event
  * @requires module.Action
  * @requires channels/base

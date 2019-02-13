@@ -10,7 +10,7 @@
 			"./framework/src/modules/chain/api/",
 			"./framework/src/modules/chain/config/",
 			"./framework/src/components/storage/",
-			"./framework/src/controller/helpers/",
+			"./framework/src/controller/",
 			"./framework/src/modules/chain/logic/",
 			"./framework/src/modules/chain/modules/",
 			"./framework/src/modules/chain/schema/"

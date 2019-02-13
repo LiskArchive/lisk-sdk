@@ -47,14 +47,14 @@ const registerProcessHooks = app => {
 /**
  * Application class to start the block chain instance
  *
- * @namespace Framework
+ * @class
+ * @memberof controller
  * @requires assert
  * @requires Controller
  * @requires module.defaults
  * @requires helpers/validator
  * @requires schema/application
  * @requires components/logger
- * @type {module.Application}
  */
 module.exports = class Application {
 	/**

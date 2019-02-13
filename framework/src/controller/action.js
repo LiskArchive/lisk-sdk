@@ -6,9 +6,9 @@ const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][a-zA-Z0-9]*$/;
 /**
  * An action class which instance will be received by every event listener
  *
- * @namespace Framework
+ * @class
+ * @memberof controller
  * @requires assert
- * @type {module.Action}
  */
 module.exports = class Action {
 	/**

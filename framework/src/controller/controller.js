@@ -22,14 +22,14 @@ const validateModuleSpec = moduleSpec => {
 /**
  * Controller logic responsible to run the application instance
  *
- * @namespace Framework
+ * @class
+ * @memberof controller
  * @requires assert
  * @requires bluebird
  * @requires fs-extra
  * @requires helpers/config
  * @requires channels/event_emitter
  * @requires module.Bus
- * @type {module.Controller}
  */
 module.exports = class Controller {
 	/**

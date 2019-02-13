@@ -17,9 +17,7 @@
 /**
  * Object holding all Lisk Framework specific constants.
  *
- * @namespace Framework.defaults
- * @memberof config
- * @see Parent: {@link config}
+ * @memberof controller.defaults
  * @property {number} ACTIVE_DELEGATES - The default number of delegates allowed to forge a block.
  * @property {number} ADDITIONAL_DATA.MIN_LENGTH - Additional data (Min length)
  * @property {number} ADDITIONAL_DATA.MAX_LENGTH - Additional data (Max length)

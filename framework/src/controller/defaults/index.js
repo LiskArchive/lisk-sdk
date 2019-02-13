@@ -1,7 +1,9 @@
 const constants = require('./constants');
 
 /**
- * @namespace Framework.defaults
+ * @namespace defaults
+ * @memberof controller
+ * @see Parent: {@link controller}
  * @type {{constants}}
  */
 module.exports = {

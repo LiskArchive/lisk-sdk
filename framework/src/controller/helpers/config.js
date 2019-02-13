@@ -3,8 +3,8 @@ const os = require('os');
 /**
  * Object holding important directories paths for application.
  *
+ * @memberof controller.helpers
  * @requires os
- * @namespace Framework.helpers
  */
 module.exports = {
 	dirs: {

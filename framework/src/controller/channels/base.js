@@ -13,7 +13,8 @@ const internalEvents = [
 /**
  * BaseChannel class which used as reference to implement others channels for bus to module communication
  *
- * @namespace Framework.channels
+ * @class
+ * @memberof controller.channels
  * @requires modules.Event
  * @requires modules.Action
  * @type {module.BaseChannel}
