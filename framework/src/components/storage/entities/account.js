@@ -75,7 +75,7 @@ const sqlFiles = {
 	insertFork: 'accounts/insert_fork.sql',
 };
 
-const uncofirmedFields = [
+const unconfirmedFields = [
 	'u_isDelegate',
 	'u_secondSignature',
 	'u_username',
@@ -861,17 +861,17 @@ class Account extends BaseEntity {
 		const logger = console;
 
 		const fields = Object.keys(data);
-		const uncofirmedFieldsFound = fields.filter(aField =>
-			uncofirmedFields.includes(aField)
+		const unconfirmedFieldsFound = fields.filter(aField =>
+			unconfirmedFields.includes(aField)
 		);
 		const newData = _.pick(
 			data,
-			Object.keys(data).filter(aField => !uncofirmedFields.includes(aField))
+			Object.keys(data).filter(aField => !unconfirmedFields.includes(aField))
 		);
 
-		if (uncofirmedFieldsFound.length > 0) {
+		if (unconfirmedFieldsFound.length > 0) {
 			const err = new Error(
-				'[UNCOFIRMED_STATE_REMOVAL] Removing unconfirmed fields from `data`.'
+				'[UNCONFIRMED_STATE_REMOVAL] Removing unconfirmed fields from `data`.'
 			);
 			logger.info(err.stack);
 			if (shouldThrow) {
@@ -882,14 +882,14 @@ class Account extends BaseEntity {
 	}
 
 	static beforeUpdateField(field, value) {
-		if (uncofirmedFields.includes(field)) {
+		if (unconfirmedFields.includes(field)) {
 			const logger = console;
 			const err = new Error(
-				`[UNCOFIRMED_STATE_REMOVAL] Setting uncofirmed field '${field}' value to 0.`
+				`[UNCONFIRMED_STATE_REMOVAL] Setting unconfirmed field '${field}' value to 0.`
 			);
 			logger.info(err.stack);
 		}
-		return uncofirmedFields.includes(field) ? 0 : value;
+		return unconfirmedFields.includes(field) ? 0 : value;
 	}
 	// @TODO this is transitional should be removed once transactions are being processed in memory
 }
