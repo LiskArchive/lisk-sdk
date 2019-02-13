@@ -1,8 +1,13 @@
-const util = require('util');
 const express = require('express');
 const http = require('http');
 const socket = require('socket.io');
 const fs = require('fs');
+
+// There is an issue with promisify server.listen so used constructor
+const startServer = async (server, port, host) =>
+	new Promise((resolve, reject) => {
+		server.listen({ host, port }, err => (err ? reject(err) : resolve()));
+	});
 
 module.exports = async (config, logger) => {
 	const app = express();
@@ -55,8 +60,7 @@ module.exports = async (config, logger) => {
 		https_io,
 	};
 
-	network.listen = () => {
-		const serverListen = util.promisify(server.listen);
+	network.listen = async () => {
 		// Listen to http
 		// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 		server.headersTimeout = config.api.options.limits.headersTimeout;
@@ -71,47 +75,35 @@ module.exports = async (config, logger) => {
 			timeOutSocket.destroy();
 		});
 
-		return serverListen({ port: config.httpPort, host: config.address })
-			.then(() => {
-				logger.info(`Lisk started: ${config.address}:${config.httpPort}`);
+		await startServer(server, config.httpPort, config.address);
 
-				if (config.api.ssl.enabled) {
-					// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
-					https.headersTimeout = config.api.options.limits.headersTimeout;
-					https.setTimeout(config.api.options.limits.serverTimeout);
-					https.on('timeout', timeOutSocket => {
-						logger.info(
-							`Disconnecting idle socket: ${timeOutSocket.remoteAddress}:${
-								timeOutSocket.remotePort
-							}`
-						);
-						timeOutSocket.destroy();
-					});
+		logger.info(`Lisk started: ${config.address}:${config.httpPort}`);
 
-					const httpsListen = util.promisify(https.listen);
-
-					return httpsListen(
-						config.api.ssl.options.port,
-						config.api.ssl.options.address
-					)
-						.then(() => {
-							logger.info(
-								`Lisk https started: ${config.api.ssl.options.address}:${
-									config.api.ssl.options.port
-								}`
-							);
-						})
-						.catch(httpsListenErr => {
-							logger.error(`HTTP Server listening error: ${httpsListenErr}`);
-							throw httpsListenErr;
-						});
-				}
-				return true;
-			})
-			.catch(serverListenErr => {
-				logger.error(`HTTP Server listening error: ${serverListenErr}`);
-				throw serverListenErr;
+		if (config.api.ssl.enabled) {
+			// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
+			https.headersTimeout = config.api.options.limits.headersTimeout;
+			https.setTimeout(config.api.options.limits.serverTimeout);
+			https.on('timeout', timeOutSocket => {
+				logger.info(
+					`Disconnecting idle socket: ${timeOutSocket.remoteAddress}:${
+						timeOutSocket.remotePort
+					}`
+				);
+				timeOutSocket.destroy();
 			});
+
+			await startServer(
+				https,
+				config.api.ssl.options.port,
+				config.api.ssl.options.address
+			);
+
+			logger.info(
+				`Lisk https started: ${config.api.ssl.options.address}:${
+					config.api.ssl.options.port
+				}`
+			);
+		}
 	};
 
 	return network;
