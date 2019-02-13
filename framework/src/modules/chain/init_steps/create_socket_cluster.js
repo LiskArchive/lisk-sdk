@@ -1,0 +1,69 @@
+const path = require('path');
+const SocketCluster = require('socketcluster');
+const promisifyEvent = require('p-event');
+const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+
+const workersControllerPath = path.join(__dirname, '../workers_controller');
+
+module.exports = async (config, logger, network) => {
+	if (!config.peers.enabled) {
+		logger.info(
+			'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
+		);
+		return Promise.resolve();
+	}
+
+	const webSocketConfig = {
+		workers: 1,
+		port: config.wsPort,
+		host: '0.0.0.0',
+		wsEngine: config.peers.options.wsEngine,
+		workerController: workersControllerPath,
+		perMessageDeflate: false,
+		secretKey: 'liskSecretKey',
+		// Because our node is constantly sending messages, we don't
+		// need to use the ping feature to detect bad connections.
+		pingTimeoutDisabled: true,
+		// Maximum amount of milliseconds to wait before force-killing
+		// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
+		processTermTimeout: 10000,
+		logLevel: 0,
+	};
+
+	const childProcessOptions = {
+		version: config.version,
+		minVersion: config.minVersion,
+		protocolVersion: config.protocolVersion,
+		nethash: config.nethash,
+		port: config.wsPort,
+		nonce: config.nonce,
+		blackListedPeers: config.peers.access.blackList,
+	};
+
+	const socketCluster = new SocketCluster(webSocketConfig);
+	network.app.rpc = wsRPC.setServer(
+		new MasterWAMPServer(socketCluster, childProcessOptions)
+	);
+
+	// The 'fail' event aggregates errors from all SocketCluster processes.
+	socketCluster.on('fail', err => {
+		logger.error(err);
+		if (err.name === 'WSEngineInitError') {
+			const extendedError = logger.error(extendedError);
+		}
+	});
+
+	socketCluster.on('workerExit', workerInfo => {
+		let exitMessage = `Worker with pid ${workerInfo.pid} exited`;
+		if (workerInfo.signal) {
+			exitMessage += ` due to signal: '${workerInfo.signal}'`;
+		}
+		logger.error(exitMessage);
+	});
+
+	return promisifyEvent(socketCluster, 'ready').then(() => {
+		logger.info('Socket Cluster ready for incoming connections');
+		return socketCluster;
+	});
+};
