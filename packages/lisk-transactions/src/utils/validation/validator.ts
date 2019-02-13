@@ -29,7 +29,7 @@ import {
 	validateUsername,
 } from './validation';
 
-export const validator = new Ajv({ allErrors: true, removeAdditional: true });
+export const validator = new Ajv({ allErrors: true });
 addKeywords(validator);
 
 validator.addFormat('signature', validateSignature);
