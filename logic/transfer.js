@@ -88,9 +88,10 @@ Transfer.prototype.verify = function(transaction, sender, cb) {
 		transaction.asset &&
 		regexpTester.isNullByteIncluded(transaction.asset.data)
 	) {
-		// Accept and remove null byte if transaction in exception
-		if (exceptions.removedNullByteTransactions[transaction.id]) {
-			transaction.asset.data = transaction.asset.data.replace(/\0/g, '');
+		if (exceptions.transactionWithNullByte.includes(transaction.id)) {
+			library.logger.warn('Transaction data field with null byte accepted due to exceptions', {
+				transaction: JSON.stringify(transaction),
+			});
 		} else {
 			return setImmediate(
 				cb,
@@ -130,19 +131,9 @@ Transfer.prototype.process = function(transaction, sender, cb) {
  */
 Transfer.prototype.getBytes = function(transaction) {
 	try {
-		if (!transaction.asset || !transaction.asset.data) {
-			return null;
-		}
-
-		// Because null bytes from data field was removed and in order to keep the same ID, payload and signature
-		// the original data field (with null byte) has to be used when calculating the transaction bytes
-		return exceptions.removedNullByteTransactions[transaction.id]
-			? Buffer.from(
-					exceptions.removedNullByteTransactions[transaction.id]
-						.originalDataField,
-					'utf8'
-				)
-			: Buffer.from(transaction.asset.data, 'utf8');
+		return transaction.asset && transaction.asset.data
+			? Buffer.from(transaction.asset.data, 'utf8')
+			: null;
 	} catch (ex) {
 		throw ex;
 	}

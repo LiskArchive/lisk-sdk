@@ -29,11 +29,7 @@ module.exports = {
 	],
 	// transfer transaction previously with null byte in the data field
 	// SELECT * FROM transfer WHERE position('\x00' in data) > 0;
-	removedNullByteTransactions: {
-		'10589655532517440995': {
-			originalDataField: '\u0000hey:)',
-		},
-	}, // 6109391
+	transactionWithNullByte: ['10589655532517440995'], // 6109391
 	multisignatures: [
 		'8191213966308378713', // 952880
 		'8031165757158212499', // 979109

@@ -592,43 +592,6 @@ describe('blocks/verify', () => {
 				validBlock.totalFee = totalFee;
 				done();
 			});
-
-			// Test exceptions when transaction has null byte in the data field
-			describe('when transaction data field has null byte', () => {
-				let originalException;
-
-				beforeEach(async () => {
-					originalException = exceptions.removedNullByteTransactions;
-				});
-
-				afterEach(async () => {
-					exceptions.removedNullByteTransactions = originalException;
-				});
-
-				it('should return `Invalid payload hash` when null byte tranaction is NOT in exceptions', done => {
-					const result = privateFunctions.verifyPayload(
-						removedNullByteTransaction,
-						results
-					);
-					expect(result.errors).to.be.eql(['Invalid payload hash']);
-					done();
-				});
-
-				it('should return no errors when null byte tranaction is in exceptions', done => {
-					// Define exception for null byte transaction
-					exceptions.removedNullByteTransactions = {
-						'11815860355204320743': {
-							originalDataField: '\u0000 is valid UTF-8!',
-						},
-					};
-					const result = privateFunctions.verifyPayload(
-						removedNullByteTransaction,
-						results
-					);
-					expect(result.errors).to.be.empty;
-					done();
-				});
-			});
 		});
 
 		describe('verifyForkOne', () => {

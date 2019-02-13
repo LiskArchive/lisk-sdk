@@ -213,11 +213,11 @@ describe('transfer', () => {
 			let originalException;
 
 			beforeEach(async () => {
-				originalException = exceptions.removedNullByteTransactions;
+				originalException = exceptions.transactionWithNullByte;
 			});
 
 			afterEach(async () => {
-				exceptions.removedNullByteTransactions = originalException;
+				exceptions.transactionWithNullByte = originalException;
 			});
 
 			it('should return error if data field has null byte', done => {
@@ -231,11 +231,7 @@ describe('transfer', () => {
 
 			it('should return no errors when null byte tranaction is in exceptions', done => {
 				// Define exception for null byte transaction
-				exceptions.removedNullByteTransactions = {
-					'11815860355204320743': {
-						originalDataField: '\u0000 is valid UTF-8!',
-					},
-				};
+				exceptions.transactionWithNullByte = ['11815860355204320743'];
 				transfer.verify(transactionWithNullByte, validSender, err => {
 					expect(err).to.be.null;
 					done();
