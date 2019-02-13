@@ -1,0 +1,104 @@
+####################################################################################
+# Copyright © 2018 Lisk Foundation
+#
+# See the LICENSE file at the top-level directory of this distribution
+# for licensing information.
+#
+# Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+# no part of this software, including this file, may be copied, modified,
+# propagated, or distributed except according to the terms contained in the
+# LICENSE file.
+#
+# Removal or modification of this copyright notice is prohibited.
+####################################################################################
+# swagger configuration file
+
+# values in the swagger hash are system configuration for swagger-node
+swagger:
+
+  fittingsDirs: [ api/fittings ]
+  defaultPipe: null
+  swaggerControllerPipe: swagger_controllers  # defines the standard processing pipe for controllers
+
+  # values defined in the bagpipes key are the bagpipes pipes and fittings definitions
+  # (see https://github.com/apigee-127/bagpipes)
+  bagpipes:
+
+    _request_limit:
+      name: lisk_request_limit
+
+    _cors:
+      name: lisk_cors
+
+    _compression:
+      name: lisk_compression
+      level: 9
+
+    _router:
+      name: swagger_router
+      mockMode: false
+      mockControllersDirs: [ api/mocks ]
+      controllersDirs: [ api/controllers ]
+      controllersInterface: pipe
+
+    _swagger_validate:
+      name: lisk_params_validator
+
+    # For more detail options https://github.com/theganyo/swagger-node-runner/releases/tag/v0.6.0
+    _swagger_params_parser:
+      name: swagger_params_parser
+      jsonOptions: {}
+      urlencodedOptions:
+        extended: false
+      multerOptions:
+        inMemory: true
+      textOptions:
+        type: "*/*"
+
+    _json_error_handler:
+      name: lisk_error_handler
+      handle500Errors: true
+
+    _pre_response_cache:
+      name: lisk_cache
+      swagger_cache_key: x-lisk-cache-enabled
+      mode: pre_response
+
+    _post_response_cache:
+      name: lisk_cache
+      swagger_cache_key: x-lisk-cache-enabled
+      mode: post_response
+
+    # For more details https://github.com/theganyo/swagger-node-runner/releases/tag/v0.6.10
+    _swagger_security:
+      name: swagger_security
+      securityHandlersModule: helpers/swagger_security_handlers
+
+    _response_formatter:
+      name: lisk_response_formatter
+
+    # pipe for all swagger-node controllers
+    swagger_controllers:
+      - onError: _json_error_handler
+      - _request_limit
+      - _cors
+      - _compression
+      - _swagger_params_parser
+      - _swagger_security
+      - _swagger_validate
+      - express_compatibility
+      - _pre_response_cache
+      - _router
+      - _response_formatter
+      - _post_response_cache
+
+    _swagger_raw:
+      name: swagger_raw
+      filter: '.*'
+      privateTags:
+        - 'x-private'
+        - 'x-hidden'
+
+    swagger_raw_pipe:
+      - _cors
+      - _swagger_raw

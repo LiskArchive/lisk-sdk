@@ -7,6 +7,7 @@ const schema = require('./schema/application');
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
+const HttpApiModule = require('../modules/http_api');
 
 // Private __private used because private keyword is restricted
 const __private = {
@@ -105,6 +106,12 @@ module.exports = class Application {
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
+		});
+
+		this.registerModule(HttpApiModule, {
+			api: this.config.api,
+			coverage: this.config.coverage,
+			trustProxy: this.config.trustProxy,
 		});
 	}
 
