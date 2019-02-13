@@ -32,9 +32,9 @@ let sortFields;
  */
 function BlocksController(scope) {
 	library = {
-		storage: scope.storage,
+		storage: scope.components.storage,
 		logic: scope.logic,
-		logger: scope.logger,
+		logger: scope.components.logger,
 	};
 
 	sortFields = [
