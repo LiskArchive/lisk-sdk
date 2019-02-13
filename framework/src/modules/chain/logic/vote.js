@@ -176,11 +176,7 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 				) {
 					return setImmediate(
 						waterCb,
-						[
-							'Voting limit exceeded. Maximum is',
-							MAX_VOTES_PER_TRANSACTION,
-							'votes per transaction',
-						].join(' ')
+						`Voting limit exceeded. Maximum is ${MAX_VOTES_PER_TRANSACTION} votes per transaction`
 					);
 				}
 				return setImmediate(waterCb);
@@ -195,12 +191,9 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 								if (err) {
 									return setImmediate(
 										eachSeriesCb,
-										[
-											'Invalid vote at index',
-											transaction.asset.votes.indexOf(vote),
-											'-',
-											err,
-										].join(' ')
+										`Invalid vote at index ${transaction.asset.votes.indexOf(
+											vote
+										)} - ${err}`
 									);
 								}
 								return setImmediate(eachSeriesCb);
