@@ -137,6 +137,7 @@ Accounts.prototype.getAccounts = function(filter, fields, cb, tx) {
  * @returns {function} Call to logic.account.get()
  */
 Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
+	this.removeUncofirmedFields(data, 'modules/accounts/setAccountAndGet()');
 	let address = data.address || null;
 	let err;
 
@@ -226,6 +227,7 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
  * @todo Improve public key validation try/catch
  */
 Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
+	this.removeUncofirmedFields(data, 'modules/accounts/mergeAccountAndGet()');
 	let address = data.address || null;
 	let err;
 
@@ -275,6 +277,30 @@ Accounts.prototype.onBind = function(scope) {
  */
 Accounts.prototype.isLoaded = function() {
 	return !!modules;
+};
+
+Accounts.prototype.removeUncofirmedFields = function(data, caller) {
+	const uncofirmedFields = [
+		'u_isDelegate',
+		'u_secondSignature',
+		'u_username',
+		'u_delegates',
+		'u_multisignatures',
+		'u_multimin',
+		'u_multiMin',
+		'u_multilifetime',
+		'u_multiLifetime',
+		'u_nameexist',
+		'u_balance',
+	];
+	uncofirmedFields.forEach(uncofirmedField => {
+		if (Object.keys(data).includes(uncofirmedField)) {
+			library.logger.error(
+				`[UNCONFIRMED_STATE_REMOVAL] removing field: '${uncofirmedField}'. Called from: '${caller}'`
+			);
+			delete data[uncofirmedField];
+		}
+	});
 };
 
 // Export
