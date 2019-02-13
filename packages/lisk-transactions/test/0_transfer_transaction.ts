@@ -35,6 +35,7 @@ describe('Transfer transaction class', () => {
 	let recipient: Account;
 	let storeAccountCacheStub: sinon.SinonStub;
 	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountGetOrDefaultStub: sinon.SinonStub;
 	let storeAccountSetStub: sinon.SinonStub;
 
 	beforeEach(async () => {
@@ -48,6 +49,7 @@ describe('Transfer transaction class', () => {
 		recipient = validTransferAccount[1];
 		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
+		storeAccountGetOrDefaultStub = sandbox.stub(store.account, 'getOrDefault').returns(recipient);
 		storeAccountSetStub = sandbox.stub(store.account, 'set');
 	});
 
@@ -169,13 +171,10 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should call state store', async () => {
-			storeAccountGetStub.onCall(1).returns(recipient);
 			(validTransferTestTransaction as any).applyAsset(store);
-			expect(
-				storeAccountGetStub
-					.getCall(0)
-					.calledWithExactly(validTransferTestTransaction.senderId),
-			).to.be.true;
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTransferTestTransaction.senderId,
+			);
 			expect(
 				storeAccountSetStub.getCall(0).calledWithExactly(sender.address, {
 					...sender,
@@ -184,11 +183,9 @@ describe('Transfer transaction class', () => {
 						.toString(),
 				}),
 			).to.be.true;
-			expect(
-				storeAccountGetStub
-					.getCall(1)
-					.calledWithExactly(validTransferTestTransaction.recipientId),
-			).to.be.true;
+			expect(storeAccountGetOrDefaultStub).to.be.calledWithExactly(
+				validTransferTestTransaction.recipientId,
+			);
 			expect(
 				storeAccountSetStub.getCall(1).calledWithExactly(recipient.address, {
 					...recipient,
@@ -211,7 +208,7 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should return error when recipient balance is over maximum amount', async () => {
-			storeAccountGetStub.returns({
+			storeAccountGetOrDefaultStub.returns({
 				...sender,
 				balance: new BigNum(MAX_TRANSACTION_AMOUNT),
 			});
@@ -222,13 +219,10 @@ describe('Transfer transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			storeAccountGetStub.onCall(1).returns(recipient);
 			(validTransferTestTransaction as any).undoAsset(store);
-			expect(
-				storeAccountGetStub
-					.getCall(0)
-					.calledWithExactly(validTransferTestTransaction.senderId),
-			).to.be.true;
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTransferTestTransaction.senderId,
+			);
 			expect(
 				storeAccountSetStub.getCall(0).calledWithExactly(sender.address, {
 					...sender,
@@ -237,11 +231,9 @@ describe('Transfer transaction class', () => {
 						.toString(),
 				}),
 			).to.be.true;
-			expect(
-				storeAccountGetStub
-					.getCall(1)
-					.calledWithExactly(validTransferTestTransaction.recipientId),
-			).to.be.true;
+			expect(storeAccountGetOrDefaultStub).to.be.calledWithExactly(
+				validTransferTestTransaction.recipientId,
+			);
 			expect(
 				storeAccountSetStub.getCall(1).calledWithExactly(recipient.address, {
 					...recipient,
@@ -253,12 +245,10 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should return error when recipient balance is insufficient', async () => {
-			store.account.getOrDefault = () => {
-				return {
-					...recipient,
-					balance: new BigNum('0'),
-				};
-			};
+			storeAccountGetOrDefaultStub.returns({
+				...recipient,
+				balance: new BigNum('0'),
+			});
 			const errors = (validTransferTestTransaction as any).undoAsset(store);
 			expect(errors[0].message).to.equal(
 				`Account does not have enough LSK: ${recipient.address}, balance: 0`,
@@ -266,12 +256,10 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should return error when sender balance is over maximum amount', async () => {
-			store.account.get = () => {
-				return {
-					...sender,
-					balance: new BigNum(MAX_TRANSACTION_AMOUNT),
-				};
-			};
+			storeAccountGetStub.returns({
+				...recipient,
+				balance: new BigNum(MAX_TRANSACTION_AMOUNT),
+			});
 			const errors = (validTransferTestTransaction as any).undoAsset(store);
 			expect(errors[0]).and.to.have.property('message', 'Invalid amount');
 		});

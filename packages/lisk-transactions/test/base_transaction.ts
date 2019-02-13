@@ -52,6 +52,8 @@ describe('Base transaction class', () => {
 	let validSecondSignatureTestTransaction: BaseTransaction;
 	let validMultisignatureTestTransaction: BaseTransaction;
 	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountGetOrDefaultStub: sinon.SinonStub;
+
 
 	beforeEach(async () => {
 		validTestTransaction = new TestTransaction(defaultTransaction);
@@ -62,6 +64,7 @@ describe('Base transaction class', () => {
 			defaultMultisignatureTransaction,
 		);
 		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(defaultSenderAccount);
+		storeAccountGetOrDefaultStub = sandbox.stub(store.account, 'getOrDefault').returns(defaultSenderAccount);
 	});
 
 	describe('#constructor', () => {
