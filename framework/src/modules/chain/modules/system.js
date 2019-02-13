@@ -47,8 +47,8 @@ let self;
 class System {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			config: {
 				version: scope.config.version,
 				wsPort: scope.config.wsPort,

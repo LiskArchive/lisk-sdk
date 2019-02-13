@@ -51,8 +51,8 @@ const peerDiscoveryFrequency = 30000;
 class Peers {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			schema: scope.schema,
 			bus: scope.bus,
 			nonce: scope.nonce,

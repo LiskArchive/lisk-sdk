@@ -58,8 +58,8 @@ __private.assetTypes = {};
 class DApps {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			network: scope.network,
 			schema: scope.schema,
 			ed: scope.ed,
@@ -77,21 +77,30 @@ class DApps {
 			transactionTypes.DAPP
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DAPP,
-			new DApp(scope.storage, scope.logger, scope.schema, scope.network)
+			new DApp(
+				scope.components.storage,
+				scope.components.logger,
+				scope.schema,
+				scope.network
+			)
 		);
 
 		__private.assetTypes[
 			transactionTypes.IN_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.IN_TRANSFER,
-			new InTransfer(scope.storage, scope.schema)
+			new InTransfer(scope.components.storage, scope.schema)
 		);
 
 		__private.assetTypes[
 			transactionTypes.OUT_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.OUT_TRANSFER,
-			new OutTransfer(scope.storage, scope.schema, scope.logger)
+			new OutTransfer(
+				scope.components.storage,
+				scope.schema,
+				scope.components.logger
+			)
 		);
 
 		/**

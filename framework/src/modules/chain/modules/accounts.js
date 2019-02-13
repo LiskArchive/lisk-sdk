@@ -50,8 +50,8 @@ class Accounts {
 	constructor(cb, scope) {
 		library = {
 			ed: scope.ed,
-			storage: scope.storage,
-			logger: scope.logger,
+			storage: scope.components.storage,
+			logger: scope.components.logger,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
 			logic: {
