@@ -51,10 +51,10 @@ __private.ticking = false;
 class Rounds {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
+			logger: scope.components.logger,
 			bus: scope.bus,
 			network: scope.network,
-			storage: scope.storage,
+			storage: scope.components.storage,
 		};
 		self = this;
 

@@ -58,7 +58,7 @@ class Signatures {
 			transactionTypes.SIGNATURE
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.SIGNATURE,
-			new Signature(scope.schema, scope.logger)
+			new Signature(scope.schema, scope.components.logger)
 		);
 
 		setImmediate(cb, null, self);

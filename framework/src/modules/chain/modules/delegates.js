@@ -62,10 +62,10 @@ __private.delegatesListCache = {};
 class Delegates {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
+			logger: scope.components.logger,
 			sequence: scope.sequence,
 			ed: scope.ed,
-			storage: scope.storage,
+			storage: scope.components.storage,
 			network: scope.network,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
@@ -89,7 +89,7 @@ class Delegates {
 			transactionTypes.DELEGATE
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DELEGATE,
-			new Delegate(scope.logger, scope.schema)
+			new Delegate(scope.components.logger, scope.schema)
 		);
 
 		setImmediate(cb, null, self);

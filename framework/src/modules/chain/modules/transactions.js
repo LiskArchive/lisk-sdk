@@ -57,8 +57,8 @@ __private.assetTypes = {};
 class Transactions {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			schema: scope.schema,
 			ed: scope.ed,
 			balancesSequence: scope.balancesSequence,
@@ -75,7 +75,7 @@ class Transactions {
 			scope.config.broadcasts.releaseLimit,
 			scope.logic.transaction,
 			scope.bus,
-			scope.logger,
+			scope.components.logger,
 			scope.balancesSequence,
 			scope.config
 		);
