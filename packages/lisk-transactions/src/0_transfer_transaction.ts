@@ -46,6 +46,7 @@ export const transferAssetTypeSchema = {
 
 export const transferAssetFormatSchema = {
 	type: 'object',
+	additionalProperties: false,
 	properties: {
 		data: {
 			type: 'string',

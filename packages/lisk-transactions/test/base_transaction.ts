@@ -623,6 +623,7 @@ describe('Base transaction class', () => {
 
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
+			store.account.getOrDefault = () => defaultSenderAccount;
 			const { id, status, errors } = validTestTransaction.apply(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.OK);
@@ -630,7 +631,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response with insufficient account balance', async () => {
-			store.account.get = () => {
+			store.account.getOrDefault = () => {
 				return {
 					...defaultSenderAccount,
 					balance: '0',
@@ -660,7 +661,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response with account balance exceeding max amount', async () => {
-			store.account.get = () => {
+			store.account.getOrDefault = () => {
 				return {
 					...defaultSenderAccount,
 					balance: MAX_TRANSACTION_AMOUNT.toString(),
