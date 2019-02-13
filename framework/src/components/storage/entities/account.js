@@ -803,7 +803,13 @@ class Account extends BaseEntity {
 		const atLeastOneRequired = true;
 		const validFieldName = Object.keys(this.fields).includes(field);
 		assert(validFieldName, `Field name "${field}" is not valid.`);
-
+		if (Object.keys(unconfirmedFields).includes(field)) {
+			const logger = console;
+			logger.info(
+				`[UNCONFIRMED_STATE_REMOVAL] Avoiding updating field '${field}'`
+			);
+			return Promise.resolve();
+		}
 		this.validateFilters(filters, atLeastOneRequired);
 
 		const mergedFilters = this.mergeFilters(filters);
