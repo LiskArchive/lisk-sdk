@@ -137,7 +137,7 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Partially connected network which becomes fully connected: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence. Discovery interval runs multiple times.', () => {
-		const DISCOVERY_INTERVAL = 300;
+		const DISCOVERY_INTERVAL = 200;
 		
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -155,8 +155,8 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
-					connectTimeout: 200,
-					ackTimeout: 200,
+					connectTimeout: 100,
+					ackTimeout: 100,
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					nodeInfo: {
