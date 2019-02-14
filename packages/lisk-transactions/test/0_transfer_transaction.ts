@@ -199,11 +199,12 @@ describe('Transfer transaction class', () => {
 		it('should return error when sender balance is insufficient', async () => {
 			storeAccountGetStub.returns({
 				...sender,
-				balance: new BigNum('0'),
+				balance: new BigNum(10000000),
 			});
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
+			expect(errors).to.have.length(1);
 			expect(errors[0].message).to.equal(
-				`Account does not have enough LSK: ${sender.address}, balance: 0`,
+				`Account does not have enough LSK: ${sender.address}, balance: 0.1`,
 			);
 		});
 

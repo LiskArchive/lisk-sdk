@@ -206,7 +206,8 @@ export class InTransferTransaction extends BaseTransaction {
 		const sender = store.account.get(this.senderId);
 
 		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
-		if (updatedBalance.lt(0)) {
+		// Only return error if account has enough funds for fee to avoid duplicate errors
+		if (new BigNum(sender.balance).gte(0) && updatedBalance.lt(0)) {
 			errors.push(
 				new TransactionError(
 					`Account does not have enough LSK: ${
