@@ -168,3 +168,6 @@ export const isUnique = (values: ReadonlyArray<string>): boolean => {
 
 	return unique.length === values.length;
 };
+
+export const isNullByteIncluded = (input: string) =>
+	new RegExp('\\0|\\U00000000').test(input);

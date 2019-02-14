@@ -49,6 +49,7 @@ export const transferAssetFormatSchema = {
 	properties: {
 		data: {
 			type: 'string',
+			format: 'noNullByte',
 			maxLength: 64,
 		},
 	},
