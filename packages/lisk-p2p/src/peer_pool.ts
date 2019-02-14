@@ -56,6 +56,8 @@ import {
 } from './peer_selection';
 
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
+export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
+export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
 
 export {
 	EVENT_CLOSE_OUTBOUND,
@@ -112,9 +114,20 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
-		this._handlePeerConnect = (peer: Peer) => {
+		this._handlePeerConnect = async (peer: Peer) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peer.peerInfo);
+
+			// tslint:disable-next-line no-let
+			let detailedPeerInfo;
+			try {
+				detailedPeerInfo = await peer.fetchStatus();
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+				
+				return;
+			}
+			this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 		};
 		this._handlePeerConnectAbort = (peer: Peer) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -213,10 +226,19 @@ export class PeerPool extends EventEmitter {
 	public async runDiscovery(
 		knownPeers: ReadonlyArray<P2PPeerInfo>,
 		blacklist: ReadonlyArray<P2PPeerInfo>,
-	): Promise<ReadonlyArray<P2PPeerInfo>> {
-		const peersObjectList = knownPeers.map((peerInfo: P2PPeerInfo) =>
-			this.addPeer(peerInfo),
-		);
+	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+		
+		const peersObjectList = knownPeers.map((peerInfo: P2PPeerInfo) => {
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			if (this.hasPeer(peerId)) {
+				const existingPeer = this.getPeer(peerId) as Peer;
+				if (peerInfo.isDiscoveredPeer) {
+					existingPeer.updatePeerInfo(peerInfo as P2PDiscoveredPeerInfo);
+				}
+				return existingPeer;
+			}
+			return this.addPeer(peerInfo);
+		});
 
 		const peerSampleToProbe = selectRandomPeerSample(
 			peersObjectList,
@@ -236,7 +258,10 @@ export class PeerPool extends EventEmitter {
 		const peersToConnect = selectForConnection(peers);
 
 		peersToConnect.forEach((peerInfo: P2PPeerInfo) => {
-			this.addPeer(peerInfo);
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			if(!this.hasPeer(peerId)) {
+				this.addPeer(peerInfo);
+			}
 		});
 
 		return peersToConnect;
@@ -248,6 +273,11 @@ export class PeerPool extends EventEmitter {
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 		};
 		const peer = new Peer(peerInfo, peerConfig, inboundSocket);
+
+		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to itentify and debug.
+		if (this._peerMap.has(peer.id)) {
+			throw new Error(`Peer ${peer.id} was already in the peer pool`);
+		}
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
@@ -370,6 +400,7 @@ export class PeerPool extends EventEmitter {
 					(peer: Peer): ProtocolPeerInfo | undefined => {
 						const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined =
 							peer.detailedPeerInfo;
+						
 						if (!peerDetailedInfo) {
 							return undefined;
 						}
@@ -385,7 +416,7 @@ export class PeerPool extends EventEmitter {
 								: '',
 							os: peerDetailedInfo.os,
 							version: peerDetailedInfo.version,
-							wsPort: peerDetailedInfo.wsPort,
+							wsPort: peerDetailedInfo.wsPort
 						};
 					},
 				)
