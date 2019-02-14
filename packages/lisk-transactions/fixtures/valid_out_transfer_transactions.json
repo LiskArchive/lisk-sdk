@@ -55,5 +55,24 @@
 			"transactionId": "13227044664082109072"
 		  }
 		}
+	  },
+	  {
+		"id": "7297225435992500205",
+		"type": 7,
+		"timestamp": 59722128,
+		"senderPublicKey": "305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad",
+		"senderId": "13155556493249255133L",
+		"recipientId": "13155556493249255133L",
+		"recipientPublicKey": "305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad",
+		"amount": "500",
+		"fee": "10000000",
+		"signature": "a85f18853aa209da756f82799b072530b0028db48619141025df0ede96fd0e172b1625650a12fb872a1f13070ce5bf4494fdca3c7cb2ad36a779fc0dacdcdb09",
+		"signatures": [],
+		"asset": {
+		  "outTransfer": {
+			"dappId": "13227044664082109069",
+			"transactionId": "13227044664082109069"
+		  }
+		}
 	  }
 ]

@@ -22,6 +22,11 @@ import { generateRandomPublicKeys } from './helpers/cryptography';
 
 describe('Vote transaction class', () => {
 	let validTestTransaction: VoteTransaction;
+	let storeAccountCacheStub: sinon.SinonStub;
+	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountSetStub: sinon.SinonStub;
+	let storeAccountFindStub: sinon.SinonStub;
+
 	const defaultValidSender = {
 		address: '8004805717140184627L',
 		balance: '100000000',
@@ -42,10 +47,14 @@ describe('Vote transaction class', () => {
 
 	beforeEach(async () => {
 		validTestTransaction = new VoteTransaction(validVoteTransactions[2]);
-		store.account.get = () => {
-			return defaultValidSender;
-		};
-		store.account.find = () => defaultValidDependentAccounts[0];
+		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
+		storeAccountGetStub = sandbox
+			.stub(store.account, 'get')
+			.returns(defaultValidSender);
+		storeAccountSetStub = sandbox.stub(store.account, 'set');
+		storeAccountFindStub = sandbox
+			.stub(store.account, 'find')
+			.returns(defaultValidDependentAccounts[0]);
 	});
 
 	describe('#constructor', () => {
@@ -148,6 +157,28 @@ describe('Vote transaction class', () => {
 				.to.be.an('array')
 				.of.length(1);
 			expect(status).to.equal(Status.FAIL);
+		});
+	});
+
+	describe('#assetToJSON', async () => {
+		it('should return an object of type transfer asset', async () => {
+			expect(validTestTransaction.assetToJSON())
+				.to.be.an('object')
+				.and.to.have.property('votes')
+				.that.is.a('array');
+		});
+	});
+
+	describe('#prepare', async () => {
+		it('should call state store', async () => {
+			await validTestTransaction.prepare(store);
+			expect(storeAccountCacheStub).to.have.been.calledOnceWithExactly([
+				{ address: validTestTransaction.senderId },
+				{
+					publicKey:
+						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+				},
+			]);
 		});
 	});
 
@@ -261,6 +292,24 @@ describe('Vote transaction class', () => {
 	});
 
 	describe('#applyAsset', () => {
+		it('should call state store', async () => {
+			(validTestTransaction as any).applyAsset(store);
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTestTransaction.senderId,
+			);
+			expect(storeAccountFindStub).to.be.calledOnce;
+			expect(storeAccountSetStub).to.be.calledWithExactly(
+				defaultValidSender.address,
+				{
+					...defaultValidSender,
+					votes: [
+						...defaultValidSender.votes,
+						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+					],
+				},
+			);
+		});
+
 		it('should return error when voted account is not a delegate', async () => {
 			const nonDelegateAccount = [
 				{
@@ -270,7 +319,7 @@ describe('Vote transaction class', () => {
 						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 				},
 			];
-			store.account.find = () => nonDelegateAccount[0];
+			storeAccountFindStub.returns(nonDelegateAccount[0]);
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 		});
@@ -286,8 +335,7 @@ describe('Vote transaction class', () => {
 					'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 				],
 			};
-
-			store.account.get = () => invalidSender;
+			storeAccountGetStub.returns(invalidSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].message).to.contain('is already voted.');
@@ -301,8 +349,7 @@ describe('Vote transaction class', () => {
 					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
 				votes: generateRandomPublicKeys(101),
 			};
-
-			store.account.get = () => invalidSender;
+			storeAccountGetStub.returns(invalidSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].message).to.contains(
@@ -312,6 +359,17 @@ describe('Vote transaction class', () => {
 	});
 
 	describe('#undoAsset', () => {
+		it('should call state store', async () => {
+			(validTestTransaction as any).undoAsset(store);
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTestTransaction.senderId,
+			);
+			expect(storeAccountSetStub).to.be.calledWithExactly(
+				defaultValidSender.address,
+				defaultValidSender,
+			);
+		});
+
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;

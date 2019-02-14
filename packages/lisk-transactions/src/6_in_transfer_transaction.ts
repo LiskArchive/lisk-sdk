@@ -102,11 +102,11 @@ export class InTransferTransaction extends BaseTransaction {
 			},
 		]);
 
-		const dappTransaction = transactions.find(
+		const dappTransaction = transactions && transactions.length > 0 ? transactions.find(
 			tx =>
 				tx.type === TRANSACTION_DAPP_TYPE &&
 				tx.id === this.asset.inTransfer.dappId,
-		);
+		) : undefined;
 
 		if (dappTransaction) {
 			await store.account.cache([{ id: dappTransaction.senderId as string }]);

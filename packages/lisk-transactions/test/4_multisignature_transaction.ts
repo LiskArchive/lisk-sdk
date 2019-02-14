@@ -28,14 +28,30 @@ describe('Multisignature transaction class', () => {
 	const validMultisignatureTransaction = addTransactionFields(
 		validMultisignatureRegistrationTransaction,
 	);
+	const {
+		multisignatures,
+		multilifetime,
+		multimin,
+		...nonMultisignatureAccount
+	} = validMultisignatureAccount;
 	let validTestTransaction: MultisignatureTransaction;
-	let sender: Account;
+	let nonMultisignatureSender: Account;
+	let multisignatureSender: Account;
+	let storeAccountCacheStub: sinon.SinonStub;
+	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountSetStub: sinon.SinonStub;
+
 	beforeEach(async () => {
 		validTestTransaction = new MultisignatureTransaction(
 			validMultisignatureTransaction,
 		);
-		sender = validMultisignatureAccount;
-		store.account.get = () => sender;
+		nonMultisignatureSender = nonMultisignatureAccount;
+		multisignatureSender = validMultisignatureAccount;
+		storeAccountGetStub = sandbox
+			.stub(store.account, 'get')
+			.returns(nonMultisignatureSender);
+		storeAccountSetStub = sandbox.stub(store.account, 'set');
+		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 	});
 
 	describe('#constructor', () => {
@@ -145,6 +161,15 @@ describe('Multisignature transaction class', () => {
 			expect(validTestTransaction.assetToJSON()).to.eql(
 				validMultisignatureRegistrationTransaction.asset,
 			);
+		});
+	});
+
+	describe('#prepare', async () => {
+		it('should call state store', async () => {
+			await validTestTransaction.prepare(store);
+			expect(storeAccountCacheStub).to.have.been.calledOnceWithExactly([
+				{ address: validTestTransaction.senderId },
+			]);
 		});
 	});
 
@@ -259,15 +284,25 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#applyAsset', () => {
+		it('should call state store', async () => {
+			(validTestTransaction as any).applyAsset(store);
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTestTransaction.senderId,
+			);
+			expect(storeAccountSetStub).to.be.calledWithExactly(
+				multisignatureSender.address,
+				multisignatureSender,
+			);
+		});
+
 		it('should return no errors', async () => {
-			const { multisignatures, ...nonMultisignatureAccount } = sender;
-			store.account.get = () => nonMultisignatureAccount;
 			const errors = (validTestTransaction as any).applyAsset(store);
 
 			expect(errors).to.be.empty;
 		});
 
 		it('should return error when account is already multisignature', async () => {
+			storeAccountGetStub.returns(multisignatureSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.signatures');
@@ -275,10 +310,13 @@ describe('Multisignature transaction class', () => {
 
 		it('should return error when keysgroup includes sender key', async () => {
 			const invalidSender = {
-				...sender,
-				multisignatures: [...(sender as any).multisignatures, sender.publicKey],
+				...multisignatureSender,
+				multisignatures: [
+					...(multisignatureSender as any).multisignatures,
+					multisignatureSender.publicKey,
+				],
 			};
-			store.account.get = () => invalidSender;
+			storeAccountGetStub.returns(invalidSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.signatures');
@@ -286,6 +324,17 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#undoAsset', () => {
+		it('should call state store', async () => {
+			(validTestTransaction as any).undoAsset(store);
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTestTransaction.senderId,
+			);
+			expect(storeAccountSetStub).to.be.calledWithExactly(
+				multisignatureSender.address,
+				nonMultisignatureSender,
+			);
+		});
+
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
