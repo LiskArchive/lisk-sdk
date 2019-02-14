@@ -107,13 +107,6 @@ describe('TransactionMultiError', () => {
 				.and.be.a('string');
 		});
 
-		it('should have a `dataPath` string', () => {
-			expect(TxMultiError.dataPath).to.eql('.senderPublicKey:.senderId:.id');
-			return expect(TxMultiError)
-				.to.have.property('dataPath')
-				.and.be.a('string');
-		});
-
 		it('should have an array of transaction errors', () => {
 			expect(TxMultiError.errors).to.be.an('array');
 			const errorArray = TxMultiError.errors as ReadonlyArray<TransactionError>;
