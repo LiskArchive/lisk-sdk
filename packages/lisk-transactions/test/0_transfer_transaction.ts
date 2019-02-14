@@ -60,11 +60,11 @@ describe('Transfer transaction class', () => {
 				.and.be.instanceof(TransferTransaction);
 		});
 
-		it('should set transfer asset', () => {
+		it('should set transfer asset', async () => {
 			expect(validSelfTransferTestTransaction.asset).to.eql({ data: 'a' });
 		});
 
-		it('should set fee to transfer transaction fee amount', () => {
+		it('should set fee to transfer transaction fee amount', async () => {
 			expect(validSelfTransferTestTransaction.fee.toString()).to.eql(
 				TRANSFER_FEE.toString(),
 			);
