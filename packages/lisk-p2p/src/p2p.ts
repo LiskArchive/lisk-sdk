@@ -92,7 +92,7 @@ export class P2P extends EventEmitter {
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
 	private readonly _newPeers: Map<string, P2PPeerInfo>;
-	private readonly _triedPeers: Map<string, P2PPeerInfo>;
+	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _discoveryInterval: number;
 	private _discoveryIntervalId: NodeJS.Timer | undefined;
 
@@ -115,8 +115,8 @@ export class P2P extends EventEmitter {
 		super();
 		this._config = config;
 		this._isActive = false;
-		this._newPeers = new Map<string, P2PPeerInfo>();
-		this._triedPeers = new Map<string, P2PDiscoveredPeerInfo>();
+		this._newPeers = new Map();
+		this._triedPeers = new Map();
 
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer) as SCServerUpdated;
@@ -376,7 +376,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _discoverPeers(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
-		const allKnownPeers = [...this._triedPeers.values()].concat(knownPeers);
+		const allKnownPeers: ReadonlyArray<P2PPeerInfo> = knownPeers.concat([...this._triedPeers.values()]);
 		
 		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
 		if (!this._isActive) {
