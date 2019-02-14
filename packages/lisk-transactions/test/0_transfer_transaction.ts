@@ -204,7 +204,7 @@ describe('Transfer transaction class', () => {
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
 			expect(errors).to.have.length(1);
 			expect(errors[0].message).to.equal(
-				`Account does not have enough LSK: ${sender.address}, balance: 0.1`,
+				`Account does not have enough LSK: ${sender.address}, balance: 0.2`,
 			);
 		});
 

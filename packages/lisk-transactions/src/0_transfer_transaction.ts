@@ -26,6 +26,7 @@ import {
 	validateAddress,
 	validateTransferAmount,
 	validator,
+	verifyAmountBalance,
 	verifyBalance,
 } from './utils';
 
@@ -179,11 +180,12 @@ export class TransferTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-		const balanceError = verifyBalance(this.id, sender, this.amount);
-		// Only return error if account has enough funds for fee to avoid duplicate errors
-		if (balanceError && new BigNum(sender.balance).gte(0)) {
+		
+		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
+		if(balanceError) {
 			errors.push(balanceError);
 		}
+		
 		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
 		const updatedSender = {

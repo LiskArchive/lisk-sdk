@@ -21,7 +21,7 @@ import {
 import { MAX_TRANSACTION_AMOUNT, OUT_TRANSFER_FEE } from './constants';
 import { TransactionError, TransactionMultiError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import { convertBeddowsToLSK } from './utils';
+import { verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
 
 const TRANSACTION_OUTTRANSFER_TYPE = 7;
@@ -245,18 +245,13 @@ export class OutTransferTransaction extends BaseTransaction {
 		}
 
 		const sender = store.account.get(this.senderId);
-		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
-		// Only return error if account has enough funds for fee to avoid duplicate errors
-		if (new BigNum(sender.balance).gte(0) && updatedBalance.lt(0)) {
-			errors.push(
-				new TransactionError(
-					`Account does not have enough LSK: ${
-						sender.address
-					}, balance: ${convertBeddowsToLSK(sender.balance)}.`,
-					this.id,
-				),
-			);
+
+		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
+		if(balanceError) {
+			errors.push(balanceError);
 		}
+		
+		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
 
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 		store.account.set(updatedSender.address, updatedSender);
