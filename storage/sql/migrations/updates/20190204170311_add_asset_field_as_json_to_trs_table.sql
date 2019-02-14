@@ -19,4 +19,6 @@
   PARAMETERS: None
 */
 
-ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "asset" json;
+ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "asset" jsonb;
+
+CREATE INDEX IF NOT EXISTS "trs_asset" ON "trs" USING gin ("asset");
