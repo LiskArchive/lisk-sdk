@@ -104,19 +104,33 @@ interface VerifyMultiSignatureResult {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
+const isMultisignatureAccount = (account: Account): boolean =>
+	!!(
+		account.multisignatures &&
+		account.multisignatures.length > 0 &&
+		account.multimin
+	);
+
 export const verifyMultiSignatures = (
 	id: string,
 	sender: Account,
 	signatures: ReadonlyArray<string>,
 	transactionBytes: Buffer,
 ): VerifyMultiSignatureResult => {
-	if (
-		!(
-			sender.multisignatures &&
-			sender.multisignatures.length > 0 &&
-			sender.multimin
-		)
-	) {
+	if (!isMultisignatureAccount(sender) && signatures.length > 0) {
+		return {
+			status: MultisignatureStatus.FAIL,
+			errors: [
+				new TransactionError(
+					'Sender is not a multisignature account',
+					id,
+					'.signatures',
+				),
+			],
+		};
+	}
+
+	if (!isMultisignatureAccount(sender)) {
 		return {
 			status: MultisignatureStatus.NONMULTISIGNATURE,
 			errors: [],
@@ -124,9 +138,9 @@ export const verifyMultiSignatures = (
 	}
 
 	const { valid, errors } = validateMultisignatures(
-		sender.multisignatures,
+		sender.multisignatures as ReadonlyArray<string>,
 		signatures,
-		sender.multimin,
+		sender.multimin as number,
 		transactionBytes,
 		id,
 	);

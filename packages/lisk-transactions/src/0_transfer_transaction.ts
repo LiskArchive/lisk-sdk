@@ -73,6 +73,7 @@ export class TransferTransaction extends BaseTransaction {
 		if (!typeValid || errors.length > 0) {
 			throw new TransactionMultiError('Invalid asset types', tx.id, errors);
 		}
+
 		this.asset = tx.asset as TransferAsset;
 		this._fee = new BigNum(TRANSFER_FEE);
 	}

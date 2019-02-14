@@ -30,10 +30,10 @@ export const transaction = {
 			type: 'string',
 		},
 		amount: {
-			type: 'string',
+			type: ['string', 'integer'],
 		},
 		fee: {
-			type: 'string',
+			type: ['string', 'integer'],
 		},
 		type: {
 			type: 'integer',
