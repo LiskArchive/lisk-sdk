@@ -41,10 +41,6 @@ const modulesToInstrument = {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
 	},
-	'./modules/node.js': {
-		identifier: 'modules.node',
-		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
-	},
 	'./modules/blocks.js': {
 		identifier: 'modules.blocks',
 		callbackMethods: ['shared.getBlocks'],

@@ -86,18 +86,11 @@ class Process {
  */
 __private.receiveBlock = function(block, cb) {
 	library.logger.info(
-		[
-			'Received new block id:',
-			block.id,
-			'height:',
-			block.height,
-			'round:',
-			slots.calcRound(block.height),
-			'slot:',
-			slots.getSlotNumber(block.timestamp),
-			'reward:',
-			block.reward,
-		].join(' ')
+		`Received new block id: ${block.id} height: ${
+			block.height
+		} round: ${slots.calcRound(block.height)} slot: ${slots.getSlotNumber(
+			block.timestamp
+		)} reward: ${block.reward}`
 	);
 
 	// Update last receipt
@@ -148,7 +141,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 
 				if (!check.verified) {
 					library.logger.error(
-						['Block', tmp_block.id, 'verification failed'].join(' '),
+						`Block ${tmp_block.id} verification failed`,
 						check.errors.join(', ')
 					);
 					// Return first error from checks
@@ -220,7 +213,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 
 				if (!check.verified) {
 					library.logger.error(
-						['Block', tmpBlock.id, 'verification failed'].join(' '),
+						`Block ${tmpBlock.id} verification failed`,
 						check.errors.join(', ')
 					);
 					// Return first error from checks
@@ -284,12 +277,9 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 						comparisonFailed = true;
 						return setImmediate(
 							waterCb,
-							[
-								'Chain comparison failed with peer:',
-								peer.string,
-								'using ids:',
-								ids,
-							].join(' ')
+							`Chain comparison failed with peer: ${
+								peer.string
+							} using ids: ${ids}`
 						);
 					}
 
@@ -330,12 +320,9 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 						comparisonFailed = true;
 						return setImmediate(
 							waterCb,
-							[
-								'Chain comparison failed with peer:',
-								peer.string,
-								'using block:',
-								JSON.stringify(common),
-							].join(' ')
+							`Chain comparison failed with peer: ${
+								peer.string
+							} using block: ${JSON.stringify(common)}`
 						);
 					})
 					.catch(err => {
@@ -436,10 +423,7 @@ Process.prototype.loadBlocksOffset = function(
 		})
 		.catch(err => {
 			library.logger.error(err);
-			return setImmediate(
-				cb,
-				['Blocks#loadBlocksOffset error', err].join(': ')
-			);
+			return setImmediate(cb, `Blocks#loadBlocksOffset error: ${err}`);
 		});
 };
 
@@ -515,7 +499,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 				// Update last valid block
 				lastValidBlock = block;
 				library.logger.info(
-					['Block', block.id, 'loaded from:', peer.string].join(' '),
+					`Block ${block.id} loaded from: ${peer.string}`,
 					`height: ${block.height}`
 				);
 			} else {
@@ -705,18 +689,13 @@ Process.prototype.onReceiveBlock = function(block) {
 			library.logger.debug('Block already processed', block.id);
 		} else {
 			library.logger.warn(
-				[
-					'Discarded block that does not match with current chain:',
-					block.id,
-					'height:',
-					block.height,
-					'round:',
-					slots.calcRound(block.height),
-					'slot:',
-					slots.getSlotNumber(block.timestamp),
-					'generator:',
-					block.generatorPublicKey,
-				].join(' ')
+				`Discarded block that does not match with current chain: ${
+					block.id
+				} height: ${block.height} round: ${slots.calcRound(
+					block.height
+				)} slot: ${slots.getSlotNumber(block.timestamp)} generator: ${
+					block.generatorPublicKey
+				}`
 			);
 		}
 

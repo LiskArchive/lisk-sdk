@@ -304,7 +304,7 @@ __private.loadTransactions = function(cb) {
 							});
 
 							library.logger.warn(
-								['Transaction', id, 'is not valid, peer removed'].join(' '),
+								`Transaction ${id} is not valid, peer removed`,
 								peer.string
 							);
 							modules.peers.remove(peer);
@@ -769,7 +769,7 @@ __private.createSnapshot = height => {
 
 	const snapshotRound = library.config.loading.snapshotRound;
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound = Number.isNaN(snapshotRound)
+	const targetRound = Number.isNaN(parseInt(snapshotRound))
 		? totalRounds
 		: Math.min(totalRounds, snapshotRound);
 	const targetHeight = targetRound * ACTIVE_DELEGATES;

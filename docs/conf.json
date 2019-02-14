@@ -6,14 +6,14 @@
 	"source": {
 		"include": [
 			"./docs/typedef/",
-			"./app.js",
-			"./api/",
-			"./config/",
-			"./storage/",
-			"./helpers/",
-			"./logic/",
-			"./modules/",
-			"./schema/"
+			"./framework/src/modules/chain/chain.js",
+			"./framework/src/modules/chain/api/",
+			"./framework/src/modules/chain/config/",
+			"./framework/src/components/storage/",
+			"./framework/src/controller/helpers/",
+			"./framework/src/modules/chain/logic/",
+			"./framework/src/modules/chain/modules/",
+			"./framework/src/modules/chain/schema/"
 		],
 		"exclude": ["./node_modules"]
 	},

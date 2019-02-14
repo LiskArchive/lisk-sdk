@@ -42,7 +42,7 @@ const checkTableExists = (adapter, tableName) =>
 		)
 		.then(result => result[0].exists);
 
-describe('Round', async () => {
+describe('Round', () => {
 	let adapter;
 	let storage;
 	let RoundEntity;
@@ -133,7 +133,7 @@ describe('Round', async () => {
 		expect(Round.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', async () => {
+	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Round.prototype.constructor.length).to.be.eql(1);
 		});
@@ -172,7 +172,7 @@ describe('Round', async () => {
 		it('should setup specific filters');
 	});
 
-	describe('getOne()', async () => {
+	describe('getOne()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const round = new Round(adapter);
 			const _getResultsStub = sinonSandbox
@@ -195,7 +195,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('get()', async () => {
+	describe('get()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const round = new Round(adapter);
 			const _getResultsStub = sinonSandbox
@@ -222,7 +222,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('_getResults()', async () => {
+	describe('_getResults()', () => {
 		beforeEach(async () => {
 			await storage.entities.Round.create(validRound);
 		});
@@ -259,7 +259,7 @@ describe('Round', async () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', async () => {
+		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				expect(RoundEntity.getFilters()).to.eql(validFilters);
@@ -269,7 +269,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('isPersisted()', async () => {
+	describe('isPersisted()', () => {
 		beforeEach(async () => {
 			await RoundEntity.create(validRound);
 		});
@@ -357,7 +357,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('create()', async () => {
+	describe('create()', () => {
 		it('should save single round', async () => {
 			const randRound = new roundsFixtures.Round();
 			await RoundEntity.create(randRound);
@@ -381,7 +381,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('delete', async () => {
+	describe('delete', () => {
 		it('should accept only valid filters', async () => {
 			const randRound = new roundsFixtures.Round();
 			expect(() => {
@@ -447,7 +447,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('getUniqueRounds()', async () => {
+	describe('getUniqueRounds()', () => {
 		it('should return unique round numbers', async () => {
 			const round1 = new roundsFixtures.Round({
 				round: 1,
@@ -472,7 +472,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('getTotalVotedAmount', async () => {
+	describe('getTotalVotedAmount', () => {
 		it('should use the correct SQL file', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await RoundEntity.getTotalVotedAmount({ round: 1 });
@@ -522,7 +522,7 @@ describe('Round', async () => {
 			expect(RoundEntity.getTotalVotedAmount({ round: 1234 })).to.be.fulfilled);
 	});
 
-	describe('summedRound()', async () => {
+	describe('summedRound()', () => {
 		it('should use the correct SQL file with one parameter', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await RoundEntity.summedRound(1, 2);
@@ -561,7 +561,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('createRoundRewards()', async () => {
+	describe('createRoundRewards()', () => {
 		it('should use the correct SQL file with five parameters', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const params = {
@@ -599,7 +599,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('deleteRoundRewards()', async () => {
+	describe('deleteRoundRewards()', () => {
 		it('should use the correct SQL file with five parameters', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await RoundEntity.deleteRoundRewards('1');
@@ -645,7 +645,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('clearRoundSnapshot()', async () => {
+	describe('clearRoundSnapshot()', () => {
 		it('should use the correct SQL file with no parameters', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await RoundEntity.clearRoundSnapshot();
@@ -677,7 +677,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('performRoundSnapshot()', async () => {
+	describe('performRoundSnapshot()', () => {
 		afterEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with no parameters', async () => {
@@ -726,7 +726,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('checkSnapshotAvailability()', async () => {
+	describe('checkSnapshotAvailability()', () => {
 		afterEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with one parameter', async () => {
@@ -796,7 +796,7 @@ describe('Round', async () => {
 			));
 	});
 
-	describe('countRoundSnapshot()', async () => {
+	describe('countRoundSnapshot()', () => {
 		afterEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with one parameter', async () => {
@@ -851,7 +851,7 @@ describe('Round', async () => {
 			));
 	});
 
-	describe('getDelegatesSnapshot()', async () => {
+	describe('getDelegatesSnapshot()', () => {
 		afterEach(() => RoundEntity.clearVotesSnapshot());
 
 		it('should reject with error if the called without performing the snapshot', async () =>
@@ -940,7 +940,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('clearVotesSnapshot()', async () => {
+	describe('clearVotesSnapshot()', () => {
 		it('should use the correct SQL file with no parameters', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await RoundEntity.clearVotesSnapshot();
@@ -971,7 +971,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('performVotesSnapshot()', async () => {
+	describe('performVotesSnapshot()', () => {
 		afterEach(() => RoundEntity.clearVotesSnapshot());
 
 		it('should use the correct SQL file with no parameters', async () => {
@@ -1038,7 +1038,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('restoreRoundSnapshot()', async () => {
+	describe('restoreRoundSnapshot()', () => {
 		afterEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should reject with error if the called without performing the snapshot', async () =>
@@ -1094,7 +1094,7 @@ describe('Round', async () => {
 		});
 	});
 
-	describe('restoreVotesSnapshot()', async () => {
+	describe('restoreVotesSnapshot()', () => {
 		afterEach(() => RoundEntity.clearVotesSnapshot());
 
 		it('should reject with error if the called without performing the snapshot', async () =>
