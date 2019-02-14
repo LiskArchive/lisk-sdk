@@ -372,15 +372,44 @@ describe('validation', () => {
 	});
 
 	describe('#isNullByteIncluded', () => {
-		const nullCharacterList = ['\0', '\x00', '\u0000', '\\U00000000'];
+		const validStrings = [
+			'lorem ipsum',
+			'lorem\u0001 ipsum',
+			'loremU00000001 ipsum',
+			'\u0001',
+			'\x01',
+			'l©rem',
+			'❤',
+		];
 
-		it('should return false when string was provided', () => {
-			return expect(isNullByteIncluded('1234')).to.be.false;
+		 const invalidStrings = [
+			'\0',
+			'\0lorem',
+			'ipsum\0',
+			'lorem\0 ipsum',
+			'\x00',
+			'\x00lorem',
+			'ipsum\x00',
+			'lorem\x00 ipsum',
+			'\u0000',
+			'\u0000lorem',
+			'ipsum\u0000',
+			'lorem\u0000 ipsum',
+			'\\U00000000',
+			'\\U00000000lorem',
+			'ipsum\\U00000000',
+			'lorem\\U00000000 ipsum',
+		];
+
+		it('should return false when valid string was provided', () => {
+			validStrings.forEach(input => {
+				expect(isNullByteIncluded(input)).to.be.false;
+			});
 		});
 
 		it('should return true using unicode null characters', () => {
-			nullCharacterList.forEach(nullChar => {
-				expect(isNullByteIncluded(`${nullChar} hey :)`)).to.be.true;
+			invalidStrings.forEach(input => {
+				expect(isNullByteIncluded(input)).to.be.true;
 			});
 		});
 	});
