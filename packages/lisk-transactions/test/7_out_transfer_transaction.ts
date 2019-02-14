@@ -257,7 +257,7 @@ describe('outTransfer transaction class', () => {
 				storeAccountGetStub
 					.getCall(0)
 					.calledWithExactly(validTestTransaction.senderId),
-			).to.be.true;
+			);
 			expect(
 				storeAccountSetStub
 					.getCall(0)
@@ -267,12 +267,12 @@ describe('outTransfer transaction class', () => {
 							.sub(validTestTransaction.amount)
 							.toString(),
 					}),
-			).to.be.true;
+			);
 			expect(
 				storeAccountGetStub
 					.getCall(1)
 					.calledWithExactly(validTestTransaction.recipientId),
-			).to.be.true;
+			);
 		});
 
 		it('should return error when not sent from owner of dapp', async () => {
@@ -317,12 +317,12 @@ describe('outTransfer transaction class', () => {
 				storeAccountGetStub
 					.getCall(0)
 					.calledWithExactly(validTestTransaction.senderId),
-			).to.be.true;
+			);
 			expect(
 				storeAccountGetStub
 					.getCall(1)
 					.calledWithExactly(validTestTransaction.recipientId),
-			).to.be.true;
+			);
 		});
 
 		it('should return no errors', async () => {

@@ -182,7 +182,7 @@ describe('Transfer transaction class', () => {
 						.sub(validTransferTestTransaction.amount)
 						.toString(),
 				}),
-			).to.be.true;
+			);
 			expect(storeAccountGetOrDefaultStub).to.be.calledWithExactly(
 				validTransferTestTransaction.recipientId,
 			);
@@ -193,7 +193,7 @@ describe('Transfer transaction class', () => {
 						.add(validTransferTestTransaction.amount)
 						.toString(),
 				}),
-			).to.be.true;
+			);
 		});
 
 		it('should return error when sender balance is insufficient', async () => {
@@ -230,7 +230,7 @@ describe('Transfer transaction class', () => {
 						.add(validTransferTestTransaction.amount)
 						.toString(),
 				}),
-			).to.be.true;
+			);
 			expect(storeAccountGetOrDefaultStub).to.be.calledWithExactly(
 				validTransferTestTransaction.recipientId,
 			);
@@ -241,7 +241,7 @@ describe('Transfer transaction class', () => {
 						.sub(validTransferTestTransaction.amount)
 						.toString(),
 				}),
-			).to.be.true;
+			);
 		});
 
 		it('should return error when recipient balance is insufficient', async () => {

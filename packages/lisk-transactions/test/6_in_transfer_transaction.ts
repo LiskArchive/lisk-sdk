@@ -131,12 +131,12 @@ describe('InTransfer transaction class', () => {
 				storeAccountCacheStub
 					.getCall(0)
 					.calledWithExactly([{ address: validTestTransaction.senderId }]),
-			).to.be.true;
+			);
 			expect(
 				storeAccountCacheStub
 					.getCall(1)
 					.calledWithExactly([{ id: dappRegistrationTx.senderId }]),
-			).to.be.true;
+			);
 		});
 	});
 
@@ -207,7 +207,7 @@ describe('InTransfer transaction class', () => {
 				storeAccountGetStub
 					.getCall(0)
 					.calledWithExactly(validTestTransaction.senderId),
-			).to.be.true;
+			);
 			expect(
 				storeAccountSetStub
 					.getCall(0)
@@ -217,7 +217,7 @@ describe('InTransfer transaction class', () => {
 							.sub(validTestTransaction.amount)
 							.toString(),
 					}),
-			).to.be.true;
+			);
 			expect(storeTransactionGetStub).to.be.calledWithExactly(
 				validTestTransaction.asset.inTransfer.dappId,
 			);
@@ -225,7 +225,7 @@ describe('InTransfer transaction class', () => {
 				storeAccountGetStub
 					.getCall(1)
 					.calledWithExactly(dappRegistrationTx.senderId),
-			).to.be.true;
+			);
 		});
 
 		it('should return error when dapp registration tx not found', async () => {
@@ -256,7 +256,7 @@ describe('InTransfer transaction class', () => {
 				storeAccountGetStub
 					.getCall(0)
 					.calledWithExactly(validTestTransaction.senderId),
-			).to.be.true;
+			);
 			expect(
 				storeAccountSetStub
 					.getCall(0)
@@ -266,7 +266,7 @@ describe('InTransfer transaction class', () => {
 							.add(validTestTransaction.amount)
 							.toString(),
 					}),
-			).to.be.true;
+			);
 			expect(storeTransactionGetStub).to.be.calledWithExactly(
 				validTestTransaction.asset.inTransfer.dappId,
 			);
@@ -274,7 +274,7 @@ describe('InTransfer transaction class', () => {
 				storeAccountGetStub
 					.getCall(1)
 					.calledWithExactly(dappRegistrationTx.senderId),
-			).to.be.true;
+			);
 		});
 
 		it('should return no errors', async () => {
