@@ -49,6 +49,7 @@ let updateForgingStatus;
  */
 function NodeController(scope) {
 	library = {
+		components: scope.components,
 		modules: scope.modules,
 		storage: scope.storage,
 		config: scope.config,
@@ -57,8 +58,12 @@ function NodeController(scope) {
 	};
 	blockReward = new BlockReward();
 	getNetworkHeight = promisify(library.modules.peers.networkHeight);
-	getTransactionsCount = promisify(library.modules.transactions.shared.getTransactionsCount);
-	updateForgingStatus = promisify(library.modules.delegates.updateForgingStatus);
+	getTransactionsCount = promisify(
+		library.modules.transactions.shared.getTransactionsCount
+	);
+	updateForgingStatus = promisify(
+		library.modules.delegates.updateForgingStatus
+	);
 }
 
 /**
@@ -124,7 +129,7 @@ NodeController.getStatus = async (context, next) => {
 
 		// TODO: Replace all library.modules calls after chain module extraction is done as part of https://github.com/LiskHQ/lisk/issues/2763.
 		const data = {
-			broadhash: library.modules.system.getBroadhash(),
+			broadhash: library.components.system.headers.broadhash,
 			consensus: library.modules.peers.getLastConsensus() || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch: slots.getTime(),
@@ -149,7 +154,9 @@ NodeController.getStatus = async (context, next) => {
  * @todo Add description for the function and the params
  */
 NodeController.getForgingStatus = async (context, next) => {
-	if (!checkIpInList(library.config.forging.access.whiteList, context.request.ip)) {
+	if (
+		!checkIpInList(library.config.forging.access.whiteList, context.request.ip)
+	) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
@@ -171,7 +178,9 @@ NodeController.getForgingStatus = async (context, next) => {
  * @todo Add description for the function and the params
  */
 NodeController.updateForgingStatus = async (context, next) => {
-	if (!checkIpInList(library.config.forging.access.whiteList, context.request.ip)) {
+	if (
+		!checkIpInList(library.config.forging.access.whiteList, context.request.ip)
+	) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
