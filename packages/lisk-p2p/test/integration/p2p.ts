@@ -45,8 +45,10 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(p2p => {
-					return p2p.stop();
+				p2pNodeList.map(async p2p => {
+					try {
+						await p2p.stop();
+					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
 				}),
 			);
 		});
@@ -100,8 +102,10 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(p2p => {
-					return p2p.stop();
+				p2pNodeList.map(async p2p => {
+					try {
+						await p2p.stop();
+					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
 				}),
 			);
 		});
@@ -133,7 +137,7 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Partially connected network which becomes fully connected: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence. Discovery interval runs multiple times.', () => {
-		const DISCOVERY_INTERVAL = 100;
+		const DISCOVERY_INTERVAL = 300;
 		
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -148,9 +152,11 @@ describe('Integration tests for P2P library', () => {
 
 				return new P2P({
 					blacklistedPeers: [],
-					connectTimeout: 5000,
 					seedPeers,
 					wsEngine: 'ws',
+					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
+					connectTimeout: 200,
+					ackTimeout: 200,
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					nodeInfo: {
@@ -178,8 +184,10 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(p2p => {
-					return p2p.stop();
+				p2pNodeList.map(async p2p => {
+					try {
+						await p2p.stop();
+					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
 				}),
 			);
 		});
@@ -251,9 +259,10 @@ describe('Integration tests for P2P library', () => {
 				p2pNodeList.map(async p2p => {
 					try {
 						await p2p.stop();
-					} catch (error) {} // Ignore. This can happen if a test case intentionally stops a node.
+					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
 				}),
 			);
+			await wait(100);
 		});
 
 		describe('Peer discovery', () => {
@@ -313,7 +322,7 @@ describe('Integration tests for P2P library', () => {
 		});
 
 		describe('Cleanup unresponsive peers', () => {
-			it('should remove peers which we cannot connect to', async () => {
+			it('should remove peers which cannot be reached', async () => {
 				const initialNetworkStatus = p2pNodeList[2].getNetworkStatus();
 				const initialPeerPorts = initialNetworkStatus.connectedPeers
 					.map(peerInfo => peerInfo.wsPort)
@@ -322,7 +331,7 @@ describe('Integration tests for P2P library', () => {
 				expect(initialPeerPorts).to.be.eql(ALL_NODE_PORTS);
 
 				await p2pNodeList[0].stop();
-				await wait(500);
+				await wait(100);
 
 				const networkStatusAfterPeerCrash = p2pNodeList[2].getNetworkStatus();
 
