@@ -500,11 +500,11 @@ export class Peer extends EventEmitter {
 		});
 
 		outboundSocket.on('connect', () => {
-			this.emit(EVENT_CONNECT_OUTBOUND, this);
+			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
 		});
 
 		outboundSocket.on('connectAbort', () => {
-			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this);
+			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
 		});
 
 		outboundSocket.on('close', (code, reason) => {

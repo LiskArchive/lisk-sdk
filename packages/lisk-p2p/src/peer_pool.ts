@@ -76,7 +76,6 @@ interface PeerPoolConfig {
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
-export const MAX_PEER_CONNECT_ATTEMPTS = 100;
 
 const selectRandomPeerSample = (peerList:ReadonlyArray<Peer>, count: number): ReadonlyArray<Peer> => shuffle(peerList).slice(0, count);
 
@@ -85,8 +84,8 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerPoolConfig: PeerPoolConfig;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
-	private readonly _handlePeerConnect: (peer: Peer) => void;
-	private readonly _handlePeerConnectAbort: (peer: Peer) => void;
+	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
@@ -114,9 +113,22 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
-		this._handlePeerConnect = async (peer: Peer) => {
+		this._handlePeerConnect = async (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_CONNECT_OUTBOUND, peer.peerInfo);
+			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			const peer = this.getPeer(peerId);
+
+			if (!peer) {
+				this.emit(
+					EVENT_FAILED_TO_FETCH_PEER_INFO,
+					new RequestFailError(
+						'Failed to fetch peer status because the relevant peer could not be found',
+					),
+				);
+
+				return;
+			}
 
 			// tslint:disable-next-line no-let
 			let detailedPeerInfo;
@@ -129,9 +141,9 @@ export class PeerPool extends EventEmitter {
 			}
 			this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 		};
-		this._handlePeerConnectAbort = (peer: Peer) => {
+		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peer.peerInfo);
+			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 		this._handlePeerClose = (closePacket: P2PClosePacket) => {
 			// If we disconnect from a peer outbound, we should remove them to conserve our resources (especially in case of a malicious peer).
@@ -235,7 +247,7 @@ export class PeerPool extends EventEmitter {
 				if (peerInfo.isDiscoveredPeer) {
 					existingPeer.updatePeerInfo(peerInfo as P2PDiscoveredPeerInfo);
 				}
-				
+
 				return existingPeer;
 			}
 
