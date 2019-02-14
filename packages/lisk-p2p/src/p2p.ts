@@ -55,6 +55,7 @@ import {
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
+	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_INBOUND_SOCKET_ERROR,
@@ -62,7 +63,6 @@ import {
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
 	PeerPool,
-	EVENT_DISCOVERED_PEER,
 } from './peer_pool';
 
 export {
@@ -437,7 +437,7 @@ export class P2P extends EventEmitter {
 		}
 		this._stopDiscovery();
 		this._peerPool.removeAllPeers();
-		this._stopPeerServer();
+		await this._stopPeerServer();
 	}
 
 	private _bindHandlersToPeerPool(peerPool: PeerPool): void {

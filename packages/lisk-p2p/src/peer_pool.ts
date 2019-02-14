@@ -235,8 +235,10 @@ export class PeerPool extends EventEmitter {
 				if (peerInfo.isDiscoveredPeer) {
 					existingPeer.updatePeerInfo(peerInfo as P2PDiscoveredPeerInfo);
 				}
+				
 				return existingPeer;
 			}
+
 			return this.addPeer(peerInfo);
 		});
 
