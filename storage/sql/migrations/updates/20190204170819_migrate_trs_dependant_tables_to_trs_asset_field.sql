@@ -22,7 +22,7 @@
 -- Migrate transfer table into trs asset field
 UPDATE trs
 SET asset = (
-        SELECT concat('{"data":"',convert_from(t."data",'utf8'),'"}')::json
+        SELECT concat('{"data":',to_json(convert_from(t."data",'utf8')),'}')::json
         FROM transfer as t
         WHERE t."transactionId" = trs.id
     )
@@ -62,7 +62,7 @@ where type = 3;
 -- Migrate multisignatures table into trs asset field
 UPDATE trs
 SET asset = (
-        SELECT concat('{"multisignature":{"min":"',ms.min,'","lifetime":"',ms.lifetime,'","keysgroup":',array_to_json(regexp_split_to_array(ms."keysgroup",',')),'}}')::json
+        SELECT concat('{"multisignature":{"min":',ms.min,',"lifetime":',ms.lifetime,',"keysgroup":',array_to_json(regexp_split_to_array(ms."keysgroup",',')),'}}')::json
         FROM multisignatures as ms
         WHERE ms."transactionId" = trs.id
     )
@@ -72,7 +72,7 @@ where type = 4;
 -- Migrate dapps table into trs asset field
 UPDATE trs
 SET asset = (
-        SELECT concat('{"dapps":{"type":"',d."type",'","name":"',d."name",'","description":"',d."description",'","tags":"',d."tags",'","link":"',d."link",'","icon":"',d."icon",'","category":"',d."category",'"}}')::json
+        SELECT concat('{"dapp":{"type":',d."type",',"name":"',d."name",'","description":"',d."description",'","tags":"',d."tags",'","link":"',d."link",'","icon":"',d."icon",'","category":',d."category",'}}')::json
         FROM dapps as d
         WHERE d."transactionId" = trs.id
     )
