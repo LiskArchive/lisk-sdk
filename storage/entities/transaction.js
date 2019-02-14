@@ -132,6 +132,24 @@ const sqlFiles = {
 	create: 'transactions/create.sql',
 };
 
+const trsCreateFields = [
+	'id',
+	'blockId',
+	'type',
+	'timestamp',
+	'senderPublicKey',
+	'requesterPublicKey',
+	'senderId',
+	'recipientId',
+	'amount',
+	'fee',
+	'signature',
+	'signSignature',
+	'signatures',
+	'asset',
+	'transferData',
+];
+
 class Transaction extends BaseEntity {
 	/**
 	 * Constructor
@@ -143,6 +161,10 @@ class Transaction extends BaseEntity {
 
 		this.addField('rowId', 'string', {
 			fieldName: 'trs.rowId',
+		});
+
+		this.addField('transferData', 'string', {
+			fieldName: 'trs.transferData',
 		});
 
 		this.addField('id', 'string', {
@@ -224,7 +246,7 @@ class Transaction extends BaseEntity {
 		this.addField('asset', 'string');
 
 		this.addFilter('data_like', filterTypes.CUSTOM, {
-			condition: "asset->>'data' LIKE ${data_like}",
+			condition: '"transferData" LIKE ${data_like}',
 		});
 
 		this.addFilter('dapp_name', filterTypes.CUSTOM, {
@@ -281,6 +303,8 @@ class Transaction extends BaseEntity {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	count(filters, _options = {}, tx) {
+		filters = Transaction._sanitizeFilters(filters);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 
@@ -305,42 +329,13 @@ class Transaction extends BaseEntity {
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
-		let transactions = _.cloneDeep(data);
+		const transactions = Transaction._sanitizeCreateData(data);
 
-		if (!Array.isArray(transactions)) {
-			transactions = [transactions];
-		}
-
-		transactions.forEach(t => {
-			t.signatures = t.signatures ? t.signatures.join() : null;
-			t.amount = t.amount.toString();
-			t.fee = t.fee.toString();
-			t.recipientId = t.recipientId || null;
-			t.asset = t.asset ? JSON.stringify(t.asset) : null;
-		});
-
-		const trsFields = [
-			'id',
-			'blockId',
-			'type',
-			'timestamp',
-			'senderPublicKey',
-			'requesterPublicKey',
-			'senderId',
-			'recipientId',
-			'amount',
-			'fee',
-			'signature',
-			'signSignature',
-			'signatures',
-			'asset',
-		];
-
-		const createSet = this.getValuesSet(transactions, trsFields);
+		const createSet = this.getValuesSet(transactions, trsCreateFields);
 
 		return this.adapter.executeFile(
 			this.SQLs.create,
-			{ values: createSet, attributes: trsFields },
+			{ values: createSet, attributes: trsCreateFields },
 			{ expectedResultCount: 0 },
 			tx
 		);
@@ -414,6 +409,8 @@ class Transaction extends BaseEntity {
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		filters = Transaction._sanitizeFilters(filters);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 
@@ -433,6 +430,8 @@ class Transaction extends BaseEntity {
 		}
 
 		let parsedSort = this.parseSort(parsedOptions.sort);
+
+		// TODO: improve this logic
 		parsedSort = parsedSort.replace('"rowId"', 'trs."rowId"');
 		parsedSort = parsedSort.replace('"dapp_name"', "asset->'dapp'->>'name'");
 
@@ -454,6 +453,11 @@ class Transaction extends BaseEntity {
 				const parseResponse = transaction => {
 					if (parsedOptions.extended) {
 						transaction.asset = transaction.asset ? transaction.asset : {};
+						if (transaction.transferData) {
+							transaction.asset.data =
+								transaction.transferData.toString('utf8') || null;
+						}
+						delete transaction.transferData;
 					}
 					transaction.signatures = transaction.signatures
 						? transaction.signatures.filter(Boolean)
@@ -467,6 +471,57 @@ class Transaction extends BaseEntity {
 
 				return resp.map(parseResponse);
 			});
+	}
+
+	static _sanitizeFilters(filters = {}) {
+		const sanitizeFilterObject = filterObject => {
+			if (filterObject.data_like) {
+				filterObject.data_like = Buffer.from(filterObject.data_like, 'utf8');
+			}
+			return filterObject;
+		};
+
+		// PostgresSQL does not support null byte buffer so have to parse in javascript
+		if (Array.isArray(filters)) {
+			filters = filters.map(sanitizeFilterObject);
+		} else {
+			filters = sanitizeFilterObject(filters);
+		}
+
+		return filters;
+	}
+
+	static _sanitizeCreateData(data) {
+		const transactions = Array.isArray(data)
+			? _.cloneDeep(data)
+			: [_.cloneDeep(data)];
+
+		transactions.forEach(transaction => {
+			transaction.signatures = transaction.signatures
+				? transaction.signatures.join()
+				: null;
+			transaction.amount = transaction.amount.toString();
+			transaction.fee = transaction.fee.toString();
+			transaction.recipientId = transaction.recipientId || null;
+			transaction.transferData = null;
+
+			// Transfer data is bytea and can not be included as json when null byte is present
+			if (
+				transaction.type === 0 &&
+				transaction.asset &&
+				transaction.asset.data
+			) {
+				transaction.transferData = Buffer.from(transaction.asset.data, 'utf8');
+				delete transaction.asset;
+			}
+
+			// stringify should be done after converting asset.data into transferData
+			transaction.asset = transaction.asset
+				? JSON.stringify(transaction.asset)
+				: null;
+		});
+
+		return transactions;
 	}
 }
 

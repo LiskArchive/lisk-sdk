@@ -19,10 +19,10 @@
   PARAMETERS: None
 */
 
--- Migrate transfer table into trs asset field
+-- Migrate transfer table into trs transferData field
 UPDATE trs
-SET asset = (
-        SELECT concat('{"data":',to_json(convert_from(t."data",'utf8')),'}')::json
+SET "transferData" = (
+        SELECT t."data"
         FROM transfer as t
         WHERE t."transactionId" = trs.id
     )
