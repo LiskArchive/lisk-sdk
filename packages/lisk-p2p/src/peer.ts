@@ -47,6 +47,8 @@ interface ClientOptionsUpdated {
 	readonly autoReconnect: boolean;
 	readonly pingTimeoutDisabled: boolean;
 	readonly multiplex: boolean;
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
 }
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
@@ -71,6 +73,9 @@ export const REMOTE_EVENT_MESSAGE = 'remote-message';
 export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_NODE_INFO = 'status';
 export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
+
+export const DEFAULT_CONNECT_TIMEOUT = 2000;
+export const DEFAULT_ACK_TIMEOUT = 2000;
 
 type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
@@ -105,12 +110,18 @@ const convertNodeInfoToLegacyFormat = (
 	nonce: nodeInfo.options ? (nodeInfo.options.nonce as string) : '',
 });
 
+export interface PeerConfig {
+	readonly connectTimeout?: number;
+	readonly ackTimeout?: number;
+}
+
 export class Peer extends EventEmitter {
 	private readonly _id: string;
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
 	private _peerInfo: P2PPeerInfo;
+	private readonly _peerConfig: PeerConfig;
 	private _peerDetailedInfo: P2PDiscoveredPeerInfo | undefined;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
@@ -129,9 +140,10 @@ export class Peer extends EventEmitter {
 	) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
-	public constructor(peerInfo: P2PPeerInfo, inboundSocket?: SCServerSocket) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig, inboundSocket?: SCServerSocket) {
 		super();
 		this._peerInfo = peerInfo;
+		this._peerConfig = peerConfig ? peerConfig : {};
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
@@ -415,6 +427,11 @@ export class Peer extends EventEmitter {
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
 
+		const connectTimeout = this._peerConfig.connectTimeout ?
+			this._peerConfig.connectTimeout : DEFAULT_CONNECT_TIMEOUT;
+		const ackTimeout = this._peerConfig.ackTimeout ?
+			this._peerConfig.ackTimeout : DEFAULT_ACK_TIMEOUT;
+
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
 			port: this._wsPort,
@@ -425,6 +442,8 @@ export class Peer extends EventEmitter {
 						? JSON.stringify(legacyNodeInfo.options)
 						: undefined,
 			}),
+			connectTimeout,
+			ackTimeout,
 			multiplex: false,
 			autoConnect: false,
 			autoReconnect: false,
