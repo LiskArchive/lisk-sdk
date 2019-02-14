@@ -23,9 +23,9 @@ const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 const supertest = require('supertest');
 const _ = require('lodash');
-const AppConfig = require('../src/modules/chain/helpers/config');
-const packageJson = require('../../package.json');
-const Bignum = require('../src/modules/chain/helpers/bignum.js');
+const AppConfig = require('../framework/src/modules/chain/helpers/config');
+const packageJson = require('../package.json');
+const Bignum = require('../framework/src/modules/chain/helpers/bignum.js');
 
 coMocha(mocha);
 
@@ -140,9 +140,7 @@ _.mixin(
 		sortNumbers(arr, sortOrder) {
 			const sortFactor = sortOrder === 'desc' ? -1 : 1;
 
-			return arr.sort((a, b) => {
-				return (a - b) * sortFactor;
-			});
+			return arr.sort((a, b) => (a - b) * sortFactor);
 		},
 	},
 	{ chain: false }
