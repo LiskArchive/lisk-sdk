@@ -26,7 +26,7 @@ SET asset = (
         FROM transfer as t
         WHERE t."transactionId" = trs.id
     )
-where type = 0;
+where id IN (SELECT "transactionId"  FROM transfer);
 
 
 -- Migrate signatures table into trs asset field
@@ -36,7 +36,7 @@ SET asset = (
         FROM signatures as s
         WHERE s."transactionId" = trs.id
     )
-where type = 1;
+where id IN (SELECT "transactionId" FROM signatures);
 
 
 -- Migrate delegates table into trs asset field
@@ -46,7 +46,7 @@ SET asset = (
         FROM delegates as d
         WHERE d."transactionId" = trs.id
     )
-where type = 2;
+where id IN (SELECT "transactionId" FROM delegates);
 
 
 -- Migrate votes table into trs asset field
@@ -56,7 +56,7 @@ SET asset = (
         FROM votes as v
         WHERE v."transactionId" = trs.id
     )
-where type = 3;
+where id IN (SELECT "transactionId" FROM votes);
 
 
 -- Migrate multisignatures table into trs asset field
@@ -66,7 +66,7 @@ SET asset = (
         FROM multisignatures as ms
         WHERE ms."transactionId" = trs.id
     )
-where type = 4;
+where id IN (SELECT "transactionId" FROM multisignatures);
 
 
 -- Migrate dapps table into trs asset field
@@ -76,7 +76,7 @@ SET asset = (
         FROM dapps as d
         WHERE d."transactionId" = trs.id
     )
-where type = 5;
+where id IN (SELECT "transactionId" FROM dapps);
 
 
 -- Migrate intransfer table into trs asset field
