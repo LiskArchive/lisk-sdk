@@ -16,7 +16,7 @@ module.exports = class HttpApi {
 		this.httpServer = null;
 		this.httpsServer = null;
 		this.wsServer = null;
-		this.wssServer = null;
+		this.wssServer = null; // TODO: We were not using wss before. Decide what to do with it.
 	}
 
 	async bootstrap() {
@@ -66,6 +66,7 @@ module.exports = class HttpApi {
 
 		await this._bootstrapApi();
 		await this._startListening();
+		this._subscribeToEvents();
 	}
 
 	async _bootstrapApi() {
@@ -178,5 +179,26 @@ module.exports = class HttpApi {
 				}`
 			);
 		}
+	}
+
+	_subscribeToEvents() {
+		this.channel.subscribe('blocks/change', event => {
+			this.wsServer.emit('blocks/change', event.data);
+		});
+		this.channel.subscribe('signature/change', event => {
+			this.wsServer.emit('signature/change', event.data);
+		});
+		this.channel.subscribe('transactions/change', event => {
+			this.wsServer.emit('transactions/change', event.data);
+		});
+		this.channel.subscribe('rounds/change', event => {
+			this.wsServer.emit('rounds/change', event.data);
+		});
+		this.channel.subscribe('multisignatures/signature/change', event => {
+			this.wsServer.emit('multisignatures/signature/change', event.data);
+		});
+		this.channel.subscribe('delegates/fork', event => {
+			this.wsServer.emit('delegates/fork', event.data);
+		});
 	}
 };

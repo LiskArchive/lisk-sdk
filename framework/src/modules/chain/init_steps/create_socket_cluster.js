@@ -9,7 +9,6 @@ const workersControllerPath = path.join(__dirname, '../workers_controller');
 
 module.exports = async ({
 	config,
-	network,
 	modules: { transport },
 	components: { logger },
 }) => {
@@ -48,9 +47,7 @@ module.exports = async ({
 	};
 
 	const socketCluster = new SocketCluster(webSocketConfig);
-	network.app.rpc = wsRPC.setServer(
-		new MasterWAMPServer(socketCluster, childProcessOptions)
-	);
+	wsRPC.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
 
 	// The 'fail' event aggregates errors from all SocketCluster processes.
 	socketCluster.on('fail', err => {

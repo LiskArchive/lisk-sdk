@@ -20,7 +20,7 @@ module.exports = {
 	events: [
 		'blocks/change',
 		'signature/change',
-		'transations/change',
+		'transactions/change',
 		'rounds/change',
 		'multisignatures/signature/change',
 		'delegates/fork',
