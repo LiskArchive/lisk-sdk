@@ -55,18 +55,23 @@ import {
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
 	PeerPool,
+	EVENT_DISCOVERED_PEER,
 } from './peer_pool';
 
 export {
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
@@ -97,7 +102,9 @@ export class P2P extends EventEmitter {
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
+	private readonly _handleDiscoveredPeer: (discoveredPeerInfo: P2PDiscoveredPeerInfo) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
+	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
@@ -108,8 +115,8 @@ export class P2P extends EventEmitter {
 		super();
 		this._config = config;
 		this._isActive = false;
-		this._newPeers = new Map();
-		this._triedPeers = new Map();
+		this._newPeers = new Map<string, P2PPeerInfo>();
+		this._triedPeers = new Map<string, P2PDiscoveredPeerInfo>();
 
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer) as SCServerUpdated;
@@ -128,10 +135,6 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerConnect = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (!this._triedPeers.has(peerId)) {
-				this._triedPeers.set(peerId, peerInfo);
-			}
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
 
@@ -149,9 +152,23 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 
+		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
+			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
+			if (!this._triedPeers.has(peerId)) {
+				this._triedPeers.set(peerId, detailedPeerInfo);
+			}
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
+		};
+
 		this._handleFailedToPushNodeInfo = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+		};
+
+		this._handleFailedToFetchPeerInfo = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 		};
 
 		this._handleOutboundSocketError = (error: Error) => {
@@ -336,19 +353,47 @@ export class P2P extends EventEmitter {
 		});
 	}
 
-	private _stopPeerServer(): void {
-		this._scServer.close();
-		this._httpServer.close();
+	private async _stopHTTPServer(): Promise<void> {
+		return new Promise<void>(resolve => {
+			this._httpServer.close(() => {
+				resolve();
+			});
+		});
+	}
+
+	private async _stopWSServer(): Promise<void> {
+		return new Promise<void>(resolve => {
+			this._scServer.close(() => {
+				resolve();
+			});
+		});
+	}
+
+	private async _stopPeerServer(): Promise<void> {
+		await this._stopWSServer();
+		await this._stopHTTPServer();
 		this._isActive = false;
 	}
 
 	private async _discoverPeers(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
 		const allKnownPeers = [...this._triedPeers.values()].concat(knownPeers);
+		
+		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
+		if (!this._isActive) {
+
+			return;
+		}
 
 		const discoveredPeers = await this._peerPool.runDiscovery(
 			allKnownPeers,
 			this._config.blacklistedPeers,
 		);
+
+		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
+		if (!this._isActive) {
+			
+			return;
+		}
 
 		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
@@ -402,8 +447,16 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
 		peerPool.on(
+			EVENT_DISCOVERED_PEER,
+			this._handleDiscoveredPeer,
+		);
+		peerPool.on(
 			EVENT_FAILED_TO_PUSH_NODE_INFO,
 			this._handleFailedToPushNodeInfo,
+		);
+		peerPool.on(
+			EVENT_FAILED_TO_FETCH_PEER_INFO,
+			this._handleFailedToFetchPeerInfo,
 		);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
