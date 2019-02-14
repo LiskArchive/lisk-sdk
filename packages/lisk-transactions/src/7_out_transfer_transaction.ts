@@ -35,7 +35,6 @@ export interface OutTransferAsset {
 
 export const outTransferAssetTypeSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['outTransfer'],
 	properties: {
 		outTransfer: {
@@ -55,7 +54,6 @@ export const outTransferAssetTypeSchema = {
 
 export const outTransferAssetFormatSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['outTransfer'],
 	properties: {
 		outTransfer: {

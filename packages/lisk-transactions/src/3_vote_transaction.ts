@@ -45,7 +45,6 @@ export type CastVoteInput = CreateBaseTransactionInput & CreateVoteAssetInput;
 
 export const voteAssetTypeSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['votes'],
 	properties: {
 		votes: {
@@ -59,7 +58,6 @@ export const voteAssetTypeSchema = {
 
 export const voteAssetFormatSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['votes'],
 	properties: {
 		votes: {

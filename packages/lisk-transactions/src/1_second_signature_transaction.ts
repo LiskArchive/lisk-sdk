@@ -34,7 +34,6 @@ export interface SecondSignatureAsset {
 
 export const secondSignatureAssetTypeSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['signature'],
 	properties: {
 		signature: {
@@ -51,7 +50,6 @@ export const secondSignatureAssetTypeSchema = {
 
 export const secondSignatureAssetFormatSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['signature'],
 	properties: {
 		signature: {

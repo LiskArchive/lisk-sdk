@@ -35,7 +35,6 @@ export interface InTransferAsset {
 
 export const inTransferAssetTypeSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['inTransfer'],
 	properties: {
 		inTransfer: {
@@ -52,7 +51,6 @@ export const inTransferAssetTypeSchema = {
 
 export const inTransferAssetFormatSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['inTransfer'],
 	properties: {
 		inTransfer: {

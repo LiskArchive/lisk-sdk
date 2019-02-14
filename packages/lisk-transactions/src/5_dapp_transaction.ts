@@ -39,7 +39,6 @@ export interface DappAsset {
 
 export const dappAssetTypeSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['dapp'],
 	properties: {
 		dapp: {
@@ -74,7 +73,6 @@ export const dappAssetTypeSchema = {
 
 export const dappAssetFormatSchema = {
 	type: 'object',
-	additionalProperties: false,
 	required: ['dapp'],
 	properties: {
 		dapp: {

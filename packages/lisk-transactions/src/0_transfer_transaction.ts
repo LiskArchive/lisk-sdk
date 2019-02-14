@@ -37,7 +37,6 @@ export interface TransferAsset {
 
 export const transferAssetTypeSchema = {
 	type: 'object',
-	additionalProperties: false,
 	properties: {
 		data: {
 			type: 'string',
@@ -47,7 +46,6 @@ export const transferAssetTypeSchema = {
 
 export const transferAssetFormatSchema = {
 	type: 'object',
-	additionalProperties: false,
 	properties: {
 		data: {
 			type: 'string',
