@@ -638,9 +638,27 @@ describe('GET /delegates', async () => {
 					});
 			});
 
-			it('using unknown address should return empty result', async () => {
+			it('using unknown address without start and end filters should return empty result', async () => {
 				return forgedEndpoint
 					.makeRequest({ address: randomUtil.account().address }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'address');
+					});
+			});
+
+			it('using unknown address with start and/or end filters should return empty result', async () => {
+				const fromQueryTime = slots.getTime() - 60 * 60;
+				const toQueryTime = slots.getTime();
+
+				return forgedEndpoint
+					.makeRequest(
+						{
+							address: randomUtil.account().address,
+							fromTimestamp: fromQueryTime,
+							toTimestamp: toQueryTime,
+						},
+						400
+					)
 					.then(res => {
 						expectSwaggerParamError(res, 'address');
 					});

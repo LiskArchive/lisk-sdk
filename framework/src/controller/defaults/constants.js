@@ -15,9 +15,9 @@
 /* eslint-disable max-len */
 
 /**
- * Description of the namespace.
+ * Object holding all Lisk Framework specific constants.
  *
- * @namespace constants
+ * @namespace Framework.defaults
  * @memberof config
  * @see Parent: {@link config}
  * @property {number} ACTIVE_DELEGATES - The default number of delegates allowed to forge a block.
@@ -59,7 +59,7 @@
  * @property {number} TOTAL_AMOUNT - Total amount of LSK available in network before rewards milestone started.
  * @property {number} UNCONFIRMED_TRANSACTION_TIMEOUT - Expiration time for unconfirmed transaction/signatures in transaction pool.
  * @property {number} EXPIRY_INTERVAL - Transaction pool expiry timer in milliseconds
- * @todo Add description for the namespace and the properties.
+ * @todo Add description for the properties.
  */
 module.exports = {
 	ACTIVE_DELEGATES: 101,

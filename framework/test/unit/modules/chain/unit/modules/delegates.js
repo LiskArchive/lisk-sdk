@@ -19,9 +19,6 @@ const genesisDelegates = require('../../../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../../../data/delegates_rounds_list.json');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const application = require('../../../../../common/application');
-const seeder = require('../../../../../common/storage_seed');
-
-let storage;
 
 const exceptions = global.exceptions;
 
@@ -33,8 +30,6 @@ describe('delegates', async () => {
 			{ sandbox: { name: 'lisk_test_modules_delegates' } },
 			(err, scope) => {
 				library = scope;
-				storage = scope.storage;
-
 				// Set delegates module as loaded to allow manual forging
 				library.rewiredModules.delegates.__set__('__private.loaded', true);
 				// Load forging delegates
@@ -892,183 +887,6 @@ describe('delegates', async () => {
 					done();
 				}
 			);
-		});
-	});
-
-	describe('shared', async () => {
-		const validDelegate = genesisDelegates.delegates[0];
-
-		describe('getForgingStatistics', async () => {
-			it('should fail if invalid address is passed', done => {
-				library.modules.delegates.shared.getForgingStatistics(
-					{ address: 'InvalidAddress' },
-					(err, data) => {
-						expect(err).to.be.eql('Account not found');
-						expect(data).to.be.undefined;
-						done();
-					}
-				);
-			});
-			it('should fail if non-delegate address is passed', done => {
-				// To keep the genesis delegates we are not resetting the seeds
-				seeder
-					.seedAccounts(storage)
-					.then(() => {
-						const validAccount = seeder.getAccounts()[0];
-						library.modules.delegates.shared.getForgingStatistics(
-							{ address: validAccount.address },
-							(err, data) => {
-								expect(err).to.be.eql('Account is not a delegate');
-								expect(data).to.be.undefined;
-								done();
-							}
-						);
-					})
-					.catch(done);
-			});
-			it('should be ok if a valid delegate address is passed', done => {
-				library.modules.delegates.shared.getForgingStatistics(
-					{ address: validDelegate.address },
-					(err, data) => {
-						expect(err).to.be.null;
-						expect(data).to.have.keys('count', 'rewards', 'fees', 'forged');
-						done();
-					}
-				);
-			});
-			it('should aggregate the data runtime if start and end is provided', done => {
-				const stubResp = {
-					count: 1,
-					fees: 2,
-					forged: 3,
-					rewards: 4,
-				};
-				sinonSandbox
-					.stub(library.modules.blocks.utils, 'aggregateBlocksReward')
-					.callsArgWith(1, null, stubResp);
-				sinonSandbox.spy(library.modules.accounts, 'getAccount');
-
-				const params = {
-					address: validDelegate.address,
-					end: Date.now(),
-					start: Date.now() - 7,
-				};
-
-				library.modules.delegates.shared.getForgingStatistics(
-					params,
-					(err, data) => {
-						expect(err).to.be.null;
-						expect(data).to.have.keys('count', 'rewards', 'fees', 'forged');
-						expect(library.modules.blocks.utils.aggregateBlocksReward).to.be
-							.calledOnce;
-						expect(
-							library.modules.blocks.utils.aggregateBlocksReward.firstCall
-								.args[0]
-						).to.be.eql(params);
-						expect(library.modules.accounts.getAccount).to.not.been.called;
-						done();
-					}
-				);
-			});
-			it('should aggregate the data runtime if start is omitted', done => {
-				const stubResp = {
-					count: 1,
-					fees: 2,
-					forged: 3,
-					rewards: 4,
-				};
-				sinonSandbox
-					.stub(library.modules.blocks.utils, 'aggregateBlocksReward')
-					.callsArgWith(1, null, stubResp);
-				sinonSandbox.spy(library.modules.accounts, 'getAccount');
-
-				const params = {
-					address: validDelegate.address,
-					end: Date.now(),
-				};
-
-				library.modules.delegates.shared.getForgingStatistics(
-					params,
-					(err, data) => {
-						expect(err).to.be.null;
-						expect(data).to.have.keys('count', 'rewards', 'fees', 'forged');
-						expect(library.modules.blocks.utils.aggregateBlocksReward).to.be
-							.calledOnce;
-						expect(
-							library.modules.blocks.utils.aggregateBlocksReward.firstCall
-								.args[0]
-						).to.be.eql(params);
-						expect(library.modules.accounts.getAccount).to.not.been.called;
-						done();
-					}
-				);
-			});
-
-			it('should aggregate the data runtime if end is omitted', done => {
-				const responseStub = {
-					count: 1,
-					fees: 2,
-					forged: 3,
-					rewards: 4,
-				};
-				sinonSandbox
-					.stub(library.modules.blocks.utils, 'aggregateBlocksReward')
-					.callsArgWith(1, null, responseStub);
-				sinonSandbox.spy(library.modules.accounts, 'getAccount');
-
-				const params = {
-					address: validDelegate.address,
-					start: Date.now() - 7,
-				};
-
-				library.modules.delegates.shared.getForgingStatistics(
-					params,
-					(err, data) => {
-						expect(err).to.be.null;
-						expect(data).to.have.keys('count', 'rewards', 'fees', 'forged');
-						expect(library.modules.blocks.utils.aggregateBlocksReward).to.be
-							.calledOnce;
-						expect(
-							library.modules.blocks.utils.aggregateBlocksReward.firstCall
-								.args[0]
-						).to.be.eql(params);
-						expect(library.modules.accounts.getAccount).to.not.been.called;
-						done();
-					}
-				);
-			});
-
-			it('should fetch data from accounts if both start and end is omitted', done => {
-				const responseStub = {
-					isDelegate: true,
-					producedBlocks: 1,
-					fees: 2,
-					rewards: 4,
-				};
-				sinonSandbox.spy(library.modules.blocks.utils, 'aggregateBlocksReward');
-				sinonSandbox
-					.stub(library.modules.accounts, 'getAccount')
-					.callsArgWith(2, null, responseStub);
-
-				const params = {
-					address: validDelegate.address,
-				};
-
-				library.modules.delegates.shared.getForgingStatistics(
-					params,
-					(err, data) => {
-						expect(err).to.be.null;
-						expect(data).to.have.keys('count', 'rewards', 'fees', 'forged');
-						expect(library.modules.blocks.utils.aggregateBlocksReward).to.not
-							.been.called;
-						expect(
-							library.modules.accounts.getAccount.firstCall.args[0]
-						).to.be.eql(params);
-						expect(library.modules.accounts.getAccount).to.be.calledOnce;
-						done();
-					}
-				);
-			});
 		});
 	});
 });
