@@ -67,6 +67,11 @@ export {
 	EVENT_INBOUND_SOCKET_ERROR,
 };
 
+interface PeerPoolConfig {
+	readonly connectTimeout?: number;
+	readonly ackTimeout?: number;
+}
+
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
 export const MAX_PEER_CONNECT_ATTEMPTS = 100;
@@ -75,6 +80,7 @@ const selectRandomPeerSample = (peerList:ReadonlyArray<Peer>, count: number): Re
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
+	private readonly _peerPoolConfig: PeerPoolConfig;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
 	private readonly _handlePeerConnect: (peer: Peer) => void;
@@ -84,9 +90,10 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 
-	public constructor() {
+	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
 		this._peerMap = new Map();
+		this._peerPoolConfig = peerPoolConfig;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
@@ -219,7 +226,7 @@ export class PeerPool extends EventEmitter {
 		const disoveredPeers = await discoverPeers(peerSampleToProbe, {
 			blacklist: blacklist.map(peer => peer.ipAddress),
 		});
-
+		
 		return disoveredPeers;
 	}
 
@@ -236,7 +243,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public addPeer(peerInfo: P2PPeerInfo, inboundSocket?: SCServerSocket): Peer {
-		const peer = new Peer(peerInfo, inboundSocket);
+		const peerConfig = {
+			connectTimeout: this._peerPoolConfig.connectTimeout,
+			ackTimeout: this._peerPoolConfig.ackTimeout,
+		};
+		const peer = new Peer(peerInfo, peerConfig, inboundSocket);
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
@@ -251,7 +262,11 @@ export class PeerPool extends EventEmitter {
 		detailedPeerInfo: P2PDiscoveredPeerInfo,
 		inboundSocket?: SCServerSocket,
 	): Peer {
-		const peer = new Peer(detailedPeerInfo, inboundSocket);
+		const peerConfig = {
+			connectTimeout: this._peerPoolConfig.connectTimeout,
+			ackTimeout: this._peerPoolConfig.ackTimeout,
+		};
+		const peer = new Peer(detailedPeerInfo, peerConfig, inboundSocket);
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
