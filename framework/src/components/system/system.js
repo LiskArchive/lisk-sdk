@@ -15,7 +15,6 @@
 'use strict';
 
 const os = require('os');
-const async = require('async');
 const crypto = require('crypto');
 const semver = require('semver');
 
@@ -117,12 +116,12 @@ class System {
 	}
 
 	/**
-	 * It calculates and returns broadhash.
+	 * Updates private broadhash and height values.
 	 *
-	 * @param {Error} err
-	 * @returns {string} broadhash
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb, err
 	 */
-	getBroadhash(cb) {
+	update(cb) {
 		return this.storage.entities.Block.get(
 			{},
 			{
@@ -131,61 +130,25 @@ class System {
 			}
 		)
 			.then(blocks => {
+				this.headers.height = blocks[0].height;
 				if (blocks.length <= 1) {
-					// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
-					return setImmediate(cb, null, this.headers.nethash);
+					self.headers.broadhash = self.headers.nethash;
+					return setImmediate(cb);
 				}
 				const seed = blocks.map(row => row.id).join('');
-				const broadhash = crypto
+				const newBroadhash = crypto
 					.createHash('sha256')
 					.update(seed, 'utf8')
 					.digest()
 					.toString('hex');
-				return setImmediate(cb, null, broadhash);
+				self.headers.broadhash = newBroadhash;
+				this.logger.debug('System headers', this.headers);
+				return setImmediate(cb);
 			})
 			.catch(err => {
 				this.logger.error(err.stack);
 				return setImmediate(cb, err);
 			});
-	}
-
-	/**
-	 * Updates private broadhash and height values.
-	 *
-	 * @param {Object} block - block
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
-	 */
-	update(cb) {
-		async.series(
-			{
-				getBroadhash(seriesCb) {
-					self.getBroadhash((err, hash) => {
-						if (!err) {
-							self.headers.broadhash = hash;
-						}
-
-						return setImmediate(seriesCb);
-					});
-				},
-				getHeight(seriesCb) {
-					self.storage.entities.Block.get(
-						{},
-						{
-							limit: 1,
-							sort: 'height:desc',
-						}
-					).then(blocks => {
-						self.headers.height = blocks[0].height;
-						return setImmediate(seriesCb);
-					});
-				},
-			},
-			err => {
-				this.logger.debug('System headers', this.headers);
-				return setImmediate(cb, err);
-			}
-		);
 	}
 }
 

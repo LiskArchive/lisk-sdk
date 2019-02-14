@@ -82,7 +82,6 @@ describe('components: system', async () => {
 		it('should create an object with several functions availables', async () => {
 			expect(systemComponent).to.be.an('object');
 			expect(systemComponent.headers).to.be.an('object');
-			expect(systemComponent.getBroadhash).to.be.a('function');
 			expect(systemComponent.networkCompatible).to.be.a('function');
 			expect(systemComponent.versionCompatible).to.be.a('function');
 			expect(systemComponent.protocolVersionCompatible).to.be.a('function');
@@ -215,66 +214,50 @@ describe('components: system', async () => {
 	});
 
 	/* eslint-disable mocha/no-pending-tests */
-	describe('getBroadhash', async () => {
-		describe('when argument is a function', async () => {
-			it('should call db.query with sql.getBroadhash');
+	describe('update', async () => {
+		beforeEach(async () => {
+			storageStub.returns();
+		});
 
-			it('should call db.query with limit = 5');
+		afterEach(async () => {
+			storageStub.restore();
+		});
 
-			describe('when db.query fails', async () => {
-				it('should return error');
+		it(
+			'should call storage.entities.Block.get with limit = 5 and sort height:asc'
+		);
 
-				it('should call the logger.error with error stack');
+		describe('when storage.entities.Block.get fails', async () => {
+			it('should not update this.headesrs.broadhash');
+			it('should not update this.headesrs.height');
+			it('should call the logger.error with error stack');
+			it('should return error');
+		});
+
+		describe('when storage.entities.Block.get succeeds', async () => {
+			it(
+				'should update this.headers.height property to the height of the first block'
+			);
+
+			describe('when returns no or one result', async () => {
+				it(
+					'should update this.headers.broadhash property to this.headers.nethash'
+				);
+				it('should not return error');
 			});
 
-			describe('when db.query succeeds', async () => {
-				describe('and returns no or one result', async () => {
-					it('should return error = null');
-
-					it('should return this.headers.nethash');
-				});
-
-				describe('and returns more then one results', async () => {
-					it('should call crypto.createHash with sha256');
-
-					it('should call crypto.update with concatenation of results ids');
-
-					it('should call crypto.update with utf-8');
-
-					it('should call crypto.digest');
-
-					it('should return error = null');
-
-					it('should return correct hash');
-				});
+			describe('when returns more than one results', async () => {
+				it('should call crypto.createHash with sha256');
+				it('should call crypto.update with concatenation of results ids');
+				it('should call crypto.update with utf-8');
+				it('should call crypto.digest');
+				it(
+					'should update this.headers.broadhash property to the just calculated broadhash'
+				);
+				it('should call the logger.debug system headers info');
+				it('should not return error');
 			});
 		});
-	});
-
-	describe('update', async () => {
-		it('should call getBroadhash with function');
-
-		it(
-			'should update this.headers.broadhash when getBroadhash returns no error'
-		);
-
-		it(
-			'should not update this.headesrs.broadhash when getBroadhash returns an error'
-		);
-
-		it('should call modules.blocks.lastBlock.get');
-
-		it(
-			'should update this.headeres.height height property of modules.blocks.lastBlock.get result'
-		);
-
-		it('should call the logger.debug system headers info');
-
-		it('should call modules.transport.headers with this.headers');
-
-		it('should return resolved promise');
-
-		it('should never return error');
 	});
 	/* eslint-enable mocha/no-pending-tests */
 });
