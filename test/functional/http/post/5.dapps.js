@@ -39,6 +39,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 	const accountNoFunds = randomUtil.account();
 	const accountMinimalFunds = randomUtil.account();
 
+	const specialChar = '❤';
+	const nullChar1 = '\0';
+	const nullChar2 = '\x00';
+	const nullChar3 = '\u0000';
+	const nullChar4 = '\\U00000000';
+
 	// Crediting accounts
 	before(() => {
 		const transaction1 = lisk.transaction.transfer({
@@ -239,6 +245,101 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				).then(res => {
 					expect(res.body.message).to.match(
 						/String is too long \(161 chars\), maximum 160$/
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with unicode special symbol should be ok', () => {
+				const application = randomUtil.application();
+				application.description = `Lorem ${specialChar} ipsum`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(transaction).then(res => {
+					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+					goodTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar1 should fail', () => {
+				const application = randomUtil.application();
+				application.description = `lorem${nullChar1} ipsum`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application description has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar2 should fail', () => {
+				const application = randomUtil.application();
+				application.description = `lorem${nullChar2} ipsum`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application description has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar3 should fail', () => {
+				const application = randomUtil.application();
+				application.description = `lorem${nullChar3} ipsum`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application description has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar4 should fail', () => {
+				const application = randomUtil.application();
+				application.description = `lorem${nullChar4}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application description has invalid character. Null character is not allowed.'
 					);
 					badTransactions.push(transaction);
 				});
@@ -447,6 +548,102 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					badTransactions.push(transaction);
 				});
 			});
+
+			it('with unicode special symbol should be ok', () => {
+				const application = randomUtil.application();
+				// Add special charactr insuring the name is unique and isn't longer than maximun length
+				application.name = specialChar + application.name.substring(2);
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(transaction).then(res => {
+					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+					goodTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar1 should fail', () => {
+				const application = randomUtil.application();
+				application.name = `lorem${nullChar1}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application name has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar2 should fail', () => {
+				const application = randomUtil.application();
+				application.name = `lorem${nullChar2}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application name has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar3 should fail', () => {
+				const application = randomUtil.application();
+				application.name = `lorem${nullChar3}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application name has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar4 should fail', () => {
+				const application = randomUtil.application();
+				application.name = `lorem${nullChar4}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application name has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
 		});
 
 		describe('tags', () => {
@@ -534,7 +731,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with duplicate tag should be ok', () => {
+			it('with duplicate tag should fail', () => {
 				const application = randomUtil.application();
 				const tag = application.tags;
 				application.tags += `,${tag}`;
@@ -550,6 +747,101 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				).then(res => {
 					expect(res.body.message).to.equal(
 						`Encountered duplicate tag: ${tag} in application`
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with unicode special symbol should be ok', () => {
+				const application = randomUtil.application();
+				application.tags += `,${specialChar}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(transaction).then(res => {
+					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+					goodTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar1 should fail', () => {
+				const application = randomUtil.application();
+				application.tags += `,lorem${nullChar1}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application tags has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar2 should fail', () => {
+				const application = randomUtil.application();
+				application.tags += `,lorem${nullChar2}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application tags has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar3 should fail', () => {
+				const application = randomUtil.application();
+				application.tags += `,lorem${nullChar3}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application tags has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar4 should fail', () => {
+				const application = randomUtil.application();
+				application.tags += `,lorem${nullChar4}`;
+
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application tags has invalid character. Null character is not allowed.'
 					);
 					badTransactions.push(transaction);
 				});

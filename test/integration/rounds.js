@@ -629,7 +629,7 @@ describe('rounds', () => {
 			const blocksToForge = 97;
 			let blocksProcessed = 0;
 			const transactionsPerBlock = 1;
-			const data = '\u0000 Lindsay 💖';
+			const data = 'Lindsay 💖';
 
 			async.doUntil(
 				untilCb => {

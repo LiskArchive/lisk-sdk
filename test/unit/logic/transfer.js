@@ -39,6 +39,7 @@ const senderHash = crypto
 	.update(accountFixtures.genesis.passphrase, 'utf8')
 	.digest();
 const senderKeypair = ed.makeKeypair(senderHash);
+const exceptions = global.exceptions;
 
 const validSender = {
 	username: null,
@@ -79,6 +80,27 @@ const validTransaction = {
 	requesterPublicKey: null,
 	signatures: null,
 	asset: {},
+};
+
+const transactionWithNullByte = {
+	id: '11815860355204320743',
+	height: 7292474,
+	blockId: '12382488207223565768',
+	type: 0,
+	timestamp: 75352012,
+	senderPublicKey:
+		'61e1e99bd172e06757724af6fb7c5476bcd238c0316ec19af3ef674aec0fb016',
+	senderId: '15011062961963659434L',
+	recipientId: '3059689181059370761L',
+	recipientPublicKey:
+		'7ac57857e9cb61f2057c350cab411d25cd66f81dcb9b076d00d24a79c16bc7c4',
+	amount: '90000000',
+	fee: '10000000',
+	signature:
+		'8e54e8ea5374ab6cc0df5f874d33aff1c3379e14fd596c34f24e2448b52557010c25402e2835e258b04ee5666948c736b7cafaee5645af92e1478f86798b2b03',
+	asset: {
+		data: '\u0000 is valid UTF-8!',
+	},
 };
 
 const rawValidTransaction = {
@@ -184,6 +206,37 @@ describe('transfer', () => {
 
 		it('should verify okay for valid transaction', done => {
 			transfer.verify(validTransaction, validSender, done);
+		});
+
+		// Test exceptions when transaction has null byte in the data field
+		describe('when transaction data field has null byte', () => {
+			let originalException;
+
+			beforeEach(async () => {
+				originalException = exceptions.transactionWithNullByte;
+			});
+
+			afterEach(async () => {
+				exceptions.transactionWithNullByte = originalException;
+			});
+
+			it('should return error if data field has null byte', done => {
+				transfer.verify(transactionWithNullByte, validSender, err => {
+					expect(err).to.equal(
+						'Transfer data field has invalid character. Null character is not allowed.'
+					);
+					done();
+				});
+			});
+
+			it('should return no errors when null byte tranaction is in exceptions', done => {
+				// Define exception for null byte transaction
+				exceptions.transactionWithNullByte = ['11815860355204320743'];
+				transfer.verify(transactionWithNullByte, validSender, err => {
+					expect(err).to.be.null;
+					done();
+				});
+			});
 		});
 	});
 

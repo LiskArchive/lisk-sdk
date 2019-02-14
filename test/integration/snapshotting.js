@@ -54,7 +54,7 @@ describe('snapshotting', () => {
 		let memAccountsBeforeSnapshot;
 
 		before(() => {
-			const data = '\u0000 Lindsay 💖';
+			const data = 'Lindsay 💖';
 
 			// Forge 99 blocks to reach height 100 (genesis block is already there)
 			return (

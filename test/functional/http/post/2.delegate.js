@@ -29,6 +29,12 @@ const { FEES, NORMALIZER } = global.constants;
 
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
+const specialChar = '❤';
+const nullChar1 = '\0';
+const nullChar2 = '\x00';
+const nullChar3 = '\u0000';
+const nullChar4 = '\\U00000000';
+
 describe('POST /api/transactions (type 2) register delegate', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
@@ -138,6 +144,96 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using invalid username should fail', () => {
 			const username = '~!@#$ %^&*()_+.,?/';
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.passphrase,
+				username,
+			});
+
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
+				);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('with specialChar should fail', () => {
+			const username = `lorem${specialChar}`;
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.passphrase,
+				username,
+			});
+
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
+				);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('with nullChar1 should fail', () => {
+			const username = `lorem${nullChar1}`;
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.passphrase,
+				username,
+			});
+
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
+				);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('with nullChar2 should fail', () => {
+			const username = `lorem${nullChar2}`;
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.passphrase,
+				username,
+			});
+
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
+				);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('with nullChar3 should fail', () => {
+			const username = `lorem${nullChar3}`;
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.passphrase,
+				username,
+			});
+
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
+				);
+				badTransactions.push(transaction);
+			});
+		});
+
+		it('with nullChar4 should fail', () => {
+			const username = `lorem${nullChar4}`;
 			transaction = lisk.transaction.registerDelegate({
 				passphrase: account.passphrase,
 				username,
