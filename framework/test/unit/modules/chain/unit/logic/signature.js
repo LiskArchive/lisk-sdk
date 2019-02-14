@@ -104,7 +104,7 @@ describe('signature', () => {
 		};
 		signature = new Signature(
 			modulesLoader.scope.schema,
-			modulesLoader.scope.logger
+			modulesLoader.scope.components.logger
 		);
 		signature.bind(accountsMock);
 
@@ -129,7 +129,10 @@ describe('signature', () => {
 			let library;
 
 			beforeEach(done => {
-				new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger);
+				new Signature(
+					modulesLoader.scope.schema,
+					modulesLoader.scope.components.logger
+				);
 				library = Signature.__get__('library');
 				done();
 			});
@@ -138,7 +141,7 @@ describe('signature', () => {
 				expect(library.schema).to.eql(modulesLoader.scope.schema));
 
 			it('should attach logger to library variable', async () =>
-				expect(library.logger).to.eql(modulesLoader.scope.logger));
+				expect(library.logger).to.eql(modulesLoader.scope.components.logger));
 		});
 
 		describe('bind', () => {

@@ -60,7 +60,7 @@ describe('accounts', () => {
 				scope.modules.blocks.lastBlock.set({ height: 10 });
 				accounts = scope.modules.accounts;
 				accountLogic = scope.logic.account;
-				storage = scope.storage;
+				storage = scope.components.storage;
 				done(err);
 			}
 		);

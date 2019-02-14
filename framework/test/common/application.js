@@ -121,9 +121,9 @@ async function __init(sandbox, initScope) {
 		const scope = Object.assign(
 			{},
 			{
-				lastCommit: null,
+				lastCommit: '',
 				ed,
-				build: null,
+				build: '',
 				config: __testContext.config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
 				schema: new ZSchema(),
@@ -206,7 +206,7 @@ async function __init(sandbox, initScope) {
 					'__private.loadDelegates'
 				);
 
-				return loadDelegates(loadDelegatesErr => {
+				loadDelegates(loadDelegatesErr => {
 					if (loadDelegatesErr) {
 						reject(loadDelegatesErr);
 					}
@@ -234,7 +234,7 @@ async function __init(sandbox, initScope) {
 			};
 		});
 	} catch (error) {
-		__testContext.error('Error during test application init.', error);
+		__testContext.debug('Error during test application init.', error);
 		throw error;
 	}
 }

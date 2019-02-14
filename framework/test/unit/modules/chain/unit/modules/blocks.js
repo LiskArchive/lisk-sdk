@@ -70,8 +70,7 @@ describe('blocks', () => {
 		busStub = sinonSandbox.stub();
 		balancesSequenceStub = sinonSandbox.stub();
 		scope = {
-			logger: loggerStub,
-			storage: storageStub,
+			components: { logger: loggerStub, storage: storageStub },
 			logic: {
 				account: accountStub,
 				block: logicBlockStub,
