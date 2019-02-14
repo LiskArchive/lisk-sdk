@@ -164,7 +164,10 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
-		this._peerPool = new PeerPool();
+		this._peerPool = new PeerPool({
+			connectTimeout: this._config.connectTimeout,
+			ackTimeout: this._config.ackTimeout,
+		});
 		this._bindHandlersToPeerPool(this._peerPool);
 
 		this._nodeInfo = config.nodeInfo;
@@ -333,25 +336,9 @@ export class P2P extends EventEmitter {
 		});
 	}
 
-	private async _stopHTTPServer(): Promise<void> {
-		return new Promise<void>(resolve => {
-			this._httpServer.close(() => {
-				resolve();
-			});
-		});
-	}
-
-	private async _stopWSServer(): Promise<void> {
-		return new Promise<void>(resolve => {
-			this._scServer.close(() => {
-				resolve();
-			});
-		});
-	}
-
-	private async _stopPeerServer(): Promise<void> {
-		await this._stopWSServer();
-		await this._stopHTTPServer();
+	private _stopPeerServer(): void {
+		this._scServer.close();
+		this._httpServer.close();
 		this._isActive = false;
 	}
 
@@ -362,6 +349,7 @@ export class P2P extends EventEmitter {
 			allKnownPeers,
 			this._config.blacklistedPeers,
 		);
+
 		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
@@ -404,7 +392,7 @@ export class P2P extends EventEmitter {
 		}
 		this._stopDiscovery();
 		this._peerPool.removeAllPeers();
-		await this._stopPeerServer();
+		this._stopPeerServer();
 	}
 
 	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
