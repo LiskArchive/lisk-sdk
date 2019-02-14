@@ -25,6 +25,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	ProtocolNodeInfo,
+	ProtocolPeerInfo,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -36,6 +37,7 @@ import {
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
+	validateStatusProtocolPeerInfo,
 } from './validation';
 
 // This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
@@ -108,6 +110,21 @@ const convertNodeInfoToLegacyFormat = (
 	httpPort: nodeInfo.options ? (nodeInfo.options.httpPort as number) : 0,
 	broadhash: nodeInfo.options ? (nodeInfo.options.broadhash as string) : '',
 	nonce: nodeInfo.options ? (nodeInfo.options.nonce as string) : '',
+});
+
+const convertLegacyPeerInfoToNewFormat = (
+	ipAddress: string,
+	peerInfo: ProtocolPeerInfo,
+): P2PDiscoveredPeerInfo => ({
+	ipAddress,
+	wsPort: peerInfo.wsPort,
+	height: peerInfo.height,
+	os: peerInfo.os,
+	version: peerInfo.version,
+	options: {
+		...peerInfo
+	},
+	isDiscoveredPeer: true,
 });
 
 export interface PeerConfig {
@@ -266,6 +283,7 @@ export class Peer extends EventEmitter {
 			os: newPeerInfo.os,
 			version: newPeerInfo.version,
 			options: newPeerInfo.options,
+			isDiscoveredPeer: true
 		};
 	}
 
@@ -405,7 +423,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
@@ -414,7 +432,25 @@ export class Peer extends EventEmitter {
 			return validatePeerInfoList(response.data);
 		} catch (error) {
 			throw new RPCResponseError(
-				'Failed to fetch peerlist of a peer',
+				'Failed to fetch peer list of peer',
+				error,
+				this.ipAddress,
+				this.wsPort,
+			);
+		}
+	}
+
+	public async fetchStatus(): Promise<P2PDiscoveredPeerInfo> {
+		try {
+			const response: P2PResponsePacket = await this.request({
+				procedure: REMOTE_RPC_GET_NODE_INFO,
+			});
+			const rawPeerInfo = validateStatusProtocolPeerInfo(response.data);
+
+			return convertLegacyPeerInfoToNewFormat(this.ipAddress, rawPeerInfo);
+		} catch (error) {
+			throw new RPCResponseError(
+				'Failed to fetch peer info of peer',
 				error,
 				this.ipAddress,
 				this.wsPort,
