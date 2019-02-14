@@ -46,8 +46,9 @@ __private.assetTypes = {};
  */
 function Multisignatures(cb, scope) {
 	library = {
-		logger: scope.logger,
-		storage: scope.storage,
+		channel: scope.channel,
+		logger: scope.components.logger,
+		storage: scope.components.storage,
 		network: scope.network,
 		schema: scope.schema,
 		bus: scope.bus,
@@ -60,7 +61,7 @@ function Multisignatures(cb, scope) {
 				scope.network,
 				scope.logic.transaction,
 				scope.logic.account,
-				scope.logger
+				scope.components.logger
 			),
 		},
 	};
@@ -172,10 +173,8 @@ __private.validateSignature = (
 	transaction.ready = library.logic.multisignature.ready(transaction, sender);
 
 	// Emit events
-	library.network.io.sockets.emit(
-		'multisignatures/signature/change',
-		transaction
-	);
+	library.channel.publish('multisignatures/signature/change', transaction);
+
 	library.bus.message('signature', signature, true);
 	return setImmediate(cb);
 };

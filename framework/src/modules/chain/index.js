@@ -17,7 +17,15 @@ module.exports = {
 		name: 'lisk-core-chain',
 	},
 	defaults,
-	events: [],
+	events: [
+		'blocks/change',
+		'signature/change',
+		'transations/change',
+		'rounds/change',
+		'multisignatures/signature/change',
+		'delegates/fork',
+		'loader/sync',
+	],
 	actions: {},
 	async load(channel, options) {
 		blockchain = new Chain(channel, options);

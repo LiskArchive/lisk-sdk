@@ -36,7 +36,7 @@ const { EPOCH_TIME } = global.constants;
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
-	storage = scope.storage;
+	storage = scope.components.storage;
 	blockReward = new BlockReward();
 }
 

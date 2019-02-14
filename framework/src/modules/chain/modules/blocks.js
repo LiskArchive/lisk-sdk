@@ -57,42 +57,43 @@ __private.isActive = false;
 class Blocks {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
+			channel: scope.channel,
+			logger: scope.components.logger,
 			network: scope.network,
 		};
 
 		// Initialize submodules with library content
 		this.submodules = {
 			verify: new BlocksVerify(
-				scope.logger,
+				scope.components.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.storage,
+				scope.components.storage,
 				scope.config
 			),
 			process: new BlocksProcess(
-				scope.logger,
+				scope.components.logger,
 				scope.logic.block,
 				scope.logic.peers,
 				scope.logic.transaction,
 				scope.schema,
-				scope.storage,
+				scope.components.storage,
 				scope.sequence,
 				scope.genesisBlock
 			),
 			utils: new BlocksUtils(
-				scope.logger,
+				scope.components.logger,
 				scope.logic.account,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.storage,
+				scope.components.storage,
 				scope.genesisBlock
 			),
 			chain: new BlocksChain(
-				scope.logger,
+				scope.components.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.storage,
+				scope.components.storage,
 				scope.genesisBlock,
 				scope.bus,
 				scope.balancesSequence
@@ -265,7 +266,7 @@ Blocks.prototype.onNewBlock = async function(block) {
 		}
 	}
 
-	return library.network.io.sockets.emit('blocks/change', block);
+	return library.channel.publish('blocks/change', block);
 };
 
 /**

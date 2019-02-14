@@ -51,10 +51,11 @@ __private.ticking = false;
 class Rounds {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
+			channel: scope.channel,
+			logger: scope.components.logger,
 			bus: scope.bus,
 			network: scope.network,
-			storage: scope.storage,
+			storage: scope.components.storage,
 		};
 		self = this;
 
@@ -417,7 +418,7 @@ Rounds.prototype.onFinishRound = async function(round) {
 		}
 	}
 
-	return library.network.io.sockets.emit('rounds/change', { number: round });
+	return library.channel.publish('rounds/change', { number: round });
 };
 
 /**

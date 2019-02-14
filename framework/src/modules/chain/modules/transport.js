@@ -59,8 +59,9 @@ __private.messages = {};
 class Transport {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			bus: scope.bus,
 			schema: scope.schema,
 			network: scope.network,
@@ -91,7 +92,7 @@ class Transport {
 			scope.config.forging.force,
 			scope.logic.peers,
 			scope.logic.transaction,
-			scope.logger
+			scope.components.logger
 		);
 
 		setImmediate(cb, null, self);
@@ -346,7 +347,7 @@ Transport.prototype.onSignature = function(signature, broadcast) {
 			{},
 			{ api: 'postSignatures', data: { signature } }
 		);
-		library.network.io.sockets.emit('signature/change', signature);
+		library.channel.publish('signature/change', signature);
 	}
 };
 
@@ -367,7 +368,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 			{},
 			{ api: 'postTransactions', data: { transaction } }
 		);
-		library.network.io.sockets.emit('transactions/change', transaction);
+		library.channel.publish('transactions/change', transaction);
 	}
 };
 

@@ -20,14 +20,13 @@ module.exports = class HttpApi {
 	}
 
 	async bootstrap() {
+		global.constants = this.options.constants;
+
+		// Logger
 		const loggerConfig = await this.channel.invoke(
 			'lisk:getComponentConfig',
 			'logger'
 		);
-
-		global.constants = this.options.constants;
-
-		// Logger
 		this.logger = createLoggerComponent(loggerConfig);
 
 		// Cache
@@ -55,6 +54,7 @@ module.exports = class HttpApi {
 					);
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
+		// Setup scope
 		this.scope = {
 			components: {
 				cache,
@@ -64,12 +64,8 @@ module.exports = class HttpApi {
 			config: this.options.config,
 		};
 
-		try {
-			this._bootstrapApi();
-			this._startListening();
-		} catch (error) {
-			this.cleanup(1, error);
-		}
+		await this._bootstrapApi();
+		await this._startListening();
 	}
 
 	async _bootstrapApi() {
@@ -122,6 +118,12 @@ module.exports = class HttpApi {
 	}
 
 	async _startListening() {
+		// There is an issue with promisify server.listen so used constructor
+		const startServer = async (server, port, host) =>
+			new Promise((resolve, reject) => {
+				server.listen({ host, port }, err => (err ? reject(err) : resolve()));
+			});
+
 		this.httpServer.headersTimeout = this.options.config.api.options.limits.headersTimeout;
 		// Disconnect idle clients
 		this.httpServer.setTimeout(
@@ -137,10 +139,12 @@ module.exports = class HttpApi {
 			socket.destroy();
 		});
 
-		await promisify(this.httpServer.listen)(
+		await startServer(
+			this.httpServer,
 			this.options.config.httpPort,
 			this.options.config.address
 		);
+
 		this.logger.info(
 			`Lisk started: ${this.options.config.address}:${
 				this.options.config.httpPort
@@ -162,7 +166,8 @@ module.exports = class HttpApi {
 				socket.destroy();
 			});
 
-			await promisify(this.httpsServer.listen)(
+			await startServer(
+				this.httpsServer,
 				this.options.config.api.ssl.options.port,
 				this.options.config.api.ssl.options.address
 			);
@@ -173,18 +178,5 @@ module.exports = class HttpApi {
 				}`
 			);
 		}
-	}
-
-	async cleanup(code, error) {
-		if (error) {
-			this.logger.fatal(error.toString());
-			if (code === undefined) {
-				code = 1;
-			}
-		} else if (code === undefined || code === null) {
-			code = 0;
-		}
-
-		// TODO: Define how to handle cleanup if needed
 	}
 };

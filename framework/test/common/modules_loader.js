@@ -37,7 +37,7 @@ const modulesLoader = new function() {
 		genesisBlock: { block: __testContext.config.genesisBlock },
 		logger: this.logger,
 		network: {
-			app: express(),
+			expressApp: express(),
 			io: {
 				sockets: express(),
 			},
