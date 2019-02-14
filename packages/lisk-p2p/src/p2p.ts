@@ -389,7 +389,8 @@ export class P2P extends EventEmitter {
 			this._config.blacklistedPeers,
 		);
 
-		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
+		// Stop discovery if node is no longer active. That way we don't try to connect to peers.
+		// We need to check again because of the previous asynchronous await statement.
 		if (!this._isActive) {
 			
 			return;
