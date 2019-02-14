@@ -53,6 +53,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
 	/* tslint:disable-next-line:no-mixed-interface */
 	readonly options?: P2PInfoOptions;
+	readonly isDiscoveredPeer: boolean;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.
