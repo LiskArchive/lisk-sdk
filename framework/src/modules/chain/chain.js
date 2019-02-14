@@ -1,7 +1,6 @@
 const util = require('util');
 const path = require('path');
 const fs = require('fs');
-const WsTransport = require('./api/ws/transport');
 const git = require('./helpers/git.js');
 const Sequence = require('./helpers/sequence.js');
 const ed = require('./helpers/ed.js');
@@ -156,9 +155,7 @@ module.exports = class Chain {
 			scope.bus.message('bind', scope);
 
 			// Listen to websockets
-			if (scope.config.peers.enabled) {
-				new WsTransport(scope.modules.transport);
-			}
+			await scope.webSocket.listen();
 			// Listen to http, https servers
 			await scope.network.listen();
 			self.logger.info('Modules ready and launched');

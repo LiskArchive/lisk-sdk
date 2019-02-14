@@ -3,10 +3,16 @@ const SocketCluster = require('socketcluster');
 const promisifyEvent = require('p-event');
 const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+const WsTransport = require('../api/ws/transport');
 
 const workersControllerPath = path.join(__dirname, '../workers_controller');
 
-module.exports = async ({ config, network, components: { logger } }) => {
+module.exports = async ({
+	config,
+	network,
+	modules: { transport },
+	components: { logger },
+}) => {
 	if (!config.peers.enabled) {
 		logger.info(
 			'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
@@ -64,6 +70,13 @@ module.exports = async ({ config, network, components: { logger } }) => {
 
 	return promisifyEvent(socketCluster, 'ready').then(() => {
 		logger.info('Socket Cluster ready for incoming connections');
+
+		socketCluster.listen = () => {
+			if (config.peers.enabled) {
+				new WsTransport(transport);
+			}
+		};
+
 		return socketCluster;
 	});
 };
