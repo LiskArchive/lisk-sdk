@@ -64,6 +64,7 @@
 		"lodash": "4.17.11",
 		"method-override": "3.0.0",
 		"newrelic": "5.0.0",
+		"p-event": "=2.3.1",
 		"pg-monitor": "1.1.0",
 		"pg-promise": "8.5.4",
 		"pm2": "3.2.8",
