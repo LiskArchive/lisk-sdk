@@ -139,7 +139,7 @@ async function __init(sandbox, initScope) {
 				}),
 				network: {
 					io: { sockets: { emit() {} } },
-					expressApp: express(),
+					app: express(),
 				},
 			},
 			initScope

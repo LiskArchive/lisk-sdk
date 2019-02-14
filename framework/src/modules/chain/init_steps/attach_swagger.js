@@ -5,7 +5,7 @@ const promisifiedBootstrapSwagger = util.promisify(httpApi.bootstrapSwagger);
 
 module.exports = async scope =>
 	promisifiedBootstrapSwagger(
-		scope.network.expressApp,
+		scope.network.app,
 		scope.config,
 		scope.components.logger,
 		scope

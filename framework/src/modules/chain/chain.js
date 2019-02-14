@@ -45,7 +45,6 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
-
 		this.scope = null;
 	}
 
@@ -83,10 +82,11 @@ module.exports = class Chain {
 		}
 
 		global.constants = this.options.constants;
-		global.exceptions = {
-			...defaults.exceptions,
-			...this.options.exceptions,
-		};
+		global.exceptions = Object.assign(
+			{},
+			defaults.exceptions,
+			this.options.exceptions
+		);
 
 		try {
 			// Cache
@@ -155,8 +155,8 @@ module.exports = class Chain {
 
 			// Listen to websockets
 			await scope.webSocket.listen();
-
 			self.logger.info('Modules ready and launched');
+
 			self.scope = scope;
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {

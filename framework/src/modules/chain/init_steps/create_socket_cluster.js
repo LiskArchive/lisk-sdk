@@ -48,7 +48,7 @@ module.exports = async ({
 	};
 
 	const socketCluster = new SocketCluster(webSocketConfig);
-	network.expressApp.rpc = wsRPC.setServer(
+	network.app.rpc = wsRPC.setServer(
 		new MasterWAMPServer(socketCluster, childProcessOptions)
 	);
 

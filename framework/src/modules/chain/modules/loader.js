@@ -770,7 +770,7 @@ __private.createSnapshot = height => {
 
 	const snapshotRound = library.config.loading.snapshotRound;
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound = Number.isNaN(parseInt(snapshotRound))
+	const targetRound = Number.isNaN(snapshotRound)
 		? totalRounds
 		: Math.min(totalRounds, snapshotRound);
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
