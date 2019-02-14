@@ -91,7 +91,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				});
 
 				describe('unconfirmed state', async () => {
-					it('should update unconfirmed columns related to signature', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCONFIRMED_STATE_REMOVAL] should update unconfirmed columns related to signature', done => {
 						library.sequence.add(seqCb => {
 							localCommon
 								.getAccountFromDb(library, signatureAccount.address)
@@ -100,6 +101,9 @@ describe('system test (type 1) - second signature transactions from pool and pee
 									expect(account.mem_accounts.u_secondSignature).to.equal(1);
 									seqCb();
 									done();
+								})
+								.catch(err => {
+									done(err);
 								});
 						});
 					});
@@ -118,6 +122,9 @@ describe('system test (type 1) - second signature transactions from pool and pee
 									).to.equal(signatureTransaction.asset.signature.publicKey);
 									seqCb();
 									done();
+								})
+								.catch(err => {
+									done(err);
 								});
 						});
 					});
@@ -149,7 +156,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				});
 
 				describe('unconfirmed state', async () => {
-					it('should update unconfirmed columns related to signature', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCONFIRMED_STATE_REMOVAL] should update unconfirmed columns related to signature', done => {
 						library.sequence.add(seqCb => {
 							localCommon
 								.getAccountFromDb(library, signatureAccount.address)
@@ -158,6 +166,9 @@ describe('system test (type 1) - second signature transactions from pool and pee
 									expect(account.mem_accounts.u_secondSignature).to.equal(1);
 									seqCb();
 									done();
+								})
+								.catch(err => {
+									done(err);
 								});
 						});
 					});
@@ -232,6 +243,9 @@ describe('system test (type 1) - second signature transactions from pool and pee
 										expect(account.mem_accounts.u_secondSignature).to.equal(0);
 										seqCb();
 										done();
+									})
+									.catch(err => {
+										done(err);
 									});
 							});
 						});
@@ -248,6 +262,9 @@ describe('system test (type 1) - second signature transactions from pool and pee
 										expect(account.mem_accounts.secondPublicKey).to.equal(null);
 										seqCb();
 										done();
+									})
+									.catch(err => {
+										done(err);
 									});
 							});
 						});
