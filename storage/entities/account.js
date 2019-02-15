@@ -71,7 +71,6 @@ const sqlFiles = {
 	deleteDependentRecord: 'accounts/delete_dependent_record.sql',
 	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
 	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
-	countDuplicatedDelegates: 'accounts/count_duplicated_delegates.sql',
 	insertFork: 'accounts/insert_fork.sql',
 };
 
@@ -685,24 +684,6 @@ class Account extends BaseEntity {
 	 */
 	syncDelegatesRanks(tx) {
 		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
-	}
-
-	/**
-	 * Counts duplicate delegates by transactionId.
-	 *
-	 * @param {Object} [tx] - Database transaction object
-	 *
-	 * @returns {Promise<number>}
-	 */
-	countDuplicatedDelegates(tx) {
-		return this.adapter
-			.executeFile(
-				this.SQLs.countDuplicatedDelegates,
-				{},
-				{ expectedResultCount: 1 },
-				tx
-			)
-			.then(result => +result.count);
 	}
 
 	// TODO: Should create a separate entity to manage forks

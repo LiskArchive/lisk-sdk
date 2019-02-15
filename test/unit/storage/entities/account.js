@@ -24,7 +24,6 @@ const {
 const storageSandbox = require('../../../common/storage_sandbox');
 const seeder = require('../../../common/storage_seed');
 const accountFixtures = require('../../../fixtures').accounts;
-const transactionsFixtures = require('../../../fixtures').transactions;
 const forksFixtures = require('../../../fixtures').forks;
 
 const defaultCreateValues = {
@@ -63,7 +62,6 @@ describe('Account', () => {
 	let adapter;
 	let storage;
 	let AccountEntity;
-	let TransactionEntity;
 	let SQLs;
 	let validAccountSQLs;
 	let validAccountFields;
@@ -82,7 +80,6 @@ describe('Account', () => {
 		adapter = storage.adapter;
 
 		AccountEntity = storage.entities.Account;
-		TransactionEntity = storage.entities.Transaction;
 		SQLs = AccountEntity.SQLs;
 
 		validAccountSQLs = [
@@ -102,7 +99,6 @@ describe('Account', () => {
 			'deleteDependentRecord',
 			'delegateBlocksRewards',
 			'syncDelegatesRank',
-			'countDuplicatedDelegates',
 			'insertFork',
 		];
 
@@ -1973,88 +1969,6 @@ describe('Account', () => {
 		);
 
 		it('should not throw error if there is no delegate available');
-	});
-
-	// countDuplicatedDelegates can potentially be removed completely as delegate table doesn't exsist anymore
-	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('countDuplicatedDelegates()', () => {
-		it('should use the correct SQL no with parameter', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			await AccountEntity.countDuplicatedDelegates();
-
-			expect(adapter.executeFile).to.be.calledOnce;
-			expect(adapter.executeFile).to.be.calledWith(
-				SQLs.countDuplicatedDelegates,
-				{},
-				{ expectedResultCount: 1 }
-			);
-		});
-
-		it('should return zero if no delegate records available', async () => {
-			const block = seeder.getLastBlock();
-
-			const trs1 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-				type: 2,
-			});
-			const trs2 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-				type: 2,
-			});
-			await TransactionEntity.create([trs1, trs2]);
-
-			const delegates = await adapter.execute('SELECT * from delegates');
-
-			// As we created two delegate transactions
-			expect(delegates).to.have.lengthOf(2);
-
-			const result = await AccountEntity.countDuplicatedDelegates();
-
-			expect(result).to.be.eql(0);
-		});
-
-		it('should return zero if there are delegates but no duplicates', async () => {
-			const result = await AccountEntity.countDuplicatedDelegates();
-
-			expect(result).to.be.eql(0);
-		});
-
-		it('should return integer value of duplicate delegates', async () => {
-			const block = seeder.getLastBlock();
-
-			const trs1 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-				type: 2,
-			});
-			const trs2 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-				type: 2,
-			});
-			await TransactionEntity.create([trs1, trs2]);
-
-			const delegates = await adapter.execute('SELECT * from delegates');
-
-			// As we created two delegate transactions
-			expect(delegates).to.have.lengthOf(2);
-
-			// Create duplicate records for each delegate
-			await Promise.all(
-				delegates.map(delegate => {
-					const username = randomstring.generate({
-						length: 10,
-						charset: 'alphabetic',
-					});
-					return adapter.execute(
-						'INSERT INTO delegates ("transactionId", "username") VALUES ($1, $2)',
-						[delegate.transactionId, username]
-					);
-				})
-			);
-
-			const result = await AccountEntity.countDuplicatedDelegates();
-
-			expect(result).to.be.eql(2);
-		});
 	});
 
 	describe('insertFork()', () => {
