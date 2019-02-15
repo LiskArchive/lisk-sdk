@@ -10,6 +10,7 @@ describe('Integration tests for P2P library', () => {
 		...Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
 	const NETWORK_END_PORT = ALL_NODE_PORTS[ALL_NODE_PORTS.length - 1];
+	const NO_PEERS_FOUND_ERROR = `Request failed due to no peers found in peer selection`;
 
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
@@ -56,6 +57,18 @@ describe('Integration tests for P2P library', () => {
 		it('should set the isActive property to true for all nodes', () => {
 			p2pNodeList.forEach(p2p => {
 				expect(p2p).to.have.property('isActive', true);
+			});
+		});
+
+		describe('P2P.request', () => {
+			it('should throw an error when not able to get any peer in peer selection', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const response = firstP2PNode.request({
+					procedure: 'foo',
+					data: 'bar',
+				});
+
+				expect(response).to.be.rejectedWith(Error, NO_PEERS_FOUND_ERROR);
 			});
 		});
 	});
@@ -198,9 +211,11 @@ describe('Integration tests for P2P library', () => {
 				await wait(DISCOVERY_INTERVAL * 5);
 
 				p2pNodeList.forEach(p2p => {
-					let {connectedPeers} = p2p.getNetworkStatus();
+					let { connectedPeers } = p2p.getNetworkStatus();
 
-					const peerPorts = connectedPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const peerPorts = connectedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
 					const expectedPeerPorts = ALL_NODE_PORTS;
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
