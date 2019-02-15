@@ -121,6 +121,8 @@ function __init(initScope, done) {
 			system: '../../src/modules/chain/modules/system.js',
 			transactions: '../../src/modules/chain/modules/transactions.js',
 			transport: '../../src/modules/chain/modules/transport.js',
+			processTransactions:
+				'../../src/modules/chain/modules/process_transactions.js',
 		};
 
 		// Init limited application layer
@@ -330,6 +332,7 @@ function __init(initScope, done) {
 						const Multisignature = require('../../src/modules/chain/logic/multisignature.js');
 						const Account = require('../../src/modules/chain/logic/account.js');
 						const Peers = require('../../src/modules/chain/logic/peers.js');
+						const StateManager = require('../../src/modules/chain/logic/state_store/index.js');
 
 						async.auto(
 							{
@@ -354,6 +357,12 @@ function __init(initScope, done) {
 								genesisBlock(genesisBlockCb) {
 									genesisBlockCb(null, scope.genesisBlock);
 								},
+								stateManager: [
+									'storage',
+									function(stateManagerScope, stateManagerCb) {
+										new StateManager(stateManagerScope.storage, stateManagerCb);
+									},
+								],
 								account: [
 									'storage',
 									'bus',
