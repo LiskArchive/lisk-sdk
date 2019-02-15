@@ -11,12 +11,25 @@ const internalEvents = [
 ];
 
 /**
- * BaseChannel class responsible which used as reference to implement others channels for bus to module communication
+ * BaseChannel class which used as reference to implement others channels for bus to module communication
  *
  * @namespace Framework.channels
+ * @requires modules.Event
+ * @requires modules.Action
  * @type {module.BaseChannel}
  */
 module.exports = class BaseChannel {
+	/**
+	 * Create the baseChannel object
+	 *
+	 * @param {string} moduleAlias - Label used for module
+	 * @param {module.Event} events - Collection of events for event listener
+	 * @param {module.Action} actions - Collection of actions for event listener
+	 * @param {Object} [options] - Options impacting events and actions list
+	 * @param {boolean} [options.skipInternalEvents] - Skip internal events
+	 *
+	 * @throws Framework.errors.TypeError
+	 */
 	constructor(moduleAlias, events, actions, options = {}) {
 		this.moduleAlias = moduleAlias;
 		this.options = options;

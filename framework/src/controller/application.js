@@ -49,6 +49,12 @@ const registerProcessHooks = app => {
  * Application class to start the block chain instance
  *
  * @namespace Framework
+ * @requires assert
+ * @requires Controller
+ * @requires module.defaults
+ * @requires helpers/validator
+ * @requires schema/application
+ * @requires components/logger
  * @type {module.Application}
  */
 module.exports = class Application {
@@ -225,7 +231,8 @@ module.exports = class Application {
 	/**
 	 * Run the application
 	 *
-	 * @return {Promise<*>}
+	 * @async
+	 * @return {Promise.<void>}
 	 */
 	async run() {
 		this.logger.info(`Starting the app - ${this.banner}`);
@@ -250,7 +257,7 @@ module.exports = class Application {
 	 *
 	 * @param {number} [errorCode=0] - Error code
 	 * @param {string} [message] - Message specifying exit reason
-	 * @return {Promise<void>}
+	 * @return {Promise.<void>}
 	 */
 	async shutdown(errorCode = 0, message = '') {
 		if (this.controller) {

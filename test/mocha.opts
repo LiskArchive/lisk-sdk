@@ -1,5 +1,5 @@
 --timeout 1200s
 --exit
 --colors
---require ./framework/test/setup.js
+--require ./test/setup.js
 --recursive

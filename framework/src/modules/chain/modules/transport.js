@@ -121,12 +121,7 @@ __private.removePeer = function(options, extraMessage) {
 		return false;
 	}
 	library.logger.debug(
-		[
-			options.code,
-			'Removing peer',
-			`${peer.ip}:${peer.wsPort}`,
-			extraMessage,
-		].join(' ')
+		`${options.code} Removing peer ${peer.ip}:${peer.wsPort} ${extraMessage}`
 	);
 	return modules.peers.remove(peer);
 };
@@ -266,7 +261,7 @@ __private.receiveTransaction = function(
 			processUnconfirmErr => {
 				if (processUnconfirmErr) {
 					library.logger.debug(
-						['Transaction', id].join(' '),
+						`Transaction ${id}`,
 						processUnconfirmErr.toString()
 					);
 					if (transaction) {

@@ -15,7 +15,7 @@
 'use strict';
 
 // Initialize global variables
-require('../../setup');
+require('../../../../test/setup');
 
 const ChildProcess = require('child_process');
 const path = require('path');

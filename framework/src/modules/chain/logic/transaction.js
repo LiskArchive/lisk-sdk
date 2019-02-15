@@ -318,12 +318,11 @@ class Transaction {
 		return {
 			exceeded,
 			error: exceeded
-				? [
-						'Account does not have enough LSK:',
-						sender.address,
-						'balance:',
-						new Bignum(sender[field].toString() || '0').div(Math.pow(10, 8)),
-					].join(' ')
+				? `Account does not have enough LSK: ${
+						sender.address
+					} balance: ${new Bignum(sender[field].toString() || '0').div(
+						Math.pow(10, 8)
+					)}`
 				: null,
 		};
 	}
@@ -476,12 +475,9 @@ class Transaction {
 
 		// Check sender public key
 		if (sender.publicKey && sender.publicKey !== transaction.senderPublicKey) {
-			err = [
-				'Invalid sender public key:',
-				transaction.senderPublicKey,
-				'expected:',
-				sender.publicKey,
-			].join(' ');
+			err = `Invalid sender public key: ${
+				transaction.senderPublicKey
+			} expected: ${sender.publicKey}`;
 
 			if (exceptions.senderPublicKey.includes(transaction.id)) {
 				this.scope.logger.error(err);
