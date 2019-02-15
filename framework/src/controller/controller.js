@@ -156,15 +156,17 @@ module.exports = class Controller {
 	}
 
 	async _loadModules(modules) {
-		return Promise.all(
-			Object.keys(modules).map(alias =>
-				this._loadInMemoryModule(
-					alias,
-					modules[alias].klass,
-					modules[alias].options
-				)
-			)
-		);
+		// To perform operations in sequence and not using bluebird
+
+		// eslint-disable-next-line no-restricted-syntax
+		for (const alias of Object.keys(modules)) {
+			// eslint-disable-next-line no-await-in-loop
+			await this._loadInMemoryModule(
+				alias,
+				modules[alias].klass,
+				modules[alias].options
+			);
+		}
 	}
 
 	async _loadInMemoryModule(alias, Klass, options) {
@@ -204,13 +206,15 @@ module.exports = class Controller {
 		);
 	}
 
-	async unloadModules(modules = null) {
-		return Promise.all(
-			(modules || Object.keys(this.modules)).map(async alias => {
-				await this.modules[alias].unload();
-				delete this.modules[alias];
-			})
-		);
+	async unloadModules(modules = undefined) {
+		// To perform operations in sequence and not using bluebird
+
+		// eslint-disable-next-line no-restricted-syntax
+		for (const alias of Object.keys(modules)) {
+			// eslint-disable-next-line no-await-in-loop
+			await this.modules[alias].unload();
+			delete this.modules[alias];
+		}
 	}
 
 	async cleanup(code, reason) {

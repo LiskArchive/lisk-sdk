@@ -31,6 +31,12 @@ class SchemaValidationError extends FrameworkError {
  * @namespace Framework.errors
  */
 class DuplicateAppInstanceError extends FrameworkError {
+	/**
+	 * Create duplicate app instance error object
+	 *
+	 * @param {string} appLabel - Application label
+	 * @param {string} pidPath - Path of the pid file running the app
+	 */
 	constructor(appLabel, pidPath) {
 		super(`Duplicate app instance for "${appLabel}"`);
 		this.appLabel = appLabel;
@@ -45,10 +51,10 @@ class DuplicateAppInstanceError extends FrameworkError {
  */
 class ImplementationMissingError extends FrameworkError {
 	/**
-	 * Create a schema validation error object
+	 * Create a implementation missing error object
 	 */
 	constructor() {
-		super('Schema validation error');
+		super('Implementation missing error');
 	}
 }
 
