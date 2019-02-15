@@ -210,7 +210,7 @@ module.exports = class Controller {
 		// To perform operations in sequence and not using bluebird
 
 		// eslint-disable-next-line no-restricted-syntax
-		for (const alias of Object.keys(modules)) {
+		for (const alias of modules || Object.keys(this.modules)) {
 			// eslint-disable-next-line no-await-in-loop
 			await this.modules[alias].unload();
 			delete this.modules[alias];
