@@ -176,10 +176,10 @@ describe('Dapp transaction class', () => {
 	describe('#prepare', async () => {
 		it('should call state store', async () => {
 			await validTestTransaction.prepare(store);
-			expect(storeAccountCacheStub).to.have.been.calledOnceWithExactly([
+			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
 				{ address: validTestTransaction.senderId },
 			]);
-			expect(storeTransactionCacheStub).to.have.been.calledOnceWithExactly([
+			expect(storeTransactionCacheStub).to.have.been.calledWithExactly([
 				{ dapp_name: validTestTransaction.asset.dapp.name },
 				{ dapp_link: validTestTransaction.asset.dapp.link },
 			]);
