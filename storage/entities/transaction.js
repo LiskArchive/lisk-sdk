@@ -250,11 +250,13 @@ class Transaction extends BaseEntity {
 		});
 
 		this.addFilter('dapp_name', filterTypes.CUSTOM, {
-			condition: "asset->'dapp'->>'name' = ${dapp_name}",
+			condition:
+				'asset @> \'{ "dapp": { "name": "${dapp_name:value}" } }\'::jsonb',
 		});
 
 		this.addFilter('dapp_link', filterTypes.CUSTOM, {
-			condition: "asset->'dapp'->>'link' = ${dapp_link}",
+			condition:
+				'asset @> \'{ "dapp": { "link": "${dapp_link:value}" } }\'::jsonb',
 		});
 
 		this.SQLs = this.loadSQLFiles('transaction', sqlFiles);
