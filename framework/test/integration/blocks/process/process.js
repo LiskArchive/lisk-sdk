@@ -24,7 +24,7 @@ const loadTables = require('./process_tables_data.json');
 
 const { REWARDS } = global.constants;
 
-describe('system test (blocks) - process', async () => {
+describe('system test (blocks) - process', () => {
 	let blocksProcess;
 	let blocks;
 	let storage;
@@ -126,8 +126,8 @@ describe('system test (blocks) - process', async () => {
 		);
 	});
 
-	describe('getCommonBlock()', async () => {
-		describe('validation with definitions.CommonBlock', async () => {
+	describe('getCommonBlock()', () => {
+		describe('validation with definitions.CommonBlock', () => {
 			let validCommonBlock;
 			const blockHeightTwo = {
 				id: '3082931137036442832',
@@ -148,7 +148,7 @@ describe('system test (blocks) - process', async () => {
 				);
 			});
 
-			describe('when rpc.commonBlock call returns valid result', async () => {
+			describe('when rpc.commonBlock call returns valid result', () => {
 				before(done => {
 					validCommonBlock = Object.assign({}, blockHeightTwo);
 					done();
@@ -159,8 +159,8 @@ describe('system test (blocks) - process', async () => {
 				});
 			});
 
-			describe('when rpc.commonBlock call returns invalid result', async () => {
-				describe('when id = null', async () => {
+			describe('when rpc.commonBlock call returns invalid result', () => {
+				describe('when id = null', () => {
 					before(done => {
 						validCommonBlock = Object.assign({}, blockHeightTwo);
 						validCommonBlock.id = null;
@@ -186,7 +186,7 @@ describe('system test (blocks) - process', async () => {
 					});
 				});
 
-				describe('when previousBlock = null', async () => {
+				describe('when previousBlock = null', () => {
 					before(done => {
 						validCommonBlock = Object.assign({}, blockHeightTwo);
 						validCommonBlock.previousBlock = null;
@@ -215,7 +215,7 @@ describe('system test (blocks) - process', async () => {
 		});
 	});
 
-	describe('loadBlocksOffset() - no errors', async () => {
+	describe('loadBlocksOffset() - no errors', () => {
 		it('should load block 2 from db: block without transactions', done => {
 			blocks.lastBlock.set(__testContext.config.genesisBlock);
 			blocksProcess.loadBlocksOffset(1, 2, (err, loadedBlock) => {
@@ -242,7 +242,7 @@ describe('system test (blocks) - process', async () => {
 		});
 	});
 
-	describe('loadBlocksOffset() - block/transaction errors', async () => {
+	describe('loadBlocksOffset() - block/transaction errors', () => {
 		it('should load block 4 from db and return blockSignature error', done => {
 			blocksProcess.loadBlocksOffset(1, 4, (err, loadedBlock) => {
 				if (err) {

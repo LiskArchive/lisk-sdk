@@ -23,7 +23,7 @@ const localCommon = require('./common');
 
 const { REWARDS } = global.constants;
 
-describe('snapshotting', async () => {
+describe('snapshotting', () => {
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;
@@ -50,7 +50,7 @@ describe('snapshotting', async () => {
 		});
 	}
 
-	describe('snapshotting to end of round 2 when blockchain contains 303 blocks', async () => {
+	describe('snapshotting to end of round 2 when blockchain contains 303 blocks', () => {
 		let memAccountsBeforeSnapshot;
 
 		before(() => {

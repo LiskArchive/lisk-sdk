@@ -75,7 +75,7 @@ const validTransaction = {
 	senderId: '2262452491031990877L',
 };
 
-describe('vote', async () => {
+describe('vote', () => {
 	let voteBindings;
 	let vote;
 	let accountsModule;
@@ -210,7 +210,7 @@ describe('vote', async () => {
 	});
 	/* eslint-enable mocha/no-sibling-hooks */
 
-	describe('bind', async () => {
+	describe('bind', () => {
 		it('should be okay with correct params', async () =>
 			expect(() => {
 				vote.bind(voteBindings.delegate);
@@ -219,12 +219,12 @@ describe('vote', async () => {
 		after(() => vote.bind(voteBindings.delegate));
 	});
 
-	describe('calculateFee', async () => {
+	describe('calculateFee', () => {
 		it('should return the correct fee', async () =>
 			expect(vote.calculateFee().isEqualTo(FEES.VOTE.toString())).to.be.true);
 	});
 
-	describe('verify', async () => {
+	describe('verify', () => {
 		it('should return error when receipientId and sender id are different', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = accountFixtures.genesis.address;
@@ -366,7 +366,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('verifyVote', async () => {
+	describe('verifyVote', () => {
 		it('should return error if vote contains non-hex value', done => {
 			const invalidVote =
 				'-z1389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d7466';
@@ -407,7 +407,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('checkConfirmedDelegates (add vote)', async () => {
+	describe('checkConfirmedDelegates (add vote)', () => {
 		it('should return err if vote is already made to a delegate', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `+${v}`);
@@ -437,7 +437,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('checkConfirmedDelegates (remove vote)', async () => {
+	describe('checkConfirmedDelegates (remove vote)', () => {
 		it('should return err if vote is not made for a delegate', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
@@ -458,7 +458,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('checkUnconfirmedDelegates (add vote)', async () => {
+	describe('checkUnconfirmedDelegates (add vote)', () => {
 		it('should return err if vote is already made to a delegate', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `+${v}`);
@@ -489,7 +489,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('checkUnconfirmedDelegates (remove vote)', async () => {
+	describe('checkUnconfirmedDelegates (remove vote)', () => {
 		it('should return err if vote is not made for a delegate', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
@@ -510,13 +510,13 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('process', async () => {
+	describe('process', () => {
 		it('should be okay', done => {
 			vote.process(validTransaction, validSender, done);
 		});
 	});
 
-	describe('getBytes', async () => {
+	describe('getBytes', () => {
 		let transaction;
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
@@ -557,7 +557,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('applyConfirmed', async () => {
+	describe('applyConfirmed', () => {
 		it('should remove votes for delegates', done => {
 			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `-${v}`);
@@ -587,7 +587,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('undoConfirmed', async () => {
+	describe('undoConfirmed', () => {
 		it('should undoConfirmed remove votes for delegates', done => {
 			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `-${v}`);
@@ -622,7 +622,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('applyUnconfirmed', async () => {
+	describe('applyUnconfirmed', () => {
 		it('should remove votes for delegates', done => {
 			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `-${v}`);
@@ -652,7 +652,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('undoUnconfirmed', async () => {
+	describe('undoUnconfirmed', () => {
 		it('should undo remove votes for delegates', done => {
 			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `-${v}`);
@@ -682,7 +682,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('objectNormalize', async () => {
+	describe('objectNormalize', () => {
 		it('should normalize object for valid transaction', async () =>
 			expect(vote.objectNormalize(validTransaction)).to.eql(validTransaction));
 
@@ -711,7 +711,7 @@ describe('vote', async () => {
 		});
 	});
 
-	describe('dbRead', async () => {
+	describe('dbRead', () => {
 		it('should read votes correct', async () => {
 			const rawVotes =
 				'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a,+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135';
@@ -732,7 +732,7 @@ describe('vote', async () => {
 			).to.eql(null));
 	});
 
-	describe('ready', async () => {
+	describe('ready', () => {
 		it('should return true for single signature transaction', async () =>
 			expect(vote.ready(validTransaction, validSender)).to.equal(true));
 

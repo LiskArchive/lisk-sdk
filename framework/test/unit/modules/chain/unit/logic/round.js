@@ -24,7 +24,7 @@ const genesisBlock = __testContext.config.genesisBlock;
 
 const { ACTIVE_DELEGATES } = global.constants;
 
-describe('round', async () => {
+describe('round', () => {
 	let scope;
 	let round;
 	let task;
@@ -106,8 +106,8 @@ describe('round', async () => {
 		return typeof obj.then === 'function';
 	}
 
-	describe('constructor', async () => {
-		describe('when calling with required properties', async () => {
+	describe('constructor', () => {
+		describe('when calling with required properties', () => {
 			it('should return Round instance', async () =>
 				expect(round).to.be.instanceof(Round));
 
@@ -116,8 +116,8 @@ describe('round', async () => {
 			it('should set t', async () => expect(round.t).to.be.eql(task));
 		});
 
-		describe('when calling with missing properties', async () => {
-			describe('round', async () => {
+		describe('when calling with missing properties', () => {
+			describe('round', () => {
 				it('should throw', done => {
 					const property = 'round';
 					delete scope[property];
@@ -132,7 +132,7 @@ describe('round', async () => {
 				});
 			});
 
-			describe('backwards', async () => {
+			describe('backwards', () => {
 				it('should throw', done => {
 					const property = 'backwards';
 					delete scope[property];
@@ -147,14 +147,14 @@ describe('round', async () => {
 				});
 			});
 
-			describe('when finish round', async () => {
+			describe('when finish round', () => {
 				beforeEach(done => {
 					// Set finishRound, so now we need additional properties
 					scope.finishRound = true;
 					done();
 				});
 
-				describe('roundFees', async () => {
+				describe('roundFees', () => {
 					it('should throw', done => {
 						const property = 'roundFees';
 						delete scope[property];
@@ -169,7 +169,7 @@ describe('round', async () => {
 					});
 				});
 
-				describe('roundRewards', async () => {
+				describe('roundRewards', () => {
 					it('should throw', done => {
 						const property = 'roundRewards';
 						delete scope[property];
@@ -184,7 +184,7 @@ describe('round', async () => {
 					});
 				});
 
-				describe('roundDelegates', async () => {
+				describe('roundDelegates', () => {
 					it('should throw', done => {
 						const property = 'roundDelegates';
 						delete scope[property];
@@ -199,7 +199,7 @@ describe('round', async () => {
 					});
 				});
 
-				describe('roundOutsiders', async () => {
+				describe('roundOutsiders', () => {
 					it('should throw', done => {
 						const property = 'roundOutsiders';
 						delete scope[property];
@@ -217,8 +217,8 @@ describe('round', async () => {
 		});
 	});
 
-	describe('mergeBlockGenerator', async () => {
-		describe('when going forward', async () => {
+	describe('mergeBlockGenerator', () => {
+		describe('when going forward', () => {
 			let args = null;
 
 			beforeEach(() => {
@@ -239,7 +239,7 @@ describe('round', async () => {
 				).to.be.calledWith(args));
 		});
 
-		describe('when going backwards', async () => {
+		describe('when going backwards', () => {
 			let args = null;
 
 			beforeEach(() => {
@@ -261,11 +261,11 @@ describe('round', async () => {
 		});
 	});
 
-	describe('updateMissedBlocks', async () => {
+	describe('updateMissedBlocks', () => {
 		let stub;
 		let res;
 
-		describe('when there are no outsiders', async () => {
+		describe('when there are no outsiders', () => {
 			beforeEach(done => {
 				res = round.updateMissedBlocks();
 				done();
@@ -277,7 +277,7 @@ describe('round', async () => {
 			});
 		});
 
-		describe('when there are outsiders', async () => {
+		describe('when there are outsiders', () => {
 			beforeEach(done => {
 				scope.roundOutsiders = ['abc'];
 				round = new Round(scope, task);
@@ -310,7 +310,7 @@ describe('round', async () => {
 		});
 	});
 
-	describe('getVotes', async () => {
+	describe('getVotes', () => {
 		let stub;
 		let res;
 
@@ -330,13 +330,13 @@ describe('round', async () => {
 			}));
 	});
 
-	describe('updateVotes', async () => {
+	describe('updateVotes', () => {
 		let getVotes_stub;
 		let updateVotes_stub;
 		let res;
 		let delegate;
 
-		describe('when getVotes returns at least one entry', async () => {
+		describe('when getVotes returns at least one entry', () => {
 			beforeEach(async () => {
 				getVotes_stub = storageStubs.Round.getTotalVotedAmount;
 				updateVotes_stub = storageStubs.Account.increaseFieldBy;
@@ -393,7 +393,7 @@ describe('round', async () => {
 				}));
 		});
 
-		describe('when getVotes returns no entries', async () => {
+		describe('when getVotes returns no entries', () => {
 			beforeEach(async () => {
 				delegate = {
 					amount: 10000,
@@ -427,7 +427,7 @@ describe('round', async () => {
 		});
 	});
 
-	describe('flushRound', async () => {
+	describe('flushRound', () => {
 		let stub;
 		let res;
 
@@ -446,7 +446,7 @@ describe('round', async () => {
 		});
 	});
 
-	describe('updateDelegatesRanks', async () => {
+	describe('updateDelegatesRanks', () => {
 		let stub;
 		let res;
 
@@ -468,7 +468,7 @@ describe('round', async () => {
 			}));
 	});
 
-	describe('restoreRoundSnapshot', async () => {
+	describe('restoreRoundSnapshot', () => {
 		let res;
 		let stub;
 
@@ -488,7 +488,7 @@ describe('round', async () => {
 			}));
 	});
 
-	describe('restoreVotesSnapshot', async () => {
+	describe('restoreVotesSnapshot', () => {
 		let stub;
 		let res;
 
@@ -508,7 +508,7 @@ describe('round', async () => {
 			}));
 	});
 
-	describe('checkSnapshotAvailability', async () => {
+	describe('checkSnapshotAvailability', () => {
 		const stubs = {};
 		let res;
 
@@ -568,7 +568,7 @@ describe('round', async () => {
 		});
 	});
 
-	describe('deleteRoundRewards', async () => {
+	describe('deleteRoundRewards', () => {
 		let stub;
 		let res;
 
@@ -589,7 +589,7 @@ describe('round', async () => {
 			}));
 	});
 
-	describe('applyRound', async () => {
+	describe('applyRound', () => {
 		let res;
 		let insertRoundRewards_stub;
 
@@ -640,8 +640,8 @@ describe('round', async () => {
 			insertRoundRewards_stub.reset();
 		});
 
-		describe('with only one delegate', async () => {
-			describe('when there are no remaining fees', async () => {
+		describe('with only one delegate', () => {
+			describe('when there are no remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
 
@@ -651,7 +651,7 @@ describe('round', async () => {
 					done();
 				});
 
-				describe('forward', async () => {
+				describe('forward', () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -715,7 +715,7 @@ describe('round', async () => {
 						));
 				});
 
-				describe('backwards', async () => {
+				describe('backwards', () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -770,7 +770,7 @@ describe('round', async () => {
 						expect(insertRoundRewards_stub).to.have.not.been.called);
 				});
 
-				describe('consistency checks for each delegate', async () => {
+				describe('consistency checks for each delegate', () => {
 					let result;
 
 					before(done => {
@@ -800,7 +800,7 @@ describe('round', async () => {
 				});
 			});
 
-			describe('when there are remaining fees', async () => {
+			describe('when there are remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
 
@@ -810,7 +810,7 @@ describe('round', async () => {
 					done();
 				});
 
-				describe('forward', async () => {
+				describe('forward', () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -905,7 +905,7 @@ describe('round', async () => {
 						));
 				});
 
-				describe('backwards', async () => {
+				describe('backwards', () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -985,7 +985,7 @@ describe('round', async () => {
 						expect(insertRoundRewards_stub).to.have.not.been.called);
 				});
 
-				describe('consistency checks for each delegate', async () => {
+				describe('consistency checks for each delegate', () => {
 					let result;
 
 					before(done => {
@@ -1016,8 +1016,8 @@ describe('round', async () => {
 			});
 		});
 
-		describe('with 3 delegates', async () => {
-			describe('when there are no remaining fees', async () => {
+		describe('with 3 delegates', () => {
+			describe('when there are no remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
 
@@ -1032,7 +1032,7 @@ describe('round', async () => {
 					done();
 				});
 
-				describe('forward', async () => {
+				describe('forward', () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -1188,7 +1188,7 @@ describe('round', async () => {
 					});
 				});
 
-				describe('backwards', async () => {
+				describe('backwards', () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -1311,7 +1311,7 @@ describe('round', async () => {
 						expect(insertRoundRewards_stub).to.have.not.been.called);
 				});
 
-				describe('consistency checks for each delegate', async () => {
+				describe('consistency checks for each delegate', () => {
 					let result;
 
 					before(done => {
@@ -1341,7 +1341,7 @@ describe('round', async () => {
 				});
 			});
 
-			describe('when there are remaining fees', async () => {
+			describe('when there are remaining fees', () => {
 				const forwardResults = [];
 				const backwardsResults = [];
 
@@ -1356,7 +1356,7 @@ describe('round', async () => {
 					done();
 				});
 
-				describe('forward', async () => {
+				describe('forward', () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -1540,7 +1540,7 @@ describe('round', async () => {
 					});
 				});
 
-				describe('backwards', async () => {
+				describe('backwards', () => {
 					let called = 0;
 
 					beforeEach(async () => {
@@ -1689,7 +1689,7 @@ describe('round', async () => {
 						expect(insertRoundRewards_stub).to.have.not.been.called);
 				});
 
-				describe('consistency checks for each delegate', async () => {
+				describe('consistency checks for each delegate', () => {
 					let result;
 
 					before(done => {
@@ -1721,7 +1721,7 @@ describe('round', async () => {
 		});
 	});
 
-	describe('land', async () => {
+	describe('land', () => {
 		let increaseFieldBy_stub;
 		let decreaseFieldBy_stub;
 		let getVotes_stub;
@@ -1799,7 +1799,7 @@ describe('round', async () => {
 			).to.equal(4));
 	});
 
-	describe('backwardLand', async () => {
+	describe('backwardLand', () => {
 		let increaseFieldBy_stub;
 		let decreaseFieldBy_stub;
 		let getVotes_stub;

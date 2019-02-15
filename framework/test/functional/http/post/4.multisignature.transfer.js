@@ -25,7 +25,7 @@ const apiHelpers = require('../../../common/helpers/api');
 
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 0) transfer from multisignature account', async () => {
+describe('POST /api/transactions (type 0) transfer from multisignature account', () => {
 	const scenarios = {
 		register_multisignature: new Scenarios.Multisig(),
 	};
@@ -87,7 +87,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			.then(() => waitFor.confirmations(registerMultisignature));
 	});
 
-	describe('Transfers processing', async () => {
+	describe('Transfers processing', () => {
 		it('with no signatures present it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
 			const trs = lisk.transaction.transfer({
@@ -206,7 +206,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, pendingMultisignatures);
 	});
 });

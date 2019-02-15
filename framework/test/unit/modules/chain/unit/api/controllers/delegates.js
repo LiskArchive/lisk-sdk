@@ -200,7 +200,7 @@ describe('delegates/api', () => {
 		});
 	});
 
-	describe('_aggregateBlocksReward()', async () => {
+	describe('_aggregateBlocksReward()', () => {
 		it('should return account not found when using invalid address', () => {
 			storageStub.entities.Account.getOne.rejects({ code: 0 });
 			return expect(

@@ -18,14 +18,14 @@ const childProcess = require('child_process');
 const fs = require('fs');
 const git = require('../../../../../../src/modules/chain/helpers/git');
 
-describe('git', async () => {
+describe('git', () => {
 	afterEach(done => {
 		sinonSandbox.restore();
 		done();
 	});
 
-	describe('getLastCommit', async () => {
-		describe('when "git rev-parse HEAD" command succeeds', async () => {
+	describe('getLastCommit', () => {
+		describe('when "git rev-parse HEAD" command succeeds', () => {
 			const validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
 
 			beforeEach(done => {
@@ -41,7 +41,7 @@ describe('git', async () => {
 			});
 		});
 
-		describe('when "git rev-parse HEAD" command failed and a revision file found', async () => {
+		describe('when "git rev-parse HEAD" command failed and a revision file found', () => {
 			const validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
 
 			beforeEach(done => {
@@ -62,7 +62,7 @@ describe('git', async () => {
 			});
 		});
 
-		describe('when "git rev-parse HEAD" command failed and no revision file found', async () => {
+		describe('when "git rev-parse HEAD" command failed and no revision file found', () => {
 			const validErrorMessage =
 				'Not a git repository and no revision file found.';
 
@@ -80,7 +80,7 @@ describe('git', async () => {
 			});
 		});
 
-		describe('when git is not installed', async () => {
+		describe('when git is not installed', () => {
 			const gitNotInstalledErr = 'Error: spawnSync git ENOEN';
 			const validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
 
@@ -99,7 +99,7 @@ describe('git', async () => {
 			});
 		});
 
-		describe('when another error different than git is not installed', async () => {
+		describe('when another error different than git is not installed', () => {
 			const validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
 
 			beforeEach(done => {

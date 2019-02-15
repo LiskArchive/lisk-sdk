@@ -17,7 +17,7 @@
 const failureCodes = require('../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
 const Rules = require('../../../../../../../../src/modules/chain/api/ws/workers/rules');
 
-describe('Rules', async () => {
+describe('Rules', () => {
 	let rules;
 	const insertMock = sinonSandbox.spy();
 	const removeMock = sinonSandbox.spy();
@@ -31,14 +31,14 @@ describe('Rules', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should construct set of rules', done => {
 			expect(rules).to.have.property('rules').not.to.be.empty;
 			done();
 		});
 	});
 
-	describe('rules', async () => {
+	describe('rules', () => {
 		it('should have entries for every configuration', done => {
 			expect(rules.rules)
 				.to.have.nested.property('0.true.true.true')
@@ -92,10 +92,10 @@ describe('Rules', async () => {
 			done();
 		});
 
-		describe('error codes', async () => {
+		describe('error codes', () => {
 			let updateType;
 
-			describe('insert', async () => {
+			describe('insert', () => {
 				beforeEach(done => {
 					updateType = Rules.UPDATES.INSERT;
 					done();
@@ -116,7 +116,7 @@ describe('Rules', async () => {
 				});
 			});
 
-			describe('remove', async () => {
+			describe('remove', () => {
 				beforeEach(done => {
 					updateType = Rules.UPDATES.REMOVE;
 					done();

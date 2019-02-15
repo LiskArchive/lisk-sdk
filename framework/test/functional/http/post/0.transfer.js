@@ -28,7 +28,7 @@ const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
-describe('POST /api/transactions (type 0) transfer funds', async () => {
+describe('POST /api/transactions (type 0) transfer funds', () => {
 	let transaction;
 	const goodTransaction = randomUtil.transaction();
 	const badTransactions = [];
@@ -39,7 +39,7 @@ describe('POST /api/transactions (type 0) transfer funds', async () => {
 	const account = randomUtil.account();
 	const accountOffset = randomUtil.account();
 
-	describe('schema validations', async () => {
+	describe('schema validations', () => {
 		typesRepresentatives.allTypes.forEach(test => {
 			it(`using ${test.description} should fail`, async () => {
 				return sendTransactionPromise(test.input, 400).then(res => {
@@ -61,7 +61,7 @@ describe('POST /api/transactions (type 0) transfer funds', async () => {
 		});
 	});
 
-	describe('transaction processing', async () => {
+	describe('transaction processing', () => {
 		it('with invalid signature should fail', async () => {
 			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
@@ -212,7 +212,7 @@ describe('POST /api/transactions (type 0) transfer funds', async () => {
 			});
 		});
 
-		describe('with offset', async () => {
+		describe('with offset', () => {
 			it('using -10000 should be ok', async () => {
 				transaction = lisk.transaction.transfer({
 					amount: 1,
@@ -247,8 +247,8 @@ describe('POST /api/transactions (type 0) transfer funds', async () => {
 			});
 		});
 
-		describe('with additional data field', async () => {
-			describe('invalid cases', async () => {
+		describe('with additional data field', () => {
+			describe('invalid cases', () => {
 				const invalidCases = typesRepresentatives.additionalDataInvalidCases.concat(
 					typesRepresentatives.nonStrings
 				);
@@ -274,7 +274,7 @@ describe('POST /api/transactions (type 0) transfer funds', async () => {
 				});
 			});
 
-			describe('valid cases', async () => {
+			describe('valid cases', () => {
 				const validCases = typesRepresentatives.additionalDataValidCases.concat(
 					typesRepresentatives.strings
 				);
@@ -317,7 +317,7 @@ describe('POST /api/transactions (type 0) transfer funds', async () => {
 				});
 			});
 
-			describe('edge cases', async () => {
+			describe('edge cases', () => {
 				it("using '\u0000 hey:)' should be ok", async () => {
 					const additioinalData = '\u0000 hey:)';
 					const accountAdditionalData = randomUtil.account();
@@ -339,11 +339,11 @@ describe('POST /api/transactions (type 0) transfer funds', async () => {
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
-	describe('validation', async () => {
+	describe('validation', () => {
 		it('sending already confirmed transaction should fail', async () => {
 			return sendTransactionPromise(
 				goodTransaction,

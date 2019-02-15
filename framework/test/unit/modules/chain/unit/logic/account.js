@@ -56,7 +56,7 @@ const validAccount = {
 	u_votedDelegatesPublicKeys: null,
 };
 
-describe('account', async () => {
+describe('account', () => {
 	let account;
 	let accountLogic;
 
@@ -74,7 +74,7 @@ describe('account', async () => {
 		application.cleanup(done);
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		let library;
 		let storageStub;
 
@@ -109,12 +109,12 @@ describe('account', async () => {
 			expect(library.logger).to.eql(modulesLoader.scope.logger));
 	});
 
-	describe('objectNormalize', async () => {
+	describe('objectNormalize', () => {
 		it('should validate account schema', async () =>
 			expect(account.objectNormalize(validAccount)).to.be.an('object'));
 	});
 
-	describe('verifyPublicKey', async () => {
+	describe('verifyPublicKey', () => {
 		it('should be okay for empty params', async () =>
 			expect(account.verifyPublicKey()).to.be.undefined);
 
@@ -143,7 +143,7 @@ describe('account', async () => {
 			}).to.not.throw());
 	});
 
-	describe('toDB', async () => {
+	describe('toDB', () => {
 		it('should normalize address and transform publicKey and secondPublicKey to Buffer hex', done => {
 			const raw = {
 				address: '16313739661670634666l',
@@ -164,7 +164,7 @@ describe('account', async () => {
 		});
 	});
 
-	describe('getMultiSignature', async () => {
+	describe('getMultiSignature', () => {
 		it('should return account for a given address with requested fields', done => {
 			const filter = { address: validAccount.address };
 			const requestedFields = [
@@ -201,7 +201,7 @@ describe('account', async () => {
 		});
 	});
 
-	describe('get', async () => {
+	describe('get', () => {
 		it('should only fetch requested fields for account', done => {
 			const requestedFields = [
 				'username',
@@ -254,7 +254,7 @@ describe('account', async () => {
 		});
 	});
 
-	describe('getAll', async () => {
+	describe('getAll', () => {
 		let allAccounts;
 
 		before(done => {
@@ -477,7 +477,7 @@ describe('account', async () => {
 			);
 		});
 
-		describe('sort using string as argument', async () => {
+		describe('sort using string as argument', () => {
 			it('should sort the result according to field type in ascending order', done => {
 				account.getAll({ sort: 'username:asc' }, ['username'], (err, res) => {
 					expect(err).to.not.exist;
@@ -511,7 +511,7 @@ describe('account', async () => {
 			});
 		});
 
-		describe('sort using object as argument', async () => {
+		describe('sort using object as argument', () => {
 			it('should sort the result according to field type in ascending order', done => {
 				account.getAll({ sort: 'username:asc' }, ['username'], (err, res) => {
 					expect(err).to.not.exist;
@@ -530,7 +530,7 @@ describe('account', async () => {
 		});
 	});
 
-	describe('resetMemTables', async () => {
+	describe('resetMemTables', () => {
 		it('should remove the tables', done => {
 			account.resetMemTables((err, res) => {
 				expect(err).to.not.exist;
@@ -540,7 +540,7 @@ describe('account', async () => {
 		});
 	});
 
-	describe('calculateApproval', async () => {
+	describe('calculateApproval', () => {
 		it('when voterBalance = 0 and totalSupply = 0, it should return 0', async () =>
 			expect(account.calculateApproval(0, 0)).to.equal(0));
 
@@ -565,7 +565,7 @@ describe('account', async () => {
 		});
 	});
 
-	describe('set', async () => {
+	describe('set', () => {
 		it('should insert an account', done => {
 			account.set('123L', { u_username: 'test_set_insert' }, (err, res) => {
 				expect(err).to.not.exist;
@@ -598,7 +598,7 @@ describe('account', async () => {
 		});
 	});
 
-	describe('merge', async () => {
+	describe('merge', () => {
 		it('should merge diff when values are correct', done => {
 			account.merge(
 				validAccount.address,
@@ -619,7 +619,7 @@ describe('account', async () => {
 			});
 		});
 
-		describe('verify public key', async () => {
+		describe('verify public key', () => {
 			it('should throw error if parameter is not a string', async () =>
 				expect(() => {
 					account.merge(validAccount.address, { publicKey: 1 });
@@ -639,7 +639,7 @@ describe('account', async () => {
 				}).to.throw('Invalid public key, must be a hex string'));
 		});
 
-		describe('check database constraints', async () => {
+		describe('check database constraints', () => {
 			it('should throw error when address does not exist for u_delegates', done => {
 				account.merge(
 					'1L',
@@ -686,7 +686,7 @@ describe('account', async () => {
 		});
 	});
 
-	describe('remove', async () => {
+	describe('remove', () => {
 		it('should remove an account', done => {
 			account.remove('123L', (err, res) => {
 				expect(err).to.not.exist;

@@ -30,7 +30,7 @@ const validSender = testData.validSender;
 const validTransaction = testData.validTransaction;
 const rawValidTransaction = testData.rawValidTransaction;
 
-describe('dapp', async () => {
+describe('dapp', () => {
 	let dapp;
 	let storageStub;
 
@@ -57,7 +57,7 @@ describe('dapp', async () => {
 		done();
 	});
 
-	describe('with dummy data', async () => {
+	describe('with dummy data', () => {
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			rawTransaction = _.cloneDeep(rawValidTransaction);
@@ -65,8 +65,8 @@ describe('dapp', async () => {
 			done();
 		});
 
-		describe('constructor', async () => {
-			describe('private library object', async () => {
+		describe('constructor', () => {
+			describe('private library object', () => {
 				let library;
 
 				beforeEach(done => {
@@ -94,19 +94,19 @@ describe('dapp', async () => {
 			});
 		});
 
-		describe('bind', async () => {
+		describe('bind', () => {
 			it('should be okay with empty params', async () => dapp.bind());
 		});
 
-		describe('calculateFee', async () => {
+		describe('calculateFee', () => {
 			it('should return FEES.DAPP_REGISTRATION', async () =>
 				expect(dapp.calculateFee(transaction).isEqualTo(FEES.DAPP_REGISTRATION))
 					.to.be.true);
 		});
 
-		describe('verify', async () => {
-			describe('with invalid transaction', async () => {
-				describe('when receipientId exists', async () => {
+		describe('verify', () => {
+			describe('with invalid transaction', () => {
+				describe('when receipientId exists', () => {
 					it('should call callback with error = "Invalid recipient"', done => {
 						transaction.recipientId = '4835566122337813671L';
 
@@ -117,7 +117,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when amount is not equal to 0', async () => {
+				describe('when amount is not equal to 0', () => {
 					it('should call callback with error = "Invalid transaction amount"', done => {
 						transaction.amount = 1;
 
@@ -128,7 +128,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp category is undefined', async () => {
+				describe('when dapp category is undefined', () => {
 					it('should call callback with error "Invalid application category"', done => {
 						transaction.asset.dapp.category = undefined;
 
@@ -139,7 +139,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp category not found', async () => {
+				describe('when dapp category not found', () => {
 					it('should call callback with error "Application category not found"', done => {
 						transaction.asset.dapp.category = 9;
 
@@ -150,7 +150,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp icon is not link', async () => {
+				describe('when dapp icon is not link', () => {
 					it('should call callback with error = "Invalid application icon link"', done => {
 						transaction.asset.dapp.icon = 'random string';
 
@@ -161,7 +161,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp icon link is invalid', async () => {
+				describe('when dapp icon link is invalid', () => {
 					it('should call callback with error = "Invalid application icon file type"', done => {
 						transaction.asset.dapp.icon =
 							'https://www.youtube.com/watch?v=de1-igivvda';
@@ -173,7 +173,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp type is invalid', async () => {
+				describe('when dapp type is invalid', () => {
 					it('should call callback with error = "Invalid application type"', done => {
 						transaction.asset.dapp.type = -1;
 
@@ -184,7 +184,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp link is not in a valid url format', async () => {
+				describe('when dapp link is not in a valid url format', () => {
 					it('should call callback with error = "Invalid application link"', done => {
 						transaction.asset.dapp.link = 'random string';
 
@@ -195,7 +195,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp link is invalid', async () => {
+				describe('when dapp link is invalid', () => {
 					it('should call callback with error = "Invalid application file type"', done => {
 						transaction.asset.dapp.link =
 							'https://www.youtube.com/watch?v=de1-igivvda';
@@ -207,7 +207,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp name is blank', async () => {
+				describe('when dapp name is blank', () => {
 					it('should call callback with error = "Application name must not be blank"', done => {
 						transaction.asset.dapp.name = '  ';
 
@@ -218,7 +218,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp name starts and ends with space', async () => {
+				describe('when dapp name starts and ends with space', () => {
 					it('should call callback with error = "Application name must not be blank"', done => {
 						transaction.asset.dapp.name = ' randomname ';
 
@@ -229,7 +229,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp name is longer than 32 characters', async () => {
+				describe('when dapp name is longer than 32 characters', () => {
 					it('should call callback with error = "Application name is too long. Maximum is 32 characters"', done => {
 						transaction.asset.dapp.name = Array(...Array(33))
 							.map(() => 'a')
@@ -244,7 +244,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp description is longer than 160 characters', async () => {
+				describe('when dapp description is longer than 160 characters', () => {
 					it('should call callback with error = "Application description is too long. Maximum is 160 characters"', done => {
 						transaction.asset.dapp.description = Array(...Array(161))
 							.map(() => 'a')
@@ -259,7 +259,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp tags are longer than 160 characters', async () => {
+				describe('when dapp tags are longer than 160 characters', () => {
 					it('should call callback with error = "Application tags is too long. Maximum is 160 characters"', done => {
 						transaction.asset.dapp.tags = Array(...Array(161))
 							.map(() => 'a')
@@ -274,7 +274,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dapp tags duplicate', async () => {
+				describe('when dapp tags duplicate', () => {
 					it('should call callback with error = "Encountered duplicate tag: a in application"', done => {
 						transaction.asset.dapp.tags = Array(...Array(3))
 							.map(() => 'a')
@@ -289,7 +289,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dbStub rejects proimse', async () => {
+				describe('when dbStub rejects proimse', () => {
 					const dbError = new Error();
 
 					it('should call callback with error = "DApp#verify error"', done => {
@@ -308,7 +308,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('when dbStub resolves with application', async () => {
+				describe('when dbStub resolves with application', () => {
 					let dappParams;
 
 					beforeEach(done => {
@@ -393,7 +393,7 @@ describe('dapp', async () => {
 				});
 			});
 
-			describe('when transaction is valid', async () => {
+			describe('when transaction is valid', () => {
 				let dappParams;
 				beforeEach(() => {
 					dappParams = [
@@ -449,16 +449,16 @@ describe('dapp', async () => {
 			});
 		});
 
-		describe('process', async () => {
-			describe('with valid transaction', async () => {
+		describe('process', () => {
+			describe('with valid transaction', () => {
 				it('should call the callback with error = null', done => {
 					dapp.process(transaction, sender, done);
 				});
 			});
 		});
 
-		describe('getBytes', async () => {
-			describe('when transaction.asset.dapp = undefined', async () => {
+		describe('getBytes', () => {
+			describe('when transaction.asset.dapp = undefined', () => {
 				beforeEach(done => {
 					transaction.asset.dapp = undefined;
 					done();
@@ -468,7 +468,7 @@ describe('dapp', async () => {
 					expect(dapp.getBytes.bind(null, transaction)).to.throw());
 			});
 
-			describe('when transaction.asset.dapp.category = undefined', async () => {
+			describe('when transaction.asset.dapp.category = undefined', () => {
 				beforeEach(done => {
 					transaction.asset.dapp.category = undefined;
 					done();
@@ -478,7 +478,7 @@ describe('dapp', async () => {
 					expect(dapp.getBytes.bind(null, transaction)).to.throw());
 			});
 
-			describe('when transaction.asset.dapp.type = undefined', async () => {
+			describe('when transaction.asset.dapp.type = undefined', () => {
 				beforeEach(done => {
 					transaction.asset.dapp.type = undefined;
 					done();
@@ -488,7 +488,7 @@ describe('dapp', async () => {
 					expect(dapp.getBytes.bind(null, transaction)).to.throw());
 			});
 
-			describe('when transaction.asset.dapp is a valid asset', async () => {
+			describe('when transaction.asset.dapp is a valid asset', () => {
 				it('should not throw', async () =>
 					expect(dapp.getBytes.bind(null, transaction)).not.to.throw());
 
@@ -502,7 +502,7 @@ describe('dapp', async () => {
 			});
 		});
 
-		describe('applyConfirmed', async () => {
+		describe('applyConfirmed', () => {
 			const dummyBlock = {
 				id: '9314232245035524467',
 				height: 1,
@@ -532,8 +532,8 @@ describe('dapp', async () => {
 			});
 		});
 
-		describe('undoConfirmed', async () => {
-			describe('with vaid parameters', async () => {
+		describe('undoConfirmed', () => {
+			describe('with vaid parameters', () => {
 				const dummyBlock = {
 					id: '9314232245035524467',
 					height: 1,
@@ -545,8 +545,8 @@ describe('dapp', async () => {
 			});
 		});
 
-		describe('applyUnconfirmed', async () => {
-			describe('when unconfirmed names already exists', async () => {
+		describe('applyUnconfirmed', () => {
+			describe('when unconfirmed names already exists', () => {
 				beforeEach(() => {
 					const dappNames = {};
 					dappNames[transaction.asset.dapp.name] = true;
@@ -562,7 +562,7 @@ describe('dapp', async () => {
 				});
 			});
 
-			describe('when unconfirmed link already exists', async () => {
+			describe('when unconfirmed link already exists', () => {
 				beforeEach(() => {
 					const dappLinks = {};
 					dappLinks[transaction.asset.dapp.link] = true;
@@ -578,7 +578,7 @@ describe('dapp', async () => {
 				});
 			});
 
-			describe('when unconfirmed dapp does not exist', async () => {
+			describe('when unconfirmed dapp does not exist', () => {
 				let unconfirmedNames;
 				let unconfirmedLinks;
 
@@ -618,7 +618,7 @@ describe('dapp', async () => {
 			});
 		});
 
-		describe('undoUnconfirmed', async () => {
+		describe('undoUnconfirmed', () => {
 			let unconfirmedNames;
 			let unconfirmedLinks;
 
@@ -653,8 +653,8 @@ describe('dapp', async () => {
 			});
 		});
 
-		describe('objectNormalize', async () => {
-			describe('using undefined properties in the dapp asset', async () => {
+		describe('objectNormalize', () => {
+			describe('using undefined properties in the dapp asset', () => {
 				const invalidProperties = {
 					dummyUndefinedProperty: undefined,
 					dummpyNullProperty: null,
@@ -681,7 +681,7 @@ describe('dapp', async () => {
 				});
 			});
 
-			describe('schema properties', async () => {
+			describe('schema properties', () => {
 				let library;
 				let schemaSpy;
 
@@ -705,8 +705,8 @@ describe('dapp', async () => {
 				});
 			});
 
-			describe('dynamic schema tests', async () => {
-				describe('category', async () => {
+			describe('dynamic schema tests', () => {
+				describe('category', () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
@@ -758,7 +758,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('name', async () => {
+				describe('name', () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -817,7 +817,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('description', async () => {
+				describe('description', () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -864,7 +864,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('tags', async () => {
+				describe('tags', () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -916,7 +916,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('type', async () => {
+				describe('type', () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
@@ -972,7 +972,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('link', async () => {
+				describe('link', () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -1021,7 +1021,7 @@ describe('dapp', async () => {
 					});
 				});
 
-				describe('icon', async () => {
+				describe('icon', () => {
 					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
@@ -1075,15 +1075,15 @@ describe('dapp', async () => {
 				expect(dapp.objectNormalize(transaction)).to.eql(transaction));
 		});
 
-		describe('dbRead', async () => {
-			describe('when rawTransaction.dapp_name does not exist', async () => {
+		describe('dbRead', () => {
+			describe('when rawTransaction.dapp_name does not exist', () => {
 				beforeEach(async () => delete rawTransaction.dapp_name);
 
 				it('should return null', async () =>
 					expect(dapp.dbRead(rawTransaction)).to.eql(null));
 			});
 
-			describe('when rawTransaction.dapp_name exists', async () => {
+			describe('when rawTransaction.dapp_name exists', () => {
 				it('should return result containing dapp property', async () =>
 					expect(dapp.dbRead(rawTransaction)).to.have.property('dapp'));
 
@@ -1124,7 +1124,7 @@ describe('dapp', async () => {
 			});
 		});
 
-		describe('ready', async () => {
+		describe('ready', () => {
 			it('should return true for single signature transaction', async () =>
 				expect(dapp.ready(transaction, sender)).to.equal(true));
 

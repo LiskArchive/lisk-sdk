@@ -15,8 +15,8 @@
 'use strict';
 
 module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
-	describe('@p2p : peers', async () => {
-		describe('after 4 blocks are created in the network', async () => {
+	describe('@p2p : peers', () => {
+		describe('after 4 blocks are created in the network', () => {
 			before(() => {
 				return network.waitForBlocksOnAllNodes(4);
 			});
@@ -97,7 +97,7 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 				});
 			});
 
-			describe('network height', async () => {
+			describe('network height', () => {
 				it('should be at most 4 in one peer (maxHeight)', async () => {
 					return network
 						.getAllNodesStatus()

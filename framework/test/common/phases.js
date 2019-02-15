@@ -24,7 +24,7 @@ function confirmation(
 	badTransactions,
 	pendingMultisignatures
 ) {
-	describe('after transactions get confirmed', async () => {
+	describe('after transactions get confirmed', () => {
 		before(() => waitFor.confirmations(_.map(goodTransactions, 'id')));
 
 		it('bad transactions should not be confirmed', async () =>

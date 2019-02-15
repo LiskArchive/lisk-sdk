@@ -21,7 +21,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-describe('system test (blocks) - chain/applyBlock', async () => {
+describe('system test (blocks) - chain/applyBlock', () => {
 	const transferAmount = 100000000 * 100;
 	let library;
 	let storage;
@@ -98,7 +98,7 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 		);
 	});
 
-	describe('applyBlock', async () => {
+	describe('applyBlock', () => {
 		let block;
 		let blockTransaction1;
 		let blockTransaction2;
@@ -124,7 +124,7 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 			);
 		});
 
-		describe('undoUnconfirmedList', async () => {
+		describe('undoUnconfirmedList', () => {
 			let transaction3;
 			let transaction4;
 
@@ -172,7 +172,7 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 				);
 			});
 
-			describe('after applying a new block', async () => {
+			describe('after applying a new block', () => {
 				beforeEach(done => {
 					library.modules.blocks.chain.applyBlock(block, true, done);
 				});
@@ -194,8 +194,8 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 			});
 		});
 
-		describe('applyUnconfirmedStep', async () => {
-			describe('after applying new block fails on applyUnconfirmedStep', async () => {
+		describe('applyUnconfirmedStep', () => {
+			describe('after applying new block fails on applyUnconfirmedStep', () => {
 				beforeEach(done => {
 					// Making block invalid
 					block.transactions[0].asset.delegate.username =
@@ -237,7 +237,7 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 				});
 			});
 
-			describe('after applying new block passes', async () => {
+			describe('after applying new block passes', () => {
 				beforeEach(done => {
 					library.modules.blocks.chain.applyBlock(block, true, done);
 				});
@@ -262,9 +262,9 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 			});
 		});
 
-		describe('applyConfirmedStep', async () => {
+		describe('applyConfirmedStep', () => {
 			const randomUsername = randomUtil.username();
-			describe('after applying new block fails', async () => {
+			describe('after applying new block fails', () => {
 				beforeEach(done => {
 					// Making mem_account invalid
 					library.logic.account.set(
@@ -328,7 +328,7 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 				});
 			});
 
-			describe('after applying a new block', async () => {
+			describe('after applying a new block', () => {
 				beforeEach(done => {
 					library.modules.blocks.chain.applyBlock(block, true, done);
 				});
@@ -353,8 +353,8 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 			});
 		});
 
-		describe('saveBlock', async () => {
-			describe('when block contains invalid transaction - timestamp out of postgres integer range', async () => {
+		describe('saveBlock', () => {
+			describe('when block contains invalid transaction - timestamp out of postgres integer range', () => {
 				const auxBlock = {
 					blockSignature:
 						'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
@@ -397,7 +397,7 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 				});
 			});
 
-			describe('when block is invalid - previousBlockId not exists', async () => {
+			describe('when block is invalid - previousBlockId not exists', () => {
 				const auxBlock = {
 					blockSignature:
 						'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
@@ -427,8 +427,8 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 			});
 		});
 
-		describe('saveBlockStep', async () => {
-			describe('after applying new block fails', async () => {
+		describe('saveBlockStep', () => {
+			describe('after applying new block fails', () => {
 				let blockId;
 				beforeEach(done => {
 					blockId = block.id;
@@ -486,7 +486,7 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 				});
 			});
 
-			describe('after applying a new block', async () => {
+			describe('after applying a new block', () => {
 				beforeEach(done => {
 					library.modules.blocks.chain.applyBlock(block, true, done);
 				});

@@ -77,7 +77,7 @@ const expectValidTransaction = (result, transaction, extended = true) => {
 	}
 };
 
-describe('Transaction', async () => {
+describe('Transaction', () => {
 	let adapter;
 	let storage;
 	let validTransactionSQLs;
@@ -253,7 +253,7 @@ describe('Transaction', async () => {
 		expect(Transaction.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', async () => {
+	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Transaction.prototype.constructor.length).to.be.eql(1);
 		});
@@ -291,7 +291,7 @@ describe('Transaction', async () => {
 		});
 	});
 
-	describe('getOne()', async () => {
+	describe('getOne()', () => {
 		it('should accept only valid filters', async () => {
 			// Arrange
 			const aTransaction = new transactionsFixtures.Transaction({
@@ -388,7 +388,7 @@ describe('Transaction', async () => {
 			// Assert
 		});
 
-		describe('filters', async () => {
+		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				// Arrange
@@ -401,7 +401,7 @@ describe('Transaction', async () => {
 		});
 	});
 
-	describe('get()', async () => {
+	describe('get()', () => {
 		beforeEach(() => sinonSandbox.restore());
 		it('should accept only valid filters', async () => {
 			// Arrange
@@ -624,7 +624,7 @@ describe('Transaction', async () => {
 			expect(result).to.be.eql(_.orderBy(result, 'id', 'desc'));
 		});
 
-		describe('filters', async () => {
+		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				const transaction = new Transaction(adapter);
@@ -635,13 +635,13 @@ describe('Transaction', async () => {
 		});
 	});
 
-	describe('delete()', async () => {
+	describe('delete()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Transaction.prototype.delete).to.throw(NonSupportedOperationError);
 		});
 	});
 
-	describe('isPersisted()', async () => {
+	describe('isPersisted()', () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'trs');
 		});
@@ -814,7 +814,7 @@ describe('Transaction', async () => {
 		});
 	});
 
-	describe('count()', async () => {
+	describe('count()', () => {
 		it('should accept only valid filters');
 		it('should throw error for invalid filters');
 		it('should resolve with integer value if matching record found', async () => {
@@ -865,7 +865,7 @@ describe('Transaction', async () => {
 		});
 	});
 
-	describe('create()', async () => {
+	describe('create()', () => {
 		it('should save single transaction', async () => {
 			const block = seeder.getLastBlock();
 			const transaction = new transactionsFixtures.Transaction({

@@ -16,7 +16,7 @@
 
 const SlaveToMasterSender = require('../../../../../../../../src/modules/chain/api/ws/workers/slave_to_master_sender');
 
-describe('SlaveToMasterSender', async () => {
+describe('SlaveToMasterSender', () => {
 	let slaveWAMPServerMock;
 	let slaveToMasterSender;
 	let validNonce;
@@ -45,7 +45,7 @@ describe('SlaveToMasterSender', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should have slaveWAMPServer assigned', done => {
 			expect(slaveToMasterSender)
 				.to.have.property('slaveWAMPServer')
@@ -54,7 +54,7 @@ describe('SlaveToMasterSender', async () => {
 		});
 	});
 
-	describe('send', async () => {
+	describe('send', () => {
 		let expectedPayload;
 		let validProcedureName;
 		let validPeer;
@@ -74,7 +74,7 @@ describe('SlaveToMasterSender', async () => {
 			done();
 		});
 
-		describe('should call sendToMaster with', async () => {
+		describe('should call sendToMaster with', () => {
 			beforeEach(done => {
 				slaveToMasterSender.send(
 					validProcedureName,
@@ -108,7 +108,7 @@ describe('SlaveToMasterSender', async () => {
 		});
 	});
 
-	describe('getPeer', async () => {
+	describe('getPeer', () => {
 		let expectedPayload;
 
 		beforeEach(done => {
@@ -153,7 +153,7 @@ describe('SlaveToMasterSender', async () => {
 			});
 		});
 
-		describe('should call sendToMaster with', async () => {
+		describe('should call sendToMaster with', () => {
 			beforeEach(done => {
 				slaveToMasterSender.getPeer(validNonce, validCb);
 				done();

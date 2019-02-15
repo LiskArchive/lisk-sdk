@@ -22,7 +22,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - checking validated second signature registrations against other transaction types', async () => {
+describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -69,7 +69,7 @@ describe('system test (type 1) - checking validated second signature registratio
 		});
 	});
 
-	describe('after forging one block', async () => {
+	describe('after forging one block', () => {
 		before(done => {
 			localCommon.forge(library, async () => {
 				done();
@@ -102,7 +102,7 @@ describe('system test (type 1) - checking validated second signature registratio
 			});
 		});
 
-		describe('adding to pool other transaction types from the same account', async () => {
+		describe('adding to pool other transaction types from the same account', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (
 					key !== 'SIGNATURE' &&

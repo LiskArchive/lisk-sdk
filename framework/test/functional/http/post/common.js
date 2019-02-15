@@ -23,7 +23,7 @@ const randomUtil = require('../../../common/utils/random');
 const errorCodes = require('../../../../src/modules/chain/helpers/api_codes');
 
 function invalidAssets(option, badTransactions) {
-	describe('using invalid asset values', async () => {
+	describe('using invalid asset values', () => {
 		let transaction;
 
 		beforeEach(done => {
@@ -66,7 +66,7 @@ function invalidAssets(option, badTransactions) {
 			done();
 		});
 
-		describe('without option', async () => {
+		describe('without option', () => {
 			typesRepresentatives.allTypes.forEach(test => {
 				it(`using ${test.description} should fail`, async () => {
 					transaction.asset = test.input;
@@ -96,7 +96,7 @@ function invalidAssets(option, badTransactions) {
 					});
 			});
 		});
-		describe(`with option: ${option}`, async () => {
+		describe(`with option: ${option}`, () => {
 			typesRepresentatives.allTypes.forEach(test => {
 				it(`using ${test.description} should fail`, async () => {
 					transaction.asset[option] = test.input;

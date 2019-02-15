@@ -17,7 +17,7 @@
 require('../../functional.js');
 const apiHelpers = require('../../../common/helpers/api');
 
-describe('GET /unknown_endpoint', async () => {
+describe('GET /unknown_endpoint', () => {
 	it('should fail with error 404', async () => {
 		return apiHelpers.getNotFoundEndpointPromise().then(res => {
 			expect(res.error).is.not.empty;

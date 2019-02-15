@@ -27,7 +27,7 @@ const errorCodes = require('../../../../src/modules/chain/helpers/api_codes');
 const { NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 4) register multisignature', async () => {
+describe('POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
 		incorrectly_offline_signed: new Scenarios.Multisig(),
 		offline_signed_empty_signatures: new Scenarios.Multisig(),
@@ -69,9 +69,9 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 		});
 	});
 
-	describe('transactions processing', async () => {
-		describe('signatures property', async () => {
-			describe('correctly offline signed transaction', async () => {
+	describe('transactions processing', () => {
+		describe('signatures property', () => {
+			describe('correctly offline signed transaction', () => {
 				it('Parameter ready set to false, no signatures present, should be ok', async () => {
 					const scenario = scenarios.offline_not_signed_with_ready_false;
 
@@ -114,7 +114,7 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 				});
 			});
 
-			describe('incorrectly offline signed transaction', async () => {
+			describe('incorrectly offline signed transaction', () => {
 				it('using null inside array should fail', async () => {
 					const scenario = scenarios.incorrectly_offline_signed;
 					scenario.multiSigTransaction.signatures = [null];
@@ -375,7 +375,7 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 			});
 		});
 
-		describe('requesterPublicKey property', async () => {
+		describe('requesterPublicKey property', () => {
 			it('sending multisig transaction offline signed should be ok and confirmed', async () => {
 				const scenario = scenarios.requesterPublicKey;
 
@@ -426,7 +426,7 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(
 			goodTransactions,
 			badTransactions,

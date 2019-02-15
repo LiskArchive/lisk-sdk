@@ -23,7 +23,7 @@ const slots = require('../../../../src/modules/chain/helpers/slots');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /blocks', async () => {
+describe('GET /blocks', () => {
 	const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 
 	// Testnet genesis block data
@@ -50,8 +50,8 @@ describe('GET /blocks', async () => {
 		return waitFor.blocksPromise(2, null);
 	});
 
-	describe('?', async () => {
-		describe('blockId', async () => {
+	describe('?', () => {
+		describe('blockId', () => {
 			it('using invalid blockId = "InvalidId" format should fail with error', async () => {
 				return blocksEndpoint
 					.makeRequest({ blockId: 'InvalidId' }, 400)
@@ -79,7 +79,7 @@ describe('GET /blocks', async () => {
 			});
 		});
 
-		describe('height', async () => {
+		describe('height', () => {
 			it('using invalid height = 0 should fail with error', async () => {
 				return blocksEndpoint.makeRequest({ height: 0 }, 400).then(res => {
 					expectSwaggerParamError(res, 'height');
@@ -113,7 +113,7 @@ describe('GET /blocks', async () => {
 			});
 		});
 
-		describe('fromTimestamp', async () => {
+		describe('fromTimestamp', () => {
 			it('using invalid fromTimestamp should fail', async () => {
 				return blocksEndpoint
 					.makeRequest(
@@ -146,7 +146,7 @@ describe('GET /blocks', async () => {
 			});
 		});
 
-		describe('toTimestamp', async () => {
+		describe('toTimestamp', () => {
 			it('using invalid toTimestamp should fail', async () => {
 				return blocksEndpoint
 					.makeRequest(
@@ -179,7 +179,7 @@ describe('GET /blocks', async () => {
 			});
 		});
 
-		describe('generatorPublicKey', async () => {
+		describe('generatorPublicKey', () => {
 			it('using invalid generatorPublicKey = "InvalidKey" format should fail with error', async () => {
 				return blocksEndpoint
 					.makeRequest({ generatorPublicKey: 'InvalidKey' }, 400)
@@ -200,8 +200,8 @@ describe('GET /blocks', async () => {
 			});
 		});
 
-		describe('sort', async () => {
-			describe('height', async () => {
+		describe('sort', () => {
+			describe('height', () => {
 				it('using "height:asc" should be ok', async () => {
 					return blocksEndpoint
 						.makeRequest({ sort: 'height:asc' }, 200)
@@ -240,7 +240,7 @@ describe('GET /blocks', async () => {
 				});
 			});
 
-			describe('totalAmount', async () => {
+			describe('totalAmount', () => {
 				it('using "totalAmount:asc" should be ok', async () => {
 					return blocksEndpoint
 						.makeRequest({ sort: 'totalAmount:asc' }, 200)
@@ -280,7 +280,7 @@ describe('GET /blocks', async () => {
 				});
 			});
 
-			describe('totalFee', async () => {
+			describe('totalFee', () => {
 				it('using "totalFee:asc" should be ok', async () => {
 					return blocksEndpoint
 						.makeRequest({ sort: 'totalFee:asc' }, 200)
@@ -320,7 +320,7 @@ describe('GET /blocks', async () => {
 				});
 			});
 
-			describe('timestamp', async () => {
+			describe('timestamp', () => {
 				it('using "timestamp:asc" should be ok', async () => {
 					return blocksEndpoint
 						.makeRequest({ sort: 'timestamp:asc' }, 200)
@@ -349,7 +349,7 @@ describe('GET /blocks', async () => {
 			});
 		});
 
-		describe('limit', async () => {
+		describe('limit', () => {
 			it('using string should return bad request response', async () => {
 				return blocksEndpoint.makeRequest({ limit: 'one' }, 400).then(res => {
 					expectSwaggerParamError(res, 'limit');
@@ -387,7 +387,7 @@ describe('GET /blocks', async () => {
 			});
 		});
 
-		describe('offset', async () => {
+		describe('offset', () => {
 			it('using string should return bad request response', async () => {
 				return blocksEndpoint.makeRequest({ offset: 'one' }, 400).then(res => {
 					expectSwaggerParamError(res, 'offset');

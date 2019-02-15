@@ -28,7 +28,7 @@ const RewiredMultisignatures = rewire(
 
 const validAccount = new accountsFixtures.Account();
 
-describe('multisignatures', async () => {
+describe('multisignatures', () => {
 	let __private;
 	let self;
 	let library;
@@ -122,7 +122,7 @@ describe('multisignatures', async () => {
 		);
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should assign params to library', async () => {
 			expect(library.logger).to.eql(validScope.logger);
 			expect(library.db).to.eql(validScope.db);
@@ -151,7 +151,7 @@ describe('multisignatures', async () => {
 		it('should call callback with result = self', async () =>
 			expect(self).to.be.deep.equal(multisignaturesInstance));
 
-		describe('__private', async () => {
+		describe('__private', () => {
 			it('should call library.logic.transaction.attachAssetType', async () =>
 				expect(library.logic.transaction.attachAssetType).to.have.been
 					.calledOnce);
@@ -163,12 +163,12 @@ describe('multisignatures', async () => {
 		});
 	});
 
-	describe('onBind', async () => {
+	describe('onBind', () => {
 		it('should set modules', async () =>
 			expect(get('modules')).to.deep.equal(stubs.bindings.modules));
 	});
 
-	describe('__private.isValidSignature', async () => {
+	describe('__private.isValidSignature', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
 			data.transaction = new transactionsFixtures.Transaction({
@@ -191,8 +191,8 @@ describe('multisignatures', async () => {
 			done();
 		});
 
-		describe('when signature data contains publicKey', async () => {
-			describe('when publicKey is not present as member of multisignature account in transaction', async () => {
+		describe('when signature data contains publicKey', () => {
+			describe('when publicKey is not present as member of multisignature account in transaction', () => {
 				it('should return false', async () => {
 					data.signature.publicKey = 'not_present';
 					const result = __private.isValidSignature(
@@ -213,9 +213,9 @@ describe('multisignatures', async () => {
 				});
 			});
 
-			describe('when publicKey is present as member of multisignature account in transaction', async () => {
-				describe('after calling library.logic.transaction.verifySignature', async () => {
-					describe('when validation is successfull', async () => {
+			describe('when publicKey is present as member of multisignature account in transaction', () => {
+				describe('after calling library.logic.transaction.verifySignature', () => {
+					describe('when validation is successfull', () => {
 						it('should return true', async () => {
 							stubs.verifySignature.returns(true);
 							const result = __private.isValidSignature(
@@ -234,7 +234,7 @@ describe('multisignatures', async () => {
 						});
 					});
 
-					describe('when validation fails', async () => {
+					describe('when validation fails', () => {
 						it('should return false', async () => {
 							stubs.verifySignature.returns(false);
 							const result = __private.isValidSignature(
@@ -253,7 +253,7 @@ describe('multisignatures', async () => {
 						});
 					});
 
-					describe('when error is thrown', async () => {
+					describe('when error is thrown', () => {
 						it('should return true', async () => {
 							stubs.verifySignature.throws('verifySignature#ERR');
 							const result = __private.isValidSignature(
@@ -285,14 +285,14 @@ describe('multisignatures', async () => {
 			});
 		});
 
-		describe('when signature data contains no publicKey', async () => {
+		describe('when signature data contains no publicKey', () => {
 			beforeEach(done => {
 				delete data.signature.publicKey;
 				done();
 			});
 
-			describe('after calling library.logic.transaction.verifySignature', async () => {
-				describe('when membersPublicKeys is empty', async () => {
+			describe('after calling library.logic.transaction.verifySignature', () => {
+				describe('when membersPublicKeys is empty', () => {
 					it('should return false', async () => {
 						data.membersPublicKeys = [];
 
@@ -307,13 +307,13 @@ describe('multisignatures', async () => {
 					});
 				});
 
-				describe('when membersPublicKeys contains 1 entry', async () => {
+				describe('when membersPublicKeys contains 1 entry', () => {
 					beforeEach(done => {
 						data.membersPublicKeys = [data.membersPublicKeys[0]];
 						done();
 					});
 
-					describe('when validation is successfull', async () => {
+					describe('when validation is successfull', () => {
 						it('should return true', async () => {
 							stubs.verifySignature.returns(true);
 							const result = __private.isValidSignature(
@@ -331,7 +331,7 @@ describe('multisignatures', async () => {
 						});
 					});
 
-					describe('when validation fails', async () => {
+					describe('when validation fails', () => {
 						it('should return false', async () => {
 							stubs.verifySignature.returns(false);
 							const result = __private.isValidSignature(
@@ -349,7 +349,7 @@ describe('multisignatures', async () => {
 						});
 					});
 
-					describe('when error is thrown', async () => {
+					describe('when error is thrown', () => {
 						it('should return true', async () => {
 							stubs.verifySignature.throws('verifySignature#ERR');
 							const result = __private.isValidSignature(
@@ -379,9 +379,9 @@ describe('multisignatures', async () => {
 					});
 				});
 
-				describe('when membersPublicKeys contains 2 entries', async () => {
-					describe('when first entry passes validation', async () => {
-						describe('when second entry fails validation', async () => {
+				describe('when membersPublicKeys contains 2 entries', () => {
+					describe('when first entry passes validation', () => {
+						describe('when second entry fails validation', () => {
 							it('should return true', async () => {
 								stubs.verifySignature
 									.withArgs(
@@ -413,7 +413,7 @@ describe('multisignatures', async () => {
 							});
 						});
 
-						describe('when error is thrown for second entry', async () => {
+						describe('when error is thrown for second entry', () => {
 							it('should return true', async () => {
 								stubs.verifySignature
 									.withArgs(
@@ -446,8 +446,8 @@ describe('multisignatures', async () => {
 						});
 					});
 
-					describe('when second entry passes validation', async () => {
-						describe('when first entry fails validation', async () => {
+					describe('when second entry passes validation', () => {
+						describe('when first entry fails validation', () => {
 							it('should return true', async () => {
 								stubs.verifySignature
 									.withArgs(
@@ -484,7 +484,7 @@ describe('multisignatures', async () => {
 							});
 						});
 
-						describe('when error is thrown for first entry', async () => {
+						describe('when error is thrown for first entry', () => {
 							it('should return false', async () => {
 								stubs.verifySignature
 									.withArgs(
@@ -528,7 +528,7 @@ describe('multisignatures', async () => {
 						});
 					});
 
-					describe('when no entry passes validation', async () => {
+					describe('when no entry passes validation', () => {
 						it('should return false', async () => {
 							stubs.verifySignature
 								.withArgs(
@@ -569,7 +569,7 @@ describe('multisignatures', async () => {
 		});
 	});
 
-	describe('__private.validateSignature', async () => {
+	describe('__private.validateSignature', () => {
 		beforeEach(done => {
 			data.sender = new accountsFixtures.Account();
 			stubs.isValidSignature = sinonSandbox.stub();
@@ -577,8 +577,8 @@ describe('multisignatures', async () => {
 			done();
 		});
 
-		describe('after calling __private.isValidSignature', async () => {
-			describe('when signature is invalid', async () => {
+		describe('after calling __private.isValidSignature', () => {
+			describe('when signature is invalid', () => {
 				it('should call a callback with Error instance', done => {
 					stubs.isValidSignature.returns(false);
 					__private.validateSignature(
@@ -603,7 +603,7 @@ describe('multisignatures', async () => {
 				});
 			});
 
-			describe('when signature is valid', async () => {
+			describe('when signature is valid', () => {
 				beforeEach(done => {
 					stubs.ready = sinonSandbox.stub().returns('ready');
 					library.logic.multisignature = { ready: stubs.ready };
@@ -648,7 +648,7 @@ describe('multisignatures', async () => {
 		});
 	});
 
-	describe('__private.processSignatureForMultisignatureAccountCreation', async () => {
+	describe('__private.processSignatureForMultisignatureAccountCreation', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
 			data.transaction = new transactionsFixtures.Transaction({
@@ -675,7 +675,7 @@ describe('multisignatures', async () => {
 			);
 		});
 
-		describe('when calling __private.validateSignature', async () => {
+		describe('when calling __private.validateSignature', () => {
 			it('should be called with proper data', async () => {
 				const memberPublicKeys = ['publicKey1', 'publicKey2'];
 				const sender = {};
@@ -690,7 +690,7 @@ describe('multisignatures', async () => {
 		});
 	});
 
-	describe('__private.processSignatureFromMultisignatureAccount', async () => {
+	describe('__private.processSignatureFromMultisignatureAccount', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
 			data.sender = new accountsFixtures.Account();
@@ -714,7 +714,7 @@ describe('multisignatures', async () => {
 			done();
 		});
 
-		describe('when modules.accounts.getAccount returns an error', async () => {
+		describe('when modules.accounts.getAccount returns an error', () => {
 			it('should call a callback with Error instance', done => {
 				stubs.getAccount.callsArgWith(1, 'getAccount#ERR');
 
@@ -744,7 +744,7 @@ describe('multisignatures', async () => {
 			});
 		});
 
-		describe('when modules.accounts.getAccount returns no error but sender = undefined', async () => {
+		describe('when modules.accounts.getAccount returns no error but sender = undefined', () => {
 			it('should call a callback with Error instance', done => {
 				const sender = undefined;
 				stubs.getAccount.callsArgWith(1, null, sender);
@@ -775,8 +775,8 @@ describe('multisignatures', async () => {
 			});
 		});
 
-		describe('when modules.accounts.getAccount returns no error', async () => {
-			describe('when calling __private.validateSignature', async () => {
+		describe('when modules.accounts.getAccount returns no error', () => {
+			describe('when calling __private.validateSignature', () => {
 				it('should be called with proper data', done => {
 					stubs.getAccount.callsArgWith(1, null, data.sender);
 
@@ -804,7 +804,7 @@ describe('multisignatures', async () => {
 		});
 	});
 
-	describe('processSignature', async () => {
+	describe('processSignature', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
 
@@ -845,7 +845,7 @@ describe('multisignatures', async () => {
 			done();
 		});
 
-		describe('when signature is not present', async () => {
+		describe('when signature is not present', () => {
 			it('should call a callback with Error instance', done => {
 				const signature = undefined;
 				self.processSignature(signature, err => {
@@ -861,7 +861,7 @@ describe('multisignatures', async () => {
 			});
 		});
 
-		describe('when modules.transactions.getMultisignatureTransaction returns no transaction', async () => {
+		describe('when modules.transactions.getMultisignatureTransaction returns no transaction', () => {
 			it('should call a callback with Error instance', done => {
 				stubs.getMultisignatureTransaction.returns(undefined);
 				self.processSignature(data.signature, err => {
@@ -878,7 +878,7 @@ describe('multisignatures', async () => {
 			});
 		});
 
-		describe('when signature already exists in transaction', async () => {
+		describe('when signature already exists in transaction', () => {
 			it('should call a callback with Error instance', done => {
 				data.transaction.signatures = ['signature1'];
 				self.processSignature(data.signature, err => {
@@ -899,7 +899,7 @@ describe('multisignatures', async () => {
 			});
 		});
 
-		describe('when transaction have type MULTI', async () => {
+		describe('when transaction have type MULTI', () => {
 			it('should call __private.processSignatureForMultisignatureAccountCreation with proper params', done => {
 				self.processSignature(data.signature, err => {
 					expect(
@@ -915,7 +915,7 @@ describe('multisignatures', async () => {
 			});
 		});
 
-		describe('when transaction have type other than MULTI', async () => {
+		describe('when transaction have type other than MULTI', () => {
 			it('should call __private.processSignatureFromMultisignatureAccount with proper params', done => {
 				data.transaction.type = transactionTypes.SEND;
 				self.processSignature(data.signature, err => {
@@ -933,7 +933,7 @@ describe('multisignatures', async () => {
 		});
 	});
 
-	describe('getGroup', async () => {
+	describe('getGroup', () => {
 		beforeEach(done => {
 			stubs.logic.account.getMultiSignature = sinonSandbox
 				.stub()
@@ -1064,7 +1064,7 @@ describe('multisignatures', async () => {
 		});
 	});
 
-	describe('isLoaded', async () => {
+	describe('isLoaded', () => {
 		it('should return true if modules exists', async () =>
 			expect(self.isLoaded()).to.equal(true));
 

@@ -29,7 +29,7 @@ const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
 const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
 
 module.exports = function(configurations, network) {
-	describe('@propagation : multisig transactions', async () => {
+	describe('@propagation : multisig transactions', () => {
 		let transactions = [];
 		const accounts = [];
 		const numberOfTransactions = 3;
@@ -50,7 +50,7 @@ module.exports = function(configurations, network) {
 			);
 		};
 
-		describe('prepare accounts', async () => {
+		describe('prepare accounts', () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
@@ -76,7 +76,7 @@ module.exports = function(configurations, network) {
 			});
 		});
 
-		describe('sending multisignature registrations', async () => {
+		describe('sending multisignature registrations', () => {
 			before(() => {
 				let i = 0;
 				let j = 0;
@@ -117,7 +117,7 @@ module.exports = function(configurations, network) {
 			});
 		});
 
-		describe('sending signatures for the multisig registration', async () => {
+		describe('sending signatures for the multisig registration', () => {
 			before(() => {
 				return Promise.all(
 					numbers.map(member => {

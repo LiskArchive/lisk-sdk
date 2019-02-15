@@ -99,7 +99,7 @@ const rawValidTransaction = {
 	confirmations: 8343,
 };
 
-describe('transfer', async () => {
+describe('transfer', () => {
 	let transfer;
 	let transactionLogic;
 	let transferBindings;
@@ -129,7 +129,7 @@ describe('transfer', async () => {
 		application.cleanup(done);
 	});
 
-	describe('bind', async () => {
+	describe('bind', () => {
 		it('should be okay with correct params', async () =>
 			expect(() => {
 				transfer.bind(transferBindings.account);
@@ -138,7 +138,7 @@ describe('transfer', async () => {
 		after(() => transfer.bind(transferBindings.account));
 	});
 
-	describe('calculateFee', async () => {
+	describe('calculateFee', () => {
 		it('should return the correct fee for a transfer', async () =>
 			expect(
 				transfer.calculateFee(validTransaction).isEqualTo(new Bignum(FEES.SEND))
@@ -157,7 +157,7 @@ describe('transfer', async () => {
 		});
 	});
 
-	describe('verify', async () => {
+	describe('verify', () => {
 		it('should return error if recipientId is not set', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
@@ -183,13 +183,13 @@ describe('transfer', async () => {
 		});
 	});
 
-	describe('process', async () => {
+	describe('process', () => {
 		it('should be okay', done => {
 			transfer.process(validTransaction, validSender, done);
 		});
 	});
 
-	describe('getBytes', async () => {
+	describe('getBytes', () => {
 		it('should return null for empty asset', async () =>
 			expect(transfer.getBytes(validTransaction)).to.eql(null));
 
@@ -218,7 +218,7 @@ describe('transfer', async () => {
 		});
 	});
 
-	describe('applyConfirmed', async () => {
+	describe('applyConfirmed', () => {
 		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -276,7 +276,7 @@ describe('transfer', async () => {
 		});
 	});
 
-	describe('undoConfirmed', async () => {
+	describe('undoConfirmed', () => {
 		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -339,19 +339,19 @@ describe('transfer', async () => {
 		});
 	});
 
-	describe('applyUnconfirmed', async () => {
+	describe('applyUnconfirmed', () => {
 		it('should be okay with valid params', done => {
 			transfer.applyUnconfirmed(validTransaction, validSender, done);
 		});
 	});
 
-	describe('undoUnconfirmed', async () => {
+	describe('undoUnconfirmed', () => {
 		it('should be okay with valid params', done => {
 			transfer.undoUnconfirmed(validTransaction, validSender, done);
 		});
 	});
 
-	describe('objectNormalize', async () => {
+	describe('objectNormalize', () => {
 		it('should remove blockId from transaction', async () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.blockId = '9314232245035524467';
@@ -435,7 +435,7 @@ describe('transfer', async () => {
 		});
 	});
 
-	describe('dbRead', async () => {
+	describe('dbRead', () => {
 		it('should return null when data field is not set', async () =>
 			expect(transfer.dbRead(rawValidTransaction)).to.eql(null));
 
@@ -450,7 +450,7 @@ describe('transfer', async () => {
 		});
 	});
 
-	describe('ready', async () => {
+	describe('ready', () => {
 		it('should return true for single signature transaction', async () =>
 			expect(transfer.ready(validTransaction, validSender)).to.equal(true));
 

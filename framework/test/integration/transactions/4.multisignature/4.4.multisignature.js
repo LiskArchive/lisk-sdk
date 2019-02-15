@@ -18,7 +18,7 @@ const lisk = require('lisk-elements').default;
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
 
-describe('system test (type 4) - double multisignature registrations', async () => {
+describe('system test (type 4) - double multisignature registrations', () => {
 	let library;
 
 	const scenarios = {
@@ -87,7 +87,7 @@ describe('system test (type 4) - double multisignature registrations', async () 
 		);
 	});
 
-	describe('after forging one block', async () => {
+	describe('after forging one block', () => {
 		before(done => {
 			localCommon.forge(library, async () => {
 				done();

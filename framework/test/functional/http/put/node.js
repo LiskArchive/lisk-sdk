@@ -21,7 +21,7 @@ const apiHelpers = require('../../../common/helpers/api');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('PUT /node/status/forging', async () => {
+describe('PUT /node/status/forging', () => {
 	const validDelegate = genesisDelegates.delegates[0];
 	const updateForgingEndpoint = new SwaggerEndpoint('PUT /node/status/forging');
 	const forgingStatusEndpoint = new SwaggerEndpoint('GET /node/status/forging');

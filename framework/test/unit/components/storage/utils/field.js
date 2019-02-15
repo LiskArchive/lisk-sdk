@@ -18,7 +18,7 @@
 const Field = require('../../../../../src/components/storage/utils/field');
 const inputSerializers = require('../../../../../src/components/storage/utils/inputSerializers');
 
-describe('Field', async () => {
+describe('Field', () => {
 	beforeEach(async () => {
 		sinonSandbox
 			.stub(Field.prototype, 'generateFilters')
@@ -31,7 +31,7 @@ describe('Field', async () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('constructor()', async () => {
+	describe('constructor()', () => {
 		it('should fail without required param "name"', async () =>
 			expect(() => {
 				new Field();
@@ -71,7 +71,7 @@ describe('Field', async () => {
 		});
 	});
 
-	describe('getFilters()', async () => {
+	describe('getFilters()', () => {
 		it('should return the filters', async () => {
 			const field = new Field('name', 'type', {
 				filter: 'TEXT',
@@ -83,7 +83,7 @@ describe('Field', async () => {
 		});
 	});
 
-	describe('serializeValue()', async () => {
+	describe('serializeValue()', () => {
 		it('should return serialized value for field', async () => {
 			const field = new Field('name', 'type', {
 				filter: 'TEXT',

@@ -19,7 +19,7 @@ const transactionTypes = require('../../../../../../src/modules/chain/helpers/tr
 const ApiError = require('../../../../../../src/modules/chain/helpers/api_error');
 
 /* eslint-disable mocha/no-pending-tests */
-describe('signatures', async () => {
+describe('signatures', () => {
 	let library;
 
 	before(done => {
@@ -32,7 +32,7 @@ describe('signatures', async () => {
 		);
 	});
 
-	describe('isLoaded', async () => {
+	describe('isLoaded', () => {
 		let revert;
 
 		afterEach(() => revert());
@@ -58,7 +58,7 @@ describe('signatures', async () => {
 		});
 	});
 
-	describe('onBind', async () => {
+	describe('onBind', () => {
 		let privateModules;
 
 		beforeEach(() => {
@@ -68,7 +68,7 @@ describe('signatures', async () => {
 			});
 		});
 
-		describe('modules', async () => {
+		describe('modules', () => {
 			it('should assign accounts', async () =>
 				expect(privateModules).to.have.property(
 					'accounts',
@@ -88,7 +88,7 @@ describe('signatures', async () => {
 				));
 		});
 
-		describe('assetTypes', async () => {
+		describe('assetTypes', () => {
 			let signatureLogicSpy;
 
 			before(done => {
@@ -108,7 +108,7 @@ describe('signatures', async () => {
 		});
 	});
 
-	describe('shared.postSignature', async () => {
+	describe('shared.postSignature', () => {
 		const req = {
 			body: {
 				signature: 'aSignature',
@@ -135,7 +135,7 @@ describe('signatures', async () => {
 				signature: req.body,
 			}));
 
-		describe('when modules.transport.shared.postSignature fails with result', async () => {
+		describe('when modules.transport.shared.postSignature fails with result', () => {
 			it('should call callback with ApiError', done => {
 				// Arrange
 				postSignatureStub.yields(null, { success: false });
@@ -148,7 +148,7 @@ describe('signatures', async () => {
 				});
 			});
 
-			describe('when result.message = "Invalid signature body"', async () => {
+			describe('when result.message = "Invalid signature body"', () => {
 				it('should call callback with ApiError containing code = 400', done => {
 					// Force library.modules.transport.shared.postSignature to fail with custom message
 					// Arrange
@@ -165,7 +165,7 @@ describe('signatures', async () => {
 				});
 			});
 
-			describe('when result.message != "Invalid signature body"', async () => {
+			describe('when result.message != "Invalid signature body"', () => {
 				it('should call callback with ApiError containing code = 500', done => {
 					// Force library.modules.transport.shared.postSignature to fail with custom message
 					// Arrange
@@ -183,7 +183,7 @@ describe('signatures', async () => {
 			});
 		});
 
-		describe('when modules.transport.shared.postSignature succeeds with result', async () => {
+		describe('when modules.transport.shared.postSignature succeeds with result', () => {
 			let postSignatureError;
 			let postSignatureResult;
 

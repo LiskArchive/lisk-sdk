@@ -7,7 +7,7 @@ const randomUtil = require('../../common/utils/random');
 
 const exceptions = global.exceptions;
 
-describe('inert transactions', async () => {
+describe('inert transactions', () => {
 	let library;
 	const senderAccount = accountFixtures.genesis;
 	const recipientAccount = randomUtil.account();
@@ -37,7 +37,7 @@ describe('inert transactions', async () => {
 		library = lib;
 	});
 
-	describe('send funds to account', async () => {
+	describe('send funds to account', () => {
 		before(done => {
 			const transferTransaction = lisk.transaction.transfer({
 				recipientId: recipientAccount.address,
@@ -47,7 +47,7 @@ describe('inert transactions', async () => {
 			localCommon.addTransactionsAndForge(library, [transferTransaction], done);
 		});
 
-		describe('getting account before inert transaction', async () => {
+		describe('getting account before inert transaction', () => {
 			let beforeBlockSenderMemAccount;
 			let beforeBlockRecipientMemAccount;
 
@@ -77,7 +77,7 @@ describe('inert transactions', async () => {
 				);
 			});
 
-			describe('when forging block with inert type 0 transaction', async () => {
+			describe('when forging block with inert type 0 transaction', () => {
 				const inertTransaction = transferInertTransaction;
 
 				before(done => {
@@ -88,7 +88,7 @@ describe('inert transactions', async () => {
 					);
 				});
 
-				describe('details of the accounts', async () => {
+				describe('details of the accounts', () => {
 					let afterBlockSenderMemAccount;
 					let afterBlockRecipientMemAccount;
 
@@ -143,7 +143,7 @@ describe('inert transactions', async () => {
 					});
 				});
 
-				describe('transactions table', async () => {
+				describe('transactions table', () => {
 					let transactionFromDatabase;
 
 					before('get transaction from database', done => {
@@ -168,7 +168,7 @@ describe('inert transactions', async () => {
 					});
 				});
 
-				describe('after deleting block', async () => {
+				describe('after deleting block', () => {
 					let afterDeleteSenderMemAccount;
 					let afterDeleteRecipientMemAccount;
 
@@ -176,7 +176,7 @@ describe('inert transactions', async () => {
 						localCommon.deleteLastBlock(library, done);
 					});
 
-					describe('details of the account', async () => {
+					describe('details of the account', () => {
 						before('get sender and recipient accounts', done => {
 							async.parallel(
 								[
@@ -228,7 +228,7 @@ describe('inert transactions', async () => {
 						});
 					});
 
-					describe('transactions table', async () => {
+					describe('transactions table', () => {
 						let transactionsFilteredById;
 
 						before('get transaction from database', done => {
@@ -253,7 +253,7 @@ describe('inert transactions', async () => {
 				});
 			});
 
-			describe('when forging block with inert type 2 transaction', async () => {
+			describe('when forging block with inert type 2 transaction', () => {
 				const inertTransaction = delegateInertTransaction;
 
 				before(done => {
@@ -264,7 +264,7 @@ describe('inert transactions', async () => {
 					);
 				});
 
-				describe('details of the accounts', async () => {
+				describe('details of the accounts', () => {
 					let afterBlockRecipientMemAccount;
 
 					before('get recipient account', done => {
@@ -300,7 +300,7 @@ describe('inert transactions', async () => {
 					});
 				});
 
-				describe('transactions table', async () => {
+				describe('transactions table', () => {
 					let transactionFromDatabase;
 
 					before('get transaction from database', done => {
@@ -325,14 +325,14 @@ describe('inert transactions', async () => {
 					});
 				});
 
-				describe('after deleting block', async () => {
+				describe('after deleting block', () => {
 					let afterDeleteRecipientMemAccount;
 
 					before('deleting block', done => {
 						localCommon.deleteLastBlock(library, done);
 					});
 
-					describe('details of the accounts', async () => {
+					describe('details of the accounts', () => {
 						before('get recipient account', done => {
 							library.logic.account.get(
 								{ address: recipientAccount.address },
@@ -367,7 +367,7 @@ describe('inert transactions', async () => {
 						});
 					});
 
-					describe('transactions table', async () => {
+					describe('transactions table', () => {
 						let transactionsFilteredById;
 
 						before('get transaction from database', done => {
@@ -391,7 +391,7 @@ describe('inert transactions', async () => {
 					});
 				});
 			});
-			describe('when forging block with inert type 3 transaction', async () => {
+			describe('when forging block with inert type 3 transaction', () => {
 				const inertTransaction = voteInertTransaction;
 
 				before(done => {
@@ -402,7 +402,7 @@ describe('inert transactions', async () => {
 					);
 				});
 
-				describe('details of the accounts', async () => {
+				describe('details of the accounts', () => {
 					let afterBlockRecipientMemAccount;
 
 					before('get recipient account', done => {
@@ -434,7 +434,7 @@ describe('inert transactions', async () => {
 					});
 				});
 
-				describe('transactions table', async () => {
+				describe('transactions table', () => {
 					let transactionFromDatabase;
 
 					before('get transaction from database', done => {
@@ -459,12 +459,12 @@ describe('inert transactions', async () => {
 					});
 				});
 
-				describe('after deleting block', async () => {
+				describe('after deleting block', () => {
 					before('deleting block', done => {
 						localCommon.deleteLastBlock(library, done);
 					});
 
-					describe('details of the accounts', async () => {
+					describe('details of the accounts', () => {
 						let afterDeleteRecipientMemAccount;
 
 						before('get recipient account', done => {
@@ -496,7 +496,7 @@ describe('inert transactions', async () => {
 						});
 					});
 
-					describe('transactions table', async () => {
+					describe('transactions table', () => {
 						let transactionsFilteredById;
 
 						before('get transaction from database', done => {

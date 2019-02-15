@@ -17,8 +17,8 @@
 const wsRPC = require('../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
 	.wsRPC;
 
-describe('wsRPC', async () => {
-	describe('setServer', async () => {
+describe('wsRPC', () => {
+	describe('setServer', () => {
 		before(() => wsRPC.setServer(null));
 
 		after(() => wsRPC.setServer(null));
@@ -31,7 +31,7 @@ describe('wsRPC', async () => {
 				.eql({ name: 'my ws server' });
 		});
 
-		describe('getter', async () => {
+		describe('getter', () => {
 			it('should throw an error when setting server to null', async () => {
 				wsRPC.setServer(null);
 				return expect(wsRPC.getServer).to.throw(
@@ -55,7 +55,7 @@ describe('wsRPC', async () => {
 		});
 	});
 
-	describe('getServer', async () => {
+	describe('getServer', () => {
 		before(() => wsRPC.setServer(null));
 
 		after(() => wsRPC.setServer(null));
