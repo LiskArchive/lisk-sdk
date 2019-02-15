@@ -39,11 +39,13 @@ module.exports = class Controller {
 	/**
 	 * Controller responsible to run the application
 	 *
+	 * @param {string} appLabel - Application label
 	 * @param {Object} componentConfig - Configurations for components
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
 	 */
-	constructor(componentConfig, logger) {
+	constructor(appLabel, componentConfig, logger) {
 		this.logger = logger;
+		this.appLabel = appLabel;
 		this.logger.info('Initializing controller');
 
 		this.componentConfig = componentConfig;
