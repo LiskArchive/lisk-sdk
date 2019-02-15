@@ -36,6 +36,7 @@
 		"prepublishOnly": "npm run check:dependencies"
 	},
 	"dependencies": {
+		"@liskhq/lisk-transactions": "2.1.0-alpha.0",
 		"ajv": "=6.7.0",
 		"async": "2.6.1",
 		"bignumber.js": "8.0.2",
