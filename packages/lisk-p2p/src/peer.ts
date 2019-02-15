@@ -25,6 +25,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	ProtocolNodeInfo,
+	ProtocolPeerInfo,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -36,6 +37,7 @@ import {
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
+	validateStatusProtocolPeerInfo,
 } from './validation';
 
 // This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
@@ -44,7 +46,11 @@ interface ClientOptionsUpdated {
 	readonly port: number;
 	readonly query: string;
 	readonly autoConnect: boolean;
+	readonly autoReconnect: boolean;
 	readonly pingTimeoutDisabled: boolean;
+	readonly multiplex: boolean;
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
 }
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
@@ -58,7 +64,7 @@ export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
-export const EVENT_DISCONNECT_OUTBOUND = 'disconnectOutbound';
+export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
 export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 
@@ -69,6 +75,9 @@ export const REMOTE_EVENT_MESSAGE = 'remote-message';
 export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_NODE_INFO = 'status';
 export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
+
+export const DEFAULT_CONNECT_TIMEOUT = 2000;
+export const DEFAULT_ACK_TIMEOUT = 2000;
 
 type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
@@ -103,12 +112,33 @@ const convertNodeInfoToLegacyFormat = (
 	nonce: nodeInfo.options ? (nodeInfo.options.nonce as string) : '',
 });
 
+const convertLegacyPeerInfoToNewFormat = (
+	ipAddress: string,
+	peerInfo: ProtocolPeerInfo,
+): P2PDiscoveredPeerInfo => ({
+	ipAddress,
+	wsPort: peerInfo.wsPort,
+	height: peerInfo.height,
+	os: peerInfo.os,
+	version: peerInfo.version,
+	options: {
+		...peerInfo
+	},
+	isDiscoveredPeer: true,
+});
+
+export interface PeerConfig {
+	readonly connectTimeout?: number;
+	readonly ackTimeout?: number;
+}
+
 export class Peer extends EventEmitter {
 	private readonly _id: string;
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
 	private _peerInfo: P2PPeerInfo;
+	private readonly _peerConfig: PeerConfig;
 	private _peerDetailedInfo: P2PDiscoveredPeerInfo | undefined;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
@@ -127,9 +157,10 @@ export class Peer extends EventEmitter {
 	) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
-	public constructor(peerInfo: P2PPeerInfo, inboundSocket?: SCServerSocket) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig, inboundSocket?: SCServerSocket) {
 		super();
 		this._peerInfo = peerInfo;
+		this._peerConfig = peerConfig ? peerConfig : {};
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
@@ -252,6 +283,7 @@ export class Peer extends EventEmitter {
 			os: newPeerInfo.os,
 			version: newPeerInfo.version,
 			options: newPeerInfo.options,
+			isDiscoveredPeer: true
 		};
 	}
 
@@ -391,7 +423,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
@@ -400,7 +432,25 @@ export class Peer extends EventEmitter {
 			return validatePeerInfoList(response.data);
 		} catch (error) {
 			throw new RPCResponseError(
-				'Failed to fetch peerlist of a peer',
+				'Failed to fetch peer list of peer',
+				error,
+				this.ipAddress,
+				this.wsPort,
+			);
+		}
+	}
+
+	public async fetchStatus(): Promise<P2PDiscoveredPeerInfo> {
+		try {
+			const response: P2PResponsePacket = await this.request({
+				procedure: REMOTE_RPC_GET_NODE_INFO,
+			});
+			const rawPeerInfo = validateStatusProtocolPeerInfo(response.data);
+
+			return convertLegacyPeerInfoToNewFormat(this.ipAddress, rawPeerInfo);
+		} catch (error) {
+			throw new RPCResponseError(
+				'Failed to fetch peer info of peer',
 				error,
 				this.ipAddress,
 				this.wsPort,
@@ -413,6 +463,11 @@ export class Peer extends EventEmitter {
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
 
+		const connectTimeout = this._peerConfig.connectTimeout ?
+			this._peerConfig.connectTimeout : DEFAULT_CONNECT_TIMEOUT;
+		const ackTimeout = this._peerConfig.ackTimeout ?
+			this._peerConfig.ackTimeout : DEFAULT_ACK_TIMEOUT;
+
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
 			port: this._wsPort,
@@ -423,7 +478,11 @@ export class Peer extends EventEmitter {
 						? JSON.stringify(legacyNodeInfo.options)
 						: undefined,
 			}),
+			connectTimeout,
+			ackTimeout,
+			multiplex: false,
 			autoConnect: false,
+			autoReconnect: false,
 			pingTimeoutDisabled: true,
 		};
 
@@ -449,7 +508,8 @@ export class Peer extends EventEmitter {
 		});
 
 		outboundSocket.on('close', (code, reason) => {
-			this.emit(EVENT_DISCONNECT_OUTBOUND, {
+			this.emit(EVENT_CLOSE_OUTBOUND, {
+				peerInfo: this._peerInfo,
 				code,
 				reason,
 			});
@@ -461,7 +521,11 @@ export class Peer extends EventEmitter {
 	private _unbindHandlersFromOutboundSocket(
 		outboundSocket: SCClientSocket,
 	): void {
-		outboundSocket.off();
+		// Do not unbind the error handler because error could still throw after disconnect.
+		// We don't want to have uncaught errors.
+		outboundSocket.off('connect');
+		outboundSocket.off('connectAbort');
+		outboundSocket.off('close');
 	}
 
 	// All event handlers for the inbound socket should be bound in this method.
@@ -488,7 +552,6 @@ export class Peer extends EventEmitter {
 	): void {
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.off('error', this._handleInboundSocketError);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
 		inboundSocket.off(
 			'postSignatures',
