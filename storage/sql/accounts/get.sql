@@ -28,7 +28,14 @@ SELECT
 	"rank",
 	"fees",
 	"rewards",
-	"vote"
+	"vote",
+	"u_balance",
+	case
+	when
+		"producedBlocks" + "missedBlocks" = 0 then 0
+	else
+		(("producedBlocks"::float / ("producedBlocks" + "missedBlocks")) * 100.0)::integer
+	end AS productivity
 FROM
 	mem_accounts
 

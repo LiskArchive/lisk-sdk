@@ -180,6 +180,7 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
+			'productivity',
 		];
 
 		validFilters = [
