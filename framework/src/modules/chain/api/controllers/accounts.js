@@ -45,11 +45,10 @@ function accountFormatter(totalSupply, account) {
 		'address',
 		'publicKey',
 		'balance',
-		'u_balance',
 		'secondPublicKey',
 	]);
-	object.unconfirmedBalance = object.u_balance;
-	delete object.u_balance;
+	object.unconfirmedBalance = '0'; // [UNCONFIRMED_STATE_REMOVAL] change
+	// delete object.u_balance; [UNCONFIRMED_STATE_REMOVAL]
 
 	if (account.isDelegate) {
 		object.delegate = _.pick(account, [
@@ -136,7 +135,7 @@ async function multiSigAccountFormatter(account) {
 	]);
 	result.min = account.multiMin;
 	result.lifetime = account.multiLifetime;
-	result.unconfirmedBalance = account.u_balance;
+	result.unconfirmedBalance = '0'; // [UNCONFIRMED_STATE_REMOVAL]
 
 	if (result.secondPublicKey === null) {
 		result.secondPublicKey = '';

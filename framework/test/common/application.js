@@ -93,7 +93,7 @@ function __init(initScope, done) {
 			.then(async status => {
 				if (status) {
 					await storage.entities.Migration.applyAll();
-					await storage.entities.Migration.applyRunTime();
+					// await storage.entities.Migration.applyRunTime();
 				}
 			});
 

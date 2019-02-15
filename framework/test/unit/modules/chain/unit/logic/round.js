@@ -685,7 +685,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -749,7 +749,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -848,7 +848,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -874,7 +874,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
-							u_balance: remainingFees,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: remainingFees,
 							round: scope.round,
 							fees: remainingFees,
 						};
@@ -939,7 +939,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -965,7 +965,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
-							u_balance: -remainingFees,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -remainingFees,
 							round: scope.round,
 							fees: -remainingFees,
 						};
@@ -997,8 +997,8 @@ describe('round', async () => {
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
 						}));
-
-					it('u_balance should sum to 0', async () =>
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCONFIRMED_STATE_REMOVAL] u_balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.u_balance).to.equal(0);
 						}));
@@ -1073,7 +1073,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1105,7 +1105,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1137,7 +1137,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1226,7 +1226,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1258,7 +1258,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1290,7 +1290,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1323,8 +1323,8 @@ describe('round', async () => {
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
 						}));
-
-					it('u_balance should sum to 0', async () =>
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCONFIRMED_STATE_REMOVAL] u_balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.u_balance).to.equal(0);
 						}));
@@ -1398,7 +1398,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1430,7 +1430,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1462,7 +1462,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1488,7 +1488,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
-							u_balance: remainingFees,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: remainingFees,
 							round: scope.round,
 							fees: remainingFees,
 						};
@@ -1579,7 +1579,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1611,7 +1611,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1643,7 +1643,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1669,7 +1669,7 @@ describe('round', async () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
-							u_balance: -remainingFees,
+							// [UNCONFIRMED_STATE_REMOVAL] u_balance: -remainingFees,
 							round: scope.round,
 							fees: -remainingFees,
 						};
@@ -1701,8 +1701,8 @@ describe('round', async () => {
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
 						}));
-
-					it('u_balance should sum to 0', async () =>
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCONFIRMED_STATE_REMOVAL] u_balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.u_balance).to.equal(0);
 						}));

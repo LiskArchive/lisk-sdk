@@ -44,27 +44,18 @@ accounts.genesis = {
 accounts.mem_accountsFields = [
 	'username',
 	'isDelegate',
-	'u_isDelegate',
 	'secondSignature',
-	'u_secondSignature',
-	'u_username',
 	'address',
 	'publicKey',
 	'secondPublicKey',
 	'balance',
-	'u_balance',
 	'vote',
 	'rank',
 	'delegates',
-	'u_delegates',
 	'multisignatures',
-	'u_multisignatures',
 	'multimin',
-	'u_multimin',
 	'multilifetime',
-	'u_multilifetime',
 	'nameexist',
-	'u_nameexist',
 	'producedBlocks',
 	'missedBlocks',
 	'fees',
@@ -75,37 +66,27 @@ const Account = stampit({
 	props: {
 		username: '',
 		isDelegate: false,
-		u_isDelegate: false,
 		secondSignature: false,
-		u_secondSignature: false,
-		u_username: '',
 		address: '',
 		publicKey: '',
 		secondPublicKey: null,
 		balance: '0',
-		u_balance: '0',
 		vote: '',
 		rank: null,
 		multiMin: 0,
-		u_multiMin: 0,
 		multiLifetime: 0,
-		u_multiLifetime: 0,
 		nameExist: false,
-		u_nameExist: false,
 		producedBlocks: 9,
 		missedBlocks: 0,
 		fees: '0',
 		rewards: '0',
 		votedDelegatesPublicKeys: null,
-		u_votedDelegatesPublicKeys: null,
 		membersPublicKeys: null,
-		u_membersPublicKeys: null,
 		productivity: 0,
 	},
 	init({
 		isDelegate,
 		username,
-		u_username,
 		address,
 		publicKey,
 		secondPublicKey,
@@ -115,7 +96,6 @@ const Account = stampit({
 	}) {
 		this.isDelegate = isDelegate || this.isDelegate;
 		this.username = username || randomstring.generate(10).toLowerCase();
-		this.u_username = u_username || null;
 		this.address =
 			address ||
 			`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;
@@ -152,22 +132,12 @@ const dbAccount = stampit({
 		rewards: '0',
 		secondPublicKey: null,
 		secondSignature: 0,
-		u_balance: 0,
-		u_delegates: null,
-		u_isDelegate: 0,
-		u_multiLifetime: 0,
-		u_multimin: 0,
-		u_multisignatures: null,
-		u_nameExist: 0,
-		u_secondSignature: 0,
-		u_username: null,
 		username: null,
 		vote: '0',
 	},
-	init({ address, balance, u_balance }) {
+	init({ address, balance }) {
 		this.address = address || this.address;
 		this.balance = balance || this.balance;
-		this.u_balance = u_balance || this.u_balance || this.balance;
 	},
 });
 

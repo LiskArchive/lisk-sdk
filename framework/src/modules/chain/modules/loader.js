@@ -381,15 +381,16 @@ __private.loadBlockChain = function() {
 		__private.total = count;
 		async.series(
 			{
-				resetMemTables(seriesCb) {
-					library.logic.account.resetMemTables(err => {
-						if (err) {
-							throw err;
-						} else {
-							return setImmediate(seriesCb);
-						}
-					});
-				},
+				// [UNCONFIRMED_STATE_REMOVAL]
+				// resetMemTables(seriesCb) {
+				// 	library.logic.account.resetMemTables(err => {
+				// 		if (err) {
+				// 			throw err;
+				// 		} else {
+				// 			return setImmediate(seriesCb);
+				// 		}
+				// 	});
+				// },
 				loadBlocksOffset(seriesCb) {
 					async.until(
 						() => count < offset,
@@ -532,7 +533,7 @@ __private.loadBlockChain = function() {
 				return process.emit('exit');
 			}
 
-			await library.storage.entities.Account.resetUnconfirmedState();
+			// [UNCONFIRMED_STATE_REMOVAL] await library.storage.entities.Account.resetUnconfirmedState();
 			const delegatesPublicKeys = await library.storage.entities.Account.get(
 				{ isDelegate: true },
 				{ limit: null }
@@ -781,9 +782,10 @@ __private.createSnapshot = height => {
 	let currentHeight = 1;
 	async.series(
 		{
-			resetMemTables(seriesCb) {
-				library.logic.account.resetMemTables(seriesCb);
-			},
+			// [UNCONFIRMED_STATE_REMOVAL]
+			// resetMemTables(seriesCb) {
+			// 	library.logic.account.resetMemTables(seriesCb);
+			// },
 			loadBlocksOffset(seriesCb) {
 				async.until(
 					() => targetHeight < currentHeight,

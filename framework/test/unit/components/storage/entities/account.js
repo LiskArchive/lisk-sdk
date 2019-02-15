@@ -34,13 +34,9 @@ const defaultCreateValues = {
 	publicKey: null,
 	secondPublicKey: null,
 	secondSignature: 0,
-	u_secondSignature: 0,
 	username: null,
-	u_username: null,
 	isDelegate: false,
-	u_isDelegate: false,
 	balance: '0',
-	u_balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
 	rank: null,
@@ -48,18 +44,13 @@ const defaultCreateValues = {
 	rewards: '0',
 	vote: '0',
 	nameExist: false,
-	u_nameExist: false,
 	multiMin: 0,
-	u_multiMin: 0,
 	multiLifetime: 0,
-	u_multiLifetime: 0,
 };
 
 const dependentFieldsTableMap = {
 	membersPublicKeys: 'mem_accounts2multisignatures',
-	u_membersPublicKeys: 'mem_accounts2u_multisignatures',
 	votedDelegatesPublicKeys: 'mem_accounts2delegates',
-	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
 };
 
 describe('Account', async () => {
@@ -114,19 +105,12 @@ describe('Account', async () => {
 			'publicKey',
 			'secondPublicKey',
 			'username',
-			'u_username',
 			'isDelegate',
-			'u_isDelegate',
 			'secondSignature',
-			'u_secondSignature',
 			'balance',
-			'u_balance',
 			'multiMin',
-			'u_multiMin',
 			'multiLifetime',
-			'u_multiLifetime',
 			'nameExist',
-			'u_nameExist',
 			'fees',
 			'rewards',
 			'producedBlocks',
@@ -152,18 +136,9 @@ describe('Account', async () => {
 			'fees',
 			'rewards',
 			'vote',
-			'u_username',
-			'u_isDelegate',
-			'u_secondSignature',
-			'u_nameExist',
-			'u_multiMin',
-			'u_multiLifetime',
-			'u_balance',
 			'productivity',
 			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
 			'membersPublicKeys',
-			'u_membersPublicKeys',
 		];
 
 		validSimpleObjectFields = [
@@ -206,23 +181,12 @@ describe('Account', async () => {
 			'username_ne',
 			'username_in',
 			'username_like',
-			'u_username',
-			'u_username_eql',
-			'u_username_ne',
-			'u_username_in',
-			'u_username_like',
 			'isDelegate',
 			'isDelegate_eql',
 			'isDelegate_ne',
-			'u_isDelegate',
-			'u_isDelegate_eql',
-			'u_isDelegate_ne',
 			'secondSignature',
 			'secondSignature_eql',
 			'secondSignature_ne',
-			'u_secondSignature',
-			'u_secondSignature_eql',
-			'u_secondSignature_ne',
 			'balance',
 			'balance_eql',
 			'balance_ne',
@@ -299,9 +263,7 @@ describe('Account', async () => {
 			'vote_lte',
 			'vote_in',
 			'votedDelegatesPublicKeys_in',
-			'u_votedDelegatesPublicKeys_in',
 			'membersPublicKeys_in',
-			'u_membersPublicKeys_in',
 		];
 
 		validOptions = {
@@ -510,8 +472,8 @@ describe('Account', async () => {
 					})
 				);
 			});
-
-			it('should fetch "u_votedDelegatesPublicKeys" with correct query', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCONFIRMED_STATE_REMOVAL] should fetch "u_votedDelegatesPublicKeys" with correct query', async () => {
 				const accounts = await AccountEntity.get({}, { extended: true });
 
 				await Promise.all(
@@ -541,7 +503,8 @@ describe('Account', async () => {
 				);
 			});
 
-			it('should fetch "u_membersPublicKeys" with correct query', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCONFIRMED_STATE_REMOVAL] should fetch "u_membersPublicKeys" with correct query', async () => {
 				const accounts = await AccountEntity.get({}, { extended: true });
 
 				await Promise.all(
@@ -604,19 +567,9 @@ describe('Account', async () => {
 				expect(data[0].isDelegate).to.be.a('boolean');
 			});
 
-			it('should return "u_isDelegate" as "boolean"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].u_isDelegate).to.be.a('boolean');
-			});
-
 			it('should return "secondSignature" as "boolean"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].secondSignature).to.be.a('boolean');
-			});
-
-			it('should return "u_secondSignature" as "boolean"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].u_secondSignature).to.be.a('boolean');
 			});
 
 			it('should return "rank" as null', async () => {
@@ -946,18 +899,9 @@ describe('Account', async () => {
 				fees: '0',
 				rewards: '0',
 				vote: '0',
-				u_username: null,
-				u_isDelegate: false,
-				u_secondSignature: false,
-				u_nameExist: false,
-				u_multiMin: 0,
-				u_multiLifetime: 0,
-				u_balance: '0',
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
-				u_votedDelegatesPublicKeys: null,
 				membersPublicKeys: null,
-				u_membersPublicKeys: null,
 			};
 			expect(accountFromDB).to.be.eql(expectedObject);
 		});
@@ -1567,8 +1511,8 @@ describe('Account', async () => {
 			'should merge provided filter with default filters by preserving default filters values '
 		);
 	});
-
-	describe('resetUnconfirmedState()', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] resetUnconfirmedState()', async () => {
 		it('should use the correct SQL to fetch the count', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await AccountEntity.resetUnconfirmedState();
@@ -1690,8 +1634,8 @@ describe('Account', async () => {
 			expect(result[0].count).to.be.equal('0');
 		});
 	});
-
-	describe('resetMemTables()', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] resetMemTables()', async () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			await AccountEntity.resetMemTables();
@@ -1861,55 +1805,52 @@ describe('Account', async () => {
 			).to.throw('Invalid dependency name "unknown" provided.');
 		});
 
-		[
-			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
-			'membersPublicKeys',
-			'u_membersPublicKeys',
-		].forEach(dependentTable => {
-			describe(`${dependentTable}`, async () => {
-				it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
-					const accounts = await AccountEntity.get({}, { limit: 2 });
+		['votedDelegatesPublicKeys', 'membersPublicKeys'].forEach(
+			dependentTable => {
+				describe(`${dependentTable}`, async () => {
+					it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
+						const accounts = await AccountEntity.get({}, { limit: 2 });
 
-					sinonSandbox.spy(adapter, 'executeFile');
-					await AccountEntity.createDependentRecord(
-						dependentTable,
-						accounts[0].address,
-						accounts[1].publicKey
-					);
+						sinonSandbox.spy(adapter, 'executeFile');
+						await AccountEntity.createDependentRecord(
+							dependentTable,
+							accounts[0].address,
+							accounts[1].publicKey
+						);
 
-					return expect(adapter.executeFile).to.be.calledWith(
-						SQLs.createDependentRecord,
-						{
-							tableName: dependentFieldsTableMap[dependentTable],
-							accountId: accounts[0].address,
-							dependentId: accounts[1].publicKey,
-						},
-						{ expectedResultCount: 0 }
-					);
+						return expect(adapter.executeFile).to.be.calledWith(
+							SQLs.createDependentRecord,
+							{
+								tableName: dependentFieldsTableMap[dependentTable],
+								accountId: accounts[0].address,
+								dependentId: accounts[1].publicKey,
+							},
+							{ expectedResultCount: 0 }
+						);
+					});
+
+					it(`should insert dependent account from ${dependentTable}`, async () => {
+						const accounts = await AccountEntity.get({}, { limit: 2 });
+
+						const before = await adapter.execute(
+							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+						);
+
+						await AccountEntity.createDependentRecord(
+							dependentTable,
+							accounts[0].address,
+							accounts[1].publicKey
+						);
+						const after = await adapter.execute(
+							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+						);
+
+						expect(before[0].count).to.eql('0');
+						expect(after[0].count).to.eql('1');
+					});
 				});
-
-				it(`should insert dependent account from ${dependentTable}`, async () => {
-					const accounts = await AccountEntity.get({}, { limit: 2 });
-
-					const before = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-					);
-
-					await AccountEntity.createDependentRecord(
-						dependentTable,
-						accounts[0].address,
-						accounts[1].publicKey
-					);
-					const after = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-					);
-
-					expect(before[0].count).to.eql('0');
-					expect(after[0].count).to.eql('1');
-				});
-			});
-		});
+			}
+		);
 	});
 
 	describe('deleteDependentRecord()', async () => {
@@ -1919,40 +1860,37 @@ describe('Account', async () => {
 			).to.throw('Invalid dependency name "unknown" provided.');
 		});
 
-		[
-			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
-			'membersPublicKeys',
-			'u_membersPublicKeys',
-		].forEach(dependentTable => {
-			it(`should remove dependent account from ${dependentTable}`, async () => {
-				const accounts = await AccountEntity.get({}, { limit: 2 });
+		['votedDelegatesPublicKeys', 'membersPublicKeys'].forEach(
+			dependentTable => {
+				it(`should remove dependent account from ${dependentTable}`, async () => {
+					const accounts = await AccountEntity.get({}, { limit: 2 });
 
-				await adapter.execute(
-					`INSERT INTO ${
-						dependentFieldsTableMap[dependentTable]
-					} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
+					await adapter.execute(
+						`INSERT INTO ${
+							dependentFieldsTableMap[dependentTable]
+						} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
+							accounts[1].publicKey
+						}')`
+					);
+
+					const before = await adapter.execute(
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+					);
+
+					await AccountEntity.deleteDependentRecord(
+						dependentTable,
+						accounts[0].address,
 						accounts[1].publicKey
-					}')`
-				);
+					);
+					const after = await adapter.execute(
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+					);
 
-				const before = await adapter.execute(
-					`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-				);
-
-				await AccountEntity.deleteDependentRecord(
-					dependentTable,
-					accounts[0].address,
-					accounts[1].publicKey
-				);
-				const after = await adapter.execute(
-					`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-				);
-
-				expect(before[0].count).to.eql('1');
-				expect(after[0].count).to.eql('0');
-			});
-		});
+					expect(before[0].count).to.eql('1');
+					expect(after[0].count).to.eql('0');
+				});
+			}
+		);
 	});
 
 	describe('syncDelegatesRanks', async () => {

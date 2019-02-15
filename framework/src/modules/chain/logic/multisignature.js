@@ -440,8 +440,8 @@ Multisignature.prototype.applyUnconfirmed = function(
 		sender.address,
 		{
 			u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
-			u_multiMin: transaction.asset.multisignature.min,
-			u_multiLifetime: transaction.asset.multisignature.lifetime,
+			// [UNCONFIRMED_STATE_REMOVAL] u_multiMin: transaction.asset.multisignature.min,
+			// [UNCONFIRMED_STATE_REMOVAL] u_multiLifetime: transaction.asset.multisignature.lifetime,
 		},
 		mergeErr => setImmediate(cb, mergeErr),
 		tx
@@ -473,8 +473,8 @@ Multisignature.prototype.undoUnconfirmed = function(
 		sender.address,
 		{
 			u_membersPublicKeys: multiInvert,
-			u_multiMin: -transaction.asset.multisignature.min,
-			u_multiLifetime: -transaction.asset.multisignature.lifetime,
+			// [UNCONFIRMED_STATE_REMOVAL] u_multiMin: -transaction.asset.multisignature.min,
+			// [UNCONFIRMED_STATE_REMOVAL] u_multiLifetime: -transaction.asset.multisignature.lifetime,
 		},
 		err => setImmediate(cb, err),
 		tx

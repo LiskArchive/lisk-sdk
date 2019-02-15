@@ -695,7 +695,8 @@ describe('delegate', async () => {
 		});
 	});
 
-	describe('checkUnconfirmed', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] checkUnconfirmed', async () => {
 		let checkDuplicatesStub;
 
 		beforeEach(done => {
@@ -836,7 +837,8 @@ describe('delegate', async () => {
 		});
 	});
 
-	describe('applyUnconfirmed', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] applyUnconfirmed', async () => {
 		let checkUnconfirmedStub;
 
 		describe('when username was not registered before', async () => {
@@ -894,7 +896,8 @@ describe('delegate', async () => {
 		});
 	});
 
-	describe('undoConfirmed', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] undoConfirmed', async () => {
 		it('should call accounts.setAccountAndGet module with correct parameters', done => {
 			delegate.undoConfirmed(transaction, dummyBlock, sender, async () => {
 				expect(
@@ -927,7 +930,8 @@ describe('delegate', async () => {
 		});
 	});
 
-	describe('undoUnconfirmed', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] undoUnconfirmed', async () => {
 		it('should call accounts.setAccountAndGet module with correct parameters', done => {
 			delegate.undoUnconfirmed(transaction, sender, async () => {
 				expect(

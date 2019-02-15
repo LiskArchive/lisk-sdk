@@ -149,7 +149,7 @@ Transfer.prototype.applyConfirmed = function(
 				{
 					address: transaction.recipientId,
 					balance: transaction.amount,
-					u_balance: transaction.amount,
+					// [UNCONFIRMED_STATE_REMOVAL] u_balance: transaction.amount,
 					round: slots.calcRound(block.height),
 				},
 				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
@@ -189,7 +189,7 @@ Transfer.prototype.undoConfirmed = function(
 				{
 					address: transaction.recipientId,
 					balance: -transaction.amount,
-					u_balance: -transaction.amount,
+					// [UNCONFIRMED_STATE_REMOVAL] u_balance: -transaction.amount,
 					round: slots.calcRound(block.height),
 				},
 				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
