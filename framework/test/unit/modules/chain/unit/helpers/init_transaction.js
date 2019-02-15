@@ -222,5 +222,4 @@ describe('init transaction', async () => {
 
         expect(initTransaction(outtransfer)).to.be.instanceof(OutTransferTransaction);
     });
->>>>>>> bcc208dd4... :books: Add tests for init transaction
 });
