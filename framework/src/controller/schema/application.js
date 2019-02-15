@@ -8,13 +8,29 @@ module.exports = {
 	genesisBlock: {
 		$id: '#genesisBlock',
 		type: 'object',
-		required: ['xxx'],
+		required: [
+			'version',
+			'totalAmount',
+			'totalFee',
+			'reward',
+			'payloadHash',
+			'timestamp',
+			'numberOfTransactions',
+			'payloadLength',
+			'previousBlock',
+			'generatorPublicKey',
+			'transactions',
+			'height',
+			'blockSignature',
+			'id',
+		],
 		properties: {
 			version: {
 				type: 'integer',
 			},
 			totalAmount: {
-				type: 'integer',
+				type: 'string',
+				pattern: '^[0-9]+$',
 			},
 			totalFee: {
 				type: 'integer',
@@ -87,7 +103,8 @@ module.exports = {
 				maximum: 7,
 			},
 			amount: {
-				type: 'integer',
+				type: 'string',
+				pattern: '^[0-9]+$',
 			},
 			fee: {
 				type: 'integer',
