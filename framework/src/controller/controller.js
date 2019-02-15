@@ -26,16 +26,16 @@ const isPidRunning = async pid =>
 /**
  * Controller logic responsible to run the application instance
  *
- * @namespace Framework
+ * @class
+ * @memberof framework.controller
  * @requires assert
  * @requires bluebird
  * @requires fs-extra
  * @requires helpers/config
  * @requires channels/event_emitter
  * @requires module.Bus
- * @type {module.Controller}
  */
-module.exports = class Controller {
+class Controller {
 	/**
 	 * Controller responsible to run the application
 	 *
@@ -233,4 +233,6 @@ module.exports = class Controller {
 			this.logger.error('Caused error during cleanup', error);
 		}
 	}
-};
+}
+
+module.exports = Controller;
