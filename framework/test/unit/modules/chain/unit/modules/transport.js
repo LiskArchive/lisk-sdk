@@ -1184,7 +1184,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('components', async () => {
+			describe('components', () => {
 				let componentsObject;
 
 				beforeEach(done => {
@@ -1197,7 +1197,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('definitions', async () => {
+			describe('definitions', () => {
 				let definitionsObject;
 
 				beforeEach(done => {
@@ -1458,7 +1458,7 @@ describe('transport', () => {
 					).to.be.true;
 				});
 
-				describe('when __private.broadcaster.maxRelays returns true', async () => {
+				describe('when __private.broadcaster.maxRelays returns true', () => {
 					beforeEach(done => {
 						__private.broadcaster.maxRelays = sinonSandbox.stub().returns(true);
 						transportInstance.onBroadcastBlock(block, true);
@@ -1898,7 +1898,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('status', async () => {
+			describe('status', () => {
 				beforeEach(done => {
 					components.system.headers = {
 						height: 123,

@@ -19,7 +19,7 @@ const crypto = require('crypto');
 
 const { createSystemComponent } = require('../../../../src/components/system');
 
-describe('components: system', async () => {
+describe('components: system', () => {
 	let systemComponent;
 	let loggerStub;
 	let storageStub;
@@ -63,7 +63,7 @@ describe('components: system', async () => {
 		);
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should assign params to library', async () => {
 			const { os, ...headers } = systemComponent.headers;
 			expect(systemComponent.logger).to.eql(loggerStub);
@@ -97,82 +97,82 @@ describe('components: system', async () => {
 		});
 	});
 
-	describe('networkCompatible', async () => {
-		describe('when there is no nethash', async () => {
+	describe('networkCompatible', () => {
+		describe('when there is no nethash', () => {
 			it('should return false', async () =>
 				expect(systemComponent.networkCompatible()).to.be.false);
 		});
-		describe('when nethash is null', async () => {
+		describe('when nethash is null', () => {
 			it('should return false', async () =>
 				expect(systemComponent.networkCompatible(null)).to.be.false);
 		});
-		describe('when nethash is undefined', async () => {
+		describe('when nethash is undefined', () => {
 			it('should return false', async () =>
 				expect(systemComponent.networkCompatible(undefined)).to.be.false);
 		});
-		describe('when nethash is empty string', async () => {
+		describe('when nethash is empty string', () => {
 			it('should return false', async () =>
 				expect(systemComponent.networkCompatible('')).to.be.false);
 		});
-		describe('when nethash is not equal to this.headers.nethash', async () => {
+		describe('when nethash is not equal to this.headers.nethash', () => {
 			it('should return false', async () =>
 				expect(systemComponent.networkCompatible('2')).to.be.false);
 		});
-		describe('when nethash is equal to this.headers.nethash', async () => {
+		describe('when nethash is equal to this.headers.nethash', () => {
 			it('should return true', async () =>
 				expect(systemComponent.networkCompatible(dummyConfig.nethash)).to.be
 					.true);
 		});
 	});
 
-	describe('versionCompatible', async () => {
-		describe('when there is no version', async () => {
+	describe('versionCompatible', () => {
+		describe('when there is no version', () => {
 			it('should return false', async () =>
 				expect(systemComponent.versionCompatible()).to.be.false);
 		});
-		describe('when version is null', async () => {
+		describe('when version is null', () => {
 			it('should return false', async () =>
 				expect(systemComponent.versionCompatible(null)).to.be.false);
 		});
-		describe('when version is undefined', async () => {
+		describe('when version is undefined', () => {
 			it('should return false', async () =>
 				expect(systemComponent.versionCompatible(undefined)).to.be.false);
 		});
-		describe('when version is empty string', async () => {
+		describe('when version is empty string', () => {
 			it('should return false', async () =>
 				expect(systemComponent.versionCompatible('')).to.be.false);
 		});
-		describe('when version is equal to system version', async () => {
+		describe('when version is equal to system version', () => {
 			it('should return true', async () =>
 				expect(systemComponent.versionCompatible('1.0.0-beta.0')).to.be.true);
 		});
-		describe('when version is greather than system version', async () => {
+		describe('when version is greather than system version', () => {
 			it('should return true', async () =>
 				expect(systemComponent.versionCompatible('1.0.0-rc.0')).to.be.true);
 		});
-		describe('when version is less than system version', async () => {
+		describe('when version is less than system version', () => {
 			it('should return false', async () =>
 				expect(systemComponent.versionCompatible('1.0.0-alpha.10')).to.be
 					.false);
 		});
 	});
 
-	describe('protocolVersionCompatible', async () => {
-		describe('when protocol version is exactly equal to system protocol version', async () => {
+	describe('protocolVersionCompatible', () => {
+		describe('when protocol version is exactly equal to system protocol version', () => {
 			it('should return true', async () =>
 				expect(systemComponent.protocolVersionCompatible('1.0')).to.be.true);
 		});
-		describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', async () => {
+		describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', () => {
 			it("should return false if it's greater or lesser", async () =>
 				expect(systemComponent.protocolVersionCompatible('2.0')).to.be.false);
 			it("should return false if it's lesser", async () =>
 				expect(systemComponent.protocolVersionCompatible('0.0')).to.be.false);
 		});
-		describe('when the hard part of protocol is equal to  the one of the system protocol version', async () => {
+		describe('when the hard part of protocol is equal to  the one of the system protocol version', () => {
 			it('should return true', async () =>
 				expect(systemComponent.protocolVersionCompatible('1.5')).to.be.true);
 		});
-		describe('when the hard part of the protocol version is already compatible', async () => {
+		describe('when the hard part of the protocol version is already compatible', () => {
 			beforeEach(done => {
 				systemComponent.headers.protocolVersion = '1.1'; // So we can test smaller values for the soft part
 				done();
@@ -192,28 +192,28 @@ describe('components: system', async () => {
 		});
 	});
 
-	describe('nonceCompatible', async () => {
-		describe('when there is no nonce', async () => {
+	describe('nonceCompatible', () => {
+		describe('when there is no nonce', () => {
 			it('should return false', async () =>
 				expect(systemComponent.nonceCompatible()).to.be.false);
 		});
-		describe('when nonce is null', async () => {
+		describe('when nonce is null', () => {
 			it('should return false', async () =>
 				expect(systemComponent.nonceCompatible(null)).to.be.false);
 		});
-		describe('when nonce is undefined', async () => {
+		describe('when nonce is undefined', () => {
 			it('should return false', async () =>
 				expect(systemComponent.nonceCompatible(undefined)).to.be.false);
 		});
-		describe('when nonce is empty string', async () => {
+		describe('when nonce is empty string', () => {
 			it('should return false', async () =>
 				expect(systemComponent.nonceCompatible('')).to.be.false);
 		});
-		describe('when nonce is equal to system nonce', async () => {
+		describe('when nonce is equal to system nonce', () => {
 			it('should return false', async () =>
 				expect(systemComponent.nonceCompatible(dummyConfig.nonce)).to.be.false);
 		});
-		describe('when nonce is different than system nonce', async () => {
+		describe('when nonce is different than system nonce', () => {
 			it('should return true', async () =>
 				expect(systemComponent.nonceCompatible(`another${dummyConfig.nonce}`))
 					.to.be.true);
@@ -290,7 +290,7 @@ describe('components: system', async () => {
 		});
 
 		describe('when storage.entities.Block.get succeeds', () => {
-			describe('when returns no result', async () => {
+			describe('when returns no result', () => {
 				beforeEach(async () => {
 					storageStub.entities.Block.get.resolves([]);
 				});
@@ -312,7 +312,7 @@ describe('components: system', async () => {
 				});
 			});
 
-			describe('when returns one result', async () => {
+			describe('when returns one result', () => {
 				beforeEach(async () => {
 					const blocks = [
 						{
@@ -344,7 +344,7 @@ describe('components: system', async () => {
 				});
 			});
 
-			describe('when returns more than one results', async () => {
+			describe('when returns more than one results', () => {
 				const blocks = [
 					{
 						id: '00000002',

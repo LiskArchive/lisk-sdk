@@ -188,6 +188,10 @@ describe('ConnectionsTable', () => {
 		});
 
 		it('should return nonce assigned to connection id when entry exists', async () => {
+			connectionsTable.add(validNonce, validConnectionId);
+			expect(connectionsTable.getNonce(validConnectionId)).to.equal(validNonce);
+		});
+	});
 
 	describe('getConnectionId', () => {
 		it('should return undefined when invoked without arguments', async () => {

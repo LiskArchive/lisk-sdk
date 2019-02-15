@@ -663,7 +663,7 @@ describe('PeersUpdateRules', () => {
 			};
 		});
 
-		describe('schema', async () => {
+		describe('schema', () => {
 			it('should reject empty requests', async () => {
 				peersUpdateRules.external.update(undefined, err => {
 					expect(err).to.equal('Expected type object but found type undefined');
