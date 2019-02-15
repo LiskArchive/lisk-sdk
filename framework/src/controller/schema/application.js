@@ -1,3 +1,7 @@
+const constants = require('../defaults/constants');
+
+const totalAmountLength = constants.TOTAL_AMOUNT.length;
+
 module.exports = {
 	appLabel: {
 		id: '#appLabel',
@@ -17,16 +21,14 @@ module.exports = {
 			'timestamp',
 			'numberOfTransactions',
 			'payloadLength',
-			'previousBlock',
 			'generatorPublicKey',
 			'transactions',
-			'height',
 			'blockSignature',
-			'id',
 		],
 		properties: {
 			version: {
 				type: 'integer',
+				minimum: 0,
 			},
 			totalAmount: {
 				type: 'string',
@@ -40,7 +42,7 @@ module.exports = {
 			},
 			payloadHash: {
 				type: 'string',
-				pattern: '^[a-fA-F0-9]{64}$',
+				pattern: '^[a-f0-9]{64}$',
 			},
 			timestamp: {
 				type: 'integer',
@@ -52,11 +54,11 @@ module.exports = {
 				type: 'integer',
 			},
 			previousBlock: {
-				type: 'null',
+				type: ['integer', 'null'],
 			},
 			generatorPublicKey: {
 				type: 'string',
-				pattern: '^[a-fA-F0-9]{64}$',
+				pattern: '^[a-f0-9]{64}$',
 			},
 			transactions: {
 				type: 'array',
@@ -71,11 +73,13 @@ module.exports = {
 			},
 			blockSignature: {
 				type: 'string',
-				pattern: '^[a-fA-F0-9]{128}$',
+				pattern: '^[a-f0-9]{128}$',
 			},
 			id: {
 				type: 'string',
 				pattern: '^[0-9]+$',
+				minLength: 1,
+				maxLength: 20,
 			},
 		},
 		additionalProperties: false,
@@ -84,17 +88,7 @@ module.exports = {
 	transactions: {
 		id: '#/transactions',
 		type: 'object',
-		required: [
-			'type',
-			'amount',
-			'fee',
-			'timestamp',
-			'recipientId',
-			'senderId',
-			'senderPublicKey',
-			'signature',
-			'id',
-		],
+		required: ['type', 'timestamp', 'senderPublicKey', 'signature'],
 		properties: {
 			type: {
 				type: 'integer',
@@ -104,6 +98,9 @@ module.exports = {
 			amount: {
 				type: 'string',
 				pattern: '^[0-9]+$',
+				minLength: 1,
+				maxLength: totalAmountLength,
+				description: 'Value required to be less than TOTAL_AMOUNT constant.',
 			},
 			fee: {
 				type: 'integer',
@@ -114,14 +111,18 @@ module.exports = {
 			recipientId: {
 				type: ['string', 'null'],
 				pattern: '^[0-9]+L$',
+				minLength: 1,
+				maxLength: 22,
 			},
 			senderId: {
 				type: 'string',
 				pattern: '^[0-9]+L$',
+				minLength: 1,
+				maxLength: 22,
 			},
 			senderPublicKey: {
 				type: 'string',
-				pattern: '^[a-fA-F0-9]{64}$',
+				pattern: '^[a-f0-9]{64}$',
 			},
 			asset: {
 				type: 'object',
@@ -130,7 +131,7 @@ module.exports = {
 			},
 			signature: {
 				type: 'string',
-				pattern: '^[a-fA-F0-9]{128}$',
+				pattern: '^[a-f0-9]{128}$',
 			},
 			id: {
 				type: 'string',
