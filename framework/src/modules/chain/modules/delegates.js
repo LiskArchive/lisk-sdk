@@ -820,61 +820,6 @@ Delegates.prototype.getDelegates = function(query, cb) {
 };
 
 /**
- * Gets a list forgers based on query parameters.
- *
- * @param {Object} query - Query object
- * @param {int} query.limit - Limit applied to results
- * @param {int} query.offset - Offset value for results
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err, object
- */
-Delegates.prototype.getForgers = function(query, cb) {
-	query.limit = query.limit || 10;
-	query.offset = query.offset || 0;
-
-	const currentBlock = modules.blocks.lastBlock.get();
-	const currentSlot = slots.getSlotNumber();
-	const forgerKeys = [];
-
-	// We calculate round using height + 1, because we want the list to be generated for next block - it will be passed as seed for generating the list
-	// For example: last block height is 101 (still round 1, but already finished), then we want the list for round 2 (height 102)
-	const round = slots.calcRound(currentBlock.height + 1);
-
-	self.generateDelegateList(round, null, (err, activeDelegates) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		for (
-			let i = query.offset + 1;
-			i <= ACTIVE_DELEGATES && i <= query.limit + query.offset;
-			i++
-		) {
-			if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {
-				forgerKeys.push(activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]);
-			}
-		}
-
-		return library.storage.entities.Account.get(
-			{ isDelegate: true, publicKey_in: forgerKeys },
-			{ limit: null }
-		)
-			.then(rows =>
-				rows.map(row => _.pick(row, ['username', 'address', 'publicKey']))
-			)
-			.then(rows => {
-				rows.forEach(forger => {
-					forger.nextSlot =
-						forgerKeys.indexOf(forger.publicKey) + currentSlot + 1;
-				});
-				rows = _.sortBy(rows, 'nextSlot');
-				return setImmediate(cb, null, rows);
-			})
-			.catch(error => setImmediate(cb, error));
-	});
-};
-
-/**
  * Description of checkConfirmedDelegates.
  *
  * @param {publicKey} publicKey
