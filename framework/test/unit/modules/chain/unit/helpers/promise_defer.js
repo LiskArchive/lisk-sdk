@@ -16,7 +16,7 @@
 
 const PromiseDefer = require('../../../../../../src/modules/chain/helpers/promise_defer');
 
-describe('PromiseDefer', async () => {
+describe('PromiseDefer', () => {
 	let promiseDefer;
 	const RESOLVED = 'resolved';
 	const REJECTED = 'rejected';
@@ -35,7 +35,7 @@ describe('PromiseDefer', async () => {
 		done();
 	});
 
-	describe('when it fails', async () => {
+	describe('when it fails', () => {
 		it('should reject', done => {
 			expect(promiseDefer.promise.isRejected()).to.be.false;
 			promiseDefer.reject({
@@ -48,7 +48,7 @@ describe('PromiseDefer', async () => {
 		});
 	});
 
-	describe('when it succeeds', async () => {
+	describe('when it succeeds', () => {
 		it('should resolve', done => {
 			expect(promiseDefer.promise.isFulfilled()).to.be.false;
 			promiseDefer.resolve({

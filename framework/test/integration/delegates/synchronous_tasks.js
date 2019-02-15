@@ -5,14 +5,14 @@ const Rx = require('rx');
 const localCommon = require('../common.js');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue.js');
 
-describe('system test (delegates) - synchronous tasks', async () => {
+describe('system test (delegates) - synchronous tasks', () => {
 	let library;
 
 	localCommon.beforeBlock('system_delegates_synchronous_tasks', lib => {
 		library = lib;
 	});
 
-	describe('when events are emitted after any of synchronous task starts', async () => {
+	describe('when events are emitted after any of synchronous task starts', () => {
 		let intervalMs;
 		let durationMs;
 		let attemptToForgeRunningSubject;
@@ -38,7 +38,7 @@ describe('system test (delegates) - synchronous tasks', async () => {
 			done();
 		});
 
-		describe('when "attempt to forge" synchronous task runs every 100 ms and takes 101 ms', async () => {
+		describe('when "attempt to forge" synchronous task runs every 100 ms and takes 101 ms', () => {
 			intervalMs = 100;
 			durationMs = intervalMs + 1;
 
@@ -57,7 +57,7 @@ describe('system test (delegates) - synchronous tasks', async () => {
 				done();
 			});
 
-			describe('when "blockchain synchronization" synchronous task runs every 100 ms and takes 101 ms', async () => {
+			describe('when "blockchain synchronization" synchronous task runs every 100 ms and takes 101 ms', () => {
 				before(done => {
 					library.rewiredModules.loader.__set__(
 						'__private.syncInterval',
@@ -74,7 +74,7 @@ describe('system test (delegates) - synchronous tasks', async () => {
 					done();
 				});
 
-				describe('within 5000 ms', async () => {
+				describe('within 5000 ms', () => {
 					beforeEach(done => {
 						setTimeout(() => {
 							attemptToForgeRunningSubject.onCompleted();

@@ -24,7 +24,7 @@ const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
 
 const exceptions = global.exceptions;
 
-describe('duplicate_signatures', async () => {
+describe('duplicate_signatures', () => {
 	let library;
 	let addTransactionsAndForgePromise;
 	let transactionPool;
@@ -128,7 +128,7 @@ describe('duplicate_signatures', async () => {
 		return [transactions, signatures];
 	};
 
-	describe('process multiple signatures from the same public key', async () => {
+	describe('process multiple signatures from the same public key', () => {
 		const transaction = {
 			type: 0,
 			id: '15181013796707110990',
@@ -209,9 +209,9 @@ describe('duplicate_signatures', async () => {
 		});
 	});
 
-	describe('process multiple signatures for the same transaction', async () => {
-		describe('when signatures are unique', async () => {
-			describe('during multisignature account registration', async () => {
+	describe('process multiple signatures for the same transaction', () => {
+		describe('when signatures are unique', () => {
+			describe('during multisignature account registration', () => {
 				let transactions;
 				let signatures;
 
@@ -306,7 +306,7 @@ describe('duplicate_signatures', async () => {
 				});
 			});
 
-			describe('during spend from multisignature account', async () => {
+			describe('during spend from multisignature account', () => {
 				let accounts;
 				let transactions;
 				let signatures;
@@ -417,8 +417,8 @@ describe('duplicate_signatures', async () => {
 			});
 		});
 
-		describe('when signatures contains duplicate', async () => {
-			describe('during multisignature account registration', async () => {
+		describe('when signatures contains duplicate', () => {
+			describe('during multisignature account registration', () => {
 				let transactions;
 				let signatures;
 
@@ -522,7 +522,7 @@ describe('duplicate_signatures', async () => {
 				});
 			});
 
-			describe('during spend from multisignature account', async () => {
+			describe('during spend from multisignature account', () => {
 				let accounts;
 				let transactions;
 				let signatures;

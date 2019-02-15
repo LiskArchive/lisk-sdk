@@ -20,13 +20,13 @@ const jobsQueue = require('../../../../../../src/modules/chain/helpers/jobs_queu
 const peers = rewire('../../../../../../src/modules/chain/modules/peers');
 
 // These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
-describe('helpers/jobsQueue', async () => {
+describe('helpers/jobsQueue', () => {
 	// Test global variables
 	let recallInterval = 1000;
 	let execTimeInterval = 1;
 
-	describe('register', async () => {
-		describe('should throw an erorr', async () => {
+	describe('register', () => {
+		describe('should throw an erorr', () => {
 			let validFunction;
 
 			beforeEach(done => {
@@ -55,7 +55,7 @@ describe('helpers/jobsQueue', async () => {
 				}).to.throw('Syntax error - invalid parameters supplied'));
 		});
 
-		describe('should register', async () => {
+		describe('should register', () => {
 			function dummyFunction(cb) {
 				setTimeout(cb, execTimeInterval);
 			}

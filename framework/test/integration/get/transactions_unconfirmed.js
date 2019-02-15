@@ -22,7 +22,7 @@ const localCommon = require('./../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test - get unconfirmed transactions', async () => {
+describe('system test - get unconfirmed transactions', () => {
 	const account1 = randomUtil.account();
 	const account2 = randomUtil.account();
 	const transaction1 = lisk.transaction.transfer({
@@ -88,7 +88,7 @@ describe('system test - get unconfirmed transactions', async () => {
 		);
 	});
 
-	describe('id', async () => {
+	describe('id', () => {
 		it('using valid but unknown id should be ok', done => {
 			const filter = {
 				id: '79fjdfd',

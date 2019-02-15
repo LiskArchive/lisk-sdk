@@ -24,7 +24,7 @@ const System = require('../../../../../../../../src/modules/chain/modules/system
 
 const config = __testContext.config;
 
-describe('Handshake', async () => {
+describe('Handshake', () => {
 	let system;
 	let handshake;
 	const minVersion = '1.0.0';
@@ -54,7 +54,7 @@ describe('Handshake', async () => {
 		}, validConfig);
 	});
 
-	describe('compatibility', async () => {
+	describe('compatibility', () => {
 		let versionCompatibleStub;
 		beforeEach(done => {
 			versionCompatibleStub = sinonSandbox.stub(system, 'versionCompatible');
@@ -159,7 +159,7 @@ describe('Handshake', async () => {
 			nonce: '0123456789ABCDEF',
 		});
 
-		describe('schema tests', async () => {
+		describe('schema tests', () => {
 			let headers;
 
 			beforeEach(beforeDone => {
@@ -167,7 +167,7 @@ describe('Handshake', async () => {
 				beforeDone();
 			});
 
-			describe('handshake', async () => {
+			describe('handshake', () => {
 				const invalidTypes = _.difference(
 					typeRepresentatives.allTypes,
 					typeRepresentatives.objects
@@ -195,7 +195,7 @@ describe('Handshake', async () => {
 					});
 				});
 
-				describe('nonce', async () => {
+				describe('nonce', () => {
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
@@ -242,7 +242,7 @@ describe('Handshake', async () => {
 					});
 				});
 
-				describe('height', async () => {
+				describe('height', () => {
 					const validValues = _.map(new Array(10), () =>
 						Math.floor(Math.random() * Number.MAX_VALUE)
 					);
@@ -294,7 +294,7 @@ describe('Handshake', async () => {
 					});
 				});
 
-				describe('nethash', async () => {
+				describe('nethash', () => {
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
@@ -329,7 +329,7 @@ describe('Handshake', async () => {
 					});
 				});
 
-				describe('version', async () => {
+				describe('version', () => {
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
@@ -364,7 +364,7 @@ describe('Handshake', async () => {
 					});
 				});
 
-				describe('protocolVersion', async () => {
+				describe('protocolVersion', () => {
 					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings

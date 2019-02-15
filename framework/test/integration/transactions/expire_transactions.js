@@ -29,7 +29,7 @@ const addTransactionToUnconfirmedQueuePromise = Promise.promisify(
 	localCommon.addTransactionToUnconfirmedQueue
 );
 
-describe('expire transactions', async () => {
+describe('expire transactions', () => {
 	let library;
 	let queries;
 
@@ -108,7 +108,7 @@ describe('expire transactions', async () => {
 		done();
 	});
 
-	describe('from unconfirmed queue', async () => {
+	describe('from unconfirmed queue', () => {
 		let transaction;
 		let address;
 		let memAccountBefore;
@@ -190,7 +190,7 @@ describe('expire transactions', async () => {
 		});
 	});
 
-	describe('multi-signature', async () => {
+	describe('multi-signature', () => {
 		let transaction;
 		let address;
 		let memAccountBefore;

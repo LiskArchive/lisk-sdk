@@ -18,15 +18,15 @@ const fs = require('fs');
 const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
 const { StorageSandbox } = require('../common/storage_sandbox');
 
-describe('Dependency versions', async () => {
-	describe('node version', async () => {
+describe('Dependency versions', () => {
+	describe('node version', () => {
 		it('should be the same as the one inside .nvmrc file', async () => {
 			const nvmrc = fs.readFileSync('.nvmrc', 'utf8').trim();
 			return expect(process.version).to.contain(nvmrc);
 		});
 	});
 
-	describe('postgresql version', async () => {
+	describe('postgresql version', () => {
 		let storageSandbox;
 
 		it('should be 10.x', async () => {

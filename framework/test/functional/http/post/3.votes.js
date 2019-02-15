@@ -34,7 +34,7 @@ const {
 } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 3) votes', async () => {
+describe('POST /api/transactions (type 3) votes', () => {
 	let transaction;
 	let transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -245,11 +245,11 @@ describe('POST /api/transactions (type 3) votes', async () => {
 			});
 	});
 
-	describe('schema validations', async () => {
+	describe('schema validations', () => {
 		common.invalidAssets('votes', badTransactions);
 	});
 
-	describe('transactions processing', async () => {
+	describe('transactions processing', () => {
 		it('using invalid publicKey should fail', async () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: delegateAccount.passphrase,
@@ -538,11 +538,11 @@ describe('POST /api/transactions (type 3) votes', async () => {
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
-	describe('validation', async () => {
+	describe('validation', () => {
 		it('upvoting same delegate twice should fail', async () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: delegateAccount.passphrase,
@@ -684,7 +684,7 @@ describe('POST /api/transactions (type 3) votes', async () => {
 		});
 	});
 
-	describe('confirm validation', async () => {
+	describe('confirm validation', () => {
 		phases.confirmation(
 			goodTransactionsEnforcement,
 			badTransactionsEnforcement

@@ -16,7 +16,7 @@
 
 const ApiError = require('../../../../../../src/modules/chain/helpers/api_error.js');
 
-describe('helpers/apiError', async () => {
+describe('helpers/apiError', () => {
 	let apiError;
 	let validErrorMessage;
 	let validErrorCode;
@@ -28,7 +28,7 @@ describe('helpers/apiError', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should be an Error instance', done => {
 			expect(apiError).to.have.instanceOf(Error);
 			done();
@@ -49,7 +49,7 @@ describe('helpers/apiError', async () => {
 		});
 	});
 
-	describe('toJson', async () => {
+	describe('toJson', () => {
 		it('should return Object type result', done => {
 			expect(apiError.toJson()).to.be.an('Object');
 			done();

@@ -22,7 +22,7 @@ const { REWARDS, TOTAL_AMOUNT } = __testContext.config.constants;
 REWARDS.DISTANCE = 3000000;
 REWARDS.OFFSET = 1451520;
 
-describe('BlockReward @slow', async () => {
+describe('BlockReward @slow', () => {
 	let blockReward;
 
 	before(done => {
@@ -30,7 +30,7 @@ describe('BlockReward @slow', async () => {
 		done();
 	});
 
-	describe('calcMilestone', async () => {
+	describe('calcMilestone', () => {
 		it('when height is undefined should throw an error', async () =>
 			expect(() => blockReward.calcMilestone()).to.throw(
 				(TypeError, 'Invalid block height')
@@ -130,7 +130,7 @@ describe('BlockReward @slow', async () => {
 			).to.equal(4));
 	});
 
-	describe('calcReward', async () => {
+	describe('calcReward', () => {
 		it('when height is undefined should throw an error', async () =>
 			expect(() => blockReward.calcReward()).to.throw(
 				(TypeError, 'Invalid block height')
@@ -260,7 +260,7 @@ describe('BlockReward @slow', async () => {
 			).to.be.true);
 	});
 
-	describe('calcSupply', async () => {
+	describe('calcSupply', () => {
 		it('when height is undefined should throw an error', async () =>
 			expect(() => blockReward.calcSupply()).to.throw(
 				(TypeError, 'Invalid block height')
@@ -392,8 +392,8 @@ describe('BlockReward @slow', async () => {
 					.isEqualTo('134528054848100000000')
 			).to.be.true);
 
-		describe('completely', async () => {
-			describe('before reward offset', async () => {
+		describe('completely', () => {
+			describe('before reward offset', () => {
 				it('should be ok', done => {
 					let supply = blockReward.calcSupply(1);
 
@@ -405,7 +405,7 @@ describe('BlockReward @slow', async () => {
 				});
 			});
 
-			describe('for milestone 0', async () => {
+			describe('for milestone 0', () => {
 				it('should be ok', done => {
 					let supply = blockReward.calcSupply(1451519);
 					let prev = supply;
@@ -420,7 +420,7 @@ describe('BlockReward @slow', async () => {
 				});
 			});
 
-			describe('for milestone 1', async () => {
+			describe('for milestone 1', () => {
 				it('should be ok', done => {
 					let supply = blockReward.calcSupply(4451519);
 					let prev = supply;
@@ -435,7 +435,7 @@ describe('BlockReward @slow', async () => {
 				});
 			});
 
-			describe('for milestone 2', async () => {
+			describe('for milestone 2', () => {
 				it('should be ok', done => {
 					let supply = blockReward.calcSupply(7451519);
 					let prev = supply;
@@ -450,7 +450,7 @@ describe('BlockReward @slow', async () => {
 				});
 			});
 
-			describe('for milestone 3', async () => {
+			describe('for milestone 3', () => {
 				it('should be ok', done => {
 					let supply = blockReward.calcSupply(10451519);
 					let prev = supply;
@@ -465,7 +465,7 @@ describe('BlockReward @slow', async () => {
 				});
 			});
 
-			describe('for milestone 4 and beyond', async () => {
+			describe('for milestone 4 and beyond', () => {
 				it('should be ok', done => {
 					let supply = blockReward.calcSupply(13451519);
 					let prev = supply;

@@ -29,7 +29,7 @@ const { FEES, NORMALIZER } = global.constants;
 
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 2) register delegate', async () => {
+describe('POST /api/transactions (type 2) register delegate', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -85,11 +85,11 @@ describe('POST /api/transactions (type 2) register delegate', async () => {
 		});
 	});
 
-	describe('schema validations', async () => {
+	describe('schema validations', () => {
 		common.invalidAssets('delegate', badTransactions);
 	});
 
-	describe('transactions processing', async () => {
+	describe('transactions processing', () => {
 		it('with no funds should fail', async () => {
 			transaction = lisk.transaction.registerDelegate({
 				passphrase: accountNoFunds.passphrase,
@@ -200,11 +200,11 @@ describe('POST /api/transactions (type 2) register delegate', async () => {
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
-	describe('validation', async () => {
+	describe('validation', () => {
 		it('setting same delegate twice should fail', async () => {
 			transaction = lisk.transaction.registerDelegate({
 				passphrase: account.passphrase,
@@ -253,7 +253,7 @@ describe('POST /api/transactions (type 2) register delegate', async () => {
 		});
 	});
 
-	describe('confirm validation', async () => {
+	describe('confirm validation', () => {
 		phases.confirmation(
 			goodTransactionsEnforcement,
 			badTransactionsEnforcement

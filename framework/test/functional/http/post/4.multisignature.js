@@ -31,7 +31,7 @@ const common = require('./common');
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 4) register multisignature', async () => {
+describe('POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
 		no_funds: new Scenarios.Multisig({
 			amount: 0,
@@ -83,10 +83,10 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 		});
 	});
 
-	describe('schema validations', async () => {
+	describe('schema validations', () => {
 		common.invalidAssets('multisignature', badTransactions);
 
-		describe('keysgroup', async () => {
+		describe('keysgroup', () => {
 			it('using empty array should fail', async () => {
 				transaction = lisk.transaction.registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
@@ -386,7 +386,7 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 			});
 		});
 
-		describe('min', async () => {
+		describe('min', () => {
 			it('using bigger than keysgroup size plus 1 should fail', async () => {
 				transaction = lisk.transaction.registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
@@ -455,7 +455,7 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 			});
 		});
 
-		describe('lifetime', async () => {
+		describe('lifetime', () => {
 			it(`using greater than maximum(${
 				MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
 			}) should fail`, async () => {
@@ -506,7 +506,7 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 		});
 	});
 
-	describe('transactions processing', async () => {
+	describe('transactions processing', () => {
 		it('with no_funds scenario should fail', async () => {
 			const scenario = scenarios.no_funds;
 
@@ -681,7 +681,7 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 			});
 		});
 
-		describe('signing transactions', async () => {
+		describe('signing transactions', () => {
 			it('twice with the same account should fail', async () => {
 				const scenario = scenarios.unsigned;
 				const signature = apiHelpers.createSignatureObject(
@@ -728,7 +728,7 @@ describe('POST /api/transactions (type 4) register multisignature', async () => 
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(
 			goodTransactions,
 			badTransactions,

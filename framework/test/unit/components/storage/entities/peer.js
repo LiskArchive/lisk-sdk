@@ -27,7 +27,7 @@ const {
 } = require('../../../../../src/components/storage/errors');
 
 // eslint-disable-next-line mocha/no-skipped-tests
-describe('Peer', async () => {
+describe('Peer', () => {
 	let adapter;
 	let validPeerFields;
 	let validPeerSQLs;
@@ -183,7 +183,7 @@ describe('Peer', async () => {
 		expect(Peer.prototype instanceof BaseEntity).to.be.true;
 	});
 
-	describe('constructor()', async () => {
+	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
 			expect(Peer.prototype.constructor.length).to.be.eql(1);
 		});
@@ -221,7 +221,7 @@ describe('Peer', async () => {
 		it('should setup specific filters');
 	});
 
-	describe('getOne()', async () => {
+	describe('getOne()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const peer = new Peer(adapter);
 			const _getResultsStub = sinonSandbox
@@ -233,7 +233,7 @@ describe('Peer', async () => {
 		});
 	});
 
-	describe('get()', async () => {
+	describe('get()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
 			const peer = new Peer(adapter);
 			const _getResultsStub = sinonSandbox
@@ -245,7 +245,7 @@ describe('Peer', async () => {
 		});
 	});
 
-	describe('_getResults()', async () => {
+	describe('_getResults()', () => {
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -278,7 +278,7 @@ describe('Peer', async () => {
 
 		it('should not change any of the provided parameter');
 
-		describe('filters', async () => {
+		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				const peer = new Peer(adapter);
@@ -289,7 +289,7 @@ describe('Peer', async () => {
 		});
 	});
 
-	describe('create()', async () => {
+	describe('create()', () => {
 		it('should call getValuesSet with proper params', async () => {
 			const localAdapter = {
 				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
@@ -333,7 +333,7 @@ describe('Peer', async () => {
 		});
 	});
 
-	describe('update()', async () => {
+	describe('update()', () => {
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -437,7 +437,7 @@ describe('Peer', async () => {
 				.not.to.be.rejected);
 	});
 
-	describe('updateOne()', async () => {
+	describe('updateOne()', () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
 		});
@@ -548,7 +548,7 @@ describe('Peer', async () => {
 			).not.to.be.rejected);
 	});
 
-	describe('isPersisted()', async () => {
+	describe('isPersisted()', () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
 		});
@@ -630,7 +630,7 @@ describe('Peer', async () => {
 		});
 	});
 
-	describe('mergeFilters()', async () => {
+	describe('mergeFilters()', () => {
 		it('should accept filters as single object', async () => {
 			const peer = new Peer(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(peer, 'mergeFilters');
@@ -654,7 +654,7 @@ describe('Peer', async () => {
 		);
 	});
 
-	describe('delete', async () => {
+	describe('delete', () => {
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {

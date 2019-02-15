@@ -25,7 +25,16 @@ class SchemaValidationError extends FrameworkError {
 	}
 }
 
+class DuplicateAppInstanceError extends FrameworkError {
+	constructor(appLabel, pidPath) {
+		super(`Duplicate app instance for "${appLabel}"`);
+		this.appLabel = appLabel;
+		this.pidPath = pidPath;
+	}
+}
+
 module.exports = {
 	FrameworkError,
 	SchemaValidationError,
+	DuplicateAppInstanceError,
 };

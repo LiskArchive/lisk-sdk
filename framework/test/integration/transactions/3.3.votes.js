@@ -21,7 +21,7 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 3) - voting with duplicate submissions', async () => {
+describe('system test (type 3) - voting with duplicate submissions', () => {
 	let library;
 	localCommon.beforeBlock('system_3_3_votes', lib => {
 		library = lib;
@@ -32,7 +32,7 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 
 	/* eslint-disable no-loop-func */
 	while (i < 30) {
-		describe('executing 30 times', async () => {
+		describe('executing 30 times', () => {
 			let transaction1;
 			let transaction2;
 			let transaction3;
@@ -79,7 +79,7 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 				});
 			});
 
-			describe('after forging one block', async () => {
+			describe('after forging one block', () => {
 				before(done => {
 					localCommon.forge(library, async () => {
 						done();
@@ -149,7 +149,7 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 					});
 				});
 
-				describe('after forging a second block', async () => {
+				describe('after forging a second block', () => {
 					before(done => {
 						localCommon.forge(library, async () => {
 							done();

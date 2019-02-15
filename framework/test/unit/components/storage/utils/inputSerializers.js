@@ -17,7 +17,7 @@
 
 const inputSerializers = require('../../../../../src/components/storage/utils/inputSerializers');
 
-describe('inputSerializers', async () => {
+describe('inputSerializers', () => {
 	afterEach(() => sinonSandbox.restore());
 
 	it('should export three functions', async () =>
@@ -27,7 +27,7 @@ describe('inputSerializers', async () => {
 			'stringToByte',
 		]));
 
-	describe('defaultInput', async () => {
+	describe('defaultInput', () => {
 		it('should accept four parameters', async () =>
 			expect(inputSerializers.defaultInput).to.have.length(4));
 
@@ -37,7 +37,7 @@ describe('inputSerializers', async () => {
 			).to.be.eql('${alias}'));
 	});
 
-	describe('booleanToInt', async () => {
+	describe('booleanToInt', () => {
 		it('should accept four parameters', async () =>
 			expect(inputSerializers.booleanToInt).to.have.length(4));
 
@@ -47,7 +47,7 @@ describe('inputSerializers', async () => {
 			).to.be.eql('${alias}::int'));
 	});
 
-	describe('stringToByte', async () => {
+	describe('stringToByte', () => {
 		it('should accept four parameters', async () =>
 			expect(inputSerializers.stringToByte).to.have.length(4));
 

@@ -163,7 +163,7 @@ const unconfirmedTransaction = {
 	id: '16580139363949197645',
 };
 
-describe('transaction', async () => {
+describe('transaction', () => {
 	let transactionLogic;
 	let accountModule;
 
@@ -188,7 +188,7 @@ describe('transaction', async () => {
 		application.cleanup(done);
 	});
 
-	describe('sign', async () => {
+	describe('sign', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.sign).to.throw());
 
@@ -225,7 +225,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('multisign', async () => {
+	describe('multisign', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.multisign).to.throw());
 
@@ -235,7 +235,7 @@ describe('transaction', async () => {
 			));
 	});
 
-	describe('getId', async () => {
+	describe('getId', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.getId).to.throw());
 
@@ -253,7 +253,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('getHash', async () => {
+	describe('getHash', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.getHash).to.throw());
 
@@ -279,7 +279,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('getBytes', async () => {
+	describe('getBytes', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.getBytes).to.throw());
 
@@ -313,7 +313,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('ready', async () => {
+	describe('ready', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.ready).to.throw());
 
@@ -374,7 +374,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('isConfirmed', async () => {
+	describe('isConfirmed', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.isConfirmed.bind(transactionLogic)).to.throw(
 				"Cannot read property 'id' of undefined"
@@ -397,7 +397,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('checkConfirmed', async () => {
+	describe('checkConfirmed', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.checkConfirmed.bind(transactionLogic)).to.throw(
 				'Callback must be a function'
@@ -439,7 +439,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('checkBalance', async () => {
+	describe('checkBalance', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.checkBalance).to.throw());
 
@@ -485,7 +485,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('process', async () => {
+	describe('process', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.process).to.throw());
 
@@ -529,7 +529,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('verify', async () => {
+	describe('verify', () => {
 		function createAndProcess(transactionDataArg, senderArg, cb) {
 			const transferObject = {
 				amount: transactionDataArg.amount,
@@ -893,7 +893,7 @@ describe('transaction', async () => {
 			expect(transactionLogic.verify).to.throw());
 	});
 
-	describe('verifySignature', async () => {
+	describe('verifySignature', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.verifySignature).to.throw());
 
@@ -943,7 +943,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('verifySecondSignature', async () => {
+	describe('verifySecondSignature', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.verifySecondSignature).to.throw());
 
@@ -960,7 +960,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('verifyBytes', async () => {
+	describe('verifyBytes', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.verifyBytes).to.throw());
 
@@ -1008,7 +1008,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('applyConfirmed', async () => {
+	describe('applyConfirmed', () => {
 		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -1078,7 +1078,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('undoConfirmed', async () => {
+	describe('undoConfirmed', () => {
 		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -1168,7 +1168,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('applyUnconfirmed', async () => {
+	describe('applyUnconfirmed', () => {
 		function undoUnconfirmedTransaction(transaction, senderArg, done) {
 			transactionLogic.undoUnconfirmed(transaction, senderArg, done);
 		}
@@ -1201,7 +1201,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('undoUnconfirmed', async () => {
+	describe('undoUnconfirmed', () => {
 		function applyUnconfirmedTransaction(transaction, senderArg, done) {
 			transactionLogic.applyUnconfirmed(transaction, senderArg, done);
 		}
@@ -1217,7 +1217,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('afterSave', async () => {
+	describe('afterSave', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.afterSave).to.throw());
 
@@ -1226,7 +1226,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('objectNormalize', async () => {
+	describe('objectNormalize', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.objectNormalize).to.throw());
 
@@ -1306,7 +1306,7 @@ describe('transaction', async () => {
 			);
 		});
 
-		describe('recipientId with leading zeros', async () => {
+		describe('recipientId with leading zeros', () => {
 			afterEach(done => {
 				exceptions.recipientLeadingZero = {};
 				done();
@@ -1342,7 +1342,7 @@ describe('transaction', async () => {
 			});
 		});
 
-		describe('recipientId exceeding uint64 range', async () => {
+		describe('recipientId exceeding uint64 range', () => {
 			afterEach(done => {
 				exceptions.recipientExceedingUint64 = {};
 				done();
@@ -1371,7 +1371,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('dbRead', async () => {
+	describe('dbRead', () => {
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.dbRead).to.throw());
 
@@ -1422,7 +1422,7 @@ describe('transaction', async () => {
 		});
 	});
 
-	describe('attachAssetType', async () => {
+	describe('attachAssetType', () => {
 		let appliedLogic;
 		it('should attach VOTE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(

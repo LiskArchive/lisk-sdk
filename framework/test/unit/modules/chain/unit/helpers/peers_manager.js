@@ -27,7 +27,7 @@ let masterWAMPServerMock;
 const validRPCProcedureName = 'rpcProcedureA';
 const validEventProcedureName = 'eventProcedureB';
 
-describe('PeersManager', async () => {
+describe('PeersManager', () => {
 	beforeEach(done => {
 		peersManagerInstance = new PeersManager({
 			error: sinonSandbox.stub(),
@@ -51,7 +51,7 @@ describe('PeersManager', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should have empty peers map after initialization', async () =>
 			expect(peersManagerInstance).to.have.property('peers').to.be.empty);
 
@@ -64,7 +64,7 @@ describe('PeersManager', async () => {
 				.empty);
 	});
 
-	describe('method', async () => {
+	describe('method', () => {
 		let validPeer;
 
 		beforeEach(done => {
@@ -75,7 +75,7 @@ describe('PeersManager', async () => {
 			done();
 		});
 
-		describe('add', async () => {
+		describe('add', () => {
 			it('should return false when invoked without arguments', async () =>
 				expect(peersManagerInstance.add()).not.to.be.ok);
 
@@ -134,7 +134,7 @@ describe('PeersManager', async () => {
 				);
 			});
 
-			describe('multiple valid entries', async () => {
+			describe('multiple valid entries', () => {
 				let validPeerA;
 				let validPeerB;
 
@@ -186,7 +186,7 @@ describe('PeersManager', async () => {
 				});
 			});
 
-			describe('when peer gets added nonce = undefined', async () => {
+			describe('when peer gets added nonce = undefined', () => {
 				beforeEach(done => {
 					validPeer.nonce = undefined;
 					peersManagerInstance.add(validPeer);
@@ -201,7 +201,7 @@ describe('PeersManager', async () => {
 				it('should not create any entry in nonceToAddress map', async () =>
 					expect(peersManagerInstance.nonceToAddressMap).to.be.empty);
 
-				describe('when peer is updated with defined nonce = "validNonce"', async () => {
+				describe('when peer is updated with defined nonce = "validNonce"', () => {
 					beforeEach(done => {
 						validPeer.nonce = 'validNonce';
 						peersManagerInstance.add(validPeer);
@@ -221,7 +221,7 @@ describe('PeersManager', async () => {
 			});
 		});
 
-		describe('remove', async () => {
+		describe('remove', () => {
 			it('should return false when invoked without arguments', async () =>
 				expect(peersManagerInstance.remove()).not.to.be.ok);
 
@@ -262,7 +262,7 @@ describe('PeersManager', async () => {
 			});
 		});
 
-		describe('getNonce', async () => {
+		describe('getNonce', () => {
 			it('should return undefined when invoked without arguments', async () =>
 				expect(peersManagerInstance.getNonce()).to.be.undefined);
 
@@ -278,7 +278,7 @@ describe('PeersManager', async () => {
 			});
 		});
 
-		describe('getAddress', async () => {
+		describe('getAddress', () => {
 			it('should return undefined when invoked without arguments', async () =>
 				expect(peersManagerInstance.getAddress()).to.be.undefined);
 
@@ -294,7 +294,7 @@ describe('PeersManager', async () => {
 			});
 		});
 
-		describe('getAll', async () => {
+		describe('getAll', () => {
 			it('should return empty object if no peers were added before', async () =>
 				expect(peersManagerInstance.getAll()).to.be.empty);
 
@@ -308,7 +308,7 @@ describe('PeersManager', async () => {
 			});
 		});
 
-		describe('getByNonce', async () => {
+		describe('getByNonce', () => {
 			it('should return undefined when invoked without arguments', async () =>
 				expect(peersManagerInstance.getByNonce()).to.be.undefined);
 
@@ -324,7 +324,7 @@ describe('PeersManager', async () => {
 			});
 		});
 
-		describe('getByAddress', async () => {
+		describe('getByAddress', () => {
 			it('should return undefined when invoked without arguments', async () =>
 				expect(peersManagerInstance.getByAddress()).to.be.undefined);
 
@@ -341,8 +341,8 @@ describe('PeersManager', async () => {
 		});
 	});
 
-	describe('multiple instances', async () => {
-		describe('when required 2 times', async () => {
+	describe('multiple instances', () => {
+		describe('when required 2 times', () => {
 			let peersManagerInstanceA;
 			let peersManagerInstanceB;
 
@@ -357,7 +357,7 @@ describe('PeersManager', async () => {
 				});
 				done();
 			});
-			describe('when [peersManagerInstanceA] adds data', async () => {
+			describe('when [peersManagerInstanceA] adds data', () => {
 				let validPeer;
 
 				beforeEach(done => {

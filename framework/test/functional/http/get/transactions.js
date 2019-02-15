@@ -29,7 +29,7 @@ const { NORMALIZER } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('GET /api/transactions', async () => {
+describe('GET /api/transactions', () => {
 	const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 	const transactionList = [];
 
@@ -143,8 +143,8 @@ describe('GET /api/transactions', async () => {
 		});
 	});
 
-	describe('?', async () => {
-		describe('with wrong input', async () => {
+	describe('?', () => {
+		describe('with wrong input', () => {
 			it('using valid array-like parameters should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest(
@@ -269,7 +269,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('id', async () => {
+		describe('id', () => {
 			it('using valid id should be ok', async () => {
 				const transactionInCheck = transactionList[0];
 
@@ -326,7 +326,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('type', async () => {
+		describe('type', () => {
 			it('using invalid type should fail', async () => {
 				return transactionsEndpoint.makeRequest({ type: 8 }, 400).then(res => {
 					expectSwaggerParamError(res, 'type');
@@ -347,7 +347,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('senderId', async () => {
+		describe('senderId', () => {
 			it('using invalid senderId should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ senderId: '' }, 400)
@@ -387,7 +387,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('senderPublicKey', async () => {
+		describe('senderPublicKey', () => {
 			it('using invalid senderPublicKey should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ senderPublicKey: '' }, 400)
@@ -430,7 +430,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('recipientId', async () => {
+		describe('recipientId', () => {
 			it('using invalid recipientId should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ recipientId: '' }, 400)
@@ -470,7 +470,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('senderIdOrRecipientId', async () => {
+		describe('senderIdOrRecipientId', () => {
 			it('using empty senderIdOrRecipientId should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ senderIdOrRecipientId: '' }, 400)
@@ -500,7 +500,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('recipientPublicKey', async () => {
+		describe('recipientPublicKey', () => {
 			it('using invalid recipientPublicKey should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ recipientPublicKey: '' }, 400)
@@ -543,7 +543,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('blockId', async () => {
+		describe('blockId', () => {
 			it('using invalid blockId should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ blockId: '' }, 400)
@@ -563,7 +563,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('height', async () => {
+		describe('height', () => {
 			it('using invalid height should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ height: '' }, 400)
@@ -583,7 +583,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('minAmount', async () => {
+		describe('minAmount', () => {
 			it('should get transactions with amount more than minAmount', async () => {
 				return transactionsEndpoint
 					.makeRequest({ minAmount }, 200)
@@ -597,7 +597,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('maxAmount', async () => {
+		describe('maxAmount', () => {
 			it('should get transactions with amount less than maxAmount', async () => {
 				return transactionsEndpoint
 					.makeRequest({ maxAmount }, 200)
@@ -611,7 +611,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('fromTimestamp', async () => {
+		describe('fromTimestamp', () => {
 			it('using invalid fromTimestamp should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ fromTimestamp: -1 }, 400)
@@ -634,7 +634,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('toTimestamp', async () => {
+		describe('toTimestamp', () => {
 			it('using invalid toTimestamp should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ toTimestamp: 0 }, 400)
@@ -657,7 +657,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('data', async () => {
+		describe('data', () => {
 			it('using specific string should return transactions', async () => {
 				const dataFilter = 'transaction1';
 				return transactionsEndpoint
@@ -732,7 +732,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('limit', async () => {
+		describe('limit', () => {
 			it('using limit < 0 should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ limit: -1 }, 400)
@@ -758,7 +758,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('offset', async () => {
+		describe('offset', () => {
 			it('using offset="one" should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest({ offset: 'one' }, 400)
@@ -792,8 +792,8 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('sort', async () => {
-			describe('amount', async () => {
+		describe('sort', () => {
+			describe('amount', () => {
 				it('sorted by amount:asc should be ok', async () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: 'amount:asc', minAmount: 100 }, 200)
@@ -819,7 +819,7 @@ describe('GET /api/transactions', async () => {
 				});
 			});
 
-			describe('fee', async () => {
+			describe('fee', () => {
 				it('sorted by fee:asc should be ok', async () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: 'fee:asc', minAmount: 100 }, 200)
@@ -845,7 +845,7 @@ describe('GET /api/transactions', async () => {
 				});
 			});
 
-			describe('type', async () => {
+			describe('type', () => {
 				it('sorted by fee:asc should be ok', async () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: 'type:asc', minAmount: 100 }, 200)
@@ -871,7 +871,7 @@ describe('GET /api/transactions', async () => {
 				});
 			});
 
-			describe('timestamp', async () => {
+			describe('timestamp', () => {
 				it('sorted by timestamp:asc should be ok', async () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: 'timestamp:asc', minAmount: 100 }, 200)
@@ -952,7 +952,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('minAmount & maxAmount & sort', async () => {
+		describe('minAmount & maxAmount & sort', () => {
 			it('using minAmount, maxAmount sorted by amount should return sorted transactions', async () => {
 				return transactionsEndpoint
 					.makeRequest(
@@ -978,7 +978,7 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('combination of query parameters', async () => {
+		describe('combination of query parameters', () => {
 			it('using valid parameters should be ok', async () => {
 				return transactionsEndpoint
 					.makeRequest(
@@ -1007,8 +1007,8 @@ describe('GET /api/transactions', async () => {
 			});
 		});
 
-		describe('meta', async () => {
-			describe('count', async () => {
+		describe('meta', () => {
+			describe('count', () => {
 				it('should return count of the transactions with response', async () => {
 					return transactionsEndpoint.makeRequest({}, 200).then(res => {
 						expect(res.body.meta.count).to.be.a('number');
@@ -1023,7 +1023,7 @@ describe('GET /api/transactions', async () => {
 		 * in config/default/exceptions to a value bigger than 0
 		 * */
 		/* eslint-disable mocha/no-skipped-tests */
-		describe.skip('assets', async () => {
+		describe.skip('assets', () => {
 			before(() => {
 				return sendTransactionPromise(transaction4) // send type 0 transaction
 					.then(result => {

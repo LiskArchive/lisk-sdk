@@ -29,7 +29,7 @@ const common = require('./common');
 const { FEES, NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 6) inTransfer dapp', async () => {
+describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -96,10 +96,10 @@ describe('POST /api/transactions (type 6) inTransfer dapp', async () => {
 
 	/* eslint-disable mocha/no-skipped-tests */
 
-	describe.skip('schema validations', async () => {
+	describe.skip('schema validations', () => {
 		common.invalidAssets('inTransfer', badTransactions);
 
-		describe('dappId', async () => {
+		describe('dappId', () => {
 			it('without should fail', async () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
@@ -233,7 +233,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', async () => {
 			});
 		});
 
-		describe('amount', async () => {
+		describe('amount', () => {
 			it('using < 0 should fail', async () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
@@ -283,7 +283,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', async () => {
 		});
 	});
 
-	describe.skip('transactions processing', async () => {
+	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', async () => {
 			const unknownDappId = '1';
 			transaction = lisk.transfer.createInTransfer(
@@ -353,7 +353,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', async () => {
 			});
 		});
 
-		describe('from the author itself', async () => {
+		describe('from the author itself', () => {
 			it('with minimal funds should fail', async () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.blockDataDapp.id,
@@ -387,13 +387,13 @@ describe('POST /api/transactions (type 6) inTransfer dapp', async () => {
 		});
 	});
 
-	describe.skip('confirmation', async () => {
+	describe.skip('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
 	/* eslint-enable mocha/no-skipped-tests */
 
-	describe('check frozen type', async () => {
+	describe('check frozen type', () => {
 		it('transaction should be rejected', async () => {
 			transaction = {
 				amount: '100000000',

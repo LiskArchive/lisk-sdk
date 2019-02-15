@@ -27,9 +27,9 @@ const { NORMALIZER } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('GET /api/node', async () => {
-	describe('/transactions', async () => {
-		describe('/unsigned', async () => {
+describe('GET /api/node', () => {
+	describe('/transactions', () => {
+		describe('/unsigned', () => {
 			const UnsignedEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
 			).addParameters({ state: 'unsigned' });
@@ -131,7 +131,7 @@ describe('GET /api/node', async () => {
 					});
 			});
 
-			describe('with wrong input', async () => {
+			describe('with wrong input', () => {
 				it('using invalid field name should fail', async () => {
 					return UnsignedEndpoint.makeRequest(
 						{
@@ -198,7 +198,7 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('id', async () => {
+			describe('id', () => {
 				it('using invalid id should fail', async () => {
 					return UnsignedEndpoint.makeRequest({ id: '79fjdfd' }, 400).then(
 						res => {
@@ -230,7 +230,7 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('type', async () => {
+			describe('type', () => {
 				it('using invalid type should fail', async () => {
 					return UnsignedEndpoint.makeRequest({ type: 8 }, 400).then(res => {
 						expectSwaggerParamError(res, 'type');
@@ -255,7 +255,7 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('senderId', async () => {
+			describe('senderId', () => {
 				it('using invalid senderId should fail', async () => {
 					return UnsignedEndpoint.makeRequest(
 						{ senderId: '79fjdfd' },
@@ -290,7 +290,7 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('senderPublicKey', async () => {
+			describe('senderPublicKey', () => {
 				it('using invalid senderPublicKey should fail', async () => {
 					return UnsignedEndpoint.makeRequest(
 						{ senderPublicKey: '79fjdfd' },
@@ -328,7 +328,7 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('recipientId', async () => {
+			describe('recipientId', () => {
 				it('using invalid recipientId should fail', async () => {
 					return UnsignedEndpoint.makeRequest(
 						{ recipientId: '79fjdfd' },
@@ -363,7 +363,7 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('recipientPublicKey', async () => {
+			describe('recipientPublicKey', () => {
 				it('using invalid recipientPublicKey should fail', async () => {
 					return UnsignedEndpoint.makeRequest(
 						{ recipientPublicKey: '79fjdfd' },
@@ -401,7 +401,7 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('limit', async () => {
+			describe('limit', () => {
 				it('using limit < 0 should fail', async () => {
 					return UnsignedEndpoint.makeRequest({ limit: -1 }, 400).then(res => {
 						expectSwaggerParamError(res, 'limit');
@@ -422,7 +422,7 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('offset', async () => {
+			describe('offset', () => {
 				it('using offset="one" should fail', async () => {
 					return UnsignedEndpoint.makeRequest({ offset: 'one' }, 400).then(
 						res => {
@@ -448,8 +448,8 @@ describe('GET /api/node', async () => {
 				});
 			});
 
-			describe('sort', async () => {
-				describe('amount', async () => {
+			describe('sort', () => {
+				describe('amount', () => {
 					it('sorted by amount:asc should be ok', async () => {
 						return UnsignedEndpoint.makeRequest(
 							{ sort: 'amount:asc' },
@@ -481,7 +481,7 @@ describe('GET /api/node', async () => {
 					});
 				});
 
-				describe('fee', async () => {
+				describe('fee', () => {
 					it('sorted by fee:asc should be ok', async () => {
 						return UnsignedEndpoint.makeRequest({ sort: 'fee:asc' }, 200).then(
 							res => {
@@ -513,7 +513,7 @@ describe('GET /api/node', async () => {
 					});
 				});
 
-				describe('type', async () => {
+				describe('type', () => {
 					it('sorted by fee:asc should be ok', async () => {
 						return UnsignedEndpoint.makeRequest({ sort: 'type:asc' }, 200).then(
 							res => {
@@ -544,7 +544,7 @@ describe('GET /api/node', async () => {
 					});
 				});
 
-				describe('timestamp', async () => {
+				describe('timestamp', () => {
 					it('sorted by timestamp:asc should be ok', async () => {
 						return UnsignedEndpoint.makeRequest(
 							{ sort: 'timestamp:asc' },

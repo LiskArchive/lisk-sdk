@@ -22,7 +22,7 @@ const failureCodes = require('../../../../src/modules/chain/api/ws/rpc/failure_c
 const wsServer = require('../../../common/ws/server');
 const WSServerMaster = require('../../../common/ws/server_master');
 
-describe('handshake', async () => {
+describe('handshake', () => {
 	const wsServerPort = 9999;
 	const frozenHeaders = WSServerMaster.generatePeerHeaders();
 	let validClientSocketOptions;
@@ -119,8 +119,8 @@ describe('handshake', async () => {
 	});
 
 	// Define new error codes for all of the errors occuring on Server side - they can be easily passed now
-	describe('with invalid headers', async () => {
-		describe('should fail with INVALID_HEADERS code and description', async () => {
+	describe('with invalid headers', () => {
+		describe('should fail with INVALID_HEADERS code and description', () => {
 			it('without headers', function(done) {
 				delete validClientSocketOptions.query;
 				connect();
@@ -183,8 +183,8 @@ describe('handshake', async () => {
 
 	// TODO: Redesign the following tests
 	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('when reaching', async () => {
-		describe('not reachable server', async () => {
+	describe.skip('when reaching', () => {
+		describe('not reachable server', () => {
 			const invalidServerIp = '1.1.1.1';
 			const invalidServerPort = 1111;
 
@@ -199,7 +199,7 @@ describe('handshake', async () => {
 			});
 		});
 
-		describe('not existing server', async () => {
+		describe('not existing server', () => {
 			const validServerIp = '127.0.0.1';
 			const invalidServerPort = 1111;
 
@@ -215,7 +215,7 @@ describe('handshake', async () => {
 		});
 	});
 
-	describe('with valid headers', async () => {
+	describe('with valid headers', () => {
 		let originalPort;
 
 		before(() => {
@@ -240,8 +240,8 @@ describe('handshake', async () => {
 			done();
 		});
 
-		describe('when present on master', async () => {
-			describe('when nonce is not present', async () => {
+		describe('when present on master', () => {
+			describe('when nonce is not present', () => {
 				beforeEach(done => {
 					validClientSocketOptions.query.nonce = randomstring.generate(16);
 					done();
@@ -260,7 +260,7 @@ describe('handshake', async () => {
 				});
 			});
 
-			describe('when nonce is present', async () => {
+			describe('when nonce is present', () => {
 				it('should succeed when connectionId is present', done => {
 					// Impossible to recreate
 					done();
@@ -275,7 +275,7 @@ describe('handshake', async () => {
 			});
 		});
 
-		describe('when not present on master', async () => {
+		describe('when not present on master', () => {
 			const wampClient = new WAMPClient();
 
 			beforeEach(function(done) {
@@ -300,7 +300,7 @@ describe('handshake', async () => {
 				return disconnect();
 			});
 
-			describe('when nonce is not present', async () => {
+			describe('when nonce is not present', () => {
 				beforeEach(() => {
 					validClientSocketOptions.query.nonce = randomstring.generate(16);
 					return disconnect();
@@ -318,7 +318,7 @@ describe('handshake', async () => {
 				});
 			});
 
-			describe('when nonce is present', async () => {
+			describe('when nonce is present', () => {
 				beforeEach(() => {
 					return disconnect();
 				});

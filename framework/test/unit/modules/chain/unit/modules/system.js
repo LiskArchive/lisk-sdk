@@ -19,7 +19,7 @@ const rewire = require('rewire');
 
 const System = rewire('../../../../../../src/modules/chain/modules/system.js');
 
-describe('system', async () => {
+describe('system', () => {
 	let systemModule;
 	let library;
 	let __private;
@@ -66,7 +66,7 @@ describe('system', async () => {
 		);
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should assign params to library', async () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.storage).to.eql(storageStub);
@@ -108,25 +108,25 @@ describe('system', async () => {
 	});
 
 	/* eslint-disable mocha/no-pending-tests */
-	describe('static', async () => {
-		describe('setHeaders', async () => {
+	describe('static', () => {
+		describe('setHeaders', () => {
 			it('should assign the argument to __private');
 		});
 
-		describe('getHeaders', async () => {
+		describe('getHeaders', () => {
 			it('should return __private');
 		});
 	});
 
-	describe('getOS', async () => {
+	describe('getOS', () => {
 		it('should __private.os');
 	});
 
-	describe('getVersion', async () => {
+	describe('getVersion', () => {
 		it('should __private.version');
 	});
 
-	describe('getProtocolVersion', async () => {
+	describe('getProtocolVersion', () => {
 		it('should be equal to __private.protocolVersion', async () =>
 			// Assert
 			expect(systemModule.getProtocolVersion()).to.equal(
@@ -134,46 +134,46 @@ describe('system', async () => {
 			));
 	});
 
-	describe('getPort', async () => {
+	describe('getPort', () => {
 		it('should __private.wsPort');
 	});
 
-	describe('getHeight', async () => {
+	describe('getHeight', () => {
 		it('should __private.height');
 	});
 
-	describe('getNethash', async () => {
+	describe('getNethash', () => {
 		it('should __private.nethash');
 	});
 
-	describe('getNonce', async () => {
+	describe('getNonce', () => {
 		it('should __private.nonce');
 	});
 
-	describe('getBroadhash', async () => {
-		describe('when argument is not a function', async () => {
+	describe('getBroadhash', () => {
+		describe('when argument is not a function', () => {
 			it('should __private.broadhash');
 		});
 
-		describe('when argument is a function', async () => {
+		describe('when argument is a function', () => {
 			it('should call db.query with sql.getBroadhash');
 
 			it('should call db.query with limit = 5');
 
-			describe('when db.query fails', async () => {
+			describe('when db.query fails', () => {
 				it('should call callback with error');
 
 				it('should call the logger.error with error stack');
 			});
 
-			describe('when db.query succeeds', async () => {
-				describe('and returns no or one result', async () => {
+			describe('when db.query succeeds', () => {
+				describe('and returns no or one result', () => {
 					it('should call callback with error = null');
 
 					it('should call callback with __private.nethash');
 				});
 
-				describe('and returns more then one results', async () => {
+				describe('and returns more then one results', () => {
 					it('should call crypto.createHash with sha256');
 
 					it('should call crypto.update with concatenation of results ids');
@@ -190,48 +190,48 @@ describe('system', async () => {
 		});
 	});
 
-	describe('getMinVersion', async () => {
+	describe('getMinVersion', () => {
 		it('should __private.minVersion');
 	});
 
-	describe('networkCompatible', async () => {
+	describe('networkCompatible', () => {
 		it('should return true if argument is equal to __private.nethash');
 
 		it('should return false if argument is not equal to __private.nethash');
 	});
 	/* eslint-enable mocha/no-pending-tests */
 
-	describe('versionCompatible', async () => {
-		describe('when version is equal to system version', async () => {
+	describe('versionCompatible', () => {
+		describe('when version is equal to system version', () => {
 			it('should return true', async () =>
 				expect(systemModule.versionCompatible('1.0.0-beta.0')).to.be.true);
 		});
-		describe('when version is greather than system version', async () => {
+		describe('when version is greather than system version', () => {
 			it('should return true', async () =>
 				expect(systemModule.versionCompatible('1.0.0-rc.0')).to.be.true);
 		});
-		describe('when version is less than system version', async () => {
+		describe('when version is less than system version', () => {
 			it('should return false', async () =>
 				expect(systemModule.versionCompatible('1.0.0-alpha.10')).to.be.false);
 		});
 	});
 
-	describe('protocolVersionCompatible', async () => {
-		describe('when protocol version is exactly equal to system protocol version', async () => {
+	describe('protocolVersionCompatible', () => {
+		describe('when protocol version is exactly equal to system protocol version', () => {
 			it('should return true', async () =>
 				expect(systemModule.protocolVersionCompatible('1.0')).to.be.true);
 		});
-		describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', async () => {
+		describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', () => {
 			it("should return false if it's greater or lesser", async () =>
 				expect(systemModule.protocolVersionCompatible('2.0')).to.be.false);
 			it("should return false if it's lesser", async () =>
 				expect(systemModule.protocolVersionCompatible('0.0')).to.be.false);
 		});
-		describe('when the hard part of protocol is equal to  the one of the system protocol version', async () => {
+		describe('when the hard part of protocol is equal to  the one of the system protocol version', () => {
 			it('should return true', async () =>
 				expect(systemModule.protocolVersionCompatible('1.5')).to.be.true);
 		});
-		describe('when the hard part of the protocol version is already compatible', async () => {
+		describe('when the hard part of the protocol version is already compatible', () => {
 			beforeEach(done => {
 				__private.protocolVersion = '1.1'; // So we can test smaller values for the soft part
 				done();
@@ -252,7 +252,7 @@ describe('system', async () => {
 	});
 
 	/* eslint-disable mocha/no-pending-tests */
-	describe('nonceCompatible', async () => {
+	describe('nonceCompatible', () => {
 		it('should return if nonce exists and is different than the system nonce');
 
 		it('should return false if nonce does not exist');
@@ -260,7 +260,7 @@ describe('system', async () => {
 		it('should return false if nonce exists and is equal to the system nonce');
 	});
 
-	describe('update', async () => {
+	describe('update', () => {
 		it('should call getBroadhash with function');
 
 		it('should update __private.broadhash when getBroadhash returns no error');
@@ -284,8 +284,8 @@ describe('system', async () => {
 		it('should never call callback with an error');
 	});
 
-	describe('onBind', async () => {
-		describe('modules', async () => {
+	describe('onBind', () => {
+		describe('modules', () => {
 			it('should assign blocks');
 
 			it('should assign transport');

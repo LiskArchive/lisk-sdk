@@ -21,7 +21,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 2) - double delegate registrations', async () => {
+describe('system test (type 2) - double delegate registrations', () => {
 	let library;
 	localCommon.beforeBlock('system_2_2_delegates_1', lib => {
 		library = lib;
@@ -32,7 +32,7 @@ describe('system test (type 2) - double delegate registrations', async () => {
 
 	/* eslint-disable no-loop-func */
 	while (i < 30) {
-		describe('executing 30 times', async () => {
+		describe('executing 30 times', () => {
 			let transaction1;
 			let transaction2;
 			const account = randomUtil.account();
@@ -53,7 +53,7 @@ describe('system test (type 2) - double delegate registrations', async () => {
 				);
 			});
 
-			describe('with same account using same username and different timestamps', async () => {
+			describe('with same account using same username and different timestamps', () => {
 				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = lisk.transaction.registerDelegate({
 						passphrase: account.passphrase,
@@ -77,7 +77,7 @@ describe('system test (type 2) - double delegate registrations', async () => {
 					});
 				});
 
-				describe('after forging one block', async () => {
+				describe('after forging one block', () => {
 					before(done => {
 						localCommon.forge(library, async () => {
 							done();

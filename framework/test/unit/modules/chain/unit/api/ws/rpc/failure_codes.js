@@ -30,7 +30,7 @@ let errorMessage;
 let errorDesc;
 let result;
 
-describe('failure_codes', async () => {
+describe('failure_codes', () => {
 	beforeEach(done => {
 		errorCode = 1234;
 		errorMessage = 'Peer failed...';
@@ -43,8 +43,8 @@ describe('failure_codes', async () => {
 		done();
 	});
 
-	describe('PeerUpdateError', async () => {
-		describe('constructor', async () => {
+	describe('PeerUpdateError', () => {
+		describe('constructor', () => {
 			beforeEach(done => {
 				peerUpdateErrorInstance = new PeerUpdateError(
 					errorCode,
@@ -73,7 +73,7 @@ describe('failure_codes', async () => {
 					.which.equals(errorDesc));
 		});
 
-		describe('toString', async () => {
+		describe('toString', () => {
 			beforeEach(done => {
 				result = peerUpdateErrorInstance.toString();
 				done();

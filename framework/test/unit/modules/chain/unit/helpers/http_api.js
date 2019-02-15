@@ -33,7 +33,7 @@ let resMock;
 let loggerMock;
 let checkIpInListStub;
 
-describe('httpApi', async () => {
+describe('httpApi', () => {
 	before(done => {
 		validError = {
 			message: 'validError',
@@ -42,7 +42,7 @@ describe('httpApi', async () => {
 		done();
 	});
 
-	describe('middleware', async () => {
+	describe('middleware', () => {
 		before(done => {
 			validSendObject = {
 				success: false,
@@ -94,7 +94,7 @@ describe('httpApi', async () => {
 			done();
 		});
 
-		describe('errorLogger', async () => {
+		describe('errorLogger', () => {
 			beforeEach(done => {
 				httpApi.middleware.errorLogger(
 					loggerMock,
@@ -106,7 +106,7 @@ describe('httpApi', async () => {
 				done();
 			});
 
-			describe('when error is null', async () => {
+			describe('when error is null', () => {
 				before(done => {
 					validError = null;
 					done();
@@ -123,7 +123,7 @@ describe('httpApi', async () => {
 				});
 			});
 
-			describe('when error is not null', async () => {
+			describe('when error is not null', () => {
 				before(done => {
 					validError = { message: 'validError' };
 					done();
@@ -152,7 +152,7 @@ describe('httpApi', async () => {
 			});
 		});
 
-		describe('logClientConnections', async () => {
+		describe('logClientConnections', () => {
 			before(done => {
 				validRes = null;
 				done();
@@ -180,7 +180,7 @@ describe('httpApi', async () => {
 			});
 		});
 
-		describe('attachResponseHeader', async () => {
+		describe('attachResponseHeader', () => {
 			let validHeaderKey;
 			let validHeaderValue;
 
@@ -214,7 +214,7 @@ describe('httpApi', async () => {
 			});
 		});
 
-		describe('applyAPIAccessRules', async () => {
+		describe('applyAPIAccessRules', () => {
 			let validConfig;
 
 			beforeEach(done => {
@@ -317,6 +317,6 @@ describe('httpApi', async () => {
 			});
 		});
 
-		describe('queryParser', async () => {});
+		describe('queryParser', () => {});
 	});
 });
