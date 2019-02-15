@@ -26,7 +26,7 @@ SET "transferData" = (
         FROM transfer as t
         WHERE t."transactionId" = trs.id
     )
-where id IN (SELECT "transactionId"  FROM transfer);
+where id IN (SELECT "transactionId" FROM transfer);
 
 
 -- Migrate signatures table into trs asset field

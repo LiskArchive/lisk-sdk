@@ -136,10 +136,7 @@ class StorageSeed {
 	static reset(storage) {
 		const tables = [
 			'blocks',
-			'dapps',
 			'forks_stat',
-			'intransfer',
-			'outtransfer',
 			'mem_accounts',
 			'mem_accounts2multisignatures',
 			'mem_accounts2u_multisignatures',
@@ -149,7 +146,6 @@ class StorageSeed {
 			'rounds_rewards',
 			'peers',
 			'trs',
-			'transfer',
 		];
 
 		return storage.adapter

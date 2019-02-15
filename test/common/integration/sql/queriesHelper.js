@@ -71,12 +71,10 @@ class Queries {
 	}
 
 	getAllBlocks() {
-		return self.storage.adapter.db
-			.query('SELECT * FROM full_blocks_list ORDER BY b_height DESC')
-			.then(rows => {
-				// Normalize blocks
-				return self.library.modules.blocks.utils.readDbRows(rows);
-			});
+		return self.storage.entities.Block.get(
+			{},
+			{ extended: true, limit: null }
+		).then(blocks => blocks.map(this.library.logic.block.storageRead));
 	}
 
 	getBlocks(round) {
