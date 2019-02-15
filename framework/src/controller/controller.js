@@ -1,5 +1,4 @@
 const assert = require('assert');
-const Promise = require('bluebird');
 const fs = require('fs-extra');
 const psList = require('ps-list');
 const systemDirs = require('./config/dirs');
@@ -157,11 +156,13 @@ module.exports = class Controller {
 	}
 
 	async _loadModules(modules) {
-		return Promise.each(Object.keys(modules), alias =>
-			this._loadInMemoryModule(
-				alias,
-				modules[alias].klass,
-				modules[alias].options
+		return Promise.all(
+			Object.keys(modules).map(alias =>
+				this._loadInMemoryModule(
+					alias,
+					modules[alias].klass,
+					modules[alias].options
+				)
 			)
 		);
 	}
@@ -170,13 +171,11 @@ module.exports = class Controller {
 		const module = new Klass(options);
 		validateModuleSpec(module);
 
-		const moduleAlias = module.constructor.alias;
-		const moduleInfo = module.constructor.info;
+		const moduleAlias = alias || module.constructor.alias;
+		const { name, version } = module.constructor.info;
 
 		this.logger.info(
-			`Loading module with alias: ${moduleAlias}(${moduleInfo.name}:${
-				moduleInfo.version
-			})`
+			`Loading module with alias: ${moduleAlias}(${name}:${version})`
 		);
 
 		const channel = new EventEmitterChannel(
@@ -201,19 +200,16 @@ module.exports = class Controller {
 
 		this.modules[moduleAlias] = module;
 		this.logger.info(
-			`Module ready with alias: ${moduleAlias}(${moduleInfo.name}:${
-				moduleInfo.version
-			})`
+			`Module ready with alias: ${moduleAlias}(${name}:${version})`
 		);
 	}
 
 	async unloadModules(modules = null) {
-		return Promise.mapSeries(
-			modules || Object.keys(this.modules),
-			async alias => {
+		return Promise.all(
+			(modules || Object.keys(this.modules)).map(async alias => {
 				await this.modules[alias].unload();
 				delete this.modules[alias];
-			}
+			})
 		);
 	}
 
