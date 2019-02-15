@@ -40,8 +40,7 @@ module.exports = {
 			},
 			payloadHash: {
 				type: 'string',
-				minLength: 64,
-				maxLength: 64,
+				pattern: '^[a-fA-F0-9]{64}$',
 			},
 			timestamp: {
 				type: 'integer',
@@ -57,7 +56,7 @@ module.exports = {
 			},
 			generatorPublicKey: {
 				type: 'string',
-				pattern: '^[0-9a-z]{64}$',
+				pattern: '^[a-fA-F0-9]{64}$',
 			},
 			transactions: {
 				type: 'array',
@@ -72,7 +71,7 @@ module.exports = {
 			},
 			blockSignature: {
 				type: 'string',
-				pattern: '^[0-9a-z]{128}$',
+				pattern: '^[a-fA-F0-9]{128}$',
 			},
 			id: {
 				type: 'string',
@@ -122,7 +121,7 @@ module.exports = {
 			},
 			senderPublicKey: {
 				type: 'string',
-				pattern: '^[0-9a-z]{64}$',
+				pattern: '^[a-fA-F0-9]{64}$',
 			},
 			asset: {
 				type: 'object',
@@ -131,7 +130,7 @@ module.exports = {
 			},
 			signature: {
 				type: 'string',
-				pattern: '^[0-9a-z]{128}$',
+				pattern: '^[a-fA-F0-9]{128}$',
 			},
 			id: {
 				type: 'string',
