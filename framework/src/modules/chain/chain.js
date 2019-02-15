@@ -56,6 +56,7 @@ const config = {
 		signatures: './modules/signatures.js',
 		transactions: './modules/transactions.js',
 		transport: './modules/transport.js',
+		processTransactions: './modules/process_transactions.js',
 	},
 };
 const modules = [];
@@ -511,6 +512,7 @@ module.exports = class Chain {
 						const Block = require('./logic/block.js');
 						const Account = require('./logic/account.js');
 						const Peers = require('./logic/peers.js');
+						const StateManager = require('./logic/state_store');
 
 						async.auto(
 							{
@@ -535,6 +537,12 @@ module.exports = class Chain {
 								genesisBlock(genesisBlockCb) {
 									genesisBlockCb(null, scope.genesisBlock);
 								},
+								stateManager: [
+									'storage',
+									function(stateManagerScope, stateManagerCb) {
+										new StateManager(stateManagerScope.storage, stateManagerCb);
+									},
+								],
 								account: [
 									'storage',
 									'bus',
