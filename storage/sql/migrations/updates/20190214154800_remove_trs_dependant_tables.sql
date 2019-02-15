@@ -14,9 +14,10 @@
 
 
 /*
-  DESCRIPTION: Remove all trs dependant tables into trs asset field
-
-  PARAMETERS: None
+ * DESCRIPTION: Remove all trs dependant tables into trs asset field (transfer, signatures, delegates, votes, multisignatures, dapps, intransfer, outtransfer)
+ * Note that it will also drop the `full_blocks_list` view as it uses some of these tables
+ *
+ * PARAMETERS: None
 */
 
 DROP TABLE "transfer", "signatures", "delegates", "votes", "multisignatures", "dapps", "intransfer", "outtransfer" CASCADE;
