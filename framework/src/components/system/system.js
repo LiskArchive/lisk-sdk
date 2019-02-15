@@ -130,11 +130,11 @@ class System {
 			}
 		)
 			.then(blocks => {
-				this.headers.height = blocks[0].height;
 				if (blocks.length <= 1) {
 					self.headers.broadhash = self.headers.nethash;
 					return setImmediate(cb);
 				}
+				this.headers.height = blocks[0].height;
 				const seed = blocks.map(row => row.id).join('');
 				const newBroadhash = crypto
 					.createHash('sha256')

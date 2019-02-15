@@ -15,6 +15,7 @@
 'use strict';
 
 const OS = require('os');
+const crypto = require('crypto');
 
 const { createSystemComponent } = require('../../../../src/components/system');
 
@@ -34,7 +35,13 @@ describe('components: system', async () => {
 			debug: sinonSandbox.spy(),
 		};
 
-		storageStub = sinonSandbox.stub();
+		storageStub = {
+			entities: {
+				Block: {
+					get: sinonSandbox.stub(),
+				},
+			},
+		};
 
 		dummyConfig = {
 			height: 1,
@@ -213,51 +220,185 @@ describe('components: system', async () => {
 		});
 	});
 
-	/* eslint-disable mocha/no-pending-tests */
-	describe('update', async () => {
-		beforeEach(async () => {
-			storageStub.returns();
-		});
-
+	describe('update', () => {
 		afterEach(async () => {
-			storageStub.restore();
+			storageStub.entities.Block.get.reset();
 		});
 
-		it(
-			'should call storage.entities.Block.get with limit = 5 and sort height:asc'
-		);
-
-		describe('when storage.entities.Block.get fails', async () => {
-			it('should not update this.headesrs.broadhash');
-			it('should not update this.headesrs.height');
-			it('should call the logger.error with error stack');
-			it('should return error');
+		it('should call storage.entities.Block.get with limit = 5 and sort height:asc', done => {
+			const blocks = [
+				{
+					id: '00000002',
+					height: 2,
+				},
+				{
+					id: '00000001',
+					height: 1,
+				},
+			];
+			const args = {
+				limit: 5,
+				sort: 'height:desc',
+			};
+			storageStub.entities.Block.get.resolves(blocks);
+			systemComponent.update(error => {
+				expect(error).to.be.undefined;
+				expect(storageStub.entities.Block.get.calledOnce).to.be.true;
+				expect(storageStub.entities.Block.get.args[0][1]).to.eql(args);
+				done();
+			});
 		});
 
-		describe('when storage.entities.Block.get succeeds', async () => {
-			it(
-				'should update this.headers.height property to the height of the first block'
-			);
+		describe('when storage.entities.Block.get fails', () => {
+			const err = {
+				stack: 'my stack',
+			};
+			beforeEach(async () => {
+				storageStub.entities.Block.get.rejects(err);
+			});
+			it('should return error', done => {
+				systemComponent.update(error => {
+					expect(error).to.have.property('stack');
+					expect(error.stack).to.equal(err.stack);
+					done();
+				});
+			});
+			it('should not update this.headesrs.broadhash', done => {
+				systemComponent.update(error => {
+					expect(error).to.eql(err);
+					expect(systemComponent.headers.broadhash).to.equal(
+						dummyConfig.nethash
+					);
+					done();
+				});
+			});
+			it('should not update this.headesrs.height', done => {
+				systemComponent.update(error => {
+					expect(error).to.eql(err);
+					expect(systemComponent.headers.height).to.equal(dummyConfig.height);
+					done();
+				});
+			});
+			it('should call the logger.error with error stack', done => {
+				systemComponent.update(error => {
+					expect(error).to.eql(err);
+					expect(loggerStub.error.called).to.be.true;
+					expect(loggerStub.error.args[0][0]).to.eql(err.stack);
+					done();
+				});
+			});
+		});
 
-			describe('when returns no or one result', async () => {
-				it(
-					'should update this.headers.broadhash property to this.headers.nethash'
-				);
-				it('should not return error');
+		describe('when storage.entities.Block.get succeeds', () => {
+			describe('when returns no result', async () => {
+				beforeEach(async () => {
+					storageStub.entities.Block.get.resolves([]);
+				});
+
+				it('should not return error', done => {
+					systemComponent.update(error => {
+						expect(error).to.be.undefined;
+						done();
+					});
+				});
+
+				it('should update this.headers.broadhash property to this.headers.nethash', done => {
+					systemComponent.update(() => {
+						expect(systemComponent.headers.broadhash).to.equal(
+							systemComponent.headers.nethash
+						);
+						done();
+					});
+				});
+			});
+
+			describe('when returns one result', async () => {
+				beforeEach(async () => {
+					const blocks = [
+						{
+							id: '00000002',
+							height: 2,
+						},
+						{
+							id: '00000001',
+							height: 1,
+						},
+					];
+					storageStub.entities.Block.get.resolves(blocks.splice(-1, 1));
+				});
+
+				it('should not return error', done => {
+					systemComponent.update(error => {
+						expect(error).to.be.undefined;
+						done();
+					});
+				});
+
+				it('should update this.headers.broadhash property to this.headers.nethash', done => {
+					systemComponent.update(() => {
+						expect(systemComponent.headers.broadhash).to.equal(
+							systemComponent.headers.nethash
+						);
+						done();
+					});
+				});
 			});
 
 			describe('when returns more than one results', async () => {
-				it('should call crypto.createHash with sha256');
-				it('should call crypto.update with concatenation of results ids');
-				it('should call crypto.update with utf-8');
-				it('should call crypto.digest');
-				it(
-					'should update this.headers.broadhash property to the just calculated broadhash'
-				);
-				it('should call the logger.debug system headers info');
-				it('should not return error');
+				const blocks = [
+					{
+						id: '00000002',
+						height: 2,
+					},
+					{
+						id: '00000001',
+						height: 1,
+					},
+				];
+
+				beforeEach(async () => {
+					storageStub.entities.Block.get.resolves(blocks);
+				});
+
+				it('should not return error', done => {
+					systemComponent.update(error => {
+						expect(error).to.be.undefined;
+						done();
+					});
+				});
+
+				it('should update this.headers.broadhash property to the just calculated broadhash', done => {
+					systemComponent.update(error => {
+						const seed = blocks.map(row => row.id).join('');
+						const newBroadhash = crypto
+							.createHash('sha256')
+							.update(seed, 'utf8')
+							.digest()
+							.toString('hex');
+						expect(error).to.be.undefined;
+						expect(systemComponent.headers.broadhash).to.equal(newBroadhash);
+						done();
+					});
+				});
+
+				it('should update this.headers.height property to the best height', done => {
+					systemComponent.update(error => {
+						expect(error).to.be.undefined;
+						expect(systemComponent.headers.height).to.equal(blocks[0].height);
+						done();
+					});
+				});
+
+				it('should call the logger.debug system headers info', done => {
+					systemComponent.update(error => {
+						expect(error).to.be.undefined;
+						expect(loggerStub.debug.called).to.be.true;
+						expect(loggerStub.debug.args[0][0]).to.equal('System headers');
+						expect(loggerStub.debug.args[0][1]).to.eql(systemComponent.headers);
+						done();
+					});
+				});
 			});
 		});
 	});
-	/* eslint-enable mocha/no-pending-tests */
 });
