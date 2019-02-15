@@ -16,6 +16,7 @@
 
 const crypto = require('crypto');
 const async = require('async');
+const TransactionStatus = require('@liskhq/lisk-transactions').Status;
 const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../../helpers/slots.js');
 const blockVersion = require('../../logic/block_version.js');
@@ -71,11 +72,11 @@ class Verify {
 }
 
 /**
- * Check transaction - perform transaction validation when processing block.
+ * Check transactions - perform transactions validation when processing block.
  * FIXME: Some checks are probably redundant, see: logic.transactionPool
  *
  * @private
- * @func checkTransaction
+ * @func checkTransactions
  * @param {Object} block - Block object
  * @param {Object} transaction - Transaction object
  * @param  {boolean} checkExists - Check if transaction already exists in database
@@ -83,59 +84,38 @@ class Verify {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransaction = function(block, transaction, checkExists, cb) {
-	async.waterfall(
-		[
-			function getTransactionId(waterCb) {
-				try {
-					// Calculate transaction ID
-					// FIXME: Can have poor performance, because of hash calculation
-					transaction.id = library.logic.transaction.getId(transaction);
-				} catch (e) {
-					return setImmediate(waterCb, e.toString());
-				}
-				// Apply block ID to transaction
-				transaction.blockId = block.id;
-				return setImmediate(waterCb);
-			},
-			function getAccount(waterCb) {
-				// Get account from database if any (otherwise cold wallet)
-				// DATABASE: read only
-				modules.accounts.getAccount(
-					{ publicKey: transaction.senderPublicKey },
-					waterCb
-				);
-			},
-			function verifyTransaction(sender, waterCb) {
-				// Check if transaction id valid against database state (mem_* tables)
-				// DATABASE: read only
-				library.logic.transaction.verify(
-					transaction,
-					sender,
-					null,
-					checkExists,
-					waterCb,
-					null
-				);
-			},
-		],
-		waterCbErr => {
-			if (waterCbErr && waterCbErr.match(/Transaction is already confirmed/)) {
-				// Fork: Transaction already confirmed.
-				modules.delegates.fork(block, 2);
-				// Undo the offending transaction.
-				// DATABASE: write
-				return modules.transactions.undoUnconfirmed(
-					transaction,
-					undoUnconfirmedErr => {
-						modules.transactions.removeUnconfirmedTransaction(transaction.id);
-						return setImmediate(cb, undoUnconfirmedErr || waterCbErr);
-					}
-				);
+__private.checkTransactions = async (transactions, checkExists) => {
+	if (transactions.length === 0) {
+		return;
+	}
+
+	if (checkExists) {
+		const persistedTransactions = await library.storage.entities.Transaction.get(
+			{
+				id_in: transactions.map(transaction => transaction.id),
 			}
-			return setImmediate(cb, waterCbErr);
+		);
+
+		if (persistedTransactions.length > 0) {
+			// Only returning the error of the first transaction to keep the same interface and functionality
+			modules.transactions.removeUnconfirmedTransaction(
+				persistedTransactions[0].id
+			);
+			throw `Transaction is already confirmed: ${persistedTransactions[0].id}`;
 		}
+	}
+
+	const transactionResponses = await modules.processTransactions.verifyTransactions(
+		transactions
 	);
+
+	const unverifiableTransactionResponse = transactionResponses.find(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
+
+	if (unverifiableTransactionResponse) {
+		throw unverifiableTransactionResponse.errors;
+	}
 };
 
 /**
@@ -711,10 +691,7 @@ __private.checkExists = function(block, cb) {
 	library.storage.entities.Block.isPersisted({ id: block.id })
 		.then(isPersisted => {
 			if (isPersisted) {
-				return setImmediate(
-					cb,
-					`Block ${block.id} already exists`
-				);
+				return setImmediate(cb, `Block ${block.id} already exists`);
 			}
 			return setImmediate(cb);
 		})
@@ -745,28 +722,6 @@ __private.validateBlockSlot = function(block, cb) {
 		}
 		return setImmediate(cb);
 	});
-};
-
-/**
- * Checks transactions in block.
- *
- * @private
- * @func checkTransactions
- * @param {Object} block - Full block
- * @param  {boolean} checkExists - Check if transactions already exists in database
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- */
-__private.checkTransactions = function(block, checkExists, cb) {
-	// Check against the mem_* tables that we can perform the transactions included in the block
-	async.eachSeries(
-		block.transactions,
-		(transaction, eachSeriesCb) => {
-			__private.checkTransaction(block, transaction, checkExists, eachSeriesCb);
-		},
-		err => setImmediate(cb, err)
-	);
 };
 
 /**
@@ -822,7 +777,10 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			checkTransactions(seriesCb) {
 				// checkTransactions should check for transactions to exists in database
 				// only if the block needed to be saved to database
-				__private.checkTransactions(block, saveBlock, seriesCb);
+				__private
+					.checkTransactions(block.transactions, saveBlock)
+					.then(seriesCb)
+					.catch(seriesCb);
 			},
 			applyBlock(seriesCb) {
 				// The block and the transactions are OK i.e:
@@ -870,6 +828,7 @@ Verify.prototype.onBind = function(scope) {
 		transactions: scope.modules.transactions,
 		system: scope.modules.system,
 		transport: scope.modules.transport,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	// Set module as loaded
