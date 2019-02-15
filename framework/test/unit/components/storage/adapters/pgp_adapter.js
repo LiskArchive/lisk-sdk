@@ -30,7 +30,7 @@ const validOptions = {
 	logger: loggerStub,
 };
 
-describe('PgpAdapter', async () => {
+describe('PgpAdapter', () => {
 	afterEach(() => sinonSandbox.restore());
 
 	it('should be a constructable function', async () => {
@@ -43,7 +43,7 @@ describe('PgpAdapter', async () => {
 	it('should extend BaseAdapter', async () =>
 		expect(PgpAdapter.prototype).to.be.an.instanceof(BaseAdapter));
 
-	describe('constructor()', async () => {
+	describe('constructor()', () => {
 		it('should call super with proper params', async () => {
 			const adapter = new PgpAdapter(validOptions);
 			expect(adapter.engineName).to.be.eql('pgp');
@@ -65,7 +65,7 @@ describe('PgpAdapter', async () => {
 		});
 	});
 
-	describe('connect()', async () => {
+	describe('connect()', () => {
 		it('should detach pgp-monitor if already attached');
 		it('should attach pgp-monitor');
 		it('should set the logger for monitor');
@@ -78,13 +78,13 @@ describe('PgpAdapter', async () => {
 		it('should reject if connection cause any error');
 	});
 
-	describe('disconnect()', async () => {
+	describe('disconnect()', () => {
 		it('should log the disconnecting message');
 		it('should detach pgp-monitor if already attached');
 		it('disconnect the existing connection to postgres');
 	});
 
-	describe('executeFile()', async () => {
+	describe('executeFile()', () => {
 		it('should accept four parameters');
 		it('should execute proper method based on expectedResult');
 		it('should throw error if first parameter is not a file');
@@ -93,7 +93,7 @@ describe('PgpAdapter', async () => {
 		it('should return the promise');
 	});
 
-	describe('execute()', async () => {
+	describe('execute()', () => {
 		it('should accept four parameters');
 		it('should execute proper method based on expectedResult');
 		it('should throw error if first parameter is not a string');
@@ -102,7 +102,7 @@ describe('PgpAdapter', async () => {
 		it('should return the promise');
 	});
 
-	describe('transaction()', async () => {
+	describe('transaction()', () => {
 		it('should accept three parameters');
 		it('should execute "tx" method for the database');
 		it('should execute "tx" on transaction context if provided');
@@ -110,7 +110,7 @@ describe('PgpAdapter', async () => {
 		it('should return the promise');
 	});
 
-	describe('task()', async () => {
+	describe('task()', () => {
 		it('should accept three parameters');
 		it('should execute "task" method for the database');
 		it('should execute "task" on transaction context if provided');
@@ -118,14 +118,14 @@ describe('PgpAdapter', async () => {
 		it('should return the promise');
 	});
 
-	describe('loadSQLFile()', async () => {
+	describe('loadSQLFile()', () => {
 		it('should accept one parameter');
 		it('should throw error if sql file path does not exists');
 		it('should exit the process if there is any error loading the sql file');
 		it('should return a file object');
 	});
 
-	describe('parseQueryComponent()', async () => {
+	describe('parseQueryComponent()', () => {
 		it('should accept two parameters');
 		it('should throw error if there is invalid SQL');
 		it('should return formatted SQL string');

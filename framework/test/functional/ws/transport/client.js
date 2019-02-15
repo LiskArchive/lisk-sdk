@@ -22,7 +22,7 @@ const transport = require('../../../../src/modules/chain/api/ws/transport');
 const System = require('../../../../src/modules/chain/modules/system');
 const WSServer = require('../../../common/ws/server_master');
 
-describe('RPC Client', async () => {
+describe('RPC Client', () => {
 	const validWSServerIp = '127.0.0.1';
 	const validWSServerPort = 5000;
 	let validPeerStub;
@@ -87,7 +87,7 @@ describe('RPC Client', async () => {
 		done();
 	});
 
-	describe('should contain remote procedure', async () => {
+	describe('should contain remote procedure', () => {
 		it('updatePeer', async () => {
 			return expect(validClientRPCStub).to.have.property('updatePeer');
 		});
@@ -129,7 +129,7 @@ describe('RPC Client', async () => {
 		return expect(validClientRPCStub).not.to.have.property('randomProcedure');
 	});
 
-	describe('RPC call', async () => {
+	describe('RPC call', () => {
 		let validHeaders;
 
 		beforeEach(done => {
@@ -139,7 +139,7 @@ describe('RPC Client', async () => {
 			done();
 		});
 
-		describe('with valid headers', async () => {
+		describe('with valid headers', () => {
 			it('should call a RPC callback with response', done => {
 				validClientRPCStub.status((err, response) => {
 					expect(response).not.to.be.empty;
@@ -155,8 +155,8 @@ describe('RPC Client', async () => {
 			});
 		});
 
-		describe('with invalid headers', async () => {
-			describe('without port', async () => {
+		describe('with invalid headers', () => {
+			describe('without port', () => {
 				beforeEach(done => {
 					delete validHeaders.wsPort;
 					System.setHeaders(validHeaders);
@@ -185,7 +185,7 @@ describe('RPC Client', async () => {
 				});
 			});
 
-			describe('with valid port as string', async () => {
+			describe('with valid port as string', () => {
 				beforeEach(done => {
 					validHeaders.wsPort = validHeaders.wsPort.toString();
 					System.setHeaders(validHeaders);
@@ -201,7 +201,7 @@ describe('RPC Client', async () => {
 				});
 			});
 
-			describe('with too short nonce', async () => {
+			describe('with too short nonce', () => {
 				beforeEach(done => {
 					validHeaders.nonce = 'TOO_SHORT';
 					System.setHeaders(validHeaders);
@@ -230,7 +230,7 @@ describe('RPC Client', async () => {
 				});
 			});
 
-			describe('with too long nonce', async () => {
+			describe('with too long nonce', () => {
 				beforeEach(done => {
 					validHeaders.nonce = 'NONCE_LONGER_THAN_16_CHARS';
 					System.setHeaders(validHeaders);
@@ -259,7 +259,7 @@ describe('RPC Client', async () => {
 				});
 			});
 
-			describe('without nonce', async () => {
+			describe('without nonce', () => {
 				beforeEach(done => {
 					delete validHeaders.nonce;
 					System.setHeaders(validHeaders);
@@ -286,7 +286,7 @@ describe('RPC Client', async () => {
 				});
 			});
 
-			describe('without nethash', async () => {
+			describe('without nethash', () => {
 				beforeEach(done => {
 					delete validHeaders.nethash;
 					System.setHeaders(validHeaders);
@@ -315,7 +315,7 @@ describe('RPC Client', async () => {
 				});
 			});
 
-			describe('without height', async () => {
+			describe('without height', () => {
 				beforeEach(done => {
 					delete validHeaders.height;
 					System.setHeaders(validHeaders);
@@ -331,7 +331,7 @@ describe('RPC Client', async () => {
 				});
 			});
 
-			describe('without version', async () => {
+			describe('without version', () => {
 				beforeEach(done => {
 					delete validHeaders.version;
 					System.setHeaders(validHeaders);
@@ -361,7 +361,7 @@ describe('RPC Client', async () => {
 			});
 		});
 
-		describe('makes request to itself', async () => {
+		describe('makes request to itself', () => {
 			beforeEach(done => {
 				System.setHeaders(validHeaders);
 				reconnect();
@@ -387,7 +387,7 @@ describe('RPC Client', async () => {
 			});
 		});
 
-		describe('makes request to the wrong network', async () => {
+		describe('makes request to the wrong network', () => {
 			beforeEach(done => {
 				// Set a non-matching nethash.
 				validHeaders.nethash =
@@ -409,7 +409,7 @@ describe('RPC Client', async () => {
 			});
 		});
 
-		describe('makes request with incompatible protocol version', async () => {
+		describe('makes request with incompatible protocol version', () => {
 			beforeEach(done => {
 				// Set a non-matching version.
 				validHeaders.protocolVersion = '0.0';
@@ -432,7 +432,7 @@ describe('RPC Client', async () => {
 			});
 		});
 
-		describe('makes request with incompatible version without protocol version', async () => {
+		describe('makes request with incompatible version without protocol version', () => {
 			beforeEach(done => {
 				// Set a non-matching version.
 				validHeaders.version = '0.0.0-beta.1';
@@ -457,7 +457,7 @@ describe('RPC Client', async () => {
 			});
 		});
 
-		describe('cannot connect - socket hung up', async () => {
+		describe('cannot connect - socket hung up', () => {
 			beforeEach(done => {
 				System.setHeaders(validHeaders);
 				// Target unused port.

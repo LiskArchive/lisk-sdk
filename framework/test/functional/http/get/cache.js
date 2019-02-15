@@ -27,7 +27,7 @@ const waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 const onNewRoundPromise = Promise.promisify(waitFor.newRound);
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('cached endpoints', async () => {
+describe('cached endpoints', () => {
 	let cache;
 
 	before(async () => {
@@ -52,8 +52,8 @@ describe('cached endpoints', async () => {
 		return cache.quit();
 	});
 
-	describe('@sequential tests', async () => {
-		describe('GET /transactions', async () => {
+	describe('@sequential tests', () => {
+		describe('GET /transactions', () => {
 			const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 
 			it('cache transactions by the url and parameters when response is a success', async () => {
@@ -91,7 +91,7 @@ describe('cached endpoints', async () => {
 			});
 		});
 
-		describe('GET /blocks', async () => {
+		describe('GET /blocks', () => {
 			const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 
 			it('cache blocks by the url and parameters when response is a success', async () => {
@@ -163,7 +163,7 @@ describe('cached endpoints', async () => {
 			});
 		});
 
-		describe('GET /delegates', async () => {
+		describe('GET /delegates', () => {
 			const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 
 			it('should cache delegates when response is successful', async () => {
@@ -194,8 +194,8 @@ describe('cached endpoints', async () => {
 		});
 	});
 
-	describe('@slow tests', async () => {
-		describe('GET /delegates', async () => {
+	describe('@slow tests', () => {
+		describe('GET /delegates', () => {
 			const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 
 			it('should flush cache on the next round @slow', async () => {

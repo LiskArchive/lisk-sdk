@@ -27,7 +27,7 @@ const localCommon = require('./common');
 
 const { REWARDS, ACTIVE_DELEGATES } = global.constants;
 
-describe('rounds', async () => {
+describe('rounds', () => {
 	let library;
 	let Queries;
 	let generateDelegateListPromise;
@@ -358,7 +358,7 @@ describe('rounds', async () => {
 	function tickAndValidate(transactions) {
 		const tick = { before: {}, after: {} };
 
-		describe('new block', async () => {
+		describe('new block', () => {
 			before(() => {
 				tick.before.block = library.modules.blocks.lastBlock.get();
 				tick.before.round = slots.calcRound(tick.before.block.height);
@@ -454,7 +454,7 @@ describe('rounds', async () => {
 				done();
 			});
 
-			describe('mem_accounts table', async () => {
+			describe('mem_accounts table', () => {
 				it('if block contains at least one transaction states before and after block should be different', done => {
 					if (transactions.length > 0) {
 						expect(tick.before.accounts).to.not.deep.equal(tick.after.accounts);
@@ -565,7 +565,7 @@ describe('rounds', async () => {
 		});
 	}
 
-	describe('round 1', async () => {
+	describe('round 1', () => {
 		const round = {
 			current: 1,
 			outsiderPublicKey:
@@ -598,7 +598,7 @@ describe('rounds', async () => {
 			);
 		});
 
-		describe('forge block with 1 TRANSFER transaction to random account', async () => {
+		describe('forge block with 1 TRANSFER transaction to random account', () => {
 			const transactions = [];
 
 			before(done => {
@@ -614,7 +614,7 @@ describe('rounds', async () => {
 			tickAndValidate(transactions);
 		});
 
-		describe('forge block with 25 TRANSFER transactions to random accounts', async () => {
+		describe('forge block with 25 TRANSFER transactions to random accounts', () => {
 			const transactions = [];
 
 			before(done => {
@@ -634,7 +634,7 @@ describe('rounds', async () => {
 			tickAndValidate(transactions);
 		});
 
-		describe('should forge 97 blocks with 1 TRANSFER transaction each to random account', async () => {
+		describe('should forge 97 blocks with 1 TRANSFER transaction each to random account', () => {
 			const blocksToForge = 97;
 			let blocksProcessed = 0;
 			const transactionsPerBlock = 1;
@@ -668,7 +668,7 @@ describe('rounds', async () => {
 			);
 		});
 
-		describe('forge block with 1 TRANSFER transaction to random account (last block of round)', async () => {
+		describe('forge block with 1 TRANSFER transaction to random account (last block of round)', () => {
 			const transactions = [];
 
 			before(() => {
@@ -687,7 +687,7 @@ describe('rounds', async () => {
 			tickAndValidate(transactions);
 		});
 
-		describe('after round 1 is finished', async () => {
+		describe('after round 1 is finished', () => {
 			it('last block height should equal active delegates count', async () => {
 				const lastBlock = library.modules.blocks.lastBlock.get();
 				return expect(lastBlock.height).to.be.equal(ACTIVE_DELEGATES);
@@ -750,7 +750,7 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('delete last block of round 1, block contains 1 transaction type SEND', async () => {
+		describe('delete last block of round 1, block contains 1 transaction type SEND', () => {
 			let lastBlock;
 
 			before(() => {
@@ -809,7 +809,7 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('deleting last block of round twice in a row', async () => {
+		describe('deleting last block of round twice in a row', () => {
 			before(() => {
 				return addTransactionsAndForgePromise(library, [], 0);
 			});
@@ -835,7 +835,7 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('round rollback when forger of last block of round is unvoted', async () => {
+		describe('round rollback when forger of last block of round is unvoted', () => {
 			let lastBlock;
 			let lastBlockForger;
 			const transactions = [];
@@ -894,7 +894,7 @@ describe('rounds', async () => {
 
 			tickAndValidate(transactions);
 
-			describe('after forging 1 block', async () => {
+			describe('after forging 1 block', () => {
 				it('should unvote expected forger of last block of round (block data)', async () => {
 					const freshLastBlock = library.modules.blocks.lastBlock.get();
 					return Queries.getFullBlock(freshLastBlock.height).then(blocks => {
@@ -914,7 +914,7 @@ describe('rounds', async () => {
 
 			tickAndValidate([]);
 
-			describe('after round finish', async () => {
+			describe('after round finish', () => {
 				it('delegates list should be different than one generated at the beginning of round 1', async () => {
 					const freshLastBlock = library.modules.blocks.lastBlock.get();
 					return generateDelegateListPromise(
@@ -935,7 +935,7 @@ describe('rounds', async () => {
 				});
 			});
 
-			describe('after last block of round is deleted', async () => {
+			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 					return deleteLastBlockPromise().then(() => {
 						const freshLastBlock = library.modules.blocks.lastBlock.get();
@@ -961,7 +961,7 @@ describe('rounds', async () => {
 			});
 		});
 
-		describe('round rollback when forger of last block of round is replaced in last block of round', async () => {
+		describe('round rollback when forger of last block of round is replaced in last block of round', () => {
 			let lastBlock;
 			let lastBlockForger;
 			let tmpAccount;
@@ -1038,7 +1038,7 @@ describe('rounds', async () => {
 			tickAndValidate(transactions.delegate);
 			tickAndValidate(transactions.vote);
 
-			describe('after round finish', async () => {
+			describe('after round finish', () => {
 				let delegatesList;
 				let delegates;
 
@@ -1095,7 +1095,7 @@ describe('rounds', async () => {
 				});
 			});
 
-			describe('after last block of round is deleted', async () => {
+			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 					return deleteLastBlockPromise().then(() => {
 						lastBlock = library.modules.blocks.lastBlock.get();
@@ -1134,11 +1134,11 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('round 2', async () => {
-		describe('rounds rewards consistency', async () => {
+	describe('round 2', () => {
+		describe('rounds rewards consistency', () => {
 			let expectedRewardsPerBlock;
 
-			describe('should forge 49 blocks with 1 TRANSFER transaction each to random account', async () => {
+			describe('should forge 49 blocks with 1 TRANSFER transaction each to random account', () => {
 				const blocksToForge = 49;
 				let blocksProcessed = 0;
 				const transactionsPerBlock = 1;
@@ -1181,7 +1181,7 @@ describe('rounds', async () => {
 				);
 			});
 
-			describe('before rewards start', async () => {
+			describe('before rewards start', () => {
 				it('last block height should be at height 149', async () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
 					return expect(lastBlock.height).to.equal(149);
@@ -1194,7 +1194,7 @@ describe('rounds', async () => {
 				});
 			});
 
-			describe('after rewards start', async () => {
+			describe('after rewards start', () => {
 				const blocksToForge = 53;
 				let blocksProcessed = 0;
 				const transactionsPerBlock = 1;
@@ -1230,7 +1230,7 @@ describe('rounds', async () => {
 						);
 						tickAndValidate(transactions);
 
-						describe('rewards check', async () => {
+						describe('rewards check', () => {
 							it('all blocks from now until round end should have proper rewards (5 LSK)', async () => {
 								const lastBlock = library.modules.blocks.lastBlock.get();
 								return expect(
@@ -1247,7 +1247,7 @@ describe('rounds', async () => {
 				);
 			});
 
-			describe('after finish round', async () => {
+			describe('after finish round', () => {
 				it('should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)', async () => {
 					return Promise.join(
 						Queries.getBlocks(2),
@@ -1264,7 +1264,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('rollback more than 1 round of blocks', async () => {
+	describe('rollback more than 1 round of blocks', () => {
 		let lastBlock;
 
 		before(() => {
@@ -1290,7 +1290,7 @@ describe('rounds', async () => {
 		});
 	});
 
-	describe('deleting last block of round twice in a row - no transactions during round', async () => {
+	describe('deleting last block of round twice in a row - no transactions during round', () => {
 		before(() => {
 			return Promise.mapSeries([...Array(202)], async () => {
 				return addTransactionsAndForgePromise(library, [], 0);

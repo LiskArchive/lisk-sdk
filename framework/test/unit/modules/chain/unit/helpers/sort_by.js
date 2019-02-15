@@ -16,12 +16,12 @@
 
 const SortBy = require('../../../../../../src/modules/chain/helpers/sort_by');
 
-describe('SortBy', async () => {
+describe('SortBy', () => {
 	const validSortFieldsArray = ['address', 'balance', 'username', 'publicKey'];
 
-	describe('sortBy', async () => {
-		describe('sort', async () => {
-			describe('when given as string', async () => {
+	describe('sortBy', () => {
+		describe('sort', () => {
+			describe('when given as string', () => {
 				it('should return empty object when sort is empty string', async () =>
 					expect(SortBy.sortBy('')).to.eql({
 						sortField: '',
@@ -64,7 +64,7 @@ describe('SortBy', async () => {
 					}));
 			});
 
-			describe('when given as object', async () => {
+			describe('when given as object', () => {
 				it('should return object with empty values when sort is empty object', async () =>
 					expect(SortBy.sortBy({})).to.eql({
 						sortField: '',

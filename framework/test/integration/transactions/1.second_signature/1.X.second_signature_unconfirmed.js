@@ -22,7 +22,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - sending transactions on top of unconfirmed second signature', async () => {
+describe('system test (type 1) - sending transactions on top of unconfirmed second signature', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -70,8 +70,8 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		);
 	});
 
-	describe('validating unconfirmed status while adding to pool other transaction types from same account', async () => {
-		describe('with second signature', async () => {
+	describe('validating unconfirmed status while adding to pool other transaction types from same account', () => {
+		describe('with second signature', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
@@ -126,7 +126,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 			});
 		});
 
-		describe('without second signature', async () => {
+		describe('without second signature', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;

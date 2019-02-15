@@ -26,7 +26,7 @@ const apiHelpers = require('../../../common/helpers/api');
 const { NORMALIZER } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /dapps', async () => {
+describe('GET /dapps', () => {
 	const dappsEndpoint = new SwaggerEndpoint('GET /dapps');
 
 	let transactionsToWaitFor = [];
@@ -81,7 +81,7 @@ describe('GET /dapps', async () => {
 			});
 	});
 
-	describe('/', async () => {
+	describe('/', () => {
 		it('should return all results', async () => {
 			return dappsEndpoint.makeRequest({}, 200).then(res => {
 				expect(res.body.data.length).to.be.at.least(registeredDappsAmount);
@@ -89,8 +89,8 @@ describe('GET /dapps', async () => {
 		});
 	});
 
-	describe('?', async () => {
-		describe('transactionId=', async () => {
+	describe('?', () => {
+		describe('transactionId=', () => {
 			it('using empty string should return all results', async () => {
 				return dappsEndpoint
 					.makeRequest({ transactionId: '' }, 400)
@@ -142,7 +142,7 @@ describe('GET /dapps', async () => {
 			});
 		});
 
-		describe('name=', async () => {
+		describe('name=', () => {
 			it('using string with length < 1 should fail', async () => {
 				return dappsEndpoint.makeRequest({ name: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'name');
@@ -182,7 +182,7 @@ describe('GET /dapps', async () => {
 			});
 		});
 
-		describe('limit=', async () => {
+		describe('limit=', () => {
 			it('using 0 should fail', async () => {
 				return dappsEndpoint.makeRequest({ limit: 0 }, 400).then(res => {
 					expectSwaggerParamError(res, 'limit');
@@ -208,7 +208,7 @@ describe('GET /dapps', async () => {
 			});
 		});
 
-		describe('limit=1&', async () => {
+		describe('limit=1&', () => {
 			it('using offset < 0 should fail', async () => {
 				return dappsEndpoint
 					.makeRequest({ limit: 1, offset: -1 }, 400)
@@ -238,7 +238,7 @@ describe('GET /dapps', async () => {
 			});
 		});
 
-		describe('offset=', async () => {
+		describe('offset=', () => {
 			it('using offset 0 should return different result than offset 1', async () => {
 				return dappsEndpoint
 					.makeRequests([{ offset: 0 }, { offset: 1 }], 200)
@@ -251,7 +251,7 @@ describe('GET /dapps', async () => {
 			});
 		});
 
-		describe('sort=', async () => {
+		describe('sort=', () => {
 			// Create 20 random applications to increase data set
 			before(() => {
 				const promises = [];
@@ -318,7 +318,7 @@ describe('GET /dapps', async () => {
 			});
 		});
 
-		describe('unknown=', async () => {
+		describe('unknown=', () => {
 			it('using empty string should return all results', async () => {
 				return dappsEndpoint.makeRequest({ unknown: '' }, 200).then(res => {
 					expect(res.body.data).to.have.length.at.least(registeredDappsAmount);

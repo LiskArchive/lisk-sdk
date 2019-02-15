@@ -19,7 +19,7 @@ const WSServer = require('../../../common/ws/server_master');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
 
-describe('GET /peers', async () => {
+describe('GET /peers', () => {
 	const peersEndpoint = new SwaggerEndpoint('GET /peers');
 	const wsServer1 = new WSServer();
 	const wsServer2 = new WSServer();
@@ -95,7 +95,7 @@ describe('GET /peers', async () => {
 
 	Object.keys(paramSet).forEach(param => {
 		// Describe each param
-		describe(param, async () => {
+		describe(param, () => {
 			paramSet[param].invalid.forEach(val => {
 				// Test case for each invalid param
 				it(`using invalid value ${param}=${val}`, async () => {
@@ -124,7 +124,7 @@ describe('GET /peers', async () => {
 		});
 	});
 
-	describe('pass data from a real peer', async () => {
+	describe('pass data from a real peer', () => {
 		it(`using a valid httpPort = ${
 			validHeaders.httpPort
 		} should return the result`, async () => {

@@ -22,7 +22,7 @@ const BlocksProcess = rewire(
 	'../../../../../../../src/modules/chain/modules/blocks/process.js'
 );
 
-describe('blocks/process', async () => {
+describe('blocks/process', () => {
 	let __private;
 	let library;
 	let modules;
@@ -241,7 +241,7 @@ describe('blocks/process', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should assign params to library', async () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.schema).to.eql(schemaStub);
@@ -269,7 +269,7 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('__private.receiveBlock', async () => {
+	describe('__private.receiveBlock', () => {
 		beforeEach(() =>
 			modules.blocks.verify.processBlock.callsArgWith(3, null, true)
 		);
@@ -292,7 +292,7 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('__private.receiveForkOne', async () => {
+	describe('__private.receiveForkOne', () => {
 		let tempValidateBlockSlot;
 		before(done => {
 			tempValidateBlockSlot = __private.validateBlockSlot;
@@ -304,7 +304,7 @@ describe('blocks/process', async () => {
 			done();
 		});
 
-		describe('last block stands', async () => {
+		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
@@ -331,7 +331,7 @@ describe('blocks/process', async () => {
 			});
 		});
 
-		describe('last block and parent loses', async () => {
+		describe('last block and parent loses', () => {
 			beforeEach(done => {
 				__private.validateBlockSlot = sinonSandbox.stub();
 				done();
@@ -347,8 +347,8 @@ describe('blocks/process', async () => {
 					).to.be.true
 			);
 
-			describe('library.logic.block.objectNormalize', async () => {
-				describe('when fails', async () => {
+			describe('library.logic.block.objectNormalize', () => {
+				describe('when fails', () => {
 					beforeEach(() =>
 						library.logic.block.objectNormalize.throws('objectNormalize-ERR')
 					);
@@ -369,9 +369,9 @@ describe('blocks/process', async () => {
 					});
 				});
 
-				describe('when succeeds', async () => {
-					describe('__private.validateBlockSlot', async () => {
-						describe('when fails', async () => {
+				describe('when succeeds', () => {
+					describe('__private.validateBlockSlot', () => {
+						describe('when fails', () => {
 							beforeEach(() => {
 								library.logic.block.objectNormalize.returns({
 									timestamp: 1,
@@ -400,9 +400,9 @@ describe('blocks/process', async () => {
 							});
 						});
 
-						describe('when succeeds', async () => {
-							describe('modules.blocks.verify.verifyReceipt', async () => {
-								describe('when fails', async () => {
+						describe('when succeeds', () => {
+							describe('modules.blocks.verify.verifyReceipt', () => {
+								describe('when fails', () => {
 									beforeEach(() => {
 										library.logic.block.objectNormalize.returns({
 											timestamp: 1,
@@ -437,14 +437,14 @@ describe('blocks/process', async () => {
 									});
 								});
 
-								describe('when succeeds', async () => {
-									describe('modules.blocks.chain.deleteLastBlock (first call)', async () => {
+								describe('when succeeds', () => {
+									describe('modules.blocks.chain.deleteLastBlock (first call)', () => {
 										afterEach(() =>
 											expect(loggerStub.info.args[0][0]).to.equal(
 												'Last block and parent loses due to fork 1'
 											)
 										);
-										describe('when fails', async () => {
+										describe('when fails', () => {
 											beforeEach(() => {
 												library.logic.block.objectNormalize.returns({
 													timestamp: 1,
@@ -477,9 +477,9 @@ describe('blocks/process', async () => {
 											});
 										});
 
-										describe('when succeeds', async () => {
-											describe('modules.blocks.chain.deleteLastBlock (second call)', async () => {
-												describe('when fails', async () => {
+										describe('when succeeds', () => {
+											describe('modules.blocks.chain.deleteLastBlock (second call)', () => {
+												describe('when fails', () => {
 													beforeEach(() => {
 														library.logic.block.objectNormalize.returns({
 															timestamp: 1,
@@ -522,7 +522,7 @@ describe('blocks/process', async () => {
 													});
 												});
 
-												describe('when succeeds', async () => {
+												describe('when succeeds', () => {
 													beforeEach(() => {
 														library.logic.block.objectNormalize.returns({
 															timestamp: 1,
@@ -564,7 +564,7 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('__private.receiveForkFive', async () => {
+	describe('__private.receiveForkFive', () => {
 		let tempValidateBlockSlot;
 		before(done => {
 			tempValidateBlockSlot = __private.validateBlockSlot;
@@ -576,7 +576,7 @@ describe('blocks/process', async () => {
 			done();
 		});
 
-		describe('delegate forging on multiple nodes', async () => {
+		describe('delegate forging on multiple nodes', () => {
 			it('should log warning when generatorPublicKey is the same for block and lastBlock', done => {
 				__private.receiveForkFive(
 					{ timestamp: 1, id: 2, generatorPublicKey: '1a' },
@@ -605,7 +605,7 @@ describe('blocks/process', async () => {
 			});
 		});
 
-		describe('last block stands', async () => {
+		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
@@ -632,7 +632,7 @@ describe('blocks/process', async () => {
 			});
 		});
 
-		describe('last block loses', async () => {
+		describe('last block loses', () => {
 			beforeEach(done => {
 				__private.validateBlockSlot = sinonSandbox.stub();
 				__private.receiveBlock = sinonSandbox.stub();
@@ -649,8 +649,8 @@ describe('blocks/process', async () => {
 					).to.be.true
 			);
 
-			describe('library.logic.block.objectNormalize', async () => {
-				describe('when fails', async () => {
+			describe('library.logic.block.objectNormalize', () => {
+				describe('when fails', () => {
 					beforeEach(() =>
 						library.logic.block.objectNormalize.throws('objectNormalize-ERR')
 					);
@@ -671,7 +671,7 @@ describe('blocks/process', async () => {
 					});
 				});
 
-				describe('when succeeds', async () => {
+				describe('when succeeds', () => {
 					beforeEach(() =>
 						library.logic.block.objectNormalize.returns({
 							timestamp: 1,
@@ -679,8 +679,8 @@ describe('blocks/process', async () => {
 						})
 					);
 
-					describe('__private.validateBlockSlot', async () => {
-						describe('when fails', async () => {
+					describe('__private.validateBlockSlot', () => {
+						describe('when fails', () => {
 							beforeEach(() =>
 								__private.validateBlockSlot.callsArgWith(
 									2,
@@ -705,13 +705,13 @@ describe('blocks/process', async () => {
 							});
 						});
 
-						describe('when succeeds', async () => {
+						describe('when succeeds', () => {
 							beforeEach(() =>
 								__private.validateBlockSlot.callsArgWith(2, null, true)
 							);
 
-							describe('modules.blocks.verify.verifyReceipt', async () => {
-								describe('when fails', async () => {
+							describe('modules.blocks.verify.verifyReceipt', () => {
+								describe('when fails', () => {
 									beforeEach(() =>
 										modules.blocks.verify.verifyReceipt.returns({
 											verified: false,
@@ -741,7 +741,7 @@ describe('blocks/process', async () => {
 									});
 								});
 
-								describe('when succeeds', async () => {
+								describe('when succeeds', () => {
 									beforeEach(() =>
 										modules.blocks.verify.verifyReceipt.returns({
 											verified: true,
@@ -754,8 +754,8 @@ describe('blocks/process', async () => {
 										)
 									);
 
-									describe('modules.blocks.chain.deleteLastBlock', async () => {
-										describe('when fails', async () => {
+									describe('modules.blocks.chain.deleteLastBlock', () => {
+										describe('when fails', () => {
 											beforeEach(() =>
 												modules.blocks.chain.deleteLastBlock.callsArgWith(
 													0,
@@ -780,7 +780,7 @@ describe('blocks/process', async () => {
 											});
 										});
 
-										describe('when succeeds', async () => {
+										describe('when succeeds', () => {
 											beforeEach(() =>
 												modules.blocks.chain.deleteLastBlock.callsArgWith(
 													0,
@@ -789,8 +789,8 @@ describe('blocks/process', async () => {
 												)
 											);
 
-											describe('__private.receiveBlock', async () => {
-												describe('when fails', async () => {
+											describe('__private.receiveBlock', () => {
+												describe('when fails', () => {
 													beforeEach(() =>
 														__private.receiveBlock.callsArgWith(
 															1,
@@ -815,7 +815,7 @@ describe('blocks/process', async () => {
 													});
 												});
 
-												describe('when succeeds', async () => {
+												describe('when succeeds', () => {
 													beforeEach(() =>
 														__private.receiveBlock.callsArgWith(
 															1,
@@ -845,9 +845,9 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('getCommonBlock', async () => {
-		describe('modules.blocks.utils.getIdSequence', async () => {
-			describe('when fails', async () => {
+	describe('getCommonBlock', () => {
+		describe('modules.blocks.utils.getIdSequence', () => {
+			describe('when fails', () => {
 				beforeEach(() =>
 					modules.blocks.utils.getIdSequence.callsArgWith(
 						1,
@@ -869,9 +869,9 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when succeeds', async () => {
-				describe('peer.rpc.blocksCommon', async () => {
-					describe('when fails', async () => {
+			describe('when succeeds', () => {
+				describe('peer.rpc.blocksCommon', () => {
+					describe('when fails', () => {
 						beforeEach(() =>
 							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'ERR',
@@ -902,7 +902,7 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('when comparison failed because of receiving genesis block', async () => {
+					describe('when comparison failed because of receiving genesis block', () => {
 						beforeEach(() => {
 							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'rpc.blocksCommon-Genesis',
@@ -914,7 +914,7 @@ describe('blocks/process', async () => {
 							);
 						});
 
-						describe('when consensus is low', async () => {
+						describe('when consensus is low', () => {
 							beforeEach(() => modules.transport.poorConsensus.returns(true));
 
 							it('should perform chain recovery', done => {
@@ -934,7 +934,7 @@ describe('blocks/process', async () => {
 							});
 						});
 
-						describe('when consensus is high', async () => {
+						describe('when consensus is high', () => {
 							beforeEach(() => modules.transport.poorConsensus.returns(false));
 
 							it('should call a callback with error ', done => {
@@ -957,7 +957,7 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('when comparison failed', async () => {
+					describe('when comparison failed', () => {
 						beforeEach(() => {
 							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'rpc.blocksCommon-Empty',
@@ -969,7 +969,7 @@ describe('blocks/process', async () => {
 							);
 						});
 
-						describe('when consensus is low', async () => {
+						describe('when consensus is low', () => {
 							beforeEach(() => modules.transport.poorConsensus.returns(true));
 
 							it('should perform chain recovery', done => {
@@ -989,7 +989,7 @@ describe('blocks/process', async () => {
 							});
 						});
 
-						describe('when consensus is high', async () => {
+						describe('when consensus is high', () => {
 							beforeEach(() => modules.transport.poorConsensus.returns(false));
 
 							it('should call a callback with error ', done => {
@@ -1012,15 +1012,15 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('when succeeds', async () => {
+					describe('when succeeds', () => {
 						beforeEach(() =>
 							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'OK',
 							})
 						);
 
-						describe('library.schema.validate', async () => {
-							describe('when fails', async () => {
+						describe('library.schema.validate', () => {
+							describe('when fails', () => {
 								beforeEach(() =>
 									library.schema.validate.callsArgWith(
 										2,
@@ -1042,7 +1042,7 @@ describe('blocks/process', async () => {
 								});
 							});
 
-							describe('when succeeds', async () => {
+							describe('when succeeds', () => {
 								beforeEach(() =>
 									library.schema.validate.callsArgWith(2, null, {
 										ip: 1,
@@ -1050,8 +1050,8 @@ describe('blocks/process', async () => {
 									})
 								);
 
-								describe('library.storage.entities.Block.isPersisted', async () => {
-									describe('when fails', async () => {
+								describe('library.storage.entities.Block.isPersisted', () => {
+									describe('when fails', () => {
 										beforeEach(() =>
 											library.storage.entities.Block.isPersisted.rejects(
 												new Error('blocks.getCommonBlock-REJECTS')
@@ -1074,7 +1074,7 @@ describe('blocks/process', async () => {
 										});
 									});
 
-									describe('when comparison failed', async () => {
+									describe('when comparison failed', () => {
 										beforeEach(() => {
 											library.storage.entities.Block.isPersisted.resolves(
 												false
@@ -1086,7 +1086,7 @@ describe('blocks/process', async () => {
 											);
 										});
 
-										describe('when consensus is low', async () => {
+										describe('when consensus is low', () => {
 											beforeEach(() =>
 												modules.transport.poorConsensus.returns(true)
 											);
@@ -1106,7 +1106,7 @@ describe('blocks/process', async () => {
 											});
 										});
 
-										describe('when consensus is high', async () => {
+										describe('when consensus is high', () => {
 											beforeEach(() =>
 												modules.transport.poorConsensus.returns(false)
 											);
@@ -1129,7 +1129,7 @@ describe('blocks/process', async () => {
 										});
 									});
 
-									describe('when succeeds', async () => {
+									describe('when succeeds', () => {
 										beforeEach(() =>
 											library.storage.entities.Block.isPersisted.resolves(true)
 										);
@@ -1155,13 +1155,13 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('loadBlocksOffset', async () => {
+	describe('loadBlocksOffset', () => {
 		afterEach(() =>
 			expect(loggerStub.debug.args[0][0]).to.equal('Loading blocks offset')
 		);
 
-		describe('library.storage.entities.Block.get', async () => {
-			describe('when fails', async () => {
+		describe('library.storage.entities.Block.get', () => {
+			describe('when fails', () => {
 				beforeEach(() =>
 					library.storage.entities.Block.get.rejects(
 						'blocks.loadBlocksOffset-REJECTS'
@@ -1182,8 +1182,8 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when succeeds', async () => {
-				describe('when query returns empty array', async () => {
+			describe('when succeeds', () => {
+				describe('when query returns empty array', () => {
 					beforeEach(() => {
 						library.storage.entities.Block.get.resolves([]);
 						return modules.blocks.utils.readStorageRows.returns([]);
@@ -1207,7 +1207,7 @@ describe('blocks/process', async () => {
 					});
 				});
 
-				describe('when query returns rows', async () => {
+				describe('when query returns rows', () => {
 					beforeEach(() =>
 						library.storage.entities.Block.get.resolves([dummyBlock])
 					);
@@ -1217,8 +1217,8 @@ describe('blocks/process', async () => {
 							expect(modules.blocks.lastBlock.get.calledOnce).to.be.true
 					);
 
-					describe('modules.blocks.isCleaning.get', async () => {
-						describe('when returns true, node shutdown is requested', async () => {
+					describe('modules.blocks.isCleaning.get', () => {
+						describe('when returns true, node shutdown is requested', () => {
 							beforeEach(() => modules.blocks.isCleaning.get.returns(true));
 							afterEach(() =>
 								expect(loggerStub.debug.args[0][1]).to.deep.equal({
@@ -1244,10 +1244,10 @@ describe('blocks/process', async () => {
 							});
 						});
 
-						describe('when returns false', async () => {
+						describe('when returns false', () => {
 							beforeEach(() => modules.blocks.isCleaning.get.returns(false));
 
-							describe('when block id is genesis block', async () => {
+							describe('when block id is genesis block', () => {
 								beforeEach(() =>
 									modules.blocks.utils.readStorageRows.returns([
 										{
@@ -1265,8 +1265,8 @@ describe('blocks/process', async () => {
 									})
 								);
 
-								describe('modules.blocks.chain.applyGenesisBlock', async () => {
-									describe('when fails', async () => {
+								describe('modules.blocks.chain.applyGenesisBlock', () => {
+									describe('when fails', () => {
 										beforeEach(() =>
 											modules.blocks.chain.applyGenesisBlock.callsArgWith(
 												1,
@@ -1293,7 +1293,7 @@ describe('blocks/process', async () => {
 										});
 									});
 
-									describe('when succeeds', async () => {
+									describe('when succeeds', () => {
 										beforeEach(() => {
 											modules.blocks.chain.applyGenesisBlock.callsArgWith(
 												1,
@@ -1318,7 +1318,7 @@ describe('blocks/process', async () => {
 								});
 							});
 
-							describe('when block id is not genesis block', async () => {
+							describe('when block id is not genesis block', () => {
 								beforeEach(() =>
 									modules.blocks.utils.readStorageRows.returns([dummyBlock])
 								);
@@ -1334,8 +1334,8 @@ describe('blocks/process', async () => {
 									});
 								});
 
-								describe('modules.blocks.verify.processBlock', async () => {
-									describe('when fails', async () => {
+								describe('modules.blocks.verify.processBlock', () => {
+									describe('when fails', () => {
 										beforeEach(() =>
 											modules.blocks.verify.processBlock.callsArgWith(
 												3,
@@ -1363,7 +1363,7 @@ describe('blocks/process', async () => {
 										});
 									});
 
-									describe('when succeeds', async () => {
+									describe('when succeeds', () => {
 										beforeEach(() => {
 											modules.blocks.verify.processBlock.callsArgWith(
 												3,
@@ -1394,7 +1394,7 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('loadBlocksFromPeer', async () => {
+	describe('loadBlocksFromPeer', () => {
 		afterEach(() => {
 			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
 			return expect(loggerStub.info.args[0][0]).to.equal(
@@ -1402,10 +1402,10 @@ describe('blocks/process', async () => {
 			);
 		});
 
-		describe('getFromPeer', async () => {
-			describe('peer.rpc.blocks', async () => {
-				describe('when blocks.lastBlock.get fails', async () => {
-					describe('err parameter', async () => {
+		describe('getFromPeer', () => {
+			describe('peer.rpc.blocks', () => {
+				describe('when blocks.lastBlock.get fails', () => {
+					describe('err parameter', () => {
 						beforeEach(() =>
 							modules.blocks.lastBlock.get.returns({
 								id: 'ERR',
@@ -1435,7 +1435,7 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('cb parameter', async () => {
+					describe('cb parameter', () => {
 						beforeEach(() =>
 							modules.blocks.lastBlock.get.returns({
 								id: 'cb-ERR',
@@ -1458,7 +1458,7 @@ describe('blocks/process', async () => {
 					});
 				});
 
-				describe('when succeeds', async () => {
+				describe('when succeeds', () => {
 					beforeEach(() =>
 						modules.blocks.lastBlock.get.returns({
 							id: '3',
@@ -1466,9 +1466,9 @@ describe('blocks/process', async () => {
 						})
 					);
 
-					describe('validateBlocks', async () => {
-						describe('library.schema.validate', async () => {
-							describe('when fails', async () => {
+					describe('validateBlocks', () => {
+						describe('library.schema.validate', () => {
+							describe('when fails', () => {
 								beforeEach(() => library.schema.validate.returns(false));
 
 								it('should call a callback with error', done => {
@@ -1485,11 +1485,11 @@ describe('blocks/process', async () => {
 								});
 							});
 
-							describe('when succeeds', async () => {
+							describe('when succeeds', () => {
 								beforeEach(() => library.schema.validate.returns(true));
 
-								describe('processBlocks', async () => {
-									describe('when receives no block', async () => {
+								describe('processBlocks', () => {
+									describe('when receives no block', () => {
 										beforeEach(() =>
 											modules.blocks.lastBlock.get.returns({
 												id: 'empty',
@@ -1512,9 +1512,9 @@ describe('blocks/process', async () => {
 										});
 									});
 
-									describe('when receives blocks', async () => {
-										describe('modules.blocks.utils.readDbRows', async () => {
-											describe('when fails', async () => {
+									describe('when receives blocks', () => {
+										describe('modules.blocks.utils.readDbRows', () => {
+											describe('when fails', () => {
 												beforeEach(() =>
 													modules.blocks.utils.readDbRows.returns(
 														new Error('readDbRows err')
@@ -1538,19 +1538,19 @@ describe('blocks/process', async () => {
 												});
 											});
 
-											describe('when succeeds', async () => {
+											describe('when succeeds', () => {
 												beforeEach(() =>
 													modules.blocks.utils.readDbRows.returns([dummyBlock])
 												);
 
-												describe('modules.blocks.isCleaning.get', async () => {
+												describe('modules.blocks.isCleaning.get', () => {
 													afterEach(
 														async () =>
 															expect(modules.blocks.isCleaning.get.calledOnce)
 																.to.be.true
 													);
 
-													describe('when returns true, node shutdown is requested', async () => {
+													describe('when returns true, node shutdown is requested', () => {
 														beforeEach(() =>
 															modules.blocks.isCleaning.get.returns(true)
 														);
@@ -1570,14 +1570,14 @@ describe('blocks/process', async () => {
 														});
 													});
 
-													describe('when returns false', async () => {
+													describe('when returns false', () => {
 														beforeEach(() =>
 															modules.blocks.isCleaning.get.returns(false)
 														);
 
-														describe('processBlock', async () => {
-															describe('modules.blocks.verify.processBlock', async () => {
-																describe('when fails', async () => {
+														describe('processBlock', () => {
+															describe('modules.blocks.verify.processBlock', () => {
+																describe('when fails', () => {
 																	beforeEach(() =>
 																		modules.blocks.verify.processBlock.callsArgWith(
 																			3,
@@ -1614,7 +1614,7 @@ describe('blocks/process', async () => {
 																	});
 																});
 
-																describe('when succeeds', async () => {
+																describe('when succeeds', () => {
 																	beforeEach(() =>
 																		modules.blocks.verify.processBlock.callsArgWith(
 																			3,
@@ -1660,9 +1660,9 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('generateBlock', async () => {
-		describe('modules.transactions.getUnconfirmedTransactionList', async () => {
-			describe('when query returns empty array', async () => {
+	describe('generateBlock', () => {
+		describe('modules.transactions.getUnconfirmedTransactionList', () => {
+			describe('when query returns empty array', () => {
 				beforeEach(() => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
 					return modules.blocks.verify.processBlock.callsArgWith(
@@ -1689,7 +1689,7 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when query returns undefined', async () => {
+			describe('when query returns undefined', () => {
 				beforeEach(() => {
 					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
 					return modules.blocks.verify.processBlock.callsArgWith(
@@ -1716,7 +1716,7 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when query returns transactions', async () => {
+			describe('when query returns transactions', () => {
 				beforeEach(() => {
 					modules.transactions.getUnconfirmedTransactionList.returns([
 						{ id: 1, type: 0 },
@@ -1729,8 +1729,8 @@ describe('blocks/process', async () => {
 					);
 				});
 
-				describe('modules.accounts.getAccount', async () => {
-					describe('when fails', async () => {
+				describe('modules.accounts.getAccount', () => {
+					describe('when fails', () => {
 						beforeEach(() =>
 							modules.accounts.getAccount.callsArgWith(
 								1,
@@ -1751,7 +1751,7 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('when succeeds', async () => {
+					describe('when succeeds', () => {
 						beforeEach(() =>
 							modules.accounts.getAccount.callsArgWith(1, null, true)
 						);
@@ -1760,8 +1760,8 @@ describe('blocks/process', async () => {
 								expect(modules.blocks.verify.processBlock.calledOnce).to.be.true
 						);
 
-						describe('library.logic.transaction.ready', async () => {
-							describe('when returns false', async () => {
+						describe('library.logic.transaction.ready', () => {
+							describe('when returns false', () => {
 								beforeEach(() =>
 									library.logic.transaction.ready.returns(false)
 								);
@@ -1784,11 +1784,11 @@ describe('blocks/process', async () => {
 								});
 							});
 
-							describe('when returns true', async () => {
+							describe('when returns true', () => {
 								beforeEach(() => library.logic.transaction.ready.returns(true));
 
-								describe('library.logic.transaction.verify', async () => {
-									describe('when fails', async () => {
+								describe('library.logic.transaction.verify', () => {
+									describe('when fails', () => {
 										beforeEach(() =>
 											library.logic.transaction.verify.callsArgWith(
 												4,
@@ -1813,7 +1813,7 @@ describe('blocks/process', async () => {
 										});
 									});
 
-									describe('when succeeds', async () => {
+									describe('when succeeds', () => {
 										beforeEach(() =>
 											library.logic.transaction.verify.callsArgWith(
 												4,
@@ -1843,14 +1843,14 @@ describe('blocks/process', async () => {
 					});
 				});
 
-				describe('library.logic.block.create', async () => {
+				describe('library.logic.block.create', () => {
 					beforeEach(() => {
 						modules.accounts.getAccount.callsArgWith(1, null, true);
 						library.logic.transaction.ready.returns(true);
 						return library.logic.transaction.verify.callsArgWith(4, null, true);
 					});
 
-					describe('when fails', async () => {
+					describe('when fails', () => {
 						beforeEach(done => {
 							library.logic.block.create = sinonSandbox.stub();
 							library.logic.block.create.throws('block-create-ERR');
@@ -1872,9 +1872,9 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('when succeeds', async () => {
-						describe('modules.blocks.verify.processBlock', async () => {
-							describe('when fails', async () => {
+					describe('when succeeds', () => {
+						describe('modules.blocks.verify.processBlock', () => {
+							describe('when fails', () => {
 								beforeEach(() =>
 									modules.blocks.verify.processBlock.callsArgWith(
 										3,
@@ -1895,7 +1895,7 @@ describe('blocks/process', async () => {
 								});
 							});
 
-							describe('when succeeds', async () => {
+							describe('when succeeds', () => {
 								it('should call modules.blocks.verify.processBlock with proper args', done => {
 									blocksProcessModule.generateBlock(
 										{ publicKey: '123abc', privateKey: 'aaa' },
@@ -1920,10 +1920,10 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('__private.validateBlockSlot', async () => {
-		describe('lastBlock.height % ACTIVE_DELEGATES === 0', async () => {
-			describe('validateBlockSlotAgainstPreviousRound', async () => {
-				describe('when fails', async () => {
+	describe('__private.validateBlockSlot', () => {
+		describe('lastBlock.height % ACTIVE_DELEGATES === 0', () => {
+			describe('validateBlockSlotAgainstPreviousRound', () => {
+				describe('when fails', () => {
 					beforeEach(() =>
 						modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
 							1,
@@ -1948,7 +1948,7 @@ describe('blocks/process', async () => {
 					});
 				});
 
-				describe('when succeeds', async () => {
+				describe('when succeeds', () => {
 					beforeEach(() =>
 						modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
 							1,
@@ -1975,10 +1975,10 @@ describe('blocks/process', async () => {
 			});
 		});
 
-		describe('lastBlock.height % ACTIVE_DELEGATES !== 0', async () => {
-			describe('roundLastBlock < roundNextBlock', async () => {
-				describe('validateBlockSlotAgainstPreviousRound', async () => {
-					describe('when fails', async () => {
+		describe('lastBlock.height % ACTIVE_DELEGATES !== 0', () => {
+			describe('roundLastBlock < roundNextBlock', () => {
+				describe('validateBlockSlotAgainstPreviousRound', () => {
+					describe('when fails', () => {
 						beforeEach(() =>
 							modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
 								1,
@@ -2003,7 +2003,7 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('when succeeds', async () => {
+					describe('when succeeds', () => {
 						beforeEach(() =>
 							modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
 								1,
@@ -2030,9 +2030,9 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('roundLastBlock >= roundNextBlock', async () => {
-				describe('validateBlockSlot', async () => {
-					describe('when fails', async () => {
+			describe('roundLastBlock >= roundNextBlock', () => {
+				describe('validateBlockSlot', () => {
+					describe('when fails', () => {
 						beforeEach(() =>
 							modules.delegates.validateBlockSlot.callsArgWith(
 								1,
@@ -2055,7 +2055,7 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('when succeeds', async () => {
+					describe('when succeeds', () => {
 						beforeEach(() =>
 							modules.delegates.validateBlockSlot.callsArgWith(1, null, true)
 						);
@@ -2078,7 +2078,7 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('onReceiveBlock', async () => {
+	describe('onReceiveBlock', () => {
 		let tempReceiveBlock;
 		let tempReceiveForkOne;
 		let tempReceiveForkFive;
@@ -2097,8 +2097,8 @@ describe('blocks/process', async () => {
 			done();
 		});
 
-		describe('Client is syncing and not ready to receive block', async () => {
-			describe('when __private.loaded is false', async () => {
+		describe('Client is syncing and not ready to receive block', () => {
+			describe('when __private.loaded is false', () => {
 				beforeEach(done => {
 					__private.loaded = false;
 					done();
@@ -2120,7 +2120,7 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when modules.loader.syncing is true', async () => {
+			describe('when modules.loader.syncing is true', () => {
 				beforeEach(() => modules.loader.syncing.returns(true));
 
 				afterEach(() => modules.loader.syncing.returns(false));
@@ -2137,12 +2137,12 @@ describe('blocks/process', async () => {
 			});
 		});
 
-		describe('client ready to receive block', async () => {
+		describe('client ready to receive block', () => {
 			afterEach(
 				async () => expect(modules.blocks.lastBlock.get.calledOnce).to.be.true
 			);
 
-			describe('when block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height', async () => {
+			describe('when block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height', () => {
 				beforeEach(done => {
 					__private.receiveBlock = sinonSandbox
 						.stub()
@@ -2169,7 +2169,7 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height', async () => {
+			describe('when block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height', () => {
 				beforeEach(done => {
 					__private.receiveForkOne = sinonSandbox
 						.stub()
@@ -2208,7 +2208,7 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id', async () => {
+			describe('when block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id', () => {
 				beforeEach(() => {
 					__private.receiveForkFive = sinonSandbox
 						.stub()
@@ -2252,7 +2252,7 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when block.id === lastBlock.id', async () => {
+			describe('when block.id === lastBlock.id', () => {
 				afterEach(done => {
 					expect(loggerStub.debug.args[0][0]).to.equal(
 						'Block already processed'
@@ -2276,7 +2276,7 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when block.id !== lastBlock.id', async () => {
+			describe('when block.id !== lastBlock.id', () => {
 				afterEach(() =>
 					expect(loggerStub.warn.args[0][0]).to.equal(
 						'Discarded block that does not match with current chain: 7 height: 11 round: 1 slot: 544076 generator: a1'
@@ -2302,7 +2302,7 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('onBind', async () => {
+	describe('onBind', () => {
 		beforeEach(done => {
 			loggerStub.trace.resetHistory();
 			__private.loaded = false;

@@ -30,13 +30,13 @@ Promise.promisify(waitFor.newRound);
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /delegates', async () => {
+describe('GET /delegates', () => {
 	const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 	const validDelegate = genesisDelegates.delegates[0];
 	const validNotExistingPublicKey =
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
 
-	describe('/', async () => {
+	describe('/', () => {
 		it('using no params should return genesis delegates with default limit', async () => {
 			return delegatesEndpoint.makeRequest({}, 200).then(res => {
 				expect(res.body.data).to.have.lengthOf(10);
@@ -63,7 +63,7 @@ describe('GET /delegates', async () => {
 				});
 		});
 
-		describe('publicKey', async () => {
+		describe('publicKey', () => {
 			it('using no publicKey should return an empty array', async () => {
 				return delegatesEndpoint
 					.makeRequest({ publicKey: '' }, 200)
@@ -100,7 +100,7 @@ describe('GET /delegates', async () => {
 			});
 		});
 
-		describe('secondPublicKey', async () => {
+		describe('secondPublicKey', () => {
 			const secondPassphraseAccount = randomUtil.account();
 
 			const creditTransaction = lisk.transaction.transfer({
@@ -179,7 +179,7 @@ describe('GET /delegates', async () => {
 			});
 		});
 
-		describe('address', async () => {
+		describe('address', () => {
 			it('using no address should return a schema error', async () => {
 				return delegatesEndpoint.makeRequest({ address: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'address');
@@ -213,7 +213,7 @@ describe('GET /delegates', async () => {
 			});
 		});
 
-		describe('username', async () => {
+		describe('username', () => {
 			it('using no username should return a schema error', async () => {
 				return delegatesEndpoint
 					.makeRequest({ username: '' }, 400)
@@ -243,7 +243,7 @@ describe('GET /delegates', async () => {
 			});
 		});
 
-		describe('search', async () => {
+		describe('search', () => {
 			it('using blank search should fail', async () => {
 				return delegatesEndpoint.makeRequest({ search: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'search');
@@ -350,7 +350,7 @@ describe('GET /delegates', async () => {
 			});
 		});
 
-		describe('sort', async () => {
+		describe('sort', () => {
 			it('using sort="unknown:asc" should not sort results', async () => {
 				return delegatesEndpoint.makeRequest({ sort: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'sort');
@@ -488,7 +488,7 @@ describe('GET /delegates', async () => {
 			});
 		});
 
-		describe('limit', async () => {
+		describe('limit', () => {
 			it('using string limit should fail', async () => {
 				return delegatesEndpoint
 					.makeRequest({ limit: 'one' }, 400)
@@ -528,7 +528,7 @@ describe('GET /delegates', async () => {
 			});
 		});
 
-		describe('offset', async () => {
+		describe('offset', () => {
 			it('using string offset should fail', async () => {
 				return delegatesEndpoint
 					.makeRequest({ offset: 'one' }, 400)
@@ -553,7 +553,7 @@ describe('GET /delegates', async () => {
 		});
 	});
 
-	describe('GET /forgers', async () => {
+	describe('GET /forgers', () => {
 		const forgersEndpoint = new SwaggerEndpoint('GET /delegates/forgers');
 
 		it('using no params should be ok', async () => {
@@ -594,7 +594,7 @@ describe('GET /delegates', async () => {
 			});
 		});
 
-		describe('slot numbers are correct', async () => {
+		describe('slot numbers are correct', () => {
 			let forgersData;
 
 			before(() => {
@@ -617,12 +617,12 @@ describe('GET /delegates', async () => {
 		});
 	});
 
-	describe('GET /{address}/forging_statistics', async () => {
+	describe('GET /{address}/forging_statistics', () => {
 		const forgedEndpoint = new SwaggerEndpoint(
 			'GET /delegates/{address}/forging_statistics'
 		);
 
-		describe('address', async () => {
+		describe('address', () => {
 			it('using known address should be ok', async () => {
 				return forgedEndpoint
 					.makeRequest({ address: validDelegate.address }, 200)
@@ -638,9 +638,27 @@ describe('GET /delegates', async () => {
 					});
 			});
 
-			it('using unknown address should return empty result', async () => {
+			it('using unknown address without start and end filters should return empty result', async () => {
 				return forgedEndpoint
 					.makeRequest({ address: randomUtil.account().address }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'address');
+					});
+			});
+
+			it('using unknown address with start and/or end filters should return empty result', async () => {
+				const fromQueryTime = slots.getTime() - 60 * 60;
+				const toQueryTime = slots.getTime();
+
+				return forgedEndpoint
+					.makeRequest(
+						{
+							address: randomUtil.account().address,
+							fromTimestamp: fromQueryTime,
+							toTimestamp: toQueryTime,
+						},
+						400
+					)
 					.then(res => {
 						expectSwaggerParamError(res, 'address');
 					});
@@ -666,8 +684,8 @@ describe('GET /delegates', async () => {
 				});
 			});
 
-			describe('?', async () => {
-				describe('fromTimestamp', async () => {
+			describe('?', () => {
+				describe('fromTimestamp', () => {
 					it('using invalid fromTimestamp should fail', async () => {
 						return forgedEndpoint
 							.makeRequest(
@@ -701,7 +719,7 @@ describe('GET /delegates', async () => {
 					});
 				});
 
-				describe('toTimestamp', async () => {
+				describe('toTimestamp', () => {
 					it('using invalid toTimestamp should fail', async () => {
 						return forgedEndpoint
 							.makeRequest(

@@ -21,7 +21,7 @@ const filters = require('../../../../../src/components/storage/utils/filters');
 
 const customSerializer = sinonSandbox.stub().returns('custom serialized value');
 
-describe('filters', async () => {
+describe('filters', () => {
 	beforeEach(async () => {
 		sinonSandbox
 			.stub(inputSerializers, 'defaultInput')
@@ -36,15 +36,15 @@ describe('filters', async () => {
 		return expect(filters.filterGenerator).to.be.a('function');
 	});
 
-	describe('filterGenerator', async () => {
+	describe('filterGenerator', () => {
 		const filterGenerator = filters.filterGenerator;
 
 		it('should accept 5 parameters', async () =>
 			expect(filterGenerator.length).to.be.eql(5));
 
-		describe('filter types', async () => {
+		describe('filter types', () => {
 			['defaultInput', 'custom'].forEach(serializer => {
-				describe(`using ${serializer} serializer`, async () => {
+				describe(`using ${serializer} serializer`, () => {
 					const ser = serializer === 'custom' ? customSerializer : null;
 
 					it('should return appropriate filters for BOOLEAN type', async () =>
@@ -83,7 +83,7 @@ describe('filters', async () => {
 				});
 			});
 
-			describe('custom filter type', async () => {
+			describe('custom filter type', () => {
 				it('should use defaultInput condition if specified', async () =>
 					expect(
 						filterGenerator(

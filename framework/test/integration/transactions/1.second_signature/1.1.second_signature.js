@@ -21,7 +21,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - double second signature registrations', async () => {
+describe('system test (type 1) - double second signature registrations', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -66,7 +66,7 @@ describe('system test (type 1) - double second signature registrations', async (
 		});
 	});
 
-	describe('after forging one block', async () => {
+	describe('after forging one block', () => {
 		before(done => {
 			localCommon.forge(library, async () => {
 				done();

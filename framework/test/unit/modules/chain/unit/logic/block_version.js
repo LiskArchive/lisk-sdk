@@ -18,9 +18,9 @@ const blockVersion = require('../../../../../../src/modules/chain/logic/block_ve
 
 const exceptions = global.exceptions;
 
-describe('block_version', async () => {
-	describe('isValid', async () => {
-		describe('when no exceptions present', async () => {
+describe('block_version', () => {
+	describe('isValid', () => {
+		describe('when no exceptions present', () => {
 			// When no exceptions are present current version (1) should be always valid for all heights,
 			// and all other versions should be rejected
 			before(done => {
@@ -92,7 +92,7 @@ describe('block_version', async () => {
 			});
 		});
 
-		describe('when 1 exception present', async () => {
+		describe('when 1 exception present', () => {
 			// When 1 exception is present current version (1) should be valid only if height is not
 			// in exception's range, exception's version should be valid for its height range
 			before(done => {
@@ -166,7 +166,7 @@ describe('block_version', async () => {
 			});
 		});
 
-		describe('when more than 1 exceptions present', async () => {
+		describe('when more than 1 exceptions present', () => {
 			before(done => {
 				exceptions.blockVersions = {
 					0: { start: 0, end: 101 },

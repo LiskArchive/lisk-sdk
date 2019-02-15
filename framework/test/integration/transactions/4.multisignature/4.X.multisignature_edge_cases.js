@@ -22,7 +22,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test - multi signature edge cases', async () => {
+describe('system test - multi signature edge cases', () => {
 	let library;
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;
@@ -75,7 +75,7 @@ describe('system test - multi signature edge cases', async () => {
 		}
 	);
 
-	describe('try to register more dapps than balance will allow from a multisignature account', async () => {
+	describe('try to register more dapps than balance will allow from a multisignature account', () => {
 		const transactionIds = [];
 		const transactions = [];
 		before('Create more transactions than available funds can cover', done => {

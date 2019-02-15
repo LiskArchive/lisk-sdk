@@ -285,7 +285,7 @@ const storageBlocksListRowsParsed = [
 	},
 ];
 
-describe('blocks/utils', async () => {
+describe('blocks/utils', () => {
 	let storageStub;
 	let loggerStub;
 	let blockMock;
@@ -383,7 +383,7 @@ describe('blocks/utils', async () => {
 
 	afterEach(() => sinonSandbox.resetHistory());
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should assign params to library', async () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.storage).to.eql(storageStub);
@@ -403,7 +403,7 @@ describe('blocks/utils', async () => {
 		});
 	});
 
-	describe('readDbRows', async () => {
+	describe('readDbRows', () => {
 		it('should call library.logic.block.dbRead with each block', done => {
 			library.logic.block.dbRead = sinonSandbox.spy();
 
@@ -431,7 +431,7 @@ describe('blocks/utils', async () => {
 		it('should read an empty array', async () =>
 			expect(blocksUtilsModule.readDbRows([])).to.be.an('array'));
 
-		describe('with 2 blocks each containing 2 transactions', async () => {
+		describe('with 2 blocks each containing 2 transactions', () => {
 			let blocks;
 
 			beforeEach(() => {
@@ -495,7 +495,7 @@ describe('blocks/utils', async () => {
 		});
 	});
 
-	describe('loadBlocksPart', async () => {
+	describe('loadBlocksPart', () => {
 		it('should return error when library.storage.entities.Block.get fails', done => {
 			library.storage.entities.Block.get = sinonSandbox
 				.stub()
@@ -549,7 +549,7 @@ describe('blocks/utils', async () => {
 		});
 	});
 
-	describe('loadLastBlock', async () => {
+	describe('loadLastBlock', () => {
 		it('should return error when library.storage.entities.Block.get fails', done => {
 			library.storage.entities.Block.get = sinonSandbox.stub().resolves(null);
 
@@ -563,7 +563,7 @@ describe('blocks/utils', async () => {
 			});
 		});
 
-		describe('sorting the block.transactions array', async () => {
+		describe('sorting the block.transactions array', () => {
 			it('should call modules.blocks.lastBlock.set with block', done => {
 				library.storage.entities.Block.get = sinonSandbox
 					.stub()
@@ -581,7 +581,7 @@ describe('blocks/utils', async () => {
 		});
 	});
 
-	describe('getIdSequence', async () => {
+	describe('getIdSequence', () => {
 		it('should call library.storage.entities.Block.getFirstBlockIdOfLastRounds with proper params', done => {
 			blocksUtilsModule.getIdSequence(10, async () => {
 				expect(library.storage.entities.Block.getFirstBlockIdOfLastRounds).to
@@ -742,7 +742,7 @@ describe('blocks/utils', async () => {
 		});
 	});
 
-	describe('loadBlocksData', async () => {
+	describe('loadBlocksData', () => {
 		it('should return error when library.storage.entities.Block.get fails', done => {
 			library.storage.entities.Block.get = sinonSandbox
 				.stub()
@@ -809,7 +809,7 @@ describe('blocks/utils', async () => {
 		});
 	});
 
-	describe('getBlockProgressLogger', async () => {
+	describe('getBlockProgressLogger', () => {
 		let testTracker;
 
 		it('should initialize BlockProgressLogger', async () => {
@@ -845,77 +845,7 @@ describe('blocks/utils', async () => {
 		});
 	});
 
-	describe('aggregateBlocksReward', async () => {
-		it('should return error when account.get fails', done => {
-			blocksUtilsModule.aggregateBlocksReward(
-				{ address: 'ERRL' },
-				(err, data) => {
-					expect(err).to.equal('Address error stub');
-					expect(data).to.be.undefined;
-					done();
-				}
-			);
-		});
-
-		it('should return error when account not found', done => {
-			blocksUtilsModule.aggregateBlocksReward(
-				{ address: '0L' },
-				(err, data) => {
-					expect(err).to.equal('Account not found');
-					expect(data).to.be.undefined;
-					done();
-				}
-			);
-		});
-
-		it('should return error when library.storage.entities.Account.delegateBlocksRewards fails', done => {
-			blocksUtilsModule.aggregateBlocksReward(
-				{ address: '1L' },
-				(err, data) => {
-					expect(loggerStub.error.args[0][0]).to.contains(
-						"TypeError: Cannot read property '0' of undefined"
-					);
-					expect(err).to.equal('Blocks#aggregateBlocksReward error');
-					expect(data).to.be.undefined;
-					done();
-				}
-			);
-		});
-
-		it('should return error when account is not a delegate', done => {
-			library.storage.entities.Account.delegateBlocksRewards = sinonSandbox
-				.stub()
-				.resolves([{ delegate: null }]);
-
-			blocksUtilsModule.aggregateBlocksReward(
-				{ address: '1L' },
-				(err, data) => {
-					expect(err).to.equal('Account is not a delegate');
-					expect(data).to.be.undefined;
-					done();
-				}
-			);
-		});
-
-		it('should return aggregate blocks rewards', done => {
-			library.storage.entities.Account.delegateBlocksRewards = sinonSandbox
-				.stub()
-				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
-
-			blocksUtilsModule.aggregateBlocksReward(
-				{ address: '1L' },
-				(err, data) => {
-					expect(data).to.be.an('object');
-					expect(data.fees).to.equal(1);
-					expect(data.count).to.equal(100);
-					expect(data.rewards).to.equal('0');
-					done();
-				}
-			);
-		});
-	});
-
-	describe('onBind', async () => {
+	describe('onBind', () => {
 		beforeEach(() => {
 			loggerStub.trace.resetHistory();
 			return blocksUtilsModule.onBind(bindingsStub);

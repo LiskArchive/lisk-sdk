@@ -16,8 +16,8 @@
 
 const slots = require('../../../../../../src/modules/chain/helpers/slots.js');
 
-describe('helpers/slots', async () => {
-	describe('calc', async () => {
+describe('helpers/slots', () => {
+	describe('calc', () => {
 		it('should calculate round number from given block height', async () => {
 			expect(slots.calcRound(100)).equal(1);
 			expect(slots.calcRound(200)).equal(2);

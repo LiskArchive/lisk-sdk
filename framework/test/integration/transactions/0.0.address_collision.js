@@ -21,7 +21,7 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 0) - address collision', async () => {
+describe('system test (type 0) - address collision', () => {
 	let library;
 	localCommon.beforeBlock('system_0_0_address_collision', lib => {
 		library = lib;
@@ -94,7 +94,7 @@ describe('system test (type 0) - address collision', async () => {
 		done();
 	});
 
-	describe('when two passphrases collide into the same address', async () => {
+	describe('when two passphrases collide into the same address', () => {
 		it('adding to pool transfer should be ok for passphrase one', done => {
 			localCommon.addTransaction(library, firstTransaction, (err, res) => {
 				expect(err).to.be.null;
@@ -116,7 +116,7 @@ describe('system test (type 0) - address collision', async () => {
 			});
 		});
 
-		describe('after forging one block', async () => {
+		describe('after forging one block', () => {
 			before(done => {
 				localCommon.forge(library, (err, res) => {
 					expect(err).to.be.null;

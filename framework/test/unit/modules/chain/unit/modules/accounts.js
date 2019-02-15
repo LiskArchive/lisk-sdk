@@ -47,7 +47,7 @@ const validAccount = {
 	rewards: '0',
 };
 
-describe('accounts', async () => {
+describe('accounts', () => {
 	let accounts;
 	let accountLogic;
 	let storage;
@@ -70,14 +70,14 @@ describe('accounts', async () => {
 		application.cleanup(done);
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should throw with no params', async () =>
 			expect(() => {
 				new AccountModule();
 			}).to.throw());
 	});
 
-	describe('generateAddressByPublicKey', async () => {
+	describe('generateAddressByPublicKey', () => {
 		it('should generate correct address for the publicKey provided', async () =>
 			expect(
 				accounts.generateAddressByPublicKey(validAccount.publicKey)
@@ -95,7 +95,7 @@ describe('accounts', async () => {
 		/* eslint-enable mocha/no-skipped-tests */
 	});
 
-	describe('getAccount', async () => {
+	describe('getAccount', () => {
 		it('should convert publicKey filter to address and call account.get', done => {
 			const getAccountStub = sinonSandbox.stub(accountLogic, 'get');
 
@@ -118,7 +118,7 @@ describe('accounts', async () => {
 		});
 	});
 
-	describe('getAccounts', async () => {
+	describe('getAccounts', () => {
 		it('should get accounts for the filter provided', done => {
 			accounts.getAccounts({ secondSignature: false }, (err, res) => {
 				expect(err).to.not.exist;
@@ -143,7 +143,7 @@ describe('accounts', async () => {
 		});
 	});
 
-	describe('setAccountAndGet', async () => {
+	describe('setAccountAndGet', () => {
 		it('should fail if address and publicKey is missing', done => {
 			const account = new accountFixtures.Account();
 
@@ -235,12 +235,12 @@ describe('accounts', async () => {
 		});
 	});
 
-	describe('onBind', async () => {
+	describe('onBind', () => {
 		it('should throw error with empty params', async () =>
 			expect(accounts.onBind).to.throw());
 	});
 
-	describe('isLoaded', async () => {
+	describe('isLoaded', () => {
 		it('should return true when modules are loaded', async () =>
 			expect(accounts.isLoaded).to.be.ok);
 	});

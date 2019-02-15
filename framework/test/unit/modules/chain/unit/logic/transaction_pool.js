@@ -33,7 +33,7 @@ const jobsQueue = rewire(
 const { UNCONFIRMED_TRANSACTION_TIMEOUT } = global.constants;
 const config = __testContext.config;
 
-describe('transactionPool', async () => {
+describe('transactionPool', () => {
 	let transactionPool;
 	let applyUnconfirmed;
 	let dummyProcessVerifyTransaction;
@@ -200,8 +200,8 @@ describe('transactionPool', async () => {
 		done();
 	});
 
-	describe('initialize', async () => {
-		describe('lists', async () => {
+	describe('initialize', () => {
+		describe('lists', () => {
 			it('unconfirmed should be initialized', async () =>
 				expect(transactionPool.unconfirmed).to.deep.equal(freshListState));
 
@@ -218,8 +218,8 @@ describe('transactionPool', async () => {
 		after(resetStates);
 	});
 
-	describe('bind', async () => {
-		describe('modules', async () => {
+	describe('bind', () => {
+		describe('modules', () => {
 			it('should assign accounts, transactions, loader', async () => {
 				const modules = TransactionPool.__get__('modules');
 				return expect(modules).to.eql({
@@ -230,7 +230,7 @@ describe('transactionPool', async () => {
 			});
 		});
 
-		describe('jobsQueue', async () => {
+		describe('jobsQueue', () => {
 			it('should register transactionPoolNextBundle with bundledInterval', async () => {
 				expect(Object.keys(jobsQueue.jobs))
 					.to.be.an('array')
@@ -253,7 +253,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('expireTransactions', async () => {
+	describe('expireTransactions', () => {
 		const receivedAt = new Date(new Date() - 1300 * 60000);
 		const unconfirmedTx = { id: 'unconfirmedTx', receivedAt };
 		const unconfirmedTx2 = { id: 'unconfirmedTx2', receivedAt: new Date() };
@@ -282,14 +282,14 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('transactionInPool', async () => {
+	describe('transactionInPool', () => {
 		afterEach(() => resetStates());
 
-		describe('when transaction is in pool', async () => {
+		describe('when transaction is in pool', () => {
 			const validTransaction = '123';
 
-			describe('unconfirmed list', async () => {
-				describe('with index 0', async () => {
+			describe('unconfirmed list', () => {
+				describe('with index 0', () => {
 					it('should return true', async () => {
 						transactionPool.unconfirmed.index[validTransaction] = 0;
 						return expect(
@@ -298,7 +298,7 @@ describe('transactionPool', async () => {
 					});
 				});
 
-				describe('with other index', async () => {
+				describe('with other index', () => {
 					it('should return true', async () => {
 						transactionPool.unconfirmed.index[validTransaction] = 1;
 						return expect(
@@ -308,8 +308,8 @@ describe('transactionPool', async () => {
 				});
 			});
 
-			describe('bundled list', async () => {
-				describe('with index 0', async () => {
+			describe('bundled list', () => {
+				describe('with index 0', () => {
 					it('should return true', async () => {
 						transactionPool.bundled.index[validTransaction] = 0;
 						return expect(
@@ -318,7 +318,7 @@ describe('transactionPool', async () => {
 					});
 				});
 
-				describe('with other index', async () => {
+				describe('with other index', () => {
 					it('should return true', async () => {
 						transactionPool.bundled.index[validTransaction] = 1;
 						return expect(
@@ -328,8 +328,8 @@ describe('transactionPool', async () => {
 				});
 			});
 
-			describe('queued list', async () => {
-				describe('with index 0', async () => {
+			describe('queued list', () => {
+				describe('with index 0', () => {
 					it('should return true', async () => {
 						transactionPool.queued.index[validTransaction] = 0;
 						return expect(
@@ -338,7 +338,7 @@ describe('transactionPool', async () => {
 					});
 				});
 
-				describe('with other index', async () => {
+				describe('with other index', () => {
 					it('should return true', async () => {
 						transactionPool.queued.index[validTransaction] = 1;
 						return expect(
@@ -348,8 +348,8 @@ describe('transactionPool', async () => {
 				});
 			});
 
-			describe('multisignature list', async () => {
-				describe('with index 0', async () => {
+			describe('multisignature list', () => {
+				describe('with index 0', () => {
 					it('should return true', async () => {
 						transactionPool.multisignature.index[validTransaction] = 0;
 						return expect(
@@ -358,7 +358,7 @@ describe('transactionPool', async () => {
 					});
 				});
 
-				describe('with other index', async () => {
+				describe('with other index', () => {
 					it('should return true', async () => {
 						transactionPool.multisignature.index[validTransaction] = 1;
 						return expect(
@@ -369,13 +369,13 @@ describe('transactionPool', async () => {
 			});
 		});
 
-		describe('when transaction is not in pool', async () => {
+		describe('when transaction is not in pool', () => {
 			it('should return false', async () =>
 				expect(transactionPool.transactionInPool('123')).to.equal(false));
 		});
 	});
 
-	describe('getUnconfirmedTransaction', async () => {
+	describe('getUnconfirmedTransaction', () => {
 		const validTransaction = { id: '123' };
 		beforeEach(done => {
 			transactionPool.addUnconfirmedTransaction(validTransaction);
@@ -393,7 +393,7 @@ describe('transactionPool', async () => {
 			));
 	});
 
-	describe('getBundledTransaction', async () => {
+	describe('getBundledTransaction', () => {
 		const validTransaction = { id: '123' };
 		beforeEach(() => transactionPool.addBundledTransaction(validTransaction));
 
@@ -406,7 +406,7 @@ describe('transactionPool', async () => {
 			));
 	});
 
-	describe('getQueuedTransaction', async () => {
+	describe('getQueuedTransaction', () => {
 		const validTransaction = { id: '123' };
 		beforeEach(() => transactionPool.addQueuedTransaction(validTransaction));
 
@@ -419,7 +419,7 @@ describe('transactionPool', async () => {
 			));
 	});
 
-	describe('getMultisignatureTransaction', async () => {
+	describe('getMultisignatureTransaction', () => {
 		const validTransaction = { id: '123' };
 		beforeEach(() =>
 			transactionPool.addMultisignatureTransaction(validTransaction)
@@ -436,7 +436,7 @@ describe('transactionPool', async () => {
 			));
 	});
 
-	describe('getUnconfirmedTransactionList', async () => {
+	describe('getUnconfirmedTransactionList', () => {
 		const validTransaction = { id: '123' };
 		beforeEach(() =>
 			transactionPool.addMultisignatureTransaction(validTransaction)
@@ -453,7 +453,7 @@ describe('transactionPool', async () => {
 			));
 	});
 
-	describe('getBundledTransactionList', async () => {
+	describe('getBundledTransactionList', () => {
 		it('should get list of transactions', async () => {
 			const transaction1 = { id: '1233123L' };
 			const transaction2 = { id: '14443123L' };
@@ -467,7 +467,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('getQueuedTransactionList', async () => {
+	describe('getQueuedTransactionList', () => {
 		it('should get queued transactions', async () => {
 			const transaction1 = { id: '1233123L' };
 			const transaction2 = { id: '14443123L' };
@@ -481,7 +481,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('getMultisignatureTransactionList', async () => {
+	describe('getMultisignatureTransactionList', () => {
 		it('should get multisignature transactions', async () => {
 			const transaction1 = { id: '1233123L' };
 			const transaction2 = { id: '14443123L' };
@@ -495,7 +495,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('getMergedTransactionList', async () => {
+	describe('getMergedTransactionList', () => {
 		it('should get merged transactions', async () => {
 			const transaction1 = { id: '1233123L' };
 			const transaction2 = { id: '14443123L' };
@@ -510,7 +510,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('addUnconfirmedTransaction', async () => {
+	describe('addUnconfirmedTransaction', () => {
 		const unconfirmedTransaction = { id: '1123' };
 		const unconfirmedTransaction2 = {
 			id: '104568989234234L',
@@ -532,7 +532,7 @@ describe('transactionPool', async () => {
 			));
 	});
 
-	describe('removeUnconfirmedTransaction', async () => {
+	describe('removeUnconfirmedTransaction', () => {
 		const unconfirmedTransaction = {
 			id: '104568989234234L',
 			type: transactionTypes.MULTI,
@@ -555,7 +555,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('countUnconfirmed', async () => {
+	describe('countUnconfirmed', () => {
 		it('should return count of unconfirmed transaction exists in pool', async () =>
 			expect(transactionPool.countUnconfirmed()).to.deep.equal(2));
 
@@ -567,7 +567,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('addBundledTransaction', async () => {
+	describe('addBundledTransaction', () => {
 		it('should add bundled transaction if not exists', async () => {
 			const bundledTransaction = { id: '3423423423L' };
 			transactionPool.addBundledTransaction(bundledTransaction);
@@ -577,7 +577,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('removeBundledTransaction', async () => {
+	describe('removeBundledTransaction', () => {
 		it('should remove bundled transaction if exists', async () => {
 			const bundledTransaction = { id: '3423423423L' };
 			transactionPool.removeBundledTransaction(bundledTransaction.id);
@@ -587,12 +587,12 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('countBundled', async () => {
+	describe('countBundled', () => {
 		it('should return count of bundled transaction exists in pool', async () =>
 			expect(transactionPool.countBundled()).to.not.be.an.instanceof(Number));
 	});
 
-	describe('addQueuedTransaction', async () => {
+	describe('addQueuedTransaction', () => {
 		it('should add transaction to queue', async () => {
 			const transaction = { id: '103111423423423' };
 			expect(transactionPool.queued.transactions)
@@ -607,7 +607,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('removeQueuedTransaction', async () => {
+	describe('removeQueuedTransaction', () => {
 		it('should remove transaction to queue', async () => {
 			const transaction = { id: '103111423423423' };
 
@@ -620,12 +620,12 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('countQueued', async () => {
+	describe('countQueued', () => {
 		it('should return count of queued transaction exists in pool', async () =>
 			expect(transactionPool.countQueued()).to.not.be.an.instanceof(Number));
 	});
 
-	describe('addMultisignatureTransaction', async () => {
+	describe('addMultisignatureTransaction', () => {
 		it('should add multi transaction', async () => {
 			const transaction = {
 				id: '103111423423423',
@@ -660,7 +660,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('removeMultisignatureTransaction', async () => {
+	describe('removeMultisignatureTransaction', () => {
 		it('should remove multi transaction', async () => {
 			const transaction = {
 				id: '10431411423423423L',
@@ -677,14 +677,14 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('countMultisignature', async () => {
+	describe('countMultisignature', () => {
 		it('should return count of multi signature transaction exists', async () =>
 			expect(transactionPool.countMultisignature()).to.not.be.an.instanceof(
 				Number
 			));
 	});
 
-	describe('queueTransaction', async () => {
+	describe('queueTransaction', () => {
 		afterEach(done => {
 			transactionPool.countBundled = sinonSandbox.stub().returns(0);
 			done();
@@ -709,7 +709,7 @@ describe('transactionPool', async () => {
 			});
 		});
 
-		describe('when transaction type is MULTI', async () => {
+		describe('when transaction type is MULTI', () => {
 			afterEach(done => {
 				transactionPool.countMultisignature = sinonSandbox.stub().returns(0);
 				transactionPool.countQueued = sinonSandbox.stub().returns(0);
@@ -777,7 +777,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('processUnconfirmedTransaction', async () => {
+	describe('processUnconfirmedTransaction', () => {
 		let auxProcessVerifyTransaction;
 		beforeEach(done => {
 			resetStates();
@@ -881,7 +881,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('receiveTransactions', async () => {
+	describe('receiveTransactions', () => {
 		it('should throw error when transaction in invalid', async () => {
 			const invalidTransaction = {
 				id: '10431411423423423L',
@@ -928,7 +928,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('reindexQueues', async () => {
+	describe('reindexQueues', () => {
 		before(done => {
 			transactionPool.addBundledTransaction({ id: '12345L', bundled: true });
 			transactionPool.addQueuedTransaction({ id: '126785L' });
@@ -965,7 +965,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('processBundled', async () => {
+	describe('processBundled', () => {
 		let auxProcessVerifyTransaction;
 		beforeEach(done => {
 			resetStates();
@@ -1026,7 +1026,7 @@ describe('transactionPool', async () => {
 			});
 		});
 
-		describe('when node is syncing', async () => {
+		describe('when node is syncing', () => {
 			it('should not process bundled transactions', done => {
 				const getBundledTransactionListStub = sinonSandbox.stub();
 				const processVerifyTransactionStub = sinonSandbox.stub();
@@ -1054,7 +1054,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('undoUnconfirmedList', async () => {
+	describe('undoUnconfirmedList', () => {
 		let undoUnconfirmedList;
 		let lastError;
 		let lastIds;
@@ -1064,8 +1064,8 @@ describe('transactionPool', async () => {
 			done();
 		});
 
-		describe('when unconfirmed lists', async () => {
-			describe('is empty', async () => {
+		describe('when unconfirmed lists', () => {
+			describe('is empty', () => {
 				const transactions = [];
 
 				before(done => {
@@ -1091,7 +1091,7 @@ describe('transactionPool', async () => {
 					return expect(lastIds.length).to.equal(0);
 				});
 
-				describe('modules.transactions.undoUnconfirmed', async () => {
+				describe('modules.transactions.undoUnconfirmed', () => {
 					it('should not be called', async () =>
 						expect(dummyUndoUnconfirmed.called).to.be.false);
 				});
@@ -1099,8 +1099,8 @@ describe('transactionPool', async () => {
 				after(resetStates);
 			});
 
-			describe('contains 1 transaction', async () => {
-				describe('that is valid', async () => {
+			describe('contains 1 transaction', () => {
+				describe('that is valid', () => {
 					const validTransaction = { id: 'validTx' };
 					const transactions = [validTransaction];
 
@@ -1131,7 +1131,7 @@ describe('transactionPool', async () => {
 						);
 					});
 
-					describe('modules.transactions.undoUnconfirmed', async () => {
+					describe('modules.transactions.undoUnconfirmed', () => {
 						it('should be called onece', async () =>
 							expect(dummyUndoUnconfirmed.calledOnce).to.be.true);
 
@@ -1141,17 +1141,17 @@ describe('transactionPool', async () => {
 							));
 					});
 
-					describe('lists', async () => {
+					describe('lists', () => {
 						let index;
 
-						describe('unconfirmed', async () => {
+						describe('unconfirmed', () => {
 							it('index should be undefined', async () => {
 								index = transactionPool.unconfirmed.index[validTransaction.id];
 								return expect(index).to.be.an('undefined');
 							});
 						});
 
-						describe('queued', async () => {
+						describe('queued', () => {
 							it('index should be set', async () => {
 								transactionPool.addQueuedTransaction(validTransaction);
 								index = transactionPool.queued.index[validTransaction.id];
@@ -1164,7 +1164,7 @@ describe('transactionPool', async () => {
 								).to.deep.equal(validTransaction));
 						});
 
-						describe('multisignature', async () => {
+						describe('multisignature', () => {
 							it('index should be undefined', async () => {
 								index =
 									transactionPool.multisignature.index[validTransaction.id];
@@ -1176,7 +1176,7 @@ describe('transactionPool', async () => {
 					after(resetStates);
 				});
 
-				describe('that results with error on modules.transactions.undoUnconfirmed', async () => {
+				describe('that results with error on modules.transactions.undoUnconfirmed', () => {
 					const badTransaction = { id: 'badTx' };
 					const transactions = [badTransaction];
 					const error = 'undo error';
@@ -1220,7 +1220,7 @@ describe('transactionPool', async () => {
 						return expect(logger.error.args[0][1]).to.equal(error);
 					});
 
-					describe('modules.transactions.undoUnconfirmed', async () => {
+					describe('modules.transactions.undoUnconfirmed', () => {
 						it('should be called onece', async () =>
 							expect(dummyUndoUnconfirmed.calledOnce).to.be.true);
 
@@ -1230,24 +1230,24 @@ describe('transactionPool', async () => {
 							));
 					});
 
-					describe('lists', async () => {
+					describe('lists', () => {
 						let index;
 
-						describe('unconfirmed', async () => {
+						describe('unconfirmed', () => {
 							it('index should be undefined', async () => {
 								index = transactionPool.unconfirmed.index[badTransaction.id];
 								return expect(index).to.be.an('undefined');
 							});
 						});
 
-						describe('queued', async () => {
+						describe('queued', () => {
 							it('index should be undefined', async () => {
 								index = transactionPool.queued.index[badTransaction.id];
 								return expect(index).to.be.an('undefined');
 							});
 						});
 
-						describe('multisignature', async () => {
+						describe('multisignature', () => {
 							it('index should be undefined', async () => {
 								index = transactionPool.multisignature.index[badTransaction.id];
 								return expect(index).to.be.an('undefined');
@@ -1261,7 +1261,7 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('fillPool', async () => {
+	describe('fillPool', () => {
 		beforeEach(() => resetStates());
 
 		it('should return countUnconfirmed is greater than maxTransactionsPerBlock', done => {
@@ -1311,8 +1311,8 @@ describe('transactionPool', async () => {
 		});
 	});
 
-	describe('__private', async () => {
-		describe('applyUnconfirmedList', async () => {
+	describe('__private', () => {
+		describe('applyUnconfirmedList', () => {
 			let lastError;
 
 			before(done => {
@@ -1329,8 +1329,8 @@ describe('transactionPool', async () => {
 				});
 			});
 
-			describe('called with array', async () => {
-				describe('that is empty', async () => {
+			describe('called with array', () => {
+				describe('that is empty', () => {
 					before(done => {
 						applyUnconfirmed([], err => {
 							lastError = err;
@@ -1344,12 +1344,12 @@ describe('transactionPool', async () => {
 					it('should not log an error', async () =>
 						expect(logger.error.called).to.be.false);
 
-					describe('__private.processVerifyTransaction', async () => {
+					describe('__private.processVerifyTransaction', () => {
 						it('should not be called', async () =>
 							expect(dummyProcessVerifyTransaction.called).to.be.false);
 					});
 
-					describe('modules.transactions.applyUnconfirmed', async () => {
+					describe('modules.transactions.applyUnconfirmed', () => {
 						it('should not be called', async () =>
 							expect(dummyApplyUnconfirmed.called).to.be.false);
 					});
@@ -1357,8 +1357,8 @@ describe('transactionPool', async () => {
 					after(resetStates);
 				});
 
-				describe('that contains 1 transaction', async () => {
-					describe('that is valid', async () => {
+				describe('that contains 1 transaction', () => {
+					describe('that is valid', () => {
 						const validTransaction = { id: 'validTx' };
 
 						before(done => {
@@ -1374,7 +1374,7 @@ describe('transactionPool', async () => {
 						it('should not log an error', async () =>
 							expect(logger.error.called).to.be.false);
 
-						describe('__private.processVerifyTransaction', async () => {
+						describe('__private.processVerifyTransaction', () => {
 							it('should be called once', async () =>
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true);
 
@@ -1384,7 +1384,7 @@ describe('transactionPool', async () => {
 								));
 						});
 
-						describe('modules.transactions.applyUnconfirmed', async () => {
+						describe('modules.transactions.applyUnconfirmed', () => {
 							it('should be called once', async () =>
 								expect(dummyApplyUnconfirmed.calledOnce).to.be.true);
 
@@ -1394,10 +1394,10 @@ describe('transactionPool', async () => {
 								));
 						});
 
-						describe('lists', async () => {
+						describe('lists', () => {
 							let index;
 
-							describe('unconfirmed', async () => {
+							describe('unconfirmed', () => {
 								it('index should be set', async () => {
 									index =
 										transactionPool.unconfirmed.index[validTransaction.id];
@@ -1410,14 +1410,14 @@ describe('transactionPool', async () => {
 									).to.deep.equal(validTransaction));
 							});
 
-							describe('queued', async () => {
+							describe('queued', () => {
 								it('index should be undefined', async () => {
 									index = transactionPool.queued.index[validTransaction.id];
 									return expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('multisignature', async () => {
+							describe('multisignature', () => {
 								it('index should be undefined', async () => {
 									index =
 										transactionPool.multisignature.index[validTransaction.id];
@@ -1429,7 +1429,7 @@ describe('transactionPool', async () => {
 						after(resetStates);
 					});
 
-					describe('that results with error on processVerifyTransaction', async () => {
+					describe('that results with error on processVerifyTransaction', () => {
 						const badTransaction = { id: 'badTx' };
 						const error = 'verify error';
 
@@ -1461,7 +1461,7 @@ describe('transactionPool', async () => {
 							return expect(logger.error.args[0][1]).to.equal(error);
 						});
 
-						describe('__private.processVerifyTransaction', async () => {
+						describe('__private.processVerifyTransaction', () => {
 							it('should be called onece', async () =>
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true);
 
@@ -1471,29 +1471,29 @@ describe('transactionPool', async () => {
 								));
 						});
 
-						describe('modules.transactions.applyUnconfirmed', async () => {
+						describe('modules.transactions.applyUnconfirmed', () => {
 							it('should not be called', async () =>
 								expect(dummyApplyUnconfirmed.called).to.be.false);
 						});
 
-						describe('lists', async () => {
+						describe('lists', () => {
 							let index;
 
-							describe('unconfirmed', async () => {
+							describe('unconfirmed', () => {
 								it('index should be undefined', async () => {
 									index = transactionPool.unconfirmed.index[badTransaction.id];
 									return expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('queued', async () => {
+							describe('queued', () => {
 								it('index should be undefined', async () => {
 									index = transactionPool.queued.index[badTransaction.id];
 									return expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('multisignature', async () => {
+							describe('multisignature', () => {
 								it('index should be undefined', async () => {
 									index =
 										transactionPool.multisignature.index[badTransaction.id];
@@ -1521,7 +1521,7 @@ describe('transactionPool', async () => {
 						after(resetStates);
 					});
 
-					describe('that results with error on applyUnconfirmed', async () => {
+					describe('that results with error on applyUnconfirmed', () => {
 						const badTransaction = { id: 'badTx' };
 						const error = 'apply error';
 
@@ -1551,7 +1551,7 @@ describe('transactionPool', async () => {
 							return expect(logger.error.args[0][1]).to.equal(error);
 						});
 
-						describe('__private.processVerifyTransaction', async () => {
+						describe('__private.processVerifyTransaction', () => {
 							it('should be called onece', async () =>
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true);
 
@@ -1561,7 +1561,7 @@ describe('transactionPool', async () => {
 								));
 						});
 
-						describe('modules.transactions.applyUnconfirmed', async () => {
+						describe('modules.transactions.applyUnconfirmed', () => {
 							it('should be called once', async () =>
 								expect(dummyApplyUnconfirmed.calledOnce).to.be.true);
 
@@ -1571,24 +1571,24 @@ describe('transactionPool', async () => {
 								));
 						});
 
-						describe('lists', async () => {
+						describe('lists', () => {
 							let index;
 
-							describe('unconfirmed', async () => {
+							describe('unconfirmed', () => {
 								it('index should be undefined', async () => {
 									index = transactionPool.unconfirmed.index[badTransaction.id];
 									return expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('queued', async () => {
+							describe('queued', () => {
 								it('index should be undefined', async () => {
 									index = transactionPool.queued.index[badTransaction.id];
 									return expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('multisignature', async () => {
+							describe('multisignature', () => {
 								it('index should be undefined', async () => {
 									index =
 										transactionPool.multisignature.index[badTransaction.id];
@@ -1603,7 +1603,7 @@ describe('transactionPool', async () => {
 			});
 		});
 
-		describe('transactionTimeOut', async () => {
+		describe('transactionTimeOut', () => {
 			it('should return timeout for MULTI transaction type', async () => {
 				const transaction = {
 					id: '103111423423423',
@@ -1637,7 +1637,7 @@ describe('transactionPool', async () => {
 			});
 		});
 
-		describe('expireTransactions', async () => {
+		describe('expireTransactions', () => {
 			beforeEach(() => {
 				transactionTimeOut = sinonSandbox.stub().returns(0);
 				return resetStates();
@@ -1671,7 +1671,7 @@ describe('transactionPool', async () => {
 			});
 		});
 
-		describe('processVerifyTransaction', async () => {
+		describe('processVerifyTransaction', () => {
 			let transaction;
 			beforeEach(done => {
 				transaction = {
@@ -1738,7 +1738,7 @@ describe('transactionPool', async () => {
 				});
 			});
 
-			describe('library.logic.transaction', async () => {
+			describe('library.logic.transaction', () => {
 				it('should error when process called', done => {
 					transactionStub.process = sinonSandbox
 						.stub()

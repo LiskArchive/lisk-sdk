@@ -27,7 +27,7 @@ const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
 
-describe('POST /api/transactions (type 1) register second passphrase', async () => {
+describe('POST /api/transactions (type 1) register second passphrase', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -75,11 +75,11 @@ describe('POST /api/transactions (type 1) register second passphrase', async () 
 		});
 	});
 
-	describe('schema validations', async () => {
+	describe('schema validations', () => {
 		common.invalidAssets('signature', badTransactions);
 	});
 
-	describe('transactions processing', async () => {
+	describe('transactions processing', () => {
 		it('using second passphrase on a fresh account should fail', async () => {
 			transaction = lisk.transaction.transfer({
 				amount: 1,
@@ -142,7 +142,7 @@ describe('POST /api/transactions (type 1) register second passphrase', async () 
 		});
 	});
 
-	describe('confirmation', async () => {
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

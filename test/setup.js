@@ -140,9 +140,7 @@ _.mixin(
 		sortNumbers(arr, sortOrder) {
 			const sortFactor = sortOrder === 'desc' ? -1 : 1;
 
-			return arr.sort((a, b) => {
-				return (a - b) * sortFactor;
-			});
+			return arr.sort((a, b) => (a - b) * sortFactor);
 		},
 	},
 	{ chain: false }

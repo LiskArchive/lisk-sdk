@@ -24,7 +24,7 @@ const SwaggerEndpoint = require('../../../../common/swagger_spec');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /api/accounts', async () => {
+describe('GET /api/accounts', () => {
 	const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 
 	const scenario = new Scenarios.Multisig();
@@ -66,12 +66,12 @@ describe('GET /api/accounts', async () => {
 			});
 	});
 
-	describe('/{address}/multisignature_groups', async () => {
+	describe('/{address}/multisignature_groups', () => {
 		const multisigGroupsEndpoint = new SwaggerEndpoint(
 			'GET /accounts/{address}/multisignature_groups'
 		);
 
-		describe('address', async () => {
+		describe('address', () => {
 			it('using known address should respond with its multisignature_group', async () => {
 				return multisigGroupsEndpoint
 					.makeRequest({ address: account.address }, 200)
@@ -126,12 +126,12 @@ describe('GET /api/accounts', async () => {
 		});
 	});
 
-	describe('/{address}/multisignature_memberships', async () => {
+	describe('/{address}/multisignature_memberships', () => {
 		const multisigMembersEndpoint = new SwaggerEndpoint(
 			'GET /accounts/{address}/multisignature_memberships'
 		);
 
-		describe('address', async () => {
+		describe('address', () => {
 			it('using master group account address should respond with empty multisignature memberships', async () => {
 				return multisigMembersEndpoint
 					.makeRequest({ address: account.address }, 200)

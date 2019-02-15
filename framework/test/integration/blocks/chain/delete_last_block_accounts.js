@@ -20,14 +20,14 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-describe('system test (blocks) - chain/deleteLastBlock', async () => {
+describe('system test (blocks) - chain/deleteLastBlock', () => {
 	let library;
 	localCommon.beforeBlock('system_blocks_chain', lib => {
 		library = lib;
 	});
 
-	describe('deleteLastBlock', async () => {
-		describe('errors', async () => {
+	describe('deleteLastBlock', () => {
+		describe('errors', () => {
 			it('should fail when trying to delete genesis block', done => {
 				library.modules.blocks.chain.deleteLastBlock((err, res) => {
 					expect(err).to.equal('Cannot delete genesis block');
@@ -37,7 +37,7 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 			});
 		});
 
-		describe('single transaction scenarios: create transaction, forge, delete block, forge again', async () => {
+		describe('single transaction scenarios: create transaction, forge, delete block, forge again', () => {
 			let testAccount;
 			let testAccountData;
 			let testAccountDataAfterBlock;
@@ -55,7 +55,7 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 				localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 			}
 
-			describe('(type 0) transfer funds', async () => {
+			describe('(type 0) transfer funds', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'publicKey'];
@@ -179,7 +179,7 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 				});
 			});
 
-			describe('(type 1) register second signature', async () => {
+			describe('(type 1) register second signature', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
@@ -286,7 +286,7 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 				});
 			});
 
-			describe('(type 2) register delegate', async () => {
+			describe('(type 2) register delegate', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
@@ -425,7 +425,7 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 				});
 			});
 
-			describe('(type 3) votes', async () => {
+			describe('(type 3) votes', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
@@ -528,7 +528,7 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 				});
 			});
 
-			describe('(type 4) register multisignature', async () => {
+			describe('(type 4) register multisignature', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
@@ -664,13 +664,13 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 				});
 			});
 
-			describe('dapps', async () => {
+			describe('dapps', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'publicKey'];
 				});
 
-				describe('(type 5) register dapp', async () => {
+				describe('(type 5) register dapp', () => {
 					it('should validate account data from sender after account creation', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
@@ -752,7 +752,7 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 				});
 
 				/* eslint-disable mocha/no-skipped-tests */
-				describe.skip('(type 6) inTransfer dapp', async () => {
+				describe.skip('(type 6) inTransfer dapp', () => {
 					it('should validate account data from sender after account creation', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
@@ -833,7 +833,7 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 					});
 				});
 
-				describe.skip('(type 7) outTransfer dapp', async () => {
+				describe.skip('(type 7) outTransfer dapp', () => {
 					it('should validate account data from sender after account creation', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
@@ -922,6 +922,6 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 			});
 		});
 
-		describe('multiple transactions scenarios: create transactions, forge, delete block, forge again', async () => {});
+		describe('multiple transactions scenarios: create transactions, forge, delete block, forge again', () => {});
 	});
 });

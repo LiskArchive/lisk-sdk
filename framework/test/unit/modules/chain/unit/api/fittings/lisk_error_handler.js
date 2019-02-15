@@ -16,7 +16,7 @@
 
 /* eslint-disable mocha/no-pending-tests */
 
-describe('lisk_error_handler', async () => {
+describe('lisk_error_handler', () => {
 	it('should be a factory function that names 2 arguments');
 
 	it('should create a middleware accepting 2 arguments');

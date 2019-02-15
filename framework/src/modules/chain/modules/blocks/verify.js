@@ -254,9 +254,7 @@ __private.verifyReward = function(block, result) {
 		!exceptions.blockRewards.includes(block.id)
 	) {
 		result.errors.push(
-			['Invalid block reward:', block.reward, 'expected:', expectedReward].join(
-				' '
-			)
+			`Invalid block reward: ${block.reward} expected: ${expectedReward}`
 		);
 	}
 
@@ -371,12 +369,7 @@ __private.verifyForkOne = function(block, lastBlock, result) {
 	if (block.previousBlock && block.previousBlock !== lastBlock.id) {
 		modules.delegates.fork(block, 1);
 		result.errors.push(
-			[
-				'Invalid previous block:',
-				block.previousBlock,
-				'expected:',
-				lastBlock.id,
-			].join(' ')
+			`Invalid previous block: ${block.previousBlock} expected: ${lastBlock.id}`
 		);
 	}
 
@@ -668,7 +661,7 @@ __private.verifyBlock = function(block, cb) {
 
 	if (!result.verified) {
 		library.logger.error(
-			['Block', block.id, 'verification failed'].join(' '),
+			`Block ${block.id} verification failed`,
 			result.errors[0]
 		);
 		return setImmediate(cb, result.errors[0]);
@@ -718,10 +711,7 @@ __private.checkExists = function(block, cb) {
 	library.storage.entities.Block.isPersisted({ id: block.id })
 		.then(isPersisted => {
 			if (isPersisted) {
-				return setImmediate(
-					cb,
-					['Block', block.id, 'already exists'].join(' ')
-				);
+				return setImmediate(cb, `Block ${block.id} already exists`);
 			}
 			return setImmediate(cb);
 		})

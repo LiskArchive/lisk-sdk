@@ -16,7 +16,7 @@
 
 const RoundChanges = require('../../../../../../src/modules/chain/helpers/round_changes.js');
 
-describe('RoundChanges', async () => {
+describe('RoundChanges', () => {
 	let validScope;
 
 	beforeEach(done => {
@@ -28,7 +28,7 @@ describe('RoundChanges', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should accept valid scope', async () => {
 			const roundChanges = new RoundChanges(validScope);
 
@@ -63,7 +63,7 @@ describe('RoundChanges', async () => {
 		});
 	});
 
-	describe('at', async () => {
+	describe('at', () => {
 		it('should calculate round changes from valid scope', async () => {
 			const roundChanges = new RoundChanges(validScope);
 			const rewardsAt = 2;

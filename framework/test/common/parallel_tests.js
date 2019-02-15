@@ -114,6 +114,7 @@ const getMochaArguments = tag => {
 			);
 			break;
 	}
+
 	return mochaArguments;
 };
 

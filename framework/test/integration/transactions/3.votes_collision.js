@@ -20,7 +20,7 @@ const accountFixtures = require('../../fixtures/accounts');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 0) - votes collision', async () => {
+describe('system test (type 0) - votes collision', () => {
 	let library;
 	localCommon.beforeBlock('system_3_votes_collision', lib => {
 		library = lib;
@@ -55,7 +55,7 @@ describe('system test (type 0) - votes collision', async () => {
 		);
 	});
 
-	describe('register delegate from collision account', async () => {
+	describe('register delegate from collision account', () => {
 		let delegateRegistrationTransaction;
 		before(done => {
 			delegateRegistrationTransaction = lisk.transaction.registerDelegate({
@@ -89,7 +89,7 @@ describe('system test (type 0) - votes collision', async () => {
 			});
 		});
 
-		describe('when voting for account with collision publicKey', async () => {
+		describe('when voting for account with collision publicKey', () => {
 			let voteTransactionWithCollisionPublicKey;
 			before(done => {
 				voteTransactionWithCollisionPublicKey = lisk.transaction.castVotes({
@@ -122,7 +122,7 @@ describe('system test (type 0) - votes collision', async () => {
 			});
 		});
 
-		describe('voting for account using registered publicKey', async () => {
+		describe('voting for account using registered publicKey', () => {
 			let voteTransactionWithActualPublicKey;
 			before(done => {
 				voteTransactionWithActualPublicKey = lisk.transaction.castVotes({

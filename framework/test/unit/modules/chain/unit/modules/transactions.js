@@ -40,7 +40,7 @@ const TransactionModule = rewire(
 	'../../../../../../src/modules/chain/modules/transactions.js'
 );
 
-describe('transactions', async () => {
+describe('transactions', () => {
 	let transactionsModule;
 	let cache;
 	let storageStub;
@@ -277,8 +277,8 @@ describe('transactions', async () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('Transaction', async () => {
-		describe('getTransaction', async () => {
+	describe('Transaction', () => {
+		describe('getTransaction', () => {
 			function getTransactionsById(id, done) {
 				transactionsModule.getTransactions({ id }, done);
 			}
@@ -597,8 +597,8 @@ describe('transactions', async () => {
 			/* eslint-enable mocha/no-pending-tests */
 		});
 
-		describe('shared', async () => {
-			describe('getTransactionsCount', async () => {
+		describe('shared', () => {
+			describe('getTransactionsCount', () => {
 				beforeEach(() => {
 					sinonSandbox.spy(async, 'waterfall');
 					return storageStub.entities.Transaction.count.onCall(0).resolves(10);

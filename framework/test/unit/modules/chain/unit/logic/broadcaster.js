@@ -4,7 +4,7 @@ const Broadcaster = rewire(
 	'../../../../../../src/modules/chain/logic/broadcaster'
 );
 
-describe('Broadcaster', async () => {
+describe('Broadcaster', () => {
 	const force = true;
 	const params = { limit: 10, broadhash: '123' };
 	const options = {
@@ -110,7 +110,7 @@ describe('Broadcaster', async () => {
 		return sinonSandbox.restore();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should throw error with no params', async () =>
 			expect(() => {
 				new Broadcaster();
@@ -150,7 +150,7 @@ describe('Broadcaster', async () => {
 		});
 	});
 
-	describe('getPeers', async () => {
+	describe('getPeers', () => {
 		it('should throw error for empty params', async () =>
 			expect(() => {
 				broadcaster.getPeers(null);
@@ -193,7 +193,7 @@ describe('Broadcaster', async () => {
 		});
 	});
 
-	describe('broadcast', async () => {
+	describe('broadcast', () => {
 		beforeEach(done => {
 			broadcaster.getPeers = sinonSandbox
 				.stub()
@@ -262,7 +262,7 @@ describe('Broadcaster', async () => {
 		});
 	});
 
-	describe('enqueue', async () => {
+	describe('enqueue', () => {
 		it('should throw error for no params', async () =>
 			expect(() => {
 				broadcaster.enqueue();
@@ -278,7 +278,7 @@ describe('Broadcaster', async () => {
 		});
 	});
 
-	describe('maxRelays', async () => {
+	describe('maxRelays', () => {
 		it('should return true if exhausted', async () =>
 			expect(broadcaster.maxRelays({ relays: 11 })).to.be.true);
 
@@ -286,7 +286,7 @@ describe('Broadcaster', async () => {
 			expect(broadcaster.maxRelays({ relays: 9 })).to.be.false);
 	});
 
-	describe('nextRelease', async () => {
+	describe('nextRelease', () => {
 		it('should be able to invoke next release', done => {
 			const releaseQueueSpy = sinonSandbox.stub().callsArgWith(0, null);
 			Broadcaster.__set__('__private.releaseQueue', releaseQueueSpy);
@@ -310,7 +310,7 @@ describe('Broadcaster', async () => {
 		});
 	});
 
-	describe('filterQueue', async () => {
+	describe('filterQueue', () => {
 		const validTransaction = { id: '321' };
 		const validSignature = { transactionId: '123' };
 		beforeEach('having empty broadcasts queue', done => {
@@ -318,7 +318,7 @@ describe('Broadcaster', async () => {
 			done();
 		});
 
-		describe('having one transaction broadcast in queue with immediate = true', async () => {
+		describe('having one transaction broadcast in queue with immediate = true', () => {
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
@@ -340,7 +340,7 @@ describe('Broadcaster', async () => {
 			});
 		});
 
-		describe('having one transaction broadcast in queue of transaction = undefined', async () => {
+		describe('having one transaction broadcast in queue of transaction = undefined', () => {
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
@@ -360,7 +360,7 @@ describe('Broadcaster', async () => {
 			});
 		});
 
-		describe('having one signature broadcast in queue', async () => {
+		describe('having one signature broadcast in queue', () => {
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
 					api: 'postSignatures',
@@ -380,7 +380,7 @@ describe('Broadcaster', async () => {
 			});
 		});
 
-		describe('having one transaction broadcast in queue', async () => {
+		describe('having one transaction broadcast in queue', () => {
 			let broadcast;
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
@@ -411,7 +411,7 @@ describe('Broadcaster', async () => {
 				});
 			});
 
-			describe('when [validTransaction] exists in transaction pool', async () => {
+			describe('when [validTransaction] exists in transaction pool', () => {
 				beforeEach(done => {
 					modulesStub.transactions.transactionInPool.returns(true);
 					done();
@@ -426,12 +426,12 @@ describe('Broadcaster', async () => {
 				});
 			});
 
-			describe('when [validTransaction] does not exist in transaction pool', async () => {
+			describe('when [validTransaction] does not exist in transaction pool', () => {
 				beforeEach(done => {
 					modulesStub.transactions.transactionInPool.returns(false);
 					done();
 				});
-				describe('when [validTransaction] is confirmed', async () => {
+				describe('when [validTransaction] is confirmed', () => {
 					beforeEach(done => {
 						transactionStub.checkConfirmed.callsArgWith(1, null, true);
 						done();
@@ -445,7 +445,7 @@ describe('Broadcaster', async () => {
 						});
 					});
 				});
-				describe('when [validTransaction] is not confirmed', async () => {
+				describe('when [validTransaction] is not confirmed', () => {
 					beforeEach(done => {
 						transactionStub.checkConfirmed.callsArgWith(1, null, false);
 						done();
@@ -459,7 +459,7 @@ describe('Broadcaster', async () => {
 						});
 					});
 				});
-				describe('when error occurs while checking if [validTransaction] is confirmed', async () => {
+				describe('when error occurs while checking if [validTransaction] is confirmed', () => {
 					beforeEach(done => {
 						transactionStub.checkConfirmed.callsArgWith(
 							1,
@@ -480,7 +480,7 @@ describe('Broadcaster', async () => {
 			});
 		});
 
-		describe('having many transaction and signatures broadcasts in queue', async () => {
+		describe('having many transaction and signatures broadcasts in queue', () => {
 			const auxBroadcasts = [];
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
@@ -576,7 +576,7 @@ describe('Broadcaster', async () => {
 				done();
 			});
 
-			describe('when all of them exist in transaction pool', async () => {
+			describe('when all of them exist in transaction pool', () => {
 				beforeEach(done => {
 					modulesStub.transactions.transactionInPool.returns(true);
 					done();
@@ -593,7 +593,7 @@ describe('Broadcaster', async () => {
 		});
 	});
 
-	describe('squashQueue', async () => {
+	describe('squashQueue', () => {
 		it('should return empty array for no params and empty object', async () => {
 			expect(squashQueue({})).to.eql([]);
 			return expect(squashQueue()).to.eql([]);
@@ -619,7 +619,7 @@ describe('Broadcaster', async () => {
 		});
 	});
 
-	describe('releaseQueue', async () => {
+	describe('releaseQueue', () => {
 		beforeEach(done => {
 			broadcaster.getPeers = sinonSandbox
 				.stub()

@@ -36,11 +36,11 @@ module.exports = function(
 	// One of the bi-directional monitoring connections should be down so
 	// we need to subtract 2.
 
-	describe('@p2p : peer Protocol Version', async () => {
+	describe('@p2p : peer Protocol Version', () => {
 		const { protocolVersion: originalProtocolVersion } = __testContext.config;
 		let pm2NetworkConfig;
 
-		describe('when a node with protocol = 0.0 (invalid) tries to join the network', async () => {
+		describe('when a node with protocol = 0.0 (invalid) tries to join the network', () => {
 			before(async () => {
 				// lisk-core linter ci task complains because it doesn't find the file, which is
 				// okay as the file is only present on lisk-core-network tests.
@@ -75,7 +75,7 @@ module.exports = function(
 			});
 		});
 
-		describe('when this node with protocol = 1.0 (valid) tries to join the network again', async () => {
+		describe('when this node with protocol = 1.0 (valid) tries to join the network again', () => {
 			before(async () => {
 				pm2NetworkConfig.apps[9].env.PROTOCOL_VERSION = originalProtocolVersion; // '1.0'
 				await fs_writeFile(

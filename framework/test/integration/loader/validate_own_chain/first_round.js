@@ -21,7 +21,7 @@ const localCommon = require('../../common');
 
 const exceptions = global.exceptions;
 
-describe('validateOwnChain', async () => {
+describe('validateOwnChain', () => {
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;
@@ -38,7 +38,7 @@ describe('validateOwnChain', async () => {
 		}
 	);
 
-	describe('forge 101 blocks with version = 0', async () => {
+	describe('forge 101 blocks with version = 0', () => {
 		before(() => {
 			// Set current block version to 0
 			blockVersion.currentBlockVersion = 0;
@@ -64,7 +64,7 @@ describe('validateOwnChain', async () => {
 			});
 		});
 
-		describe('increase block version = 1 and exceptions for height = 5', async () => {
+		describe('increase block version = 1 and exceptions for height = 5', () => {
 			let validateOwnChainError = null;
 
 			before(done => {
@@ -91,7 +91,7 @@ describe('validateOwnChain', async () => {
 				return expect(validateOwnChainError).to.be.eql(null);
 			});
 
-			describe('forge 5 more blocks', async () => {
+			describe('forge 5 more blocks', () => {
 				before(() => {
 					return Promise.mapSeries([...Array(5)], async () => {
 						return addTransactionsAndForgePromise(library, [], 0);

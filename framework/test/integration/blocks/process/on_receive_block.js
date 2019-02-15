@@ -28,7 +28,7 @@ const application = require('../../../common/application.js');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
-describe('system test (blocks) - process onReceiveBlock()', async () => {
+describe('system test (blocks) - process onReceiveBlock()', () => {
 	let library;
 	let storage;
 
@@ -232,8 +232,8 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 			});
 	}
 
-	describe('onReceiveBlock (empty transactions)', async () => {
-		describe('for valid block', async () => {
+	describe('onReceiveBlock (empty transactions)', () => {
+		describe('for valid block', () => {
 			let lastBlock;
 			let block;
 
@@ -256,9 +256,9 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 			});
 		});
 
-		describe('forkThree', async () => {
-			describe('validate block slot', async () => {
-				describe('when generator is not a delegate', async () => {
+		describe('forkThree', () => {
+			describe('validate block slot', () => {
+				describe('when generator is not a delegate', () => {
 					let lastBlock;
 					let block;
 
@@ -288,7 +288,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 					});
 				});
 
-				describe('when block generator has incorrect slot', async () => {
+				describe('when block generator has incorrect slot', () => {
 					let lastBlock;
 					let block;
 
@@ -314,7 +314,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 			});
 		});
 
-		describe('forkOne', async () => {
+		describe('forkOne', () => {
 			let forgedBlocks = [];
 			let secondLastBlock;
 			let lastBlock;
@@ -329,7 +329,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 				});
 			});
 
-			describe('when received block timestamp is greater than previous block', async () => {
+			describe('when received block timestamp is greater than previous block', () => {
 				let blockWithGreaterTimestamp;
 				let slot;
 				let keypair;
@@ -371,7 +371,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 				});
 			});
 
-			describe('when received block timestamp is lower than previous block', async () => {
+			describe('when received block timestamp is lower than previous block', () => {
 				let blockWithLowerTimestamp;
 				let slot;
 				let keypair;
@@ -409,7 +409,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 				});
 			});
 
-			describe('when block height is mutated', async () => {
+			describe('when block height is mutated', () => {
 				let mutatedHeight;
 
 				beforeEach(done => {
@@ -417,7 +417,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 					done();
 				});
 
-				describe('when received block is from previous round (101 blocks back)', async () => {
+				describe('when received block is from previous round (101 blocks back)', () => {
 					let blockFromPreviousRound;
 
 					beforeEach(() => {
@@ -468,7 +468,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 					});
 				});
 
-				describe(`when received block is from same round and greater than ${BLOCK_SLOT_WINDOW} slots in the past`, async () => {
+				describe(`when received block is from same round and greater than ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
 					let outOfSlotWindowBlock;
 
 					beforeEach(() => {
@@ -493,7 +493,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 					});
 				});
 
-				describe('when received block is from a future slot', async () => {
+				describe('when received block is from a future slot', () => {
 					let blockFromFutureSlot;
 
 					beforeEach(() => {
@@ -530,8 +530,8 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 			});
 		});
 
-		describe('forkFive', async () => {
-			describe('with 5 blocks forged', async () => {
+		describe('forkFive', () => {
+			describe('with 5 blocks forged', () => {
 				let secondLastBlock;
 				let lastBlock;
 				let slot;
@@ -552,7 +552,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 					});
 				});
 
-				describe('when timestamp is greater than last block', async () => {
+				describe('when timestamp is greater than last block', () => {
 					let timestamp;
 
 					beforeEach(done => {
@@ -582,7 +582,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 						});
 					});
 
-					describe('when delegate slot is invalid', async () => {
+					describe('when delegate slot is invalid', () => {
 						beforeEach(done => {
 							keypair = getKeypair(
 								_.find(genesisDelegates, value => {
@@ -617,7 +617,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 					});
 				});
 
-				describe('when timestamp is lower than last block', async () => {
+				describe('when timestamp is lower than last block', () => {
 					let timestamp;
 
 					beforeEach(done => {
@@ -625,7 +625,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 						done();
 					});
 
-					describe('when block slot is invalid', async () => {
+					describe('when block slot is invalid', () => {
 						beforeEach(() => {
 							slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
 							return getValidKeypairForSlot(slot).then(kp => {
@@ -656,7 +656,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 						});
 					});
 
-					describe('when blockslot and generator publicKey is valid', async () => {
+					describe('when blockslot and generator publicKey is valid', () => {
 						it('should replace last block with received block', done => {
 							const blockWithLowerTimestamp = createBlock(
 								[],
@@ -680,8 +680,8 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 						});
 					});
 
-					describe('when generator publicKey and timestamp is different', async () => {
-						describe('when timestamp is inside slot window', async () => {
+					describe('when generator publicKey and timestamp is different', () => {
+						describe('when timestamp is inside slot window', () => {
 							beforeEach(done => {
 								// Slot and generatorPublicKey belongs to delegate who forged second last block
 								slot = slots.getSlotNumber(secondLastBlock.timestamp);
@@ -722,7 +722,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 							});
 						});
 
-						describe('when timestamp is outside slot window', async () => {
+						describe('when timestamp is outside slot window', () => {
 							let auxTimestamp;
 
 							beforeEach(() => {
@@ -764,7 +764,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 					});
 				});
 
-				describe('when last block skipped a slot', async () => {
+				describe('when last block skipped a slot', () => {
 					let nextSlotBlock;
 					let nextSlotKeypair;
 
@@ -826,7 +826,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 				});
 			});
 
-			describe('with 100 blocks forged', async () => {
+			describe('with 100 blocks forged', () => {
 				let secondLastBlock;
 				let lastBlock;
 				let keypair;
@@ -846,7 +846,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 					});
 				});
 
-				describe('after new round', async () => {
+				describe('after new round', () => {
 					let blockFromPreviousRound;
 
 					beforeEach(done => {
@@ -878,8 +878,8 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 			});
 		});
 
-		describe('discard blocks', async () => {
-			describe('when block is already processed', async () => {
+		describe('discard blocks', () => {
+			describe('when block is already processed', () => {
 				let lastBlock;
 				let block;
 
@@ -902,7 +902,7 @@ describe('system test (blocks) - process onReceiveBlock()', async () => {
 				});
 			});
 
-			describe('when block does not match blockchain', async () => {
+			describe('when block does not match blockchain', () => {
 				let differentChainBlock;
 
 				beforeEach(done => {

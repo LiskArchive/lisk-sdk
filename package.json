@@ -68,6 +68,7 @@
 		"pg-promise": "8.5.4",
 		"pm2": "3.2.8",
 		"popsicle": "9.1.0",
+		"ps-list": "=6.1.0",
 		"randomstring": "1.1.5",
 		"redis": "2.8.0",
 		"rimraf": "2.6.3",

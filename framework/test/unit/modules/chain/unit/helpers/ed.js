@@ -17,8 +17,8 @@
 const crypto = require('crypto');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 
-describe('ed', async () => {
-	describe('makeKeypair', async () => {
+describe('ed', () => {
+	describe('makeKeypair', () => {
 		let keys;
 
 		before(done => {
@@ -48,7 +48,7 @@ describe('ed', async () => {
 		});
 	});
 
-	describe('sign', async () => {
+	describe('sign', () => {
 		let keys;
 		const messageToSign = {
 			field: 'value',
@@ -97,7 +97,7 @@ describe('ed', async () => {
 		});
 	});
 
-	describe('verify', async () => {
+	describe('verify', () => {
 		let keys;
 		let signature;
 		const messageToSign = {
@@ -177,7 +177,7 @@ describe('ed', async () => {
 		});
 	});
 
-	describe('hexToString', async () => {
+	describe('hexToString', () => {
 		it('should throw error if the hex is not a string', async () => {
 			const buff = Buffer.from('ABC', 'utf8');
 			return expect(() => ed.hexToBuffer(buff)).to.throw(

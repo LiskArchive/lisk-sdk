@@ -19,7 +19,7 @@ const disconnect = require('../../../../../../../../src/modules/chain/api/ws/rpc
 const prefixedPeer = require('../../../../../../../fixtures/peers')
 	.randomNormalizedPeer;
 
-describe('disconnect', async () => {
+describe('disconnect', () => {
 	let validPeer;
 	let socket;
 
@@ -31,7 +31,7 @@ describe('disconnect', async () => {
 	it('should return passed peer', async () =>
 		expect(disconnect(validPeer)).equal(validPeer));
 
-	describe('when peer contains socket with disconnect function', async () => {
+	describe('when peer contains socket with disconnect function', () => {
 		beforeEach(done => {
 			socket = {
 				disconnect: sinon.spy(),

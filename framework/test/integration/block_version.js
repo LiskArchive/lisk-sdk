@@ -21,7 +21,7 @@ const localCommon = require('./common');
 
 const exceptions = global.exceptions;
 
-describe('block_version', async () => {
+describe('block_version', () => {
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;
@@ -35,7 +35,7 @@ describe('block_version', async () => {
 		);
 	});
 
-	describe('forge first round of blocks (101 blocks) with version 0', async () => {
+	describe('forge first round of blocks (101 blocks) with version 0', () => {
 		before(() => {
 			// Set current block version to 0
 			blockVersion.currentBlockVersion = 0;
@@ -63,7 +63,7 @@ describe('block_version', async () => {
 		});
 	});
 
-	describe('forge second round of blocks (101 blocks) with version 1', async () => {
+	describe('forge second round of blocks (101 blocks) with version 1', () => {
 		before(() => {
 			// Set current block version to 1
 			blockVersion.currentBlockVersion = 1;
@@ -91,7 +91,7 @@ describe('block_version', async () => {
 		});
 	});
 
-	describe('forge third round of blocks (101 blocks) with version 2', async () => {
+	describe('forge third round of blocks (101 blocks) with version 2', () => {
 		before(() => {
 			// Set current block version to 2
 			blockVersion.currentBlockVersion = 2;
@@ -119,7 +119,7 @@ describe('block_version', async () => {
 		});
 	});
 
-	describe('when there are no exceptions for blocks versions', async () => {
+	describe('when there are no exceptions for blocks versions', () => {
 		it('snapshotting should fail', done => {
 			const __private = library.rewiredModules.loader.__get__('__private');
 
@@ -137,7 +137,7 @@ describe('block_version', async () => {
 		});
 	});
 
-	describe('when there are proper exceptions for blocks versions', async () => {
+	describe('when there are proper exceptions for blocks versions', () => {
 		it('snapshotting should succeed', done => {
 			// Set current block version to 3
 			blockVersion.currentBlockVersion = 3;

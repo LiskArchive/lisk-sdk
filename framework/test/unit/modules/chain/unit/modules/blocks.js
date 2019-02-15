@@ -20,7 +20,7 @@ const { EPOCH_TIME } = global.constants;
 
 const Blocks = rewire('../../../../../../src/modules/chain/modules/blocks.js');
 
-describe('blocks', async () => {
+describe('blocks', () => {
 	let blocksInstance;
 	let self;
 	let library;
@@ -111,7 +111,7 @@ describe('blocks', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should assign params to library', async () =>
 			expect(library.logger).to.eql(loggerStub));
 
@@ -132,7 +132,7 @@ describe('blocks', async () => {
 		it('should call callback with result = self', async () =>
 			expect(self).to.be.deep.equal(blocksInstance));
 
-		describe('when this.submodules.chain.saveGenesisBlock fails', async () => {
+		describe('when this.submodules.chain.saveGenesisBlock fails', () => {
 			it('should call callback with error', done => {
 				storageStub.entities.Block.isPersisted.resolves(false);
 				blocksInstance = new Blocks((err, cbSelf) => {
@@ -150,18 +150,18 @@ describe('blocks', async () => {
 		});
 	});
 
-	describe('lastBlock', async () => {
+	describe('lastBlock', () => {
 		beforeEach(done => {
 			__private.lastBlock = dummyGenesisblock;
 			done();
 		});
-		describe('get', async () => {
+		describe('get', () => {
 			it('should return __private.lastBlock', async () =>
 				expect(blocksInstance.lastBlock.get()).to.deep.equal(
 					dummyGenesisblock
 				));
 		});
-		describe('set', async () => {
+		describe('set', () => {
 			it('should assign input parameter block to __private.lastBlock and return input parameter', async () => {
 				expect(blocksInstance.lastBlock.set({ id: 2 })).to.deep.equal({
 					id: 2,
@@ -169,8 +169,8 @@ describe('blocks', async () => {
 				return expect(__private.lastBlock).to.deep.equal({ id: 2 });
 			});
 		});
-		describe('isFresh', async () => {
-			describe('when __private.lastBlock = undefined', async () => {
+		describe('isFresh', () => {
+			describe('when __private.lastBlock = undefined', () => {
 				beforeEach(done => {
 					__private.lastBlock = undefined;
 					done();
@@ -178,8 +178,8 @@ describe('blocks', async () => {
 				it('should return false', async () =>
 					expect(blocksInstance.lastBlock.isFresh()).to.be.false);
 			});
-			describe('when __private.lastBlock exists', async () => {
-				describe('when secondsAgo < BLOCK_RECEIPT_TIMEOUT', async () => {
+			describe('when __private.lastBlock exists', () => {
+				describe('when secondsAgo < BLOCK_RECEIPT_TIMEOUT', () => {
 					beforeEach(done => {
 						const timestamp =
 							10000 +
@@ -191,7 +191,7 @@ describe('blocks', async () => {
 					it('should return true', async () =>
 						expect(blocksInstance.lastBlock.isFresh()).to.be.true);
 				});
-				describe('when secondsAgo >= BLOCK_RECEIPT_TIMEOUT', async () => {
+				describe('when secondsAgo >= BLOCK_RECEIPT_TIMEOUT', () => {
 					beforeEach(done => {
 						__private.lastBlock = { timestamp: 555555 };
 						done();
@@ -203,17 +203,17 @@ describe('blocks', async () => {
 		});
 	});
 
-	describe('lastReceipt', async () => {
+	describe('lastReceipt', () => {
 		const dummyLastReceipt = 1520593240;
 		beforeEach(done => {
 			__private.lastReceipt = dummyLastReceipt;
 			done();
 		});
-		describe('get', async () => {
+		describe('get', () => {
 			it('should return __private.lastReceipt', async () =>
 				expect(blocksInstance.lastReceipt.get()).to.equal(dummyLastReceipt));
 		});
-		describe('update', async () => {
+		describe('update', () => {
 			it('should assign update __private.lastReceipt with latest time and return new value', async () => {
 				expect(blocksInstance.lastReceipt.update()).to.be.above(
 					dummyLastReceipt
@@ -221,8 +221,8 @@ describe('blocks', async () => {
 				return expect(__private.lastReceipt).to.be.above(dummyLastReceipt);
 			});
 		});
-		describe('isStale', async () => {
-			describe('when __private.lastReceipt is null', async () => {
+		describe('isStale', () => {
+			describe('when __private.lastReceipt is null', () => {
 				beforeEach(done => {
 					__private.lastBlock = null;
 					done();
@@ -230,8 +230,8 @@ describe('blocks', async () => {
 				it('should return false', async () =>
 					expect(blocksInstance.lastReceipt.isStale()).to.be.true);
 			});
-			describe('when __private.lastReceipt is set', async () => {
-				describe('when secondsAgo > BLOCK_RECEIPT_TIMEOUT', async () => {
+			describe('when __private.lastReceipt is set', () => {
+				describe('when secondsAgo > BLOCK_RECEIPT_TIMEOUT', () => {
 					beforeEach(done => {
 						__private.lastReceipt = dummyLastReceipt;
 						done();
@@ -239,7 +239,7 @@ describe('blocks', async () => {
 					it('should return true', async () =>
 						expect(blocksInstance.lastReceipt.isStale()).to.be.true);
 				});
-				describe('when secondsAgo <= BLOCK_RECEIPT_TIMEOUT', async () => {
+				describe('when secondsAgo <= BLOCK_RECEIPT_TIMEOUT', () => {
 					beforeEach(done => {
 						__private.lastReceipt = Math.floor(Date.now() / 1000) + 10000;
 						done();
@@ -251,16 +251,16 @@ describe('blocks', async () => {
 		});
 	});
 
-	describe('isActive', async () => {
+	describe('isActive', () => {
 		beforeEach(done => {
 			__private.isActive = false;
 			done();
 		});
-		describe('get', async () => {
+		describe('get', () => {
 			it('should return __private.isActive', async () =>
 				expect(blocksInstance.isActive.get()).to.be.false);
 		});
-		describe('set', async () => {
+		describe('set', () => {
 			it('should assign input parameter block to __private.isActive and return input parameter', async () => {
 				expect(blocksInstance.isActive.set(true)).to.be.true;
 				return expect(__private.isActive).to.be.true;
@@ -268,18 +268,18 @@ describe('blocks', async () => {
 		});
 	});
 
-	describe('isCleaning', async () => {
+	describe('isCleaning', () => {
 		beforeEach(done => {
 			__private.cleanup = false;
 			done();
 		});
-		describe('get', async () => {
+		describe('get', () => {
 			it('should return __private.cleanup', async () =>
 				expect(blocksInstance.isCleaning.get()).to.be.false);
 		});
 	});
 
-	describe('onBind', async () => {
+	describe('onBind', () => {
 		it('should set __private.loaded = true', async () => {
 			const onBindScope = {};
 			blocksInstance.onBind(onBindScope);
@@ -290,10 +290,10 @@ describe('blocks', async () => {
 			expect(components).to.have.property('cache'));
 	});
 
-	describe('onNewBlock', async () => {
+	describe('onNewBlock', () => {
 		const block = { id: 123 };
 
-		describe('when cache is enabled', async () => {
+		describe('when cache is enabled', () => {
 			beforeEach(done => {
 				blocksInstance = new Blocks(async err => {
 					expect(err).to.be.undefined;
@@ -321,7 +321,7 @@ describe('blocks', async () => {
 				).to.be.true);
 		});
 
-		describe('when cache is not enabled', async () => {
+		describe('when cache is not enabled', () => {
 			beforeEach(done => {
 				blocksInstance = new Blocks(err => {
 					expect(err).to.be.undefined;
@@ -342,12 +342,12 @@ describe('blocks', async () => {
 		});
 	});
 
-	describe('cleanup', async () => {
+	describe('cleanup', () => {
 		afterEach(() => {
 			expect(__private.loaded).to.be.false;
 			return expect(__private.cleanup).to.be.true;
 		});
-		describe('when __private.isActive = false', async () => {
+		describe('when __private.isActive = false', () => {
 			beforeEach(done => {
 				__private.isActive = false;
 				done();
@@ -360,12 +360,12 @@ describe('blocks', async () => {
 			});
 		});
 
-		describe('when __private.isActive = true', async () => {
+		describe('when __private.isActive = true', () => {
 			beforeEach(done => {
 				__private.isActive = true;
 				done();
 			});
-			describe('after 10 seconds', async () => {
+			describe('after 10 seconds', () => {
 				afterEach(() => {
 					expect(loggerStub.info.callCount).to.equal(1);
 					return expect(loggerStub.info.args[0][0]).to.equal(
@@ -383,7 +383,7 @@ describe('blocks', async () => {
 				});
 			});
 
-			describe('after 20 seconds', async () => {
+			describe('after 20 seconds', () => {
 				afterEach(() => {
 					expect(loggerStub.info.callCount).to.equal(2);
 					expect(loggerStub.info.args[0][0]).to.equal(
@@ -406,7 +406,7 @@ describe('blocks', async () => {
 		});
 	});
 
-	describe('isLoaded', async () => {
+	describe('isLoaded', () => {
 		beforeEach(done => {
 			__private.loaded = true;
 			done();

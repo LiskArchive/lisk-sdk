@@ -17,7 +17,7 @@
 const config = __testContext.config;
 
 // TODO: Need to refactored completely
-describe('app', async () => {
+describe('app', () => {
 	before(done => {
 		// Run the app on a different than default port
 		process.argv.splice(2, 0, '--');

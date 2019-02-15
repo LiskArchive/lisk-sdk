@@ -16,7 +16,7 @@
 
 const connectionsTable = require('../../../../../../../../src/modules/chain/api/ws/workers/connections_table');
 
-describe('ConnectionsTable', async () => {
+describe('ConnectionsTable', () => {
 	const validNonce = '123456789ABCDEF';
 	const validConnectionId = 'ABCDEF123456789';
 
@@ -26,7 +26,7 @@ describe('ConnectionsTable', async () => {
 		done();
 	});
 
-	describe('constructor', async () => {
+	describe('constructor', () => {
 		it('should have empty connectionIdToNonceMap map after initialization', done => {
 			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be
 				.empty;
@@ -40,7 +40,7 @@ describe('ConnectionsTable', async () => {
 		});
 	});
 
-	describe('add', async () => {
+	describe('add', () => {
 		it('should throw an error when invoked without arguments', done => {
 			expect(() => {
 				connectionsTable.add();
@@ -149,7 +149,7 @@ describe('ConnectionsTable', async () => {
 		});
 	});
 
-	describe('remove', async () => {
+	describe('remove', () => {
 		it('should throw an error when invoked without arguments', done => {
 			expect(() => {
 				connectionsTable.remove();
@@ -194,7 +194,7 @@ describe('ConnectionsTable', async () => {
 		});
 	});
 
-	describe('getNonce', async () => {
+	describe('getNonce', () => {
 		it('should return undefined when invoked without arguments', done => {
 			expect(connectionsTable.getNonce()).to.be.undefined;
 			done();
@@ -212,7 +212,7 @@ describe('ConnectionsTable', async () => {
 		});
 	});
 
-	describe('getConnectionId', async () => {
+	describe('getConnectionId', () => {
 		it('should return undefined when invoked without arguments', done => {
 			expect(connectionsTable.getConnectionId()).to.be.undefined;
 			done();

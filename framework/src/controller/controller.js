@@ -1,9 +1,11 @@
 const assert = require('assert');
 const Promise = require('bluebird');
 const fs = require('fs-extra');
-const config = require('./helpers/config');
+const psList = require('ps-list');
+const systemDirs = require('./config/dirs');
 const EventEmitterChannel = require('./channels/event_emitter');
 const Bus = require('./bus');
+const { DuplicateAppInstanceError } = require('../errors');
 
 /* eslint-disable no-underscore-dangle */
 
@@ -19,6 +21,9 @@ const validateModuleSpec = moduleSpec => {
 	assert(moduleSpec.unload, 'Module unload actions is required.');
 };
 
+const isPidRunning = async pid =>
+	psList().then(list => list.some(x => x.pid === pid));
+
 /**
  * Controller logic responsible to run the application instance
  *
@@ -33,20 +38,28 @@ const validateModuleSpec = moduleSpec => {
  */
 class Controller {
 	/**
-	 * Create controller object.
+	 * Controller responsible to run the application
 	 *
-	 * @param {Array} modules - All registered modules
-	 * @param {Object} componentConfig - Configurations for components
-	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
+	 * @param {string} appLabel - Application label
+	 * @param {Object} modules - Modules objects
+	 * @param {Object} componentConfig - Component configuration provided by user
+	 * @param {Object} logger
 	 */
-	constructor(modules, componentConfig, logger) {
+	constructor(appLabel, modules, componentConfig, logger) {
 		this.logger = logger;
-		this.componentConfig = componentConfig;
 		this.logger.info('Initializing controller');
+
+		this.appLabel = appLabel;
+		this.componentConfig = componentConfig;
+		this.modules = modules;
+
 		this.channel = null; // Channel for controller
 		this.channels = {}; // Keep track of all channels for modules
 		this.bus = null;
-		this.modules = modules;
+
+		this.config = {
+			dirs: systemDirs(this.appLabel),
+		};
 	}
 
 	/**
@@ -58,6 +71,7 @@ class Controller {
 	async load() {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
+		await this._validatePidFile();
 		await this._setupBus();
 		await this._setupControllerActions();
 		await this._loadModules();
@@ -76,10 +90,28 @@ class Controller {
 	// eslint-disable-next-line class-methods-use-this
 	async _setupDirectories() {
 		// Make sure all directories exists
-		fs.emptyDirSync(config.dirs.temp);
-		fs.ensureDirSync(config.dirs.sockets);
-		fs.ensureDirSync(config.dirs.pids);
-		fs.writeFileSync(`${config.dirs.pids}/controller.pid`, process.pid);
+		await fs.ensureDir(this.config.dirs.temp);
+		await fs.ensureDir(this.config.dirs.sockets);
+		await fs.ensureDir(this.config.dirs.pids);
+	}
+
+	async _validatePidFile() {
+		const pidPath = `${this.config.dirs.pids}/controller.pid`;
+		const pidExists = await fs.pathExists(pidPath);
+		if (pidExists) {
+			const pidRunning = await isPidRunning(
+				parseInt(await fs.readFile(pidPath))
+			);
+			if (pidRunning) {
+				this.logger.error(
+					`An instance of application "${
+						this.appLabel
+					}" is already running. You have to change application name to run another instance.`
+				);
+				throw new DuplicateAppInstanceError(this.appLabel, pidPath);
+			}
+		}
+		await fs.writeFile(pidPath, process.pid);
 	}
 
 	/**

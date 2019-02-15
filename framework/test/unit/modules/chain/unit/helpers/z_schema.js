@@ -65,8 +65,8 @@ const shouldReturnTrueForEmptyStringValues = function() {
 	});
 };
 
-describe('schema - custom formats', async () => {
-	describe('id', async () => {
+describe('schema - custom formats', () => {
+	describe('id', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'id',
@@ -98,7 +98,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('additionalData', async () => {
+	describe('additionalData', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'additionalData',
@@ -132,7 +132,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('address', async () => {
+	describe('address', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'address',
@@ -200,7 +200,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('username', async () => {
+	describe('username', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'username',
@@ -226,7 +226,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('hex', async () => {
+	describe('hex', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'hex',
@@ -250,7 +250,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('publicKey', async () => {
+	describe('publicKey', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'publicKey',
@@ -294,7 +294,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('csv', async () => {
+	describe('csv', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'csv',
@@ -324,7 +324,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnFalseForEmptyNonStringValues();
 	});
 
-	describe('signature', async () => {
+	describe('signature', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'signature',
@@ -368,7 +368,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('queryList', async () => {
+	describe('queryList', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'queryList',
@@ -392,7 +392,7 @@ describe('schema - custom formats', async () => {
 		});
 	});
 
-	describe('delegatesList', async () => {
+	describe('delegatesList', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'delegatesList',
@@ -416,7 +416,7 @@ describe('schema - custom formats', async () => {
 		});
 	});
 
-	describe('parsedInt', async () => {
+	describe('parsedInt', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'parsedInt',
@@ -443,7 +443,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnFalseForEmptyNonStringValues();
 	});
 
-	describe('os', async () => {
+	describe('os', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'os',
@@ -465,7 +465,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('version', async () => {
+	describe('version', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'version',
@@ -510,7 +510,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('protocolVersion', async () => {
+	describe('protocolVersion', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'protocolVersion',
@@ -545,7 +545,7 @@ describe('schema - custom formats', async () => {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('ipOrFQDN', async () => {
+	describe('ipOrFQDN', () => {
 		beforeEach(function(done) {
 			this.schema = {
 				format: 'ipOrFQDN',
