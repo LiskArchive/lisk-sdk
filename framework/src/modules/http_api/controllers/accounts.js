@@ -17,12 +17,11 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const swaggerHelper = require('../helpers/swagger');
-const BlockReward = require('../../logic/block_reward');
 const { calculateApproval } = require('../helpers/http_api');
 
 // Private Fields
 let storage;
-let blockReward;
+let channel;
 
 /**
  * Description of the function.
@@ -37,7 +36,7 @@ let blockReward;
  */
 function AccountsController(scope) {
 	storage = scope.storage;
-	blockReward = new BlockReward();
+	channel = scope.channel;
 }
 
 function accountFormatter(totalSupply, account) {
@@ -111,7 +110,9 @@ AccountsController.getAccounts = async function(context, next) {
 		const data = await storage.entities.Account.get(filters, options).map(
 			accountFormatter.bind(
 				null,
-				lastBlock.height ? blockReward.calcSupply(lastBlock.height) : 0
+				lastBlock.height
+					? await channel.invoke('chain:calculateSupply', lastBlock.height)
+					: 0
 			)
 		);
 

@@ -19,14 +19,13 @@ const _ = require('lodash');
 const checkIpInList = require('../helpers/check_ip_in_list.js');
 const apiCodes = require('../helpers/api_codes');
 const swaggerHelper = require('../helpers/swagger');
-const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../helpers/slots.js');
 
 const { EPOCH_TIME, FEES } = global.constants;
 
 // Private Fields
 let library;
-let blockReward;
+let channel;
 
 // Promised functions
 let getNetworkHeight;
@@ -54,11 +53,15 @@ function NodeController(scope) {
 		config: scope.config,
 		build: scope.build,
 		lastCommit: scope.lastCommit,
+		channel: scope.channel,
 	};
-	blockReward = new BlockReward();
 	getNetworkHeight = promisify(library.modules.peers.networkHeight);
-	getTransactionsCount = promisify(library.modules.transactions.shared.getTransactionsCount);
-	updateForgingStatus = promisify(library.modules.delegates.updateForgingStatus);
+	getTransactionsCount = promisify(
+		library.modules.transactions.shared.getTransactionsCount
+	);
+	updateForgingStatus = promisify(
+		library.modules.delegates.updateForgingStatus
+	);
 }
 
 /**
@@ -76,6 +79,10 @@ NodeController.getConstants = async (context, next) => {
 		);
 		const { height } = lastBlock;
 
+		const milestone = await channel.invoke('chain:calculateMilestone', height);
+		const reward = await channel.invoke('chain:calculateReward', height);
+		const supply = await channel.invoke('chain:calculateSupply', height);
+
 		return next(null, {
 			build: library.build,
 			commit: library.lastCommit,
@@ -92,9 +99,9 @@ NodeController.getConstants = async (context, next) => {
 			},
 			nethash: library.config.nethash,
 			nonce: library.config.nonce,
-			milestone: blockReward.calcMilestone(height).toString(),
-			reward: blockReward.calcReward(height).toString(),
-			supply: blockReward.calcSupply(height).toString(),
+			milestone: milestone.toString(),
+			reward: reward.toString(),
+			supply: supply.toString(),
 			version: library.config.version,
 			protocolVersion: library.config.protocolVersion,
 		});
@@ -149,7 +156,9 @@ NodeController.getStatus = async (context, next) => {
  * @todo Add description for the function and the params
  */
 NodeController.getForgingStatus = async (context, next) => {
-	if (!checkIpInList(library.config.forging.access.whiteList, context.request.ip)) {
+	if (
+		!checkIpInList(library.config.forging.access.whiteList, context.request.ip)
+	) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
@@ -171,7 +180,9 @@ NodeController.getForgingStatus = async (context, next) => {
  * @todo Add description for the function and the params
  */
 NodeController.updateForgingStatus = async (context, next) => {
-	if (!checkIpInList(library.config.forging.access.whiteList, context.request.ip)) {
+	if (
+		!checkIpInList(library.config.forging.access.whiteList, context.request.ip)
+	) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
