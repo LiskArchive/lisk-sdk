@@ -36,7 +36,14 @@ export const validatePublicKey = (publicKey: string) => {
 	return true;
 };
 
+export const isNullByteIncluded = (input: string) =>
+	new RegExp('\\0|\\U00000000').test(input);
+
 export const validateUsername = (username: string) => {
+	if (isNullByteIncluded(username)) {
+		return false;
+	}
+
 	if (username !== username.trim().toLowerCase()) {
 		return false;
 	}
@@ -168,6 +175,3 @@ export const isUnique = (values: ReadonlyArray<string>): boolean => {
 
 	return unique.length === values.length;
 };
-
-export const isNullByteIncluded = (input: string) =>
-	new RegExp('\\0|\\U00000000').test(input);
