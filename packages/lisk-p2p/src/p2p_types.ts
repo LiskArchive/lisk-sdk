@@ -53,6 +53,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
 	/* tslint:disable-next-line:no-mixed-interface */
 	readonly options?: P2PInfoOptions;
+	readonly isDiscoveredPeer: boolean;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.
@@ -66,9 +67,16 @@ export interface P2PNodeInfo {
 	readonly options?: P2PInfoOptions;
 }
 
+export interface P2PClosePacket {
+	readonly peerInfo: P2PPeerInfo,
+	readonly code: number,
+	readonly reason?: string,
+}
+
 export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly connectTimeout: number;
+	readonly connectTimeout?: number;
+	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
