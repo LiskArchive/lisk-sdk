@@ -163,7 +163,8 @@ describe('expire transactions', async () => {
 			});
 		});
 
-		it('once transaction is expired the mem account u_balance should be restored @sequential', done => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[UNCOFIRMED_STATE_REMOVAL] once transaction is expired the mem account u_balance should be restored @sequential', done => {
 			// Expiry interval is set to 1 second
 			// and unconfirmed transaction timeout is set to 0
 			// so waiting 5 seconds to ensure the transaction is expired and

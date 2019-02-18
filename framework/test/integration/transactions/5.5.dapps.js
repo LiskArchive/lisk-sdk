@@ -153,7 +153,8 @@ describe('system test (type 5) - dapp registrations with repeated values', async
 			});
 		});
 
-		it('first dapp transactions to arrive should not be included', done => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[UNCOFIRMED_STATE_REMOVAL] first dapp transactions to arrive should not be included', done => {
 			async.every(
 				badTransactions,
 				(everyTransaction, callback) => {
