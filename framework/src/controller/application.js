@@ -118,11 +118,7 @@ module.exports = class Application {
 			constants: this.constants,
 		});
 
-		this.registerModule(HttpApiModule, {
-			api: this.config.api,
-			coverage: this.config.coverage,
-			trustProxy: this.config.trustProxy,
-		});
+		this.registerModule(HttpApiModule);
 	}
 
 	/**
