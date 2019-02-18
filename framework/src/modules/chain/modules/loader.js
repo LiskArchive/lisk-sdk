@@ -1151,7 +1151,7 @@ Loader.prototype.onPeersReady = function() {
 };
 
 /**
- * Assigns needed modules and componenets from scope to private constants.
+ * Assigns needed modules and components from scope to private constants.
  *
  * @param {modules} scope
  * @returns {function} Calling __private.loadBlockChain

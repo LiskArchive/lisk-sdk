@@ -14,7 +14,6 @@
 
 'use strict';
 
-const expect = require('chai').expect;
 const randomstring = require('randomstring');
 const connectionsTable = require('../../../../../../../../src/modules/chain/api/ws/workers/connections_table');
 const emitMiddleware = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/emit');
@@ -22,6 +21,8 @@ const emitMiddleware = require('../../../../../../../../src/modules/chain/api/ws
 describe('emitMiddleware', () => {
 	let validReq;
 	let validNext;
+	const validSocketId = 0;
+	const receiveDataEvents = ['postBlock', 'postTransactions', 'postSignatures'];
 
 	beforeEach(async () => {
 		emitMiddleware(validReq, validNext);
@@ -32,7 +33,6 @@ describe('emitMiddleware', () => {
 	});
 
 	describe('when valid req and next params provided', () => {
-		const validSocketId = 0;
 		before(async () => {
 			validReq = {
 				data: {},
@@ -52,11 +52,6 @@ describe('emitMiddleware', () => {
 
 		it('should call validNext', async () => expect(validNext).calledOnce);
 
-		const receiveDataEvents = [
-			'postBlock',
-			'postTransactions',
-			'postSignatures',
-		];
 		receiveDataEvents.forEach(dataEvent => {
 			describe(`when req.event is '${dataEvent}' responsible for receiving data on P2P layer `, () => {
 				before(async () => {
