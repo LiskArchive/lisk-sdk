@@ -68,9 +68,9 @@ export interface P2PNodeInfo {
 }
 
 export interface P2PClosePacket {
-	readonly peerInfo: P2PPeerInfo,
-	readonly code: number,
-	readonly reason?: string,
+	readonly peerInfo: P2PPeerInfo;
+	readonly code: number;
+	readonly reason?: string;
 }
 
 export interface P2PConfig {
@@ -103,6 +103,25 @@ export interface ProtocolNodeInfo {
 	readonly wsPort: number;
 	readonly httpPort: number;
 	readonly options?: P2PInfoOptions;
+}
+
+export interface P2PPeerSelectionOptions {
+	readonly [key: string]: string | number;
+}
+
+export type P2PPeerSelectionForSendRequest = (
+	peers: ReadonlyArray<P2PPeerInfo>,
+	selectionParams?: P2PPeerSelectionOptions,
+	numOfPeers?: number,
+) => ReadonlyArray<P2PPeerInfo>;
+
+export type P2PPeerSelectionForConnection = (
+	peers: ReadonlyArray<P2PPeerInfo>,
+) => ReadonlyArray<P2PPeerInfo>;
+
+export interface P2PPeerSelectionFunctions {
+	readonly peerSelectionFunction: P2PPeerSelectionForSendRequest;
+	readonly selectForConnection?: P2PPeerSelectionForConnection;
 }
 
 // This is a representation of the inbound peer object according to the current protocol.
