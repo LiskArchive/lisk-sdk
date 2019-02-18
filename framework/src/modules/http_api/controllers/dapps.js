@@ -30,7 +30,7 @@ let storage;
  * @todo Add description of DappsController
  */
 function DappsController(scope) {
-	storage = scope.storage;
+	storage = scope.components.storage;
 }
 
 /**

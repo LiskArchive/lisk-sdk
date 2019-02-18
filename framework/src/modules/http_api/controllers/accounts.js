@@ -35,7 +35,7 @@ let channel;
  * @todo Add description of AccountsController
  */
 function AccountsController(scope) {
-	storage = scope.storage;
+	storage = scope.components.storage;
 	channel = scope.channel;
 }
 

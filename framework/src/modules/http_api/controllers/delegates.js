@@ -38,7 +38,7 @@ const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
  */
 function DelegatesController(scope) {
 	storage = scope.components.storage;
-	logger = scope.logger;
+	logger = scope.components.logger;
 	channel = scope.channel;
 }
 

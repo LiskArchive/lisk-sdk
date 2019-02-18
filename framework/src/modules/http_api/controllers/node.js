@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { promisify } = require('util');
 const _ = require('lodash');
 const checkIpInList = require('../helpers/check_ip_in_list.js');
 const apiCodes = require('../helpers/api_codes');
@@ -26,11 +25,6 @@ const { EPOCH_TIME, FEES } = global.constants;
 // Private Fields
 let library;
 let channel;
-
-// Promised functions
-let getNetworkHeight;
-let getTransactionsCount;
-let updateForgingStatus;
 
 /**
  * Description of the function.
@@ -49,19 +43,12 @@ let updateForgingStatus;
 function NodeController(scope) {
 	library = {
 		modules: scope.modules,
-		storage: scope.storage,
+		storage: scope.components.storage,
 		config: scope.config,
 		build: scope.build,
 		lastCommit: scope.lastCommit,
 		channel: scope.channel,
 	};
-	getNetworkHeight = promisify(library.modules.peers.networkHeight);
-	getTransactionsCount = promisify(
-		library.modules.transactions.shared.getTransactionsCount
-	);
-	updateForgingStatus = promisify(
-		library.modules.delegates.updateForgingStatus
-	);
 }
 
 /**
@@ -79,9 +66,15 @@ NodeController.getConstants = async (context, next) => {
 		);
 		const { height } = lastBlock;
 
-		const milestone = await channel.invoke('chain:calculateMilestone', height);
-		const reward = await channel.invoke('chain:calculateReward', height);
-		const supply = await channel.invoke('chain:calculateSupply', height);
+		const milestone = await library.channel.invoke('chain:calculateMilestone', [
+			height,
+		]);
+		const reward = await library.channel.invoke('chain:calculateReward', [
+			height,
+		]);
+		const supply = await library.channel.invoke('chain:calculateSupply', [
+			height,
+		]);
 
 		return next(null, {
 			build: library.build,
@@ -119,9 +112,11 @@ NodeController.getConstants = async (context, next) => {
  */
 NodeController.getStatus = async (context, next) => {
 	try {
-		const networkHeight = await getNetworkHeight({
-			normalized: false,
-		});
+		const networkHeight = await channel.invoke('chain:getNetworkHeight', [
+			{
+				normalized: false,
+			},
+		]);
 
 		const [lastBlock] = await library.storage.entities.Block.get(
 			{},
@@ -141,7 +136,7 @@ NodeController.getStatus = async (context, next) => {
 			syncing: library.modules.loader.syncing(),
 		};
 
-		data.transactions = await getTransactionsCount();
+		data.transactions = await channel.invoke('chain:getTransactionsCount');
 		return next(null, data);
 	} catch (err) {
 		return next(err);
@@ -320,7 +315,11 @@ async function _getForgingStatus(publicKey) {
  * @private
  */
 async function _updateForgingStatus(publicKey, password, forging) {
-	return updateForgingStatus(publicKey, password, forging);
+	return this.channel.invoke('chain:updateForgingStatus', [
+		publicKey,
+		password,
+		forging,
+	]);
 }
 
 module.exports = NodeController;
