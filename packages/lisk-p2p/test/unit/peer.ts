@@ -24,6 +24,7 @@ describe('peer', () => {
 		height: 545776,
 		os: 'darwin',
 		version: '1.1.0',
+		isDiscoveredPeer: true
 	};
 
 	const defaultPeer = new Peer(defaultPeerInfo);
