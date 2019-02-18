@@ -371,7 +371,8 @@ describe('system test (blocks) - chain/deleteLastBlock', async () => {
 					});
 				});
 
-				it('should validate account data from sender after delete the last block', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCONFIRMED_STATE_REMOVAL] should validate account data from sender after delete the last block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,

@@ -382,15 +382,15 @@ __private.loadBlockChain = function() {
 		async.series(
 			{
 				// [UNCONFIRMED_STATE_REMOVAL]
-				// resetMemTables(seriesCb) {
-				// 	library.logic.account.resetMemTables(err => {
-				// 		if (err) {
-				// 			throw err;
-				// 		} else {
-				// 			return setImmediate(seriesCb);
-				// 		}
-				// 	});
-				// },
+				resetMemTables(seriesCb) {
+					library.logic.account.resetMemTables(err => {
+						if (err) {
+							throw err;
+						} else {
+							return setImmediate(seriesCb);
+						}
+					});
+				},
 				loadBlocksOffset(seriesCb) {
 					async.until(
 						() => count < offset,
@@ -782,10 +782,9 @@ __private.createSnapshot = height => {
 	let currentHeight = 1;
 	async.series(
 		{
-			// [UNCONFIRMED_STATE_REMOVAL]
-			// resetMemTables(seriesCb) {
-			// 	library.logic.account.resetMemTables(seriesCb);
-			// },
+			resetMemTables(seriesCb) {
+				library.logic.account.resetMemTables(seriesCb);
+			},
 			loadBlocksOffset(seriesCb) {
 				async.until(
 					() => targetHeight < currentHeight,
