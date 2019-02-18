@@ -712,10 +712,7 @@ __private.checkExists = function(block, cb) {
 	library.storage.entities.Block.isPersisted({ id: block.id })
 		.then(isPersisted => {
 			if (isPersisted) {
-				return setImmediate(
-					cb,
-					`Block ${block.id} already exists`
-				);
+				return setImmediate(cb, `Block ${block.id} already exists`);
 			}
 			return setImmediate(cb);
 		})

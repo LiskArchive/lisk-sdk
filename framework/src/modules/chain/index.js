@@ -1,32 +1,55 @@
 const defaults = require('./defaults/exceptions');
 const Chain = require('./chain');
+const BaseModule = require('../base_module');
 
-let blockchain = null;
+/* eslint-disable class-methods-use-this */
 
 /**
- * Chain Module specification
+ * Chain module specification
  *
- * @namespace Framework.modules.chain
- * @type {{defaults, load(*=, *=): Promise<void>, unload(*, *): Promise<*>, alias: string, actions: {}, events: Array, info: {author: string, name: string, version: string}}}
+ * @namespace Framework.Modules
+ * @type {module.ChainModule}
  */
-module.exports = {
-	alias: 'chain',
-	info: {
-		author: 'LiskHQ',
-		version: '0.1.0',
-		name: 'lisk-core-chain',
-	},
-	defaults,
-	events: [],
-	actions: {},
-	async load(channel, options) {
-		blockchain = new Chain(channel, options);
+module.exports = class ChainModule extends BaseModule {
+	constructor(options) {
+		super(options);
+
+		this.chain = null;
+	}
+
+	static get alias() {
+		return 'chain';
+	}
+
+	static get info() {
+		return {
+			author: 'LiskHQ',
+			version: '0.1.0',
+			name: 'lisk-core-chain',
+		};
+	}
+
+	get defaults() {
+		return defaults;
+	}
+
+	get events() {
+		return [];
+	}
+
+	get actions() {
+		return {};
+	}
+
+	async load(channel) {
+		this.chain = new Chain(channel, this.options);
+
 		channel.once('lisk:ready', () => {
-			blockchain.bootstrap();
+			this.chain.bootstrap();
 		});
-	},
-	// eslint-disable-next-line no-unused-vars
-	async unload(channel, options) {
-		return blockchain.cleanup(0);
-	},
+	}
+
+	async unload() {
+		return this.chain.cleanup(0);
+	}
 };

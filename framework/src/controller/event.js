@@ -6,11 +6,12 @@ const eventWithModuleNameReg = /^([a-zA-Z][a-zA-Z0-9]*)((?::[a-zA-Z][a-zA-Z0-9]*
 /**
  * An event class which instance will be received by every event listener
  *
- * @namespace Framework
+ * @class
+ * @memberof framework.controller
  * @requires assert
  * @type {module.Event}
  */
-module.exports = class Event {
+class Event {
 	/**
 	 * Create Event object.
 	 *
@@ -86,4 +87,6 @@ module.exports = class Event {
 			object.source
 		);
 	}
-};
+}
+
+module.exports = Event;

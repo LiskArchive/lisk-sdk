@@ -7,13 +7,13 @@ const CONTROLLER_IDENTIFIER = 'lisk';
 /**
  * Bus responsible to maintain communication between modules
  *
- * @namespace Framework
+ * @class
+ * @memberof framework.controller
  * @requires bluebird
  * @requires eventemitter2
  * @requires module.Action
- * @type {module.Bus}
  */
-module.exports = class Bus extends EventEmitter2 {
+class Bus extends EventEmitter2 {
 	/**
 	 * Create the bus object
 	 *
@@ -125,4 +125,6 @@ module.exports = class Bus extends EventEmitter2 {
 	getEvents() {
 		return Object.keys(this.events);
 	}
-};
+}
+
+module.exports = Bus;
