@@ -128,6 +128,7 @@ function __init(initScope, done) {
 			{
 				config(cb) {
 					__testContext.config.syncing.active = false;
+					__testContext.config.broadcasts.active = false;
 					__testContext.config = Object.assign(
 						__testContext.config,
 						initScope.config || {}
