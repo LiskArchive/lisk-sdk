@@ -115,6 +115,7 @@ export interface ProtocolPeerInfo {
 	readonly os?: string;
 	readonly version: string;
 	readonly wsPort: number;
+	readonly httpPort?: number;
 	readonly options?: P2PInfoOptions;
 }
 
