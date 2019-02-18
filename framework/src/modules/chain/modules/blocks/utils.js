@@ -550,14 +550,14 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 
 		if (filter.start !== undefined) {
 			params.fromTimestamp = Math.floor(
-				(filter.start - EPOCH_TIME.getTime()) / 1000
+				(filter.start - new Date(EPOCH_TIME).getTime()) / 1000
 			);
 			params.fromTimestamp = params.fromTimestamp.toFixed();
 		}
 
 		if (filter.end !== undefined) {
 			params.toTimestamp = Math.floor(
-				(filter.end - EPOCH_TIME.getTime()) / 1000
+				(filter.end - new Date(EPOCH_TIME).getTime()) / 1000
 			);
 			params.toTimestamp = params.toTimestamp.toFixed();
 		}
