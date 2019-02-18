@@ -22,18 +22,16 @@ import * as utils from '../src/utils';
 
 describe('Dapp transaction class', () => {
 	const defaultValidDappTransaction = validDappTransactions[0];
-	const defaultValidSender = {
-		address: '11262132350228604999L',
-		balance: '1000000000',
-		publicKey:
-			'f19d39b087a3174cbf113162f2dad498edbf84341ffbfeb650a365ac8a40ac04',
-	};
 	let validTestTransaction: DappTransaction;
+	let storeAccountCacheStub: sinon.SinonStub;
+	let storeTransactionCacheStub: sinon.SinonStub;
+	let storeTransactionFindStub: sinon.SinonStub;
 
 	beforeEach(async () => {
 		validTestTransaction = new DappTransaction(defaultValidDappTransaction);
-		store.account.get = () => defaultValidSender;
-		store.transaction.find = () => undefined;
+		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
+		storeTransactionCacheStub = sandbox.stub(store.transaction, 'cache');
+		storeTransactionFindStub = sandbox.stub(store.transaction, 'find');
 	});
 
 	describe('#constructor', () => {
@@ -164,6 +162,27 @@ describe('Dapp transaction class', () => {
 				.to.be.an('array')
 				.of.length(1);
 			expect(status).to.equal(Status.FAIL);
+		});
+	});
+
+	describe('#assetToJSON', async () => {
+		it('should return an object of type transfer asset', async () => {
+			expect(validTestTransaction.assetToJSON())
+				.to.be.an('object')
+				.and.to.have.property('dapp');
+		});
+	});
+
+	describe('#prepare', async () => {
+		it('should call state store', async () => {
+			await validTestTransaction.prepare(store);
+			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
+				{ address: validTestTransaction.senderId },
+			]);
+			expect(storeTransactionCacheStub).to.have.been.calledWithExactly([
+				{ dapp_name: validTestTransaction.asset.dapp.name },
+				{ dapp_link: validTestTransaction.asset.dapp.link },
+			]);
 		});
 	});
 
@@ -305,6 +324,11 @@ describe('Dapp transaction class', () => {
 	});
 
 	describe('#applyAsset', () => {
+		it('should call state store', async () => {
+			(validTestTransaction as any).applyAsset(store);
+			expect(storeTransactionFindStub).to.be.calledTwice;
+		});
+
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).to.be.empty;
@@ -325,12 +349,27 @@ describe('Dapp transaction class', () => {
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 		});
+
+		it('should return error when store includes the transaction with same dapp link', async () => {
+			const invalidDappTransaction = {
+				...validDappTransactions[2],
+				asset: {
+					dapp: {
+						...validDappTransactions[2].asset.dapp,
+						link: defaultValidDappTransaction.asset.dapp.link,
+					},
+				},
+			};
+			store.transaction.find = () => invalidDappTransaction;
+
+			const errors = (validTestTransaction as any).applyAsset(store);
+			expect(errors).not.to.be.empty;
+		});
 	});
 
 	describe('#undoAsset', () => {
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).undoAsset(store);
-
 			expect(errors).to.be.empty;
 		});
 	});

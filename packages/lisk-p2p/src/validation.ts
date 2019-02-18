@@ -47,6 +47,27 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	return true;
 };
 
+export const validateStatusProtocolPeerInfo = (
+	rawPeerInfo: unknown,
+): ProtocolPeerInfo => {
+	if (!rawPeerInfo) {
+		throw new InvalidPeerError(`Invalid peer object`);
+	}
+
+	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
+	if (
+		!protocolPeer.wsPort
+	) {
+		throw new InvalidPeerError(`Invalid peer ip or port`);
+	}
+
+	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
+		throw new InvalidPeerError(`Invalid peer version`);
+	}
+
+	return protocolPeer;
+};
+
 export const validatePeerInfo = (
 	rawPeerInfo: unknown,
 ): P2PDiscoveredPeerInfo => {
@@ -82,6 +103,7 @@ export const validatePeerInfo = (
 		os,
 		version,
 		options: protocolPeer,
+		isDiscoveredPeer: true,
 	};
 
 	return peerInfo;

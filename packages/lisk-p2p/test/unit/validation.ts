@@ -230,6 +230,7 @@ describe('response handlers', () => {
 				peer['ipAddress'] = peer.ip;
 				peer.wsPort = +peer.wsPort;
 				peer.height = +peer.height;
+				peer.isDiscoveredPeer = true;
 				peer.options = peer;
 				delete peer.ip;
 

@@ -19,6 +19,7 @@ import * as BigNum from 'browserify-bignum';
 import * as schemas from './schema';
 import {
 	isGreaterThanMaxTransactionId,
+	isNullByteIncluded,
 	isNumberString,
 	validateAddress,
 	validateFee,
@@ -29,7 +30,7 @@ import {
 	validateUsername,
 } from './validation';
 
-export const validator = new Ajv({ allErrors: true });
+export const validator = new Ajv({ allErrors: true, removeAdditional: 'all' });
 addKeywords(validator);
 
 validator.addFormat('signature', validateSignature);
@@ -119,6 +120,8 @@ validator.addFormat(
 );
 
 validator.addFormat('username', validateUsername);
+
+validator.addFormat('noNullByte', data => !isNullByteIncluded(data));
 
 validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',

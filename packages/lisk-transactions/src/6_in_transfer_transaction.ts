@@ -21,7 +21,7 @@ import {
 import { IN_TRANSFER_FEE } from './constants';
 import { TransactionError, TransactionMultiError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import { convertBeddowsToLSK } from './utils';
+import { convertBeddowsToLSK, verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
 
 const TRANSACTION_DAPP_TYPE = 5;
@@ -102,11 +102,11 @@ export class InTransferTransaction extends BaseTransaction {
 			},
 		]);
 
-		const dappTransaction = transactions.find(
+		const dappTransaction = transactions && transactions.length > 0 ? transactions.find(
 			tx =>
 				tx.type === TRANSACTION_DAPP_TYPE &&
 				tx.id === this.asset.inTransfer.dappId,
-		);
+		) : undefined;
 
 		if (dappTransaction) {
 			await store.account.cache([{ id: dappTransaction.senderId as string }]);
@@ -205,17 +205,13 @@ export class InTransferTransaction extends BaseTransaction {
 		}
 		const sender = store.account.get(this.senderId);
 
-		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
-		if (updatedBalance.lt(0)) {
-			errors.push(
-				new TransactionError(
-					`Account does not have enough LSK: ${
-						sender.address
-					}, balance: ${convertBeddowsToLSK(sender.balance)}.`,
-					this.id,
-				),
-			);
+		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
+		if(balanceError) {
+			errors.push(balanceError);
 		}
+
+		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
+		
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
 		store.account.set(updatedSender.address, updatedSender);

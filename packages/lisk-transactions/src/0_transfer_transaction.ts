@@ -26,6 +26,7 @@ import {
 	validateAddress,
 	validateTransferAmount,
 	validator,
+	verifyAmountBalance,
 	verifyBalance,
 } from './utils';
 
@@ -49,6 +50,7 @@ export const transferAssetFormatSchema = {
 	properties: {
 		data: {
 			type: 'string',
+			format: 'noNullByte',
 			maxLength: 64,
 		},
 	},
@@ -73,6 +75,7 @@ export class TransferTransaction extends BaseTransaction {
 		if (!typeValid || errors.length > 0) {
 			throw new TransactionMultiError('Invalid asset types', tx.id, errors);
 		}
+
 		this.asset = tx.asset as TransferAsset;
 		this._fee = new BigNum(TRANSFER_FEE);
 	}
@@ -179,11 +182,12 @@ export class TransferTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-
-		const balanceError = verifyBalance(this.id, sender, this.amount);
-		if (balanceError) {
+		
+		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
+		if(balanceError) {
 			errors.push(balanceError);
 		}
+		
 		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
 		const updatedSender = {
