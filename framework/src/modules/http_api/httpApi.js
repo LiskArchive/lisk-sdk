@@ -4,11 +4,13 @@ const { promisify } = require('util');
 const { createLoggerComponent } = require('../../components/logger');
 const { createCacheComponent } = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');
+const bootstrapStorage = require('./init_steps/bootstrap_storage');
 
 const httpApi = require('./helpers/http_api.js');
 
 module.exports = class HttpApi {
 	constructor(channel, options) {
+		options.config.root = __dirname; // TODO: See wy root comes defined for the chain module.
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
@@ -61,8 +63,11 @@ module.exports = class HttpApi {
 				logger: this.logger,
 				storage,
 			},
+			channel: this.channel,
 			config: this.options.config,
 		};
+
+		await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
 
 		await this._bootstrapApi();
 		await this._startListening();
@@ -182,23 +187,26 @@ module.exports = class HttpApi {
 	}
 
 	_subscribeToEvents() {
-		this.channel.subscribe('blocks/change', event => {
+		this.channel.subscribe('blocks:change', event => {
 			this.wsServer.emit('blocks/change', event.data);
 		});
-		this.channel.subscribe('signature/change', event => {
+		this.channel.subscribe('signature:change', event => {
 			this.wsServer.emit('signature/change', event.data);
 		});
-		this.channel.subscribe('transactions/change', event => {
+		this.channel.subscribe('transactions:change', event => {
 			this.wsServer.emit('transactions/change', event.data);
 		});
-		this.channel.subscribe('rounds/change', event => {
+		this.channel.subscribe('rounds:change', event => {
 			this.wsServer.emit('rounds/change', event.data);
 		});
-		this.channel.subscribe('multisignatures/signature/change', event => {
+		this.channel.subscribe('multisignatures:signature:change', event => {
 			this.wsServer.emit('multisignatures/signature/change', event.data);
 		});
-		this.channel.subscribe('delegates/fork', event => {
+		this.channel.subscribe('delegates:fork', event => {
 			this.wsServer.emit('delegates/fork', event.data);
+		});
+		this.channel.subscribe('loader:sync', event => {
+			this.wsServer.emit('loader/sync', event.data);
 		});
 	}
 };

@@ -296,7 +296,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	app.use(middleware.errorLogger.bind(null, logger));
 
 	// Load Swagger controllers and bind the scope
-	const controllerFolder = '/api/controllers/';
+	const controllerFolder = '/controllers/';
 	fs.readdirSync(config.root + controllerFolder).forEach(file => {
 		if (path.basename(file) !== 'index.js') {
 			// eslint-disable-next-line import/no-dynamic-require

@@ -1,4 +1,3 @@
-const defaults = require('./defaults/exceptions');
 const HttpApi = require('./httpApi');
 
 let httpApi = null;
@@ -16,7 +15,7 @@ module.exports = {
 		version: '0.1.0',
 		name: 'lisk-core-http-api',
 	},
-	defaults,
+	defaults: {},
 	events: [],
 	actions: {},
 	async load(channel, options) {
