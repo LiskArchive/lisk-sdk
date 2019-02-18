@@ -81,7 +81,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		return __private.libraries.account.merge(
+		return __private.logic.account.merge(
 			sender.address,
 			{
 				votedDelegatesPublicKeys: votesInvert,
@@ -111,7 +111,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		return __private.libraries.account.merge(
+		return __private.logic.account.merge(
 			sender.address,
 			{ u_votedDelegatesPublicKeys: votesInvert },
 			mergeErr => setImmediate(cb, mergeErr),
@@ -362,7 +362,7 @@ Vote.prototype.applyConfirmed = function(transaction, block, sender, cb, tx) {
 				self.checkConfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function() {
-				__private.libraries.account.merge(
+				__private.logic.account.merge(
 					sender.address,
 					{
 						votedDelegatesPublicKeys: transaction.asset.votes,
@@ -393,7 +393,7 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 				self.checkUnconfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				__private.libraries.account.merge(
+				__private.logic.account.merge(
 					sender.address,
 					{
 						u_votedDelegatesPublicKeys: transaction.asset.votes,
@@ -436,13 +436,13 @@ Vote.prototype.schema = {
  * @todo Add description for the params
  */
 Vote.prototype.objectNormalize = function(transaction) {
-	const report = __private.libraries.schema.validate(
+	const report = __private.schema.validate(
 		transaction.asset,
 		Vote.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate vote schema: ${__private.libraries.schema
+		throw `Failed to validate vote schema: ${__private.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

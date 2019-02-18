@@ -69,6 +69,7 @@ describe('transactions', () => {
 				components: {
 					logger: modulesLoader.logger,
 				},
+				logic: {},
 				schema: modulesLoader.scope.schema,
 			})
 		);
