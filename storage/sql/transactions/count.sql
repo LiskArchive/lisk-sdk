@@ -14,7 +14,7 @@
 
 SELECT count(*)
 FROM trs
-	LEFT JOIN blocks AS b ON trs."blockId"::text = b.id::text
-	LEFT JOIN mem_accounts AS m ON trs."recipientId"::text = m.address::text
+	LEFT JOIN blocks AS b ON trs."blockId" = b.id
+	LEFT JOIN mem_accounts AS m ON trs."recipientId" = m.address
 
 ${parsedFilters:raw}

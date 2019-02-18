@@ -34,8 +34,8 @@ SELECT
 		LIMIT 1)) - b.height AS "confirmations"
 
 FROM trs
-	LEFT JOIN blocks b ON trs."blockId"::text = b.id::text
-	LEFT JOIN mem_accounts m ON trs."recipientId"::text = m.address::text
+	LEFT JOIN blocks b ON trs."blockId" = b.id
+	LEFT JOIN mem_accounts m ON trs."recipientId" = m.address
 
 ${parsedFilters:raw}
 
