@@ -50,7 +50,7 @@ let updateForgingStatus;
 function NodeController(scope) {
 	library = {
 		modules: scope.modules,
-		storage: scope.storage,
+		storage: scope.components.storage,
 		config: scope.config,
 		build: scope.build,
 		lastCommit: scope.lastCommit,

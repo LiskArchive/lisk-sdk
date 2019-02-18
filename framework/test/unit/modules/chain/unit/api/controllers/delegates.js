@@ -60,8 +60,10 @@ describe('delegates/api', () => {
 			.resolves(blocksRewardReturnStub);
 
 		new DelegatesController({
-			logger: loggerStub,
-			storage: storageStub,
+			components: {
+				logger: loggerStub,
+				storage: storageStub,
+			},
 			modules: modulesStub,
 		});
 
