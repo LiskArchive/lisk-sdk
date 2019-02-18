@@ -139,11 +139,11 @@ module.exports = class Chain {
 			);
 			await initSteps.bootstrapCache(scope);
 
-			scope.network = await initSteps.createHttpServer(scope);
 			scope.bus = await initSteps.createBus();
-			scope.webSocket = await initSteps.createSocketCluster(scope);
+			scope.network = await initSteps.createHttpServer(scope);
 			scope.logic = await initSteps.initLogicStructure(scope);
 			scope.modules = await initSteps.initModules(scope);
+			scope.webSocket = await initSteps.createSocketCluster(scope);
 			scope.swagger = await initSteps.attachSwagger(scope);
 
 			// TODO: Identify why its used
