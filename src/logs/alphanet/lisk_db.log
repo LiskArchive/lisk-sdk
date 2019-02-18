@@ -1,0 +1,240 @@
+[ERR] 2019-02-18 08:53:53 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 08:53:53 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 08:53:53 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 09:19:53 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 09:19:53 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 09:19:53 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 09:21:31 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 09:21:31 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 09:21:31 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 09:22:49 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 09:22:49 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 09:22:49 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 09:23:14 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 09:23:14 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 09:23:14 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 09:25:56 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 09:25:56 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 09:25:56 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 09:41:26 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 09:41:26 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 09:41:26 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 09:45:44 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 09:45:44 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 09:45:44 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 09:47:11 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 09:47:11 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 09:47:11 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 10:53:46 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 10:53:46 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 10:53:46 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 10:54:23 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 10:54:23 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 10:54:23 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 13:31:53 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 13:31:53 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 13:31:53 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 13:34:13 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 13:34:13 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 13:34:13 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 13:36:53 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 13:36:53 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 13:36:53 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 13:38:00 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 13:38:00 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 13:38:00 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 13:38:23 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 13:38:23 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 13:38:23 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 13:40:36 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 13:40:36 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 13:40:36 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 13:42:16 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 13:42:16 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 13:42:16 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 13:42:59 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 13:42:59 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 13:42:59 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}
+[ERR] 2019-02-18 14:34:19 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[log] 2019-02-18 14:34:19 | error - error: database "lisk_alpha" does not exist
+[log] 2019-02-18 14:34:19 | error - connection: {"host":"localhost","port":5432,"database":"lisk_alpha","user":"lisk","password":"########","min":1,"max":10,"poolIdleTimeout":30000,"reapIntervalMillis":1000,"logEvents":["error"],"logFileName":"logs/alphanet/lisk_db.log","inTest":false,"sqlDirectory":"/Users/michiel.mulders/lisk/lisk/framework/src/components/storage/sql","logger":{}}

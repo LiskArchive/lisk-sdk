@@ -1,0 +1,1127 @@
+[inf] 2019-02-18 08:53:53 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 08:53:53 | Initializing controller
+[inf] 2019-02-18 08:53:53 | Loading controller
+[inf] 2019-02-18 08:53:53 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 08:53:53 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 08:53:53 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 08:53:53 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 08:53:53 | App started...
+[dbg] 2019-02-18 08:53:53 | Initiating cache...
+[dbg] 2019-02-18 08:53:53 | Initiating storage...
+[inf] 2019-02-18 08:53:53 | App connected to Cache server
+[inf] 2019-02-18 08:53:53 | Cleanup controller...
+[inf] 2019-02-18 08:53:53 | Cleaning chain...
+[ERR] 2019-02-18 08:53:53 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 08:53:53 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 08:53:53 | Cleaning chain...
+[inf] 2019-02-18 08:53:53 | Cleaned up successfully
+[ERR] 2019-02-18 08:53:53 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:19:53 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:19:53 | Initializing controller
+[inf] 2019-02-18 09:19:53 | Loading controller
+[inf] 2019-02-18 09:19:53 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:19:53 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:19:53 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:19:53 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:19:53 | App started...
+[dbg] 2019-02-18 09:19:53 | Initiating cache...
+[dbg] 2019-02-18 09:19:53 | Initiating storage...
+[inf] 2019-02-18 09:19:53 | App connected to Cache server
+[inf] 2019-02-18 09:19:53 | Cleanup controller...
+[inf] 2019-02-18 09:19:53 | Cleaning chain...
+[ERR] 2019-02-18 09:19:53 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 09:19:53 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 09:19:53 | Cleaning chain...
+[inf] 2019-02-18 09:19:53 | Cleaned up successfully
+[ERR] 2019-02-18 09:19:53 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:21:31 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:21:31 | Initializing controller
+[inf] 2019-02-18 09:21:31 | Loading controller
+[inf] 2019-02-18 09:21:31 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:21:31 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:21:31 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:21:31 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:21:31 | App started...
+[dbg] 2019-02-18 09:21:31 | Initiating cache...
+[dbg] 2019-02-18 09:21:31 | Initiating storage...
+[inf] 2019-02-18 09:21:31 | App connected to Cache server
+[inf] 2019-02-18 09:21:31 | Cleanup controller...
+[inf] 2019-02-18 09:21:31 | Cleaning chain...
+[ERR] 2019-02-18 09:21:31 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 09:21:31 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 09:21:31 | Cleaning chain...
+[inf] 2019-02-18 09:21:31 | Cleaned up successfully
+[ERR] 2019-02-18 09:21:31 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:22:49 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:22:49 | Initializing controller
+[inf] 2019-02-18 09:22:49 | Loading controller
+[inf] 2019-02-18 09:22:49 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:22:49 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:22:49 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:22:49 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:22:49 | App started...
+[dbg] 2019-02-18 09:22:49 | Initiating cache...
+[dbg] 2019-02-18 09:22:49 | Initiating storage...
+[inf] 2019-02-18 09:22:49 | App connected to Cache server
+[inf] 2019-02-18 09:22:49 | Cleanup controller...
+[inf] 2019-02-18 09:22:49 | Cleaning chain...
+[ERR] 2019-02-18 09:22:49 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 09:22:49 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 09:22:49 | Cleaning chain...
+[inf] 2019-02-18 09:22:49 | Cleaned up successfully
+[ERR] 2019-02-18 09:22:49 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:23:14 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:23:14 | Initializing controller
+[inf] 2019-02-18 09:23:14 | Loading controller
+[inf] 2019-02-18 09:23:14 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:23:14 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:23:14 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:23:14 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:23:14 | App started...
+[dbg] 2019-02-18 09:23:14 | Initiating cache...
+[dbg] 2019-02-18 09:23:14 | Initiating storage...
+[inf] 2019-02-18 09:23:14 | App connected to Cache server
+[inf] 2019-02-18 09:23:14 | Cleanup controller...
+[inf] 2019-02-18 09:23:14 | Cleaning chain...
+[ERR] 2019-02-18 09:23:14 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 09:23:14 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 09:23:14 | Cleaning chain...
+[inf] 2019-02-18 09:23:14 | Cleaned up successfully
+[ERR] 2019-02-18 09:23:14 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:25:56 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:25:56 | Initializing controller
+[inf] 2019-02-18 09:25:56 | Loading controller
+[inf] 2019-02-18 09:25:56 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:25:56 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:25:56 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:25:56 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:25:56 | App started...
+[dbg] 2019-02-18 09:25:56 | Initiating cache...
+[dbg] 2019-02-18 09:25:56 | Initiating storage...
+[inf] 2019-02-18 09:25:56 | App connected to Cache server
+[inf] 2019-02-18 09:25:56 | Cleanup controller...
+[inf] 2019-02-18 09:25:56 | Cleaning chain...
+[ERR] 2019-02-18 09:25:56 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 09:25:56 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 09:25:56 | Cleaning chain...
+[inf] 2019-02-18 09:25:56 | Cleaned up successfully
+[ERR] 2019-02-18 09:25:56 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:26:06 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:26:06 | Initializing controller
+[inf] 2019-02-18 09:26:06 | Loading controller
+[inf] 2019-02-18 09:26:06 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:26:06 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:26:06 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:26:06 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:26:06 | App started...
+[dbg] 2019-02-18 09:26:06 | Initiating cache...
+[dbg] 2019-02-18 09:26:06 | Initiating storage...
+[inf] 2019-02-18 09:26:06 | App connected to Cache server
+[inf] 2019-02-18 09:26:07 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-18 09:26:07 | Loading module - accounts
+[dbg] 2019-02-18 09:26:07 | Loading module - blocks
+[dbg] 2019-02-18 09:26:07 | Loading module - dapps
+[dbg] 2019-02-18 09:26:07 | Loading module - delegates
+[dbg] 2019-02-18 09:26:07 | Loading module - rounds
+[dbg] 2019-02-18 09:26:07 | Loading module - loader
+[dbg] 2019-02-18 09:26:07 | Loading module - multisignatures
+[dbg] 2019-02-18 09:26:07 | Loading module - peers
+[dbg] 2019-02-18 09:26:07 | Loading module - system
+[dbg] 2019-02-18 09:26:07 | Loading module - signatures
+[dbg] 2019-02-18 09:26:07 | Loading module - transactions
+[dbg] 2019-02-18 09:26:07 | Loading module - transport
+[inf] 2019-02-18 09:26:07 | Releasing enqueued broadcasts
+[inf] 2019-02-18 09:26:07 | Queue empty
+[inf] 2019-02-18 09:26:07 | Cleanup controller...
+[ERR] 2019-02-18 09:26:07 | ProcessExitError: Broker server at socket path /var/folders/qj/ysgw4lg53w32fy8j9n0q83pm0000gp/T/socketcluster/f0ee8a42-0b93_d31702c4bd/b0 exited with code null and signal SIGINT
+    at Server.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/sc-broker-cluster/index.js:373:19)
+    at Server.emit (events.js:182:13)
+    at Server.EventEmitter.emit (domain.js:442:20)
+    at ChildProcess.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/sc-broker/index.js:129:10)
+    at ChildProcess.emit (events.js:182:13)
+    at ChildProcess.EventEmitter.emit (domain.js:442:20)
+    at Process.ChildProcess._handle.onexit (internal/child_process.js:240:12)
+[ERR] 2019-02-18 09:26:07 | ProcessExitError: WorkerCluster exited with code null and signal SIGINT
+    at SocketCluster._handleWorkerClusterExit (/Users/michiel.mulders/lisk/lisk/node_modules/socketcluster/index.js:610:17)
+    at ChildProcess.emit (events.js:182:13)
+    at ChildProcess.EventEmitter.emit (domain.js:442:20)
+    at Process.ChildProcess._handle.onexit (internal/child_process.js:240:12)
+[inf] 2019-02-18 09:26:07 | Cleaning chain...
+[ERR] 2019-02-18 09:26:07 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:27:13 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:27:13 | Initializing controller
+[inf] 2019-02-18 09:27:13 | Loading controller
+[inf] 2019-02-18 09:27:13 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:27:13 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:27:13 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:27:13 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:27:13 | App started...
+[dbg] 2019-02-18 09:27:13 | Initiating cache...
+[dbg] 2019-02-18 09:27:13 | Initiating storage...
+[inf] 2019-02-18 09:27:13 | App connected to Cache server
+[inf] 2019-02-18 09:27:14 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-18 09:27:14 | Loading module - accounts
+[dbg] 2019-02-18 09:27:14 | Loading module - blocks
+[dbg] 2019-02-18 09:27:14 | Loading module - dapps
+[dbg] 2019-02-18 09:27:14 | Loading module - delegates
+[dbg] 2019-02-18 09:27:14 | Loading module - rounds
+[dbg] 2019-02-18 09:27:14 | Loading module - loader
+[dbg] 2019-02-18 09:27:14 | Loading module - multisignatures
+[dbg] 2019-02-18 09:27:14 | Loading module - peers
+[dbg] 2019-02-18 09:27:14 | Loading module - system
+[dbg] 2019-02-18 09:27:14 | Loading module - signatures
+[dbg] 2019-02-18 09:27:14 | Loading module - transactions
+[dbg] 2019-02-18 09:27:14 | Loading module - transport
+[inf] 2019-02-18 09:27:14 | Releasing enqueued broadcasts
+[inf] 2019-02-18 09:27:14 | Queue empty
+[inf] 2019-02-18 09:27:15 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-18 09:27:15 | Modules ready and launched
+[inf] 2019-02-18 09:27:15 | Blocks 5546
+[inf] 2019-02-18 09:27:15 | Genesis block matched with database
+[inf] 2019-02-18 09:27:15 | Validating current block with height 5546
+[inf] 2019-02-18 09:27:15 | Loader->validateBlock Validating block 3483667001676026584 at height 5546
+[dbg] 2019-02-18 09:27:15 | {"id":"3483667001676026584","version":1,"timestamp":86124430,"height":5546,"previousBlock":"4835078647173180407","numberOfTransactions":0,"totalAmount":"0","totalFee":"0","reward":"500000000","payloadLength":0,"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","generatorPublicKey":"e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c","generatorId":"13227119536266737242L","blockSignature":"8fad50759397f164d19e33fb3220c3dcb0082c7b1ffc1a2676382e2fb202f7d92892225302ccf622ea3082aef2c594eccdb0e26e00f072adb81c0f28b77fee0c","confirmations":1,"transactions":[],"totalForged":"500000000"}
+[dbg] 2019-02-18 09:27:15 | Loader->validateBlock Setting temporarily last block to height 5545.
+[inf] 2019-02-18 09:27:15 | Verify->verifyBlock succeeded for block 3483667001676026584 at height 5546.
+[dbg] 2019-02-18 09:27:15 | Loader->validateBlock Reverting last block to height 5546.
+[inf] 2019-02-18 09:27:15 | Loader->validateBlock Validating block succeed for 3483667001676026584 at height 5546.
+[inf] 2019-02-18 09:27:15 | Finished validating the chain. You are at height 5546.
+[inf] 2019-02-18 09:27:15 | Blockchain ready
+[inf] 2019-02-18 09:27:15 | Loading 101 delegates using encrypted passphrases from config
+[dbg] 2019-02-18 09:27:15 | Processing seed peer: 127.0.0.1:5000
+[dbg] 2019-02-18 09:27:15 | Rejecting unacceptable peer - 127.0.0.1:5000
+[inf] 2019-02-18 09:27:15 | Imported peers from database - {"count":0}
+[dbg] 2019-02-18 09:27:15 | Listing peers - {"attempt":"matched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[dbg] 2019-02-18 09:27:15 | Listing peers - {"attempt":"unmatched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[dbg] 2019-02-18 09:27:15 | Broadhash consensus: 0 %
+[inf] 2019-02-18 09:27:15 | Starting sync
+[dbg] 2019-02-18 09:27:15 | Establishing broadhash consensus before sync: 0 %
+[dbg] 2019-02-18 09:27:15 | Listing peers - {"attempt":"matched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[ERR] 2019-02-18 09:27:15 | Failed to get random peer from network
+[ERR] 2019-02-18 09:27:15 | Failed to get random peer from network
+[dbg] 2019-02-18 09:27:15 | Listing peers - {"attempt":"unmatched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[ERR] 2019-02-18 09:27:15 | Failed to get random peer from network
+[ERR] 2019-02-18 09:27:15 | Failed to get random peer from network
+[ERR] 2019-02-18 09:27:15 | Failed to get random peer from network
+[ERR] 2019-02-18 09:27:15 | Discovering new peers failed - No acceptable peers found
+[dbg] 2019-02-18 09:27:15 | System headers - {"os":"darwin18.2.0","version":"1.5.0-alpha.2","wsPort":5000,"httpPort":4000,"height":5546,"nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","minVersion":"1.0.0","protocolVersion":"1.0","nonce":"18VQN6T7uW2wCWrw"}
+[dbg] 2019-02-18 09:27:15 | Transport->broadcastHeaders: No peers found
+[dbg] 2019-02-18 09:27:15 | Establishing broadhash consensus after sync: 0 %
+[inf] 2019-02-18 09:27:15 | Finished sync
+[ERR] 2019-02-18 09:27:15 | Unconfirmed transactions loader - Failed to find enough good peers
+[ERR] 2019-02-18 09:27:15 | Signatures loader - Failed to find enough good peers
+[inf] 2019-02-18 09:27:15 | Cleanup controller...
+[inf] 2019-02-18 09:27:15 | Cleaning chain...
+[ERR] 2019-02-18 09:27:15 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:28:33 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:28:33 | Initializing controller
+[inf] 2019-02-18 09:28:33 | Loading controller
+[inf] 2019-02-18 09:28:33 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:28:33 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:28:33 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:28:33 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:28:33 | App started...
+[dbg] 2019-02-18 09:28:33 | Initiating cache...
+[dbg] 2019-02-18 09:28:33 | Initiating storage...
+[inf] 2019-02-18 09:28:33 | App connected to Cache server
+[inf] 2019-02-18 09:28:33 | Cleanup controller...
+[inf] 2019-02-18 09:28:33 | Cleaning chain...
+[ERR] 2019-02-18 09:28:33 | ProcessExitError: Broker server at socket path /var/folders/qj/ysgw4lg53w32fy8j9n0q83pm0000gp/T/socketcluster/c04a5620-df42_d31702c4bd/b0 exited with code null and signal SIGINT
+    at Server.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/sc-broker-cluster/index.js:373:19)
+    at Server.emit (events.js:182:13)
+    at Server.EventEmitter.emit (domain.js:442:20)
+    at ChildProcess.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/sc-broker/index.js:129:10)
+    at ChildProcess.emit (events.js:182:13)
+    at ChildProcess.EventEmitter.emit (domain.js:442:20)
+    at Process.ChildProcess._handle.onexit (internal/child_process.js:240:12)
+[ERR] 2019-02-18 09:28:33 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:37:58 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:37:58 | Initializing controller
+[inf] 2019-02-18 09:37:58 | Loading controller
+[inf] 2019-02-18 09:37:58 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:37:58 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:37:58 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:37:58 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:37:58 | App started...
+[dbg] 2019-02-18 09:37:58 | Initiating cache...
+[dbg] 2019-02-18 09:37:58 | Initiating storage...
+[inf] 2019-02-18 09:37:58 | App connected to Cache server
+[inf] 2019-02-18 09:37:59 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-18 09:37:59 | Loading module - accounts
+[dbg] 2019-02-18 09:37:59 | Loading module - blocks
+[dbg] 2019-02-18 09:37:59 | Loading module - dapps
+[dbg] 2019-02-18 09:37:59 | Loading module - delegates
+[dbg] 2019-02-18 09:37:59 | Loading module - rounds
+[dbg] 2019-02-18 09:37:59 | Loading module - loader
+[dbg] 2019-02-18 09:37:59 | Loading module - multisignatures
+[dbg] 2019-02-18 09:37:59 | Loading module - peers
+[dbg] 2019-02-18 09:37:59 | Loading module - system
+[dbg] 2019-02-18 09:37:59 | Loading module - signatures
+[dbg] 2019-02-18 09:37:59 | Loading module - transactions
+[dbg] 2019-02-18 09:37:59 | Loading module - transport
+[inf] 2019-02-18 09:37:59 | Releasing enqueued broadcasts
+[inf] 2019-02-18 09:37:59 | Queue empty
+[inf] 2019-02-18 09:37:59 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-18 09:37:59 | Modules ready and launched
+[inf] 2019-02-18 09:37:59 | Blocks 5546
+[inf] 2019-02-18 09:37:59 | Genesis block matched with database
+[inf] 2019-02-18 09:37:59 | Validating current block with height 5546
+[inf] 2019-02-18 09:37:59 | Loader->validateBlock Validating block 3483667001676026584 at height 5546
+[dbg] 2019-02-18 09:37:59 | {"id":"3483667001676026584","version":1,"timestamp":86124430,"height":5546,"previousBlock":"4835078647173180407","numberOfTransactions":0,"totalAmount":"0","totalFee":"0","reward":"500000000","payloadLength":0,"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","generatorPublicKey":"e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c","generatorId":"13227119536266737242L","blockSignature":"8fad50759397f164d19e33fb3220c3dcb0082c7b1ffc1a2676382e2fb202f7d92892225302ccf622ea3082aef2c594eccdb0e26e00f072adb81c0f28b77fee0c","confirmations":1,"transactions":[],"totalForged":"500000000"}
+[dbg] 2019-02-18 09:37:59 | Loader->validateBlock Setting temporarily last block to height 5545.
+[inf] 2019-02-18 09:37:59 | Verify->verifyBlock succeeded for block 3483667001676026584 at height 5546.
+[dbg] 2019-02-18 09:37:59 | Loader->validateBlock Reverting last block to height 5546.
+[inf] 2019-02-18 09:37:59 | Loader->validateBlock Validating block succeed for 3483667001676026584 at height 5546.
+[inf] 2019-02-18 09:37:59 | Finished validating the chain. You are at height 5546.
+[inf] 2019-02-18 09:37:59 | Blockchain ready
+[inf] 2019-02-18 09:37:59 | Loading 101 delegates using encrypted passphrases from config
+[dbg] 2019-02-18 09:37:59 | Processing seed peer: 127.0.0.1:5000
+[dbg] 2019-02-18 09:37:59 | Rejecting unacceptable peer - 127.0.0.1:5000
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 8273455169423958419L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 12254605294831056546L
+[inf] 2019-02-18 09:37:59 | Imported peers from database - {"count":0}
+[dbg] 2019-02-18 09:37:59 | Listing peers - {"attempt":"matched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 14018336151296112016L
+[dbg] 2019-02-18 09:37:59 | Listing peers - {"attempt":"unmatched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[dbg] 2019-02-18 09:37:59 | Broadhash consensus: 0 %
+[dbg] 2019-02-18 09:37:59 | Listing peers - {"attempt":"matched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[inf] 2019-02-18 09:37:59 | Starting sync
+[dbg] 2019-02-18 09:37:59 | Establishing broadhash consensus before sync: 0 %
+[ERR] 2019-02-18 09:37:59 | Failed to get random peer from network
+[dbg] 2019-02-18 09:37:59 | Listing peers - {"attempt":"unmatched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 2003981962043442425L
+[ERR] 2019-02-18 09:37:59 | Failed to get random peer from network
+[ERR] 2019-02-18 09:37:59 | Failed to get random peer from network
+[ERR] 2019-02-18 09:37:59 | Failed to get random peer from network
+[ERR] 2019-02-18 09:37:59 | Discovering new peers failed - No acceptable peers found
+[ERR] 2019-02-18 09:37:59 | Failed to get random peer from network
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 15685993315437640088L
+[dbg] 2019-02-18 09:37:59 | System headers - {"os":"darwin18.2.0","version":"1.5.0-alpha.2","wsPort":5000,"httpPort":4000,"height":5546,"nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","minVersion":"1.0.0","protocolVersion":"1.0","nonce":"vunc6HZKyC8IaKO4"}
+[dbg] 2019-02-18 09:37:59 | Transport->broadcastHeaders: No peers found
+[dbg] 2019-02-18 09:37:59 | Establishing broadhash consensus after sync: 0 %
+[inf] 2019-02-18 09:37:59 | Finished sync
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 13796903232533379929L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 10395427086746342233L
+[ERR] 2019-02-18 09:37:59 | Unconfirmed transactions loader - Failed to find enough good peers
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 10555862272344793163L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 9090572627256317041L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 6147291942291731858L
+[ERR] 2019-02-18 09:37:59 | Signatures loader - Failed to find enough good peers
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 1478505779553195737L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 3485190523478756562L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 7749538982696555450L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 11858068254874463650L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 11959294293312794939L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 6572481065061292413L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 537318935439898807L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 11194005483892021001L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 12689367895996075612L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 12937672077630275226L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 6719024567117648644L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 2185933284430885504L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 263761216888896549L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 6996737717246838071L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 17769700073017685523L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 18101328368221611426L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 3654804916322462690L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 6214967903930344618L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 6700417780469657062L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 17416795040643460696L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 7806545753492919148L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 16807489144327319524L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 11009807324631489084L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 5380829552614149409L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 18181157191600196376L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 15279149762694772854L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 15867701141673224975L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 13787002016364430124L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 5312766513260345125L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 11613981515632820140L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 4351572711388220555L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 11595026565287740051L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 3466073897179860882L
+[inf] 2019-02-18 09:37:59 | Forging enabled on account: 4331258378288911563L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 9928719876370886655L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 11805364634236927749L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 9703017731198160198L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 162664226572374905L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 14754807200586084685L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 6596445655213033387L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 2581762640681118072L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 15064680481049926459L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 6253486079725348800L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 7838076639178338424L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 9824483707960713406L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 12144255005482188703L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 2037513790649430470L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 2371768942272884594L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 309766985700168161L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 17110047919889272525L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 17271297386479765505L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 11229203525038722103L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 1998811414849260567L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 1039287838469525702L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 9829702676947904862L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 11776976371460504977L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 10718602563400390049L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 3978875557882351502L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 15196907279410793719L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 14846615469478045551L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 9528507096611161860L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 5225235021585670513L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 8579664070066716758L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 13607583239938732846L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 2460251951231579923L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 1081724521551096934L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 11004588490103196952L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 3038510178697972178L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 11506830473925742632L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 1156554003019098747L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 15675505605575781355L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 1330932780504881464L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 2393437289429474816L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 9373453086736696113L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 13996264772258038665L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 15441829200899900957L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 9617151563281131501L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 11231201826468807624L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 8696372244926065755L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 13227119536266737242L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 5179180534922237219L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 15357346183081898956L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 5728878764625100394L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 15692920659979620367L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 9950029393097476480L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 13047943150548380336L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 677098303101863197L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 68059329122227204L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 15300035861842713585L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 10881167371402274308L
+[inf] 2019-02-18 09:38:00 | Forging enabled on account: 6726252519465624456L
+[dbg] 2019-02-18 09:38:00 | Transaction pool size: 0
+[dbg] 2019-02-18 09:38:00 | Updating delegate list cache for round - 55
+[inf] 2019-02-18 09:38:00 | Broadhash consensus before forging a block: 0 %
+[inf] 2019-02-18 09:38:00 | Verify->verifyBlock succeeded for block 6934310455948805665 at height 5547.
+[dbg] 2019-02-18 09:38:00 | Begin broadcast - {"api":"postBlock","data":{"block":{"version":1,"reward":500000000,"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","timestamp":86373480,"previousBlock":"3483667001676026584","generatorPublicKey":"68680ca0bcd4676489976837edeac305c34f652e970386013ef26e67589a2516","blockSignature":"2ea68f9bcac87ebeb02d140a58e891a6a1772dc3e593e17174878aaa10d7aa0101b205ae9a71bdfab801306b3cd1cf5a825c8c8e981e6c77f13bdf14d6763507","height":5547,"id":"6934310455948805665","relays":1}},"immediate":true}
+[dbg] 2019-02-18 09:38:00 | End broadcast
+[dbg] 2019-02-18 09:38:00 | Using delegate list from the cache for round - 55
+[dbg] 2019-02-18 09:38:00 | Cache - chain afterSave | Status: true
+[dbg] 2019-02-18 09:38:00 | Block applied correctly with 0 transactions
+[dbg] 2019-02-18 09:38:00 | Performing forward tick
+[dbg] 2019-02-18 09:38:00 | Cache - onNewBlock | Status: true
+[dbg] 2019-02-18 09:38:00 | Cache - removeByPattern /api/blocks* | Status: true
+[dbg] 2019-02-18 09:38:00 | Cache - removeByPattern /api/transactions* | Status: true
+[dbg] 2019-02-18 09:38:00 | Cache - Keys with patterns: /api/blocks*,/api/transactions* cleared from cache on new Block
+[dbg] 2019-02-18 09:38:00 | System headers - {"os":"darwin18.2.0","version":"1.5.0-alpha.2","wsPort":5000,"httpPort":4000,"height":5547,"nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","minVersion":"1.0.0","protocolVersion":"1.0","nonce":"vunc6HZKyC8IaKO4"}
+[dbg] 2019-02-18 09:38:00 | Transport->broadcastHeaders: No peers found
+[inf] 2019-02-18 09:38:00 | Forged new block id: 6934310455948805665 height: 5547 round: 55 slot: 8637348 reward: 500000000
+[dbg] 2019-02-18 09:38:01 | Transaction pool size: 0
+[dbg] 2019-02-18 09:38:01 | Block already forged for the current slot
+[inf] 2019-02-18 09:38:01 | Cleanup controller...
+[inf] 2019-02-18 09:38:01 | Cleaning chain...
+[ERR] 2019-02-18 09:38:01 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:41:26 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:41:26 | Initializing controller
+[inf] 2019-02-18 09:41:26 | Loading controller
+[inf] 2019-02-18 09:41:26 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:41:26 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:41:26 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:41:26 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:41:26 | App started...
+[dbg] 2019-02-18 09:41:26 | Initiating cache...
+[dbg] 2019-02-18 09:41:26 | Initiating storage...
+[inf] 2019-02-18 09:41:26 | App connected to Cache server
+[inf] 2019-02-18 09:41:26 | Cleanup controller...
+[inf] 2019-02-18 09:41:26 | Cleaning chain...
+[ERR] 2019-02-18 09:41:26 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 09:41:26 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 09:41:26 | Cleaning chain...
+[inf] 2019-02-18 09:41:26 | Cleaned up successfully
+[ERR] 2019-02-18 09:41:26 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:45:44 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:45:44 | Initializing controller
+[inf] 2019-02-18 09:45:44 | Loading controller
+[inf] 2019-02-18 09:45:44 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:45:44 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:45:44 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:45:44 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:45:44 | App started...
+[dbg] 2019-02-18 09:45:44 | Initiating cache...
+[dbg] 2019-02-18 09:45:44 | Initiating storage...
+[inf] 2019-02-18 09:45:44 | App connected to Cache server
+[inf] 2019-02-18 09:45:44 | Cleanup controller...
+[inf] 2019-02-18 09:45:44 | Cleaning chain...
+[ERR] 2019-02-18 09:45:44 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 09:45:44 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 09:45:44 | Cleaning chain...
+[inf] 2019-02-18 09:45:44 | Cleaned up successfully
+[ERR] 2019-02-18 09:45:44 | Caused error during cleanup - {}
+[inf] 2019-02-18 09:47:11 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 09:47:11 | Initializing controller
+[inf] 2019-02-18 09:47:11 | Loading controller
+[inf] 2019-02-18 09:47:11 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:47:11 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 09:47:11 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 09:47:11 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 09:47:11 | App started...
+[dbg] 2019-02-18 09:47:11 | Initiating cache...
+[dbg] 2019-02-18 09:47:11 | Initiating storage...
+[inf] 2019-02-18 09:47:11 | App connected to Cache server
+[inf] 2019-02-18 09:47:11 | Cleanup controller...
+[inf] 2019-02-18 09:47:11 | Cleaning chain...
+[ERR] 2019-02-18 09:47:11 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 09:47:11 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 09:47:11 | Cleaning chain...
+[inf] 2019-02-18 09:47:11 | Cleaned up successfully
+[ERR] 2019-02-18 09:47:11 | Caused error during cleanup - {}
+[inf] 2019-02-18 10:53:46 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 10:53:46 | Initializing controller
+[inf] 2019-02-18 10:53:46 | Loading controller
+[inf] 2019-02-18 10:53:46 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 10:53:46 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 10:53:46 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 10:53:46 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 10:53:46 | App started...
+[dbg] 2019-02-18 10:53:46 | Initiating cache...
+[dbg] 2019-02-18 10:53:46 | Initiating storage...
+[inf] 2019-02-18 10:53:46 | App connected to Cache server
+[inf] 2019-02-18 10:53:46 | Cleanup controller...
+[inf] 2019-02-18 10:53:46 | Cleaning chain...
+[ERR] 2019-02-18 10:53:46 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 10:53:46 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 10:53:46 | Cleaning chain...
+[inf] 2019-02-18 10:53:46 | Cleaned up successfully
+[ERR] 2019-02-18 10:53:46 | Caused error during cleanup - {}
+[inf] 2019-02-18 10:54:23 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 10:54:23 | Initializing controller
+[inf] 2019-02-18 10:54:23 | Loading controller
+[inf] 2019-02-18 10:54:23 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 10:54:23 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 10:54:23 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 10:54:23 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 10:54:23 | App started...
+[dbg] 2019-02-18 10:54:23 | Initiating cache...
+[dbg] 2019-02-18 10:54:23 | Initiating storage...
+[inf] 2019-02-18 10:54:23 | App connected to Cache server
+[inf] 2019-02-18 10:54:23 | Cleanup controller...
+[inf] 2019-02-18 10:54:23 | Cleaning chain...
+[ERR] 2019-02-18 10:54:23 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 10:54:23 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 10:54:23 | Cleaning chain...
+[inf] 2019-02-18 10:54:23 | Cleaned up successfully
+[ERR] 2019-02-18 10:54:23 | Caused error during cleanup - {}
+[inf] 2019-02-18 10:54:28 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 10:54:28 | Initializing controller
+[inf] 2019-02-18 10:54:28 | Loading controller
+[inf] 2019-02-18 10:54:28 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 10:54:28 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 10:54:28 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 10:54:28 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 10:54:28 | App started...
+[dbg] 2019-02-18 10:54:28 | Initiating cache...
+[dbg] 2019-02-18 10:54:28 | Initiating storage...
+[inf] 2019-02-18 10:54:29 | App connected to Cache server
+[inf] 2019-02-18 10:54:29 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-18 10:54:29 | Loading module - accounts
+[dbg] 2019-02-18 10:54:29 | Loading module - blocks
+[dbg] 2019-02-18 10:54:29 | Loading module - dapps
+[dbg] 2019-02-18 10:54:29 | Loading module - delegates
+[dbg] 2019-02-18 10:54:29 | Loading module - rounds
+[dbg] 2019-02-18 10:54:29 | Loading module - loader
+[dbg] 2019-02-18 10:54:29 | Loading module - multisignatures
+[dbg] 2019-02-18 10:54:29 | Loading module - peers
+[dbg] 2019-02-18 10:54:29 | Loading module - system
+[dbg] 2019-02-18 10:54:29 | Loading module - signatures
+[dbg] 2019-02-18 10:54:29 | Loading module - transactions
+[dbg] 2019-02-18 10:54:29 | Loading module - transport
+[inf] 2019-02-18 10:54:29 | Releasing enqueued broadcasts
+[inf] 2019-02-18 10:54:29 | Queue empty
+[inf] 2019-02-18 10:54:30 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-18 10:54:30 | Modules ready and launched
+[inf] 2019-02-18 10:54:30 | Blocks 5547
+[inf] 2019-02-18 10:54:30 | Genesis block matched with database
+[inf] 2019-02-18 10:54:30 | Validating current block with height 5547
+[inf] 2019-02-18 10:54:30 | Loader->validateBlock Validating block 6934310455948805665 at height 5547
+[dbg] 2019-02-18 10:54:30 | {"id":"6934310455948805665","version":1,"timestamp":86373480,"height":5547,"previousBlock":"3483667001676026584","numberOfTransactions":0,"totalAmount":"0","totalFee":"0","reward":"500000000","payloadLength":0,"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","generatorPublicKey":"68680ca0bcd4676489976837edeac305c34f652e970386013ef26e67589a2516","generatorId":"1330932780504881464L","blockSignature":"2ea68f9bcac87ebeb02d140a58e891a6a1772dc3e593e17174878aaa10d7aa0101b205ae9a71bdfab801306b3cd1cf5a825c8c8e981e6c77f13bdf14d6763507","confirmations":1,"transactions":[],"totalForged":"500000000"}
+[dbg] 2019-02-18 10:54:30 | Loader->validateBlock Setting temporarily last block to height 5546.
+[inf] 2019-02-18 10:54:30 | Verify->verifyBlock succeeded for block 6934310455948805665 at height 5547.
+[dbg] 2019-02-18 10:54:30 | Loader->validateBlock Reverting last block to height 5547.
+[inf] 2019-02-18 10:54:30 | Loader->validateBlock Validating block succeed for 6934310455948805665 at height 5547.
+[inf] 2019-02-18 10:54:30 | Finished validating the chain. You are at height 5547.
+[inf] 2019-02-18 10:54:30 | Blockchain ready
+[inf] 2019-02-18 10:54:30 | Loading 101 delegates using encrypted passphrases from config
+[dbg] 2019-02-18 10:54:30 | Processing seed peer: 127.0.0.1:5000
+[dbg] 2019-02-18 10:54:30 | Rejecting unacceptable peer - 127.0.0.1:5000
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 8273455169423958419L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 12254605294831056546L
+[inf] 2019-02-18 10:54:30 | Imported peers from database - {"count":0}
+[dbg] 2019-02-18 10:54:30 | Listing peers - {"attempt":"matched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[dbg] 2019-02-18 10:54:30 | Listing peers - {"attempt":"unmatched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[dbg] 2019-02-18 10:54:30 | Broadhash consensus: 0 %
+[dbg] 2019-02-18 10:54:30 | Listing peers - {"attempt":"matched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[inf] 2019-02-18 10:54:30 | Starting sync
+[dbg] 2019-02-18 10:54:30 | Establishing broadhash consensus before sync: 0 %
+[dbg] 2019-02-18 10:54:30 | Listing peers - {"attempt":"unmatched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[ERR] 2019-02-18 10:54:30 | Failed to get random peer from network
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 14018336151296112016L
+[ERR] 2019-02-18 10:54:30 | Failed to get random peer from network
+[ERR] 2019-02-18 10:54:30 | Failed to get random peer from network
+[ERR] 2019-02-18 10:54:30 | Discovering new peers failed - No acceptable peers found
+[ERR] 2019-02-18 10:54:30 | Failed to get random peer from network
+[ERR] 2019-02-18 10:54:30 | Failed to get random peer from network
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 2003981962043442425L
+[dbg] 2019-02-18 10:54:30 | System headers - {"os":"darwin18.2.0","version":"1.5.0-alpha.2","wsPort":5000,"httpPort":4000,"height":5547,"nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","minVersion":"1.0.0","protocolVersion":"1.0","nonce":"FfEQ8CH4Sny2qScO"}
+[dbg] 2019-02-18 10:54:30 | Transport->broadcastHeaders: No peers found
+[dbg] 2019-02-18 10:54:30 | Establishing broadhash consensus after sync: 0 %
+[inf] 2019-02-18 10:54:30 | Finished sync
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15685993315437640088L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 13796903232533379929L
+[ERR] 2019-02-18 10:54:30 | Unconfirmed transactions loader - Failed to find enough good peers
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 10395427086746342233L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 10555862272344793163L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9090572627256317041L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6147291942291731858L
+[ERR] 2019-02-18 10:54:30 | Signatures loader - Failed to find enough good peers
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 1478505779553195737L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 3485190523478756562L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 7749538982696555450L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11858068254874463650L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11959294293312794939L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6572481065061292413L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 537318935439898807L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11194005483892021001L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 12689367895996075612L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 12937672077630275226L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6719024567117648644L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 2185933284430885504L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 263761216888896549L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6996737717246838071L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 17769700073017685523L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 18101328368221611426L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 3654804916322462690L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6214967903930344618L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6700417780469657062L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 17416795040643460696L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 7806545753492919148L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 16807489144327319524L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11009807324631489084L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 5380829552614149409L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 18181157191600196376L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15279149762694772854L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15867701141673224975L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 13787002016364430124L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 5312766513260345125L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11613981515632820140L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 4351572711388220555L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11595026565287740051L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 3466073897179860882L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 4331258378288911563L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9928719876370886655L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11805364634236927749L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9703017731198160198L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 162664226572374905L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 14754807200586084685L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6596445655213033387L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 2581762640681118072L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15064680481049926459L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6253486079725348800L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 7838076639178338424L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9824483707960713406L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 12144255005482188703L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 2037513790649430470L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 2371768942272884594L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 309766985700168161L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 17110047919889272525L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 17271297386479765505L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11229203525038722103L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 1998811414849260567L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 1039287838469525702L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9829702676947904862L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11776976371460504977L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 10718602563400390049L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 3978875557882351502L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15196907279410793719L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 14846615469478045551L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9528507096611161860L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 5225235021585670513L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 8579664070066716758L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 13607583239938732846L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 2460251951231579923L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 1081724521551096934L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11004588490103196952L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 3038510178697972178L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11506830473925742632L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 1156554003019098747L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15675505605575781355L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 1330932780504881464L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 2393437289429474816L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9373453086736696113L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 13996264772258038665L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15441829200899900957L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9617151563281131501L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 11231201826468807624L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 8696372244926065755L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 13227119536266737242L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 5179180534922237219L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15357346183081898956L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 5728878764625100394L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15692920659979620367L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 9950029393097476480L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 13047943150548380336L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 677098303101863197L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 68059329122227204L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 15300035861842713585L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 10881167371402274308L
+[inf] 2019-02-18 10:54:30 | Forging enabled on account: 6726252519465624456L
+[dbg] 2019-02-18 10:54:30 | Transaction pool size: 0
+[dbg] 2019-02-18 10:54:30 | Updating delegate list cache for round - 55
+[inf] 2019-02-18 10:54:30 | Broadhash consensus before forging a block: 0 %
+[inf] 2019-02-18 10:54:30 | Verify->verifyBlock succeeded for block 12625592420755510307 at height 5548.
+[dbg] 2019-02-18 10:54:30 | Begin broadcast - {"api":"postBlock","data":{"block":{"version":1,"reward":500000000,"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","timestamp":86378070,"previousBlock":"6934310455948805665","generatorPublicKey":"ba7acc3bcbd47dbf13d744e57f696341c260ce2ea8f332919f18cb543b1f3fc7","blockSignature":"41d06c2908b698670fb12c97d6ace2c9784625901f9c727506d2f9da75fa798a979a658751ed87361599572799f050ac0f872cb1680e39dd3687454b31359d05","height":5548,"id":"12625592420755510307","relays":1}},"immediate":true}
+[dbg] 2019-02-18 10:54:30 | End broadcast
+[dbg] 2019-02-18 10:54:30 | Using delegate list from the cache for round - 55
+[dbg] 2019-02-18 10:54:30 | Cache - chain afterSave | Status: true
+[dbg] 2019-02-18 10:54:30 | Block applied correctly with 0 transactions
+[dbg] 2019-02-18 10:54:30 | Performing forward tick
+[dbg] 2019-02-18 10:54:30 | Cache - onNewBlock | Status: true
+[dbg] 2019-02-18 10:54:30 | Cache - removeByPattern /api/blocks* | Status: true
+[dbg] 2019-02-18 10:54:30 | Cache - removeByPattern /api/transactions* | Status: true
+[dbg] 2019-02-18 10:54:30 | Cache - Keys with patterns: /api/blocks*,/api/transactions* cleared from cache on new Block
+[dbg] 2019-02-18 10:54:30 | System headers - {"os":"darwin18.2.0","version":"1.5.0-alpha.2","wsPort":5000,"httpPort":4000,"height":5548,"nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","minVersion":"1.0.0","protocolVersion":"1.0","nonce":"FfEQ8CH4Sny2qScO"}
+[dbg] 2019-02-18 10:54:30 | Transport->broadcastHeaders: No peers found
+[inf] 2019-02-18 10:54:30 | Forged new block id: 12625592420755510307 height: 5548 round: 55 slot: 8637807 reward: 500000000
+[inf] 2019-02-18 10:54:30 | Cleanup controller...
+[inf] 2019-02-18 10:54:30 | Cleaning chain...
+[ERR] 2019-02-18 10:54:30 | Caused error during cleanup - {}
+[inf] 2019-02-18 13:31:53 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 13:31:53 | Initializing controller
+[inf] 2019-02-18 13:31:53 | Loading controller
+[inf] 2019-02-18 13:31:53 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:31:53 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:31:53 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 13:31:53 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 13:31:53 | App started...
+[dbg] 2019-02-18 13:31:53 | Initiating cache...
+[dbg] 2019-02-18 13:31:53 | Initiating storage...
+[inf] 2019-02-18 13:31:53 | App connected to Cache server
+[inf] 2019-02-18 13:31:53 | Cleanup controller...
+[inf] 2019-02-18 13:31:53 | Cleaning chain...
+[ERR] 2019-02-18 13:31:53 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 13:31:53 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 13:31:53 | Cleaning chain...
+[inf] 2019-02-18 13:31:53 | Cleaned up successfully
+[ERR] 2019-02-18 13:31:53 | Caused error during cleanup - {}
+[inf] 2019-02-18 13:34:13 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 13:34:13 | Initializing controller
+[inf] 2019-02-18 13:34:13 | Loading controller
+[inf] 2019-02-18 13:34:13 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:34:13 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:34:13 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 13:34:13 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 13:34:13 | App started...
+[dbg] 2019-02-18 13:34:13 | Initiating cache...
+[dbg] 2019-02-18 13:34:13 | Initiating storage...
+[inf] 2019-02-18 13:34:13 | App connected to Cache server
+[inf] 2019-02-18 13:34:13 | Cleanup controller...
+[inf] 2019-02-18 13:34:13 | Cleaning chain...
+[ERR] 2019-02-18 13:34:13 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 13:34:13 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 13:34:13 | Cleaning chain...
+[inf] 2019-02-18 13:34:13 | Cleaned up successfully
+[ERR] 2019-02-18 13:34:13 | Caused error during cleanup - {}
+[inf] 2019-02-18 13:36:53 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 13:36:53 | Initializing controller
+[inf] 2019-02-18 13:36:53 | Loading controller
+[inf] 2019-02-18 13:36:53 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:36:53 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:36:53 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 13:36:53 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 13:36:53 | App started...
+[dbg] 2019-02-18 13:36:53 | Initiating cache...
+[dbg] 2019-02-18 13:36:53 | Initiating storage...
+[inf] 2019-02-18 13:36:53 | App connected to Cache server
+[inf] 2019-02-18 13:36:53 | Cleanup controller...
+[inf] 2019-02-18 13:36:53 | Cleaning chain...
+[ERR] 2019-02-18 13:36:53 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 13:36:53 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 13:36:53 | Cleaning chain...
+[inf] 2019-02-18 13:36:53 | Cleaned up successfully
+[ERR] 2019-02-18 13:36:53 | Caused error during cleanup - {}
+[inf] 2019-02-18 13:38:00 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 13:38:00 | Initializing controller
+[inf] 2019-02-18 13:38:00 | Loading controller
+[inf] 2019-02-18 13:38:00 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:38:00 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:38:00 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 13:38:00 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 13:38:00 | App started...
+[dbg] 2019-02-18 13:38:00 | Initiating cache...
+[dbg] 2019-02-18 13:38:00 | Initiating storage...
+[inf] 2019-02-18 13:38:00 | App connected to Cache server
+[inf] 2019-02-18 13:38:00 | Cleanup controller...
+[inf] 2019-02-18 13:38:00 | Cleaning chain...
+[ERR] 2019-02-18 13:38:00 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 13:38:00 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 13:38:00 | Cleaning chain...
+[inf] 2019-02-18 13:38:00 | Cleaned up successfully
+[ERR] 2019-02-18 13:38:00 | Caused error during cleanup - {}
+[inf] 2019-02-18 13:38:23 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 13:38:23 | Initializing controller
+[inf] 2019-02-18 13:38:23 | Loading controller
+[inf] 2019-02-18 13:38:23 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:38:23 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:38:23 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 13:38:23 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 13:38:23 | App started...
+[dbg] 2019-02-18 13:38:23 | Initiating cache...
+[dbg] 2019-02-18 13:38:23 | Initiating storage...
+[inf] 2019-02-18 13:38:23 | App connected to Cache server
+[inf] 2019-02-18 13:38:23 | Cleanup controller...
+[inf] 2019-02-18 13:38:23 | Cleaning chain...
+[ERR] 2019-02-18 13:38:23 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 13:38:23 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 13:38:23 | Cleaning chain...
+[inf] 2019-02-18 13:38:23 | Cleaned up successfully
+[ERR] 2019-02-18 13:38:23 | Caused error during cleanup - {}
+[inf] 2019-02-18 13:40:36 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 13:40:36 | Initializing controller
+[inf] 2019-02-18 13:40:36 | Loading controller
+[inf] 2019-02-18 13:40:36 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:40:36 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:40:36 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 13:40:36 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 13:40:36 | App started...
+[dbg] 2019-02-18 13:40:36 | Initiating cache...
+[dbg] 2019-02-18 13:40:36 | Initiating storage...
+[inf] 2019-02-18 13:40:36 | App connected to Cache server
+[inf] 2019-02-18 13:40:36 | Cleanup controller...
+[inf] 2019-02-18 13:40:36 | Cleaning chain...
+[ERR] 2019-02-18 13:40:36 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 13:40:36 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 13:40:36 | Cleaning chain...
+[inf] 2019-02-18 13:40:36 | Cleaned up successfully
+[ERR] 2019-02-18 13:40:36 | Caused error during cleanup - {}
+[inf] 2019-02-18 13:42:16 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 13:42:16 | Initializing controller
+[inf] 2019-02-18 13:42:16 | Loading controller
+[inf] 2019-02-18 13:42:16 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:42:16 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:42:16 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 13:42:16 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 13:42:16 | App started...
+[dbg] 2019-02-18 13:42:16 | Initiating cache...
+[dbg] 2019-02-18 13:42:16 | Initiating storage...
+[inf] 2019-02-18 13:42:16 | App connected to Cache server
+[inf] 2019-02-18 13:42:16 | Cleanup controller...
+[inf] 2019-02-18 13:42:16 | Cleaning chain...
+[ERR] 2019-02-18 13:42:16 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 13:42:16 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 13:42:16 | Cleaning chain...
+[inf] 2019-02-18 13:42:16 | Cleaned up successfully
+[ERR] 2019-02-18 13:42:16 | Caused error during cleanup - {}
+[inf] 2019-02-18 13:42:58 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 13:42:58 | Initializing controller
+[inf] 2019-02-18 13:42:58 | Loading controller
+[inf] 2019-02-18 13:42:58 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:42:58 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 13:42:58 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 13:42:58 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 13:42:58 | App started...
+[dbg] 2019-02-18 13:42:58 | Initiating cache...
+[dbg] 2019-02-18 13:42:58 | Initiating storage...
+[inf] 2019-02-18 13:42:59 | App connected to Cache server
+[inf] 2019-02-18 13:42:59 | Cleanup controller...
+[inf] 2019-02-18 13:42:59 | Cleaning chain...
+[ERR] 2019-02-18 13:42:59 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 13:42:59 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 13:42:59 | Cleaning chain...
+[inf] 2019-02-18 13:42:59 | Cleaned up successfully
+[ERR] 2019-02-18 13:42:59 | Caused error during cleanup - {}
+[inf] 2019-02-18 14:34:18 | Starting the app - alphanet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 14:34:18 | Initializing controller
+[inf] 2019-02-18 14:34:18 | Loading controller
+[inf] 2019-02-18 14:34:18 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 14:34:18 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 14:34:18 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 14:34:18 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 14:34:18 | App started...
+[dbg] 2019-02-18 14:34:18 | Initiating cache...
+[dbg] 2019-02-18 14:34:18 | Initiating storage...
+[inf] 2019-02-18 14:34:19 | App connected to Cache server
+[inf] 2019-02-18 14:34:19 | Cleanup controller...
+[inf] 2019-02-18 14:34:19 | Cleaning chain...
+[ERR] 2019-02-18 14:34:19 | error: database "lisk_alpha" does not exist
+    at Connection.parseE (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:554:11)
+    at Connection.parseMessage (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:379:19)
+    at Socket.<anonymous> (/Users/michiel.mulders/lisk/lisk/node_modules/pg/lib/connection.js:119:22)
+    at Socket.emit (events.js:182:13)
+    at Socket.EventEmitter.emit (domain.js:442:20)
+    at addChunk (_stream_readable.js:283:12)
+    at readableAddChunk (_stream_readable.js:264:11)
+    at Socket.Readable.push (_stream_readable.js:219:10)
+    at TCP.onStreamRead [as onread] (internal/stream_base_commons.js:94:17)
+[FTL] 2019-02-18 14:34:19 | error: database "lisk_alpha" does not exist
+[inf] 2019-02-18 14:34:19 | Cleaning chain...
+[inf] 2019-02-18 14:34:19 | Cleaned up successfully
+[ERR] 2019-02-18 14:34:19 | Caused error during cleanup - {}
+[inf] 2019-02-18 14:34:50 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-18 14:34:50 | Initializing controller
+[inf] 2019-02-18 14:34:50 | Loading controller
+[inf] 2019-02-18 14:34:50 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 14:34:50 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-18 14:34:50 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-18 14:34:50 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-18 14:34:50 | App started...
+[dbg] 2019-02-18 14:34:50 | Initiating cache...
+[dbg] 2019-02-18 14:34:50 | Initiating storage...
+[inf] 2019-02-18 14:34:50 | App connected to Cache server
+[inf] 2019-02-18 14:34:51 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-18 14:34:51 | Loading module - accounts
+[dbg] 2019-02-18 14:34:51 | Loading module - blocks
+[dbg] 2019-02-18 14:34:51 | Loading module - dapps
+[dbg] 2019-02-18 14:34:51 | Loading module - delegates
+[dbg] 2019-02-18 14:34:51 | Loading module - rounds
+[dbg] 2019-02-18 14:34:51 | Loading module - loader
+[dbg] 2019-02-18 14:34:51 | Loading module - multisignatures
+[dbg] 2019-02-18 14:34:51 | Loading module - peers
+[dbg] 2019-02-18 14:34:51 | Loading module - system
+[dbg] 2019-02-18 14:34:51 | Loading module - signatures
+[dbg] 2019-02-18 14:34:51 | Loading module - transactions
+[dbg] 2019-02-18 14:34:51 | Loading module - transport
+[inf] 2019-02-18 14:34:51 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:34:51 | Queue empty
+[inf] 2019-02-18 14:34:51 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-18 14:34:51 | Modules ready and launched
+[inf] 2019-02-18 14:34:51 | Blocks 5548
+[inf] 2019-02-18 14:34:51 | Genesis block matched with database
+[inf] 2019-02-18 14:34:51 | Validating current block with height 5548
+[inf] 2019-02-18 14:34:51 | Loader->validateBlock Validating block 12625592420755510307 at height 5548
+[dbg] 2019-02-18 14:34:51 | {"id":"12625592420755510307","version":1,"timestamp":86378070,"height":5548,"previousBlock":"6934310455948805665","numberOfTransactions":0,"totalAmount":"0","totalFee":"0","reward":"500000000","payloadLength":0,"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","generatorPublicKey":"ba7acc3bcbd47dbf13d744e57f696341c260ce2ea8f332919f18cb543b1f3fc7","generatorId":"5312766513260345125L","blockSignature":"41d06c2908b698670fb12c97d6ace2c9784625901f9c727506d2f9da75fa798a979a658751ed87361599572799f050ac0f872cb1680e39dd3687454b31359d05","confirmations":1,"transactions":[],"totalForged":"500000000"}
+[dbg] 2019-02-18 14:34:51 | Loader->validateBlock Setting temporarily last block to height 5547.
+[FTL] 2019-02-18 14:34:51 | Domain blocks - {"message":"EPOCH_TIME.getTime is not a function","stack":"TypeError: EPOCH_TIME.getTime is not a function\n    at getEpochTime (/Users/michiel.mulders/lisk/lisk/framework/src/modules/chain/helpers/slots.js:41:39)\n    at Object.getTime (/Users/michiel.mulders/lisk/lisk/framework/src/modules/chain/helpers/slots.js:55:10)\n    at Object.getSlotNumber (/Users/michiel.mulders/lisk/lisk/framework/src/modules/chain/helpers/slots.js:82:21)\n    at Object.__private.verifyBlockSlot (/Users/michiel.mulders/lisk/lisk/framework/src/modules/chain/modules/blocks/verify.js:396:27)\n    at Verify.verifyBlock (/Users/michiel.mulders/lisk/lisk/framework/src/modules/chain/modules/blocks/verify.js:518:21)\n    at Immediate.modules.blocks.utils.loadBlockByHeight (/Users/michiel.mulders/lisk/lisk/framework/src/modules/chain/modules/loader.js:599:41)\n    at runCallback (timers.js:706:11)\n    at tryOnImmediate (timers.js:676:5)\n    at processImmediate (timers.js:658:5)\n    at process.topLevelDomainCallback (domain.js:121:23)"}
+[inf] 2019-02-18 14:34:56 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:34:56 | Queue empty
+[inf] 2019-02-18 14:35:01 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:01 | Queue empty
+[inf] 2019-02-18 14:35:06 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:06 | Queue empty
+[inf] 2019-02-18 14:35:11 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:11 | Queue empty
+[inf] 2019-02-18 14:35:16 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:16 | Queue empty
+[inf] 2019-02-18 14:35:21 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:21 | Queue empty
+[inf] 2019-02-18 14:35:26 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:26 | Queue empty
+[inf] 2019-02-18 14:35:31 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:31 | Queue empty
+[inf] 2019-02-18 14:35:36 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:36 | Queue empty
+[inf] 2019-02-18 14:35:41 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:41 | Queue empty
+[inf] 2019-02-18 14:35:46 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:46 | Queue empty
+[inf] 2019-02-18 14:35:51 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:51 | Queue empty
+[inf] 2019-02-18 14:35:56 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:35:56 | Queue empty
+[inf] 2019-02-18 14:36:01 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:01 | Queue empty
+[inf] 2019-02-18 14:36:06 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:06 | Queue empty
+[inf] 2019-02-18 14:36:11 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:11 | Queue empty
+[inf] 2019-02-18 14:36:16 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:16 | Queue empty
+[inf] 2019-02-18 14:36:21 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:21 | Queue empty
+[inf] 2019-02-18 14:36:26 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:26 | Queue empty
+[inf] 2019-02-18 14:36:31 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:31 | Queue empty
+[inf] 2019-02-18 14:36:36 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:36 | Queue empty
+[inf] 2019-02-18 14:36:41 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:41 | Queue empty
+[inf] 2019-02-18 14:36:46 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:46 | Queue empty
+[inf] 2019-02-18 14:36:51 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:51 | Queue empty
+[inf] 2019-02-18 14:36:56 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:36:56 | Queue empty
+[inf] 2019-02-18 14:37:01 | Releasing enqueued broadcasts
+[inf] 2019-02-18 14:37:01 | Queue empty
+[inf] 2019-02-18 14:37:04 | Cleanup controller...
+[inf] 2019-02-18 14:37:04 | Cleaning chain...
+[ERR] 2019-02-18 14:37:04 | Caused error during cleanup - {}

@@ -67,7 +67,7 @@ module.exports = {
 		MAX_LENGTH: 64,
 	},
 	BLOCK_RECEIPT_TIMEOUT: 20, // 2 blocks
-	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
+	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	FEES: {
 		SEND: '10000000',
 		VOTE: '100000000',
