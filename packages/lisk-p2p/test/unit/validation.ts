@@ -231,7 +231,12 @@ describe('response handlers', () => {
 				peer.wsPort = +peer.wsPort;
 				peer.height = +peer.height;
 				peer.isDiscoveredPeer = true;
-				peer.options = peer;
+				peer.options = {
+					broadhash: peer.broadhash,
+					httpPort: peer.httpPort,
+					nonce: peer.nonce,
+					...peer.options
+				};
 				delete peer.ip;
 
 				return peer;
