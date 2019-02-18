@@ -177,6 +177,7 @@ export const verifyMultiSignatures = (
 		errors.length === 1 &&
 		errors[0] instanceof TransactionPendingError
 	) {
+
 		return {
 			status: MultisignatureStatus.PENDING,
 			errors,

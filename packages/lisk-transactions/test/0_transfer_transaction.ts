@@ -49,7 +49,9 @@ describe('Transfer transaction class', () => {
 		recipient = validTransferAccount[1];
 		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
-		storeAccountGetOrDefaultStub = sandbox.stub(store.account, 'getOrDefault').returns(recipient);
+		storeAccountGetOrDefaultStub = sandbox
+			.stub(store.account, 'getOrDefault')
+			.returns(recipient);
 		storeAccountSetStub = sandbox.stub(store.account, 'set');
 	});
 
@@ -104,7 +106,7 @@ describe('Transfer transaction class', () => {
 	describe('#prepare', async () => {
 		it('should call state store', async () => {
 			await validSelfTransferTestTransaction.prepare(store);
-			expect(storeAccountCacheStub).to.have.been.calledOnceWithExactly([
+			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
 				{ address: validSelfTransferTestTransaction.senderId },
 				{ address: validSelfTransferTestTransaction.recipientId },
 			]);
