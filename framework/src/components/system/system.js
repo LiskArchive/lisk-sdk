@@ -18,8 +18,6 @@ const os = require('os');
 const crypto = require('crypto');
 const semver = require('semver');
 
-let self;
-
 /**
  * Main system methods. Initializes library with scope content and headers:
  * - os
@@ -56,8 +54,6 @@ class System {
 			broadhash: config.nethash,
 			nonce: config.nonce,
 		};
-
-		self = this;
 	}
 
 	/**
@@ -131,7 +127,7 @@ class System {
 		)
 			.then(blocks => {
 				if (blocks.length <= 1) {
-					self.headers.broadhash = self.headers.nethash;
+					this.headers.broadhash = this.headers.nethash;
 					return setImmediate(cb);
 				}
 				this.headers.height = blocks[0].height;
@@ -141,7 +137,7 @@ class System {
 					.update(seed, 'utf8')
 					.digest()
 					.toString('hex');
-				self.headers.broadhash = newBroadhash;
+				this.headers.broadhash = newBroadhash;
 				this.logger.debug('System headers', this.headers);
 				return setImmediate(cb);
 			})
