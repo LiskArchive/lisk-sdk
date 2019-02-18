@@ -43,6 +43,7 @@ import {
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PPeerSelectionFunctions,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -117,7 +118,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
-	public constructor(config: P2PConfig) {
+	public constructor(config: P2PConfig, peerSelectionFunction?: P2PPeerSelectionFunctions) {
 		super();
 		this._config = config;
 		this._isActive = false;
@@ -200,7 +201,8 @@ export class P2P extends EventEmitter {
 		this._peerPool = new PeerPool({
 			connectTimeout: this._config.connectTimeout,
 			ackTimeout: this._config.ackTimeout,
-		});
+		}, peerSelectionFunction);
+
 		this._bindHandlersToPeerPool(this._peerPool);
 
 		this._nodeInfo = config.nodeInfo;
