@@ -56,7 +56,7 @@ module.exports = {
 			FEES: {
 				type: 'object',
 				schema: {
-					$ref: '#fees',
+					$ref: '#/constants/fees',
 				},
 			},
 			MAX_PAYLOAD_LENGTH: {
@@ -86,7 +86,7 @@ module.exports = {
 			MULTISIG_CONSTRAINTS: {
 				type: 'object',
 				schema: {
-					$ref: '#multisig',
+					$ref: '#/constants/multisig',
 				},
 			},
 			NETHASHES: {
@@ -103,7 +103,7 @@ module.exports = {
 			REWARDS: {
 				type: 'object',
 				schema: {
-					$ref: '#rewards',
+					$ref: '#/constants/rewards',
 				},
 			},
 			TOTAL_AMOUNT: {
@@ -122,7 +122,7 @@ module.exports = {
 	},
 
 	fees: {
-		$id: '#fees',
+		$id: '#/constants/fees',
 		type: 'object',
 		required: [
 			'SEND',
@@ -171,33 +171,33 @@ module.exports = {
 	},
 
 	multisig: {
-		$id: '#multisig',
+		$id: '#/constants/multisig',
 		type: 'object',
 		required: ['MIN', 'LIFETIME', 'KEYSGROUP'],
 		properties: {
 			MIN: {
 				type: 'object',
 				schema: {
-					$ref: '#minConstraints',
+					$ref: '#/constants/multisig/min',
 				},
 			},
 			LIFETIME: {
 				type: 'object',
 				schema: {
-					$ref: '#lifetimeConstraints',
+					$ref: '#/constants/multisig/lifetime',
 				},
 			},
 			KEYSGROUP: {
 				type: 'object',
 				schema: {
-					$ref: '#keysgroupConstraints',
+					$ref: '#/constants/multisig/keysgroup',
 				},
 			},
 		},
 	},
 
 	minConstraints: {
-		$id: '#minConstraints',
+		$id: '#/constants/multisig/min',
 		type: 'object',
 		required: ['MINIMUM', 'MAXIMUM'],
 		properties: {
@@ -215,7 +215,7 @@ module.exports = {
 	},
 
 	lifetimeConstraints: {
-		$id: '#lifetimeConstraints',
+		$id: '#/constants/multisig/lifetime',
 		type: 'object',
 		required: ['MINIMUM', 'MAXIMUM'],
 		properties: {
@@ -229,7 +229,7 @@ module.exports = {
 	},
 
 	keysgroupConstraints: {
-		$id: '#keysgroupConstraints',
+		$id: '#/constants/multisig/keysgroup',
 		type: 'object',
 		required: ['MIN_ITEMS', 'MAX_ITEMS'],
 		properties: {
@@ -243,7 +243,7 @@ module.exports = {
 	},
 
 	rewards: {
-		$id: '#rewards',
+		$id: '#/constants/rewards',
 		type: 'object',
 		required: ['MILESTONES', 'OFFSET', 'DISTANCE'],
 		properties: {
