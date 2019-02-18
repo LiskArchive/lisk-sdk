@@ -167,7 +167,7 @@ describe('Multisignature transaction class', () => {
 	describe('#prepare', async () => {
 		it('should call state store', async () => {
 			await validTestTransaction.prepare(store);
-			expect(storeAccountCacheStub).to.have.been.calledOnceWithExactly([
+			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
 				{ address: validTestTransaction.senderId },
 			]);
 		});
@@ -318,6 +318,18 @@ describe('Multisignature transaction class', () => {
 			};
 			storeAccountGetStub.returns(invalidSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
+			expect(errors).not.to.be.empty;
+			expect(errors[0].dataPath).to.be.equal('.signatures');
+		});
+
+		it('should return error when transaction signatures missing', async () => {
+			storeAccountGetStub.returns(nonMultisignatureSender);
+			const invalidTransaction = {
+				...validMultisignatureTransaction,
+				signatures: [],
+			};
+			const transaction = new MultisignatureTransaction(invalidTransaction);
+			const errors = (transaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.signatures');
 		});

@@ -105,7 +105,7 @@ describe('Delegate registration transaction class', () => {
 	describe('#prepare', async () => {
 		it('should call state store', async () => {
 			await validTestTransaction.prepare(store);
-			expect(storeAccountCacheStub).to.have.been.calledOnceWithExactly([
+			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
 				{ address: validTestTransaction.senderId },
 				{ username: validTestTransaction.asset.delegate.username },
 			]);

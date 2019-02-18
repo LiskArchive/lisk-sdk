@@ -121,8 +121,7 @@ export abstract class BaseTransaction {
 	protected _id?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
-
-	private _multisignatureStatus: MultisignatureStatus =
+	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract assetToJSON(): object;

@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
-
 import {
 	BaseTransaction,
 	StateStore,
@@ -23,7 +22,7 @@ import {
 import { MULTISIGNATURE_FEE } from './constants';
 import { TransactionError, TransactionMultiError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import { validator } from './utils';
+import { validator, verifyMultiSignatures } from './utils';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
 
@@ -262,7 +261,26 @@ export class MultisignatureTransaction extends BaseTransaction {
 			multimin: this.asset.multisignature.min,
 			multilifetime: this.asset.multisignature.lifetime,
 		};
+
 		store.account.set(updatedSender.address, updatedSender);
+
+		const transactionBytes = this.signSignature
+			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
+			: this.getBasicBytes();
+
+		const {
+			status: multisignatureStatus,
+			errors: multisignatureErrors,
+		} = verifyMultiSignatures(
+			this.id,
+			updatedSender,
+			this.signatures,
+			transactionBytes,
+		);
+
+		errors.push(...multisignatureErrors);
+
+		this._multisignatureStatus = multisignatureStatus;
 
 		return errors;
 	}
