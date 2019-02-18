@@ -106,7 +106,7 @@ export class PeerPool extends EventEmitter {
 		super();
 		this._peerMap = new Map();
 		this._peerPoolConfig = peerPoolConfig;
-		this._peerSelectForSendRequest = peerSelectionFunction ? peerSelectionFunction.peerSelectionFunction : selectPeers;
+		this._peerSelectForSendRequest = peerSelectionFunction ? peerSelectionFunction.selectForSendRequest : selectPeers;
 		this._peerSelectForConnection = peerSelectionFunction ? (peerSelectionFunction.selectForConnection ? peerSelectionFunction.selectForConnection : selectForConnection) : selectForConnection;
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {

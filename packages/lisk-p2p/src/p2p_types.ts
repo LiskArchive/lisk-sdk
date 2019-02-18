@@ -120,7 +120,7 @@ export type P2PPeerSelectionForConnection = (
 ) => ReadonlyArray<P2PPeerInfo>;
 
 export interface P2PPeerSelectionFunctions {
-	readonly peerSelectionFunction: P2PPeerSelectionForSendRequest;
+	readonly selectForSendRequest: P2PPeerSelectionForSendRequest;
 	readonly selectForConnection?: P2PPeerSelectionForConnection;
 }
 
