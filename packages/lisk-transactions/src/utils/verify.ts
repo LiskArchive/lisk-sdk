@@ -67,6 +67,26 @@ export const verifyBalance = (
 		  )
 		: undefined;
 
+export const verifyAmountBalance = (
+	id: string,
+	account: Account,
+	amount: BigNum,
+	fee: BigNum,
+): TransactionError | undefined => {
+	const balance = new BigNum(account.balance);
+	if (balance.gte(0) && balance.lt(new BigNum(amount))) {
+		return new TransactionError(
+			`Account does not have enough LSK: ${
+				account.address
+			}, balance: ${convertBeddowsToLSK(balance.plus(fee).toString())}`,
+			id,
+			'.balance',
+		);
+	}
+
+	return undefined;
+};
+
 export const verifySecondSignature = (
 	id: string,
 	sender: Account,
