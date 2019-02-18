@@ -5,3 +5,4 @@
 --require ./test/_setup.ts
 --file ./test/_global_hooks.ts
 --watch-extensions ts
+--timeout 5000
