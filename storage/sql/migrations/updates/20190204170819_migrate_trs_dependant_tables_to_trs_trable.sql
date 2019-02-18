@@ -14,10 +14,18 @@
 
 
 /*
-  DESCRIPTION: Migrate all trs dependant tables into trs asset field
+  DESCRIPTION: Migrate all trs dependant tables into trs asset field and drop dependsant tables
 
   PARAMETERS: None
 */
+
+-- Add transfer data column to trs table as bytea
+ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "transferData" BYTEA;
+
+
+-- Add asset column to trs table as jsonb
+ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "asset" jsonb;
+
 
 -- Migrate transfer table into trs transferData field
 UPDATE trs
@@ -97,3 +105,12 @@ SET asset = (
         WHERE ot."transactionId" = trs.id
     )
 WHERE type = 7;
+
+
+-- Remove all trs dependant tables (transfer, signatures, delegates, votes, multisignatures, dapps, intransfer, outtransfer)
+-- Note that it will also drop the `full_blocks_list` view as it uses some of these tables
+DROP TABLE "transfer", "signatures", "delegates", "votes", "multisignatures", "dapps", "intransfer", "outtransfer" CASCADE;
+
+
+-- Create index for asset field. Using `gin` index as it's more efficient for keys or key/value search.
+CREATE INDEX IF NOT EXISTS "trs_asset" ON "trs" USING gin ("asset");
