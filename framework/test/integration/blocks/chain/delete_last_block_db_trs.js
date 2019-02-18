@@ -28,7 +28,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 
 	localCommon.beforeBlock('system_blocks_chain_pop_last_block', lib => {
 		library = lib;
-		storage = library.storage;
+		storage = library.components.storage;
 	});
 
 	afterEach(done => {
