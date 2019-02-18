@@ -107,9 +107,7 @@ describe('signature', () => {
 			components: {
 				logger: modulesLoader.scope.components.logger,
 			},
-			libraries: {
-				schema: modulesLoader.scope.schema,
-			},
+			schema: modulesLoader.scope.schema,
 		});
 
 		signature.bind(accountsMock);
@@ -138,16 +136,14 @@ describe('signature', () => {
 					components: {
 						logger: modulesLoader.scope.components.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				});
 				__private = Signature.__get__('__private');
 				done();
 			});
 
-			it('should attach schema to __private.libraries', async () =>
-				expect(__private.libraries.schema).to.eql(modulesLoader.scope.schema));
+			it('should attach schema to __private', async () =>
+				expect(__private.schema).to.eql(modulesLoader.scope.schema));
 
 			it('should attach logger to __private.components', async () =>
 				expect(__private.components.logger).to.eql(
@@ -442,7 +438,7 @@ describe('signature', () => {
 
 				beforeEach(() => {
 					__private = Signature.__get__('__private');
-					schemaSpy = sinonSandbox.spy(__private.libraries.schema, 'validate');
+					schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
 					return signature.objectNormalize(transaction);
 				});
 
@@ -503,7 +499,7 @@ describe('signature', () => {
 				});
 			});
 
-			describe('when __private.libraries.schema.validate succeeds', () => {
+			describe('when __private.schema.validate succeeds', () => {
 				it('should return transaction', async () =>
 					expect(signature.objectNormalize(transaction)).to.eql(transaction));
 			});

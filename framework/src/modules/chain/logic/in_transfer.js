@@ -31,25 +31,21 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires helpers/milestones
  * @requires helpers/slots
- * @param {Object} dependencies
- * @param {Object} dependencies.components
- * @param {Object} dependencies.libraries
- * @param {Object} dependencies.modules
- * @param {Storage} dependencies.components.storage
- * @param {ZSchema} dependencies.libraries.schema
- * @param {Object} dependencies.libraries.sharedApi
- * @param {Accounts} dependencies.modules.accounts
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {Storage} scope.components.storage
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {ZSchema} scope.schema
+ * @param {Object} scope.shared
  * @todo Add description for the params
  */
 class InTransfer {
-	constructor({ components, libraries }) {
+	constructor({ components: { storage }, schema }) {
 		__private.components = {
-			storage: components.storage,
+			storage,
 		};
-		__private.libraries = {
-			schema: libraries.schema,
-			shared: libraries.sharedApi,
-		};
+		__private.schema = schema;
 		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
 }
@@ -68,7 +64,7 @@ InTransfer.prototype.bind = function(accounts, sharedApi) {
 	__private.modules = {
 		accounts,
 	};
-	__private.libraries.shared = sharedApi;
+	__private.shared = sharedApi;
 };
 
 /**
@@ -187,7 +183,7 @@ InTransfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.libraries.shared.getGenesis(
+	__private.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
@@ -227,7 +223,7 @@ InTransfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.libraries.shared.getGenesis(
+	__private.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
@@ -297,13 +293,13 @@ InTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 InTransfer.prototype.objectNormalize = function(transaction) {
-	const report = __private.libraries.schema.validate(
+	const report = __private.schema.validate(
 		transaction.asset.inTransfer,
 		InTransfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate inTransfer schema: ${__private.library.schema
+		throw `Failed to validate inTransfer schema: ${__private.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

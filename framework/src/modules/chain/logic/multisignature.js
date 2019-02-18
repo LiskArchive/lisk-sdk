@@ -37,31 +37,35 @@ __private.unconfirmedSignatures = {};
  * @requires bytebuffer
  * @requires helpers/diff
  * @requires helpers/slots
- * @param {Object} dependencies
- * @param {Object} dependencies.components
- * @param {Object} dependencies.libraries
- * @param {Object} dependencies.modules
- * @param {logger} dependencies.components.logger
- * @param {ZSchema} dependencies.libraries.schem
- * @param {Object} dependencies.libraries.network
- * @param {Transaction} dependencies.libraries.logic.transaction
- * @param {Account} dependencies.libraries.logic.account
- * @param {Accounts} dependencies.modules.accounts
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {logger} scope.components.logger
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {Object} scope.logic
+ * @param {Transaction} scope.logic.transaction
+ * @param {Account} scope.logic.account
+ * @param {ZSchema} scope.schema
+ * @param {Object} scope.network
  * @todo Add description for the params
  */
 class Multisignature {
-	constructor({ components, libraries }) {
+	constructor({
+		components: { logger },
+		logic: { transaction, account },
+		schema,
+		network,
+	}) {
 		__private.components = {
-			logger: components.logger,
+			logger,
 		};
-		__private.libraries = {
-			schema: libraries.schema,
-			network: libraries.network,
-			logic: {
-				transaction: libraries.logic.transaction,
-				account: libraries.logic.account,
-			},
+		__private.schema = schema;
+		__private.network = network;
+		__private.logic = {
+			transaction,
+			account,
 		};
+
 		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
 }
@@ -187,7 +191,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 						) {
 							valid = false;
 						} else {
-							valid = __private.libraries.logic.transaction.verifySignature(
+							valid = __private.logic.transaction.verifySignature(
 								transaction,
 								transaction.asset.multisignature.keysgroup[s].substring(1),
 								transaction.signatures[d]
@@ -346,7 +350,7 @@ Multisignature.prototype.applyConfirmed = function(
 ) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	__private.libraries.logic.account.merge(
+	__private.logic.account.merge(
 		sender.address,
 		{
 			membersPublicKeys: transaction.asset.multisignature.keysgroup,
@@ -408,7 +412,7 @@ Multisignature.prototype.undoConfirmed = function(
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	__private.libraries.logic.account.merge(
+	__private.logic.account.merge(
 		sender.address,
 		{
 			membersPublicKeys: multiInvert,
@@ -446,7 +450,7 @@ Multisignature.prototype.applyUnconfirmed = function(
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	return __private.libraries.logic.account.merge(
+	return __private.logic.account.merge(
 		sender.address,
 		{
 			u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
@@ -479,7 +483,7 @@ Multisignature.prototype.undoUnconfirmed = function(
 
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	__private.libraries.logic.account.merge(
+	__private.logic.account.merge(
 		sender.address,
 		{
 			u_membersPublicKeys: multiInvert,
@@ -528,13 +532,13 @@ Multisignature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
-	const report = __private.libraries.schema.validate(
+	const report = __private.schema.validate(
 		transaction.asset.multisignature,
 		Multisignature.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate multisignature schema: ${__private.libraries.schema
+		throw `Failed to validate multisignature schema: ${__private.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
@@ -577,10 +581,7 @@ Multisignature.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
-	__private.libraries.network.io.sockets.emit(
-		'multisignatures/change',
-		transaction
-	);
+	__private.network.io.sockets.emit('multisignatures/change', transaction);
 	return setImmediate(cb);
 };
 

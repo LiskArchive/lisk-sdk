@@ -52,10 +52,8 @@ describe('dapp', () => {
 				storage: storageStub,
 				logger: modulesLoader.scope.components.logger,
 			},
-			libraries: {
-				network: modulesLoader.scope.network,
-				schema: modulesLoader.scope.schema,
-			},
+			network: modulesLoader.scope.network,
+			schema: modulesLoader.scope.schema,
 		});
 		done();
 	});
@@ -78,10 +76,8 @@ describe('dapp', () => {
 							storage: storageStub,
 							logger: modulesLoader.scope.components.logger,
 						},
-						libraries: {
-							network: modulesLoader.scope.network,
-							schema: modulesLoader.scope.schema,
-						},
+						network: modulesLoader.scope.network,
+						schema: modulesLoader.scope.schema,
 					});
 					__private = Dapp.__get__('__private');
 					done();
@@ -91,9 +87,7 @@ describe('dapp', () => {
 					expect(__private.components.storage).to.eql(storageStub));
 
 				it('should be loaded schema from modulesLoader', async () =>
-					expect(__private.libraries.schema).to.eql(
-						modulesLoader.scope.schema
-					));
+					expect(__private.schema).to.eql(modulesLoader.scope.schema));
 
 				it('should be loaded logger from modulesLoader', async () =>
 					expect(__private.components.logger).to.eql(
@@ -101,9 +95,7 @@ describe('dapp', () => {
 					));
 
 				it('should be loaded network from modulesLoader', async () =>
-					expect(__private.libraries.network).to.eql(
-						modulesLoader.scope.network
-					));
+					expect(__private.network).to.eql(modulesLoader.scope.network));
 			});
 		});
 
@@ -695,12 +687,12 @@ describe('dapp', () => {
 			});
 
 			describe('schema properties', () => {
-				let library;
+				let __private;
 				let schemaSpy;
 
 				beforeEach(done => {
-					library = Dapp.__get__('library');
-					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+					__private = Dapp.__get__('__private');
+					schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
 					done();
 				});
 

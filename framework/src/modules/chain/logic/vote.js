@@ -38,29 +38,26 @@ let self;
  * @requires lodash
  * @requires helpers/diff
  * @requires helpers/slots
- * @param {Object} logger
- * @param {ZSchema} schema
- *
- * @param {Object} dependencies
- * @param {Object} dependencies.components
- * @param {Object} dependencies.libraries
- * @param {Object} dependencies.modules
- * @param {logger} dependencies.components.logger
- * @param {ZSchema} dependencies.libraries.schema
- * @param {Account} dependencies.libraries.account
- * @param {Delegates} dependencies.modules.delegates
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {logger} scope.components.logger
+ * @param {Object} scope.modules
+ * @param {Delegates} scope.modules.delegates
+ * @param {Object} scope.logic
+ * @param {Account} scope.logic.account
+ * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
 class Vote {
-	constructor({ components, libraries }) {
+	constructor({ components: { logger }, logic: { account }, schema }) {
 		self = this;
 		__private.components = {
-			logger: components.logger,
+			logger,
 		};
-		__private.libraries = {
-			schema: libraries.schema,
-			account: libraries.account,
+		__private.logic = {
+			account,
 		};
+		__private.schema = schema;
 		// TODO: Add modules to contructor argument and assign delegates module to __private.modules.delegates
 	}
 

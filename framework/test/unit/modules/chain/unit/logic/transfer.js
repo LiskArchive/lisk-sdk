@@ -117,9 +117,7 @@ describe('transfer', () => {
 					components: {
 						logger: modulesLoader.scope.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				});
 				transferBindings = {
 					account: accountModule,
@@ -150,10 +148,8 @@ describe('transfer', () => {
 			);
 		});
 
-		it('should assign schema to __private.libraries', () => {
-			return expect(__private.libraries.schema).to.equal(
-				modulesLoader.scope.schema
-			);
+		it('should assign schema to __private', () => {
+			return expect(__private.schema).to.equal(modulesLoader.scope.schema);
 		});
 	});
 

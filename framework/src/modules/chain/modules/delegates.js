@@ -90,9 +90,7 @@ class Delegates {
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DELEGATE,
 			new Delegate({
-				libraries: {
-					schema: scope.schema,
-				},
+				schema: scope.schema,
 			})
 		);
 

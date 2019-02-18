@@ -147,8 +147,8 @@ describe('vote', () => {
 					components: {
 						logger: modulesLoader.scope.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
+					schema: modulesLoader.scope.schema,
+					logic: {
 						account: scope.logic.account,
 					},
 				});
@@ -181,9 +181,7 @@ describe('vote', () => {
 			components: {
 				logger: modulesLoader.logger,
 			},
-			libraries: {
-				schema: modulesLoader.scope.schema,
-			},
+			schema: modulesLoader.scope.schema,
 		});
 		transfer.bind(voteBindings.account);
 		transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
@@ -241,14 +239,12 @@ describe('vote', () => {
 			);
 		});
 
-		it('should assign schema to __private.libraries', () => {
-			return expect(__private.libraries.schema).to.equal(
-				modulesLoader.scope.schema
-			);
+		it('should assign schema to __private', () => {
+			return expect(__private.schema).to.equal(modulesLoader.scope.schema);
 		});
 
-		it('should assign account to __private.libraries', () => {
-			return expect(__private.libraries.account).to.equal(accountLogic);
+		it('should assign account to __private.logic', () => {
+			return expect(__private.logic.account).to.equal(accountLogic);
 		});
 	});
 

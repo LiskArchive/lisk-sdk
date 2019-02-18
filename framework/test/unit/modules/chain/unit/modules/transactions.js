@@ -57,9 +57,7 @@ describe('transactions', () => {
 				components: {
 					logger: modulesLoader.logger,
 				},
-				libraries: {
-					schema: modulesLoader.scope.schema,
-				},
+				schema: modulesLoader.scope.schema,
 			})
 		);
 		sendLogic.bind(accountsModule);
@@ -71,9 +69,7 @@ describe('transactions', () => {
 				components: {
 					logger: modulesLoader.logger,
 				},
-				libraries: {
-					schema: modulesLoader.scope.schema,
-				},
+				schema: modulesLoader.scope.schema,
 			})
 		);
 		voteLogic.bind(delegatesModule);
@@ -82,9 +78,7 @@ describe('transactions', () => {
 		const delegateLogic = transactionLogic.attachAssetType(
 			transactionTypes.DELEGATE,
 			new DelegateLogic({
-				libraries: {
-					schema: modulesLoader.scope.schema,
-				},
+				schema: modulesLoader.scope.schema,
 			})
 		);
 		delegateLogic.bind(accountsModule);
@@ -96,9 +90,7 @@ describe('transactions', () => {
 				components: {
 					logger: modulesLoader,
 				},
-				libraries: {
-					schema: modulesLoader.scope.schema,
-				},
+				schema: modulesLoader.scope.schema,
 			})
 		);
 		signatureLogic.bind(accountsModule);
@@ -110,13 +102,11 @@ describe('transactions', () => {
 				components: {
 					logger: modulesLoader.logger,
 				},
-				libraries: {
-					schema: modulesLoader.scope.schema,
-					network: modulesLoader.scope.network,
-					logic: {
-						account: accountLogic,
-						transaction: transactionLogic,
-					},
+				schema: modulesLoader.scope.schema,
+				network: modulesLoader.scope.network,
+				logic: {
+					account: accountLogic,
+					transaction: transactionLogic,
 				},
 			})
 		);
@@ -131,10 +121,8 @@ describe('transactions', () => {
 					storage: modulesLoader.storage,
 					logger: modulesLoader.logger,
 				},
-				libraries: {
-					schema: modulesLoader.scope.schema,
-					network: modulesLoader.scope.network,
-				},
+				schema: modulesLoader.scope.schema,
+				network: modulesLoader.scope.network,
 			})
 		);
 		expect(dappLogic).to.be.an.instanceof(DappLogic);
@@ -145,9 +133,7 @@ describe('transactions', () => {
 				components: {
 					storage: modulesLoader.storage,
 				},
-				libraries: {
-					schema: modulesLoader.scope.schema,
-				},
+				schema: modulesLoader.scope.schema,
 			})
 		);
 		inTransferLogic.bind(accountsModule, /* sharedApi */ null);
@@ -160,9 +146,7 @@ describe('transactions', () => {
 					storage: modulesLoader.storage,
 					logger: modulesLoader.logger,
 				},
-				libraries: {
-					schema: modulesLoader.scope.schema,
-				},
+				schema: modulesLoader.scope.schema,
 			})
 		);
 		outTransfer.bind(accountsModule, /* sharedApi */ null);

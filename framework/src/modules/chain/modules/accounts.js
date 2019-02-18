@@ -69,8 +69,8 @@ class Accounts {
 				components: {
 					logger: scope.logger,
 				},
-				libraries: {
-					schema: library.schema,
+				schema: library.schema,
+				logic: {
 					account: library.logic.account,
 				},
 			})

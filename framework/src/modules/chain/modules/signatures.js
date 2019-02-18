@@ -62,9 +62,7 @@ class Signatures {
 				components: {
 					logger: scope.components.logger,
 				},
-				libraries: {
-					schema: scope.schema,
-				},
+				schema: scope.schema,
 			})
 		);
 

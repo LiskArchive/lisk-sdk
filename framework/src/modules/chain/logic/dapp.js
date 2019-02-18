@@ -36,25 +36,22 @@ __private.unconfirmedAscii = {};
  * @requires bytebuffer
  * @requires valid
  * @requires helpers/dapp_categories
- * @param {Object} dependencies
- * @param {Object} dependencies.components
- * @param {Object} dependencies.libraries
- * @param {Storage} dependencies.components.storage
- * @param {logger} dependencies.components.logger
- * @param {ZSchema} dependencies.libraries.schema
- * @param {Object} dependencies,libraries.network
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {Storage} scope.components.storage
+ * @param {logger} scope.components.logger
+ * @param {ZSchema} scope.schema
+ * @param {Object} scope.network
  * @todo Add description for the params
  */
 class DApp {
-	constructor({ components, libraries }) {
+	constructor({ components: { storage, logger }, network, schema }) {
 		__private.components = {
-			storage: components.storage,
-			logger: components.logger,
+			storage,
+			logger,
 		};
-		__private.libraries = {
-			network: libraries.network,
-			schema: libraries.schema,
-		};
+		__private.network = network;
+		__private.schema = schema;
 	}
 }
 
@@ -459,13 +456,13 @@ DApp.prototype.objectNormalize = function(transaction) {
 		}
 	});
 
-	const report = __private.libraries.schema.validate(
+	const report = __private.schema.validate(
 		transaction.asset.dapp,
 		DApp.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate dapp schema: ${__private.libraries.schema
+		throw `Failed to validate dapp schema: ${__private.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
@@ -507,8 +504,8 @@ DApp.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 DApp.prototype.afterSave = function(transaction, cb) {
-	if (__private.libraries) {
-		__private.libraries.network.io.sockets.emit('dapps/change', {});
+	if (__private.network) {
+		__private.network.io.sockets.emit('dapps/change', {});
 	}
 	return setImmediate(cb);
 };

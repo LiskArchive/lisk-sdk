@@ -29,19 +29,16 @@ const __private = {};
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires async
- * @param {Object} dependencies
- * @param {Object} dependencies.libraries
- * @param {Object} dependencies.modules
- * @param {ZSchema} dependencies.libraries.schema
- * @param {Accounts} dependencies.modules.accounts
+ * @param {Object} scope
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
 class Delegate {
-	constructor({ libraries }) {
+	constructor({ schema }) {
 		self = this;
-		__private.libraries = {
-			schema: libraries.schema,
-		};
+		__private.schema = schema;
 		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
 }
@@ -401,13 +398,13 @@ Delegate.prototype.schema = {
  * @todo Add description for the params
  */
 Delegate.prototype.objectNormalize = function(transaction) {
-	const report = __private.libraries.schema.validate(
+	const report = __private.schema.validate(
 		transaction.asset.delegate,
 		Delegate.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate delegate schema: ${__private.libraries.schema
+		throw `Failed to validate delegate schema: ${__private.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

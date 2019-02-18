@@ -113,9 +113,7 @@ describe('delegate', () => {
 		};
 
 		delegate = new Delegate({
-			libraries: {
-				schema: modulesLoader.scope.schema,
-			},
+			schema: modulesLoader.scope.schema,
 		});
 
 		return delegate.bind(accountsMock);
@@ -129,8 +127,8 @@ describe('delegate', () => {
 			done();
 		});
 
-		it('should attach schema to __private.libraries', async () => {
-			return expect(__private.libraries)
+		it('should attach schema to __private', async () => {
+			return expect(__private)
 				.to.have.property('schema')
 				.equal(modulesLoader.scope.schema);
 		});
@@ -942,8 +940,8 @@ describe('delegate', () => {
 
 	describe('objectNormalize', () => {
 		it('should use the correct format to validate against', async () => {
-			const libraries = Delegate.__get__('__private.libraries');
-			const schemaSpy = sinonSandbox.spy(libraries.schema, 'validate');
+			const __private = Delegate.__get__('__private');
+			const schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
 			delegate.objectNormalize(transaction);
 			expect(schemaSpy.calledOnce).to.equal(true);
 			expect(
@@ -955,7 +953,7 @@ describe('delegate', () => {
 			return schemaSpy.restore();
 		});
 
-		describe('when __private.libraries.schema.validate fails', () => {
+		describe('when __private.schema.validate fails', () => {
 			const schemaDynamicTest = new SchemaDynamicTest({
 				testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
 				customPropertyAssertion(input, expectedType, property, err) {
@@ -997,7 +995,7 @@ describe('delegate', () => {
 			});
 		});
 
-		describe('when __private.libraries.schema.validate succeeds', () => {
+		describe('when __private.schema.validate succeeds', () => {
 			it('should return transaction', async () =>
 				expect(delegate.objectNormalize(transaction)).to.eql(transaction));
 		});

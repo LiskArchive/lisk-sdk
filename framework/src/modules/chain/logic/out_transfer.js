@@ -30,29 +30,20 @@ __private.unconfirmedOutTansfers = {};
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @param {ZSchema} schema
- * @param {Object} logger
- * @param {Storage} storage
- *
- * @param {Object} dependencies
- * @param {Object} dependencies.components
- * @param {Object} dependencies.libraries
- * @param {Object} dependencies.modules
- * @param {Storage} dependencies.components.storage
- * @param {logger} dependencies.components.logger
- * @param {ZSchema} dependencies.libraries.schema
- * @param {Accounts} dependencies.modules.accounts
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {Storage} scope.components.storage
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
 class OutTransfer {
-	constructor({ components, libraries }) {
+	constructor({ components: { storage }, schema }) {
 		__private.components = {
-			storage: components.storage,
-			logger: components.logger,
+			storage,
 		};
-		__private.libraries = {
-			schema: libraries.schema,
-		};
+		__private.schema = schema;
 		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
 }
@@ -359,13 +350,13 @@ OutTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 OutTransfer.prototype.objectNormalize = function(transaction) {
-	const report = __private.libraries.schema.validate(
+	const report = __private.schema.validate(
 		transaction.asset.outTransfer,
 		OutTransfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate outTransfer schema: ${__private.libraries.schema
+		throw `Failed to validate outTransfer schema: ${__private.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

@@ -59,13 +59,11 @@ function Multisignatures(cb, scope) {
 				components: {
 					logger: scope.components.logger,
 				},
-				libraries: {
-					schema: scope.schema,
-					network: scope.network,
-					logic: {
-						account: scope.logic.account,
-						transaction: scope.logic.transaction,
-					},
+				schema: scope.schema,
+				network: scope.network,
+				logic: {
+					account: scope.logic.account,
+					transaction: scope.logic.transaction,
 				},
 			}),
 		},

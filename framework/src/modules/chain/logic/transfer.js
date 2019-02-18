@@ -28,22 +28,19 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires helpers/bignum
  * @requires helpers/slots
- * @param {Object} dependencies
- * @param {Object} dependencies.components
- * @param {Object} dependencies.libraries
- * @param {Object} dependencies.modules
- * @param {logger} dependencies.components.logger
- * @param {ZSchema} dependencies.libraries.schema
- * @param {Accounts} dependencies.modules.accounts
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {logger} scope.components.logger
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
 class Transfer {
-	constructor({ components, libraries }) {
-		__private.libraries = {
-			schema: libraries.schema,
-		};
+	constructor({ components: { logger }, schema }) {
+		__private.schema = schema;
 		__private.components = {
-			logger: components.logger,
+			logger,
 		};
 		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
 	}
@@ -264,13 +261,13 @@ Transfer.prototype.objectNormalize = function(transaction) {
 		return transaction;
 	}
 
-	const report = __private.libraries.schema.validate(
+	const report = __private.schema.validate(
 		transaction.asset,
 		Transfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate transfer schema: ${__private.libraries.schema
+		throw `Failed to validate transfer schema: ${__private.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

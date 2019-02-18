@@ -82,10 +82,8 @@ class DApps {
 					storage: scope.components.storage,
 					logger: scope.components.logger,
 				},
-				libraries: {
-					schema: scope.schema,
-					network: scope.network,
-				},
+				schema: scope.schema,
+				network: scope.network,
 			})
 		);
 
@@ -97,9 +95,7 @@ class DApps {
 				components: {
 					storage: scope.components.storage,
 				},
-				libraries: {
-					schema: scope.schema,
-				},
+				schema: scope.schema,
 			})
 		);
 		__private.assetTypes[
@@ -112,9 +108,7 @@ class DApps {
 					storage: scope.components.storage,
 					logger: scope.components.logger,
 				},
-				libraries: {
-					schema: scope.schema,
-				},
+				schema: scope.schema,
 			})
 		);
 

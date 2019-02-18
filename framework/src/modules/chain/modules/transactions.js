@@ -88,9 +88,7 @@ class Transactions {
 				components: {
 					logger: library.logger,
 				},
-				libraries: {
-					schema: library.schema,
-				},
+				schema: library.schema,
 			})
 		);
 

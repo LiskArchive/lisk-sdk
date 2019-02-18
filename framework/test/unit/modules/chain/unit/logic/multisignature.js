@@ -72,13 +72,11 @@ describe('multisignature', () => {
 			components: {
 				logger: modulesLoader.logger,
 			},
-			libraries: {
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
-				logic: {
-					transaction: transactionMock,
-					account: accountMock,
-				},
+			schema: modulesLoader.scope.schema,
+			network: modulesLoader.scope.network,
+			logic: {
+				transaction: transactionMock,
+				account: accountMock,
 			},
 		});
 		return multisignature.bind(accountsMock);
@@ -98,33 +96,31 @@ describe('multisignature', () => {
 				components: {
 					logger: modulesLoader.logger,
 				},
-				libraries: {
-					schema: modulesLoader.scope.schema,
-					network: modulesLoader.scope.network,
-					logic: {
-						transaction: transactionMock,
-						account: accountMock,
-					},
+				schema: modulesLoader.scope.schema,
+				network: modulesLoader.scope.network,
+				logic: {
+					transaction: transactionMock,
+					account: accountMock,
 				},
 			});
 			__private = Multisignature.__get__('__private');
 			done();
 		});
 
-		it('should attach schema to __private.libraries', async () =>
-			expect(__private.libraries.schema).to.eql(modulesLoader.scope.schema));
+		it('should attach schema to __private', async () =>
+			expect(__private.schema).to.eql(modulesLoader.scope.schema));
 
-		it('should attach network to __private.libraries', async () =>
-			expect(__private.libraries.network).to.eql(modulesLoader.scope.network));
+		it('should attach network to __private', async () =>
+			expect(__private.network).to.eql(modulesLoader.scope.network));
 
 		it('should attach logger to __private.components', async () =>
 			expect(__private.components.logger).to.eql(modulesLoader.logger));
 
-		it('should attach logic.transaction to __private.libraries.logic', async () =>
-			expect(__private.libraries.logic.transaction).to.eql(transactionMock));
+		it('should attach logic.transaction to __private.logic', async () =>
+			expect(__private.logic.transaction).to.eql(transactionMock));
 
-		it('should attach account to __private.libraries.logic', async () =>
-			expect(__private.libraries.logic.account).to.eql(accountMock));
+		it('should attach account to __private.logic', async () =>
+			expect(__private.logic.account).to.eql(accountMock));
 	});
 
 	describe('bind', () => {
@@ -520,13 +516,13 @@ describe('multisignature', () => {
 				.equal(false);
 		});
 
-		it('should call __private.libraries.logic.account.merge', async () =>
+		it('should call __private.logic.account.merge', async () =>
 			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call __private.libraries.logic.account.merge with sender.address', async () =>
+		it('should call __private.logic.account.merge with sender.address', async () =>
 			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call __private.libraries.logic.account.merge with expected params', async () => {
+		it('should call __private.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				membersPublicKeys: transaction.asset.multisignature.keysgroup,
 				multiMin: transaction.asset.multisignature.min,
@@ -536,7 +532,7 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when __private.libraries.logic.account.merge fails', () => {
+		describe('when __private.logic.account.merge fails', () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
@@ -548,7 +544,7 @@ describe('multisignature', () => {
 				}));
 		});
 
-		describe('when __private.libraries.logic.account.merge succeeds', () => {
+		describe('when __private.logic.account.merge succeeds', () => {
 			describe('for every keysgroup member', () => {
 				validTransaction.asset.multisignature.keysgroup.forEach(member => {
 					it('should call modules.accounts.generateAddressByPublicKey', async () =>
@@ -573,19 +569,19 @@ describe('multisignature', () => {
 							done();
 						});
 
-						it('should call __private.libraries.logic.account.setAccountAndGet', async () =>
+						it('should call __private.logic.account.setAccountAndGet', async () =>
 							expect(accountsMock.setAccountAndGet.callCount).to.equal(
 								validTransaction.asset.multisignature.keysgroup.length
 							));
 
-						it('should call __private.libraries.logic.account.setAccountAndGet with {address: address}', async () =>
+						it('should call __private.logic.account.setAccountAndGet with {address: address}', async () =>
 							expect(
 								accountsMock.setAccountAndGet.calledWith(
 									sinonSandbox.match({ address })
 								)
 							).to.be.true);
 
-						it('should call __private.libraries.logic.account.setAccountAndGet with sender.address', async () =>
+						it('should call __private.logic.account.setAccountAndGet with sender.address', async () =>
 							expect(
 								accountsMock.setAccountAndGet.calledWith(
 									sinonSandbox.match({ publicKey: key })
@@ -655,13 +651,13 @@ describe('multisignature', () => {
 				.equal(true);
 		});
 
-		it('should call __private.libraries.logic.account.merge', async () =>
+		it('should call __private.logic.account.merge', async () =>
 			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call __private.libraries.logic.account.merge with sender.address', async () =>
+		it('should call __private.logic.account.merge with sender.address', async () =>
 			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call __private.libraries.logic.account.merge with expected params', async () => {
+		it('should call __private.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
@@ -673,7 +669,7 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when __private.libraries.logic.account.merge fails', () => {
+		describe('when __private.logic.account.merge fails', () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
@@ -685,7 +681,7 @@ describe('multisignature', () => {
 				}));
 		});
 
-		describe('when __private.libraries.logic.account.merge succeeds', () => {
+		describe('when __private.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', async () =>
 				multisignature.applyConfirmed(transaction, dummyBlock, sender, err => {
 					expect(err).to.be.null;
@@ -745,21 +741,21 @@ describe('multisignature', () => {
 				});
 			});
 
-			it('should call __private.libraries.logic.account.merge', done => {
+			it('should call __private.logic.account.merge', done => {
 				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(accountMock.merge.calledOnce).to.be.true;
 					done();
 				});
 			});
 
-			it('should call __private.libraries.logic.account.merge with sender.address', done => {
+			it('should call __private.logic.account.merge with sender.address', done => {
 				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(accountMock.merge.calledWith(sender.address)).to.be.true;
 					done();
 				});
 			});
 
-			it('should call __private.libraries.logic.account.merge with expected params', done => {
+			it('should call __private.logic.account.merge with expected params', done => {
 				const expectedParams = {
 					u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
 					u_multiMin: transaction.asset.multisignature.min,
@@ -771,7 +767,7 @@ describe('multisignature', () => {
 				});
 			});
 
-			describe('when __private.libraries.logic.account.merge fails', () => {
+			describe('when __private.logic.account.merge fails', () => {
 				beforeEach(() => accountMock.merge.callsArgWith(2, 'merge error'));
 
 				afterEach(() => accountMock.merge.resetHistory());
@@ -785,7 +781,7 @@ describe('multisignature', () => {
 				});
 			});
 
-			describe('when __private.libraries.logic.account.merge succeeds', () => {
+			describe('when __private.logic.account.merge succeeds', () => {
 				it('should call callback with error = null', done => {
 					multisignature.applyUnconfirmed(transaction, sender, err => {
 						expect(err).to.be.not.exist;
@@ -818,13 +814,13 @@ describe('multisignature', () => {
 				.equal(false);
 		});
 
-		it('should call __private.libraries.logic.account.merge', async () =>
+		it('should call __private.logic.account.merge', async () =>
 			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call __private.libraries.logic.account.merge with sender.address', async () =>
+		it('should call __private.logic.account.merge with sender.address', async () =>
 			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call __private.libraries.logic.account.merge with expected params', async () => {
+		it('should call __private.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				u_membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
@@ -835,7 +831,7 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when __private.libraries.logic.account.merge fails', () => {
+		describe('when __private.logic.account.merge fails', () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
@@ -847,7 +843,7 @@ describe('multisignature', () => {
 				}));
 		});
 
-		describe('when __private.libraries.logic.account.merge succeeds', () => {
+		describe('when __private.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', async () =>
 				multisignature.applyConfirmed(transaction, dummyBlock, sender, err => {
 					expect(err).to.be.null;
@@ -1129,8 +1125,8 @@ describe('multisignature', () => {
 		});
 
 		it('should use the correct format to validate against', async () => {
-			const libraries = Multisignature.__get__('__private.libraries');
-			const schemaSpy = sinonSandbox.spy(libraries.schema, 'validate');
+			const __private = Multisignature.__get__('__private');
+			const schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
 			multisignature.objectNormalize(transaction);
 			expect(schemaSpy.calledOnce).to.equal(true);
 			expect(

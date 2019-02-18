@@ -74,9 +74,7 @@ describe('outTransfer', () => {
 				storage: storageStub,
 				logger: modulesLoader.logger,
 			},
-			libraries: {
-				schema: modulesLoader.scope.schema,
-			},
+			schema: modulesLoader.scope.schema,
 		});
 
 		return outTransfer.bind(accountsStub);
@@ -92,9 +90,7 @@ describe('outTransfer', () => {
 						storage: storageStub,
 						logger: modulesLoader.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				});
 				__private = OutTransfer.__get__('__private');
 				done();
@@ -105,14 +101,9 @@ describe('outTransfer', () => {
 					.to.have.nested.property('components.storage')
 					.eql(storageStub));
 
-			it('should assign logger', async () =>
-				expect(__private)
-					.to.have.nested.property('components.logger')
-					.eql(modulesLoader.logger));
-
 			it('should assign schema', async () =>
 				expect(__private)
-					.to.have.nested.property('libraries.schema')
+					.to.have.property('schema')
 					.eql(modulesLoader.scope.schema));
 		});
 	});
@@ -780,29 +771,29 @@ describe('outTransfer', () => {
 	});
 
 	describe('objectNormalize', () => {
-		let libraries;
+		let __private;
 		let schemaSpy;
 
 		beforeEach(done => {
-			libraries = OutTransfer.__get__('__private.libraries');
-			schemaSpy = sinonSandbox.spy(libraries.schema, 'validate');
+			__private = OutTransfer.__get__('__private');
+			schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
 			done();
 		});
 
 		afterEach(() => schemaSpy.restore());
 
-		it('should call __private.libraries.schema.validate', async () => {
+		it('should call __private.schema.validate', async () => {
 			outTransfer.objectNormalize(transaction);
 			return expect(schemaSpy.calledOnce).to.be.true;
 		});
 
-		it('should call __private.libraries.schema.validate with transaction.asset.outTransfer', async () => {
+		it('should call __private.schema.validate with transaction.asset.outTransfer', async () => {
 			outTransfer.objectNormalize(transaction);
 			return expect(schemaSpy.calledWith(transaction.asset.outTransfer)).to.be
 				.true;
 		});
 
-		it('should call __private.libraries.schema.validate outTransfer.prototype.schema', async () => {
+		it('should call __private.schema.validate outTransfer.prototype.schema', async () => {
 			outTransfer.objectNormalize(transaction);
 			return expect(schemaSpy.args[0][1]).to.eql(OutTransfer.prototype.schema);
 		});

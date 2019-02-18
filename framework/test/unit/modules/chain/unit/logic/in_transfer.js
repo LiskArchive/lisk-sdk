@@ -139,9 +139,7 @@ describe('inTransfer', () => {
 			components: {
 				storage: storageStub,
 			},
-			libraries: {
-				schema: modulesLoader.scope.schema,
-			},
+			schema: modulesLoader.scope.schema,
 		});
 
 		inTransfer.bind(accountsStub, sharedStub);
@@ -165,9 +163,7 @@ describe('inTransfer', () => {
 					components: {
 						storage: storageStub,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				});
 				__private = InTransfer.__get__('__private');
 				done();
@@ -180,7 +176,7 @@ describe('inTransfer', () => {
 
 			it('should assign schema', async () =>
 				expect(__private)
-					.to.have.nested.property('libraries.schema')
+					.to.have.property('schema')
 					.eql(modulesLoader.scope.schema));
 		});
 	});
@@ -192,7 +188,7 @@ describe('inTransfer', () => {
 		beforeEach(done => {
 			inTransfer.bind(accountsStub, sharedStub);
 			modules = InTransfer.__get__('__private.modules');
-			shared = InTransfer.__get__('__private.libraries.shared');
+			shared = InTransfer.__get__('__private.shared');
 			done();
 		});
 
@@ -655,23 +651,23 @@ describe('inTransfer', () => {
 
 		beforeEach(done => {
 			__private = InTransfer.__get__('__private');
-			schemaSpy = sinonSandbox.spy(__private.libraries.schema, 'validate');
+			schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
 			done();
 		});
 
 		afterEach(() => schemaSpy.restore());
 
-		it('should call __private.libraries.schema.validate', async () => {
+		it('should call __private.schema.validate', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.calledOnce).to.be.true;
 		});
 
-		it('should call __private.libraries.schema.validate with trs.asset.inTransfer', async () => {
+		it('should call __private.schema.validate with trs.asset.inTransfer', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.calledWith(trs.asset.inTransfer)).to.be.true;
 		});
 
-		it('should call __private.libraries.schema.validate InTransfer.prototype.schema', async () => {
+		it('should call __private.schema.validate InTransfer.prototype.schema', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.args[0][1]).to.eql(InTransfer.prototype.schema);
 		});

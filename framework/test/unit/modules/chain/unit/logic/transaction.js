@@ -173,9 +173,7 @@ describe('transaction', () => {
 			components: {
 				logger: modulesLoader.scope.logger,
 			},
-			libraries: {
-				schema: modulesLoader.scope.schema,
-			},
+			schema: modulesLoader.scope.schema,
 		});
 		application.init(
 			{ sandbox: { name: 'lisk_test_logic_transactions' } },
@@ -1437,8 +1435,8 @@ describe('transaction', () => {
 					components: {
 						logger: modulesLoader.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
+					schema: modulesLoader.scope.schema,
+					logic: {
 						account: accountLogic,
 					},
 				})
@@ -1453,9 +1451,7 @@ describe('transaction', () => {
 					components: {
 						logger: modulesLoader.scope.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Transfer);
@@ -1465,9 +1461,7 @@ describe('transaction', () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.DELEGATE,
 				new Delegate({
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Delegate);
@@ -1480,9 +1474,7 @@ describe('transaction', () => {
 					components: {
 						logger: modulesLoader.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Signature);
@@ -1495,10 +1487,7 @@ describe('transaction', () => {
 					components: {
 						logger: modulesLoader.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-						logic: {},
-					},
+					schema: modulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Multisignature);
@@ -1512,9 +1501,7 @@ describe('transaction', () => {
 						storage: modulesLoader.storage,
 						logger: modulesLoader.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Dapp);
@@ -1527,9 +1514,7 @@ describe('transaction', () => {
 					components: {
 						storage: modulesLoader.storage,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(InTransfer);
@@ -1543,9 +1528,7 @@ describe('transaction', () => {
 						storage: modulesLoader.storage,
 						logger: modulesLoader.logger,
 					},
-					libraries: {
-						schema: modulesLoader.scope.schema,
-					},
+					schema: modulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(OutTransfer);
