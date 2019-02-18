@@ -166,9 +166,8 @@ class TestStorageSandbox extends Storage {
 		});
 
 		this.isReady = true;
-		Storage.instance.adapter = adapter;
-
-		Storage.instance.entities = this.entityStubs;
+		this.adapter = adapter;
+		this.entities = this.entityStubs;
 
 		return true;
 	}
