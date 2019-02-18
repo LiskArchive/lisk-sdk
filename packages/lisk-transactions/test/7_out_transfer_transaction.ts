@@ -305,7 +305,7 @@ describe('outTransfer transaction class', () => {
 			expect(errors[0].message).to.equal(
 				`Account does not have enough LSK: ${
 					defaultValidSender.address
-				}, balance: 0.`,
+				}, balance: 0.1`,
 			);
 		});
 	});
