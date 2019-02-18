@@ -13,11 +13,7 @@
  *
  */
 import { NotEnoughPeersError } from './errors';
-import { P2PPeerInfo } from './p2p_types';
-
-export interface PeerOptions {
-	readonly [key: string]: string | number;
-}
+import { P2PPeerInfo, P2PPeerSelectionOptions } from './p2p_types';
 /* tslint:disable: readonly-keyword*/
 interface Histogram {
 	[key: number]: number;
@@ -31,7 +27,7 @@ interface HistogramValues {
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<P2PPeerInfo>,
-	selectionParams: PeerOptions = { lastBlockHeight: 0 },
+	selectionParams: P2PPeerSelectionOptions = { lastBlockHeight: 0 },
 	numOfPeers: number = 0,
 ): ReadonlyArray<P2PPeerInfo> => {
 	const filteredPeers = peers.filter(
@@ -119,5 +115,7 @@ export const selectPeers = (
 	return peerList;
 };
 
-export const selectForConnection = (peerInfoList: ReadonlyArray<P2PPeerInfo>) =>
-	peerInfoList;
+export const selectForConnection = (
+	peerInfoList: ReadonlyArray<P2PPeerInfo>,
+	_selectionOptions?: P2PPeerSelectionOptions,
+) => peerInfoList;
