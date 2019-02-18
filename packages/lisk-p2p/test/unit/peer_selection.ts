@@ -14,16 +14,13 @@
  */
 import { expect } from 'chai';
 import { initializePeerList } from '../utils/peers';
-import {
-	PeerOptions,
-	selectForConnection,
-	selectPeers,
-} from '../../src/peer_selection';
+import { selectForConnection, selectPeers } from '../../src/peer_selection';
+import { P2PPeerSelectionOptions } from '../../src/p2p_types';
 
 describe('peer selector', () => {
 	describe('#selectPeer', () => {
 		let peerList = initializePeerList();
-		const selectionParams: PeerOptions = {
+		const selectionParams: P2PPeerSelectionOptions = {
 			lastBlockHeight: 545777,
 			netHash: '73458irc3yb7rg37r7326dbt7236',
 		};
