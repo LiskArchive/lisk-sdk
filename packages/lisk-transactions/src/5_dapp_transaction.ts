@@ -102,14 +102,17 @@ export const dappAssetFormatSchema = {
 				},
 				tags: {
 					type: 'string',
+					format: 'noNullByte',
 					maxLength: 160,
 				},
 				description: {
 					type: 'string',
+					format: 'noNullByte',
 					maxLength: 160,
 				},
 				name: {
 					type: 'string',
+					format: 'noNullByte',
 					minLength: 1,
 					maxLength: 32,
 				},

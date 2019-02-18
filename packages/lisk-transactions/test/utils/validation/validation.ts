@@ -29,6 +29,7 @@ import {
 	isGreaterThanMaxTransactionId,
 	isNumberString,
 	isValidInteger,
+	isNullByteIncluded,
 } from '../../../src/utils/validation/validation';
 
 describe('validation', () => {
@@ -367,6 +368,49 @@ describe('validation', () => {
 
 		it('should return true when negative integer was provided', () => {
 			return expect(isValidInteger(-6)).to.be.true;
+		});
+	});
+
+	describe('#isNullByteIncluded', () => {
+		const validStrings = [
+			'lorem ipsum',
+			'lorem\u0001 ipsum',
+			'loremU00000001 ipsum',
+			'\u0001',
+			'\x01',
+			'l©rem',
+			'❤',
+		];
+
+		 const invalidStrings = [
+			'\0',
+			'\0lorem',
+			'ipsum\0',
+			'lorem\0 ipsum',
+			'\x00',
+			'\x00lorem',
+			'ipsum\x00',
+			'lorem\x00 ipsum',
+			'\u0000',
+			'\u0000lorem',
+			'ipsum\u0000',
+			'lorem\u0000 ipsum',
+			'\\U00000000',
+			'\\U00000000lorem',
+			'ipsum\\U00000000',
+			'lorem\\U00000000 ipsum',
+		];
+
+		it('should return false when valid string was provided', () => {
+			validStrings.forEach(input => {
+				expect(isNullByteIncluded(input)).to.be.false;
+			});
+		});
+
+		it('should return true using unicode null characters', () => {
+			invalidStrings.forEach(input => {
+				expect(isNullByteIncluded(input)).to.be.true;
+			});
 		});
 	});
 });

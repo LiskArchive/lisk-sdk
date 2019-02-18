@@ -19,6 +19,7 @@ import * as BigNum from 'browserify-bignum';
 import * as schemas from './schema';
 import {
 	isGreaterThanMaxTransactionId,
+	isNullByteIncluded,
 	isNumberString,
 	validateAddress,
 	validateFee,
@@ -119,6 +120,8 @@ validator.addFormat(
 );
 
 validator.addFormat('username', validateUsername);
+
+validator.addFormat('noNullByte', data => !isNullByteIncluded(data));
 
 validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',
