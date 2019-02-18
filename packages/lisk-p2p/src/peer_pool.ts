@@ -422,7 +422,6 @@ export class PeerPool extends EventEmitter {
 		// TODO later: Remove fields that are specific to the current Lisk protocol.
 		const protocolPeerInfoList: ProtocolPeerInfoList = {
 			success: true,
-			// TODO ASAP: We need a new type to account for complete P2PPeerInfo which has all possible fields (e.g. P2PDiscoveredPeerInfo) that way we don't need to have all these checks below.
 			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
 				.map(
 					(peer: Peer): ProtocolPeerInfo | undefined => {
@@ -433,6 +432,7 @@ export class PeerPool extends EventEmitter {
 							return undefined;
 						}
 
+						// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
 						return {
 							broadhash: peerDetailedInfo.options
 								? (peerDetailedInfo.options.broadhash as string)
@@ -444,7 +444,10 @@ export class PeerPool extends EventEmitter {
 								: '',
 							os: peerDetailedInfo.os,
 							version: peerDetailedInfo.version,
-							wsPort: peerDetailedInfo.wsPort
+							httpPort: peerDetailedInfo.options
+								? (peerDetailedInfo.options.httpPort as number) : undefined,
+							wsPort: peerDetailedInfo.wsPort,
+							options: peerDetailedInfo.options
 						};
 					},
 				)
