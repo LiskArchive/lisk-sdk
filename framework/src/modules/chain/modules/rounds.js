@@ -418,7 +418,7 @@ Rounds.prototype.onFinishRound = async function(round) {
 		}
 	}
 
-	return library.channel.publish('rounds/change', { number: round });
+	return library.channel.publish('chain:rounds:change', { number: round });
 };
 
 /**

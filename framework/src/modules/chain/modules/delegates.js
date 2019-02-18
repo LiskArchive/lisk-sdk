@@ -884,7 +884,7 @@ Delegates.prototype.fork = function(block, cause) {
 	};
 
 	library.storage.entities.Account.insertFork(fork).then(() => {
-		library.channel.publish('delegates/fork', fork);
+		library.channel.publish('chain:delegates:fork', fork);
 	});
 };
 

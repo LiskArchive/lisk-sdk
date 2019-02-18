@@ -342,7 +342,7 @@ Transport.prototype.onSignature = function(signature, broadcast) {
 			{},
 			{ api: 'postSignatures', data: { signature } }
 		);
-		library.channel.publish('signature/change', signature);
+		library.channel.publish('chain:signature:change', signature);
 	}
 };
 
@@ -363,7 +363,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 			{},
 			{ api: 'postTransactions', data: { transaction } }
 		);
-		library.channel.publish('transactions/change', transaction);
+		library.channel.publish('chain:transactions:change', transaction);
 	}
 };
 

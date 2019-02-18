@@ -124,7 +124,7 @@ __private.syncTrigger = function(turnOn) {
 		library.logger.trace('Setting sync interval');
 		setImmediate(function nextSyncTrigger() {
 			library.logger.trace('Sync trigger');
-			library.channel.publish('loader/sync', {
+			library.channel.publish('chain:loader:sync', {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.lastBlock.get().height,
 			});

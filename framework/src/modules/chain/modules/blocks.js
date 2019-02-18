@@ -266,7 +266,7 @@ Blocks.prototype.onNewBlock = async function(block) {
 		}
 	}
 
-	return library.channel.publish('blocks/change', block);
+	return library.channel.publish('chain:blocks:change', block);
 };
 
 /**

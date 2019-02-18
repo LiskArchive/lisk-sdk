@@ -173,7 +173,10 @@ __private.validateSignature = (
 	transaction.ready = library.logic.multisignature.ready(transaction, sender);
 
 	// Emit events
-	library.channel.publish('multisignatures/signature/change', transaction);
+	library.channel.publish(
+		'chain:multisignatures:signature:change',
+		transaction
+	);
 
 	library.bus.message('signature', signature, true);
 	return setImmediate(cb);
