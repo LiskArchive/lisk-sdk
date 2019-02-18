@@ -180,6 +180,13 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
+			'u_username',
+			'u_isDelegate',
+			'u_secondSignature',
+			'u_nameExist',
+			'u_multiMin',
+			'u_multiLifetime',
+			'u_balance',
 			'productivity',
 		];
 
