@@ -41,10 +41,12 @@ import {
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
+	EVENT_UPDATED_PEER_INFO,
 	Peer,
 	REMOTE_RPC_GET_ALL_PEERS_LIST,
 } from './peer';
@@ -67,6 +69,8 @@ export {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_INBOUND_SOCKET_ERROR,
+	EVENT_UPDATED_PEER_INFO,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 };
 
 interface PeerPoolConfig {
@@ -89,6 +93,8 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
+	private readonly _handlePeerInfoUpdate: (peerInfo: P2PDiscoveredPeerInfo) => void;
+	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
@@ -160,6 +166,14 @@ export class PeerPool extends EventEmitter {
 		this._handlePeerInboundSocketError = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
+		};
+		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
+		};
+		this._handleFailedPeerInfoUpdate = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 		};
 	}
 
@@ -455,6 +469,8 @@ export class PeerPool extends EventEmitter {
 		peer.on(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
 		peer.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handlePeerOutboundSocketError);
 		peer.on(EVENT_INBOUND_SOCKET_ERROR, this._handlePeerInboundSocketError);
+		peer.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
+		peer.on(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {
@@ -466,5 +482,7 @@ export class PeerPool extends EventEmitter {
 			this._handlePeerConnectAbort,
 		);
 		peer.removeListener(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
+		peer.removeListener(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
+		peer.removeListener(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
 	}
 }
