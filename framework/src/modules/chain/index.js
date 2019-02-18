@@ -18,15 +18,28 @@ module.exports = {
 	},
 	defaults,
 	events: [
-		'blocks/change',
-		'signature/change',
-		'transactions/change',
-		'rounds/change',
-		'multisignatures/signature/change',
-		'delegates/fork',
-		'loader/sync',
+		'blocks:change',
+		'signature:change',
+		'transactions:change',
+		'rounds:change',
+		'multisignatures:signature:change',
+		'delegates:fork',
+		'loader:sync',
 	],
-	actions: {},
+	actions: {
+		calculateSupply: action => blockchain.actions().calculateSupply(action),
+		calculateMilestone: action =>
+			blockchain.actions().calculateMilestone(action),
+		calculateReward: action => blockchain.actions().calculateReward(action),
+		generateDelegateList: action =>
+			blockchain.actions().generateDelegateList(action),
+		getNetworkHeight: async action =>
+			blockchain.actions().getNetworkHeight(action),
+		getTransactionsCount: async () =>
+			blockchain.actions().getTransactionsCount(),
+		updateForgingStastus: async action =>
+			blockchain.actions().updateForgingStastus(action),
+	},
 	async load(channel, options) {
 		blockchain = new Chain(channel, options);
 		channel.once('lisk:ready', () => {

@@ -34,6 +34,8 @@ if (typeof gc !== 'undefined') {
 	}, 60000);
 }
 
+let blockReward;
+
 /**
  * Chain Module
  *
@@ -140,15 +142,18 @@ module.exports = class Chain {
 			await initSteps.bootstrapCache(scope);
 
 			scope.bus = await initSteps.createBus();
-			scope.webSocket = await initSteps.createSocketCluster(scope);
 			scope.logic = await initSteps.initLogicStructure(scope);
 			scope.modules = await initSteps.initModules(scope);
+			scope.webSocket = await initSteps.createSocketCluster(scope);
 			scope.swagger = await initSteps.attachSwagger(scope);
 
 			// TODO: Identify why its used
 			scope.modules.swagger = scope.swagger;
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
+
+			const BlockReward = require('./logic/block_reward');
+			blockReward = new BlockReward();
 
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
@@ -165,6 +170,35 @@ module.exports = class Chain {
 			});
 			process.emit('cleanup', error);
 		}
+	}
+
+	actions() {
+		return {
+			calculateSupply: action => blockReward.calcSupply(action.params[0]),
+			calculateMilestone: action => blockReward.calcMilestone(action.params[0]),
+			calculateReward: action => blockReward.calcReward(action.params[0]),
+			generateDelegateList: action =>
+				this.scope.modules.delegates.generateDelegateList(
+					action.params[0],
+					action.params[1],
+					action.params[2],
+					action.params[3]
+				),
+			getNetworkHeight: async action =>
+				util.promisify(this.scope.modules.peers.networkHeight)(
+					action.params[0]
+				),
+			getTransactionsCount: async () =>
+				util.promisify(
+					this.scope.modules.transactions.shared.getTransactionsCount
+				)(),
+			updateForgingStastus: async action =>
+				util.promisify(this.scope.modules.delegates.updateForgingStatus)(
+					action.params[0],
+					action.params[1],
+					action.params[2]
+				),
+		};
 	}
 
 	async cleanup(code, error) {
