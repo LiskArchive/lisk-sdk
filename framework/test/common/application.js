@@ -214,13 +214,13 @@ async function __init(sandbox, initScope) {
 						'__private.keypairs'
 					);
 
-					const delegates_cnt = Object.keys(keypairs).length;
-					expect(delegates_cnt).to.equal(
+					const delegatesCount = Object.keys(keypairs).length;
+					expect(delegatesCount).to.equal(
 						__testContext.config.forging.delegates.length
 					);
 
 					__testContext.debug(
-						`initApplication: Delegates loaded from config file - ${delegates_cnt}`
+						`initApplication: Delegates loaded from config file - ${delegatesCount}`
 					);
 					__testContext.debug('initApplication: Done');
 

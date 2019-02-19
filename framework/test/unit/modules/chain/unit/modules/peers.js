@@ -80,16 +80,6 @@ describe('peers', () => {
 			};
 		});
 
-		// scope.nonce = NONCE;
-		//
-		// scope.components.storage = {
-		// 	entities: {
-		// 		Peer: {
-		// 			get: sinonSandbox.stub().resolves([prefixedPeer]),
-		// 		},
-		// 	},
-		// };
-
 		scope = _.defaultsDeep(
 			{
 				nonce: NONCE,

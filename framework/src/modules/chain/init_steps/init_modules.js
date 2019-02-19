@@ -1,7 +1,4 @@
-const util = require('util');
-const async = require('async');
-
-const promisifyParallel = util.promisify(async.parallel);
+const domain = require('domain');
 
 const modulesList = {
 	accounts: '../modules/accounts.js',
@@ -19,29 +16,39 @@ const modulesList = {
 };
 
 module.exports = async scope => {
-	const tasks = {};
+	const moduleNames = Object.keys(modulesList);
+	const modules = {};
 
-	Object.keys(modulesList).forEach(name => {
-		tasks[name] = function(configModulesCb) {
-			const domain = require('domain').create();
+	const modulePromises = moduleNames.map(
+		moduleName =>
+			new Promise((resolve, reject) => {
+				const moduleDomain = domain.create();
+				const moduleCb = (err, object) => {
+					if (err) return reject(err);
 
-			domain.on('error', err => {
-				scope.components.logger.fatal(`Domain ${name}`, {
-					message: err.message,
-					stack: err.stack,
+					return resolve(object);
+				};
+
+				moduleDomain.on('error', err => {
+					scope.components.logger.fatal(`Domain ${moduleName}`, {
+						message: err.message,
+						stack: err.stack,
+					});
 				});
-			});
 
-			domain.run(() => {
-				scope.components.logger.debug('Loading module', name);
-				// eslint-disable-next-line import/no-dynamic-require
-				const DynamicModule = require(modulesList[name]);
-				return new DynamicModule(configModulesCb, scope);
-			});
-		};
+				moduleDomain.run(() => {
+					scope.components.logger.debug('Loading module', moduleName);
+					// eslint-disable-next-line import/no-dynamic-require
+					const DynamicModule = require(modulesList[moduleName]);
+					return new DynamicModule(moduleCb, scope);
+				});
+			})
+	);
+
+	(await Promise.all(modulePromises)).forEach((module, index) => {
+		modules[moduleNames[index]] = module;
 	});
 
-	const modules = await promisifyParallel(tasks);
 	scope.bus.registerModules(modules);
 
 	return modules;

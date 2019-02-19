@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const socket = require('socket.io');
 const fs = require('fs');
 
@@ -29,16 +30,14 @@ module.exports = async ({ config, components: { logger } }) => {
 	const server = http.createServer(app);
 	const io = socket(server);
 
-	let privateKey;
-	let certificate;
-	let https;
+	let httpsServer;
 	let https_io;
 
 	if (config.api.ssl && config.api.ssl.enabled) {
-		privateKey = fs.readFileSync(config.api.ssl.options.key);
-		certificate = fs.readFileSync(config.api.ssl.options.cert);
+		const privateKey = fs.readFileSync(config.api.ssl.options.key);
+		const certificate = fs.readFileSync(config.api.ssl.options.cert);
 
-		https = require('https').createServer(
+		httpsServer = https.createServer(
 			{
 				key: privateKey,
 				cert: certificate,
@@ -48,19 +47,10 @@ module.exports = async ({ config, components: { logger } }) => {
 			app
 		);
 
-		https_io = require('socket.io')(https);
+		https_io = socket(httpsServer);
 	}
 
-	const network = {
-		express,
-		app,
-		server,
-		io,
-		https,
-		https_io,
-	};
-
-	network.listen = async () => {
+	const listen = async () => {
 		// Listen to http
 		// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 		server.headersTimeout = config.api.options.limits.headersTimeout;
@@ -81,9 +71,9 @@ module.exports = async ({ config, components: { logger } }) => {
 
 		if (config.api.ssl.enabled) {
 			// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
-			https.headersTimeout = config.api.options.limits.headersTimeout;
-			https.setTimeout(config.api.options.limits.serverTimeout);
-			https.on('timeout', timeOutSocket => {
+			httpsServer.headersTimeout = config.api.options.limits.headersTimeout;
+			httpsServer.setTimeout(config.api.options.limits.serverTimeout);
+			httpsServer.on('timeout', timeOutSocket => {
 				logger.info(
 					`Disconnecting idle socket: ${timeOutSocket.remoteAddress}:${
 						timeOutSocket.remotePort
@@ -93,7 +83,7 @@ module.exports = async ({ config, components: { logger } }) => {
 			});
 
 			await startServer(
-				https,
+				httpsServer,
 				config.api.ssl.options.port,
 				config.api.ssl.options.address
 			);
@@ -106,5 +96,13 @@ module.exports = async ({ config, components: { logger } }) => {
 		}
 	};
 
-	return network;
+	return {
+		express,
+		app,
+		server,
+		io,
+		https: httpsServer,
+		https_io,
+		listen,
+	};
 };
