@@ -20,7 +20,7 @@ const {
 	BaseEntity,
 	Round,
 } = require('../../../../../src/components/storage/entities');
-const storageSandbox = require('../../../../common/storage_sandbox');
+const { StorageSandbox } = require('../../../../common/storage_sandbox');
 const seeder = require('../../../../common/storage_seed');
 const accountsFixtures = require('../../../../fixtures').accounts;
 const roundsFixtures = require('../../../../fixtures').rounds;
@@ -32,9 +32,9 @@ const {
 const checkTableExists = (adapter, tableName) =>
 	adapter
 		.execute(
-			`SELECT EXISTS 
+			`SELECT EXISTS
 					(
-						SELECT 1 
+						SELECT 1
 						FROM pg_tables
 						WHERE schemaname = 'public'
 						AND tablename = '${tableName}'
@@ -42,7 +42,7 @@ const checkTableExists = (adapter, tableName) =>
 		)
 		.then(result => result[0].exists);
 
-describe('Round', () => {
+describe('Round @sequential', () => {
 	let adapter;
 	let storage;
 	let RoundEntity;
@@ -105,10 +105,7 @@ describe('Round', () => {
 	const validFilter = { round: validRound.round };
 
 	before(async () => {
-		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
-			'lisk_test_round'
-		);
+		storage = new StorageSandbox(__testContext.config.db, 'lisk_test_round');
 		await storage.bootstrap();
 
 		adapter = storage.adapter;
