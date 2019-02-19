@@ -63,6 +63,14 @@ async function __init(sandbox, initScope) {
 	);
 
 	jobsQueue.jobs = {};
+
+	__testContext.config.syncing.active = false;
+	__testContext.config.broadcasts.active = false;
+	__testContext.config = Object.assign(
+		__testContext.config,
+		initScope.config || {}
+	);
+
 	const config = __testContext.config;
 	let storage;
 	if (!initScope.components) {
