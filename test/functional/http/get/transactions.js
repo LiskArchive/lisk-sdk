@@ -54,7 +54,7 @@ describe('GET /api/transactions', () => {
 		amount: 20 * NORMALIZER, // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
-		data: '\u0000 hey :)',
+		data: 'hey :)',
 	});
 	const transaction4 = lisk.transaction.transfer({
 		amount: maxAmount,
@@ -675,7 +675,7 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using unicode null characters should return transactions', () => {
+			it('using unicode null characters should return no transaction', () => {
 				// This case works in Javascripts but not in CURL or POSTMAN
 				const dataFilter = '\u0000 hey :)';
 				return transactionsEndpoint
@@ -686,10 +686,7 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						expect(res.body.data.length).to.greaterThan(0);
-						_.map(res.body.data, transaction => {
-							return expect(transaction.asset.data).to.include(dataFilter);
-						});
+						expect(res.body.data.length).to.eql(0);
 					});
 			});
 
