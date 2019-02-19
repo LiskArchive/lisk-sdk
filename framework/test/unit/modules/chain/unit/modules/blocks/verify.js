@@ -15,6 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
+const transactionStatus = require('@liskhq/lisk-transactions').Status;
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum.js');
 
 const BlocksVerify = rewire(
@@ -50,6 +51,9 @@ describe('blocks/verify', async () => {
 				Block: {
 					get: sinonSandbox.stub(),
 					isPersisted: sinonSandbox.stub(),
+				},
+				Transaction: {
+					get: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -121,6 +125,10 @@ describe('blocks/verify', async () => {
 			},
 		};
 
+		const modulesProcessTransactionsStub = {
+			verifyTransactions: sinonSandbox.stub(),
+		};
+
 		bindingsStub = {
 			modules: {
 				accounts: modulesAccountsStub,
@@ -129,6 +137,7 @@ describe('blocks/verify', async () => {
 				transactions: modulesTransactionsStub,
 				system: modulesSystemStub,
 				transport: modulesTransportStub,
+				processTransactions: modulesProcessTransactionsStub,
 			},
 		};
 
@@ -168,137 +177,6 @@ describe('blocks/verify', async () => {
 			expect(blocksVerifyModule.deleteBlockProperties).to.be.a('function');
 			expect(blocksVerifyModule.processBlock).to.be.a('function');
 			return expect(blocksVerifyModule.onBind).to.be.a('function');
-		});
-	});
-
-	describe('__private.checkTransaction', async () => {
-		const dummyBlock = { id: '5', height: 5 };
-		const dummyTransaction = { id: '5', type: 0 };
-
-		describe('when library.logic.transaction.getId fails', async () => {
-			beforeEach(() => library.logic.transaction.getId.throws('getId-ERR'));
-
-			it('should call a callback with error', done => {
-				__private.checkTransaction(dummyBlock, dummyTransaction, true, err => {
-					expect(err).to.equal('getId-ERR');
-					done();
-				});
-			});
-		});
-
-		describe('when library.logic.transaction.getId succeeds', async () => {
-			beforeEach(() => library.logic.transaction.getId.returns('4'));
-
-			describe('when modules.accounts.getAccount fails', async () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
-				);
-
-				it('should call a callback with error', done => {
-					__private.checkTransaction(
-						dummyBlock,
-						dummyTransaction,
-						true,
-						err => {
-							expect(err).to.equal('getAccount-ERR');
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when modules.accounts.getAccount succeeds', async () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, null, true)
-				);
-
-				describe('when library.logic.transaction.verify succeeds', async () => {
-					beforeEach(() =>
-						library.logic.transaction.verify.callsArgWith(4, null, true)
-					);
-
-					it('should call a callback with no error', done => {
-						__private.checkTransaction(
-							dummyBlock,
-							dummyTransaction,
-							true,
-							err => {
-								expect(err).to.be.null;
-								done();
-							}
-						);
-					});
-				});
-
-				describe('when library.logic.transaction.verify fails', async () => {
-					beforeEach(() =>
-						library.logic.transaction.verify.callsArgWith(4, 'verify-ERR', null)
-					);
-
-					it('should call a callback with error', done => {
-						__private.checkTransaction(
-							dummyBlock,
-							dummyTransaction,
-							true,
-							err => {
-								expect(err).to.equal('verify-ERR');
-								done();
-							}
-						);
-					});
-
-					describe('when failure is related to fork 2', async () => {
-						beforeEach(() => {
-							library.logic.transaction.verify.callsArgWith(
-								4,
-								'Transaction is already confirmed',
-								null
-							);
-							modules.delegates.fork.returns();
-							modules.transactions.removeUnconfirmedTransaction.returns();
-							return modules.transactions.undoUnconfirmed.callsArgWith(1, null);
-						});
-
-						it('should log the fork 2 entry', done => {
-							__private.checkTransaction(
-								dummyBlock,
-								dummyTransaction,
-								true,
-								err => {
-									expect(err).to.equal('Transaction is already confirmed');
-									expect(modules.delegates.fork).to.be.calledOnce;
-									expect(modules.delegates.fork).to.be.calledWithExactly(
-										dummyBlock,
-										2
-									);
-									done();
-								}
-							);
-						});
-
-						it('should undo unconfirmed state for that transaction', done => {
-							__private.checkTransaction(
-								dummyBlock,
-								dummyTransaction,
-								true,
-								err => {
-									expect(err).to.equal('Transaction is already confirmed');
-									expect(modules.transactions.undoUnconfirmed).to.be.calledOnce;
-									expect(
-										modules.transactions.undoUnconfirmed.firstCall.args[0]
-									).to.be.eql(dummyTransaction);
-									expect(modules.transactions.removeUnconfirmedTransaction).to
-										.be.calledOnce;
-									expect(
-										modules.transactions.removeUnconfirmedTransaction
-									).to.be.calledWithExactly(dummyTransaction.id);
-									done();
-								}
-							);
-						});
-					});
-				});
-			});
 		});
 	});
 
@@ -1901,68 +1779,89 @@ describe('blocks/verify', async () => {
 		});
 	});
 
-	describe('__private.checkTransactions', async () => {
-		let checkTransactionTemp;
+	describe('__private.checkTransactions', () => {
 		let dummyBlock;
 
-		beforeEach(done => {
-			checkTransactionTemp = __private.checkTransaction;
-			__private.checkTransaction = sinonSandbox.stub();
-			done();
-		});
-
-		afterEach(done => {
-			__private.checkTransaction = checkTransactionTemp;
-			done();
-		});
-
-		describe('when block.transactions is empty', async () => {
-			afterEach(
-				async () => expect(__private.checkTransaction.called).to.be.false
-			);
-
-			it('should call a callback with no error', done => {
+		describe('when block.transactions is empty', () => {
+			it('should not throw', async () => {
 				dummyBlock = { id: 1, transactions: [] };
-				__private.checkTransactions(dummyBlock, true, err => {
-					expect(err).to.be.null;
-					done();
-				});
+				expect(__private.checkTransactions.bind(__private, dummyBlock, true)).to
+					.not.throw;
 			});
 		});
 
-		describe('when block.transactions is not empty', async () => {
-			afterEach(
-				async () => expect(__private.checkTransaction.called).to.be.true
-			);
+		describe('when block.transactions is not empty', () => {
+			beforeEach(async () => {
+				dummyBlock = {
+					id: 1,
+					transactions: [
+						{
+							id: '123',
+						},
+					],
+				};
+			});
 
-			describe('when __private.checkTransaction fails', async () => {
-				beforeEach(() =>
-					__private.checkTransaction.callsArgWith(
-						2,
-						'checkTransaction-ERR',
-						null
-					)
-				);
+			describe('when checkExists is set to true', () => {
+				describe('when Transaction.get returns confirmed transactions', () => {
+					beforeEach(async () => {
+						storageStub.entities.Transaction.get.resolves(
+							dummyBlock.transactions
+						);
+					});
 
-				it('should call a callback with error', done => {
-					dummyBlock = { id: 1, transactions: [{ id: 1 }] };
-					__private.checkTransactions(dummyBlock, err => {
-						expect(err).to.equal('checkTransaction-ERR');
-						done();
+					it('should throw error when transaction is already confirmed', async () => {
+						expect(__private.checkTransactions(dummyBlock.transactions, true))
+							.to.eventually.rejected;
+					});
+
+					it('should call modules.transactions.removeUnconfirmedTransaction with confirmed transaction id', async () => {
+						try {
+							await __private.checkTransactions(dummyBlock.transactions, true);
+						} catch (e) {
+							expect(
+								modules.transactions.removeUnconfirmedTransaction
+							).to.be.calledWith(dummyBlock.transactions[0].id);
+						}
 					});
 				});
-			});
 
-			describe('when __private.checkTransaction succeeds', async () => {
-				beforeEach(() =>
-					__private.checkTransaction.callsArgWith(2, null, true)
-				);
+				describe('when Transaction.get returns empty array', () => {
+					const validTransactionsResponse = dummyBlock.transactions.map(
+						transaction => ({
+							id: transaction.id,
+							status: transactionStatus.OK,
+							errors: [],
+						})
+					);
 
-				it('should call a callback with no error', done => {
-					dummyBlock = { id: 1, transactions: [{ id: 1 }] };
-					__private.checkTransactions(dummyBlock, err => {
-						expect(err).to.be.null;
-						done();
+					const invalidTransactionsResponse = dummyBlock.transactions.map(
+						transaction => ({
+							id: transaction.id,
+							status: transactionStatus.FAIL,
+							errors: [new Error()],
+						})
+					);
+
+					beforeEach(async () => {
+						storageStub.entities.Transaction.get.resolves([]);
+					});
+
+					it('should not throw if the verifyTransaction returns transaction response with Status = OK', async () => {
+						modules.processTransactions.verifyTransactions.resolves(
+							validTransactionsResponse
+						);
+						await __private.checkTransactions(dummyBlock.transactions, true);
+						expect(modules.processTransactions.verifyTransactions).to.be
+							.calledOnce;
+					});
+
+					it('should throw if the verifyTransaction returns transaction response with Status != OK', async () => {
+						modules.processTransactions.verifyTransactions.resolves(
+							invalidTransactionsResponse
+						);
+						expect(__private.checkTransactions(dummyBlock.transactions, true))
+							.to.eventually.throw;
 					});
 				});
 			});
@@ -1988,9 +1887,7 @@ describe('blocks/verify', async () => {
 			__private.validateBlockSlot = sinonSandbox
 				.stub()
 				.callsArgWith(1, null, true);
-			__private.checkTransactions = sinonSandbox
-				.stub()
-				.callsArgWith(2, null, true);
+			__private.checkTransactions = sinonSandbox.stub().resolves();
 			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
 			__private.broadcastBlock = sinonSandbox
 				.stub()
@@ -2013,7 +1910,9 @@ describe('blocks/verify', async () => {
 				broadcast
 			);
 			expect(__private.validateBlockSlot).to.have.been.calledWith(dummyBlock);
-			expect(__private.checkTransactions).to.have.been.calledWith(dummyBlock);
+			expect(__private.checkTransactions).to.have.been.calledWith(
+				dummyBlock.transactions
+			);
 			expect(modules.blocks.chain.applyBlock).to.have.been.calledWith(
 				dummyBlock,
 				saveBlock

@@ -240,6 +240,7 @@ describe('blocks/verify', async () => {
 				library.logic.block,
 				library.logic.transaction,
 				library.storage,
+				library.logic.stateManager,
 				library.config
 			);
 			verify.onBind({
@@ -1100,6 +1101,53 @@ describe('blocks/verify', async () => {
 						.catch(err => {
 							done(err);
 						});
+				});
+
+				it('should fail when transaction is invalid', done => {
+					const account = random.account();
+					const transaction = lisk.transaction.transfer({
+						amount: new Bignum(NORMALIZER).multipliedBy(1000),
+						recipientId: accountFixtures.genesis.address,
+						passphrase: account.passphrase,
+					});
+					transaction.senderId = account.address;
+
+					const createBlockPayload = (
+						passPhrase,
+						transactions,
+						previousBlockArgs
+					) => {
+						const time = slots.getSlotTime(slots.getSlotNumber());
+						const firstBlock = createBlock(
+							blocks,
+							blockLogic,
+							passPhrase,
+							time,
+							transactions,
+							previousBlockArgs
+						);
+
+						return blocksVerify.deleteBlockProperties(firstBlock);
+					};
+
+					getValidKeypairForSlot(library, slots.getSlotNumber()).then(
+						passPhrase => {
+							const transactions = [transaction];
+							const firstBlock = createBlockPayload(
+								passPhrase,
+								transactions,
+								genesisBlock
+							);
+							blocksVerify.processBlock(firstBlock, false, true, err => {
+								expect(err[0].message).to.equal(
+									`Account does not have enough LSK: ${
+										account.address
+									}, balance: 0`
+								);
+								done();
+							});
+						}
+					);
 				});
 
 				it('should fail when transaction is already confirmed (fork:2)', done => {
