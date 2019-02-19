@@ -12,26 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { validAccount, validTransaction } from '../../fixtures';
-
 const getter = {
-	get: () => {
-		return { ...validTransaction };
-	},
+	get: () => {},
 	find: () => [],
+	cache: () => {}
 };
 
 const setter = {
-	get: () => {
-		return { ...validAccount };
-	},
-	getOrDefault: () => {
-		return { ...validAccount };
-	},
+	get: () => {},
+	getOrDefault: () => {},
 	set: () => {
 		return;
 	},
 	find: () => [],
+	cache: () => {}
 };
 
 export const MockStateStore: any = {

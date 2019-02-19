@@ -21,7 +21,7 @@ declare module 'browserify-bignum' {
 		static prime(bits: number, safe?: boolean): BigNum;
 
 		/** Create a new BigNum from n. */
-		constructor(n: number | BigNum);
+		constructor(n: number | string | BigNum);
 
 		/** Create a new BigNum from n and a base. */
 		constructor(n: string, base?: number);

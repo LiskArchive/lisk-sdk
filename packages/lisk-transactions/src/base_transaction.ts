@@ -121,8 +121,7 @@ export abstract class BaseTransaction {
 	protected _id?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
-
-	private _multisignatureStatus: MultisignatureStatus =
+	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract assetToJSON(): object;
@@ -263,7 +262,8 @@ export abstract class BaseTransaction {
 	}
 
 	public apply(store: StateStore): TransactionResponse {
-		const errors = this._verify(store) as TransactionError[];
+		const sender = store.account.getOrDefault(this.senderId);
+		const errors = this._verify(sender) as TransactionError[];
 
 		// Verify MultiSignature
 		const { errors: multiSigError } = this.processMultisignatures(store);
@@ -271,11 +271,15 @@ export abstract class BaseTransaction {
 			errors.push(...multiSigError);
 		}
 
-		const sender = store.account.get(this.senderId);
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
-		const updatedSender = { ...sender, balance: updatedBalance.toString() };
+		const updatedSender = {
+			...sender,
+			balance: updatedBalance.toString(),
+			publicKey: sender.publicKey || this.senderPublicKey,
+		};
 		store.account.set(updatedSender.address, updatedSender);
 		const assetErrors = this.applyAsset(store);
+
 		errors.push(...assetErrors);
 
 		if (
@@ -294,9 +298,13 @@ export abstract class BaseTransaction {
 	}
 
 	public undo(store: StateStore): TransactionResponse {
-		const sender = store.account.get(this.senderId);
+		const sender = store.account.getOrDefault(this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
-		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
+		const updatedAccount = {
+			...sender,
+			balance: updatedBalance.toString(),
+			publicKey: sender.publicKey || this.senderPublicKey,
+		};
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
 			? []
 			: [new TransactionError('Invalid balance amount', this.id)];
@@ -394,12 +402,11 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	private _verify(store: StateStore): ReadonlyArray<TransactionError> {
+	private _verify(sender: Account): ReadonlyArray<TransactionError> {
 		const secondSignatureTxBytes = Buffer.concat([
 			this.getBasicBytes(),
 			hexToBuffer(this.signature),
 		]);
-		const sender = store.account.get(this.senderId);
 
 		// Verify Basic state
 		return [

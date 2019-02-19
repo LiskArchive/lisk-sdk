@@ -51,6 +51,9 @@ describe('Base transaction class', () => {
 	let validTestTransaction: BaseTransaction;
 	let validSecondSignatureTestTransaction: BaseTransaction;
 	let validMultisignatureTestTransaction: BaseTransaction;
+	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountGetOrDefaultStub: sinon.SinonStub;
+
 
 	beforeEach(async () => {
 		validTestTransaction = new TestTransaction(defaultTransaction);
@@ -60,7 +63,8 @@ describe('Base transaction class', () => {
 		validMultisignatureTestTransaction = new TestTransaction(
 			defaultMultisignatureTransaction,
 		);
-		store.account.get = () => defaultSenderAccount;
+		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(defaultSenderAccount);
+		storeAccountGetOrDefaultStub = sandbox.stub(store.account, 'getOrDefault').returns(defaultSenderAccount);
 	});
 
 	describe('#constructor', () => {
@@ -210,7 +214,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return false on verification of multisignature transaction with missing signatures', async () => {
-			store.account.get = () => defaultMultisignatureAccount;
+			storeAccountGetStub.returns(defaultMultisignatureAccount);
 			const multisignaturesTransaction = new TestTransaction({
 				...defaultMultisignatureTransaction,
 				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
@@ -623,6 +627,7 @@ describe('Base transaction class', () => {
 
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
+			store.account.getOrDefault = () => defaultSenderAccount;
 			const { id, status, errors } = validTestTransaction.apply(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.OK);
@@ -630,12 +635,10 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response with insufficient account balance', async () => {
-			store.account.get = () => {
-				return {
-					...defaultSenderAccount,
-					balance: '0',
-				};
-			};
+			storeAccountGetOrDefaultStub.returns({
+				...defaultSenderAccount,
+				balance: '0',
+			});
 			const { id, status, errors } = validTestTransaction.apply(store);
 
 			expect(id).to.be.eql(validTestTransaction.id);
@@ -660,12 +663,10 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response with account balance exceeding max amount', async () => {
-			store.account.get = () => {
-				return {
-					...defaultSenderAccount,
-					balance: MAX_TRANSACTION_AMOUNT.toString(),
-				};
-			};
+			storeAccountGetOrDefaultStub.returns({
+				...defaultSenderAccount,
+				balance: MAX_TRANSACTION_AMOUNT.toString(),
+			});
 			const { id, status, errors } = validTestTransaction.undo(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);

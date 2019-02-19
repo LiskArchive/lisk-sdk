@@ -25,10 +25,18 @@ import { Account, TransactionJSON } from '../src/transaction_types';
 describe('Delegate registration transaction class', () => {
 	let validTestTransaction: DelegateTransaction;
 	let sender: Account;
+	let storeAccountCacheStub: sinon.SinonStub;
+	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountSetStub: sinon.SinonStub;
+	let storeAccountFindStub: sinon.SinonStub;
 
 	beforeEach(async () => {
 		validTestTransaction = new DelegateTransaction(validDelegateTransaction);
 		sender = validDelegateAccount;
+		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
+		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
+		storeAccountSetStub = sandbox.stub(store.account, 'set');
+		storeAccountFindStub = sandbox.stub(store.account, 'find');
 	});
 
 	describe('#constructor', () => {
@@ -83,6 +91,24 @@ describe('Delegate registration transaction class', () => {
 				conflictTransaction,
 			] as ReadonlyArray<TransactionJSON>);
 			expect(errors).to.not.be.empty;
+		});
+	});
+
+	describe('#assetToJSON', async () => {
+		it('should return an object of type transfer asset', async () => {
+			expect(validTestTransaction.assetToJSON())
+				.to.be.an('object')
+				.and.to.have.property('delegate');
+		});
+	});
+
+	describe('#prepare', async () => {
+		it('should call state store', async () => {
+			await validTestTransaction.prepare(store);
+			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
+				{ address: validTestTransaction.senderId },
+				{ username: validTestTransaction.asset.delegate.username },
+			]);
 		});
 	});
 
@@ -162,13 +188,29 @@ describe('Delegate registration transaction class', () => {
 	});
 
 	describe('#applyAsset', () => {
-		it('should returnerror when store includes account', async () => {
-			store.account.get = () => {
-				return {
-					...sender,
-					username: 'genesis_10',
-				};
-			};
+		it('should call state store', async () => {
+			(validTestTransaction as any).applyAsset(store);
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTestTransaction.senderId,
+			);
+			expect(storeAccountFindStub).to.be.calledOnce;
+			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
+				...sender,
+				isDelegate: true,
+				username: validTestTransaction.asset.delegate.username,
+			});
+		});
+
+		it('should return no errors', async () => {
+			const { isDelegate, username, ...strippedSender } = sender;
+			storeAccountGetStub.returns(strippedSender);
+			storeAccountFindStub.returns(false);
+			const errors = (validTestTransaction as any).applyAsset(store);
+			expect(errors).to.be.empty;
+		});
+
+		it('should return error when username is taken', async () => {
+			storeAccountFindStub.returns(true);
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
@@ -183,13 +225,20 @@ describe('Delegate registration transaction class', () => {
 	});
 
 	describe('#undoAsset', () => {
+		it('should call state store', async () => {
+			const { isDelegate, username, ...strippedSender } = sender;
+			(validTestTransaction as any).undoAsset(store);
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTestTransaction.senderId,
+			);
+			expect(storeAccountSetStub).to.be.calledWithExactly(
+				sender.address,
+				strippedSender,
+			);
+		});
+
 		it('should return no errors', async () => {
-			store.account.get = () => {
-				return {
-					...sender,
-					username: 'genesis_10',
-				};
-			};
+			storeAccountGetStub.returns(sender);
 			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
 		});

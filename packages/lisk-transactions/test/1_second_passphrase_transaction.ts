@@ -25,6 +25,10 @@ import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
 describe('Second signature registration transaction class', () => {
 	let validTestTransaction: SecondSignatureTransaction;
+	let storeAccountCacheStub: sinon.SinonStub;
+	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountSetStub: sinon.SinonStub;
+
 	const sender = {
 		address: '10020978176543317477L',
 		balance: '32981247530771',
@@ -36,9 +40,9 @@ describe('Second signature registration transaction class', () => {
 		validTestTransaction = new SecondSignatureTransaction(
 			validRegisterSecondSignatureTransaction,
 		);
-		store.account.get = () => {
-			return sender;
-		};
+		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
+		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
+		storeAccountSetStub = sandbox.stub(store.account, 'set');
 	});
 
 	describe('#constructor', () => {
@@ -115,6 +119,23 @@ describe('Second signature registration transaction class', () => {
 		});
 	});
 
+	describe('#assetToJSON', async () => {
+		it('should return an object of type transfer asset', async () => {
+			expect(validTestTransaction.assetToJSON())
+				.to.be.an('object')
+				.and.to.have.property('signature');
+		});
+	});
+
+	describe('#prepare', async () => {
+		it('should call state store', async () => {
+			await validTestTransaction.prepare(store);
+			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
+				{ address: validTestTransaction.senderId },
+			]);
+		});
+	});
+
 	describe('#validateAsset', () => {
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).validateAsset();
@@ -150,18 +171,27 @@ describe('Second signature registration transaction class', () => {
 	});
 
 	describe('#applyAsset', () => {
-		it('should return a successful transaction response', async () => {
+		it('should call state store', async () => {
+			(validTestTransaction as any).applyAsset(store);
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTestTransaction.senderId,
+			);
+			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
+				...sender,
+				secondPublicKey: validTestTransaction.asset.signature.publicKey,
+			});
+		});
+
+		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).to.be.empty;
 		});
 
 		it('should return error when secondPublicKey exists on account', async () => {
-			store.account.get = () => {
-				return {
-					...sender,
-					secondPublicKey: '123',
-				};
-			};
+			storeAccountGetStub.returns({
+				...sender,
+				secondPublicKey: '123',
+			});
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).to.contains(
 				'Register second signature only allowed once per account.',
@@ -170,7 +200,18 @@ describe('Second signature registration transaction class', () => {
 	});
 
 	describe('#undoAsset', () => {
-		it('should return a successful transaction response', async () => {
+		it('should call state store', async () => {
+			(validTestTransaction as any).applyAsset(store);
+			expect(storeAccountGetStub).to.be.calledWithExactly(
+				validTestTransaction.senderId,
+			);
+			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
+				...sender,
+				secondPublicKey: validTestTransaction.asset.signature.publicKey,
+			});
+		});
+
+		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
 		});

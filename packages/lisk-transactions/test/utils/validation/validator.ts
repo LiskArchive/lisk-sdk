@@ -592,4 +592,47 @@ describe('validator', () => {
 			).to.be.false;
 		});
 	});
+
+	describe('noNullBytes', () => {
+		let validate: ValidateFunction;
+		beforeEach(() => {
+			validate = validator.compile({
+				$merge: {
+					source: { $ref: baseSchemaId },
+					with: {
+						properties: {
+							target: {
+								type: 'string',
+								format: 'noNullByte',
+							},
+						},
+					},
+				},
+			});
+			return Promise.resolve();
+		});
+
+		it('should validate to true when valid string is provided', () => {
+			return expect(
+				validate({
+					target: 'some normal string',
+				}),
+			).to.be.true;
+		});
+
+		it('should validate to true when it is empty', () => {
+			return expect(validate({ target: '' })).to.be.true;
+		});
+
+		it('should validate to false when string with null byte is provided', () => {
+			const nullCharacterList = ['\0', '\x00', '\u0000', '\\U00000000'];
+			nullCharacterList.forEach(nullChar => {
+				expect(
+					validate({
+						target: `${nullChar} hey \x01 :)`,
+					}),
+				).to.be.false;
+			});
+		});
+	});
 });

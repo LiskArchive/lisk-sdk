@@ -67,6 +67,26 @@ export const verifyBalance = (
 		  )
 		: undefined;
 
+export const verifyAmountBalance = (
+	id: string,
+	account: Account,
+	amount: BigNum,
+	fee: BigNum,
+): TransactionError | undefined => {
+	const balance = new BigNum(account.balance);
+	if (balance.gte(0) && balance.lt(new BigNum(amount))) {
+		return new TransactionError(
+			`Account does not have enough LSK: ${
+				account.address
+			}, balance: ${convertBeddowsToLSK(balance.plus(fee).toString())}`,
+			id,
+			'.balance',
+		);
+	}
+
+	return undefined;
+};
+
 export const verifySecondSignature = (
 	id: string,
 	sender: Account,
@@ -104,19 +124,33 @@ interface VerifyMultiSignatureResult {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
+const isMultisignatureAccount = (account: Account): boolean =>
+	!!(
+		account.multisignatures &&
+		account.multisignatures.length > 0 &&
+		account.multimin
+	);
+
 export const verifyMultiSignatures = (
 	id: string,
 	sender: Account,
 	signatures: ReadonlyArray<string>,
 	transactionBytes: Buffer,
 ): VerifyMultiSignatureResult => {
-	if (
-		!(
-			sender.multisignatures &&
-			sender.multisignatures.length > 0 &&
-			sender.multimin
-		)
-	) {
+	if (!isMultisignatureAccount(sender) && signatures.length > 0) {
+		return {
+			status: MultisignatureStatus.FAIL,
+			errors: [
+				new TransactionError(
+					'Sender is not a multisignature account',
+					id,
+					'.signatures',
+				),
+			],
+		};
+	}
+
+	if (!isMultisignatureAccount(sender)) {
 		return {
 			status: MultisignatureStatus.NONMULTISIGNATURE,
 			errors: [],
@@ -124,9 +158,9 @@ export const verifyMultiSignatures = (
 	}
 
 	const { valid, errors } = validateMultisignatures(
-		sender.multisignatures,
+		sender.multisignatures as ReadonlyArray<string>,
 		signatures,
-		sender.multimin,
+		sender.multimin as number,
 		transactionBytes,
 		id,
 	);
@@ -143,6 +177,7 @@ export const verifyMultiSignatures = (
 		errors.length === 1 &&
 		errors[0] instanceof TransactionPendingError
 	) {
+
 		return {
 			status: MultisignatureStatus.PENDING,
 			errors,

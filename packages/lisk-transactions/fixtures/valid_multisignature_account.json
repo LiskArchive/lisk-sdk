@@ -4,7 +4,7 @@
 	"secondPublicKey": "",
 	"balance": "94378900000",
 	"multimin": 2,
-	"multilifetime": 72,
+	"multilifetime": 1,
 	"multisignatures": [
 		"40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f",
 		"d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb",
