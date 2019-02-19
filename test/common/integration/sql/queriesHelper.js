@@ -56,7 +56,7 @@ class Queries {
 
 	getDelegates() {
 		return self.storage.adapter.db.query(
-			'SELECT * FROM mem_accounts m LEFT JOIN delegates d ON d.username = m.username WHERE d."transactionId" IS NOT NULL'
+			"SELECT m.*, t.id as \"transactionId\" FROM mem_accounts m LEFT JOIN trs t ON t.asset->'delegate'->>'username' = m.username WHERE t.type = 2"
 		);
 	}
 
@@ -67,23 +67,14 @@ class Queries {
 	}
 
 	getFullBlock(height) {
-		return self.storage.adapter.db
-			.query('SELECT * FROM full_blocks_list WHERE b_height = ${height}', {
-				height,
-			})
-			.then(rows => {
-				// Normalize blocks
-				return self.library.modules.blocks.utils.readDbRows(rows);
-			});
+		return self.storage.entities.Block.get({ height }, { extended: true });
 	}
 
 	getAllBlocks() {
-		return self.storage.adapter.db
-			.query('SELECT * FROM full_blocks_list ORDER BY b_height DESC')
-			.then(rows => {
-				// Normalize blocks
-				return self.library.modules.blocks.utils.readDbRows(rows);
-			});
+		return self.storage.entities.Block.get(
+			{},
+			{ extended: true, limit: null }
+		).then(blocks => blocks.map(this.library.logic.block.storageRead));
 	}
 
 	getBlocks(round) {
