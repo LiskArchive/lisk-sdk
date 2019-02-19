@@ -39,6 +39,21 @@ module.exports = {
 			blockchain.actions().getTransactionsCount(),
 		updateForgingStastus: async action =>
 			blockchain.actions().updateForgingStastus(action),
+		getPeers: async action => blockchain.actions().getPeers(action),
+		getPeersCountByFilter: async action =>
+			blockchain.actions().getPeersCountByFilter(action),
+		postSignature: async action => blockchain.actions().postSignature(action),
+		storageRead: async action => blockchain.actions().storageRead(action),
+		getLastConsensus: async () => blockchain.actions().getLastConsensus(),
+		loaderLoaded: async () => blockchain.actions().loaderLoaded(),
+		loaderSyncing: async () => blockchain.actions().loaderSyncing(),
+		getForgersKeyPairs: async () => blockchain.actions().getForgersKeyPairs(),
+		getUnprocessedTransactions: async () =>
+			blockchain.actions().getUnprocessedTransactions(),
+		getUnconfirmedTransactions: async () =>
+			blockchain.actions().getUnconfirmedTransactions(),
+		getMultisignatureTransactions: async () =>
+			blockchain.actions().getMultisignatureTransactions(),
 	},
 	async load(channel, options) {
 		blockchain = new Chain(channel, options);

@@ -24,7 +24,6 @@ const { EPOCH_TIME, FEES } = global.constants;
 
 // Private Fields
 let library;
-let channel;
 
 /**
  * Description of the function.
@@ -112,11 +111,14 @@ NodeController.getConstants = async (context, next) => {
  */
 NodeController.getStatus = async (context, next) => {
 	try {
-		const networkHeight = await channel.invoke('chain:getNetworkHeight', [
-			{
-				normalized: false,
-			},
-		]);
+		const networkHeight = await library.channel.invoke(
+			'chain:getNetworkHeight',
+			[
+				{
+					normalized: false,
+				},
+			]
+		);
 
 		const [lastBlock] = await library.storage.entities.Block.get(
 			{},
@@ -127,16 +129,18 @@ NodeController.getStatus = async (context, next) => {
 		// TODO: Replace all library.modules calls after chain module extraction is done as part of https://github.com/LiskHQ/lisk/issues/2763.
 		const data = {
 			broadhash: library.modules.system.getBroadhash(),
-			consensus: library.modules.peers.getLastConsensus() || 0,
+			consensus: (await library.channel.invoke('chain:getLastConsensus')) || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch: slots.getTime(),
 			height,
-			loaded: library.modules.loader.loaded(),
+			loaded: await library.channel.invoke('chain:loaderLoaded'),
 			networkHeight: networkHeight || 0,
-			syncing: library.modules.loader.syncing(),
+			syncinc: await library.channel.invoke('chain:loaderSyncing'),
 		};
 
-		data.transactions = await channel.invoke('chain:getTransactionsCount');
+		data.transactions = await library.channel.invoke(
+			'chain:getTransactionsCount'
+		);
 		return next(null, data);
 	} catch (err) {
 		return next(err);
@@ -202,7 +206,7 @@ NodeController.updateForgingStatus = async (context, next) => {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getPooledTransactions = function(context, next) {
+NodeController.getPooledTransactions = async function(context, next) {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -214,7 +218,7 @@ NodeController.getPooledTransactions = function(context, next) {
 	const state = context.request.swagger.params.state.value;
 
 	const stateMap = {
-		unprocessed: 'getUnProcessedTransactions',
+		unprocessed: 'getUnprocessedTransactions',
 		unconfirmed: 'getUnconfirmedTransactions',
 		unsigned: 'getMultisignatureTransactions',
 	};
@@ -234,8 +238,7 @@ NodeController.getPooledTransactions = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	return library.modules.transactions.shared[stateMap[state]].call(
-		this,
+	return library.channel.invoke(`chain:${stateMap[state]}`, [
 		_.clone(filters),
 		(err, data) => {
 			if (err) {
@@ -264,8 +267,8 @@ NodeController.getPooledTransactions = function(context, next) {
 					count: parseInt(data.count),
 				},
 			});
-		}
-	);
+		},
+	]);
 };
 
 /**
@@ -276,7 +279,7 @@ NodeController.getPooledTransactions = function(context, next) {
  * @private
  */
 async function _getForgingStatus(publicKey) {
-	const keyPairs = library.modules.delegates.getForgersKeyPairs();
+	const keyPairs = await library.channel.invoke('chain:getForgersKeyPairs');
 	const forgingDelegates = library.config.forging.delegates;
 	const forgersPublicKeys = {};
 
@@ -315,7 +318,7 @@ async function _getForgingStatus(publicKey) {
  * @private
  */
 async function _updateForgingStatus(publicKey, password, forging) {
-	return this.channel.invoke('chain:updateForgingStatus', [
+	return library.channel.invoke('chain:updateForgingStatus', [
 		publicKey,
 		password,
 		forging,

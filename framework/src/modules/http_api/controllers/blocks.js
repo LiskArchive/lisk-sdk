@@ -33,8 +33,8 @@ let sortFields;
 function BlocksController(scope) {
 	library = {
 		storage: scope.components.storage,
-		logic: scope.logic,
 		logger: scope.components.logger,
+		channel: scope.channel,
 	};
 
 	sortFields = [
@@ -130,7 +130,7 @@ BlocksController.getBlocks = function(context, next) {
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.data - List of normalized blocks
  */
-function _list(params, cb) {
+async function _list(params, cb) {
 	const options = {};
 	const parsedFilters = {
 		id: params.id,
@@ -180,7 +180,13 @@ function _list(params, cb) {
 		library.storage.entities.Block.get(filters, options)
 			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 			.then(rows =>
-				setImmediate(cb, null, rows.map(library.logic.block.storageRead))
+				setImmediate(
+					cb,
+					null,
+					rows.map(async row =>
+						library.channel.invoke('chain:storageRead', [row])
+					)
+				)
 			)
 			.catch(err => {
 				library.logger.error(err.stack);

@@ -198,6 +198,40 @@ module.exports = class Chain {
 					action.params[1],
 					action.params[2]
 				),
+			getPeers: async action =>
+				this.scope.modules.peers.shared.getPeers(
+					action.params[0],
+					action.params[1]
+				),
+			getPeersCountByFilter: async action =>
+				this.scope.modules.peers.shared.getPeersCountByFilter(action.params[0]),
+			postSignature: async action =>
+				this.scope.modules.signatures.shared.postSignature(
+					action.params[0],
+					action.params[1]
+				),
+			storageRead: async action =>
+				this.scope.logic.block.storageRead(action.params[0]),
+			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
+			loaderLoaded: async () => this.scope.modules.loader.loaded(),
+			loaderSyncing: async () => this.scope.modules.loader.syncing(),
+			getForgersKeyPairs: async () =>
+				this.scope.modules.delegates.getForgersKeyPairs(),
+			getUnprocessedTransactions: async action =>
+				this.scope.modules.transactions.getUnprocessedTransactions(
+					action.params[0],
+					action.params[1]
+				),
+			getUnconfirmedTransactions: async action =>
+				this.scope.modules.transactions.getUnconfirmedTransactions(
+					action.params[0],
+					action.params[1]
+				),
+			getMultisignatureTransactions: async action =>
+				this.scope.modules.transactions.getMultisignatureTransactions(
+					action.params[0],
+					action.params[1]
+				),
 		};
 	}
 

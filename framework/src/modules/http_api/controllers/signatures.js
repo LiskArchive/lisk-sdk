@@ -17,7 +17,7 @@
 const ApiError = require('../helpers/api_error');
 
 // Private Fields
-let modules;
+let channel;
 
 /**
  * Description of the function.
@@ -30,7 +30,7 @@ let modules;
  * @todo Add description of SignaturesController
  */
 function SignaturesController(scope) {
-	modules = scope.modules;
+	channel = scope.channel;
 }
 
 /**
@@ -40,22 +40,25 @@ function SignaturesController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-SignaturesController.postSignature = function(context, next) {
+SignaturesController.postSignature = async function(context, next) {
 	const signature = context.request.swagger.params.signature.value;
 
-	return modules.signatures.shared.postSignature(signature, (err, data) => {
-		if (err) {
-			if (err instanceof ApiError) {
-				context.statusCode = err.code;
-				delete err.code;
+	await channel.invoke('chain:postSignature', [
+		signature,
+		(err, data) => {
+			if (err) {
+				if (err instanceof ApiError) {
+					context.statusCode = err.code;
+					delete err.code;
+				}
+				return next(err);
 			}
-			return next(err);
-		}
-		return next(null, {
-			data: { message: data.status },
-			meta: { status: true },
-		});
-	});
+			return next(null, {
+				data: { message: data.status },
+				meta: { status: true },
+			});
+		},
+	]);
 };
 
 module.exports = SignaturesController;

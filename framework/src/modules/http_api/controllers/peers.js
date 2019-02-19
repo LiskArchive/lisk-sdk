@@ -17,7 +17,7 @@
 const _ = require('lodash');
 
 // Private Fields
-let modules;
+let channel;
 
 /**
  * Description of the function.
@@ -29,7 +29,7 @@ let modules;
  * @todo Add description of PeersController
  */
 function PeersController(scope) {
-	modules = scope.modules;
+	channel = scope.channel;
 }
 
 /**
@@ -39,7 +39,7 @@ function PeersController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-PeersController.getPeers = function(context, next) {
+PeersController.getPeers = async function(context, next) {
 	const params = context.request.swagger.params;
 
 	let filters = {
@@ -60,27 +60,34 @@ PeersController.getPeers = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	return modules.peers.shared.getPeers(filters, (err, data) => {
-		if (err) {
-			return next(err);
-		}
+	await channel.invoke('chain:getPeers', [
+		filters,
+		async (err, data) => {
+			if (err) {
+				return next(err);
+			}
 
-		data = _.cloneDeep(data);
+			data = _.cloneDeep(data);
 
-		data = _.map(data, peer => {
-			delete peer.updated;
-			return peer;
-		});
+			data = _.map(data, peer => {
+				delete peer.updated;
+				return peer;
+			});
 
-		return next(null, {
-			data,
-			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
-				count: modules.peers.shared.getPeersCountByFilter(filters),
-			},
-		});
-	});
+			const peersCount = await channel.invoke('chain:getPeersCountByFilter', [
+				filters,
+			]);
+
+			return next(null, {
+				data,
+				meta: {
+					offset: filters.offset,
+					limit: filters.limit,
+					count: peersCount,
+				},
+			});
+		},
+	]);
 };
 
 module.exports = PeersController;
