@@ -16,6 +16,9 @@
 
 const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
+const regexpTester = require('../helpers/regexp_tester.js');
+
+const exceptions = global.exceptions;
 
 const { ADDITIONAL_DATA, FEES } = global.constants;
 
@@ -79,6 +82,25 @@ Transfer.prototype.calculateFee = function() {
 Transfer.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.recipientId) {
 		return setImmediate(cb, 'Missing recipient');
+	}
+
+	if (
+		transaction.asset &&
+		regexpTester.isNullByteIncluded(transaction.asset.data)
+	) {
+		if (exceptions.transactionWithNullByte.includes(transaction.id)) {
+			library.logger.warn(
+				'Transaction data field with null byte accepted due to exceptions',
+				{
+					transaction: JSON.stringify(transaction),
+				}
+			);
+		} else {
+			return setImmediate(
+				cb,
+				'Transfer data field has invalid character. Null character is not allowed.'
+			);
+		}
 	}
 
 	const amount = new Bignum(transaction.amount);
