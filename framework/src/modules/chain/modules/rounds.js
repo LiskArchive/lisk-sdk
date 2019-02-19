@@ -357,7 +357,7 @@ Rounds.prototype.createRoundInformationWithDelegate = function(
 
 // Events
 /**
- * Assigns modules to private constiable `modules`.
+ * Assigns modules to private constant `modules`.
  *
  * @param {modules} scope - Loaded modules
  */
@@ -374,7 +374,7 @@ Rounds.prototype.onBind = function(scope) {
 };
 
 /**
- * Sets private constiable loaded to true.
+ * Sets private constant loaded to true.
  *
  * @listens module:loader~event:blockchainReady
  */
@@ -421,7 +421,7 @@ Rounds.prototype.onFinishRound = async function(round) {
 };
 
 /**
- * Sets private constiable `loaded` to false.
+ * Sets private constant `loaded` to false.
  *
  * @param {function} cb
  * @returns {setImmediateCallback} cb
@@ -434,7 +434,7 @@ Rounds.prototype.cleanup = function(cb) {
 
 // Private methods
 /**
- * Generates outsiders array and pushes to param scope constiable.
+ * Generates outsiders array and pushes to param scope constant.
  * Obtains delegate list and for each delegate generate address.
  *
  * @private
@@ -479,7 +479,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 
 /**
  * Gets rows from `round_blocks` and calculates rewards.
- * Loads into scope constiable fees, rewards and delegates.
+ * Loads into scope constant fees, rewards and delegates.
  *
  * @private
  * @param {number} round

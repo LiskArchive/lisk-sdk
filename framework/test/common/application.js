@@ -24,6 +24,7 @@ const httpApi = require('../../src/modules/chain/helpers/http_api');
 const jobsQueue = require('../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../src/components/cache');
+const { createSystemComponent } = require('../../src/components/system');
 const StorageSandbox = require('./storage_sandbox').StorageSandbox;
 
 let currentAppScope;
@@ -118,7 +119,6 @@ function __init(initScope, done) {
 			peers: '../../src/modules/chain/modules/peers.js',
 			rounds: '../../src/modules/chain/modules/rounds.js',
 			signatures: '../../src/modules/chain/modules/signatures.js',
-			system: '../../src/modules/chain/modules/system.js',
 			transactions: '../../src/modules/chain/modules/transactions.js',
 			transport: '../../src/modules/chain/modules/transport.js',
 		};
@@ -127,6 +127,12 @@ function __init(initScope, done) {
 		async.auto(
 			{
 				config(cb) {
+					__testContext.config.syncing.active = false;
+					__testContext.config.broadcasts.active = false;
+					__testContext.config = Object.assign(
+						__testContext.config,
+						initScope.config || {}
+					);
 					// In case domain names are used, resolve those to IP addresses.
 					const peerDomainLookupTasks = __testContext.config.peers.list.map(
 						peer => callback => {
@@ -178,13 +184,20 @@ function __init(initScope, done) {
 						__testContext.config.redis,
 						logger
 					);
+					const system = createSystemComponent(
+						__testContext.config,
+						logger,
+						storage
+					);
 					return cache.bootstrap().then(err => {
 						if (err) {
 							return cb(err);
 						}
 						components.push(cache);
+						components.push(system);
 						return cb(null, {
 							cache,
+							system,
 						});
 					});
 				},
@@ -319,6 +332,7 @@ function __init(initScope, done) {
 					},
 				],
 				logic: [
+					'components',
 					'storage',
 					'bus',
 					'schema',
@@ -412,7 +426,12 @@ function __init(initScope, done) {
 									'config',
 									'storage',
 									function(peersScope, peerscb) {
-										new Peers(peersScope.logger, peersScope.config, peerscb);
+										new Peers(
+											peersScope.logger,
+											peersScope.config,
+											scope.components.system,
+											peerscb
+										);
 									},
 								],
 								multisignature: [
@@ -535,7 +554,11 @@ function __init(initScope, done) {
 
 function cleanup(done) {
 	if (currentAppScope.components !== undefined) {
-		currentAppScope.components.cache.cleanup();
+		Object.keys(currentAppScope.components)
+			.filter(
+				key => typeof currentAppScope.components[key].cleanup === 'function'
+			)
+			.map(key => currentAppScope.components[key].cleanup());
 	}
 	async.eachSeries(
 		currentAppScope.modules,

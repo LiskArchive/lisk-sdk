@@ -15,6 +15,7 @@ const swaggerHelper = require('./helpers/swagger');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
+const { createSystemComponent } = require('../../components/system');
 const defaults = require('./defaults');
 
 // Define workers_controller path
@@ -52,7 +53,6 @@ const config = {
 		loader: './modules/loader.js',
 		multisignatures: './modules/multisignatures.js',
 		peers: './modules/peers.js',
-		system: './modules/system.js',
 		signatures: './modules/signatures.js',
 		transactions: './modules/transactions.js',
 		transport: './modules/transport.js',
@@ -87,6 +87,11 @@ module.exports = class Chain {
 		const cacheConfig = await this.channel.invoke(
 			'lisk:getComponentConfig',
 			'cache'
+		);
+
+		const systemConfig = await this.channel.invoke(
+			'lisk:getComponentConfig',
+			'system'
 		);
 
 		this.logger = createLoggerComponent(loggerConfig);
@@ -131,7 +136,13 @@ module.exports = class Chain {
 		this.logger.debug('Initiating storage...');
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
+		// System
+		this.logger.debug('Initiating system...');
+		const system = createSystemComponent(systemConfig, this.logger, storage);
+
+		// Config
 		const appConfig = this.options.config;
+
 		const self = this;
 
 		async.auto(
@@ -402,14 +413,20 @@ module.exports = class Chain {
 						});
 				},
 
+				system(cb) {
+					return cb(null, system);
+				},
+
 				components: [
 					'cache',
 					'storage',
+					'system',
 					(scope, cb) => {
 						cb(null, {
 							cache: scope.cache,
 							storage: scope.storage,
 							logger: scope.logger,
+							system: scope.system,
 						});
 					},
 				],
@@ -494,7 +511,7 @@ module.exports = class Chain {
 				],
 
 				logic: [
-					'storage',
+					'components',
 					'bus',
 					'schema',
 					'genesisBlock',
@@ -592,7 +609,12 @@ module.exports = class Chain {
 									'logger',
 									'config',
 									function(peersScope, peersCb) {
-										new Peers(peersScope.logger, peersScope.config, peersCb);
+										new Peers(
+											peersScope.logger,
+											peersScope.config,
+											scope.components.system,
+											peersCb
+										);
 									},
 								],
 							},
@@ -796,7 +818,9 @@ module.exports = class Chain {
 		}
 
 		if (this.scope.components !== undefined) {
-			this.scope.components.map(component => component.cleanup());
+			Object.keys(this.scope.components)
+				.filter(key => typeof this.scope.components[key].cleanup === 'function')
+				.map(key => this.scope.components[key].cleanup());
 		}
 
 		// Run cleanup operation on each module before shutting down the node;

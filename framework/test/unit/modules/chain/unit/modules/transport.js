@@ -47,6 +47,7 @@ describe('transport', () => {
 	let transportInstance;
 	let library;
 	let __private;
+	let components;
 	let modules;
 	let defaultScope;
 	let restoreRewiredTopDeps;
@@ -219,8 +220,12 @@ describe('transport', () => {
 					broadcastInterval: 10000,
 					releaseLimit: 10,
 				},
+				httpPort: 8000,
 			},
 			modules: {},
+			components: {
+				system: {},
+			},
 		};
 
 		peerMock = {
@@ -340,6 +345,16 @@ describe('transport', () => {
 					},
 				};
 
+				components = {
+					system: {
+						update: sinonSandbox.stub().callsArg(0),
+						headers: {
+							broadhash:
+								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+						},
+					},
+				};
+
 				definitions = {};
 
 				wsRPC = {
@@ -349,6 +364,7 @@ describe('transport', () => {
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
 					modules,
+					components,
 					definitions,
 					wsRPC,
 				});
@@ -996,6 +1012,7 @@ describe('transport', () => {
 						broadcasts: {
 							active: true,
 						},
+						httpPort: 8000,
 					},
 					network: {
 						io: {
@@ -1029,14 +1046,6 @@ describe('transport', () => {
 						update: sinonSandbox.stub().returns(true),
 						remove: sinonSandbox.stub().returns(true),
 					},
-					system: {
-						update: sinonSandbox.stub().callsArg(0),
-						getBroadhash: sinonSandbox
-							.stub()
-							.returns(
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b'
-							),
-					},
 					loader: {
 						syncing: sinonSandbox.stub().returns(false),
 					},
@@ -1060,6 +1069,16 @@ describe('transport', () => {
 					},
 				};
 
+				components = {
+					system: {
+						update: sinonSandbox.stub().callsArg(0),
+						headers: {
+							broadhash:
+								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+						},
+					},
+				};
+
 				__private = {
 					broadcaster: {},
 					removePeer: sinonSandbox.stub(),
@@ -1069,6 +1088,7 @@ describe('transport', () => {
 				restoreRewiredTransportDeps = TransportModule.__set__({
 					library,
 					modules,
+					components,
 					__private,
 				});
 
@@ -1160,8 +1180,20 @@ describe('transport', () => {
 					expect(modulesObject).to.have.property('loader');
 					expect(modulesObject).to.have.property('multisignatures');
 					expect(modulesObject).to.have.property('peers');
-					expect(modulesObject).to.have.property('system');
 					return expect(modulesObject).to.have.property('transactions');
+				});
+			});
+
+			describe('components', () => {
+				let componentsObject;
+
+				beforeEach(done => {
+					componentsObject = TransportModule.__get__('components');
+					done();
+				});
+
+				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', async () => {
+					return expect(componentsObject).to.have.property('system');
 				});
 			});
 
@@ -1380,7 +1412,7 @@ describe('transport', () => {
 
 		describe('onBroadcastBlock', () => {
 			describe('when broadcast is defined', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					block = {
 						id: '6258354802676165798',
 						height: 123,
@@ -1398,14 +1430,32 @@ describe('transport', () => {
 						enqueue: sinonSandbox.stub(),
 						broadcast: sinonSandbox.stub(),
 					};
-					transportInstance.onBroadcastBlock(block, true);
-					done();
+					return transportInstance.onBroadcastBlock(block, true);
 				});
 
 				it('should call __private.broadcaster.maxRelays with block', async () => {
 					expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
 					return expect(__private.broadcaster.maxRelays.calledWith(block)).to.be
 						.true;
+				});
+
+				it('should call __private.broadcaster.broadcast', async () => {
+					expect(__private.broadcaster.broadcast.calledOnce).to.be.true;
+					return expect(
+						__private.broadcaster.broadcast.calledWith(
+							{
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							},
+							{
+								api: 'postBlock',
+								data: {
+									block,
+								},
+								immediate: true,
+							}
+						)
+					).to.be.true;
 				});
 
 				describe('when __private.broadcaster.maxRelays returns true', () => {
@@ -1437,17 +1487,6 @@ describe('transport', () => {
 							)
 						).to.be.true);
 				});
-
-				it('should call __private.broadcaster.broadcast with {broadhash: modules.system.getBroadhash()}', async () =>
-					expect(
-						__private.broadcaster.broadcast.calledWith(
-							{
-								broadhash:
-									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-							},
-							{ api: 'postBlock', data: { block }, immediate: true }
-						)
-					).to.be.true);
 			});
 		});
 
@@ -1838,7 +1877,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					currentHeight = 12345;
 					req = {};
-					modules.system.getHeight = sinonSandbox.stub().returns(currentHeight);
+					components.system.headers.height = currentHeight;
 					transportInstance.shared.height(req, (err, res) => {
 						error = err;
 						result = res;
@@ -1860,20 +1899,17 @@ describe('transport', () => {
 			});
 
 			describe('status', () => {
-				let headers;
-
 				beforeEach(done => {
-					headers = {
+					components.system.headers = {
 						height: 123,
 						broadhash:
 							'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
 						nonce: 'sYHEDBKcScaAAAYg',
-						httpPort: 8000,
 						version: 'v0.8.0',
 						os: 'debian',
+						httpPort: 8000,
 					};
 					req = {};
-					modules.system.headers = sinonSandbox.stub().returns(headers);
 					transportInstance.shared.status(req, (err, res) => {
 						error = err;
 						result = res;
@@ -1892,27 +1928,27 @@ describe('transport', () => {
 				it('should call callback with a result containing height = 123', async () =>
 					expect(result)
 						.to.have.property('height')
-						.which.equals(headers.height));
+						.which.equals(components.system.headers.height));
 
 				it('should call callback with a result containing broadhash = "258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea"', async () =>
 					expect(result)
 						.to.have.property('broadhash')
-						.which.equals(headers.broadhash));
+						.which.equals(components.system.headers.broadhash));
 
 				it('should call callback with a result containing httpPort = 8000', async () =>
 					expect(result)
 						.to.have.property('httpPort')
-						.which.equals(headers.httpPort));
+						.which.equals(defaultScope.config.httpPort));
 
 				it('should call callback with a result containing version = "v0.8.0"', async () =>
 					expect(result)
 						.to.have.property('version')
-						.which.equals(headers.version));
+						.which.equals(components.system.headers.version));
 
 				it('should call callback with a result containing os = "debian"', async () =>
 					expect(result)
 						.to.have.property('os')
-						.which.equals(headers.os));
+						.which.equals(components.system.headers.os));
 			});
 
 			describe('postSignature', () => {
