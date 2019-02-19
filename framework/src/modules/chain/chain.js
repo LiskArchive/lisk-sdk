@@ -102,27 +102,28 @@ module.exports = class Chain {
 				throw Error('Failed to assign nethash from genesis block');
 			}
 
+			const self = this;
 			const scope = {
 				lastCommit,
 				ed,
 				build: versionBuild,
-				config: this.options.config,
-				genesisBlock: { block: this.options.config.genesisBlock },
+				config: self.options.config,
+				genesisBlock: { block: self.options.config.genesisBlock },
 				schema: swaggerHelper.getValidator(),
 				sequence: new Sequence({
 					onWarning(current) {
-						this.logger.warn('Main queue', current);
+						self.logger.warn('Main queue', current);
 					},
 				}),
 				balancesSequence: new Sequence({
 					onWarning(current) {
-						this.logger.warn('Balance queue', current);
+						self.logger.warn('Balance queue', current);
 					},
 				}),
 				components: {
 					storage,
 					cache,
-					logger: this.logger,
+					logger: self.logger,
 				},
 			};
 
@@ -157,9 +158,9 @@ module.exports = class Chain {
 			await scope.webSocket.listen();
 			// Listen to http, https servers
 			await scope.network.listen();
-			this.logger.info('Modules ready and launched');
+			self.logger.info('Modules ready and launched');
 
-			this.scope = scope;
+			self.scope = scope;
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
 				message: error.message,
