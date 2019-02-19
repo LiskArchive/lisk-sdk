@@ -25,7 +25,6 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	ProtocolNodeInfo,
-	ProtocolPeerInfo,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -37,7 +36,6 @@ import {
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
-	validateStatusProtocolPeerInfo,
 } from './validation';
 
 // This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
@@ -110,21 +108,6 @@ const convertNodeInfoToLegacyFormat = (
 	httpPort: nodeInfo.options ? (nodeInfo.options.httpPort as number) : 0,
 	broadhash: nodeInfo.options ? (nodeInfo.options.broadhash as string) : '',
 	nonce: nodeInfo.options ? (nodeInfo.options.nonce as string) : '',
-});
-
-const convertLegacyPeerInfoToNewFormat = (
-	ipAddress: string,
-	peerInfo: ProtocolPeerInfo,
-): P2PDiscoveredPeerInfo => ({
-	ipAddress,
-	wsPort: peerInfo.wsPort,
-	height: peerInfo.height,
-	os: peerInfo.os,
-	version: peerInfo.version,
-	options: {
-		...peerInfo
-	},
-	isDiscoveredPeer: true,
 });
 
 export interface PeerConfig {
@@ -445,10 +428,11 @@ export class Peer extends EventEmitter {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_NODE_INFO,
 			});
-			const rawPeerInfo = validateStatusProtocolPeerInfo(response.data);
 
-			return convertLegacyPeerInfoToNewFormat(this.ipAddress, rawPeerInfo);
+			this._updateFromProtocolPeerInfo(response.data);
 		} catch (error) {
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
 				error,
@@ -456,6 +440,11 @@ export class Peer extends EventEmitter {
 				this.wsPort,
 			);
 		}
+
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerDetailedInfo);
+		
+		// Return the updated detailed peer info.
+		return this._peerDetailedInfo as P2PDiscoveredPeerInfo;
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
@@ -563,12 +552,16 @@ export class Peer extends EventEmitter {
 		);
 	}
 
+	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
+		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
+		const newPeerInfo = validatePeerInfo(protocolPeerInfo);
+		this.updatePeerInfo(newPeerInfo);
+	}
+
 	private _handleUpdatePeerInfo(request: P2PRequest): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			const protocolPeerInfo = { ...request.data, ip: this._ipAddress };
-			const newPeerInfo = validatePeerInfo(protocolPeerInfo);
-			this.updatePeerInfo(newPeerInfo);
+			this._updateFromProtocolPeerInfo(request.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 			request.error(error);
@@ -576,7 +569,7 @@ export class Peer extends EventEmitter {
 			return;
 		}
 
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerDetailedInfo);
 		request.end();
 	}
 
