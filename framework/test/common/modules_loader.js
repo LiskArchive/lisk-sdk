@@ -19,6 +19,7 @@ const randomstring = require('randomstring');
 const async = require('async');
 const Sequence = require('../../src/modules/chain/helpers/sequence.js');
 const { createLoggerComponent } = require('../../src/components/logger');
+const { createSystemComponent } = require('../../src/components/system');
 const Z_schema = require('../../src/modules/chain/helpers/z_schema.js');
 const ed = require('../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../src/modules/chain/helpers/jobs_queue');
@@ -32,6 +33,11 @@ const modulesLoader = new function() {
 		errorLevel: __testContext.config.fileLogLevel,
 		filename: __testContext.config.logFileName,
 	});
+	this.system = createSystemComponent(
+		__testContext.config,
+		this.logger,
+		this.storage
+	);
 	this.scope = {
 		config: __testContext.config,
 		genesisBlock: { block: __testContext.config.genesisBlock },
@@ -132,7 +138,7 @@ const modulesLoader = new function() {
 				);
 				break;
 			case 'Peers':
-				new Logic(scope.logger, scope.config, cb);
+				new Logic(scope.logger, scope.config, this.system, cb);
 				break;
 			default:
 				console.info('no Logic case initLogic');
@@ -235,7 +241,6 @@ const modulesLoader = new function() {
 				{ peers: require('../../src/modules/chain/modules/peers') },
 				{ rounds: require('../../src/modules/chain/modules/rounds') },
 				{ signatures: require('../../src/modules/chain/modules/signatures') },
-				{ system: require('../../src/modules/chain/modules/system') },
 				{
 					transactions: require('../../src/modules/chain/modules/transactions'),
 				},

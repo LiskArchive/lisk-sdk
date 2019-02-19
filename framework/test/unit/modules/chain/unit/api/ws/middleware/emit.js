@@ -14,8 +14,6 @@
 
 'use strict';
 
-const expect = require('chai').expect;
-const sinon = require('sinon');
 const randomstring = require('randomstring');
 const connectionsTable = require('../../../../../../../../src/modules/chain/api/ws/workers/connections_table');
 const emitMiddleware = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/emit');
@@ -23,46 +21,41 @@ const emitMiddleware = require('../../../../../../../../src/modules/chain/api/ws
 describe('emitMiddleware', () => {
 	let validReq;
 	let validNext;
+	const validSocketId = 0;
+	const receiveDataEvents = ['postBlock', 'postTransactions', 'postSignatures'];
 
-	beforeEach(done => {
+	beforeEach(async () => {
 		emitMiddleware(validReq, validNext);
-		done();
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('when valid req and next params provided', () => {
-		const validSocketId = 0;
-		before(done => {
+		before(async () => {
 			validReq = {
 				data: {},
 				socket: {
 					id: validSocketId,
 				},
 			};
-			validNext = sinon.spy();
-			done();
+			validNext = sinonSandbox.spy();
+			connectionsTable.getNonce = sinonSandbox.stub();
 		});
 
-		afterEach(() => validNext.resetHistory());
+		afterEach(async () => {
+			validNext.resetHistory();
+			validReq.data = {};
+			connectionsTable.getNonce.reset();
+		});
 
 		it('should call validNext', async () => expect(validNext).calledOnce);
 
-		describe('when req.event is one of the events responsible for receiving data on P2P layer', () => {
-			const receiveDataEvents = [
-				'postBlock',
-				'postTransactions',
-				'postSignatures',
-			];
-			receiveDataEvents.forEach(() => {
-				before(done => {
-					connectionsTable.getNonce = sinon.stub();
-					validReq.event = 'postBlock';
-					done();
-				});
-
-				afterEach(done => {
-					connectionsTable.getNonce.reset();
-					validReq.data = {};
-					done();
+		receiveDataEvents.forEach(dataEvent => {
+			describe(`when req.event is '${dataEvent}' responsible for receiving data on P2P layer `, () => {
+				before(async () => {
+					validReq.event = dataEvent;
 				});
 
 				it('should call connectionsTable.getNonce', async () =>
@@ -76,12 +69,13 @@ describe('emitMiddleware', () => {
 						expect(validReq.data).to.have.property('nonce').to.be.undefined);
 
 					describe('when req.data = null', () => {
-						before(done => {
+						before(async () => {
 							validReq.data = null;
-							done();
 						});
+
 						it('should change req.data to an object', async () =>
 							expect(validNext).calledOnce);
+
 						it('should add nonce = undefined property to req.data', async () =>
 							expect(validReq.data).to.have.property('nonce').to.be.undefined);
 					});
@@ -89,14 +83,8 @@ describe('emitMiddleware', () => {
 
 				describe('when nonce is matched with [validSocketId] in connectionsTables', () => {
 					const validNonce = randomstring.generate(16);
-					before(done => {
+					before(async () => {
 						connectionsTable.getNonce.returns(validNonce);
-						done();
-					});
-
-					after(done => {
-						connectionsTable.getNonce.reset();
-						done();
 					});
 
 					it('should add nonce = undefined property to req.data', async () =>

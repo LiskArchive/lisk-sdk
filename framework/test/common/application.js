@@ -23,6 +23,7 @@ const ed = require('../../src/modules/chain/helpers/ed.js');
 const jobsQueue = require('../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../src/components/cache');
+const { createSystemComponent } = require('../../src/components/system');
 const StorageSandbox = require('./storage_sandbox').StorageSandbox;
 const ZSchema = require('../../src/modules/chain/helpers/z_schema.js');
 const initSteps = require('../../src/modules/chain/init_steps');
@@ -146,11 +147,13 @@ async function __init(sandbox, initScope) {
 		);
 
 		const cache = createCacheComponent(scope.config.redis, logger);
+		const system = createSystemComponent(scope.config, logger, storage);
 
 		scope.components = {
 			logger,
 			storage,
 			cache,
+			system,
 		};
 
 		await startStorage();

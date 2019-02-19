@@ -23,11 +23,20 @@ try {
 				enabled: config.cacheEnabled,
 			},
 			storage: config.db,
+			system: {
+				nethash: config.nethash,
+				version: config.version,
+				wsPort: config.wsPort,
+				httpPort: config.httpPort,
+				minVersion: config.minVersion,
+				protocolVersion: config.protocolVersion,
+				nonce: config.nonce,
+			},
 		},
 	});
 
-	app.overrideModuleConfig('chain', { exceptions: config.exceptions, config });
-	app.overrideModuleConfig('http_api', { config });
+	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
+	app.overrideModuleOptions('http_api', { config });
 
 	app
 		.run()

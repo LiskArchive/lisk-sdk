@@ -30,6 +30,7 @@ const {
 	MAX_SHARED_TRANSACTIONS,
 } = global.constants;
 // Private fields
+let components;
 let modules;
 let definitions;
 let library;
@@ -299,16 +300,19 @@ Transport.prototype.poorConsensus = function() {
 /**
  * Bounds scope to private broadcaster amd initialize headers.
  *
- * @param {modules} scope - Loaded modules
+ * @param {modules, components} scope - Loaded modules and components
  */
 Transport.prototype.onBind = function(scope) {
+	components = {
+		system: scope.components.system,
+	};
+
 	modules = {
 		blocks: scope.modules.blocks,
 		dapps: scope.modules.dapps,
 		loader: scope.modules.loader,
 		multisignatures: scope.modules.multisignatures,
 		peers: scope.modules.peers,
-		system: scope.modules.system,
 		transactions: scope.modules.transactions,
 	};
 
@@ -451,7 +455,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
 		{
-			broadhash: modules.system.getBroadhash(),
+			broadhash: components.system.headers.broadhash,
 		},
 		{ api: 'postBlock', data: { block }, immediate: true }
 	);
@@ -476,7 +480,7 @@ Transport.prototype.cleanup = function(cb) {
  * @todo Add description for the return value
  */
 Transport.prototype.isLoaded = function() {
-	return modules && __private.loaded;
+	return components && modules && __private.loaded;
 };
 
 // Internal API
@@ -676,7 +680,7 @@ Transport.prototype.shared = {
 	height(req, cb) {
 		return setImmediate(cb, null, {
 			success: true,
-			height: modules.system.getHeight(),
+			height: components.system.headers.height,
 		});
 	},
 
@@ -688,7 +692,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	status(req, cb) {
-		const headers = modules.system.headers();
+		const headers = components.system.headers;
 		return setImmediate(cb, null, {
 			success: true,
 			height: headers.height,

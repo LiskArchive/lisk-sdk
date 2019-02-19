@@ -25,7 +25,18 @@ class SchemaValidationError extends FrameworkError {
 	}
 }
 
+/**
+ * Error occurred when you start an app instance which is already running
+ * @extends DuplicateAppInstanceError
+ * @namespace Framework.errors
+ */
 class DuplicateAppInstanceError extends FrameworkError {
+	/**
+	 * Create duplicate app instance error object
+	 *
+	 * @param {string} appLabel - Application label
+	 * @param {string} pidPath - Path of the pid file running the app
+	 */
 	constructor(appLabel, pidPath) {
 		super(`Duplicate app instance for "${appLabel}"`);
 		this.appLabel = appLabel;
@@ -33,8 +44,23 @@ class DuplicateAppInstanceError extends FrameworkError {
 	}
 }
 
+/**
+ * Error occurred when some required function have no implementation
+ * @extends ImplementationMissingError
+ * @namespace Framework.errors
+ */
+class ImplementationMissingError extends FrameworkError {
+	/**
+	 * Create a implementation missing error object
+	 */
+	constructor() {
+		super('Implementation missing error');
+	}
+}
+
 module.exports = {
 	FrameworkError,
 	SchemaValidationError,
 	DuplicateAppInstanceError,
+	ImplementationMissingError,
 };

@@ -116,7 +116,7 @@ class DApps {
 
 // Events
 /**
- * Bounds used scope modules to private modules constiable and sets params
+ * Bounds used scope modules to private modules constant and sets params
  * to private Dapp, InTransfer and OutTransfer instances.
  *
  * @param {Object} scope - Loaded modules

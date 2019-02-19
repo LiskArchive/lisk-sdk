@@ -30,7 +30,7 @@ let wsRPCMock;
 let slaveRPCStubStub;
 
 describe('TransportWSApi', () => {
-	beforeEach(done => {
+	beforeEach(async () => {
 		transportModuleMock = {
 			internal: {
 				updatePeer: sinonSandbox.stub(),
@@ -62,7 +62,10 @@ describe('TransportWSApi', () => {
 			slaveRPCStub: slaveRPCStubStub,
 		});
 		new TransportWSApi(transportModuleMock);
-		done();
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	it('should call wsRPC.getServer', async () =>
