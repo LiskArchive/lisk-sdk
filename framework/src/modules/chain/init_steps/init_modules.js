@@ -17,7 +17,6 @@ const modulesList = {
 
 module.exports = async scope => {
 	const moduleNames = Object.keys(modulesList);
-	const modules = {};
 
 	const modulePromises = moduleNames.map(
 		moduleName =>
@@ -45,9 +44,11 @@ module.exports = async scope => {
 			})
 	);
 
-	(await Promise.all(modulePromises)).forEach((module, index) => {
-		modules[moduleNames[index]] = module;
-	});
+	const resolvedModules = await Promise.all(modulePromises);
+	const modules = resolvedModules.reduce(
+		(prev, module, index) => ({ ...prev, [moduleNames[index]]: module }),
+		{}
+	);
 
 	scope.bus.registerModules(modules);
 
