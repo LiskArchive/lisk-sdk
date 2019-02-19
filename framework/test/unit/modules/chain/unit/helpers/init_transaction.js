@@ -57,7 +57,7 @@ describe('init transaction', async () => {
             asset: {
                 signature: {
                     publicKey:
-                        'f9666bfed9ef2ff52a04408f22f2bfffaa81384c9433463697330224f10032a4'
+                        'f9666bfed9ef2ff52a04408f22f2bfffaa81384c9433463697330224f10032a4',
                 },
             },
             signature:
@@ -81,7 +81,7 @@ describe('init transaction', async () => {
                 delegate: {
                     username: 'RLI0',
                     publicKey:
-                        'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f'
+                        'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
                 },
             },
             signature:
@@ -107,8 +107,8 @@ describe('init transaction', async () => {
                     '+083d534a51c358e6dce6d43f4f0de8abf5bb1d8b8ee7fe817c5b225bb4c46fd8',
                     '+2027d6af78cc6b10d1fa9712dbb6241b67531552c2d3a688d8565c37b8a307ff',
                     '+9e3f52823ebdb0e07649b1d260f864691b81a4f7e18fdf8935bbb1bcfe454663',
-                    '-18982fb4caf0cae685a3ca44fe91445c26bef542f09fc8ea0e25fd33fd948fd7'
-                ]
+                    '-18982fb4caf0cae685a3ca44fe91445c26bef542f09fc8ea0e25fd33fd948fd7',
+                ],
             },
             signature:
                 '45010721b4ed0424a003da5e82f5917a8895d99adb0bf9509b65cd7dbd14653efd9ed0b4f52a4d1ab7da89e3b8ef33337a67737af451df06bee51b124f741c0b',
@@ -136,7 +136,7 @@ describe('init transaction', async () => {
                         '+a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed',
                         '+4bb9e15fa15cbe87d19b6854474d57c3aa515deb586548bb515630dc7121d021',
                         '+068bcac57c9d988f0a03bab381785c67ef4b63ca8047f41863fb2a0202aa88a5',
-                        '+261fb86d60785e208ba7541db9ab56d3e02fcf9357a25bf859f826e87cadb816'
+                        '+261fb86d60785e208ba7541db9ab56d3e02fcf9357a25bf859f826e87cadb816',
                     ],
                 },
             },
