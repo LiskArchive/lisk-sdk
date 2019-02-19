@@ -836,7 +836,10 @@ Chain.prototype.deleteLastBlock = function(cb) {
 			},
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				return components.system.update().then(() => setImmediate(seriesCb));
+				return components.system
+					.update()
+					.then(() => setImmediate(seriesCb))
+					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers

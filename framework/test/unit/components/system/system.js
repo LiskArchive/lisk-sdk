@@ -242,7 +242,7 @@ describe('components: system', () => {
 			};
 			storageStub.entities.Block.get.resolves(blocks);
 			const result = await systemComponent.update();
-			expect(result).to.be.null;
+			expect(result).to.be.true;
 			expect(storageStub.entities.Block.get.calledOnce).to.be.true;
 			expect(storageStub.entities.Block.get.args[0][1]).to.eql(args);
 		});
@@ -254,26 +254,40 @@ describe('components: system', () => {
 			beforeEach(async () => {
 				storageStub.entities.Block.get.rejects(err);
 			});
-			it('should return error', async () => {
-				const error = await systemComponent.update();
-				expect(error).to.have.property('stack');
-				expect(error.stack).to.equal(err.stack);
+			it('should throw error', async () => {
+				try {
+					await systemComponent.update();
+				} catch (error) {
+					expect(error).to.have.property('stack');
+					expect(error.stack).to.equal(err.stack);
+				}
 			});
 			it('should not update this.headesrs.broadhash', async () => {
-				const error = await systemComponent.update();
-				expect(error).to.eql(err);
-				expect(systemComponent.headers.broadhash).to.equal(dummyConfig.nethash);
+				try {
+					await systemComponent.update();
+				} catch (error) {
+					expect(error).to.eql(err);
+					expect(systemComponent.headers.broadhash).to.equal(
+						dummyConfig.nethash
+					);
+				}
 			});
 			it('should not update this.headesrs.height', async () => {
-				const error = await systemComponent.update();
-				expect(error).to.eql(err);
-				expect(systemComponent.headers.height).to.equal(dummyConfig.height);
+				try {
+					await systemComponent.update();
+				} catch (error) {
+					expect(error).to.eql(err);
+					expect(systemComponent.headers.height).to.equal(dummyConfig.height);
+				}
 			});
 			it('should call the logger.error with error stack', async () => {
-				const error = await systemComponent.update();
-				expect(error).to.eql(err);
-				expect(loggerStub.error.called).to.be.true;
-				expect(loggerStub.error.args[0][0]).to.eql(err.stack);
+				try {
+					await systemComponent.update();
+				} catch (error) {
+					expect(error).to.eql(err);
+					expect(loggerStub.error.called).to.be.true;
+					expect(loggerStub.error.args[0][0]).to.eql(err.stack);
+				}
 			});
 		});
 
@@ -283,9 +297,9 @@ describe('components: system', () => {
 					storageStub.entities.Block.get.resolves([]);
 				});
 
-				it('should not return error', async () => {
+				it('should return true', async () => {
 					const result = await systemComponent.update();
-					expect(result).to.be.null;
+					expect(result).to.be.true;
 				});
 
 				it('should update this.headers.broadhash property to this.headers.nethash', async () => {
@@ -311,9 +325,9 @@ describe('components: system', () => {
 					storageStub.entities.Block.get.resolves(blocks.splice(-1, 1));
 				});
 
-				it('should not return error', async () => {
+				it('should return true', async () => {
 					const result = await systemComponent.update();
-					expect(result).to.be.null;
+					expect(result).to.be.true;
 				});
 
 				it('should update this.headers.broadhash property to this.headers.nethash', async () => {
@@ -340,9 +354,9 @@ describe('components: system', () => {
 					storageStub.entities.Block.get.resolves(blocks);
 				});
 
-				it('should not return error', async () => {
+				it('should return true', async () => {
 					const result = await systemComponent.update();
-					expect(result).to.be.null;
+					expect(result).to.be.true;
 				});
 
 				it('should update this.headers.broadhash property to the just calculated broadhash', async () => {

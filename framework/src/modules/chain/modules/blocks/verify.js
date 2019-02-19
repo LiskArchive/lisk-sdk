@@ -836,7 +836,10 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
 				if (!library.config.loading.snapshotRound) {
-					return components.system.update().then(() => setImmediate(seriesCb));
+					return components.system
+						.update()
+						.then(() => setImmediate(seriesCb))
+						.catch(seriesCb);
 				}
 				return setImmediate(seriesCb);
 			},

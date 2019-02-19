@@ -114,7 +114,7 @@ class System {
 	/**
 	 * Updates private broadhash and height values.
 	 *
-	 * @param {function} cb - Callback function
+	 * @returns {Promise.<boolean, Error>}
 	 */
 	async update() {
 		try {
@@ -127,7 +127,7 @@ class System {
 			);
 			if (blocks.length <= 1) {
 				this.headers.broadhash = this.headers.nethash;
-				return null;
+				return true;
 			}
 			this.headers.height = blocks[0].height;
 			const seed = blocks.map(row => row.id).join('');
@@ -138,10 +138,10 @@ class System {
 				.toString('hex');
 			this.headers.broadhash = newBroadhash;
 			this.logger.debug('System headers', this.headers);
-			return null;
+			return true;
 		} catch (err) {
 			this.logger.error(err.stack);
-			return err;
+			throw err;
 		}
 	}
 }
