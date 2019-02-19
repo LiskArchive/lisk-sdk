@@ -225,7 +225,7 @@ describe('components: system', () => {
 			storageStub.entities.Block.get.reset();
 		});
 
-		it('should call storage.entities.Block.get with limit = 5 and sort height:asc', done => {
+		it('should call storage.entities.Block.get with limit = 5 and sort height:asc', async () => {
 			const blocks = [
 				{
 					id: '00000002',
@@ -241,12 +241,10 @@ describe('components: system', () => {
 				sort: 'height:desc',
 			};
 			storageStub.entities.Block.get.resolves(blocks);
-			systemComponent.update(error => {
-				expect(error).to.be.undefined;
-				expect(storageStub.entities.Block.get.calledOnce).to.be.true;
-				expect(storageStub.entities.Block.get.args[0][1]).to.eql(args);
-				done();
-			});
+			const result = await systemComponent.update();
+			expect(result).to.be.null;
+			expect(storageStub.entities.Block.get.calledOnce).to.be.true;
+			expect(storageStub.entities.Block.get.args[0][1]).to.eql(args);
 		});
 
 		describe('when storage.entities.Block.get fails', () => {
@@ -256,36 +254,26 @@ describe('components: system', () => {
 			beforeEach(async () => {
 				storageStub.entities.Block.get.rejects(err);
 			});
-			it('should return error', done => {
-				systemComponent.update(error => {
-					expect(error).to.have.property('stack');
-					expect(error.stack).to.equal(err.stack);
-					done();
-				});
+			it('should return error', async () => {
+				const error = await systemComponent.update();
+				expect(error).to.have.property('stack');
+				expect(error.stack).to.equal(err.stack);
 			});
-			it('should not update this.headesrs.broadhash', done => {
-				systemComponent.update(error => {
-					expect(error).to.eql(err);
-					expect(systemComponent.headers.broadhash).to.equal(
-						dummyConfig.nethash
-					);
-					done();
-				});
+			it('should not update this.headesrs.broadhash', async () => {
+				const error = await systemComponent.update();
+				expect(error).to.eql(err);
+				expect(systemComponent.headers.broadhash).to.equal(dummyConfig.nethash);
 			});
-			it('should not update this.headesrs.height', done => {
-				systemComponent.update(error => {
-					expect(error).to.eql(err);
-					expect(systemComponent.headers.height).to.equal(dummyConfig.height);
-					done();
-				});
+			it('should not update this.headesrs.height', async () => {
+				const error = await systemComponent.update();
+				expect(error).to.eql(err);
+				expect(systemComponent.headers.height).to.equal(dummyConfig.height);
 			});
-			it('should call the logger.error with error stack', done => {
-				systemComponent.update(error => {
-					expect(error).to.eql(err);
-					expect(loggerStub.error.called).to.be.true;
-					expect(loggerStub.error.args[0][0]).to.eql(err.stack);
-					done();
-				});
+			it('should call the logger.error with error stack', async () => {
+				const error = await systemComponent.update();
+				expect(error).to.eql(err);
+				expect(loggerStub.error.called).to.be.true;
+				expect(loggerStub.error.args[0][0]).to.eql(err.stack);
 			});
 		});
 
@@ -295,20 +283,16 @@ describe('components: system', () => {
 					storageStub.entities.Block.get.resolves([]);
 				});
 
-				it('should not return error', done => {
-					systemComponent.update(error => {
-						expect(error).to.be.undefined;
-						done();
-					});
+				it('should not return error', async () => {
+					const result = await systemComponent.update();
+					expect(result).to.be.null;
 				});
 
-				it('should update this.headers.broadhash property to this.headers.nethash', done => {
-					systemComponent.update(() => {
-						expect(systemComponent.headers.broadhash).to.equal(
-							systemComponent.headers.nethash
-						);
-						done();
-					});
+				it('should update this.headers.broadhash property to this.headers.nethash', async () => {
+					await systemComponent.update();
+					expect(systemComponent.headers.broadhash).to.equal(
+						systemComponent.headers.nethash
+					);
 				});
 			});
 
@@ -327,20 +311,16 @@ describe('components: system', () => {
 					storageStub.entities.Block.get.resolves(blocks.splice(-1, 1));
 				});
 
-				it('should not return error', done => {
-					systemComponent.update(error => {
-						expect(error).to.be.undefined;
-						done();
-					});
+				it('should not return error', async () => {
+					const result = await systemComponent.update();
+					expect(result).to.be.null;
 				});
 
-				it('should update this.headers.broadhash property to this.headers.nethash', done => {
-					systemComponent.update(() => {
-						expect(systemComponent.headers.broadhash).to.equal(
-							systemComponent.headers.nethash
-						);
-						done();
-					});
+				it('should update this.headers.broadhash property to this.headers.nethash', async () => {
+					await systemComponent.update();
+					expect(systemComponent.headers.broadhash).to.equal(
+						systemComponent.headers.nethash
+					);
 				});
 			});
 
@@ -360,43 +340,32 @@ describe('components: system', () => {
 					storageStub.entities.Block.get.resolves(blocks);
 				});
 
-				it('should not return error', done => {
-					systemComponent.update(error => {
-						expect(error).to.be.undefined;
-						done();
-					});
+				it('should not return error', async () => {
+					const result = await systemComponent.update();
+					expect(result).to.be.null;
 				});
 
-				it('should update this.headers.broadhash property to the just calculated broadhash', done => {
-					systemComponent.update(error => {
-						const seed = blocks.map(row => row.id).join('');
-						const newBroadhash = crypto
-							.createHash('sha256')
-							.update(seed, 'utf8')
-							.digest()
-							.toString('hex');
-						expect(error).to.be.undefined;
-						expect(systemComponent.headers.broadhash).to.equal(newBroadhash);
-						done();
-					});
+				it('should update this.headers.broadhash property to the just calculated broadhash', async () => {
+					await systemComponent.update();
+					const seed = blocks.map(row => row.id).join('');
+					const newBroadhash = crypto
+						.createHash('sha256')
+						.update(seed, 'utf8')
+						.digest()
+						.toString('hex');
+					expect(systemComponent.headers.broadhash).to.equal(newBroadhash);
 				});
 
-				it('should update this.headers.height property to the best height', done => {
-					systemComponent.update(error => {
-						expect(error).to.be.undefined;
-						expect(systemComponent.headers.height).to.equal(blocks[0].height);
-						done();
-					});
+				it('should update this.headers.height property to the best height', async () => {
+					await systemComponent.update();
+					expect(systemComponent.headers.height).to.equal(blocks[0].height);
 				});
 
-				it('should call the logger.debug system headers info', done => {
-					systemComponent.update(error => {
-						expect(error).to.be.undefined;
-						expect(loggerStub.debug.called).to.be.true;
-						expect(loggerStub.debug.args[0][0]).to.equal('System headers');
-						expect(loggerStub.debug.args[0][1]).to.eql(systemComponent.headers);
-						done();
-					});
+				it('should call the logger.debug system headers info', async () => {
+					await systemComponent.update();
+					expect(loggerStub.debug.called).to.be.true;
+					expect(loggerStub.debug.args[0][0]).to.equal('System headers');
+					expect(loggerStub.debug.args[0][1]).to.eql(systemComponent.headers);
 				});
 			});
 		});
