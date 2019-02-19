@@ -9,7 +9,7 @@ const swaggerHelper = require('./helpers/swagger');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const initSteps = require('./init_steps');
+const { lookupPeerIPs, createHttpServer, createBus, bootstrapStorage, bootstrapCache, createSocketCluster, initLogicStructure, initModules, attachSwagger } = require('./init_steps');
 const defaults = require('./defaults');
 
 // Begin reading from stdin
