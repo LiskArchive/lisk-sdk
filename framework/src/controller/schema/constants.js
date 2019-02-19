@@ -93,12 +93,12 @@ module.exports = {
 				type: 'array',
 				items: {
 					type: 'string',
-					pattern: '^[a-f0-9]{64}$',
+					format: 'hex',
 				},
 			},
 			NORMALIZER: {
 				type: 'string',
-				pattern: '^[1-9][0-9]*$',
+				format: 'amount',
 			},
 			REWARDS: {
 				type: 'object',
@@ -108,7 +108,7 @@ module.exports = {
 			},
 			TOTAL_AMOUNT: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			UNCONFIRMED_TRANSACTION_TIMEOUT: {
 				type: 'integer',
@@ -137,35 +137,35 @@ module.exports = {
 		properties: {
 			SEND: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			VOTE: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			SECOND_SIGNATURE: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			DELEGATE: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			MULTISIGNATURE: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			DAPP_REGISTRATION: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			DAPP_WITHDRAWAL: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			DAPP_DEPOSIT: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 		},
 	},
@@ -251,7 +251,7 @@ module.exports = {
 				type: 'array',
 				items: {
 					type: 'string',
-					pattern: '^[0-9]+$',
+					format: 'amount',
 				},
 			},
 			OFFSET: {

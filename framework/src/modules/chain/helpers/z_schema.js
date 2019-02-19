@@ -28,6 +28,8 @@ const UINT64_MAX = new Bignum('18446744073709551615');
  * So have to apply additional validation for IP and FQDN with **ipOrFQDN**.
  * - id
  * - address
+ * - amount
+ * - bignum
  * - username
  * - hex
  * - publicKey
@@ -312,6 +314,7 @@ const liskFormats = {
 	},
 	/**
 	 * Transaction amount/fee.
+	 * Also validate string amount to be lower than TOTAL_AMOUNT constant
 	 *
 	 * @param {Object} value
 	 * @returns {boolean}
@@ -328,6 +331,15 @@ const liskFormats = {
 				value.isLessThanOrEqualTo(TOTAL_AMOUNT)
 			);
 		}
+
+		if (typeof value === 'string' && /^[1-9][0-9]*$/.test(value)) {
+			const bigNumber = new Bignum(value);
+			return (
+				bigNumber.isGreaterThanOrEqualTo(0) &&
+				bigNumber.isLessThangstOrEqualTo(UINT64_MAX)
+			);
+		}
+
 		return false;
 	},
 	/**

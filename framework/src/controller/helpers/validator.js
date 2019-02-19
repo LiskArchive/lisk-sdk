@@ -1,7 +1,12 @@
 const Ajv = require('ajv');
 const { SchemaValidationError } = require('../../errors');
 
+const zSchema = require('../../modules/chain/helpers/z_schema');
+
 const validator = new Ajv({ allErrors: true, schemaId: 'auto' });
+Object.keys(zSchema.formatsCache).forEach(zSchemaType => {
+	validator.addFormat(zSchemaType, zSchema.formatsCache[zSchemaType]);
+});
 
 /**
  * Function helps with loading and validating schemas.

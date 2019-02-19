@@ -95,6 +95,9 @@ class Application {
 			};
 		}
 
+		// Provide global constants for controller used by z_schema
+		global.constants = constants;
+
 		validator.loadSchema(applicationSchema);
 		validator.loadSchema(constantsSchema);
 		validator.validate(applicationSchema.appLabel, label);
