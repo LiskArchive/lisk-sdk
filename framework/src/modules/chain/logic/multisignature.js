@@ -66,7 +66,7 @@ class Multisignature {
 			account,
 		};
 
-		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
+		// TODO: Add modules to constructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -107,7 +107,7 @@ Multisignature.prototype.calculateFee = function(transaction) {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-Multisignature.prototype.verify = async function(transaction, sender, cb) {
+Multisignature.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.multisignature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}

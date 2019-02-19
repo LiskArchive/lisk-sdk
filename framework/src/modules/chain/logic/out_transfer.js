@@ -81,39 +81,40 @@ OutTransfer.prototype.calculateFee = function() {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-OutTransfer.prototype.verify = async function(transaction, sender, cb) {
-	let lastBlock = await __scope.components.storage.entities.Block.get(
+OutTransfer.prototype.verify = function(transaction, sender, cb) {
+	return __scope.components.storage.entities.Block.get(
 		{},
 		{ sort: 'height:desc', limit: 1 }
-	);
-	lastBlock = lastBlock[0];
+	).then(lastBlock => {
+		lastBlock = lastBlock[0];
 
-	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
-		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
-	}
+		if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
+			return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
+		}
 
-	if (!transaction.recipientId) {
-		return setImmediate(cb, 'Invalid recipient');
-	}
+		if (!transaction.recipientId) {
+			return setImmediate(cb, 'Invalid recipient');
+		}
 
-	const amount = new Bignum(transaction.amount);
-	if (amount.isLessThanOrEqualTo(0)) {
-		return setImmediate(cb, 'Invalid transaction amount');
-	}
+		const amount = new Bignum(transaction.amount);
+		if (amount.isLessThanOrEqualTo(0)) {
+			return setImmediate(cb, 'Invalid transaction amount');
+		}
 
-	if (!transaction.asset || !transaction.asset.outTransfer) {
-		return setImmediate(cb, 'Invalid transaction asset');
-	}
+		if (!transaction.asset || !transaction.asset.outTransfer) {
+			return setImmediate(cb, 'Invalid transaction asset');
+		}
 
-	if (!/^[0-9]+$/.test(transaction.asset.outTransfer.dappId)) {
-		return setImmediate(cb, 'Invalid outTransfer dappId');
-	}
+		if (!/^[0-9]+$/.test(transaction.asset.outTransfer.dappId)) {
+			return setImmediate(cb, 'Invalid outTransfer dappId');
+		}
 
-	if (!/^[0-9]+$/.test(transaction.asset.outTransfer.transactionId)) {
-		return setImmediate(cb, 'Invalid outTransfer transactionId');
-	}
+		if (!/^[0-9]+$/.test(transaction.asset.outTransfer.transactionId)) {
+			return setImmediate(cb, 'Invalid outTransfer transactionId');
+		}
 
-	return setImmediate(cb, null, transaction);
+		return setImmediate(cb, null, transaction);
+	});
 };
 
 /**

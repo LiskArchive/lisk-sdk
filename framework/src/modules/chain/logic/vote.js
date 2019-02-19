@@ -154,7 +154,7 @@ Vote.prototype.calculateFee = function() {
  * @returns {SetImmediate|checkConfirmedDelegates}
  * @todo Add description for the params
  */
-Vote.prototype.verify = async function(transaction, sender, cb, tx) {
+Vote.prototype.verify = function(transaction, sender, cb, tx) {
 	async.waterfall(
 		[
 			waterCb => {

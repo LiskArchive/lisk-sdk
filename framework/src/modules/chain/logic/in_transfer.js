@@ -87,48 +87,49 @@ InTransfer.prototype.calculateFee = function() {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-InTransfer.prototype.verify = async function(transaction, sender, cb, tx) {
-	let lastBlock = await __scope.components.storage.entities.Block.get(
+InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
+	__scope.components.storage.entities.Block.get(
 		{},
 		{ sort: 'height:desc', limit: 1 }
-	);
-	lastBlock = lastBlock[0];
+	).then(lastBlock => {
+		lastBlock = lastBlock[0];
 
-	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
-		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
-	}
+		if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
+			return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
+		}
 
-	if (transaction.recipientId) {
-		return setImmediate(cb, 'Invalid recipient');
-	}
+		if (transaction.recipientId) {
+			return setImmediate(cb, 'Invalid recipient');
+		}
 
-	const amount = new Bignum(transaction.amount);
-	if (amount.isLessThanOrEqualTo(0)) {
-		return setImmediate(cb, 'Invalid transaction amount');
-	}
+		const amount = new Bignum(transaction.amount);
+		if (amount.isLessThanOrEqualTo(0)) {
+			return setImmediate(cb, 'Invalid transaction amount');
+		}
 
-	if (!transaction.asset || !transaction.asset.inTransfer) {
-		return setImmediate(cb, 'Invalid transaction asset');
-	}
+		if (!transaction.asset || !transaction.asset.inTransfer) {
+			return setImmediate(cb, 'Invalid transaction asset');
+		}
 
-	return __scope.components.storage.entities.Transaction.isPersisted(
-		{
-			id: transaction.asset.inTransfer.dappId,
-			type: transactionTypes.DAPP,
-		},
-		{},
-		tx
-	)
-		.then(isPersisted => {
-			if (!isPersisted) {
-				return setImmediate(
-					cb,
-					`Application not found: ${transaction.asset.inTransfer.dappId}`
-				);
-			}
-			return setImmediate(cb);
-		})
-		.catch(err => setImmediate(cb, err));
+		return __scope.components.storage.entities.Transaction.isPersisted(
+			{
+				id: transaction.asset.inTransfer.dappId,
+				type: transactionTypes.DAPP,
+			},
+			{},
+			tx
+		)
+			.then(isPersisted => {
+				if (!isPersisted) {
+					return setImmediate(
+						cb,
+						`Application not found: ${transaction.asset.inTransfer.dappId}`
+					);
+				}
+				return setImmediate(cb);
+			})
+			.catch(err => setImmediate(cb, err));
+	});
 };
 
 /**

@@ -77,7 +77,7 @@ Delegate.prototype.calculateFee = function() {
  * @returns {SetImmediate|Object} error, transaction
  * @todo Add description for the params
  */
-Delegate.prototype.verify = async function(transaction, sender, cb, tx) {
+Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 	if (transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}

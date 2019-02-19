@@ -80,7 +80,7 @@ Transfer.prototype.calculateFee = function() {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-Transfer.prototype.verify = async function(transaction, sender, cb) {
+Transfer.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.recipientId) {
 		return setImmediate(cb, 'Missing recipient');
 	}

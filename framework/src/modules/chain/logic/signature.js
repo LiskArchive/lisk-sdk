@@ -80,7 +80,7 @@ Signature.prototype.calculateFee = function() {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-Signature.prototype.verify = async function(transaction, sender, cb) {
+Signature.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.signature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}

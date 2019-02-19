@@ -82,7 +82,7 @@ DApp.prototype.calculateFee = function() {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-DApp.prototype.verify = async function(transaction, sender, cb, tx) {
+DApp.prototype.verify = function(transaction, sender, cb, tx) {
 	if (transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
