@@ -240,7 +240,6 @@ describe('blocks/verify', async () => {
 				library.logic.block,
 				library.logic.transaction,
 				library.storage,
-				library.logic.stateManager,
 				library.config
 			);
 			verify.onBind({

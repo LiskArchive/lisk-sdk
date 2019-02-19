@@ -16,7 +16,7 @@
 
 const crypto = require('crypto');
 const async = require('async');
-const TransactionStatus = require('@liskhq/lisk-transactions').Status;
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../../helpers/slots.js');
 const blockVersion = require('../../logic/block_version.js');
