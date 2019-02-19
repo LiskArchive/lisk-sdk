@@ -9,7 +9,17 @@ const swaggerHelper = require('./helpers/swagger');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { lookupPeerIPs, createHttpServer, createBus, bootstrapStorage, bootstrapCache, createSocketCluster, initLogicStructure, initModules, attachSwagger } = require('./init_steps');
+const {
+	lookupPeerIPs,
+	createHttpServer,
+	createBus,
+	bootstrapStorage,
+	bootstrapCache,
+	createSocketCluster,
+	initLogicStructure,
+	initModules,
+	attachSwagger,
+} = require('./init_steps');
 const defaults = require('./defaults');
 
 // Begin reading from stdin
@@ -128,23 +138,20 @@ module.exports = class Chain {
 			};
 
 			// Lookup for peers ips from dns
-			scope.config.peers.list = await initSteps.lookupPeerIPs(
+			scope.config.peers.list = await lookupPeerIPs(
 				scope.config.peers.list,
 				scope.config.peers.enabled
 			);
 
-			await initSteps.bootstrapStorage(
-				scope,
-				global.constants.ACTIVE_DELEGATES
-			);
-			await initSteps.bootstrapCache(scope);
+			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
+			await bootstrapCache(scope);
 
-			scope.bus = await initSteps.createBus();
-			scope.network = await initSteps.createHttpServer(scope);
-			scope.logic = await initSteps.initLogicStructure(scope);
-			scope.modules = await initSteps.initModules(scope);
-			scope.webSocket = await initSteps.createSocketCluster(scope);
-			scope.swagger = await initSteps.attachSwagger(scope);
+			scope.bus = await createBus();
+			scope.network = await createHttpServer(scope);
+			scope.logic = await initLogicStructure(scope);
+			scope.modules = await initModules(scope);
+			scope.webSocket = await createSocketCluster(scope);
+			scope.swagger = await attachSwagger(scope);
 
 			// TODO: Identify why its used
 			scope.modules.swagger = scope.swagger;
