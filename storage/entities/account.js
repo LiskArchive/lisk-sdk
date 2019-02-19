@@ -94,11 +94,6 @@ const sqlFiles = {
  * @property {string} fees
  * @property {string} rewards
  * @property {string} vote
- */
-
-/**
- * Extended Account
- * @typedef {BasicAccount} ExtendedAccount
  * @property {string} u_username
  * @property {Boolean} u_isDelegate
  * @property {Boolean} u_secondSignature
@@ -107,6 +102,11 @@ const sqlFiles = {
  * @property {number} u_multiLifetime
  * @property {string} u_balance
  * @property {number} productivity
+ */
+
+/**
+ * Extended Account
+ * @typedef {BasicAccount} ExtendedAccount
  * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
  * @property {Array.<string>} u_membersPublicKeys - Public keys of all members including unconfirmed if its a multi-signature account
  * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
