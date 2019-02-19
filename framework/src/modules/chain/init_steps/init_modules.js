@@ -9,7 +9,6 @@ const modulesList = {
 	loader: '../modules/loader.js',
 	multisignatures: '../modules/multisignatures.js',
 	peers: '../modules/peers.js',
-	system: '../modules/system.js',
 	signatures: '../modules/signatures.js',
 	transactions: '../modules/transactions.js',
 	transport: '../modules/transport.js',

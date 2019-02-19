@@ -20,93 +20,85 @@ describe('ConnectionsTable', () => {
 	const validNonce = '123456789ABCDEF';
 	const validConnectionId = 'ABCDEF123456789';
 
-	beforeEach(done => {
+	beforeEach(async () => {
 		connectionsTable.connectionIdToNonceMap = {};
 		connectionsTable.nonceToConnectionIdMap = {};
-		done();
+	});
+
+	afterEach(async () => {
+		connectionsTable.remove(validNonce);
 	});
 
 	describe('constructor', () => {
-		it('should have empty connectionIdToNonceMap map after initialization', done => {
+		it('should have empty connectionIdToNonceMap map after initialization', async () => {
 			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be
 				.empty;
-			done();
 		});
 
-		it('should have empty nonceToConnectionIdMap map after initialization', done => {
+		it('should have empty nonceToConnectionIdMap map after initialization', async () => {
 			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be
 				.empty;
-			done();
 		});
 	});
 
 	describe('add', () => {
-		it('should throw an error when invoked without arguments', done => {
+		it('should throw an error when invoked without arguments', async () => {
 			expect(() => {
 				connectionsTable.add();
 			}).to.throw('Cannot add connection table entry without nonce');
-			done();
 		});
 
-		it('should throw an error when invoked with nonce equal undefined', done => {
+		it('should throw an error when invoked with nonce equal undefined', async () => {
 			expect(() => {
 				connectionsTable.add(undefined, validConnectionId);
 			}).to.throw('Cannot add connection table entry without nonce');
-			done();
 		});
 
-		it('should throw an error when invoked with nonce equal null', done => {
+		it('should throw an error when invoked with nonce equal null', async () => {
 			expect(() => {
 				connectionsTable.add(null, validConnectionId);
 			}).to.throw('Cannot add connection table entry without nonce');
-			done();
 		});
 
-		it('should throw an error when invoked with nonce equal 0', done => {
+		it('should throw an error when invoked with nonce equal 0', async () => {
 			expect(() => {
 				connectionsTable.add(0, validConnectionId);
 			}).to.throw('Cannot add connection table entry without nonce');
-			done();
 		});
 
-		it('should throw an error when invoked with connectionId equal undefined', done => {
+		it('should throw an error when invoked with connectionId equal undefined', async () => {
 			expect(() => {
 				connectionsTable.add(validNonce);
 			}).to.throw('Cannot add connection table entry without connectionId');
-			done();
 		});
 
-		it('should throw an error when invoked with connectionId equal null', done => {
+		it('should throw an error when invoked with connectionId equal null', async () => {
 			expect(() => {
 				connectionsTable.add(validNonce, null);
 			}).to.throw('Cannot add connection table entry without connectionId');
-			done();
 		});
 
-		it('should throw an error when invoked with connectionId equal 0', done => {
+		it('should throw an error when invoked with connectionId equal 0', async () => {
 			expect(() => {
 				connectionsTable.add(validNonce, 0);
 			}).to.throw('Cannot add connection table entry without connectionId');
-			done();
 		});
 
-		it('should add entry to connectionIdToNonceMap when invoked with valid arguments', done => {
+		it('should add entry to connectionIdToNonceMap when invoked with valid arguments', async () => {
 			connectionsTable.add(validNonce, validConnectionId);
 			expect(connectionsTable.connectionIdToNonceMap)
 				.to.have.property(validConnectionId)
 				.equal(validNonce);
-			done();
 		});
 
-		it('should add entry to nonceToConnectionIdMap when invoked with valid arguments', done => {
+		it('should add entry to nonceToConnectionIdMap when invoked with valid arguments', async () => {
 			connectionsTable.add(validNonce, validConnectionId);
 			expect(connectionsTable.nonceToConnectionIdMap)
 				.to.have.property(validNonce)
 				.equal(validConnectionId);
-			done();
 		});
 
-		it('should add multiple entries in nonceToConnectionIdMap after multiple valid entries added', done => {
+		it('should add multiple entries in nonceToConnectionIdMap after multiple valid entries added', async () => {
 			connectionsTable.add(`${validNonce}0`, `${validConnectionId}0`);
 			connectionsTable.add(`${validNonce}1`, `${validConnectionId}1`);
 			expect(
@@ -118,10 +110,9 @@ describe('ConnectionsTable', () => {
 			expect(connectionsTable.nonceToConnectionIdMap)
 				.to.have.property(`${validNonce}1`)
 				.equal(`${validConnectionId}1`);
-			done();
 		});
 
-		it('should add multiple entries in connectionIdToNonceMap after multiple valid entries added', done => {
+		it('should add multiple entries in connectionIdToNonceMap after multiple valid entries added', async () => {
 			connectionsTable.add(`${validNonce}0`, `${validConnectionId}0`);
 			connectionsTable.add(`${validNonce}1`, `${validConnectionId}1`);
 			expect(
@@ -133,10 +124,9 @@ describe('ConnectionsTable', () => {
 			expect(connectionsTable.connectionIdToNonceMap)
 				.to.have.property(`${validConnectionId}1`)
 				.equal(`${validNonce}1`);
-			done();
 		});
 
-		it('should not add multiple entries in nonceToConnectionIdMap and connectionIdToNonceMap after multiple addition of the same entry', done => {
+		it('should not add multiple entries in nonceToConnectionIdMap and connectionIdToNonceMap after multiple addition of the same entry', async () => {
 			connectionsTable.add(validNonce, validConnectionId);
 			connectionsTable.add(validNonce, validConnectionId);
 			expect(
@@ -145,42 +135,37 @@ describe('ConnectionsTable', () => {
 			expect(
 				Object.keys(connectionsTable.connectionIdToNonceMap).length
 			).to.equal(1);
-			done();
 		});
 	});
 
 	describe('remove', () => {
-		it('should throw an error when invoked without arguments', done => {
+		it('should throw an error when invoked without arguments', async () => {
 			expect(() => {
 				connectionsTable.remove();
 			}).to.throw('Cannot remove connection table entry without nonce');
-			done();
 		});
 
-		it('should throw an error when invoked with nonce equal null', done => {
+		it('should throw an error when invoked with nonce equal null', async () => {
 			expect(() => {
 				connectionsTable.remove(null);
 			}).to.throw('Cannot remove connection table entry without nonce');
-			done();
 		});
 
-		it('should throw an error when invoked with nonce equal 0', done => {
+		it('should throw an error when invoked with nonce equal 0', async () => {
 			expect(() => {
 				connectionsTable.remove(0);
 			}).to.throw('Cannot remove connection table entry without nonce');
-			done();
 		});
 
-		it('should not change a state of connections table when removing not existing entry', done => {
+		it('should not change a state of connections table when removing not existing entry', async () => {
 			connectionsTable.remove(validNonce);
 			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be
 				.empty;
 			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be
 				.empty;
-			done();
 		});
 
-		it('should remove previously added valid entry', done => {
+		it('should remove previously added valid entry', async () => {
 			connectionsTable.add(validNonce, validConnectionId);
 			expect(connectionsTable.nonceToConnectionIdMap)
 				.to.have.property(validNonce)
@@ -190,45 +175,38 @@ describe('ConnectionsTable', () => {
 				.empty;
 			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be
 				.empty;
-			done();
 		});
 	});
 
 	describe('getNonce', () => {
-		it('should return undefined when invoked without arguments', done => {
+		it('should return undefined when invoked without arguments', async () => {
 			expect(connectionsTable.getNonce()).to.be.undefined;
-			done();
 		});
 
-		it('should return undefined when asking of not existing entry', done => {
+		it('should return undefined when asking of not existing entry', async () => {
 			expect(connectionsTable.getNonce(validConnectionId)).to.be.undefined;
-			done();
 		});
 
-		it('should return nonce assigned to connection id when entry exists', done => {
+		it('should return nonce assigned to connection id when entry exists', async () => {
 			connectionsTable.add(validNonce, validConnectionId);
 			expect(connectionsTable.getNonce(validConnectionId)).to.equal(validNonce);
-			done();
 		});
 	});
 
 	describe('getConnectionId', () => {
-		it('should return undefined when invoked without arguments', done => {
+		it('should return undefined when invoked without arguments', async () => {
 			expect(connectionsTable.getConnectionId()).to.be.undefined;
-			done();
 		});
 
-		it('should return undefined when asking of not existing entry', done => {
+		it('should return undefined when asking of not existing entry', async () => {
 			expect(connectionsTable.getConnectionId(validNonce)).to.be.undefined;
-			done();
 		});
 
-		it('should return connection id assigned to nonce id when entry exists', done => {
+		it('should return connection id assigned to nonce id when entry exists', async () => {
 			connectionsTable.add(validNonce, validConnectionId);
 			expect(connectionsTable.getConnectionId(validNonce)).to.equal(
 				validConnectionId
 			);
-			done();
 		});
 	});
 });

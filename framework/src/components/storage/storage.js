@@ -25,10 +25,6 @@ class Storage {
 		this.options = options;
 		this.logger = logger;
 
-		if (typeof Storage.instance === 'object') {
-			return Storage.instance;
-		}
-
 		this.isReady = false;
 		this.adapter = new PgpAdapter({
 			...this.options,
@@ -38,15 +34,13 @@ class Storage {
 		});
 		this.BaseEntity = BaseEntity;
 		this.entities = {};
-
-		Storage.instance = this;
 	}
 
 	/**
 	 * @return Promise
 	 */
 	bootstrap() {
-		return Storage.instance.adapter.connect().then(status => {
+		return this.adapter.connect().then(status => {
 			if (status) {
 				this.isReady = true;
 			}
@@ -56,7 +50,7 @@ class Storage {
 	}
 
 	cleanup() {
-		Storage.instance.adapter.disconnect();
+		this.adapter.disconnect();
 		this.isReady = false;
 	}
 
@@ -75,7 +69,7 @@ class Storage {
 		assert(identifier, 'Identifier is required to register an entity.');
 		assert(Entity, 'Entity is required to register it.');
 
-		const existed = Object.keys(Storage.instance.entities).includes(identifier);
+		const existed = Object.keys(this.entities).includes(identifier);
 
 		if (existed && !options.replaceExisting) {
 			throw new EntityRegistrationError(
@@ -83,7 +77,7 @@ class Storage {
 			);
 		}
 
-		let args = [Storage.instance.adapter];
+		let args = [this.adapter];
 
 		if (options.initParams) {
 			args = args.concat(options.initParams);
@@ -91,7 +85,7 @@ class Storage {
 
 		const entityObject = new Entity(...args);
 
-		this.constructor.instance.entities[identifier] = entityObject;
+		this.entities[identifier] = entityObject;
 
 		return entityObject;
 	}

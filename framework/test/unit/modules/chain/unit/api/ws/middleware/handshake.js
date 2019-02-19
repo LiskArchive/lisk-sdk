@@ -20,7 +20,9 @@ const typeRepresentatives = require('../../../../../../../fixtures/types_represe
 const Handshake = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/handshake');
 const failureCodes = require('../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
 const WSServerMaster = require('../../../../../../../common/ws/server_master');
-const System = require('../../../../../../../../src/modules/chain/modules/system');
+const {
+	createSystemComponent,
+} = require('../../../../../../../../src/components/system');
 
 const config = __testContext.config;
 
@@ -38,7 +40,7 @@ describe('Handshake', () => {
 			protocolVersion,
 			nethash: config.nethash,
 			nonce: validNodeNonce,
-			blackListedPeers: [],
+			blackListedPeers: ['9.9.9.9'],
 		},
 		components: {
 			logger: __testContext.logger,
@@ -46,15 +48,23 @@ describe('Handshake', () => {
 	};
 	let validHeaders;
 
-	before(done => {
-		new System((err, __system) => {
-			system = __system;
-			handshake = new Handshake.middleware.Handshake(
-				system,
-				validConfig.config
-			);
-			done(err);
-		}, validConfig);
+	const loggerStub = {
+		trace: sinonSandbox.spy(),
+		info: sinonSandbox.spy(),
+		error: sinonSandbox.spy(),
+		warn: sinonSandbox.spy(),
+		debug: sinonSandbox.spy(),
+	};
+
+	const storageStub = sinonSandbox.stub();
+
+	before(async () => {
+		system = createSystemComponent(validConfig.config, loggerStub, storageStub);
+		handshake = new Handshake.middleware.Handshake(system, validConfig.config);
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('compatibility', () => {
@@ -151,6 +161,22 @@ describe('Handshake', () => {
 				// Assert
 				expect(versionCompatibleStub).to.be.called;
 				done();
+			});
+		});
+
+		it('should return error when ip blacklisted', async () => {
+			// Arrange
+			validHeaders.ip = validConfig.config.blackListedPeers[0];
+
+			// Act
+			handshake(validHeaders, err => {
+				// Assert
+				expect(err)
+					.to.have.property('code')
+					.equal(failureCodes.BLACKLISTED_PEER);
+				expect(err)
+					.to.have.property('description')
+					.equal(failureCodes.errorMessages[failureCodes.BLACKLISTED_PEER]);
 			});
 		});
 	});

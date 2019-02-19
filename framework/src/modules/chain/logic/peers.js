@@ -17,7 +17,6 @@
 const _ = require('lodash');
 const failureCodes = require('../api/ws/rpc/failure_codes.js');
 const Peer = require('../logic/peer.js');
-const System = require('../modules/system.js');
 const PeersManager = require('../helpers/peers_manager.js');
 const BanManager = require('../helpers/ban_manager.js');
 
@@ -35,7 +34,6 @@ let modules;
  * @requires lodash
  * @requires api/ws/rpc/failure_codes
  * @requires logic/peer
- * @requires modules/system
  * @requires helpers/peers_manager
  * @param {Object} logger
  * @param {function} cb - Callback function
@@ -43,13 +41,13 @@ let modules;
  * @todo Add description for the params
  */
 class Peers {
-	constructor(logger, config, cb) {
+	constructor(logger, config, system, cb) {
 		library = {
 			logger,
 		};
 		self = this;
-
-		this.peersManager = new PeersManager(logger);
+		this.system = system;
+		this.peersManager = new PeersManager(logger, system);
 		this.banManager = new BanManager(logger, config);
 
 		return setImmediate(cb, null, this);
@@ -64,7 +62,7 @@ class Peers {
  * @returns {Object} system headers and peer status
  */
 Peers.prototype.me = function() {
-	return Object.assign({}, System.getHeaders(), {
+	return Object.assign({}, this.system.headers, {
 		state: Peer.STATE.CONNECTED,
 	});
 };
