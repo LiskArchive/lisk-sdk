@@ -20,7 +20,7 @@ const ed = require('../helpers/ed.js');
 
 const { FEES } = global.constants;
 
-const __private = {};
+const __scope = {};
 /**
  * Main signature logic. Initializes library.
  *
@@ -38,11 +38,11 @@ const __private = {};
  */
 class Signature {
 	constructor({ components: { logger }, schema }) {
-		__private.schema = schema;
-		__private.components = {
+		__scope.schema = schema;
+		__scope.components = {
 			logger,
 		};
-		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
+		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -56,7 +56,7 @@ class Signature {
  */
 // TODO: Remove this method as modules will be loaded prior to trs logic.
 Signature.prototype.bind = function(accounts) {
-	__private.modules = {
+	__scope.modules = {
 		accounts,
 	};
 };
@@ -80,7 +80,7 @@ Signature.prototype.calculateFee = function() {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-Signature.prototype.verify = function(transaction, sender, cb) {
+Signature.prototype.verify = async function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.signature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
@@ -98,7 +98,7 @@ Signature.prototype.verify = function(transaction, sender, cb) {
 			return setImmediate(cb, 'Invalid public key');
 		}
 	} catch (e) {
-		__private.components.logger.error(e.stack);
+		__scope.components.logger.error(e.stack);
 		return setImmediate(cb, 'Invalid public key');
 	}
 
@@ -162,7 +162,7 @@ Signature.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,
 			secondSignature: 1,
@@ -189,7 +189,7 @@ Signature.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,
 			secondSignature: 0,
@@ -215,7 +215,7 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Second signature already enabled');
 	}
 
-	return __private.modules.accounts.setAccountAndGet(
+	return __scope.modules.accounts.setAccountAndGet(
 		{ address: sender.address, u_secondSignature: 1 },
 		cb,
 		tx
@@ -232,7 +232,7 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @todo Add description for the params
  */
 Signature.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
-	__private.modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{ address: sender.address, u_secondSignature: 0 },
 		cb,
 		tx
@@ -262,13 +262,13 @@ Signature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Signature.prototype.objectNormalize = function(transaction) {
-	const report = __private.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset.signature,
 		Signature.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate signature schema: ${__private.schema
+		throw `Failed to validate signature schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

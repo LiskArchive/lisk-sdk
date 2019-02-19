@@ -21,7 +21,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const { FEES } = global.constants;
 const exceptions = global.exceptions;
 
-const __private = {};
+const __scope = {};
 
 /**
  * Main InTransfer logic. Initializes library.
@@ -42,11 +42,11 @@ const __private = {};
  */
 class InTransfer {
 	constructor({ components: { storage }, schema }) {
-		__private.components = {
+		__scope.components = {
 			storage,
 		};
-		__private.schema = schema;
-		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
+		__scope.schema = schema;
+		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -61,10 +61,10 @@ class InTransfer {
  */
 // TODO: Remove this method as modules will be loaded prior to trs logic.
 InTransfer.prototype.bind = function(accounts, sharedApi) {
-	__private.modules = {
+	__scope.modules = {
 		accounts,
 	};
-	__private.shared = sharedApi;
+	__scope.shared = sharedApi;
 };
 
 /**
@@ -87,8 +87,8 @@ InTransfer.prototype.calculateFee = function() {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-InTransfer.prototype.verify = async (transaction, sender, cb, tx) => {
-	let lastBlock = await __private.components.storage.entities.Block.get(
+InTransfer.prototype.verify = async function(transaction, sender, cb, tx) {
+	let lastBlock = await __scope.components.storage.entities.Block.get(
 		{},
 		{ sort: 'height:desc', limit: 1 }
 	);
@@ -111,7 +111,7 @@ InTransfer.prototype.verify = async (transaction, sender, cb, tx) => {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	return __private.components.storage.entities.Transaction.isPersisted(
+	return __scope.components.storage.entities.Transaction.isPersisted(
 		{
 			id: transaction.asset.inTransfer.dappId,
 			type: transactionTypes.DAPP,
@@ -183,13 +183,13 @@ InTransfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.shared.getGenesis(
+	__scope.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			return __private.modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: transaction.amount,
@@ -223,13 +223,13 @@ InTransfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.shared.getGenesis(
+	__scope.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			return __private.modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: -transaction.amount,
@@ -293,13 +293,13 @@ InTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 InTransfer.prototype.objectNormalize = function(transaction) {
-	const report = __private.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset.inTransfer,
 		InTransfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate inTransfer schema: ${__private.schema
+		throw `Failed to validate inTransfer schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

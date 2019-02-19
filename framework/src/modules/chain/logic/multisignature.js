@@ -24,8 +24,8 @@ const Bignum = require('../helpers/bignum.js');
 const exceptions = global.exceptions;
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
 
-const __private = {};
-__private.unconfirmedSignatures = {};
+const __scope = {};
+__scope.unconfirmedSignatures = {};
 
 /**
  * Main multisignature logic. Initializes library.
@@ -56,17 +56,17 @@ class Multisignature {
 		schema,
 		network,
 	}) {
-		__private.components = {
+		__scope.components = {
 			logger,
 		};
-		__private.schema = schema;
-		__private.network = network;
-		__private.logic = {
+		__scope.schema = schema;
+		__scope.network = network;
+		__scope.logic = {
 			transaction,
 			account,
 		};
 
-		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
+		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -80,7 +80,7 @@ class Multisignature {
  */
 // TODO: Remove this method as modules will be loaded prior to trs logic.
 Multisignature.prototype.bind = function(accounts) {
-	__private.modules = {
+	__scope.modules = {
 		accounts,
 	};
 };
@@ -107,7 +107,7 @@ Multisignature.prototype.calculateFee = function(transaction) {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-Multisignature.prototype.verify = function(transaction, sender, cb) {
+Multisignature.prototype.verify = async function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.multisignature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
@@ -146,8 +146,8 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 			'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
 		if (exceptions.multisignatures.includes(transaction.id)) {
-			__private.components.logger.debug(err);
-			__private.components.logger.debug(JSON.stringify(transaction));
+			__scope.components.logger.debug(err);
+			__scope.components.logger.debug(JSON.stringify(transaction));
 		} else {
 			return setImmediate(cb, err);
 		}
@@ -191,7 +191,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 						) {
 							valid = false;
 						} else {
-							valid = __private.logic.transaction.verifySignature(
+							valid = __scope.logic.transaction.verifySignature(
 								transaction,
 								transaction.asset.multisignature.keysgroup[s].substring(1),
 								transaction.signatures[d]
@@ -208,7 +208,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 				}
 			}
 		} catch (e) {
-			__private.components.logger.error(e.stack);
+			__scope.components.logger.error(e.stack);
 			return setImmediate(
 				cb,
 				'Failed to verify signature in multisignature keysgroup'
@@ -253,7 +253,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 					);
 				}
 			} catch (e) {
-				__private.components.logger.trace(e.stack);
+				__scope.components.logger.trace(e.stack);
 				return setImmediate(
 					eachSeriesCb,
 					'Invalid public key in multisignature keysgroup'
@@ -348,9 +348,9 @@ Multisignature.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.unconfirmedSignatures[sender.address] = false;
+	__scope.unconfirmedSignatures[sender.address] = false;
 
-	__private.logic.account.merge(
+	__scope.logic.account.merge(
 		sender.address,
 		{
 			membersPublicKeys: transaction.asset.multisignature.keysgroup,
@@ -368,12 +368,12 @@ Multisignature.prototype.applyConfirmed = function(
 				transaction.asset.multisignature.keysgroup,
 				(transactionToGetKey, eachSeriesCb) => {
 					const key = transactionToGetKey.substring(1);
-					const address = __private.modules.accounts.generateAddressByPublicKey(
+					const address = __scope.modules.accounts.generateAddressByPublicKey(
 						key
 					);
 
 					// Create accounts
-					__private.modules.accounts.setAccountAndGet(
+					__scope.modules.accounts.setAccountAndGet(
 						{
 							address,
 							publicKey: key,
@@ -410,9 +410,9 @@ Multisignature.prototype.undoConfirmed = function(
 ) {
 	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
-	__private.unconfirmedSignatures[sender.address] = true;
+	__scope.unconfirmedSignatures[sender.address] = true;
 
-	__private.logic.account.merge(
+	__scope.logic.account.merge(
 		sender.address,
 		{
 			membersPublicKeys: multiInvert,
@@ -441,16 +441,16 @@ Multisignature.prototype.applyUnconfirmed = function(
 	cb,
 	tx
 ) {
-	if (__private.unconfirmedSignatures[sender.address]) {
+	if (__scope.unconfirmedSignatures[sender.address]) {
 		return setImmediate(
 			cb,
 			'Signature on this account is pending confirmation'
 		);
 	}
 
-	__private.unconfirmedSignatures[sender.address] = true;
+	__scope.unconfirmedSignatures[sender.address] = true;
 
-	return __private.logic.account.merge(
+	return __scope.logic.account.merge(
 		sender.address,
 		{
 			u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
@@ -481,9 +481,9 @@ Multisignature.prototype.undoUnconfirmed = function(
 ) {
 	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
-	__private.unconfirmedSignatures[sender.address] = false;
+	__scope.unconfirmedSignatures[sender.address] = false;
 
-	__private.logic.account.merge(
+	__scope.logic.account.merge(
 		sender.address,
 		{
 			u_membersPublicKeys: multiInvert,
@@ -532,13 +532,13 @@ Multisignature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
-	const report = __private.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset.multisignature,
 		Multisignature.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate multisignature schema: ${__private.schema
+		throw `Failed to validate multisignature schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
@@ -581,7 +581,7 @@ Multisignature.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
-	__private.network.io.sockets.emit('multisignatures/change', transaction);
+	__scope.network.io.sockets.emit('multisignatures/change', transaction);
 	return setImmediate(cb);
 };
 

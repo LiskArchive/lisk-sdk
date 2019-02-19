@@ -226,25 +226,25 @@ describe('vote', () => {
 	/* eslint-enable mocha/no-sibling-hooks */
 
 	describe('constructor', () => {
-		let __private;
+		let __scope;
 
 		beforeEach(done => {
-			__private = Vote.__get__('__private');
+			__scope = Vote.__get__('__scope');
 			done();
 		});
 
-		it('should assign logger to __private.components', () => {
-			return expect(__private.components.logger).to.equal(
+		it('should assign logger to __scope.components', () => {
+			return expect(__scope.components.logger).to.equal(
 				modulesLoader.scope.logger
 			);
 		});
 
-		it('should assign schema to __private', () => {
-			return expect(__private.schema).to.equal(modulesLoader.scope.schema);
+		it('should assign schema to __scope', () => {
+			return expect(__scope.schema).to.equal(modulesLoader.scope.schema);
 		});
 
-		it('should assign account to __private.logic', () => {
-			return expect(__private.logic.account).to.equal(accountLogic);
+		it('should assign account to __scope.logic', () => {
+			return expect(__scope.logic.account).to.equal(accountLogic);
 		});
 	});
 

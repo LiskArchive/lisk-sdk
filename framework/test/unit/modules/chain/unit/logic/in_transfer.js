@@ -155,8 +155,8 @@ describe('inTransfer', () => {
 	});
 
 	describe('constructor', () => {
-		describe('library', () => {
-			let __private;
+		describe('__scope', () => {
+			let __scope;
 
 			beforeEach(done => {
 				new InTransfer({
@@ -165,17 +165,17 @@ describe('inTransfer', () => {
 					},
 					schema: modulesLoader.scope.schema,
 				});
-				__private = InTransfer.__get__('__private');
+				__scope = InTransfer.__get__('__scope');
 				done();
 			});
 
 			it('should assign storage', async () =>
-				expect(__private)
+				expect(__scope)
 					.to.have.nested.property('components.storage')
 					.eql(storageStub));
 
 			it('should assign schema', async () =>
-				expect(__private)
+				expect(__scope)
 					.to.have.property('schema')
 					.eql(modulesLoader.scope.schema));
 		});
@@ -187,8 +187,8 @@ describe('inTransfer', () => {
 
 		beforeEach(done => {
 			inTransfer.bind(accountsStub, sharedStub);
-			modules = InTransfer.__get__('__private.modules');
-			shared = InTransfer.__get__('__private.shared');
+			modules = InTransfer.__get__('__scope.modules');
+			shared = InTransfer.__get__('__scope.shared');
 			done();
 		});
 
@@ -460,31 +460,31 @@ describe('inTransfer', () => {
 				done();
 			});
 
-			it('should call __private.modules.accounts.mergeAccountAndGet', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet', async () =>
 				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true);
 
-			it('should call __private.modules.accounts.mergeAccountAndGet with address = dapp.authorId', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet with address = dapp.authorId', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ address: validGetGensisResult.authorId })
 					)
 				).to.be.true);
 
-			it('should call __private.modules.accounts.mergeAccountAndGet with balance = trs.amount', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet with balance = trs.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ balance: trs.amount })
 					)
 				).to.be.true);
 
-			it('should call __private.modules.accounts.mergeAccountAndGet with u_balance = trs.amount', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet with u_balance = trs.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: trs.amount })
 					)
 				).to.be.true);
 
-			it('should call __private.modules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ round: slots.calcRound(dummyBlock.height) })
@@ -492,7 +492,7 @@ describe('inTransfer', () => {
 				).to.be.true);
 		});
 
-		describe('when __private.modules.accounts.mergeAccountAndGet fails', () => {
+		describe('when __scope.modules.accounts.mergeAccountAndGet fails', () => {
 			beforeEach(done => {
 				accountsStub.mergeAccountAndGet = sinonSandbox
 					.stub()
@@ -506,7 +506,7 @@ describe('inTransfer', () => {
 				}));
 		});
 
-		describe('when __private.modules.accounts.mergeAccountAndGet succeeds', () => {
+		describe('when __scope.modules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', async () =>
 				inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
@@ -554,31 +554,31 @@ describe('inTransfer', () => {
 				done();
 			});
 
-			it('should call __private.modules.accounts.mergeAccountAndGet', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet', async () =>
 				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true);
 
-			it('should call __private.modules.accounts.mergeAccountAndGet with address = dapp.authorId', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet with address = dapp.authorId', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ address: validGetGensisResult.authorId })
 					)
 				).to.be.true);
 
-			it('should call __private.modules.accounts.mergeAccountAndGet with balance = -trs.amount', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet with balance = -trs.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ balance: -trs.amount })
 					)
 				).to.be.true);
 
-			it('should call __private.modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: -trs.amount })
 					)
 				).to.be.true);
 
-			it('should call __private.modules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
+			it('should call __scope.modules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ round: slots.calcRound(dummyBlock.height) })
@@ -586,7 +586,7 @@ describe('inTransfer', () => {
 				).to.be.true);
 		});
 
-		describe('when __private.modules.accounts.mergeAccountAndGet fails', () => {
+		describe('when __scope.modules.accounts.mergeAccountAndGet fails', () => {
 			beforeEach(done => {
 				accountsStub.mergeAccountAndGet = sinonSandbox
 					.stub()
@@ -600,7 +600,7 @@ describe('inTransfer', () => {
 				}));
 		});
 
-		describe('when __private.modules.accounts.mergeAccountAndGet succeeds', () => {
+		describe('when __scope.modules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', async () =>
 				inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
@@ -646,28 +646,28 @@ describe('inTransfer', () => {
 	});
 
 	describe('objectNormalize', () => {
-		let __private;
+		let __scope;
 		let schemaSpy;
 
 		beforeEach(done => {
-			__private = InTransfer.__get__('__private');
-			schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
+			__scope = InTransfer.__get__('__scope');
+			schemaSpy = sinonSandbox.spy(__scope.schema, 'validate');
 			done();
 		});
 
 		afterEach(() => schemaSpy.restore());
 
-		it('should call __private.schema.validate', async () => {
+		it('should call __scope.schema.validate', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.calledOnce).to.be.true;
 		});
 
-		it('should call __private.schema.validate with trs.asset.inTransfer', async () => {
+		it('should call __scope.schema.validate with trs.asset.inTransfer', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.calledWith(trs.asset.inTransfer)).to.be.true;
 		});
 
-		it('should call __private.schema.validate InTransfer.prototype.schema', async () => {
+		it('should call __scope.schema.validate InTransfer.prototype.schema', async () => {
 			inTransfer.objectNormalize(trs);
 			return expect(schemaSpy.args[0][1]).to.eql(InTransfer.prototype.schema);
 		});

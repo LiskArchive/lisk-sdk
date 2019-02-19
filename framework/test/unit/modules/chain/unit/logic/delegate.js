@@ -120,33 +120,33 @@ describe('delegate', () => {
 	});
 
 	describe('constructor', () => {
-		let __private;
+		let __scope;
 
 		beforeEach(done => {
-			__private = Delegate.__get__('__private');
+			__scope = Delegate.__get__('__scope');
 			done();
 		});
 
-		it('should attach schema to __private', async () => {
-			return expect(__private)
+		it('should attach schema to __scope', async () => {
+			return expect(__scope)
 				.to.have.property('schema')
 				.equal(modulesLoader.scope.schema);
 		});
 	});
 
 	describe('bind', () => {
-		it('should attach empty object to __private.modules.accounts', async () => {
+		it('should attach empty object to __scope.modules.accounts', async () => {
 			delegate.bind({});
-			const modules = Delegate.__get__('__private.modules');
+			const modules = Delegate.__get__('__scope.modules');
 
 			return expect(modules).to.eql({
 				accounts: {},
 			});
 		});
 
-		it('should bind __private.modules with accounts object', async () => {
+		it('should bind __scope.modules with accounts object', async () => {
 			delegate.bind(accountsMock);
-			const modules = Delegate.__get__('__private.modules');
+			const modules = Delegate.__get__('__scope.modules');
 
 			return expect(modules).to.eql({
 				accounts: accountsMock,
@@ -940,8 +940,8 @@ describe('delegate', () => {
 
 	describe('objectNormalize', () => {
 		it('should use the correct format to validate against', async () => {
-			const __private = Delegate.__get__('__private');
-			const schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
+			const __scope = Delegate.__get__('__scope');
+			const schemaSpy = sinonSandbox.spy(__scope.schema, 'validate');
 			delegate.objectNormalize(transaction);
 			expect(schemaSpy.calledOnce).to.equal(true);
 			expect(
@@ -953,7 +953,7 @@ describe('delegate', () => {
 			return schemaSpy.restore();
 		});
 
-		describe('when __private.schema.validate fails', () => {
+		describe('when __scope.schema.validate fails', () => {
 			const schemaDynamicTest = new SchemaDynamicTest({
 				testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
 				customPropertyAssertion(input, expectedType, property, err) {
@@ -995,7 +995,7 @@ describe('delegate', () => {
 			});
 		});
 
-		describe('when __private.schema.validate succeeds', () => {
+		describe('when __scope.schema.validate succeeds', () => {
 			it('should return transaction', async () =>
 				expect(delegate.objectNormalize(transaction)).to.eql(transaction));
 		});

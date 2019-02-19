@@ -701,13 +701,13 @@ class Transaction {
 			);
 		}
 
-		const verifyTransactionTypes = (
+		const verifyTransactionTypes = async (
 			transactionToVeryfi,
 			senderToVerify,
 			txToVerify,
 			verifyTransactionTypesCb
 		) => {
-			__private.types[transactionToVeryfi.type].verify(
+			await __private.types[transactionToVeryfi.type].verify(
 				transactionToVeryfi,
 				senderToVerify,
 				verifyErr => {

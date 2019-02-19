@@ -67,8 +67,8 @@ describe('dapp', () => {
 		});
 
 		describe('constructor', () => {
-			describe('__private object', () => {
-				let __private;
+			describe('__scope object', () => {
+				let __scope;
 
 				beforeEach(done => {
 					new Dapp({
@@ -79,23 +79,21 @@ describe('dapp', () => {
 						network: modulesLoader.scope.network,
 						schema: modulesLoader.scope.schema,
 					});
-					__private = Dapp.__get__('__private');
+					__scope = Dapp.__get__('__scope');
 					done();
 				});
 
 				it('should be updated with storage stub object', async () =>
-					expect(__private.components.storage).to.eql(storageStub));
+					expect(__scope.components.storage).to.eql(storageStub));
 
 				it('should be loaded schema from modulesLoader', async () =>
-					expect(__private.schema).to.eql(modulesLoader.scope.schema));
+					expect(__scope.schema).to.eql(modulesLoader.scope.schema));
 
 				it('should be loaded logger from modulesLoader', async () =>
-					expect(__private.components.logger).to.eql(
-						modulesLoader.scope.logger
-					));
+					expect(__scope.components.logger).to.eql(modulesLoader.scope.logger));
 
 				it('should be loaded network from modulesLoader', async () =>
-					expect(__private.network).to.eql(modulesLoader.scope.network));
+					expect(__scope.network).to.eql(modulesLoader.scope.network));
 			});
 		});
 
@@ -517,8 +515,8 @@ describe('dapp', () => {
 			let unconfirmedLinks;
 
 			beforeEach(done => {
-				unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
-				unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+				unconfirmedNames = Dapp.__get__('__scope.unconfirmedNames');
+				unconfirmedLinks = Dapp.__get__('__scope.unconfirmedLinks');
 				done();
 			});
 
@@ -555,8 +553,8 @@ describe('dapp', () => {
 				beforeEach(() => {
 					const dappNames = {};
 					dappNames[transaction.asset.dapp.name] = true;
-					Dapp.__set__('__private.unconfirmedNames', dappNames);
-					return Dapp.__set__('__private.unconfirmedLinks', {});
+					Dapp.__set__('__scope.unconfirmedNames', dappNames);
+					return Dapp.__set__('__scope.unconfirmedLinks', {});
 				});
 
 				it('should call callback with error', done => {
@@ -571,8 +569,8 @@ describe('dapp', () => {
 				beforeEach(() => {
 					const dappLinks = {};
 					dappLinks[transaction.asset.dapp.link] = true;
-					Dapp.__set__('__private.unconfirmedLinks', dappLinks);
-					return Dapp.__set__('__private.unconfirmedNames', {});
+					Dapp.__set__('__scope.unconfirmedLinks', dappLinks);
+					return Dapp.__set__('__scope.unconfirmedNames', {});
 				});
 
 				it('should call callback with error', done => {
@@ -590,10 +588,10 @@ describe('dapp', () => {
 				beforeEach(done => {
 					const dappNames = {};
 					const dappLinks = {};
-					Dapp.__set__('__private.unconfirmedLinks', dappLinks);
-					Dapp.__set__('__private.unconfirmedNames', dappNames);
-					unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
-					unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+					Dapp.__set__('__scope.unconfirmedLinks', dappLinks);
+					Dapp.__set__('__scope.unconfirmedNames', dappNames);
+					unconfirmedNames = Dapp.__get__('__scope.unconfirmedNames');
+					unconfirmedLinks = Dapp.__get__('__scope.unconfirmedLinks');
 					done();
 				});
 
@@ -630,10 +628,10 @@ describe('dapp', () => {
 			beforeEach(done => {
 				const dappNames = {};
 				const dappLinks = {};
-				Dapp.__set__('__private.unconfirmedLinks', dappLinks);
-				Dapp.__set__('__private.unconfirmedNames', dappNames);
-				unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
-				unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+				Dapp.__set__('__scope.unconfirmedLinks', dappLinks);
+				Dapp.__set__('__scope.unconfirmedNames', dappNames);
+				unconfirmedNames = Dapp.__get__('__scope.unconfirmedNames');
+				unconfirmedLinks = Dapp.__get__('__scope.unconfirmedLinks');
 				done();
 			});
 
@@ -687,12 +685,12 @@ describe('dapp', () => {
 			});
 
 			describe('schema properties', () => {
-				let __private;
+				let __scope;
 				let schemaSpy;
 
 				beforeEach(done => {
-					__private = Dapp.__get__('__private');
-					schemaSpy = sinonSandbox.spy(__private.schema, 'validate');
+					__scope = Dapp.__get__('__scope');
+					schemaSpy = sinonSandbox.spy(__scope.schema, 'validate');
 					done();
 				});
 

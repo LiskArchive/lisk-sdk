@@ -21,8 +21,8 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const { FEES } = global.constants;
 const exceptions = global.exceptions;
 
-const __private = {};
-__private.unconfirmedOutTansfers = {};
+const __scope = {};
+__scope.unconfirmedOutTansfers = {};
 
 /**
  * Main OutTransfer logic. Initializes library.
@@ -40,11 +40,11 @@ __private.unconfirmedOutTansfers = {};
  */
 class OutTransfer {
 	constructor({ components: { storage }, schema }) {
-		__private.components = {
+		__scope.components = {
 			storage,
 		};
-		__private.schema = schema;
-		// TODO: Add modules to contructor argument and assign accounts to __private.modules.accounts
+		__scope.schema = schema;
+		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -58,7 +58,7 @@ class OutTransfer {
  */
 // TODO: Remove this method as modules will be loaded prior to trs logic.
 OutTransfer.prototype.bind = function(accounts) {
-	__private.modules = {
+	__scope.modules = {
 		accounts,
 	};
 };
@@ -81,8 +81,8 @@ OutTransfer.prototype.calculateFee = function() {
  * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
-OutTransfer.prototype.verify = async (transaction, sender, cb) => {
-	let lastBlock = await __private.components.storage.entities.Block.get(
+OutTransfer.prototype.verify = async function(transaction, sender, cb) {
+	let lastBlock = await __scope.components.storage.entities.Block.get(
 		{},
 		{ sort: 'height:desc', limit: 1 }
 	);
@@ -127,7 +127,7 @@ OutTransfer.prototype.verify = async (transaction, sender, cb) => {
  * @todo Add description for the params
  */
 OutTransfer.prototype.process = function(transaction, sender, cb) {
-	__private.components.storage.entities.Transaction.isPersisted(
+	__scope.components.storage.entities.Transaction.isPersisted(
 		{
 			id: transaction.asset.outTransfer.dappId,
 			type: transactionTypes.DAPP,
@@ -143,7 +143,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 			}
 
 			if (
-				__private.unconfirmedOutTansfers[
+				__scope.unconfirmedOutTansfers[
 					transaction.asset.outTransfer.transactionId
 				]
 			) {
@@ -155,7 +155,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 				);
 			}
 
-			return __private.components.storage.entities.Transaction.isPersisted({
+			return __scope.components.storage.entities.Transaction.isPersisted({
 				id: transaction.asset.outTransfer.transactionId,
 				type: transactionTypes.OUT_TRANSFER,
 			})
@@ -219,18 +219,18 @@ OutTransfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.unconfirmedOutTansfers[
+	__scope.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = false;
 
-	__private.modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return __private.modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: transaction.amount,
@@ -264,17 +264,17 @@ OutTransfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.unconfirmedOutTansfers[
+	__scope.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = true;
 
-	__private.modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
-			return __private.modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: -transaction.amount,
@@ -299,7 +299,7 @@ OutTransfer.prototype.undoConfirmed = function(
  * @todo Add description for the params
  */
 OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
-	__private.unconfirmedOutTansfers[
+	__scope.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = true;
 	return setImmediate(cb);
@@ -315,7 +315,7 @@ OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @todo Add description for the params
  */
 OutTransfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
-	__private.unconfirmedOutTansfers[
+	__scope.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = false;
 	return setImmediate(cb);
@@ -350,13 +350,13 @@ OutTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 OutTransfer.prototype.objectNormalize = function(transaction) {
-	const report = __private.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset.outTransfer,
 		OutTransfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate outTransfer schema: ${__private.schema
+		throw `Failed to validate outTransfer schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
