@@ -336,7 +336,7 @@ const liskFormats = {
 			const bigNumber = new Bignum(value);
 			return (
 				bigNumber.isGreaterThanOrEqualTo(0) &&
-				bigNumber.isLessThangstOrEqualTo(UINT64_MAX)
+				bigNumber.isLessThanOrEqualTo(UINT64_MAX)
 			);
 		}
 
