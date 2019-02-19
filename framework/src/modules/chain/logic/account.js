@@ -628,17 +628,7 @@ Account.prototype.model = [
 		conv: Array,
 	},
 	{
-		name: 'u_votedDelegatesPublicKeys',
-		type: 'Text',
-		conv: Array,
-	},
-	{
 		name: 'membersPublicKeys',
-		type: 'Text',
-		conv: Array,
-	},
-	{
-		name: 'u_membersPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
@@ -750,18 +740,6 @@ Account.prototype.schema = {
 			],
 		},
 		membersPublicKeys: {
-			anyOf: [
-				{
-					type: 'array',
-					minItems: MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS,
-					maxItems: MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS,
-				},
-				{
-					type: 'null',
-				},
-			],
-		},
-		u_membersPublicKeys: {
 			anyOf: [
 				{
 					type: 'array',

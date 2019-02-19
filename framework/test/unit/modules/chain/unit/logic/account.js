@@ -631,7 +631,8 @@ describe('account', async () => {
 		});
 
 		describe('check database constraints', async () => {
-			it('should throw error when address does not exist for u_delegates', done => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCONFIRMED_STATE_REMOVAL] should throw error when address does not exist for u_delegates', done => {
 				account.merge(
 					'1L',
 					{ u_votedDelegatesPublicKeys: [validAccount.publicKey] },
@@ -653,7 +654,8 @@ describe('account', async () => {
 				);
 			});
 
-			it('should throw error when address does not exist for u_multisignatures', done => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('should throw error when address does not exist for u_multisignatures', done => {
 				account.merge(
 					'1L',
 					{ u_membersPublicKeys: [validAccount.publicKey] },
