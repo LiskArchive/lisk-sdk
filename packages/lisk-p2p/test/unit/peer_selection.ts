@@ -15,14 +15,17 @@
 import { expect } from 'chai';
 import { initializePeerList } from '../utils/peers';
 import { selectForConnection, selectPeers } from '../../src/peer_selection';
-import { P2PPeerSelectionOptions } from '../../src/p2p_types';
+import { P2PNodeInfo } from '../../src/p2p_types';
 
 describe('peer selector', () => {
 	describe('#selectPeer', () => {
 		let peerList = initializePeerList();
-		const selectionParams: P2PPeerSelectionOptions = {
-			lastBlockHeight: 545777,
-			netHash: '73458irc3yb7rg37r7326dbt7236',
+		const nodeInfo: P2PNodeInfo = {
+			height: 545777,
+			nethash: '73458irc3yb7rg37r7326dbt7236',
+			os: 'linux',
+			version: '1.1.1',
+			wsPort: 5000,
 		};
 
 		describe('get a list of n number of good peers', () => {
@@ -35,55 +38,53 @@ describe('peer selector', () => {
 			});
 
 			it('should return an array', () => {
-				return expect(selectPeers(peerList, selectionParams)).to.be.an('array');
+				return expect(selectPeers(peerList, nodeInfo)).to.be.an('array');
 			});
 
 			it('returned array should contain good peers according to algorithm', () => {
-				return expect(selectPeers(peerList, selectionParams))
+				return expect(selectPeers(peerList, nodeInfo))
 					.and.be.an('array')
 					.and.of.length(3);
 			});
 
 			it('return empty peer list for no peers as an argument', () => {
-				return expect(selectPeers([], selectionParams))
+				return expect(selectPeers([], nodeInfo))
 					.and.be.an('array')
 					.and.to.be.eql([]);
 			});
 
 			it('should return an array having one good peer', () => {
-				return expect(selectPeers(peerList, selectionParams, 1))
+				return expect(selectPeers(peerList, nodeInfo, 1))
 					.and.be.an('array')
 					.and.of.length(1);
 			});
 
 			it('should return an array having 2 good peers', () => {
-				return expect(selectPeers(peerList, selectionParams, 2))
+				return expect(selectPeers(peerList, nodeInfo, 2))
 					.and.be.an('array')
 					.and.of.length(2);
 			});
 
 			it('should return an array having all good peers', () => {
-				return expect(selectPeers(peerList, selectionParams, 0))
+				return expect(selectPeers(peerList, nodeInfo, 0))
 					.and.be.an('array')
 					.and.of.length(3);
 			});
 
 			it('should return an array having all good peers ignoring requested negative number of peers', () => {
-				return expect(selectPeers(peerList, selectionParams, -1))
+				return expect(selectPeers(peerList, nodeInfo, -1))
 					.and.be.an('array')
 					.and.of.length(3);
 			});
 
 			it('should return an array of equal length equal to requested number of peers', () => {
-				return expect(selectPeers(peerList, selectionParams, 3))
+				return expect(selectPeers(peerList, nodeInfo, 3))
 					.and.be.an('array')
 					.and.of.length(3);
 			});
 
 			it('should throw an error when requested peers are greater than available good peers', () => {
-				return expect(
-					selectPeers.bind(selectPeers, peerList, selectionParams, 4),
-				)
+				return expect(selectPeers.bind(selectPeers, peerList, nodeInfo, 4))
 					.to.throw(
 						`Requested number of peers: '4' is more than the available number of good peers: '3'`,
 					)
@@ -97,11 +98,11 @@ describe('peer selector', () => {
 				peerList = initializePeerList();
 			});
 			const lowHeightPeers = peerList.filter(
-				peer => peer.height < selectionParams.lastBlockHeight,
+				peer => peer.height < nodeInfo.height,
 			);
 
 			it('should return an array with 0 good peers', () => {
-				return expect(selectPeers(lowHeightPeers, selectionParams, 2))
+				return expect(selectPeers(lowHeightPeers, nodeInfo, 2))
 					.and.be.an('array')
 					.and.of.length(0);
 			});
