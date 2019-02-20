@@ -44,12 +44,13 @@ __private.unconfirmedAscii = {};
  * @todo Add description for the params
  */
 class DApp {
-	constructor(storage, logger, schema, network) {
+	constructor(storage, logger, schema, network, channel) {
 		library = {
 			storage,
 			logger,
 			schema,
 			network,
+			channel,
 		};
 	}
 }
@@ -503,7 +504,7 @@ DApp.prototype.dbRead = function(raw) {
  */
 DApp.prototype.afterSave = function(transaction, cb) {
 	if (library) {
-		library.network.io.sockets.emit('dapps/change', {});
+		library.channel.publish('dapps:change');
 	}
 	return setImmediate(cb);
 };

@@ -81,7 +81,8 @@ class DApps {
 				scope.components.storage,
 				scope.components.logger,
 				scope.schema,
-				scope.network
+				scope.network,
+				scope.channel
 			)
 		);
 

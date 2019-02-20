@@ -40,8 +40,10 @@ module.exports = class ChainModule extends BaseModule {
 			'transactions:change',
 			'rounds:change',
 			'multisignatures:signature:change',
+			'multisignatures:change',
 			'delegates:fork',
 			'loader:sync',
+			'dapps:change',
 		];
 	}
 
@@ -74,6 +76,10 @@ module.exports = class ChainModule extends BaseModule {
 				this.chain.actions().getUnconfirmedTransactions(),
 			getMultisignatureTransactions: async () =>
 				this.chain.actions().getMultisignatureTransactions(),
+			getLastCommit: async () => this.chain.actions().getLastCommit(),
+			getBuild: async () => this.chain.actions().getBuild(),
+			postTransaction: async action =>
+				this.chain.actions().postTransaction(action),
 		};
 	}
 

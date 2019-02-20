@@ -46,11 +46,12 @@ __private.unconfirmedSignatures = {};
  * @todo Add description for the params
  */
 class Multisignature {
-	constructor(schema, network, transaction, account, logger) {
+	constructor(schema, network, transaction, account, logger, channel) {
 		library = {
 			schema,
 			network,
 			logger,
+			channel,
 			logic: {
 				transaction,
 				account,
@@ -567,7 +568,7 @@ Multisignature.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
-	library.network.io.sockets.emit('multisignatures/change', transaction);
+	library.channel.publish('multisignatures:change', transaction);
 	return setImmediate(cb);
 };
 

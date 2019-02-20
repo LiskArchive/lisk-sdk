@@ -1,31 +1,53 @@
 const HttpApi = require('./httpApi');
+const BaseModule = require('../base_module');
 
-let httpApi = null;
+/* eslint-disable class-methods-use-this */
 
 /**
- * Chain Module specification
+ * Http API module specification
  *
- * @namespace Framework.modules.chain
- * @type {{defaults, load(*=, *=): Promise<void>, unload(*, *): Promise<*>, alias: string, actions: {}, events: Array, info: {author: string, name: string, version: string}}}
+ * @namespace Framework.Modules
+ * @type {module.HttpAPIModule}
  */
-module.exports = {
-	alias: 'http_api',
-	info: {
-		author: 'LiskHQ',
-		version: '0.1.0',
-		name: 'lisk-core-http-api',
-	},
-	defaults: {},
-	events: [],
-	actions: {},
-	async load(channel, options) {
-		httpApi = new HttpApi(channel, options);
+module.exports = class HttpAPIModule extends BaseModule {
+	constructor(options) {
+		super(options);
+
+		this.chain = null;
+	}
+
+	static get alias() {
+		return 'http_api';
+	}
+
+	static get info() {
+		return {
+			author: 'LiskHQ',
+			version: '0.1.0',
+			name: 'lisk-core-http-api',
+		};
+	}
+
+	get defaults() {
+		return {};
+	}
+
+	get events() {
+		return [];
+	}
+
+	get actions() {
+		return {};
+	}
+
+	async load(channel) {
+		this.httpApi = new HttpApi(channel, this.options);
 		channel.once('lisk:ready', () => {
-			httpApi.bootstrap();
+			this.httpApi.bootstrap();
 		});
-	},
-	// eslint-disable-next-line no-unused-vars
-	async unload(channel, options) {
-		// return blockchain.cleanup(0);
-	},
+	}
+
+	async unload() {
+		// return this.chain.cleanup(0);
+	}
 };

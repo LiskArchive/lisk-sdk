@@ -61,7 +61,8 @@ function Multisignatures(cb, scope) {
 				scope.network,
 				scope.logic.transaction,
 				scope.logic.account,
-				scope.components.logger
+				scope.components.logger,
+				scope.channel
 			),
 		},
 	};

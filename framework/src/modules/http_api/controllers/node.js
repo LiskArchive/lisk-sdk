@@ -41,12 +41,11 @@ let library;
  */
 function NodeController(scope) {
 	library = {
-		components: scope.components,
-		modules: scope.modules,
-		storage: scope.components.storage,
+		components: {
+			system: scope.components.system,
+			storage: scope.components.storage,
+		},
 		config: scope.config,
-		build: scope.build,
-		lastCommit: scope.lastCommit,
 		channel: scope.channel,
 	};
 }
@@ -60,7 +59,7 @@ function NodeController(scope) {
  */
 NodeController.getConstants = async (context, next) => {
 	try {
-		const [lastBlock] = await library.storage.entities.Block.get(
+		const [lastBlock] = await library.components.storage.entities.Block.get(
 			{},
 			{ sort: 'height:desc', limit: 1 }
 		);
@@ -76,9 +75,12 @@ NodeController.getConstants = async (context, next) => {
 			height,
 		]);
 
+		const build = await library.channel.invoke('chain:getBuild');
+		const commit = await library.channel.invoke('chain:getLastCommit');
+
 		return next(null, {
-			build: library.build,
-			commit: library.lastCommit,
+			build,
+			commit,
 			epoch: EPOCH_TIME,
 			fees: {
 				send: FEES.SEND.toString(),
@@ -121,13 +123,12 @@ NodeController.getStatus = async (context, next) => {
 			]
 		);
 
-		const [lastBlock] = await library.storage.entities.Block.get(
+		const [lastBlock] = await library.components.storage.entities.Block.get(
 			{},
 			{ sort: 'height:desc', limit: 1 }
 		);
 		const { height } = lastBlock;
 
-		// TODO: Replace all library.modules calls after chain module extraction is done as part of https://github.com/LiskHQ/lisk/issues/2763.
 		const data = {
 			broadhash: library.components.system.headers.broadhash,
 			consensus: (await library.channel.invoke('chain:getLastConsensus')) || 0,

@@ -90,7 +90,7 @@ DelegatesController.getDelegates = async function(context, next) {
 			delegateFormatter.bind(
 				null,
 				lastBlock.height
-					? await channel.invoke('chain:calculateSupply', lastBlock.height)
+					? await channel.invoke('chain:calculateSupply', [lastBlock.height])
 					: 0
 			)
 		);

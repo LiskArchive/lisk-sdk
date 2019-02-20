@@ -7,7 +7,7 @@ const schema = require('./schema/application');
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
-const HttpApiModule = require('../modules/http_api');
+const HttpAPIModule = require('../modules/http_api');
 
 // Private __private used because private keyword is restricted
 const __private = {
@@ -118,7 +118,7 @@ class Application {
 			constants: this.constants,
 		});
 
-		this.registerModule(HttpApiModule);
+		this.registerModule(HttpAPIModule);
 	}
 
 	/**

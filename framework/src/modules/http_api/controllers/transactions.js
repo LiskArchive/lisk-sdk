@@ -19,8 +19,8 @@ const swaggerHelper = require('../helpers/swagger');
 const ApiError = require('../helpers/api_error');
 
 // Private Fields
-let modules;
 let storage;
+let channel;
 
 /**
  * Description of the function.
@@ -35,8 +35,8 @@ let storage;
  * @todo Add description of TransactionsController
  */
 function TransactionsController(scope) {
-	modules = scope.modules;
 	storage = scope.components.storage;
+	channel = scope.channel;
 }
 
 function transactionFormatter(transaction) {
@@ -129,7 +129,7 @@ TransactionsController.getTransactions = async function(context, next) {
 TransactionsController.postTransaction = function(context, next) {
 	const transaction = context.request.swagger.params.transaction.value;
 
-	return modules.transactions.shared.postTransaction(
+	return channel.invoke('chain:postTransaction', [
 		transaction,
 		(err, data) => {
 			if (err) {
@@ -145,8 +145,8 @@ TransactionsController.postTransaction = function(context, next) {
 				data: { message: data },
 				meta: { status: true },
 			});
-		}
-	);
+		},
+	]);
 };
 
 module.exports = TransactionsController;

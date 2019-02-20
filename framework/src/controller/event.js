@@ -1,7 +1,7 @@
 const assert = require('assert');
 
-const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9]*$/;
-const eventWithModuleNameReg = /^([a-zA-Z][a-zA-Z0-9]*)((?::[a-zA-Z][a-zA-Z0-9]*)+)$/;
+const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+const eventWithModuleNameReg = /^([a-zA-Z][a-zA-Z0-9_]*)((?::[a-zA-Z][a-zA-Z0-9]*)+)$/;
 
 /**
  * An event class which instance will be received by every event listener

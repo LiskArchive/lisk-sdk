@@ -242,6 +242,13 @@ module.exports = class Chain {
 					action.params[0],
 					action.params[1]
 				),
+			getLastCommit: async () => this.scope.lastCommit,
+			getBuild: async () => this.scope.build,
+			postTransaction: async action =>
+				this.scope.modules.transactions.shared.postTransaction(
+					action.params[0],
+					action.params[1]
+				),
 		};
 	}
 
