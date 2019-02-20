@@ -14,13 +14,22 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Remove all uncofirmed state related schema properties as they're handled in memory now.
 
   PARAMETERS: None
 */
 
-DELETE FROM mem_accounts;
-DELETE FROM mem_round;
-DELETE FROM mem_accounts2delegates;
-DELETE FROM mem_accounts2multisignatures;
-DELETE FROM rounds_rewards;
+ALTER TABLE mem_accounts
+DROP COLUMN "u_isDelegate",
+DROP COLUMN "u_secondSignature",
+DROP COLUMN "u_username",
+DROP COLUMN "u_delegates",
+DROP COLUMN "u_multisignatures",
+DROP COLUMN "u_multimin",
+DROP COLUMN "u_multilifetime",
+DROP COLUMN "u_nameexist",
+DROP COLUMN "u_balance";
+
+DROP TABLE IF EXISTS "mem_accounts2u_delegates";
+
+DROP TABLE IF EXISTS "mem_accounts2u_multisignatures";

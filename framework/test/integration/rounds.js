@@ -59,13 +59,13 @@ describe('rounds', async () => {
 			const accounts = {};
 			_.map(rows, acc => {
 				acc.nameExist = acc.nameexist;
-				acc.u_nameExist = acc.u_nameexist;
+				// [UNCOFIRMED_STATE_REMOVAL] acc.u_nameExist = acc.u_nameexist;
 				acc.multiLifetime = acc.multilifetime;
-				acc.u_multiLifetime = acc.u_multilifetime;
+				// [UNCOFIRMED_STATE_REMOVAL] acc.u_multiLifetime = acc.u_multilifetime;
 				delete acc.nameexist;
-				delete acc.u_nameexist;
+				// [UNCOFIRMED_STATE_REMOVAL] delete acc.u_nameexist;
 				delete acc.multilifetime;
-				delete acc.u_multilifetime;
+				// [UNCOFIRMED_STATE_REMOVAL] delete acc.u_multilifetime;
 
 				accounts[acc.address] = acc;
 			});

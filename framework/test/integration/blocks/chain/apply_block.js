@@ -195,7 +195,8 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 			});
 		});
 
-		describe('applyUnconfirmedStep', async () => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		describe.skip('[UNCOFIRMED_STATE_REMOVAL] applyUnconfirmedStep', async () => {
 			describe('after applying new block fails on applyUnconfirmedStep', async () => {
 				beforeEach(done => {
 					// Making block invalid
@@ -266,7 +267,8 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 
 		describe('applyConfirmedStep', async () => {
 			const randomUsername = randomUtil.username();
-			describe('after applying new block fails', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			describe.skip('[UNCOFIRMED_STATE_REMOVAL] after applying new block fails', async () => {
 				beforeEach(done => {
 					// Making mem_account invalid
 					library.logic.account.set(
@@ -430,7 +432,8 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 		});
 
 		describe('saveBlockStep', async () => {
-			describe('after applying new block fails', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			describe.skip('[UNCOFIRMED_STATE_REMOVAL] after applying new block fails', async () => {
 				let blockId;
 				beforeEach(done => {
 					blockId = block.id;

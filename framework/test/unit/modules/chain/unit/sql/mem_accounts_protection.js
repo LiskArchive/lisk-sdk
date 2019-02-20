@@ -25,28 +25,19 @@ const validUsername = randomstring.generate(10).toLowerCase();
 let validAccount = {
 	username: validUsername,
 	isDelegate: 1,
-	u_isDelegate: 0,
 	secondSignature: 0,
-	u_secondSignature: 0,
-	u_username: validUsername,
 	address: `${randomstring.generate({ charset: 'numeric', length: 20 })}L`,
 	publicKey: randomstring.generate({ charset: '0123456789ABCDE', length: 32 }),
 	secondPublicKey: null,
 	balance: '0',
-	u_balance: '0',
 	vote: '10000000000000000',
 	rank: '1',
 	delegates: null,
-	u_delegates: null,
 	multisignatures: null,
-	u_multisignatures: null,
 	multimin: 0,
-	u_multimin: 0,
 	multilifetime: 0,
-	u_multilifetime: 0,
 	blockId: randomstring.generate({ charset: 'numeric', length: 20 }),
 	nameexist: 0,
-	u_nameexist: 0,
 	producedBlocks: 9,
 	missedBlocks: 0,
 	fees: '0',
@@ -63,15 +54,6 @@ const queries = {
 	updateUsername(account, newUsername, cb) {
 		storage.adapter.db
 			.query(sql.updateUsername, {
-				address: account.address,
-				newUsername,
-			})
-			.then(accountRows => cb(null, accountRows[0]))
-			.catch(cb);
-	},
-	updateU_username(account, newUsername, cb) {
-		storage.adapter.db
-			.query(sql.updateU_username, {
 				address: account.address,
 				newUsername,
 			})
@@ -204,7 +186,8 @@ describe('mem_accounts protection', async () => {
 		});
 	});
 
-	describe('u_username update', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] u_username update', async () => {
 		describe('when account with u_username exists', async () => {
 			before(done => {
 				queries.getAccountByAddress(validAccount.address, (err, account) => {

@@ -457,8 +457,8 @@ describe('vote', async () => {
 			vote.checkConfirmedDelegates(transaction, done);
 		});
 	});
-
-	describe('checkUnconfirmedDelegates (add vote)', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] checkUnconfirmedDelegates (add vote)', async () => {
 		it('should return err if vote is already made to a delegate', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `+${v}`);
@@ -488,8 +488,8 @@ describe('vote', async () => {
 			vote.checkUnconfirmedDelegates(transaction, done);
 		});
 	});
-
-	describe('checkUnconfirmedDelegates (remove vote)', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] checkUnconfirmedDelegates (remove vote)', async () => {
 		it('should return err if vote is not made for a delegate', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
@@ -636,8 +636,8 @@ describe('vote', async () => {
 				);
 			});
 		});
-
-		it('should add vote for delegate', done => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[UNCONFIRMED_STATE_REMOVAL] should add vote for delegate', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `+${v}`);
 			vote.applyUnconfirmed(transaction, validSender, async () => {
@@ -653,7 +653,8 @@ describe('vote', async () => {
 	});
 
 	describe('undoUnconfirmed', async () => {
-		it('should undo remove votes for delegates', done => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[UNCONFIRMED_STATE_REMOVAL] should undo remove votes for delegates', done => {
 			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => `-${v}`);
 			vote.undoUnconfirmed(validTransaction, validSender, async () => {

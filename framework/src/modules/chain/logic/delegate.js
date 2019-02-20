@@ -247,8 +247,8 @@ Delegate.prototype.checkConfirmed = function(transaction, cb, tx) {
 Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
 	self.checkDuplicates(
 		transaction,
-		'u_username',
-		'u_isDelegate',
+		'username', // [UNCONFIRMED_STATE_REMOVAL] this was using u_username. Check after new implementation.
+		'isDelegate', // [UNCONFIRMED_STATE_REMOVAL] this was using u_isDelegate. Check after new implementation.
 		err => setImmediate(cb, err, transaction),
 		tx
 	);
@@ -315,7 +315,6 @@ Delegate.prototype.undoConfirmed = function(
 		vote: 0,
 		username: null,
 	};
-
 	modules.accounts.setAccountAndGet(data, cb, tx);
 };
 
@@ -331,8 +330,8 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 	const data = {
 		publicKey: transaction.senderPublicKey,
 		address: sender.address,
-		u_isDelegate: 1,
-		u_username: transaction.asset.delegate.username,
+		// [UNCONFIRMED_STATE_REMOVAL] u_isDelegate: 1,
+		// [UNCONFIRMED_STATE_REMOVAL] u_username: transaction.asset.delegate.username,
 	};
 
 	async.series(
@@ -357,10 +356,11 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @todo Add description for the params
  */
 Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
+	// [UNCONFIRMED_STATE_REMOVAL] Check after new implementation.
 	const data = {
 		address: sender.address,
-		u_isDelegate: 0,
-		u_username: null,
+		// [UNCONFIRMED_STATE_REMOVAL] u_isDelegate: 0,
+		// [UNCONFIRMED_STATE_REMOVAL] u_username: null,
 	};
 
 	modules.accounts.setAccountAndGet(data, cb, tx);

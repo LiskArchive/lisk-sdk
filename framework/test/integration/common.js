@@ -237,15 +237,16 @@ function getAccountFromDb(library, address) {
 		library.storage.adapter.execute(
 			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`
 		),
-		library.storage.adapter.db.query(
-			`SELECT * FROM mem_accounts2u_multisignatures where "accountId" = '${address}'`
-		),
+		// [UNCONFIRMED_STATE_REMOVAL]
+		// library.storage.adapter.db.query(
+		// 	`SELECT * FROM mem_accounts2u_multisignatures where "accountId" = '${address}'`
+		// ),
 	]).then(res => {
 		return {
 			// Get the first row if resultant array is not empty
 			mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
 			mem_accounts2multisignatures: res[1],
-			mem_accounts2u_multisignatures: res[2],
+			// [UNCONFIRMED_STATE_REMOVAL] mem_accounts2u_multisignatures: res[2],
 		};
 	});
 }

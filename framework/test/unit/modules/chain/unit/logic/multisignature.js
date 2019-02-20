@@ -690,8 +690,8 @@ describe('multisignature', async () => {
 		});
 		/* eslint-enable */
 	});
-
-	describe('applyUnconfirmed', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] applyUnconfirmed', async () => {
 		describe('when transaction is pending for confirmation', async () => {
 			beforeEach(done => {
 				const unconfirmedSignatures = Multisignature.__get__(
@@ -700,7 +700,6 @@ describe('multisignature', async () => {
 				unconfirmedSignatures[sender.address] = true;
 				done();
 			});
-
 			it('should call callback with error = "Signature on this account is pending confirmation"', done => {
 				multisignature.applyUnconfirmed(transaction, sender, err => {
 					expect(err).to.equal(
@@ -789,8 +788,8 @@ describe('multisignature', async () => {
 			});
 		});
 	});
-
-	describe('undoUnconfirmed', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[UNCONFIRMED_STATE_REMOVAL] undoUnconfirmed', async () => {
 		beforeEach(done => {
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
 			multisignature.undoUnconfirmed(transaction, sender, done);

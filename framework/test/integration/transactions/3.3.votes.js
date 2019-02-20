@@ -56,7 +56,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 				);
 			});
 
-			it('adding to pool upvoting transaction should be ok', done => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] adding to pool upvoting transaction should be ok', done => {
 				transaction1 = lisk.transaction.castVotes({
 					passphrase: account.passphrase,
 					votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -68,7 +69,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 				});
 			});
 
-			it('adding to pool upvoting transaction for same delegate from same account with different id should be ok', done => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] adding to pool upvoting transaction for same delegate from same account with different id should be ok', done => {
 				transaction2 = lisk.transaction.castVotes({
 					passphrase: account.passphrase,
 					votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -86,7 +88,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 					});
 				});
 
-				it('first upvoting transaction to arrive should not be included', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] first upvoting transaction to arrive should not be included', done => {
 					const filter = {
 						id: transaction1.id,
 					};
@@ -100,7 +103,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 					});
 				});
 
-				it('last upvoting transaction to arrive should be included', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] last upvoting transaction to arrive should be included', done => {
 					const filter = {
 						id: transaction2.id,
 					};
@@ -115,7 +119,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 					});
 				});
 
-				it('adding to pool upvoting transaction to same delegate from same account should fail', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] adding to pool upvoting transaction to same delegate from same account should fail', done => {
 					localCommon.addTransaction(library, transaction1, err => {
 						expect(err).to.equal(
 							`Failed to add vote, delegate "${
@@ -126,7 +131,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 					});
 				});
 
-				it('adding to pool downvoting transaction to same delegate from same account should be ok', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] adding to pool downvoting transaction to same delegate from same account should be ok', done => {
 					transaction3 = lisk.transaction.castVotes({
 						passphrase: account.passphrase,
 						unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -138,7 +144,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 					});
 				});
 
-				it('adding to pool downvoting transaction to same delegate from same account with different id should be ok', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] adding to pool downvoting transaction to same delegate from same account with different id should be ok', done => {
 					transaction4 = lisk.transaction.castVotes({
 						passphrase: account.passphrase,
 						unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -156,7 +163,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 						});
 					});
 
-					it('first downvoting transaction to arrive should not be included', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCOFIRMED_STATE_REMOVAL] first downvoting transaction to arrive should not be included', done => {
 						const filter = {
 							id: transaction3.id,
 						};
@@ -174,7 +182,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 						);
 					});
 
-					it('last downvoting transaction to arrive should be included', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCOFIRMED_STATE_REMOVAL] last downvoting transaction to arrive should be included', done => {
 						const filter = {
 							id: transaction4.id,
 						};
@@ -193,7 +202,8 @@ describe('system test (type 3) - voting with duplicate submissions', async () =>
 						);
 					});
 
-					it('adding to pool downvoting transaction to same delegate from same account should fail', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCOFIRMED_STATE_REMOVAL] adding to pool downvoting transaction to same delegate from same account should fail', done => {
 						const transaction5 = lisk.transaction.castVotes({
 							passphrase: account.passphrase,
 							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],

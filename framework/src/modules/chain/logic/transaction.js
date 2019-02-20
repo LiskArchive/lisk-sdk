@@ -1003,12 +1003,9 @@ class Transaction {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	applyUnconfirmed(transaction, sender, requester, cb, tx) {
+	applyUnconfirmed(transaction, sender, requester, cb) {
+		// [UNCONFIRMED_STATE_REMOVAL] revisit once new transaction implementation is in place.
 		if (typeof requester === 'function') {
-			if (cb) {
-				tx = cb;
-			}
-
 			cb = requester;
 		}
 
@@ -1032,34 +1029,10 @@ class Transaction {
 			return setImmediate(cb, senderBalance.error);
 		}
 
-		return this.scope.account.merge(
-			sender.address,
-			{ u_balance: `-${amount}` },
-			(mergeErr, mergedSender) => {
-				if (mergeErr) {
-					return setImmediate(cb, mergeErr);
-				}
-
-				return __private.types[transaction.type].applyUnconfirmed(
-					transaction,
-					mergedSender,
-					applyUnconfirmedErr => {
-						if (applyUnconfirmedErr) {
-							return this.scope.account.merge(
-								mergedSender.address,
-								{ u_balance: amount },
-								reverseMergeErr =>
-									setImmediate(cb, reverseMergeErr || applyUnconfirmedErr),
-								tx
-							);
-						}
-						return setImmediate(cb);
-					},
-					tx
-				);
-			},
-			tx
+		this.scope.logger.error(
+			'[UNCONFIRMED_STATE_REMOVAL] Skipping acount merge when trying to modify u_balance'
 		);
+		return setImmediate(cb);
 	}
 
 	/**
@@ -1074,43 +1047,17 @@ class Transaction {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	undoUnconfirmed(transaction, sender, cb, tx) {
+	undoUnconfirmed(transaction, sender, cb) {
 		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
 			return setImmediate(cb);
 		}
 
-		const amount = transaction.amount.plus(transaction.fee);
-
-		return this.scope.account.merge(
-			sender.address,
-			{ u_balance: amount },
-			(mergeErr, mergedSender) => {
-				if (mergeErr) {
-					return setImmediate(cb, mergeErr);
-				}
-
-				return __private.types[transaction.type].undoUnconfirmed(
-					transaction,
-					mergedSender,
-					undoUnconfirmedErr => {
-						if (undoUnconfirmedErr) {
-							return this.scope.account.merge(
-								mergedSender.address,
-								{ u_balance: `-${amount}` },
-								reverseMergeErr =>
-									setImmediate(cb, reverseMergeErr || undoUnconfirmedErr),
-								tx
-							);
-						}
-						return setImmediate(cb);
-					},
-					tx
-				);
-			},
-			tx
+		this.scope.logger.error(
+			'[UNCONFIRMED_STATE_REMOVAL] Skipping acount merge when trying to modify u_balance'
 		);
+		return setImmediate(cb);
 	}
 
 	/**

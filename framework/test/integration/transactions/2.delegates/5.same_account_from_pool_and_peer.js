@@ -91,7 +91,8 @@ describe('delegate', async () => {
 				});
 
 				describe('unconfirmed state', async () => {
-					it('should update unconfirmed columns related to delegate', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCOFIRMED_STATE_REMOVAL] should update unconfirmed columns related to delegate', done => {
 						library.sequence.add(seqCb => {
 							localCommon
 								.getAccountFromDb(library, delegateAccount.address)
@@ -148,7 +149,8 @@ describe('delegate', async () => {
 				});
 
 				describe('unconfirmed state', async () => {
-					it('should update unconfirmed columns related to delegate', done => {
+					// eslint-disable-next-line mocha/no-skipped-tests
+					it.skip('[UNCOFIRMED_STATE_REMOVAL] should update unconfirmed columns related to delegate', done => {
 						library.sequence.add(seqCb => {
 							localCommon
 								.getAccountFromDb(library, delegateAccount.address)

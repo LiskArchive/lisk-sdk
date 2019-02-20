@@ -206,8 +206,8 @@ describe('loader', async () => {
 				done();
 			}
 		});
-
-		it('should emit an event with proper error when resetMemTables fails', done => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[UNCONFIRMED_STATE_REMOVAL] should emit an event with proper error when resetMemTables fails', done => {
 			resetMemTablesStub.callsArgWith(0, 'resetMemTables#ERR', true);
 			__privateVar.snapshotFinished = err => {
 				expect(err).to.eql('resetMemTables#ERR');
@@ -253,7 +253,7 @@ describe('loader', async () => {
 				libraryVar.config.loading.snapshotRound = 1;
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub).to.be.calledOnce;
+					// [UNCONFIRMED_STATE_REMOVAL] expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
 					expect(deleteStub).to.be.calledWith(deleteBlocksAfterHeight);
 					done();
@@ -273,7 +273,7 @@ describe('loader', async () => {
 
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub).to.be.calledOnce;
+					// [UNCONFIRMED_STATE_REMOVAL] expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
 					expect(deleteStub).to.be.calledWith(deleteBlocksAfterHeight);
@@ -293,7 +293,7 @@ describe('loader', async () => {
 				libraryVar.config.loading.snapshotRound = snapshotRound;
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub).to.be.calledOnce;
+					// [UNCONFIRMED_STATE_REMOVAL] expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
 					expect(loadBlocksOffsetStub.firstCall).to.be.calledWith(
 						ACTIVE_DELEGATES,
@@ -320,7 +320,7 @@ describe('loader', async () => {
 				libraryVar.config.loading.snapshotRound = snapshotRound;
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub).to.be.calledOnce;
+					// [UNCONFIRMED_STATE_REMOVAL] expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
 					expect(loadBlocksOffsetStub.firstCall).to.be.calledWith(
 						ACTIVE_DELEGATES,
@@ -345,7 +345,7 @@ describe('loader', async () => {
 				library.config.loading.snapshotRound = snapshotRound;
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub).to.be.calledOnce;
+					// [UNCONFIRMED_STATE_REMOVAL] expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
 					expect(deleteStub).to.be.calledWith(deleteBlocksAfterHeight);

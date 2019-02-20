@@ -131,7 +131,8 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 				});
 			});
 
-			describe('when undoUnconfirmStep fails', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			describe.skip('[UNCOFIRMED_STATE_REMOVAL] when undoUnconfirmStep fails', async () => {
 				let merge;
 				beforeEach(done => {
 					// Artifically fail setAccountAndGet so we can check that test fails
@@ -175,7 +176,8 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 					});
 				});
 
-				it('should not change u_balance in mem_accounts table', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(err).to.eql('err');
@@ -244,7 +246,8 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 					});
 				});
 
-				it('should not change u_balance in mem_accounts table', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(err).to.eql('err');
@@ -313,7 +316,8 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 					});
 				});
 
-				it('should not change u_balance in mem_accounts table', done => {
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCOFIRMED_STATE_REMOVAL] should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(err).to.eql('err');
@@ -394,7 +398,8 @@ describe('system test (blocks) - chain/popLastBlock', async () => {
 				});
 			});
 
-			it('should revert u_balance for accounts in block', done => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCOFIRMED_STATE_REMOVAL] should revert u_balance for accounts in block', done => {
 				library.modules.blocks.chain.deleteLastBlock(err => {
 					expect(err).to.not.exist;
 					localCommon

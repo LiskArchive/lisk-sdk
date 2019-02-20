@@ -379,7 +379,7 @@ module.exports = class Chain {
 						.then(async status => {
 							if (status) {
 								await storage.entities.Migration.applyAll();
-								await storage.entities.Migration.applyRunTime();
+								// [UNCONFIRMED_STATE_REMOVAL] await storage.entities.Migration.applyRunTime();
 							}
 							cb(!status, storage);
 						})

@@ -94,7 +94,8 @@ describe('system test (type 4) - double multisignature registrations', async () 
 			});
 		});
 
-		it('first transaction to arrive should not be included', done => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[UNCOFIRMED_STATE_REMOVAL] first transaction to arrive should not be included', done => {
 			const filter = {
 				id: transactionToBeNotConfirmed.id,
 			};

@@ -465,8 +465,8 @@ describe('inTransfer', async () => {
 						sinonSandbox.match({ balance: trs.amount })
 					)
 				).to.be.true);
-
-			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount', async () =>
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCONFIRMED_STATE_REMOVAL] should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: trs.amount })
@@ -559,8 +559,8 @@ describe('inTransfer', async () => {
 						sinonSandbox.match({ balance: -trs.amount })
 					)
 				).to.be.true);
-
-			it('should call modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', async () =>
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[UNCONFIRMED_STATE_REMOVAL] should call modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: -trs.amount })

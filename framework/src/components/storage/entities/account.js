@@ -24,13 +24,9 @@ const defaultCreateValues = {
 	publicKey: null,
 	secondPublicKey: null,
 	secondSignature: false,
-	u_secondSignature: false,
 	username: null,
-	u_username: null,
 	isDelegate: false,
-	u_isDelegate: false,
 	balance: '0',
-	u_balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
 	rank: null,
@@ -38,20 +34,15 @@ const defaultCreateValues = {
 	rewards: '0',
 	vote: '0',
 	nameExist: false,
-	u_nameExist: false,
 	multiMin: 0,
-	u_multiMin: 0,
 	multiLifetime: 0,
-	u_multiLifetime: 0,
 };
 
 const readOnlyFields = ['address'];
 
 const dependentFieldsTableMap = {
 	membersPublicKeys: 'mem_accounts2multisignatures',
-	u_membersPublicKeys: 'mem_accounts2u_multisignatures',
 	votedDelegatesPublicKeys: 'mem_accounts2delegates',
-	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
 };
 
 const sqlFiles = {
@@ -113,18 +104,9 @@ const unconfirmedFields = [
 /**
  * Extended Account
  * @typedef {BasicAccount} ExtendedAccount
- * @property {string} u_username
- * @property {Boolean} u_isDelegate
- * @property {Boolean} u_secondSignature
- * @property {Boolean} u_nameExist
- * @property {number} u_multiMin
- * @property {number} u_multiLifetime
- * @property {string} u_balance
  * @property {number} productivity
  * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
- * @property {Array.<string>} u_membersPublicKeys - Public keys of all members including unconfirmed if its a multi-signature account
  * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
- * @property {Array.<string>} u_votedDelegatesPublicKeys - Public keys of all delegates including unconfirmed for which this account voted for
  */
 
 /**
@@ -254,15 +236,8 @@ class Account extends BaseEntity {
 			stringToByte
 		);
 		this.addField('username', 'string', { filter: ft.TEXT });
-		this.addField('u_username', 'string', { filter: ft.TEXT });
 		this.addField(
 			'isDelegate',
-			'boolean',
-			{ filter: ft.BOOLEAN },
-			booleanToInt
-		);
-		this.addField(
-			'u_isDelegate',
 			'boolean',
 			{ filter: ft.BOOLEAN },
 			booleanToInt
@@ -273,27 +248,14 @@ class Account extends BaseEntity {
 			{ filter: ft.BOOLEAN },
 			booleanToInt
 		);
-		this.addField(
-			'u_secondSignature',
-			'boolean',
-			{ filter: ft.BOOLEAN },
-			booleanToInt
-		);
 		this.addField('balance', 'string', { filter: ft.NUMBER });
-		this.addField('u_balance', 'string');
 		this.addField('multiMin', 'number', {
 			filter: ft.NUMBER,
 			fieldName: 'multimin',
 		});
-		this.addField('u_multiMin', 'number', {
-			fieldName: 'u_multimin',
-		});
 		this.addField('multiLifetime', 'number', {
 			filter: ft.NUMBER,
 			fieldName: 'multilifetime',
-		});
-		this.addField('u_multiLifetime', 'number', {
-			fieldName: 'u_multilifetime',
 		});
 		this.addField(
 			'nameExist',
@@ -301,14 +263,6 @@ class Account extends BaseEntity {
 			{
 				filter: ft.BOOLEAN,
 				fieldName: 'nameexist',
-			},
-			booleanToInt
-		);
-		this.addField(
-			'u_nameExist',
-			'boolean',
-			{
-				fieldName: 'u_nameexist',
 			},
 			booleanToInt
 		);
@@ -323,17 +277,9 @@ class Account extends BaseEntity {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
 		});
-		this.addFilter('u_votedDelegatesPublicKeys_in', ft.CUSTOM, {
-			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_delegates WHERE "dependentId" IN (${u_votedDelegatesPublicKeys_in:csv}))',
-		});
 		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${membersPublicKeys_in:csv}))',
-		});
-		this.addFilter('u_membersPublicKeys_in', ft.CUSTOM, {
-			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_multisignatures WHERE "dependentId" IN (${u_membersPublicKeys_in:csv}))',
 		});
 
 		const defaultSort = { sort: 'balance:asc' };
@@ -816,8 +762,6 @@ class Account extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const filedName = this.fields[field].fieldName;
 
-		value = Account.beforeUpdateField(field, value);
-
 		const params = {
 			parsedFilters,
 			field: filedName,
@@ -885,17 +829,6 @@ class Account extends BaseEntity {
 			}
 		}
 		return newData;
-	}
-
-	static beforeUpdateField(field, value) {
-		if (unconfirmedFields.includes(field)) {
-			const logger = console;
-			const err = new Error(
-				`[UNCONFIRMED_STATE_REMOVAL] Setting unconfirmed field '${field}' value to 0.`
-			);
-			logger.info(err.stack);
-		}
-		return unconfirmedFields.includes(field) ? 0 : value;
 	}
 	// @TODO this is transitional should be removed once transactions are being processed in memory
 }

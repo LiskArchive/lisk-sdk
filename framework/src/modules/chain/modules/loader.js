@@ -381,6 +381,7 @@ __private.loadBlockChain = function() {
 		__private.total = count;
 		async.series(
 			{
+				// [UNCONFIRMED_STATE_REMOVAL]
 				resetMemTables(seriesCb) {
 					library.logic.account.resetMemTables(err => {
 						if (err) {
@@ -532,7 +533,7 @@ __private.loadBlockChain = function() {
 				return process.emit('exit');
 			}
 
-			await library.storage.entities.Account.resetUnconfirmedState();
+			// [UNCONFIRMED_STATE_REMOVAL] await library.storage.entities.Account.resetUnconfirmedState();
 			const delegatesPublicKeys = await library.storage.entities.Account.get(
 				{ isDelegate: true },
 				{ limit: null }
