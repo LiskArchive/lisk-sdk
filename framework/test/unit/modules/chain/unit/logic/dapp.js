@@ -90,7 +90,9 @@ describe('dapp', () => {
 					expect(__scope.schema).to.eql(modulesLoader.scope.schema));
 
 				it('should be loaded logger from modulesLoader', async () =>
-					expect(__scope.components.logger).to.eql(modulesLoader.scope.logger));
+					expect(__scope.components.logger).to.eql(
+						modulesLoader.scope.components.logger
+					));
 
 				it('should be loaded network from modulesLoader', async () =>
 					expect(__scope.network).to.eql(modulesLoader.scope.network));
