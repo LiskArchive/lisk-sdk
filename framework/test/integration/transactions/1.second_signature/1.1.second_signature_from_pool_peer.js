@@ -29,7 +29,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 	localCommon.beforeBlock('system_1_1_second_sign_from_pool_and_peer', lib => {
 		library = lib;
-		storage = lib.storage;
+		storage = lib.components.storage;
 	});
 
 	afterEach(done => {

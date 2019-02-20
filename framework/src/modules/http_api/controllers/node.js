@@ -137,7 +137,7 @@ NodeController.getStatus = async (context, next) => {
 			height,
 			loaded: await library.channel.invoke('chain:loaderLoaded'),
 			networkHeight: networkHeight || 0,
-			syncinc: await library.channel.invoke('chain:loaderSyncing'),
+			syncing: await library.channel.invoke('chain:loaderSyncing'),
 		};
 
 		data.transactions = await library.channel.invoke(

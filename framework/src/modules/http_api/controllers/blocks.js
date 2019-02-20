@@ -130,7 +130,7 @@ BlocksController.getBlocks = function(context, next) {
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.data - List of normalized blocks
  */
-async function _list(params, cb) {
+function _list(params, cb) {
 	const options = {};
 	const parsedFilters = {
 		id: params.id,

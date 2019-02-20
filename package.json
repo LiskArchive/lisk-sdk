@@ -36,7 +36,7 @@
 		"prepublishOnly": "npm run check:dependencies"
 	},
 	"dependencies": {
-		"ajv": "=6.7.0",
+		"ajv": "6.7.0",
 		"async": "2.6.1",
 		"bignumber.js": "8.0.2",
 		"bluebird": "3.5.3",
@@ -64,11 +64,12 @@
 		"lodash": "4.17.11",
 		"method-override": "3.0.0",
 		"newrelic": "5.0.0",
+		"p-event": "2.3.1",
 		"pg-monitor": "1.1.0",
 		"pg-promise": "8.5.4",
 		"pm2": "3.2.8",
 		"popsicle": "9.1.0",
-		"ps-list": "=6.1.0",
+		"ps-list": "6.1.0",
 		"randomstring": "1.1.5",
 		"redis": "2.8.0",
 		"rimraf": "2.6.3",

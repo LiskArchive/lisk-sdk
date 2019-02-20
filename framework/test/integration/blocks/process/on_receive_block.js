@@ -37,7 +37,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			{ sandbox: { name: 'system_blocks_process_on_receive_block' } },
 			(err, scope) => {
 				library = scope;
-				storage = scope.storage;
+				storage = scope.components.storage;
 				setTimeout(done, 5000);
 			}
 		);

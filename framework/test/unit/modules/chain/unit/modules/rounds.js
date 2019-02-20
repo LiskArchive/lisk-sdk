@@ -83,8 +83,7 @@ describe('rounds', () => {
 	};
 
 	const validScope = {
-		logger,
-		storage,
+		components: { logger, storage },
 		bus: { message: sinon.spy() },
 		network: { io: { sockets: { emit: sinon.spy() } } },
 	};
@@ -128,8 +127,14 @@ describe('rounds', () => {
 		it('should return Rounds instance', async () =>
 			expect(rounds).to.be.instanceof(Rounds));
 
-		it('should set library to scope', async () =>
-			expect(get('library')).to.deep.equal(validScope));
+		it('should set library to scope', async () => {
+			const library = get('library');
+
+			expect(library.logger).to.eql(validScope.components.logger);
+			expect(library.storage).to.eql(validScope.components.storage);
+			expect(library.bus).to.eql(validScope.bus);
+			expect(library.network).to.eql(validScope.network);
+		});
 
 		it('should set self object', async () => {
 			const self = Rounds.__get__('self');

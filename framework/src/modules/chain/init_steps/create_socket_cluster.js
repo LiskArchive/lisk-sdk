@@ -16,7 +16,7 @@ module.exports = async ({
 		logger.info(
 			'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
 		);
-		return Promise.resolve();
+		return true;
 	}
 
 	const webSocketConfig = {

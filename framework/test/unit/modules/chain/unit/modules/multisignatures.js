@@ -89,10 +89,12 @@ describe('multisignatures', () => {
 
 		// Create stubbed scope
 		validScope = {
-			logger: stubs.logger,
-			storage: {
-				entities: {
-					Account: {},
+			components: {
+				logger: stubs.logger,
+				storage: {
+					entities: {
+						Account: {},
+					},
 				},
 			},
 			network: { io: { sockets: { emit: stubs.networkIoSocketsEmit } } },
@@ -124,8 +126,8 @@ describe('multisignatures', () => {
 
 	describe('constructor', () => {
 		it('should assign params to library', async () => {
-			expect(library.logger).to.eql(validScope.logger);
-			expect(library.db).to.eql(validScope.db);
+			expect(library.logger).to.eql(validScope.components.logger);
+			expect(library.storage).to.eql(validScope.components.storage);
 			expect(library.network).to.eql(validScope.network);
 			expect(library.schema).to.eql(validScope.schema);
 			expect(library.bus).to.eql(validScope.bus);
@@ -144,7 +146,7 @@ describe('multisignatures', () => {
 				validScope.network,
 				validScope.logic.transaction,
 				validScope.logic.account,
-				validScope.logger
+				validScope.components.logger
 			);
 		});
 

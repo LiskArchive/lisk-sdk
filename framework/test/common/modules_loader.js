@@ -39,9 +39,14 @@ const modulesLoader = new function() {
 		this.storage
 	);
 	this.scope = {
+		lastCommit: '',
+		build: '',
 		config: __testContext.config,
 		genesisBlock: { block: __testContext.config.genesisBlock },
-		logger: this.logger,
+		components: {
+			logger: this.logger,
+			system: this.system,
+		},
 		network: {
 			expressApp: express(),
 			io: {
@@ -84,26 +89,36 @@ const modulesLoader = new function() {
 	 */
 	this.initLogic = function(Logic, scope, cb) {
 		jobsQueue.jobs = {};
-		scope = _.assign({}, this.scope, scope);
+		scope = _.defaultsDeep(scope, this.scope);
 		switch (Logic.name) {
 			case 'Account':
-				new Logic(scope.storage, scope.schema, scope.logger, cb);
+				new Logic(
+					scope.components.storage,
+					scope.schema,
+					scope.components.logger,
+					cb
+				);
 				break;
 			case 'Transaction':
 				async.series(
 					{
 						account(accountCb) {
-							new Account(scope.storage, scope.schema, scope.logger, accountCb);
+							new Account(
+								scope.components.storage,
+								scope.schema,
+								scope.components.logger,
+								accountCb
+							);
 						},
 					},
 					(err, result) => {
 						new Logic(
-							scope.storage,
+							scope.components.storage,
 							scope.ed,
 							scope.schema,
 							scope.genesisBlock,
 							result.account,
-							scope.logger,
+							scope.components.logger,
 							cb
 						);
 					}
@@ -114,20 +129,20 @@ const modulesLoader = new function() {
 					[
 						function(waterCb) {
 							return new Account(
-								scope.storage,
+								scope.components.storage,
 								scope.schema,
-								scope.logger,
+								scope.components.logger,
 								waterCb
 							);
 						},
 						function(account, waterCb) {
 							return new Transaction(
-								scope.storage,
+								scope.components.storage,
 								scope.ed,
 								scope.schema,
 								scope.genesisBlock,
 								account,
-								scope.logger,
+								scope.components.logger,
 								waterCb
 							);
 						},
@@ -138,7 +153,12 @@ const modulesLoader = new function() {
 				);
 				break;
 			case 'Peers':
-				new Logic(scope.logger, scope.config, this.system, cb);
+				new Logic(
+					scope.components.logger,
+					scope.config,
+					scope.components.system,
+					cb
+				);
 				break;
 			default:
 				console.info('no Logic case initLogic');
@@ -154,7 +174,7 @@ const modulesLoader = new function() {
 	 */
 	this.initModule = function(Module, scope, cb) {
 		jobsQueue.jobs = {};
-		scope = _.assign({}, this.scope, scope);
+		scope = _.defaultsDeep(scope, this.scope);
 		return new Module(cb, scope);
 	};
 
@@ -167,7 +187,7 @@ const modulesLoader = new function() {
 	 * @param {function} cb
 	 */
 	this.initModules = function(modules, logics, scope, cb) {
-		scope = _.merge({}, this.scope, scope);
+		scope = _.defaultsDeep(scope, this.scope);
 		async.waterfall(
 			[
 				function(waterCb) {

@@ -50,7 +50,7 @@ describe('dapp', () => {
 
 		dapp = new Dapp(
 			storageStub,
-			modulesLoader.scope.logger,
+			modulesLoader.scope.components.logger,
 			modulesLoader.scope.schema,
 			modulesLoader.scope.network
 		);

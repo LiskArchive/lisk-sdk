@@ -33,7 +33,7 @@ describe('snapshotting', () => {
 
 	localCommon.beforeBlock('lisk_functional_snapshotting', lib => {
 		library = lib;
-		Queries = new QueriesHelper(lib, lib.storage);
+		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge

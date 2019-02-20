@@ -30,7 +30,7 @@ describe('validateOwnChain', () => {
 		'lisk_functional_validate_own_chain_more_than_two_rounds',
 		lib => {
 			library = lib;
-			Queries = new QueriesHelper(lib, lib.storage);
+			Queries = new QueriesHelper(lib, lib.components.storage);
 
 			addTransactionsAndForgePromise = Promise.promisify(
 				localCommon.addTransactionsAndForge
@@ -87,7 +87,7 @@ describe('validateOwnChain', () => {
 			});
 
 			it('should fail with error', async () => {
-				expect(library.logger.error).to.be.calledWith(
+				expect(library.components.logger.error).to.be.calledWith(
 					"There are more than 202 invalid blocks. Can't delete those to recover the chain."
 				);
 				return expect(validateOwnChainError.message).to.be.eql(

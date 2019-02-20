@@ -41,6 +41,7 @@ describe('peers', () => {
 	let peersLogicMock;
 	let systemComponentMock;
 	let transportModuleMock;
+	let scope;
 
 	const NONCE = randomstring.generate(16);
 
@@ -84,21 +85,20 @@ describe('peers', () => {
 			};
 		});
 
-		modulesLoader.scope.nonce = NONCE;
-
-		modulesLoader.scope.storage = {
-			entities: {
-				Peer: {
-					get: sinonSandbox.stub().resolves([prefixedPeer]),
-				},
+		scope = _.defaultsDeep(
+			{
+				nonce: NONCE,
+				logic: { peers: peersLogicMock },
+				components: { storage: storageMock },
 			},
-		};
+			modulesLoader.scope
+		);
 
 		new PeersRewired((err, peersModule) => {
 			peers = peersModule;
 			peers.onBind(bindings);
 			done();
-		}, _.assign({}, modulesLoader.scope, { logic: { peers: peersLogicMock }, storage: storageMock }));
+		}, scope);
 	});
 
 	describe('list', () => {
@@ -454,22 +454,19 @@ describe('peers', () => {
 			let loggerDebugSpy;
 
 			before(done => {
-				originalFrozenPeersList = _.assign(
-					{},
-					modulesLoader.scope.config.peers.list
-				);
-				modulesLoader.scope.config.peers.list = [
+				originalFrozenPeersList = _.assign({}, scope.config.peers.list);
+				scope.config.peers.list = [
 					{
 						ip: validPeer.ip,
 						wsPort: validPeer.wsPort,
 					},
 				];
-				loggerDebugSpy = sinonSandbox.spy(modulesLoader.scope.logger, 'debug');
+				loggerDebugSpy = sinonSandbox.spy(scope.components.logger, 'debug');
 				done();
 			});
 
 			after(() => {
-				modulesLoader.scope.config.peers.list = originalFrozenPeersList;
+				scope.config.peers.list = originalFrozenPeersList;
 				return loggerDebugSpy.restore();
 			});
 

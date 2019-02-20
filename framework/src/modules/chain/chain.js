@@ -10,7 +10,16 @@ const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const { createSystemComponent } = require('../../components/system');
-const initSteps = require('./init_steps');
+const {
+	lookupPeerIPs,
+	createBus,
+	bootstrapStorage,
+	bootstrapCache,
+	createSocketCluster,
+	initLogicStructure,
+	initModules,
+	attachSwagger,
+} = require('./init_steps');
 const defaults = require('./defaults');
 
 // Begin reading from stdin
@@ -105,20 +114,21 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			if (!this.options.config) {
-				throw Error('Failed to assign nethash from genesis block');
-			}
 			// System
 			this.logger.debug('Initiating system...');
 			const system = createSystemComponent(systemConfig, this.logger, storage);
+
+			if (!this.options.config) {
+				throw Error('Failed to assign nethash from genesis block');
+			}
 
 			const self = this;
 			const scope = {
 				lastCommit,
 				ed,
 				build: versionBuild,
-				config: this.options.config,
-				genesisBlock: { block: this.options.config.genesisBlock },
+				config: self.options.config,
+				genesisBlock: { block: self.options.config.genesisBlock },
 				schema: swaggerHelper.getValidator(),
 				sequence: new Sequence({
 					onWarning(current) {
@@ -133,29 +143,26 @@ module.exports = class Chain {
 				components: {
 					storage,
 					cache,
+					logger: self.logger,
 					system,
-					logger: this.logger,
 				},
 				channel: this.channel,
 			};
 
 			// Lookup for peers ips from dns
-			scope.config.peers.list = await initSteps.lookupPeerIPs(
+			scope.config.peers.list = await lookupPeerIPs(
 				scope.config.peers.list,
 				scope.config.peers.enabled
 			);
 
-			await initSteps.bootstrapStorage(
-				scope,
-				global.constants.ACTIVE_DELEGATES
-			);
-			await initSteps.bootstrapCache(scope);
+			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
+			await bootstrapCache(scope);
 
-			scope.bus = await initSteps.createBus();
-			scope.logic = await initSteps.initLogicStructure(scope);
-			scope.modules = await initSteps.initModules(scope);
-			scope.webSocket = await initSteps.createSocketCluster(scope);
-			scope.swagger = await initSteps.attachSwagger(scope);
+			scope.bus = await createBus();
+			scope.logic = await initLogicStructure(scope);
+			scope.modules = await initModules(scope);
+			scope.webSocket = await createSocketCluster(scope);
+			scope.swagger = await attachSwagger(scope);
 
 			// TODO: Identify why its used
 			scope.modules.swagger = scope.swagger;

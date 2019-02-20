@@ -24,7 +24,7 @@ const jobsQueue = require('../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../src/components/cache');
 const { createSystemComponent } = require('../../src/components/system');
-const StorageSandbox = require('./storage_sandbox').StorageSandbox;
+const { StorageSandbox } = require('./storage_sandbox');
 const ZSchema = require('../../src/modules/chain/helpers/z_schema.js');
 const initSteps = require('../../src/modules/chain/init_steps');
 
@@ -38,11 +38,9 @@ const modulesInit = {
 	delegates: '../../src/modules/chain/modules/delegates.js',
 	loader: '../../src/modules/chain/modules/loader.js',
 	multisignatures: '../../src/modules/chain/modules/multisignatures.js',
-	node: '../../src/modules/chain/modules/node.js',
 	peers: '../../src/modules/chain/modules/peers.js',
 	rounds: '../../src/modules/chain/modules/rounds.js',
 	signatures: '../../src/modules/chain/modules/signatures.js',
-	system: '../../src/modules/chain/modules/system.js',
 	transactions: '../../src/modules/chain/modules/transactions.js',
 	transport: '../../src/modules/chain/modules/transport.js',
 };
@@ -65,6 +63,14 @@ async function __init(sandbox, initScope) {
 	);
 
 	jobsQueue.jobs = {};
+
+	__testContext.config.syncing.active = false;
+	__testContext.config.broadcasts.active = false;
+	__testContext.config = Object.assign(
+		__testContext.config,
+		initScope.config || {}
+	);
+
 	const config = __testContext.config;
 	let storage;
 	if (!initScope.components) {
@@ -122,9 +128,9 @@ async function __init(sandbox, initScope) {
 		const scope = Object.assign(
 			{},
 			{
-				lastCommit: null,
+				lastCommit: '',
 				ed,
-				build: null,
+				build: '',
 				config: __testContext.config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
 				schema: new ZSchema(),
@@ -209,7 +215,7 @@ async function __init(sandbox, initScope) {
 					'__private.loadDelegates'
 				);
 
-				return loadDelegates(loadDelegatesErr => {
+				loadDelegates(loadDelegatesErr => {
 					if (loadDelegatesErr) {
 						reject(loadDelegatesErr);
 					}
@@ -218,13 +224,13 @@ async function __init(sandbox, initScope) {
 						'__private.keypairs'
 					);
 
-					const delegates_cnt = Object.keys(keypairs).length;
-					expect(delegates_cnt).to.equal(
+					const delegatesCount = Object.keys(keypairs).length;
+					expect(delegatesCount).to.equal(
 						__testContext.config.forging.delegates.length
 					);
 
 					__testContext.debug(
-						`initApplication: Delegates loaded from config file - ${delegates_cnt}`
+						`initApplication: Delegates loaded from config file - ${delegatesCount}`
 					);
 					__testContext.debug('initApplication: Done');
 
@@ -237,7 +243,7 @@ async function __init(sandbox, initScope) {
 			};
 		});
 	} catch (error) {
-		__testContext.error('Error during test application init.', error);
+		__testContext.debug('Error during test application init.', error);
 		throw error;
 	}
 }
