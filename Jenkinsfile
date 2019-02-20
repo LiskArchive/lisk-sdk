@@ -54,12 +54,11 @@ def teardown(test_name) {
 		nvm(getNodejsVersion()) {
 			sh """
 			rm -rf coverage_${test_name}; mkdir -p coverage_${test_name}
-			./node_modules/.bin/istanbul report --root ./test/.coverage-unit/ --dir ./test/.coverage-unit/
-			cp test/.coverage-unit/lcov.info coverage_${test_name}/ || true
-			./node_modules/.bin/istanbul report cobertura --root ./test/.coverage-unit/ --dir ./test/.coverage-unit/
-			cp test/.coverage-unit/cobertura-coverage.xml coverage_${test_name}/ || true
+			./node_modules/.bin/nyc report --report-dir coverage_${test_name} --temp-dir framework/test/mocha/.nyc_output/${test_name}
+			./node_modules/.bin/nyc report --reporter=cobertura --report-dir coverage_${test_name} --temp-dir framework/test/mocha/.nyc_output/${test_name}
 			curl --silent http://localhost:4000/coverage/download --output functional-coverage.zip
 			unzip functional-coverage.zip lcov.info -d coverage_${test_name}/functional/
+			rm -rf framework/test/mocha/.nyc_output/${test_name}
 			"""
 		}
 	} catch(err) {
@@ -128,7 +127,7 @@ pipeline {
 					}
 					post {
 						cleanup {
-							teardown('get')
+							teardown('functional_get')
 						}
 					}
 				}
@@ -140,7 +139,7 @@ pipeline {
 					}
 					post {
 						cleanup {
-							teardown('post')
+							teardown('functional_post')
 						}
 					}
 				}
@@ -152,7 +151,7 @@ pipeline {
 					}
 					post {
 						cleanup {
-							teardown('ws')
+							teardown('functional_ws')
 						}
 					}
 				}
@@ -192,7 +191,7 @@ pipeline {
 			sh 'rm -rf coverage; mkdir -p coverage'
 			script {
 				dir('coverage') {
-					['get', 'post', 'ws', 'unit', 'integration'].each {
+					['functional_get', 'functional_post', 'functional_ws', 'unit', 'integration'].each {
 						// some test stages might have failed and have no coverage data
 						try {
 							unstash "coverage_${it}"
