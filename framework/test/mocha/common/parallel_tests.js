@@ -23,7 +23,7 @@ const executeWithIstanbul = (path, mochaArguments) => {
 	const coverageArguments = [
 		'cover',
 		'--dir',
-		'test/.coverage-unit',
+		'framework/test/mocha/mocha/.coverage-unit',
 		'--include-pid',
 		'--print',
 		'none',
@@ -33,7 +33,7 @@ const executeWithIstanbul = (path, mochaArguments) => {
 	const istanbulArguments = coverageArguments.concat(mochaArguments);
 
 	return child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
-		cwd: `${__dirname}/../../..`,
+		cwd: `${__dirname}/../../../..`,
 		detached: true,
 		stdio: 'inherit',
 	});
@@ -44,21 +44,21 @@ const getSuiteFolder = (suite, section) => {
 
 	switch (suite) {
 		case 'unit':
-			suiteFolder = 'framework/test/unit/';
+			suiteFolder = 'framework/test/mocha/unit/';
 			break;
 		case 'functional':
 			switch (section) {
 				case 'get':
-					suiteFolder = 'framework/test/functional/http/get/';
+					suiteFolder = 'framework/test/mocha/functional/http/get/';
 					break;
 				case 'post':
-					suiteFolder = 'framework/test/functional/http/post/';
+					suiteFolder = 'framework/test/mocha/functional/http/post/';
 					break;
 				case 'ws':
-					suiteFolder = 'framework/test/functional/ws/';
+					suiteFolder = 'framework/test/mocha/functional/ws/';
 					break;
 				case undefined:
-					suiteFolder = 'framework/test/functional/';
+					suiteFolder = 'framework/test/mocha/functional/';
 					break;
 				default:
 					console.warn('Invalid section argument. Options are: get, post, ws');
@@ -67,7 +67,7 @@ const getSuiteFolder = (suite, section) => {
 			}
 			break;
 		case 'integration':
-			suiteFolder = 'framework/test/integration/';
+			suiteFolder = 'framework/test/mocha/integration/';
 			break;
 
 		default:
