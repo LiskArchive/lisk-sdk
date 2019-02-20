@@ -141,13 +141,17 @@ describe('multisignatures', () => {
 
 		it('should instantiate Multisignature logic with proper params', async () => {
 			expect(stubs.Multisignature).to.have.been.calledOnce;
-			return expect(stubs.Multisignature).to.have.been.calledWith(
-				validScope.schema,
-				validScope.network,
-				validScope.logic.transaction,
-				validScope.logic.account,
-				validScope.components.logger
-			);
+			return expect(stubs.Multisignature).to.have.been.calledWith({
+				components: {
+					logger: validScope.components.logger,
+				},
+				schema: validScope.schema,
+				network: validScope.network,
+				logic: {
+					transaction: validScope.logic.transaction,
+					account: validScope.logic.account,
+				},
+			});
 		});
 
 		it('should call callback with result = self', async () =>
