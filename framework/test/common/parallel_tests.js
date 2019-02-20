@@ -14,25 +14,28 @@
 
 'use strict';
 
-const child_process = require('child_process');
+const { spawn } = require('child_process');
 const find = require('find');
 
 const maxParallelism = 20;
+const cliArgs = {
+	tag: process.argv[2],
+	suite: process.argv[3],
+	section: process.argv[4],
+};
 
-const executeWithIstanbul = (path, mochaArguments) => {
+const executeWithNyc = (path, mochaArguments) => {
+	const tempSection = cliArgs.section ? `_${cliArgs.section}` : '';
 	const coverageArguments = [
-		'cover',
-		'--dir',
-		'test/.coverage-unit',
-		'--include-pid',
-		'--print',
-		'none',
+		'--temp-dir',
+		`framework/test/mocha/.nyc_output/${cliArgs.suite}${tempSection}/`,
+		'--silent',
 		'node_modules/.bin/_mocha',
 		path,
 	];
-	const istanbulArguments = coverageArguments.concat(mochaArguments);
+	const nycArguments = coverageArguments.concat(mochaArguments);
 
-	return child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
+	return spawn('node_modules/.bin/nyc', nycArguments, {
 		cwd: `${__dirname}/../../..`,
 		detached: true,
 		stdio: 'inherit',
@@ -84,10 +87,10 @@ const getMochaArguments = tag => {
 	const mochaArguments = [];
 	switch (tag) {
 		case 'slow':
-			mochaArguments.push('--', '--grep', '@slow');
+			mochaArguments.push('--grep', '@slow');
 			break;
 		case 'unstable':
-			mochaArguments.push('--', '--grep', '@unstable');
+			mochaArguments.push('--grep', '@unstable');
 			break;
 		case 'sequential':
 			/**
@@ -95,10 +98,10 @@ const getMochaArguments = tag => {
 			 * are going to be run sequentially after all parallel
 			 * tests were executed.
 			 */
-			mochaArguments.push('--', '--grep', '@sequential');
+			mochaArguments.push('--grep', '@sequential');
 			break;
 		case 'extensive':
-			mochaArguments.push('--', '--grep', '@unstable|@sequential', '--invert');
+			mochaArguments.push('--grep', '@unstable|@sequential', '--invert');
 			break;
 		default:
 			/**
@@ -106,12 +109,7 @@ const getMochaArguments = tag => {
 			 * is provided because sequential tests can conflict if
 			 * they are run in parallel with other tests.
 			 */
-			mochaArguments.push(
-				'--',
-				'--grep',
-				'@slow|@unstable|@sequential',
-				'--invert'
-			);
+			mochaArguments.push('--grep', '@slow|@unstable|@sequential', '--invert');
 			break;
 	}
 
@@ -120,7 +118,7 @@ const getMochaArguments = tag => {
 
 const spawnParallelTest = (testFile, mochaArguments) =>
 	new Promise((resolve, reject) => {
-		const child = executeWithIstanbul(testFile, mochaArguments);
+		const child = executeWithNyc(testFile, mochaArguments);
 
 		console.info(
 			`Running parallel the test: ${testFile} as a separate process - pid: ${
@@ -192,7 +190,7 @@ const runParallelTests = (suiteFolder, mochaArguments) =>
 
 const runSequentialTests = (suiteFolder, mochaArguments) =>
 	new Promise((resolve, reject) => {
-		const child = executeWithIstanbul(suiteFolder, mochaArguments);
+		const child = executeWithNyc(suiteFolder, mochaArguments);
 		child.on('close', code => {
 			if (code === 0) {
 				console.info('All sequential tests finished successfully.');
@@ -243,9 +241,9 @@ function executeTests(tag, suite, section) {
 }
 
 (async () => {
-	await executeTests(process.argv[2], process.argv[3], process.argv[4]);
-	if (process.argv[2] !== 'sequential') {
-		await executeTests('sequential', process.argv[3], process.argv[4]);
+	await executeTests(cliArgs.tag, cliArgs.suite, cliArgs.section);
+	if (cliArgs.tag !== 'sequential') {
+		await executeTests('sequential', cliArgs.suite, cliArgs.section);
 	}
 })();
 
