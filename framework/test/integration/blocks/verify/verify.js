@@ -675,7 +675,7 @@ describe('blocks/verify', () => {
 			});
 
 			describe(`for slot number ${BLOCK_SLOT_WINDOW +
-				1} slots in the past`, async () => {
+				1} slots in the past`, () => {
 				let dummyBlock;
 
 				before(done => {
@@ -770,7 +770,7 @@ describe('blocks/verify', () => {
 				});
 
 				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW *
-					2} times`, async () => {
+					2} times`, () => {
 					let recentNBlockIds;
 					let olderThanNBlockIds;
 

@@ -443,7 +443,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe(`when received block is from same round and ${BLOCK_SLOT_WINDOW -
-					1} slots in the past`, async () => {
+					1} slots in the past`, () => {
 					let inSlotsWindowBlock;
 
 					beforeEach(() => {
