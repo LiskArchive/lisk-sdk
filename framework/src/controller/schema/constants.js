@@ -26,7 +26,7 @@ module.exports = {
 		],
 		properties: {
 			ACTIVE_DELEGATES: {
-				description: 'Warning: No even delegate number allowed',
+				description: 'Warning: Even delegate number not allowed',
 				type: 'integer',
 				min: 1,
 			},
@@ -83,6 +83,8 @@ module.exports = {
 				min: 1,
 			},
 			MAX_VOTES_PER_ACCOUNT: {
+				description:
+					'Warning: Property needs to be lower than ACTIVE_DELEGATES',
 				type: 'integer',
 				min: 1,
 			},
