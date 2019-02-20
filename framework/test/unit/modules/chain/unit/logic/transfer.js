@@ -115,7 +115,7 @@ describe('transfer', () => {
 
 				transfer = new Transfer({
 					components: {
-						logger: modulesLoader.scope.logger,
+						logger: modulesLoader.scope.components.logger,
 					},
 					schema: modulesLoader.scope.schema,
 				});
@@ -144,7 +144,7 @@ describe('transfer', () => {
 
 		it('should assign logger to __scope.components', () => {
 			return expect(__scope.components.logger).to.equal(
-				modulesLoader.scope.logger
+				modulesLoader.scope.components.logger
 			);
 		});
 

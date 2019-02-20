@@ -171,7 +171,7 @@ describe('transaction', () => {
 	before(done => {
 		const transfer = new Transfer({
 			components: {
-				logger: modulesLoader.scope.logger,
+				logger: modulesLoader.scope.components.logger,
 			},
 			schema: modulesLoader.scope.schema,
 		});
@@ -1449,7 +1449,7 @@ describe('transaction', () => {
 				transactionTypes.SEND,
 				new Transfer({
 					components: {
-						logger: modulesLoader.scope.logger,
+						logger: modulesLoader.scope.components.logger,
 					},
 					schema: modulesLoader.scope.schema,
 				})
