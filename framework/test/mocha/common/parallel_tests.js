@@ -23,12 +23,15 @@ const executeWithIstanbul = (path, mochaArguments) => {
 	const coverageArguments = [
 		'cover',
 		'--dir',
-		'framework/test/mocha/mocha/.coverage-unit',
+		'framework/test/mocha/.coverage-unit',
 		'--include-pid',
 		'--print',
 		'none',
 		'node_modules/.bin/_mocha',
 		path,
+		'--',
+		'--opts',
+		'framework/test/mocha/mocha.opts',
 	];
 	const istanbulArguments = coverageArguments.concat(mochaArguments);
 

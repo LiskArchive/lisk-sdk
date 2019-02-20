@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../../../../test/setup'); // Ensure availability of global variables
+require('../../setup'); // Ensure availability of global variables
 
 const randomstring = require('randomstring');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
