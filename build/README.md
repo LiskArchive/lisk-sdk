@@ -14,7 +14,7 @@ sudo apt-get install autoconf build-essential git jq libtool moreutils python2.7
 
 ## MacOS
 
-A nachine running macOS 10.12 or 10.13 is assumed.
+A machine running macOS 10.12 or 10.13 is assumed.
 
 ### Prerequisites
 
