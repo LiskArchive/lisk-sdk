@@ -15,7 +15,7 @@
 export const transaction = {
 	$id: 'lisk/transaction',
 	type: 'object',
-	required: ['type', 'amount', 'fee', 'senderPublicKey', 'timestamp', 'asset'],
+	required: ['type', 'amount', 'fee', 'senderPublicKey', 'timestamp'],
 	properties: {
 		id: {
 			type: 'string',
