@@ -68,8 +68,8 @@ module.exports = function create(fittingDef) {
 			return next(null, context.input);
 		}
 
-		// If cache component is not loaded or cache server not ready move forward without any processing
-		if (typeof cache === 'undefined' || !cache.isReady()) {
+		// If cache server not ready move forward without any processing
+		if (!cache.isReady()) {
 			debug('Cache module not ready');
 			return next(null, context.input);
 		}
@@ -78,22 +78,16 @@ module.exports = function create(fittingDef) {
 
 		// If cache fitting is called before response processing
 		if (mode === 'pre_response') {
-			return cache
-				.getJsonForKey(cacheKey)
-				.then(cachedValue => {
-					if (cachedValue) {
-						logger.debug(
-							'Cache - Sending cached response for url:',
-							context.request.url
-						);
-						return context.response.json(cachedValue);
-					}
-					return next(null, context.input);
-				})
-				.catch(getJsonForKeyErr => {
-					logger.debug(getJsonForKeyErr.message);
-					return next(null, context.input);
-				});
+			return cache.getJsonForKey(cacheKey, (err, cachedValue) => {
+				if (!err && cachedValue) {
+					logger.debug(
+						'Cache - Sending cached response for url:',
+						context.request.url
+					);
+					return context.response.json(cachedValue);
+				}
+				return next(null, context.input);
+			});
 		}
 
 		// If cache fitting is called after response processing
@@ -103,13 +97,9 @@ module.exports = function create(fittingDef) {
 					'Cache - Setting response cache for url:',
 					context.request.url
 				);
-				return cache
-					.setJsonForKey(cacheKey, context.input)
-					.then(() => next(null, context.input))
-					.catch(error => {
-						logger.debug(error.message);
-						return next(null, context.input);
-					});
+				return cache.setJsonForKey(cacheKey, context.input, () =>
+					next(null, context.input)
+				);
 			}
 			return next(null, context.input);
 		}

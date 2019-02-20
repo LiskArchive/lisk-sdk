@@ -34,7 +34,7 @@ describe('peers', () => {
 	let storageMock;
 	let peers;
 	let PeersRewired;
-	let bindings;
+	let modules;
 	let __private;
 
 	let peersLogicMock;
@@ -65,15 +65,13 @@ describe('peers', () => {
 		};
 		systemModuleMock = {};
 		transportModuleMock = {};
-		bindings = {
-			modules: {
-				system: systemModuleMock,
-				transport: transportModuleMock,
-			},
+		modules = {
+			system: systemModuleMock,
+			transport: transportModuleMock,
 		};
 
 		swagerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
-			bindings.swagger = {
+			modules.swagger = {
 				definitions: resolvedSpec.definitions,
 			};
 		});
@@ -90,7 +88,7 @@ describe('peers', () => {
 
 		new PeersRewired((err, peersModule) => {
 			peers = peersModule;
-			peers.onBind(bindings);
+			peers.onBind(modules);
 			done();
 		}, _.assign({}, modulesLoader.scope, { logic: { peers: peersLogicMock }, storage: storageMock }));
 	});
@@ -1009,8 +1007,8 @@ describe('peers', () => {
 					string: 'aPeerString',
 				};
 
-				bindings.modules.system.versionCompatible = sinonSandbox.stub();
-				bindings.modules.system.protocolVersionCompatible = sinonSandbox.stub();
+				modules.system.versionCompatible = sinonSandbox.stub();
+				modules.system.protocolVersionCompatible = sinonSandbox.stub();
 				__private.updatePeerStatus(undefined, status, peer);
 				done();
 			});
@@ -1023,9 +1021,9 @@ describe('peers', () => {
 				it('should call versionCompatible() with status.version', () => {
 					delete status.protocolVersion;
 					__private.updatePeerStatus(undefined, status, peer);
-					return expect(
-						bindings.modules.system.versionCompatible
-					).to.be.calledWith(status.version);
+					return expect(modules.system.versionCompatible).to.be.calledWith(
+						status.version
+					);
 				});
 			});
 
@@ -1033,14 +1031,14 @@ describe('peers', () => {
 				it('should call protocolVersionCompatible() with status.protocolVersion', () => {
 					__private.updatePeerStatus(undefined, status, peer);
 					return expect(
-						bindings.modules.system.protocolVersionCompatible
+						modules.system.protocolVersionCompatible
 					).to.be.calledWith(status.protocolVersion);
 				});
 			});
 
 			describe('when the peer is compatible', () => {
 				beforeEach(() => {
-					bindings.modules.system.protocolVersionCompatible = sinonSandbox
+					modules.system.protocolVersionCompatible = sinonSandbox
 						.stub()
 						.returns(true);
 					return __private.updatePeerStatus(undefined, status, peer);
@@ -1082,13 +1080,13 @@ describe('peers', () => {
 
 			it('should call library.logic.peers.upsert() with required args regardless if its compatible or not', done => {
 				// When it's compatible
-				bindings.modules.system.protocolVersionCompatible = sinonSandbox
+				modules.system.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(true);
 				__private.updatePeerStatus(undefined, status, peer);
 				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
 				// When it's not compatible
-				bindings.modules.system.protocolVersionCompatible = sinonSandbox
+				modules.system.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(false);
 				__private.updatePeerStatus(undefined, status, peer);

@@ -156,9 +156,7 @@ describe('vote', () => {
 				};
 				vote.bind(delegatesModule);
 				delegatesModule.onBind({
-					modules: {
-						accounts: accountsModule,
-					},
+					accounts: accountsModule,
 				});
 				transactionLogic = scope.logic.transaction;
 				transactionLogic.attachAssetType(transactionTypes.VOTE, vote);

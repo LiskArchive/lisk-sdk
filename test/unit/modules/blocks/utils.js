@@ -290,7 +290,7 @@ describe('blocks/utils', () => {
 	let transactionMock;
 	let accountMock;
 	let blocksUtilsModule;
-	let bindingsStub;
+	let modulesStub;
 	let __private;
 	let library;
 	let modules;
@@ -350,26 +350,24 @@ describe('blocks/utils', () => {
 			modulesLoader.scope.genesisBlock
 		);
 
-		bindingsStub = {
-			modules: {
-				blocks: {
-					lastBlock: {
-						get: sinonSandbox
-							.stub()
-							.returns({ id: '9314232245035524467', height: 1 }),
-						set: sinonSandbox
-							.stub()
-							.returns({ id: '9314232245035524467', height: 1 }),
-					},
-					utils: {
-						readDbRows: blocksUtilsModule.readDbRows,
-						readStorageRows: blocksUtilsModule.readStorageRows,
-					},
+		modulesStub = {
+			blocks: {
+				lastBlock: {
+					get: sinonSandbox
+						.stub()
+						.returns({ id: '9314232245035524467', height: 1 }),
+					set: sinonSandbox
+						.stub()
+						.returns({ id: '9314232245035524467', height: 1 }),
+				},
+				utils: {
+					readDbRows: blocksUtilsModule.readDbRows,
+					readStorageRows: blocksUtilsModule.readStorageRows,
 				},
 			},
 		};
 
-		blocksUtilsModule.onBind(bindingsStub);
+		blocksUtilsModule.onBind(modulesStub);
 
 		__private = BlocksUtils.__get__('__private');
 		__private.loaded = false;
@@ -921,7 +919,7 @@ describe('blocks/utils', () => {
 	describe('onBind', () => {
 		beforeEach(() => {
 			loggerStub.trace.resetHistory();
-			return blocksUtilsModule.onBind(bindingsStub);
+			return blocksUtilsModule.onBind(modulesStub);
 		});
 
 		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', () => {
@@ -931,7 +929,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should create a modules object { blocks: scope.blocks }', () => {
-			return expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
+			return expect(modules.blocks).to.equal(modulesStub.blocks);
 		});
 
 		it('should set __private.loaded to true', () => {

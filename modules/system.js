@@ -310,7 +310,7 @@ System.prototype.update = function(cb) {
  */
 System.prototype.onBind = function(scope) {
 	modules = {
-		blocks: scope.modules.blocks,
+		blocks: scope.blocks,
 	};
 };
 

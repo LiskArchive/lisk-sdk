@@ -307,22 +307,18 @@ Transport.prototype.poorConsensus = function() {
  */
 Transport.prototype.onBind = function(scope) {
 	modules = {
-		blocks: scope.modules.blocks,
-		dapps: scope.modules.dapps,
-		loader: scope.modules.loader,
-		multisignatures: scope.modules.multisignatures,
-		peers: scope.modules.peers,
-		system: scope.modules.system,
-		transactions: scope.modules.transactions,
+		blocks: scope.blocks,
+		dapps: scope.dapps,
+		loader: scope.loader,
+		multisignatures: scope.multisignatures,
+		peers: scope.peers,
+		system: scope.system,
+		transactions: scope.transactions,
 	};
 
 	definitions = scope.swagger.definitions;
 
-	__private.broadcaster.bind(
-		scope.modules.peers,
-		scope.modules.transport,
-		scope.modules.transactions
-	);
+	__private.broadcaster.bind(scope.peers, scope.transport, scope.transactions);
 };
 
 /**

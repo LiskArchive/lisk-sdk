@@ -99,11 +99,9 @@ describe('multisignatures', () => {
 			logic: stubs.logic,
 		};
 
-		stubs.bindings = {
-			modules: {
-				accounts: sinonSandbox.stub(),
-				transactions: sinonSandbox.stub(),
-			},
+		stubs.modules = {
+			accounts: sinonSandbox.stub(),
+			transactions: sinonSandbox.stub(),
 		};
 
 		// Create instance of multisignatures module
@@ -112,7 +110,7 @@ describe('multisignatures', () => {
 				self = __multisignatures;
 				__private = get('__private');
 				library = get('library');
-				self.onBind(stubs.bindings);
+				self.onBind(stubs.modules);
 				done(err);
 			},
 			validScope
@@ -165,7 +163,7 @@ describe('multisignatures', () => {
 
 	describe('onBind', () => {
 		it('should set modules', () => {
-			return expect(get('modules')).to.deep.equal(stubs.bindings.modules);
+			return expect(get('modules')).to.deep.equal(stubs.modules);
 		});
 	});
 
@@ -712,7 +710,7 @@ describe('multisignatures', () => {
 			set('__private.validateSignature', stubs.validateSignature);
 
 			stubs.getAccount = sinonSandbox.stub();
-			stubs.bindings.modules.accounts.getAccount = stubs.getAccount;
+			stubs.modules.accounts.getAccount = stubs.getAccount;
 			done();
 		});
 
@@ -830,7 +828,7 @@ describe('multisignatures', () => {
 
 			stubs.getMultisignatureTransaction = sinonSandbox.stub();
 			stubs.getMultisignatureTransaction.returns(data.transaction);
-			stubs.bindings.modules.transactions.getMultisignatureTransaction =
+			stubs.modules.transactions.getMultisignatureTransaction =
 				stubs.getMultisignatureTransaction;
 
 			stubs.processSignatureForMultisignatureAccountCreation = sinonSandbox
@@ -945,16 +943,16 @@ describe('multisignatures', () => {
 				.stub()
 				.callsFake(() => Promise.resolve([]));
 
-			stubs.bindings.modules.accounts.getAccounts = sinonSandbox
+			stubs.modules.accounts.getAccounts = sinonSandbox
 				.stub()
 				.callsFake((param1, param2, cb) => cb(null, []));
 
-			stubs.bindings.modules.accounts.generateAddressByPublicKey = sinonSandbox.stub();
+			stubs.modules.accounts.generateAddressByPublicKey = sinonSandbox.stub();
 
-			stubs.bindings.modules.accounts.generateAddressByPublicKey
+			stubs.modules.accounts.generateAddressByPublicKey
 				.withArgs('key1')
 				.returns('address1');
-			stubs.bindings.modules.accounts.generateAddressByPublicKey
+			stubs.modules.accounts.generateAddressByPublicKey
 				.withArgs('key2')
 				.returns('address2');
 
@@ -963,10 +961,9 @@ describe('multisignatures', () => {
 			library.storage.entities.Account.getOne = sinonSandbox
 				.stub()
 				.resolves(validAccount);
-			get('modules').accounts.getAccounts =
-				stubs.bindings.modules.accounts.getAccounts;
+			get('modules').accounts.getAccounts = stubs.modules.accounts.getAccounts;
 			get('modules').accounts.generateAddressByPublicKey =
-				stubs.bindings.modules.accounts.generateAddressByPublicKey;
+				stubs.modules.accounts.generateAddressByPublicKey;
 			done();
 		});
 
@@ -1048,7 +1045,7 @@ describe('multisignatures', () => {
 				secondPublicKey: 'secondPublicKey2',
 			};
 
-			stubs.bindings.modules.accounts.getAccounts = sinonSandbox
+			stubs.modules.accounts.getAccounts = sinonSandbox
 				.stub()
 				.callsFake((param1, param2, cb) => cb(null, [member1, member2]));
 

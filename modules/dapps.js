@@ -114,22 +114,22 @@ class DApps {
  */
 DApps.prototype.onBind = function(scope) {
 	modules = {
-		transactions: scope.modules.transactions,
-		accounts: scope.modules.accounts,
-		peers: scope.modules.peers,
-		sql: scope.modules.sql,
+		transactions: scope.transactions,
+		accounts: scope.accounts,
+		peers: scope.peers,
+		sql: scope.sql,
 	};
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
-		scope.modules.accounts,
-		scope.modules.blocks,
+		scope.accounts,
+		scope.blocks,
 		shared
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
-		scope.modules.accounts,
-		scope.modules.blocks,
-		scope.modules.dapps
+		scope.accounts,
+		scope.blocks,
+		scope.dapps
 	);
 };
 

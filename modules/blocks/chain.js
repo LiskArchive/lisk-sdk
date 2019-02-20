@@ -19,12 +19,7 @@ const async = require('async');
 const _ = require('lodash');
 const transactionTypes = require('../../helpers/transaction_types.js');
 const Bignum = require('../../helpers/bignum.js');
-const {
-	CACHE_KEYS_DELEGATES,
-	CACHE_KEYS_TRANSACTION_COUNT,
-} = require('../../components/cache');
 
-let components;
 let modules;
 let library;
 let self;
@@ -172,8 +167,6 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 
 /**
  * Execute afterSave callback for transactions depends on transaction type.
- * It clears all cache entries if there is a delegate type transaction after
- * transactions saved.
  *
  * @private
  * @param {Object} block - Full normalized block
@@ -181,41 +174,8 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.afterSave = async function(block, cb) {
-	if (components && components.cache && components.cache.isReady()) {
-		library.logger.debug(
-			['Cache - chain afterSave', '| Status:', components.cache.isReady()].join(
-				' '
-			)
-		);
-		const delegateTransaction = block.transactions.find(
-			transaction =>
-				!!transaction && transaction.type === transactionTypes.DELEGATE
-		);
-		if (delegateTransaction) {
-			try {
-				await components.cache.removeByPattern(CACHE_KEYS_DELEGATES);
-				library.logger.debug(
-					[
-						'Cache - Keys with pattern:',
-						CACHE_KEYS_DELEGATES,
-						'cleared from cache on delegate transaction',
-					].join(' ')
-				);
-				await components.cache.deleteJsonForKey(CACHE_KEYS_TRANSACTION_COUNT);
-				components.cache.logger.debug(
-					`Cache - Keys ${CACHE_KEYS_TRANSACTION_COUNT} cleared from cache on chain afterSave`
-				);
-			} catch (err) {
-				library.logger.error(
-					['Cache - Error clearing keys', 'on chain afterSave function'].join(
-						' '
-					)
-				);
-			}
-		}
-	}
-
+__private.afterSave = function(block, cb) {
+	library.bus.message('transactionsSaved', block.transactions);
 	async.eachSeries(
 		block.transactions,
 		(transaction, eachSeriesCb) =>
@@ -892,17 +852,13 @@ Chain.prototype.recoverChain = function(cb) {
  */
 Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
-	components = {
-		cache: scope.components ? scope.components.cache : undefined,
-	};
-
 	modules = {
-		accounts: scope.modules.accounts,
-		blocks: scope.modules.blocks,
-		rounds: scope.modules.rounds,
-		transactions: scope.modules.transactions,
-		system: scope.modules.system,
-		transport: scope.modules.transport,
+		accounts: scope.accounts,
+		blocks: scope.blocks,
+		rounds: scope.rounds,
+		transactions: scope.transactions,
+		system: scope.system,
+		transport: scope.transport,
 	};
 
 	// Set module as loaded

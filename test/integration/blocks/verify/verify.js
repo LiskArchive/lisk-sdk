@@ -240,9 +240,7 @@ describe('blocks/verify', () => {
 				library.storage,
 				library.config
 			);
-			verify.onBind({
-				modules: library.modules,
-			});
+			verify.onBind(library.modules);
 			privateFunctions = RewiredVerify.__get__('__private');
 			done();
 		});

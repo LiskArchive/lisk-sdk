@@ -218,7 +218,6 @@ describe('transport', () => {
 					releaseLimit: 10,
 				},
 			},
-			modules: {},
 		};
 
 		peerMock = {
@@ -250,6 +249,8 @@ describe('transport', () => {
 					transportSelf = transport;
 					library = TransportModule.__get__('library');
 					__private = TransportModule.__get__('__private');
+
+					transportSelf.onBind(defaultScope);
 
 					done();
 				}, defaultScope);
@@ -304,7 +305,7 @@ describe('transport', () => {
 		beforeEach(done => {
 			__privateOriginal = {};
 
-			transportInstance = new TransportModule(() => {
+			transportInstance = new TransportModule((err, transportSelf) => {
 				// Backup the __private variable so that properties can be overridden
 				// by individual test cases and then we will restore them after each test case has run.
 				// This is neccessary because different test cases may want to stub out different parts of the
@@ -314,6 +315,8 @@ describe('transport', () => {
 				Object.keys(__private).forEach(field => {
 					__privateOriginal[field] = __private[field];
 				});
+
+				transportSelf.onBind(defaultScope);
 
 				library = {
 					schema: {
@@ -1008,7 +1011,9 @@ describe('transport', () => {
 				blocksList.push(auxBlock);
 			}
 
-			transportInstance = new TransportModule(() => {
+			transportInstance = new TransportModule((err, transportSelf) => {
+				transportSelf.onBind(defaultScope);
+
 				library = {
 					schema: {
 						validate: sinonSandbox.stub().callsArg(2),
@@ -1167,16 +1172,6 @@ describe('transport', () => {
 				}, defaultScope);
 			});
 
-			it('should call __private.broadcaster.bind with scope.peers, scope.transport and scope.transactions as arguments', () => {
-				return expect(
-					__private.broadcaster.bind.calledWith(
-						defaultScope.peers,
-						defaultScope.transport,
-						defaultScope.transactions
-					)
-				).to.be.true;
-			});
-
 			describe('modules', () => {
 				let modulesObject;
 
@@ -1209,6 +1204,16 @@ describe('transport', () => {
 						defaultScope.swagger.definitions
 					);
 				});
+			});
+
+			it('should call __private.broadcaster.bind with scope.peers, scope.transport and scope.transactions as arguments', () => {
+				return expect(
+					__private.broadcaster.bind.calledWith(
+						defaultScope.peers,
+						defaultScope.transport,
+						defaultScope.transactions
+					)
+				).to.be.true;
 			});
 		});
 

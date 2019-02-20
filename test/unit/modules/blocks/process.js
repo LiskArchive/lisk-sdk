@@ -35,7 +35,7 @@ describe('blocks/process', () => {
 	let schemaStub;
 	let sequenceStub;
 	let genesisBlockStub;
-	let bindingsStub;
+	let modulesStub;
 	let definitions;
 
 	beforeEach(done => {
@@ -218,23 +218,21 @@ describe('blocks/process', () => {
 
 		const swaggerDefinitionsStub = sinonSandbox.stub();
 
-		bindingsStub = {
-			modules: {
-				accounts: modulesAccountsStub,
-				blocks: modulesBlocksStub,
-				delegates: modulesDelegatesStub,
-				loader: modulesLoaderStub,
-				peers: modulesPeersStub,
-				rounds: modulesRoundsStub,
-				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
-			},
+		modulesStub = {
+			accounts: modulesAccountsStub,
+			blocks: modulesBlocksStub,
+			delegates: modulesDelegatesStub,
+			loader: modulesLoaderStub,
+			peers: modulesPeersStub,
+			rounds: modulesRoundsStub,
+			transactions: modulesTransactionsStub,
+			transport: modulesTransportStub,
 			swagger: {
 				definitions: swaggerDefinitionsStub,
 			},
 		};
 
-		blocksProcessModule.onBind(bindingsStub);
+		blocksProcessModule.onBind(modulesStub);
 		modules = BlocksProcess.__get__('modules');
 		definitions = BlocksProcess.__get__('definitions');
 		done();
@@ -2344,7 +2342,7 @@ describe('blocks/process', () => {
 		beforeEach(done => {
 			loggerStub.trace.resetHistory();
 			__private.loaded = false;
-			blocksProcessModule.onBind(bindingsStub);
+			blocksProcessModule.onBind(modulesStub);
 			done();
 		});
 
@@ -2355,18 +2353,18 @@ describe('blocks/process', () => {
 		});
 
 		it('should assign params to modules', done => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
-			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
-			expect(modules.loader).to.equal(bindingsStub.modules.loader);
-			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
-			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
+			expect(modules.accounts).to.equal(modulesStub.accounts);
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+			expect(modules.delegates).to.equal(modulesStub.delegates);
+			expect(modules.loader).to.equal(modulesStub.loader);
+			expect(modules.rounds).to.equal(modulesStub.rounds);
+			expect(modules.transactions).to.equal(modulesStub.transactions);
+			expect(modules.transport).to.equal(modulesStub.transport);
 			done();
 		});
 
 		it('should assign definitions with swagger.definitions', () => {
-			return expect(definitions).to.equal(bindingsStub.swagger.definitions);
+			return expect(definitions).to.equal(modulesStub.swagger.definitions);
 		});
 
 		it('should set __private.loaded to true', () => {

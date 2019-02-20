@@ -83,12 +83,12 @@ Signatures.prototype.isLoaded = function() {
  */
 Signatures.prototype.onBind = function(scope) {
 	modules = {
-		accounts: scope.modules.accounts,
-		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
+		accounts: scope.accounts,
+		transactions: scope.transactions,
+		transport: scope.transport,
 	};
 
-	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.modules.accounts);
+	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.accounts);
 };
 
 __private.processPostResult = function(err, res, cb) {

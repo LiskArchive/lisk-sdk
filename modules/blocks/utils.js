@@ -592,7 +592,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 Utils.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Utils: Shared modules bind.');
 	modules = {
-		blocks: scope.modules.blocks,
+		blocks: scope.blocks,
 	};
 
 	// Set module as loaded

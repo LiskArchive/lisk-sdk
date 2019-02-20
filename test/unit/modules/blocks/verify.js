@@ -30,7 +30,7 @@ describe('blocks/verify', () => {
 	let logicTransactionStub;
 	let configMock;
 	let blocksVerifyModule;
-	let bindingsStub;
+	let modulesStub;
 	let modules;
 
 	beforeEach(done => {
@@ -119,18 +119,16 @@ describe('blocks/verify', () => {
 			},
 		};
 
-		bindingsStub = {
-			modules: {
-				accounts: modulesAccountsStub,
-				blocks: modulesBlocksStub,
-				delegates: modulesDelegatesStub,
-				transactions: modulesTransactionsStub,
-				system: modulesSystemStub,
-				transport: modulesTransportStub,
-			},
+		modulesStub = {
+			accounts: modulesAccountsStub,
+			blocks: modulesBlocksStub,
+			delegates: modulesDelegatesStub,
+			transactions: modulesTransactionsStub,
+			system: modulesSystemStub,
+			transport: modulesTransportStub,
 		};
 
-		blocksVerifyModule.onBind(bindingsStub);
+		blocksVerifyModule.onBind(modulesStub);
 		modules = BlocksVerify.__get__('modules');
 		done();
 	});
@@ -2229,7 +2227,7 @@ describe('blocks/verify', () => {
 		beforeEach(done => {
 			loggerStub.trace.resetHistory();
 			__private.loaded = false;
-			blocksVerifyModule.onBind(bindingsStub);
+			blocksVerifyModule.onBind(modulesStub);
 			done();
 		});
 
@@ -2240,12 +2238,12 @@ describe('blocks/verify', () => {
 		});
 
 		it('should assign params to modules', done => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
-			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
-			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.system).to.equal(bindingsStub.modules.system);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
+			expect(modules.accounts).to.equal(modulesStub.accounts);
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+			expect(modules.delegates).to.equal(modulesStub.delegates);
+			expect(modules.transactions).to.equal(modulesStub.transactions);
+			expect(modules.system).to.equal(modulesStub.system);
+			expect(modules.transport).to.equal(modulesStub.transport);
 			done();
 		});
 

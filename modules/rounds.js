@@ -17,12 +17,10 @@
 const Bignumber = require('bignumber.js');
 const async = require('async');
 // eslint-disable-next-line prefer-const
-const { CACHE_KEYS_DELEGATES } = require('../components/cache');
-const Round = require('../logic/round.js');
+let Round = require('../logic/round.js');
 const slots = require('../helpers/slots.js');
 
 // Private fields
-let components;
 let modules;
 let library;
 let self;
@@ -116,6 +114,7 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);
+
 		return newRound
 			.mergeBlockGenerator()
 			.then(() => (scope.finishRound ? newRound.backwardLand() : newRound));
@@ -360,14 +359,10 @@ Rounds.prototype.createRoundInformationWithDelegate = function(
  * @param {modules} scope - Loaded modules
  */
 Rounds.prototype.onBind = function(scope) {
-	components = {
-		cache: scope.components ? scope.components.cache : undefined,
-	};
-
 	modules = {
-		blocks: scope.modules.blocks,
-		accounts: scope.modules.accounts,
-		delegates: scope.modules.delegates,
+		blocks: scope.blocks,
+		accounts: scope.accounts,
+		delegates: scope.delegates,
 	};
 };
 
@@ -381,41 +376,14 @@ Rounds.prototype.onBlockchainReady = function() {
 };
 
 /**
- * Clear all cache entries related to delegate and emits a 'rounds/change' socket message.
+ * Emits a 'rounds/change' socket message.
  *
  * @param {number} round
  * @emits rounds/change
  * @todo Add description for the params
  */
-Rounds.prototype.onFinishRound = async function(round) {
-	if (components && components.cache && components.cache.isReady()) {
-		library.logger.debug(
-			['Cache - onFinishRound', '| Status:', components.cache.isReady()].join(
-				' '
-			)
-		);
-		const pattern = CACHE_KEYS_DELEGATES;
-		try {
-			await components.cache.removeByPattern(pattern);
-			library.logger.debug(
-				[
-					'Cache - Keys with pattern:',
-					pattern,
-					'cleared from cache on new Round',
-				].join(' ')
-			);
-		} catch (removeByPatternErr) {
-			library.logger.error(
-				[
-					'Cache - Error clearing keys with pattern:',
-					pattern,
-					'when round finish',
-				].join(' ')
-			);
-		}
-	}
-
-	return library.network.io.sockets.emit('rounds/change', { number: round });
+Rounds.prototype.onFinishRound = function(round) {
+	library.network.io.sockets.emit('rounds/change', { number: round });
 };
 
 /**

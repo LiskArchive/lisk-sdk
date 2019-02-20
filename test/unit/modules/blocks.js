@@ -24,7 +24,7 @@ describe('blocks', () => {
 	let blocksInstance;
 	let self;
 	let library;
-	let components;
+	let modules;
 	let __private;
 	let storageStub;
 	let loggerStub;
@@ -39,7 +39,6 @@ describe('blocks', () => {
 	let busStub;
 	let balancesSequenceStub;
 	let scope;
-
 	beforeEach(done => {
 		dummyGenesisblock = {
 			block: {
@@ -91,26 +90,22 @@ describe('blocks', () => {
 			genesisBlock: dummyGenesisblock,
 			bus: busStub,
 			balancesSequence: balancesSequenceStub,
-			config: {
-				loading: {},
-			},
+			config: { loading: {} },
 		};
 
 		blocksInstance = new Blocks((err, cbSelf) => {
-			expect(err).to.be.undefined;
 			self = cbSelf;
 			library = Blocks.__get__('library');
-			components = Blocks.__get__('components');
+			modules = Blocks.__get__('modules');
 			__private = Blocks.__get__('__private');
+			expect(err).to.be.undefined;
 			done();
 		}, scope);
 	});
-
 	afterEach(done => {
 		sinonSandbox.restore();
 		done();
 	});
-
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			return expect(library.logger).to.eql(loggerStub);
@@ -299,63 +294,35 @@ describe('blocks', () => {
 			blocksInstance.onBind(onBindScope);
 			return expect(__private.loaded).to.be.true;
 		});
-
-		it('should assign component property', () => {
-			return expect(components).to.have.property('cache');
-		});
 	});
 
 	describe('onNewBlock', () => {
 		const block = { id: 123 };
 
-		describe('when cache is enabled', () => {
-			beforeEach(done => {
-				blocksInstance = new Blocks(async err => {
-					expect(err).to.be.undefined;
-					components = Blocks.__get__('components');
-					components.cache = {
-						removeByPattern: sinonSandbox.stub().resolves(),
-						isReady: sinonSandbox.stub().returns(true),
-					};
-					await blocksInstance.onNewBlock(block);
-					done();
-				}, scope);
-			});
+		beforeEach(done => {
+			modules.cache = {
+				clearCacheFor: sinonSandbox.stub().callsArg(1),
+				KEYS: {
+					blocksApi: '/api/blocks*',
+					transactionsApi: '/api/transactions*',
+				},
+			};
 
-			afterEach(done => {
-				components.cache.removeByPattern.reset();
-				done();
-			});
-
-			it('should call removeByPattern', () => {
-				return expect(components.cache.removeByPattern.calledTwice).to.be.true;
-			});
-
-			it('should call library.network.io.sockets.emit with "blocks/change" and block', () => {
-				return expect(
-					library.network.io.sockets.emit.calledWith('blocks/change', block)
-				).to.be.true;
-			});
+			blocksInstance.onNewBlock(block);
+			done();
 		});
 
-		describe('when cache is not enabled', () => {
-			beforeEach(done => {
-				blocksInstance = new Blocks(err => {
-					expect(err).to.be.undefined;
-					components = Blocks.__get__('components');
-					components.cache = undefined;
-					blocksInstance.onNewBlock(block);
-					done();
-				}, scope);
-			});
+		it('should call clearCacheFor', done => {
+			expect(modules.cache.clearCacheFor.calledTwice).to.be.true;
 
-			it('should call library.network.io.sockets.emit with "blocks/change" and block', done => {
-				expect(
-					library.network.io.sockets.emit.calledWith('blocks/change', block)
-				).to.be.true;
+			done();
+		});
 
-				done();
-			});
+		it('should call library.network.io.sockets.emit with "blocks/change" and block', done => {
+			expect(library.network.io.sockets.emit.calledWith('blocks/change', block))
+				.to.be.true;
+
+			done();
 		});
 	});
 
