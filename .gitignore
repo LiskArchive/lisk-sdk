@@ -36,6 +36,7 @@ framework/test/network/configs/
 framework/test/network/networkTestsLogger.logs
 
 # Coverage directory used by tools like nyc
+coverage*
 framework/test/mocha/.nyc_output/*
 !framework/test/mocha/.nyc_output/.gitkeep
 
