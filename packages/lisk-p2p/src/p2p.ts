@@ -50,6 +50,7 @@ import {
 
 import { P2PRequest } from './p2p_request';
 export { P2PRequest };
+import { selectForConnection, selectPeers } from './peer_selection';
 
 import {
 	EVENT_CLOSE_OUTBOUND,
@@ -114,7 +115,9 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
-	private readonly _handlePeerInfoUpdate: (peerInfo: P2PDiscoveredPeerInfo) => void;
+	private readonly _handlePeerInfoUpdate: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
@@ -202,8 +205,12 @@ export class P2P extends EventEmitter {
 		this._peerPool = new PeerPool({
 			connectTimeout: this._config.connectTimeout,
 			ackTimeout: this._config.ackTimeout,
-			peerSelectionForSendRequest: config.peerSelectionForSendRequest,
-			peerSelectionForConnection: config.peerSelectionForConnection,
+			peerSelectionForSendRequest: config.peerSelectionForSendRequest
+				? config.peerSelectionForSendRequest
+				: selectPeers,
+			peerSelectionForConnection: config.peerSelectionForConnection
+				? config.peerSelectionForConnection
+				: selectForConnection,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -475,11 +482,11 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
-		peerPool.on(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
 		peerPool.on(
-			EVENT_DISCOVERED_PEER,
-			this._handleDiscoveredPeer,
+			EVENT_FAILED_PEER_INFO_UPDATE,
+			this._handleFailedPeerInfoUpdate,
 		);
+		peerPool.on(EVENT_DISCOVERED_PEER, this._handleDiscoveredPeer);
 		peerPool.on(
 			EVENT_FAILED_TO_PUSH_NODE_INFO,
 			this._handleFailedToPushNodeInfo,

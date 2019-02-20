@@ -53,7 +53,6 @@ import {
 	REMOTE_RPC_GET_ALL_PEERS_LIST,
 } from './peer';
 import { discoverPeers } from './peer_discovery';
-import { selectForConnection, selectPeers } from './peer_selection';
 
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
@@ -74,8 +73,8 @@ export {
 interface PeerPoolConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
-	readonly peerSelectionForSendRequest?: P2PPeerSelectionForSendRequest;
-	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
+	readonly peerSelectionForSendRequest: P2PPeerSelectionForSendRequest;
+	readonly peerSelectionForConnection: P2PPeerSelectionForConnection;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -96,7 +95,9 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
-	private readonly _handlePeerInfoUpdate: (peerInfo: P2PDiscoveredPeerInfo) => void;
+	private readonly _handlePeerInfoUpdate: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private readonly _peerSelectForSendRequest: P2PPeerSelectionForSendRequest;
@@ -106,12 +107,8 @@ export class PeerPool extends EventEmitter {
 		super();
 		this._peerMap = new Map();
 		this._peerPoolConfig = peerPoolConfig;
-		this._peerSelectForSendRequest = peerPoolConfig.peerSelectionForSendRequest
-			? peerPoolConfig.peerSelectionForSendRequest
-			: selectPeers;
-		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection
-			? peerPoolConfig.peerSelectionForConnection
-			: selectForConnection;
+		this._peerSelectForSendRequest = peerPoolConfig.peerSelectionForSendRequest;
+		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
 			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
@@ -445,9 +442,10 @@ export class PeerPool extends EventEmitter {
 							os: peerDetailedInfo.os,
 							version: peerDetailedInfo.version,
 							httpPort: peerDetailedInfo.options
-								? (peerDetailedInfo.options.httpPort as number) : undefined,
+								? (peerDetailedInfo.options.httpPort as number)
+								: undefined,
 							wsPort: peerDetailedInfo.wsPort,
-							options: peerDetailedInfo.options
+							options: peerDetailedInfo.options,
 						};
 					},
 				)
@@ -486,6 +484,9 @@ export class PeerPool extends EventEmitter {
 		);
 		peer.removeListener(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
 		peer.removeListener(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
-		peer.removeListener(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
+		peer.removeListener(
+			EVENT_FAILED_PEER_INFO_UPDATE,
+			this._handleFailedPeerInfoUpdate,
+		);
 	}
 }
