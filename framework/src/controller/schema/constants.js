@@ -26,12 +26,13 @@ module.exports = {
 		],
 		properties: {
 			ACTIVE_DELEGATES: {
+				description: 'Warning: No even delegate number allowed',
 				type: 'integer',
-				min: 51,
+				min: 1,
 			},
 			BLOCK_SLOT_WINDOW: {
 				type: 'integer',
-				min: 5,
+				min: 1,
 			},
 			ADDITIONAL_DATA: {
 				type: 'object',
@@ -43,11 +44,13 @@ module.exports = {
 					},
 					MAX_LENGTH: {
 						type: 'integer',
+						min: 1,
 					},
 				},
 			},
 			BLOCK_RECEIPT_TIMEOUT: {
 				type: 'integer',
+				min: 1,
 			},
 			EPOCH_TIME: {
 				type: 'string',
@@ -65,9 +68,11 @@ module.exports = {
 			},
 			MAX_PEERS: {
 				type: 'integer',
+				min: 1,
 			},
 			MAX_SHARED_TRANSACTIONS: {
 				type: 'integer',
+				min: 1,
 			},
 			MAX_TRANSACTIONS_PER_BLOCK: {
 				type: 'integer',
@@ -79,9 +84,11 @@ module.exports = {
 			},
 			MAX_VOTES_PER_ACCOUNT: {
 				type: 'integer',
+				min: 1,
 			},
 			MIN_BROADHASH_CONSENSUS: {
 				type: 'integer',
+				min: 1,
 			},
 			MULTISIG_CONSTRAINTS: {
 				type: 'object',
@@ -221,9 +228,11 @@ module.exports = {
 		properties: {
 			MINIMUM: {
 				type: 'integer',
+				min: 1,
 			},
 			MAXIMUM: {
 				type: 'integer',
+				min: 1,
 			},
 		},
 	},
@@ -235,9 +244,11 @@ module.exports = {
 		properties: {
 			MIN_ITEMS: {
 				type: 'integer',
+				min: 1,
 			},
 			MAX_ITEMS: {
 				type: 'integer',
+				min: 1,
 			},
 		},
 	},
@@ -256,9 +267,11 @@ module.exports = {
 			},
 			OFFSET: {
 				type: 'integer',
+				min: 1,
 			},
 			DISTANCE: {
 				type: 'integer',
+				min: 1,
 			},
 		},
 	},
