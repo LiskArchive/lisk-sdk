@@ -957,7 +957,7 @@ __private.sync = function(cb) {
 				// Update our own headers: broadhash and height
 				return components.system
 					.update()
-					.then(() => setImmediate(seriesCb))
+					.then(() => seriesCb())
 					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {

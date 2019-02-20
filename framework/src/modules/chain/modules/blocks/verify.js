@@ -838,10 +838,10 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				if (!library.config.loading.snapshotRound) {
 					return components.system
 						.update()
-						.then(() => setImmediate(seriesCb))
+						.then(() => seriesCb())
 						.catch(seriesCb);
 				}
-				return setImmediate(seriesCb);
+				return seriesCb();
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
