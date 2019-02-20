@@ -15,6 +15,7 @@ endif
 
 DATE ?= date
 DOWNLOAD ?= wget --no-verbose
+GNUPG := gpg2
 LN ?= ln
 
 release/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz.SHA256: release/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz
