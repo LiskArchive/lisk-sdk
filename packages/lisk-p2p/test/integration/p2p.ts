@@ -47,9 +47,9 @@ describe('Integration tests for P2P library', () => {
 		afterEach(async () => {
 			await Promise.all(
 				p2pNodeList.map(async p2p => {
-					try {
+					if (p2p.isActive) {
 						await p2p.stop();
-					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
+					}
 				}),
 			);
 		});
@@ -116,9 +116,9 @@ describe('Integration tests for P2P library', () => {
 		afterEach(async () => {
 			await Promise.all(
 				p2pNodeList.map(async p2p => {
-					try {
+					if (p2p.isActive) {
 						await p2p.stop();
-					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
+					}
 				}),
 			);
 		});
@@ -151,7 +151,7 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Partially connected network which becomes fully connected: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence. Discovery interval runs multiple times.', () => {
 		const DISCOVERY_INTERVAL = 200;
-		
+
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
@@ -198,9 +198,9 @@ describe('Integration tests for P2P library', () => {
 		afterEach(async () => {
 			await Promise.all(
 				p2pNodeList.map(async p2p => {
-					try {
+					if (p2p.isActive) {
 						await p2p.stop();
-					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
+					}
 				}),
 			);
 		});
@@ -271,10 +271,11 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(async p2p => {
-					try {
-						await p2p.stop();
-					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
+				p2pNodeList.map(p2p => {
+					if (p2p.isActive) {
+						return p2p.stop();
+					}
+					return;
 				}),
 			);
 			await wait(100);
@@ -358,7 +359,9 @@ describe('Integration tests for P2P library', () => {
 					return port !== 5000;
 				});
 
-				expect(peerPortsAfterPeerCrash).to.be.eql(expectedPeerPortsAfterPeerCrash);
+				expect(peerPortsAfterPeerCrash).to.be.eql(
+					expectedPeerPortsAfterPeerCrash,
+				);
 			});
 		});
 
@@ -554,6 +557,38 @@ describe('Integration tests for P2P library', () => {
 						.to.have.property('height')
 						.which.equals(10);
 				});
+			});
+		});
+
+		describe('when couple of node shuts down and are unresponsive', () => {
+			it('should remove the unresponsive nodes from network status of other nodes', async () => {
+				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
+				const initialPeerPorts = initialNetworkStatus.connectedPeers
+					.map(peerInfo => peerInfo.wsPort)
+					.sort();
+
+				expect(initialPeerPorts).to.be.eql(
+					ALL_NODE_PORTS.filter(port => port != 5000),
+				);
+
+				await p2pNodeList[1].stop();
+				await wait(100);
+				await p2pNodeList[2].stop();
+				await wait(100);
+
+				const networkStatusAfterPeerCrash = p2pNodeList[0].getNetworkStatus();
+
+				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
+					.map(peerInfo => peerInfo.wsPort)
+					.sort();
+
+				const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
+					return port !== 5001 && port !== 5002 && port !== 5000;
+				});
+
+				expect(peerPortsAfterPeerCrash).to.be.eql(
+					expectedPeerPortsAfterPeerCrash,
+				);
 			});
 		});
 	});
