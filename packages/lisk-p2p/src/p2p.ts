@@ -50,18 +50,21 @@ import {
 
 import { P2PRequest } from './p2p_request';
 export { P2PRequest };
+import { selectForConnection, selectPeers } from './peer_selection';
 
 import {
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
+	EVENT_UPDATED_PEER_INFO,
 	PeerPool,
 } from './peer_pool';
 
@@ -76,6 +79,8 @@ export {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_INBOUND_SOCKET_ERROR,
+	EVENT_UPDATED_PEER_INFO,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 };
 
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
@@ -102,12 +107,18 @@ export class P2P extends EventEmitter {
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
-	private readonly _handleDiscoveredPeer: (discoveredPeerInfo: P2PDiscoveredPeerInfo) => void;
+	private readonly _handleDiscoveredPeer: (
+		discoveredPeerInfo: P2PDiscoveredPeerInfo,
+	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerInfoUpdate: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
+	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
@@ -152,6 +163,16 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 
+		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
+		};
+
+		this._handleFailedPeerInfoUpdate = (error: Error) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+		};
+
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
 			if (!this._triedPeers.has(peerId)) {
@@ -184,13 +205,22 @@ export class P2P extends EventEmitter {
 		this._peerPool = new PeerPool({
 			connectTimeout: this._config.connectTimeout,
 			ackTimeout: this._config.ackTimeout,
+			peerSelectionForSendRequest: config.peerSelectionForSendRequest
+				? config.peerSelectionForSendRequest
+				: selectPeers,
+			peerSelectionForConnection: config.peerSelectionForConnection
+				? config.peerSelectionForConnection
+				: selectForConnection,
 		});
+
 		this._bindHandlersToPeerPool(this._peerPool);
 
 		this._nodeInfo = config.nodeInfo;
 		this._peerPool.applyNodeInfo(this._nodeInfo);
 
-		this._discoveryInterval = config.discoveryInterval ? config.discoveryInterval : DEFAULT_DISCOVERY_INTERVAL;
+		this._discoveryInterval = config.discoveryInterval
+			? config.discoveryInterval
+			: DEFAULT_DISCOVERY_INTERVAL;
 	}
 
 	public get config(): P2PConfig {
@@ -375,12 +405,15 @@ export class P2P extends EventEmitter {
 		this._isActive = false;
 	}
 
-	private async _discoverPeers(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
-		const allKnownPeers: ReadonlyArray<P2PPeerInfo> = knownPeers.concat([...this._triedPeers.values()]);
-		
+	private async _discoverPeers(
+		knownPeers: ReadonlyArray<P2PPeerInfo> = [],
+	): Promise<void> {
+		const allKnownPeers: ReadonlyArray<P2PPeerInfo> = knownPeers.concat([
+			...this._triedPeers.values(),
+		]);
+
 		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
 		if (!this._isActive) {
-
 			return;
 		}
 
@@ -392,7 +425,6 @@ export class P2P extends EventEmitter {
 		// Stop discovery if node is no longer active. That way we don't try to connect to peers.
 		// We need to check again because of the previous asynchronous await statement.
 		if (!this._isActive) {
-			
 			return;
 		}
 
@@ -406,7 +438,9 @@ export class P2P extends EventEmitter {
 		this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
 	}
 
-	private async _startDiscovery(knownPeers: ReadonlyArray<P2PPeerInfo> = []): Promise<void> {
+	private async _startDiscovery(
+		knownPeers: ReadonlyArray<P2PPeerInfo> = [],
+	): Promise<void> {
 		if (this._discoveryIntervalId) {
 			throw new Error('Discovery is already running');
 		}
@@ -447,10 +481,12 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
+		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peerPool.on(
-			EVENT_DISCOVERED_PEER,
-			this._handleDiscoveredPeer,
+			EVENT_FAILED_PEER_INFO_UPDATE,
+			this._handleFailedPeerInfoUpdate,
 		);
+		peerPool.on(EVENT_DISCOVERED_PEER, this._handleDiscoveredPeer);
 		peerPool.on(
 			EVENT_FAILED_TO_PUSH_NODE_INFO,
 			this._handleFailedToPushNodeInfo,

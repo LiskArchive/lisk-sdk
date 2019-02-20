@@ -22,7 +22,7 @@
 		"npm": ">=3 <=6"
 	},
 	"scripts": {
-		"bootstrap": "lerna bootstrap",
+		"bootstrap": "lerna bootstrap --hoist",
 		"clean": "lerna run clean",
 		"clean:node_modules": "lerna clean --yes",
 		"format": "npm run format:root && lerna run format",
