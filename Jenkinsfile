@@ -54,11 +54,11 @@ def teardown(test_name) {
 		nvm(getNodejsVersion()) {
 			sh """
 			rm -rf coverage_${test_name}; mkdir -p coverage_${test_name}
-			./node_modules/.bin/nyc report --report-dir coverage_${test_name} --temp-dir framework/test/mocha/.nyc_output/${test_name}
+			./node_modules/.bin/nyc report --reporter=lcov --report-dir coverage_${test_name} --temp-dir framework/test/mocha/.nyc_output/${test_name}
 			./node_modules/.bin/nyc report --reporter=cobertura --report-dir coverage_${test_name} --temp-dir framework/test/mocha/.nyc_output/${test_name}
+			rm -rf framework/test/mocha/.nyc_output/${test_name}
 			curl --silent http://localhost:4000/coverage/download --output functional-coverage.zip
 			unzip functional-coverage.zip lcov.info -d coverage_${test_name}/functional/
-			rm -rf framework/test/mocha/.nyc_output/${test_name}
 			"""
 		}
 	} catch(err) {
