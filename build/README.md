@@ -2,8 +2,8 @@
 
 ## Linux
 
-Any sufficiently modern Linux distribution should be able to run the build
-however only Ubuntu Linux 16.04 LTS is guaranteed to work.
+Any sufficiently modern Linux distribution should be able to run the build;
+however, only Ubuntu Linux 16.04 LTS is guaranteed to work.
 
 ### Prerequisistes
 
