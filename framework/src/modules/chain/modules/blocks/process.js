@@ -583,7 +583,6 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 		})
 		.catch(e => {
 			library.logger.error(e.stack);
-			// eslint-disable-next-line
 			return setImmediate(cb, e);
 		});
 };

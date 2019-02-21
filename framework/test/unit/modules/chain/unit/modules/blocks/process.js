@@ -1670,7 +1670,9 @@ describe('blocks/process', async () => {
 			describe('when query returns empty array', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					modules.processTransactions.verifyTransactions.returns(Promise.resolve([]));
+					modules.processTransactions.verifyTransactions.returns(
+						Promise.resolve([])
+					);
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1696,7 +1698,9 @@ describe('blocks/process', async () => {
 			describe('when query returns undefined', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					modules.processTransactions.verifyTransactions.returns(Promise.resolve([]));
+					modules.processTransactions.verifyTransactions.returns(
+						Promise.resolve([])
+					);
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1735,7 +1739,9 @@ describe('blocks/process', async () => {
 				describe('modules.processTransactions.verifyTransactions', () => {
 					describe('when transaction initializations fail', async () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.returns(Promise.reject(new Error('Invalid field types')))
+							modules.processTransactions.verifyTransactions.returns(
+								Promise.reject(new Error('Invalid field types'))
+							)
 						);
 
 						it('should call a callback with error', async () => {
@@ -1743,7 +1749,7 @@ describe('blocks/process', async () => {
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
 								err => {
-									expect(err).to.not.be.null;
+									expect(err).not.to.be.null;
 								}
 							);
 						});
@@ -1751,10 +1757,12 @@ describe('blocks/process', async () => {
 
 					describe('when transactions verification fails', async () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.returns(Promise.resolve([
-								{ id: 1, status: 0, errors: [] },
-								{ id: 2, status: 0, errors: [] },
-							]))
+							modules.processTransactions.verifyTransactions.returns(
+								Promise.resolve([
+									{ id: 1, status: 0, errors: [] },
+									{ id: 2, status: 0, errors: [] },
+								])
+							)
 						);
 
 						it('should generate block without transactions', async () => {
@@ -1774,10 +1782,12 @@ describe('blocks/process', async () => {
 
 					describe('when transactions verification succeeds', async () => {
 						beforeEach(async () => {
-							modules.processTransactions.verifyTransactions.returns(Promise.resolve([
-								{ id: 1, status: 1, errors: [] },
-								{ id: 2, status: 1, errors: [] },
-							]));
+							modules.processTransactions.verifyTransactions.returns(
+								Promise.resolve([
+									{ id: 1, status: 1, errors: [] },
+									{ id: 2, status: 1, errors: [] },
+								])
+							);
 						});
 
 						it('should generate block with transactions', async () => {
@@ -1797,9 +1807,9 @@ describe('blocks/process', async () => {
 
 					describe('when transactions pending', async () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.returns(Promise.resolve([
-								{ id: 1, status: 2, errors: [] },
-							]))
+							modules.processTransactions.verifyTransactions.returns(
+								Promise.resolve([{ id: 1, status: 2, errors: [] }])
+							)
 						);
 
 						it('should generate block without pending transactions', async () => {
@@ -1820,10 +1830,12 @@ describe('blocks/process', async () => {
 
 				describe('library.logic.block.create', async () => {
 					beforeEach(async () => {
-						modules.processTransactions.verifyTransactions.returns(Promise.resolve([
-							{ id: 1, status: 1, errors: [] },
-							{ id: 2, status: 1, errors: [] },
-						]));
+						modules.processTransactions.verifyTransactions.returns(
+							Promise.resolve([
+								{ id: 1, status: 1, errors: [] },
+								{ id: 2, status: 1, errors: [] },
+							])
+						);
 					});
 
 					describe('when fails', async () => {
