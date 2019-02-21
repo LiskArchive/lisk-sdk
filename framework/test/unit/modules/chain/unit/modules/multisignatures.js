@@ -89,10 +89,12 @@ describe('multisignatures', () => {
 
 		// Create stubbed scope
 		validScope = {
-			logger: stubs.logger,
-			storage: {
-				entities: {
-					Account: {},
+			components: {
+				logger: stubs.logger,
+				storage: {
+					entities: {
+						Account: {},
+					},
 				},
 			},
 			network: { io: { sockets: { emit: stubs.networkIoSocketsEmit } } },
@@ -124,8 +126,8 @@ describe('multisignatures', () => {
 
 	describe('constructor', () => {
 		it('should assign params to library', async () => {
-			expect(library.logger).to.eql(validScope.logger);
-			expect(library.db).to.eql(validScope.db);
+			expect(library.logger).to.eql(validScope.components.logger);
+			expect(library.storage).to.eql(validScope.components.storage);
 			expect(library.network).to.eql(validScope.network);
 			expect(library.schema).to.eql(validScope.schema);
 			expect(library.bus).to.eql(validScope.bus);
@@ -139,13 +141,17 @@ describe('multisignatures', () => {
 
 		it('should instantiate Multisignature logic with proper params', async () => {
 			expect(stubs.Multisignature).to.have.been.calledOnce;
-			return expect(stubs.Multisignature).to.have.been.calledWith(
-				validScope.schema,
-				validScope.network,
-				validScope.logic.transaction,
-				validScope.logic.account,
-				validScope.logger
-			);
+			return expect(stubs.Multisignature).to.have.been.calledWith({
+				components: {
+					logger: validScope.components.logger,
+				},
+				schema: validScope.schema,
+				network: validScope.network,
+				logic: {
+					transaction: validScope.logic.transaction,
+					account: validScope.logic.account,
+				},
+			});
 		});
 
 		it('should call callback with result = self', async () =>

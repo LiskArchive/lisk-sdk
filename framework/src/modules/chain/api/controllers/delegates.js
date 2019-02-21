@@ -40,8 +40,8 @@ const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
-	storage = scope.storage;
-	logger = scope.logger;
+	storage = scope.components.storage;
+	logger = scope.components.logger;
 	blockReward = new BlockReward();
 }
 

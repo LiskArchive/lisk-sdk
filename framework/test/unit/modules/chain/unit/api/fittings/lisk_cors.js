@@ -30,9 +30,11 @@ describe('lisk_cors', () => {
 		};
 		swaggerModuleRegistry.bind({
 			config: __testContext.config,
-			logger: __testContext.logger,
 			modules: {
 				cache: null,
+			},
+			components: {
+				logger: __testContext.logger,
 			},
 		});
 		cors_fititng = fitting();

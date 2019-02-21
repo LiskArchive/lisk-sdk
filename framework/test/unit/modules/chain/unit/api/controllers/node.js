@@ -42,7 +42,7 @@ describe('node/api', () => {
 			it('should assign storage', () => {
 				return expect(privateLibrary).to.have.property(
 					'storage',
-					library.storage
+					library.components.storage
 				);
 			});
 

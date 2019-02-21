@@ -67,13 +67,18 @@ describe('multisignature', () => {
 			id: '9314232245035524467',
 			height: 1,
 		};
-		multisignature = new Multisignature(
-			modulesLoader.scope.schema,
-			modulesLoader.scope.network,
-			transactionMock,
-			accountMock,
-			modulesLoader.logger
-		);
+
+		multisignature = new Multisignature({
+			components: {
+				logger: modulesLoader.logger,
+			},
+			schema: modulesLoader.scope.schema,
+			network: modulesLoader.scope.network,
+			logic: {
+				transaction: transactionMock,
+				account: accountMock,
+			},
+		});
 		return multisignature.bind(accountsMock);
 	});
 
@@ -84,41 +89,45 @@ describe('multisignature', () => {
 	});
 
 	describe('constructor', () => {
-		let library;
+		let __scope;
 
 		beforeEach(done => {
-			new Multisignature(
-				modulesLoader.scope.schema,
-				modulesLoader.scope.network,
-				transactionMock,
-				accountMock,
-				modulesLoader.logger
-			);
-			library = Multisignature.__get__('library');
+			new Multisignature({
+				components: {
+					logger: modulesLoader.logger,
+				},
+				schema: modulesLoader.scope.schema,
+				network: modulesLoader.scope.network,
+				logic: {
+					transaction: transactionMock,
+					account: accountMock,
+				},
+			});
+			__scope = Multisignature.__get__('__scope');
 			done();
 		});
 
-		it('should attach schema to library variable', async () =>
-			expect(library.schema).to.eql(modulesLoader.scope.schema));
+		it('should attach schema to __scope', async () =>
+			expect(__scope.schema).to.eql(modulesLoader.scope.schema));
 
-		it('should attach network to library variable', async () =>
-			expect(library.network).to.eql(modulesLoader.scope.network));
+		it('should attach network to __scope', async () =>
+			expect(__scope.network).to.eql(modulesLoader.scope.network));
 
-		it('should attach logger to library variable', async () =>
-			expect(library.logger).to.eql(modulesLoader.logger));
+		it('should attach logger to __scope.components', async () =>
+			expect(__scope.components.logger).to.eql(modulesLoader.logger));
 
-		it('should attach logic.transaction to library variable', async () =>
-			expect(library.logic.transaction).to.eql(transactionMock));
+		it('should attach logic.transaction to __scope.logic', async () =>
+			expect(__scope.logic.transaction).to.eql(transactionMock));
 
-		it('should attach account to library variable', async () =>
-			expect(library.logic.account).to.eql(accountMock));
+		it('should attach account to __scope.logic', async () =>
+			expect(__scope.logic.account).to.eql(accountMock));
 	});
 
 	describe('bind', () => {
 		describe('modules', () => {
 			it('should assign accounts', async () => {
 				multisignature.bind(accountsMock);
-				const modules = Multisignature.__get__('modules');
+				const modules = Multisignature.__get__('__scope.modules');
 
 				return expect(modules).to.eql({
 					accounts: accountsMock,
@@ -498,22 +507,22 @@ describe('multisignature', () => {
 			multisignature.applyConfirmed(transaction, dummyBlock, sender, done);
 		});
 
-		it('should set __private.unconfirmedSignatures[sender.address] = false', async () => {
+		it('should set __scope.unconfirmedSignatures[sender.address] = false', async () => {
 			const unconfirmedSignatures = Multisignature.__get__(
-				'__private.unconfirmedSignatures'
+				'__scope.unconfirmedSignatures'
 			);
 			return expect(unconfirmedSignatures)
 				.to.contain.property(sender.address)
 				.equal(false);
 		});
 
-		it('should call library.logic.account.merge', async () =>
+		it('should call __scope.logic.account.merge', async () =>
 			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call library.logic.account.merge with sender.address', async () =>
+		it('should call __scope.logic.account.merge with sender.address', async () =>
 			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call library.logic.account.merge with expected params', async () => {
+		it('should call __scope.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				membersPublicKeys: transaction.asset.multisignature.keysgroup,
 				multiMin: transaction.asset.multisignature.min,
@@ -523,7 +532,7 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when library.logic.account.merge fails', () => {
+		describe('when __scope.logic.account.merge fails', () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
@@ -535,7 +544,7 @@ describe('multisignature', () => {
 				}));
 		});
 
-		describe('when library.logic.account.merge succeeds', () => {
+		describe('when __scope.logic.account.merge succeeds', () => {
 			describe('for every keysgroup member', () => {
 				validTransaction.asset.multisignature.keysgroup.forEach(member => {
 					it('should call modules.accounts.generateAddressByPublicKey', async () =>
@@ -543,7 +552,7 @@ describe('multisignature', () => {
 							validTransaction.asset.multisignature.keysgroup.length
 						));
 
-					it('should call modules.accounts.generateAddressByPublicKey with member.substring(1)', async () =>
+					it('should call __scope.modules.accounts.generateAddressByPublicKey with member.substring(1)', async () =>
 						expect(
 							accountsMock.generateAddressByPublicKey.calledWith(
 								member.substring(1)
@@ -560,26 +569,26 @@ describe('multisignature', () => {
 							done();
 						});
 
-						it('should call library.logic.account.setAccountAndGet', async () =>
+						it('should call __scope.logic.account.setAccountAndGet', async () =>
 							expect(accountsMock.setAccountAndGet.callCount).to.equal(
 								validTransaction.asset.multisignature.keysgroup.length
 							));
 
-						it('should call library.logic.account.setAccountAndGet with {address: address}', async () =>
+						it('should call __scope.logic.account.setAccountAndGet with {address: address}', async () =>
 							expect(
 								accountsMock.setAccountAndGet.calledWith(
 									sinonSandbox.match({ address })
 								)
 							).to.be.true);
 
-						it('should call library.logic.account.setAccountAndGet with sender.address', async () =>
+						it('should call __scope.logic.account.setAccountAndGet with sender.address', async () =>
 							expect(
 								accountsMock.setAccountAndGet.calledWith(
 									sinonSandbox.match({ publicKey: key })
 								)
 							).to.be.true);
 
-						describe('when modules.accounts.setAccountAndGet fails', () => {
+						describe('when __scope.modules.accounts.setAccountAndGet fails', () => {
 							beforeEach(done => {
 								accountsMock.setAccountAndGet = sinonSandbox
 									.stub()
@@ -598,7 +607,7 @@ describe('multisignature', () => {
 								));
 						});
 
-						describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
+						describe('when __scope.modules.accounts.mergeAccountAndGet succeeds', () => {
 							it('should call callback with error = null', async () =>
 								multisignature.applyConfirmed(
 									transaction,
@@ -633,22 +642,22 @@ describe('multisignature', () => {
 		});
 		/* eslint-enable */
 
-		it('should set __private.unconfirmedSignatures[sender.address] = true', async () => {
+		it('should set __scope.unconfirmedSignatures[sender.address] = true', async () => {
 			const unconfirmedSignatures = Multisignature.__get__(
-				'__private.unconfirmedSignatures'
+				'__scope.unconfirmedSignatures'
 			);
 			return expect(unconfirmedSignatures)
 				.to.contain.property(sender.address)
 				.equal(true);
 		});
 
-		it('should call library.logic.account.merge', async () =>
+		it('should call __scope.logic.account.merge', async () =>
 			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call library.logic.account.merge with sender.address', async () =>
+		it('should call __scope.logic.account.merge with sender.address', async () =>
 			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call library.logic.account.merge with expected params', async () => {
+		it('should call __scope.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
@@ -660,7 +669,7 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when library.logic.account.merge fails', () => {
+		describe('when __scope.logic.account.merge fails', () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
@@ -672,7 +681,7 @@ describe('multisignature', () => {
 				}));
 		});
 
-		describe('when library.logic.account.merge succeeds', () => {
+		describe('when __scope.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', async () =>
 				multisignature.applyConfirmed(transaction, dummyBlock, sender, err => {
 					expect(err).to.be.null;
@@ -695,7 +704,7 @@ describe('multisignature', () => {
 		describe('when transaction is pending for confirmation', () => {
 			beforeEach(done => {
 				const unconfirmedSignatures = Multisignature.__get__(
-					'__private.unconfirmedSignatures'
+					'__scope.unconfirmedSignatures'
 				);
 				unconfirmedSignatures[sender.address] = true;
 				done();
@@ -714,15 +723,15 @@ describe('multisignature', () => {
 		describe('when transaction is not pending confirmation', () => {
 			beforeEach(done => {
 				const unconfirmedSignatures = Multisignature.__get__(
-					'__private.unconfirmedSignatures'
+					'__scope.unconfirmedSignatures'
 				);
 				unconfirmedSignatures[sender.address] = false;
 				done();
 			});
 
-			it('should set __private.unconfirmedSignatures[sender.address] = true', done => {
+			it('should set __scope.unconfirmedSignatures[sender.address] = true', done => {
 				const unconfirmedSignatures = Multisignature.__get__(
-					'__private.unconfirmedSignatures'
+					'__scope.unconfirmedSignatures'
 				);
 				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(unconfirmedSignatures)
@@ -732,21 +741,21 @@ describe('multisignature', () => {
 				});
 			});
 
-			it('should call library.logic.account.merge', done => {
+			it('should call __scope.logic.account.merge', done => {
 				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(accountMock.merge.calledOnce).to.be.true;
 					done();
 				});
 			});
 
-			it('should call library.logic.account.merge with sender.address', done => {
+			it('should call __scope.logic.account.merge with sender.address', done => {
 				multisignature.applyUnconfirmed(transaction, sender, async () => {
 					expect(accountMock.merge.calledWith(sender.address)).to.be.true;
 					done();
 				});
 			});
 
-			it('should call library.logic.account.merge with expected params', done => {
+			it('should call __scope.logic.account.merge with expected params', done => {
 				const expectedParams = {
 					u_membersPublicKeys: transaction.asset.multisignature.keysgroup,
 					u_multiMin: transaction.asset.multisignature.min,
@@ -758,7 +767,7 @@ describe('multisignature', () => {
 				});
 			});
 
-			describe('when library.logic.account.merge fails', () => {
+			describe('when __scope.logic.account.merge fails', () => {
 				beforeEach(() => accountMock.merge.callsArgWith(2, 'merge error'));
 
 				afterEach(() => accountMock.merge.resetHistory());
@@ -772,7 +781,7 @@ describe('multisignature', () => {
 				});
 			});
 
-			describe('when library.logic.account.merge succeeds', () => {
+			describe('when __scope.logic.account.merge succeeds', () => {
 				it('should call callback with error = null', done => {
 					multisignature.applyUnconfirmed(transaction, sender, err => {
 						expect(err).to.be.not.exist;
@@ -796,22 +805,22 @@ describe('multisignature', () => {
 			multisignature.undoUnconfirmed(transaction, sender, done);
 		});
 
-		it('should set __private.unconfirmedSignatures[sender.address] = false', async () => {
+		it('should set __scope.unconfirmedSignatures[sender.address] = false', async () => {
 			const unconfirmedSignatures = Multisignature.__get__(
-				'__private.unconfirmedSignatures'
+				'__scope.unconfirmedSignatures'
 			);
 			return expect(unconfirmedSignatures)
 				.to.contain.property(sender.address)
 				.equal(false);
 		});
 
-		it('should call library.logic.account.merge', async () =>
+		it('should call __scope.logic.account.merge', async () =>
 			expect(accountMock.merge.calledOnce).to.be.true);
 
-		it('should call library.logic.account.merge with sender.address', async () =>
+		it('should call __scope.logic.account.merge with sender.address', async () =>
 			expect(accountMock.merge.calledWith(sender.address)).to.be.true);
 
-		it('should call library.logic.account.merge with expected params', async () => {
+		it('should call __scope.logic.account.merge with expected params', async () => {
 			const expectedParams = {
 				u_membersPublicKeys: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
@@ -822,7 +831,7 @@ describe('multisignature', () => {
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
-		describe('when library.logic.account.merge fails', () => {
+		describe('when __scope.logic.account.merge fails', () => {
 			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 				done();
@@ -834,7 +843,7 @@ describe('multisignature', () => {
 				}));
 		});
 
-		describe('when library.logic.account.merge succeeds', () => {
+		describe('when __scope.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', async () =>
 				multisignature.applyConfirmed(transaction, dummyBlock, sender, err => {
 					expect(err).to.be.null;
@@ -1116,8 +1125,8 @@ describe('multisignature', () => {
 		});
 
 		it('should use the correct format to validate against', async () => {
-			const library = Multisignature.__get__('library');
-			const schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+			const __scope = Multisignature.__get__('__scope');
+			const schemaSpy = sinonSandbox.spy(__scope.schema, 'validate');
 			multisignature.objectNormalize(transaction);
 			expect(schemaSpy.calledOnce).to.equal(true);
 			expect(

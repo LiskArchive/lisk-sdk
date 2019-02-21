@@ -75,7 +75,7 @@ function createValidBlock(library, transactions, cb) {
 
 function getBlocks(library, cb) {
 	library.sequence.add(sequenceCb => {
-		library.storage.adapter.db
+		library.components.storage.adapter.db
 			.query('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
 			.then(rows => {
 				sequenceCb();
@@ -231,13 +231,13 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 
 function getAccountFromDb(library, address) {
 	return Promise.all([
-		library.storage.adapter.execute(
+		library.components.storage.adapter.execute(
 			`SELECT * FROM mem_accounts where address = '${address}'`
 		),
-		library.storage.adapter.execute(
+		library.components.storage.adapter.execute(
 			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`
 		),
-		library.storage.adapter.db.query(
+		library.components.storage.adapter.db.query(
 			`SELECT * FROM mem_accounts2u_multisignatures where "accountId" = '${address}'`
 		),
 	]).then(res => {

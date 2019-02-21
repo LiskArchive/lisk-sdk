@@ -90,7 +90,7 @@ describe('account', () => {
 			new Account(
 				storageStub,
 				modulesLoader.scope.schema,
-				modulesLoader.scope.logger,
+				modulesLoader.scope.components.logger,
 				(err, lgAccount) => {
 					accountLogic = lgAccount;
 					library = Account.__get__('library');
@@ -106,7 +106,7 @@ describe('account', () => {
 			expect(accountLogic.scope.storage).to.eql(storageStub));
 
 		it('should attach logger to library variable', async () =>
-			expect(library.logger).to.eql(modulesLoader.scope.logger));
+			expect(library.logger).to.eql(modulesLoader.scope.components.logger));
 	});
 
 	describe('objectNormalize', () => {

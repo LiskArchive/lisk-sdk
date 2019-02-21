@@ -51,7 +51,7 @@ function NodeController(scope) {
 	library = {
 		components: scope.components,
 		modules: scope.modules,
-		storage: scope.storage,
+		storage: scope.components.storage,
 		config: scope.config,
 		build: scope.build,
 		lastCommit: scope.lastCommit,

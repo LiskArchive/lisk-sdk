@@ -165,17 +165,21 @@ const unconfirmedTransaction = {
 
 describe('transaction', () => {
 	let transactionLogic;
+	let accountLogic;
 	let accountModule;
 
 	before(done => {
-		const transfer = new Transfer(
-			modulesLoader.scope.logger,
-			modulesLoader.scope.schema
-		);
+		const transfer = new Transfer({
+			components: {
+				logger: modulesLoader.scope.components.logger,
+			},
+			schema: modulesLoader.scope.schema,
+		});
 		application.init(
 			{ sandbox: { name: 'lisk_test_logic_transactions' } },
 			(_err, scope) => {
 				transactionLogic = scope.logic.transaction;
+				accountLogic = scope.logic.account;
 				accountModule = scope.modules.accounts;
 				transfer.bind(accountModule);
 				transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
@@ -1427,7 +1431,15 @@ describe('transaction', () => {
 		it('should attach VOTE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.VOTE,
-				new Vote()
+				new Vote({
+					components: {
+						logger: modulesLoader.logger,
+					},
+					schema: modulesLoader.scope.schema,
+					logic: {
+						account: accountLogic,
+					},
+				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Vote);
 		});
@@ -1435,7 +1447,12 @@ describe('transaction', () => {
 		it('should attach SEND transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.SEND,
-				new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema)
+				new Transfer({
+					components: {
+						logger: modulesLoader.scope.components.logger,
+					},
+					schema: modulesLoader.scope.schema,
+				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Transfer);
 		});
@@ -1443,7 +1460,9 @@ describe('transaction', () => {
 		it('should attach DELEGATE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.DELEGATE,
-				new Delegate()
+				new Delegate({
+					schema: modulesLoader.scope.schema,
+				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Delegate);
 		});
@@ -1451,7 +1470,12 @@ describe('transaction', () => {
 		it('should attach SIGNATURE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.SIGNATURE,
-				new Signature()
+				new Signature({
+					components: {
+						logger: modulesLoader.logger,
+					},
+					schema: modulesLoader.scope.schema,
+				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Signature);
 		});
@@ -1459,7 +1483,13 @@ describe('transaction', () => {
 		it('should attach MULTI transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.MULTI,
-				new Multisignature()
+				new Multisignature({
+					components: {
+						logger: modulesLoader.logger,
+					},
+					logic: {},
+					schema: modulesLoader.scope.schema,
+				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Multisignature);
 		});
@@ -1467,7 +1497,13 @@ describe('transaction', () => {
 		it('should attach DAPP transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.DAPP,
-				new Dapp()
+				new Dapp({
+					components: {
+						storage: modulesLoader.storage,
+						logger: modulesLoader.logger,
+					},
+					schema: modulesLoader.scope.schema,
+				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Dapp);
 		});
@@ -1475,7 +1511,12 @@ describe('transaction', () => {
 		it('should attach IN_TRANSFER transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.IN_TRANSFER,
-				new InTransfer()
+				new InTransfer({
+					components: {
+						storage: modulesLoader.storage,
+					},
+					schema: modulesLoader.scope.schema,
+				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(InTransfer);
 		});
@@ -1483,7 +1524,13 @@ describe('transaction', () => {
 		it('should attach OUT_TRANSFER transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				transactionTypes.OUT_TRANSFER,
-				new OutTransfer()
+				new OutTransfer({
+					components: {
+						storage: modulesLoader.storage,
+						logger: modulesLoader.logger,
+					},
+					schema: modulesLoader.scope.schema,
+				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(OutTransfer);
 		});
