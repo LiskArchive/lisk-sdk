@@ -222,6 +222,134 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 		});
+
+		describe('P2P.send', () => {
+			describe('P2P.send when peers are at same height', () => {
+				let collectedMessages: Array<any> = [];
+
+				beforeEach(async () => {
+					collectedMessages = [];
+					p2pNodeList.forEach(p2p => {
+						p2p.on('messageReceived', message => {
+							collectedMessages.push({
+								nodePort: p2p.nodeInfo.wsPort,
+								message,
+							});
+						});
+					});
+				});
+
+				it('should send messages to subset of peers within the network; should reach multiple peers with even distribution', async () => {
+					const TOTAL_SENDS = 100;
+					const randomPeerIndex = Math.floor(
+						Math.random() * NETWORK_PEER_COUNT,
+					);
+					const randomP2PNode = p2pNodeList[randomPeerIndex];
+					const nodePortToMessagesMap: any = {};
+
+					const expectedAverageMessagesPerNode = TOTAL_SENDS;
+					const expectedMessagesLowerBound =
+						expectedAverageMessagesPerNode * 0.5;
+					const expectedMessagesUpperBound =
+						expectedAverageMessagesPerNode * 1.5;
+
+					for (let i = 0; i < TOTAL_SENDS; i++) {
+						randomP2PNode.send({ event: 'bar', data: i });
+					}
+					await wait(100);
+
+					collectedMessages.forEach((receivedMessageData: any) => {
+						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+						}
+						nodePortToMessagesMap[receivedMessageData.nodePort].push(
+							receivedMessageData,
+						);
+					});
+
+					Object.values(nodePortToMessagesMap).forEach(
+						(receivedMessages: any) => {
+							expect(receivedMessages).to.be.an('array');
+							expect(receivedMessages.length).to.be.greaterThan(
+								expectedMessagesLowerBound,
+							);
+							expect(receivedMessages.length).to.be.lessThan(
+								expectedMessagesUpperBound,
+							);
+						},
+					);
+				});
+			});
+
+			describe('P2P.send when peers are at different heights', () => {
+				let collectedMessages: Array<any> = [];
+				const randomPeerIndex = Math.floor(Math.random() * NETWORK_PEER_COUNT);
+				let randomP2PNode: any;
+
+				beforeEach(async () => {
+					collectedMessages = [];
+					randomP2PNode = p2pNodeList[randomPeerIndex];
+					p2pNodeList.forEach(async p2p => {
+						p2p.on('messageReceived', message => {
+							collectedMessages.push({
+								nodePort: p2p.nodeInfo.wsPort,
+								message,
+							});
+						});
+					});
+				});
+
+				it('should send messages to subset of peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
+					const TOTAL_SENDS = 100;
+
+					const nodePortToMessagesMap: any = {};
+					p2pNodeList.forEach(p2p => {
+						p2p.applyNodeInfo({
+							os: platform(),
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: p2p.nodeInfo.version,
+							wsPort: p2p.nodeInfo.wsPort,
+							height: 1000 + (p2p.nodeInfo.wsPort % 5000),
+							options: p2p.nodeInfo.options,
+						});
+					});
+					await wait(200);
+
+					const expectedAverageMessagesPerNode = TOTAL_SENDS;
+					const expectedMessagesLowerBound =
+						expectedAverageMessagesPerNode * 0.5;
+					const expectedMessagesUpperBound =
+						expectedAverageMessagesPerNode * 1.5;
+
+					for (let i = 0; i < TOTAL_SENDS; i++) {
+						randomP2PNode.send({ event: 'bar', data: i });
+					}
+					await wait(100);
+
+					collectedMessages.forEach((receivedMessageData: any) => {
+						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+						}
+						nodePortToMessagesMap[receivedMessageData.nodePort].push(
+							receivedMessageData,
+						);
+					});
+
+					Object.values(nodePortToMessagesMap).forEach(
+						(receivedMessages: any) => {
+							expect(receivedMessages).to.be.an('array');
+							expect(receivedMessages.length).to.be.greaterThan(
+								expectedMessagesLowerBound,
+							);
+							expect(receivedMessages.length).to.be.lessThan(
+								expectedMessagesUpperBound,
+							);
+						},
+					);
+				});
+			});
+		});
 	});
 
 	describe('Fully connected network: Nodes are started gradually, one at a time. The seedPeers list of each node contains the previously launched node', () => {
