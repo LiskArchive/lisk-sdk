@@ -675,9 +675,7 @@ describe('Round', () => {
 	});
 
 	describe('performRoundSnapshot()', () => {
-		beforeEach('beforeEach performRoundSnapshot', () =>
-			RoundEntity.clearRoundSnapshot()
-		);
+		beforeEach('performRoundSnapshot', () => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with no parameters', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
@@ -726,7 +724,7 @@ describe('Round', () => {
 	});
 
 	describe('checkSnapshotAvailability()', () => {
-		beforeEach('beforeEach checkSnapshotAvailability', () =>
+		beforeEach('checkSnapshotAvailability', () =>
 			RoundEntity.clearRoundSnapshot()
 		);
 
@@ -798,9 +796,7 @@ describe('Round', () => {
 	});
 
 	describe('countRoundSnapshot()', () => {
-		beforeEach('beforeEach countRoundSnapshot', () =>
-			RoundEntity.clearRoundSnapshot()
-		);
+		beforeEach('countRoundSnapshot', () => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with one parameter', async () => {
 			// Perform round snapshot
@@ -855,9 +851,7 @@ describe('Round', () => {
 	});
 
 	describe('getDelegatesSnapshot()', () => {
-		beforeEach('beforeEach performVotesSnapshot', () =>
-			RoundEntity.clearVotesSnapshot()
-		);
+		beforeEach('performVotesSnapshot', () => RoundEntity.clearVotesSnapshot());
 
 		it('should reject with error if the called without performing the snapshot', async () =>
 			expect(RoundEntity.getDelegatesSnapshot(10)).to.be.rejectedWith(
@@ -977,9 +971,7 @@ describe('Round', () => {
 	});
 
 	describe('performVotesSnapshot()', () => {
-		beforeEach('beforeEach performVotesSnapshot', () =>
-			RoundEntity.clearVotesSnapshot()
-		);
+		beforeEach('performVotesSnapshot', () => RoundEntity.clearVotesSnapshot());
 
 		it('should use the correct SQL file with no parameters', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
@@ -1046,9 +1038,7 @@ describe('Round', () => {
 	});
 
 	describe('restoreRoundSnapshot()', () => {
-		beforeEach('beforeEach restoreRoundSnapshot', () =>
-			RoundEntity.clearRoundSnapshot()
-		);
+		beforeEach('restoreRoundSnapshot', () => RoundEntity.clearRoundSnapshot());
 
 		it('should reject with error if the called without performing the snapshot', async () =>
 			expect(RoundEntity.restoreRoundSnapshot()).to.be.rejectedWith(
@@ -1104,9 +1094,7 @@ describe('Round', () => {
 	});
 
 	describe('restoreVotesSnapshot()', () => {
-		beforeEach('beforeEach restoreVotesSnapshot', () =>
-			RoundEntity.clearVotesSnapshot()
-		);
+		beforeEach('restoreVotesSnapshot', () => RoundEntity.clearVotesSnapshot());
 
 		it('should reject with error if the called without performing the snapshot', async () =>
 			expect(RoundEntity.restoreVotesSnapshot()).to.be.rejectedWith(
