@@ -831,12 +831,15 @@ Chain.prototype.deleteLastBlock = function(cb) {
 						// Set previous block as our new last block
 						lastBlock = modules.blocks.lastBlock.set(previousBlock);
 					}
-					return setImmediate(seriesCb, err);
+					return seriesCb(err);
 				});
 			},
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				components.system.update(seriesCb);
+				return components.system
+					.update()
+					.then(() => seriesCb())
+					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
@@ -852,7 +855,7 @@ Chain.prototype.deleteLastBlock = function(cb) {
 							library.logger.error('Error adding transactions', err);
 						}
 						deletedBlockTransactions = null;
-						return setImmediate(seriesCb);
+						return seriesCb();
 					}
 				);
 			},
