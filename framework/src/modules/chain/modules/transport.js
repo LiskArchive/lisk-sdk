@@ -60,8 +60,8 @@ __private.messages = {};
 class Transport {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			bus: scope.bus,
 			schema: scope.schema,
 			network: scope.network,
@@ -92,7 +92,7 @@ class Transport {
 			scope.config.forging.force,
 			scope.logic.peers,
 			scope.logic.transaction,
-			scope.logger
+			scope.components.logger
 		);
 
 		setImmediate(cb, null, self);

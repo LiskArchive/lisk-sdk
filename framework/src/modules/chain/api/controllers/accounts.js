@@ -36,7 +36,7 @@ let blockReward;
  * @todo Add description of AccountsController
  */
 function AccountsController(scope) {
-	storage = scope.storage;
+	storage = scope.components.storage;
 	blockReward = new BlockReward();
 }
 

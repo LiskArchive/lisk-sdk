@@ -99,7 +99,7 @@ describe('expire transactions', () => {
 
 		// Set hourInSeconds to zero to test multi-signature transaction expiry
 		transactionPool.hourInSeconds = 0;
-		queries = new QueriesHelper(lib, lib.storage);
+		queries = new QueriesHelper(lib, lib.components.storage);
 	});
 
 	after('reset states', done => {

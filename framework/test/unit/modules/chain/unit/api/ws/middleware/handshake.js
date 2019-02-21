@@ -42,6 +42,9 @@ describe('Handshake', () => {
 			nonce: validNodeNonce,
 			blackListedPeers: ['9.9.9.9'],
 		},
+		components: {
+			logger: __testContext.logger,
+		},
 	};
 	let validHeaders;
 

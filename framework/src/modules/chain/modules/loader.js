@@ -57,8 +57,8 @@ __private.retries = 5;
 class Loader {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			network: scope.network,
 			schema: scope.schema,
 			sequence: scope.sequence,

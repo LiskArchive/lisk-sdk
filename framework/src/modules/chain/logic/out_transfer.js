@@ -18,13 +18,11 @@ const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 
-let modules;
-let library;
 const { FEES } = global.constants;
 const exceptions = global.exceptions;
-const __private = {};
 
-__private.unconfirmedOutTansfers = {};
+const __scope = {};
+__scope.unconfirmedOutTansfers = {};
 
 /**
  * Main OutTransfer logic. Initializes library.
@@ -32,18 +30,21 @@ __private.unconfirmedOutTansfers = {};
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @param {ZSchema} schema
- * @param {Object} logger
- * @param {Storage} storage
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {Storage} scope.components.storage
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
 class OutTransfer {
-	constructor(storage, schema, logger) {
-		library = {
+	constructor({ components: { storage }, schema }) {
+		__scope.components = {
 			storage,
-			schema,
-			logger,
 		};
+		__scope.schema = schema;
+		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -55,10 +56,10 @@ class OutTransfer {
  * @param {Accounts} accounts
  * @todo Add description for the params
  */
-OutTransfer.prototype.bind = function(accounts, blocks) {
-	modules = {
+// TODO: Remove this method as modules will be loaded prior to trs logic.
+OutTransfer.prototype.bind = function(accounts) {
+	__scope.modules = {
 		accounts,
-		blocks,
 	};
 };
 
@@ -81,33 +82,39 @@ OutTransfer.prototype.calculateFee = function() {
  * @todo Add description for the params
  */
 OutTransfer.prototype.verify = function(transaction, sender, cb) {
-	const lastBlock = modules.blocks.lastBlock.get();
-	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
-		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
-	}
+	return __scope.components.storage.entities.Block.get(
+		{},
+		{ sort: 'height:desc', limit: 1 }
+	).then(lastBlock => {
+		lastBlock = lastBlock[0];
 
-	if (!transaction.recipientId) {
-		return setImmediate(cb, 'Invalid recipient');
-	}
+		if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
+			return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
+		}
 
-	const amount = new Bignum(transaction.amount);
-	if (amount.isLessThanOrEqualTo(0)) {
-		return setImmediate(cb, 'Invalid transaction amount');
-	}
+		if (!transaction.recipientId) {
+			return setImmediate(cb, 'Invalid recipient');
+		}
 
-	if (!transaction.asset || !transaction.asset.outTransfer) {
-		return setImmediate(cb, 'Invalid transaction asset');
-	}
+		const amount = new Bignum(transaction.amount);
+		if (amount.isLessThanOrEqualTo(0)) {
+			return setImmediate(cb, 'Invalid transaction amount');
+		}
 
-	if (!/^[0-9]+$/.test(transaction.asset.outTransfer.dappId)) {
-		return setImmediate(cb, 'Invalid outTransfer dappId');
-	}
+		if (!transaction.asset || !transaction.asset.outTransfer) {
+			return setImmediate(cb, 'Invalid transaction asset');
+		}
 
-	if (!/^[0-9]+$/.test(transaction.asset.outTransfer.transactionId)) {
-		return setImmediate(cb, 'Invalid outTransfer transactionId');
-	}
+		if (!/^[0-9]+$/.test(transaction.asset.outTransfer.dappId)) {
+			return setImmediate(cb, 'Invalid outTransfer dappId');
+		}
 
-	return setImmediate(cb, null, transaction);
+		if (!/^[0-9]+$/.test(transaction.asset.outTransfer.transactionId)) {
+			return setImmediate(cb, 'Invalid outTransfer transactionId');
+		}
+
+		return setImmediate(cb, null, transaction);
+	});
 };
 
 /**
@@ -121,7 +128,7 @@ OutTransfer.prototype.verify = function(transaction, sender, cb) {
  * @todo Add description for the params
  */
 OutTransfer.prototype.process = function(transaction, sender, cb) {
-	library.storage.entities.Transaction.isPersisted(
+	__scope.components.storage.entities.Transaction.isPersisted(
 		{
 			id: transaction.asset.outTransfer.dappId,
 			type: transactionTypes.DAPP,
@@ -137,7 +144,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 			}
 
 			if (
-				__private.unconfirmedOutTansfers[
+				__scope.unconfirmedOutTansfers[
 					transaction.asset.outTransfer.transactionId
 				]
 			) {
@@ -149,7 +156,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 				);
 			}
 
-			return library.storage.entities.Transaction.isPersisted({
+			return __scope.components.storage.entities.Transaction.isPersisted({
 				id: transaction.asset.outTransfer.transactionId,
 				type: transactionTypes.OUT_TRANSFER,
 			})
@@ -213,18 +220,18 @@ OutTransfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.unconfirmedOutTansfers[
+	__scope.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = false;
 
-	modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: transaction.amount,
@@ -258,17 +265,17 @@ OutTransfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	__private.unconfirmedOutTansfers[
+	__scope.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = true;
 
-	modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
-			return modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: -transaction.amount,
@@ -293,7 +300,7 @@ OutTransfer.prototype.undoConfirmed = function(
  * @todo Add description for the params
  */
 OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
-	__private.unconfirmedOutTansfers[
+	__scope.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = true;
 	return setImmediate(cb);
@@ -309,7 +316,7 @@ OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @todo Add description for the params
  */
 OutTransfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
-	__private.unconfirmedOutTansfers[
+	__scope.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = false;
 	return setImmediate(cb);
@@ -344,13 +351,13 @@ OutTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 OutTransfer.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset.outTransfer,
 		OutTransfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate outTransfer schema: ${library.schema
+		throw `Failed to validate outTransfer schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

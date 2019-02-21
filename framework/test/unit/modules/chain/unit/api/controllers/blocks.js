@@ -47,9 +47,8 @@ describe('blocks/api', () => {
 		blockStub = sinonSandbox.stub();
 
 		new BlocksController({
-			storage: storageStub,
+			components: { storage: storageStub, logger: loggerSpy },
 			logic: blockStub,
-			logger: loggerSpy,
 		});
 		library = BlocksController.__get__('library');
 		_list = BlocksController.__get__('_list');

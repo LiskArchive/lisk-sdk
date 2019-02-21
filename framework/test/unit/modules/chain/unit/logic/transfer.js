@@ -15,6 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const rewire = require('rewire');
 const randomstring = require('randomstring');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const modulesLoader = require('../../../../../common/modules_loader');
@@ -22,7 +23,8 @@ const application = require('../../../../../common/application');
 const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
-const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
+
+const Transfer = rewire('../../../../../../src/modules/chain/logic/transfer');
 
 const { FEES, ADDITIONAL_DATA } = __testContext.config.constants;
 const validPassphrase =
@@ -110,10 +112,13 @@ describe('transfer', () => {
 			{ sandbox: { name: 'lisk_test_logic_transfer' } },
 			(_err, scope) => {
 				accountModule = scope.modules.accounts;
-				transfer = new Transfer(
-					modulesLoader.scope.logger,
-					modulesLoader.scope.schema
-				);
+
+				transfer = new Transfer({
+					components: {
+						logger: modulesLoader.scope.components.logger,
+					},
+					schema: modulesLoader.scope.schema,
+				});
 				transferBindings = {
 					account: accountModule,
 				};
@@ -127,6 +132,25 @@ describe('transfer', () => {
 
 	after(done => {
 		application.cleanup(done);
+	});
+
+	describe('constructor', () => {
+		let __scope;
+
+		beforeEach(done => {
+			__scope = Transfer.__get__('__scope');
+			done();
+		});
+
+		it('should assign logger to __scope.components', () => {
+			return expect(__scope.components.logger).to.equal(
+				modulesLoader.scope.components.logger
+			);
+		});
+
+		it('should assign schema to __scope', () => {
+			return expect(__scope.schema).to.equal(modulesLoader.scope.schema);
+		});
 	});
 
 	describe('bind', () => {
