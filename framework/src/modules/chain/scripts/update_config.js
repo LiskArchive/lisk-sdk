@@ -31,7 +31,7 @@ const JSONHistory = require('../helpers/json_history');
 const AppConfig = require('../helpers/config');
 const packageJSON = require('../../../../../package.json');
 
-const rootPath = path.resolve(path.dirname(__filename), '../');
+const rootPath = path.resolve(path.dirname(__filename), '../../../../../');
 const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
 const loadJSONFileIfExists = filePath => {
 	if (fs.existsSync(filePath)) {
@@ -86,6 +86,24 @@ const unifiedNewConfig = _.merge({}, defaultConfig, networkConfig);
 const userConfig = loadJSONFileIfExists(configFilePath);
 
 const history = new JSONHistory('lisk config file', console);
+
+const moveElement = (config, pathFrom, pathTo) => {
+	config = _.set(config, pathTo, _.get(config, pathFrom));
+	config = _.omit(config, pathFrom);
+	return config;
+};
+
+const moveChildElements = (config, pathFrom, pathTo) => {
+	config = _.set(config, pathTo, _.get(config, pathFrom));
+	config = _.omit(config, pathFrom);
+	return config;
+};
+
+const moveKeys = (config, keys, pathTo) => {
+	config = _.set(config, pathTo, _.pick(config, keys));
+	config = _.omit(config, keys);
+	return config;
+};
 
 history.version('0.9.x');
 history.version('1.0.0-rc.1', version => {
@@ -229,6 +247,55 @@ history.version('1.2.0-rc.x', version => {
 		config.peers.list = config.peers.list.filter(
 			peer => peer.ip && peer.wsPort
 		);
+		return config;
+	});
+});
+
+history.version('1.6.0-rc.0', version => {
+	version.change('add structure for logger component', config =>
+		moveKeys(
+			config,
+			['fileLogLevel', 'logFileName', 'consoleLogLevel'],
+			'components.logger'
+		)
+	);
+
+	version.change('add structure for storage component', config =>
+		moveChildElements(config, 'db', 'components.storage')
+	);
+
+	version.change('add structure for cache component', config => {
+		config = moveChildElements(config, 'redis', 'components.cache');
+		config = _.set(config, 'components.cache.enabled', config.cacheEnabled);
+		delete config.cacheEnabled;
+		return _.omit(config, 'redis');
+	});
+
+	version.change('add structure for http_api module', config => {
+		config = moveChildElements(config, 'api', 'modules.http_api');
+		config = moveElement(config, 'trustProxy', 'modules.http_api.trustProxy');
+		config = moveElement(config, 'httpPort', 'modules.http_api.httpPort');
+		// Remove address in last step
+		config = _.set(config, 'modules.http_api.address', config.address);
+		return config;
+	});
+
+	version.change('add structure for chain module', config => {
+		config = moveElement(config, 'broadcasts', 'modules.chain.broadcasts');
+		config = moveElement(config, 'transactions', 'modules.chain.transactions');
+		config = moveElement(config, 'forging', 'modules.chain.forging');
+		config = moveElement(config, 'syncing', 'modules.chain.syncing');
+		config = moveElement(config, 'loading', 'modules.chain.loading');
+
+		// Future network module
+		config = moveElement(config, 'peers', 'modules.chain.network');
+		config = moveElement(config, 'wsPort', 'modules.chain.network.wsPort');
+		config = moveElement(config, 'address', 'modules.chain.network.address');
+		return config;
+	});
+
+	version.change('remove topAccounts', config => {
+		delete config.topAccounts;
 		return config;
 	});
 });
