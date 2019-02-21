@@ -28,7 +28,7 @@ const transactionTypes = require('../../../../../../../src/modules/chain/helpers
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum.js');
 const Transfer = require('../../../../../../../src/modules/chain/logic/transfer');
 
-const Vote = rewire('../../../../../../src/modules/chain/logic/vote');
+const Vote = rewire('../../../../../../../src/modules/chain/logic/vote');
 
 const { FEES, MAX_VOTES_PER_TRANSACTION } = __testContext.config.constants;
 const validPassphrase =
