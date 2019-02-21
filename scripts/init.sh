@@ -31,7 +31,7 @@ templatesRoot=(
 	"scripts"
 	"test"
 	".npmignore"
-	".npmrc"
+	".npmrc-ts"
 	".nycrc"
 	".prettierignore"
 	".prettierrc.json"
