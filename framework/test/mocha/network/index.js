@@ -32,7 +32,7 @@ _.range(TOTAL_PEERS).map(index => {
 describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
 	const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
 	const network = new Network(configurations);
-	const suiteFolder = 'framework/test/network/scenarios/';
+	const suiteFolder = 'framework/test/mocha/network/scenarios/';
 	const filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
 
 	before(() => {
@@ -53,7 +53,10 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 
 	describe('launching Network test scenarios', () => {
 		filepaths.forEach(filepath => {
-			const currentFilePath = filepath.replace('framework/test/network', '.');
+			const currentFilePath = filepath.replace(
+				'framework/test/mocha/network',
+				'.'
+			);
 			// eslint-disable-next-line import/no-dynamic-require
 			const test = require(currentFilePath);
 			test(
