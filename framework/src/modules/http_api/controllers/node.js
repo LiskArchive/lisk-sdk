@@ -127,22 +127,28 @@ NodeController.getStatus = async (context, next) => {
 			{},
 			{ sort: 'height:desc', limit: 1 }
 		);
+
 		const { height } = lastBlock;
+		const consensus =
+			(await library.channel.invoke('chain:getLastConsensus')) || 0;
+		const loaded = await library.channel.invoke('chain:loaderLoaded');
+		const syncing = await library.channel.invoke('chain:loaderSyncing');
+		const transactions = await library.channel.invoke(
+			'chain:getTransactionsCount'
+		);
 
 		const data = {
 			broadhash: library.components.system.headers.broadhash,
-			consensus: (await library.channel.invoke('chain:getLastConsensus')) || 0,
+			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch: slots.getTime(),
 			height,
-			loaded: await library.channel.invoke('chain:loaderLoaded'),
+			loaded,
 			networkHeight: networkHeight || 0,
-			syncing: await library.channel.invoke('chain:loaderSyncing'),
+			syncing,
+			transactions,
 		};
 
-		data.transactions = await library.channel.invoke(
-			'chain:getTransactionsCount'
-		);
 		return next(null, data);
 	} catch (err) {
 		return next(err);

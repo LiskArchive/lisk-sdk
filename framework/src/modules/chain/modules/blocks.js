@@ -59,7 +59,6 @@ class Blocks {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
-			network: scope.network,
 		};
 
 		// Initialize submodules with library content

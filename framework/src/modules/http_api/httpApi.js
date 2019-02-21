@@ -64,7 +64,6 @@ module.exports = class HttpApi {
 			'system'
 		);
 		const system = createSystemComponent(systemConfig, this.logger, storage);
-
 		// Setup scope
 		this.scope = {
 			components: {
@@ -78,7 +77,6 @@ module.exports = class HttpApi {
 		};
 
 		await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
-
 		await this._bootstrapApi();
 		await this._startListening();
 		this._subscribeToEvents();
@@ -124,7 +122,6 @@ module.exports = class HttpApi {
 			this.wssServer = require('socket.io')(this.httpsServer);
 		}
 
-		// TODO: Convert to async function
 		await promisify(httpApi.bootstrapSwagger)(
 			expressApp,
 			this.options.config,
