@@ -56,11 +56,11 @@ describe('multisignatures', () => {
 			debug: sinonSandbox.spy(),
 		};
 
-		stubs.networkIoSocketsEmit = sinonSandbox.stub();
 		stubs.schema = sinonSandbox.stub();
 		stubs.busMessage = sinonSandbox.stub();
 		stubs.balancesSequence = sinonSandbox.stub();
 		stubs.bind = sinonSandbox.stub();
+		stubs.channelPublish = sinonSandbox.stub();
 
 		attachAssetTypeStubResponse = { bind: stubs.bind };
 		stubs.attachAssetType = sinonSandbox
@@ -80,10 +80,10 @@ describe('multisignatures', () => {
 
 		stubs.logic.multisignature = new stubs.Multisignature(
 			stubs.schema,
-			stubs.network,
 			stubs.logic.transaction,
 			stubs.logic.account,
-			stubs.logger
+			stubs.logger,
+			stubs.channel
 		);
 		stubs.Multisignature.resetHistory();
 
@@ -97,7 +97,9 @@ describe('multisignatures', () => {
 					},
 				},
 			},
-			network: { io: { sockets: { emit: stubs.networkIoSocketsEmit } } },
+			channel: {
+				publish: stubs.channelPublish,
+			},
 			schema: stubs.schema,
 			bus: { message: stubs.busMessage },
 			balancesSequence: stubs.balancesSequence,
@@ -126,9 +128,9 @@ describe('multisignatures', () => {
 
 	describe('constructor', () => {
 		it('should assign params to library', async () => {
+			expect(library.channel).to.eql(validScope.channel);
 			expect(library.logger).to.eql(validScope.components.logger);
 			expect(library.storage).to.eql(validScope.components.storage);
-			expect(library.network).to.eql(validScope.network);
 			expect(library.schema).to.eql(validScope.schema);
 			expect(library.bus).to.eql(validScope.bus);
 			expect(library.balancesSequence).to.eql(validScope.balancesSequence);
@@ -143,10 +145,10 @@ describe('multisignatures', () => {
 			expect(stubs.Multisignature).to.have.been.calledOnce;
 			return expect(stubs.Multisignature).to.have.been.calledWith(
 				validScope.schema,
-				validScope.network,
 				validScope.logic.transaction,
 				validScope.logic.account,
-				validScope.components.logger
+				validScope.components.logger,
+				validScope.channel
 			);
 		});
 
@@ -633,12 +635,12 @@ describe('multisignatures', () => {
 					return expect(data.transaction.ready).to.eql('ready');
 				});
 
-				it('should emit events with proper data', async () => {
-					expect(stubs.networkIoSocketsEmit).to.have.been.calledWith(
-						'multisignatures/signature/change',
+				it('should publish events with proper data using channel', async () => {
+					expect(stubs.channelPublish).to.have.been.calledWith(
+						'chain:multisignatures:signature:change',
 						data.transaction
 					);
-					expect(stubs.networkIoSocketsEmit).to.have.been.calledOnce;
+					expect(stubs.channelPublish).to.have.been.calledOnce;
 					expect(stubs.busMessage).to.have.been.calledWith(
 						'signature',
 						data.signature,

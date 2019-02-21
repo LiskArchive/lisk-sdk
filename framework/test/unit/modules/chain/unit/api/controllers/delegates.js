@@ -107,10 +107,10 @@ describe('delegates/api', () => {
 		done();
 	});
 
-	afterEach(async () => {
+	afterEach(() => {
 		restoreAggregateBlocksReward();
 		restoreDelegateFormatter();
-		sinonSandbox.restore();
+		return sinonSandbox.restore();
 	});
 
 	describe('constructor', () => {
