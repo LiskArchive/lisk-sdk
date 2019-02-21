@@ -1,6 +1,6 @@
 {
 	"extends": ["lisk-base"],
-	"plugins": ["mocha", "chai-expect"],
+	"plugins": ["chai-expect"],
 	"rules": {
 		"camelcase": "off",
 		"chai-expect/missing-assertion": "error",

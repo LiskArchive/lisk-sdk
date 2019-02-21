@@ -1,6 +1,5 @@
 const path = require('path');
 const SocketCluster = require('socketcluster');
-const promisifyEvent = require('p-event');
 const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 const WsTransport = require('../api/ws/transport');
@@ -65,15 +64,19 @@ module.exports = async ({
 		logger.error(exitMessage);
 	});
 
-	return promisifyEvent(socketCluster, 'ready').then(() => {
-		logger.info('Socket Cluster ready for incoming connections');
+	return new Promise((resolve, reject) => {
+		socketCluster.once('ready', error => {
+			if (error) return reject(error);
 
-		socketCluster.listen = () => {
-			if (config.peers.enabled) {
-				new WsTransport(transport);
-			}
-		};
+			logger.info('Socket Cluster ready for incoming connections');
 
-		return socketCluster;
+			socketCluster.listen = () => {
+				if (config.peers.enabled) {
+					new WsTransport(transport);
+				}
+			};
+
+			return resolve(socketCluster);
+		});
 	});
 };

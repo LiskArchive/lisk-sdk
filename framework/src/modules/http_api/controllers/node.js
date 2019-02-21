@@ -81,7 +81,7 @@ NodeController.getConstants = async (context, next) => {
 		return next(null, {
 			build,
 			commit,
-			epoch: EPOCH_TIME,
+			epoch: new Date(EPOCH_TIME),
 			fees: {
 				send: FEES.SEND.toString(),
 				vote: FEES.VOTE.toString(),

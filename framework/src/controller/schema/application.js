@@ -10,11 +10,6 @@ module.exports = {
 		type: 'object',
 	},
 
-	constants: {
-		id: '#/app/constants',
-		type: 'object',
-	},
-
 	logger: {
 		$id: '#/app/logger',
 		type: 'object',

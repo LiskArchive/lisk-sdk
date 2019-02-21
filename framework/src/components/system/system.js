@@ -114,37 +114,35 @@ class System {
 	/**
 	 * Updates private broadhash and height values.
 	 *
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
+	 * @returns {Promise.<boolean, Error>}
 	 */
-	update(cb) {
-		return this.storage.entities.Block.get(
-			{},
-			{
-				limit: 5,
-				sort: 'height:desc',
-			}
-		)
-			.then(blocks => {
-				if (blocks.length <= 1) {
-					this.headers.broadhash = this.headers.nethash;
-					return setImmediate(cb);
+	async update() {
+		try {
+			const blocks = await this.storage.entities.Block.get(
+				{},
+				{
+					limit: 5,
+					sort: 'height:desc',
 				}
-				this.headers.height = blocks[0].height;
-				const seed = blocks.map(row => row.id).join('');
-				const newBroadhash = crypto
-					.createHash('sha256')
-					.update(seed, 'utf8')
-					.digest()
-					.toString('hex');
-				this.headers.broadhash = newBroadhash;
-				this.logger.debug('System headers', this.headers);
-				return setImmediate(cb);
-			})
-			.catch(err => {
-				this.logger.error(err.stack);
-				return setImmediate(cb, err);
-			});
+			);
+			if (blocks.length <= 1) {
+				this.headers.broadhash = this.headers.nethash;
+				return true;
+			}
+			this.headers.height = blocks[0].height;
+			const seed = blocks.map(row => row.id).join('');
+			const newBroadhash = crypto
+				.createHash('sha256')
+				.update(seed, 'utf8')
+				.digest()
+				.toString('hex');
+			this.headers.broadhash = newBroadhash;
+			this.logger.debug('System headers', this.headers);
+			return true;
+		} catch (err) {
+			this.logger.error(err.stack);
+			throw err;
+		}
 	}
 }
 

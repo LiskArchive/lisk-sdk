@@ -20,13 +20,12 @@ const dappCategories = require('../helpers/dapp_categories.js');
 const transactionTypes = require('../helpers/transaction_types');
 const Bignum = require('../helpers/bignum.js');
 
-let library;
 const { FEES } = global.constants;
-const __private = {};
 
-__private.unconfirmedNames = {};
-__private.unconfirmedLinks = {};
-__private.unconfirmedAscii = {};
+const __scope = {};
+__scope.unconfirmedNames = {};
+__scope.unconfirmedLinks = {};
+__scope.unconfirmedAscii = {};
 
 /**
  * Main dapp logic. Initializes library.
@@ -37,21 +36,22 @@ __private.unconfirmedAscii = {};
  * @requires bytebuffer
  * @requires valid
  * @requires helpers/dapp_categories
- * @param {Storage} storage
- * @param {Object} logger
- * @param {ZSchema} schema
- * @param {Object} network
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {Storage} scope.components.storage
+ * @param {logger} scope.components.logger
+ * @param {ZSchema} scope.schema
+ * @param {Object} scope.network
  * @todo Add description for the params
  */
 class DApp {
-	constructor(storage, logger, schema, network, channel) {
-		library = {
+	constructor({ components: { storage, logger }, schema, channel }) {
+		__scope.components = {
 			storage,
 			logger,
-			schema,
-			network,
-			channel,
 		};
+		__scope.schema = schema;
+		__scope.channel = channel;
 	}
 }
 
@@ -60,6 +60,7 @@ class DApp {
 /**
  * Binds scope.modules to private variable modules.
  */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
 DApp.prototype.bind = function() {};
 
 /**
@@ -201,7 +202,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		},
 	];
 
-	return library.storage.entities.Transaction.get(
+	return __scope.components.storage.entities.Transaction.get(
 		filter,
 		{ extended: true },
 		tx
@@ -227,7 +228,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 			return setImmediate(cb, null, transaction);
 		})
 		.catch(err => {
-			library.logger.error(err.stack);
+			__scope.components.logger.error(err.stack);
 			return setImmediate(cb, 'DApp#verify error');
 		});
 };
@@ -320,8 +321,8 @@ DApp.prototype.getBytes = function(transaction) {
  * @todo Add description for the function and the params
  */
 DApp.prototype.applyConfirmed = function(transaction, block, sender, cb) {
-	delete __private.unconfirmedNames[transaction.asset.dapp.name];
-	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
+	delete __scope.unconfirmedNames[transaction.asset.dapp.name];
+	delete __scope.unconfirmedLinks[transaction.asset.dapp.link];
 
 	return setImmediate(cb);
 };
@@ -351,19 +352,19 @@ DApp.prototype.undoConfirmed = function(transaction, block, sender, cb) {
  * @todo Add description for the params
  */
 DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
-	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
+	if (__scope.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}
 
 	if (
 		transaction.asset.dapp.link &&
-		__private.unconfirmedLinks[transaction.asset.dapp.link]
+		__scope.unconfirmedLinks[transaction.asset.dapp.link]
 	) {
 		return setImmediate(cb, 'Application link already exists');
 	}
 
-	__private.unconfirmedNames[transaction.asset.dapp.name] = true;
-	__private.unconfirmedLinks[transaction.asset.dapp.link] = true;
+	__scope.unconfirmedNames[transaction.asset.dapp.name] = true;
+	__scope.unconfirmedLinks[transaction.asset.dapp.link] = true;
 
 	return setImmediate(cb);
 };
@@ -378,8 +379,8 @@ DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @todo Add description for the params
  */
 DApp.prototype.undoUnconfirmed = function(transaction, sender, cb) {
-	delete __private.unconfirmedNames[transaction.asset.dapp.name];
-	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
+	delete __scope.unconfirmedNames[transaction.asset.dapp.name];
+	delete __scope.unconfirmedLinks[transaction.asset.dapp.link];
 
 	return setImmediate(cb);
 };
@@ -455,13 +456,13 @@ DApp.prototype.objectNormalize = function(transaction) {
 		}
 	});
 
-	const report = library.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset.dapp,
 		DApp.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate dapp schema: ${library.schema
+		throw `Failed to validate dapp schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
@@ -503,8 +504,8 @@ DApp.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 DApp.prototype.afterSave = function(transaction, cb) {
-	if (library) {
-		library.channel.publish('dapps:change');
+	if (__scope.channel) {
+		__scope.channel.publish('dapps:change');
 	}
 	return setImmediate(cb);
 };
