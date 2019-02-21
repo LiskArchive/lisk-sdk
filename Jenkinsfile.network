@@ -50,7 +50,7 @@ pipeline {
 	}
 	post {
 		always {
-			archiveArtifacts artifacts: 'test/network/logs/*.log', allowEmptyArchive: true
+			archiveArtifacts artifacts: 'framework/test/mocha/network/logs/*.log', allowEmptyArchive: true
 		}
 		failure {
 			script {
