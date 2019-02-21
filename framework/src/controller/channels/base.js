@@ -80,12 +80,6 @@ class BaseChannel {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 
-	// Register action available to your moduleAlias
-	// eslint-disable-next-line no-unused-vars, class-methods-use-this
-	action(actionName, cb) {
-		throw new TypeError('This method must be implemented in child classes. ');
-	}
-
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
 	// eslint-disable-next-line no-unused-vars, class-methods-use-this
