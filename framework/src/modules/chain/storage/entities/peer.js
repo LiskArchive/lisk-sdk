@@ -17,9 +17,11 @@
 const assert = require('assert');
 const _ = require('lodash');
 const { defaults, omit, pick } = require('lodash');
-const filterType = require('../utils/filter_types');
-const { stringToByte } = require('../utils/inputSerializers');
-const BaseEntity = require('./base_entity');
+const filterType = require('../../../../components/storage/utils/filter_types');
+const {
+	stringToByte,
+} = require('../../../../components/storage/utils/inputSerializers');
+const BaseEntity = require('../../../../components/storage/entities/base_entity');
 
 const defaultCreateValues = {};
 

@@ -15,23 +15,13 @@
 'use strict';
 
 const Storage = require('./storage');
-const {
-	Account,
-	Block,
-	Peer,
-	Round,
-	Transaction,
-	Migration,
-} = require('./entities');
+const { Account, Block, Transaction } = require('./entities');
 
 function createStorageComponent(options, logger) {
 	const storage = new Storage(options, logger);
 
 	storage.registerEntity('Account', Account);
 	storage.registerEntity('Block', Block);
-	storage.registerEntity('Migration', Migration);
-	storage.registerEntity('Peer', Peer);
-	storage.registerEntity('Round', Round);
 	storage.registerEntity('Transaction', Transaction);
 
 	return storage;
