@@ -791,11 +791,10 @@ describe('Round', () => {
 			expect(result).to.be.eql(null);
 		});
 
-		it('should reject with error if called without performing the snapshot', async () => {
-			await expect(RoundEntity.checkSnapshotAvailability(1)).to.be.rejectedWith(
+		it('should reject with error if called without performing the snapshot', async () =>
+			expect(RoundEntity.checkSnapshotAvailability(1)).to.be.rejectedWith(
 				'relation "mem_round_snapshot" does not exist'
-			);
-		});
+			));
 	});
 
 	describe('countRoundSnapshot()', () => {
