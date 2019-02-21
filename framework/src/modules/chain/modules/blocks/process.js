@@ -16,15 +16,10 @@
 
 const _ = require('lodash');
 const async = require('async');
-const {
-	Status: TransactionStatus,
-} = require('@liskhq/lisk-transactions');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots.js');
 
-const {
-	MAX_TRANSACTIONS_PER_BLOCK,
-	ACTIVE_DELEGATES,
-} = global.constants;
+const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
 const __private = {};
 let modules;
@@ -90,7 +85,7 @@ class Process {
  * @param {Object} block - Full normalized block
  * @param {function} cb - Callback function
  */
-__private.receiveBlock = function (block, cb) {
+__private.receiveBlock = function(block, cb) {
 	library.logger.info(
 		`Received new block id: ${block.id} height: ${
 			block.height
@@ -113,7 +108,7 @@ __private.receiveBlock = function (block, cb) {
  * @param {Object} block - Received block
  * @param {function} cb - Callback function
  */
-__private.receiveForkOne = function (block, lastBlock, cb) {
+__private.receiveForkOne = function(block, lastBlock, cb) {
 	let tmp_block = _.clone(block);
 
 	// Fork: Consecutive height but different previous block id
@@ -129,7 +124,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 	}
 	return async.series(
 		[
-			function (seriesCb) {
+			function(seriesCb) {
 				try {
 					tmp_block = library.logic.block.objectNormalize(tmp_block);
 				} catch (err) {
@@ -138,11 +133,11 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 				return setImmediate(seriesCb);
 			},
 			// Check valid slot
-			function (seriesCb) {
+			function(seriesCb) {
 				__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
 			},
 			// Check received block before any deletion
-			function (seriesCb) {
+			function(seriesCb) {
 				const check = modules.blocks.verify.verifyReceipt(tmp_block);
 
 				if (!check.verified) {
@@ -177,7 +172,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
  * @param {Object} block - Received block
  * @param {function} cb - Callback function
  */
-__private.receiveForkFive = function (block, lastBlock, cb) {
+__private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
 
 	// Fork: Same height and previous block id, but different block id
@@ -201,7 +196,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 	}
 	return async.series(
 		[
-			function (seriesCb) {
+			function(seriesCb) {
 				try {
 					tmpBlock = library.logic.block.objectNormalize(tmpBlock);
 				} catch (err) {
@@ -210,11 +205,11 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 				return setImmediate(seriesCb);
 			},
 			// Check valid slot
-			function (seriesCb) {
+			function(seriesCb) {
 				__private.validateBlockSlot(tmpBlock, lastBlock, seriesCb);
 			},
 			// Check received block before any deletion
-			function (seriesCb) {
+			function(seriesCb) {
 				const check = modules.blocks.verify.verifyReceipt(tmpBlock);
 
 				if (!check.verified) {
@@ -228,12 +223,12 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 				return setImmediate(seriesCb);
 			},
 			// Delete last block
-			function (seriesCb) {
+			function(seriesCb) {
 				library.logger.info('Last block loses due to fork 5');
 				modules.blocks.chain.deleteLastBlock(seriesCb);
 			},
 			// Process received block
-			function (seriesCb) {
+			function(seriesCb) {
 				return __private.receiveBlock(block, seriesCb);
 			},
 		],
@@ -257,44 +252,47 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.res - Result object
  */
-Process.prototype.getCommonBlock = function (peer, height, cb) {
+Process.prototype.getCommonBlock = function(peer, height, cb) {
 	let comparisonFailed = false;
 
 	return async.waterfall(
 		[
-			function (waterCb) {
+			function(waterCb) {
 				// Get IDs sequence (comma separated list)
 				modules.blocks.utils.getIdSequence(height, (err, res) =>
 					setImmediate(waterCb, err, res)
 				);
 			},
-			function (res, waterCb) {
+			function(res, waterCb) {
 				const ids = res.ids;
 				// Perform request to supplied remote peer
 				peer = library.logic.peers.create(peer);
-				peer.rpc.blocksCommon({
-					ids,
-				}, (err, blocksCommonRes) => {
-					if (err) {
-						modules.peers.remove(peer);
-						return setImmediate(waterCb, err);
-					}
+				peer.rpc.blocksCommon(
+					{
+						ids,
+					},
+					(err, blocksCommonRes) => {
+						if (err) {
+							modules.peers.remove(peer);
+							return setImmediate(waterCb, err);
+						}
 
-					if (!blocksCommonRes.common) {
-						// FIXME: Need better checking here, is base on 'common' property enough?
-						comparisonFailed = true;
-						return setImmediate(
-							waterCb,
-							`Chain comparison failed with peer: ${
-								peer.string
-							} using ids: ${ids}`
-						);
-					}
+						if (!blocksCommonRes.common) {
+							// FIXME: Need better checking here, is base on 'common' property enough?
+							comparisonFailed = true;
+							return setImmediate(
+								waterCb,
+								`Chain comparison failed with peer: ${
+									peer.string
+								} using ids: ${ids}`
+							);
+						}
 
-					return setImmediate(waterCb, null, blocksCommonRes.common);
-				});
+						return setImmediate(waterCb, null, blocksCommonRes.common);
+					}
+				);
 			},
-			function (common, waterCb) {
+			function(common, waterCb) {
 				// Check if we received genesis block - before response validation, as genesis block have previousBlock = null
 				if (common && common.height === 1) {
 					comparisonFailed = true;
@@ -311,13 +309,13 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 					return setImmediate(waterCb, null, common);
 				});
 			},
-			function (common, waterCb) {
+			function(common, waterCb) {
 				// Check that block with ID, previousBlock and height exists in database
 				library.storage.entities.Block.isPersisted({
-						id: common.id,
-						previousBlockId: common.previousBlock,
-						height: common.height,
-					})
+					id: common.id,
+					previousBlockId: common.previousBlock,
+					height: common.height,
+				})
 					.then(isPersisted => {
 						if (isPersisted) {
 							// Block exists - it's common between our node and remote peer
@@ -361,7 +359,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.lastBlock - Current last block
  */
-Process.prototype.loadBlocksOffset = function (
+Process.prototype.loadBlocksOffset = function(
 	blocksAmount,
 	fromHeight = 0,
 	cb
@@ -444,14 +442,15 @@ Process.prototype.loadBlocksOffset = function (
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.lastValidBlock - Normalized new last block
  */
-Process.prototype.loadBlocksFromPeer = function (peer, cb) {
+Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 	let lastValidBlock = modules.blocks.lastBlock.get();
 
 	peer = library.logic.peers.create(peer);
 	library.logger.info(`Loading blocks from: ${peer.string}`);
 
 	function getFromPeer(seriesCb) {
-		peer.rpc.blocks({
+		peer.rpc.blocks(
+			{
 				lastBlockId: lastValidBlock.id,
 				peer: library.logic.peers.me(),
 			},
@@ -547,40 +546,48 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error message if error occurred
  */
-Process.prototype.generateBlock = async function (keypair, timestamp, cb) {
+Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
-	const transactions = modules.transactions.getUnconfirmedTransactionList(
-		false,
-		MAX_TRANSACTIONS_PER_BLOCK
-	);
-	let readyTransactions;
-	try {
-		const transactionIds = await modules.processTransactions.verifyTransactions(
-			transactions
-		).filter(response => response.status === TransactionStatus.OK).map(tx => tx.id);
-		readyTransactions = transactions.filter(tx => transactionIds.includes(tx.id));
-	} catch (e) {
-		library.logger.error(e.stack);
-		return setImmediate(cb, e);
-	}
+	const transactions =
+		modules.transactions.getUnconfirmedTransactionList(
+			false,
+			MAX_TRANSACTIONS_PER_BLOCK
+		) || [];
 
-	let block;
+	modules.processTransactions
+		.verifyTransactions(transactions)
+		.then(responses => {
+			const readyTransactions = _.filter(transactions, tx =>
+				_.includes(
+					responses
+						.filter(response => response.status === TransactionStatus.OK)
+						.map(r => r.id),
+					tx.id
+				)
+			);
+			let block;
 
-	try {
-		// Create a block
-		block = library.logic.block.create({
-			keypair,
-			timestamp,
-			previousBlock: modules.blocks.lastBlock.get(),
-			transactions: readyTransactions,
+			try {
+				// Create a block
+				block = library.logic.block.create({
+					keypair,
+					timestamp,
+					previousBlock: modules.blocks.lastBlock.get(),
+					transactions: readyTransactions,
+				});
+			} catch (e) {
+				library.logger.error(e.stack);
+				return setImmediate(cb, e);
+			}
+
+			// Start block processing - broadcast: true, saveBlock: true
+			return modules.blocks.verify.processBlock(block, true, true, cb);
+		})
+		.catch(e => {
+			library.logger.error(e.stack);
+			// eslint-disable-next-line
+			return setImmediate(cb, e);
 		});
-	} catch (e) {
-		library.logger.error(e.stack);
-		return setImmediate(cb, e);
-	}
-
-	// Start block processing - broadcast: true, saveBlock: true
-	return modules.blocks.verify.processBlock(block, true, true, cb);
 };
 
 /**
@@ -592,7 +599,7 @@ Process.prototype.generateBlock = async function (keypair, timestamp, cb) {
  * @param {Object} lastBlock - Last normalized block
  * @param {Function} cb - Callback function
  */
-__private.validateBlockSlot = function (block, lastBlock, cb) {
+__private.validateBlockSlot = function(block, lastBlock, cb) {
 	const roundNextBlock = slots.calcRound(block.height);
 	const roundLastBlock = slots.calcRound(lastBlock.height);
 
@@ -619,7 +626,7 @@ __private.validateBlockSlot = function (block, lastBlock, cb) {
  * @param {block} block - New block
  * @todo Add @returns tag
  */
-Process.prototype.onReceiveBlock = function (block) {
+Process.prototype.onReceiveBlock = function(block) {
 	// When client is not loaded, is syncing
 	// Do not receive new blocks as client is not ready
 	if (!__private.loaded) {
@@ -698,7 +705,7 @@ Process.prototype.onReceiveBlock = function (block) {
  *
  * @param {modules} scope - Exposed modules
  */
-Process.prototype.onBind = function (scope) {
+Process.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Process: Shared modules bind.');
 	modules = {
 		accounts: scope.modules.accounts,

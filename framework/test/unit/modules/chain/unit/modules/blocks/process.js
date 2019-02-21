@@ -170,9 +170,6 @@ describe('blocks/process', async () => {
 				applyBlock: sinonSandbox.stub(),
 				applyGenesisBlock: sinonSandbox.stub(),
 			},
-			process: {
-				verifyTransactions: sinonSandbox.stub(),
-			},
 			utils: {
 				getIdSequence: sinonSandbox.stub(),
 				readDbRows: sinonSandbox.stub(),
@@ -187,6 +184,10 @@ describe('blocks/process', async () => {
 					height: 2,
 				}),
 			},
+		};
+
+		const modulesProcessTransactionsStub = {
+			verifyTransactions: sinonSandbox.stub(),
 		};
 
 		const modulesDelegatesStub = {
@@ -224,6 +225,7 @@ describe('blocks/process', async () => {
 				delegates: modulesDelegatesStub,
 				loader: modulesLoaderStub,
 				peers: modulesPeersStub,
+				processTransactions: modulesProcessTransactionsStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
 				transport: modulesTransportStub,
@@ -1664,18 +1666,19 @@ describe('blocks/process', async () => {
 	});
 
 	describe('generateBlock', async () => {
-		describe('modules.transactions.getUnconfirmedTransactionList', async () => {
-			describe('when query returns empty array', async () => {
-				beforeEach(() => {
+		describe('modules.transactions.getUnconfirmedTransactionList', () => {
+			describe('when query returns empty array', () => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.processTransactions.verifyTransactions.returns(Promise.resolve([]));
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
 					);
 				});
 
-				it('should generate block without transactions', done => {
+				it('should generate block without transactions', async () => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
 						41287231,
@@ -1685,23 +1688,23 @@ describe('blocks/process', async () => {
 								modules.blocks.verify.processBlock.args[0][0].transactions
 									.length
 							).to.equal(0);
-							done();
 						}
 					);
 				});
 			});
 
-			describe('when query returns undefined', async () => {
-				beforeEach(() => {
+			describe('when query returns undefined', () => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.processTransactions.verifyTransactions.returns(Promise.resolve([]));
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
 					);
 				});
 
-				it('should generate block without transactions', done => {
+				it('should generate block without transactions', async () => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
 						41287231,
@@ -1711,80 +1714,104 @@ describe('blocks/process', async () => {
 								modules.blocks.verify.processBlock.args[0][0].transactions
 									.length
 							).to.equal(0);
-							done();
 						}
 					);
 				});
 			});
 
-			describe('when query returns transactions', async () => {
-				beforeEach(() => {
+			describe('when query returns transactions', () => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([
-						{ id: 1, type: 0 },
-						{ id: 2, type: 1 },
+						{ id: 1, type: 0, senderPublicKey: '1L' },
+						{ id: 2, type: 1, senderPublicKey: '2L' },
 					]);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
 					);
 				});
 
-				describe('modules.processTransactions.verifyTransactions', async () => {
-					describe('when fails', async () => {
-						beforeEach(() =>
-							modules.blocks.process.processTransactions.verifyTransactions.throws()
-						);
-
-						it('should call a callback with error', done => {
-							blocksProcessModule.generateBlock(
-								{ publicKey: '123abc', privateKey: 'aaa' },
-								41287231,
-								err => {
-									expect(err).to.equal('Transaction type not found.');
-									done();
-								}
-							);
-						});
-					});
-
-					describe('when succeeds', async () => {
-						beforeEach(async () => {
-							modules.blocks.process.processTransactions.verifyTransactions.returns({ id: 1, status: 1, errors: [] }, { id: 2, status: 1, errors: [] });
-						});
-
-						it('should generate block with transactions', done => {
-							blocksProcessModule.generateBlock(
-								{ publicKey: '123abc', privateKey: 'aaa' },
-								41287231,
-								err => {
-									expect(err).to.be.null;
-									expect(
-										modules.blocks.verify.processBlock.args[0][0]
-											.transactions.length
-									).to.equal(2);
-									done();
-								}
-							);
-						});
-					});
-
-					describe('when pending', async () => {
+				describe('modules.processTransactions.verifyTransactions', () => {
+					describe('when transaction initializations fail', async () => {
 						beforeEach(async () =>
-							modules.blocks.process.processTransactions.verifyTransactions.returns({ id: 1, status: 2, errors: [] })
+							modules.processTransactions.verifyTransactions.returns(Promise.reject(new Error('Invalid field types')))
 						);
 
-						it('should generate block without pending transactions', done => {
+						it('should call a callback with error', async () => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.not.be.null;
+								}
+							);
+						});
+					});
+
+					describe('when transactions verification fails', async () => {
+						beforeEach(async () =>
+							modules.processTransactions.verifyTransactions.returns(Promise.resolve([
+								{ id: 1, status: 0, errors: [] },
+								{ id: 2, status: 0, errors: [] },
+							]))
+						);
+
+						it('should generate block without transactions', async () => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
 								err => {
 									expect(err).to.be.null;
 									expect(
-										modules.blocks.verify.processBlock.args[0][0]
-											.transactions.length
-									).to.equal(1);
-									done();
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(0);
+								}
+							);
+						});
+					});
+
+					describe('when transactions verification succeeds', async () => {
+						beforeEach(async () => {
+							modules.processTransactions.verifyTransactions.returns(Promise.resolve([
+								{ id: 1, status: 1, errors: [] },
+								{ id: 2, status: 1, errors: [] },
+							]));
+						});
+
+						it('should generate block with transactions', async () => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(2);
+								}
+							);
+						});
+					});
+
+					describe('when transactions pending', async () => {
+						beforeEach(async () =>
+							modules.processTransactions.verifyTransactions.returns(Promise.resolve([
+								{ id: 1, status: 2, errors: [] },
+							]))
+						);
+
+						it('should generate block without pending transactions', async () => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(0);
 								}
 							);
 						});
@@ -1793,7 +1820,10 @@ describe('blocks/process', async () => {
 
 				describe('library.logic.block.create', async () => {
 					beforeEach(async () => {
-						modules.blocks.process.processTransactions.verifyTransactions.returns({ id: 1, status: 1, errors: [] }, { id: 2, status: 1, errors: [] });
+						modules.processTransactions.verifyTransactions.returns(Promise.resolve([
+							{ id: 1, status: 1, errors: [] },
+							{ id: 2, status: 1, errors: [] },
+						]));
 					});
 
 					describe('when fails', async () => {
