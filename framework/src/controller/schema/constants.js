@@ -1,6 +1,6 @@
 module.exports = {
 	constants: {
-		$id: '#constants',
+		id: 'constants',
 		type: 'object',
 		required: [
 			'ACTIVE_DELEGATES',
@@ -26,8 +26,8 @@ module.exports = {
 		],
 		properties: {
 			ACTIVE_DELEGATES: {
-				description: 'Warning: Even delegate number not allowed',
-				type: 'integer',
+				type: 'number',
+				format: 'oddInteger',
 				min: 1,
 			},
 			BLOCK_SLOT_WINDOW: {
@@ -57,14 +57,11 @@ module.exports = {
 				format: 'date-time',
 			},
 			FEES: {
-				type: 'object',
-				schema: {
-					$ref: '#/constants/fees',
-				},
+				$ref: 'fees',
 			},
 			MAX_PAYLOAD_LENGTH: {
 				type: 'integer',
-				min: 1, // @todo Calculate this property later on.
+				min: 1,
 			},
 			MAX_PEERS: {
 				type: 'integer',
@@ -83,9 +80,8 @@ module.exports = {
 				min: 1,
 			},
 			MAX_VOTES_PER_ACCOUNT: {
-				description:
-					'Warning: Property needs to be lower than ACTIVE_DELEGATES',
-				type: 'integer',
+				type: 'number',
+				format: 'maxVotesAccount',
 				min: 1,
 			},
 			MIN_BROADHASH_CONSENSUS: {
@@ -93,10 +89,7 @@ module.exports = {
 				min: 1,
 			},
 			MULTISIG_CONSTRAINTS: {
-				type: 'object',
-				schema: {
-					$ref: '#/constants/multisig',
-				},
+				$ref: 'multisig',
 			},
 			NETHASHES: {
 				type: 'array',
@@ -110,10 +103,7 @@ module.exports = {
 				format: 'amount',
 			},
 			REWARDS: {
-				type: 'object',
-				schema: {
-					$ref: '#/constants/rewards',
-				},
+				$ref: 'rewards',
 			},
 			TOTAL_AMOUNT: {
 				type: 'string',
@@ -128,10 +118,11 @@ module.exports = {
 				min: 1,
 			},
 		},
+		additionalProperties: false,
 	},
 
 	fees: {
-		$id: '#/constants/fees',
+		id: 'fees',
 		type: 'object',
 		required: [
 			'SEND',
@@ -177,54 +168,47 @@ module.exports = {
 				format: 'amount',
 			},
 		},
+		additionalProperties: false,
 	},
 
 	multisig: {
-		$id: '#/constants/multisig',
+		id: 'multisig',
 		type: 'object',
 		required: ['MIN', 'LIFETIME', 'KEYSGROUP'],
 		properties: {
 			MIN: {
-				type: 'object',
-				schema: {
-					$ref: '#/constants/multisig/min',
-				},
+				$ref: 'min',
 			},
 			LIFETIME: {
-				type: 'object',
-				schema: {
-					$ref: '#/constants/multisig/lifetime',
-				},
+				$ref: 'lifetime',
 			},
 			KEYSGROUP: {
-				type: 'object',
-				schema: {
-					$ref: '#/constants/multisig/keysgroup',
-				},
+				$ref: 'keysgroup',
 			},
 		},
+		additionalProperties: false,
 	},
 
 	minConstraints: {
-		$id: '#/constants/multisig/min',
+		id: 'min',
 		type: 'object',
 		required: ['MINIMUM', 'MAXIMUM'],
 		properties: {
 			MINIMUM: {
 				type: 'integer',
 				min: 1,
-				// Max value is lower than or equal to MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS
-				// Problem: Cannot reference value outside of this object
-				// e.g. max: `{ $data: '1/path-to-MAX_ITEMS'}`
 			},
 			MAXIMUM: {
-				type: 'integer',
+				type: 'number',
+				format: 'keysgroupLimit',
+				min: 1,
 			},
 		},
+		additionalProperties: false,
 	},
 
 	lifetimeConstraints: {
-		$id: '#/constants/multisig/lifetime',
+		id: 'lifetime',
 		type: 'object',
 		required: ['MINIMUM', 'MAXIMUM'],
 		properties: {
@@ -237,10 +221,11 @@ module.exports = {
 				min: 1,
 			},
 		},
+		additionalProperties: false,
 	},
 
 	keysgroupConstraints: {
-		$id: '#/constants/multisig/keysgroup',
+		id: 'keysgroup',
 		type: 'object',
 		required: ['MIN_ITEMS', 'MAX_ITEMS'],
 		properties: {
@@ -253,10 +238,11 @@ module.exports = {
 				min: 1,
 			},
 		},
+		additionalProperties: false,
 	},
 
 	rewards: {
-		$id: '#/constants/rewards',
+		id: 'rewards',
 		type: 'object',
 		required: ['MILESTONES', 'OFFSET', 'DISTANCE'],
 		properties: {
@@ -276,5 +262,6 @@ module.exports = {
 				min: 1,
 			},
 		},
+		additionalProperties: false,
 	},
 };

@@ -1,0 +1,1523 @@
+[inf] 2019-02-21 10:15:29 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 10:15:29 | Initializing controller
+[inf] 2019-02-21 10:15:29 | Loading controller
+[inf] 2019-02-21 10:15:30 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:15:30 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:15:30 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 10:15:30 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 10:15:30 | App started...
+[dbg] 2019-02-21 10:15:30 | Initiating cache...
+[dbg] 2019-02-21 10:15:30 | Initiating storage...
+[dbg] 2019-02-21 10:15:30 | Initiating system...
+[inf] 2019-02-21 10:15:30 | App connected to Cache server
+[inf] 2019-02-21 10:15:30 | Cleanup controller...
+[inf] 2019-02-21 10:15:30 | Cleaning chain...
+[inf] 2019-02-21 10:15:43 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 10:15:43 | Initializing controller
+[inf] 2019-02-21 10:15:43 | Loading controller
+[inf] 2019-02-21 10:15:43 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:15:43 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:15:43 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 10:15:43 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 10:15:43 | App started...
+[dbg] 2019-02-21 10:15:43 | Initiating cache...
+[dbg] 2019-02-21 10:15:43 | Initiating storage...
+[dbg] 2019-02-21 10:15:43 | Initiating system...
+[inf] 2019-02-21 10:15:43 | App connected to Cache server
+[inf] 2019-02-21 10:15:44 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 10:15:44 | Loading module - accounts
+[dbg] 2019-02-21 10:15:44 | Loading module - blocks
+[dbg] 2019-02-21 10:15:44 | Loading module - dapps
+[dbg] 2019-02-21 10:15:44 | Loading module - delegates
+[dbg] 2019-02-21 10:15:44 | Loading module - rounds
+[dbg] 2019-02-21 10:15:44 | Loading module - loader
+[dbg] 2019-02-21 10:15:44 | Loading module - multisignatures
+[dbg] 2019-02-21 10:15:44 | Loading module - peers
+[dbg] 2019-02-21 10:15:44 | Loading module - signatures
+[dbg] 2019-02-21 10:15:44 | Loading module - transactions
+[dbg] 2019-02-21 10:15:44 | Loading module - transport
+[inf] 2019-02-21 10:15:44 | Releasing enqueued broadcasts
+[inf] 2019-02-21 10:15:44 | Queue empty
+[inf] 2019-02-21 10:15:45 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 10:15:45 | Modules ready and launched
+[inf] 2019-02-21 10:15:45 | Cleanup controller...
+[inf] 2019-02-21 10:15:45 | Cleaning chain...
+[dbg] 2019-02-21 10:15:45 | Cache - Clean up database
+[dbg] 2019-02-21 10:15:45 | Cache - Quit database
+[dbg] 2019-02-21 10:15:45 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 10:15:45 | Cleaned up successfully
+[inf] 2019-02-21 10:15:45 | Unload completed
+[inf] 2019-02-21 10:18:04 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 10:18:04 | Initializing controller
+[inf] 2019-02-21 10:18:04 | Loading controller
+[inf] 2019-02-21 10:18:04 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:18:04 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:18:04 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 10:18:04 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 10:18:04 | App started...
+[dbg] 2019-02-21 10:18:04 | Initiating cache...
+[dbg] 2019-02-21 10:18:04 | Initiating storage...
+[dbg] 2019-02-21 10:18:04 | Initiating system...
+[inf] 2019-02-21 10:18:04 | App connected to Cache server
+[inf] 2019-02-21 10:18:05 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 10:18:05 | Loading module - accounts
+[dbg] 2019-02-21 10:18:05 | Loading module - blocks
+[dbg] 2019-02-21 10:18:05 | Loading module - dapps
+[dbg] 2019-02-21 10:18:05 | Loading module - delegates
+[dbg] 2019-02-21 10:18:05 | Loading module - rounds
+[dbg] 2019-02-21 10:18:05 | Loading module - loader
+[dbg] 2019-02-21 10:18:05 | Loading module - multisignatures
+[dbg] 2019-02-21 10:18:05 | Loading module - peers
+[dbg] 2019-02-21 10:18:05 | Loading module - signatures
+[dbg] 2019-02-21 10:18:05 | Loading module - transactions
+[dbg] 2019-02-21 10:18:05 | Loading module - transport
+[inf] 2019-02-21 10:18:05 | Releasing enqueued broadcasts
+[inf] 2019-02-21 10:18:05 | Queue empty
+[inf] 2019-02-21 10:18:06 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 10:18:06 | Modules ready and launched
+[inf] 2019-02-21 10:18:06 | Cleanup controller...
+[inf] 2019-02-21 10:18:06 | Cleaning chain...
+[dbg] 2019-02-21 10:18:06 | Cache - Clean up database
+[dbg] 2019-02-21 10:18:06 | Cache - Quit database
+[dbg] 2019-02-21 10:18:06 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 10:18:06 | Blocks 1
+[inf] 2019-02-21 10:18:06 | Cleaned up successfully
+[inf] 2019-02-21 10:18:06 | Unload completed
+[inf] 2019-02-21 10:26:03 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 10:26:03 | Initializing controller
+[inf] 2019-02-21 10:26:03 | Loading controller
+[inf] 2019-02-21 10:26:03 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:26:03 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:26:03 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 10:26:03 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 10:26:03 | App started...
+[dbg] 2019-02-21 10:26:03 | Initiating cache...
+[inf] 2019-02-21 10:26:03 | Cleanup controller...
+[inf] 2019-02-21 10:26:35 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 10:26:35 | Initializing controller
+[inf] 2019-02-21 10:26:35 | Loading controller
+[inf] 2019-02-21 10:26:35 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:26:35 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:26:35 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 10:26:35 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 10:26:35 | App started...
+[dbg] 2019-02-21 10:26:35 | Initiating cache...
+[dbg] 2019-02-21 10:26:35 | Initiating storage...
+[dbg] 2019-02-21 10:26:35 | Initiating system...
+[inf] 2019-02-21 10:26:35 | App connected to Cache server
+[inf] 2019-02-21 10:26:35 | Cleanup controller...
+[inf] 2019-02-21 10:26:35 | Cleaning chain...
+[inf] 2019-02-21 10:28:52 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 10:28:52 | Initializing controller
+[inf] 2019-02-21 10:28:52 | Loading controller
+[inf] 2019-02-21 10:28:52 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:28:52 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:28:52 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 10:28:52 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 10:28:52 | App started...
+[dbg] 2019-02-21 10:28:52 | Initiating cache...
+[dbg] 2019-02-21 10:28:52 | Initiating storage...
+[dbg] 2019-02-21 10:28:52 | Initiating system...
+[inf] 2019-02-21 10:28:53 | App connected to Cache server
+[inf] 2019-02-21 10:28:53 | Cleanup controller...
+[inf] 2019-02-21 10:28:53 | Cleaning chain...
+[inf] 2019-02-21 10:37:03 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 10:37:03 | Initializing controller
+[inf] 2019-02-21 10:37:03 | Loading controller
+[inf] 2019-02-21 10:37:04 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:37:04 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 10:37:04 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 10:37:04 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 10:37:04 | App started...
+[dbg] 2019-02-21 10:37:04 | Initiating cache...
+[dbg] 2019-02-21 10:37:04 | Initiating storage...
+[dbg] 2019-02-21 10:37:04 | Initiating system...
+[inf] 2019-02-21 10:37:04 | App connected to Cache server
+[inf] 2019-02-21 10:37:04 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 10:37:04 | Loading module - accounts
+[dbg] 2019-02-21 10:37:04 | Loading module - blocks
+[dbg] 2019-02-21 10:37:04 | Loading module - dapps
+[dbg] 2019-02-21 10:37:04 | Loading module - delegates
+[dbg] 2019-02-21 10:37:05 | Loading module - rounds
+[dbg] 2019-02-21 10:37:05 | Loading module - loader
+[dbg] 2019-02-21 10:37:05 | Loading module - multisignatures
+[dbg] 2019-02-21 10:37:05 | Loading module - peers
+[dbg] 2019-02-21 10:37:05 | Loading module - signatures
+[dbg] 2019-02-21 10:37:05 | Loading module - transactions
+[dbg] 2019-02-21 10:37:05 | Loading module - transport
+[inf] 2019-02-21 10:37:05 | Releasing enqueued broadcasts
+[inf] 2019-02-21 10:37:05 | Queue empty
+[inf] 2019-02-21 10:37:05 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 10:37:05 | Modules ready and launched
+[inf] 2019-02-21 10:37:05 | Blocks 1
+[dbg] 2019-02-21 10:37:05 | Loading blocks offset - {"limit":5000,"offset":0}
+[dbg] 2019-02-21 10:37:05 | Processing block - 6524861224470851795
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 11549171951016850959
+[inf] 2019-02-21 10:37:05 | Genesis block loading - 0.9709 %: applied 1 of 103 transactions
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 11549171951016850959
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 15975725245957634226
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 15975725245957634226
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 11246867963654933991
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 11246867963654933991
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 8886362355238277998
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 8886362355238277998
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 12511984344561945661
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 12511984344561945661
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 12470576968560642688
+[dbg] 2019-02-21 10:37:05 | Applying confirmed transaction - 12470576968560642688
+[dbg] 2019-02-21 10:37:05 | Applying unconfirmed transaction - 16979024391630063731
+[inf] 2019-02-21 10:37:05 | Cleanup controller...
+[inf] 2019-02-21 10:37:05 | Cleaning chain...
+[dbg] 2019-02-21 10:37:05 | Cache - Clean up database
+[dbg] 2019-02-21 10:37:05 | Cache - Quit database
+[dbg] 2019-02-21 10:37:05 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 10:37:05 | Cleaned up successfully
+[inf] 2019-02-21 10:37:05 | Unload completed
+[inf] 2019-02-21 12:51:32 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 12:51:32 | Initializing controller
+[inf] 2019-02-21 12:51:32 | Loading controller
+[inf] 2019-02-21 12:51:33 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 12:51:33 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 12:51:33 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 12:51:33 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 12:51:33 | App started...
+[dbg] 2019-02-21 12:51:33 | Initiating cache...
+[dbg] 2019-02-21 12:51:33 | Initiating storage...
+[dbg] 2019-02-21 12:51:33 | Initiating system...
+[inf] 2019-02-21 12:51:33 | App connected to Cache server
+[inf] 2019-02-21 12:51:34 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 12:51:34 | Loading module - accounts
+[dbg] 2019-02-21 12:51:34 | Loading module - blocks
+[dbg] 2019-02-21 12:51:34 | Loading module - dapps
+[dbg] 2019-02-21 12:51:34 | Loading module - delegates
+[dbg] 2019-02-21 12:51:34 | Loading module - rounds
+[dbg] 2019-02-21 12:51:34 | Loading module - loader
+[dbg] 2019-02-21 12:51:34 | Loading module - multisignatures
+[dbg] 2019-02-21 12:51:34 | Loading module - peers
+[dbg] 2019-02-21 12:51:34 | Loading module - signatures
+[dbg] 2019-02-21 12:51:34 | Loading module - transactions
+[dbg] 2019-02-21 12:51:34 | Loading module - transport
+[inf] 2019-02-21 12:51:34 | Releasing enqueued broadcasts
+[inf] 2019-02-21 12:51:34 | Queue empty
+[inf] 2019-02-21 12:51:34 | Cleanup controller...
+[inf] 2019-02-21 12:57:02 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 12:57:02 | Initializing controller
+[inf] 2019-02-21 12:57:02 | Loading controller
+[inf] 2019-02-21 12:57:02 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 12:57:02 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 12:57:02 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 12:57:02 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 12:57:02 | App started...
+[dbg] 2019-02-21 12:57:02 | Initiating cache...
+[dbg] 2019-02-21 12:57:02 | Initiating storage...
+[dbg] 2019-02-21 12:57:02 | Initiating system...
+[inf] 2019-02-21 12:57:02 | App connected to Cache server
+[inf] 2019-02-21 12:57:03 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 12:57:03 | Loading module - accounts
+[dbg] 2019-02-21 12:57:03 | Loading module - blocks
+[dbg] 2019-02-21 12:57:03 | Loading module - dapps
+[dbg] 2019-02-21 12:57:03 | Loading module - delegates
+[dbg] 2019-02-21 12:57:03 | Loading module - rounds
+[dbg] 2019-02-21 12:57:03 | Loading module - loader
+[dbg] 2019-02-21 12:57:03 | Loading module - multisignatures
+[dbg] 2019-02-21 12:57:03 | Loading module - peers
+[dbg] 2019-02-21 12:57:03 | Loading module - signatures
+[dbg] 2019-02-21 12:57:03 | Loading module - transactions
+[dbg] 2019-02-21 12:57:03 | Loading module - transport
+[inf] 2019-02-21 12:57:03 | Releasing enqueued broadcasts
+[inf] 2019-02-21 12:57:03 | Queue empty
+[inf] 2019-02-21 12:57:04 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 12:57:04 | Modules ready and launched
+[inf] 2019-02-21 12:57:04 | Cleanup controller...
+[inf] 2019-02-21 12:57:04 | Cleaning chain...
+[dbg] 2019-02-21 12:57:04 | Cache - Clean up database
+[dbg] 2019-02-21 12:57:04 | Cache - Quit database
+[dbg] 2019-02-21 12:57:04 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 12:57:04 | Blocks 1
+[inf] 2019-02-21 12:57:04 | Cleaned up successfully
+[inf] 2019-02-21 12:57:04 | Unload completed
+[inf] 2019-02-21 13:00:49 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:00:49 | Initializing controller
+[inf] 2019-02-21 13:00:49 | Loading controller
+[inf] 2019-02-21 13:00:50 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:00:50 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:00:50 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:00:50 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:00:50 | App started...
+[dbg] 2019-02-21 13:00:50 | Initiating cache...
+[dbg] 2019-02-21 13:00:50 | Initiating storage...
+[dbg] 2019-02-21 13:00:50 | Initiating system...
+[inf] 2019-02-21 13:00:50 | App connected to Cache server
+[inf] 2019-02-21 13:00:50 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:00:50 | Loading module - accounts
+[dbg] 2019-02-21 13:00:50 | Loading module - blocks
+[dbg] 2019-02-21 13:00:50 | Loading module - dapps
+[dbg] 2019-02-21 13:00:50 | Loading module - delegates
+[dbg] 2019-02-21 13:00:51 | Loading module - rounds
+[dbg] 2019-02-21 13:00:51 | Loading module - loader
+[dbg] 2019-02-21 13:00:51 | Loading module - multisignatures
+[dbg] 2019-02-21 13:00:51 | Loading module - peers
+[dbg] 2019-02-21 13:00:51 | Loading module - signatures
+[dbg] 2019-02-21 13:00:51 | Loading module - transactions
+[dbg] 2019-02-21 13:00:51 | Loading module - transport
+[inf] 2019-02-21 13:00:51 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:00:51 | Queue empty
+[inf] 2019-02-21 13:00:51 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:00:51 | Modules ready and launched
+[inf] 2019-02-21 13:00:51 | Cleanup controller...
+[inf] 2019-02-21 13:00:51 | Cleaning chain...
+[dbg] 2019-02-21 13:00:51 | Cache - Clean up database
+[dbg] 2019-02-21 13:00:51 | Cache - Quit database
+[dbg] 2019-02-21 13:00:51 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:00:51 | Blocks 1
+[inf] 2019-02-21 13:00:51 | Cleaned up successfully
+[inf] 2019-02-21 13:00:51 | Unload completed
+[inf] 2019-02-21 13:13:30 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:13:30 | Initializing controller
+[inf] 2019-02-21 13:13:30 | Loading controller
+[inf] 2019-02-21 13:13:31 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:13:31 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:13:31 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:13:31 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:13:31 | App started...
+[dbg] 2019-02-21 13:13:31 | Initiating cache...
+[dbg] 2019-02-21 13:13:31 | Initiating storage...
+[dbg] 2019-02-21 13:13:31 | Initiating system...
+[inf] 2019-02-21 13:13:31 | App connected to Cache server
+[inf] 2019-02-21 13:13:31 | Cleanup controller...
+[inf] 2019-02-21 13:13:31 | Cleaning chain...
+[inf] 2019-02-21 13:15:16 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:15:16 | Initializing controller
+[inf] 2019-02-21 13:15:16 | Loading controller
+[inf] 2019-02-21 13:15:16 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:15:16 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:15:16 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:15:16 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:15:16 | App started...
+[dbg] 2019-02-21 13:15:16 | Initiating cache...
+[dbg] 2019-02-21 13:15:16 | Initiating storage...
+[dbg] 2019-02-21 13:15:16 | Initiating system...
+[inf] 2019-02-21 13:15:16 | App connected to Cache server
+[inf] 2019-02-21 13:15:17 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:15:17 | Loading module - accounts
+[dbg] 2019-02-21 13:15:17 | Loading module - blocks
+[dbg] 2019-02-21 13:15:17 | Loading module - dapps
+[dbg] 2019-02-21 13:15:17 | Loading module - delegates
+[dbg] 2019-02-21 13:15:17 | Loading module - rounds
+[dbg] 2019-02-21 13:15:17 | Loading module - loader
+[dbg] 2019-02-21 13:15:17 | Loading module - multisignatures
+[dbg] 2019-02-21 13:15:17 | Loading module - peers
+[dbg] 2019-02-21 13:15:17 | Loading module - signatures
+[dbg] 2019-02-21 13:15:17 | Loading module - transactions
+[dbg] 2019-02-21 13:15:17 | Loading module - transport
+[inf] 2019-02-21 13:15:17 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:15:17 | Queue empty
+[inf] 2019-02-21 13:15:18 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:15:18 | Modules ready and launched
+[inf] 2019-02-21 13:15:18 | Cleanup controller...
+[inf] 2019-02-21 13:15:18 | Cleaning chain...
+[dbg] 2019-02-21 13:15:18 | Cache - Clean up database
+[dbg] 2019-02-21 13:15:18 | Cache - Quit database
+[dbg] 2019-02-21 13:15:18 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:15:18 | Blocks 1
+[inf] 2019-02-21 13:15:18 | Cleaned up successfully
+[inf] 2019-02-21 13:15:18 | Unload completed
+[inf] 2019-02-21 13:16:11 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:16:11 | Initializing controller
+[inf] 2019-02-21 13:16:11 | Loading controller
+[inf] 2019-02-21 13:16:11 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:16:11 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:16:11 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:16:11 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:16:11 | App started...
+[dbg] 2019-02-21 13:16:11 | Initiating cache...
+[dbg] 2019-02-21 13:16:11 | Initiating storage...
+[dbg] 2019-02-21 13:16:11 | Initiating system...
+[inf] 2019-02-21 13:16:11 | App connected to Cache server
+[inf] 2019-02-21 13:16:12 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:16:12 | Loading module - accounts
+[dbg] 2019-02-21 13:16:12 | Loading module - blocks
+[dbg] 2019-02-21 13:16:12 | Loading module - dapps
+[dbg] 2019-02-21 13:16:12 | Loading module - delegates
+[dbg] 2019-02-21 13:16:12 | Loading module - rounds
+[dbg] 2019-02-21 13:16:12 | Loading module - loader
+[dbg] 2019-02-21 13:16:12 | Loading module - multisignatures
+[dbg] 2019-02-21 13:16:12 | Loading module - peers
+[dbg] 2019-02-21 13:16:12 | Loading module - signatures
+[dbg] 2019-02-21 13:16:12 | Loading module - transactions
+[dbg] 2019-02-21 13:16:12 | Loading module - transport
+[inf] 2019-02-21 13:16:12 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:16:12 | Queue empty
+[inf] 2019-02-21 13:16:12 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:16:12 | Modules ready and launched
+[inf] 2019-02-21 13:16:12 | Cleanup controller...
+[inf] 2019-02-21 13:16:12 | Cleaning chain...
+[dbg] 2019-02-21 13:16:12 | Cache - Clean up database
+[dbg] 2019-02-21 13:16:12 | Cache - Quit database
+[dbg] 2019-02-21 13:16:13 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:16:13 | Blocks 1
+[inf] 2019-02-21 13:16:13 | Cleaned up successfully
+[inf] 2019-02-21 13:16:13 | Unload completed
+[inf] 2019-02-21 13:17:54 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:17:54 | Initializing controller
+[inf] 2019-02-21 13:17:54 | Loading controller
+[inf] 2019-02-21 13:17:54 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:17:54 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:17:54 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:17:54 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:17:54 | App started...
+[dbg] 2019-02-21 13:17:54 | Initiating cache...
+[dbg] 2019-02-21 13:17:54 | Initiating storage...
+[dbg] 2019-02-21 13:17:54 | Initiating system...
+[inf] 2019-02-21 13:17:54 | App connected to Cache server
+[inf] 2019-02-21 13:17:55 | Cleanup controller...
+[inf] 2019-02-21 13:17:55 | Cleaning chain...
+[inf] 2019-02-21 13:18:48 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:18:48 | Initializing controller
+[inf] 2019-02-21 13:18:48 | Loading controller
+[inf] 2019-02-21 13:18:48 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:18:48 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:18:48 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:18:48 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:18:48 | App started...
+[dbg] 2019-02-21 13:18:48 | Initiating cache...
+[dbg] 2019-02-21 13:18:48 | Initiating storage...
+[dbg] 2019-02-21 13:18:48 | Initiating system...
+[inf] 2019-02-21 13:18:48 | App connected to Cache server
+[inf] 2019-02-21 13:18:49 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:18:49 | Loading module - accounts
+[dbg] 2019-02-21 13:18:49 | Loading module - blocks
+[dbg] 2019-02-21 13:18:49 | Loading module - dapps
+[dbg] 2019-02-21 13:18:49 | Loading module - delegates
+[dbg] 2019-02-21 13:18:49 | Loading module - rounds
+[dbg] 2019-02-21 13:18:49 | Loading module - loader
+[dbg] 2019-02-21 13:18:49 | Loading module - multisignatures
+[dbg] 2019-02-21 13:18:49 | Loading module - peers
+[dbg] 2019-02-21 13:18:49 | Loading module - signatures
+[dbg] 2019-02-21 13:18:49 | Loading module - transactions
+[dbg] 2019-02-21 13:18:49 | Loading module - transport
+[inf] 2019-02-21 13:18:49 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:18:49 | Queue empty
+[inf] 2019-02-21 13:18:49 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:18:49 | Modules ready and launched
+[inf] 2019-02-21 13:18:49 | Cleanup controller...
+[inf] 2019-02-21 13:18:49 | Cleaning chain...
+[dbg] 2019-02-21 13:18:49 | Cache - Clean up database
+[dbg] 2019-02-21 13:18:49 | Cache - Quit database
+[dbg] 2019-02-21 13:18:49 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:18:49 | Blocks 1
+[inf] 2019-02-21 13:18:49 | Cleaned up successfully
+[inf] 2019-02-21 13:18:49 | Unload completed
+[inf] 2019-02-21 13:20:15 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:20:15 | Initializing controller
+[inf] 2019-02-21 13:20:15 | Loading controller
+[inf] 2019-02-21 13:20:15 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:20:15 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:20:15 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:20:15 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:20:15 | App started...
+[dbg] 2019-02-21 13:20:15 | Initiating cache...
+[dbg] 2019-02-21 13:20:15 | Initiating storage...
+[dbg] 2019-02-21 13:20:15 | Initiating system...
+[inf] 2019-02-21 13:20:15 | App connected to Cache server
+[inf] 2019-02-21 13:20:16 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:20:16 | Loading module - accounts
+[dbg] 2019-02-21 13:20:16 | Loading module - blocks
+[dbg] 2019-02-21 13:20:16 | Loading module - dapps
+[dbg] 2019-02-21 13:20:16 | Loading module - delegates
+[dbg] 2019-02-21 13:20:16 | Loading module - rounds
+[dbg] 2019-02-21 13:20:16 | Loading module - loader
+[dbg] 2019-02-21 13:20:16 | Loading module - multisignatures
+[dbg] 2019-02-21 13:20:16 | Loading module - peers
+[dbg] 2019-02-21 13:20:16 | Loading module - signatures
+[dbg] 2019-02-21 13:20:16 | Loading module - transactions
+[dbg] 2019-02-21 13:20:16 | Loading module - transport
+[inf] 2019-02-21 13:20:16 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:20:16 | Queue empty
+[inf] 2019-02-21 13:20:17 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:20:17 | Modules ready and launched
+[inf] 2019-02-21 13:20:17 | Blocks 1
+[dbg] 2019-02-21 13:20:17 | Loading blocks offset - {"limit":5000,"offset":0}
+[dbg] 2019-02-21 13:20:17 | Processing block - 6524861224470851795
+[dbg] 2019-02-21 13:20:17 | Applying unconfirmed transaction - 11549171951016850959
+[inf] 2019-02-21 13:20:17 | Genesis block loading - 0.9709 %: applied 1 of 103 transactions
+[inf] 2019-02-21 13:20:17 | Cleanup controller...
+[inf] 2019-02-21 13:20:17 | Cleaning chain...
+[dbg] 2019-02-21 13:20:17 | Cache - Clean up database
+[dbg] 2019-02-21 13:20:17 | Cache - Quit database
+[dbg] 2019-02-21 13:20:17 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:20:17 | Cleaned up successfully
+[inf] 2019-02-21 13:20:17 | Unload completed
+[inf] 2019-02-21 13:23:15 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:23:15 | Initializing controller
+[inf] 2019-02-21 13:23:15 | Loading controller
+[inf] 2019-02-21 13:23:15 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:23:15 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:23:15 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:23:15 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:23:15 | App started...
+[dbg] 2019-02-21 13:23:15 | Initiating cache...
+[dbg] 2019-02-21 13:23:15 | Initiating storage...
+[dbg] 2019-02-21 13:23:15 | Initiating system...
+[inf] 2019-02-21 13:23:15 | App connected to Cache server
+[inf] 2019-02-21 13:23:16 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:23:16 | Loading module - accounts
+[dbg] 2019-02-21 13:23:16 | Loading module - blocks
+[dbg] 2019-02-21 13:23:16 | Loading module - dapps
+[dbg] 2019-02-21 13:23:16 | Loading module - delegates
+[dbg] 2019-02-21 13:23:16 | Loading module - rounds
+[dbg] 2019-02-21 13:23:16 | Loading module - loader
+[dbg] 2019-02-21 13:23:16 | Loading module - multisignatures
+[dbg] 2019-02-21 13:23:16 | Loading module - peers
+[dbg] 2019-02-21 13:23:16 | Loading module - signatures
+[dbg] 2019-02-21 13:23:16 | Loading module - transactions
+[dbg] 2019-02-21 13:23:16 | Loading module - transport
+[inf] 2019-02-21 13:23:16 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:23:16 | Queue empty
+[inf] 2019-02-21 13:23:16 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:23:16 | Modules ready and launched
+[inf] 2019-02-21 13:23:16 | Cleanup controller...
+[inf] 2019-02-21 13:23:16 | Cleaning chain...
+[dbg] 2019-02-21 13:23:16 | Cache - Clean up database
+[dbg] 2019-02-21 13:23:16 | Cache - Quit database
+[dbg] 2019-02-21 13:23:16 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:23:16 | Blocks 1
+[inf] 2019-02-21 13:23:16 | Cleaned up successfully
+[inf] 2019-02-21 13:23:16 | Unload completed
+[inf] 2019-02-21 13:26:07 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:26:07 | Initializing controller
+[inf] 2019-02-21 13:26:07 | Loading controller
+[inf] 2019-02-21 13:26:07 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:26:07 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:26:07 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:26:07 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:26:07 | App started...
+[dbg] 2019-02-21 13:26:07 | Initiating cache...
+[dbg] 2019-02-21 13:26:07 | Initiating storage...
+[dbg] 2019-02-21 13:26:07 | Initiating system...
+[inf] 2019-02-21 13:26:07 | App connected to Cache server
+[inf] 2019-02-21 13:26:08 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:26:08 | Loading module - accounts
+[dbg] 2019-02-21 13:26:08 | Loading module - blocks
+[dbg] 2019-02-21 13:26:08 | Loading module - dapps
+[dbg] 2019-02-21 13:26:08 | Loading module - delegates
+[dbg] 2019-02-21 13:26:08 | Loading module - rounds
+[dbg] 2019-02-21 13:26:08 | Loading module - loader
+[dbg] 2019-02-21 13:26:08 | Loading module - multisignatures
+[dbg] 2019-02-21 13:26:08 | Loading module - peers
+[dbg] 2019-02-21 13:26:08 | Loading module - signatures
+[dbg] 2019-02-21 13:26:08 | Loading module - transactions
+[dbg] 2019-02-21 13:26:08 | Loading module - transport
+[inf] 2019-02-21 13:26:08 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:26:08 | Queue empty
+[inf] 2019-02-21 13:26:08 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:26:08 | Modules ready and launched
+[inf] 2019-02-21 13:26:08 | Cleanup controller...
+[inf] 2019-02-21 13:26:08 | Cleaning chain...
+[dbg] 2019-02-21 13:26:08 | Cache - Clean up database
+[dbg] 2019-02-21 13:26:08 | Cache - Quit database
+[dbg] 2019-02-21 13:26:08 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:26:08 | Blocks 1
+[inf] 2019-02-21 13:26:08 | Cleaned up successfully
+[inf] 2019-02-21 13:26:08 | Unload completed
+[inf] 2019-02-21 13:27:55 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:27:55 | Initializing controller
+[inf] 2019-02-21 13:27:55 | Loading controller
+[inf] 2019-02-21 13:27:55 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:27:55 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:27:55 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:27:55 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:27:55 | App started...
+[dbg] 2019-02-21 13:27:55 | Initiating cache...
+[dbg] 2019-02-21 13:27:55 | Initiating storage...
+[dbg] 2019-02-21 13:27:55 | Initiating system...
+[inf] 2019-02-21 13:27:55 | App connected to Cache server
+[inf] 2019-02-21 13:27:56 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:27:56 | Loading module - accounts
+[dbg] 2019-02-21 13:27:56 | Loading module - blocks
+[dbg] 2019-02-21 13:27:56 | Loading module - dapps
+[dbg] 2019-02-21 13:27:56 | Loading module - delegates
+[dbg] 2019-02-21 13:27:56 | Loading module - rounds
+[dbg] 2019-02-21 13:27:56 | Loading module - loader
+[dbg] 2019-02-21 13:27:56 | Loading module - multisignatures
+[dbg] 2019-02-21 13:27:56 | Loading module - peers
+[dbg] 2019-02-21 13:27:56 | Loading module - signatures
+[dbg] 2019-02-21 13:27:56 | Loading module - transactions
+[dbg] 2019-02-21 13:27:56 | Loading module - transport
+[inf] 2019-02-21 13:27:56 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:27:56 | Queue empty
+[inf] 2019-02-21 13:27:56 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:27:56 | Modules ready and launched
+[inf] 2019-02-21 13:27:56 | Cleanup controller...
+[inf] 2019-02-21 13:27:56 | Cleaning chain...
+[dbg] 2019-02-21 13:27:56 | Cache - Clean up database
+[dbg] 2019-02-21 13:27:56 | Cache - Quit database
+[dbg] 2019-02-21 13:27:56 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:27:56 | Blocks 1
+[inf] 2019-02-21 13:27:56 | Cleaned up successfully
+[inf] 2019-02-21 13:27:56 | Unload completed
+[inf] 2019-02-21 13:28:27 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:28:27 | Initializing controller
+[inf] 2019-02-21 13:28:27 | Loading controller
+[inf] 2019-02-21 13:28:27 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:28:27 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:28:27 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:28:27 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:28:27 | App started...
+[dbg] 2019-02-21 13:28:27 | Initiating cache...
+[dbg] 2019-02-21 13:28:27 | Initiating storage...
+[dbg] 2019-02-21 13:28:27 | Initiating system...
+[inf] 2019-02-21 13:28:27 | App connected to Cache server
+[inf] 2019-02-21 13:28:28 | Cleanup controller...
+[inf] 2019-02-21 13:28:28 | Cleaning chain...
+[inf] 2019-02-21 13:28:35 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:28:35 | Initializing controller
+[inf] 2019-02-21 13:28:35 | Loading controller
+[inf] 2019-02-21 13:28:35 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:28:35 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:28:35 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:28:35 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:28:35 | App started...
+[dbg] 2019-02-21 13:28:35 | Initiating cache...
+[dbg] 2019-02-21 13:28:35 | Initiating storage...
+[dbg] 2019-02-21 13:28:35 | Initiating system...
+[inf] 2019-02-21 13:28:36 | App connected to Cache server
+[inf] 2019-02-21 13:28:36 | Cleanup controller...
+[inf] 2019-02-21 13:28:36 | Cleaning chain...
+[inf] 2019-02-21 13:28:44 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:28:44 | Initializing controller
+[inf] 2019-02-21 13:28:44 | Loading controller
+[inf] 2019-02-21 13:28:44 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:28:44 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:28:44 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:28:44 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:28:44 | App started...
+[dbg] 2019-02-21 13:28:44 | Initiating cache...
+[dbg] 2019-02-21 13:28:44 | Initiating storage...
+[dbg] 2019-02-21 13:28:44 | Initiating system...
+[inf] 2019-02-21 13:28:44 | App connected to Cache server
+[inf] 2019-02-21 13:28:45 | Cleanup controller...
+[inf] 2019-02-21 13:28:45 | Cleaning chain...
+[inf] 2019-02-21 13:28:56 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:28:56 | Initializing controller
+[inf] 2019-02-21 13:28:56 | Loading controller
+[inf] 2019-02-21 13:28:56 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:28:56 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:28:56 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:28:56 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:28:56 | App started...
+[dbg] 2019-02-21 13:28:56 | Initiating cache...
+[dbg] 2019-02-21 13:28:56 | Initiating storage...
+[dbg] 2019-02-21 13:28:56 | Initiating system...
+[inf] 2019-02-21 13:28:56 | App connected to Cache server
+[inf] 2019-02-21 13:28:56 | Cleanup controller...
+[inf] 2019-02-21 13:28:56 | Cleaning chain...
+[inf] 2019-02-21 13:29:08 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:29:08 | Initializing controller
+[inf] 2019-02-21 13:29:08 | Loading controller
+[inf] 2019-02-21 13:29:08 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:29:08 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:29:08 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:29:08 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:29:08 | App started...
+[dbg] 2019-02-21 13:29:08 | Initiating cache...
+[dbg] 2019-02-21 13:29:08 | Initiating storage...
+[dbg] 2019-02-21 13:29:08 | Initiating system...
+[inf] 2019-02-21 13:29:08 | App connected to Cache server
+[inf] 2019-02-21 13:29:09 | Cleanup controller...
+[inf] 2019-02-21 13:29:09 | Cleaning chain...
+[inf] 2019-02-21 13:29:22 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:29:22 | Initializing controller
+[inf] 2019-02-21 13:29:22 | Loading controller
+[inf] 2019-02-21 13:29:22 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:29:22 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:29:22 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:29:22 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:29:22 | App started...
+[dbg] 2019-02-21 13:29:22 | Initiating cache...
+[dbg] 2019-02-21 13:29:22 | Initiating storage...
+[dbg] 2019-02-21 13:29:22 | Initiating system...
+[inf] 2019-02-21 13:29:22 | App connected to Cache server
+[inf] 2019-02-21 13:29:22 | Cleanup controller...
+[inf] 2019-02-21 13:29:23 | Cleaning chain...
+[inf] 2019-02-21 13:30:13 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:30:13 | Initializing controller
+[inf] 2019-02-21 13:30:13 | Loading controller
+[inf] 2019-02-21 13:30:14 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:30:14 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:30:14 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:30:14 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:30:14 | App started...
+[dbg] 2019-02-21 13:30:14 | Initiating cache...
+[dbg] 2019-02-21 13:30:14 | Initiating storage...
+[dbg] 2019-02-21 13:30:14 | Initiating system...
+[inf] 2019-02-21 13:30:14 | App connected to Cache server
+[inf] 2019-02-21 13:30:14 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:30:14 | Loading module - accounts
+[dbg] 2019-02-21 13:30:14 | Loading module - blocks
+[dbg] 2019-02-21 13:30:14 | Loading module - dapps
+[dbg] 2019-02-21 13:30:14 | Loading module - delegates
+[dbg] 2019-02-21 13:30:15 | Loading module - rounds
+[dbg] 2019-02-21 13:30:15 | Loading module - loader
+[dbg] 2019-02-21 13:30:15 | Loading module - multisignatures
+[dbg] 2019-02-21 13:30:15 | Loading module - peers
+[dbg] 2019-02-21 13:30:15 | Loading module - signatures
+[dbg] 2019-02-21 13:30:15 | Loading module - transactions
+[dbg] 2019-02-21 13:30:15 | Loading module - transport
+[inf] 2019-02-21 13:30:15 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:30:15 | Queue empty
+[inf] 2019-02-21 13:30:15 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:30:15 | Modules ready and launched
+[inf] 2019-02-21 13:30:15 | Blocks 1
+[dbg] 2019-02-21 13:30:15 | Loading blocks offset - {"limit":5000,"offset":0}
+[dbg] 2019-02-21 13:30:15 | Processing block - 6524861224470851795
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 11549171951016850959
+[inf] 2019-02-21 13:30:15 | Genesis block loading - 0.9709 %: applied 1 of 103 transactions
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 11549171951016850959
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 15975725245957634226
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 15975725245957634226
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 11246867963654933991
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 11246867963654933991
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 8886362355238277998
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 8886362355238277998
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 12511984344561945661
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 12511984344561945661
+[dbg] 2019-02-21 13:30:15 | Applying unconfirmed transaction - 12470576968560642688
+[dbg] 2019-02-21 13:30:15 | Applying confirmed transaction - 12470576968560642688
+[inf] 2019-02-21 13:30:15 | Cleanup controller...
+[inf] 2019-02-21 13:30:15 | Cleaning chain...
+[dbg] 2019-02-21 13:30:15 | Cache - Clean up database
+[dbg] 2019-02-21 13:30:15 | Cache - Quit database
+[dbg] 2019-02-21 13:30:15 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:30:15 | Cleaned up successfully
+[inf] 2019-02-21 13:30:15 | Unload completed
+[inf] 2019-02-21 13:30:37 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:30:37 | Initializing controller
+[inf] 2019-02-21 13:30:37 | Loading controller
+[inf] 2019-02-21 13:30:37 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:30:37 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:30:37 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:30:37 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:30:37 | App started...
+[dbg] 2019-02-21 13:30:37 | Initiating cache...
+[dbg] 2019-02-21 13:30:37 | Initiating storage...
+[dbg] 2019-02-21 13:30:37 | Initiating system...
+[inf] 2019-02-21 13:30:37 | App connected to Cache server
+[inf] 2019-02-21 13:30:38 | Cleanup controller...
+[inf] 2019-02-21 13:30:38 | Cleaning chain...
+[inf] 2019-02-21 13:31:01 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:31:01 | Initializing controller
+[inf] 2019-02-21 13:31:01 | Loading controller
+[inf] 2019-02-21 13:31:01 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:31:01 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:31:01 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:31:01 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:31:01 | App started...
+[dbg] 2019-02-21 13:31:01 | Initiating cache...
+[dbg] 2019-02-21 13:31:01 | Initiating storage...
+[dbg] 2019-02-21 13:31:01 | Initiating system...
+[inf] 2019-02-21 13:31:01 | App connected to Cache server
+[inf] 2019-02-21 13:31:02 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:31:02 | Loading module - accounts
+[dbg] 2019-02-21 13:31:02 | Loading module - blocks
+[dbg] 2019-02-21 13:31:02 | Loading module - dapps
+[dbg] 2019-02-21 13:31:02 | Loading module - delegates
+[dbg] 2019-02-21 13:31:02 | Loading module - rounds
+[dbg] 2019-02-21 13:31:02 | Loading module - loader
+[dbg] 2019-02-21 13:31:02 | Loading module - multisignatures
+[dbg] 2019-02-21 13:31:02 | Loading module - peers
+[dbg] 2019-02-21 13:31:02 | Loading module - signatures
+[dbg] 2019-02-21 13:31:02 | Loading module - transactions
+[dbg] 2019-02-21 13:31:02 | Loading module - transport
+[inf] 2019-02-21 13:31:02 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:31:02 | Queue empty
+[inf] 2019-02-21 13:31:03 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:31:03 | Modules ready and launched
+[inf] 2019-02-21 13:31:03 | Cleanup controller...
+[inf] 2019-02-21 13:31:03 | Cleaning chain...
+[dbg] 2019-02-21 13:31:03 | Cache - Clean up database
+[dbg] 2019-02-21 13:31:03 | Cache - Quit database
+[dbg] 2019-02-21 13:31:03 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:31:03 | Blocks 1
+[inf] 2019-02-21 13:31:03 | Cleaned up successfully
+[inf] 2019-02-21 13:31:03 | Unload completed
+[inf] 2019-02-21 13:31:44 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:31:44 | Initializing controller
+[inf] 2019-02-21 13:31:44 | Loading controller
+[inf] 2019-02-21 13:31:44 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:31:44 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:31:44 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:31:44 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:31:44 | App started...
+[dbg] 2019-02-21 13:31:44 | Initiating cache...
+[dbg] 2019-02-21 13:31:44 | Initiating storage...
+[dbg] 2019-02-21 13:31:44 | Initiating system...
+[inf] 2019-02-21 13:31:44 | App connected to Cache server
+[inf] 2019-02-21 13:31:45 | Cleanup controller...
+[inf] 2019-02-21 13:31:45 | Cleaning chain...
+[inf] 2019-02-21 13:33:43 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:33:43 | Initializing controller
+[inf] 2019-02-21 13:33:43 | Loading controller
+[inf] 2019-02-21 13:33:43 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:33:43 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:33:43 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:33:43 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:33:43 | App started...
+[dbg] 2019-02-21 13:33:43 | Initiating cache...
+[dbg] 2019-02-21 13:33:43 | Initiating storage...
+[dbg] 2019-02-21 13:33:43 | Initiating system...
+[inf] 2019-02-21 13:33:43 | App connected to Cache server
+[inf] 2019-02-21 13:33:44 | Cleanup controller...
+[inf] 2019-02-21 13:33:44 | Cleaning chain...
+[inf] 2019-02-21 13:36:47 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:36:47 | Initializing controller
+[inf] 2019-02-21 13:36:47 | Loading controller
+[inf] 2019-02-21 13:36:47 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:36:47 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:36:47 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:36:47 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:36:47 | App started...
+[dbg] 2019-02-21 13:36:47 | Initiating cache...
+[dbg] 2019-02-21 13:36:47 | Initiating storage...
+[dbg] 2019-02-21 13:36:47 | Initiating system...
+[inf] 2019-02-21 13:36:47 | App connected to Cache server
+[inf] 2019-02-21 13:36:48 | Cleanup controller...
+[inf] 2019-02-21 13:36:48 | Cleaning chain...
+[inf] 2019-02-21 13:40:13 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:40:13 | Initializing controller
+[inf] 2019-02-21 13:40:13 | Loading controller
+[inf] 2019-02-21 13:40:13 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:40:13 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:40:13 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:40:13 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:40:13 | App started...
+[dbg] 2019-02-21 13:40:13 | Initiating cache...
+[dbg] 2019-02-21 13:40:13 | Initiating storage...
+[dbg] 2019-02-21 13:40:13 | Initiating system...
+[inf] 2019-02-21 13:40:13 | App connected to Cache server
+[inf] 2019-02-21 13:40:14 | Cleanup controller...
+[inf] 2019-02-21 13:40:14 | Cleaning chain...
+[inf] 2019-02-21 13:40:22 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:40:22 | Initializing controller
+[inf] 2019-02-21 13:40:22 | Loading controller
+[inf] 2019-02-21 13:40:22 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:40:22 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:40:22 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:40:22 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:40:22 | App started...
+[dbg] 2019-02-21 13:40:22 | Initiating cache...
+[dbg] 2019-02-21 13:40:22 | Initiating storage...
+[dbg] 2019-02-21 13:40:22 | Initiating system...
+[inf] 2019-02-21 13:40:23 | App connected to Cache server
+[inf] 2019-02-21 13:40:23 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:40:23 | Loading module - accounts
+[dbg] 2019-02-21 13:40:23 | Loading module - blocks
+[dbg] 2019-02-21 13:40:23 | Loading module - dapps
+[dbg] 2019-02-21 13:40:23 | Loading module - delegates
+[dbg] 2019-02-21 13:40:24 | Loading module - rounds
+[dbg] 2019-02-21 13:40:24 | Loading module - loader
+[dbg] 2019-02-21 13:40:24 | Loading module - multisignatures
+[dbg] 2019-02-21 13:40:24 | Loading module - peers
+[dbg] 2019-02-21 13:40:24 | Loading module - signatures
+[dbg] 2019-02-21 13:40:24 | Loading module - transactions
+[dbg] 2019-02-21 13:40:24 | Loading module - transport
+[inf] 2019-02-21 13:40:24 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:40:24 | Queue empty
+[inf] 2019-02-21 13:40:24 | Cleanup controller...
+[inf] 2019-02-21 13:41:17 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:41:17 | Initializing controller
+[inf] 2019-02-21 13:41:17 | Loading controller
+[inf] 2019-02-21 13:41:17 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:41:17 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:41:17 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:41:17 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:41:17 | App started...
+[dbg] 2019-02-21 13:41:17 | Initiating cache...
+[dbg] 2019-02-21 13:41:17 | Initiating storage...
+[dbg] 2019-02-21 13:41:17 | Initiating system...
+[inf] 2019-02-21 13:41:17 | App connected to Cache server
+[inf] 2019-02-21 13:41:18 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:41:18 | Loading module - accounts
+[dbg] 2019-02-21 13:41:18 | Loading module - blocks
+[dbg] 2019-02-21 13:41:18 | Loading module - dapps
+[dbg] 2019-02-21 13:41:18 | Loading module - delegates
+[dbg] 2019-02-21 13:41:18 | Loading module - rounds
+[dbg] 2019-02-21 13:41:18 | Loading module - loader
+[dbg] 2019-02-21 13:41:18 | Loading module - multisignatures
+[dbg] 2019-02-21 13:41:18 | Loading module - peers
+[dbg] 2019-02-21 13:41:18 | Loading module - signatures
+[dbg] 2019-02-21 13:41:18 | Loading module - transactions
+[dbg] 2019-02-21 13:41:18 | Loading module - transport
+[inf] 2019-02-21 13:41:18 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:41:18 | Queue empty
+[inf] 2019-02-21 13:41:18 | Cleanup controller...
+[inf] 2019-02-21 13:45:26 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:45:27 | Initializing controller
+[inf] 2019-02-21 13:45:27 | Loading controller
+[inf] 2019-02-21 13:45:27 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:45:27 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:45:27 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:45:27 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:45:27 | App started...
+[dbg] 2019-02-21 13:45:27 | Initiating cache...
+[dbg] 2019-02-21 13:45:27 | Initiating storage...
+[dbg] 2019-02-21 13:45:27 | Initiating system...
+[inf] 2019-02-21 13:45:27 | App connected to Cache server
+[inf] 2019-02-21 13:45:27 | Cleanup controller...
+[inf] 2019-02-21 13:45:27 | Cleaning chain...
+[inf] 2019-02-21 13:48:33 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:48:33 | Initializing controller
+[inf] 2019-02-21 13:48:33 | Loading controller
+[inf] 2019-02-21 13:48:33 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:48:33 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:48:33 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:48:33 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:48:33 | App started...
+[dbg] 2019-02-21 13:48:33 | Initiating cache...
+[dbg] 2019-02-21 13:48:33 | Initiating storage...
+[dbg] 2019-02-21 13:48:33 | Initiating system...
+[inf] 2019-02-21 13:48:33 | App connected to Cache server
+[inf] 2019-02-21 13:48:34 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:48:34 | Loading module - accounts
+[dbg] 2019-02-21 13:48:34 | Loading module - blocks
+[dbg] 2019-02-21 13:48:34 | Loading module - dapps
+[dbg] 2019-02-21 13:48:34 | Loading module - delegates
+[dbg] 2019-02-21 13:48:34 | Loading module - rounds
+[dbg] 2019-02-21 13:48:34 | Loading module - loader
+[dbg] 2019-02-21 13:48:34 | Loading module - multisignatures
+[dbg] 2019-02-21 13:48:35 | Loading module - peers
+[dbg] 2019-02-21 13:48:35 | Loading module - signatures
+[dbg] 2019-02-21 13:48:35 | Loading module - transactions
+[dbg] 2019-02-21 13:48:35 | Loading module - transport
+[inf] 2019-02-21 13:48:35 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:48:35 | Queue empty
+[inf] 2019-02-21 13:48:35 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:48:35 | Modules ready and launched
+[inf] 2019-02-21 13:48:35 | Blocks 1
+[dbg] 2019-02-21 13:48:35 | Loading blocks offset - {"limit":5000,"offset":0}
+[dbg] 2019-02-21 13:48:35 | Processing block - 6524861224470851795
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 11549171951016850959
+[inf] 2019-02-21 13:48:35 | Genesis block loading - 0.9709 %: applied 1 of 103 transactions
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 11549171951016850959
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 15975725245957634226
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 15975725245957634226
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 11246867963654933991
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 11246867963654933991
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 8886362355238277998
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 8886362355238277998
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 12511984344561945661
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 12511984344561945661
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 12470576968560642688
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 12470576968560642688
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 16979024391630063731
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 16979024391630063731
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 3132586618460208262
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 3132586618460208262
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 13612427145550979190
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 13612427145550979190
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 4820365613836031607
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 4820365613836031607
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 12112106230786825768
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 12112106230786825768
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 13821967849884105584
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 13821967849884105584
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 2697129531259680873
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 2697129531259680873
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 3759946394491450982
+[dbg] 2019-02-21 13:48:35 | Applying confirmed transaction - 3759946394491450982
+[dbg] 2019-02-21 13:48:35 | Applying unconfirmed transaction - 18032556474095275261
+[inf] 2019-02-21 13:48:35 | Cleanup controller...
+[inf] 2019-02-21 13:48:35 | Cleaning chain...
+[dbg] 2019-02-21 13:48:35 | Cache - Clean up database
+[dbg] 2019-02-21 13:48:35 | Cache - Quit database
+[dbg] 2019-02-21 13:48:35 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:48:35 | Cleaned up successfully
+[inf] 2019-02-21 13:48:35 | Unload completed
+[inf] 2019-02-21 13:50:18 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:50:18 | Initializing controller
+[inf] 2019-02-21 13:50:18 | Loading controller
+[inf] 2019-02-21 13:50:18 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:50:18 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:50:18 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:50:18 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:50:18 | App started...
+[dbg] 2019-02-21 13:50:18 | Initiating cache...
+[dbg] 2019-02-21 13:50:18 | Initiating storage...
+[dbg] 2019-02-21 13:50:18 | Initiating system...
+[inf] 2019-02-21 13:50:19 | Cleanup controller...
+[inf] 2019-02-21 13:51:10 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:51:10 | Initializing controller
+[inf] 2019-02-21 13:51:10 | Loading controller
+[inf] 2019-02-21 13:51:10 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:51:10 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:51:10 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:51:10 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:51:10 | App started...
+[dbg] 2019-02-21 13:51:10 | Initiating cache...
+[dbg] 2019-02-21 13:51:10 | Initiating storage...
+[dbg] 2019-02-21 13:51:10 | Initiating system...
+[inf] 2019-02-21 13:51:10 | App connected to Cache server
+[inf] 2019-02-21 13:51:10 | Cleanup controller...
+[inf] 2019-02-21 13:51:10 | Cleaning chain...
+[inf] 2019-02-21 13:51:33 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:51:33 | Initializing controller
+[inf] 2019-02-21 13:51:33 | Loading controller
+[inf] 2019-02-21 13:51:33 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:51:33 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:51:33 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:51:33 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:51:33 | App started...
+[dbg] 2019-02-21 13:51:33 | Initiating cache...
+[dbg] 2019-02-21 13:51:33 | Initiating storage...
+[dbg] 2019-02-21 13:51:33 | Initiating system...
+[inf] 2019-02-21 13:51:33 | App connected to Cache server
+[inf] 2019-02-21 13:51:34 | Cleanup controller...
+[inf] 2019-02-21 13:51:34 | Cleaning chain...
+[inf] 2019-02-21 13:51:53 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:51:53 | Initializing controller
+[inf] 2019-02-21 13:51:53 | Loading controller
+[inf] 2019-02-21 13:51:53 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:51:53 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:51:53 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:51:53 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:51:53 | App started...
+[dbg] 2019-02-21 13:51:53 | Initiating cache...
+[dbg] 2019-02-21 13:51:53 | Initiating storage...
+[dbg] 2019-02-21 13:51:53 | Initiating system...
+[inf] 2019-02-21 13:51:53 | App connected to Cache server
+[inf] 2019-02-21 13:51:54 | Cleanup controller...
+[inf] 2019-02-21 13:51:54 | Cleaning chain...
+[inf] 2019-02-21 13:53:01 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:53:01 | Initializing controller
+[inf] 2019-02-21 13:53:01 | Loading controller
+[inf] 2019-02-21 13:53:01 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:53:01 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:53:01 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:53:01 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:53:01 | App started...
+[dbg] 2019-02-21 13:53:01 | Initiating cache...
+[dbg] 2019-02-21 13:53:01 | Initiating storage...
+[dbg] 2019-02-21 13:53:01 | Initiating system...
+[inf] 2019-02-21 13:53:01 | App connected to Cache server
+[inf] 2019-02-21 13:53:02 | Cleanup controller...
+[inf] 2019-02-21 13:53:02 | Cleaning chain...
+[inf] 2019-02-21 13:53:22 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:53:22 | Initializing controller
+[inf] 2019-02-21 13:53:22 | Loading controller
+[inf] 2019-02-21 13:53:22 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:53:22 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:53:22 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:53:22 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:53:22 | App started...
+[dbg] 2019-02-21 13:53:22 | Initiating cache...
+[dbg] 2019-02-21 13:53:22 | Initiating storage...
+[dbg] 2019-02-21 13:53:22 | Initiating system...
+[inf] 2019-02-21 13:53:22 | App connected to Cache server
+[inf] 2019-02-21 13:53:23 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:53:23 | Loading module - accounts
+[dbg] 2019-02-21 13:53:23 | Loading module - blocks
+[dbg] 2019-02-21 13:53:23 | Loading module - dapps
+[dbg] 2019-02-21 13:53:23 | Loading module - delegates
+[dbg] 2019-02-21 13:53:23 | Loading module - rounds
+[dbg] 2019-02-21 13:53:23 | Loading module - loader
+[dbg] 2019-02-21 13:53:23 | Loading module - multisignatures
+[dbg] 2019-02-21 13:53:23 | Loading module - peers
+[dbg] 2019-02-21 13:53:23 | Loading module - signatures
+[dbg] 2019-02-21 13:53:23 | Loading module - transactions
+[dbg] 2019-02-21 13:53:23 | Loading module - transport
+[inf] 2019-02-21 13:53:23 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:53:23 | Queue empty
+[inf] 2019-02-21 13:53:23 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:53:23 | Modules ready and launched
+[inf] 2019-02-21 13:53:23 | Blocks 1
+[dbg] 2019-02-21 13:53:23 | Loading blocks offset - {"limit":5000,"offset":0}
+[dbg] 2019-02-21 13:53:23 | Processing block - 6524861224470851795
+[dbg] 2019-02-21 13:53:23 | Applying unconfirmed transaction - 11549171951016850959
+[inf] 2019-02-21 13:53:23 | Genesis block loading - 0.9709 %: applied 1 of 103 transactions
+[dbg] 2019-02-21 13:53:23 | Applying confirmed transaction - 11549171951016850959
+[dbg] 2019-02-21 13:53:23 | Applying unconfirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 13:53:23 | Applying confirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 13:53:24 | Applying unconfirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 13:53:24 | Applying confirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 13:53:24 | Applying unconfirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 13:53:24 | Applying confirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 13:53:24 | Applying unconfirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 13:53:24 | Applying confirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 13:53:24 | Applying unconfirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 13:53:24 | Applying confirmed transaction - 17128624452873376878
+[inf] 2019-02-21 13:53:24 | Cleanup controller...
+[inf] 2019-02-21 13:53:24 | Cleaning chain...
+[dbg] 2019-02-21 13:53:24 | Cache - Clean up database
+[dbg] 2019-02-21 13:53:24 | Cache - Quit database
+[dbg] 2019-02-21 13:53:24 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:53:24 | Cleaned up successfully
+[inf] 2019-02-21 13:53:24 | Unload completed
+[inf] 2019-02-21 13:55:03 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:55:03 | Initializing controller
+[inf] 2019-02-21 13:55:03 | Loading controller
+[inf] 2019-02-21 13:55:03 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:55:03 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:55:03 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:55:03 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:55:03 | App started...
+[dbg] 2019-02-21 13:55:03 | Initiating cache...
+[dbg] 2019-02-21 13:55:03 | Initiating storage...
+[dbg] 2019-02-21 13:55:03 | Initiating system...
+[inf] 2019-02-21 13:55:03 | App connected to Cache server
+[inf] 2019-02-21 13:55:03 | Cleanup controller...
+[inf] 2019-02-21 13:55:03 | Cleaning chain...
+[inf] 2019-02-21 13:56:58 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:56:58 | Initializing controller
+[inf] 2019-02-21 13:56:58 | Loading controller
+[inf] 2019-02-21 13:56:58 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:56:58 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:56:58 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:56:58 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:56:58 | App started...
+[dbg] 2019-02-21 13:56:58 | Initiating cache...
+[dbg] 2019-02-21 13:56:58 | Initiating storage...
+[dbg] 2019-02-21 13:56:58 | Initiating system...
+[inf] 2019-02-21 13:56:58 | App connected to Cache server
+[inf] 2019-02-21 13:56:59 | Cleanup controller...
+[inf] 2019-02-21 13:56:59 | Cleaning chain...
+[inf] 2019-02-21 13:58:44 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:58:44 | Initializing controller
+[inf] 2019-02-21 13:58:44 | Loading controller
+[inf] 2019-02-21 13:58:44 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:58:44 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:58:44 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:58:44 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:58:44 | App started...
+[dbg] 2019-02-21 13:58:44 | Initiating cache...
+[dbg] 2019-02-21 13:58:44 | Initiating storage...
+[dbg] 2019-02-21 13:58:44 | Initiating system...
+[inf] 2019-02-21 13:58:44 | App connected to Cache server
+[inf] 2019-02-21 13:58:44 | Cleanup controller...
+[inf] 2019-02-21 13:58:44 | Cleaning chain...
+[inf] 2019-02-21 13:58:51 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:58:52 | Initializing controller
+[inf] 2019-02-21 13:58:52 | Loading controller
+[inf] 2019-02-21 13:58:52 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:58:52 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:58:52 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:58:52 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:58:52 | App started...
+[dbg] 2019-02-21 13:58:52 | Initiating cache...
+[dbg] 2019-02-21 13:58:52 | Initiating storage...
+[dbg] 2019-02-21 13:58:52 | Initiating system...
+[inf] 2019-02-21 13:58:52 | App connected to Cache server
+[inf] 2019-02-21 13:58:52 | Cleanup controller...
+[inf] 2019-02-21 13:58:52 | Cleaning chain...
+[inf] 2019-02-21 13:59:48 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 13:59:48 | Initializing controller
+[inf] 2019-02-21 13:59:48 | Loading controller
+[inf] 2019-02-21 13:59:48 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:59:48 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 13:59:48 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 13:59:48 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 13:59:48 | App started...
+[dbg] 2019-02-21 13:59:48 | Initiating cache...
+[dbg] 2019-02-21 13:59:48 | Initiating storage...
+[dbg] 2019-02-21 13:59:48 | Initiating system...
+[inf] 2019-02-21 13:59:48 | App connected to Cache server
+[inf] 2019-02-21 13:59:49 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 13:59:49 | Loading module - accounts
+[dbg] 2019-02-21 13:59:49 | Loading module - blocks
+[dbg] 2019-02-21 13:59:49 | Loading module - dapps
+[dbg] 2019-02-21 13:59:49 | Loading module - delegates
+[dbg] 2019-02-21 13:59:49 | Loading module - rounds
+[dbg] 2019-02-21 13:59:49 | Loading module - loader
+[dbg] 2019-02-21 13:59:49 | Loading module - multisignatures
+[dbg] 2019-02-21 13:59:49 | Loading module - peers
+[dbg] 2019-02-21 13:59:49 | Loading module - signatures
+[dbg] 2019-02-21 13:59:49 | Loading module - transactions
+[dbg] 2019-02-21 13:59:49 | Loading module - transport
+[inf] 2019-02-21 13:59:49 | Releasing enqueued broadcasts
+[inf] 2019-02-21 13:59:49 | Queue empty
+[inf] 2019-02-21 13:59:50 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 13:59:50 | Modules ready and launched
+[inf] 2019-02-21 13:59:50 | Cleanup controller...
+[inf] 2019-02-21 13:59:50 | Cleaning chain...
+[dbg] 2019-02-21 13:59:50 | Cache - Clean up database
+[dbg] 2019-02-21 13:59:50 | Cache - Quit database
+[dbg] 2019-02-21 13:59:50 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 13:59:50 | Blocks 1
+[inf] 2019-02-21 13:59:50 | Cleaned up successfully
+[inf] 2019-02-21 13:59:50 | Unload completed
+[inf] 2019-02-21 14:00:30 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:00:30 | Initializing controller
+[inf] 2019-02-21 14:00:30 | Loading controller
+[inf] 2019-02-21 14:00:30 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:00:30 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:00:30 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:00:30 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:00:30 | App started...
+[dbg] 2019-02-21 14:00:31 | Initiating cache...
+[dbg] 2019-02-21 14:00:31 | Initiating storage...
+[dbg] 2019-02-21 14:00:31 | Initiating system...
+[inf] 2019-02-21 14:00:31 | App connected to Cache server
+[inf] 2019-02-21 14:00:31 | Cleanup controller...
+[inf] 2019-02-21 14:00:31 | Cleaning chain...
+[inf] 2019-02-21 14:01:03 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:01:04 | Initializing controller
+[inf] 2019-02-21 14:01:04 | Loading controller
+[inf] 2019-02-21 14:01:04 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:01:04 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:01:04 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:01:04 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:01:04 | App started...
+[dbg] 2019-02-21 14:01:04 | Initiating cache...
+[dbg] 2019-02-21 14:01:04 | Initiating storage...
+[dbg] 2019-02-21 14:01:04 | Initiating system...
+[inf] 2019-02-21 14:01:04 | App connected to Cache server
+[inf] 2019-02-21 14:01:04 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 14:01:04 | Loading module - accounts
+[dbg] 2019-02-21 14:01:04 | Loading module - blocks
+[dbg] 2019-02-21 14:01:04 | Loading module - dapps
+[dbg] 2019-02-21 14:01:04 | Loading module - delegates
+[dbg] 2019-02-21 14:01:05 | Loading module - rounds
+[dbg] 2019-02-21 14:01:05 | Loading module - loader
+[dbg] 2019-02-21 14:01:05 | Loading module - multisignatures
+[dbg] 2019-02-21 14:01:05 | Loading module - peers
+[dbg] 2019-02-21 14:01:05 | Loading module - signatures
+[dbg] 2019-02-21 14:01:05 | Loading module - transactions
+[dbg] 2019-02-21 14:01:05 | Loading module - transport
+[inf] 2019-02-21 14:01:05 | Releasing enqueued broadcasts
+[inf] 2019-02-21 14:01:05 | Queue empty
+[inf] 2019-02-21 14:01:05 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 14:01:05 | Modules ready and launched
+[inf] 2019-02-21 14:01:05 | Cleanup controller...
+[inf] 2019-02-21 14:01:05 | Cleaning chain...
+[dbg] 2019-02-21 14:01:05 | Cache - Clean up database
+[dbg] 2019-02-21 14:01:05 | Cache - Quit database
+[dbg] 2019-02-21 14:01:05 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 14:01:05 | Blocks 1
+[inf] 2019-02-21 14:01:05 | Cleaned up successfully
+[inf] 2019-02-21 14:01:05 | Unload completed
+[inf] 2019-02-21 14:06:47 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:06:47 | Initializing controller
+[inf] 2019-02-21 14:06:47 | Loading controller
+[inf] 2019-02-21 14:06:47 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:06:47 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:06:47 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:06:47 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:06:47 | App started...
+[dbg] 2019-02-21 14:06:47 | Initiating cache...
+[dbg] 2019-02-21 14:06:47 | Initiating storage...
+[dbg] 2019-02-21 14:06:47 | Initiating system...
+[inf] 2019-02-21 14:06:47 | App connected to Cache server
+[inf] 2019-02-21 14:06:48 | Cleanup controller...
+[inf] 2019-02-21 14:06:48 | Cleaning chain...
+[inf] 2019-02-21 14:07:54 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:07:54 | Initializing controller
+[inf] 2019-02-21 14:07:54 | Loading controller
+[inf] 2019-02-21 14:07:54 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:07:54 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:07:54 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:07:54 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:07:54 | App started...
+[dbg] 2019-02-21 14:07:54 | Initiating cache...
+[dbg] 2019-02-21 14:07:54 | Initiating storage...
+[dbg] 2019-02-21 14:07:54 | Initiating system...
+[inf] 2019-02-21 14:07:55 | App connected to Cache server
+[inf] 2019-02-21 14:07:55 | Cleanup controller...
+[inf] 2019-02-21 14:07:55 | Cleaning chain...
+[inf] 2019-02-21 14:09:12 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:09:12 | Initializing controller
+[inf] 2019-02-21 14:09:12 | Loading controller
+[inf] 2019-02-21 14:09:12 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:09:12 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:09:12 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:09:12 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:09:12 | App started...
+[dbg] 2019-02-21 14:09:12 | Initiating cache...
+[dbg] 2019-02-21 14:09:12 | Initiating storage...
+[dbg] 2019-02-21 14:09:12 | Initiating system...
+[inf] 2019-02-21 14:09:12 | App connected to Cache server
+[inf] 2019-02-21 14:09:13 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 14:09:13 | Loading module - accounts
+[dbg] 2019-02-21 14:09:13 | Loading module - blocks
+[dbg] 2019-02-21 14:09:13 | Loading module - dapps
+[dbg] 2019-02-21 14:09:13 | Loading module - delegates
+[dbg] 2019-02-21 14:09:13 | Loading module - rounds
+[dbg] 2019-02-21 14:09:13 | Loading module - loader
+[dbg] 2019-02-21 14:09:13 | Loading module - multisignatures
+[dbg] 2019-02-21 14:09:13 | Loading module - peers
+[dbg] 2019-02-21 14:09:13 | Loading module - signatures
+[dbg] 2019-02-21 14:09:13 | Loading module - transactions
+[dbg] 2019-02-21 14:09:13 | Loading module - transport
+[inf] 2019-02-21 14:09:14 | Releasing enqueued broadcasts
+[inf] 2019-02-21 14:09:14 | Queue empty
+[inf] 2019-02-21 14:09:14 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 14:09:14 | Modules ready and launched
+[inf] 2019-02-21 14:09:14 | Blocks 1
+[dbg] 2019-02-21 14:09:14 | Loading blocks offset - {"limit":5000,"offset":0}
+[dbg] 2019-02-21 14:09:14 | Processing block - 6524861224470851795
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 11549171951016850959
+[inf] 2019-02-21 14:09:14 | Genesis block loading - 0.9709 %: applied 1 of 103 transactions
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 11549171951016850959
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 1465651642158264047
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 8038215676969674333
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 12531923965746850440
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 1513655759945413173
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 17128624452873376878
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 15975725245957634226
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 15975725245957634226
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 11246867963654933991
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 11246867963654933991
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 8886362355238277998
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 8886362355238277998
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 12511984344561945661
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 12511984344561945661
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 12470576968560642688
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 12470576968560642688
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 16979024391630063731
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 16979024391630063731
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 3132586618460208262
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 3132586618460208262
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 13612427145550979190
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 13612427145550979190
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 4820365613836031607
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 4820365613836031607
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 12112106230786825768
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 12112106230786825768
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 13821967849884105584
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 13821967849884105584
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 2697129531259680873
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 2697129531259680873
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 3759946394491450982
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 3759946394491450982
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 18032556474095275261
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 18032556474095275261
+[dbg] 2019-02-21 14:09:14 | Applying unconfirmed transaction - 1560224518702707678
+[dbg] 2019-02-21 14:09:14 | Applying confirmed transaction - 1560224518702707678
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 16703972713290793385
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 16703972713290793385
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 9024888972225135909
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 9024888972225135909
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 17360344467587871549
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 17360344467587871549
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 5232920129259210735
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 5232920129259210735
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 9004206353403912975
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 9004206353403912975
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 1189545323092305750
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 1189545323092305750
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 7550428103744152900
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 7550428103744152900
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 5063479199814313256
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 5063479199814313256
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 16511653596135136784
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 16511653596135136784
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 16595863059256490600
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 16595863059256490600
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 3751638297072961125
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 3751638297072961125
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 14853252917548748
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 14853252917548748
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 16837042075842008948
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 16837042075842008948
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 3818529290521217580
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 3818529290521217580
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 8222004892167905718
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 8222004892167905718
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 13769488247922626310
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 13769488247922626310
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 4447831995935541366
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 4447831995935541366
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 13853244827819802699
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 13853244827819802699
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 13063373368205433852
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 13063373368205433852
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 15486060283974943831
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 15486060283974943831
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 13721391570613926706
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 13721391570613926706
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 14867434600889949439
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 14867434600889949439
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 4242368664678620951
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 4242368664678620951
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 17935338216936715985
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 17935338216936715985
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 18187129690272007362
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 18187129690272007362
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 7893064014890793889
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 7893064014890793889
+[dbg] 2019-02-21 14:09:15 | Applying unconfirmed transaction - 342758163977987198
+[inf] 2019-02-21 14:09:15 | Cleanup controller...
+[inf] 2019-02-21 14:09:15 | Cleaning chain...
+[dbg] 2019-02-21 14:09:15 | Cache - Clean up database
+[dbg] 2019-02-21 14:09:15 | Cache - Quit database
+[dbg] 2019-02-21 14:09:15 | Applying confirmed transaction - 342758163977987198
+[dbg] 2019-02-21 14:09:15 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 14:09:15 | Cleaned up successfully
+[inf] 2019-02-21 14:09:15 | Unload completed
+[inf] 2019-02-21 14:09:56 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:09:56 | Initializing controller
+[inf] 2019-02-21 14:09:56 | Loading controller
+[inf] 2019-02-21 14:09:56 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:09:56 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:09:56 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:09:56 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:09:56 | App started...
+[dbg] 2019-02-21 14:09:56 | Initiating cache...
+[dbg] 2019-02-21 14:09:56 | Initiating storage...
+[dbg] 2019-02-21 14:09:56 | Initiating system...
+[inf] 2019-02-21 14:09:57 | App connected to Cache server
+[inf] 2019-02-21 14:09:57 | Cleanup controller...
+[inf] 2019-02-21 14:09:57 | Cleaning chain...
+[inf] 2019-02-21 14:11:01 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:11:01 | Initializing controller
+[inf] 2019-02-21 14:11:01 | Loading controller
+[inf] 2019-02-21 14:11:01 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:11:01 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:11:01 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:11:01 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:11:01 | App started...
+[dbg] 2019-02-21 14:11:01 | Initiating cache...
+[dbg] 2019-02-21 14:11:01 | Initiating storage...
+[dbg] 2019-02-21 14:11:01 | Initiating system...
+[inf] 2019-02-21 14:11:02 | App connected to Cache server
+[inf] 2019-02-21 14:11:02 | Socket Cluster ready for incoming connections
+[dbg] 2019-02-21 14:11:02 | Loading module - accounts
+[dbg] 2019-02-21 14:11:02 | Loading module - blocks
+[dbg] 2019-02-21 14:11:02 | Loading module - dapps
+[dbg] 2019-02-21 14:11:02 | Loading module - delegates
+[dbg] 2019-02-21 14:11:02 | Loading module - rounds
+[dbg] 2019-02-21 14:11:02 | Loading module - loader
+[dbg] 2019-02-21 14:11:02 | Loading module - multisignatures
+[dbg] 2019-02-21 14:11:02 | Loading module - peers
+[dbg] 2019-02-21 14:11:02 | Loading module - signatures
+[dbg] 2019-02-21 14:11:02 | Loading module - transactions
+[dbg] 2019-02-21 14:11:02 | Loading module - transport
+[inf] 2019-02-21 14:11:02 | Releasing enqueued broadcasts
+[inf] 2019-02-21 14:11:02 | Queue empty
+[inf] 2019-02-21 14:11:03 | Lisk started: 0.0.0.0:4000
+[inf] 2019-02-21 14:11:03 | Modules ready and launched
+[inf] 2019-02-21 14:11:03 | Cleanup controller...
+[inf] 2019-02-21 14:11:03 | Cleaning chain...
+[dbg] 2019-02-21 14:11:03 | Cache - Clean up database
+[dbg] 2019-02-21 14:11:03 | Cache - Quit database
+[dbg] 2019-02-21 14:11:03 | Export peers to database failed: Peers list empty
+[inf] 2019-02-21 14:11:03 | Blocks 1
+[inf] 2019-02-21 14:11:03 | Cleaned up successfully
+[inf] 2019-02-21 14:11:03 | Unload completed
+[inf] 2019-02-21 14:11:49 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:11:49 | Initializing controller
+[inf] 2019-02-21 14:11:49 | Loading controller
+[inf] 2019-02-21 14:11:49 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:11:49 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:11:49 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:11:49 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:11:49 | App started...
+[dbg] 2019-02-21 14:11:49 | Initiating cache...
+[dbg] 2019-02-21 14:11:49 | Initiating storage...
+[dbg] 2019-02-21 14:11:49 | Initiating system...
+[inf] 2019-02-21 14:11:50 | App connected to Cache server
+[inf] 2019-02-21 14:11:50 | Cleanup controller...
+[inf] 2019-02-21 14:11:50 | Cleaning chain...
+[inf] 2019-02-21 14:13:54 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:13:54 | Initializing controller
+[inf] 2019-02-21 14:13:54 | Loading controller
+[inf] 2019-02-21 14:13:54 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:13:54 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:13:54 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:13:54 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:13:54 | App started...
+[dbg] 2019-02-21 14:13:54 | Initiating cache...
+[dbg] 2019-02-21 14:13:54 | Initiating storage...
+[dbg] 2019-02-21 14:13:54 | Initiating system...
+[inf] 2019-02-21 14:13:54 | App connected to Cache server
+[inf] 2019-02-21 14:13:55 | Cleanup controller...
+[inf] 2019-02-21 14:13:55 | Cleaning chain...
+[inf] 2019-02-21 14:14:09 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:14:09 | Initializing controller
+[inf] 2019-02-21 14:14:09 | Loading controller
+[inf] 2019-02-21 14:14:09 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:14:09 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:14:09 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:14:09 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:14:09 | App started...
+[dbg] 2019-02-21 14:14:09 | Initiating cache...
+[dbg] 2019-02-21 14:14:09 | Initiating storage...
+[dbg] 2019-02-21 14:14:09 | Initiating system...
+[inf] 2019-02-21 14:14:10 | App connected to Cache server
+[inf] 2019-02-21 14:14:10 | Cleanup controller...
+[inf] 2019-02-21 14:14:10 | Cleaning chain...
+[inf] 2019-02-21 14:18:27 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:18:27 | Initializing controller
+[inf] 2019-02-21 14:18:27 | Loading controller
+[inf] 2019-02-21 14:18:27 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:18:27 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:18:27 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:18:27 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:18:27 | App started...
+[dbg] 2019-02-21 14:18:27 | Initiating cache...
+[dbg] 2019-02-21 14:18:27 | Initiating storage...
+[dbg] 2019-02-21 14:18:27 | Initiating system...
+[inf] 2019-02-21 14:18:27 | App connected to Cache server
+[inf] 2019-02-21 14:18:28 | Cleanup controller...
+[inf] 2019-02-21 14:18:28 | Cleaning chain...
+[inf] 2019-02-21 14:18:50 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:18:50 | Initializing controller
+[inf] 2019-02-21 14:18:50 | Loading controller
+[inf] 2019-02-21 14:18:50 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:18:50 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:18:50 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:18:50 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:18:50 | App started...
+[dbg] 2019-02-21 14:18:50 | Initiating cache...
+[dbg] 2019-02-21 14:18:50 | Initiating storage...
+[dbg] 2019-02-21 14:18:50 | Initiating system...
+[inf] 2019-02-21 14:18:50 | App connected to Cache server
+[inf] 2019-02-21 14:18:51 | Cleanup controller...
+[inf] 2019-02-21 14:18:51 | Cleaning chain...
+[inf] 2019-02-21 14:19:57 | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[inf] 2019-02-21 14:19:57 | Initializing controller
+[inf] 2019-02-21 14:19:57 | Loading controller
+[inf] 2019-02-21 14:19:57 | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:19:57 | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[inf] 2019-02-21 14:19:57 | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[inf] 2019-02-21 14:19:57 | Bus ready for actions - ["lisk:getComponentConfig"]
+[log] 2019-02-21 14:19:57 | App started...
+[dbg] 2019-02-21 14:19:57 | Initiating cache...
+[dbg] 2019-02-21 14:19:57 | Initiating storage...
+[dbg] 2019-02-21 14:19:57 | Initiating system...
+[inf] 2019-02-21 14:19:57 | App connected to Cache server
+[inf] 2019-02-21 14:19:58 | Cleanup controller...
+[inf] 2019-02-21 14:19:58 | Cleaning chain...

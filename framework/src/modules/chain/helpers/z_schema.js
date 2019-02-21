@@ -351,6 +351,48 @@ const liskFormats = {
 	integerOrNull(value) {
 		return Number.isInteger(value) || value === null;
 	},
+	/**
+	 * Returns true if integer is odd.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	oddInteger: {
+		type: 'number',
+		validate: value => Number.isInteger(value) && /^\d*[13579]$/.test(value),
+	},
+	/**
+	 * Returns true if `MULTISIG_CONSTRAINTS.MIN.MAXIMUM` is lower than or equal to `MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS`.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	keysgroupLimit: {
+		type: 'number',
+		validate: value => {
+			const { MULTISIG_CONSTRAINTS } = global.constants;
+			return (
+				Number.isInteger(value) &&
+				MULTISIG_CONSTRAINTS.MIN.MAXIMUM <=
+					MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS
+			);
+		},
+	},
+	/**
+	 * Returns true if `MAX_VOTES_PER_ACCOUNT` is lower than or equal to `ACTIVE_DELEGATES`.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	maxVotesAccount: {
+		type: 'number',
+		validate: value => {
+			const { ACTIVE_DELEGATES, MAX_VOTES_PER_ACCOUNT } = global.constants;
+			return (
+				Number.isInteger(value) && MAX_VOTES_PER_ACCOUNT <= ACTIVE_DELEGATES
+			);
+		},
+	},
 };
 
 // Register the formats
