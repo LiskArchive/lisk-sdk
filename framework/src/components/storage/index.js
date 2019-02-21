@@ -18,7 +18,6 @@ const Storage = require('./storage');
 const {
 	Account,
 	Block,
-	Delegate,
 	Peer,
 	Round,
 	Transaction,
@@ -30,7 +29,6 @@ function createStorageComponent(options, logger) {
 
 	storage.registerEntity('Account', Account);
 	storage.registerEntity('Block', Block);
-	storage.registerEntity('Delegate', Delegate);
 	storage.registerEntity('Migration', Migration);
 	storage.registerEntity('Peer', Peer);
 	storage.registerEntity('Round', Round);
