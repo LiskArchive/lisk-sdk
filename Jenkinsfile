@@ -54,9 +54,9 @@ def teardown(test_name) {
 		nvm(getNodejsVersion()) {
 			sh """
 			rm -rf coverage_${test_name}; mkdir -p coverage_${test_name}
-			./node_modules/.bin/istanbul report --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
+			npx istanbul report --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
 			cp test/.coverage-unit/lcov.info coverage_${test_name}/ || true
-			./node_modules/.bin/istanbul report cobertura --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
+			npx istanbul report cobertura --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
 			cp test/.coverage-unit/cobertura-coverage.xml coverage_${test_name}/ || true
 			curl --silent http://localhost:4000/coverage/download --output functional-coverage.zip
 			unzip functional-coverage.zip lcov.info -d coverage_${test_name}/functional/
@@ -208,7 +208,7 @@ pipeline {
 						find coverage/ -name lcov.info |sed 's/^/-a /' |xargs lcov -o coverage/merged.lcov
 						sed -i -r -e "s#$WORKSPACE/#./#g" coverage/merged.lcov
 						cp ~/.core_coveralls.yml .coveralls.yml
-						./node_modules/.bin/coveralls <coverage/merged.lcov
+						npx coveralls <coverage/merged.lcov
 						# remove prefix from package names
 						sed -i -r -e "s/${WORKSPACE##*/}\\.//" coverage/coverage_*/cobertura-coverage.xml
 						'''

@@ -28,7 +28,7 @@ module.exports = function(grunt) {
 						} else if (tagFilter === 'propagation') {
 							filter = '--grep @propagation';
 						}
-						return `./node_modules/.bin/_mocha framework/test/mocha/network/index.js ${filter} --opts framework/test/mocha/mocha.opts`;
+						return `npx mocha framework/test/mocha/network/index.js ${filter} --opts framework/test/mocha/mocha.opts`;
 					}
 					const toExecute = [tagFilter, suite, section]
 						.filter(val => val)
