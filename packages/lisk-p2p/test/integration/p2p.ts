@@ -282,8 +282,8 @@ describe('Integration tests for P2P library', () => {
 			});
 
 			describe('P2P.send when peers are at different heights', () => {
-				let collectedMessages: Array<any> = [];
 				const randomPeerIndex = Math.floor(Math.random() * NETWORK_PEER_COUNT);
+				let collectedMessages: Array<any> = [];
 				let randomP2PNode: any;
 
 				beforeEach(async () => {
@@ -301,8 +301,8 @@ describe('Integration tests for P2P library', () => {
 
 				it('should send messages to subset of peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
 					const TOTAL_SENDS = 100;
-
 					const nodePortToMessagesMap: any = {};
+
 					p2pNodeList.forEach(p2p => {
 						p2p.applyNodeInfo({
 							os: platform(),
@@ -314,6 +314,7 @@ describe('Integration tests for P2P library', () => {
 							options: p2p.nodeInfo.options,
 						});
 					});
+
 					await wait(200);
 
 					const expectedAverageMessagesPerNode = TOTAL_SENDS;
