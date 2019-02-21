@@ -157,7 +157,7 @@ describe('signAndVerify module', () => {
 		);
 
 		const {
-			multisignatures: memberPublicKeys,
+			membersPublicKeys: memberPublicKeys,
 		} = defaultMultisignatureAccount as Account;
 
 		it('should return a valid response with valid signatures', async () => {

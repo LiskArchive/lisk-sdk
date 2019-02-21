@@ -29,7 +29,7 @@ describe('Multisignature transaction class', () => {
 		validMultisignatureRegistrationTransaction,
 	);
 	const {
-		multisignatures,
+		membersPublicKeys,
 		multilifetime,
 		multimin,
 		...nonMultisignatureAccount
@@ -311,8 +311,8 @@ describe('Multisignature transaction class', () => {
 		it('should return error when keysgroup includes sender key', async () => {
 			const invalidSender = {
 				...multisignatureSender,
-				multisignatures: [
-					...(multisignatureSender as any).multisignatures,
+				membersPublicKeys: [
+					...(multisignatureSender as any).membersPublicKeys,
 					multisignatureSender.publicKey,
 				],
 			};

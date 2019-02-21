@@ -126,8 +126,8 @@ interface VerifyMultiSignatureResult {
 
 const isMultisignatureAccount = (account: Account): boolean =>
 	!!(
-		account.multisignatures &&
-		account.multisignatures.length > 0 &&
+		account.membersPublicKeys &&
+		account.membersPublicKeys.length > 0 &&
 		account.multimin
 	);
 
@@ -158,7 +158,7 @@ export const verifyMultiSignatures = (
 	}
 
 	const { valid, errors } = validateMultisignatures(
-		sender.multisignatures as ReadonlyArray<string>,
+		sender.membersPublicKeys as ReadonlyArray<string>,
 		signatures,
 		sender.multimin as number,
 		transactionBytes,
@@ -177,7 +177,6 @@ export const verifyMultiSignatures = (
 		errors.length === 1 &&
 		errors[0] instanceof TransactionPendingError
 	) {
-
 		return {
 			status: MultisignatureStatus.PENDING,
 			errors,

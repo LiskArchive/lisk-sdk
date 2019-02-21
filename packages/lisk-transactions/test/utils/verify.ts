@@ -194,7 +194,7 @@ describe('#verify', () => {
 	describe('#verifyMultiSignatures', () => {
 		const defaultAccount = {
 			address: '123L',
-			multisignatures: [
+			membersPublicKeys: [
 				'c465d74511c2bfd136cf9764172acd3c1514fa7ad76475e03bc91cf679757a5a',
 				'c465d74511c2bfd136cf9764172acd3c1514fa7ad76475e03bc91cf679757a5b',
 				'c465d74511c2bfd136cf9764172acd3c1514fa7ad76475e03bc91cf679757a5c',
@@ -252,7 +252,7 @@ describe('#verify', () => {
 				fakeTransactionBuffer,
 			);
 			expect(validator.validateMultisignatures).to.be.calledWithExactly(
-				defaultAccount.multisignatures,
+				defaultAccount.membersPublicKeys,
 				signatures,
 				defaultAccount.multimin,
 				fakeTransactionBuffer,
