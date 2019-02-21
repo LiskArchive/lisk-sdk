@@ -351,6 +351,37 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 		});
+
+		describe('When half of the nodes crash', () => {
+			it('should get network status with all unresponsive nodes removed', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				// Stop all the nodes with port from 5001 to 5005
+				p2pNodeList.forEach(async (p2p: any, index: number) => {
+					if (index !== 0 && index < NETWORK_PEER_COUNT/2) {
+						await p2p.stop();
+					}
+				});
+				await wait(200);
+
+				const connectedPeers = firstP2PNode.getNetworkStatus().connectedPeers;
+				const portOfLastInactivePort = ALL_NODE_PORTS[NETWORK_PEER_COUNT / 2 ];
+
+				const actualConnectedPeers = connectedPeers
+					.filter((peer) => peer.wsPort !== 5000 && (peer.wsPort % 5000) > NETWORK_PEER_COUNT / 2)
+					.map((peer) => peer.wsPort);
+
+				// Check if the connected Peers are having port greater than the last port that we crashed by index
+				actualConnectedPeers.forEach((port) => {
+					expect(port).greaterThan(portOfLastInactivePort)
+				});
+
+				p2pNodeList.forEach((p2p) => {
+					if (p2p.nodeInfo.wsPort > portOfLastInactivePort) {
+						expect(p2p.isActive).to.be.true;
+					}
+				})
+			});
+		});
 	});
 
 	describe('Fully connected network: Nodes are started gradually, one at a time. The seedPeers list of each node contains the previously launched node', () => {
