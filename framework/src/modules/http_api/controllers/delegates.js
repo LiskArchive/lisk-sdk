@@ -75,26 +75,7 @@ DelegatesController.getDelegates = async function(context, next) {
 	options = _.pickBy(options, v => !(v === undefined || v === null));
 
 	try {
-		const delegates = await storage.entities.Account.get(
-			{ isDelegate: true, ...filters },
-			options
-		);
-
-		let lastBlock = await storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
-		lastBlock = lastBlock[0];
-
-		const data = delegates.map(
-			delegateFormatter.bind(
-				null,
-				lastBlock.height
-					? await channel.invoke('chain:calculateSupply', [lastBlock.height])
-					: 0
-			)
-		);
-
+		const data = await _getDelegates(filters, options);
 		return next(null, {
 			data,
 			meta: {
@@ -164,6 +145,34 @@ DelegatesController.getForgingStatistics = async function(context, next) {
 };
 
 /**
+ * Gets a list of delegates based on query parameters
+ * @param {Object} filters - Query object
+ * @param {int} filters.limit - Limit applied to results
+ * @param {int} filters.offset - Offset value for results
+ * @param {object} options - Filter options
+ * @returns {Promise<*>}
+ * @private
+ */
+async function _getDelegates(filters, options) {
+	const delegates = await storage.entities.Account.get(
+		{ isDelegate: true, ...filters },
+		options
+	);
+
+	let lastBlock = await storage.entities.Block.get(
+		{},
+		{ sort: 'height:desc', limit: 1 }
+	);
+	lastBlock = lastBlock[0];
+
+	const supply = lastBlock.height
+		? await channel.invoke('chain:calculateSupply', [lastBlock.height])
+		: 0;
+
+	return delegates.map(delegate => delegateFormatter(supply, delegate));
+}
+
+/**
  * Gets a list forgers based on query parameters.
  *
  * @param {Object} filters - Query object
@@ -183,51 +192,53 @@ async function _getForgers(filters) {
 	const forgerKeys = [];
 	const round = slots.calcRound(lastBlock.height + 1);
 
-	this.channel.invoke('chain:generateDelegatesList', [
-		round,
-		null,
-		async (err, activeDelegates) => {
-			if (err) {
-				throw err;
-			}
-
-			for (
-				let i = filters.offset + 1;
-				i <= ACTIVE_DELEGATES && i <= filters.limit + filters.offset;
-				i++
-			) {
-				if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {
-					forgerKeys.push(
-						activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]
-					);
+	return new Promise((resolve, reject) => {
+		channel.invoke('chain:generateDelegateList', [
+			round,
+			null,
+			async (err, activeDelegates) => {
+				if (err) {
+					reject(err);
 				}
-			}
 
-			let forgers = (await storage.entities.Account.get(
-				{ isDelegate: true, publicKey_in: forgerKeys },
-				{ limit: null }
-			))
-				.map(forger => _.pick(forger, ['username', 'address', 'publicKey']))
-				.forEach(forger => {
+				for (
+					let i = filters.offset + 1;
+					i <= ACTIVE_DELEGATES && i <= filters.limit + filters.offset;
+					i++
+				) {
+					if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {
+						forgerKeys.push(
+							activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]
+						);
+					}
+				}
+
+				let forgers = (await storage.entities.Account.get(
+					{ isDelegate: true, publicKey_in: forgerKeys },
+					{ limit: null }
+				)).map(forger => _.pick(forger, ['username', 'address', 'publicKey']));
+
+				forgers.forEach(forger => {
 					forger.nextSlot =
 						forgerKeys.indexOf(forger.publicKey) + currentSlot + 1;
 				});
 
-			forgers = _.sortBy(forgers, 'nextSlot');
+				forgers = _.sortBy(forgers, 'nextSlot');
 
-			return {
-				data: forgers,
-				meta: {
-					lastBlock: lastBlock.height,
-					lastBlockSlot,
-					currentSlot,
-					limit: filters.limit,
-					offset: filters.offset,
-				},
-				links: {},
-			};
-		},
-	]);
+				resolve({
+					data: forgers,
+					meta: {
+						lastBlock: lastBlock.height,
+						lastBlockSlot,
+						currentSlot,
+						limit: filters.limit,
+						offset: filters.offset,
+					},
+					links: {},
+				});
+			},
+		]);
+	});
 }
 
 /**

@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 
 const BlocksController = rewire(
-	'../../../../../../../src/modules/chain/api/controllers/blocks'
+	'../../../../../../../../framework/src/modules/http_api/controllers/blocks'
 );
 
 describe('blocks/api', () => {
@@ -25,7 +25,7 @@ describe('blocks/api', () => {
 	let library;
 	let loggerSpy;
 	let storageStub;
-	let blockStub;
+	let channelStub;
 
 	beforeEach(done => {
 		storageStub = {
@@ -44,11 +44,11 @@ describe('blocks/api', () => {
 			debug: sinonSandbox.spy(),
 		};
 
-		blockStub = sinonSandbox.stub();
+		channelStub = sinonSandbox.stub();
 
 		new BlocksController({
 			components: { storage: storageStub, logger: loggerSpy },
-			logic: blockStub,
+			channel: channelStub,
 		});
 		library = BlocksController.__get__('library');
 		_list = BlocksController.__get__('_list');
@@ -65,7 +65,7 @@ describe('blocks/api', () => {
 		it('should assign params to library', async () => {
 			expect(library.logger).to.eql(loggerSpy);
 			expect(library.storage).to.eql(storageStub);
-			return expect(library.logic).to.eql(blockStub);
+			expect(library.channel).to.eql(channelStub);
 		});
 	});
 

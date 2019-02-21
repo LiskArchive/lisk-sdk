@@ -5,7 +5,7 @@ const application = require('../../../../../../common/application');
 const BlockReward = require('../../../../../../../src/modules/chain/logic/block_reward');
 
 const RewiredNodeController = rewire(
-	'../../../../../../../src/modules/chain/api/controllers/node.js'
+	'../../../../../../../../framework/src/modules/http_api/controllers/node'
 );
 
 describe('node/api', () => {

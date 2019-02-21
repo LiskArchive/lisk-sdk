@@ -1,17 +1,19 @@
 const rewire = require('rewire');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
-const BlockReward = require('../../../../../../../src/modules/chain/logic/block_reward.js');
 
 const DelegatesController = rewire(
-	'../../../../../../../src/modules/chain/api/controllers/delegates.js'
+	'../../../../../../../../framework/src/modules/http_api/controllers/delegates'
 );
 
 describe('delegates/api', () => {
 	const __private = {};
 	let loggerStub;
 	let storageStub;
-	let modulesStub;
-	let restoreRewire;
+	let channelStub;
+	let restoreAggregateBlocksReward;
+	let restoreDelegateFormatter;
+	let dummyBlock;
+	let dummyDelegates;
 	const blocksRewardReturnStub = {
 		fees: 1,
 		rewards: 2,
@@ -26,8 +28,25 @@ describe('delegates/api', () => {
 		},
 	};
 	let aggregateBlocksRewardStub;
+	let delegateFormatterStub;
 
 	beforeEach(done => {
+		dummyBlock = {
+			id: '9314232245035524467',
+			height: 1,
+		};
+
+		dummyDelegates = [
+			{
+				username: 'genesis_100',
+				vote: '9997431613722222',
+			},
+			{
+				username: 'genesis_51',
+				vote: '9997428613722222',
+			},
+		];
+
 		storageStub = {
 			entities: {
 				Account: {
@@ -37,7 +56,11 @@ describe('delegates/api', () => {
 						producedBlocks: 3,
 						isDelegate: 4,
 					}),
+					get: sinonSandbox.stub().resolves(dummyDelegates),
 					delegateBlocksRewards: sinonSandbox.stub(),
+				},
+				Block: {
+					get: sinonSandbox.stub().resolves([dummyBlock]),
 				},
 			},
 		};
@@ -46,7 +69,9 @@ describe('delegates/api', () => {
 			error: sinonSandbox.stub(),
 		};
 
-		modulesStub = sinonSandbox.stub();
+		channelStub = {
+			invoke: sinonSandbox.stub().resolves(),
+		};
 
 		__private.getForgingStatistics = DelegatesController.__get__(
 			'_getForgingStatistics'
@@ -54,6 +79,10 @@ describe('delegates/api', () => {
 		__private.aggregateBlocksReward = DelegatesController.__get__(
 			'_aggregateBlocksReward'
 		);
+		__private.getDelegates = DelegatesController.__get__('_getDelegates');
+		__private.getForgers = DelegatesController.__get__('_getForgers');
+
+		delegateFormatterStub = sinonSandbox.stub();
 
 		aggregateBlocksRewardStub = sinonSandbox
 			.stub()
@@ -64,42 +93,93 @@ describe('delegates/api', () => {
 				logger: loggerStub,
 				storage: storageStub,
 			},
-			modules: modulesStub,
+			channel: channelStub,
 		});
 
-		restoreRewire = DelegatesController.__set__(
+		restoreAggregateBlocksReward = DelegatesController.__set__(
 			'_aggregateBlocksReward',
 			aggregateBlocksRewardStub
+		);
+		restoreDelegateFormatter = DelegatesController.__set__(
+			'delegateFormatter',
+			delegateFormatterStub
 		);
 		done();
 	});
 
-	afterEach(() => {
-		restoreRewire();
-		return sinonSandbox.restore();
+	afterEach(async () => {
+		restoreAggregateBlocksReward();
+		restoreDelegateFormatter();
+		sinonSandbox.restore();
 	});
 
 	describe('constructor', () => {
-		it('should assign modules', () => {
-			return expect(DelegatesController.__get__('logger')).to.equal(loggerStub);
+		it('should assign storage', async () => {
+			expect(DelegatesController.__get__('storage')).to.equal(storageStub);
 		});
 
-		it('should assign storage', () => {
-			return expect(DelegatesController.__get__('storage')).to.equal(
-				storageStub
+		it('should assign logger', async () => {
+			expect(DelegatesController.__get__('logger')).to.equal(loggerStub);
+		});
+
+		it('should assign channel', async () => {
+			expect(DelegatesController.__get__('channel')).to.equal(channelStub);
+		});
+	});
+
+	describe('_getDelegates()', () => {
+		const filters = {
+			aFilter: 'aFilter',
+		};
+		const options = {
+			anOption: 'anOption',
+		};
+
+		beforeEach(async () => {
+			channelStub.invoke.resolves('supply');
+			await __private.getDelegates(filters, options);
+		});
+
+		afterEach(async () => {
+			channelStub.invoke.resolves(); // Restore channel.invoke return to default.
+			storageStub.entities.Block.get.resolves([dummyBlock]);
+		});
+
+		it('should call storage.entities.Account.get() with exact arguments', async () => {
+			expect(storageStub.entities.Account.get).to.be.calledWithExactly(
+				{ isDelegate: true, ...filters },
+				options
 			);
 		});
 
-		it('should assign logger', () => {
-			return expect(DelegatesController.__get__('modules')).to.equal(
-				modulesStub
+		it('should call storage.entities.Block.get()', async () => {
+			expect(storageStub.entities.Block.get).to.be.calledWithExactly(
+				{},
+				{ sort: 'height:desc', limit: 1 }
 			);
 		});
 
-		it('should assign blockReward', () => {
-			return expect(
-				DelegatesController.__get__('blockReward')
-			).to.be.instanceOf(BlockReward);
+		it('should call channel.invoke with chain:calculateSupply action if lastBlock.height is not 0', async () => {
+			expect(channelStub.invoke).to.be.calledWithExactly(
+				'chain:calculateSupply',
+				[dummyBlock.height]
+			);
+		});
+
+		it('should assign 0 to supply if lastBlock.height is 0', async () => {
+			storageStub.entities.Block.get.resolves([{ height: 0 }]);
+			await __private.getDelegates();
+			expect(delegateFormatterStub).to.be.calledWith(0);
+		});
+
+		it('should call delegatesFormatter', async () => {
+			expect(delegateFormatterStub.callCount).to.equal(dummyDelegates.length);
+		});
+
+		it('should return data returned by the call to delegates.map()', async () => {
+			sinonSandbox.stub(Array.prototype, 'map').returns(dummyDelegates);
+			const result = await __private.getDelegates();
+			expect(result).to.equal(dummyDelegates);
 		});
 	});
 
@@ -247,5 +327,30 @@ describe('delegates/api', () => {
 
 			return expect(data).to.deep.equal(expectedData);
 		});
+	});
+
+	describe('_getForgers()', () => {
+		const filters = {
+			aFilter: 'aFilter',
+		};
+
+		beforeEach(() => {
+			return __private.getForgers(filters);
+		});
+
+		it('should call storage.entities.Block.get() with exact arguments', async () => {
+			expect(storageStub.entities.Block.get).to.be.calledWithExactly(
+				{},
+				{ sort: 'height:desc', limit: 1 }
+			);
+		});
+
+		it('should call channel.invoke with chain:generateDelegateList action', async () => {
+			expect(channelStub.invoke).to.be.calledWith('chain:generateDelegateList');
+		});
+
+		// TODO: Complete tests when generateDelegatesList doesn't use callbacks
+		// Currently it's using a callback but not on the last argument so it can't
+		// be promisified.
 	});
 });
