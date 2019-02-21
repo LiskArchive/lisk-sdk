@@ -36,8 +36,8 @@ class EventEmitterChannel extends BaseChannel {
 	async registerToBus() {
 		await this.bus.registerChannel(
 			this.moduleAlias,
-			this.getEvents().map(e => e.name),
-			this.getActions().map(a => a.name),
+			this.getEvents().map(event => event.name),
+			this.getActions().map(action => action.name),
 			{}
 		);
 	}
