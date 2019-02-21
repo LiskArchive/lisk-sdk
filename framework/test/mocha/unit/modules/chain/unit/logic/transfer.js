@@ -15,6 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const rewire = require('rewire');
 const randomstring = require('randomstring');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const modulesLoader = require('../../../../../common/modules_loader');
@@ -22,7 +23,10 @@ const application = require('../../../../../common/application');
 const transactionTypes = require('../../../../../../../src/modules/chain/helpers/transaction_types');
 const ed = require('../../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum.js');
-const Transfer = require('../../../../../../../src/modules/chain/logic/transfer');
+
+const Transfer = rewire(
+	'../../../../../../../src/modules/chain/logic/transfer'
+);
 
 const { FEES, ADDITIONAL_DATA } = __testContext.config.constants;
 const validPassphrase =
