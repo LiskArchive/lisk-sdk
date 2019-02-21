@@ -25,7 +25,7 @@ class BaseChannel {
 	 *
 	 * @param {string} moduleAlias - Label used for module
 	 * @param {module.Event} events - Collection of events for event listener
-	 * @param {module.Action} actions - Collection of actions for event listener
+	 * @param {module.Action} actions - Collection of actions available
 	 * @param {Object} [options] - Options impacting events and actions list
 	 * @param {boolean} [options.skipInternalEvents] - Skip internal events
 	 *
@@ -34,16 +34,20 @@ class BaseChannel {
 	constructor(moduleAlias, events, actions, options = {}) {
 		this.moduleAlias = moduleAlias;
 		this.options = options;
+		this.actions = actions;
 
 		eventsList.set(
 			this,
 			(options.skipInternalEvents ? events : internalEvents.concat(events)).map(
-				e => new Event(`${this.moduleAlias}:${e}`, null)
+				eventName => new Event(`${this.moduleAlias}:${eventName}`)
 			)
 		);
+
 		actionsList.set(
 			this,
-			actions.map(a => new Action(`${this.moduleAlias}:${a}`, null, null))
+			Object.keys(actions).map(
+				actionName => new Action(`${this.moduleAlias}:${actionName}`)
+			)
 		);
 	}
 

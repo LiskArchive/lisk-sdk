@@ -26,7 +26,6 @@ class EventEmitterChannel extends BaseChannel {
 	constructor(moduleAlias, events, actions, bus, options = {}) {
 		super(moduleAlias, events, actions, options);
 		this.bus = bus;
-		this.actionMap = {};
 	}
 
 	/**
@@ -86,17 +85,6 @@ class EventEmitterChannel extends BaseChannel {
 	}
 
 	/**
-	 * Register new action.
-	 *
-	 * @param {string} actionName - Name of action to create
-	 * @param {requestCallback} cb - The callback that handles the specified action
-	 */
-	action(actionName, cb) {
-		const action = new Action(`${this.moduleAlias}:${actionName}`, null, null);
-		this.actionMap[action.key()] = cb;
-	}
-
-	/**
 	 * Invoke specific action.
 	 *
 	 * @async
@@ -117,7 +105,7 @@ class EventEmitterChannel extends BaseChannel {
 		}
 
 		if (action.module === this.moduleAlias) {
-			return this.actionMap[action.key()](action);
+			return this.actions[action.name](action);
 		}
 
 		return this.bus.invoke(action.serialize());
