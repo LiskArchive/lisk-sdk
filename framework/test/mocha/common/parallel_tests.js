@@ -29,9 +29,6 @@ const executeWithIstanbul = (path, mochaArguments) => {
 		'none',
 		'node_modules/.bin/_mocha',
 		path,
-		'--',
-		'--opts',
-		'framework/test/mocha/mocha.opts',
 	];
 	const istanbulArguments = coverageArguments.concat(mochaArguments);
 
@@ -117,6 +114,8 @@ const getMochaArguments = tag => {
 			);
 			break;
 	}
+
+	mochaArguments.push('--opts', 'framework/test/mocha/mocha.opts');
 
 	return mochaArguments;
 };
