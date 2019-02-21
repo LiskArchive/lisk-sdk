@@ -42,7 +42,7 @@ const checkTableExists = (adapter, tableName) =>
 		)
 		.then(result => result[0].exists);
 
-describe('Round @sequential', () => {
+describe('Round', () => {
 	let adapter;
 	let storage;
 	let RoundEntity;
@@ -675,7 +675,7 @@ describe('Round @sequential', () => {
 	});
 
 	describe('performRoundSnapshot()', () => {
-		afterEach(() => RoundEntity.clearRoundSnapshot());
+		beforeEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with no parameters', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
@@ -724,7 +724,7 @@ describe('Round @sequential', () => {
 	});
 
 	describe('checkSnapshotAvailability()', () => {
-		afterEach(() => RoundEntity.clearRoundSnapshot());
+		beforeEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with one parameter', async () => {
 			// Perform round snapshot
@@ -787,14 +787,15 @@ describe('Round @sequential', () => {
 			expect(result).to.be.eql(null);
 		});
 
-		it('should reject with error if called without performing the snapshot', async () =>
-			expect(RoundEntity.checkSnapshotAvailability(1)).to.be.rejectedWith(
-				'relation "mem_round_snapshot" does not exi'
-			));
+		it('should reject with error if called without performing the snapshot', async () => {
+			await expect(RoundEntity.checkSnapshotAvailability(1)).to.be.rejectedWith(
+				'relation "mem_round_snapshot" does not exist'
+			);
+		});
 	});
 
 	describe('countRoundSnapshot()', () => {
-		afterEach(() => RoundEntity.clearRoundSnapshot());
+		beforeEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should use the correct SQL file with one parameter', async () => {
 			// Perform round snapshot
@@ -1036,7 +1037,7 @@ describe('Round @sequential', () => {
 	});
 
 	describe('restoreRoundSnapshot()', () => {
-		afterEach(() => RoundEntity.clearRoundSnapshot());
+		beforeEach(() => RoundEntity.clearRoundSnapshot());
 
 		it('should reject with error if the called without performing the snapshot', async () =>
 			expect(RoundEntity.restoreRoundSnapshot()).to.be.rejectedWith(
@@ -1092,7 +1093,7 @@ describe('Round @sequential', () => {
 	});
 
 	describe('restoreVotesSnapshot()', () => {
-		afterEach(() => RoundEntity.clearVotesSnapshot());
+		beforeEach(() => RoundEntity.clearVotesSnapshot());
 
 		it('should reject with error if the called without performing the snapshot', async () =>
 			expect(RoundEntity.restoreVotesSnapshot()).to.be.rejectedWith(
