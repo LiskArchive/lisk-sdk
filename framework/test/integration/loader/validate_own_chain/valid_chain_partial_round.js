@@ -30,7 +30,7 @@ describe('validateOwnChain', () => {
 		'lisk_functional_validate_own_chain_valid_chain_partial_round',
 		lib => {
 			library = lib;
-			Queries = new QueriesHelper(lib, lib.storage);
+			Queries = new QueriesHelper(lib, lib.components.storage);
 
 			addTransactionsAndForgePromise = Promise.promisify(
 				localCommon.addTransactionsAndForge
@@ -85,7 +85,7 @@ describe('validateOwnChain', () => {
 			});
 
 			it('there should be no error during chain validation', async () => {
-				expect(library.logger.info).to.be.calledWith(
+				expect(library.components.logger.info).to.be.calledWith(
 					'Finished validating the chain. You are at height 150.'
 				);
 				return expect(validateOwnChainError).to.be.eql(null);

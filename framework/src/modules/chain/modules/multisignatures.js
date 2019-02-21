@@ -46,8 +46,8 @@ __private.assetTypes = {};
  */
 function Multisignatures(cb, scope) {
 	library = {
-		logger: scope.logger,
-		storage: scope.storage,
+		logger: scope.components.logger,
+		storage: scope.components.storage,
 		network: scope.network,
 		schema: scope.schema,
 		bus: scope.bus,
@@ -55,13 +55,17 @@ function Multisignatures(cb, scope) {
 		logic: {
 			transaction: scope.logic.transaction,
 			account: scope.logic.account,
-			multisignature: new Multisignature(
-				scope.schema,
-				scope.network,
-				scope.logic.transaction,
-				scope.logic.account,
-				scope.logger
-			),
+			multisignature: new Multisignature({
+				components: {
+					logger: scope.components.logger,
+				},
+				schema: scope.schema,
+				network: scope.network,
+				logic: {
+					account: scope.logic.account,
+					transaction: scope.logic.transaction,
+				},
+			}),
 		},
 	};
 	self = this;

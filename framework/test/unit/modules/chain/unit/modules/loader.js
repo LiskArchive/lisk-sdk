@@ -138,11 +138,13 @@ describe('loader', () => {
 			};
 
 			validScope = {
-				logger: loggerStub,
-				storage: {
-					entities: {
-						Block: {
-							delete: deleteStub,
+				components: {
+					logger: loggerStub,
+					storage: {
+						entities: {
+							Block: {
+								delete: deleteStub,
+							},
 						},
 					},
 				},

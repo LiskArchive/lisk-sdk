@@ -44,7 +44,7 @@ describe('system test (blocks) - process', () => {
 			(err, scopeInit) => {
 				blocksProcess = scopeInit.modules.blocks.process;
 				blocks = scopeInit.modules.blocks;
-				storage = scopeInit.storage;
+				storage = scopeInit.components.storage;
 				scope = scopeInit;
 				done(err);
 			}
@@ -69,7 +69,11 @@ describe('system test (blocks) - process', () => {
 							'votes WHERE "transactionId" = \'17502993173215211070\'',
 						],
 						(table, everyCb) => {
-							clearDatabaseTable(storage, modulesLoader.logger, table)
+							clearDatabaseTable(
+								storage,
+								modulesLoader.scope.components.logger,
+								table
+							)
 								.then(res => {
 									everyCb(null, res);
 								})

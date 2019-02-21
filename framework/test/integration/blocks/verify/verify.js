@@ -197,7 +197,7 @@ describe('blocks/verify', () => {
 				blockLogic = scope.logic.block;
 				blocks = scope.modules.blocks;
 				delegates = scope.modules.delegates;
-				storage = scope.storage;
+				storage = scope.components.storage;
 
 				// Set current block version to 0
 				blockVersion.currentBlockVersion = 0;
@@ -236,10 +236,10 @@ describe('blocks/verify', () => {
 				'../../../../src/modules/chain/modules/blocks/verify.js'
 			);
 			const verify = new RewiredVerify(
-				library.logger,
+				library.components.logger,
 				library.logic.block,
 				library.logic.transaction,
-				library.storage,
+				library.components.storage,
 				library.config
 			);
 			verify.onBind({
@@ -675,7 +675,7 @@ describe('blocks/verify', () => {
 			});
 
 			describe(`for slot number ${BLOCK_SLOT_WINDOW +
-				1} slots in the past`, async () => {
+				1} slots in the past`, () => {
 				let dummyBlock;
 
 				before(done => {
@@ -701,7 +701,7 @@ describe('blocks/verify', () => {
 			before(done => {
 				RewiredVerify.__set__('library', {
 					storage,
-					logger: library.logger,
+					logger: library.components.logger,
 				});
 				onBlockchainReady = RewiredVerify.prototype.onBlockchainReady;
 				done();
@@ -770,7 +770,7 @@ describe('blocks/verify', () => {
 				});
 
 				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW *
-					2} times`, async () => {
+					2} times`, () => {
 					let recentNBlockIds;
 					let olderThanNBlockIds;
 
@@ -884,7 +884,11 @@ describe('blocks/verify', () => {
 					'votes WHERE "transactionId" = \'17502993173215211070\'',
 				],
 				(table, seriesCb) => {
-					clearDatabaseTable(storage, modulesLoader.logger, table)
+					clearDatabaseTable(
+						storage,
+						modulesLoader.scope.components.logger,
+						table
+					)
 						.then(res => {
 							seriesCb(null, res);
 						})

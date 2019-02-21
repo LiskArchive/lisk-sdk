@@ -202,8 +202,11 @@ describe('transport', () => {
 				transaction: transactionStub,
 				peers: peersStub,
 			},
-			storage: storageStub,
-			logger: loggerStub,
+			components: {
+				storage: storageStub,
+				logger: loggerStub,
+				system: {},
+			},
 			bus: busStub,
 			schema: schemaStub,
 			network: networkStub,
@@ -223,9 +226,6 @@ describe('transport', () => {
 				httpPort: 8000,
 			},
 			modules: {},
-			components: {
-				system: {},
-			},
 		};
 
 		peerMock = {
