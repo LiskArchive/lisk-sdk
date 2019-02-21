@@ -183,7 +183,7 @@ describe('blocks', () => {
 						const timestamp =
 							10000 +
 							Math.floor(Date.now() / 1000) -
-							Math.floor(EPOCH_TIME / 1000);
+							Math.floor(new Date(EPOCH_TIME) / 1000);
 						__private.lastBlock = { timestamp };
 						done();
 					});

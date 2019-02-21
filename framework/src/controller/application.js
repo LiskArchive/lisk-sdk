@@ -3,7 +3,8 @@ const Controller = require('./controller');
 const defaults = require('./defaults');
 const version = require('../version');
 const validator = require('./helpers/validator');
-const schema = require('./schema/application');
+const applicationSchema = require('./schema/application');
+const constantsSchema = require('./schema/constants');
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
@@ -94,10 +95,14 @@ class Application {
 			};
 		}
 
-		validator.loadSchema(schema);
-		validator.validate(schema.appLabel, label);
-		validator.validate(schema.constants, constants);
-		validator.validate(schema.config, config);
+		// Provide global constants for controller used by z_schema
+		global.constants = constants;
+
+		validator.loadSchema(applicationSchema);
+		validator.loadSchema(constantsSchema);
+		validator.validate(applicationSchema.appLabel, label);
+		validator.validate(constantsSchema.constants, constants);
+		validator.validate(applicationSchema.config, config);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;
