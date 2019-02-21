@@ -563,21 +563,14 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 					.map(r => r.id)
 					.includes(tx.id)
 			);
-			let block;
 
-			try {
-				// Create a block
-				block = library.logic.block.create({
-					keypair,
-					timestamp,
-					previousBlock: modules.blocks.lastBlock.get(),
-					transactions: readyTransactions,
-				});
-			} catch (e) {
-				library.logger.error(e.stack);
-				return setImmediate(cb, e);
-			}
-
+			// Create a block
+			const block = library.logic.block.create({
+				keypair,
+				timestamp,
+				previousBlock: modules.blocks.lastBlock.get(),
+				transactions: readyTransactions,
+			});
 			// Start block processing - broadcast: true, saveBlock: true
 			return modules.blocks.verify.processBlock(block, true, true, cb);
 		})
