@@ -78,7 +78,7 @@ class EventEmitterChannel extends BaseChannel {
 
 		if (event.module !== this.moduleAlias) {
 			throw new Error(
-				`Event "${eventName}" not registered in "${this.moduleAlias}".`
+				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`
 			);
 		}
 
