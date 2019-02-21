@@ -1,0 +1,1269 @@
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:41[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:41[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:41[39m | Loading controller
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:41[39m | Loading module with alias: chain(lisk-core-chain:0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:41[39m | Module ready with alias: chain(lisk-core-chain:0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:41[39m | Bus listening to events - ["lisk:ready","chain:registeredToBus","chain:loading:started","chain:loading:finished"]
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:41[39m | Bus ready for actions - ["lisk:getComponentConfig"]
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:41[39m | App started...
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:42[39m | Initiating cache...
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:42[39m | Initiating storage...
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:42[39m | Hook loader for coverage - Do not use in production environment!
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:42[39m | App connected to Cache server
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:45[39m | Socket Cluster ready for incoming connections
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - accounts
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - blocks
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/modules/blocks.js
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/modules/blocks/chain.js
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - dapps
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - delegates
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - rounds
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/modules/rounds.js
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - loader
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/modules/loader.js
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - multisignatures
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - peers
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - system
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - signatures
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:45[39m | Loading module - transactions
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/modules/transactions.js
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:46[39m | Loading module - transport
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:46[39m | Releasing enqueued broadcasts
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:46[39m | Queue empty
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/api/controllers/accounts.js
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/api/controllers/dapps.js
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/api/controllers/delegates.js
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/api/controllers/node.js
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/api/controllers/transactions.js
+Failed to parse file: /Users/daniel.limia/Lisk/Core/framework/src/modules/chain/api/controllers/voters.js
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:47[39m | Lisk started: 0.0.0.0:4000
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:47[39m | Modules ready and launched
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:47[39m | Blocks 1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Loading blocks offset - {"limit":5000,"offset":0}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Processing block - 6524861224470851795
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 11549171951016850959
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:47[39m | Genesis block loading - 0.9709 %: applied 1 of 103 transactions
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 11549171951016850959
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 1465651642158264047
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 1465651642158264047
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 8038215676969674333
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 8038215676969674333
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 12531923965746850440
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 12531923965746850440
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 1513655759945413173
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 1513655759945413173
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 17128624452873376878
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 17128624452873376878
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 15975725245957634226
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 15975725245957634226
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 11246867963654933991
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 11246867963654933991
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 8886362355238277998
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 8886362355238277998
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 12511984344561945661
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 12511984344561945661
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 12470576968560642688
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 12470576968560642688
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 16979024391630063731
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 16979024391630063731
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 3132586618460208262
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 3132586618460208262
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 13612427145550979190
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 13612427145550979190
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 4820365613836031607
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying confirmed transaction - 4820365613836031607
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:47[39m | Applying unconfirmed transaction - 12112106230786825768
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 12112106230786825768
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 13821967849884105584
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 13821967849884105584
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 2697129531259680873
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 2697129531259680873
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 3759946394491450982
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 3759946394491450982
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 18032556474095275261
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 18032556474095275261
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 1560224518702707678
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 1560224518702707678
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 16703972713290793385
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 16703972713290793385
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 9024888972225135909
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 9024888972225135909
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 17360344467587871549
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 17360344467587871549
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 5232920129259210735
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 5232920129259210735
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 9004206353403912975
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 9004206353403912975
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 1189545323092305750
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 1189545323092305750
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 7550428103744152900
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 7550428103744152900
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 5063479199814313256
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 5063479199814313256
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 16511653596135136784
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 16511653596135136784
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 16595863059256490600
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 16595863059256490600
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 3751638297072961125
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 3751638297072961125
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 14853252917548748
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 14853252917548748
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 16837042075842008948
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 16837042075842008948
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 3818529290521217580
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 3818529290521217580
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 8222004892167905718
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 8222004892167905718
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 13769488247922626310
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 13769488247922626310
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 4447831995935541366
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 4447831995935541366
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 13853244827819802699
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 13853244827819802699
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 13063373368205433852
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 13063373368205433852
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 15486060283974943831
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 15486060283974943831
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 13721391570613926706
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 13721391570613926706
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 14867434600889949439
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 14867434600889949439
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying unconfirmed transaction - 4242368664678620951
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:48[39m | Applying confirmed transaction - 4242368664678620951
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 17935338216936715985
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 17935338216936715985
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 18187129690272007362
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 18187129690272007362
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 7893064014890793889
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 7893064014890793889
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 342758163977987198
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 342758163977987198
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 353353765871958610
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 353353765871958610
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 15765592360456554094
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 15765592360456554094
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 6638336032681784546
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 6638336032681784546
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 3634383815892709956
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 3634383815892709956
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 10414244614775503370
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 10414244614775503370
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 4606554700024562903
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 4606554700024562903
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 72171856925056919
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 72171856925056919
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 15715945518456696813
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 15715945518456696813
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 9723686770809371445
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 9723686770809371445
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 17586624062051875064
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 17586624062051875064
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 14844773091422567888
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 14844773091422567888
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 16337550070542495000
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 16337550070542495000
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 17712070383286525756
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 17712070383286525756
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 8663447682871356259
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 8663447682871356259
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 3324886112005858282
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 3324886112005858282
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 16714595303925976854
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 16714595303925976854
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 4663342069887202151
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 4663342069887202151
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 13416394776139336738
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 13416394776139336738
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 1848907307995212656
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:49[39m | GET /api/node/status from 127.0.0.1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Listing peers - {"attempt":"matched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Listing peers - {"attempt":"unmatched broadhash","found":0,"matched":0,"picked":0,"accepted":0}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Cache - Get value for key: transactionCount | Status: true
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 1848907307995212656
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 11414381136661678188
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 11414381136661678188
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 17139325089634275737
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 17139325089634275737
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 13234426641856480796
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 13234426641856480796
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 12767453105623613758
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 12767453105623613758
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 12440982574150922736
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 12440982574150922736
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 14118647711627755742
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 14118647711627755742
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying unconfirmed transaction - 9465919849327369097
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:49[39m | Applying confirmed transaction - 9465919849327369097
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 4912435783730903986
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 4912435783730903986
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 10917747836082542151
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 10917747836082542151
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 2691125843573594092
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 2691125843573594092
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 11661837377619541981
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 11661837377619541981
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 14541242250709962583
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 14541242250709962583
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 8449655170803795602
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 8449655170803795602
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 15052254103554055468
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 15052254103554055468
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 18041778424101072784
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 18041778424101072784
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 10297262142051706210
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 10297262142051706210
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 4578533224252295884
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 4578533224252295884
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 8967037086873023532
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 8967037086873023532
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 7210654822025606558
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 7210654822025606558
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 2249208419001377172
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 2249208419001377172
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 6193329527964210071
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 6193329527964210071
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 9547991626350657969
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 9547991626350657969
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 14216334331634594439
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 14216334331634594439
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 13072526486869193089
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 13072526486869193089
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 12338516215462019478
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 12338516215462019478
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 14854816644454816461
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 14854816644454816461
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 12881253135777401602
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 12881253135777401602
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 4215489645709707133
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 4215489645709707133
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 9049043867793253667
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 9049043867793253667
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 14334313647191139952
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 14334313647191139952
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 6037004238012010505
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 6037004238012010505
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 13162224626980620634
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 13162224626980620634
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 16663544868599417891
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 16663544868599417891
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 8500285156990763245
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:50[39m | Genesis block loading - 98.06 %: applied 101 of 103 transactions
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 8500285156990763245
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 7405433372825391963
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 7405433372825391963
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying unconfirmed transaction - 9314232245035524467
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:50[39m | Genesis block loading - 100.0 %: applied 103 of 103 transactions
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:50[39m | Applying confirmed transaction - 9314232245035524467
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Releasing enqueued broadcasts
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Queue empty
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Summing round - 1 (genesis block)
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Performing forward tick
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5001
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5002
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Updating ranks of all delegates...
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Updated peer 127.0.0.1:5001 - {"os":"darwin17.7.0","broadhash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","height":1}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Cache - onFinishRound | Status: true
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Cache - removeByPattern /api/delegates* | Status: true
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Cache - Keys with pattern: /api/delegates* cleared from cache on new Round
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Blockchain ready
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5000
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5000
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5001
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5002
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5003
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5003
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5004
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5004
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5005
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5005
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5006
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5006
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5007
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5007
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5008
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5008
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Processing seed peer: 127.0.0.1:5009
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5009
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | [Outbound socket :: close] Peer connection to 127.0.0.1:5000 closed with code 4101 and reason - Expected nonce to be not equal to: eKw3vZJF2pvR3Q0T
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Removed peer - 127.0.0.1:5000
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Inserted new peer - 127.0.0.1:5000
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transaction pool size: 0
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | [Outbound socket :: error] Peer error from 127.0.0.1:5000 - Socket connection closed with status code 4101 and reason: Expected nonce to be not equal to: eKw3vZJF2pvR3Q0T
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Updated peer 127.0.0.1:5004 - {"state":2,"version":"1.5.0-alpha.2","protocolVersion":"1.0","nonce":"gYCkl2HaSuKBuoRA","httpPort":4004}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | No delegates enabled
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Updated peer 127.0.0.1:5005 - {"state":2,"version":"1.5.0-alpha.2","protocolVersion":"1.0","nonce":"EKAZLJljscpPtUrv","httpPort":4005}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Updated peer 127.0.0.1:5006 - {"state":2,"version":"1.5.0-alpha.2","protocolVersion":"1.0","nonce":"vUBOLGZNJvpstzGn","httpPort":4006}
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Imported peers from database - {"count":0}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Listing peers - {"attempt":"matched broadhash","found":10,"matched":8,"picked":1,"accepted":1}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Picked 5 of 6 peers
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Broadhash consensus: 89 %
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Starting sync
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Establishing broadhash consensus before sync: 89 %
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Good peers - ["127.0.0.1.5007","127.0.0.1.5005","127.0.0.1.5008","127.0.0.1.5001","127.0.0.1.5004","127.0.0.1.5006","127.0.0.1.5009","127.0.0.1.5003"]
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Good peers - ["127.0.0.1.5005","127.0.0.1.5003","127.0.0.1.5006","127.0.0.1.5008","127.0.0.1.5009","127.0.0.1.5001","127.0.0.1.5007","127.0.0.1.5004"]
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Listing peers - {"attempt":"matched broadhash","found":10,"matched":8,"picked":1,"accepted":1}
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Loading blocks from: 127.0.0.1:5008
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Updated peer 127.0.0.1:5002 - {"os":"darwin17.7.0","broadhash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","height":1}
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Loading transactions from: 127.0.0.1:5005
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Good peers - ["127.0.0.1.5006","127.0.0.1.5009","127.0.0.1.5005","127.0.0.1.5002","127.0.0.1.5007","127.0.0.1.5004","127.0.0.1.5001","127.0.0.1.5003","127.0.0.1.5008"]
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Loading signatures from: 127.0.0.1:5009
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Picked 8 of 9 peers
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Listing peers - {"attempt":"matched broadhash","found":10,"matched":9,"picked":9,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Listing peers - {"attempt":"unmatched broadhash","found":10,"matched":0,"picked":0,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | System headers - {"os":"darwin17.7.0","version":"1.5.0-alpha.2","wsPort":5000,"httpPort":4000,"height":1,"nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","broadhash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","minVersion":"1.0.0","protocolVersion":"1.0","nonce":"eKw3vZJF2pvR3Q0T"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Broadcasting headers to remote peers - {"count":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5001"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5005"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5008"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5007"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5004"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5009"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5003"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5002"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5006"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Establishing broadhash consensus after sync: 100 %
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:51[39m | Finished sync
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Listing peers - {"attempt":"matched broadhash","found":10,"matched":9,"picked":9,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:51[39m | Listing peers - {"attempt":"unmatched broadhash","found":10,"matched":0,"picked":0,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:52[39m | Transaction pool size: 0
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:52[39m | No delegates enabled
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | GET /api/node/status from 127.0.0.1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:52[39m | Listing peers - {"attempt":"matched broadhash","found":10,"matched":9,"picked":9,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:52[39m | Listing peers - {"attempt":"unmatched broadhash","found":10,"matched":0,"picked":0,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:52[39m | Network height is: 1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:52[39m | Cache - Get value for key: transactionCount | Status: true
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:52[39m | PUT /api/node/status/forging from 127.0.0.1
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:52[39m | Forging enabled on account: 8273455169423958419L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:52[39m | Forging enabled on account: 12254605294831056546L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:52[39m | Forging enabled on account: 1478505779553195737L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:52[39m | Forging enabled on account: 3485190523478756562L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:52[39m | Forging enabled on account: 2003981962043442425L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:52[39m | Forging enabled on account: 14018336151296112016L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:52[39m | Forging enabled on account: 13796903232533379929L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:52[39m | Forging enabled on account: 15685993315437640088L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Forging enabled on account: 10555862272344793163L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Forging enabled on account: 10395427086746342233L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Forging enabled on account: 6147291942291731858L
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Forging enabled on account: 9090572627256317041L
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:53[39m | GET /api/node/status from 127.0.0.1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Listing peers - {"attempt":"matched broadhash","found":10,"matched":9,"picked":9,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Listing peers - {"attempt":"unmatched broadhash","found":10,"matched":0,"picked":0,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Network height is: 1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Cache - Get value for key: transactionCount | Status: true
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:53[39m | GET /api/node/status from 127.0.0.1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Listing peers - {"attempt":"matched broadhash","found":10,"matched":9,"picked":9,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Listing peers - {"attempt":"unmatched broadhash","found":10,"matched":0,"picked":0,"accepted":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Network height is: 1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Cache - Get value for key: transactionCount | Status: true
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transaction pool size: 0
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updating delegate list cache for round - 1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Waiting for delegate slot - {"currentSlot":8552585}
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Received new block id: 16927788093515993926 height: 2 round: 1 slot: 8552585 reward: 0
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Verify->verifyBlock succeeded for block 16927788093515993926 at height 2.
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Begin broadcast - {"api":"postBlock","data":{"block":{"version":1,"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","timestamp":85525850,"previousBlock":"6524861224470851795","generatorPublicKey":"6d462852d410e84ca199a34d7ccad443784471f22cf3de37c531ce3b87ebbc41","blockSignature":"d1b67fd001f0c66d7d2d609e08e38adf461beeb337e3ed59957fd05808d10f6f5e1b1860a235208225287113f8992709c182485667d04a2f7383756e166fcd0a","height":2,"id":"16927788093515993926","relays":2}},"immediate":true}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | End broadcast
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Using delegate list from the cache for round - 1
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Cache - chain afterSave | Status: true
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block applied correctly with 0 transactions
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Performing forward tick
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Cache - onNewBlock | Status: true
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Cache - removeByPattern /api/blocks* | Status: true
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Cache - removeByPattern /api/transactions* | Status: true
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5007 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Cache - Keys with patterns: /api/blocks*,/api/transactions* cleared from cache on new Block
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | System headers - {"os":"darwin17.7.0","version":"1.5.0-alpha.2","wsPort":5000,"httpPort":4000,"height":2,"nethash":"198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d","broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","minVersion":"1.0.0","protocolVersion":"1.0","nonce":"eKw3vZJF2pvR3Q0T"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Broadcasting headers to remote peers - {"count":9}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5002 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5008"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5005"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5002"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5009"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5007"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5006 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5003"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5001"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5004"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Transport->broadcastHeaders: Successfully notified peer about self - {"peer":"127.0.0.1:5006"}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5005 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block already processed - 16927788093515993926
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5001 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block already processed - 16927788093515993926
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5009 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block already processed - 16927788093515993926
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block already processed - 16927788093515993926
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5003 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block already processed - 16927788093515993926
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block already processed - 16927788093515993926
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5004 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block already processed - 16927788093515993926
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Updated peer 127.0.0.1:5008 - {"broadhash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","height":2}
+[[30m[43mdbg[49m[39m] [90m2019-02-08 14:10:53[39m | Block already processed - 16927788093515993926
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Cleaning chain...
+[[30m[43mERR[49m[39m] [90m2019-02-08 14:10:53[39m | Caused error during cleanup - {}
+[[30m[43mlog[49m[39m] [90m2019-02-08 14:10:53[39m | Shutting down with error code 1 
+[[30m[43minf[49m[39m] [90m2019-02-08 14:10:53[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:15[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:15[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:15[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:15[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:15[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:15[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:19[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:19[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:19[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:19[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:19[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:19[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:22[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:22[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:22[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:22[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:22[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:22[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:26[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:26[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:26[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:26[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:26[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:26[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:27[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:27[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:27[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:28[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:28[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:28[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:29[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:29[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:29[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:29[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:29[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:29[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:30[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:30[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:30[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:30[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:30[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:30[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:32[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:32[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:32[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:32[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:32[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:32[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:33[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:33[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:33[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:33[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:33[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:33[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:34[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:34[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:34[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:34[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:34[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:34[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:35[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:35[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:35[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:35[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:35[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:35[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:36[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:36[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:36[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:36[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:36[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:36[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:37[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:37[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:37[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:37[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:37[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:37[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:38[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:38[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:38[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:39[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:39[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:39[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:39[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:39[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:39[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:40[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:40[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:40[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:41[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:41[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:41[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:41[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:41[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:41[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:42[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:42[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:42[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:42[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:42[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:42[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:43[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:43[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:43[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:43[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:43[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:43[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:44[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:44[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:44[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:44[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:44[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:44[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:45[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:45[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:45[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:45[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:45[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:45[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:46[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:46[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:46[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:46[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:46[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:46[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:47[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:47[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:47[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:47[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:47[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:47[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:48[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:48[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:48[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:48[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:48[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:48[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:49[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:49[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:49[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:49[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:49[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:49[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:50[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:50[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:50[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:50[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:50[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:50[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:51[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:51[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:51[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:51[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:51[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:51[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:52[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:52[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:52[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:52[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:52[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:52[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:53[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:53[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:53[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:53[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:53[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:53[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:54[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:54[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:54[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:54[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:54[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:54[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:55[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:55[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:55[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:55[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:55[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:55[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:56[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:56[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:56[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:56[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:56[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:56[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:57[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:57[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:57[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:57[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:57[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:57[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:58[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:58[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:58[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:58[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:10:58[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:58[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:59[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:59[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:10:59[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:00[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:00[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:00[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:01[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:01[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:01[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:01[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:01[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:01[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:02[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:02[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:02[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:02[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:02[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:02[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:03[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:03[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:03[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:03[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:03[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:03[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:04[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:04[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:04[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:04[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:04[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:04[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:05[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:05[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:05[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:05[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:05[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:05[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:06[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:06[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:06[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:06[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:06[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:06[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:07[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:07[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:07[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:07[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:07[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:07[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:08[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:08[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:08[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:08[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:08[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:08[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:09[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:09[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:09[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:09[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:09[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:09[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:10[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:10[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:10[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:10[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:10[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:10[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:11[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:11[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:11[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:11[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:11[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:11[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:12[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:12[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:12[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:12[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:12[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:12[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:13[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:13[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:13[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:13[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:13[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:13[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:14[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:14[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:14[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:14[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:14[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:14[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:15[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:15[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:15[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:15[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:15[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:15[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:16[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:16[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:16[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:16[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:16[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:16[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:17[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:17[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:17[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:17[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:17[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:17[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:18[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:18[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:18[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:18[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:18[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:18[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:19[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:19[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:19[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:19[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:19[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:19[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:20[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:20[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:20[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:20[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:20[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:20[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:21[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:21[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:21[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:21[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:21[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:21[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:22[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:22[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:22[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:22[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:22[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:22[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:23[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:23[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:23[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:23[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:23[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:23[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:24[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:24[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:24[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:24[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:24[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:24[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:25[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:25[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:25[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:25[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:25[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:25[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:26[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:26[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:26[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:26[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:26[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:26[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:27[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:27[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:27[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:27[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:27[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:27[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:28[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:28[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:28[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:28[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:28[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:28[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:29[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:29[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:29[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:29[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:29[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:29[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:30[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:30[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:30[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:30[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:30[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:30[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:31[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:31[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:31[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:31[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:11:31[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:11:31[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:03[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:03[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:03[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:03[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:03[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:03[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:06[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:06[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:06[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:06[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:06[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:06[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:09[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:09[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:09[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:09[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:09[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:09[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:13[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:13[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:13[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:13[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:13[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:13[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:15[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:15[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:15[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:15[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:15[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:15[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:16[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:16[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:16[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:16[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:16[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:16[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:17[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:17[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:17[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:17[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:17[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:17[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:18[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:18[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:18[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:18[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:18[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:18[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:19[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:20[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:20[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:20[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:20[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:20[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:21[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:21[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:21[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:21[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:21[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:21[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:22[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:22[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:22[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:22[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:22[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:22[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:23[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:23[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:23[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:23[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:23[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:23[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:24[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:24[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:24[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:24[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:24[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:24[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:25[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:25[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:25[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:25[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:25[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:25[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:26[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:26[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:26[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:26[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:26[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:26[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:27[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:28[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:28[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:28[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:28[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:28[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:29[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:29[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:29[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:29[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:29[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:29[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:30[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:30[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:30[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:30[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:30[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:30[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:31[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:31[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:31[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:31[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:31[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:31[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:32[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:32[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:32[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:32[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:32[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:32[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:33[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:33[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:33[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:33[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:33[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:33[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:34[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:34[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:34[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:34[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:34[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:34[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:35[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:35[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:35[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:35[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:35[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:35[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:36[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:36[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:36[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:36[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:36[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:36[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:38[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:38[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:38[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:38[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:38[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:38[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:39[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:39[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:39[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:39[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:39[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:39[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:40[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:40[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:40[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:40[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:40[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:40[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:41[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:41[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:41[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:41[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:41[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:41[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:42[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:42[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:42[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:42[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:42[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:42[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:43[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:43[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:43[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:43[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:43[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:43[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:44[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:44[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:44[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:44[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:44[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:44[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:45[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:45[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:45[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:45[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:45[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:45[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:46[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:46[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:46[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:46[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:46[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:46[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:47[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:47[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:47[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:47[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:47[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:47[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:48[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:48[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:48[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:48[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:48[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:48[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:49[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:49[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:49[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:49[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:49[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:49[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:50[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:50[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:50[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:50[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:50[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:50[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:51[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:51[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:51[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:51[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:51[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:51[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:52[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:52[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:52[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:52[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:52[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:52[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:53[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:53[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:53[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:53[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:53[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:53[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:54[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:54[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:54[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:54[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:54[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:54[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:55[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:55[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:55[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:55[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:55[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:55[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:56[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:56[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:56[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:56[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:56[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:56[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:57[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:57[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:57[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:57[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:57[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:57[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:58[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:58[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:58[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:58[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:58[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:58[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:59[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:59[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:59[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:59[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:12:59[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:12:59[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:00[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:00[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:00[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:01[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:01[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:01[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:01[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:02[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:02[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:02[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:02[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:02[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:02[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:02[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:02[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:03[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:03[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:03[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:04[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:04[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:04[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:04[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:04[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:04[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:05[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:05[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:05[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:05[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:05[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:05[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:06[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:06[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:06[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:06[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:06[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:06[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:07[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:07[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:07[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:07[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:07[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:07[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:08[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:08[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:08[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:08[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:08[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:08[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:09[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:09[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:09[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:09[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:09[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:09[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:10[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:10[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:10[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:10[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:10[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:10[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:11[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:11[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:11[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:11[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:11[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:11[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:12[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:12[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:12[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:12[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:12[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:12[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:13[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:13[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:13[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:13[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:13[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:13[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:14[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:14[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:14[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:14[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:14[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:14[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:15[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:15[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:15[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:15[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:15[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:15[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:16[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:16[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:16[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:16[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:16[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:16[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:17[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:17[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:17[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:17[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:17[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:17[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:18[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:18[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:18[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:18[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:18[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:18[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:19[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:19[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:19[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:19[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:19[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:19[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:20[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:20[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:20[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:20[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:20[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:20[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:21[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:21[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:21[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:21[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:21[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:21[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:22[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:22[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:22[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:22[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:22[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:22[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:23[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:23[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:23[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:23[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:23[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:23[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:24[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:24[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:24[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:24[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:24[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:24[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:25[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:25[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:25[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:25[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:25[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:25[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:26[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:26[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:26[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:26[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:26[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:26[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:27[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:27[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:27[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:28[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:28[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:28[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:29[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:29[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:29[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:29[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:29[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:29[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:30[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:30[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:30[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:30[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:30[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:30[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:31[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:31[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:31[39m | Loading controller
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:31[39m | An instance of application "devnet-4000" is already running. You have to change application name to run another instance.
+[[30m[43mERR[49m[39m] [90m2019-02-19 14:13:31[39m | App stopped with error - {"appLabel":"devnet-4000","pidPath":"/Users/daniel.limia/Lisk/Core/tmp/devnet-4000/pids/controller.pid"}
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:31[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:32[39m | Starting the app - devnet-4000 - Lisk Framework(0.1.0)
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:32[39m | Initializing controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:32[39m | Loading controller
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:32[39m | Cleanup controller...
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:32[39m | Unload completed
+[[30m[43mlog[49m[39m] [90m2019-02-19 14:13:32[39m | Shutting down with error code 1 
+[[30m[43minf[49m[39m] [90m2019-02-19 14:13:32[39m | Cleanup controller...

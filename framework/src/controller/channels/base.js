@@ -38,7 +38,7 @@ class BaseChannel {
 		eventsList.set(
 			this,
 			(options.skipInternalEvents ? events : internalEvents.concat(events)).map(
-				e => new Event(`${this.moduleAlias}:${e}`, null, null)
+				e => new Event(`${this.moduleAlias}:${e}`, null)
 			)
 		);
 		actionsList.set(

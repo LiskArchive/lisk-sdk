@@ -74,7 +74,13 @@ class EventEmitterChannel extends BaseChannel {
 	 * @param {Object} data - Data to publish with event
 	 */
 	publish(eventName, data) {
-		const event = new Event(eventName, data, this.moduleAlias);
+		const event = new Event(eventName, data);
+
+		if (event.module !== this.moduleAlias) {
+			throw new Error(
+				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`
+			);
+		}
 
 		this.bus.emit(event.key(), event.serialize());
 	}

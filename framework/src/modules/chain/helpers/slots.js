@@ -38,7 +38,7 @@ function getEpochTime(time) {
 		time = Date.now();
 	}
 
-	return Math.floor((time - EPOCH_TIME.getTime()) / 1000);
+	return Math.floor((time - new Date(EPOCH_TIME).getTime()) / 1000);
 }
 
 module.exports = {
@@ -67,7 +67,10 @@ module.exports = {
 			epochTime = this.getTime();
 		}
 
-		return Math.floor(EPOCH_TIME.getTime() / 1000) * 1000 + epochTime * 1000;
+		return (
+			Math.floor(new Date(EPOCH_TIME).getTime() / 1000) * 1000 +
+			epochTime * 1000
+		);
 	},
 
 	/**

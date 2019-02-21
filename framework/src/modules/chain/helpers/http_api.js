@@ -242,7 +242,7 @@ function bootstrapSwagger(config, logger, scope, cb) {
 	};
 
 	// Swagger express middleware
-	SwaggerRunner.create(swaggerConfig, (errors, runner) => {
+	SwaggerRunner.create(swaggerConfig, errors => {
 		if (errors) {
 			// Ignore unused definition warning
 			errors.validationWarnings = _.filter(
@@ -269,15 +269,6 @@ function bootstrapSwagger(config, logger, scope, cb) {
 				return;
 			}
 		}
-
-		// Check the response and act appropriately on error
-		runner.on('responseValidationError', validationResponse => {
-			// TODO: Troubleshoot why default validation hook considers json response as string response
-			if (validationResponse.errors[0].code !== 'INVALID_RESPONSE_BODY') {
-				logger.error('Swagger Response Validation Errors:');
-				logger.error(validationResponse.errors[0].errors);
-			}
-		});
 
 		swaggerHelper
 			.getResolvedSwaggerSpec()

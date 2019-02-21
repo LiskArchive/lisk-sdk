@@ -56,13 +56,18 @@ function Multisignatures(cb, scope) {
 		logic: {
 			transaction: scope.logic.transaction,
 			account: scope.logic.account,
-			multisignature: new Multisignature(
-				scope.schema,
-				scope.logic.transaction,
-				scope.logic.account,
-				scope.components.logger,
-				scope.channel
-			),
+			multisignature: new Multisignature({
+				components: {
+					logger: scope.components.logger,
+				},
+				schema: scope.schema,
+				network: scope.network,
+				logic: {
+					account: scope.logic.account,
+					transaction: scope.logic.transaction,
+				},
+				channel: scope.channel,
+			}),
 		},
 	};
 	self = this;

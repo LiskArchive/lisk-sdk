@@ -18,9 +18,9 @@ const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 
 const { FEES } = global.constants;
-let modules;
-let library;
 let self;
+
+const __scope = {};
 
 /**
  * Main delegate logic. Initializes library.
@@ -29,17 +29,17 @@ let self;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires async
- * @param {logger} logger
- * @param {ZSchema} schema
+ * @param {Object} scope
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
 class Delegate {
-	constructor(logger, schema) {
+	constructor({ schema }) {
 		self = this;
-		library = {
-			schema,
-			logger,
-		};
+		__scope.schema = schema;
+		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -51,8 +51,9 @@ class Delegate {
  * @param {Accounts} accounts
  * @todo Add description for the params
  */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
 Delegate.prototype.bind = function(accounts) {
-	modules = {
+	__scope.modules = {
 		accounts,
 	};
 };
@@ -194,12 +195,22 @@ Delegate.prototype.checkDuplicates = function(
 				const query = {};
 				query[isDelegate] = true;
 				query.publicKey = transaction.senderPublicKey;
-				return modules.accounts.getAccount(query, [username], eachCb, tx);
+				return __scope.modules.accounts.getAccount(
+					query,
+					[username],
+					eachCb,
+					tx
+				);
 			},
 			duplicatedUsername(eachCb) {
 				const query = {};
 				query[username] = transaction.asset.delegate.username;
-				return modules.accounts.getAccount(query, [username], eachCb, tx);
+				return __scope.modules.accounts.getAccount(
+					query,
+					[username],
+					eachCb,
+					tx
+				);
 			},
 		},
 		(err, res) => {
@@ -285,7 +296,7 @@ Delegate.prototype.applyConfirmed = function(
 				self.checkConfirmed(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				modules.accounts.setAccountAndGet(data, seriesCb, tx);
+				__scope.modules.accounts.setAccountAndGet(data, seriesCb, tx);
 			},
 		],
 		cb
@@ -316,7 +327,7 @@ Delegate.prototype.undoConfirmed = function(
 		username: null,
 	};
 
-	modules.accounts.setAccountAndGet(data, cb, tx);
+	__scope.modules.accounts.setAccountAndGet(data, cb, tx);
 };
 
 /**
@@ -341,7 +352,7 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 				self.checkUnconfirmed(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				modules.accounts.setAccountAndGet(data, seriesCb, tx);
+				__scope.modules.accounts.setAccountAndGet(data, seriesCb, tx);
 			},
 		],
 		cb
@@ -363,7 +374,7 @@ Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 		u_username: null,
 	};
 
-	modules.accounts.setAccountAndGet(data, cb, tx);
+	__scope.modules.accounts.setAccountAndGet(data, cb, tx);
 };
 
 Delegate.prototype.schema = {
@@ -387,13 +398,13 @@ Delegate.prototype.schema = {
  * @todo Add description for the params
  */
 Delegate.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset.delegate,
 		Delegate.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate delegate schema: ${library.schema
+		throw `Failed to validate delegate schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

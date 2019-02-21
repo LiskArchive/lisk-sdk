@@ -84,7 +84,12 @@ class Transactions {
 			transactionTypes.SEND
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.SEND,
-			new Transfer(library.logger, library.schema)
+			new Transfer({
+				components: {
+					logger: library.logger,
+				},
+				schema: library.schema,
+			})
 		);
 
 		setImmediate(cb, null, self);

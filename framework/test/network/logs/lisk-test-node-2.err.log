@@ -1,0 +1,729 @@
+Transformation error; return original code
+{ Error: Line 245: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 245,
+  description: 'Unexpected token function',
+  index: 5732 }
+Transformation error; return original code
+{ Error: Line 184: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 184,
+  description: 'Unexpected token function',
+  index: 4898 }
+Transformation error; return original code
+{ Error: Line 392: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 392,
+  description: 'Unexpected token function',
+  index: 9407 }
+Transformation error; return original code
+{ Error: Line 494: Unexpected identifier
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at expect (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2523:13)
+    at expectCommaSeparator (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2547:13)
+    at parseArguments (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3333:17)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3426:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3519:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseBinaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3639:16)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseConditionalExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3696:16)
+    at parseAssignmentExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3893:16)
+  lineNumber: 494,
+  description: 'Unexpected identifier',
+  index: 12515 }
+Transformation error; return original code
+{ Error: Line 104: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 104,
+  description: 'Unexpected token function',
+  index: 2847 }
+Transformation error; return original code
+{ Error: Line 84: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 84,
+  description: 'Unexpected token function',
+  index: 2065 }
+Transformation error; return original code
+{ Error: Line 43: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 43,
+  description: 'Unexpected token function',
+  index: 1075 }
+Transformation error; return original code
+{ Error: Line 74: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 74,
+  description: 'Unexpected token function',
+  index: 1785 }
+Transformation error; return original code
+{ Error: Line 71: Unexpected token =>
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 71,
+  description: 'Unexpected token =>',
+  index: 2116 }
+Transformation error; return original code
+{ Error: Line 60: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 60,
+  description: 'Unexpected token function',
+  index: 1683 }
+Transformation error; return original code
+{ Error: Line 50: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 50,
+  description: 'Unexpected token function',
+  index: 1369 }
+WARNING: NODE_ENV value of 'test' did not match any deployment config file names.
+WARNING: See https://github.com/lorenwest/node-config/wiki/Strict-Mode
+WARNING: NODE_APP_INSTANCE value of '0' did not match any instance config file names.
+WARNING: See https://github.com/lorenwest/node-config/wiki/Strict-Mode
+[{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/CommonBlock","path":["definitions","CommonBlock"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/PeersList","path":["definitions","PeersList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSPeerHeaders","path":["definitions","WSPeerHeaders"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSPeerUpdateRequest","path":["definitions","WSPeerUpdateRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSSignaturesList","path":["definitions","WSSignaturesList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksList","path":["definitions","WSBlocksList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksCommonRequest","path":["definitions","WSBlocksCommonRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSTransactionsRequest","path":["definitions","WSTransactionsRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSAccessObject","path":["definitions","WSAccessObject"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSTransactionsResponse","path":["definitions","WSTransactionsResponse"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSSignaturesResponse","path":["definitions","WSSignaturesResponse"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksBroadcast","path":["definitions","WSBlocksBroadcast"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/parameters/data","path":["parameters","data"]}] 2
+Transformation error; return original code
+{ Error: Line 709: Unexpected token =>
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseLexicalDeclaration (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4183:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3977:24)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at isolateCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2663:18)
+    at parsePropertyFunction (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2835:16)
+    at parsePropertyMethodFunction (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2857:18)
+    at tryParseMethodDefinition (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2988:21)
+    at parseClassBody (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5119:26)
+    at parseClassDeclaration (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5169:21)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3981:24)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+  lineNumber: 709,
+  description: 'Unexpected token =>',
+  index: 18261 }
+Transformation error; return original code
+{ Error: Line 245: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 245,
+  description: 'Unexpected token function',
+  index: 5732 }
+Transformation error; return original code
+{ Error: Line 184: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 184,
+  description: 'Unexpected token function',
+  index: 4898 }
+Transformation error; return original code
+{ Error: Line 392: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 392,
+  description: 'Unexpected token function',
+  index: 9407 }
+Transformation error; return original code
+{ Error: Line 494: Unexpected identifier
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at expect (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2523:13)
+    at expectCommaSeparator (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2547:13)
+    at parseArguments (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3333:17)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3426:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3519:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseBinaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3639:16)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseConditionalExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3696:16)
+    at parseAssignmentExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3893:16)
+  lineNumber: 494,
+  description: 'Unexpected identifier',
+  index: 12502 }
+Transformation error; return original code
+{ Error: Line 109: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 109,
+  description: 'Unexpected token function',
+  index: 2905 }
+Transformation error; return original code
+{ Error: Line 84: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 84,
+  description: 'Unexpected token function',
+  index: 2065 }
+Transformation error; return original code
+{ Error: Line 43: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 43,
+  description: 'Unexpected token function',
+  index: 1075 }
+Transformation error; return original code
+{ Error: Line 55: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 55,
+  description: 'Unexpected token function',
+  index: 1593 }
+Transformation error; return original code
+{ Error: Line 75: Unexpected token =>
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 75,
+  description: 'Unexpected token =>',
+  index: 2126 }
+Transformation error; return original code
+{ Error: Line 60: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 60,
+  description: 'Unexpected token function',
+  index: 1683 }
+Transformation error; return original code
+{ Error: Line 50: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 50,
+  description: 'Unexpected token function',
+  index: 1369 }
+WARNING: NODE_ENV value of 'test' did not match any deployment config file names.
+WARNING: See https://github.com/lorenwest/node-config/wiki/Strict-Mode
+WARNING: NODE_APP_INSTANCE value of '0' did not match any instance config file names.
+WARNING: See https://github.com/lorenwest/node-config/wiki/Strict-Mode
+[{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/CommonBlock","path":["definitions","CommonBlock"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/PeersList","path":["definitions","PeersList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSPeerHeaders","path":["definitions","WSPeerHeaders"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSPeerUpdateRequest","path":["definitions","WSPeerUpdateRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSSignaturesList","path":["definitions","WSSignaturesList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksList","path":["definitions","WSBlocksList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksCommonRequest","path":["definitions","WSBlocksCommonRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSTransactionsRequest","path":["definitions","WSTransactionsRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSAccessObject","path":["definitions","WSAccessObject"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSTransactionsResponse","path":["definitions","WSTransactionsResponse"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSSignaturesResponse","path":["definitions","WSSignaturesResponse"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksBroadcast","path":["definitions","WSBlocksBroadcast"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/parameters/data","path":["parameters","data"]}] 2
+Transformation error; return original code
+{ Error: Line 245: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 245,
+  description: 'Unexpected token function',
+  index: 5732 }
+Transformation error; return original code
+{ Error: Line 184: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 184,
+  description: 'Unexpected token function',
+  index: 4898 }
+Transformation error; return original code
+{ Error: Line 392: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 392,
+  description: 'Unexpected token function',
+  index: 9407 }
+Transformation error; return original code
+{ Error: Line 494: Unexpected identifier
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at expect (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2523:13)
+    at expectCommaSeparator (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2547:13)
+    at parseArguments (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3333:17)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3426:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3519:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseBinaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3639:16)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseConditionalExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3696:16)
+    at parseAssignmentExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3893:16)
+  lineNumber: 494,
+  description: 'Unexpected identifier',
+  index: 12502 }
+Transformation error; return original code
+{ Error: Line 109: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 109,
+  description: 'Unexpected token function',
+  index: 2905 }
+Transformation error; return original code
+{ Error: Line 84: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 84,
+  description: 'Unexpected token function',
+  index: 2065 }
+Transformation error; return original code
+{ Error: Line 43: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 43,
+  description: 'Unexpected token function',
+  index: 1075 }
+Transformation error; return original code
+{ Error: Line 55: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 55,
+  description: 'Unexpected token function',
+  index: 1593 }
+Transformation error; return original code
+{ Error: Line 75: Unexpected token =>
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 75,
+  description: 'Unexpected token =>',
+  index: 2126 }
+Transformation error; return original code
+{ Error: Line 60: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 60,
+  description: 'Unexpected token function',
+  index: 1683 }
+Transformation error; return original code
+{ Error: Line 50: Unexpected token function
+    at constructError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2407:21)
+    at createError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2426:17)
+    at unexpectedTokenError (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2500:13)
+    at throwUnexpectedToken (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2505:15)
+    at consumeSemicolon (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2620:13)
+    at parseStatement (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4816:9)
+    at parseStatementListItem (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3989:16)
+    at parseFunctionSourceElements (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:4869:23)
+    at parseFunctionExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:5074:16)
+    at parsePrimaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3273:24)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parseLeftHandSideExpressionAllowCall (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3414:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+    at parsePostfixExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3490:16)
+    at parseUnaryExpression (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:3550:20)
+    at inheritCoverGrammar (/Users/daniel.limia/Lisk/Core/node_modules/esprima/esprima.js:2681:18)
+  lineNumber: 50,
+  description: 'Unexpected token function',
+  index: 1369 }
+WARNING: NODE_ENV value of 'test' did not match any deployment config file names.
+WARNING: See https://github.com/lorenwest/node-config/wiki/Strict-Mode
+WARNING: NODE_APP_INSTANCE value of '0' did not match any instance config file names.
+WARNING: See https://github.com/lorenwest/node-config/wiki/Strict-Mode
+[{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/CommonBlock","path":["definitions","CommonBlock"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/PeersList","path":["definitions","PeersList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSPeerHeaders","path":["definitions","WSPeerHeaders"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSPeerUpdateRequest","path":["definitions","WSPeerUpdateRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSSignaturesList","path":["definitions","WSSignaturesList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksList","path":["definitions","WSBlocksList"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksCommonRequest","path":["definitions","WSBlocksCommonRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSTransactionsRequest","path":["definitions","WSTransactionsRequest"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSAccessObject","path":["definitions","WSAccessObject"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSTransactionsResponse","path":["definitions","WSTransactionsResponse"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSSignaturesResponse","path":["definitions","WSSignaturesResponse"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/definitions/WSBlocksBroadcast","path":["definitions","WSBlocksBroadcast"]},{"code":"UNUSED_DEFINITION","message":"Definition is not used: #/parameters/data","path":["parameters","data"]}] 2

@@ -137,7 +137,7 @@ DelegatesController.getForgingStatistics = async function(context, next) {
 	return next(null, {
 		data,
 		meta: {
-			fromTimestamp: filters.start || EPOCH_TIME.getTime(),
+			fromTimestamp: filters.start || new Date(EPOCH_TIME).getTime(),
 			toTimestamp: filters.end || Date.now(),
 		},
 		links: {},
@@ -321,13 +321,15 @@ async function _aggregateBlocksReward(filter) {
 
 	if (filter.start !== undefined) {
 		params.fromTimestamp = Math.floor(
-			(filter.start - EPOCH_TIME.getTime()) / 1000
+			(filter.start - new Date(EPOCH_TIME).getTime()) / 1000
 		);
 		params.fromTimestamp = params.fromTimestamp.toFixed();
 	}
 
 	if (filter.end !== undefined) {
-		params.toTimestamp = Math.floor((filter.end - EPOCH_TIME.getTime()) / 1000);
+		params.toTimestamp = Math.floor(
+			(filter.end - new Date(EPOCH_TIME).getTime()) / 1000
+		);
 		params.toTimestamp = params.toTimestamp.toFixed();
 	}
 
