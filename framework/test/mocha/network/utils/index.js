@@ -23,7 +23,7 @@ module.exports = {
 	ws: require('./ws'),
 	transactions: require('./transactions'),
 	logger: createLoggerComponent({
-		filename: 'test/network/networkTestsLogger.logs',
+		filename: 'framework/test/mocha/network/networkTestsLogger.logs',
 		echo: 'log',
 	}),
 	async getListeningConnections(ports) {

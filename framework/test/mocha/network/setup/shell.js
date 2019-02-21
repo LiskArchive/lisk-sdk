@@ -43,7 +43,7 @@ module.exports = {
 	},
 
 	clearLogs(cb) {
-		child_process.exec('rm -rf test/network/logs/*', err => {
+		child_process.exec('rm -rf framework/test/mocha/network/logs/*', err => {
 			return cb(err);
 		});
 	},
