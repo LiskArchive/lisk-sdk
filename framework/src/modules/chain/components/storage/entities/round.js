@@ -17,8 +17,8 @@
 const path = require('path');
 const assert = require('assert');
 const { defaults, omit, pick } = require('lodash');
-const filterType = require('../../../../components/storage/utils/filter_types');
-const BaseEntity = require('../../../../components/storage/entities/base_entity');
+const filterType = require('../../../../../components/storage/utils/filter_types');
+const BaseEntity = require('../../../../../components/storage/entities/base_entity');
 
 const defaultCreateValues = {};
 

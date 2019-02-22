@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { Migration, Peer, Round } = require('../storage/entities');
+const { Migration, Peer, Round } = require('../components/storage/entities');
 
 module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 	try {

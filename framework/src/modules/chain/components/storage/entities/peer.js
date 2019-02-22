@@ -18,11 +18,11 @@ const path = require('path');
 const assert = require('assert');
 const _ = require('lodash');
 const { defaults, omit, pick } = require('lodash');
-const filterType = require('../../../../components/storage/utils/filter_types');
+const filterType = require('../../../../../components/storage/utils/filter_types');
 const {
 	stringToByte,
-} = require('../../../../components/storage/utils/inputSerializers');
-const BaseEntity = require('../../../../components/storage/entities/base_entity');
+} = require('../../../../../components/storage/utils/inputSerializers');
+const BaseEntity = require('../../../../../components/storage/entities/base_entity');
 
 const defaultCreateValues = {};
 

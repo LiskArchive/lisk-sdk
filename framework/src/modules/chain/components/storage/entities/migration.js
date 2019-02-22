@@ -19,9 +19,9 @@ const fs = require('fs-extra');
 const { defaults, pick } = require('lodash');
 const {
 	NonSupportedOperationError,
-} = require('../../../../components/storage/errors');
-const filterType = require('../../../../components/storage/utils/filter_types');
-const BaseEntity = require('../../../../components/storage/entities/base_entity');
+} = require('../../../../../components/storage/errors');
+const filterType = require('../../../../../components/storage/utils/filter_types');
+const BaseEntity = require('../../../../../components/storage/entities/base_entity');
 
 const defaultCreateValues = {};
 
