@@ -118,6 +118,121 @@ const DefaultConfig = {
 			},
 			required: ['loadPerIteration'],
 		},
+		exceptions: {
+			type: 'object',
+			properties: {
+				blockRewards: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+					default: [],
+				},
+				senderPublicKey: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+					default: [],
+				},
+				signatures: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+					default: [],
+				},
+				multisignatures: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+					default: [],
+				},
+				votes: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+					default: [],
+				},
+				inertTransactions: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+					default: [],
+				},
+				rounds: {
+					type: 'object',
+					description:
+						'In the format: 27040: { rewards_factor: 2, fees_factor: 2, fees_bonus: 10000000 }',
+					default: {},
+				},
+				precedent: {
+					type: 'object',
+					description:
+						'A rule/authoritative checkpoint in place to follow in future',
+					properties: {
+						disableDappTransfer: {
+							type: 'integer',
+							default: 0,
+						},
+					},
+					required: ['disableDappTransfer'],
+				},
+				ignoreDelegateListCacheForRounds: {
+					type: 'array',
+					items: {
+						type: 'integer',
+					},
+					default: [],
+				},
+				blockVersions: {
+					type: 'object',
+					description:
+						'In format: { version: { start: start_height, end: end_height }}',
+					default: {},
+				},
+				recipientLeadingZero: {
+					type: 'object',
+					description: 'In format: { transaction_id: "account_address"} ',
+					default: {},
+				},
+				recipientExceedingUint64: {
+					type: 'object',
+					description: 'In format: { transaction_id: "account_address"} ',
+					default: {},
+				},
+				duplicatedSignatures: {
+					type: 'object',
+					description:
+						'In format: { transaction_id: [signature1, signature2] } ',
+					default: {},
+				},
+			},
+			required: [
+				'blockRewards',
+				'senderPublicKey',
+				'signatures',
+				'multisignatures',
+				'votes',
+				'inertTransactions',
+				'rounds',
+				'precedent',
+				'ignoreDelegateListCacheForRounds',
+				'blockVersions',
+				'recipientLeadingZero',
+				'recipientExceedingUint64',
+				'duplicatedSignatures',
+			],
+		},
 		network: {
 			type: 'object',
 			properties: {
@@ -198,6 +313,7 @@ const DefaultConfig = {
 		'forging',
 		'syncing',
 		'loading',
+		'exceptions',
 		'network',
 	],
 };
