@@ -96,8 +96,7 @@ module.exports = {
 		properties: {
 			type: {
 				type: 'integer',
-				minimum: 0,
-				maximum: 7,
+				enum: [0, 2, 3],
 			},
 			amount: {
 				type: 'string',
