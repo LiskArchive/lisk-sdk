@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { config: DefaultConfig } = require('./defaults');
 const Storage = require('./storage');
 const { Account, Block, Transaction } = require('./entities');
 
@@ -28,5 +29,6 @@ function createStorageComponent(options, logger) {
 }
 
 module.exports = {
+	defaults: DefaultConfig,
 	createStorageComponent,
 };
