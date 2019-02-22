@@ -17,7 +17,9 @@
 const path = require('path');
 const assert = require('assert');
 const _ = require('lodash');
-const AccountEntity = require('../../../../../components/storage/entities/account');
+const {
+	Account: AccountEntity,
+} = require('../../../../../components/storage/entities/');
 
 const defaultCreateValues = {
 	publicKey: null,
@@ -69,7 +71,7 @@ const sqlFiles = {
 	insertFork: 'accounts/insert_fork.sql',
 };
 
-class Account extends AccountEntity {
+class ChainAccount extends AccountEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
@@ -500,4 +502,4 @@ class Account extends AccountEntity {
 	}
 }
 
-module.exports = Account;
+module.exports = ChainAccount;

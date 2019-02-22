@@ -61,7 +61,7 @@ const dependentFieldsTableMap = {
 	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
 };
 
-describe('Account', () => {
+describe('ChainAccount', () => {
 	let adapter;
 	let storage;
 	let AccountEntity;
@@ -115,7 +115,7 @@ describe('Account', () => {
 
 	it('should be a constructable function', async () => {
 		expect(Account.prototype.constructor).not.to.be.null;
-		expect(Account.prototype.constructor.name).to.be.eql('Account');
+		expect(Account.prototype.constructor.name).to.be.eql('ChainAccount');
 	});
 
 	it('should extend BaseEntity', async () => {
