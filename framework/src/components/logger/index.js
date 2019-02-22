@@ -16,8 +16,13 @@
 
 const { config: DefaultConfig } = require('./defaults');
 const Logger = require('./logger');
+const validator = require('../../controller/helpers/validator');
+const configSchema = require('./defaults/config');
 
 function createLoggerComponent(config = {}) {
+	validator.loadSchema(configSchema);
+	validator.validate(configSchema, config);
+
 	return new Logger(config).bootstrap();
 }
 
