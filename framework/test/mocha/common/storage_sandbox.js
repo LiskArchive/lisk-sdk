@@ -19,13 +19,13 @@ const pgpLib = require('pg-promise');
 const Storage = require('../../../src/components/storage/storage');
 const PgpAdapter = require('../../../src/components/storage/adapters/pgp_adapter');
 const {
-	Account,
 	Block,
 	Transaction,
 } = require('../../../src/components/storage/entities');
 
 // Custom entitties
 const {
+	Account,
 	Migration,
 	Peer,
 	Round,
