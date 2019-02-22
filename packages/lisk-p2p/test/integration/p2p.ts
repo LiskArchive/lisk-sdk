@@ -46,11 +46,9 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(async p2p => {
-					if (p2p.isActive) {
-						await p2p.stop();
-					}
-				}),
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
 			);
 		});
 
@@ -115,11 +113,9 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(async p2p => {
-					if (p2p.isActive) {
-						await p2p.stop();
-					}
-				}),
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
 			);
 		});
 
@@ -197,11 +193,9 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(async p2p => {
-					if (p2p.isActive) {
-						await p2p.stop();
-					}
-				}),
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
 			);
 		});
 
@@ -211,7 +205,7 @@ describe('Integration tests for P2P library', () => {
 				await wait(DISCOVERY_INTERVAL * 5);
 
 				p2pNodeList.forEach(p2p => {
-					let { connectedPeers } = p2p.getNetworkStatus();
+					const { connectedPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = connectedPeers
 						.map(peerInfo => peerInfo.wsPort)
@@ -357,29 +351,33 @@ describe('Integration tests for P2P library', () => {
 				const firstP2PNode = p2pNodeList[0];
 				// Stop all the nodes with port from 5001 to 5005
 				p2pNodeList.forEach(async (p2p: any, index: number) => {
-					if (index !== 0 && index < NETWORK_PEER_COUNT/2) {
+					if (index !== 0 && index < NETWORK_PEER_COUNT / 2) {
 						await p2p.stop();
 					}
 				});
 				await wait(200);
 
 				const connectedPeers = firstP2PNode.getNetworkStatus().connectedPeers;
-				const portOfLastInactivePort = ALL_NODE_PORTS[NETWORK_PEER_COUNT / 2 ];
+				const portOfLastInactivePort = ALL_NODE_PORTS[NETWORK_PEER_COUNT / 2];
 
 				const actualConnectedPeers = connectedPeers
-					.filter((peer) => peer.wsPort !== 5000 && (peer.wsPort % 5000) > NETWORK_PEER_COUNT / 2)
-					.map((peer) => peer.wsPort);
+					.filter(
+						peer =>
+							peer.wsPort !== 5000 &&
+							peer.wsPort % 5000 > NETWORK_PEER_COUNT / 2,
+					)
+					.map(peer => peer.wsPort);
 
 				// Check if the connected Peers are having port greater than the last port that we crashed by index
-				actualConnectedPeers.forEach((port) => {
-					expect(port).greaterThan(portOfLastInactivePort)
+				actualConnectedPeers.forEach(port => {
+					expect(port).greaterThan(portOfLastInactivePort);
 				});
 
-				p2pNodeList.forEach((p2p) => {
+				p2pNodeList.forEach(p2p => {
 					if (p2p.nodeInfo.wsPort > portOfLastInactivePort) {
 						expect(p2p.isActive).to.be.true;
 					}
-				})
+				});
 			});
 		});
 	});
@@ -431,12 +429,9 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(p2p => {
-					if (p2p.isActive) {
-						return p2p.stop();
-					}
-					return;
-				}),
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
 			);
 			await wait(100);
 		});
