@@ -114,5 +114,5 @@ echo
 echo "Creating tarball..."
 echo "--------------------------------------------------------------------------"
 rm -rf ../release/*
-tar czf "../release/$BUILD_NAME.tar.gz" "$BUILD_NAME"
+GZIP=-9 tar czf "../release/$BUILD_NAME.tar.gz" "$BUILD_NAME"
 popd
