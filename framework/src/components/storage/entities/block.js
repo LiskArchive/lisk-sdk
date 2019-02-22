@@ -17,34 +17,14 @@
 const assert = require('assert');
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
-const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 const Transaction = require('./transaction');
 
-const defaultCreateValues = {};
-const createFields = [
-	'id',
-	'height',
-	'blockSignature',
-	'generatorPublicKey',
-	'payloadHash',
-	'payloadLength',
-	'numberOfTransactions',
-	'previousBlockId',
-	'timestamp',
-	'totalAmount',
-	'totalFee',
-	'reward',
-	'version',
-];
-
 const sqlFiles = {
 	select: 'blocks/get.sql',
 	count: 'blocks/count.sql',
-	create: 'blocks/create.sql',
 	isPersisted: 'blocks/is_persisted.sql',
-	delete: 'blocks/delete.sql',
 	getFirstBlockIdOfLastRounds: 'blocks/get_first_block_id_of_last_rounds.sql',
 };
 
@@ -284,65 +264,6 @@ class Block extends BaseEntity {
 	}
 
 	/**
-	 * Create object record
-	 *
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
-	 * @return {*}
-	 */
-	create(data, _options, tx) {
-		assert(data, 'Must provide data to create block');
-		assert(
-			typeof data === 'object' || Array.isArray(data),
-			'Data must be an object or array of objects'
-		);
-
-		let blocks = _.cloneDeep(data);
-
-		if (!Array.isArray(blocks)) {
-			blocks = [blocks];
-		}
-
-		blocks = blocks.map(v => _.defaults(v, defaultCreateValues));
-
-		const createSet = this.getValuesSet(blocks, createFields);
-
-		const fields = createFields
-			.map(k => `"${this.fields[k].fieldName}"`)
-			.join(',');
-
-		return this.adapter.executeFile(
-			this.SQLs.create,
-			{ createSet, fields },
-			{ expectedResultCount: 0 },
-			tx
-		);
-	}
-
-	/**
-	 * Update operation is not supported for Blocks
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	update() {
-		throw new NonSupportedOperationError();
-	}
-
-	/**
-	 * Update operation is not supported for Blocks
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	updateOne() {
-		throw new NonSupportedOperationError();
-	}
-
-	/**
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Block} filters
@@ -365,29 +286,6 @@ class Block extends BaseEntity {
 				tx
 			)
 			.then(result => result.exists);
-	}
-
-	/**
-	 * Delete records with following conditions
-	 *
-	 * @param {filters.Block} filters
-	 * @param {Object} [options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
-	delete(filters, _options, tx = null) {
-		this.validateFilters(filters);
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-
-		return this.adapter
-			.executeFile(
-				this.SQLs.delete,
-				{ parsedFilters },
-				{ expectedResultCount: 0 },
-				tx
-			)
-			.then(result => result);
 	}
 
 	/**
