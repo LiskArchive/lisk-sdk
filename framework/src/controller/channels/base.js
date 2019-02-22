@@ -53,15 +53,15 @@ class BaseChannel {
 		_actions.set(this, actions);
 	}
 
-	getActionsList() {
+	get actionsList() {
 		return _actionsList.get(this);
 	}
 
-	getEventsList() {
+	get eventsList() {
 		return _eventsList.get(this);
 	}
 
-	getActions() {
+	get actions() {
 		return _actions.get(this);
 	}
 
