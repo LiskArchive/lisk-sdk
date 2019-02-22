@@ -14,6 +14,7 @@
 
 'use strict';
 
+const path = require('path');
 const assert = require('assert');
 const _ = require('lodash');
 const { defaults, omit, pick } = require('lodash');
@@ -136,7 +137,9 @@ class Peer extends BaseEntity {
 		);
 		this.addField('height', 'number', { filter: filterType.NUMBER });
 
-		this.SQLs = this.loadSQLFiles('peer', sqlFiles);
+		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
+
+		this.SQLs = this.loadSQLFiles('peer', sqlFiles, this.sqlDirectory);
 	}
 
 	/**

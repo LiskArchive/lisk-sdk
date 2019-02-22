@@ -18,12 +18,10 @@ const { Migration, Peer, Round } = require('../storage/entities');
 
 module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 	try {
-		const status = await storage.bootstrap();
-
 		storage.registerEntity('Migration', Migration);
 		storage.registerEntity('Peer', Peer);
 		storage.registerEntity('Round', Round);
-
+		const status = await storage.bootstrap();
 		if (!status) {
 			throw new Error('Can not bootstrap the storage component');
 		}

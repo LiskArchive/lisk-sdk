@@ -211,13 +211,14 @@ class BaseEntity {
 	 * @param {Object} sqlFiles - Object with SQL label as key and path to load as value
 	 * @return {Object}
 	 */
-	loadSQLFiles(entityLabel, sqlFiles) {
+	loadSQLFiles(entityLabel, sqlFiles, sqlDirectory) {
 		this.adapter.SQLs = this.adapter.SQLs || {};
 		this.adapter.SQLs[entityLabel] = this.adapter.SQLs[entityLabel] || {};
 		Object.keys(sqlFiles).forEach(key => {
 			if (!this.adapter.SQLs[entityLabel][key]) {
 				this.adapter.SQLs[entityLabel][key] = this.adapter.loadSQLFile(
-					sqlFiles[key]
+					sqlFiles[key],
+					sqlDirectory
 				);
 			}
 		});

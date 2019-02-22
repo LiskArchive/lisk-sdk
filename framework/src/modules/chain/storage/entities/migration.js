@@ -69,7 +69,9 @@ class Migration extends BaseEntity {
 		const defaultSort = { sort: 'id:asc' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.SQLs = this.loadSQLFiles('migration', sqlFiles);
+		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
+
+		this.SQLs = this.loadSQLFiles('migration', sqlFiles, this.sqlDirectory);
 	}
 
 	/**
@@ -275,7 +277,7 @@ class Migration extends BaseEntity {
 					migration =>
 						migration &&
 						fs
-							.statSync(path.join(this.adapter.sqlDirectory, migration.path))
+							.statSync(path.join(this.sqlDirectory, migration.path))
 							.isFile() &&
 						(!lastMigrationId || +migration.id > lastMigrationId)
 				)
