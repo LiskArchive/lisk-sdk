@@ -85,7 +85,9 @@ describe('rounds', () => {
 	const validScope = {
 		components: { logger, storage },
 		bus: { message: sinon.spy() },
-		network: { io: { sockets: { emit: sinon.spy() } } },
+		channel: {
+			publish: sinonSandbox.stub(),
+		},
 	};
 
 	function get(variable) {
@@ -133,7 +135,7 @@ describe('rounds', () => {
 			expect(library.logger).to.eql(validScope.components.logger);
 			expect(library.storage).to.eql(validScope.components.storage);
 			expect(library.bus).to.eql(validScope.bus);
-			expect(library.network).to.eql(validScope.network);
+			expect(library.channel).to.eql(validScope.channel);
 		});
 
 		it('should set self object', async () => {
@@ -201,7 +203,6 @@ describe('rounds', () => {
 	describe('onFinishRound', () => {
 		beforeEach(() => {
 			components.cache.isReady.returns(true);
-			validScope.network.io.sockets.emit.resetHistory();
 			return components.cache.removeByPattern.resetHistory();
 		});
 
@@ -215,16 +216,17 @@ describe('rounds', () => {
 				.true;
 		});
 
-		it('should call library.network.io.sockets.emit once, with proper params', async () => {
+		it('should call library.channel.publish once, with proper params', async () => {
 			const round = 124;
 			rounds.onFinishRound(round);
 
-			expect(validScope.network.io.sockets.emit.calledOnce).to.be.true;
-			return expect(
-				validScope.network.io.sockets.emit.calledWith('rounds/change', {
+			expect(validScope.channel.publish).to.be.calledOnce;
+			expect(validScope.channel.publish).to.be.calledWith(
+				'chain:rounds:change',
+				{
 					number: round,
-				})
-			).to.be.true;
+				}
+			);
 		});
 	});
 

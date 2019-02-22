@@ -147,7 +147,6 @@ describe('multisignatures', () => {
 					logger: validScope.components.logger,
 				},
 				schema: validScope.schema,
-				network: validScope.network,
 				logic: {
 					transaction: validScope.logic.transaction,
 					account: validScope.logic.account,

@@ -200,7 +200,7 @@ describe('loader', () => {
 				expect(loggerStub.trace).to.be.calledWith('Setting sync interval');
 			});
 
-			it('should assign modules.blocks.lastBlock.get().height to __private.syncIntervalId', async () => {
+			it('should call library.channel.publish with "chain:loader:sync"', async () => {
 				expect(channelStub.publish).to.be.calledWith('chain:loader:sync', {
 					blocks: __private.blocksToSync,
 					height: expectedBlockHeight,
