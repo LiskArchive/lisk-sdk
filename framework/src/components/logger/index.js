@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { config: DefaultConfig } = require('./defaults');
 const Logger = require('./logger');
 
 function createLoggerComponent(config = {}) {
@@ -21,5 +22,6 @@ function createLoggerComponent(config = {}) {
 }
 
 module.exports = {
+	defaults: DefaultConfig,
 	createLoggerComponent,
 };
