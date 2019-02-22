@@ -300,20 +300,23 @@ export class VoteTransaction extends BaseTransaction {
 			.filter(vote => vote.charAt(0) === PREFIX_UNVOTE)
 			.map(vote => vote.substring(1));
 		const originalVotes = sender.votes || [];
-		const votes: ReadonlyArray<string> = [...originalVotes, ...upvotes].filter(
-			vote => !unvotes.includes(vote),
-		);
-		if (votes.length > MAX_VOTE_PER_ACCOUNT) {
+		const votedDelegatesPublicKeys: ReadonlyArray<string> = [
+			...originalVotes,
+			...upvotes,
+		].filter(vote => !unvotes.includes(vote));
+		if (votedDelegatesPublicKeys.length > MAX_VOTE_PER_ACCOUNT) {
 			errors.push(
 				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}.`,
+					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${
+						votedDelegatesPublicKeys.length
+					}.`,
 					this.id,
 				),
 			);
 		}
 		const updatedSender = {
 			...sender,
-			votes,
+			votedDelegatesPublicKeys,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 

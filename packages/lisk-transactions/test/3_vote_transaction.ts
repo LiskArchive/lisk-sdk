@@ -302,7 +302,7 @@ describe('Vote transaction class', () => {
 				defaultValidSender.address,
 				{
 					...defaultValidSender,
-					votes: [
+					votedDelegatesPublicKeys: [
 						...defaultValidSender.votes,
 						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 					],
