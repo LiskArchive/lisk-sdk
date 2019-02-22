@@ -20,13 +20,13 @@ const fs = require('fs-extra');
 const {
 	BaseEntity,
 	Migration,
-} = require('../../../../../../src/components/storage/entities');
-const storageSandbox = require('../../../../common/storage_sandbox');
+} = require('../../../../../../../../src/components/storage/entities');
+const storageSandbox = require('../../../../../../common/storage_sandbox');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 	NonSupportedOperationError,
-} = require('../../../../../../src/components/storage/errors');
+} = require('../../../../../../../../src/components/storage/errors');
 
 describe('Migration', () => {
 	let adapter;

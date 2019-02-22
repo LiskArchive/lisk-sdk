@@ -19,15 +19,15 @@ const BigNumber = require('bignumber.js');
 const {
 	BaseEntity,
 	Round,
-} = require('../../../../../../src/components/storage/entities');
-const { StorageSandbox } = require('../../../../common/storage_sandbox');
-const seeder = require('../../../../common/storage_seed');
-const accountsFixtures = require('../../../../fixtures').accounts;
-const roundsFixtures = require('../../../../fixtures').rounds;
+} = require('../../../../../../../../src/components/storage/entities');
+const { StorageSandbox } = require('../../../../../../common/storage_sandbox');
+const seeder = require('../../../../../../common/storage_seed');
+const accountsFixtures = require('../../../../../../fixtures').accounts;
+const roundsFixtures = require('../../../../../../fixtures').rounds;
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-} = require('../../../../../../src/components/storage/errors');
+} = require('../../../../../../../../src/components/storage/errors');
 
 const checkTableExists = (adapter, tableName) =>
 	adapter
