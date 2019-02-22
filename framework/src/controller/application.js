@@ -103,6 +103,7 @@ class Application {
 		validator.validate(applicationSchema.appLabel, label);
 		validator.validate(constantsSchema.constants, constants);
 		validator.validate(applicationSchema.config, config);
+		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;

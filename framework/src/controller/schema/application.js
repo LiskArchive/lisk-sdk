@@ -1,7 +1,3 @@
-const constants = require('../defaults/constants');
-
-const totalAmountLength = constants.TOTAL_AMOUNT.length;
-
 module.exports = {
 	appLabel: {
 		id: '#appLabel',
@@ -32,52 +28,60 @@ module.exports = {
 			},
 			totalAmount: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'amount',
 			},
 			totalFee: {
-				type: 'integer',
+				type: 'number',
+				format: 'maxAmount',
 			},
 			reward: {
-				type: 'integer',
+				type: 'number',
+				format: 'maxAmount',
 			},
 			payloadHash: {
 				type: 'string',
-				pattern: '^[a-f0-9]{64}$',
+				format: 'hex',
 			},
 			timestamp: {
 				type: 'integer',
+				min: 0,
 			},
 			numberOfTransactions: {
 				type: 'integer',
+				min: 0,
 			},
 			payloadLength: {
 				type: 'integer',
+				min: 0,
 			},
 			previousBlock: {
-				type: ['integer', 'null'],
+				type: ['null', 'string'],
+				format: 'id',
+				minLength: 1,
+				maxLength: 20,
 			},
 			generatorPublicKey: {
 				type: 'string',
-				pattern: '^[a-f0-9]{64}$',
+				format: 'publicKey',
 			},
 			transactions: {
 				type: 'array',
 				items: {
-					type: 'object',
-					$ref: '#/transactions',
+					$ref: 'transactions',
 				},
 				uniqueItems: true,
 			},
 			height: {
 				type: 'integer',
+				min: 1,
 			},
 			blockSignature: {
 				type: 'string',
-				pattern: '^[a-f0-9]{128}$',
+				format: 'signature',
 			},
 			id: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'id',
 				minLength: 1,
 				maxLength: 20,
 			},
@@ -86,7 +90,7 @@ module.exports = {
 	},
 
 	transactions: {
-		id: '#/transactions',
+		id: 'transactions',
 		type: 'object',
 		required: ['type', 'timestamp', 'senderPublicKey', 'signature'],
 		properties: {
@@ -97,32 +101,31 @@ module.exports = {
 			},
 			amount: {
 				type: 'string',
-				pattern: '^[0-9]+$',
-				minLength: 1,
-				maxLength: totalAmountLength,
-				description: 'Value required to be less than TOTAL_AMOUNT constant.',
+				format: 'amount',
 			},
 			fee: {
-				type: 'integer',
+				type: 'number',
+				format: 'maxAmount',
 			},
 			timestamp: {
 				type: 'integer',
+				min: 0,
 			},
 			recipientId: {
 				type: ['string', 'null'],
-				pattern: '^[0-9]+L$',
+				format: 'address',
 				minLength: 1,
 				maxLength: 22,
 			},
 			senderId: {
 				type: 'string',
-				pattern: '^[0-9]+L$',
+				format: 'address',
 				minLength: 1,
 				maxLength: 22,
 			},
 			senderPublicKey: {
 				type: 'string',
-				pattern: '^[a-f0-9]{64}$',
+				format: 'publicKey',
 			},
 			asset: {
 				type: 'object',
@@ -131,11 +134,13 @@ module.exports = {
 			},
 			signature: {
 				type: 'string',
-				pattern: '^[a-f0-9]{128}$',
+				format: 'signature',
 			},
 			id: {
 				type: 'string',
-				pattern: '^[0-9]+$',
+				format: 'id',
+				minLength: 1,
+				maxLength: 20,
 			},
 		},
 		additionalProperties: false,

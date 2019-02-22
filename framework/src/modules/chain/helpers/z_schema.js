@@ -332,11 +332,10 @@ const liskFormats = {
 			);
 		}
 
-		if (typeof value === 'string' && /^[1-9][0-9]*$/.test(value)) {
-			const bigNumber = new Bignum(value);
+		if (typeof value === 'string' && /^[0-9]+$/.test(value)) {
+			const num = new Bignum(value);
 			return (
-				bigNumber.isGreaterThanOrEqualTo(0) &&
-				bigNumber.isLessThanOrEqualTo(UINT64_MAX)
+				num.isGreaterThanOrEqualTo(0) && num.isLessThanOrEqualTo(TOTAL_AMOUNT)
 			);
 		}
 
@@ -391,6 +390,23 @@ const liskFormats = {
 			return (
 				Number.isInteger(value) && MAX_VOTES_PER_ACCOUNT <= ACTIVE_DELEGATES
 			);
+		},
+	},
+	/**
+	 * Returns true if value is lower than or equal to `TOTAL_AMOUNT`.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	maxAmount: {
+		type: 'number',
+		validate: value => {
+			const { TOTAL_AMOUNT } = global.constants;
+			if (new Bignum(value).isPositive()) {
+				return new Bignum(value).isLessThanOrEqualTo(TOTAL_AMOUNT);
+			}
+
+			return false;
 		},
 	},
 };
