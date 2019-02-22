@@ -268,7 +268,7 @@ class Migration extends BaseEntity {
 						migration && {
 							id: migration[1],
 							name: migration[2],
-							path: path.join('migrations/updates', migrationFile),
+							path: path.join('../sql/migrations/updates', migrationFile),
 						}
 					);
 				})
@@ -282,10 +282,7 @@ class Migration extends BaseEntity {
 						(!lastMigrationId || +migration.id > lastMigrationId)
 				)
 				.map(f => {
-					f.file = this.adapter.loadSQLFile(f.path, {
-						minify: true,
-						noWarnings: true,
-					});
+					f.file = this.adapter.loadSQLFile(f.path, this.sqlDirectory);
 					return f;
 				})
 		);
