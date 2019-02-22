@@ -1,4 +1,4 @@
-const defaults = require('./defaults/exceptions');
+const { config: DefaultConfig } = require('./defaults');
 const Chain = require('./chain');
 const BaseModule = require('../base_module');
 
@@ -30,7 +30,7 @@ module.exports = class ChainModule extends BaseModule {
 	}
 
 	get defaults() {
-		return defaults;
+		return DefaultConfig;
 	}
 
 	get events() {
