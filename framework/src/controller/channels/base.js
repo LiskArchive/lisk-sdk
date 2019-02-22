@@ -1,8 +1,9 @@
 const Event = require('../event');
 const Action = require('../action');
 
-const eventsList = new WeakMap();
-const actionsList = new WeakMap();
+const _eventsList = new WeakMap();
+const _actionsList = new WeakMap();
+const _actions = new WeakMap();
 
 const internalEvents = [
 	'registeredToBus',
@@ -34,29 +35,34 @@ class BaseChannel {
 	constructor(moduleAlias, events, actions, options = {}) {
 		this.moduleAlias = moduleAlias;
 		this.options = options;
-		this.actions = actions;
 
-		eventsList.set(
+		_eventsList.set(
 			this,
 			(options.skipInternalEvents ? events : internalEvents.concat(events)).map(
 				eventName => new Event(`${this.moduleAlias}:${eventName}`)
 			)
 		);
 
-		actionsList.set(
+		_actionsList.set(
 			this,
 			Object.keys(actions).map(
 				actionName => new Action(`${this.moduleAlias}:${actionName}`)
 			)
 		);
+
+		_actions.set(this, actions);
+	}
+
+	getActionsList() {
+		return _actionsList.get(this);
+	}
+
+	getEventsList() {
+		return _eventsList.get(this);
 	}
 
 	getActions() {
-		return actionsList.get(this);
-	}
-
-	getEvents() {
-		return eventsList.get(this);
+		return _actions.get(this);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
