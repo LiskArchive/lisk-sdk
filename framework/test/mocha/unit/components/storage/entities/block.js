@@ -25,7 +25,6 @@ const blocksFixtures = require('../../../../fixtures/blocks');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-	NonSupportedOperationError,
 } = require('../../../../../../src/components/storage/errors');
 
 describe('Block', () => {
@@ -66,7 +65,12 @@ describe('Block', () => {
 			'confirmations',
 		];
 
-		validBlockSQLs = ['select', 'create', 'count', 'isPersisted'];
+		validBlockSQLs = [
+			'select',
+			'count',
+			'isPersisted',
+			'getFirstBlockIdOfLastRounds',
+		];
 
 		validFilters = [
 			'blockSignature',
@@ -439,57 +443,6 @@ describe('Block', () => {
 		});
 	});
 
-	describe('create()', () => {
-		it('should call getValuesSet with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validBlock]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
-
-			const block = new Block(localAdapter);
-			block.getValuesSet = sinonSandbox.stub();
-			block.create(validBlock);
-			expect(block.getValuesSet.calledWith([validBlock])).to.be.true;
-		});
-
-		it('should create a block object successfully', async () => {
-			await storage.entities.Block.create(validBlock);
-			const result = await storage.entities.Block.getOne({ id: validBlock.id });
-			expect(result).to.be.eql({ ...validBlock, confirmations: 1 });
-		});
-
-		it('should skip if any invalid attribute is provided');
-
-		it('should reject with invalid data provided', async () =>
-			expect(storage.entities.Block.create(invalidBlock)).to.be.rejected);
-
-		it('should create multiple objects successfully', async () => {
-			// Arrange
-			const block = new Block(adapter);
-			const blocks = [new blocksFixtures.Block(), new blocksFixtures.Block()];
-			// Act
-			await block.create(blocks);
-			const savedBlocks = await block.get({
-				id_in: [blocks[0].id, blocks[1].id],
-			});
-			// Assert
-			expect(savedBlocks).length.to.be(2);
-		});
-	});
-
-	describe('update()', () => {
-		it('should always throw NonSupportedOperationError', async () => {
-			expect(Block.prototype.update).to.throw(NonSupportedOperationError);
-		});
-	});
-
-	describe('updateOne()', () => {
-		it('should always throw NonSupportedOperationError', async () => {
-			expect(Block.prototype.updateOne).to.throw(NonSupportedOperationError);
-		});
-	});
-
 	describe('isPersisted()', () => {
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(
@@ -580,74 +533,6 @@ describe('Block', () => {
 		});
 	});
 
-	describe('delete', () => {
-		it('should accept only valid filters', async () => {
-			const block = new Block(adapter);
-			expect(() => {
-				block.delete(validFilter, validBlock);
-			}).not.to.throw(NonSupportedFilterTypeError);
-		});
-
-		it('should throw error for invalid filters', async () => {
-			const block = new Block(adapter);
-			expect(() => {
-				block.delete(invalidFilter, validBlock);
-			}).to.throw(NonSupportedFilterTypeError);
-		});
-
-		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validBlock]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
-			const block = new Block(localAdapter);
-			block.mergeFilters = sinonSandbox.stub();
-			block.parseFilters = sinonSandbox.stub();
-			block.delete(validFilter);
-			expect(block.mergeFilters.calledWith(validFilter)).to.be.true;
-		});
-
-		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validBlock]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
-			const block = new Block(localAdapter);
-			block.mergeFilters = sinonSandbox.stub().returns(validFilter);
-			block.parseFilters = sinonSandbox.stub();
-			block.delete(validFilter);
-			expect(block.parseFilters.calledWith(validFilter)).to.be.true;
-		});
-
-		it('should only delete records specified by filter', async () => {
-			// Arrange
-			const block = new Block(adapter);
-			const blocks = [new blocksFixtures.Block(), new blocksFixtures.Block()];
-
-			// Act
-			await block.create(blocks);
-			await block.delete({ id: blocks[0].id });
-			const remainingBlock = await block.getOne({ id: blocks[1].id });
-			// Assert
-			expect(remainingBlock).to.exist;
-		});
-
-		it('should delete all records if no filter is specified', async () => {
-			// Arrange
-			const block = new Block(adapter);
-			const blocks = [new blocksFixtures.Block(), new blocksFixtures.Block()];
-
-			// Act
-			await block.create(blocks);
-			await block.delete();
-			const remainingBlock = await block.get();
-			// Assert
-			expect(remainingBlock).to.be.empty;
-		});
-	});
-
 	describe('count()', () => {
 		let block;
 
@@ -696,10 +581,17 @@ describe('Block', () => {
 		});
 
 		it('should merge provided filter with default filters by preserving default filters values', async () => {
-			const defaultFilters = { version: 1 };
+			const defaultFilters = {
+				version: 1,
+			};
 			const block = new Block(adapter, defaultFilters);
-			const filters = { height: 101 };
-			const expectedResult = { height: 101, version: 1 };
+			const filters = {
+				height: 101,
+			};
+			const expectedResult = {
+				height: 101,
+				version: 1,
+			};
 			expect(block.mergeFilters(filters)).to.be.eql(expectedResult);
 		});
 	});
