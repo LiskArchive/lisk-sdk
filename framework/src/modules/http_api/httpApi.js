@@ -8,6 +8,7 @@ const {
 	startListening,
 	subscribeToEvents,
 	bootstrapSwagger,
+	bootstrapCache,
 } = require('./init_steps');
 
 module.exports = class HttpApi {
@@ -72,8 +73,9 @@ module.exports = class HttpApi {
 			channel: this.channel,
 			config: this.options.config,
 		};
-
-		// Bootstrap the Storage component
+		// Bootstrap Cache component
+		await bootstrapCache(this.scope);
+		// Bootstrap Storage component
 		await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
 		// Set up Express and HTTP(s) and WS(s) servers
 		const {
