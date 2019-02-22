@@ -32,7 +32,9 @@ describe('Vote transaction class', () => {
 		balance: '100000000',
 		publicKey:
 			'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
-		votes: ['5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc'],
+		votedDelegatesPublicKeys: [
+			'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+		],
 	};
 
 	const defaultValidDependentAccounts = [
@@ -303,7 +305,7 @@ describe('Vote transaction class', () => {
 				{
 					...defaultValidSender,
 					votedDelegatesPublicKeys: [
-						...defaultValidSender.votes,
+						...defaultValidSender.votedDelegatesPublicKeys,
 						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 					],
 				},
@@ -330,7 +332,7 @@ describe('Vote transaction class', () => {
 				balance: '100000000',
 				publicKey:
 					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
-				votes: [
+				votedDelegatesPublicKeys: [
 					'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
 					'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 				],
@@ -347,7 +349,7 @@ describe('Vote transaction class', () => {
 				balance: '100000000',
 				publicKey:
 					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
-				votes: generateRandomPublicKeys(101),
+				votedDelegatesPublicKeys: generateRandomPublicKeys(101),
 			};
 			storeAccountGetStub.returns(invalidSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
@@ -364,6 +366,7 @@ describe('Vote transaction class', () => {
 			expect(storeAccountGetStub).to.be.calledWithExactly(
 				validTestTransaction.senderId,
 			);
+
 			expect(storeAccountSetStub).to.be.calledWithExactly(
 				defaultValidSender.address,
 				defaultValidSender,
