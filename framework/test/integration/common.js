@@ -160,7 +160,6 @@ function addTransaction(library, transaction, cb) {
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
 	convertToBigNum([transaction]);
-
 	transaction = library.logic.transaction.objectNormalize(transaction);
 	library.balancesSequence.add(sequenceCb => {
 		library.modules.transactions.processUnconfirmedTransaction(

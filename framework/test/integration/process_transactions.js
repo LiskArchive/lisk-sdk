@@ -23,9 +23,10 @@ const genesisBlock = __testContext.config.genesisBlock;
 const { NORMALIZER } = global.constants;
 const transactionStatus = liskTransactions.Status;
 
-describe('blocks/verifyTransactions', async () => {
+describe('processing transactions', async () => {
 	let library;
 	let verifyTransactions;
+	let validateTransactions;
 	const account = random.account();
 
 	const verifiableTransactions = [
@@ -77,46 +78,87 @@ describe('blocks/verifyTransactions', async () => {
 		senderId: accountFixtures.genesis.address,
 	}));
 
-	before(done => {
-		application.init(
-			{
-				sandbox: {
-					name: 'lisk_test_blocks_verify_transactions',
+	describe('blocks/verifyTransactions', async () => {
+		before(done => {
+			application.init(
+				{
+					sandbox: {
+						name: 'lisk_test_blocks_verify_transactions',
+					},
 				},
-			},
-			(err, scope) => {
-				library = scope;
-				verifyTransactions =
-					scope.modules.processTransactions.verifyTransactions;
-				library.modules.blocks.lastBlock.set(genesisBlock);
-				done();
-			}
-		);
-	});
+				(err, scope) => {
+					library = scope;
+					verifyTransactions =
+						scope.modules.processTransactions.verifyTransactions;
+					library.modules.blocks.lastBlock.set(genesisBlock);
+					done();
+				}
+			);
+		});
 
-	it('should return transactionResponses with status OK for verified transactions', async () => {
-		const transactionResponses = await verifyTransactions(
-			verifiableTransactions
-		);
-		transactionResponses.forEach(transactionResponse => {
-			expect(transactionResponse.status).to.equal(transactionStatus.OK);
+		it('should return transactionResponses with status OK for verified transactions', async () => {
+			const transactionResponses = await verifyTransactions(
+				verifiableTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.OK);
+			});
+		});
+
+		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
+			const transactionResponses = await verifyTransactions(
+				nonVerifiableTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+			});
+		});
+
+		/* eslint-disable mocha/no-skipped-tests */
+		it.skip('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
+			const transactionResponses = await verifyTransactions(
+				pendingTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
+			});
 		});
 	});
 
-	it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
-		const transactionResponses = await verifyTransactions(
-			nonVerifiableTransactions
-		);
-		transactionResponses.forEach(transactionResponse => {
-			expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+	describe('blocks/validateTransactions', async () => {
+		before(done => {
+			application.init(
+				{
+					sandbox: {
+						name: 'lisk_test_blocks_validate_transactions',
+					},
+				},
+				(err, scope) => {
+					library = scope;
+					validateTransactions =
+						scope.modules.processTransactions.validateTransactions;
+					library.modules.blocks.lastBlock.set(genesisBlock);
+					done();
+				}
+			);
 		});
-	});
 
-	/* eslint-disable mocha/no-skipped-tests */
-	it.skip('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
-		const transactionResponses = await verifyTransactions(pendingTransactions);
-		transactionResponses.forEach(transactionResponse => {
-			expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
+		it('should return transactionResponses with status OK for valid transactions', async () => {
+			const transactionResponses = await validateTransactions(
+				verifiableTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.OK);
+			});
+		});
+
+		it('should return transactionResponse with status FAIL for invalid transactions', async () => {
+			const transactionResponses = await validateTransactions(
+				nonVerifiableTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+			});
 		});
 	});
 });

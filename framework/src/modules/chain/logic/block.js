@@ -242,16 +242,6 @@ class Block {
 				.join(', ')}`;
 		}
 
-		try {
-			for (let i = 0; i < block.transactions.length; i++) {
-				block.transactions[i] = this.scope.transaction.objectNormalize(
-					block.transactions[i]
-				);
-			}
-		} catch (e) {
-			throw e;
-		}
-
 		return block;
 	}
 }

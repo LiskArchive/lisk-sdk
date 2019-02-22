@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const { TransactionStatus } = require('@liskhq/lisk-transactions');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const slots = require('../helpers/slots.js');
 
@@ -286,36 +287,34 @@ __private.loadTransactions = function(cb) {
 				});
 			},
 			function(peer, transactions, waterCb) {
-				async.eachSeries(
-					transactions,
-					(transaction, eachSeriesCb) => {
-						const id = transaction ? transactions.id : 'null';
+				try {
+					const transactionResponses = library.modules.processTransactions.validateTransactions(
+						transactions
+					);
+					const invalidTransactionResponse = transactionResponses.find(
+						transactionResponse =>
+							transactionResponse.status !== TransactionStatus.OK
+					);
+					if (invalidTransactionResponse) {
+						throw invalidTransactionResponse.errors;
+					}
+				} catch (e) {
+					library.logger.debug('Transaction normalization failed', {
+						id: e[0].id,
+						err: e.toString(),
+						module: 'loader',
+					});
 
-						try {
-							transaction = library.logic.transaction.objectNormalize(
-								transaction
-							);
-						} catch (e) {
-							library.logger.debug('Transaction normalization failed', {
-								id,
-								err: e.toString(),
-								module: 'loader',
-								transaction,
-							});
+					library.logger.warn(
+						`Transaction ${e[0].id} is not valid, peer removed`,
+						peer.string
+					);
+					modules.peers.remove(peer);
 
-							library.logger.warn(
-								`Transaction ${id} is not valid, peer removed`,
-								peer.string
-							);
-							modules.peers.remove(peer);
+					return setImmediate(waterCb, e, transactions);
+				}
 
-							return setImmediate(eachSeriesCb, e);
-						}
-
-						return setImmediate(eachSeriesCb);
-					},
-					err => setImmediate(waterCb, err, transactions)
-				);
+				return setImmediate(waterCb, null, transactions);
 			},
 			function(transactions, waterCb) {
 				async.eachSeries(

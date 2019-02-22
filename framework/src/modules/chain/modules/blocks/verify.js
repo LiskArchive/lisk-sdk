@@ -617,6 +617,15 @@ __private.addBlockProperties = function(block, broadcast, cb) {
 __private.normalizeBlock = function(block, cb) {
 	try {
 		block = library.logic.block.objectNormalize(block);
+		const transactionResponses = modules.processTransactions.validateTransactions(
+			block.transactions
+		);
+		const invalidTransactionResponse = transactionResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
+		}
 	} catch (err) {
 		return setImmediate(cb, err);
 	}
