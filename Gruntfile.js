@@ -37,52 +37,21 @@ module.exports = function(grunt) {
 				},
 				maxBuffer: maxBufferSize,
 			},
-
-			jest: {
-				cmd(testType) {
-					return `jest --config=./framework/test/jest/config/${testType}/jest.config.js`;
-				},
-			},
 		},
 	});
 
-	grunt.registerTask(
-		'mocha',
-		'Run mocha test suite.',
-		(tag, suite, section) => {
-			if (['unit', 'functional', 'integration', 'network'].indexOf(suite) < 0) {
-				grunt.fail.fatal(
-					'Please specify a test suite to run.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | integration | functional | network (required)\n- Where section can be one of get | post | ws (optional)'
-				);
-			} else {
-				const toExecute = [tag, suite, section].filter(val => val).join(':');
-				grunt.task.run(`exec:mocha:${toExecute}`);
-			}
-		}
-	);
-
-	grunt.registerTask('jest', 'Run jest test suite.', testType => {
-		if (
-			['unit', 'functional', 'integration', 'network'].indexOf(testType) < 0
-		) {
+	grunt.registerTask('mocha', 'Run test suite.', (tag, suite, section) => {
+		if (['unit', 'functional', 'integration', 'network'].indexOf(suite) < 0) {
 			grunt.fail.fatal(
-				'Please specify a test type to run.\n\nExample: `grunt jest:<testType>` or `npm test -- jest:<testType>`\n\n- Where testType can be one of unit | integration | functional (required)'
+				'Please specify a test suite to run.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | integration | functional | network (required)\n- Where section can be one of get | post | ws (optional)'
 			);
 		} else {
-			grunt.task.run(`exec:jest:${testType}`);
+			const toExecute = [tag, suite, section].filter(val => val).join(':');
+			grunt.task.run(`exec:mocha:${toExecute}`);
 		}
 	});
 
-	grunt.registerTask('unit', 'Run unit tests.', () => {
-		grunt.task.run('exec:jest:unit');
-		grunt.task.run('exec:mocha:default:unit');
-	});
-
-	grunt.registerTask('integration', 'Run integration tests.', () => {
-		grunt.task.run('exec:jest:integration');
-		grunt.task.run('exec:mocha:default:integration');
-	});
-
+	grunt.loadTasks('tasks');
 	grunt.loadNpmTasks('grunt-exec');
-	grunt.registerTask('default', 'jest');
+	grunt.registerTask('default', 'mocha');
 };
