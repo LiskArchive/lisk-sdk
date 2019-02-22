@@ -66,13 +66,23 @@ module.exports = function(grunt) {
 			['unit', 'functional', 'integration', 'network'].indexOf(testType) < 0
 		) {
 			grunt.fail.fatal(
-				'Please specify a test type to run.\n\nExample: `grunt jest:<testType>` or `npm test -- jest:<testType>`\n\n- Where testType can be one of unit | integration | functional | network (required)'
+				'Please specify a test type to run.\n\nExample: `grunt jest:<testType>` or `npm test -- jest:<testType>`\n\n- Where testType can be one of unit | integration | functional (required)'
 			);
 		} else {
 			grunt.task.run(`exec:jest:${testType}`);
 		}
 	});
 
+	grunt.registerTask('unit', 'Run unit tests.', () => {
+		grunt.task.run('exec:jest:unit');
+		grunt.task.run('exec:mocha:default:unit');
+	});
+
+	grunt.registerTask('integration', 'Run integration tests.', () => {
+		grunt.task.run('exec:jest:integration');
+		grunt.task.run('exec:mocha:default:integration');
+	});
+
 	grunt.loadNpmTasks('grunt-exec');
-	grunt.registerTask('default', 'mocha', 'jest');
+	grunt.registerTask('default', 'jest');
 };
