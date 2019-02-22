@@ -14,10 +14,16 @@
 
 'use strict';
 
-const { Migration, Peer, Round } = require('../components/storage/entities');
+const {
+	Account,
+	Migration,
+	Peer,
+	Round,
+} = require('../components/storage/entities');
 
 module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 	try {
+		storage.registerEntity('Account', Account, { replaceExisting: true });
 		storage.registerEntity('Migration', Migration);
 		storage.registerEntity('Peer', Peer);
 		storage.registerEntity('Round', Round);
