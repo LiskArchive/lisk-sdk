@@ -1,11 +1,15 @@
 const Ajv = require('ajv');
-const { SchemaValidationError } = require('../../errors');
+const { SchemaValidationError } = require('../../../errors');
+const formats = require('./formats');
 
-const zSchema = require('../../modules/chain/helpers/z_schema');
+const validator = new Ajv({
+	allErrors: true,
+	schemaId: 'auto',
+	useDefaults: true,
+});
 
-const validator = new Ajv({ allErrors: true, schemaId: 'auto' });
-Object.keys(zSchema.formatsCache).forEach(zSchemaType => {
-	validator.addFormat(zSchemaType, zSchema.formatsCache[zSchemaType]);
+Object.keys(formats).forEach(formatId => {
+	validator.addFormat(formatId, formats[formatId]);
 });
 
 /**
@@ -40,4 +44,6 @@ module.exports = {
 
 		return true;
 	},
+
+	formats: Object.freeze(formats),
 };
