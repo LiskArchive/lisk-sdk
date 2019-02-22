@@ -31,7 +31,8 @@ If you have satisfied the requirements from the Pre-Installation section, you ca
   * [Examples](#examples)
 * [Tests](#tests)
   * [Preparing Node](#preparing-node)
-  * [Running Tests](#running-tests)
+  * [Running Mocha Tests](#running-mocha-tests)
+  * [Running Jest Tests](#running-jest-tests)
 
 ## Pre-Installation
 
@@ -395,7 +396,7 @@ createdb lisk_dev
 NODE_ENV=test node app.js
 ```
 
-### Running Tests
+### Running Mocha Tests
 
 Tests are run using the following command:
 
@@ -422,6 +423,20 @@ Individual test files can be run using the following command:
 
 ```
 npm run mocha -- path/to/test.js
+```
+
+### Running Jest Tests
+
+```
+npm run jest:<testType>
+```
+
+`testType` can be `unit`|`integration`|`functional`
+
+#### Executing the tests per file:
+
+```
+npm run jest:<testType> -- [filepath] [jest-options]
 ```
 
 ## Utility scripts
