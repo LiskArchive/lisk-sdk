@@ -38,7 +38,6 @@ import { PeerInboundHandshakeError } from './errors';
 import {
 	P2PClosePacket,
 	P2PConfig,
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNetworkStatus,
 	P2PNodeInfo,
@@ -97,7 +96,7 @@ export class P2P extends EventEmitter {
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
 	private readonly _newPeers: Map<string, P2PPeerInfo>;
-	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
+	private readonly _triedPeers: Map<string, P2PPeerInfo>;
 	private readonly _discoveryInterval: number;
 	private _discoveryIntervalId: NodeJS.Timer | undefined;
 
@@ -108,16 +107,14 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
 	private readonly _handleDiscoveredPeer: (
-		discoveredPeerInfo: P2PDiscoveredPeerInfo,
+		discoveredPeerInfo: P2PPeerInfo,
 	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
 	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
-	private readonly _handlePeerInfoUpdate: (
-		peerInfo: P2PDiscoveredPeerInfo,
-	) => void;
+	private readonly _handlePeerInfoUpdate: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
@@ -173,7 +170,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 		};
 
-		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
+		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
 			if (!this._triedPeers.has(peerId)) {
 				this._triedPeers.set(peerId, detailedPeerInfo);
@@ -340,17 +337,20 @@ export class P2P extends EventEmitter {
 
 				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 				const peerId = constructPeerId(socket.remoteAddress, wsPort);
+				const queryOptions =
+					typeof queryObject.options === 'string'
+						? JSON.parse(queryObject.options)
+						: undefined;
 
-				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
+				const incomingPeerInfo: P2PPeerInfo = {
 					ipAddress: socket.remoteAddress,
 					wsPort,
 					height: queryObject.height ? +queryObject.height : 0,
 					isDiscoveredPeer: true,
-					version: queryObject.version,
-					options:
-						typeof queryObject.options === 'string'
-							? JSON.parse(queryObject.options)
-							: undefined,
+					discoveredInfo: {
+						version: queryObject.version,
+					},
+					...queryOptions,
 				};
 
 				const isNewPeer = this._peerPool.addInboundPeer(

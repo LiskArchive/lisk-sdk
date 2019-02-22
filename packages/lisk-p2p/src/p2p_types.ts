@@ -43,17 +43,17 @@ export interface P2PPeerInfo {
 	readonly height: number;
 	// This is necessary because PeerInfo for a tried peer will likely have more properties.
 	/* tslint:disable-next-line:no-mixed-interface */
-	readonly isDiscoveredPeer?: boolean;
+	readonly isDiscoveredPeer: boolean;
+	readonly discoveredInfo?: P2PDiscoveredPeerInfo;
 }
 
-export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
+export interface P2PDiscoveredPeerInfo {
 	readonly os?: string;
 	readonly version: string;
 	// Add support for custom fields like broadhash or nonce.
 	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
-	/* tslint:disable-next-line:no-mixed-interface */
-	readonly options?: P2PInfoOptions;
-	readonly isDiscoveredPeer: boolean;
+// tslint:disable-next-line: no-mixed-interface
+	readonly [key: string]: unknown;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.
@@ -64,7 +64,8 @@ export interface P2PNodeInfo {
 	readonly nethash: string;
 	readonly wsPort: number;
 	readonly height: number;
-	readonly options?: P2PInfoOptions;
+// tslint:disable-next-line: no-mixed-interface
+	readonly [key: string]: unknown;
 }
 
 export interface P2PClosePacket {
