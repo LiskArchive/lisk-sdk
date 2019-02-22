@@ -16,6 +16,7 @@
 
 const constants = require('./constants');
 const Cache = require('./cache');
+const { config: DefaultConfig } = require('./defaults');
 
 function createCacheComponent(options, logger) {
 	// delete password key if it's value is null
@@ -27,6 +28,7 @@ function createCacheComponent(options, logger) {
 }
 
 module.exports = {
+	defaults: DefaultConfig,
 	...constants,
 	createCacheComponent,
 };
