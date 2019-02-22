@@ -59,7 +59,11 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@types/node": "10.12.21"
+		"@types/levelup": "^3.1.0",
+		"@types/node": "10.12.21",
+		"@types/rocksdb": "^3.0.0",
+		"levelup": "^4.0.0",
+		"rocksdb": "^3.0.3"
 	},
 	"devDependencies": {
 		"@types/chai": "4.1.7",
