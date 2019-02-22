@@ -232,7 +232,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const sender = store.account.get(this.senderId);
 
 		// Check if multisignatures already exists on account
-		if (sender.multisignatures && sender.multisignatures.length > 0) {
+		if (sender.membersPublicKeys && sender.membersPublicKeys.length > 0) {
 			errors.push(
 				new TransactionError(
 					'Register multisignature only allowed once per account.',
@@ -255,7 +255,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		const updatedSender = {
 			...sender,
-			multisignatures: this.asset.multisignature.keysgroup.map(key =>
+			membersPublicKeys: this.asset.multisignature.keysgroup.map(key =>
 				key.substring(1),
 			),
 			multimin: this.asset.multisignature.min,
@@ -289,7 +289,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const sender = store.account.get(this.senderId);
 
 		const {
-			multisignatures,
+			membersPublicKeys,
 			multimin,
 			multilifetime,
 			...strippedSender
