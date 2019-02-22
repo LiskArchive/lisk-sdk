@@ -69,6 +69,7 @@ const sqlFiles = {
 	decreaseFieldBy: 'accounts/decrease_field_by.sql',
 	createDependentRecord: 'accounts/create_dependent_record.sql',
 	deleteDependentRecord: 'accounts/delete_dependent_record.sql',
+	deleteDependentRecords: 'accounts/delete_dependent_records.sql',
 	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
 	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
 	countDuplicatedDelegates: 'accounts/count_duplicated_delegates.sql',
@@ -675,6 +676,56 @@ class Account extends BaseEntity {
 			'delete',
 			tx
 		);
+	}
+
+	/**
+	 * Update dependent records for the account
+	 * Delete dependent record for the account
+	 *
+	 * @param {string} dependencyName - Name of the dependent table
+	 * @param {string} address - Address of the account
+	 * @param {string} dependentPublicKey - Dependent public id
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	updateDependentRecords(dependencyName, address, dependentPublicKeys, tx) {
+		assert(
+			Object.keys(dependentFieldsTableMap).includes(dependencyName),
+			`Invalid dependency name "${dependencyName}" provided.`
+		);
+
+		const paramsForDelete = {
+			tableName: dependentFieldsTableMap[dependencyName],
+			accountId: address,
+			dependentIds: dependentPublicKeys,
+		};
+
+		const sqlForDelete = this.SQLs.deleteDependentRecords;
+
+		const paramsForInsert = dependentPublicKeys.map(dependentId =>
+			({
+				tableName: dependentFieldsTableMap[dependencyName],
+				accountId: address,
+				dependentId,
+			})
+		);
+
+		const sqlForInsert = this.SQLs.createDependentRecord;
+
+		return this.adapter.executeFile(
+			sqlForDelete,
+			paramsForDelete,
+			{ expectedResultCount: 0 },
+			tx
+		).then(() =>
+			Promise.all(paramsForInsert.map(params =>
+				this.adapter.executeFile(
+					sqlForInsert,
+					params,
+					{ expectedResultCount: 0 },
+					tx
+				)
+			)));
 	}
 
 	/**
