@@ -18,8 +18,10 @@
 const BigNumber = require('bignumber.js');
 const {
 	BaseEntity,
-	Round,
 } = require('../../../../../../../../src/components/storage/entities');
+const {
+	Round,
+} = require('../../../../../../../../src/modules/chain/components/storage/entities');
 const { StorageSandbox } = require('../../../../../../common/storage_sandbox');
 const seeder = require('../../../../../../common/storage_seed');
 const accountsFixtures = require('../../../../../../fixtures').accounts;
