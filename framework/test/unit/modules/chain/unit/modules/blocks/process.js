@@ -1665,14 +1665,12 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('generateBlock', async () => {
+	describe('generateBlock', () => {
 		describe('modules.transactions.getUnconfirmedTransactionList', () => {
 			describe('when query returns empty array', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					modules.processTransactions.verifyTransactions.returns(
-						Promise.resolve([])
-					);
+					modules.processTransactions.verifyTransactions.resolves([]);
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1680,7 +1678,7 @@ describe('blocks/process', async () => {
 					);
 				});
 
-				it('should generate block without transactions', async () => {
+				it('should generate block without transactions', done => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
 						41287231,
@@ -1690,6 +1688,7 @@ describe('blocks/process', async () => {
 								modules.blocks.verify.processBlock.args[0][0].transactions
 									.length
 							).to.equal(0);
+							done();
 						}
 					);
 				});
@@ -1708,7 +1707,7 @@ describe('blocks/process', async () => {
 					);
 				});
 
-				it('should generate block without transactions', async () => {
+				it('should generate block without transactions', done => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
 						41287231,
@@ -1718,6 +1717,7 @@ describe('blocks/process', async () => {
 								modules.blocks.verify.processBlock.args[0][0].transactions
 									.length
 							).to.equal(0);
+							done();
 						}
 					);
 				});
@@ -1726,8 +1726,8 @@ describe('blocks/process', async () => {
 			describe('when query returns transactions', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([
-						{ id: 1, type: 0, senderPublicKey: '1L' },
-						{ id: 2, type: 1, senderPublicKey: '2L' },
+						{ id: 1, type: 0 },
+						{ id: 2, type: 1 },
 					]);
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
@@ -1749,7 +1749,7 @@ describe('blocks/process', async () => {
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
 								err => {
-									expect(err).not.to.be.null;
+									expect(err.message).to.eql('Invalid field types');
 								}
 							);
 						});
@@ -1780,17 +1780,15 @@ describe('blocks/process', async () => {
 						});
 					});
 
-					describe('when transactions verification succeeds', async () => {
+					describe('when transactions verification succeeds', () => {
 						beforeEach(async () => {
-							modules.processTransactions.verifyTransactions.returns(
-								Promise.resolve([
-									{ id: 1, status: 1, errors: [] },
-									{ id: 2, status: 1, errors: [] },
-								])
-							);
+							modules.processTransactions.verifyTransactions.resolves([
+								{ id: 1, status: 1, errors: [] },
+								{ id: 2, status: 1, errors: [] },
+							]);
 						});
 
-						it('should generate block with transactions', async () => {
+						it('should generate block with transactions', done => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
@@ -1800,6 +1798,7 @@ describe('blocks/process', async () => {
 										modules.blocks.verify.processBlock.args[0][0].transactions
 											.length
 									).to.equal(2);
+									done();
 								}
 							);
 						});
@@ -1812,7 +1811,7 @@ describe('blocks/process', async () => {
 							)
 						);
 
-						it('should generate block without pending transactions', async () => {
+						it('should generate block without pending transactions', done => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
@@ -1822,6 +1821,7 @@ describe('blocks/process', async () => {
 										modules.blocks.verify.processBlock.args[0][0].transactions
 											.length
 									).to.equal(0);
+									done();
 								}
 							);
 						});
@@ -1861,7 +1861,7 @@ describe('blocks/process', async () => {
 
 					describe('when succeeds', async () => {
 						describe('modules.blocks.verify.processBlock', async () => {
-							describe('when fails', async () => {
+							describe('when fails', () => {
 								beforeEach(() =>
 									modules.blocks.verify.processBlock.callsArgWith(
 										3,
