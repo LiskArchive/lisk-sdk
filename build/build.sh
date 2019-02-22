@@ -54,7 +54,7 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 
 	# extract postgresql
 	tar xf "$POSTGRESQL_FILE" --directory="$BUILD_NAME" \
-	    --exclude=doc --exclude=include --exclude="pgAdmin 4" --exclude=stackbuilder
+	    --exclude=doc --exclude=include --exclude="pgAdmin 4*" --exclude=stackbuilder
 
 	# copy redis binaries
 	cp -f "$REDIS_SERVER_DIR/src/$REDIS_SERVER_OUT" "$BUILD_NAME/bin/$REDIS_SERVER_OUT"
