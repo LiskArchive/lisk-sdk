@@ -20,7 +20,9 @@ const _ = require('lodash');
 const {
 	NonSupportedOperationError,
 } = require('../../../../../components/storage/errors');
-const BlockEntity = require('../../../../../components/storage/entities/block');
+const {
+	Block: BlockEntity,
+} = require('../../../../../components/storage/entities/');
 
 const defaultCreateValues = {};
 const createFields = [
@@ -44,7 +46,7 @@ const sqlFiles = {
 	delete: 'blocks/delete.sql',
 };
 
-class Block extends BlockEntity {
+class ChainBlock extends BlockEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
@@ -154,4 +156,4 @@ class Block extends BlockEntity {
 	}
 }
 
-module.exports = Block;
+module.exports = ChainBlock;

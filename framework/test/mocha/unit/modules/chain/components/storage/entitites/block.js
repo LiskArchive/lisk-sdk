@@ -100,7 +100,7 @@ describe('Block', () => {
 
 	it('should be a constructable function', async () => {
 		expect(Block.prototype.constructor).to.be.not.null;
-		expect(Block.prototype.constructor.name).to.be.eql('Block');
+		expect(Block.prototype.constructor.name).to.be.eql('ChainBlock');
 	});
 
 	it('should extend BaseEntity', async () => {
