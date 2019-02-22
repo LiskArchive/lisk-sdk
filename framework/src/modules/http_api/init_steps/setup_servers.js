@@ -1,7 +1,7 @@
 const fs = require('fs');
 const express = require('express');
 
-module.exports = ({ components: { logger } }, config) => {
+module.exports = ({ components: { logger }, config }) => {
 	const expressApp = express();
 
 	if (config.coverage) {
@@ -44,6 +44,7 @@ module.exports = ({ components: { logger } }, config) => {
 	}
 
 	return {
+		expressApp,
 		httpServer,
 		httpsServer,
 		wsServer,

@@ -36,7 +36,7 @@ try {
 	});
 
 	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
-	app.overrideModuleOptions('http_api', { config });
+	app.overrideModuleOptions('httpApi', { config });
 
 	app
 		.run()

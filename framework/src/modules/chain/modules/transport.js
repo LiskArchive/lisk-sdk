@@ -65,7 +65,6 @@ class Transport {
 			storage: scope.components.storage,
 			bus: scope.bus,
 			schema: scope.schema,
-			network: scope.network,
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				block: scope.logic.block,

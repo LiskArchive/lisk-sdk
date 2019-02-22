@@ -54,7 +54,6 @@ class Rounds {
 			channel: scope.channel,
 			logger: scope.components.logger,
 			bus: scope.bus,
-			network: scope.network,
 			storage: scope.components.storage,
 		};
 		self = this;

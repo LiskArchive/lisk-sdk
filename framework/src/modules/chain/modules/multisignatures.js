@@ -49,7 +49,6 @@ function Multisignatures(cb, scope) {
 		channel: scope.channel,
 		logger: scope.components.logger,
 		storage: scope.components.storage,
-		network: scope.network,
 		schema: scope.schema,
 		bus: scope.bus,
 		balancesSequence: scope.balancesSequence,
@@ -61,7 +60,6 @@ function Multisignatures(cb, scope) {
 					logger: scope.components.logger,
 				},
 				schema: scope.schema,
-				network: scope.network,
 				logic: {
 					account: scope.logic.account,
 					transaction: scope.logic.transaction,
