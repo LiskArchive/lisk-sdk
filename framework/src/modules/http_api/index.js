@@ -1,5 +1,6 @@
 const HttpApi = require('./httpApi');
 const BaseModule = require('../base_module');
+const { config: DefaultConfig } = require('./defaults');
 
 /* eslint-disable class-methods-use-this */
 
@@ -29,7 +30,7 @@ module.exports = class HttpAPIModule extends BaseModule {
 	}
 
 	get defaults() {
-		return {};
+		return DefaultConfig;
 	}
 
 	get events() {
