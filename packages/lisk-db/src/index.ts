@@ -3,19 +3,23 @@ import levelup, { LevelUp } from 'levelup';
 import RocksDB from 'rocksdb';
 
 const delimitor = ':';
-export type Value = string | Buffer;
 export interface BatchCommand {
 	readonly type: 'put' | 'del';
 	readonly bucket: string;
 	readonly key: string | number;
-	readonly value?: Value;
+	// tslint:disable-next-line no-any
+	readonly value?: any;
 }
 
 export interface ReadStreamOption {
-	readonly gt?: Value;
-	readonly gte?: Value;
-	readonly lt?: Value;
-	readonly lte?: Value;
+	// tslint:disable-next-line no-any
+	readonly gt?: any;
+	// tslint:disable-next-line no-any
+	readonly gte?: any;
+	// tslint:disable-next-line no-any
+	readonly lt?: any;
+	// tslint:disable-next-line no-any
+	readonly lte?: any;
 	readonly reverse?: boolean;
 	readonly limit?: number;
 	readonly keys?: boolean;
@@ -29,13 +33,15 @@ export class DB {
 		this._db = levelup(RocksDB(file));
 	}
 
-	public async get(bucket: string, key: string): Promise<Value> {
+	// tslint:disable-next-line no-any
+	public async get(bucket: string, key: string | number): Promise<any> {
 		const fullKey = `${bucket}${delimitor}${key}`;
 
 		return this._db.get(fullKey);
 	}
 
-	public async put(bucket: string, key: string, val: Value): Promise<void> {
+	// tslint:disable-next-line no-any
+	public async put(bucket: string, key: string, val: any): Promise<void> {
 		const fullKey = `${bucket}${delimitor}${key}`;
 
 		return this._db.put(fullKey, val);
@@ -56,7 +62,7 @@ export class DB {
 			type: t.type,
 			key: `${t.bucket}${typeof t.key === 'string' ? t.key : t.key.toString()}`,
 			value: t.value,
-		}))
+		}));
 
 		return this._db.batch(execTasks as AbstractBatch[]);
 	}
