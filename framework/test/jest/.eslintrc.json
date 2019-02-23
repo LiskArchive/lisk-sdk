@@ -8,7 +8,6 @@
 		"import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
 
 		// Disable mocha related lisk-base rules
-		"import/order": "off",
 		"mocha/handle-done-callback": "off",
 		"mocha/max-top-level-suites": "off",
 		"mocha/no-async-describe": "off",
