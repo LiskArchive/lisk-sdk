@@ -7,7 +7,7 @@ import {
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
-import { calculateRewawrd, Milestones } from './reward';
+import { calculateRewawrd, RewardsOption } from './reward';
 import { blockSchema } from './schema';
 import { StateStore } from './state_store';
 import {
@@ -35,7 +35,7 @@ interface CreateBlockInput {
 	readonly timestamp: number;
 	readonly txMap: TransactionMap;
 	readonly passphrase: string;
-	readonly milestones: Milestones;
+	readonly milestones: RewardsOption;
 	readonly transactions: ReadonlyArray<TransactionJSON>;
 }
 

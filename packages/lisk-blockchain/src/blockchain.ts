@@ -1,35 +1,70 @@
 import { EventEmitter } from 'events';
 import { Block, createBlock } from './block';
 import { getBlockHeaderByHeight } from './repo';
-import { applyReward, Reward } from './reward';
+import { applyReward, Reward, RewardsOption, calculateRewawrd } from './reward';
 import { StateStore } from './state_store';
 import { rawTransactionToInstance } from './transactions';
-import { BlockJSON, DataStore, TransactionJSON, TransactionMap } from './types';
+import {
+	BlockJSON,
+	DataStore,
+	Transaction,
+	TransactionJSON,
+	TransactionMap,
+} from './types';
 import { verifyExist } from './verify';
 
 export const EVENT_BLOCK_ADDED = 'block_added';
 export const EVENT_BLOCK_DELETED = 'block_deleted';
-export type ExceptionHandler = () => boolean;
+export type ExceptionHandler = (
+	errors: ReadonlyArray<Error>,
+	store: StateStore,
+	transactions: ReadonlyArray<Transaction>,
+) => boolean;
 export interface BlockchainOptions {
-	readonly blockTime?: number;
+	readonly version: number;
+	readonly rewards: RewardsOption;
+	readonly maxTransactionsPerBlock: number;
+	readonly epochTime: number;
 }
+
+const defaultOptions: BlockchainOptions = {
+	version: 1,
+	rewards: {
+		milestones: [
+			'500000000',
+			'400000000',
+			'300000000',
+			'200000000',
+			'100000000',
+		],
+		offset: 2160,
+		distance: 3000000,
+		totalAmount: '10000000000000000',
+	},
+	maxTransactionsPerBlock: 25,
+	epochTime: 1464109200,
+};
 
 export class Blockchain extends EventEmitter {
 	private _db: DataStore;
 	private _genesis: Block;
 	private _lastBlock?: Block;
 	private _txMap: TransactionMap;
+	private _exceptionHandler: ExceptionHandler;
+	private _options: BlockchainOptions;
 
 	public constructor(
 		genesis: BlockJSON,
 		db: DataStore,
 		txMap: TransactionMap,
-		options: BlockchainOptions = {},
+		options: BlockchainOptions = defaultOptions,
 		exceptionHander: ExceptionHandler = () => false,
 	) {
 		super();
 		this._db = db;
 		this._txMap = txMap;
+		this._options = options;
+		this._exceptionHandler = exceptionHander;
 		const txs = rawTransactionToInstance(this._txMap, genesis.transactions);
 		this._genesis = new Block(genesis, txs);
 	}
@@ -106,8 +141,10 @@ export class Blockchain extends EventEmitter {
 		transactions: ReadonlyArray<TransactionJSON>,
 		passphrase: string,
 	): Block {
+		const height = this.lastBlock.height + 1;
+		const reward = calculateRewawrd(this._options.rewards, height);
 		return createBlock({
-			version: 1,
+			version: this._options.version,
 			height: this.lastBlock.height + 1,
 			transactions,
 			passphrase,

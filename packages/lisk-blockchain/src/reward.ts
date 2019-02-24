@@ -7,14 +7,17 @@ export interface Reward {
 	readonly fee: string;
 }
 
-export interface Milestones {
+export interface RewardsOption {
 	readonly milestones: ReadonlyArray<string>;
 	readonly offset: number;
 	readonly distance: number;
 	readonly totalAmount: string;
 }
 
-const calculateMilestone = (milestones: Milestones, height: number): number => {
+const calculateMilestone = (
+	milestones: RewardsOption,
+	height: number,
+): number => {
 	const location = Math.trunc(
 		(height - milestones.offset) / milestones.distance,
 	);
@@ -28,7 +31,7 @@ const calculateMilestone = (milestones: Milestones, height: number): number => {
 };
 
 export const calculateRewawrd = (
-	milestones: Milestones,
+	milestones: RewardsOption,
 	height: number,
 ): string => {
 	if (height < milestones.offset) {
@@ -39,7 +42,7 @@ export const calculateRewawrd = (
 };
 
 export const calculateSupply = (
-	milestones: Milestones,
+	milestones: RewardsOption,
 	height: number,
 ): string => {
 	return new BigNum().toString();
