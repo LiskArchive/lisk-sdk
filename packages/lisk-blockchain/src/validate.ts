@@ -1,11 +1,13 @@
-export const validateReward = (): Error | undefined => undefined;
+import { BlockchainError } from './error';
 
-export const validatePayload = (): Error | undefined => undefined;
+export const validateReward = (): BlockchainError | undefined => undefined;
 
-export const validateId = (): Error | undefined => undefined;
+export const validatePayload = (): BlockchainError | undefined => undefined;
 
-export const validateVersion = (): Error | undefined => undefined;
+export const validateId = (): BlockchainError | undefined => undefined;
 
-export const validateSignature = (): Error | undefined => undefined;
+export const validateVersion = (): BlockchainError | undefined => undefined;
 
-export const validatePriviousId = (): Error | undefined => undefined;
+export const validateSignature = (): BlockchainError | undefined => undefined;
+
+export const validatePriviousId = (): BlockchainError | undefined => undefined;

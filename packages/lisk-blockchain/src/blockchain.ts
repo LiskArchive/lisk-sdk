@@ -4,8 +4,12 @@ import { getBlockHeaderByHeight } from './repo';
 import { StateStore } from './state_store';
 import { BlockJSON, DataStore, TransactionMap } from './types';
 
-const EVENT_BLOCK_ADDED = 'block_added';
-const EVENT_BLOCK_DELETED = 'block_deleted';
+export const EVENT_BLOCK_ADDED = 'block_added';
+export const EVENT_BLOCK_DELETED = 'block_deleted';
+export type ExceptionHandler = () => boolean;
+export interface BlockchainOptions {
+	readonly blockTime?: number;
+}
 
 export class Blockchain extends EventEmitter {
 	private _db: DataStore;
@@ -13,7 +17,13 @@ export class Blockchain extends EventEmitter {
 	private _lastBlock?: Block;
 	private _txMap: TransactionMap;
 
-	public constructor(genesis: BlockJSON, db: DataStore, txMap: TransactionMap) {
+	public constructor(
+		genesis: BlockJSON,
+		db: DataStore,
+		txMap: TransactionMap,
+		options: BlockchainOptions = {},
+		exceptionHander: ExceptionHandler = () => false,
+	) {
 		super();
 		this._db = db;
 		this._txMap = txMap;
@@ -29,10 +39,13 @@ export class Blockchain extends EventEmitter {
 			throw new Error('Nethash does not match with the genesis block');
 		}
 		const block = new Block(genesis, this._txMap);
-		const store = new StateStore(this._db);
+		const store = new StateStore(this._db, block);
 		block.apply(store);
-
-		return store.finalize();
+		await store.finalize();
+		this.emit(EVENT_BLOCK_ADDED, {
+			block,
+			accounts: store.getUpdatedAccount(),
+		});
 	}
 
 	public get lastBlock(): Block {
@@ -43,12 +56,21 @@ export class Blockchain extends EventEmitter {
 		return this._lastBlock;
 	}
 
-	public async addBlock(block: BlockJSON): Promise<void> {
+	public async addBlock(
+		rawBlock: BlockJSON,
+	): Promise<ReadonlyArray<Error> | undefined> {
 		// Recalculate blockID
+		const block = new Block(rawBlock, this._txMap);
 		// Check if blockID exists
+		const validateErrors = block.validate();
+		if (validateErrors) {
+			return validateErrors;
+		}
+
 		// Validate block
 		// Verify block
 		// Fork choice
 		// Apply block
+		return undefined;
 	}
 }
