@@ -3,6 +3,7 @@ import { Block, createBlock } from './block';
 import { getBlockHeaderByHeight } from './repo';
 import { applyReward, Reward } from './reward';
 import { StateStore } from './state_store';
+import { rawTransactionToInstance } from './transactions';
 import { BlockJSON, DataStore, TransactionJSON, TransactionMap } from './types';
 import { verifyExist } from './verify';
 
@@ -29,7 +30,8 @@ export class Blockchain extends EventEmitter {
 		super();
 		this._db = db;
 		this._txMap = txMap;
-		this._genesis = new Block(genesis, this._txMap);
+		const txs = rawTransactionToInstance(this._txMap, genesis.transactions);
+		this._genesis = new Block(genesis, txs);
 	}
 
 	public async init(): Promise<void> {
@@ -40,7 +42,8 @@ export class Blockchain extends EventEmitter {
 		if (genesis && genesis.payloadHash !== this._genesis.payloadHash) {
 			throw new Error('Nethash does not match with the genesis block');
 		}
-		const block = new Block(genesis, this._txMap);
+		const txs = rawTransactionToInstance(this._txMap, genesis.transactions);
+		const block = new Block(genesis, txs);
 		const store = new StateStore(this._db, block);
 		block.apply(store);
 		await store.finalize();
@@ -63,7 +66,8 @@ export class Blockchain extends EventEmitter {
 		rewards?: ReadonlyArray<Reward>,
 	): Promise<ReadonlyArray<Error> | undefined> {
 		// Recalculate blockID
-		const block = new Block(rawBlock, this._txMap);
+		const txs = rawTransactionToInstance(this._txMap, rawBlock.transactions);
+		const block = new Block(rawBlock, txs);
 		// Check if blockID exists
 		const existError = await verifyExist(this._db, block.id as string);
 		if (existError) {

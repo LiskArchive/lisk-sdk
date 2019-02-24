@@ -1,6 +1,6 @@
 import * as BigNum from 'browserify-bignum';
 import * as crypto from 'crypto';
-import { Transaction, TransactionJSON } from './types';
+import { Transaction, TransactionJSON, TransactionMap } from './types';
 
 interface TransactionData {
 	readonly totalFee: string;
@@ -66,3 +66,9 @@ export const sortTransactions = (transactions: TransactionJSON[]) =>
 
 		return 0;
 	});
+
+export const rawTransactionToInstance = (
+	txMap: TransactionMap,
+	transactions: ReadonlyArray<TransactionJSON>,
+): ReadonlyArray<Transaction> =>
+	transactions.map(raw => new txMap[raw.type](raw));

@@ -10,7 +10,11 @@ import * as BigNum from 'browserify-bignum';
 import { calculateRewawrd, Milestones } from './reward';
 import { blockSchema } from './schema';
 import { StateStore } from './state_store';
-import { sortTransactions } from './transactions';
+import {
+	calculateTransactionsData,
+	rawTransactionToInstance,
+	sortTransactions,
+} from './transactions';
 import {
 	BlockJSON,
 	Status,
@@ -28,6 +32,7 @@ const SIZE_INT64 = 8;
 interface CreateBlockInput {
 	readonly height: number;
 	readonly version: number;
+	readonly timestamp: number;
 	readonly txMap: TransactionMap;
 	readonly passphrase: string;
 	readonly milestones: Milestones;
@@ -47,6 +52,8 @@ export const getBlockId = (blockBytes: Buffer) => {
 export const createBlock = ({
 	height,
 	txMap,
+	version,
+	timestamp,
 	milestones,
 	transactions,
 	passphrase,
@@ -54,18 +61,22 @@ export const createBlock = ({
 	const sortedTransactions = sortTransactions(
 		transactions as TransactionJSON[],
 	);
+	const txs = rawTransactionToInstance(txMap, sortedTransactions);
 	const reward = calculateRewawrd(milestones, height);
 	const { publicKey } = getKeys(passphrase);
 	const rawBlock = {
+		version,
 		height,
+		timestamp,
 		reward,
+		...calculateTransactionsData(txs),
 		transactions: sortedTransactions,
 		generatorPublicKey: publicKey,
 	};
 	// Calculate tx related property
 	// Get public key from passphrase
 	// Get reward
-	const block = new Block(rawBlock, txMap);
+	const block = new Block(rawBlock, txs);
 	block.sign(passphrase);
 
 	return block;
@@ -88,21 +99,22 @@ export class Block {
 
 	public blockSignature?: string;
 
-	public constructor(rawBlock: BlockJSON, txMap: TransactionMap) {
-		this.height = rawBlock.height || 0;
-		this.version = rawBlock.version;
-		this.timestamp = rawBlock.timestamp;
-		this.previousBlock = rawBlock.previousBlock;
-		this.numberOfTransactions = rawBlock.numberOfTransactions;
-		this.totalFee = rawBlock.totalFee;
-		this.totalAmount = rawBlock.totalAmount;
-		this.reward = rawBlock.reward;
-		this.payloadHash = rawBlock.payloadHash;
-		this.payloadLength = rawBlock.payloadLength;
-		this.generatorPublicKey = rawBlock.generatorPublicKey;
-		this.transactions = rawBlock.transactions.map(
-			raw => new txMap[raw.type](raw),
-		);
+	public constructor(
+		blockHeader: BlockJSON,
+		transactions: ReadonlyArray<Transaction>,
+	) {
+		this.height = blockHeader.height || 0;
+		this.version = blockHeader.version;
+		this.timestamp = blockHeader.timestamp;
+		this.previousBlock = blockHeader.previousBlock;
+		this.numberOfTransactions = blockHeader.numberOfTransactions;
+		this.totalFee = blockHeader.totalFee;
+		this.totalAmount = blockHeader.totalAmount;
+		this.reward = blockHeader.reward;
+		this.payloadHash = blockHeader.payloadHash;
+		this.payloadLength = blockHeader.payloadLength;
+		this.generatorPublicKey = blockHeader.generatorPublicKey;
+		this.transactions = transactions;
 		this.id = getBlockId(this._getBytes());
 	}
 
