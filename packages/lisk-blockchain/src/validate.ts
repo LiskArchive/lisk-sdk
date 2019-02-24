@@ -1,4 +1,7 @@
+import * as Ajv from 'ajv';
 import { BlockchainError } from './error';
+
+export const validator = new Ajv({});
 
 export const validateReward = (): BlockchainError | undefined => undefined;
 

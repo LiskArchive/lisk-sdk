@@ -2,67 +2,16 @@ import * as crypto from 'crypto';
 // tslint:disable-next-line no-require-imports
 import clonedeep = require('lodash.clonedeep');
 import { Account, createDefaultAccount } from './account';
+import { blockSaveToBatch, cacheToBatch, deleteMapToBatch } from './batch';
 import { Block } from './block';
-import { blockSaveToBatch, BUCKET_ADDRESS_ACCOUNT } from './repo';
-import { BatchCommand, DataStore } from './types';
-
-interface CacheMap {
-	// tslint:disable-next-line readonly-keyword
-	[bucket: string]: {
-		// tslint:disable-next-line readonly-keyword no-any
-		[key: string]: any;
-	};
-}
+import { BUCKET_ADDRESS_ACCOUNT } from './repo';
+import { CacheMap, DataStore } from './types';
 
 const SNAPSHOT_ID_LENGTH = 16;
 const randomString = (num: number) => crypto.randomBytes(num).toString('hex');
 
-const cacheToBatch = (map: CacheMap): ReadonlyArray<BatchCommand> =>
-	Object.entries(map).reduce(
-		(accumulated, [bucket, values]) => {
-			const reducedPerBucket = Object.entries(values).reduce(
-				(prev, [key, value]) => {
-					prev.push({
-						type: 'put',
-						bucket,
-						key,
-						value,
-					});
-
-					return [...prev];
-				},
-				[] as BatchCommand[],
-			);
-
-			return accumulated.concat(reducedPerBucket);
-		},
-		[] as BatchCommand[],
-	);
-
-const deleteMapToBatch = (deleteMap: CacheMap): ReadonlyArray<BatchCommand> =>
-	Object.entries(deleteMap).reduce(
-		(accumulated, [bucket, values]) => {
-			const reducedPerBucket = Object.keys(values).reduce(
-				(prev, key) => {
-					prev.push({
-						type: 'del',
-						bucket,
-						key,
-					});
-
-					return [...prev];
-				},
-				[] as BatchCommand[],
-			);
-
-			return accumulated.concat(reducedPerBucket);
-		},
-		[] as BatchCommand[],
-	);
-
 export class StateStore {
 	private _db: DataStore;
-	public mutate = true;
 	private _cacheMap: CacheMap;
 	private _deleteMap: CacheMap;
 	private _snapshot: { [key: string]: CacheMap };
@@ -117,9 +66,6 @@ export class StateStore {
 		// tslint:disable-next-line no-any
 		value: any,
 	): Promise<void> {
-		if (!this.mutate) {
-			return;
-		}
 		if (!this._cacheMap[bucket]) {
 			this._cacheMap[bucket] = {};
 		}

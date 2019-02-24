@@ -5,7 +5,7 @@ export interface BlockJSON {
 	readonly height?: number;
 	readonly version: number;
 	readonly timestamp: number;
-	readonly previousBlock: string;
+	readonly previousBlock?: string;
 	readonly numberOfTransactions: number;
 	readonly totalFee: string;
 	readonly totalAmount: string;
@@ -32,12 +32,23 @@ export interface TransactionResponse {
 interface TransactionFunc {
 	getBytes(): Buffer;
 	toJSON(): TransactionJSON;
+	validate(): TransactionResponse;
 	apply(store: StateStore): TransactionResponse;
 	undo(store: StateStore): TransactionResponse;
 }
 
+export interface CacheMap {
+	// tslint:disable-next-line readonly-keyword
+	[bucket: string]: {
+		// tslint:disable-next-line readonly-keyword no-any
+		[key: string]: any;
+	};
+}
+
 interface TransactionProps {
 	readonly type: number;
+	readonly fee: string;
+	readonly amount: string;
 }
 
 export type Transaction = TransactionFunc & TransactionProps;

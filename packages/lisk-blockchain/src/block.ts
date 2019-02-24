@@ -1,31 +1,70 @@
-import { hexToBuffer, signDataWithPassphrase } from '@liskhq/lisk-cryptography';
+import {
+	bufferToBigNumberString,
+	getFirstEightBytesReversed,
+	getKeys,
+	hash,
+	hexToBuffer,
+	signDataWithPassphrase,
+} from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
+import { calculateRewawrd, Milestones } from './reward';
+import { blockSchema } from './schema';
 import { StateStore } from './state_store';
+import { sortTransactions } from './transactions';
 import {
 	BlockJSON,
 	Status,
 	Transaction,
 	TransactionJSON,
 	TransactionMap,
+	TransactionResponse,
 } from './types';
+import { validator } from './validate';
+import { applyVote, undoVote } from './vote';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
 interface CreateBlockInput {
+	readonly height: number;
+	readonly version: number;
 	readonly txMap: TransactionMap;
 	readonly passphrase: string;
+	readonly milestones: Milestones;
 	readonly transactions: ReadonlyArray<TransactionJSON>;
 }
 
+export const getBlockId = (blockBytes: Buffer) => {
+	const blockHash = hash(blockBytes);
+	const bufferFromFirstEntriesReversed = getFirstEightBytesReversed(blockHash);
+	const firstEntriesToNumber = bufferToBigNumberString(
+		bufferFromFirstEntriesReversed,
+	);
+
+	return firstEntriesToNumber;
+};
+
 export const createBlock = ({
+	height,
 	txMap,
+	milestones,
 	transactions,
 	passphrase,
 }: CreateBlockInput): Block => {
+	const sortedTransactions = sortTransactions(
+		transactions as TransactionJSON[],
+	);
+	const reward = calculateRewawrd(milestones, height);
+	const { publicKey } = getKeys(passphrase);
 	const rawBlock = {
-		transactions,
+		height,
+		reward,
+		transactions: sortedTransactions,
+		generatorPublicKey: publicKey,
 	};
+	// Calculate tx related property
+	// Get public key from passphrase
+	// Get reward
 	const block = new Block(rawBlock, txMap);
 	block.sign(passphrase);
 
@@ -33,11 +72,11 @@ export const createBlock = ({
 };
 
 export class Block {
-	public readonly id?: string;
-	public readonly height?: number;
+	public readonly id: string;
+	public readonly height: number;
 	public readonly version: number;
 	public readonly timestamp: number;
-	public readonly previousBlock: string;
+	public readonly previousBlock: string | undefined;
 	public readonly numberOfTransactions: number;
 	public readonly totalFee: string;
 	public readonly totalAmount: string;
@@ -50,8 +89,7 @@ export class Block {
 	public blockSignature?: string;
 
 	public constructor(rawBlock: BlockJSON, txMap: TransactionMap) {
-		this.id = rawBlock.id;
-		this.height = rawBlock.height;
+		this.height = rawBlock.height || 0;
 		this.version = rawBlock.version;
 		this.timestamp = rawBlock.timestamp;
 		this.previousBlock = rawBlock.previousBlock;
@@ -65,10 +103,22 @@ export class Block {
 		this.transactions = rawBlock.transactions.map(
 			raw => new txMap[raw.type](raw),
 		);
+		this.id = getBlockId(this._getBytes());
 	}
 
 	public validate(): ReadonlyArray<Error> {
-		return [];
+		validator.validate(blockSchema, this.toJSON());
+		const blockError = validator.errors
+			? validator.errors.map(err => new Error(err.message))
+			: [];
+		const txErrors = this.transactions
+			.reduce(
+				(prev, current) => prev.concat(current.validate()),
+				[] as ReadonlyArray<TransactionResponse>,
+			)
+			.reduce((prev, current) => prev.concat(current.errors), [] as Error[]);
+
+		return [...blockError, ...txErrors];
 	}
 
 	public sign(passphrase: string): void {
@@ -80,10 +130,8 @@ export class Block {
 		return this.transactions
 			.map(tx => {
 				const snapshotId = store.createSnapshot();
-				store.mutate = false;
 				const res = tx.apply(store);
 				store.restoreSnapshot(snapshotId);
-				store.mutate = true;
 
 				return res;
 			})
@@ -92,17 +140,29 @@ export class Block {
 	}
 
 	public async apply(store: StateStore): Promise<ReadonlyArray<Error>> {
-		return this.transactions
-			.map(tx => tx.apply(store))
-			.filter(res => res.status === Status.FAIL)
-			.reduce((prev, current) => prev.concat(current.errors as []), []);
+		const errors = [];
+		// tslint:disable-next-line no-loop-statement
+		for (const tx of this.transactions) {
+			const res = await tx.apply(store);
+			const voteErrors = await applyVote(store, tx);
+			errors.push(...res.errors);
+			errors.push(...voteErrors);
+		}
+
+		return errors;
 	}
 
 	public async undo(store: StateStore): Promise<ReadonlyArray<Error>> {
-		return this.transactions
-			.map(tx => tx.undo(store))
-			.filter(res => res.status === Status.FAIL)
-			.reduce((prev, current) => prev.concat(current.errors as []), []);
+		const errors = [];
+		// tslint:disable-next-line no-loop-statement
+		for (const tx of this.transactions) {
+			const res = await tx.undo(store);
+			const voteErrors = await undoVote(store, tx);
+			errors.push(...res.errors);
+			errors.push(...voteErrors);
+		}
+
+		return errors;
 	}
 
 	public toJSON(): BlockJSON {

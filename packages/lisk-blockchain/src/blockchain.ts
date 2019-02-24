@@ -1,8 +1,10 @@
 import { EventEmitter } from 'events';
-import { Block } from './block';
+import { Block, createBlock } from './block';
 import { getBlockHeaderByHeight } from './repo';
+import { applyReward, Reward } from './reward';
 import { StateStore } from './state_store';
-import { BlockJSON, DataStore, TransactionMap } from './types';
+import { BlockJSON, DataStore, TransactionJSON, TransactionMap } from './types';
+import { verifyExist } from './verify';
 
 export const EVENT_BLOCK_ADDED = 'block_added';
 export const EVENT_BLOCK_DELETED = 'block_deleted';
@@ -58,19 +60,54 @@ export class Blockchain extends EventEmitter {
 
 	public async addBlock(
 		rawBlock: BlockJSON,
+		rewards?: ReadonlyArray<Reward>,
 	): Promise<ReadonlyArray<Error> | undefined> {
 		// Recalculate blockID
 		const block = new Block(rawBlock, this._txMap);
 		// Check if blockID exists
+		const existError = await verifyExist(this._db, block.id as string);
+		if (existError) {
+			return [existError];
+		}
+		// Validate block
 		const validateErrors = block.validate();
 		if (validateErrors) {
 			return validateErrors;
 		}
-
-		// Validate block
+		const store = new StateStore(this._db, block);
 		// Verify block
+		const verifyErrors = await block.verify(store);
+		if (verifyErrors.length > 0) {
+			return verifyErrors;
+		}
 		// Fork choice
 		// Apply block
+		const applyErrors = await block.apply(store);
+		if (applyErrors.length > 0) {
+			return applyErrors;
+		}
+		if (rewards) {
+			await applyReward(store, rewards);
+		}
+		await store.finalize();
+		this.emit(EVENT_BLOCK_ADDED, {
+			block,
+			accounts: store.getUpdatedAccount(),
+		});
+
 		return undefined;
+	}
+
+	public createBlock(
+		transactions: ReadonlyArray<TransactionJSON>,
+		passphrase: string,
+	): Block {
+		return createBlock({
+			version: 1,
+			height: this.lastBlock.height + 1,
+			transactions,
+			passphrase,
+			txMap: this._txMap,
+		});
 	}
 }
