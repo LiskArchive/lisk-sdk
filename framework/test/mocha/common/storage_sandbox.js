@@ -18,7 +18,6 @@ const child_process = require('child_process');
 const pgpLib = require('pg-promise');
 const Storage = require('../../../src/components/storage/storage');
 const PgpAdapter = require('../../../src/components/storage/adapters/pgp_adapter');
-const { Transaction } = require('../../../src/components/storage/entities');
 
 // Custom entitties
 const {
@@ -27,6 +26,7 @@ const {
 	Migration,
 	Peer,
 	Round,
+	Transaction,
 } = require('../../../src/modules/chain/components/storage/entities');
 
 const dbNames = [];
