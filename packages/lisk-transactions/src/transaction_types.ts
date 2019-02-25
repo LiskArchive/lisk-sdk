@@ -21,8 +21,8 @@ export interface Account {
 	readonly publicKey?: string;
 	readonly secondPublicKey?: string;
 	readonly membersPublicKeys?: ReadonlyArray<string>;
-	readonly multimin?: number;
-	readonly multilifetime?: number;
+	readonly multiMin?: number;
+	readonly multiLifetime?: number;
 	readonly username?: string;
 	readonly votedDelegatesPublicKeys?: ReadonlyArray<string>;
 	readonly isDelegate?: boolean;

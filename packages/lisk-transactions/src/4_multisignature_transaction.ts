@@ -303,8 +303,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 			membersPublicKeys: this.asset.multisignature.keysgroup.map(key =>
 				key.substring(1),
 			),
-			multimin: this.asset.multisignature.min,
-			multilifetime: this.asset.multisignature.lifetime,
+			multiMin: this.asset.multisignature.min,
+			multiLifetime: this.asset.multisignature.lifetime,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -316,8 +316,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		const {
 			membersPublicKeys,
-			multimin,
-			multilifetime,
+			multiMin,
+			multiLifetime,
 			...strippedSender
 		} = sender;
 
