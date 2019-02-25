@@ -18,7 +18,7 @@ module.exports = class HttpAPIModule extends BaseModule {
 	}
 
 	static get alias() {
-		return 'httpApi';
+		return 'http_api';
 	}
 
 	static get info() {
