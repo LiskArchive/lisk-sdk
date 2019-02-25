@@ -19,4 +19,4 @@
   PARAMETERS: ?
 */
 
-INSERT INTO ${tableName:name} ("accountId", "dependentId") VALUES ${createSet:raw};
+INSERT INTO ${tableName:name} ("accountId", "dependentId") VALUES (${accountId}, ${dependentId});

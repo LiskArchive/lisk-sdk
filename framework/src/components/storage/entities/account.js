@@ -68,6 +68,7 @@ const sqlFiles = {
 	increaseFieldBy: 'accounts/increase_field_by.sql',
 	decreaseFieldBy: 'accounts/decrease_field_by.sql',
 	createDependentRecord: 'accounts/create_dependent_record.sql',
+	createDependentRecords: 'accounts/create_dependent_records.sql',
 	deleteDependentRecord: 'accounts/delete_dependent_record.sql',
 	deleteDependentRecords: 'accounts/delete_dependent_records.sql',
 	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
@@ -732,7 +733,7 @@ class Account extends BaseEntity {
 		}));
 
 		const tableName = dependentFieldsTableMap[dependencyName];
-		const sqlForInsert = this.SQLs.createDependentRecord;
+		const sqlForInsert = this.SQLs.createDependentRecords;
 
 		const createSet = this.getValuesSet(
 			valuesForInsert,

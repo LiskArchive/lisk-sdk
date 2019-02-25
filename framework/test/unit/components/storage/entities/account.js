@@ -1854,8 +1854,7 @@ describe('Account', async () => {
 		});
 	});
 
-	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('createDependentRecord()', async () => {
+	describe('createDependentRecord()', async () => {
 		it('should throw error if wrong dependency is passed', async () => {
 			expect(() =>
 				AccountEntity.createDependentRecord('unknown', '12L', '12345')
