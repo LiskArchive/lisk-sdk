@@ -186,12 +186,12 @@ System.prototype.getBroadhash = function(cb) {
 		{},
 		{ limit: 5, sort: 'height:desc' }
 	)
-		.then(rows => {
-			if (rows.length <= 1) {
+		.then(maxFiveLatestBlocks => {
+			if (maxFiveLatestBlocks.length <= 1) {
 				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
 				return setImmediate(cb, null, __private.nethash);
 			}
-			const seed = rows.map(row => row.b_id).join('');
+			const seed = maxFiveLatestBlocks.map(block => block.id).join('');
 			const broadhash = crypto
 				.createHash('sha256')
 				.update(seed, 'utf8')
