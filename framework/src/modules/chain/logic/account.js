@@ -445,6 +445,17 @@ class Account {
 							);
 						}
 
+						if (updatedField === 'balance') {
+							promises.push(
+								modules.rounds.createRoundInformationWithAmount(
+									address,
+									diff.round,
+									value.toString(),
+									dbTx
+								)
+							);
+						}
+
 						break;
 
 					// [u_]delegates, [u_]multisignatures
