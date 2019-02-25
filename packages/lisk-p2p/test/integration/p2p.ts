@@ -2,6 +2,11 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
+import {
+	P2PPeerSelectionForSendRequest,
+	P2PNodeInfo,
+	P2PDiscoveredPeerInfo,
+} from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
@@ -664,6 +669,193 @@ describe('Integration tests for P2P library', () => {
 
 				expect(peerPortsAfterPeerCrash).to.be.eql(
 					expectedPeerPortsAfterPeerCrash,
+				);
+			});
+		});
+	});
+
+	describe('Connected network: User custom selection algorithm is passed to each node', () => {
+		const DISCOVERY_INTERVAL = 200;
+		// Custom selection function that takes peers with equal height and which are not discovered yet
+		const peerSelectionForSendRequest: P2PPeerSelectionForSendRequest = (
+			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+			nodeInfo?: P2PNodeInfo,
+			_numOfPeer?: number,
+		) =>
+			peersList.filter(peer =>
+				nodeInfo ? nodeInfo.height <= peer.height : false,
+			);
+
+		beforeEach(async () => {
+			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
+				// Each node will have the next node in the sequence as a seed peer.
+				const seedPeers = [
+					{
+						ipAddress: '127.0.0.1',
+						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
+						height: 1000 + index,
+					},
+				];
+
+				return new P2P({
+					blacklistedPeers: [],
+					seedPeers,
+					wsEngine: 'ws',
+					peerSelectionForSendRequest,
+					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
+					connectTimeout: 100,
+					ackTimeout: 100,
+					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
+					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
+					nodeInfo: {
+						wsPort: NETWORK_START_PORT + index,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.0',
+						os: platform(),
+						height: 1000,
+						broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: 'O2wTkjqplHII5wPv',
+					},
+				});
+			});
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+		});
+
+		it('should start all the nodes with custom selection function without fail', async () => {
+			p2pNodeList.forEach(async p2p => await p2p.start());
+
+			await wait(200);
+
+			p2pNodeList.forEach(p2p =>
+				expect(p2p).to.have.property('isActive', true),
+			);
+		});
+
+		describe('Peer Discovery', () => {
+			beforeEach(async () => {
+				p2pNodeList.forEach(async p2p => await p2p.start());
+
+				await wait(200);
+			});
+
+			afterEach(async () => {
+				await Promise.all(
+					p2pNodeList
+						.filter(p2p => p2p.isActive)
+						.map(async p2p => await p2p.stop()),
+				);
+			});
+
+			it('should run peer discovery successfully', async () => {
+				p2pNodeList.forEach(p2p => {
+					const connectedPeers = p2p.getNetworkStatus().connectedPeers;
+
+					expect(p2p.isActive).to.be.true;
+					expect(connectedPeers.length).to.gt(1);
+				});
+			});
+		});
+
+		describe('P2P.request', () => {
+			beforeEach(async () => {
+				p2pNodeList.forEach(async p2p => {
+					await p2p.start();
+					await wait(200);
+					// Collect port numbers to check which peer handled which request.
+					p2p.on('requestReceived', request => {
+						request.end({
+							nodePort: p2p.nodeInfo.wsPort,
+							requestProcedure: request.procedure,
+							requestData: request.data,
+						});
+					});
+				});
+			});
+
+			afterEach(async () => {
+				p2pNodeList.forEach(async p2p => await p2p.stop());
+			});
+
+			it('should make a request to the network; it should reach a single peer', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const response = await firstP2PNode.request({
+					procedure: 'foo',
+					data: 'bar',
+				});
+
+				expect(response).to.have.property('data');
+				expect(response.data)
+					.to.have.property('nodePort')
+					.which.is.a('number');
+				expect(response.data)
+					.to.have.property('requestProcedure')
+					.which.is.a('string');
+				expect(response.data)
+					.to.have.property('requestData')
+					.which.is.equal('bar');
+			});
+		});
+		describe('P2P.send', () => {
+			let collectedMessages: Array<any> = [];
+
+			beforeEach(async () => {
+				collectedMessages = [];
+				p2pNodeList.forEach(async p2p => {
+					await p2p.start();
+					await wait(200);
+
+					p2p.on('messageReceived', message => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							message,
+						});
+					});
+				});
+			});
+
+			it('should send a message to a subset of peers within the network; should reach multiple peers with even distribution', async () => {
+				const TOTAL_SENDS = 100;
+				const firstP2PNode = p2pNodeList[0];
+				const nodePortToMessagesMap: any = {};
+
+				const expectedAverageMessagesPerNode = TOTAL_SENDS;
+				const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
+				const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
+
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					firstP2PNode.send({ event: 'bar', data: i });
+				}
+
+				await wait(100);
+
+				collectedMessages.forEach((receivedMessageData: any) => {
+					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+					}
+					nodePortToMessagesMap[receivedMessageData.nodePort].push(
+						receivedMessageData,
+					);
+				});
+
+				Object.values(nodePortToMessagesMap).forEach(
+					(receivedMessages: any) => {
+						expect(receivedMessages).to.be.an('array');
+						expect(receivedMessages.length).to.be.greaterThan(
+							expectedMessagesLowerBound,
+						);
+						expect(receivedMessages.length).to.be.lessThan(
+							expectedMessagesUpperBound,
+						);
+					},
 				);
 			});
 		});
