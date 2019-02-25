@@ -22,6 +22,8 @@ const {
 } = require('../../../../../framework/src/components/cache');
 const Round = require('../logic/round.js');
 const slots = require('../helpers/slots.js');
+const transactionTypes = require('../helpers/transaction_types.js');
+const Diff = require('../helpers/diff.js');
 
 // Private fields
 let components;
@@ -61,6 +63,128 @@ class Rounds {
 		setImmediate(cb, null, self);
 	}
 }
+
+__private.updateSendersRoundInformationWithAmountForTransactions = function(
+	round,
+	transactions,
+	forwardTick,
+	tx
+) {
+	return transactions.map(transaction => {
+		const value = new Bignumber(transaction.amount).plus(transaction.fee);
+		const valueToUpdate = forwardTick ? `-${value}` : `${value}`;
+		return self.createRoundInformationWithAmount(
+			transaction.senderId,
+			round,
+			valueToUpdate,
+			tx
+		);
+	});
+};
+
+__private.updateRecipientsRoundInformationWithAmountForTransactions = function(
+	round,
+	transactions,
+	forwardTick,
+	tx
+) {
+	// For IN_TRANSFER TRANSACTION, we first need to get the authorId to get the recipient
+	return Promise.all(
+		transactions
+			.filter(transaction => transaction.type === transactionTypes.IN_TRANSFER)
+			.map(transaction =>
+				// Check the owner of the dapp for recipient account
+				library.storage.entities.Transaction.get(
+					{
+						id: transaction.asset.inTransfer.dappId,
+					},
+					{ limit: 1 },
+					tx
+				).then(dappTransaction => ({
+					...transaction,
+					recipientId: dappTransaction.senderId,
+				}))
+			)
+	).then(inTransferTransactionsWithRecipientId =>
+		// We need to only update recipient accounts for transfer transaction, in trasfer transaction and out transfer transaction
+		[
+			...transactions.filter(
+				transaction =>
+					transaction.type === transactionTypes.SEND ||
+					transaction.type === transactionTypes.OUT_TRANSFER
+			),
+			...inTransferTransactionsWithRecipientId,
+		].map(transaction => {
+			const value = transaction.amount;
+			const valueToUpdate = forwardTick ? `${value}` : `-${value}`;
+			return self.createRoundInformationWithAmount(
+				transaction.recipientId,
+				round,
+				valueToUpdate,
+				tx
+			);
+		})
+	);
+};
+
+__private.updateRoundInformationWithDelegatesForTransactions = function(
+	round,
+	transactions,
+	forwardTick,
+	tx
+) {
+	return transactions
+		.filter(transaction => transaction.type === transactionTypes.VOTE)
+		.map(transaction =>
+			(forwardTick
+				? transaction.asset.votes
+				: Diff.reverse(transaction.asset.votes)
+			).map(vote => {
+				// Fetch first character
+				const mode = vote[0];
+				const dependentId = vote.slice(1);
+				return self.createRoundInformationWithDelegate(
+					transaction.senderId,
+					round,
+					dependentId,
+					mode,
+					tx
+				);
+			})
+		);
+};
+
+__private.updateRoundInformationForTransactions = function(
+	round,
+	transactions,
+	forwardTick,
+	tx,
+	cb
+) {
+	const promises = [
+		__private.updateSendersRoundInformationWithAmountForTransactions(
+			round,
+			transactions,
+			forwardTick,
+			tx
+		),
+		__private.updateRecipientsRoundInformationWithAmountForTransactions(
+			round,
+			transactions,
+			forwardTick,
+			tx
+		),
+		__private.updateRoundInformationWithDelegatesForTransactions(
+			round,
+			transactions,
+			forwardTick,
+			tx
+		),
+	].reduce((accPromises, currPromises) => accPromises.concat(currPromises), []);
+	return Promise.all(promises)
+		.then(() => setImmediate(cb))
+		.catch(err => setImmediate(cb, err));
+};
 
 // Public methods
 /**
@@ -123,12 +247,20 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			.then(() => (scope.finishRound ? newRound.backwardLand() : newRound));
 	}
 
+	// Start round ticking
+	__private.ticking = true;
 	async.series(
 		[
+			function updateRoundInformation(cb) {
+				__private.updateRoundInformationForTransactions(
+					round,
+					block.transactions,
+					false,
+					tx,
+					cb
+				);
+			},
 			function(cb) {
-				// Start round ticking
-				__private.ticking = true;
-
 				// Sum round if finishing round
 				if (scope.finishRound) {
 					return __private.sumRound(scope, cb, tx);
@@ -247,12 +379,20 @@ Rounds.prototype.tick = function(block, done, tx) {
 			});
 	}
 
+	// Start round ticking
+	__private.ticking = true;
 	async.series(
 		[
+			function updateRoundInformation(cb) {
+				__private.updateRoundInformationForTransactions(
+					round,
+					block.transactions,
+					true,
+					tx,
+					cb
+				);
+			},
 			function(cb) {
-				// Start round ticking
-				__private.ticking = true;
-
 				// Sum round if finishing round
 				if (scope.finishRound) {
 					return __private.sumRound(scope, cb, tx);
