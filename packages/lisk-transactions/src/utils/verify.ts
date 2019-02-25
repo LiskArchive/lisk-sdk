@@ -128,7 +128,7 @@ const isMultisignatureAccount = (account: Account): boolean =>
 	!!(
 		account.membersPublicKeys &&
 		account.membersPublicKeys.length > 0 &&
-		account.multimin
+		account.multiMin
 	);
 
 export const verifyMultiSignatures = (
@@ -160,7 +160,7 @@ export const verifyMultiSignatures = (
 	const { valid, errors } = validateMultisignatures(
 		sender.membersPublicKeys as ReadonlyArray<string>,
 		signatures,
-		sender.multimin as number,
+		sender.multiMin as number,
 		transactionBytes,
 		id,
 	);

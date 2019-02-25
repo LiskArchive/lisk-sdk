@@ -30,8 +30,8 @@ describe('Multisignature transaction class', () => {
 	);
 	const {
 		membersPublicKeys,
-		multilifetime,
-		multimin,
+		multiLifetime,
+		multiMin,
 		...nonMultisignatureAccount
 	} = validMultisignatureAccount;
 	let validTestTransaction: MultisignatureTransaction;
