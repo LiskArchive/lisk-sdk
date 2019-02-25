@@ -1,16 +1,15 @@
 const _ = require('lodash');
 
 class TransactionStore {
-	constructor(transactionEntity, { tx }) {
+	constructor(transactionEntity) {
 		this.transaction = transactionEntity;
 		this.data = [];
 		this.primaryKey = 'id';
 		this.name = 'Transaction';
-		this.tx = tx;
 	}
 
 	async cache(filter) {
-		const result = await this.transaction.get(filter, {}, this.tx);
+		const result = await this.transaction.get(filter, {});
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
 		return result;
 	}
