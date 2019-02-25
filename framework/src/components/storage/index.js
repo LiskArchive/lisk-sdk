@@ -15,10 +15,14 @@
 'use strict';
 
 const { config: DefaultConfig } = require('./defaults');
+const validator = require('../../controller/helpers/validator');
 const Storage = require('./storage');
 const { Account, Block, Transaction } = require('./entities');
 
 function createStorageComponent(options, logger) {
+	validator.loadSchema(DefaultConfig);
+	validator.validate(DefaultConfig, options);
+
 	const storage = new Storage(options, logger);
 
 	storage.registerEntity('Account', Account);
