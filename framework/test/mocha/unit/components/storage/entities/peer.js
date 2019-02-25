@@ -43,7 +43,7 @@ describe('Peer', () => {
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_peers'
 		);
 		await storage.bootstrap();

@@ -62,7 +62,10 @@ describe('rounds', () => {
 		},
 	};
 
-	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
+	const storage = new TestStorageSandbox(
+		__testContext.config.components.storage,
+		storageStubs
+	);
 
 	const bindings = {
 		components: {
@@ -202,6 +205,7 @@ describe('rounds', () => {
 
 	describe('onFinishRound', () => {
 		beforeEach(() => {
+			validScope.channel.publish.resetHistory();
 			components.cache.isReady.returns(true);
 			return components.cache.removeByPattern.resetHistory();
 		});

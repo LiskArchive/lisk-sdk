@@ -2,7 +2,7 @@ const ip = require('ip');
 const _ = require('lodash');
 const Bignum = require('bignumber.js');
 
-const HOSTNAME = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[-0-9a-z]{0,61}[0-9a-z])?)*$/i;
+const HOSTNAME = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
 
 const UINT64_MAX = new Bignum('18446744073709551615');
 

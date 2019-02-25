@@ -139,10 +139,15 @@ const DefaultConfig = {
 					maximum: 5000,
 					default: 5000,
 				},
+				snapshotRound: {
+					type: 'integer',
+					default: 0,
+				},
 			},
 			required: ['loadPerIteration'],
 			default: {
 				loadPerIteration: 5000,
+				snapshotRound: 0,
 			},
 		},
 		exceptions: {

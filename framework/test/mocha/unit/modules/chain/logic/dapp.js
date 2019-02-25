@@ -115,7 +115,7 @@ describe('dapp', () => {
 			});
 
 			it('should call __scope.channel.publish with "dapps:change"', async () => {
-				expect(channelStub.publish).to.be.calledWith('dapps:change');
+				expect(channelStub.publish).to.be.calledWith('chain:dapps:change');
 			});
 		});
 

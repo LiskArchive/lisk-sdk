@@ -33,7 +33,7 @@ describe('BanManager', () => {
 			trace: sinonSandbox.stub(),
 		};
 		configWithBlackListStub = {
-			peers: {
+			network: {
 				access: {
 					blackList: [],
 				},
@@ -79,7 +79,7 @@ describe('BanManager', () => {
 
 		describe('when peer is in config.json blackList', () => {
 			before(done => {
-				configWithBlackListStub.peers.access.blackList = [validPeer.ip];
+				configWithBlackListStub.network.access.blackList = [validPeer.ip];
 				return done();
 			});
 			it('should not add validPeer to bannedPeers map', async () =>
@@ -91,7 +91,7 @@ describe('BanManager', () => {
 		describe('when peer is not in config.json blackList', () => {
 			let clock;
 			before(done => {
-				configWithBlackListStub.peers.access.blackList = [];
+				configWithBlackListStub.network.access.blackList = [];
 				clock = sinonSandbox.useFakeTimers();
 				return done();
 			});

@@ -81,9 +81,7 @@ describe('blocks', () => {
 				transaction: logicTransactionStub,
 				peers: peersStub,
 			},
-			channel: {
-				publish: sinonSandbox.stub(),
-			},
+			channel: channelStub,
 			schema: schemaStub,
 			dbSequence: dbSequenceStub,
 			sequence: sequenceStub,

@@ -77,7 +77,7 @@ describe('Account', () => {
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_storage_accounts'
 		);
 		await storage.bootstrap();

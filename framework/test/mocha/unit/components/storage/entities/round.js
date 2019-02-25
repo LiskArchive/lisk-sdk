@@ -105,7 +105,10 @@ describe('Round', () => {
 	const validFilter = { round: validRound.round };
 
 	before(async () => {
-		storage = new StorageSandbox(__testContext.config.db, 'lisk_test_round');
+		storage = new StorageSandbox(
+			__testContext.config.components.storage,
+			'lisk_test_round'
+		);
 		await storage.bootstrap();
 
 		adapter = storage.adapter;
