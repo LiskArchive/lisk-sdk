@@ -1,5 +1,5 @@
 {
-	"extends": ["lisk-base", "plugin:jest/recommended"],
+	"extends": ["../../../.eslintrc.json", "plugin:jest/recommended"],
 	"plugins": ["jest"],
 	"env": {
 		"jest/globals": true
