@@ -69,9 +69,6 @@ describe('rounds', async () => {
 		Transaction: {
 			getOne: sinon.stub(),
 		},
-		Transaction: {
-			get: sinon.stub(),
-		},
 	};
 
 	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
