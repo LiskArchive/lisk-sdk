@@ -66,12 +66,7 @@ describe('Block', () => {
 			'confirmations',
 		];
 
-		validBlockSQLs = [
-			'select',
-			'count',
-			'isPersisted',
-			'getFirstBlockIdOfLastRounds',
-		];
+		validBlockSQLs = ['select', 'count', 'isPersisted'];
 
 		validFilters = [
 			'blockSignature',

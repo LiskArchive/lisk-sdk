@@ -44,6 +44,7 @@ const createFields = [
 const sqlFiles = {
 	create: 'blocks/create.sql',
 	delete: 'blocks/delete.sql',
+	getFirstBlockIdOfLastRounds: 'blocks/get_first_block_id_of_last_rounds.sql',
 };
 
 class ChainBlock extends BlockEntity {

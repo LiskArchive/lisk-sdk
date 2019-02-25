@@ -25,7 +25,6 @@ const sqlFiles = {
 	select: 'blocks/get.sql',
 	count: 'blocks/count.sql',
 	isPersisted: 'blocks/is_persisted.sql',
-	getFirstBlockIdOfLastRounds: 'blocks/get_first_block_id_of_last_rounds.sql',
 };
 
 /**

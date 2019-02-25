@@ -44,7 +44,7 @@ describe('Block', () => {
 		);
 		await storage.bootstrap();
 
-		validBlockSQLs = ['create', 'delete'];
+		validBlockSQLs = ['create', 'delete', 'getFirstBlockIdOfLastRounds'];
 
 		invalidFilter = {
 			invalid: true,
