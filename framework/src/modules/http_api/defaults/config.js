@@ -63,9 +63,24 @@ const DefaultConfig = {
 						},
 					},
 					required: ['port', 'address', 'key', 'cert'],
+					default: {
+						port: 443,
+						address: '0.0.0.0',
+						key: './ssl/lisk.key',
+						cert: './ssl/lisk.crt',
+					},
 				},
 			},
 			required: ['enabled', 'options'],
+			default: {
+				enabled: false,
+				options: {
+					port: 443,
+					address: '0.0.0.0',
+					key: './ssl/lisk.key',
+					cert: './ssl/lisk.crt',
+				},
+			},
 		},
 		options: {
 			type: 'object',
@@ -110,6 +125,14 @@ const DefaultConfig = {
 						'headersTimeout',
 						'serverSetTimeout',
 					],
+					default: {
+						max: 0,
+						delayMs: 0,
+						delayAfter: 0,
+						windowMs: 60000,
+						headersTimeout: 5000,
+						serverSetTimeout: 20000,
+					},
 				},
 				cors: {
 					type: 'object',
@@ -124,9 +147,27 @@ const DefaultConfig = {
 						},
 					},
 					required: ['origin'],
+					default: {
+						origin: '*',
+						methods: ['GET', 'POST', 'PUT'],
+					},
 				},
 			},
 			required: ['limits', 'cors'],
+			default: {
+				limits: {
+					max: 0,
+					delayMs: 0,
+					delayAfter: 0,
+					windowMs: 60000,
+					headersTimeout: 5000,
+					serverSetTimeout: 20000,
+				},
+				cors: {
+					origin: '*',
+					methods: ['GET', 'POST', 'PUT'],
+				},
+			},
 		},
 	},
 	required: [
@@ -138,6 +179,39 @@ const DefaultConfig = {
 		'ssl',
 		'options',
 	],
+	default: {
+		httpPort: 4000,
+		address: '0.0.0.0',
+		trustProxy: false,
+		enabled: true,
+		access: {
+			public: false,
+			whiteList: ['127.0.0.1'],
+		},
+		ssl: {
+			enabled: false,
+			options: {
+				port: 443,
+				address: '0.0.0.0',
+				key: './ssl/lisk.key',
+				cert: './ssl/lisk.crt',
+			},
+		},
+		options: {
+			limits: {
+				max: 0,
+				delayMs: 0,
+				delayAfter: 0,
+				windowMs: 60000,
+				headersTimeout: 5000,
+				serverSetTimeout: 20000,
+			},
+			cors: {
+				origin: '*',
+				methods: ['GET', 'POST', 'PUT'],
+			},
+		},
+	},
 };
 
 module.exports = DefaultConfig;
