@@ -14,8 +14,6 @@
  *
  */
 
-// TODO: Need to handle root user check process.getuid && process.getuid() === 0;
-
 import { flags as flagParser } from '@oclif/command';
 import os from 'os';
 import BaseCommand from '../../base';
@@ -23,7 +21,7 @@ import { NETWORK } from '../../utils/constants';
 import { download, extract, isValidChecksum } from '../../utils/download';
 import { getReleaseInfo } from '../../utils/node/release';
 import {
-	checkRootUser,
+	checkNotRootUser,
 	createDirectory,
 	directoryExists,
 	isValidURL,
@@ -51,7 +49,6 @@ interface Options {
 	readonly installPath: string;
 	readonly liskTarSHA256Url: string;
 	readonly liskTarUrl: string;
-	readonly snapshotURL: string;
 	readonly version: string;
 }
 
@@ -75,7 +72,6 @@ const buildOptions = async ({
 	name,
 	network,
 	releaseUrl,
-	snapshotUrl,
 }: Flags): Promise<Options> => {
 	const installPath = LISK_INSTALL(installationPath);
 	const installDir = `${installPath}/${name}/`;
@@ -85,7 +81,6 @@ const buildOptions = async ({
 		releaseUrl,
 		network,
 	);
-	const snapshotURL = LISK_SNAPSHOT_URL(snapshotUrl, network);
 
 	return {
 		installDir,
@@ -93,7 +88,6 @@ const buildOptions = async ({
 		version,
 		liskTarUrl,
 		liskTarSHA256Url,
-		snapshotURL,
 	};
 };
 
@@ -114,36 +108,27 @@ const installLisk = async (options: Flags, cacheDir: string): Promise<void> => {
 			liskTarUrl,
 			liskTarSHA256Url,
 			version,
-			snapshotURL,
 		} = await buildOptions(options);
+		const { name, network, snapshotUrl, 'no-snapshot': noSnapshot } = options;
 		const LISK_RELEASE_PATH = `${cacheDir}/${LISK_TAR(version)}`;
 		const LISK_RELEASE_SHA256_PATH = `${cacheDir}/${LISK_TAR_SHA256(version)}`;
 
 		createDirectory(installPath);
-		// Checks install prerequisites
 		prereqCheck(installDir);
 
-		// Downloads lisk tar and tar.SHA256
 		await download(liskTarUrl, LISK_RELEASE_PATH);
 		await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
 
-		// Verifies checksum for integrity
 		verifyChecksum(cacheDir, LISK_TAR_SHA256(version));
 
-		// Download blockchain snapshot
-		if (!options['no-snapshot']) {
-			const snapshotPath = `${cacheDir}/${LISK_DB_SNAPSHOT(
-				options.name,
-				options.network,
-			)}`;
+		if (!noSnapshot) {
+			const snapshotPath = `${cacheDir}/${LISK_DB_SNAPSHOT(name, network)}`;
+			const snapshotURL = LISK_SNAPSHOT_URL(snapshotUrl, network);
 			await download(snapshotURL, snapshotPath);
 		}
 
-		// Extract lisk software and register with PM2
-		if (!directoryExists(installDir)) {
-			createDirectory(installDir);
-			await extract(cacheDir, LISK_TAR(version), installDir);
-		}
+		createDirectory(installDir);
+		await extract(cacheDir, LISK_TAR(version), installDir);
 	} catch (error) {
 		throw new Error(`Lisk installation failed with error: ${error}`);
 	}
@@ -197,7 +182,7 @@ export default class InstallCommand extends BaseCommand {
 		const options = flags as Flags;
 		const cacheDir = this.config.cacheDir;
 
-		checkRootUser();
+		checkNotRootUser();
 		parseOptions(options);
 		await installLisk(options, cacheDir);
 		this.print({ status: `Installed lisk network: ${options.network}` });

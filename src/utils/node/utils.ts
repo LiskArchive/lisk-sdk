@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import Fs from 'fs';
 import os from 'os';
 import { NETWORK, OS } from '../constants';
@@ -21,9 +20,8 @@ import { NETWORK, OS } from '../constants';
 export const LISK_INSTALL = (installPath: string): string =>
 	installPath.replace('~', os.homedir);
 
-// TODO: Remove `Linux` and put `os.type()` once testing is done
 export const LISK_VERSION = (version: string): string =>
-	`lisk-${version}-Linux-x86_64`;
+	`lisk-${version}-${os.type()}-x86_64`;
 
 export const LISK_TAR = (version: string): string =>
 	`${LISK_VERSION(version)}.tar.gz`;
@@ -44,7 +42,7 @@ export const LOGS_DIR = (installPath: string) =>
 	`${LISK_INSTALL(installPath)}/logs`;
 export const SH_LOG_FILE = 'logs/lisk.out';
 
-export const checkRootUser = (): void => {
+export const checkNotRootUser = (): void => {
 	if (process.getuid && process.getuid() === 0) {
 		throw new Error('Error: Lisk should not be run be as root. Exiting.');
 	}
@@ -69,11 +67,9 @@ export const directoryExists = (dirPath: string): boolean =>
 
 export const createDirectory = (dirPath: string): void => {
 	const resolvedPath = LISK_INSTALL(dirPath);
-	if (!Fs.existsSync(resolvedPath)) {
+	if (!directoryExists(resolvedPath)) {
 		Fs.mkdirSync(resolvedPath, { recursive: true });
 	}
-
-	return;
 };
 export const isValidURL = (url: string): void => {
 	const isValid = new RegExp(/^(ftp|http|https):\/\/[^ "]+$/);
