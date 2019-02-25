@@ -67,7 +67,7 @@ describe('rounds', async () => {
 			performVotesSnapshot: sinon.stub(),
 		},
 		Transaction: {
-			get: sinon.stub(),
+			getOne: sinon.stub(),
 		},
 	};
 
@@ -283,7 +283,7 @@ describe('rounds', async () => {
 				Rounds.prototype,
 				'createRoundInformationWithAmount'
 			);
-			storageStubs.Transaction.get.resolves({ senderId: dappAuthorId });
+			storageStubs.Transaction.getOne.resolves({ senderId: dappAuthorId });
 		});
 
 		it('should call createRoundInformationWithAmount with negative value when forwardTick is set to true for in transfer transaction', async () => {
