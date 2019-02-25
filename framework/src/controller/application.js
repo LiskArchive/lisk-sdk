@@ -1,6 +1,6 @@
 const assert = require('assert');
+const randomstring = require('randomstring');
 const Controller = require('./controller');
-const defaults = require('./defaults');
 const version = require('../version');
 const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
@@ -84,7 +84,7 @@ class Application {
 		label,
 		genesisBlock,
 		constants = {},
-		config = { components: { logger: null } }
+		config = { components: { logger: null }, modules: {} }
 	) {
 		if (typeof label === 'function') {
 			label = label.call();
@@ -96,21 +96,17 @@ class Application {
 			};
 		}
 
-		// Provide global constants for controller used by z_schema
-		global.constants = constants;
-
 		validator.loadSchema(applicationSchema);
 		validator.loadSchema(constantsSchema);
 		validator.validate(applicationSchema.appLabel, label);
-		validator.validate(constantsSchema.constants, constants);
-		validator.validate(applicationSchema.config, config);
+		validator.validateWithDefaults(constantsSchema.constants, constants);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;
-		this.constants = Object.assign({}, defaults.constants, constants);
+		this.constants = constants;
 		this.label = label;
 		this.banner = `${label || 'LiskApp'} - Lisk Framework(${version})`;
-		this.config = config;
+		this.config = Object.assign({ components: {}, modules: {} }, config);
 		this.controller = null;
 
 		this.logger = createLoggerComponent(this.config.components.logger);
@@ -118,12 +114,30 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
+		// TODO: Improve the hardcoded system component values
+		this.config.components.system = {
+			version: this.config.version,
+			minVersion: this.config.minVersion,
+			protocolVersion: this.config.protocolVersion,
+			nethash: this.genesisBlock.payloadHash,
+			nonce: randomstring.generate(16),
+		};
+
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
+			version: this.config.version,
+			minVersion: this.config.minVersion,
+			protocolVersion: this.config.protocolVersion,
 		});
 
-		this.registerModule(HttpAPIModule);
+		this.registerModule(HttpAPIModule, {
+			genesisBlock: this.genesisBlock,
+			constants: this.constants,
+			version: this.config.version,
+			minVersion: this.config.minVersion,
+			protocolVersion: this.config.protocolVersion,
+		});
 	}
 
 	/**
@@ -148,10 +162,11 @@ class Application {
 		);
 
 		const modules = this.getModules();
-		modules[moduleAlias] = {
-			klass: moduleKlass,
-			options: options || {},
-		};
+		modules[moduleAlias] = moduleKlass;
+		this.config.modules[moduleAlias] = Object.assign(
+			this.config.modules[moduleAlias] || {},
+			options
+		);
 		__private.modules.set(this, modules);
 	}
 
@@ -167,8 +182,11 @@ class Application {
 			Object.keys(modules).includes(alias),
 			`No module ${alias} is registered`
 		);
-		modules[alias].options = Object.assign({}, modules[alias].options, options);
-		__private.modules.set(this, modules);
+		this.config.modules[alias] = Object.assign(
+			{},
+			this.config.modules[alias],
+			options
+		);
 	}
 
 	/**
@@ -254,7 +272,7 @@ class Application {
 			this.config.components,
 			this.logger
 		);
-		return this.controller.load(this.getModules());
+		return this.controller.load(this.getModules(), this.config.modules);
 	}
 
 	/**
