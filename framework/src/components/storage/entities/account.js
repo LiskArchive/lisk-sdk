@@ -431,7 +431,6 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	// eslint-disable-next-line consistent-return
 	update(filters, data, _options, tx) {
 		const atLeastOneRequired = true;
 
@@ -457,23 +456,29 @@ class Account extends BaseEntity {
 		const votedDelegatesPublicKeys = data.votedDelegatesPublicKeys || [];
 
 		if (membersPublicKeys.length > 0) {
-			this.adapter.executeFile(this.SQLs.update, params, {}, tx);
-			return this.updateDependentRecords(
-				'membersPublicKeys',
-				data.address,
-				data.membersPublicKeys,
-				tx
-			);
+			return this.adapter
+				.executeFile(this.SQLs.update, params, {}, tx)
+				.then(() =>
+					this.updateDependentRecords(
+						'membersPublicKeys',
+						data.address,
+						data.membersPublicKeys,
+						tx
+					)
+				);
 		}
 
 		if (votedDelegatesPublicKeys.length > 0) {
-			this.adapter.executeFile(this.SQLs.update, params, {}, tx);
-			return this.updateDependentRecords(
-				'votedDelegatesPublicKeys',
-				data.address,
-				data.votedDelegatesPublicKeys,
-				tx
-			);
+			return this.adapter
+				.executeFile(this.SQLs.update, params, {}, tx)
+				.then(() =>
+					this.updateDependentRecords(
+						'votedDelegatesPublicKeys',
+						data.address,
+						data.votedDelegatesPublicKeys,
+						tx
+					)
+				);
 		}
 
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);

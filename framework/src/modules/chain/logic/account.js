@@ -404,7 +404,7 @@ class Account {
 
 				// Make execution selection based on field type
 				switch (fieldType) {
-					// blockId
+					// blockId [u_]delegates, [u_]multisignatures
 					case String:
 					case Array:
 						promises.push(
