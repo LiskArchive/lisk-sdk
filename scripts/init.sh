@@ -20,24 +20,43 @@ fi
 packageDir="./packages/$packageName"
 # Just in case package folder doesn't exist yet.
 mkdir -p "$packageDir"
+mkdir -p "$packageDir/src"
+mkdir -p "$packageDir/test"
 
-templates=(
+cp "./templates/package.json.tmpl" "$packageDir/package.json"
+
+templatesRoot=(
 	"browsertest"
 	"cypress"
 	"scripts"
-	".babelrc"
-	".eslintignore"
+	"test"
 	".npmignore"
 	".npmrc"
 	".nycrc"
 	".prettierignore"
 	".prettierrc.json"
 	"cypress.json"
+	"tslint.json"
+	"tsconfig.json"
+	"tsconfig.browsertest.json"
 )
 
-for i in "${templates[@]}"
+for i in "${templatesRoot[@]}"
 do
 	if [ ! -e "$packageDir/${i}" ];	then
 		ln -vs "../../templates/$i.tmpl" "$packageDir/$i"
+	fi
+done
+
+templatesTest=(
+	"tslint.json"
+	"tsconfig.json"
+	"mocha.opts"
+)
+
+for i in "${templatesTest[@]}"
+do
+	if [ ! -e "$packageDir/test/${i}" ];	then
+		ln -vs "../../../templates/test/$i.tmpl" "$packageDir/test/$i"
 	fi
 done
