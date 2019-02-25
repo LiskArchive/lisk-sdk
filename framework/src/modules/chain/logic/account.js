@@ -112,10 +112,9 @@ class Account {
 	 * @param {Blocks} blocks
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	bind({ blocks, rounds }) {
+	bind({ blocks }) {
 		modules = {
 			blocks,
-			rounds,
 		};
 	}
 
@@ -446,16 +445,6 @@ class Account {
 							);
 						}
 
-						if (updatedField === 'balance') {
-							promises.push(
-								modules.rounds.createRoundInformationWithAmount(
-									address,
-									diff.round,
-									value.toString(),
-									dbTx
-								)
-							);
-						}
 						break;
 
 					// [u_]delegates, [u_]multisignatures
@@ -489,18 +478,6 @@ class Account {
 											updatedField,
 											address,
 											dependentId,
-											dbTx
-										)
-									);
-								}
-
-								if (updatedField === 'votedDelegatesPublicKeys') {
-									promises.push(
-										modules.rounds.createRoundInformationWithDelegate(
-											address,
-											diff.round,
-											dependentId,
-											mode,
 											dbTx
 										)
 									);
