@@ -31,8 +31,9 @@ If you have satisfied the requirements from the Pre-Installation section, you ca
   * [Examples](#examples)
 * [Tests](#tests)
   * [Preparing Node](#preparing-node)
-  * [Running Mocha Tests](#running-mocha-tests)
-  * [Running Jest Tests](#running-jest-tests)
+  * [Running Tests](#running-tests)
+    * [Running Mocha Tests](#running-mocha-tests)
+    * [Running Jest Tests](#running-jest-tests)
 
 ## Pre-Installation
 
@@ -396,7 +397,16 @@ createdb lisk_dev
 NODE_ENV=test node app.js
 ```
 
-### Running Mocha Tests
+### Running Tests
+
+Starting from version `1.6.0`, Lisk will be using [Jest](https://jestjs.io) as its main test runner and gradually deprecate [mocha](https://mochajs.org). Since, rewriting all existing mocha tests is not feasible at the moment, we are going to have 2 test runners in our code base.
+
+Until we deprecate mocha completely,
+
+* All source code under `framework/src/modules` folder will be tested by `mocha` and test files should be located under `framework/test/mocha`.
+* Rest of the source files will be tested by `Jest` and test files should be located under `framework/test/jest`.
+
+#### Running Mocha Tests
 
 Tests are run using the following command:
 
@@ -425,16 +435,7 @@ Individual test files can be run using the following command:
 npm run mocha -- path/to/test.js
 ```
 
-#### v1.6.0 Update
-
-Starting from version `1.6.0`, Lisk will be using [Jest](https://jestjs.io) as its main test runner and gradually deprecate [mocha](https://mochajs.org). Since, rewriting all existing mocha tests is not feasible at the moment, we are going to have 2 test runners in our code base.
-
-Until we deprecate mocha completely,
-
-* All source code under `framework/src/modules` folder will be tested by `mocha` and test files should be located under `framework/test/mocha`.
-* Rest of the source files will be tested by `Jest` and test files should be located under `framework/test/jest`.
-
-### Running Jest Tests
+#### Running Jest Tests
 
 ```
 npm run jest:<testType>
@@ -442,7 +443,7 @@ npm run jest:<testType>
 
 `testType` can be `unit`|`integration`|`functional`
 
-#### Executing the tests per file:
+##### Executing the tests per file:
 
 ```
 npm run jest:<testType> -- [filepath] [jest-options]
