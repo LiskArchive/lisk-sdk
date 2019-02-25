@@ -702,30 +702,35 @@ class Account extends BaseEntity {
 
 		const sqlForDelete = this.SQLs.deleteDependentRecords;
 
-		const paramsForInsert = dependentPublicKeys.map(dependentId =>
-			({
-				tableName: dependentFieldsTableMap[dependencyName],
-				accountId: address,
-				dependentId,
-			})
-		);
+		const valuesForInsert = dependentPublicKeys.map(dependentId => ({
+			accountId: address,
+			dependentId,
+		}));
 
+		const tableName = dependentFieldsTableMap[dependencyName];
 		const sqlForInsert = this.SQLs.createDependentRecord;
 
-		return this.adapter.executeFile(
-			sqlForDelete,
-			paramsForDelete,
-			{ expectedResultCount: 0 },
-			tx
-		).then(() =>
-			Promise.all(paramsForInsert.map(params =>
+		const createSet = this.getValuesSet(
+			valuesForInsert,
+			['accountId', 'dependentId'],
+			{ useRawObject: true }
+		);
+
+		return this.adapter
+			.executeFile(
+				sqlForDelete,
+				paramsForDelete,
+				{ expectedResultCount: 0 },
+				tx
+			)
+			.then(() =>
 				this.adapter.executeFile(
 					sqlForInsert,
-					params,
+					{ tableName, createSet },
 					{ expectedResultCount: 0 },
 					tx
 				)
-			)));
+			);
 	}
 
 	/**
