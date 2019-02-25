@@ -11,7 +11,7 @@ module.exports = async ({
 	modules: { transport },
 	components: { logger },
 }) => {
-	if (!config.peers.enabled) {
+	if (!config.network.enabled) {
 		logger.info(
 			'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
 		);
@@ -22,7 +22,7 @@ module.exports = async ({
 		workers: 1,
 		port: config.wsPort,
 		host: '0.0.0.0',
-		wsEngine: config.peers.options.wsEngine,
+		wsEngine: config.network.options.wsEngine,
 		workerController: workersControllerPath,
 		perMessageDeflate: false,
 		secretKey: 'liskSecretKey',
@@ -42,7 +42,10 @@ module.exports = async ({
 		nethash: config.nethash,
 		port: config.wsPort,
 		nonce: config.nonce,
-		blackListedPeers: config.peers.access.blackList,
+		blackListedPeers: config.network.access.blackList,
+		components: {
+			logger: config.loggerConfig,
+		},
 	};
 
 	const socketCluster = new SocketCluster(webSocketConfig);
@@ -71,7 +74,7 @@ module.exports = async ({
 			logger.info('Socket Cluster ready for incoming connections');
 
 			socketCluster.listen = () => {
-				if (config.peers.enabled) {
+				if (config.network.enabled) {
 					new WsTransport(transport);
 				}
 			};

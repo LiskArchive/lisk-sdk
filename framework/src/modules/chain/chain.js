@@ -20,7 +20,6 @@ const {
 	initModules,
 	attachSwagger,
 } = require('./init_steps');
-const defaults = require('./defaults');
 
 // Begin reading from stdin
 process.stdin.resume();
@@ -98,11 +97,7 @@ module.exports = class Chain {
 		}
 
 		global.constants = this.options.constants;
-		global.exceptions = Object.assign(
-			{},
-			defaults.exceptions,
-			this.options.exceptions
-		);
+		global.exceptions = this.options.exceptions;
 
 		const BlockReward = require('./logic/block_reward');
 		this.blockReward = new BlockReward();
@@ -120,17 +115,20 @@ module.exports = class Chain {
 			this.logger.debug('Initiating system...');
 			const system = createSystemComponent(systemConfig, this.logger, storage);
 
-			if (!this.options.config) {
+			if (!this.options.genesisBlock) {
 				throw Error('Failed to assign nethash from genesis block');
 			}
+
+			// TODO: For socket cluster child process, should be removed with refactoring of network module
+			this.options.loggerConfig = loggerConfig;
 
 			const self = this;
 			const scope = {
 				lastCommit,
 				ed,
 				build: versionBuild,
-				config: self.options.config,
-				genesisBlock: { block: self.options.config.genesisBlock },
+				config: self.options,
+				genesisBlock: { block: self.options.genesisBlock },
 				schema: swaggerHelper.getValidator(),
 				sequence: new Sequence({
 					onWarning(current) {
@@ -152,9 +150,9 @@ module.exports = class Chain {
 			};
 
 			// Lookup for peers ips from dns
-			scope.config.peers.list = await lookupPeerIPs(
-				scope.config.peers.list,
-				scope.config.peers.enabled
+			scope.config.network.list = await lookupPeerIPs(
+				scope.config.network.list,
+				scope.config.network.enabled
 			);
 
 			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);

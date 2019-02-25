@@ -29,7 +29,7 @@ module.exports = class ChainModule extends BaseModule {
 		};
 	}
 
-	get defaults() {
+	static get defaults() {
 		return DefaultConfig;
 	}
 
