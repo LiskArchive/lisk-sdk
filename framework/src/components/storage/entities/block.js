@@ -17,6 +17,7 @@
 const assert = require('assert');
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
+const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 const Transaction = require('./transaction');
@@ -207,6 +208,50 @@ class Block extends BaseEntity {
 		this.extendDefaultOptions(defaultSort);
 
 		this.SQLs = this.loadSQLFiles('block', sqlFiles);
+	}
+
+	/**
+	 * Create object record
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	create() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
+	 * Update operation is not supported for Blocks
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	update() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
+	 * Update operation is not supported for Blocks
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	updateOne() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
+	 * Delete object record
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	delete() {
+		throw new NonSupportedOperationError();
 	}
 
 	/**

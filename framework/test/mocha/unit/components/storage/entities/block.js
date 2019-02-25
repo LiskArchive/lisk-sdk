@@ -25,6 +25,7 @@ const blocksFixtures = require('../../../../fixtures/blocks');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
+	NonSupportedOperationError,
 } = require('../../../../../../src/components/storage/errors');
 
 describe('Block', () => {
@@ -283,6 +284,30 @@ describe('Block', () => {
 		it('should setup specific filters', async () => {
 			const block = new Block(adapter);
 			expect(block.getFilters()).to.have.members(validFilters);
+		});
+	});
+
+	describe('create()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Block.prototype.create).to.throw(NonSupportedOperationError);
+		});
+	});
+
+	describe('update()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Block.prototype.update).to.throw(NonSupportedOperationError);
+		});
+	});
+
+	describe('updateOne()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Block.prototype.updateOne).to.throw(NonSupportedOperationError);
+		});
+	});
+
+	describe('delete()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Block.prototype.delete).to.throw(NonSupportedOperationError);
 		});
 	});
 
