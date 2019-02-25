@@ -28,8 +28,7 @@ const {
 } = require('./entities');
 
 function createStorageComponent(options, logger) {
-	validator.loadSchema(DefaultConfig);
-	validator.validate(DefaultConfig, options);
+	options = validator.validateWithDefaults(DefaultConfig, options);
 
 	const storage = new Storage(options, logger);
 

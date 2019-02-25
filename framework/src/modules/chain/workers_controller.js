@@ -39,8 +39,7 @@ const {
 const validator = require('../../controller/helpers/validator');
 const schema = require('./defaults/config');
 
-const config = {};
-validator.validateWithDefaults(schema, config);
+const config = validator.validateWithDefaults(schema, {});
 
 /**
  * Instantiate the SocketCluster SCWorker instance with custom logic
