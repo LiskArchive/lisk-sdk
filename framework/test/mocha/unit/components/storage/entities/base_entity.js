@@ -110,6 +110,7 @@ describe('BaseEntity', () => {
 		let entityLabel;
 		let sqlFilesKeys;
 		let sqlFiles;
+		let customEntitiesPath;
 
 		beforeEach(async () => {
 			baseEntity = new BaseEntity(adapter);
@@ -120,6 +121,7 @@ describe('BaseEntity', () => {
 				save: 'path/to/save.sql',
 				update: 'path/to/update.sql',
 			};
+			customEntitiesPath = '../my/path/';
 		});
 
 		afterEach(async () => {
@@ -154,6 +156,49 @@ describe('BaseEntity', () => {
 			expect(adapter.loadSQLFile.callCount).to.eql(
 				Object.keys(sqlFiles).length
 			);
+		});
+
+		describe('given custom entities', () => {
+			it('should initialize adapter.SQLs as object', async () => {
+				baseEntity.loadSQLFiles(entityLabel, {}, customEntitiesPath);
+				expect(typeof baseEntity.adapter.SQLs).to.be.eql('object');
+			});
+
+			it('should initialize adapter.SQLs[entityLabel] as object', async () => {
+				baseEntity.loadSQLFiles(entityLabel, {}, customEntitiesPath);
+				expect(typeof baseEntity.adapter.SQLs[entityLabel]).to.be.eql('object');
+			});
+
+			it('should return expected object', async () => {
+				const SQLs = baseEntity.loadSQLFiles(
+					entityLabel,
+					sqlFiles,
+					customEntitiesPath
+				);
+				expect(SQLs).to.include.all.keys(sqlFilesKeys);
+			});
+
+			it('should call adapter.loadSQLFile 3 times', async () => {
+				baseEntity.loadSQLFiles(entityLabel, sqlFiles, customEntitiesPath);
+				expect(adapter.loadSQLFile.callCount).to.eql(
+					Object.keys(sqlFiles).length
+				);
+			});
+
+			it('should call adapter.loadSQLFile with a second parameter', async () => {
+				baseEntity.loadSQLFiles(entityLabel, sqlFiles, customEntitiesPath);
+				adapter.loadSQLFile.args.forEach(arg => {
+					expect(arg).to.include(customEntitiesPath);
+				});
+			});
+
+			it('should not call adapter.loadSQLFile again when using same arguments', async () => {
+				baseEntity.loadSQLFiles(entityLabel, sqlFiles, customEntitiesPath);
+				baseEntity.loadSQLFiles(entityLabel, sqlFiles, customEntitiesPath);
+				expect(adapter.loadSQLFile.callCount).to.eql(
+					Object.keys(sqlFiles).length
+				);
+			});
 		});
 	});
 

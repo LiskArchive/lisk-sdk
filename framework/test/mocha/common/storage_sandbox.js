@@ -21,12 +21,15 @@ const PgpAdapter = require('../../../src/components/storage/adapters/pgp_adapter
 const {
 	Account,
 	Block,
-	Delegate,
+	Transaction,
+} = require('../../../src/components/storage/entities');
+
+// Custom entitties
+const {
+	Migration,
 	Peer,
 	Round,
-	Transaction,
-	Migration,
-} = require('../../../src/components/storage/entities');
+} = require('../../../src/modules/chain/components/storage/entities');
 
 const dbNames = [];
 
@@ -82,11 +85,12 @@ class StorageSandbox extends Storage {
 
 		this.registerEntity('Account', Account);
 		this.registerEntity('Block', Block);
-		this.registerEntity('Delegate', Delegate);
+		this.registerEntity('Transaction', Transaction);
+
+		// Custom entitties
 		this.registerEntity('Migration', Migration);
 		this.registerEntity('Peer', Peer);
 		this.registerEntity('Round', Round);
-		this.registerEntity('Transaction', Transaction);
 
 		await this._createSchema();
 		return true;

@@ -18,16 +18,18 @@
 const BigNumber = require('bignumber.js');
 const {
 	BaseEntity,
+} = require('../../../../../../../../src/components/storage/entities');
+const {
 	Round,
-} = require('../../../../../../src/components/storage/entities');
-const { StorageSandbox } = require('../../../../common/storage_sandbox');
-const seeder = require('../../../../common/storage_seed');
-const accountsFixtures = require('../../../../fixtures').accounts;
-const roundsFixtures = require('../../../../fixtures').rounds;
+} = require('../../../../../../../../src/modules/chain/components/storage/entities');
+const { StorageSandbox } = require('../../../../../../common/storage_sandbox');
+const seeder = require('../../../../../../common/storage_seed');
+const accountsFixtures = require('../../../../../../fixtures').accounts;
+const roundsFixtures = require('../../../../../../fixtures').rounds;
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-} = require('../../../../../../src/components/storage/errors');
+} = require('../../../../../../../../src/components/storage/errors');
 
 const checkTableExists = (adapter, tableName) =>
 	adapter

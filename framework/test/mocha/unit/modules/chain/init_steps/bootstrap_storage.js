@@ -1,6 +1,7 @@
 /* eslint-disable mocha/no-pending-tests */
 
 describe('init_steps/bootstrap_storage', () => {
+	it('should register custom entities');
 	it('should bootstrap the storage');
 	it('should extend account entity limit');
 	it('should apply all migrations');

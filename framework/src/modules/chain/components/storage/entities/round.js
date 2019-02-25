@@ -14,10 +14,11 @@
 
 'use strict';
 
+const path = require('path');
 const assert = require('assert');
 const { defaults, omit, pick } = require('lodash');
-const filterType = require('../utils/filter_types');
-const BaseEntity = require('./base_entity');
+const filterType = require('../../../../../components/storage/utils/filter_types');
+const BaseEntity = require('../../../../../components/storage/entities/base_entity');
 
 const defaultCreateValues = {};
 
@@ -105,7 +106,9 @@ class Round extends BaseEntity {
 		const defaultSort = { sort: '' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.SQLs = this.loadSQLFiles('round', sqlFiles);
+		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
+
+		this.SQLs = this.loadSQLFiles('round', sqlFiles, this.sqlDirectory);
 	}
 
 	/**
