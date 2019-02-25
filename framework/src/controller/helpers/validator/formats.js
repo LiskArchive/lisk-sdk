@@ -299,8 +299,9 @@ const validationFormats = {
 		 * This deconstruction has to take place here because
 		 * global.constants will be defined in test/setup.js.
 		 */
-		const { TOTAL_AMOUNT } = global.constants;
 		if (value instanceof Bignum) {
+			const { TOTAL_AMOUNT } = global.constants;
+
 			return (
 				value.isGreaterThanOrEqualTo(0) &&
 				value.isLessThanOrEqualTo(TOTAL_AMOUNT)
@@ -335,38 +336,6 @@ const validationFormats = {
 	oddInteger: {
 		type: 'number',
 		validate: value => Number.isInteger(value) && /^\d*[13579]$/.test(value),
-	},
-	/**
-	 * Returns true if `MULTISIG_CONSTRAINTS.MIN.MAXIMUM` is lower than or equal to `MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS`.
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
-	keysgroupLimit: {
-		type: 'number',
-		validate: value => {
-			const { MULTISIG_CONSTRAINTS } = global.constants;
-			return (
-				Number.isInteger(value) &&
-				MULTISIG_CONSTRAINTS.MIN.MAXIMUM <=
-					MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS
-			);
-		},
-	},
-	/**
-	 * Returns true if `MAX_VOTES_PER_ACCOUNT` is lower than or equal to `ACTIVE_DELEGATES`.
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
-	maxVotesAccount: {
-		type: 'number',
-		validate: value => {
-			const { ACTIVE_DELEGATES, MAX_VOTES_PER_ACCOUNT } = global.constants;
-			return (
-				Number.isInteger(value) && MAX_VOTES_PER_ACCOUNT <= ACTIVE_DELEGATES
-			);
-		},
 	},
 	/**
 	 * Returns true if value is lower than or equal to `TOTAL_AMOUNT`.
