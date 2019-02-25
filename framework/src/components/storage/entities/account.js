@@ -75,6 +75,7 @@ const sqlFiles = {
 	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
 	countDuplicatedDelegates: 'accounts/count_duplicated_delegates.sql',
 	insertFork: 'accounts/insert_fork.sql',
+	deleteVotes: 'accounts/delete_votes.sql',
 };
 
 /**
@@ -476,6 +477,20 @@ class Account extends BaseEntity {
 						'votedDelegatesPublicKeys',
 						data.address,
 						data.votedDelegatesPublicKeys,
+						tx
+					)
+				);
+		}
+
+		// Account remove all votes
+		if (votedDelegatesPublicKeys.length === 0) {
+			return this.adapter
+				.executeFile(this.SQLs.update, params, {}, tx)
+				.then(() =>
+					this.adapter.executeFile(
+						this.SQLs.deleteVotes,
+						{ accountId: data.address },
+						{},
 						tx
 					)
 				);

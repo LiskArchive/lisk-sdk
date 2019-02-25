@@ -1067,7 +1067,7 @@ describe('Account', async () => {
 			// Act
 			await AccountEntity.update({ address: account.address }, account);
 			// Assert
-			expect(adapter.executeFile).to.be.calledOnce;
+			expect(adapter.executeFile).to.be.calledTwice;
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.update);
 		});
 
@@ -2239,6 +2239,65 @@ describe('Account', async () => {
 				{ accountId: account.address, dependentId: '43L' },
 				{ accountId: account.address, dependentId: '63L' },
 			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const newVotedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(newExpectedRelatedRecords).to.be.eql(
+				newVotedDelegatesPublicKeysDependentRecords
+			);
+		});
+
+		it('should handle empty dependent data correctly for votedDelegatesPublicKeys', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.votedDelegatesPublicKeys = [];
+			// Act & Assert
+			expect(() =>
+				AccountEntity.update({ address: savedAccount.address }, savedAccount)
+			).not.to.throw();
+		});
+
+		it('should clear votes when votedDelegatesPublicKeys is an empty array', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(expectedRelatedRecords).to.be.eql(
+				votedDelegatesPublicKeysDependentRecords
+			);
+
+			savedAccount.votedDelegatesPublicKeys = [];
+			const newExpectedRelatedRecords = [];
 			// Act
 			await AccountEntity.update(
 				{ address: savedAccount.address },
