@@ -46,6 +46,14 @@ const DefaultConfig = {
 				'releaseLimit',
 				'relayLimit',
 			],
+			default: {
+				active: true,
+				broadcastInterval: 5000,
+				broadcastLimit: 25,
+				parallelLimit: 20,
+				releaseLimit: 25,
+				relayLimit: 3,
+			},
 		},
 		transactions: {
 			type: 'object',
@@ -56,6 +64,9 @@ const DefaultConfig = {
 				default: 1000,
 			},
 			required: ['maxTransactionsPerQueue'],
+			default: {
+				maxTransactionsPerQueue: 1000,
+			},
 		},
 		forging: {
 			type: 'object',
@@ -92,9 +103,19 @@ const DefaultConfig = {
 						},
 					},
 					required: ['whiteList'],
+					default: {
+						whiteList: ['127.0.0.1'],
+					},
 				},
 			},
 			required: ['force', 'delegates', 'access'],
+			default: {
+				force: false,
+				delegates: [],
+				access: {
+					whiteList: ['127.0.0.1'],
+				},
+			},
 		},
 		syncing: {
 			type: 'object',
@@ -105,6 +126,9 @@ const DefaultConfig = {
 				},
 			},
 			required: ['active'],
+			default: {
+				active: true,
+			},
 		},
 		loading: {
 			type: 'object',
@@ -117,6 +141,9 @@ const DefaultConfig = {
 				},
 			},
 			required: ['loadPerIteration'],
+			default: {
+				loadPerIteration: 5000,
+			},
 		},
 		exceptions: {
 			type: 'object',
@@ -186,6 +213,9 @@ const DefaultConfig = {
 						},
 					},
 					required: ['disableDappTransfer'],
+					default: {
+						disableDappTransfer: 0,
+					},
 				},
 				ignoreDelegateListCacheForRounds: {
 					type: 'array',
@@ -232,6 +262,21 @@ const DefaultConfig = {
 				'recipientExceedingUint64',
 				'duplicatedSignatures',
 			],
+			default: {
+				blockRewards: [],
+				senderPublicKey: [],
+				signatures: [],
+				multisignatures: [],
+				votes: [],
+				inertTransactions: [],
+				rounds: {},
+				precedent: { disableDappTransfer: 0 },
+				ignoreDelegateListCacheForRounds: [],
+				blockVersions: {},
+				recipientLeadingZero: {},
+				recipientExceedingUint64: {},
+				duplicatedSignatures: {},
+			},
 		},
 		network: {
 			type: 'object',
@@ -240,7 +285,7 @@ const DefaultConfig = {
 					type: 'integer',
 					minimum: 1,
 					maximum: 65535,
-					default: '5000',
+					default: 5000,
 				},
 				address: {
 					type: 'string',
@@ -285,6 +330,9 @@ const DefaultConfig = {
 						},
 					},
 					required: ['blackList'],
+					default: {
+						blackList: [],
+					},
 				},
 				options: {
 					properties: {
@@ -300,11 +348,61 @@ const DefaultConfig = {
 							type: 'string',
 							default: 'ws',
 						},
+						httpHeadersTimeout: {
+							type: 'integer',
+							default: 5000,
+						},
+						httpServerSetTimeout: {
+							type: 'integer',
+							default: 20000,
+						},
 					},
 					required: ['timeout'],
+					default: {
+						timeout: 5000,
+						broadhashConsensusCalculationInterval: 5000,
+						wsEngine: 'ws',
+						httpHeadersTimeout: 5000,
+						httpServerSetTimeout: 20000,
+					},
 				},
 			},
 			required: ['enabled', 'list', 'access', 'options', 'wsPort', 'address'],
+			default: {
+				enabled: true,
+				list: [
+					{
+						ip: 'testnet-seed-01.lisk.io',
+						wsPort: 7001,
+					},
+					{
+						ip: 'testnet-seed-02.lisk-nodes.net',
+						wsPort: 7001,
+					},
+					{
+						ip: 'testnet-seed-03.lisk.io',
+						wsPort: 7001,
+					},
+					{
+						ip: 'testnet-seed-04.lisk-nodes.net',
+						wsPort: 7001,
+					},
+					{
+						ip: 'testnet-seed-05.lisk.io',
+						wsPort: 7001,
+					},
+				],
+				access: {
+					blackList: [],
+				},
+				options: {
+					timeout: 5000,
+					broadhashConsensusCalculationInterval: 5000,
+					wsEngine: 'ws',
+				},
+				wsPort: 5000,
+				address: '0.0.0.0',
+			},
 		},
 	},
 	required: [
