@@ -406,6 +406,7 @@ class Account {
 				switch (fieldType) {
 					// blockId
 					case String:
+					case Array:
 						promises.push(
 							self.scope.storage.entities.Account.update(
 								{ address },
@@ -455,60 +456,6 @@ class Account {
 									dbTx
 								)
 							);
-						}
-						break;
-
-					// [u_]delegates, [u_]multisignatures
-					case Array:
-						// If we received update as array of strings
-						if (_.isString(updatedValue[0])) {
-							updatedValue.forEach(updatedValueItem => {
-								// Fetch first character
-								let mode = updatedValueItem[0];
-								let dependentId = '';
-
-								if (mode === '-' || mode === '+') {
-									dependentId = updatedValueItem.slice(1);
-								} else {
-									dependentId = updatedValueItem;
-									mode = '+';
-								}
-
-								if (mode === '-') {
-									promises.push(
-										self.scope.storage.entities.Account.deleteDependentRecord(
-											updatedField,
-											address,
-											dependentId,
-											dbTx
-										)
-									);
-								} else {
-									promises.push(
-										self.scope.storage.entities.Account.createDependentRecord(
-											updatedField,
-											address,
-											dependentId,
-											dbTx
-										)
-									);
-								}
-
-								if (updatedField === 'votedDelegatesPublicKeys') {
-									promises.push(
-										modules.rounds.createRoundInformationWithDelegate(
-											address,
-											diff.round,
-											dependentId,
-											mode,
-											dbTx
-										)
-									);
-								}
-							});
-							// If we received update as array of objects
-						} else if (_.isObject(updatedValue[0])) {
-							// TODO: Need to look at usage of object based diff param
 						}
 						break;
 					// no default
