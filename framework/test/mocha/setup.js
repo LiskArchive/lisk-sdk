@@ -23,9 +23,61 @@ const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 const supertest = require('supertest');
 const _ = require('lodash');
-const AppConfig = require('../../src/modules/chain/helpers/config');
+const validator = require('../../src/controller/helpers/validator');
+const constantsSchema = require('../../src/controller/schema/constants');
+const applicationSchema = require('../../src/controller/schema/application');
+const chainModuleSchema = require('../../src/modules/chain/defaults/config');
+const apiModuleSchema = require('../../src/modules/http_api/defaults/config');
+
 const packageJson = require('../../../package.json');
-const Bignum = require('../../src/modules/chain/helpers/bignum.js');
+const netConfig = require('../../../config/devnet/config');
+const constants = require('../../../config/devnet/constants');
+const exceptions = require('../../../config/devnet/exceptions');
+const genesisBlock = require('../../../config/devnet/genesis_block');
+
+validator.loadSchema(constantsSchema);
+validator.loadSchema(applicationSchema);
+
+const config = {
+	...netConfig,
+	version: packageJson.version,
+	minVersion: packageJson.lisk.minVersion,
+	protocolVersion: packageJson.lisk.protocolVersion,
+};
+config.constants = validator.validateWithDefaults(
+	constantsSchema.constants,
+	constants
+);
+config.genesisBlock = validator.validateWithDefaults(
+	applicationSchema.genesisBlock,
+	genesisBlock
+);
+config.nethash = config.genesisBlock.payloadHash;
+
+config.modules.chain = validator.validateWithDefaults(
+	chainModuleSchema,
+	Object.assign({}, config.modules.chain, { exceptions })
+);
+config.modules.chain = {
+	...config.modules.chain,
+	constants: config.constants,
+	genesisBlock: config.genesisBlock,
+	version: config.version,
+	minVersion: config.minVersion,
+	protocolVersion: config.protocolVersion,
+};
+
+config.modules.http_api = validator.validateWithDefaults(
+	apiModuleSchema,
+	config.modules.http_api
+);
+config.modules.http_api = {
+	...config.modules.http_api,
+	constants: config.constants,
+	genesisBlock: config.genesisBlock,
+	version: config.version,
+	minVersion: config.minVersion,
+};
 
 coMocha(mocha);
 
@@ -36,16 +88,6 @@ chai.use(chaiAsPromised);
 
 const testContext = {};
 
-testContext.config = new AppConfig(packageJson, false);
-
-const genesisBlock = testContext.config.genesisBlock;
-
-genesisBlock.totalAmount = new Bignum(genesisBlock.totalAmount);
-genesisBlock.totalFee = new Bignum(genesisBlock.totalFee);
-genesisBlock.reward = new Bignum(genesisBlock.reward);
-
-testContext.config.genesisBlock = genesisBlock;
-
 if (process.env.SILENT === 'true') {
 	testContext.debug = function() {};
 } else {
@@ -53,7 +95,7 @@ if (process.env.SILENT === 'true') {
 }
 
 if (process.env.LOG_DB_EVENTS === 'true') {
-	testContext.config.db.logEvents = [
+	config.components.storage.logEvents = [
 		'connect',
 		'disconnect',
 		'query',
@@ -62,9 +104,10 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 		'error',
 	];
 } else {
-	testContext.config.db.logEvents = ['error'];
+	config.components.storage.logEvents = ['error'];
 }
 
+testContext.config = config;
 testContext.consoleLogLevel =
 	process.env.LOG_LEVEL || testContext.consoleLogLevel;
 
@@ -152,5 +195,5 @@ global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;
 global.constants = testContext.config.constants;
-global.exceptions = testContext.config.exceptions;
+global.exceptions = testContext.config.modules.chain.exceptions;
 global._ = _;
