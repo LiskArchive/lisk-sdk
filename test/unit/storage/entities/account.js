@@ -559,17 +559,33 @@ describe('Account', () => {
 				);
 			});
 
-			it('should fetch "productivity" with correct query', async () => {
+			it('should fetch "productivity" with two decimal places when value is not integer', async () => {
 				const producedBlocks = 50;
-				const missedBlocks = 3;
+				const missedBlocks = 25;
 				const validAccount = new accountFixtures.Account({
 					producedBlocks,
 					missedBlocks,
 				});
 				await AccountEntity.create(validAccount);
-				const productivity = parseFloat(
-					(producedBlocks / (producedBlocks + missedBlocks) * 100.0).toFixed(2)
+				const productivity = 66.67;
+
+				const account = await AccountEntity.getOne(
+					{ address: validAccount.address },
+					{ extended: true }
 				);
+
+				expect(account.productivity).to.be.eql(productivity);
+			});
+
+			it('should fetch "productivity" with no decimal places when value is integer', async () => {
+				const producedBlocks = 75;
+				const missedBlocks = 25;
+				const validAccount = new accountFixtures.Account({
+					producedBlocks,
+					missedBlocks,
+				});
+				await AccountEntity.create(validAccount);
+				const productivity = 75;
 
 				const account = await AccountEntity.getOne(
 					{ address: validAccount.address },
