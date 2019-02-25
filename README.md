@@ -427,9 +427,9 @@ npm run mocha -- path/to/test.js
 
 #### v1.6.0 Update
 
-Starting from version `1.6.0`, Lisk will be using [Jest](https://jestjs.io) as its main test runner and gradually deprecate [mocha](https://mochajs.org). Since, rewriting all existing mocha tests is not feasible at the moment, we are going to have 2 test runners in our code base until we refactor modules and move them to lisk-elements repository.
+Starting from version `1.6.0`, Lisk will be using [Jest](https://jestjs.io) as its main test runner and gradually deprecate [mocha](https://mochajs.org). Since, rewriting all existing mocha tests is not feasible at the moment, we are going to have 2 test runners in our code base.
 
-Until then,
+Until we deprecate mocha completely,
 
 * All source code under `framework/src/modules` folder will be tested by `mocha` and test files should be located under `framework/test/mocha`.
 * Rest of the source files will be tested by `Jest` and test files should be located under `framework/test/jest`.
