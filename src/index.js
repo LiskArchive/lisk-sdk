@@ -7,7 +7,7 @@ const constants = require('../config/devnet/constants');
 const exceptions = require('../config/devnet/exceptions');
 const genesisBlock = require('../config/devnet/genesis_block');
 
-const appName = () => `devnet-${config.httpPort}`;
+const appName = () => `devnet-${config.modules.http_api.httpPort}`;
 
 try {
 	// To run multiple applications for same network for integration tests

@@ -214,7 +214,7 @@ describe('transport', () => {
 			channel: channelStub,
 			balancesSequence: balancesSequenceStub,
 			config: {
-				peers: {
+				network: {
 					options: {
 						timeout: 1234,
 					},
