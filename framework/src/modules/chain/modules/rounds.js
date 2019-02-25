@@ -94,11 +94,11 @@ __private.updateRecipientsRoundInformationWithAmountForTransactions = function(
 			.filter(transaction => transaction.type === transactionTypes.IN_TRANSFER)
 			.map(transaction =>
 				// Check the owner of the dapp for recipient account
-				library.storage.entities.Transaction.get(
+				library.storage.entities.Transaction.getOne(
 					{
 						id: transaction.asset.inTransfer.dappId,
 					},
-					{ limit: 1 },
+					{},
 					tx
 				).then(dappTransaction => ({
 					...transaction,
