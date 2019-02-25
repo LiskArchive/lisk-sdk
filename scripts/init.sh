@@ -20,19 +20,23 @@ fi
 packageDir="./packages/$packageName"
 # Just in case package folder doesn't exist yet.
 mkdir -p "$packageDir"
+mkdir -p "$packageDir/src"
+mkdir -p "$packageDir/test"
 
 templates=(
 	"browsertest"
 	"cypress"
 	"scripts"
-	".babelrc"
-	".eslintignore"
 	".npmignore"
 	".npmrc"
 	".nycrc"
 	".prettierignore"
 	".prettierrc.json"
 	"cypress.json"
+	"tslint.json"
+	"tsconfig.json"
+	"package.json"
+	"tsconfig.browsertest.json"
 )
 
 for i in "${templates[@]}"
