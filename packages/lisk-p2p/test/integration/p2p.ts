@@ -10,6 +10,7 @@ describe('Integration tests for P2P library', () => {
 		...Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
 	const NETWORK_END_PORT = ALL_NODE_PORTS[ALL_NODE_PORTS.length - 1];
+	const NO_PEERS_FOUND_ERROR = `Request failed due to no peers found in peer selection`;
 
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
@@ -45,17 +46,27 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(async p2p => {
-					try {
-						await p2p.stop();
-					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
-				}),
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
 			);
 		});
 
 		it('should set the isActive property to true for all nodes', () => {
 			p2pNodeList.forEach(p2p => {
 				expect(p2p).to.have.property('isActive', true);
+			});
+		});
+
+		describe('P2P.request', () => {
+			it('should throw an error when not able to get any peer in peer selection', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const response = firstP2PNode.request({
+					procedure: 'foo',
+					data: 'bar',
+				});
+
+				expect(response).to.be.rejectedWith(Error, NO_PEERS_FOUND_ERROR);
 			});
 		});
 	});
@@ -102,11 +113,9 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(async p2p => {
-					try {
-						await p2p.stop();
-					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
-				}),
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
 			);
 		});
 
@@ -138,7 +147,7 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Partially connected network which becomes fully connected: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence. Discovery interval runs multiple times.', () => {
 		const DISCOVERY_INTERVAL = 200;
-		
+
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
@@ -184,11 +193,9 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(async p2p => {
-					try {
-						await p2p.stop();
-					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
-				}),
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
 			);
 		});
 
@@ -198,12 +205,178 @@ describe('Integration tests for P2P library', () => {
 				await wait(DISCOVERY_INTERVAL * 5);
 
 				p2pNodeList.forEach(p2p => {
-					let {connectedPeers} = p2p.getNetworkStatus();
+					const { connectedPeers } = p2p.getNetworkStatus();
 
-					const peerPorts = connectedPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const peerPorts = connectedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
 					const expectedPeerPorts = ALL_NODE_PORTS;
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
+				});
+			});
+		});
+
+		describe('P2P.send', () => {
+			describe('P2P.send when peers are at same height', () => {
+				let collectedMessages: Array<any> = [];
+
+				beforeEach(async () => {
+					collectedMessages = [];
+					p2pNodeList.forEach(p2p => {
+						p2p.on('messageReceived', message => {
+							collectedMessages.push({
+								nodePort: p2p.nodeInfo.wsPort,
+								message,
+							});
+						});
+					});
+				});
+
+				it('should send messages to subset of peers within the network; should reach multiple peers with even distribution', async () => {
+					const TOTAL_SENDS = 100;
+					const randomPeerIndex = Math.floor(
+						Math.random() * NETWORK_PEER_COUNT,
+					);
+					const randomP2PNode = p2pNodeList[randomPeerIndex];
+					const nodePortToMessagesMap: any = {};
+
+					const expectedAverageMessagesPerNode = TOTAL_SENDS;
+					const expectedMessagesLowerBound =
+						expectedAverageMessagesPerNode * 0.5;
+					const expectedMessagesUpperBound =
+						expectedAverageMessagesPerNode * 1.5;
+
+					for (let i = 0; i < TOTAL_SENDS; i++) {
+						randomP2PNode.send({ event: 'bar', data: i });
+					}
+					await wait(100);
+
+					collectedMessages.forEach((receivedMessageData: any) => {
+						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+						}
+						nodePortToMessagesMap[receivedMessageData.nodePort].push(
+							receivedMessageData,
+						);
+					});
+
+					Object.values(nodePortToMessagesMap).forEach(
+						(receivedMessages: any) => {
+							expect(receivedMessages).to.be.an('array');
+							expect(receivedMessages.length).to.be.greaterThan(
+								expectedMessagesLowerBound,
+							);
+							expect(receivedMessages.length).to.be.lessThan(
+								expectedMessagesUpperBound,
+							);
+						},
+					);
+				});
+			});
+
+			describe('P2P.send when peers are at different heights', () => {
+				const randomPeerIndex = Math.floor(Math.random() * NETWORK_PEER_COUNT);
+				let collectedMessages: Array<any> = [];
+				let randomP2PNode: any;
+
+				beforeEach(async () => {
+					collectedMessages = [];
+					randomP2PNode = p2pNodeList[randomPeerIndex];
+					p2pNodeList.forEach(async p2p => {
+						p2p.on('messageReceived', message => {
+							collectedMessages.push({
+								nodePort: p2p.nodeInfo.wsPort,
+								message,
+							});
+						});
+					});
+				});
+
+				it('should send messages to subset of peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
+					const TOTAL_SENDS = 100;
+					const nodePortToMessagesMap: any = {};
+
+					p2pNodeList.forEach(p2p => {
+						p2p.applyNodeInfo({
+							os: platform(),
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: p2p.nodeInfo.version,
+							wsPort: p2p.nodeInfo.wsPort,
+							height: 1000 + (p2p.nodeInfo.wsPort % 5000),
+							options: p2p.nodeInfo.options,
+						});
+					});
+
+					await wait(200);
+
+					const expectedAverageMessagesPerNode = TOTAL_SENDS;
+					const expectedMessagesLowerBound =
+						expectedAverageMessagesPerNode * 0.5;
+					const expectedMessagesUpperBound =
+						expectedAverageMessagesPerNode * 1.5;
+
+					for (let i = 0; i < TOTAL_SENDS; i++) {
+						randomP2PNode.send({ event: 'bar', data: i });
+					}
+					await wait(100);
+
+					collectedMessages.forEach((receivedMessageData: any) => {
+						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+						}
+						nodePortToMessagesMap[receivedMessageData.nodePort].push(
+							receivedMessageData,
+						);
+					});
+
+					Object.values(nodePortToMessagesMap).forEach(
+						(receivedMessages: any) => {
+							expect(receivedMessages).to.be.an('array');
+							expect(receivedMessages.length).to.be.greaterThan(
+								expectedMessagesLowerBound,
+							);
+							expect(receivedMessages.length).to.be.lessThan(
+								expectedMessagesUpperBound,
+							);
+						},
+					);
+				});
+			});
+		});
+
+		describe('When half of the nodes crash', () => {
+			it('should get network status with all unresponsive nodes removed', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				// Stop all the nodes with port from 5001 to 5005
+				p2pNodeList.forEach(async (p2p: any, index: number) => {
+					if (index !== 0 && index < NETWORK_PEER_COUNT / 2) {
+						await p2p.stop();
+					}
+				});
+				await wait(200);
+
+				const connectedPeers = firstP2PNode.getNetworkStatus().connectedPeers;
+				const portOfLastInactivePort = ALL_NODE_PORTS[NETWORK_PEER_COUNT / 2];
+
+				const actualConnectedPeers = connectedPeers
+					.filter(
+						peer =>
+							peer.wsPort !== 5000 &&
+							peer.wsPort % 5000 > NETWORK_PEER_COUNT / 2,
+					)
+					.map(peer => peer.wsPort);
+
+				// Check if the connected Peers are having port greater than the last port that we crashed by index
+				actualConnectedPeers.forEach(port => {
+					expect(port).greaterThan(portOfLastInactivePort);
+				});
+
+				p2pNodeList.forEach(p2p => {
+					if (p2p.nodeInfo.wsPort > portOfLastInactivePort) {
+						expect(p2p.isActive).to.be.true;
+					}
 				});
 			});
 		});
@@ -256,11 +429,9 @@ describe('Integration tests for P2P library', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList.map(async p2p => {
-					try {
-						await p2p.stop();
-					} catch (error) {} // Ignore error. This can happen if a test case intentionally stops a node.
-				}),
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
 			);
 			await wait(100);
 		});
@@ -343,7 +514,9 @@ describe('Integration tests for P2P library', () => {
 					return port !== 5000;
 				});
 
-				expect(peerPortsAfterPeerCrash).to.be.eql(expectedPeerPortsAfterPeerCrash);
+				expect(peerPortsAfterPeerCrash).to.be.eql(
+					expectedPeerPortsAfterPeerCrash,
+				);
 			});
 		});
 
@@ -539,6 +712,38 @@ describe('Integration tests for P2P library', () => {
 						.to.have.property('height')
 						.which.equals(10);
 				});
+			});
+		});
+
+		describe('when couple of node shuts down and are unresponsive', () => {
+			it('should remove the unresponsive nodes from network status of other nodes', async () => {
+				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
+				const initialPeerPorts = initialNetworkStatus.connectedPeers
+					.map(peerInfo => peerInfo.wsPort)
+					.sort();
+
+				expect(initialPeerPorts).to.be.eql(
+					ALL_NODE_PORTS.filter(port => port != 5000),
+				);
+
+				await p2pNodeList[1].stop();
+				await wait(100);
+				await p2pNodeList[2].stop();
+				await wait(100);
+
+				const networkStatusAfterPeerCrash = p2pNodeList[0].getNetworkStatus();
+
+				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
+					.map(peerInfo => peerInfo.wsPort)
+					.sort();
+
+				const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
+					return port !== 5001 && port !== 5002 && port !== 5000;
+				});
+
+				expect(peerPortsAfterPeerCrash).to.be.eql(
+					expectedPeerPortsAfterPeerCrash,
+				);
 			});
 		});
 	});
