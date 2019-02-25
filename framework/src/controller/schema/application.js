@@ -32,11 +32,11 @@ module.exports = {
 			},
 			totalFee: {
 				type: 'number',
-				format: 'maxAmount',
+				format: 'numAmount',
 			},
 			reward: {
 				type: 'number',
-				format: 'maxAmount',
+				format: 'numAmount',
 			},
 			payloadHash: {
 				type: 'string',
@@ -104,7 +104,7 @@ module.exports = {
 			},
 			fee: {
 				type: 'number',
-				format: 'maxAmount',
+				format: 'numAmount',
 			},
 			timestamp: {
 				type: 'integer',

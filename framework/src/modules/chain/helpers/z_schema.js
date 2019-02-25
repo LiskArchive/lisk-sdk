@@ -398,7 +398,7 @@ const liskFormats = {
 	 * @param {Object} value
 	 * @returns {boolean}
 	 */
-	maxAmount: {
+	numAmount: {
 		type: 'number',
 		validate: value => {
 			const { TOTAL_AMOUNT } = global.constants;
