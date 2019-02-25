@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const { stringToByte, booleanToInt } = require('../utils/inputSerializers');
+const { NonSupportedOperationError } = require('../errors');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
@@ -278,6 +279,50 @@ class Account extends BaseEntity {
 		this.extendDefaultOptions(defaultSort);
 
 		this.SQLs = this.loadSQLFiles('account', sqlFiles);
+	}
+
+	/**
+	 * Create object record
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	create() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
+	 * Update object record
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	update() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
+	 * Update object record
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	updateOne() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
+	 * Delete object record
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	delete() {
+		throw new NonSupportedOperationError();
 	}
 
 	/**

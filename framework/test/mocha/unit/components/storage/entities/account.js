@@ -23,6 +23,7 @@ const {
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
+	NonSupportedOperationError,
 } = require('../../../../../../src/components/storage/errors');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const seeder = require('../../../../common/storage_seed');
@@ -326,6 +327,30 @@ describe('Account', () => {
 
 		it('should setup specific filters', async () => {
 			expect(AccountEntity.getFilters()).to.have.members(validFilters);
+		});
+	});
+
+	describe('create()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Account.prototype.create).to.throw(NonSupportedOperationError);
+		});
+	});
+
+	describe('update()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Account.prototype.update).to.throw(NonSupportedOperationError);
+		});
+	});
+
+	describe('updateOne()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Account.prototype.updateOne).to.throw(NonSupportedOperationError);
+		});
+	});
+
+	describe('delete()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Account.prototype.delete).to.throw(NonSupportedOperationError);
 		});
 	});
 
