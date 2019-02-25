@@ -70,7 +70,6 @@ class Controller {
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._setupBus();
-		await this._setupControllerActions();
 		await this._loadModules(modules);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -127,7 +126,9 @@ class Controller {
 		this.channel = new EventEmitterChannel(
 			'lisk',
 			['ready'],
-			['getComponentConfig'],
+			{
+				getComponentConfig: action => this.componentConfig[action.params],
+			},
 			this.bus,
 			{ skipInternalEvents: true }
 		);
@@ -142,19 +143,6 @@ class Controller {
 				);
 			});
 		}
-	}
-
-	/**
-	 * Setup Controller actions.
-	 * Create action for getting component config.
-	 *
-	 * @async
-	 */
-	async _setupControllerActions() {
-		this.channel.action(
-			'getComponentConfig',
-			action => this.componentConfig[action.params]
-		);
 	}
 
 	async _loadModules(modules) {
@@ -185,17 +173,14 @@ class Controller {
 		const channel = new EventEmitterChannel(
 			moduleAlias,
 			module.events,
-			Object.keys(module.actions),
+			module.actions,
 			this.bus,
 			{}
 		);
+
 		this.modulesChannels[moduleAlias] = channel;
 
 		await channel.registerToBus();
-
-		Object.keys(module.actions).forEach(action => {
-			channel.action(action, module.actions[action]);
-		});
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
 		channel.publish(`${moduleAlias}:loading:started`);
