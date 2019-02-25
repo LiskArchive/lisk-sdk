@@ -60,3 +60,14 @@ export const SORT_FIELDS: ReadonlyArray<string> = [
 	'username:asc',
 	'username:desc',
 ];
+
+export enum NETWORK {
+	mainnet = 'MAIN',
+	testnet = 'TEST',
+	betanet = 'BETA',
+}
+
+export enum OS {
+	Darwin = 'MACOS',
+	Linux = 'LINUX',
+}
