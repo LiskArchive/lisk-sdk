@@ -103,7 +103,7 @@
 		"grunt-exec": "3.0.0",
 		"http-server": "0.11.1",
 		"husky": "1.3.1",
-		"istanbul": "0.4.5",
+		"istanbul": "1.1.0-alpha.1",
 		"istanbul-middleware": "0.2.2",
 		"jsdoc": "3.5.5",
 		"jsdox": "0.4.10",
