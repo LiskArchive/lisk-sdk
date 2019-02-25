@@ -2,6 +2,7 @@ const assert = require('assert');
 const fs = require('fs-extra');
 const psList = require('ps-list');
 const systemDirs = require('./config/dirs');
+const validator = require('./helpers/validator');
 const EventEmitterChannel = require('./channels/event_emitter');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
@@ -65,12 +66,13 @@ class Controller {
 	 * @param modules
 	 * @async
 	 */
-	async load(modules) {
+	async load(modules, moduleOptions) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._setupBus();
-		await this._loadModules(modules);
+		await this._setupControllerActions();
+		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
@@ -145,7 +147,20 @@ class Controller {
 		}
 	}
 
-	async _loadModules(modules) {
+	/**
+	 * Setup Controller actions.
+	 * Create action for getting component config.
+	 *
+	 * @async
+	 */
+	async _setupControllerActions() {
+		this.channel.action(
+			'getComponentConfig',
+			action => this.componentConfig[action.params]
+		);
+	}
+
+	async _loadModules(modules, moduleOptions) {
 		// To perform operations in sequence and not using bluebird
 
 		// eslint-disable-next-line no-restricted-syntax
@@ -153,18 +168,24 @@ class Controller {
 			// eslint-disable-next-line no-await-in-loop
 			await this._loadInMemoryModule(
 				alias,
-				modules[alias].klass,
-				modules[alias].options
+				modules[alias],
+				moduleOptions[alias]
 			);
 		}
 	}
 
 	async _loadInMemoryModule(alias, Klass, options) {
+		const moduleAlias = alias || Klass.alias;
+		const { name, version } = Klass.info;
+		const schema = Klass.defaults;
+
+		this.logger.info(
+			`Validating module options with alias: ${moduleAlias}(${name}:${version})`
+		);
+		validator.validateWithDefaults(schema, options);
+
 		const module = new Klass(options);
 		validateModuleSpec(module);
-
-		const moduleAlias = alias || module.constructor.alias;
-		const { name, version } = module.constructor.info;
 
 		this.logger.info(
 			`Loading module with alias: ${moduleAlias}(${name}:${version})`
