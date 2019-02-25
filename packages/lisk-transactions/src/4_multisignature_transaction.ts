@@ -14,7 +14,6 @@
  */
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
-import { TransactionResponse } from '.';
 import {
 	BaseTransaction,
 	MultisignatureStatus,
@@ -27,7 +26,7 @@ import {
 	TransactionMultiError,
 	TransactionPendingError,
 } from './errors';
-import { createResponse, Status } from './response';
+import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import { validateMultisignatures, validator } from './utils';
 
