@@ -47,7 +47,7 @@ module.exports = function create(fittingDef) {
 	let overrideLimits = {};
 
 	if (config) {
-		appConfigLimits = config.api.options.limits;
+		appConfigLimits = config.options.limits;
 	} else {
 		appConfigLimits = {};
 	}
