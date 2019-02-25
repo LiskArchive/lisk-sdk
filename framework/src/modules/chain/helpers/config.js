@@ -19,6 +19,8 @@ const path = require('path');
 const program = require('commander');
 const _ = require('lodash');
 const randomstring = require('randomstring');
+// TODO: Will be fixed in separate PR
+// eslint-disable-next-line import/no-unresolved
 const configSchema = require('../schema/config.js');
 const Z_schema = require('./z_schema.js');
 const deepFreeze = require('./deep_freeze_object.js');
@@ -76,9 +78,13 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		`../../../../config/${network}/genesis_block.json`
 	);
 
+	// TODO: Will be fixed in separate PR
+	// eslint-disable-next-line import/no-unresolved
 	const defaultConstants = require('../../../../../config/default/constants.js');
 	const networkConstants = require(`../../../../../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
 
+	// TODO: Will be fixed in separate PR
+	// eslint-disable-next-line import/no-unresolved
 	const defaultExceptions = require('../../../../../config/default/exceptions.js');
 	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
 
