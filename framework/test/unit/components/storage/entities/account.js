@@ -2128,9 +2128,54 @@ describe('Account', async () => {
 			);
 			// Assert
 			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
-				'SELECT * FROM mem_accounts2multisignatures'
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
+					savedAccount.address
+				}'`
 			);
 			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
+		});
+
+		it('should update mem_accounts2multisignatures with new keys if membersPublicKeys present', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.membersPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
+
+			savedAccount.membersPublicKeys = ['999L', '888L'];
+			const newExpectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '999L' },
+				{ accountId: account.address, dependentId: '888L' },
+			];
+
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			const newMulitsigDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			// Assert
+			expect(newExpectedRelatedRecords).to.be.eql(newMulitsigDependentRecords);
 		});
 
 		it('should update mem_accounts2delegates if votedDelegatesPublicKeys present', async () => {
@@ -2152,10 +2197,61 @@ describe('Account', async () => {
 			);
 			// Assert
 			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
-				'SELECT * FROM mem_accounts2delegates'
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
 			);
 			expect(expectedRelatedRecords).to.be.eql(
 				votedDelegatesPublicKeysDependentRecords
+			);
+		});
+
+		it('should update mem_accounts2delegates with new votes if votedDelegatesPublicKeys present', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(expectedRelatedRecords).to.be.eql(
+				votedDelegatesPublicKeysDependentRecords
+			);
+
+			savedAccount.votedDelegatesPublicKeys = ['42L', '43L', '63L'];
+			const newExpectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '42L' },
+				{ accountId: account.address, dependentId: '43L' },
+				{ accountId: account.address, dependentId: '63L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const newVotedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(newExpectedRelatedRecords).to.be.eql(
+				newVotedDelegatesPublicKeysDependentRecords
 			);
 		});
 	});
