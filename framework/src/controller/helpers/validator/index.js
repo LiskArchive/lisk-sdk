@@ -5,12 +5,15 @@ const formats = require('./formats');
 const validator = new Ajv({
 	allErrors: true,
 	schemaId: 'auto',
+	useDefaults: false,
+	$data: true,
 });
 
 const validatorWithDefaults = new Ajv({
 	allErrors: true,
 	schemaId: 'auto',
 	useDefaults: true,
+	$data: true,
 });
 
 Object.keys(formats).forEach(formatId => {
@@ -35,6 +38,10 @@ module.exports = {
 	loadSchema: schema => {
 		Object.keys(schema).forEach(key => {
 			validator.addSchema(schema[key], schema[key].id);
+		});
+
+		Object.keys(schema).forEach(key => {
+			validatorWithDefaults.addSchema(schema[key], schema[key].id);
 		});
 	},
 
@@ -64,7 +71,7 @@ module.exports = {
 	 */
 	validateWithDefaults: (schema, data) => {
 		if (!validatorWithDefaults.validate(schema, data)) {
-			throw new SchemaValidationError(validator.errors);
+			throw new SchemaValidationError(validatorWithDefaults.errors);
 		}
 
 		return true;
