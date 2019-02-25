@@ -19,8 +19,7 @@
 		"http_api": {
 			"access": {
 				"public": true
-			},
-			"httpPort": 7000
+			}
 		},
 		"chain": {
 			"forging": {
@@ -641,8 +640,7 @@
 						"ip": "127.0.0.1",
 						"wsPort": "5000"
 					}
-				],
-				"wsPort": 7001
+				]
 			}
 		}
 	}
