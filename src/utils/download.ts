@@ -26,7 +26,6 @@ export const download = async (
 	}
 	try {
 		const writeStream = Fs.createWriteStream(filePath);
-
 		const response = await Axios({
 			url,
 			method: 'GET',
@@ -44,24 +43,25 @@ export const download = async (
 	}
 };
 
-export const isValidChecksum = async (
+export const verifyChecksum = async (
 	filePath: string,
 	fileName: string,
-): Promise<void | boolean> => {
+): Promise<void> => {
 	const { stdout, stderr } = await exec(
 		`cd ${filePath}; shasum -c ${fileName}`,
 	);
-	if (stderr) {
-		throw new Error(`Checksum validation failed with error: ${stderr}`);
+
+	if (stdout.search(`${fileName}: OK`) >= 0) {
+		return;
 	}
 
-	return new RegExp(stdout).test(`${fileName}: OK`);
+	throw new Error(`Checksum validation failed ${stdout} with error: ${stderr}`);
 };
 
 export const extract = async (
 	filePath: string,
 	fileName: string,
-	outDir: string | undefined,
+	outDir: string,
 ): Promise<string> => {
 	const { stdout, stderr } = await exec(
 		`cd ${filePath}; tar xf ${fileName} -C ${outDir} --strip-component=1;`,

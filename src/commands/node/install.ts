@@ -18,10 +18,10 @@ import { flags as flagParser } from '@oclif/command';
 import os from 'os';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
-import { download, extract, isValidChecksum } from '../../utils/download';
+import { download, extract, verifyChecksum } from '../../utils/download';
 import { getReleaseInfo } from '../../utils/node/release';
 import {
-	checkNotRootUser,
+	checkNotARootUser,
 	createDirectory,
 	directoryExists,
 	isValidURL,
@@ -46,7 +46,6 @@ interface Flags {
 
 interface Options {
 	readonly installDir: string;
-	readonly installPath: string;
 	readonly liskTarSHA256Url: string;
 	readonly liskTarUrl: string;
 	readonly version: string;
@@ -84,26 +83,15 @@ const buildOptions = async ({
 
 	return {
 		installDir,
-		installPath,
 		version,
 		liskTarUrl,
 		liskTarSHA256Url,
 	};
 };
 
-const verifyChecksum = (filePath: string, fileName: string) => {
-	if (isValidChecksum(filePath, fileName)) {
-		return;
-	}
-	throw new Error(
-		`Checksum verification failed for file: ${fileName} at path: ${filePath}`,
-	);
-};
-
 const installLisk = async (options: Flags, cacheDir: string): Promise<void> => {
 	try {
 		const {
-			installPath,
 			installDir,
 			liskTarUrl,
 			liskTarSHA256Url,
@@ -113,13 +101,11 @@ const installLisk = async (options: Flags, cacheDir: string): Promise<void> => {
 		const LISK_RELEASE_PATH = `${cacheDir}/${LISK_TAR(version)}`;
 		const LISK_RELEASE_SHA256_PATH = `${cacheDir}/${LISK_TAR_SHA256(version)}`;
 
-		createDirectory(installPath);
 		prereqCheck(installDir);
 
 		await download(liskTarUrl, LISK_RELEASE_PATH);
 		await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
-
-		verifyChecksum(cacheDir, LISK_TAR_SHA256(version));
+		await verifyChecksum(cacheDir, LISK_TAR_SHA256(version));
 
 		if (!noSnapshot) {
 			const snapshotPath = `${cacheDir}/${LISK_DB_SNAPSHOT(name, network)}`;
@@ -135,9 +121,7 @@ const installLisk = async (options: Flags, cacheDir: string): Promise<void> => {
 };
 
 export default class InstallCommand extends BaseCommand {
-	static description = `
-    Install lisk software
-  `;
+	static description = `Install lisk software`;
 
 	static examples = [
 		'node:install',
@@ -182,7 +166,7 @@ export default class InstallCommand extends BaseCommand {
 		const options = flags as Flags;
 		const cacheDir = this.config.cacheDir;
 
-		checkNotRootUser();
+		checkNotARootUser();
 		parseOptions(options);
 		await installLisk(options, cacheDir);
 		this.print({ status: `Installed lisk network: ${options.network}` });

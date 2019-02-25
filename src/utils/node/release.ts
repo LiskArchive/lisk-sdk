@@ -23,7 +23,7 @@ export const getLatestVersion = async (url: string): Promise<string> => {
 
 		return version.data.trim();
 	} catch (error) {
-		return error;
+		throw error;
 	}
 };
 

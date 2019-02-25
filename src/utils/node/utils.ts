@@ -40,9 +40,10 @@ export const LISK_DB_SNAPSHOT = (networkName: string, network: NETWORK) =>
 
 export const LOGS_DIR = (installPath: string) =>
 	`${LISK_INSTALL(installPath)}/logs`;
+
 export const SH_LOG_FILE = 'logs/lisk.out';
 
-export const checkNotRootUser = (): void => {
+export const checkNotARootUser = (): void => {
 	if (process.getuid && process.getuid() === 0) {
 		throw new Error('Error: Lisk should not be run be as root. Exiting.');
 	}
@@ -71,6 +72,7 @@ export const createDirectory = (dirPath: string): void => {
 		Fs.mkdirSync(resolvedPath, { recursive: true });
 	}
 };
+
 export const isValidURL = (url: string): void => {
 	const isValid = new RegExp(/^(ftp|http|https):\/\/[^ "]+$/);
 
