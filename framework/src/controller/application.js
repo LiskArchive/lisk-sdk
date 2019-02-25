@@ -99,9 +99,12 @@ class Application {
 		validator.loadSchema(applicationSchema);
 		validator.loadSchema(constantsSchema);
 		validator.validate(applicationSchema.appLabel, label);
-		validator.validateWithDefaults(constantsSchema.constants, constants);
 		validator.validate(applicationSchema.config, config);
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
+		constants = validator.validateWithDefaults(
+			constantsSchema.constants,
+			constants
+		);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;

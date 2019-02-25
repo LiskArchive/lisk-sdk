@@ -66,15 +66,17 @@ module.exports = {
 	 *
 	 * @param {Object} schema - JSON Schema object
 	 * @param {Object} data - Data object you want to validate
-	 * @return {boolean}
+	 * @return {Object} - Modified data with default values
 	 * @throws Framework.errors.SchemaValidationError
 	 */
 	validateWithDefaults: (schema, data) => {
-		if (!validatorWithDefaults.validate(schema, data)) {
+		const dataCopy = Object.assign({}, data);
+
+		if (!validatorWithDefaults.validate(schema, dataCopy)) {
 			throw new SchemaValidationError(validatorWithDefaults.errors);
 		}
 
-		return true;
+		return dataCopy;
 	},
 
 	formats: Object.freeze(formats),

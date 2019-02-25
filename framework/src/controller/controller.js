@@ -182,7 +182,7 @@ class Controller {
 		this.logger.info(
 			`Validating module options with alias: ${moduleAlias}(${name}:${version})`
 		);
-		validator.validateWithDefaults(schema, options);
+		options = validator.validateWithDefaults(schema, options);
 
 		const module = new Klass(options);
 		validateModuleSpec(module);
