@@ -15,6 +15,7 @@
 'use strict';
 
 module.exports = {
+	Account: require('./account'),
 	Migration: require('./migration'),
 	Peer: require('./peer'),
 	Round: require('./round'),
