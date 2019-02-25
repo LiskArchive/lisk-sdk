@@ -55,6 +55,10 @@ module.exports = {
 						description: 'Additional data (Max length)',
 					},
 				},
+				default: {
+					MIN_LENGTH: 1,
+					MAX_LENGTH: 64,
+				},
 			},
 			BLOCK_RECEIPT_TIMEOUT: {
 				type: 'integer',
@@ -71,6 +75,16 @@ module.exports = {
 			},
 			FEES: {
 				$ref: 'fees',
+				default: {
+					SEND: '10000000',
+					VOTE: '100000000',
+					SECOND_SIGNATURE: '500000000',
+					DELEGATE: '2500000000',
+					MULTISIGNATURE: '500000000',
+					DAPP_REGISTRATION: '2500000000',
+					DAPP_WITHDRAWAL: '10000000',
+					DAPP_DEPOSIT: '10000000',
+				},
 			},
 			MAX_PAYLOAD_LENGTH: {
 				type: 'integer',
@@ -107,11 +121,13 @@ module.exports = {
 			},
 			MAX_VOTES_PER_ACCOUNT: {
 				type: 'number',
-				format: 'maxVotesAccount',
-				min: 1,
 				default: 101,
 				description:
 					'The maximum number of votes allowed in transaction type(3) votes',
+				min: 1,
+				maximum: {
+					$data: '/ACTIVE_DELEGATES',
+				},
 			},
 			MIN_BROADHASH_CONSENSUS: {
 				type: 'integer',
@@ -122,6 +138,20 @@ module.exports = {
 			},
 			MULTISIG_CONSTRAINTS: {
 				$ref: 'multisig',
+				default: {
+					MIN: {
+						MINIMUM: 1,
+						MAXIMUM: 15,
+					},
+					LIFETIME: {
+						MINIMUM: 1,
+						MAXIMUM: 72,
+					},
+					KEYSGROUP: {
+						MIN_ITEMS: 1,
+						MAX_ITEMS: 15,
+					},
+				},
 			},
 			NETHASHES: {
 				type: 'array',
@@ -145,6 +175,17 @@ module.exports = {
 			},
 			REWARDS: {
 				$ref: 'rewards',
+				default: {
+					MILESTONES: [
+						'500000000', // Initial Reward
+						'400000000', // Milestone 1
+						'300000000', // Milestone 2
+						'200000000', // Milestone 3
+						'100000000', // Milestone 4
+					],
+					OFFSET: 2160,
+					DISTANCE: 3000000,
+				},
 			},
 			TOTAL_AMOUNT: {
 				type: 'string',
@@ -241,84 +282,78 @@ module.exports = {
 		type: 'object',
 		required: ['MIN', 'LIFETIME', 'KEYSGROUP'],
 		properties: {
+			KEYSGROUP: {
+				type: 'object',
+				required: ['MIN_ITEMS', 'MAX_ITEMS'],
+				properties: {
+					MIN_ITEMS: {
+						type: 'integer',
+						min: 1,
+						default: 1,
+						description:
+							'Minimum allowed number of keys inside a Multisignature pool',
+					},
+					MAX_ITEMS: {
+						type: 'integer',
+						min: 1,
+						default: 15,
+						description:
+							'Maximum allowed number of keys inside a Multisignature pool',
+					},
+				},
+				default: {
+					MIN_ITEMS: 1,
+					MAX_ITEMS: 15,
+				},
+				additionalProperties: false,
+			},
 			MIN: {
-				$ref: 'min',
+				type: 'object',
+				required: ['MINIMUM', 'MAXIMUM'],
+				properties: {
+					MINIMUM: {
+						type: 'integer',
+						min: 1,
+						default: 1,
+						description:
+							'Minimum allowed number of signatures required to process a multisignature transaction',
+					},
+					MAXIMUM: {
+						type: 'number',
+						min: 1,
+						maximum: {
+							$data: '/MULTISIG_CONSTRAINTS/KEYSGROUP/MAX_ITEMS',
+						},
+						default: 15,
+						description:
+							'Maximum allowed number of signatures required to process a multisignature transaction',
+					},
+				},
 			},
 			LIFETIME: {
-				$ref: 'lifetime',
-			},
-			KEYSGROUP: {
-				$ref: 'keysgroup',
-			},
-		},
-		additionalProperties: false,
-	},
-
-	minConstraints: {
-		id: 'min',
-		type: 'object',
-		required: ['MINIMUM', 'MAXIMUM'],
-		properties: {
-			MINIMUM: {
-				type: 'integer',
-				min: 1,
-				default: 1,
-				description:
-					'Minimum allowed number of signatures required to process a multisignature transaction',
-			},
-			MAXIMUM: {
-				type: 'number',
-				format: 'keysgroupLimit',
-				min: 1,
-				default: 15,
-				description:
-					'Maximum allowed number of signatures required to process a multisignature transaction',
-			},
-		},
-		additionalProperties: false,
-	},
-
-	lifetimeConstraints: {
-		id: 'lifetime',
-		type: 'object',
-		required: ['MINIMUM', 'MAXIMUM'],
-		properties: {
-			MINIMUM: {
-				type: 'integer',
-				min: 1,
-				default: 1,
-				description:
-					'Minimum timeframe in which a multisignature transaction will exist in memory before the transaction is confirmed',
-			},
-			MAXIMUM: {
-				type: 'integer',
-				min: 1,
-				default: 72,
-				description:
-					'Maximum timeframe in which multisignature transaction will exist in memory before the transaction is confirmed',
-			},
-		},
-		additionalProperties: false,
-	},
-
-	keysgroupConstraints: {
-		id: 'keysgroup',
-		type: 'object',
-		required: ['MIN_ITEMS', 'MAX_ITEMS'],
-		properties: {
-			MIN_ITEMS: {
-				type: 'integer',
-				min: 1,
-				default: 1,
-				description:
-					'Minimum allowed number of keys inside a Multisignature pool',
-			},
-			MAX_ITEMS: {
-				type: 'integer',
-				min: 1,
-				default: 15,
-				description:
-					'Maximum allowed number of keys inside a Multisignature pool',
+				type: 'object',
+				required: ['MINIMUM', 'MAXIMUM'],
+				properties: {
+					MINIMUM: {
+						type: 'integer',
+						min: 1,
+						default: 1,
+						description:
+							'Minimum timeframe in which a multisignature transaction will exist in memory before the transaction is confirmed',
+					},
+					MAXIMUM: {
+						type: 'integer',
+						min: 1,
+						default: 72,
+						description:
+							'Maximum timeframe in which multisignature transaction will exist in memory before the transaction is confirmed',
+					},
+				},
+				default: {
+					MINIMUM: 1,
+					MAXIMUM: 72,
+				},
+				additionalProperties: false,
 			},
 		},
 		additionalProperties: false,
