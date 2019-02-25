@@ -57,6 +57,6 @@ templatesTest=(
 for i in "${templatesTest[@]}"
 do
 	if [ ! -e "$packageDir/test/${i}" ];	then
-		ln -vs "../../templates/test/$i.tmpl" "$packageDir/test/$i"
+		ln -vs "../../../templates/test/$i.tmpl" "$packageDir/test/$i"
 	fi
 done
