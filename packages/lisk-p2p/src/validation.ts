@@ -22,7 +22,7 @@ import {
 } from './errors';
 
 import {
-	P2PDiscoveredPeerInfo,
+	P2PPeerInfo,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
@@ -47,9 +47,7 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	return true;
 };
 
-export const validatePeerInfo = (
-	rawPeerInfo: unknown,
-): P2PDiscoveredPeerInfo => {
+export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
 	}
@@ -75,17 +73,19 @@ export const validatePeerInfo = (
 			? +protocolPeer.height
 			: 0;
 
-	const peerInfo: P2PDiscoveredPeerInfo = {
+	const peerInfo: P2PPeerInfo = {
 		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
-		os,
-		version,
+		discoveredInfo: {
+			os,
+			version,
+		},
 		options: {
 			httpPort: protocolPeer.httpPort,
 			broadhash: protocolPeer.broadhash,
 			nonce: protocolPeer.nonce,
-			...protocolPeer.options
+			...protocolPeer.options,
 		},
 		isDiscoveredPeer: true,
 	};
@@ -95,14 +95,14 @@ export const validatePeerInfo = (
 
 export const validatePeerInfoList = (
 	rawPeerInfoList: unknown,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
 	const { peers } = rawPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PDiscoveredPeerInfo>(validatePeerInfo);
+		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
 
 		return peerList;
 	} else {

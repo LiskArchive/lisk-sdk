@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { P2PPeerInfo, P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import { P2PPeerInfo } from '../../src/p2p_types';
 import { initializePeerList } from '../utils/peers';
 import * as discoverPeersModule from '../../src/peer_discovery';
 
@@ -23,30 +23,24 @@ describe('peer discovery', () => {
 	const seedPeer2 = samplePeers[1];
 	const seedList = [seedPeer1, seedPeer2];
 
-	const validatedPeer1: P2PDiscoveredPeerInfo = {
+	const validatedPeer1: P2PPeerInfo = {
 		ipAddress: '196.34.89.90',
 		wsPort: 5393,
 		height: 23232,
-		os: 'linux',
-		version: '1.0.0',
 		isDiscoveredPeer: true,
 	};
 
-	const validatedPeer2: P2PDiscoveredPeerInfo = {
+	const validatedPeer2: P2PPeerInfo = {
 		ipAddress: '128.38.75.9',
 		wsPort: 5393,
 		height: 23232,
-		os: 'linux',
-		version: '1.0.0',
 		isDiscoveredPeer: true,
 	};
 
-	const validatedPeer3: P2PDiscoveredPeerInfo = {
+	const validatedPeer3: P2PPeerInfo = {
 		ipAddress: '12.23.11.31',
 		wsPort: 5393,
 		height: 23232,
-		os: 'linux',
-		version: '1.0.0',
 		isDiscoveredPeer: true,
 	};
 

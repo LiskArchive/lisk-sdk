@@ -20,7 +20,7 @@ import {
 	validateRPCRequest,
 	validateProtocolMessage,
 } from '../../src/validation';
-import { P2PPeerInfo } from '../../src/p2p_types';
+import { P2PPeerInfo, ProtocolPeerInfo } from '../../src/p2p_types';
 import {
 	ProtocolRPCRequestPacket,
 	ProtocolMessagePacket,
@@ -29,12 +29,15 @@ import {
 describe('response handlers', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
-			const peer: unknown = {
+			const peer: ProtocolPeerInfo = {
 				ip: '12.23.54.3',
 				wsPort: 5393,
 				os: 'darwin',
-				height: '23232',
+				height: 23232,
 				version: '1.1.2',
+				broadhash: '92hdbcwsdjcosi',
+				nonce: '89wsufhucsdociuds',
+				httpPort: 2000,
 			};
 
 			const peerWithInvalidHeightValue: unknown = {
@@ -43,29 +46,48 @@ describe('response handlers', () => {
 				os: '778',
 				height: '2323wqdqd2',
 				version: '3.4.5-alpha.9',
+				broadhash: '92hdbcwsdjcosi',
+				nonce: '89wsufhucsdociuds',
+				httpPort: 2000,
 			};
 
 			it('should return P2PPeerInfo object', async () => {
 				expect(validatePeerInfo(peer))
 					.to.be.an('object')
-					.include({
+					.eql({
 						ipAddress: '12.23.54.3',
 						wsPort: 5393,
-						os: 'darwin',
 						height: 23232,
-						version: '1.1.2',
+						isDiscoveredPeer: true,
+						discoveredInfo: {
+							os: 'darwin',
+							version: '1.1.2',
+						},
+						options: {
+							broadhash: '92hdbcwsdjcosi',
+							httpPort: 2000,
+							nonce: '89wsufhucsdociuds',
+						},
 					});
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', async () => {
 				expect(validatePeerInfo(peerWithInvalidHeightValue))
 					.to.be.an('object')
-					.include({
+					.eql({
 						ipAddress: '12.23.54.3',
 						wsPort: 5393,
-						os: '778',
 						height: 0,
-						version: '3.4.5-alpha.9',
+						isDiscoveredPeer: true,
+						discoveredInfo: {
+							os: '778',
+							version: '3.4.5-alpha.9',
+						},
+						options: {
+							broadhash: '92hdbcwsdjcosi',
+							httpPort: 2000,
+							nonce: '89wsufhucsdociuds',
+						},
 					});
 			});
 		});
@@ -83,8 +105,10 @@ describe('response handlers', () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.uhig3',
 					wsPort: 53937888,
-					os: 'darwin',
 					height: '23232',
+					discoveredInfo: {
+						os: 'darwin',
+					},
 				};
 
 				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
@@ -235,9 +259,15 @@ describe('response handlers', () => {
 					broadhash: peer.broadhash,
 					httpPort: peer.httpPort,
 					nonce: peer.nonce,
-					...peer.options
+					...peer.options,
+				};
+				peer.discoveredInfo = {
+					os: 'darwin',
+					version: '1.0.1',
 				};
 				delete peer.ip;
+				delete peer.os;
+				delete peer.version;
 
 				return peer;
 			});

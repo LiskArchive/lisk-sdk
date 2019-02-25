@@ -15,16 +15,14 @@
 import { expect } from 'chai';
 
 import { Peer } from '../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import { P2PPeerInfo } from '../../src/p2p_types';
 
 describe('peer', () => {
-	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
+	const defaultPeerInfo: P2PPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
-		os: 'darwin',
-		version: '1.1.0',
-		isDiscoveredPeer: true
+		isDiscoveredPeer: true,
 	};
 
 	const defaultPeer = new Peer(defaultPeerInfo);

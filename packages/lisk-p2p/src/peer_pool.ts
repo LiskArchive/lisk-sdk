@@ -26,7 +26,6 @@ import { RequestFailError } from './errors';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -95,9 +94,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
-	private readonly _handlePeerInfoUpdate: (
-		peerInfo: P2PDiscoveredPeerInfo,
-	) => void;
+	private readonly _handlePeerInfoUpdate: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private readonly _peerSelectForSendRequest: P2PPeerSelectionForSendRequest;
@@ -174,7 +171,7 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
-		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
+		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
 		};
@@ -250,13 +247,13 @@ export class PeerPool extends EventEmitter {
 	public async runDiscovery(
 		knownPeers: ReadonlyArray<P2PPeerInfo>,
 		blacklist: ReadonlyArray<P2PPeerInfo>,
-	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+	): Promise<ReadonlyArray<P2PPeerInfo>> {
 		const peersObjectList = knownPeers.map((peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (this.hasPeer(peerId)) {
 				const existingPeer = this.getPeer(peerId) as Peer;
 				if (peerInfo.isDiscoveredPeer) {
-					existingPeer.updatePeerInfo(peerInfo as P2PDiscoveredPeerInfo);
+					existingPeer.updatePeerInfo(peerInfo);
 				}
 
 				return existingPeer;
@@ -314,7 +311,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public addDiscoveredPeer(
-		detailedPeerInfo: P2PDiscoveredPeerInfo,
+		detailedPeerInfo: P2PPeerInfo,
 		inboundSocket?: SCServerSocket,
 	): Peer {
 		const peerConfig = {
@@ -335,7 +332,7 @@ export class PeerPool extends EventEmitter {
 
 	public addInboundPeer(
 		peerId: string,
-		peerInfo: P2PDiscoveredPeerInfo,
+		peerInfo: P2PPeerInfo,
 		socket: SCServerSocket,
 	): boolean {
 		const existingPeer = this.getPeer(peerId);
@@ -357,6 +354,7 @@ export class PeerPool extends EventEmitter {
 				ipAddress: peerInfo.ipAddress,
 				wsPort: peerInfo.wsPort,
 				height: peerInfo.height,
+				isDiscoveredPeer: false,
 			},
 			socket,
 		);
@@ -422,8 +420,7 @@ export class PeerPool extends EventEmitter {
 			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
 				.map(
 					(peer: Peer): ProtocolPeerInfo | undefined => {
-						const peerDetailedInfo: P2PDiscoveredPeerInfo | undefined =
-							peer.detailedPeerInfo;
+						const peerDetailedInfo: P2PPeerInfo | undefined = peer.peerInfo;
 
 						if (!peerDetailedInfo) {
 							return undefined;
@@ -439,8 +436,12 @@ export class PeerPool extends EventEmitter {
 							nonce: peerDetailedInfo.options
 								? (peerDetailedInfo.options.nonce as string)
 								: '',
-							os: peerDetailedInfo.os,
-							version: peerDetailedInfo.version,
+							os: peerDetailedInfo.discoveredInfo
+								? peerDetailedInfo.discoveredInfo.os
+								: '',
+							version: peerDetailedInfo.discoveredInfo
+								? peerDetailedInfo.discoveredInfo.version
+								: '',
 							httpPort: peerDetailedInfo.options
 								? (peerDetailedInfo.options.httpPort as number)
 								: undefined,

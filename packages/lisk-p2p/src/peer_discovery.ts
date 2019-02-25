@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PDiscoveredPeerInfo } from './p2p_types';
+import { P2PPeerInfo } from './p2p_types';
 import { constructPeerIdFromPeerInfo, Peer } from './peer';
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
@@ -22,23 +22,21 @@ export interface FilterPeerOptions {
 export const discoverPeers = async (
 	knownPeers: ReadonlyArray<Peer>,
 	filterPeerOptions: FilterPeerOptions = { blacklist: [] },
-): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> => {
+): Promise<ReadonlyArray<P2PPeerInfo>> => {
 	const peersOfPeer: ReadonlyArray<
-		ReadonlyArray<P2PDiscoveredPeerInfo>
+		ReadonlyArray<P2PPeerInfo>
 	> = await Promise.all(
-		knownPeers.map(
-			async peer => {
-				try {
-					return await peer.fetchPeers();
-				} catch (error) {
-					return [];
-				}
+		knownPeers.map(async peer => {
+			try {
+				return await peer.fetchPeers();
+			} catch (error) {
+				return [];
 			}
-		)
+		}),
 	);
 
 	const peersOfPeerFlat = peersOfPeer.reduce(
-		(flattenedPeersList: ReadonlyArray<P2PDiscoveredPeerInfo>, peersList) =>
+		(flattenedPeersList: ReadonlyArray<P2PPeerInfo>, peersList) =>
 			Array.isArray(peersList)
 				? [...flattenedPeersList, ...peersList]
 				: flattenedPeersList,
@@ -47,9 +45,11 @@ export const discoverPeers = async (
 
 	// Remove duplicates
 	const discoveredPeers = peersOfPeerFlat.reduce(
-		(uniquePeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>, peer: P2PDiscoveredPeerInfo) => {
+		(uniquePeersArray: ReadonlyArray<P2PPeerInfo>, peer: P2PPeerInfo) => {
 			const found = uniquePeersArray.find(
-				findPeer => constructPeerIdFromPeerInfo(findPeer) === constructPeerIdFromPeerInfo(peer),
+				findPeer =>
+					constructPeerIdFromPeerInfo(findPeer) ===
+					constructPeerIdFromPeerInfo(peer),
 			);
 
 			return found ? uniquePeersArray : [...uniquePeersArray, peer];
@@ -62,7 +62,7 @@ export const discoverPeers = async (
 	}
 	// Remove blacklist ids
 	const discoveredPeersFiltered = discoveredPeers.filter(
-		(peer: P2PDiscoveredPeerInfo) =>
+		(peer: P2PPeerInfo) =>
 			!filterPeerOptions.blacklist.includes(peer.ipAddress),
 	);
 

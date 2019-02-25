@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
+import { P2PPeerInfo } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
@@ -75,11 +76,12 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
-				const seedPeers = [
+				const seedPeers: ReadonlyArray<P2PPeerInfo> = [
 					{
 						ipAddress: '127.0.0.1',
 						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
 						height: 0,
+						isDiscoveredPeer: false,
 					},
 				];
 
@@ -151,11 +153,12 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
-				const seedPeers = [
+				const seedPeers: ReadonlyArray<P2PPeerInfo> = [
 					{
 						ipAddress: '127.0.0.1',
 						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
 						height: 0,
+						isDiscoveredPeer: false,
 					},
 				];
 
@@ -386,7 +389,7 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers =
+				const seedPeers: ReadonlyArray<P2PPeerInfo> =
 					index === 0
 						? []
 						: [
@@ -395,6 +398,7 @@ describe('Integration tests for P2P library', () => {
 									wsPort:
 										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
 									height: 0,
+									isDiscoveredPeer: false,
 								},
 						  ];
 

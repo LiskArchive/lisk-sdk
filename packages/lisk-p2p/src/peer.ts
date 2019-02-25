@@ -18,7 +18,6 @@ import * as querystring from 'querystring';
 import { RPCResponseError } from './errors';
 
 import {
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -122,7 +121,6 @@ export class Peer extends EventEmitter {
 	private readonly _height: number;
 	private _peerInfo: P2PPeerInfo;
 	private readonly _peerConfig: PeerConfig;
-	private _peerDetailedInfo: P2PDiscoveredPeerInfo | undefined;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
@@ -140,7 +138,11 @@ export class Peer extends EventEmitter {
 	) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
-	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig, inboundSocket?: SCServerSocket) {
+	public constructor(
+		peerInfo: P2PPeerInfo,
+		peerConfig?: PeerConfig,
+		inboundSocket?: SCServerSocket,
+	) {
 		super();
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig ? peerConfig : {};
@@ -252,30 +254,25 @@ export class Peer extends EventEmitter {
 		this._outboundSocket = scClientSocket;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
+	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
+			ipAddress: this._ipAddress,
+			wsPort: this._wsPort,
 			height: newPeerInfo.height,
-			ipAddress: this._peerInfo.ipAddress,
-			wsPort: this._peerInfo.wsPort,
-			isDiscoveredPeer: true,
-		};
-
-		this._peerDetailedInfo = {
-			...this._peerInfo,
-			os: newPeerInfo.os,
-			version: newPeerInfo.version,
+			discoveredInfo: {
+				os: newPeerInfo.discoveredInfo ? newPeerInfo.discoveredInfo.os : '',
+				version: newPeerInfo.discoveredInfo
+					? newPeerInfo.discoveredInfo.version
+					: '',
+			},
 			options: newPeerInfo.options,
-			isDiscoveredPeer: true
+			isDiscoveredPeer: true,
 		};
 	}
 
 	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
-	}
-
-	public get detailedPeerInfo(): P2PDiscoveredPeerInfo | undefined {
-		return this._peerDetailedInfo;
 	}
 
 	public get state(): PeerConnectionState {
@@ -397,8 +394,8 @@ export class Peer extends EventEmitter {
 								`Failed to handle response for procedure ${packet.procedure}`,
 								new Error('RPC response format was invalid'),
 								this.ipAddress,
-								this.wsPort
-							)
+								this.wsPort,
+							),
 						);
 					},
 				);
@@ -406,7 +403,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
@@ -423,7 +420,7 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public async fetchStatus(): Promise<P2PDiscoveredPeerInfo> {
+	public async fetchStatus(): Promise<P2PPeerInfo> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_NODE_INFO,
@@ -441,10 +438,10 @@ export class Peer extends EventEmitter {
 			);
 		}
 
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerDetailedInfo);
-		
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+
 		// Return the updated detailed peer info.
-		return this._peerDetailedInfo as P2PDiscoveredPeerInfo;
+		return this._peerInfo;
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
@@ -452,10 +449,12 @@ export class Peer extends EventEmitter {
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
 
-		const connectTimeout = this._peerConfig.connectTimeout ?
-			this._peerConfig.connectTimeout : DEFAULT_CONNECT_TIMEOUT;
-		const ackTimeout = this._peerConfig.ackTimeout ?
-			this._peerConfig.ackTimeout : DEFAULT_ACK_TIMEOUT;
+		const connectTimeout = this._peerConfig.connectTimeout
+			? this._peerConfig.connectTimeout
+			: DEFAULT_CONNECT_TIMEOUT;
+		const ackTimeout = this._peerConfig.ackTimeout
+			? this._peerConfig.ackTimeout
+			: DEFAULT_ACK_TIMEOUT;
 
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
@@ -569,12 +568,14 @@ export class Peer extends EventEmitter {
 			return;
 		}
 
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerDetailedInfo);
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 		request.end();
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
-		const legacyNodeInfo = this._nodeInfo ? convertNodeInfoToLegacyFormat(this._nodeInfo) : {};
+		const legacyNodeInfo = this._nodeInfo
+			? convertNodeInfoToLegacyFormat(this._nodeInfo)
+			: {};
 		request.end(legacyNodeInfo);
 	}
 }
