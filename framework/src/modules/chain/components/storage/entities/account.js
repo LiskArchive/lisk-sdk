@@ -82,11 +82,7 @@ class ChainAccount extends AccountEntity {
 
 		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
 
-		const cutomSQLs = this.loadSQLFiles('account', sqlFiles, this.sqlDirectory);
-		this.SQLs = {
-			...this.SQLs,
-			...cutomSQLs,
-		};
+		this.SQLs = this.loadSQLFiles('account', sqlFiles, this.sqlDirectory);
 	}
 
 	/**
