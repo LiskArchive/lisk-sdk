@@ -240,7 +240,7 @@ const DefaultConfig = {
 					type: 'integer',
 					minimum: 1,
 					maximum: 65535,
-					default: '5000',
+					default: 5000,
 				},
 				address: {
 					type: 'string',
@@ -253,6 +253,20 @@ const DefaultConfig = {
 				},
 				list: {
 					type: 'array',
+					items: {
+						type: 'object',
+						properties: {
+							ip: {
+								type: 'string',
+								format: 'ipOrFQDN',
+							},
+							wsPort: {
+								type: 'integer',
+								minimum: 1,
+								maximum: 65535,
+							},
+						},
+					},
 					default: [
 						{
 							ip: 'testnet-seed-01.lisk.io',
