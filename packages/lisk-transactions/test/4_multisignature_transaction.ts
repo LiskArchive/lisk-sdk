@@ -48,6 +48,9 @@ describe('Multisignature transaction class', () => {
 		nonMultisignatureSender = nonMultisignatureAccount;
 		multisignatureSender = validMultisignatureAccount;
 		storeAccountGetStub = sandbox
+			.stub(store.account, 'getOrDefault')
+			.returns(nonMultisignatureSender);
+		storeAccountGetStub = sandbox
 			.stub(store.account, 'get')
 			.returns(nonMultisignatureSender);
 		storeAccountSetStub = sandbox.stub(store.account, 'set');
@@ -283,6 +286,65 @@ describe('Multisignature transaction class', () => {
 		});
 	});
 
+	describe('#processMultisignatures', () => {
+		it('should return status ok if all signatures are present', async () => {
+			storeAccountGetStub.returns(nonMultisignatureSender);
+			const invalidTransaction = {
+				...validMultisignatureTransaction,
+			};
+			const transaction = new MultisignatureTransaction(invalidTransaction);
+
+			const { status, errors } = transaction.processMultisignatures(store);
+			expect(status).to.equal(Status.OK);
+			expect(errors).to.be.empty;
+		});
+
+		it('should return error with pending status when signatures does not include all keysgroup', async () => {
+			storeAccountGetStub.returns(nonMultisignatureSender);
+			const invalidTransaction = {
+				...validMultisignatureTransaction,
+				signatures: validMultisignatureTransaction.signatures.slice(1),
+			};
+			const transaction = new MultisignatureTransaction(invalidTransaction);
+
+			const { status, errors } = transaction.processMultisignatures(store);
+			expect(status).to.equal(Status.PENDING);
+			expect(errors).to.have.lengthOf(1);
+			expect(errors[0].dataPath).to.be.equal('.signatures');
+		});
+
+		it('should return error with pending status when transaction signatures missing', async () => {
+			storeAccountGetStub.returns(nonMultisignatureSender);
+			const invalidTransaction = {
+				...validMultisignatureTransaction,
+				signatures: [],
+			};
+			const transaction = new MultisignatureTransaction(invalidTransaction);
+
+			const { status, errors } = transaction.processMultisignatures(store);
+			expect(status).to.equal(Status.PENDING);
+			expect(errors).to.have.lengthOf(1);
+			expect(errors[0].dataPath).to.be.equal('.signatures');
+		});
+
+		it('should return error with fail status when transaction signatures are duplicated', async () => {
+			storeAccountGetStub.returns(nonMultisignatureSender);
+			const invalidTransaction = {
+				...validMultisignatureTransaction,
+				signatures: [
+					...validMultisignatureTransaction.signatures,
+					...validMultisignatureTransaction.signatures.slice(0, 1),
+				],
+			};
+			const transaction = new MultisignatureTransaction(invalidTransaction);
+
+			const { status, errors } = transaction.processMultisignatures(store);
+			expect(status).to.equal(Status.FAIL);
+			expect(errors).to.have.lengthOf(1);
+			expect(errors[0].dataPath).to.be.equal('.signatures');
+		});
+	});
+
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
 			(validTestTransaction as any).applyAsset(store);
@@ -318,18 +380,6 @@ describe('Multisignature transaction class', () => {
 			};
 			storeAccountGetStub.returns(invalidSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.signatures');
-		});
-
-		it('should return error when transaction signatures missing', async () => {
-			storeAccountGetStub.returns(nonMultisignatureSender);
-			const invalidTransaction = {
-				...validMultisignatureTransaction,
-				signatures: [],
-			};
-			const transaction = new MultisignatureTransaction(invalidTransaction);
-			const errors = (transaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.signatures');
 		});
