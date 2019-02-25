@@ -5,4 +5,5 @@ module.exports = {
 	testMatch: [
 		'<rootDir>/framework/test/jest/specs/integration/**/*.(spec|test).js',
 	],
+	coverageDirectory: '.coverage/integration',
 };

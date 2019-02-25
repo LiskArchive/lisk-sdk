@@ -4,4 +4,5 @@ module.exports = {
 	...base,
 	testMatch: ['<rootDir>/framework/test/jest/specs/unit/**/*.(spec|test).js'],
 	clearMocks: true,
+	coverageDirectory: '.coverage/unit',
 };

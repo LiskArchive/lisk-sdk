@@ -5,4 +5,5 @@ module.exports = {
 	testMatch: [
 		'<rootDir>/framework/test/jest/specs/functional/**/*.(spec|test).js',
 	],
+	coverageDirectory: '.coverage/functional',
 };
