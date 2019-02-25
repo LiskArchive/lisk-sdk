@@ -505,7 +505,7 @@ DApp.prototype.dbRead = function(raw) {
  */
 DApp.prototype.afterSave = function(transaction, cb) {
 	if (__scope.channel) {
-		__scope.channel.publish('dapps:change', {});
+		__scope.channel.publish('chain:dapps:change', {});
 	}
 	return setImmediate(cb);
 };

@@ -234,18 +234,18 @@ module.exports = class Chain {
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),
 			getForgersKeyPairs: async () =>
 				this.scope.modules.delegates.getForgersKeyPairs(),
-			getUnprocessedTransactions: async action =>
-				this.scope.modules.transactions.getUnprocessedTransactions(
+			getUnProcessedTransactions: async action =>
+				this.scope.modules.transactions.shared.getUnProcessedTransactions(
 					action.params[0],
 					action.params[1]
 				),
 			getUnconfirmedTransactions: async action =>
-				this.scope.modules.transactions.getUnconfirmedTransactions(
+				this.scope.modules.transactions.shared.getUnconfirmedTransactions(
 					action.params[0],
 					action.params[1]
 				),
 			getMultisignatureTransactions: async action =>
-				this.scope.modules.transactions.getMultisignatureTransactions(
+				this.scope.modules.transactions.shared.getMultisignatureTransactions(
 					action.params[0],
 					action.params[1]
 				),

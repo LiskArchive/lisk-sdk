@@ -2,7 +2,6 @@ const rewire = require('rewire');
 const genesisDelegates = require('../../../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const application = require('../../../../../common/application');
-const BlockReward = require('../../../../../../../src/modules/chain/logic/block_reward');
 
 const RewiredNodeController = rewire(
 	'../../../../../../../../framework/src/modules/http_api/controllers/node'
@@ -32,22 +31,18 @@ describe('node/api', () => {
 
 	describe('constructor', () => {
 		describe('library', () => {
-			it('should assign modules', () => {
-				return expect(privateLibrary).to.have.property(
-					'modules',
-					library.modules
-				);
-			});
-
 			it('should assign storage', () => {
-				return expect(privateLibrary).to.have.property(
-					'storage',
+				return expect(privateLibrary).to.have.nested.property(
+					'components.storage',
 					library.components.storage
 				);
 			});
 
-			it('should assign build', () => {
-				return expect(privateLibrary).to.have.property('build', library.build);
+			it('should assign system', () => {
+				return expect(privateLibrary).to.have.nested.property(
+					'components.system',
+					library.components.system
+				);
 			});
 
 			it('should assign config', () => {
@@ -56,16 +51,13 @@ describe('node/api', () => {
 					library.config
 				);
 			});
-		});
 
-		it('should assign blockReward', () => {
-			const blockReward = RewiredNodeController.__get__('blockReward');
-			return expect(blockReward).to.not.be.undefined;
-		});
-
-		it('should assign blockReward with BlockReward instance', () => {
-			const blockReward = RewiredNodeController.__get__('blockReward');
-			return expect(blockReward).to.be.an.instanceof(BlockReward);
+			it('should assign channel', () => {
+				return expect(privateLibrary).to.have.property(
+					'channel',
+					library.channel
+				);
+			});
 		});
 	});
 

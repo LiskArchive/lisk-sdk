@@ -226,7 +226,7 @@ NodeController.getPooledTransactions = function(context, next) {
 	const state = context.request.swagger.params.state.value;
 
 	const stateMap = {
-		unprocessed: 'getUnprocessedTransactions',
+		unprocessed: 'getUnProcessedTransactions',
 		unconfirmed: 'getUnconfirmedTransactions',
 		unsigned: 'getMultisignatureTransactions',
 	};

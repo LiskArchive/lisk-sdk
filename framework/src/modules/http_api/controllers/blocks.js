@@ -179,12 +179,12 @@ function _list(params, cb) {
 	return (
 		library.storage.entities.Block.get(filters, options)
 			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-			.then(rows =>
+			.then(async rows =>
 				setImmediate(
 					cb,
 					null,
-					rows.map(async row =>
-						library.channel.invoke('chain:storageRead', [row])
+					await Promise.all(
+						rows.map(row => library.channel.invoke('chain:storageRead', [row]))
 					)
 				)
 			)

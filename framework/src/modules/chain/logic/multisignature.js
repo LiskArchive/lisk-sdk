@@ -581,7 +581,7 @@ Multisignature.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
-	__scope.channel.publish('multisignatures:change', transaction);
+	__scope.channel.publish('chain:multisignatures:change', transaction);
 	return setImmediate(cb);
 };
 
