@@ -72,7 +72,7 @@ describe('ChainAccount', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.db,
-			'lisk_test_storage_custom_accounts_chain_module'
+			'lisk_test_storage_custom_account_chain_module'
 		);
 		await storage.bootstrap();
 
