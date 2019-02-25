@@ -154,6 +154,36 @@ class ChainBlock extends BlockEntity {
 			)
 			.then(result => result);
 	}
+
+	/**
+	 * Get IDs of first block of last (n) rounds, descending order
+	 * EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
+	 *
+	 * @param {Object} filters = {} - Filters to filter data
+	 * @param {string} filters.height - Block height
+	 * @param {Number} [filters.numberOfDelegates] - Total number of delegates
+	 * @param {Number} [filters.numberOfRounds = 5] - Last # of rounds
+	 * @param {Object} tx - Database transaction object
+	 * @return {Promise.<DatabaseRow, Error>}
+	 */
+	getFirstBlockIdOfLastRounds(filters) {
+		assert(
+			filters && filters.height && filters.numberOfDelegates,
+			'filters must be an object and contain height and numberOfDelegates'
+		);
+
+		const parseFilters = {
+			height: filters.height,
+			numberOfDelegates: filters.numberOfDelegates,
+			numberOfRounds: filters.numberOfRounds || 5,
+		};
+
+		return this.adapter.executeFile(
+			this.SQLs.getFirstBlockIdOfLastRounds,
+			parseFilters,
+			{}
+		);
+	}
 }
 
 module.exports = ChainBlock;

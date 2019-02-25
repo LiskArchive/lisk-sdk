@@ -260,4 +260,8 @@ describe('Block', () => {
 			expect(remainingBlock).to.be.empty;
 		});
 	});
+
+	describe('getFirstBlockIdOfLastRounds', () => {
+		it('should get first block id of last rounds');
+	});
 });
