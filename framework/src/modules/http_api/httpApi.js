@@ -83,13 +83,12 @@ module.exports = class HttpApi {
 			httpServer,
 			httpsServer,
 			wsServer,
-			wssServer,
 		} = await setupServers(this.scope);
 		// Bootstrap Swagger and attaches it to Express app
 		await bootstrapSwagger(this.scope, expressApp);
 		// Start listening for HTTP(s) requests
 		await startListening(this.scope, { httpServer, httpsServer });
-		// Subsribe to channel events
-		subscribeToEvents(this.scope, { wsServer, wssServer });
+		// Subscribe to channel events
+		subscribeToEvents(this.scope, wsServer);
 	}
 };
