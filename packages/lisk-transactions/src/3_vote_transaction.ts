@@ -277,7 +277,7 @@ export class VoteTransaction extends BaseTransaction {
 				);
 			}
 		});
-		const senderVotes = sender.votes || [];
+		const senderVotes = sender.votedDelegatesPublicKeys || [];
 		this.asset.votes.forEach(vote => {
 			const action = vote.charAt(0);
 			const publicKey = vote.substring(1);
@@ -299,21 +299,24 @@ export class VoteTransaction extends BaseTransaction {
 		const unvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UNVOTE)
 			.map(vote => vote.substring(1));
-		const originalVotes = sender.votes || [];
-		const votes: ReadonlyArray<string> = [...originalVotes, ...upvotes].filter(
-			vote => !unvotes.includes(vote),
-		);
-		if (votes.length > MAX_VOTE_PER_ACCOUNT) {
+		const originalVotes = sender.votedDelegatesPublicKeys || [];
+		const votedDelegatesPublicKeys: ReadonlyArray<string> = [
+			...originalVotes,
+			...upvotes,
+		].filter(vote => !unvotes.includes(vote));
+		if (votedDelegatesPublicKeys.length > MAX_VOTE_PER_ACCOUNT) {
 			errors.push(
 				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}.`,
+					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${
+						votedDelegatesPublicKeys.length
+					}.`,
 					this.id,
 				),
 			);
 		}
 		const updatedSender = {
 			...sender,
-			votes,
+			votedDelegatesPublicKeys,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -329,21 +332,24 @@ export class VoteTransaction extends BaseTransaction {
 		const unvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UNVOTE)
 			.map(vote => vote.substring(1));
-		const originalVotes = sender.votes || [];
-		const votes: ReadonlyArray<string> = [...originalVotes, ...unvotes].filter(
-			vote => !upvotes.includes(vote),
-		);
-		if (votes.length > MAX_VOTE_PER_ACCOUNT) {
+		const originalVotes = sender.votedDelegatesPublicKeys || [];
+		const votedDelegatesPublicKeys: ReadonlyArray<string> = [
+			...originalVotes,
+			...unvotes,
+		].filter(vote => !upvotes.includes(vote));
+		if (votedDelegatesPublicKeys.length > MAX_VOTE_PER_ACCOUNT) {
 			errors.push(
 				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votes.length}.`,
+					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${
+						votedDelegatesPublicKeys.length
+					}.`,
 					this.id,
 				),
 			);
 		}
 		const updatedSender = {
 			...sender,
-			votes,
+			votedDelegatesPublicKeys,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
