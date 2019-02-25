@@ -137,7 +137,7 @@ const middleware = {
 	 * @todo Add @returns tag
 	 */
 	applyAPIAccessRules(config, req, res, next) {
-		if (!config.api.enabled) {
+		if (!config.enabled) {
 			return res.status(apiCodes.FORBIDDEN).send({
 				message: 'API access disabled',
 				errors: ['API is not enabled in this node.'],
@@ -145,8 +145,8 @@ const middleware = {
 		}
 
 		if (
-			!config.api.access.public &&
-			!checkIpInList(config.api.access.whiteList, req.ip)
+			!config.access.public &&
+			!checkIpInList(config.access.whiteList, req.ip)
 		) {
 			return res.status(apiCodes.FORBIDDEN).send({
 				message: 'API access denied',
@@ -154,7 +154,7 @@ const middleware = {
 			});
 		}
 
-		if (config.api.mode === 'READONLY' && req.method !== 'GET') {
+		if (config.mode === 'READONLY' && req.method !== 'GET') {
 			return res.status(apiCodes.FORBIDDEN).send({
 				message: 'API write access denied',
 				errors: ['API write access blocked.'],

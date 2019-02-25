@@ -13,7 +13,7 @@ const {
 
 module.exports = class HttpApi {
 	constructor(channel, options) {
-		options.config.root = __dirname; // TODO: See wy root comes defined for the chain module.
+		options.root = __dirname; // TODO: See wy root comes defined for the chain module.
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
@@ -71,7 +71,7 @@ module.exports = class HttpApi {
 				system,
 			},
 			channel: this.channel,
-			config: this.options.config,
+			config: this.options,
 		};
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
