@@ -1854,7 +1854,8 @@ describe('Account', async () => {
 		});
 	});
 
-	describe('createDependentRecord()', async () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('createDependentRecord()', async () => {
 		it('should throw error if wrong dependency is passed', async () => {
 			expect(() =>
 				AccountEntity.createDependentRecord('unknown', '12L', '12345')
@@ -2105,6 +2106,58 @@ describe('Account', async () => {
 				expect(AccountEntity.insertFork(params)).to.be.eventually.rejectedWith(
 					`Property '${attr}' doesn't exist.`
 				));
+		});
+	});
+
+	describe('updateDependentRecords', () => {
+		it('should update mem_accounts2multisignatures if membersPublicKeys present', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.membersPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
+				'SELECT * FROM mem_accounts2multisignatures'
+			);
+			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
+		});
+
+		it('should update mem_accounts2delegates if votedDelegatesPublicKeys present', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				'SELECT * FROM mem_accounts2delegates'
+			);
+			expect(expectedRelatedRecords).to.be.eql(
+				votedDelegatesPublicKeysDependentRecords
+			);
 		});
 	});
 });
