@@ -90,7 +90,7 @@ describe('Transaction', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.db,
-			'lisk_test_transactions'
+			'lisk_test_storage_custom_transaction_chain_module'
 		);
 		await storage.bootstrap();
 
@@ -238,7 +238,9 @@ describe('Transaction', () => {
 
 	it('should be a constructable function', async () => {
 		expect(Transaction.prototype.constructor).not.to.be.null;
-		expect(Transaction.prototype.constructor.name).to.be.eql('Transaction');
+		expect(Transaction.prototype.constructor.name).to.be.eql(
+			'ChainTransaction'
+		);
 	});
 
 	it('should extend BaseEntity', async () => {

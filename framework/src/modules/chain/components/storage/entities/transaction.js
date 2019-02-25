@@ -15,7 +15,6 @@
 'use strict';
 
 const path = require('path');
-const _ = require('lodash');
 const {
 	Transaction: TransactionEntity,
 } = require('../../../../../components/storage/entities/');
@@ -144,7 +143,7 @@ const trsCreateFields = [
 	'transferData',
 ];
 
-class Transaction extends TransactionEntity {
+class ChainTransaction extends TransactionEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
@@ -167,7 +166,7 @@ class Transaction extends TransactionEntity {
 	 * @return {*}
 	 */
 	create(data, _options, tx) {
-		const transactions = Transaction._sanitizeCreateData(data);
+		const transactions = ChainTransaction._sanitizeCreateData(data);
 
 		const createSet = this.getValuesSet(transactions, trsCreateFields);
 
@@ -285,4 +284,4 @@ class Transaction extends TransactionEntity {
 	}
 }
 
-module.exports = Transaction;
+module.exports = ChainTransaction;
