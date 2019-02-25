@@ -17,8 +17,12 @@
 const constants = require('./constants');
 const Cache = require('./cache');
 const { config: DefaultConfig } = require('./defaults');
+const validator = require('../../controller/helpers/validator');
 
 function createCacheComponent(options, logger) {
+	validator.loadSchema(DefaultConfig);
+	validator.validate(DefaultConfig, options);
+
 	// delete password key if it's value is null
 	const cacheConfigParam = { ...options };
 	if (cacheConfigParam.password === null) {
