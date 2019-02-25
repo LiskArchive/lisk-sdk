@@ -1,7 +1,14 @@
 import { EventEmitter } from 'events';
+import { Account } from './account';
 import { Block, createBlock } from './block';
 import { getBlockHeaderByHeight } from './repo';
-import { applyReward, Reward, RewardsOption, calculateRewawrd } from './reward';
+import {
+	applyReward,
+	calculateRewawrd,
+	Reward,
+	RewardsOption,
+	undoReward,
+} from './reward';
 import { StateStore } from './state_store';
 import { rawTransactionToInstance } from './transactions';
 import {
@@ -150,5 +157,27 @@ export class Blockchain extends EventEmitter {
 			passphrase,
 			txMap: this._txMap,
 		});
+	}
+
+	public async getCandidates(num: number): Promise<ReadonlyArray<Account>> {
+		return [];
+	}
+
+	private async _deleteBlock(): Promise<ReadonlyArray<Error> | undefined> {
+		const store = new StateStore(this._db, this.lastBlock);
+		const newLastBlockHeight = this.lastBlock.height - 1;
+		const undoError = await this.lastBlock.undo(store);
+		if (undoError) {
+			return undoError;
+		}
+		// Check if last block had reward
+		await undoReward(store, []);
+		await store.finalize();
+
+		// TODO: Change to full block
+		const blockHeader = getBlockHeaderByHeight(this._db, newLastBlockHeight);
+		this._lastBlock = new Block(blockHeader);
+
+		return undefined;
 	}
 }
