@@ -41,7 +41,7 @@ __scope.unconfirmedAscii = {};
  * @param {Storage} scope.components.storage
  * @param {logger} scope.components.logger
  * @param {ZSchema} scope.schema
- * @param {Object} scope.network
+ * @param {Object} scope.channel
  * @todo Add description for the params
  */
 class DApp {
@@ -505,7 +505,7 @@ DApp.prototype.dbRead = function(raw) {
  */
 DApp.prototype.afterSave = function(transaction, cb) {
 	if (__scope.channel) {
-		__scope.channel.publish('dapps:change');
+		__scope.channel.publish('dapps:change', {});
 	}
 	return setImmediate(cb);
 };

@@ -33,6 +33,7 @@ const rawValidTransaction = testData.rawValidTransaction;
 describe('dapp', () => {
 	let dapp;
 	let storageStub;
+	let channelStub;
 
 	let transaction;
 	let rawTransaction;
@@ -47,15 +48,24 @@ describe('dapp', () => {
 				},
 			},
 		};
+
+		channelStub = {
+			publish: sinonSandbox.stub(),
+		};
+
 		dapp = new Dapp({
 			components: {
 				storage: storageStub,
 				logger: modulesLoader.scope.components.logger,
 			},
-			network: modulesLoader.scope.network,
+			channel: channelStub,
 			schema: modulesLoader.scope.schema,
 		});
 		done();
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('with dummy data', () => {
@@ -76,7 +86,7 @@ describe('dapp', () => {
 							storage: storageStub,
 							logger: modulesLoader.scope.components.logger,
 						},
-						network: modulesLoader.scope.network,
+						channel: channelStub,
 						schema: modulesLoader.scope.schema,
 					});
 					__scope = Dapp.__get__('__scope');
@@ -94,8 +104,18 @@ describe('dapp', () => {
 						modulesLoader.scope.components.logger
 					));
 
-				it('should be loaded network from modulesLoader', async () =>
-					expect(__scope.network).to.eql(modulesLoader.scope.network));
+				it('should be loaded channel stub object', async () =>
+					expect(__scope.channel).to.eql(channelStub));
+			});
+		});
+
+		describe('afterSave', () => {
+			beforeEach(async () => {
+				dapp.afterSave(null, () => {});
+			});
+
+			it('should call __scope.channel.publish with "dapps:change"', async () => {
+				expect(channelStub.publish).to.be.calledWith('dapps:change');
 			});
 		});
 

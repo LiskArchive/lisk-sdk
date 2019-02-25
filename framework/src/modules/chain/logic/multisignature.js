@@ -46,7 +46,7 @@ __scope.unconfirmedSignatures = {};
  * @param {Transaction} scope.logic.transaction
  * @param {Account} scope.logic.account
  * @param {ZSchema} scope.schema
- * @param {Object} scope.network
+ * @param {Object} scope.channel
  * @todo Add description for the params
  */
 class Multisignature {

@@ -46,6 +46,7 @@ describe('multisignature', () => {
 	let transaction;
 	let rawTransaction;
 	let sender;
+	let channelStub;
 
 	beforeEach(() => {
 		transactionMock = {
@@ -60,6 +61,9 @@ describe('multisignature', () => {
 				.returns(lisk.cryptography.getKeys(randomUtil.password()).publicKey),
 			setAccountAndGet: sinonSandbox.stub().callsArg(1),
 		};
+		channelStub = {
+			publish: sinonSandbox.stub(),
+		};
 		transaction = _.cloneDeep(validTransaction);
 		rawTransaction = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
@@ -73,7 +77,7 @@ describe('multisignature', () => {
 				logger: modulesLoader.logger,
 			},
 			schema: modulesLoader.scope.schema,
-			network: modulesLoader.scope.network,
+			channel: channelStub,
 			logic: {
 				transaction: transactionMock,
 				account: accountMock,
@@ -85,6 +89,7 @@ describe('multisignature', () => {
 	afterEach(() => {
 		accountMock.merge.resetHistory();
 		accountsMock.generateAddressByPublicKey.resetHistory();
+		sinonSandbox.restore();
 		return accountsMock.setAccountAndGet.resetHistory();
 	});
 
@@ -97,7 +102,7 @@ describe('multisignature', () => {
 					logger: modulesLoader.logger,
 				},
 				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
+				channel: channelStub,
 				logic: {
 					transaction: transactionMock,
 					account: accountMock,
@@ -110,8 +115,8 @@ describe('multisignature', () => {
 		it('should attach schema to __scope', async () =>
 			expect(__scope.schema).to.eql(modulesLoader.scope.schema));
 
-		it('should attach network to __scope', async () =>
-			expect(__scope.network).to.eql(modulesLoader.scope.network));
+		it('should attach channel to __scope', async () =>
+			expect(__scope.channel).to.eql(channelStub));
 
 		it('should attach logger to __scope.components', async () =>
 			expect(__scope.components.logger).to.eql(modulesLoader.logger));
@@ -121,6 +126,23 @@ describe('multisignature', () => {
 
 		it('should attach account to __scope.logic', async () =>
 			expect(__scope.logic.account).to.eql(accountMock));
+	});
+
+	describe('afterSave', () => {
+		const dummyTransaction = {
+			id: 'aTransactionId',
+		};
+
+		beforeEach(async () => {
+			multisignature.afterSave(dummyTransaction, () => {});
+		});
+
+		it('should call __scope.channel.publish with "multisignatures:change" and transaction object', async () => {
+			expect(channelStub.publish).to.be.calledWithExactly(
+				'multisignatures:change',
+				dummyTransaction
+			);
+		});
 	});
 
 	describe('bind', () => {
