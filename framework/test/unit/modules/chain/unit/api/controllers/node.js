@@ -4,9 +4,7 @@ const accountFixtures = require('../../../../../../fixtures/accounts');
 const application = require('../../../../../../common/application');
 const BlockReward = require('../../../../../../../src/modules/chain/logic/block_reward');
 
-const RewiredNodeController = rewire(
-	'../../../../../../../src/modules/chain/api/controllers/node.js'
-);
+const RewiredNodeController = rewire('../../../../../../../src/modules/chain/api/controllers/node.js');
 
 describe('node/api', () => {
 	const testDelegate = genesisDelegates.delegates[0];
@@ -33,17 +31,11 @@ describe('node/api', () => {
 	describe('constructor', () => {
 		describe('library', () => {
 			it('should assign modules', () => {
-				return expect(privateLibrary).to.have.property(
-					'modules',
-					library.modules
-				);
+				return expect(privateLibrary).to.have.property('modules', library.modules);
 			});
 
 			it('should assign storage', () => {
-				return expect(privateLibrary).to.have.property(
-					'storage',
-					library.storage
-				);
+				return expect(privateLibrary).to.have.property('storage', library.storage);
 			});
 
 			it('should assign build', () => {
@@ -74,9 +66,7 @@ describe('node/api', () => {
 
 		before(done => {
 			__private = {
-				updateForgingStatus: RewiredNodeController.__get__(
-					'_updateForgingStatus'
-				),
+				updateForgingStatus: RewiredNodeController.__get__('_updateForgingStatus'),
 				getForgingStatus: RewiredNodeController.__get__('_getForgingStatus'),
 			};
 			done();
@@ -89,41 +79,34 @@ describe('node/api', () => {
 			});
 
 			it('should return error with invalid password', () => {
-				return expect(
-					__private.updateForgingStatus(testDelegate.publicKey),
-					'Invalid password',
-					true
-				).to.eventually.be.rejectedWith(
-					'Invalid password and public key combination'
-				);
+				return expect(__private.updateForgingStatus(testDelegate.publicKey), 'Invalid password', true)
+					.to.eventually.be.rejectedWith('Invalid password and public key combination');
 			});
 
 			it('should return error with invalid publicKey', () => {
 				const invalidPublicKey =
 					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
-				return expect(
-					__private.updateForgingStatus(invalidPublicKey, defaultPassword, true)
-				).to.eventually.be.rejectedWith(
+				return expect(__private.updateForgingStatus(
+					invalidPublicKey,
+					defaultPassword,
+					true
+				)).to.eventually.be.rejectedWith(
 					'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
 				);
 			});
 
 			it('should return error with non delegate account', () => {
-				return expect(
-					__private.updateForgingStatus(
-						accountFixtures.genesis.publicKey,
-						accountFixtures.genesis.password,
-						true
-					)
-				).to.eventually.be.rejectedWith(
+				return expect(__private.updateForgingStatus(
+					accountFixtures.genesis.publicKey,
+					accountFixtures.genesis.password,
+					true
+				)).to.eventually.be.rejectedWith(
 					'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
 				);
 			});
 
 			it('should update forging from enabled to disabled', async () => {
-				const forgingStatus = await __private.getForgingStatus(
-					testDelegate.publicKey
-				);
+				const forgingStatus = await __private.getForgingStatus(testDelegate.publicKey);
 				if (forgingStatus.length) {
 					let result = await __private.updateForgingStatus(
 						testDelegate.publicKey,
@@ -150,9 +133,7 @@ describe('node/api', () => {
 			});
 
 			it('should update forging from disabled to enabled', async () => {
-				const forgingStatus = await __private.getForgingStatus(
-					testDelegate.publicKey
-				);
+				const forgingStatus = await __private.getForgingStatus(testDelegate.publicKey);
 				if (forgingStatus.length) {
 					let result = await __private.updateForgingStatus(
 						testDelegate.publicKey,
@@ -186,15 +167,11 @@ describe('node/api', () => {
 					forging: true,
 					publicKey: testDelegate.publicKey,
 				});
-				expect(forgingStatus.length).to.equal(
-					genesisDelegates.delegates.length
-				);
+				expect(forgingStatus.length).to.equal(genesisDelegates.delegates.length);
 			});
 
 			it('should return delegate status when publicKey is provided', async () => {
-				const forgingStatus = await __private.getForgingStatus(
-					testDelegate.publicKey
-				);
+				const forgingStatus = await __private.getForgingStatus(testDelegate.publicKey);
 				expect(forgingStatus[0]).to.deep.equal({
 					forging: true,
 					publicKey: testDelegate.publicKey,
@@ -203,11 +180,7 @@ describe('node/api', () => {
 			});
 
 			it('should return delegate status when publicKey is provided and updated forging from enabled to disabled', async () => {
-				const result = await __private.updateForgingStatus(
-					testDelegate.publicKey,
-					defaultPassword,
-					false
-				);
+				const result = await __private.updateForgingStatus(testDelegate.publicKey, defaultPassword, false);
 				expect(result).to.deep.equal({
 					publicKey: testDelegate.publicKey,
 					forging: false,
@@ -231,17 +204,13 @@ describe('node/api', () => {
 					forging: false,
 					publicKey: testDelegate.publicKey,
 				});
-				expect(forgingStatus.length).to.equal(
-					genesisDelegates.delegates.length
-				);
+				expect(forgingStatus.length).to.equal(genesisDelegates.delegates.length);
 			});
 
 			it('should return empty array when invalid publicKey is provided', async () => {
 				const invalidPublicKey =
 					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
-				const forgingStatus = await __private.getForgingStatus(
-					invalidPublicKey
-				);
+				const forgingStatus = await __private.getForgingStatus(invalidPublicKey);
 				expect(forgingStatus.length).to.equal(0);
 			});
 		});

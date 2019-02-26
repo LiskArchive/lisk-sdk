@@ -267,30 +267,25 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				const ids = res.ids;
 				// Perform request to supplied remote peer
 				peer = library.logic.peers.create(peer);
-				peer.rpc.blocksCommon(
-					{
-						ids,
-					},
-					(err, blocksCommonRes) => {
-						if (err) {
-							modules.peers.remove(peer);
-							return setImmediate(waterCb, err);
-						}
-
-						if (!blocksCommonRes.common) {
-							// FIXME: Need better checking here, is base on 'common' property enough?
-							comparisonFailed = true;
-							return setImmediate(
-								waterCb,
-								`Chain comparison failed with peer: ${
-									peer.string
-								} using ids: ${ids}`
-							);
-						}
-
-						return setImmediate(waterCb, null, blocksCommonRes.common);
+				peer.rpc.blocksCommon({ ids }, (err, blocksCommonRes) => {
+					if (err) {
+						modules.peers.remove(peer);
+						return setImmediate(waterCb, err);
 					}
-				);
+
+					if (!blocksCommonRes.common) {
+						// FIXME: Need better checking here, is base on 'common' property enough?
+						comparisonFailed = true;
+						return setImmediate(
+							waterCb,
+							`Chain comparison failed with peer: ${
+								peer.string
+							} using ids: ${ids}`
+						);
+					}
+
+					return setImmediate(waterCb, null, blocksCommonRes.common);
+				});
 			},
 			function(common, waterCb) {
 				// Check if we received genesis block - before response validation, as genesis block have previousBlock = null
@@ -450,10 +445,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 
 	function getFromPeer(seriesCb) {
 		peer.rpc.blocks(
-			{
-				lastBlockId: lastValidBlock.id,
-				peer: library.logic.peers.me(),
-			},
+			{ lastBlockId: lastValidBlock.id, peer: library.logic.peers.me() },
 			(err, res) => {
 				err = err || res.error;
 				if (err) {
