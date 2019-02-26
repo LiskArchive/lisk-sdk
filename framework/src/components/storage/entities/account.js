@@ -449,12 +449,9 @@ class Account extends BaseEntity {
 			updateSet,
 		};
 
-		const membersPublicKeys = data.membersPublicKeys || [];
-		const votedDelegatesPublicKeys = data.votedDelegatesPublicKeys || [];
-
 		const dependentRecordPromises = [];
 
-		if (membersPublicKeys.length > 0) {
+		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
 			dependentRecordPromises.push(
 				this.updateDependentRecords(
 					'membersPublicKeys',
@@ -465,7 +462,10 @@ class Account extends BaseEntity {
 			);
 		}
 
-		if (votedDelegatesPublicKeys.length > 0) {
+		if (
+			data.votedDelegatesPublicKeys &&
+			data.votedDelegatesPublicKeys.length > 0
+		) {
 			dependentRecordPromises.push(
 				this.updateDependentRecords(
 					'votedDelegatesPublicKeys',
@@ -477,7 +477,10 @@ class Account extends BaseEntity {
 		}
 
 		// Account remove all votes
-		if (votedDelegatesPublicKeys.length === 0) {
+		if (
+			data.votedDelegatesPublicKeys &&
+			data.votedDelegatesPublicKeys.length === 0
+		) {
 			dependentRecordPromises.push(
 				this.adapter.executeFile(
 					this.SQLs.deleteVotes,
@@ -737,9 +740,8 @@ class Account extends BaseEntity {
 		);
 
 		const sqlForDelete = this.SQLs.deleteDependentRecords;
-
-		const tableName = dependentFieldsTableMap[dependencyName];
 		const sqlForInsert = this.SQLs.createDependentRecords;
+		const tableName = dependentFieldsTableMap[dependencyName];
 
 		return this.adapter
 			.execute(
@@ -747,25 +749,23 @@ class Account extends BaseEntity {
 				[address]
 			)
 			.then(dependentRecordsForAddress => {
+				const dependentRecordPromises = [];
 				const oldDependentPublicKeys = dependentRecordsForAddress.map(
 					dependentRecord => dependentRecord.dependentId
 				);
-				const toRemove = oldDependentPublicKeys.filter(
+				const publicKeysToBeRemoved = oldDependentPublicKeys.filter(
 					aPK => !dependentPublicKeys.includes(aPK)
 				);
-				const toInsert = dependentPublicKeys.filter(
+				const publicKeysToBeInserted = dependentPublicKeys.filter(
 					aPK => !oldDependentPublicKeys.includes(aPK)
 				);
-
 				const paramsForDelete = {
 					tableName: dependentFieldsTableMap[dependencyName],
 					accountId: address,
-					dependentIds: toRemove,
+					dependentIds: publicKeysToBeRemoved,
 				};
 
-				const dependentRecordPromises = [];
-
-				if (toRemove.length > 0) {
+				if (publicKeysToBeRemoved.length > 0) {
 					dependentRecordPromises.push(
 						this.adapter.executeFile(
 							sqlForDelete,
@@ -776,8 +776,8 @@ class Account extends BaseEntity {
 					);
 				}
 
-				if (toInsert.length > 0) {
-					const valuesForInsert = toInsert.map(dependentId => ({
+				if (publicKeysToBeInserted.length > 0) {
+					const valuesForInsert = publicKeysToBeInserted.map(dependentId => ({
 						accountId: address,
 						dependentId,
 					}));
