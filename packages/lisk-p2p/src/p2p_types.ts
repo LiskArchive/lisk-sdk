@@ -35,23 +35,18 @@ export interface P2PInfoOptions {
 	readonly [key: string]: unknown;
 }
 
-// P2PPeerInfo and P2PNodeInfo are related.
-// P2PPeerInfo is the inbound info from a peer.
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
-	readonly height: number;
-	// This is necessary because PeerInfo for a tried peer will likely have more properties.
-	readonly isDiscoveredPeer: boolean;
-	// This is done to keep the P2P library general-purpose since not all P2P applications need a nonce or broadhash.
-	/* tslint:disable-next-line:no-mixed-interface */
-	readonly options?: P2PInfoOptions;
-	readonly discoveredInfo?: P2PDiscoveredPeerInfo;
 }
 
-export interface P2PDiscoveredPeerInfo {
+export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
+	readonly height: number;
+	readonly nonce: string;
+	readonly updatedAt?: Date;
 	readonly os?: string;
 	readonly version: string;
+	readonly options?: P2PInfoOptions;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.
