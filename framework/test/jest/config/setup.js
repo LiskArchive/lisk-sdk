@@ -1,5 +1,6 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * LiskHQ/lisk-core2
+ * Copyright © 2017 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,13 +11,10 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-'use strict';
+require('jest-extended');
+require('jest-chain');
 
-module.exports = {
-	Account: require('./account'),
-	BaseEntity: require('./base_entity'),
-	Block: require('./block'),
-	Transaction: require('./transaction'),
-};
+process.env.NODE_ENV = 'test';

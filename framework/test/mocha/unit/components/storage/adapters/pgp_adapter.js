@@ -119,7 +119,7 @@ describe('PgpAdapter', () => {
 	});
 
 	describe('loadSQLFile()', () => {
-		it('should accept one parameter');
+		it('should accept two parameters');
 		it('should throw error if sql file path does not exists');
 		it('should exit the process if there is any error loading the sql file');
 		it('should return a file object');

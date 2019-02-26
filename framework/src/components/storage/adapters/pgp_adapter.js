@@ -163,8 +163,8 @@ class PgpAdapter extends BaseAdapter {
 		return (tx || this.db).task(name, cb);
 	}
 
-	loadSQLFile(filePath) {
-		const fullPath = path.join(this.sqlDirectory, filePath); // Generating full path;
+	loadSQLFile(filePath, sqlDirectory = this.sqlDirectory) {
+		const fullPath = path.join(sqlDirectory, filePath); // Generating full path;
 
 		const options = {
 			minify: true, // Minifies the SQL

@@ -17,9 +17,11 @@
 const path = require('path');
 const fs = require('fs-extra');
 const { defaults, pick } = require('lodash');
-const { NonSupportedOperationError } = require('../errors');
-const filterType = require('../utils/filter_types');
-const BaseEntity = require('./base_entity');
+const {
+	NonSupportedOperationError,
+} = require('../../../../../components/storage/errors');
+const filterType = require('../../../../../components/storage/utils/filter_types');
+const BaseEntity = require('../../../../../components/storage/entities/base_entity');
 
 const defaultCreateValues = {};
 
@@ -67,7 +69,9 @@ class Migration extends BaseEntity {
 		const defaultSort = { sort: 'id:asc' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.SQLs = this.loadSQLFiles('migration', sqlFiles);
+		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
+
+		this.SQLs = this.loadSQLFiles('migration', sqlFiles, this.sqlDirectory);
 	}
 
 	/**
@@ -264,7 +268,7 @@ class Migration extends BaseEntity {
 						migration && {
 							id: migration[1],
 							name: migration[2],
-							path: path.join('migrations/updates', migrationFile),
+							path: path.join('../sql/migrations/updates', migrationFile),
 						}
 					);
 				})
@@ -273,15 +277,12 @@ class Migration extends BaseEntity {
 					migration =>
 						migration &&
 						fs
-							.statSync(path.join(this.adapter.sqlDirectory, migration.path))
+							.statSync(path.join(this.sqlDirectory, migration.path))
 							.isFile() &&
 						(!lastMigrationId || +migration.id > lastMigrationId)
 				)
 				.map(f => {
-					f.file = this.adapter.loadSQLFile(f.path, {
-						minify: true,
-						noWarnings: true,
-					});
+					f.file = this.adapter.loadSQLFile(f.path, this.sqlDirectory);
 					return f;
 				})
 		);

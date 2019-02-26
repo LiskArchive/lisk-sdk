@@ -19,14 +19,16 @@ const path = require('path');
 const fs = require('fs-extra');
 const {
 	BaseEntity,
+} = require('../../../../../../../../src/components/storage/entities');
+const {
 	Migration,
-} = require('../../../../../../src/components/storage/entities');
-const storageSandbox = require('../../../../common/storage_sandbox');
+} = require('../../../../../../../../src/modules/chain/components/storage/entities');
+const storageSandbox = require('../../../../../../common/storage_sandbox');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 	NonSupportedOperationError,
-} = require('../../../../../../src/components/storage/errors');
+} = require('../../../../../../../../src/components/storage/errors');
 
 describe('Migration', () => {
 	let adapter;
@@ -45,7 +47,7 @@ describe('Migration', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.db,
-			'lisk_test_migrations'
+			'lisk_test_storage_custom_migration_chain_module'
 		);
 		await storage.bootstrap();
 
@@ -359,7 +361,7 @@ describe('Migration', () => {
 			files = await fs.readdir(
 				path.join(
 					__dirname,
-					'../../../../../../src/components/storage/sql/migrations/updates'
+					'../../../../../../../../src/modules/chain/components/storage/sql/migrations/updates'
 				)
 			);
 			fileIds = files.map(f => f.match(/(\d+)_(.+).sql/)[1]).sort();

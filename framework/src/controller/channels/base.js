@@ -1,8 +1,9 @@
 const Event = require('../event');
 const Action = require('../action');
 
-const eventsList = new WeakMap();
-const actionsList = new WeakMap();
+const _eventsList = new WeakMap();
+const _actionsList = new WeakMap();
+const _actions = new WeakMap();
 
 const internalEvents = [
 	'registeredToBus',
@@ -25,7 +26,7 @@ class BaseChannel {
 	 *
 	 * @param {string} moduleAlias - Label used for module
 	 * @param {module.Event} events - Collection of events for event listener
-	 * @param {module.Action} actions - Collection of actions for event listener
+	 * @param {module.Action} actions - Collection of actions available
 	 * @param {Object} [options] - Options impacting events and actions list
 	 * @param {boolean} [options.skipInternalEvents] - Skip internal events
 	 *
@@ -35,24 +36,33 @@ class BaseChannel {
 		this.moduleAlias = moduleAlias;
 		this.options = options;
 
-		eventsList.set(
+		_eventsList.set(
 			this,
 			(options.skipInternalEvents ? events : internalEvents.concat(events)).map(
-				e => new Event(`${this.moduleAlias}:${e}`, null)
+				eventName => new Event(`${this.moduleAlias}:${eventName}`)
 			)
 		);
-		actionsList.set(
+
+		_actionsList.set(
 			this,
-			actions.map(a => new Action(`${this.moduleAlias}:${a}`, null, null))
+			Object.keys(actions).map(
+				actionName => new Action(`${this.moduleAlias}:${actionName}`)
+			)
 		);
+
+		_actions.set(this, actions);
 	}
 
-	getActions() {
-		return actionsList.get(this);
+	get actionsList() {
+		return _actionsList.get(this);
 	}
 
-	getEvents() {
-		return eventsList.get(this);
+	get eventsList() {
+		return _eventsList.get(this);
+	}
+
+	get actions() {
+		return _actions.get(this);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -73,12 +83,6 @@ class BaseChannel {
 	// If its related to your own moduleAlias specify as :eventName
 	// eslint-disable-next-line no-unused-vars, class-methods-use-this
 	publish(eventName, data) {
-		throw new TypeError('This method must be implemented in child classes. ');
-	}
-
-	// Register action available to your moduleAlias
-	// eslint-disable-next-line no-unused-vars, class-methods-use-this
-	action(actionName, cb) {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 

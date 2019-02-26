@@ -17,14 +17,16 @@
 
 const {
 	BaseEntity,
+} = require('../../../../../../../../src/components/storage/entities');
+const {
 	Peer,
-} = require('../../../../../../src/components/storage/entities');
-const storageSandbox = require('../../../../common/storage_sandbox');
-const peersFixtures = require('../../../../fixtures/peers');
+} = require('../../../../../../../../src/modules/chain/components/storage/entities');
+const storageSandbox = require('../../../../../../common/storage_sandbox');
+const peersFixtures = require('../../../../../../fixtures/peers');
 const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
-} = require('../../../../../../src/components/storage/errors');
+} = require('../../../../../../../../src/components/storage/errors');
 
 // eslint-disable-next-line mocha/no-skipped-tests
 describe('Peer', () => {
@@ -44,7 +46,7 @@ describe('Peer', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.db,
-			'lisk_test_peers'
+			'lisk_test_storage_custom_peer_chain_module'
 		);
 		await storage.bootstrap();
 

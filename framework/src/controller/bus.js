@@ -55,20 +55,24 @@ class Bus extends EventEmitter2 {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	async registerChannel(moduleAlias, events, actions, options) {
-		events.forEach(e => {
-			const eventName = `${moduleAlias}:${e}`;
-			if (this.events[eventName]) {
-				throw new Error(`Event "${eventName}" already registered with bus.`);
+		events.forEach(eventName => {
+			const eventFullName = `${moduleAlias}:${eventName}`;
+			if (this.events[eventFullName]) {
+				throw new Error(
+					`Event "${eventFullName}" already registered with bus.`
+				);
 			}
-			this.events[eventName] = true;
+			this.events[eventFullName] = true;
 		});
 
-		actions.forEach(a => {
-			const actionName = `${moduleAlias}:${a}`;
-			if (this.actions[actionName]) {
-				throw new Error(`Action "${actionName}" already registered with bus.`);
+		actions.forEach(actionName => {
+			const actionFullName = `${moduleAlias}:${actionName}`;
+			if (this.actions[actionFullName]) {
+				throw new Error(
+					`Action "${actionFullName}" already registered with bus.`
+				);
 			}
-			this.actions[actionName] = true;
+			this.actions[actionFullName] = true;
 		});
 	}
 

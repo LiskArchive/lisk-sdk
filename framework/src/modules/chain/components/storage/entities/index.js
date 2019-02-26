@@ -14,21 +14,10 @@
 
 'use strict';
 
-const Account = require('./account');
-
-const sqlFiles = [];
-
-class Delegate extends Account {
-	constructor(adapter, defaultFilters = {}) {
-		super(adapter, {
-			...defaultFilters,
-			isDelegate: true,
-		});
-
-		this.defaultOptions.fieldSet = Account.prototype.FIELD_SET_FULL;
-
-		this.SQLs = this.loadSQLFiles('delegate', sqlFiles);
-	}
-}
-
-module.exports = Delegate;
+module.exports = {
+	Account: require('./account'),
+	Block: require('./block'),
+	Migration: require('./migration'),
+	Peer: require('./peer'),
+	Round: require('./round'),
+};
