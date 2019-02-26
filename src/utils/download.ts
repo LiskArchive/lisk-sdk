@@ -15,7 +15,7 @@
  */
 import * as axios from 'axios';
 import * as fs from 'fs';
-import { exec } from './worker-process';
+import { exec, ExecResult } from './worker-process';
 
 export const download = async (
 	url: string,
@@ -43,7 +43,7 @@ export const validateChecksum = async (
 	filePath: string,
 	fileName: string,
 ): Promise<void> => {
-	const { stdout, stderr } = await exec(
+	const { stdout, stderr }: ExecResult = await exec(
 		`cd ${filePath}; shasum -c ${fileName}`,
 	);
 
@@ -59,7 +59,7 @@ export const extract = async (
 	fileName: string,
 	outDir: string,
 ): Promise<string> => {
-	const { stdout, stderr } = await exec(
+	const { stdout, stderr }: ExecResult = await exec(
 		`cd ${filePath}; tar xf ${fileName} -C ${outDir} --strip-component=1;`,
 	);
 

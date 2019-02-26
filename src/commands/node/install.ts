@@ -126,7 +126,7 @@ export default class InstallCommand extends BaseCommand {
 	static examples = [
 		'node:install',
 		'node:install --installation-path=/opt/lisk/lisk-testnet --network=testnet',
-		'node:install --snapshot-url=no',
+		'node:install --no-snapshot',
 	];
 
 	static flags = {
