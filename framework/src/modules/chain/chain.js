@@ -217,7 +217,7 @@ module.exports = class Chain {
 				util.promisify(
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
-			updateForgingStastus: async action =>
+			updateForgingStatus: async action =>
 				util.promisify(this.scope.modules.delegates.updateForgingStatus)(
 					action.params[0],
 					action.params[1],

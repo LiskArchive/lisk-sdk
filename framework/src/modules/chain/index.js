@@ -59,8 +59,8 @@ module.exports = class ChainModule extends BaseModule {
 				this.chain.actions().getNetworkHeight(action),
 			getTransactionsCount: async () =>
 				this.chain.actions().getTransactionsCount(),
-			updateForgingStastus: async action =>
-				this.chain.actions().updateForgingStastus(action),
+			updateForgingStatus: async action =>
+				this.chain.actions().updateForgingStatus(action),
 			getPeers: async action => this.chain.actions().getPeers(action),
 			getPeersCountByFilter: async action =>
 				this.chain.actions().getPeersCountByFilter(action),
