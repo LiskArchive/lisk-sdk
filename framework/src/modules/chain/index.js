@@ -80,6 +80,8 @@ module.exports = class ChainModule extends BaseModule {
 			getBuild: async () => this.chain.actions().getBuild(),
 			postTransaction: async action =>
 				this.chain.actions().postTransaction(action),
+			getDelegateBlocksRewards: async action =>
+				this.chain.actions().getDelegateBlocksRewards(action),
 		};
 	}
 

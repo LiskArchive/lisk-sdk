@@ -110,6 +110,7 @@ describe('delegates/api', () => {
 	afterEach(() => {
 		restoreAggregateBlocksReward();
 		restoreDelegateFormatter();
+		channelStub.invoke.resolves();
 		return sinonSandbox.restore();
 	});
 
@@ -290,8 +291,8 @@ describe('delegates/api', () => {
 			).to.eventually.be.rejectedWith('Account not found');
 		});
 
-		it('should return error when library.storage.entities.Account.delegateBlocksRewards fails', async () => {
-			storageStub.entities.Account.delegateBlocksRewards.throws({
+		it('should return error when channel.invoke("getDelegateBlocksRewards" fails', async () => {
+			channelStub.invoke.rejects({
 				stack: ['anError'],
 			});
 
@@ -304,20 +305,16 @@ describe('delegates/api', () => {
 		});
 
 		it('should return error when account is not a delegate', () => {
-			storageStub.entities.Account.delegateBlocksRewards = sinonSandbox
-				.stub()
-				.resolves([{ delegate: null }]);
-
+			channelStub.invoke.resolves([{ delegate: null }]);
 			return expect(
 				__private.aggregateBlocksReward({ address: '1L' })
 			).to.eventually.be.rejectedWith('Account is not a delegate');
 		});
 
 		it('should return aggregate blocks rewards', async () => {
-			storageStub.entities.Account.delegateBlocksRewards = sinonSandbox
-				.stub()
-				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
-
+			channelStub.invoke.resolves([
+				{ delegate: '123abc', fees: 1, count: 100 },
+			]);
 			const data = await __private.aggregateBlocksReward({ address: '1L' });
 			const expectedData = {
 				fees: 1,
@@ -337,10 +334,6 @@ describe('delegates/api', () => {
 		beforeEach(() => {
 			channelStub.invoke.resolves(dummyDelegates);
 			return __private.getForgers(filters);
-		});
-
-		afterEach(async () => {
-			channelStub.invoke.resolves();
 		});
 
 		it('should call storage.entities.Block.get() with exact arguments', async () => {

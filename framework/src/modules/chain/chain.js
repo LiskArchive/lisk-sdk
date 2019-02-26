@@ -264,6 +264,11 @@ module.exports = class Chain {
 					action.params[0],
 					action.params[1]
 				),
+			getDelegateBlocksRewards: async action =>
+				this.scope.components.storage.entities.Account.delegateBlocksRewards(
+					action.params[0],
+					action.params[1]
+				),
 		};
 	}
 

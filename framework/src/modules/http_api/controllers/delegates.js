@@ -327,8 +327,9 @@ async function _aggregateBlocksReward(filter) {
 	let delegateBlocksRewards;
 
 	try {
-		delegateBlocksRewards = await storage.entities.Account.delegateBlocksRewards(
-			params
+		delegateBlocksRewards = await channel.invoke(
+			'chain:getDelegateBlocksRewards',
+			[params]
 		);
 	} catch (err) {
 		logger.error(err.stack);
