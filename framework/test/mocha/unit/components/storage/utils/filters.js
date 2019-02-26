@@ -15,9 +15,9 @@
 
 'use strict';
 
-const filterTypes = require('../../../../../../src/components/storage/utils/filter_types');
-const inputSerializers = require('../../../../../../src/components/storage/utils/inputSerializers');
-const filters = require('../../../../../../src/components/storage/utils/filters');
+const {
+	utils: { filterTypes, inputSerializers, filterGenerator: filters },
+} = require('../../../../../../src/components/storage');
 
 const customSerializer = sinonSandbox.stub().returns('custom serialized value');
 
