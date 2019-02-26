@@ -2803,9 +2803,7 @@ definitions:
         type: integer
         example: 108877
         description: |
-          The voters weight of the delegate.
-          Represents the total amount of Lisk (in Beddows) that the delegates' voters own.
-          The voters weight decides which rank the delegate gets in relation to the other delegates and their voters weights.
+          Total number of accounts that voted for the queried delegate.
       address:
         type: string
         format: address
