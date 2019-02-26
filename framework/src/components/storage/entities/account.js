@@ -439,10 +439,6 @@ class Account extends BaseEntity {
 
 		const objectData = _.omit(data, readOnlyFields);
 
-		if (_.isEmpty(objectData)) {
-			return Promise.resolve();
-		}
-
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
@@ -456,47 +452,48 @@ class Account extends BaseEntity {
 		const membersPublicKeys = data.membersPublicKeys || [];
 		const votedDelegatesPublicKeys = data.votedDelegatesPublicKeys || [];
 
+		const dependentRecordPromises = [];
+
 		if (membersPublicKeys.length > 0) {
-			return this.adapter
-				.executeFile(this.SQLs.update, params, {}, tx)
-				.then(() =>
-					this.updateDependentRecords(
-						'membersPublicKeys',
-						data.address,
-						data.membersPublicKeys,
-						tx
-					)
-				);
+			dependentRecordPromises.push(
+				this.updateDependentRecords(
+					'membersPublicKeys',
+					data.address,
+					data.membersPublicKeys,
+					tx
+				)
+			);
 		}
 
 		if (votedDelegatesPublicKeys.length > 0) {
-			return this.adapter
-				.executeFile(this.SQLs.update, params, {}, tx)
-				.then(() =>
-					this.updateDependentRecords(
-						'votedDelegatesPublicKeys',
-						data.address,
-						data.votedDelegatesPublicKeys,
-						tx
-					)
-				);
+			dependentRecordPromises.push(
+				this.updateDependentRecords(
+					'votedDelegatesPublicKeys',
+					data.address,
+					data.votedDelegatesPublicKeys,
+					tx
+				)
+			);
 		}
 
 		// Account remove all votes
 		if (votedDelegatesPublicKeys.length === 0) {
-			return this.adapter
-				.executeFile(this.SQLs.update, params, {}, tx)
-				.then(() =>
-					this.adapter.executeFile(
-						this.SQLs.deleteVotes,
-						{ accountId: data.address },
-						{},
-						tx
-					)
-				);
+			dependentRecordPromises.push(
+				this.adapter.executeFile(
+					this.SQLs.deleteVotes,
+					{ accountId: data.address },
+					{},
+					tx
+				)
+			);
 		}
 
-		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
+		return Promise.all(dependentRecordPromises).then(() => {
+			if (_.isEmpty(objectData)) {
+				return Promise.resolve();
+			}
+			return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
+		});
 	}
 
 	/**

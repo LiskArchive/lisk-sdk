@@ -1068,7 +1068,7 @@ describe('Account', async () => {
 			await AccountEntity.update({ address: account.address }, account);
 			// Assert
 			expect(adapter.executeFile).to.be.calledTwice;
-			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.update);
+			expect(adapter.executeFile.secondCall.args[0]).to.be.eql(SQLs.update);
 		});
 
 		it('should update all accounts successfully with matching condition', async () => {

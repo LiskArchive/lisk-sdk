@@ -404,24 +404,16 @@ class Account {
 
 				// Make execution selection based on field type
 				switch (fieldType) {
-					// blockId [u_]delegates, [u_]multisignatures
+					// blockId
 					case String:
-					case Array:
-						if (!updatedField.substr(0, 2) === 'u_') {
-							promises.push(
-								self.scope.storage.entities.Account.update(
-									{ address },
-									_.pick(diff, [updatedField]),
-									{},
-									dbTx
-								)
-							);
-						} else {
-							// [UNCONFIRMED_STATE_REMOVAL] Revisit this code when https://github.com/LiskHQ/lisk/issues/2824 is worked on.
-							library.logger.warn(
-								`[UNCONFIRMED_STATE_REMOVAL] IGNORING CHANGES TO UNCOFIRMED STATE IN logic/accounts FOR FIELD '${updatedField}' WITH VALUE '${updatedValue}'`
-							);
-						}
+						promises.push(
+							self.scope.storage.entities.Account.update(
+								{ address },
+								_.pick(diff, [updatedField]),
+								{},
+								dbTx
+							)
+						);
 						break;
 
 					// [u_]balance, [u_]multimin, [u_]multilifetime, fees, rewards, votes, producedBlocks, missedBlocks
@@ -463,6 +455,60 @@ class Account {
 									dbTx
 								)
 							);
+						}
+						break;
+
+					// [u_]delegates, [u_]multisignatures
+					case Array:
+						// If we received update as array of strings
+						if (_.isString(updatedValue[0])) {
+							updatedValue.forEach(updatedValueItem => {
+								// Fetch first character
+								let mode = updatedValueItem[0];
+								let dependentId = '';
+
+								if (mode === '-' || mode === '+') {
+									dependentId = updatedValueItem.slice(1);
+								} else {
+									dependentId = updatedValueItem;
+									mode = '+';
+								}
+
+								if (mode === '-') {
+									promises.push(
+										self.scope.storage.entities.Account.deleteDependentRecord(
+											updatedField,
+											address,
+											dependentId,
+											dbTx
+										)
+									);
+								} else {
+									promises.push(
+										self.scope.storage.entities.Account.createDependentRecord(
+											updatedField,
+											address,
+											dependentId,
+											dbTx
+										)
+									);
+								}
+
+								if (updatedField === 'votedDelegatesPublicKeys') {
+									promises.push(
+										modules.rounds.createRoundInformationWithDelegate(
+											address,
+											diff.round,
+											dependentId,
+											mode,
+											dbTx
+										)
+									);
+								}
+							});
+							// If we received update as array of objects
+						} else if (_.isObject(updatedValue[0])) {
+							// TODO: Need to look at usage of object based diff param
 						}
 						break;
 					// no default
