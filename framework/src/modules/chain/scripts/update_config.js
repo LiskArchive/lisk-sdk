@@ -298,6 +298,15 @@ history.version('1.6.0-rc.0', version => {
 		delete config.topAccounts;
 		return config;
 	});
+
+	version.change('move forging.access to http_api', config => {
+		config = moveElement(
+			config,
+			'modules.chain.forging.access',
+			'modules.http_api.forging'
+		);
+		return config;
+	});
 });
 
 const askPassword = (message, cb) => {

@@ -169,6 +169,30 @@ const DefaultConfig = {
 				},
 			},
 		},
+		forging: {
+			type: 'object',
+			properties: {
+				access: {
+					type: 'object',
+					properties: {
+						whiteList: {
+							type: 'array',
+							default: ['127.0.0.1'],
+						},
+					},
+					required: ['whiteList'],
+					default: {
+						whiteList: ['127.0.0.1'],
+					},
+				},
+			},
+			required: ['access'],
+			default: {
+				access: {
+					whiteList: ['127.0.0.1'],
+				},
+			},
+		},
 	},
 	required: [
 		'httpPort',
@@ -178,6 +202,7 @@ const DefaultConfig = {
 		'access',
 		'ssl',
 		'options',
+		'forging',
 	],
 	default: {
 		httpPort: 4000,
@@ -209,6 +234,11 @@ const DefaultConfig = {
 			cors: {
 				origin: '*',
 				methods: ['GET', 'POST', 'PUT'],
+			},
+		},
+		forging: {
+			access: {
+				whiteList: ['127.0.0.1'],
 			},
 		},
 	},
