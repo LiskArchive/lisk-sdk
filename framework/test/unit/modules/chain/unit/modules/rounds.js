@@ -421,7 +421,7 @@ describe('rounds', async () => {
 		});
 
 		it('should call createRoundInformationWithAmount with negative value when forwardTick is set to true', async () => {
-			updateSendersRoundInformationWithAmountForTransactions(
+			await updateSendersRoundInformationWithAmountForTransactions(
 				1,
 				[transaction],
 				true,
@@ -436,7 +436,7 @@ describe('rounds', async () => {
 		});
 
 		it('should call createRoundInformationWithAmount with positive value when forwardTick is set to false', async () => {
-			updateSendersRoundInformationWithAmountForTransactions(
+			await updateSendersRoundInformationWithAmountForTransactions(
 				1,
 				[transaction],
 				false,
@@ -476,7 +476,7 @@ describe('rounds', async () => {
 		});
 
 		it('should call createRoundInformationWithAmount with casted votes when forwardTick is set to true', async () => {
-			updateRoundInformationWithDelegatesForTransactions(
+			await updateRoundInformationWithDelegatesForTransactions(
 				1,
 				[transaction],
 				true,
@@ -499,7 +499,7 @@ describe('rounds', async () => {
 		});
 
 		it('should call createRoundInformationWithAmount with opposite votes when forwardTick is set to false', async () => {
-			updateRoundInformationWithDelegatesForTransactions(
+			await updateRoundInformationWithDelegatesForTransactions(
 				1,
 				[transaction],
 				false,
