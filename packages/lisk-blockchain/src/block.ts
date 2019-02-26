@@ -10,6 +10,7 @@ import * as BigNum from 'browserify-bignum';
 import { calculateRewawrd, RewardsOption } from './reward';
 import { blockSchema } from './schema';
 import { StateStore } from './state_store';
+import { getTimeFromBlockchainEpoch } from './time';
 import {
 	calculateTransactionsData,
 	rawTransactionToInstance,
@@ -30,12 +31,12 @@ const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
 interface CreateBlockInput {
-	readonly height: number;
 	readonly version: number;
-	readonly timestamp: number;
+	readonly epochTime: number;
+	readonly lastBlock: Block;
 	readonly txMap: TransactionMap;
 	readonly passphrase: string;
-	readonly milestones: RewardsOption;
+	readonly rewards: RewardsOption;
 	readonly transactions: ReadonlyArray<TransactionJSON>;
 }
 
@@ -50,31 +51,33 @@ export const getBlockId = (blockBytes: Buffer) => {
 };
 
 export const createBlock = ({
-	height,
 	txMap,
 	version,
-	timestamp,
-	milestones,
+	epochTime,
+	lastBlock,
+	rewards,
 	transactions,
 	passphrase,
 }: CreateBlockInput): Block => {
 	const sortedTransactions = sortTransactions(
 		transactions as TransactionJSON[],
 	);
+	const height = lastBlock.height + 1;
 	const txs = rawTransactionToInstance(txMap, sortedTransactions);
-	const reward = calculateRewawrd(milestones, height);
+	const reward = calculateRewawrd(rewards, height);
+	const timestamp = getTimeFromBlockchainEpoch(epochTime);
 	const { publicKey } = getKeys(passphrase);
 	const rawBlock = {
 		version,
 		height,
+		previousBlock: lastBlock.id,
 		timestamp,
 		reward,
+		// Calculate tx related property
 		...calculateTransactionsData(txs),
 		transactions: sortedTransactions,
 		generatorPublicKey: publicKey,
 	};
-	// Calculate tx related property
-	// Get public key from passphrase
 	// Get reward
 	const block = new Block(rawBlock, txs);
 	block.sign(passphrase);
@@ -156,9 +159,8 @@ export class Block {
 		// tslint:disable-next-line no-loop-statement
 		for (const tx of this.transactions) {
 			const res = await tx.apply(store);
-			const voteErrors = await applyVote(store, tx);
+			await applyVote(store, tx);
 			errors.push(...res.errors);
-			errors.push(...voteErrors);
 		}
 
 		return errors;
@@ -168,10 +170,9 @@ export class Block {
 		const errors = [];
 		// tslint:disable-next-line no-loop-statement
 		for (const tx of this.transactions) {
+			await undoVote(store, tx);
 			const res = await tx.undo(store);
-			const voteErrors = await undoVote(store, tx);
 			errors.push(...res.errors);
-			errors.push(...voteErrors);
 		}
 
 		return errors;

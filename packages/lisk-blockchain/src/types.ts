@@ -47,8 +47,24 @@ export interface CacheMap {
 
 interface TransactionProps {
 	readonly type: number;
+	readonly senderId: string;
+	readonly recipientId?: string;
 	readonly fee: string;
 	readonly amount: string;
+}
+
+export interface InTransferTransaction extends Transaction {
+	readonly asset: {
+		readonly inTransfer: {
+			readonly dappId: string;
+		};
+	};
+}
+
+export interface VoteTransaction extends Transaction {
+	readonly asset: {
+		readonly votes: ReadonlyArray<string>;
+	};
 }
 
 export type Transaction = TransactionFunc & TransactionProps;

@@ -1,14 +1,13 @@
 import { EventEmitter } from 'events';
 import { Account } from './account';
 import { Block, createBlock } from './block';
-import { getBlockHeaderByHeight } from './repo';
 import {
-	applyReward,
-	calculateRewawrd,
-	Reward,
-	RewardsOption,
-	undoReward,
-} from './reward';
+	getBlockByHeight,
+	getBlockHeaderByHeight,
+	getCandidates,
+	getRewardIfExist,
+} from './repo';
+import { applyReward, Reward, RewardsOption, undoReward } from './reward';
 import { StateStore } from './state_store';
 import { rawTransactionToInstance } from './transactions';
 import {
@@ -133,7 +132,7 @@ export class Blockchain extends EventEmitter {
 			return applyErrors;
 		}
 		if (rewards) {
-			await applyReward(store, rewards);
+			await applyReward(store, block.height, rewards);
 		}
 		await store.finalize();
 		this.emit(EVENT_BLOCK_ADDED, {
@@ -148,11 +147,11 @@ export class Blockchain extends EventEmitter {
 		transactions: ReadonlyArray<TransactionJSON>,
 		passphrase: string,
 	): Block {
-		const height = this.lastBlock.height + 1;
-		const reward = calculateRewawrd(this._options.rewards, height);
 		return createBlock({
 			version: this._options.version,
-			height: this.lastBlock.height + 1,
+			epochTime: this._options.epochTime,
+			lastBlock: this.lastBlock,
+			rewards: this._options.rewards,
 			transactions,
 			passphrase,
 			txMap: this._txMap,
@@ -160,7 +159,7 @@ export class Blockchain extends EventEmitter {
 	}
 
 	public async getCandidates(num: number): Promise<ReadonlyArray<Account>> {
-		return [];
+		return getCandidates(this._db, num);
 	}
 
 	private async _deleteBlock(): Promise<ReadonlyArray<Error> | undefined> {
@@ -171,12 +170,22 @@ export class Blockchain extends EventEmitter {
 			return undoError;
 		}
 		// Check if last block had reward
-		await undoReward(store, []);
+		const rewards = await getRewardIfExist(this._db, this.lastBlock.height);
+		if (rewards) {
+			await undoReward(store, this.lastBlock.height, rewards);
+		}
 		await store.finalize();
 
-		// TODO: Change to full block
-		const blockHeader = getBlockHeaderByHeight(this._db, newLastBlockHeight);
-		this._lastBlock = new Block(blockHeader);
+		const newLastBlock = await getBlockByHeight(this._db, newLastBlockHeight);
+		this._lastBlock = new Block(
+			newLastBlock,
+			rawTransactionToInstance(this._txMap, newLastBlock.transactions),
+		);
+
+		this.emit(EVENT_BLOCK_DELETED, {
+			newLastBlock,
+			accounts: store.getUpdatedAccount(),
+		});
 
 		return undefined;
 	}

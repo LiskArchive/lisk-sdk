@@ -1,4 +1,7 @@
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
+import { Account } from './account';
+import { BUCKET_ADDRESS_ACCOUNT, BUCKET_BLOCK_HEIGHT_REWARDS } from './repo';
 import { StateStore } from './state_store';
 
 export interface Reward {
@@ -102,10 +105,58 @@ export const calculateSupply = (
 
 export const applyReward = async (
 	store: StateStore,
+	height: number,
 	rewards: ReadonlyArray<Reward>,
-): Promise<void> => {};
+): Promise<void> => {
+	rewards.forEach(async reward => {
+		const recipientId = getAddressFromPublicKey(reward.publicKey);
+		const recipient = await store.get<Account>(
+			BUCKET_ADDRESS_ACCOUNT,
+			recipientId,
+		);
+		const delegateAddresses = recipient.votedDelegatesPublicKeys
+			? recipient.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
+			: [];
+		delegateAddresses.forEach(async address => {
+			const delegate = await store.get<Account>(
+				BUCKET_ADDRESS_ACCOUNT,
+				address,
+			);
+			const updateDelegateVote = {
+				...delegate,
+				votes: new BigNum(delegate.votes || '0').add(reward.amount).toString(),
+			};
+			await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		});
+	});
+	await store.set(BUCKET_BLOCK_HEIGHT_REWARDS, height.toString(), rewards);
+};
 
 export const undoReward = async (
 	store: StateStore,
+	height: number,
 	rewards: ReadonlyArray<Reward>,
-): Promise<void> => {};
+): Promise<void> => {
+	rewards.forEach(async reward => {
+		const recipientId = getAddressFromPublicKey(reward.publicKey);
+		const recipient = await store.get<Account>(
+			BUCKET_ADDRESS_ACCOUNT,
+			recipientId,
+		);
+		const delegateAddresses = recipient.votedDelegatesPublicKeys
+			? recipient.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
+			: [];
+		delegateAddresses.forEach(async address => {
+			const delegate = await store.get<Account>(
+				BUCKET_ADDRESS_ACCOUNT,
+				address,
+			);
+			const updateDelegateVote = {
+				...delegate,
+				votes: new BigNum(delegate.votes || '0').sub(reward.amount).toString(),
+			};
+			await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		});
+	});
+	await store.unset(BUCKET_BLOCK_HEIGHT_REWARDS, height.toString());
+};
