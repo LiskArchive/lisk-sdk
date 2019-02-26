@@ -23,7 +23,7 @@ const genesisBlock = __testContext.config.genesisBlock;
 const { NORMALIZER } = global.constants;
 const transactionStatus = liskTransactions.Status;
 
-describe('processing transactions', async () => {
+describe('processing transactions', () => {
 	let library;
 	let verifyTransactions;
 	let validateTransactions;
@@ -78,24 +78,30 @@ describe('processing transactions', async () => {
 		senderId: accountFixtures.genesis.address,
 	}));
 
-	describe('blocks/verifyTransactions', async () => {
-		before(done => {
-			application.init(
-				{
-					sandbox: {
-						name: 'lisk_test_blocks_verify_transactions',
-					},
+	before(done => {
+		application.init(
+			{
+				sandbox: {
+					name: 'lisk_test_blocks_process_transactions',
 				},
-				(err, scope) => {
-					library = scope;
-					verifyTransactions =
-						scope.modules.processTransactions.verifyTransactions;
-					library.modules.blocks.lastBlock.set(genesisBlock);
-					done();
-				}
-			);
-		});
+			},
+			(err, scope) => {
+				library = scope;
+				verifyTransactions =
+					scope.modules.processTransactions.verifyTransactions;
+				validateTransactions =
+					scope.modules.processTransactions.validateTransactions;
+				library.modules.blocks.lastBlock.set(genesisBlock);
+				done();
+			}
+		);
+	});
 
+	after(done => {
+		application.cleanup(done);
+	});
+
+	describe('blocks/verifyTransactions', () => {
 		it('should return transactionResponses with status OK for verified transactions', async () => {
 			const transactionResponses = await verifyTransactions(
 				verifiableTransactions
@@ -125,36 +131,19 @@ describe('processing transactions', async () => {
 		});
 	});
 
-	describe('blocks/validateTransactions', async () => {
-		before(done => {
-			application.init(
-				{
-					sandbox: {
-						name: 'lisk_test_blocks_validate_transactions',
-					},
-				},
-				(err, scope) => {
-					library = scope;
-					validateTransactions =
-						scope.modules.processTransactions.validateTransactions;
-					library.modules.blocks.lastBlock.set(genesisBlock);
-					done();
-				}
-			);
-		});
-
+	describe('blocks/validateTransactions', () => {
 		it('should return transactionResponses with status OK for valid transactions', async () => {
-			const transactionResponses = await validateTransactions(
-				verifiableTransactions
-			);
+			const transactionResponses = validateTransactions(verifiableTransactions);
 			transactionResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.OK);
 			});
 		});
 
 		it('should return transactionResponse with status FAIL for invalid transactions', async () => {
-			const transactionResponses = await validateTransactions(
-				nonVerifiableTransactions
+			const transactionResponses = validateTransactions(
+				verifiableTransactions.map(transaction => {
+					return { ...transaction, senderId: '1' };
+				})
 			);
 			transactionResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);

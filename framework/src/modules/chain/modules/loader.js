@@ -299,14 +299,15 @@ __private.loadTransactions = function(cb) {
 						throw invalidTransactionResponse.errors;
 					}
 				} catch (e) {
+					const error = Array.isArray(e) && e.length > 0 ? e[0] : e;
 					library.logger.debug('Transaction normalization failed', {
-						id: e[0].id,
-						err: e.toString(),
+						id: error.id,
+						err: error.toString(),
 						module: 'loader',
 					});
 
 					library.logger.warn(
-						`Transaction ${e[0].id} is not valid, peer removed`,
+						`Transaction ${error.id} is not valid, peer removed`,
 						peer.string
 					);
 					modules.peers.remove(peer);
