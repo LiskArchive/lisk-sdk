@@ -407,10 +407,11 @@ describe('GET /accounts', () => {
 				{ body: { data: constansts } },
 				{ body: { data: [{ delegate }] } },
 			] = await Promise.all(promises);
-			const calculatedApproval = parseFloat(
-				(delegate.vote / constansts.supply * 100).toFixed(2)
-			);
 
+			const calculatedApproval = apiHelpers.calculateApproval(
+				delegate.vote,
+				constansts.supply
+			);
 			expect(delegate.approval).to.be.eql(calculatedApproval);
 		});
 
