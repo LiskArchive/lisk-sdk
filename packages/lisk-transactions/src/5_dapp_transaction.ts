@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
 	StateStore,
@@ -142,7 +141,6 @@ export class DappTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types.', tx.id, errors);
 		}
 		this.asset = tx.asset as DappAsset;
-		this._fee = new BigNum(DAPP_FEE);
 		this.containsUniqueData = true;
 	}
 

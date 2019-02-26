@@ -86,7 +86,6 @@ export class InTransferTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as InTransferAsset;
-		this._fee = new BigNum(IN_TRANSFER_FEE);
 	}
 
 	protected assetToBytes(): Buffer {
@@ -102,11 +101,14 @@ export class InTransferTransaction extends BaseTransaction {
 			},
 		]);
 
-		const dappTransaction = transactions && transactions.length > 0 ? transactions.find(
-			tx =>
-				tx.type === TRANSACTION_DAPP_TYPE &&
-				tx.id === this.asset.inTransfer.dappId,
-		) : undefined;
+		const dappTransaction =
+			transactions && transactions.length > 0
+				? transactions.find(
+						tx =>
+							tx.type === TRANSACTION_DAPP_TYPE &&
+							tx.id === this.asset.inTransfer.dappId,
+				  )
+				: undefined;
 
 		if (dappTransaction) {
 			await store.account.cache([{ id: dappTransaction.senderId as string }]);
@@ -205,13 +207,18 @@ export class InTransferTransaction extends BaseTransaction {
 		}
 		const sender = store.account.get(this.senderId);
 
-		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
-		if(balanceError) {
+		const balanceError = verifyAmountBalance(
+			this.id,
+			sender,
+			this.amount,
+			this.fee,
+		);
+		if (balanceError) {
 			errors.push(balanceError);
 		}
 
 		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
-		
+
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
 		store.account.set(updatedSender.address, updatedSender);

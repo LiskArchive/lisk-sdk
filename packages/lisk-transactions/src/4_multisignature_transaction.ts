@@ -121,9 +121,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as MultiSignatureAsset;
-		this._fee = new BigNum(MULTISIGNATURE_FEE).mul(
-			this.asset.multisignature.keysgroup.length + 1,
-		);
 	}
 
 	protected assetToBytes(): Buffer {
@@ -198,6 +195,18 @@ export class MultisignatureTransaction extends BaseTransaction {
 					'Amount must be zero for multisignature registration transaction',
 					this.id,
 					'.asset',
+				),
+			);
+		}
+		const expectedFee = new BigNum(MULTISIGNATURE_FEE).mul(
+			this.asset.multisignature.keysgroup.length + 1,
+		);
+		if (!this.fee.eq(expectedFee)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${expectedFee.toString()}`,
+					this.id,
+					'.fee',
 				),
 			);
 		}
