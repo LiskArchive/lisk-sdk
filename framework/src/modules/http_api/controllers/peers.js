@@ -75,7 +75,7 @@ PeersController.getPeers = async function(context, next) {
 			});
 
 			const peersCount = await channel.invoke('chain:getPeersCountByFilter', [
-				filters,
+				_.cloneDeep(filters),
 			]);
 
 			return next(null, {
