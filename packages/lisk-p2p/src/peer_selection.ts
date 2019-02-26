@@ -13,7 +13,7 @@
  *
  */
 import { NotEnoughPeersError } from './errors';
-import { P2PNodeInfo, P2PPeerInfo } from './p2p_types';
+import { P2PDiscoveredPeerInfo, P2PNodeInfo } from './p2p_types';
 /* tslint:disable: readonly-keyword*/
 interface Histogram {
 	[key: number]: number;
@@ -26,14 +26,14 @@ interface HistogramValues {
 
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
-	peers: ReadonlyArray<P2PPeerInfo>,
+	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
 	numOfPeers: number = 0,
-): ReadonlyArray<P2PPeerInfo> => {
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 	const nodeHeight = nodeInfo ? nodeInfo.height : 0;
 	const filteredPeers = peers.filter(
 		// Remove unreachable peers or heights below last block height
-		(peer: P2PPeerInfo) => peer.height >= nodeHeight,
+		(peer: P2PDiscoveredPeerInfo) => peer.height >= nodeHeight,
 	);
 
 	if (filteredPeers.length === 0) {
@@ -46,7 +46,7 @@ export const selectPeers = (
 	const aggregation = 2;
 
 	const calculatedHistogramValues = sortedPeers.reduce(
-		(histogramValues: HistogramValues, peer: P2PPeerInfo) => {
+		(histogramValues: HistogramValues, peer: P2PDiscoveredPeerInfo) => {
 			const val = Math.floor(peer.height / aggregation) * aggregation;
 			histogramValues.histogram[val] =
 				(histogramValues.histogram[val] ? histogramValues.histogram[val] : 0) +
@@ -87,7 +87,7 @@ export const selectPeers = (
 	}
 
 	if (numOfPeers === 1) {
-		const goodPeer: ReadonlyArray<P2PPeerInfo> = [
+		const goodPeer: ReadonlyArray<P2PDiscoveredPeerInfo> = [
 			processedPeers[Math.floor(Math.random() * processedPeers.length)],
 		];
 
@@ -102,7 +102,7 @@ export const selectPeers = (
 			const peer = peerListObject.processedPeersArray[index];
 			// This will ensure that the selected peer is not choosen again by the random function above
 			const tempProcessedPeers = peerListObject.processedPeersArray.filter(
-				(findPeer: P2PPeerInfo) => findPeer !== peer,
+				(findPeer: P2PDiscoveredPeerInfo) => findPeer !== peer,
 			);
 
 			return {
@@ -117,6 +117,6 @@ export const selectPeers = (
 };
 
 export const selectForConnection = (
-	peerInfoList: ReadonlyArray<P2PPeerInfo>,
+	peerInfoList: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	_nodeInfo?: P2PNodeInfo,
 ) => peerInfoList;
