@@ -1763,7 +1763,7 @@ describe('blocks/process', async () => {
 							])
 						);
 
-						it('should generate block without transactions', async () => {
+						it('should generate block without transactions', done => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
@@ -1773,6 +1773,7 @@ describe('blocks/process', async () => {
 										modules.blocks.verify.processBlock.args[0][0].transactions
 											.length
 									).to.equal(0);
+									done();
 								}
 							);
 						});
