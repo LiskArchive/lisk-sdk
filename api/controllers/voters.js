@@ -125,7 +125,11 @@ VotersController.getVoters = async function(context, next) {
 			_.pick(voter, ['address', 'publicKey', 'balance'])
 		);
 
-		data.votes = voters.length;
+		const votersCount = await storage.entities.Account.count({
+			votedDelegatesPublicKeys_in: [delegate.publicKey],
+		});
+
+		data.votes = votersCount;
 
 		return next(null, {
 			data,

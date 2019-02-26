@@ -34,7 +34,7 @@ describe('GET /api/voters', () => {
 	const validNotExistingAddress = '11111111111111111111L';
 
 	function expectValidVotedDelegateResponse(res) {
-		expect(res.body.data.votes).to.be.eql(res.body.data.voters.length);
+		expect(res.body.data.votes).to.be.least(res.body.data.voters.length);
 	}
 
 	function expectValidNotVotedDelegateResponse(res) {
