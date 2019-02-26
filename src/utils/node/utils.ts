@@ -13,21 +13,21 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Fs from 'fs';
-import os from 'os';
+import * as fs from 'fs';
+import * as os from 'os';
 import { NETWORK, OS } from '../constants';
 
-export const LISK_INSTALL = (installPath: string): string =>
+export const liskInstall = (installPath: string): string =>
 	installPath.replace('~', os.homedir);
 
-export const LISK_VERSION = (version: string): string =>
+export const liskVersion = (version: string): string =>
 	`lisk-${version}-${os.type()}-x86_64`;
 
-export const LISK_TAR = (version: string): string =>
-	`${LISK_VERSION(version)}.tar.gz`;
+export const liskTar = (version: string): string =>
+	`${liskVersion(version)}.tar.gz`;
 
-export const LISK_TAR_SHA256 = (version: string): string =>
-	`${LISK_TAR(version)}.SHA256`;
+export const liskTarSHA256 = (version: string): string =>
+	`${liskTar(version)}.SHA256`;
 
 export const LISK_LATEST_URL = (url: string, network: NETWORK) =>
 	`${url}/${network}/latest.txt`;
@@ -39,11 +39,11 @@ export const LISK_DB_SNAPSHOT = (networkName: string, network: NETWORK) =>
 	`${networkName}-${network}-blockchain.db.gz`;
 
 export const LOGS_DIR = (installPath: string) =>
-	`${LISK_INSTALL(installPath)}/logs`;
+	`${liskInstall(installPath)}/logs`;
 
 export const SH_LOG_FILE = 'logs/lisk.out';
 
-export const checkNotARootUser = (): void => {
+export const validateNotARootUser = (): void => {
 	if (process.getuid && process.getuid() === 0) {
 		throw new Error('Error: Lisk should not be run be as root. Exiting.');
 	}
@@ -59,17 +59,17 @@ export const networkSupported = (network: NETWORK): void => {
 	throw new Error(
 		`Network "${network}" is not supported, please try options ${Object.values(
 			NETWORK,
-		)}`,
+		).join(',')}`,
 	);
 };
 
 export const directoryExists = (dirPath: string): boolean =>
-	Fs.existsSync(dirPath);
+	fs.existsSync(dirPath);
 
 export const createDirectory = (dirPath: string): void => {
-	const resolvedPath = LISK_INSTALL(dirPath);
+	const resolvedPath = liskInstall(dirPath);
 	if (!directoryExists(resolvedPath)) {
-		Fs.mkdirSync(resolvedPath, { recursive: true });
+		fs.mkdirSync(resolvedPath, { recursive: true });
 	}
 };
 

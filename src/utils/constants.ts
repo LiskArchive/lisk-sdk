@@ -62,9 +62,9 @@ export const SORT_FIELDS: ReadonlyArray<string> = [
 ];
 
 export enum NETWORK {
-	mainnet = 'MAIN',
-	testnet = 'TEST',
-	betanet = 'BETA',
+	MAINNET = 'mainnet',
+	TESTNET = 'testnet',
+	BETANET = 'betanet',
 }
 
 export enum OS {

@@ -13,37 +13,33 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Axios from 'axios';
-import Fs from 'fs';
+import * as axios from 'axios';
+import * as fs from 'fs';
 import { exec } from './worker-process';
 
 export const download = async (
 	url: string,
 	filePath: string,
 ): Promise<void> => {
-	if (Fs.existsSync(filePath)) {
+	if (fs.existsSync(filePath)) {
 		return;
 	}
-	try {
-		const writeStream = Fs.createWriteStream(filePath);
-		const response = await Axios({
-			url,
-			method: 'GET',
-			responseType: 'stream',
-		});
+	const writeStream = fs.createWriteStream(filePath);
+	const response = await axios.default({
+		url,
+		method: 'GET',
+		responseType: 'stream',
+	});
 
-		response.data.pipe(writeStream);
+	response.data.pipe(writeStream);
 
-		return new Promise<void>((resolve, reject) => {
-			writeStream.on('finish', resolve);
-			writeStream.on('error', reject);
-		});
-	} catch (error) {
-		return;
-	}
+	return new Promise<void>((resolve, reject) => {
+		writeStream.on('finish', resolve);
+		writeStream.on('error', reject);
+	});
 };
 
-export const verifyChecksum = async (
+export const validateChecksum = async (
 	filePath: string,
 	fileName: string,
 ): Promise<void> => {

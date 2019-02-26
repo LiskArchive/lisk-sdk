@@ -13,18 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Axios from 'axios';
+import * as axios from 'axios';
 import { NETWORK } from '../constants';
-import { LISK_TAR, LISK_TAR_SHA256 } from './utils';
+import { liskTar, liskTarSHA256 } from './utils';
 
 export const getLatestVersion = async (url: string): Promise<string> => {
-	try {
-		const version = await Axios.get(url);
+	const version = await axios.default.get(url);
 
-		return version.data.trim();
-	} catch (error) {
-		throw error;
-	}
+	return version.data.trim();
 };
 
 export interface ReleaseInfo {
@@ -39,8 +35,8 @@ export const getReleaseInfo = async (
 	network: NETWORK,
 ): Promise<ReleaseInfo> => {
 	const version: string = await getLatestVersion(latestUrl);
-	const liskTarUrl = `${releaseUrl}/${network}/${version}/${LISK_TAR(version)}`;
-	const liskTarSHA256Url = `${releaseUrl}/${network}/${version}/${LISK_TAR_SHA256(
+	const liskTarUrl = `${releaseUrl}/${network}/${version}/${liskTar(version)}`;
+	const liskTarSHA256Url = `${releaseUrl}/${network}/${version}/${liskTarSHA256(
 		version,
 	)}`;
 

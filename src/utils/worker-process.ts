@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import childProcess from 'child_process';
-import util from 'util';
+import * as childProcess from 'child_process';
+import * as util from 'util';
 
 export interface ExecResult {
 	readonly stderr: string;
