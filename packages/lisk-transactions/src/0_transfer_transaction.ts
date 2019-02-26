@@ -77,7 +77,6 @@ export class TransferTransaction extends BaseTransaction {
 		}
 
 		this.asset = tx.asset as TransferAsset;
-		this._fee = new BigNum(TRANSFER_FEE);
 	}
 
 	protected assetToBytes(): Buffer {
@@ -182,12 +181,17 @@ export class TransferTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-		
-		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
-		if(balanceError) {
+
+		const balanceError = verifyAmountBalance(
+			this.id,
+			sender,
+			this.amount,
+			this.fee,
+		);
+		if (balanceError) {
 			errors.push(balanceError);
 		}
-		
+
 		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
 		const updatedSender = {

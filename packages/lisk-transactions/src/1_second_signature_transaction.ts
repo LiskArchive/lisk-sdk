@@ -13,7 +13,6 @@
  *
  */
 import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
 	StateStore,
@@ -87,7 +86,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as SecondSignatureAsset;
-		this._fee = new BigNum(SIGNATURE_FEE);
 	}
 
 	protected assetToBytes(): Buffer {
