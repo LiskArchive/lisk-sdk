@@ -407,14 +407,21 @@ class Account {
 					// blockId [u_]delegates, [u_]multisignatures
 					case String:
 					case Array:
-						promises.push(
-							self.scope.storage.entities.Account.update(
-								{ address },
-								_.pick(diff, [updatedField]),
-								{},
-								dbTx
-							)
-						);
+						if (!updatedField.substr(0, 2) === 'u_') {
+							promises.push(
+								self.scope.storage.entities.Account.update(
+									{ address },
+									_.pick(diff, [updatedField]),
+									{},
+									dbTx
+								)
+							);
+						} else {
+							// [UNCONFIRMED_STATE_REMOVAL] Revisit this code when https://github.com/LiskHQ/lisk/issues/2824 is worked on.
+							library.logger.warn(
+								`[UNCONFIRMED_STATE_REMOVAL] IGNORING CHANGES TO UNCOFIRMED STATE IN logic/accounts FOR FIELD '${updatedField}' WITH VALUE '${updatedValue}'`
+							);
+						}
 						break;
 
 					// [u_]balance, [u_]multimin, [u_]multilifetime, fees, rewards, votes, producedBlocks, missedBlocks
