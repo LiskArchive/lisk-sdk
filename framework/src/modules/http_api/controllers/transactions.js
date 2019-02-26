@@ -16,7 +16,8 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
-const ApiError = require('../helpers/api_error');
+// TODO Reference http_module for api_error.js and remove it from chain module
+const ApiError = require('../../../../src/modules/chain/helpers/api_error');
 
 // Private Fields
 let storage;
