@@ -18,6 +18,6 @@ module.exports = {
 	Field: require('./field'),
 	filterTypes: require('./filter_types'),
 	filterGenerator: require('./filters'),
-	inputSerializers: require('./inputSerializers'),
+	inputSerializers: require('./input_serializers'),
 	sortOptions: require('./sort_option'),
 };
