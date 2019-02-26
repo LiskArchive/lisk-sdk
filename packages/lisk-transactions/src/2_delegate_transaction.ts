@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
 	StateStore,
@@ -96,7 +95,6 @@ export class DelegateTransaction extends BaseTransaction {
 			]);
 		}
 		this.asset = tx.asset as DelegateAsset;
-		this._fee = new BigNum(DELEGATE_FEE);
 		this.containsUniqueData = true;
 	}
 
@@ -166,6 +164,16 @@ export class DelegateTransaction extends BaseTransaction {
 					'Amount must be zero for delegate registration transaction',
 					this.id,
 					'.amount',
+				),
+			);
+		}
+
+		if (!this.fee.eq(DELEGATE_FEE)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${DELEGATE_FEE}`,
+					this.id,
+					'.fee',
 				),
 			);
 		}

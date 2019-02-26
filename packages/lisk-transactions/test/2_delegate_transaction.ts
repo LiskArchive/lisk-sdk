@@ -46,7 +46,7 @@ describe('Delegate registration transaction class', () => {
 
 		it('should set the delegate asset', async () => {
 			expect(validTestTransaction.asset.delegate).to.be.an('object');
-			expect(validTestTransaction.asset.delegate.username).to.eql('genesis_10');
+			expect(validTestTransaction.asset.delegate.username).to.eql('0x0');
 		});
 
 		it('should throw TransactionMultiError when asset is not valid string', async () => {
