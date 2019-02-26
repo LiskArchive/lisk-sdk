@@ -18,6 +18,7 @@ import * as querystring from 'querystring';
 import { RPCResponseError } from './errors';
 
 import {
+	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -96,8 +97,9 @@ export interface PeerConnectionState {
 export const constructPeerId = (ipAddress: string, wsPort: number): string =>
 	`${ipAddress}:${wsPort}`;
 
-export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+export const constructPeerIdFromPeerInfo = (
+	peerInfo: P2PPeerInfo | P2PDiscoveredPeerInfo,
+): string => `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
 
 // Format the node info so that it will be valid from the perspective of both new and legacy nodes.
 const convertNodeInfoToLegacyFormat = (
@@ -119,7 +121,7 @@ export class Peer extends EventEmitter {
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
-	private _peerInfo: P2PPeerInfo;
+	private _peerInfo: P2PDiscoveredPeerInfo;
 	private readonly _peerConfig: PeerConfig;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
@@ -139,7 +141,7 @@ export class Peer extends EventEmitter {
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
 	public constructor(
-		peerInfo: P2PPeerInfo,
+		peerInfo: P2PDiscoveredPeerInfo,
 		peerConfig?: PeerConfig,
 		inboundSocket?: SCServerSocket,
 	) {
@@ -254,24 +256,21 @@ export class Peer extends EventEmitter {
 		this._outboundSocket = scClientSocket;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
+	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
 			ipAddress: this._ipAddress,
 			wsPort: this._wsPort,
 			height: newPeerInfo.height,
-			discoveredInfo: {
-				os: newPeerInfo.discoveredInfo ? newPeerInfo.discoveredInfo.os : '',
-				version: newPeerInfo.discoveredInfo
-					? newPeerInfo.discoveredInfo.version
-					: '',
-			},
+			os: newPeerInfo.os,
+			version: newPeerInfo.version,
 			options: newPeerInfo.options,
-			isDiscoveredPeer: true,
+			updatedAt: newPeerInfo.updatedAt,
+			nonce: newPeerInfo.nonce,
 		};
 	}
 
-	public get peerInfo(): P2PPeerInfo {
+	public get peerInfo(): P2PDiscoveredPeerInfo {
 		return this._peerInfo;
 	}
 
@@ -403,7 +402,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
@@ -420,7 +419,7 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public async fetchStatus(): Promise<P2PPeerInfo> {
+	public async fetchStatus(): Promise<P2PDiscoveredPeerInfo> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_NODE_INFO,
