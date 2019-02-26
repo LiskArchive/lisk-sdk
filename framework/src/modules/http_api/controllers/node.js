@@ -291,30 +291,17 @@ NodeController.getPooledTransactions = function(context, next) {
  * @private
  */
 async function _getForgingStatus(publicKey) {
-	const keyPairs = await library.channel.invoke('chain:getForgersKeyPairs');
-	const forgingDelegates = library.config.forging.delegates;
-	const forgersPublicKeys = {};
-
-	Object.keys(keyPairs).forEach(key => {
-		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
-	});
-
-	const fullList = forgingDelegates.map(forger => ({
-		forging: !!forgersPublicKeys[forger.publicKey],
-		publicKey: forger.publicKey,
-	}));
+	const fullList = await library.channel.invoke(
+		'chain:getForgingStatusForAllDelegates'
+	);
 
 	if (publicKey && !_.find(fullList, { publicKey })) {
 		return [];
 	}
 
-	if (_.find(fullList, { publicKey })) {
-		return [
-			{
-				publicKey,
-				forging: !!forgersPublicKeys[publicKey],
-			},
-		];
+	const result = _.find(fullList, { publicKey });
+	if (result) {
+		return [result];
 	}
 
 	return fullList;

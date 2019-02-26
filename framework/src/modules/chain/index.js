@@ -70,6 +70,8 @@ module.exports = class ChainModule extends BaseModule {
 			loaderLoaded: async () => this.chain.actions.loaderLoaded(),
 			loaderSyncing: async () => this.chain.actions.loaderSyncing(),
 			getForgersKeyPairs: async () => this.chain.actions.getForgersKeyPairs(),
+			getForgingStatusForAllDelegates: async () =>
+				this.chain.actions.getForgingStatusForAllDelegates(),
 			getUnProcessedTransactions: async action =>
 				this.chain.actions.getUnProcessedTransactions(action),
 			getUnconfirmedTransactions: async action =>

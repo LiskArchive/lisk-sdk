@@ -78,9 +78,6 @@ class Delegates {
 					delegates: scope.config.forging.delegates,
 					force: scope.config.forging.force,
 					defaultPassword: scope.config.forging.defaultPassword,
-					access: {
-						whiteList: scope.config.forging.access.whiteList,
-					},
 				},
 			},
 		};
@@ -897,6 +894,23 @@ Delegates.prototype.fork = function(block, cause) {
  */
 Delegates.prototype.getForgersKeyPairs = function() {
 	return __private.keypairs;
+};
+
+Delegates.prototype.getForgingStatusForAllDelegates = function() {
+	const keyPairs = __private.keypairs;
+	const forgingDelegates = library.config.forging.delegates;
+	const forgersPublicKeys = {};
+
+	Object.keys(keyPairs).forEach(key => {
+		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
+	});
+
+	const fullList = forgingDelegates.map(forger => ({
+		forging: !!forgersPublicKeys[forger.publicKey],
+		publicKey: forger.publicKey,
+	}));
+
+	return fullList;
 };
 
 // Events

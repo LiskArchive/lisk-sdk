@@ -238,6 +238,8 @@ module.exports = class Chain {
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),
 			getForgersKeyPairs: async () =>
 				this.scope.modules.delegates.getForgersKeyPairs(),
+			getForgingStatusForAllDelegates: async () =>
+				this.scope.modules.delegates.getForgingStatusForAllDelegates(),
 			getUnProcessedTransactions: async action =>
 				this.scope.modules.transactions.shared.getUnProcessedTransactions(
 					action.params[0],
