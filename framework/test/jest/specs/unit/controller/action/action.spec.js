@@ -1,4 +1,4 @@
-const Action = require('../../../../../src/controller/action');
+const Action = require('../../../../../../src/controller/action');
 const {
 	ACTION_NAME,
 	MODULE_NAME,

@@ -1,4 +1,4 @@
-const Event = require('../../../../../src/controller/event');
+const Event = require('../../../../../../src/controller/event');
 const {
 	EVENT_NAME,
 	MODULE_NAME,
