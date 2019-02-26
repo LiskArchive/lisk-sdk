@@ -192,53 +192,44 @@ async function _getForgers(filters) {
 	const forgerKeys = [];
 	const round = slots.calcRound(lastBlock.height + 1);
 
-	return new Promise((resolve, reject) => {
-		channel.invoke('chain:generateDelegateList', [
-			round,
-			null,
-			async (err, activeDelegates) => {
-				if (err) {
-					reject(err);
-				}
+	const activeDelegates = await channel.invoke('chain:generateDelegateList', [
+		round,
+		null,
+		null,
+	]);
 
-				for (
-					let i = filters.offset + 1;
-					i <= ACTIVE_DELEGATES && i <= filters.limit + filters.offset;
-					i++
-				) {
-					if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {
-						forgerKeys.push(
-							activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]
-						);
-					}
-				}
+	for (
+		let i = filters.offset + 1;
+		i <= ACTIVE_DELEGATES && i <= filters.limit + filters.offset;
+		i++
+	) {
+		if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {
+			forgerKeys.push(activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]);
+		}
+	}
 
-				let forgers = (await storage.entities.Account.get(
-					{ isDelegate: true, publicKey_in: forgerKeys },
-					{ limit: null }
-				)).map(forger => _.pick(forger, ['username', 'address', 'publicKey']));
+	let forgers = (await storage.entities.Account.get(
+		{ isDelegate: true, publicKey_in: forgerKeys },
+		{ limit: null }
+	)).map(forger => _.pick(forger, ['username', 'address', 'publicKey']));
 
-				forgers.forEach(forger => {
-					forger.nextSlot =
-						forgerKeys.indexOf(forger.publicKey) + currentSlot + 1;
-				});
-
-				forgers = _.sortBy(forgers, 'nextSlot');
-
-				resolve({
-					data: forgers,
-					meta: {
-						lastBlock: lastBlock.height,
-						lastBlockSlot,
-						currentSlot,
-						limit: filters.limit,
-						offset: filters.offset,
-					},
-					links: {},
-				});
-			},
-		]);
+	forgers.forEach(forger => {
+		forger.nextSlot = forgerKeys.indexOf(forger.publicKey) + currentSlot + 1;
 	});
+
+	forgers = _.sortBy(forgers, 'nextSlot');
+
+	return {
+		data: forgers,
+		meta: {
+			lastBlock: lastBlock.height,
+			lastBlockSlot,
+			currentSlot,
+			limit: filters.limit,
+			offset: filters.offset,
+		},
+		links: {},
+	};
 }
 
 /**

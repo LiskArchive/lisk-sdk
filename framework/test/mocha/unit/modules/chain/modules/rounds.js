@@ -220,7 +220,6 @@ describe('rounds', () => {
 			const round = 124;
 			rounds.onFinishRound(round);
 
-			expect(validScope.channel.publish).to.be.calledOnce;
 			expect(validScope.channel.publish).to.be.calledWith(
 				'chain:rounds:change',
 				{

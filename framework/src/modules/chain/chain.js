@@ -195,12 +195,20 @@ module.exports = class Chain {
 			calculateMilestone: action => blockReward.calcMilestone(action.params[0]),
 			calculateReward: action => blockReward.calcReward(action.params[0]),
 			generateDelegateList: action =>
-				this.scope.modules.delegates.generateDelegateList(
-					action.params[0],
-					action.params[1],
-					action.params[2],
-					action.params[3]
-				),
+				new Promise((resolve, reject) => {
+					this.scope.modules.delegates.generateDelegateList(
+						action.params[0],
+						action.params[1],
+						(err, data) => {
+							if (err) {
+								reject(err);
+							}
+
+							resolve(data);
+						},
+						action.params[2]
+					);
+				}),
 			getNetworkHeight: async action =>
 				util.promisify(this.scope.modules.peers.networkHeight)(
 					action.params[0]

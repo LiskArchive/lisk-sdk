@@ -199,7 +199,11 @@ NodeController.updateForgingStatus = async (context, next) => {
 	const forging = context.request.swagger.params.data.value.forging;
 
 	try {
-		const data = await _updateForgingStatus(publicKey, password, forging);
+		const data = await library.channel.invoke('chain:updateForgingStatus', [
+			publicKey,
+			password,
+			forging,
+		]);
 		return next(null, [data]);
 	} catch (err) {
 		context.statusCode = apiCodes.NOT_FOUND;
@@ -314,23 +318,6 @@ async function _getForgingStatus(publicKey) {
 	}
 
 	return fullList;
-}
-
-/**
- * Toggle the forging status of a delegate.
- * @param {string} publicKey - Public key of a delegate
- * @param {string} password - Password used to decrypt encrypted passphrase
- * @param {boolean} forging - Forging status of a delegate to update
- * @returns {Promise<object>}
- * @todo Add description for the return value
- * @private
- */
-async function _updateForgingStatus(publicKey, password, forging) {
-	return library.channel.invoke('chain:updateForgingStatus', [
-		publicKey,
-		password,
-		forging,
-	]);
 }
 
 module.exports = NodeController;

@@ -335,7 +335,12 @@ describe('delegates/api', () => {
 		};
 
 		beforeEach(() => {
+			channelStub.invoke.resolves(dummyDelegates);
 			return __private.getForgers(filters);
+		});
+
+		afterEach(async () => {
+			channelStub.invoke.resolves();
 		});
 
 		it('should call storage.entities.Block.get() with exact arguments', async () => {
