@@ -94,27 +94,11 @@ const DefaultConfig = {
 						},
 					},
 				},
-				access: {
-					type: 'object',
-					properties: {
-						whiteList: {
-							type: 'array',
-							default: ['127.0.0.1'],
-						},
-					},
-					required: ['whiteList'],
-					default: {
-						whiteList: ['127.0.0.1'],
-					},
-				},
 			},
-			required: ['force', 'delegates', 'access'],
+			required: ['force', 'delegates'],
 			default: {
 				force: false,
 				delegates: [],
-				access: {
-					whiteList: ['127.0.0.1'],
-				},
 			},
 		},
 		syncing: {
