@@ -32,6 +32,8 @@ If you have satisfied the requirements from the Pre-Installation section, you ca
 * [Tests](#tests)
   * [Preparing Node](#preparing-node)
   * [Running Tests](#running-tests)
+    * [Running Mocha Tests](#running-mocha-tests)
+    * [Running Jest Tests](#running-jest-tests)
 
 ## Pre-Installation
 
@@ -397,6 +399,14 @@ NODE_ENV=test node app.js
 
 ### Running Tests
 
+Starting from version `1.6.0`, Lisk Core will be using [Jest](https://jestjs.io) as its main test runner and gradually deprecate [mocha](https://mochajs.org). Since rewriting all existing mocha tests is not feasible at the moment, we are going to have two test runners in our code base:
+
+* Modules (all source code under `framework/src/modules` folder) will be tested using `mocha` and test files should be located under `framework/test/mocha`.
+* Framework (all of the source files but `framework/src/modules`) will be tested using `jest` and test files should be located under `framework/test/jest`.
+* Functional and Network tests suites will be using `mocha` and test files should be located under `framework/test/mocha`.
+
+#### Running Mocha Tests
+
 Tests are run using the following command:
 
 ```
@@ -422,6 +432,20 @@ Individual test files can be run using the following command:
 
 ```
 npm run mocha -- path/to/test.js
+```
+
+#### Running Jest Tests
+
+```
+npm run jest:<testType>
+```
+
+`testType` can be `unit`|`integration`|`functional`
+
+##### Executing the tests per file:
+
+```
+npm run jest:<testType> -- [filepath] [jest-options]
 ```
 
 ## Utility scripts
