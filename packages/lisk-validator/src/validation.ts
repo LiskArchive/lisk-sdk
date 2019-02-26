@@ -30,10 +30,10 @@ import {
 	MAX_PUBLIC_KEY_LENGTH,
 } from './constants';
 
-export const isNullCharacterIncluded = (input: string) =>
+export const isNullCharacterIncluded = (input: string): boolean =>
 	new RegExp('\\0|\\U00000000').test(input);
 
-export const isUsername = (username: string) => {
+export const isUsername = (username: string): boolean => {
 	if (isNullCharacterIncluded(username)) {
 		return false;
 	}
@@ -53,20 +53,20 @@ export const isUsername = (username: string) => {
 	return true;
 };
 
-export const isSignature = (signature: string) =>
+export const isSignature = (signature: string): boolean =>
 	/^[a-f0-9]{128}$/i.test(signature);
 
-export const isGreaterThanZero = (amount: BigNum) => amount.cmp(0) > 0;
+export const isGreaterThanZero = (amount: BigNum): boolean => amount.cmp(0) > 0;
 
-export const isGreaterThanMaxTransactionAmount = (amount: BigNum) =>
+export const isGreaterThanMaxTransactionAmount = (amount: BigNum): boolean =>
 	amount.cmp(MAX_INT64) > 0;
 
-export const isGreaterThanMaxTransactionId = (id: BigNum) =>
+export const isGreaterThanMaxTransactionId = (id: BigNum): boolean =>
 	id.cmp(MAX_EIGHT_BYTE_NUMBER) > 0;
 
 export const isNumberString = isNumeric;
 
-export const isValidInteger = (num: unknown) =>
+export const isValidInteger = (num: unknown): boolean =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
 
 export const isUnique = (values: ReadonlyArray<string>): boolean => {
@@ -75,7 +75,7 @@ export const isUnique = (values: ReadonlyArray<string>): boolean => {
 	return unique.length === values.length;
 };
 
-export const isStringBufferLessThan = (data: unknown, max: number) => {
+export const isStringBufferLessThan = (data: unknown, max: number): boolean => {
 	if (typeof data !== 'string') {
 		return false;
 	}
@@ -83,7 +83,7 @@ export const isStringBufferLessThan = (data: unknown, max: number) => {
 	return Buffer.from(data).length <= max;
 };
 
-export const isHexString = (data: unknown) => {
+export const isHexString = (data: unknown): boolean => {
 	if (typeof data !== 'string') {
 		return false;
 	}
@@ -91,7 +91,7 @@ export const isHexString = (data: unknown) => {
 	return data === '' || /^[a-f0-9]+$/i.test(data);
 };
 
-export const isEncryptedPassphrase = (data: string) => {
+export const isEncryptedPassphrase = (data: string): boolean => {
 	// Explanation of regex structure:
 	// - 1 or more 'key=value' pairs delimited with '&'
 	// Examples:
@@ -110,8 +110,11 @@ export const isEncryptedPassphrase = (data: string) => {
 	return encryptedPassphraseRegExp.test(data);
 };
 
-export const isSemVer = isValidVersion;
-export const isRangedSemVer = isValidRangeVersion;
+export const isSemVer = (version: string): boolean => !!isValidVersion(version);
+
+export const isRangedSemVer = (version: string): boolean =>
+	!!isValidRangeVersion(version);
+
 export const isLessThanRangedVersion = isLessThanVersionInRange;
 export const isGreaterThanRangedVersion = isGreaterThanVersionInRange;
 
@@ -121,17 +124,17 @@ export const isProtocolString = (data: string) =>
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
 
-export const isIPV4 = (data: string) => isValidIP(data, IPV4_NUMBER);
+export const isIPV4 = (data: string): boolean => isValidIP(data, IPV4_NUMBER);
 
-export const isIPV6 = (data: string) => isValidIP(data, IPV6_NUMBER);
+export const isIPV6 = (data: string): boolean => isValidIP(data, IPV6_NUMBER);
 
-export const isIP = (data: string) => isIPV4(data) || isIPV6(data);
+export const isIP = (data: string): boolean => isIPV4(data) || isIPV6(data);
 
 export const isPort = isValidPort;
 
 export const validatePublicKeysForDuplicates = (
 	publicKeys: ReadonlyArray<string>,
-) =>
+): boolean =>
 	publicKeys.every((element, index) => {
 		if (publicKeys.slice(index + 1).includes(element)) {
 			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
@@ -147,7 +150,7 @@ export const isStringEndsWith = (
 
 export const isVersionMatch = isVersionGte;
 
-export const validatePublicKey = (publicKey: string) => {
+export const validatePublicKey = (publicKey: string): boolean => {
 	const publicKeyBuffer = hexToBuffer(publicKey);
 	if (publicKeyBuffer.length !== MAX_PUBLIC_KEY_LENGTH) {
 		throw new Error(
@@ -158,7 +161,9 @@ export const validatePublicKey = (publicKey: string) => {
 	return true;
 };
 
-export const validatePublicKeys = (publicKeys: ReadonlyArray<string>) =>
+export const validatePublicKeys = (
+	publicKeys: ReadonlyArray<string>,
+): boolean =>
 	publicKeys.every(validatePublicKey) &&
 	validatePublicKeysForDuplicates(publicKeys);
 
@@ -166,7 +171,7 @@ export const validateKeysgroup = (
 	keysgroup: ReadonlyArray<string>,
 	min: number,
 	max: number,
-) => {
+): boolean => {
 	if (keysgroup.length < min || keysgroup.length > max) {
 		throw new Error(
 			`Expected between ${min} and ${max} public keys in the keysgroup.`,
@@ -219,15 +224,15 @@ export const validateAddress = (address: string): boolean => {
 	return true;
 };
 
-export const validateNonTransferAmount = (data: string) =>
+export const validateNonTransferAmount = (data: string): boolean =>
 	isNumberString(data) && data === '0';
 
-export const validateTransferAmount = (data: string) =>
+export const validateTransferAmount = (data: string): boolean =>
 	isNumberString(data) &&
 	isGreaterThanZero(new BigNum(data)) &&
 	!isGreaterThanMaxTransactionAmount(new BigNum(data));
 
-export const validateFee = (data: string) =>
+export const validateFee = (data: string): boolean =>
 	isNumberString(data) &&
 	isGreaterThanZero(new BigNum(data)) &&
 	!isGreaterThanMaxTransactionAmount(new BigNum(data));
