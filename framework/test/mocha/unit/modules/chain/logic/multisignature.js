@@ -137,9 +137,9 @@ describe('multisignature', () => {
 			multisignature.afterSave(dummyTransaction, () => {});
 		});
 
-		it('should call __scope.channel.publish with "multisignatures:change" and transaction object', async () => {
+		it('should call __scope.channel.publish with "chain:multisignatures:change" and transaction object', async () => {
 			expect(channelStub.publish).to.be.calledWithExactly(
-				'multisignatures:change',
+				'chain:multisignatures:change',
 				dummyTransaction
 			);
 		});
