@@ -156,7 +156,7 @@ const sqlFiles = {
 class Block extends BaseEntity {
 	/**
 	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
+	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
 	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
@@ -197,8 +197,8 @@ class Block extends BaseEntity {
 		});
 		this.addField('timestamp', 'number', { filter: filterType.NUMBER });
 		this.addField('totalAmount', 'string', { filter: filterType.NUMBER });
-		this.addField('totalFee', 'string', { filter: filterType.NUMBER });
-		this.addField('reward', 'string', { filter: filterType.NUMBER });
+		this.addField('totalFee', 'string', { filter: filterType.TEXT });
+		this.addField('reward', 'string', { filter: filterType.TEXT });
 		this.addField('version', 'number', { filter: filterType.NUMBER });
 		this.addField('confirmations', 'number', { filter: filterType.NUMBER });
 
