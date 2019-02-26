@@ -22,7 +22,7 @@ import {
 } from './errors';
 
 import {
-	P2PPeerInfo,
+	P2PDiscoveredPeerInfo,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
@@ -47,7 +47,9 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	return true;
 };
 
-export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
+export const validatePeerInfo = (
+	rawPeerInfo: unknown,
+): P2PDiscoveredPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
 	}
@@ -65,6 +67,10 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 		throw new InvalidPeerError(`Invalid peer version`);
 	}
 
+	if (!protocolPeer.nonce || typeof protocolPeer.nonce !== 'string') {
+		throw new InvalidPeerError(`Nonce is either not present or invalid`);
+	}
+
 	const version = protocolPeer.version;
 	const wsPort = +protocolPeer.wsPort;
 	const os = protocolPeer.os ? protocolPeer.os : '';
@@ -73,21 +79,18 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 			? +protocolPeer.height
 			: 0;
 
-	const peerInfo: P2PPeerInfo = {
+	const peerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
-		discoveredInfo: {
-			os,
-			version,
-		},
+		os,
+		version,
 		options: {
 			httpPort: protocolPeer.httpPort,
 			broadhash: protocolPeer.broadhash,
-			nonce: protocolPeer.nonce,
 			...protocolPeer.options,
 		},
-		isDiscoveredPeer: true,
+		nonce: protocolPeer.nonce,
 	};
 
 	return peerInfo;
@@ -95,14 +98,14 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 
 export const validatePeerInfoList = (
 	rawPeerInfoList: unknown,
-): ReadonlyArray<P2PPeerInfo> => {
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 	if (!rawPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
 	const { peers } = rawPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
+		const peerList = peers.map<P2PDiscoveredPeerInfo>(validatePeerInfo);
 
 		return peerList;
 	} else {
