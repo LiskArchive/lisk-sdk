@@ -15,6 +15,7 @@
  */
 
 import { flags as flagParser } from '@oclif/command';
+import * as fsExtra from 'fs-extra';
 import * as os from 'os';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
@@ -22,7 +23,6 @@ import { download, extract, validateChecksum } from '../../utils/download';
 import { getReleaseInfo } from '../../utils/node/release';
 import {
 	createDirectory,
-	directoryExists,
 	isValidURL,
 	LISK_DB_SNAPSHOT,
 	LISK_LATEST_URL,
@@ -55,7 +55,7 @@ const validatePrerequisite = (installPath: string): void => {
 	if (!osSupported()) {
 		throw new Error(`Lisk install is not supported on ${os.type()}`);
 	}
-	if (directoryExists(installPath)) {
+	if (fsExtra.pathExistsSync(installPath)) {
 		throw new Error(`Installation already exists in path ${installPath}`);
 	}
 };

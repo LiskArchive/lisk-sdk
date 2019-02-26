@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import * as os from 'os';
 import { NETWORK, OS } from '../constants';
 
@@ -63,13 +63,11 @@ export const networkSupported = (network: NETWORK): void => {
 	);
 };
 
-export const directoryExists = (dirPath: string): boolean =>
-	fs.existsSync(dirPath);
-
 export const createDirectory = (dirPath: string): void => {
 	const resolvedPath = liskInstall(dirPath);
-	if (!directoryExists(resolvedPath)) {
-		fs.mkdirSync(resolvedPath, { recursive: true });
+	if (!fsExtra.pathExistsSync(resolvedPath)) {
+		// TODO: Remove fs-extra and use fs.mkdirsSync(path, { recursive: true})
+		fsExtra.ensureDirSync(resolvedPath);
 	}
 };
 
