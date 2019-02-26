@@ -736,43 +736,70 @@ class Account extends BaseEntity {
 			`Invalid dependency name "${dependencyName}" provided.`
 		);
 
-		const paramsForDelete = {
-			tableName: dependentFieldsTableMap[dependencyName],
-			accountId: address,
-			dependentIds: dependentPublicKeys,
-		};
-
 		const sqlForDelete = this.SQLs.deleteDependentRecords;
-
-		const valuesForInsert = dependentPublicKeys.map(dependentId => ({
-			accountId: address,
-			dependentId,
-		}));
 
 		const tableName = dependentFieldsTableMap[dependencyName];
 		const sqlForInsert = this.SQLs.createDependentRecords;
 
-		const createSet = this.getValuesSet(
-			valuesForInsert,
-			['accountId', 'dependentId'],
-			{ useRawObject: true }
-		);
-
 		return this.adapter
-			.executeFile(
-				sqlForDelete,
-				paramsForDelete,
-				{ expectedResultCount: 0 },
-				tx
+			.execute(
+				`SELECT "dependentId" FROM ${tableName} WHERE "accountId" = $1`,
+				[address]
 			)
-			.then(() =>
-				this.adapter.executeFile(
-					sqlForInsert,
-					{ tableName, createSet },
-					{ expectedResultCount: 0 },
-					tx
-				)
-			);
+			.then(dependentRecordsForAddress => {
+				const oldDependentPublicKeys = dependentRecordsForAddress.map(
+					dependentRecord => dependentRecord.dependentId
+				);
+				const toRemove = oldDependentPublicKeys.filter(
+					aPK => !dependentPublicKeys.includes(aPK)
+				);
+				const toInsert = dependentPublicKeys.filter(
+					aPK => !oldDependentPublicKeys.includes(aPK)
+				);
+
+				const paramsForDelete = {
+					tableName: dependentFieldsTableMap[dependencyName],
+					accountId: address,
+					dependentIds: toRemove,
+				};
+
+				const dependentRecordPromises = [];
+
+				if (toRemove.length > 0) {
+					dependentRecordPromises.push(
+						this.adapter.executeFile(
+							sqlForDelete,
+							paramsForDelete,
+							{ expectedResultCount: 0 },
+							tx
+						)
+					);
+				}
+
+				if (toInsert.length > 0) {
+					const valuesForInsert = toInsert.map(dependentId => ({
+						accountId: address,
+						dependentId,
+					}));
+
+					const createSet = this.getValuesSet(
+						valuesForInsert,
+						['accountId', 'dependentId'],
+						{ useRawObject: true }
+					);
+
+					dependentRecordPromises.push(
+						this.adapter.executeFile(
+							sqlForInsert,
+							{ tableName, createSet },
+							{ expectedResultCount: 0 },
+							tx
+						)
+					);
+				}
+
+				return Promise.all(dependentRecordPromises);
+			});
 	}
 
 	/**

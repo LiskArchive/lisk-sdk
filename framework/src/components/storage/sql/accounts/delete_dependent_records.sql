@@ -20,4 +20,4 @@
   PARAMETERS: ?
 */
 
-DELETE FROM ${tableName:name} WHERE "accountId" = ${accountId} AND "dependentId" NOT IN (${dependentIds:csv});
+DELETE FROM ${tableName:name} WHERE "accountId" = ${accountId} AND "dependentId" IN (${dependentIds:csv});
