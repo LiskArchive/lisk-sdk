@@ -126,7 +126,6 @@ describe('blocks/verify', async () => {
 		};
 
 		const modulesProcessTransactionsStub = {
-			validateTransactions: sinonSandbox.stub(),
 			verifyTransactions: sinonSandbox.stub(),
 		};
 
@@ -1516,31 +1515,10 @@ describe('blocks/verify', async () => {
 	});
 
 	describe('__private.normalizeBlock', async () => {
-		const dummyBlock = {
-			id: 1,
-			transactions: [
-				{
-					id: '123',
-				},
-			],
-		};
-		const validTransactionsResponse = dummyBlock.transactions.map(
-			transaction => ({
-				id: transaction.id,
-				status: transactionStatus.OK,
-				errors: [],
-			})
-		);
-		const invalidTransactionsResponse = dummyBlock.transactions.map(
-			transaction => ({
-				id: transaction.id,
-				status: transactionStatus.FAIL,
-				errors: [new Error()],
-			})
-		);
+		const dummyBlock = { id: 1 };
 
 		describe('when library.logic.block.objectNormalize fails', async () => {
-			beforeEach(async () =>
+			beforeEach(() =>
 				library.logic.block.objectNormalize.throws('objectNormalize-ERR')
 			);
 
@@ -1552,62 +1530,17 @@ describe('blocks/verify', async () => {
 			});
 		});
 
-		describe('when library.logic.block.objectNormalize succeeds', () => {
-			beforeEach(async () => {
+		describe('when library.logic.block.objectNormalize succeeds', async () => {
+			beforeEach(() =>
 				library.logic.block.objectNormalize.returns({
 					id: 1,
 					version: 0,
-				});
-				modules.processTransactions.validateTransactions.returns(
-					validTransactionsResponse
-				);
-			});
+				})
+			);
 
 			it('should call a callback with no error', done => {
 				__private.normalizeBlock(dummyBlock, err => {
 					expect(err).to.be.undefined;
-					done();
-				});
-			});
-		});
-
-		describe('when modules.processTransactions.validateTransactions succeeds', () => {
-			beforeEach(async () => {
-				library.logic.block.objectNormalize.returns({
-					id: 1,
-					version: 0,
-				});
-				modules.processTransactions.validateTransactions.returns(
-					validTransactionsResponse
-				);
-			});
-
-			it('should not throw if the validateTransaction returns transaction response with Status = OK', done => {
-				__private.normalizeBlock(dummyBlock, err => {
-					expect(modules.processTransactions.validateTransactions).to.be
-						.calledOnce;
-					expect(err).to.be.undefined;
-					done();
-				});
-			});
-		});
-
-		describe('when modules.processTransactions.validateTransactions fails', () => {
-			beforeEach(async () => {
-				library.logic.block.objectNormalize.returns({
-					id: 1,
-					version: 0,
-				});
-				modules.processTransactions.validateTransactions.returns(
-					invalidTransactionsResponse
-				);
-			});
-
-			it('should call a callback with error', done => {
-				__private.normalizeBlock(dummyBlock, err => {
-					expect(modules.processTransactions.validateTransactions).to.be
-						.calledOnce;
-					expect(err).to.exist;
 					done();
 				});
 			});

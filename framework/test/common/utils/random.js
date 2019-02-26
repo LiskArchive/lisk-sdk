@@ -86,7 +86,7 @@ random.application = function() {
 		name: random.applicationName(),
 		description: 'Blockchain based home monitoring tool',
 		tags: 'monitoring temperature power sidechain',
-		type: 0,
+		type: random.number(0, 2),
 		link: `https://${random.applicationName()}.zip`,
 		icon:
 			'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png',

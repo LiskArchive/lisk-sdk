@@ -319,7 +319,6 @@ describe('block', async () => {
 	before(done => {
 		transactionStub = {
 			getBytes: sinonSandbox.stub(),
-			objectNormalize: sinonSandbox.stub(),
 		};
 
 		block = new Block(
@@ -344,14 +343,12 @@ describe('block', async () => {
 				.stub(block, 'objectNormalize')
 				.returnsArg(0);
 
-			transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));
-			return transactionStub.objectNormalize.returnsArg(0);
+			return transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));
 		});
 
 		after(() => {
 			blockNormalizeStub.resetHistory();
-			transactionStub.getBytes.resetHistory();
-			return transactionStub.objectNormalize.resetHistory();
+			return transactionStub.getBytes.resetHistory();
 		});
 
 		describe('when each of all supported', async () => {

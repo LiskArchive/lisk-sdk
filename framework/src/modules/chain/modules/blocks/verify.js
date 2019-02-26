@@ -16,7 +16,7 @@
 
 const crypto = require('crypto');
 const async = require('async');
-const TransactionStatus = require('@liskhq/lisk-transactions').Status;
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../../helpers/slots.js');
 const blockVersion = require('../../logic/block_version.js');
@@ -617,17 +617,8 @@ __private.addBlockProperties = function(block, broadcast, cb) {
 __private.normalizeBlock = function(block, cb) {
 	try {
 		block = library.logic.block.objectNormalize(block);
-		const transactionResponses = modules.processTransactions.validateTransactions(
-			block.transactions
-		);
-		const invalidTransactionResponse = transactionResponses.find(
-			transactionResponse => transactionResponse.status !== TransactionStatus.OK
-		);
-		if (invalidTransactionResponse) {
-			throw invalidTransactionResponse.errors;
-		}
-	} catch (err) {
-		return setImmediate(cb, err);
+	} catch (errors) {
+		return setImmediate(cb, errors);
 	}
 
 	return setImmediate(cb);

@@ -15,7 +15,7 @@
 'use strict';
 
 const async = require('async');
-const { TransactionStatus } = require('@liskhq/lisk-transactions');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const slots = require('../helpers/slots.js');
 
@@ -298,8 +298,9 @@ __private.loadTransactions = function(cb) {
 					if (invalidTransactionResponse) {
 						throw invalidTransactionResponse.errors;
 					}
-				} catch (e) {
-					const error = Array.isArray(e) && e.length > 0 ? e[0] : e;
+				} catch (errors) {
+					const error =
+						Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
 					library.logger.debug('Transaction normalization failed', {
 						id: error.id,
 						err: error.toString(),
@@ -312,7 +313,7 @@ __private.loadTransactions = function(cb) {
 					);
 					modules.peers.remove(peer);
 
-					return setImmediate(waterCb, e, transactions);
+					return setImmediate(waterCb, error, null);
 				}
 
 				return setImmediate(waterCb, null, transactions);

@@ -709,11 +709,6 @@ describe('transport', async () => {
 					);
 				});
 
-				it('should call library.logic.transaction.objectNormalize with transaction', async () =>
-					expect(
-						library.logic.transaction.objectNormalize.calledWith(transaction)
-					).to.be.true);
-
 				it('should call library.balancesSequence.add', async () =>
 					expect(library.balancesSequence.add.called).to.be.true);
 
@@ -724,58 +719,6 @@ describe('transport', async () => {
 							true
 						)
 					).to.be.true);
-			});
-
-			describe('when library.logic.transaction.objectNormalize throws', async () => {
-				let extraLogMessage;
-				let objectNormalizeError;
-
-				beforeEach(done => {
-					extraLogMessage = 'This is a log message';
-					objectNormalizeError = 'Unknown transaction type 0';
-
-					library.logic.transaction.objectNormalize = sinonSandbox
-						.stub()
-						.throws(objectNormalizeError);
-					__private.removePeer = sinonSandbox.spy();
-
-					__private.receiveTransaction(
-						transaction,
-						validNonce,
-						extraLogMessage,
-						err => {
-							error = err;
-							done();
-						}
-					);
-				});
-
-				it('should call library.logger.debug with "Transaction normalization failed" error message and error details object', async () => {
-					const errorDetails = {
-						id: transaction.id,
-						err: 'Unknown transaction type 0',
-						module: 'transport',
-						transaction,
-					};
-					return expect(
-						library.logger.debug.calledWith(
-							'Transaction normalization failed',
-							errorDetails
-						)
-					).to.be.true;
-				});
-
-				it('should call __private.removePeer with peer details object', async () => {
-					const peerDetails = { nonce: validNonce, code: 'ETRANSACTION' };
-					return expect(
-						__private.removePeer.calledWith(peerDetails, extraLogMessage)
-					).to.be.true;
-				});
-
-				it('should call callback with error = "Invalid transaction body"', async () =>
-					expect(error).to.equal(
-						`Invalid transaction body - ${objectNormalizeError}`
-					));
 			});
 
 			describe('when nonce is undefined', async () => {

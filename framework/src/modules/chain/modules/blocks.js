@@ -230,7 +230,6 @@ Blocks.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 	};
-
 	// Set module as loaded
 	__private.loaded = true;
 };
