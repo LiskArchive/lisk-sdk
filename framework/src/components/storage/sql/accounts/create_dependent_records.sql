@@ -14,9 +14,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Creates Account dependent records
 
-  PARAMETERS: ?
+  PARAMETERS: set of accountId, depdentId values
 */
 
 INSERT INTO ${tableName:name} ("accountId", "dependentId") VALUES ${createSet:raw};

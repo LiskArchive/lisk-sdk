@@ -15,9 +15,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Deletes dependent records for account when an update is received
 
-  PARAMETERS: ?
+  PARAMETERS: accountId and set of dependentIds
 */
 
 DELETE FROM ${tableName:name} WHERE "accountId" = ${accountId} AND "dependentId" IN (${dependentIds:csv});

@@ -970,17 +970,17 @@ describe('Account', async () => {
 				foo: 'bar',
 			};
 			// Act & Assert
-			expect(() => {
-				AccountEntity.update(invalidFilter, {});
-			}).to.throw(NonSupportedFilterTypeError);
+			expect(AccountEntity.update(invalidFilter, {})).to.be.rejectedWith(
+				NonSupportedFilterTypeError
+			);
 		});
 
 		it('should throw error for in-valid filters', async () => {
 			const account = new accountFixtures.Account();
 
-			expect(() => {
-				AccountEntity.update({ myAddress: '123' }, account);
-			}).to.throw(
+			expect(
+				AccountEntity.update({ myAddress: '123' }, account)
+			).to.be.rejectedWith(
 				NonSupportedFilterTypeError,
 				'One or more filters are not supported.'
 			);
@@ -1135,6 +1135,34 @@ describe('Account', async () => {
 			expect(() => {
 				AccountEntity.update(filter, { balance: 20 });
 			}).not.to.throw();
+		});
+
+		it('should not create mem_accounts2delegates records if property membersPublicKeys is null', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			const address = account.address;
+			await AccountEntity.create(account);
+			// Act
+			await AccountEntity.update({ address }, { balance: 100 });
+			// Assert
+			const relelatedRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${address}'`
+			);
+			expect(relelatedRecords).to.be.eql([]);
+		});
+
+		it('should not create mem_accounts2delegates records if property votedDelegatesPublicKeys is null', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			const address = account.address;
+			await AccountEntity.create(account);
+			// Act
+			await AccountEntity.update({ address }, { balance: 100 });
+			// Assert
+			const relelatedRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${address}'`
+			);
+			expect(relelatedRecords).to.be.eql([]);
 		});
 	});
 
