@@ -111,8 +111,8 @@ testContext.config = config;
 testContext.consoleLogLevel =
 	process.env.LOG_LEVEL || testContext.consoleLogLevel;
 
-testContext.baseUrl = `http://${testContext.config.address}:${
-	testContext.config.httpPort
+testContext.baseUrl = `http://${testContext.config.modules.http_api.address}:${
+	testContext.config.modules.http_api.httpPort
 }`;
 testContext.api = supertest(testContext.baseUrl);
 
