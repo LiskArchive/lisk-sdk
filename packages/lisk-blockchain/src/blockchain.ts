@@ -52,12 +52,12 @@ const defaultOptions: BlockchainOptions = {
 };
 
 export class Blockchain extends EventEmitter {
-	private _db: DataStore;
-	private _genesis: Block;
+	private readonly _db: DataStore;
+	private readonly _genesis: Block;
+	private readonly _txMap: TransactionMap;
+	private readonly _exceptionHandler: ExceptionHandler;
+	private readonly _options: BlockchainOptions;
 	private _lastBlock?: Block;
-	private _txMap: TransactionMap;
-	private _exceptionHandler: ExceptionHandler;
-	private _options: BlockchainOptions;
 
 	public constructor(
 		genesis: BlockJSON,
@@ -86,12 +86,16 @@ export class Blockchain extends EventEmitter {
 		const txs = rawTransactionToInstance(this._txMap, genesis.transactions);
 		const block = new Block(genesis, txs);
 		const store = new StateStore(this._db, block);
-		block.apply(store);
+		await block.apply(store);
 		await store.finalize();
 		this.emit(EVENT_BLOCK_ADDED, {
 			block,
 			accounts: store.getUpdatedAccount(),
 		});
+	}
+
+	public get nethash(): string {
+		return this._genesis.payloadHash;
 	}
 
 	public get lastBlock(): Block {
@@ -110,7 +114,7 @@ export class Blockchain extends EventEmitter {
 		const txs = rawTransactionToInstance(this._txMap, rawBlock.transactions);
 		const block = new Block(rawBlock, txs);
 		// Check if blockID exists
-		const existError = await verifyExist(this._db, block.id as string);
+		const existError = await verifyExist(this._db, block.id);
 		if (existError) {
 			return [existError];
 		}
@@ -126,9 +130,20 @@ export class Blockchain extends EventEmitter {
 			return verifyErrors;
 		}
 		// Fork choice
+		if (block.height === this.lastBlock.height) {
+			const deleteError = await this._deleteBlock();
+			if (deleteError) {
+				throw deleteError;
+			}
+
+			return undefined;
+		}
 		// Apply block
 		const applyErrors = await block.apply(store);
-		if (applyErrors.length > 0) {
+		if (
+			applyErrors.length > 0 &&
+			this._exceptionHandler(applyErrors, store, block.transactions)
+		) {
 			return applyErrors;
 		}
 		if (rewards) {

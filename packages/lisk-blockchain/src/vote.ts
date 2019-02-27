@@ -7,9 +7,29 @@ import {
 	TRANSACTION_TYPE_TRANSFER,
 	TRANSACTION_TYPE_VOTE,
 } from './constants';
-import { BUCKET_ADDRESS_ACCOUNT, BUCKET_TX_ID_TX } from './repo';
+import {
+	BUCKET_ADDRESS_ACCOUNT,
+	BUCKET_CANDIDATE,
+	BUCKET_TX_ID_TX,
+} from './repo';
 import { StateStore } from './state_store';
 import { InTransferTransaction, Transaction, VoteTransaction } from './types';
+
+const candidateKey = (weight: string, publicKey: string): string =>
+	`${weight}:${publicKey}`;
+
+const updateCandidateKey = async (
+	store: StateStore,
+	oldWeight: string,
+	newWeight: string,
+	address: string,
+	publicKey: string,
+) => {
+	const oldKey = candidateKey(oldWeight, publicKey);
+	const newKey = candidateKey(newWeight, publicKey);
+
+	return store.replace(BUCKET_CANDIDATE, oldKey, newKey, address);
+};
 
 const applyAmount = async (
 	store: StateStore,
@@ -47,7 +67,16 @@ const applyAmount = async (
 			...delegate,
 			votes: new BigNum(delegate.votes || '0').add(tx.amount).toString(),
 		};
-		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		await Promise.all([
+			store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote),
+			updateCandidateKey(
+				store,
+				delegate.votes as string,
+				updateDelegateVote.votes,
+				delegate.address,
+				delegate.publicKey as string,
+			),
+		]);
 	});
 };
 
@@ -87,7 +116,16 @@ const undoAmount = async (
 			...delegate,
 			votes: new BigNum(delegate.votes || '0').sub(tx.amount).toString(),
 		};
-		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		await Promise.all([
+			store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote),
+			updateCandidateKey(
+				store,
+				delegate.votes as string,
+				updateDelegateVote.votes,
+				delegate.address,
+				delegate.publicKey as string,
+			),
+		]);
 	});
 };
 
@@ -102,7 +140,16 @@ const applyFee = async (store: StateStore, tx: Transaction): Promise<void> => {
 			...delegate,
 			votes: new BigNum(delegate.votes || '0').sub(tx.fee).toString(),
 		};
-		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		await Promise.all([
+			store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote),
+			updateCandidateKey(
+				store,
+				delegate.votes as string,
+				updateDelegateVote.votes,
+				delegate.address,
+				delegate.publicKey as string,
+			),
+		]);
 	});
 };
 
@@ -117,7 +164,16 @@ const undoFee = async (store: StateStore, tx: Transaction): Promise<void> => {
 			...delegate,
 			votes: new BigNum(delegate.votes || '0').add(tx.fee).toString(),
 		};
-		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		await Promise.all([
+			store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote),
+			updateCandidateKey(
+				store,
+				delegate.votes as string,
+				updateDelegateVote.votes,
+				delegate.address,
+				delegate.publicKey as string,
+			),
+		]);
 	});
 };
 
@@ -149,7 +205,16 @@ const applyNewVote = async (
 			...delegate,
 			votes: new BigNum(delegate.votes || '0').add(sender.balance).toString(),
 		};
-		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		await Promise.all([
+			store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote),
+			updateCandidateKey(
+				store,
+				delegate.votes as string,
+				updateDelegateVote.votes,
+				delegate.address,
+				delegate.publicKey as string,
+			),
+		]);
 	});
 	downvotes.forEach(async address => {
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
@@ -160,7 +225,16 @@ const applyNewVote = async (
 				.add(tx.fee)
 				.toString(),
 		};
-		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		await Promise.all([
+			store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote),
+			updateCandidateKey(
+				store,
+				delegate.votes as string,
+				updateDelegateVote.votes,
+				delegate.address,
+				delegate.publicKey as string,
+			),
+		]);
 	});
 };
 
@@ -192,7 +266,16 @@ const undoNewVote = async (
 			...delegate,
 			votes: new BigNum(delegate.votes || '0').sub(sender.balance).toString(),
 		};
-		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		await Promise.all([
+			store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote),
+			updateCandidateKey(
+				store,
+				delegate.votes as string,
+				updateDelegateVote.votes,
+				delegate.address,
+				delegate.publicKey as string,
+			),
+		]);
 	});
 	downvotes.forEach(async address => {
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
@@ -203,7 +286,16 @@ const undoNewVote = async (
 				.sub(tx.fee)
 				.toString(),
 		};
-		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+		await Promise.all([
+			store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote),
+			updateCandidateKey(
+				store,
+				delegate.votes as string,
+				updateDelegateVote.votes,
+				delegate.address,
+				delegate.publicKey as string,
+			),
+		]);
 	});
 };
 

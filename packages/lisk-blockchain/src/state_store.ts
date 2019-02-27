@@ -11,16 +11,16 @@ const SNAPSHOT_ID_LENGTH = 16;
 const randomString = (num: number) => crypto.randomBytes(num).toString('hex');
 
 export class StateStore {
-	private _db: DataStore;
+	private readonly _db: DataStore;
 	private _cacheMap: CacheMap;
-	private _deleteMap: CacheMap;
-	private _snapshot: { [key: string]: CacheMap };
-	private _block: Block;
+	private readonly _deleteMap: Map<string, string>;
+	private readonly _snapshot: { [key: string]: CacheMap };
+	private readonly _block: Block;
 
 	public constructor(db: DataStore, block: Block) {
 		this._db = db;
 		this._cacheMap = {};
-		this._deleteMap = {};
+		this._deleteMap = new Map();
 		this._snapshot = {};
 		this._block = block;
 	}
@@ -49,7 +49,7 @@ export class StateStore {
 
 	public async exists(bucket: string, key: string): Promise<boolean> {
 		try {
-			this._db.get(bucket, key);
+			await this._db.get(bucket, key);
 
 			return true;
 		} catch (err) {
@@ -79,10 +79,37 @@ export class StateStore {
 
 			return;
 		}
-		if (!this._deleteMap[bucket]) {
-			this._deleteMap[bucket] = {};
+
+		this._deleteMap.set(bucket, key);
+	}
+	// tslint:disable-next-line no-any
+	public async replace(
+		bucket: string,
+		oldKey: string,
+		newKey: string,
+		value: any,
+	): Promise<void> {
+		if (!this._cacheMap[bucket]) {
+			this._cacheMap[bucket] = {};
 		}
-		this._deleteMap[bucket][key] = undefined;
+		// Case old value does not exist in cache
+		if (!this._cacheMap[bucket][oldKey]) {
+			const exists = await this.exists(bucket, oldKey);
+			if (exists) {
+				this._deleteMap.set(bucket, oldKey);
+			}
+			this._cacheMap[bucket][newKey] = value;
+
+			return;
+		}
+		// Case value exists in cache
+		if (this._cacheMap[bucket][oldKey]) {
+			// tslint:disable-next-line no-delete no-dynamic-delete
+			delete this._cacheMap[bucket][oldKey];
+			this._cacheMap[bucket][newKey] = value;
+		}
+
+		return;
 	}
 
 	public createSnapshot(): string {

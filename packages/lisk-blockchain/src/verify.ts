@@ -6,7 +6,7 @@ export const verifyExist = async (
 	id: string,
 ): Promise<Error | undefined> => {
 	try {
-		getBlockHeaderById(db, id);
+		await getBlockHeaderById(db, id);
 
 		return new Error(`Block ${id} already processed`);
 	} catch (err) {

@@ -66,10 +66,12 @@ export const getCandidateAddresses = async (
 ): Promise<ReadonlyArray<string>> =>
 	new Promise((resolve, reject) => {
 		const addresses: string[] = [];
-		db.createReadStream({ limit })
+		db.createReadStream({ gte: BUCKET_CANDIDATE, limit })
 			.on('data', data => addresses.push(data.value))
 			.on('error', reject)
-			.on('close', () => resolve(addresses));
+			.on('close', () => {
+				resolve(addresses);
+			});
 	});
 
 export const getCandidates = async (
