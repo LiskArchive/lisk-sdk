@@ -581,7 +581,7 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using one height should return transactions', async () => {
+			it('should filter transactions for a given height', async () => {
 				const { body: { data: [tx] } } = await transactionsEndpoint.makeRequest(
 					{ id: transaction1.id },
 					200
@@ -590,13 +590,13 @@ describe('GET /api/transactions', () => {
 					body: { data: transactions },
 				} = await transactionsEndpoint.makeRequest({ height: tx.height }, 200);
 
-				const filteredData = transactions.reduce(
+				const haveSameHeight = transactions.reduce(
 					(acc, curr) => acc && curr.height === tx.height,
 					true
 				);
 
 				expect(transactions).to.not.be.empty;
-				expect(filteredData).to.be.true;
+				expect(haveSameHeight).to.be.true;
 			});
 		});
 
