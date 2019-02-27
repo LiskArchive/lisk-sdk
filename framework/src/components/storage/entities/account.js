@@ -456,7 +456,7 @@ class Account extends BaseEntity {
 		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
 			await this.updateDependentRecords(
 				'membersPublicKeys',
-				data.address,
+				filters.address,
 				data.membersPublicKeys,
 				tx
 			);
@@ -468,7 +468,7 @@ class Account extends BaseEntity {
 		) {
 			await this.updateDependentRecords(
 				'votedDelegatesPublicKeys',
-				data.address,
+				filters.address,
 				data.votedDelegatesPublicKeys,
 				tx
 			);
@@ -739,6 +739,10 @@ class Account extends BaseEntity {
 		const sqlForInsert = this.SQLs.createDependentRecords;
 		const tableName = dependentFieldsTableMap[dependencyName];
 
+		if (tableName === 'mem_accounts2delegates') {
+			debugger;
+		}
+
 		const dependentRecordsForAddress = await this.adapter.execute(
 			`SELECT "dependentId" FROM ${tableName} WHERE "accountId" = $1`,
 			[address]
@@ -754,7 +758,7 @@ class Account extends BaseEntity {
 			aPK => !oldDependentPublicKeys.includes(aPK)
 		);
 		const paramsForDelete = {
-			tableName: dependentFieldsTableMap[dependencyName],
+			tableName,
 			accountId: address,
 			dependentIds: publicKeysToBeRemoved,
 		};

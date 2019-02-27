@@ -134,43 +134,16 @@ class AccountStore {
 			})
 		);
 
-		const affectedAccountsWithVotes = affectedAccounts.filter(
-			({ updatedKeys }) => updatedKeys.includes('votedDelegatesPublicKeys')
-		);
-		const affectedAccountsWithMultisignatures = affectedAccounts.filter(
-			({ updatedKeys }) => updatedKeys.includes('membersPublicKeys')
-		);
-
-		const updateToVotes = affectedAccountsWithVotes.map(affectedAccount =>
-			this.account.updateDependentRecords(
-				dependentFieldsTableMap.votes,
-				affectedAccount.updatedItem.address,
-				affectedAccount.updatedItem.votedDelegatesPublicKeys,
-				this.tx
-			)
-		);
-
-		const updateToMultisignatures = affectedAccountsWithMultisignatures.map(
-			affectedAccount =>
-				this.account.updateDependentRecords(
-					dependentFieldsTableMap.multisignatures,
-					affectedAccount.updatedItem.address,
-					affectedAccount.updatedItem.membersPublicKeys,
-					this.tx
-				)
-		);
-
-		const updateToAccounts = affectedAccounts.map(
-			({ updatedItem, updatedKeys }) => {
-				const filter = { [this.primaryKey]: updatedItem[this.primaryKey] };
-				const updatedData = _.pick(updatedItem, updatedKeys);
-				updatedData.u_balance = updatedData.balance;
+		const updateToAccounts = affectedAccounts.map(({ updatedItem, updatedKeys }) => {
+			const filter = { [this.primaryKey]: updatedItem[this.primaryKey] };
+			const updatedData = _.pick(updatedItem, updatedKeys);
+			updatedData.u_balance = updatedData.balance;
 
 				return this.account.upsert(filter, updatedData, null, this.tx);
 			}
 		);
 
-		return [updateToAccounts, updateToVotes, updateToMultisignatures];
+		return updateToAccounts;
 	}
 }
 
