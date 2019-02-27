@@ -48,6 +48,10 @@ config.constants = validator.validateWithDefaults(
 	constantsSchema.constants,
 	constants
 );
+
+// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
+global.constants = config.constants;
+
 config.genesisBlock = validator.validateWithDefaults(
 	applicationSchema.genesisBlock,
 	genesisBlock
@@ -109,7 +113,7 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 
 testContext.config = config;
 testContext.consoleLogLevel =
-	process.env.LOG_LEVEL || testContext.consoleLogLevel;
+	process.env.LOG_LEVEL || testContext.config.components.logger.consoleLogLevel;
 
 testContext.baseUrl = `http://${testContext.config.modules.http_api.address}:${
 	testContext.config.modules.http_api.httpPort

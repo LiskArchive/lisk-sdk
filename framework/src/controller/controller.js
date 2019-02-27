@@ -71,7 +71,6 @@ class Controller {
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._setupBus();
-		await this._setupControllerActions();
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -145,19 +144,6 @@ class Controller {
 				);
 			});
 		}
-	}
-
-	/**
-	 * Setup Controller actions.
-	 * Create action for getting component config.
-	 *
-	 * @async
-	 */
-	async _setupControllerActions() {
-		this.channel.action(
-			'getComponentConfig',
-			action => this.componentConfig[action.params]
-		);
 	}
 
 	async _loadModules(modules, moduleOptions) {

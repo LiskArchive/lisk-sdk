@@ -156,7 +156,10 @@ async function __init(sandbox, initScope) {
 			initScope
 		);
 
-		const cache = createCacheComponent(scope.config.redis, logger);
+		const cache = createCacheComponent(
+			__testContext.config.components.cache,
+			logger
+		);
 		const system = createSystemComponent(scope.config, logger, storage);
 
 		scope.components = {

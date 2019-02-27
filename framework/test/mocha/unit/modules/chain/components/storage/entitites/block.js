@@ -39,7 +39,7 @@ describe('Block', () => {
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_storage_custom_block_chain_module'
 		);
 		await storage.bootstrap();

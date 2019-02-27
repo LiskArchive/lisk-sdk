@@ -100,11 +100,15 @@ class Application {
 		validator.loadSchema(constantsSchema);
 		validator.validate(applicationSchema.appLabel, label);
 		validator.validate(applicationSchema.config, config);
-		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 		constants = validator.validateWithDefaults(
 			constantsSchema.constants,
 			constants
 		);
+
+		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
+		global.constants = constants;
+
+		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;

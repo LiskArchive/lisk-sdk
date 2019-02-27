@@ -89,6 +89,6 @@ module.exports = class HttpApi {
 		// Start listening for HTTP(s) requests
 		await startListening(this.scope, { httpServer, httpsServer });
 		// Subscribe to channel events
-		subscribeToEvents(this.scope, wsServer);
+		subscribeToEvents(this.scope, { wsServer });
 	}
 };
