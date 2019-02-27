@@ -134,7 +134,7 @@ NodeController.getStatus = async (context, next) => {
 		const loaded = await library.channel.invoke('chain:loaderLoaded');
 		const syncing = await library.channel.invoke('chain:loaderSyncing');
 		const transactions = await library.channel.invoke(
-			'chain:getTransactionsCount'
+			'chain:getAllTransactionsCount'
 		);
 
 		const data = {

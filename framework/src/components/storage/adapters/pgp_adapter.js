@@ -90,7 +90,7 @@ class PgpAdapter extends BaseAdapter {
 
 		this.options.user = this.options.user || process.env.USER;
 
-		// this.pgp.end();
+		this.pgp.end();
 
 		this.db = this.pgp(this.options);
 

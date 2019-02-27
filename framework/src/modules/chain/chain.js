@@ -45,7 +45,6 @@ if (typeof gc !== 'undefined') {
 }
 
 let blockReward;
-
 /**
  * Chain Module
  *
@@ -104,6 +103,9 @@ module.exports = class Chain {
 			defaults.exceptions,
 			this.options.exceptions
 		);
+
+		const BlockReward = require('./logic/block_reward');
+		blockReward = new BlockReward();
 
 		try {
 			// Cache
@@ -169,9 +171,6 @@ module.exports = class Chain {
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 
-			const BlockReward = require('./logic/block_reward');
-			blockReward = new BlockReward();
-
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
 
@@ -189,7 +188,7 @@ module.exports = class Chain {
 		}
 	}
 
-	actions() {
+	get actions() {
 		return {
 			calculateSupply: action => blockReward.calcSupply(action.params[0]),
 			calculateMilestone: action => blockReward.calcMilestone(action.params[0]),
@@ -213,7 +212,7 @@ module.exports = class Chain {
 				util.promisify(this.scope.modules.peers.networkHeight)(
 					action.params[0]
 				),
-			getTransactionsCount: async () =>
+			getAllTransactionsCount: async () =>
 				util.promisify(
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
