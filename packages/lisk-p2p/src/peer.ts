@@ -573,3 +573,82 @@ export class Peer extends EventEmitter {
 		request.end(legacyNodeInfo);
 	}
 }
+
+export interface ConnectAndFetchResponse {
+	readonly response: P2PResponsePacket;
+	readonly socket: SCClientSocket;
+}
+
+export const connectAndFetchPeers = async (
+	basicPeerInfo: P2PPeerInfo,
+	peerConfig?: PeerConfig,
+	nodeInfo?: P2PNodeInfo,
+): Promise<ConnectAndFetchResponse> =>
+	new Promise<ConnectAndFetchResponse>(
+		(
+			resolve: (result: ConnectAndFetchResponse) => void,
+			reject: (result: Error) => void,
+		): void => {
+			const legacyNodeInfo = nodeInfo
+				? convertNodeInfoToLegacyFormat(nodeInfo)
+				: undefined;
+
+			const packet = {
+				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
+			};
+			const clientOptions: ClientOptionsUpdated = {
+				hostname: basicPeerInfo.ipAddress,
+				port: basicPeerInfo.wsPort,
+				query: querystring.stringify({
+					...legacyNodeInfo,
+					options:
+						legacyNodeInfo && legacyNodeInfo.options
+							? JSON.stringify(legacyNodeInfo.options)
+							: undefined,
+				}),
+				connectTimeout: peerConfig
+					? peerConfig.connectTimeout
+					: DEFAULT_CONNECT_TIMEOUT,
+				ackTimeout: peerConfig ? peerConfig.ackTimeout : DEFAULT_ACK_TIMEOUT,
+				multiplex: false,
+				autoConnect: false,
+				autoReconnect: false,
+				pingTimeoutDisabled: true,
+			};
+
+			const outboundSocket = socketClusterClient.create(clientOptions);
+
+			outboundSocket.emit(
+				REMOTE_EVENT_RPC_REQUEST,
+				{
+					type: '/RPCRequest',
+					procedure: packet.procedure,
+				},
+				(err: Error | undefined, responseData: unknown) => {
+					if (err) {
+						reject(err);
+
+						return;
+					}
+
+					if (responseData) {
+						resolve({
+							response: { data: responseData },
+							socket: outboundSocket,
+						});
+
+						return;
+					}
+
+					reject(
+						new RPCResponseError(
+							`Failed to handle response for procedure ${packet.procedure}`,
+							new Error('RPC response format was invalid'),
+							basicPeerInfo.ipAddress,
+							basicPeerInfo.wsPort,
+						),
+					);
+				},
+			);
+		},
+	);
