@@ -1014,13 +1014,31 @@ describe('GET /api/transactions', () => {
 			});
 		});
 
+		describe('asset', () => {
+			it('assets for type 2 transactions should contain key username, publicKey and address', () => {
+				return transactionsEndpoint
+					.makeRequest({ type: transactionTypes.DELEGATE, limit: 1 }, 200)
+					.then(res => {
+						expect(res.body.data).to.not.empty;
+						res.body.data.map(transaction => {
+							expect(transaction.asset).to.have.key('delegate');
+							return expect(transaction.asset.delegate).to.have.all.keys(
+								'username',
+								'publicKey',
+								'address'
+							);
+						});
+					});
+			});
+		});
+
 		/**
 		 * This tests will fail because type 6 and type 7 transactions got disabled in Lisk Core v1.0
 		 * You can make it pass locally, by changing the value for disableDappTransfer
 		 * in config/default/exceptions to a value bigger than 0
 		 * */
 		/* eslint-disable mocha/no-skipped-tests */
-		describe.skip('assets', () => {
+		describe.skip('dapp', () => {
 			before(() => {
 				return sendTransactionPromise(transaction4) // send type 0 transaction
 					.then(result => {
