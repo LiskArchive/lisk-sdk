@@ -575,7 +575,7 @@ export class Peer extends EventEmitter {
 }
 
 export interface ConnectAndFetchResponse {
-	readonly response: P2PResponsePacket;
+	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly socket: SCClientSocket;
 }
 
@@ -593,7 +593,7 @@ export const connectAndFetchPeers = async (
 				? convertNodeInfoToLegacyFormat(nodeInfo)
 				: undefined;
 
-			const packet = {
+			const requestPacket = {
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
 			};
 			const clientOptions: ClientOptionsUpdated = {
@@ -622,7 +622,7 @@ export const connectAndFetchPeers = async (
 				REMOTE_EVENT_RPC_REQUEST,
 				{
 					type: '/RPCRequest',
-					procedure: packet.procedure,
+					procedure: requestPacket.procedure,
 				},
 				(err: Error | undefined, responseData: unknown) => {
 					if (err) {
@@ -632,8 +632,12 @@ export const connectAndFetchPeers = async (
 					}
 
 					if (responseData) {
+						const responsePacket = responseData as P2PResponsePacket;
+
+						const peers = validatePeerInfoList(responsePacket.data);
+
 						resolve({
-							response: { data: responseData },
+							peers,
 							socket: outboundSocket,
 						});
 
@@ -642,7 +646,9 @@ export const connectAndFetchPeers = async (
 
 					reject(
 						new RPCResponseError(
-							`Failed to handle response for procedure ${packet.procedure}`,
+							`Failed to handle response for procedure ${
+								requestPacket.procedure
+							}`,
 							new Error('RPC response format was invalid'),
 							basicPeerInfo.ipAddress,
 							basicPeerInfo.wsPort,
