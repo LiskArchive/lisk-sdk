@@ -200,6 +200,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		const updatedSender = {
 			...sender,
 			secondPublicKey: this.asset.signature.publicKey,
+			secondSignature: true,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -209,6 +210,8 @@ export class SecondSignatureTransaction extends BaseTransaction {
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const sender = store.account.get(this.senderId);
 		const { secondPublicKey, ...strippedSender } = sender;
+		strippedSender.secondSignature = false;
+
 		store.account.set(strippedSender.address, strippedSender);
 
 		return [];

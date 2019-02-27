@@ -20,6 +20,7 @@ export interface Account {
 	readonly delegate?: Delegate;
 	readonly publicKey?: string;
 	readonly secondPublicKey?: string;
+	readonly secondSignature?: boolean;
 	readonly membersPublicKeys?: ReadonlyArray<string>;
 	readonly multiMin?: number;
 	readonly multiLifetime?: number;
