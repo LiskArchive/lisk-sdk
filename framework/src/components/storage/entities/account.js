@@ -68,11 +68,14 @@ const sqlFiles = {
 	increaseFieldBy: 'accounts/increase_field_by.sql',
 	decreaseFieldBy: 'accounts/decrease_field_by.sql',
 	createDependentRecord: 'accounts/create_dependent_record.sql',
+	createDependentRecords: 'accounts/create_dependent_records.sql',
 	deleteDependentRecord: 'accounts/delete_dependent_record.sql',
+	deleteDependentRecords: 'accounts/delete_dependent_records.sql',
 	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
 	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
 	countDuplicatedDelegates: 'accounts/count_duplicated_delegates.sql',
 	insertFork: 'accounts/insert_fork.sql',
+	deleteVotes: 'accounts/delete_votes.sql',
 };
 
 /**
@@ -429,16 +432,12 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	update(filters, data, _options, tx) {
+	async update(filters, data, _options, tx) {
 		const atLeastOneRequired = true;
 
 		this.validateFilters(filters, atLeastOneRequired);
 
 		const objectData = _.omit(data, readOnlyFields);
-
-		if (_.isEmpty(objectData)) {
-			return Promise.resolve();
-		}
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -449,6 +448,44 @@ class Account extends BaseEntity {
 			parsedFilters,
 			updateSet,
 		};
+
+		if (_.isEmpty(objectData)) {
+			return false;
+		}
+
+		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
+			await this.updateDependentRecords(
+				'membersPublicKeys',
+				data.address,
+				data.membersPublicKeys,
+				tx
+			);
+		}
+
+		if (
+			data.votedDelegatesPublicKeys &&
+			data.votedDelegatesPublicKeys.length > 0
+		) {
+			await this.updateDependentRecords(
+				'votedDelegatesPublicKeys',
+				data.address,
+				data.votedDelegatesPublicKeys,
+				tx
+			);
+		}
+
+		// Account remove all votes
+		if (
+			data.votedDelegatesPublicKeys &&
+			data.votedDelegatesPublicKeys.length === 0
+		) {
+			await this.adapter.executeFile(
+				this.SQLs.deleteVotes,
+				{ accountId: data.address },
+				{},
+				tx
+			);
+		}
 
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
 	}
@@ -675,6 +712,81 @@ class Account extends BaseEntity {
 			'delete',
 			tx
 		);
+	}
+
+	/**
+	 * Update dependent records for the account
+	 * Delete dependent record for the account
+	 *
+	 * @param {string} dependencyName - Name of the dependent table
+	 * @param {string} address - Address of the account
+	 * @param {string} dependentPublicKey - Dependent public id
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
+	async updateDependentRecords(
+		dependencyName,
+		address,
+		dependentPublicKeys,
+		tx
+	) {
+		assert(
+			Object.keys(dependentFieldsTableMap).includes(dependencyName),
+			`Invalid dependency name "${dependencyName}" provided.`
+		);
+
+		const sqlForDelete = this.SQLs.deleteDependentRecords;
+		const sqlForInsert = this.SQLs.createDependentRecords;
+		const tableName = dependentFieldsTableMap[dependencyName];
+
+		const dependentRecordsForAddress = await this.adapter.execute(
+			`SELECT "dependentId" FROM ${tableName} WHERE "accountId" = $1`,
+			[address]
+		);
+
+		const oldDependentPublicKeys = dependentRecordsForAddress.map(
+			dependentRecord => dependentRecord.dependentId
+		);
+		const publicKeysToBeRemoved = oldDependentPublicKeys.filter(
+			aPK => !dependentPublicKeys.includes(aPK)
+		);
+		const publicKeysToBeInserted = dependentPublicKeys.filter(
+			aPK => !oldDependentPublicKeys.includes(aPK)
+		);
+		const paramsForDelete = {
+			tableName: dependentFieldsTableMap[dependencyName],
+			accountId: address,
+			dependentIds: publicKeysToBeRemoved,
+		};
+
+		if (publicKeysToBeRemoved.length > 0) {
+			await this.adapter.executeFile(
+				sqlForDelete,
+				paramsForDelete,
+				{ expectedResultCount: 0 },
+				tx
+			);
+		}
+
+		if (publicKeysToBeInserted.length > 0) {
+			const valuesForInsert = publicKeysToBeInserted.map(dependentId => ({
+				accountId: address,
+				dependentId,
+			}));
+
+			const createSet = this.getValuesSet(
+				valuesForInsert,
+				['accountId', 'dependentId'],
+				{ useRawObject: true }
+			);
+
+			await this.adapter.executeFile(
+				sqlForInsert,
+				{ tableName, createSet },
+				{ expectedResultCount: 0 },
+				tx
+			);
+		}
 	}
 
 	/**
