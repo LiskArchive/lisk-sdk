@@ -46,6 +46,10 @@ function transactionFormatter(transaction) {
 	result.recipientPublicKey = result.recipientPublicKey || '';
 	result.signSignature = result.signSignature || '';
 	result.signatures = result.signatures || [];
+	if (transaction.type === 2) {
+		result.asset.delegate.publicKey = result.senderPublicKey;
+		result.asset.delegate.address = result.senderId;
+	}
 
 	return result;
 }
