@@ -581,14 +581,22 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using one height should return transactions', () => {
-				return transactionsEndpoint
-					.makeRequest({ height: 1 }, 200)
-					.then(res => {
-						res.body.data.map(transaction => {
-							return expect(transaction.height).to.be.equal(1);
-						});
-					});
+			it('using one height should return transactions', async () => {
+				const { body: { data: [tx] } } = await transactionsEndpoint.makeRequest(
+					{ id: transaction1.id },
+					200
+				);
+				const {
+					body: { data: transactions },
+				} = await transactionsEndpoint.makeRequest({ height: tx.height }, 200);
+
+				const filteredData = transactions.reduce(
+					(acc, curr) => acc && curr.height === tx.height,
+					true
+				);
+
+				expect(transactions).to.not.be.empty;
+				expect(filteredData).to.be.true;
 			});
 		});
 
