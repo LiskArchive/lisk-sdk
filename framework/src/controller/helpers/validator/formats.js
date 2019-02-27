@@ -295,6 +295,14 @@ const validationFormats = {
 	 * @returns {boolean}
 	 */
 	amount(value) {
+		if (typeof value === 'string' && /^[0-9]*$/.test(value)) {
+			const bigNumber = new Bignum(value);
+			return (
+				bigNumber.isGreaterThanOrEqualTo(0) &&
+				bigNumber.isLessThanOrEqualTo(UINT64_MAX)
+			);
+		}
+
 		/**
 		 * This deconstruction has to take place here because
 		 * global.constants will be defined in test/setup.js.
@@ -305,14 +313,6 @@ const validationFormats = {
 			return (
 				value.isGreaterThanOrEqualTo(0) &&
 				value.isLessThanOrEqualTo(TOTAL_AMOUNT)
-			);
-		}
-
-		if (typeof value === 'string' && /^[1-9][0-9]*$/.test(value)) {
-			const bigNumber = new Bignum(value);
-			return (
-				bigNumber.isGreaterThanOrEqualTo(0) &&
-				bigNumber.isLessThanOrEqualTo(UINT64_MAX)
 			);
 		}
 
