@@ -197,8 +197,8 @@ class Block extends BaseEntity {
 		});
 		this.addField('timestamp', 'number', { filter: filterType.NUMBER });
 		this.addField('totalAmount', 'string', { filter: filterType.NUMBER });
-		this.addField('totalFee', 'string', { filter: filterType.TEXT });
-		this.addField('reward', 'string', { filter: filterType.TEXT });
+		this.addField('totalFee', 'number', { filter: filterType.NUMBER });
+		this.addField('reward', 'number', { filter: filterType.NUMBER });
 		this.addField('version', 'number', { filter: filterType.NUMBER });
 		this.addField('confirmations', 'number', { filter: filterType.NUMBER });
 
