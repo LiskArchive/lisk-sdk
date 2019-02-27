@@ -1,4 +1,4 @@
-const util = require('util');
+const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs');
 const git = require('./helpers/git.js');
@@ -44,7 +44,6 @@ if (typeof gc !== 'undefined') {
 	}, 60000);
 }
 
-let blockReward;
 /**
  * Chain Module
  *
@@ -57,6 +56,7 @@ module.exports = class Chain {
 		this.options = options;
 		this.logger = null;
 		this.scope = null;
+		this.blockReward = null;
 	}
 
 	async bootstrap() {
@@ -105,7 +105,7 @@ module.exports = class Chain {
 		);
 
 		const BlockReward = require('./logic/block_reward');
-		blockReward = new BlockReward();
+		this.blockReward = new BlockReward();
 
 		try {
 			// Cache
@@ -190,9 +190,10 @@ module.exports = class Chain {
 
 	get actions() {
 		return {
-			calculateSupply: action => blockReward.calcSupply(action.params[0]),
-			calculateMilestone: action => blockReward.calcMilestone(action.params[0]),
-			calculateReward: action => blockReward.calcReward(action.params[0]),
+			calculateSupply: action => this.blockReward.calcSupply(action.params[0]),
+			calculateMilestone: action =>
+				this.blockReward.calcMilestone(action.params[0]),
+			calculateReward: action => this.blockReward.calcReward(action.params[0]),
 			generateDelegateList: action =>
 				new Promise((resolve, reject) => {
 					this.scope.modules.delegates.generateDelegateList(
@@ -209,15 +210,13 @@ module.exports = class Chain {
 					);
 				}),
 			getNetworkHeight: async action =>
-				util.promisify(this.scope.modules.peers.networkHeight)(
-					action.params[0]
-				),
+				promisify(this.scope.modules.peers.networkHeight)(action.params[0]),
 			getAllTransactionsCount: async () =>
-				util.promisify(
+				promisify(
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
 			updateForgingStatus: async action =>
-				util.promisify(this.scope.modules.delegates.updateForgingStatus)(
+				promisify(this.scope.modules.delegates.updateForgingStatus)(
 					action.params[0],
 					action.params[1],
 					action.params[2]
@@ -297,7 +296,7 @@ module.exports = class Chain {
 		await Promise.all(
 			modules.map(module => {
 				if (typeof module.cleanup === 'function') {
-					return util.promisify(module.cleanup)();
+					return promisify(module.cleanup)();
 				}
 				return true;
 			})
