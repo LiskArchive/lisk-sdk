@@ -24,10 +24,10 @@ import { getReleaseInfo } from '../../utils/node/release';
 import {
 	createDirectory,
 	isValidURL,
-	LISK_DB_SNAPSHOT,
-	LISK_LATEST_URL,
-	LISK_SNAPSHOT_URL,
+	liskDbSnapshot,
 	liskInstall,
+	liskLatestUrl,
+	liskSnapshotUrl,
 	liskTar,
 	liskTarSHA256,
 	networkSupported,
@@ -74,7 +74,7 @@ const buildOptions = async ({
 }: Flags): Promise<Options> => {
 	const installPath = liskInstall(installationPath);
 	const installDir = `${installPath}/${name}/`;
-	const latestURL = LISK_LATEST_URL(releaseUrl, network);
+	const latestURL = liskLatestUrl(releaseUrl, network);
 	const { version, liskTarUrl, liskTarSHA256Url } = await getReleaseInfo(
 		latestURL,
 		releaseUrl,
@@ -107,8 +107,8 @@ const installLisk = async (options: Flags, cacheDir: string): Promise<void> => {
 	await validateChecksum(cacheDir, liskTarSHA256(version));
 
 	if (!noSnapshot) {
-		const snapshotPath = `${cacheDir}/${LISK_DB_SNAPSHOT(name, network)}`;
-		const snapshotURL = LISK_SNAPSHOT_URL(snapshotUrl, network);
+		const snapshotPath = `${cacheDir}/${liskDbSnapshot(name, network)}`;
+		const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
 		await download(snapshotURL, snapshotPath);
 	}
 
@@ -135,6 +135,7 @@ export default class InstallCommand extends BaseCommand {
 			char: 'n',
 			description: 'Name of the network to install(mainnet, testnet, betanet).',
 			default: NETWORK.MAINNET,
+			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
 			char: 'p',

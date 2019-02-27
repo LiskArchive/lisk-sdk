@@ -29,16 +29,16 @@ export const liskTar = (version: string): string =>
 export const liskTarSHA256 = (version: string): string =>
 	`${liskTar(version)}.SHA256`;
 
-export const LISK_LATEST_URL = (url: string, network: NETWORK) =>
+export const liskLatestUrl = (url: string, network: NETWORK) =>
 	`${url}/${network}/latest.txt`;
 
-export const LISK_SNAPSHOT_URL = (url: string, network: NETWORK) =>
+export const liskSnapshotUrl = (url: string, network: NETWORK) =>
 	`${url}/${network}/blockchain.db.gz`;
 
-export const LISK_DB_SNAPSHOT = (networkName: string, network: NETWORK) =>
+export const liskDbSnapshot = (networkName: string, network: NETWORK) =>
 	`${networkName}-${network}-blockchain.db.gz`;
 
-export const LOGS_DIR = (installPath: string) =>
+export const logsDir = (installPath: string) =>
 	`${liskInstall(installPath)}/logs`;
 
 export const SH_LOG_FILE = 'logs/lisk.out';
@@ -52,7 +52,7 @@ export const validateNotARootUser = (): void => {
 export const osSupported = (): boolean => os.type() in OS;
 
 export const networkSupported = (network: NETWORK): void => {
-	if (network.toLowerCase() in NETWORK) {
+	if (network.toUpperCase() in NETWORK) {
 		return;
 	}
 

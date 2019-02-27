@@ -47,7 +47,7 @@ export const validateChecksum = async (
 		`cd ${filePath}; shasum -c ${fileName}`,
 	);
 
-	if (stdout.search(`${fileName}: OK`) >= 0) {
+	if (stdout.search('OK') >= 0) {
 		return;
 	}
 
