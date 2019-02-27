@@ -23,21 +23,31 @@ describe('components: cache', () => {
 	let cache;
 
 	before(async () => {
-		__testContext.config.cacheEnabled = true;
+		__testContext.config.components.cache.enabeled = true;
+
 		this.logger = createLoggerComponent({
 			echo: null,
-			errorLevel: __testContext.config.fileLogLevel,
-			filename: __testContext.config.logFileName,
+			errorLevel: __testContext.config.components.logger.fileLogLevel,
+			filename: __testContext.config.components.logger.logFileName,
 		});
-		cache = createCacheComponent(__testContext.config.redis, this.logger);
+		cache = createCacheComponent(
+			__testContext.config.components.cache,
+			this.logger
+		);
 		await cache.bootstrap();
 		return expect(cache).to.be.an('object');
 	});
 
+	beforeEach(async () => {
+		cache.enable();
+	});
+
 	afterEach(async () => {
-		await cache.enable();
-		const result = await cache.flushDb();
-		return expect(result).to.equal('OK');
+		if (cache.isReady()) {
+			const result = await cache.flushDb();
+			return expect(result).to.equal('OK');
+		}
+		return true;
 	});
 
 	after(() => cache.quit());
