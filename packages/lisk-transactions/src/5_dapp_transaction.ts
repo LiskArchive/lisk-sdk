@@ -91,7 +91,7 @@ export const dappAssetFormatSchema = {
 				type: {
 					type: 'integer',
 					minimum: 0,
-					maximum: 0,
+					maximum: 1,
 				},
 				link: {
 					type: 'string',
