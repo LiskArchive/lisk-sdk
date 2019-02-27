@@ -92,7 +92,7 @@ class Application {
 
 		if (!config.components.logger) {
 			config.components.logger = {
-				filename: `~/.lisk/${label}/lisk.log`,
+				filename: `${process.cwd()}/logs/${label}/lisk.log`,
 			};
 		}
 
@@ -119,30 +119,34 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		// TODO: Improve the hardcoded system component values
-		this.config.components.system = {
+		const sharedConfiguration = {
 			version: this.config.version,
 			minVersion: this.config.minVersion,
 			protocolVersion: this.config.protocolVersion,
-			nethash: this.genesisBlock.payloadHash,
 			nonce: randomstring.generate(16),
+			nethash: this.genesisBlock.payloadHash,
+		};
+
+		// TODO: Improve the hardcoded system component values
+		this.config.components.system = {
+			...sharedConfiguration,
 		};
 
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
-			version: this.config.version,
-			minVersion: this.config.minVersion,
-			protocolVersion: this.config.protocolVersion,
+			...sharedConfiguration,
 		});
 
-		this.registerModule(HttpAPIModule, {
-			genesisBlock: this.genesisBlock,
-			constants: this.constants,
-			version: this.config.version,
-			minVersion: this.config.minVersion,
-			protocolVersion: this.config.protocolVersion,
-		});
+		this.registerModule(
+			HttpAPIModule,
+			{
+				genesisBlock: this.genesisBlock,
+				constants: this.constants,
+				...sharedConfiguration,
+			},
+			HttpAPIModule.alias
+		);
 	}
 
 	/**
