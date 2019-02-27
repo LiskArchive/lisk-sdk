@@ -24,16 +24,16 @@ import { download, extract, validateChecksum } from '../../utils/download';
 import { getReleaseInfo } from '../../utils/node/release';
 import {
 	createDirectory,
-	isValidURL,
+	isSupportedOS,
 	liskDbSnapshot,
 	liskInstall,
 	liskLatestUrl,
 	liskSnapshotUrl,
 	liskTar,
 	liskTarSHA256,
-	networkSupported,
-	osSupported,
+	validateNetwork,
 	validateNotARootUser,
+	validURL,
 } from '../../utils/node/utils';
 
 interface Flags {
@@ -53,8 +53,8 @@ interface Options {
 }
 
 const validatePrerequisite = (installPath: string): void => {
-	if (!osSupported()) {
-		throw new Error(`Lisk install is not supported on ${os.type()}`);
+	if (!isSupportedOS()) {
+		throw new Error(`Lisk Core installation is not supported on ${os.type()}`);
 	}
 	if (fsExtra.pathExistsSync(installPath)) {
 		throw new Error(`Installation already exists in path ${installPath}`);
@@ -62,9 +62,9 @@ const validatePrerequisite = (installPath: string): void => {
 };
 
 const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
-	networkSupported(network);
-	isValidURL(releaseUrl);
-	isValidURL(snapshotUrl);
+	validateNetwork(network);
+	validURL(releaseUrl);
+	validURL(snapshotUrl);
 };
 
 const buildOptions = async ({
@@ -107,7 +107,7 @@ export default class InstallCommand extends BaseCommand {
 		...BaseCommand.flags,
 		network: flagParser.string({
 			char: 'n',
-			description: 'Name of the network to install(mainnet, testnet, betanet).',
+			description: 'Name of the network to install.',
 			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
@@ -168,7 +168,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download lisk release',
+							title: 'Download Lisk Core release',
 							task: async ctx => {
 								const {
 									version,
@@ -204,7 +204,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Extract lisk core',
+							title: 'Extract Lisk Core',
 							task: async ctx => {
 								const { installDir, version }: Options = ctx.options;
 								createDirectory(installDir);

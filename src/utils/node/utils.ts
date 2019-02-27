@@ -49,9 +49,9 @@ export const validateNotARootUser = (): void => {
 	}
 };
 
-export const osSupported = (): boolean => os.type() in OS;
+export const isSupportedOS = (): boolean => os.type() in OS;
 
-export const networkSupported = (network: NETWORK): void => {
+export const validateNetwork = (network: NETWORK): void => {
 	if (network.toUpperCase() in NETWORK) {
 		return;
 	}
@@ -71,7 +71,7 @@ export const createDirectory = (dirPath: string): void => {
 	}
 };
 
-export const isValidURL = (url: string): void => {
+export const validURL = (url: string): void => {
 	const isValid = new RegExp(/^(ftp|http|https):\/\/[^ "]+$/);
 
 	if (isValid.test(url)) {
