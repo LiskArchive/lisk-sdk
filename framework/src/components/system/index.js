@@ -15,8 +15,11 @@
 'use strict';
 
 const System = require('./system');
+const { config: DefaultConfig } = require('./defaults');
+const validator = require('../../controller/helpers/validator');
 
 function createSystemComponent(config, logger, storage) {
+	validator.validate(DefaultConfig, config);
 	return new System(config, logger, storage);
 }
 
