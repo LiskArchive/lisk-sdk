@@ -44,7 +44,7 @@ function transactionFormatter(transaction) {
 	result.senderId = result.senderId || '';
 	result.recipientId = result.recipientId || '';
 	result.recipientPublicKey = result.recipientPublicKey || '';
-	result.signSignature = result.signSignature || '';
+	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
 
 	return result;
