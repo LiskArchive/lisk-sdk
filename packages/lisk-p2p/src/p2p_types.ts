@@ -98,7 +98,8 @@ export interface ProtocolNodeInfo {
 	readonly version: string;
 	readonly wsPort: number;
 	readonly httpPort: number;
-	readonly options?: P2PInfoOptions;
+	// tslint:disable-next-line:no-mixed-interface
+	readonly [key: string]: unknown;
 }
 
 export type P2PPeerSelectionForSendRequest = (
@@ -123,7 +124,8 @@ export interface ProtocolPeerInfo {
 	readonly version: string;
 	readonly wsPort: number;
 	readonly httpPort?: number;
-	readonly options?: P2PInfoOptions;
+	// tslint:disable-next-line: no-mixed-interface
+	readonly [key: string]: unknown;
 }
 
 // This is a representation of the peer list according to the current protocol.
