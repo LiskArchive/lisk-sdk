@@ -186,6 +186,10 @@ describe('blocks/process', async () => {
 			},
 		};
 
+		const modulesProcessTransactionsStub = {
+			verifyTransactions: sinonSandbox.stub(),
+		};
+
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlotAgainstPreviousRound: sinonSandbox.stub(),
@@ -221,6 +225,7 @@ describe('blocks/process', async () => {
 				delegates: modulesDelegatesStub,
 				loader: modulesLoaderStub,
 				peers: modulesPeersStub,
+				processTransactions: modulesProcessTransactionsStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
 				transport: modulesTransportStub,
@@ -1660,12 +1665,13 @@ describe('blocks/process', async () => {
 		});
 	});
 
-	describe('generateBlock', async () => {
-		describe('modules.transactions.getUnconfirmedTransactionList', async () => {
-			describe('when query returns empty array', async () => {
-				beforeEach(() => {
+	describe('generateBlock', () => {
+		describe('modules.transactions.getUnconfirmedTransactionList', () => {
+			describe('when query returns empty array', () => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.processTransactions.verifyTransactions.resolves([]);
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
@@ -1678,7 +1684,6 @@ describe('blocks/process', async () => {
 						41287231,
 						err => {
 							expect(err).to.be.null;
-							expect(library.logic.transaction.verify.calledOnce).to.be.false;
 							expect(
 								modules.blocks.verify.processBlock.args[0][0].transactions
 									.length
@@ -1689,10 +1694,13 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when query returns undefined', async () => {
-				beforeEach(() => {
+			describe('when query returns undefined', () => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.processTransactions.verifyTransactions.returns(
+						Promise.resolve([])
+					);
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
@@ -1705,7 +1713,6 @@ describe('blocks/process', async () => {
 						41287231,
 						err => {
 							expect(err).to.be.null;
-							expect(library.logic.transaction.verify.calledOnce).to.be.false;
 							expect(
 								modules.blocks.verify.processBlock.args[0][0].transactions
 									.length
@@ -1716,145 +1723,122 @@ describe('blocks/process', async () => {
 				});
 			});
 
-			describe('when query returns transactions', async () => {
-				beforeEach(() => {
+			describe('when query returns transactions', () => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([
 						{ id: 1, type: 0 },
 						{ id: 2, type: 1 },
 					]);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
 					);
 				});
 
-				describe('modules.accounts.getAccount', async () => {
-					describe('when fails', async () => {
-						beforeEach(() =>
-							modules.accounts.getAccount.callsArgWith(
-								1,
-								'accounts.getAccount-ERR',
-								null
+				describe('modules.processTransactions.verifyTransactions', () => {
+					describe('when transaction initializations fail', async () => {
+						beforeEach(async () =>
+							modules.processTransactions.verifyTransactions.rejects(
+								new Error('Invalid field types')
 							)
 						);
 
-						it('should call a callback with error', done => {
+						it('should call a callback with error', async () => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
 								err => {
-									expect(err).to.equal('Sender not found');
+									expect(err.message).to.eql('Invalid field types');
+								}
+							);
+						});
+					});
+
+					describe('when transactions verification fails', async () => {
+						beforeEach(async () =>
+							modules.processTransactions.verifyTransactions.resolves([
+								{ id: 1, status: 0, errors: [] },
+								{ id: 2, status: 0, errors: [] },
+							])
+						);
+
+						it('should generate block without transactions', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(0);
 									done();
 								}
 							);
 						});
 					});
 
-					describe('when succeeds', async () => {
-						beforeEach(() =>
-							modules.accounts.getAccount.callsArgWith(1, null, true)
+					describe('when transactions verification succeeds', () => {
+						beforeEach(async () => {
+							modules.processTransactions.verifyTransactions.resolves([
+								{ id: 1, status: 1, errors: [] },
+								{ id: 2, status: 1, errors: [] },
+							]);
+						});
+
+						it('should generate block with transactions', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(2);
+									done();
+								}
+							);
+						});
+					});
+
+					describe('when transactions pending', async () => {
+						beforeEach(async () =>
+							modules.processTransactions.verifyTransactions.resolves([
+								{ id: 1, status: 2, errors: [] },
+							])
 						);
-						afterEach(
-							async () =>
-								expect(modules.blocks.verify.processBlock.calledOnce).to.be.true
-						);
 
-						describe('library.logic.transaction.ready', async () => {
-							describe('when returns false', async () => {
-								beforeEach(() =>
-									library.logic.transaction.ready.returns(false)
-								);
-
-								it('should generate block without transactions', done => {
-									blocksProcessModule.generateBlock(
-										{ publicKey: '123abc', privateKey: 'aaa' },
-										41287231,
-										err => {
-											expect(err).to.be.null;
-											expect(library.logic.transaction.verify.calledOnce).to.be
-												.false;
-											expect(
-												modules.blocks.verify.processBlock.args[0][0]
-													.transactions.length
-											).to.equal(0);
-											done();
-										}
-									);
-								});
-							});
-
-							describe('when returns true', async () => {
-								beforeEach(() => library.logic.transaction.ready.returns(true));
-
-								describe('library.logic.transaction.verify', async () => {
-									describe('when fails', async () => {
-										beforeEach(() =>
-											library.logic.transaction.verify.callsArgWith(
-												4,
-												'transaction.verify-ERR',
-												null
-											)
-										);
-
-										it('should generate block without transactions', done => {
-											blocksProcessModule.generateBlock(
-												{ publicKey: '123abc', privateKey: 'aaa' },
-												41287231,
-												err => {
-													expect(err).to.be.null;
-													expect(
-														modules.blocks.verify.processBlock.args[0][0]
-															.transactions.length
-													).to.equal(0);
-													done();
-												}
-											);
-										});
-									});
-
-									describe('when succeeds', async () => {
-										beforeEach(() =>
-											library.logic.transaction.verify.callsArgWith(
-												4,
-												null,
-												true
-											)
-										);
-
-										it('should generate block with transactions', done => {
-											blocksProcessModule.generateBlock(
-												{ publicKey: '123abc', privateKey: 'aaa' },
-												41287231,
-												err => {
-													expect(err).to.be.null;
-													expect(
-														modules.blocks.verify.processBlock.args[0][0]
-															.transactions.length
-													).to.equal(2);
-													done();
-												}
-											);
-										});
-									});
-								});
-							});
+						it('should generate block without pending transactions', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(0);
+									done();
+								}
+							);
 						});
 					});
 				});
 
 				describe('library.logic.block.create', async () => {
-					beforeEach(() => {
-						modules.accounts.getAccount.callsArgWith(1, null, true);
-						library.logic.transaction.ready.returns(true);
-						return library.logic.transaction.verify.callsArgWith(4, null, true);
+					beforeEach(async () => {
+						modules.processTransactions.verifyTransactions.resolves([
+							{ id: 1, status: 1, errors: [] },
+							{ id: 2, status: 1, errors: [] },
+						]);
 					});
 
 					describe('when fails', async () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							library.logic.block.create = sinonSandbox.stub();
 							library.logic.block.create.throws('block-create-ERR');
-							done();
 						});
 
 						it('should call a callback with error', done => {
@@ -1874,7 +1858,7 @@ describe('blocks/process', async () => {
 
 					describe('when succeeds', async () => {
 						describe('modules.blocks.verify.processBlock', async () => {
-							describe('when fails', async () => {
+							describe('when fails', () => {
 								beforeEach(() =>
 									modules.blocks.verify.processBlock.callsArgWith(
 										3,
