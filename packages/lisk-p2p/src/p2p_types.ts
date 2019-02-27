@@ -42,11 +42,11 @@ export interface P2PPeerInfo {
 
 export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly height: number;
-	readonly nonce: string;
 	readonly updatedAt?: Date;
 	readonly os?: string;
 	readonly version: string;
-	readonly options?: P2PInfoOptions;
+	// tslint:disable-next-line: no-mixed-interface
+	readonly [key: string]: unknown;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.
@@ -58,7 +58,7 @@ export interface P2PNodeInfo {
 	readonly wsPort: number;
 	readonly height: number;
 	// tslint:disable-next-line: no-mixed-interface
-	readonly options?: P2PInfoOptions;
+	readonly [key: string]: unknown;
 }
 
 export interface P2PClosePacket {

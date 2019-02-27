@@ -259,14 +259,9 @@ export class Peer extends EventEmitter {
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
+			...newPeerInfo,
 			ipAddress: this._ipAddress,
 			wsPort: this._wsPort,
-			height: newPeerInfo.height,
-			os: newPeerInfo.os,
-			version: newPeerInfo.version,
-			options: newPeerInfo.options,
-			updatedAt: newPeerInfo.updatedAt,
-			nonce: newPeerInfo.nonce,
 		};
 	}
 
