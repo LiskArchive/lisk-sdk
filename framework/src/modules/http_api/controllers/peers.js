@@ -67,11 +67,10 @@ PeersController.getPeers = async function(context, next) {
 				return next(err);
 			}
 
-			data = _.cloneDeep(data);
-
-			data = _.map(data, peer => {
-				delete peer.updated;
-				return peer;
+			const clonedData = _.cloneDeep(data);
+			const filteredData = clonedData.map(peer => {
+				const { updated, ...filtered } = peer;
+				return filtered;
 			});
 
 			const peersCount = await channel.invoke('chain:getPeersCountByFilter', [
@@ -79,7 +78,7 @@ PeersController.getPeers = async function(context, next) {
 			]);
 
 			return next(null, {
-				data,
+				data: filteredData,
 				meta: {
 					offset: filters.offset,
 					limit: filters.limit,

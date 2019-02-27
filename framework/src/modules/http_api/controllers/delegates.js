@@ -159,11 +159,10 @@ async function _getDelegates(filters, options) {
 		options
 	);
 
-	let lastBlock = await storage.entities.Block.get(
+	const [lastBlock] = await storage.entities.Block.get(
 		{},
 		{ sort: 'height:desc', limit: 1 }
 	);
-	lastBlock = lastBlock[0];
 
 	const supply = lastBlock.height
 		? await channel.invoke('chain:calculateSupply', [lastBlock.height])
@@ -208,16 +207,17 @@ async function _getForgers(filters) {
 		}
 	}
 
-	let forgers = (await storage.entities.Account.get(
+	const forgers = (await storage.entities.Account.get(
 		{ isDelegate: true, publicKey_in: forgerKeys },
 		{ limit: null }
-	)).map(forger => _.pick(forger, ['username', 'address', 'publicKey']));
-
-	forgers.forEach(forger => {
-		forger.nextSlot = forgerKeys.indexOf(forger.publicKey) + currentSlot + 1;
-	});
-
-	forgers = _.sortBy(forgers, 'nextSlot');
+	))
+		.map(({ username, address, publicKey }) => ({
+			username,
+			address,
+			publicKey,
+			nextSlot: forgerKeys.indexOf(publicKey) + currentSlot + 1,
+		}))
+		.sort((prev, next) => prev.nextSlot > next.nextSlot);
 
 	return {
 		data: forgers,
