@@ -1,8 +1,8 @@
 const rewire = require('rewire');
-const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const DelegatesController = rewire(
-	'../../../../../../../../framework/src/modules/http_api/controllers/delegates'
+	'../../../../../../src/modules/http_api/controllers/delegates'
 );
 
 describe('delegates/api', () => {

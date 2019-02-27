@@ -1,8 +1,8 @@
 const rewire = require('rewire');
-const application = require('../../../../../common/application');
+const application = require('../../../../common/application');
 
 const RewiredNodeController = rewire(
-	'../../../../../../../../framework/src/modules/http_api/controllers/node'
+	'../../../../../../src/modules/http_api/controllers/node'
 );
 
 describe('node/api', () => {

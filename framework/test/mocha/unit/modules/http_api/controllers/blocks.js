@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 
 const BlocksController = rewire(
-	'../../../../../../../../framework/src/modules/http_api/controllers/blocks'
+	'../../../../../../src/modules/http_api/controllers/blocks'
 );
 
 describe('blocks/api', () => {
