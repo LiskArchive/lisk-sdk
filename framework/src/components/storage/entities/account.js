@@ -433,65 +433,61 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	async update(filters, data, _options, tx) {
-		try {
-			const atLeastOneRequired = true;
+		const atLeastOneRequired = true;
 
-			this.validateFilters(filters, atLeastOneRequired);
+		this.validateFilters(filters, atLeastOneRequired);
 
-			const objectData = _.omit(data, readOnlyFields);
+		const objectData = _.omit(data, readOnlyFields);
 
-			const mergedFilters = this.mergeFilters(filters);
-			const parsedFilters = this.parseFilters(mergedFilters);
-			const updateSet = this.getUpdateSet(objectData);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const updateSet = this.getUpdateSet(objectData);
 
-			const params = {
-				...objectData,
-				parsedFilters,
-				updateSet,
-			};
+		const params = {
+			...objectData,
+			parsedFilters,
+			updateSet,
+		};
 
-			if (_.isEmpty(objectData)) {
-				return Promise.resolve();
-			}
-
-			if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
-				await this.updateDependentRecords(
-					'membersPublicKeys',
-					data.address,
-					data.membersPublicKeys,
-					tx
-				);
-			}
-
-			if (
-				data.votedDelegatesPublicKeys &&
-				data.votedDelegatesPublicKeys.length > 0
-			) {
-				await this.updateDependentRecords(
-					'votedDelegatesPublicKeys',
-					data.address,
-					data.votedDelegatesPublicKeys,
-					tx
-				);
-			}
-
-			// Account remove all votes
-			if (
-				data.votedDelegatesPublicKeys &&
-				data.votedDelegatesPublicKeys.length === 0
-			) {
-				await this.adapter.executeFile(
-					this.SQLs.deleteVotes,
-					{ accountId: data.address },
-					{},
-					tx
-				);
-			}
-
-			return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
-		} catch (error) {
-			throw error;
+		if (_.isEmpty(objectData)) {
+			return false;
 		}
+
+		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
+			await this.updateDependentRecords(
+				'membersPublicKeys',
+				data.address,
+				data.membersPublicKeys,
+				tx
+			);
+		}
+
+		if (
+			data.votedDelegatesPublicKeys &&
+			data.votedDelegatesPublicKeys.length > 0
+		) {
+			await this.updateDependentRecords(
+				'votedDelegatesPublicKeys',
+				data.address,
+				data.votedDelegatesPublicKeys,
+				tx
+			);
+		}
+
+		// Account remove all votes
+		if (
+			data.votedDelegatesPublicKeys &&
+			data.votedDelegatesPublicKeys.length === 0
+		) {
+			await this.adapter.executeFile(
+				this.SQLs.deleteVotes,
+				{ accountId: data.address },
+				{},
+				tx
+			);
+		}
+
+		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
 	}
 
 	/**
@@ -743,57 +739,53 @@ class Account extends BaseEntity {
 		const sqlForInsert = this.SQLs.createDependentRecords;
 		const tableName = dependentFieldsTableMap[dependencyName];
 
-		try {
-			const dependentRecordsForAddress = await this.adapter.execute(
-				`SELECT "dependentId" FROM ${tableName} WHERE "accountId" = $1`,
-				[address]
-			);
+		const dependentRecordsForAddress = await this.adapter.execute(
+			`SELECT "dependentId" FROM ${tableName} WHERE "accountId" = $1`,
+			[address]
+		);
 
-			const oldDependentPublicKeys = dependentRecordsForAddress.map(
-				dependentRecord => dependentRecord.dependentId
+		const oldDependentPublicKeys = dependentRecordsForAddress.map(
+			dependentRecord => dependentRecord.dependentId
+		);
+		const publicKeysToBeRemoved = oldDependentPublicKeys.filter(
+			aPK => !dependentPublicKeys.includes(aPK)
+		);
+		const publicKeysToBeInserted = dependentPublicKeys.filter(
+			aPK => !oldDependentPublicKeys.includes(aPK)
+		);
+		const paramsForDelete = {
+			tableName: dependentFieldsTableMap[dependencyName],
+			accountId: address,
+			dependentIds: publicKeysToBeRemoved,
+		};
+
+		if (publicKeysToBeRemoved.length > 0) {
+			await this.adapter.executeFile(
+				sqlForDelete,
+				paramsForDelete,
+				{ expectedResultCount: 0 },
+				tx
 			);
-			const publicKeysToBeRemoved = oldDependentPublicKeys.filter(
-				aPK => !dependentPublicKeys.includes(aPK)
-			);
-			const publicKeysToBeInserted = dependentPublicKeys.filter(
-				aPK => !oldDependentPublicKeys.includes(aPK)
-			);
-			const paramsForDelete = {
-				tableName: dependentFieldsTableMap[dependencyName],
+		}
+
+		if (publicKeysToBeInserted.length > 0) {
+			const valuesForInsert = publicKeysToBeInserted.map(dependentId => ({
 				accountId: address,
-				dependentIds: publicKeysToBeRemoved,
-			};
+				dependentId,
+			}));
 
-			if (publicKeysToBeRemoved.length > 0) {
-				await this.adapter.executeFile(
-					sqlForDelete,
-					paramsForDelete,
-					{ expectedResultCount: 0 },
-					tx
-				);
-			}
+			const createSet = this.getValuesSet(
+				valuesForInsert,
+				['accountId', 'dependentId'],
+				{ useRawObject: true }
+			);
 
-			if (publicKeysToBeInserted.length > 0) {
-				const valuesForInsert = publicKeysToBeInserted.map(dependentId => ({
-					accountId: address,
-					dependentId,
-				}));
-
-				const createSet = this.getValuesSet(
-					valuesForInsert,
-					['accountId', 'dependentId'],
-					{ useRawObject: true }
-				);
-
-				await this.adapter.executeFile(
-					sqlForInsert,
-					{ tableName, createSet },
-					{ expectedResultCount: 0 },
-					tx
-				);
-			}
-		} catch (error) {
-			throw new Error(error);
+			await this.adapter.executeFile(
+				sqlForInsert,
+				{ tableName, createSet },
+				{ expectedResultCount: 0 },
+				tx
+			);
 		}
 	}
 
