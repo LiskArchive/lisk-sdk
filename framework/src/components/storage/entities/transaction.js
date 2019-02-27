@@ -243,7 +243,7 @@ class Transaction extends BaseEntity {
 			fieldName: 't_amount',
 		});
 		this.addField('fee', 'string', {
-			filter: filterTypes.TEXT,
+			filter: filterTypes.NUMBER,
 			fieldName: 't_fee',
 		});
 		this.addField(
