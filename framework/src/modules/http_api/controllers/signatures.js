@@ -14,7 +14,7 @@
 
 'use strict';
 
-const ApiError = require('../../chain/helpers/api_error');
+const ApiError = require('../../http_api/helpers/api_error');
 
 // Private Fields
 let channel;
