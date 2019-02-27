@@ -502,8 +502,10 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 		await this._startPeerServer();
-		await this._initialDiscovery(this._config.blacklistedPeers);
+		// Initialize the node with seed peers
+		await this._initialDiscovery(this._config.seedPeers);
 
+		// Do the regular discovery periodically
 		await this._startDiscovery([...this._newPeers.values()]);
 	}
 
