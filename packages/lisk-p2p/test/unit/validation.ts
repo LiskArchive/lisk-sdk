@@ -58,16 +58,11 @@ describe('response handlers', () => {
 						ipAddress: '12.23.54.3',
 						wsPort: 5393,
 						height: 23232,
-						isDiscoveredPeer: true,
-						discoveredInfo: {
-							os: 'darwin',
-							version: '1.1.2',
-						},
-						options: {
-							broadhash: '92hdbcwsdjcosi',
-							httpPort: 2000,
-							nonce: '89wsufhucsdociuds',
-						},
+						os: 'darwin',
+						version: '1.1.2',
+						broadhash: '92hdbcwsdjcosi',
+						httpPort: 2000,
+						nonce: '89wsufhucsdociuds',
 					});
 			});
 
@@ -78,16 +73,11 @@ describe('response handlers', () => {
 						ipAddress: '12.23.54.3',
 						wsPort: 5393,
 						height: 0,
-						isDiscoveredPeer: true,
-						discoveredInfo: {
-							os: '778',
-							version: '3.4.5-alpha.9',
-						},
-						options: {
-							broadhash: '92hdbcwsdjcosi',
-							httpPort: 2000,
-							nonce: '89wsufhucsdociuds',
-						},
+						os: '778',
+						version: '3.4.5-alpha.9',
+						broadhash: '92hdbcwsdjcosi',
+						httpPort: 2000,
+						nonce: '89wsufhucsdociuds',
 					});
 			});
 		});
@@ -254,20 +244,10 @@ describe('response handlers', () => {
 				peer['ipAddress'] = peer.ip;
 				peer.wsPort = +peer.wsPort;
 				peer.height = +peer.height;
-				peer.isDiscoveredPeer = true;
-				peer.options = {
-					broadhash: peer.broadhash,
-					httpPort: peer.httpPort,
-					nonce: peer.nonce,
-					...peer.options,
-				};
-				peer.discoveredInfo = {
-					os: 'darwin',
-					version: '1.0.1',
-				};
+				peer.broadhash = undefined;
+				peer.httpPort = undefined;
+				peer.nonce = undefined;
 				delete peer.ip;
-				delete peer.os;
-				delete peer.version;
 
 				return peer;
 			});

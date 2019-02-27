@@ -87,7 +87,9 @@ export const validatePeerInfo = (
 		nonce: protocolPeer.nonce,
 	};
 
-	return peerInfo;
+	const { ip, ...peerInfoUpdated } = peerInfo;
+
+	return peerInfoUpdated;
 };
 
 export const validatePeerInfoList = (
