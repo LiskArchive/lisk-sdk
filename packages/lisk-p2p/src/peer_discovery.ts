@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PPeerInfo } from './p2p_types';
+import { P2PDiscoveredPeerInfo } from './p2p_types';
 import { constructPeerIdFromPeerInfo, Peer } from './peer';
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
@@ -22,9 +22,9 @@ export interface FilterPeerOptions {
 export const discoverPeers = async (
 	knownPeers: ReadonlyArray<Peer>,
 	filterPeerOptions: FilterPeerOptions = { blacklist: [] },
-): Promise<ReadonlyArray<P2PPeerInfo>> => {
+): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> => {
 	const peersOfPeer: ReadonlyArray<
-		ReadonlyArray<P2PPeerInfo>
+		ReadonlyArray<P2PDiscoveredPeerInfo>
 	> = await Promise.all(
 		knownPeers.map(async peer => {
 			try {
@@ -36,7 +36,7 @@ export const discoverPeers = async (
 	);
 
 	const peersOfPeerFlat = peersOfPeer.reduce(
-		(flattenedPeersList: ReadonlyArray<P2PPeerInfo>, peersList) =>
+		(flattenedPeersList: ReadonlyArray<P2PDiscoveredPeerInfo>, peersList) =>
 			Array.isArray(peersList)
 				? [...flattenedPeersList, ...peersList]
 				: flattenedPeersList,
@@ -45,7 +45,10 @@ export const discoverPeers = async (
 
 	// Remove duplicates
 	const discoveredPeers = peersOfPeerFlat.reduce(
-		(uniquePeersArray: ReadonlyArray<P2PPeerInfo>, peer: P2PPeerInfo) => {
+		(
+			uniquePeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>,
+			peer: P2PDiscoveredPeerInfo,
+		) => {
 			const found = uniquePeersArray.find(
 				findPeer =>
 					constructPeerIdFromPeerInfo(findPeer) ===
@@ -62,7 +65,7 @@ export const discoverPeers = async (
 	}
 	// Remove blacklist ids
 	const discoveredPeersFiltered = discoveredPeers.filter(
-		(peer: P2PPeerInfo) =>
+		(peer: P2PDiscoveredPeerInfo) =>
 			!filterPeerOptions.blacklist.includes(peer.ipAddress),
 	);
 

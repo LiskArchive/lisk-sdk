@@ -62,7 +62,7 @@ export interface P2PNodeInfo {
 }
 
 export interface P2PClosePacket {
-	readonly peerInfo: P2PPeerInfo;
+	readonly peerInfo: P2PDiscoveredPeerInfo;
 	readonly code: number;
 	readonly reason?: string;
 }
@@ -82,9 +82,9 @@ export interface P2PConfig {
 
 // Network info exposed by the P2P library.
 export interface P2PNetworkStatus {
-	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly triedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly connectedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly newPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly triedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }
 
 // TODO later: Switch to LIP protocol format.
@@ -103,15 +103,15 @@ export interface ProtocolNodeInfo {
 }
 
 export type P2PPeerSelectionForSendRequest = (
-	peers: ReadonlyArray<P2PPeerInfo>,
+	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
 	numOfPeers?: number,
-) => ReadonlyArray<P2PPeerInfo>;
+) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export type P2PPeerSelectionForConnection = (
-	peers: ReadonlyArray<P2PPeerInfo>,
+	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
-) => ReadonlyArray<P2PPeerInfo>;
+) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 // This is a representation of the inbound peer object according to the current protocol.
 // TODO later: Switch to LIP protocol format.
