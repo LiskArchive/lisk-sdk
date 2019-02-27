@@ -82,11 +82,11 @@ export class StateStore {
 
 		this._deleteMap.set(bucket, key);
 	}
-	// tslint:disable-next-line no-any
 	public async replace(
 		bucket: string,
 		oldKey: string,
 		newKey: string,
+		// tslint:disable-next-line no-any
 		value: any,
 	): Promise<void> {
 		if (!this._cacheMap[bucket]) {

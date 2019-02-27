@@ -50,41 +50,6 @@ export const getBlockId = (blockBytes: Buffer) => {
 	return firstEntriesToNumber;
 };
 
-export const createBlock = ({
-	txMap,
-	version,
-	epochTime,
-	lastBlock,
-	rewards,
-	transactions,
-	passphrase,
-}: CreateBlockInput): Block => {
-	const sortedTransactions = sortTransactions(
-		transactions as TransactionJSON[],
-	);
-	const height = lastBlock.height + 1;
-	const txs = rawTransactionToInstance(txMap, sortedTransactions);
-	const reward = calculateRewawrd(rewards, height);
-	const timestamp = getTimeFromBlockchainEpoch(epochTime);
-	const { publicKey } = getKeys(passphrase);
-	const rawBlock = {
-		version,
-		height,
-		previousBlock: lastBlock.id,
-		timestamp,
-		reward,
-		// Calculate tx related property
-		...calculateTransactionsData(txs),
-		transactions: sortedTransactions,
-		generatorPublicKey: publicKey,
-	};
-	// Get reward
-	const block = new Block(rawBlock, txs);
-	block.sign(passphrase);
-
-	return block;
-};
-
 export class Block {
 	public readonly id: string;
 	public readonly height: number;
@@ -142,14 +107,17 @@ export class Block {
 	}
 
 	public async verify(store: StateStore): Promise<ReadonlyArray<Error>> {
-		return this.transactions
-			.map(tx => {
+		const responses = await Promise.all(
+			this.transactions.map(async tx => {
 				const snapshotId = store.createSnapshot();
-				const res = tx.apply(store);
+				const res = await tx.apply(store);
 				store.restoreSnapshot(snapshotId);
 
 				return res;
-			})
+			}),
+		);
+
+		return responses
 			.filter(res => res.status === Status.FAIL)
 			.reduce((prev, current) => prev.concat(current.errors as []), []);
 	}
@@ -240,3 +208,38 @@ export class Block {
 		]);
 	}
 }
+
+export const createBlock = ({
+	txMap,
+	version,
+	epochTime,
+	lastBlock,
+	rewards,
+	transactions,
+	passphrase,
+}: CreateBlockInput): Block => {
+	const sortedTransactions = sortTransactions(
+		transactions as TransactionJSON[],
+	);
+	const height = lastBlock.height + 1;
+	const txs = rawTransactionToInstance(txMap, sortedTransactions);
+	const reward = calculateRewawrd(rewards, height);
+	const timestamp = getTimeFromBlockchainEpoch(epochTime);
+	const { publicKey } = getKeys(passphrase);
+	const rawBlock = {
+		version,
+		height,
+		previousBlock: lastBlock.id,
+		timestamp,
+		reward,
+		// Calculate tx related property
+		...calculateTransactionsData(txs),
+		transactions: sortedTransactions,
+		generatorPublicKey: publicKey,
+	};
+	// Get reward
+	const block = new Block(rawBlock, txs);
+	block.sign(passphrase);
+
+	return block;
+};

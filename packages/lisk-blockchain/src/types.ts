@@ -33,8 +33,8 @@ interface TransactionFunc {
 	getBytes(): Buffer;
 	toJSON(): TransactionJSON;
 	validate(): TransactionResponse;
-	apply(store: StateStore): TransactionResponse;
-	undo(store: StateStore): TransactionResponse;
+	apply(store: StateStore): Promise<TransactionResponse>;
+	undo(store: StateStore): Promise<TransactionResponse>;
 }
 
 export interface CacheMap {
@@ -53,6 +53,14 @@ interface TransactionProps {
 	readonly amount: string;
 }
 
+export type Transaction = TransactionFunc & TransactionProps;
+
+export type TransactionClass = new (raw: TransactionJSON) => Transaction;
+
+export interface TransactionMap {
+	readonly [key: number]: TransactionClass;
+}
+
 export interface InTransferTransaction extends Transaction {
 	readonly asset: {
 		readonly inTransfer: {
@@ -65,14 +73,6 @@ export interface VoteTransaction extends Transaction {
 	readonly asset: {
 		readonly votes: ReadonlyArray<string>;
 	};
-}
-
-export type Transaction = TransactionFunc & TransactionProps;
-
-export type TransactionClass = new (raw: TransactionJSON) => Transaction;
-
-export interface TransactionMap {
-	readonly [key: number]: TransactionClass;
 }
 
 export interface TransactionJSON {
