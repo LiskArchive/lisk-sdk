@@ -67,10 +67,6 @@ export const validatePeerInfo = (
 		throw new InvalidPeerError(`Invalid peer version`);
 	}
 
-	if (!protocolPeer.nonce || typeof protocolPeer.nonce !== 'string') {
-		throw new InvalidPeerError(`Nonce is either not present or invalid`);
-	}
-
 	const version = protocolPeer.version;
 	const wsPort = +protocolPeer.wsPort;
 	const os = protocolPeer.os ? protocolPeer.os : '';
@@ -80,16 +76,14 @@ export const validatePeerInfo = (
 			: 0;
 
 	const peerInfo: P2PDiscoveredPeerInfo = {
+		...protocolPeer,
 		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
 		os,
 		version,
-		options: {
-			httpPort: protocolPeer.httpPort,
-			broadhash: protocolPeer.broadhash,
-			...protocolPeer.options,
-		},
+		httpPort: protocolPeer.httpPort,
+		broadhash: protocolPeer.broadhash,
 		nonce: protocolPeer.nonce,
 	};
 

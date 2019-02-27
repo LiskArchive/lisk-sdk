@@ -428,19 +428,19 @@ export class PeerPool extends EventEmitter {
 						// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
 						return {
 							broadhash: peerDiscoveredInfo.options
-								? (peerDiscoveredInfo.options.broadhash as string)
+								? (peerDiscoveredInfo.broadhash as string)
 								: '',
 							height: peerDiscoveredInfo.height,
 							ip: peerDiscoveredInfo.ipAddress,
 							nonce: peerDiscoveredInfo.options
-								? (peerDiscoveredInfo.options.nonce as string)
+								? (peerDiscoveredInfo.nonce as string)
 								: '',
 							os: peerDiscoveredInfo.os
 								? peerDiscoveredInfo.os
 								: '',
 							version: peerDiscoveredInfo.version,
 							httpPort: peerDiscoveredInfo.options
-								? (peerDiscoveredInfo.options.httpPort as number)
+								? (peerDiscoveredInfo.httpPort as number)
 								: undefined,
 							wsPort: peerDiscoveredInfo.wsPort,
 							options: peerDiscoveredInfo.options,
