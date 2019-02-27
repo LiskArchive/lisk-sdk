@@ -59,6 +59,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
+		"@liskhq/lisk-cryptography": "2.0.0",
+		"browserify-bignum": "1.3.0-2",
 		"@types/node": "10.12.21"
 	},
 	"devDependencies": {

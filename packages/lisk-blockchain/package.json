@@ -46,7 +46,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^2.0.0",
+		"@liskhq/lisk-cryptography": "2.0.0",
 		"@types/lodash.clonedeep": "^4.5.5",
 		"@types/node": "10.12.21",
 		"ajv": "^6.9.2",
