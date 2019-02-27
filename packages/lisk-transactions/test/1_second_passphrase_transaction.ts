@@ -35,7 +35,7 @@ describe('Second signature registration transaction class', () => {
 		publicKey:
 			'8aceda0f39b35d778f55593227f97152f0b5a78b80b5c4ae88979909095d6204',
 		secondPublicKey: undefined,
-		secondSignature: false,
+		secondSignature: 0,
 	};
 
 	beforeEach(async () => {
@@ -181,7 +181,7 @@ describe('Second signature registration transaction class', () => {
 			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
 				...sender,
 				secondPublicKey: validTestTransaction.asset.signature.publicKey,
-				secondSignature: true,
+				secondSignature: 1,
 			});
 		});
 
@@ -211,7 +211,7 @@ describe('Second signature registration transaction class', () => {
 
 			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
 				...sender,
-				secondSignature: false,
+				secondSignature: 0,
 				secondPublicKey: undefined,
 			});
 		});

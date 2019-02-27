@@ -200,7 +200,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		const updatedSender = {
 			...sender,
 			secondPublicKey: this.asset.signature.publicKey,
-			secondSignature: true,
+			secondSignature: 1,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -212,7 +212,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		const strippedSender = {
 			...sender,
 			secondPublicKey: undefined,
-			secondSignature: false,
+			secondSignature: 0,
 		};
 
 		store.account.set(strippedSender.address, strippedSender);
