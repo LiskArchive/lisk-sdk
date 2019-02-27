@@ -1103,7 +1103,7 @@ describe('GET /api/transactions', () => {
 		 * in config/default/exceptions to a value bigger than 0
 		 * */
 		/* eslint-disable mocha/no-skipped-tests */
-		describe.skip('assets', () => {
+		describe.skip('dapp', () => {
 			before(() => {
 				return sendTransactionPromise(transaction4) // send type 0 transaction
 					.then(result => {
