@@ -1,18 +1,18 @@
 import { EventEmitter } from 'events';
 import { Delegate, generateDelegateList, sortDelegates } from './delegate';
-import { Slot, validateBlockSlot, validateBlockSlotWindow } from './slot';
-import { Block, DataStore } from './type';
+import { getLatestRound, getRound, updateRound } from './repo';
 import {
+	applyRound,
+	calculateRewards,
 	calculateRound,
-	Reward,
-	isStartingRound,
 	defaultRound,
 	isFinishingRound,
-	calculateRewards,
+	isStartingRound,
+	Reward,
 	Round,
-	applyRound,
 } from './round';
-import { getLatestRound, getRound, updateRound } from './repo';
+import { Slot, validateBlockSlot, validateBlockSlotWindow } from './slot';
+import { Block, DataStore } from './type';
 
 export interface DPOSOptions {
 	readonly db: DataStore;
