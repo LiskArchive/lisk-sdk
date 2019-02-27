@@ -29,6 +29,7 @@ import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
+	P2PPeerInfo,
 	P2PPeerSelectionForConnection,
 	P2PPeerSelectionForSendRequest,
 	P2PRequestPacket,
@@ -89,12 +90,18 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerPoolConfig: PeerPoolConfig;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
-	private readonly _handlePeerConnect: (peerInfo: P2PDiscoveredPeerInfo) => void;
-	private readonly _handlePeerConnectAbort: (peerInfo: P2PDiscoveredPeerInfo) => void;
+	private readonly _handlePeerConnect: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
+	private readonly _handlePeerConnectAbort: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
-	private readonly _handlePeerInfoUpdate: (peerInfo: P2PDiscoveredPeerInfo) => void;
+	private readonly _handlePeerInfoUpdate: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private readonly _peerSelectForSendRequest: P2PPeerSelectionForSendRequest;
@@ -193,7 +200,9 @@ export class PeerPool extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public selectPeers(numOfPeers?: number): ReadonlyArray<P2PDiscoveredPeerInfo> {
+	public selectPeers(
+		numOfPeers?: number,
+	): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
 			(peer: Peer) => peer.peerInfo,
 		);
@@ -246,19 +255,21 @@ export class PeerPool extends EventEmitter {
 
 	public async runDiscovery(
 		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-		blacklist: ReadonlyArray<P2PDiscoveredPeerInfo>,
+		blacklist: ReadonlyArray<P2PPeerInfo>,
 	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
-		const peersObjectList = knownPeers.map((peerInfo: P2PDiscoveredPeerInfo) => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (this.hasPeer(peerId)) {
-				const existingPeer = this.getPeer(peerId) as Peer;
-				existingPeer.updatePeerInfo(peerInfo);
+		const peersObjectList = knownPeers.map(
+			(peerInfo: P2PDiscoveredPeerInfo) => {
+				const peerId = constructPeerIdFromPeerInfo(peerInfo);
+				if (this.hasPeer(peerId)) {
+					const existingPeer = this.getPeer(peerId) as Peer;
+					existingPeer.updatePeerInfo(peerInfo);
 
-				return existingPeer;
-			}
+					return existingPeer;
+				}
 
-			return this.addPeer(peerInfo);
-		});
+				return this.addPeer(peerInfo);
+			},
+		);
 
 		const peerSampleToProbe = selectRandomPeerSample(
 			peersObjectList,
@@ -287,7 +298,10 @@ export class PeerPool extends EventEmitter {
 		return peersToConnect;
 	}
 
-	public addPeer(peerInfo: P2PDiscoveredPeerInfo, inboundSocket?: SCServerSocket): Peer {
+	public addPeer(
+		peerInfo: P2PDiscoveredPeerInfo,
+		inboundSocket?: SCServerSocket,
+	): Peer {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
@@ -419,7 +433,8 @@ export class PeerPool extends EventEmitter {
 			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
 				.map(
 					(peer: Peer): ProtocolPeerInfo | undefined => {
-						const peerDiscoveredInfo: P2PDiscoveredPeerInfo | undefined = peer.peerInfo;
+						const peerDiscoveredInfo: P2PDiscoveredPeerInfo | undefined =
+							peer.peerInfo;
 
 						if (!peerDiscoveredInfo) {
 							return undefined;
@@ -435,9 +450,7 @@ export class PeerPool extends EventEmitter {
 							nonce: peerDiscoveredInfo.options
 								? (peerDiscoveredInfo.nonce as string)
 								: '',
-							os: peerDiscoveredInfo.os
-								? peerDiscoveredInfo.os
-								: '',
+							os: peerDiscoveredInfo.os ? peerDiscoveredInfo.os : '',
 							version: peerDiscoveredInfo.version,
 							httpPort: peerDiscoveredInfo.options
 								? (peerDiscoveredInfo.httpPort as number)

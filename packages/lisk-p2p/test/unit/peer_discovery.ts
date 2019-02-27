@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { P2PPeerInfo } from '../../src/p2p_types';
+import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 import { initializePeerList } from '../utils/peers';
 import * as discoverPeersModule from '../../src/peer_discovery';
 
@@ -23,25 +23,28 @@ describe('peer discovery', () => {
 	const seedPeer2 = samplePeers[1];
 	const seedList = [seedPeer1, seedPeer2];
 
-	const validatedPeer1: P2PPeerInfo = {
+	const validatedPeer1: P2PDiscoveredPeerInfo = {
 		ipAddress: '196.34.89.90',
 		wsPort: 5393,
 		height: 23232,
 		isDiscoveredPeer: true,
+		version: '1.2.1',
 	};
 
-	const validatedPeer2: P2PPeerInfo = {
+	const validatedPeer2: P2PDiscoveredPeerInfo = {
 		ipAddress: '128.38.75.9',
 		wsPort: 5393,
 		height: 23232,
 		isDiscoveredPeer: true,
+		version: '1.2.1',
 	};
 
-	const validatedPeer3: P2PPeerInfo = {
+	const validatedPeer3: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.23.11.31',
 		wsPort: 5393,
 		height: 23232,
 		isDiscoveredPeer: true,
+		version: '1.3.1',
 	};
 
 	describe('#discoverPeer', () => {
@@ -51,7 +54,7 @@ describe('peer discovery', () => {
 		const expectedResult = [validatedPeer1, validatedPeer2];
 
 		describe('return an array with all the peers of input peers', () => {
-			let discoveredPeers: ReadonlyArray<P2PPeerInfo>;
+			let discoveredPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 			const blacklist = ['12.23.11.31'];
 			beforeEach(async () => {
 				sandbox.stub(seedPeer1, 'fetchPeers').resolves(peerList1);

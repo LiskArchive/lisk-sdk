@@ -80,8 +80,6 @@ describe('Integration tests for P2P library', () => {
 					{
 						ipAddress: '127.0.0.1',
 						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-						height: 0,
-						isDiscoveredPeer: false,
 					},
 				];
 
@@ -157,8 +155,6 @@ describe('Integration tests for P2P library', () => {
 					{
 						ipAddress: '127.0.0.1',
 						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-						height: 0,
-						isDiscoveredPeer: false,
 					},
 				];
 
@@ -397,8 +393,6 @@ describe('Integration tests for P2P library', () => {
 									ipAddress: '127.0.0.1',
 									wsPort:
 										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
-									height: 0,
-									isDiscoveredPeer: false,
 								},
 						  ];
 

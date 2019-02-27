@@ -15,10 +15,10 @@
 import { P2PDiscoveredPeerInfo, P2PNodeInfo, P2PPeerInfo } from './p2p_types';
 import {
 	connectAndFetchPeers,
+	ConnectAndFetchResponse,
 	constructPeerIdFromPeerInfo,
 	Peer,
 	PeerConfig,
-	ConnectAndFetchResponse,
 } from './peer';
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
@@ -83,7 +83,7 @@ export const discoveryFromSeedNodes = async (
 	filterPeerOptions: FilterPeerOptions = { blacklist: [] },
 	peerConfig?: PeerConfig,
 	nodeInfo?: P2PNodeInfo,
-): Promise<ReadonlyArray<P2PPeerInfo>> => {
+): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> => {
 	const responses = await Promise.all(
 		seeds.map(async seed => connectAndFetchPeers(seed, peerConfig, nodeInfo)),
 	);
@@ -95,7 +95,7 @@ export const discoveryFromSeedNodes = async (
 	});
 
 	const peersOfSeedsFlat = peersOfSeed.reduce(
-		(flattenedPeersList: ReadonlyArray<P2PPeerInfo>, peersList) =>
+		(flattenedPeersList: ReadonlyArray<P2PDiscoveredPeerInfo>, peersList) =>
 			Array.isArray(peersList)
 				? [...flattenedPeersList, ...peersList]
 				: flattenedPeersList,
@@ -104,7 +104,10 @@ export const discoveryFromSeedNodes = async (
 
 	// Remove duplicates
 	const discoveredPeers = peersOfSeedsFlat.reduce(
-		(uniquePeersArray: ReadonlyArray<P2PPeerInfo>, peer: P2PPeerInfo) => {
+		(
+			uniquePeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>,
+			peer: P2PDiscoveredPeerInfo,
+		) => {
 			const found = uniquePeersArray.find(
 				findPeer =>
 					constructPeerIdFromPeerInfo(findPeer) ===
@@ -121,7 +124,7 @@ export const discoveryFromSeedNodes = async (
 	}
 	// Remove blacklist ids
 	const discoveredPeersFiltered = discoveredPeers.filter(
-		(peer: P2PPeerInfo) =>
+		(peer: P2PDiscoveredPeerInfo) =>
 			!filterPeerOptions.blacklist.includes(peer.ipAddress),
 	);
 

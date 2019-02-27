@@ -22,7 +22,13 @@ interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
 
-import { constructPeerId, constructPeerIdFromPeerInfo } from './peer';
+import {
+	constructPeerId,
+	constructPeerIdFromPeerInfo,
+	DEFAULT_ACK_TIMEOUT,
+	DEFAULT_CONNECT_TIMEOUT,
+	PeerConfig,
+} from './peer';
 
 import {
 	INCOMPATIBLE_NETWORK_CODE,
@@ -52,6 +58,7 @@ import { P2PRequest } from './p2p_request';
 export { P2PRequest };
 import { selectForConnection, selectPeers } from './peer_selection';
 
+import { discoveryFromSeedNodes } from './peer_discovery';
 import {
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -456,6 +463,33 @@ export class P2P extends EventEmitter {
 		await this._discoverPeers(knownPeers);
 	}
 
+	private async _initialDiscovery(
+		seedPeers: ReadonlyArray<P2PPeerInfo>,
+	): Promise<void> {
+		const peerConfig: PeerConfig = {
+			ackTimeout: DEFAULT_ACK_TIMEOUT,
+			connectTimeout: DEFAULT_CONNECT_TIMEOUT,
+		};
+		const blacklist = this._config.blacklistedPeers.map<string>(
+			peer => peer.ipAddress,
+		);
+		const discoveredPeers = await discoveryFromSeedNodes(
+			seedPeers,
+			{ blacklist },
+			peerConfig,
+			this._nodeInfo,
+		);
+
+		discoveredPeers.forEach(discoveredPeer => {
+			const peerId = constructPeerIdFromPeerInfo(discoveredPeer);
+			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
+				this._newPeers.set(peerId, discoveredPeer);
+			}
+		});
+
+		this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
+	}
+
 	private _stopDiscovery(): void {
 		if (!this._discoveryIntervalId) {
 			throw new Error('Discovery is not running');
@@ -468,7 +502,9 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 		await this._startPeerServer();
-		await this._startDiscovery(this._config.seedPeers);
+		await this._initialDiscovery(this._config.blacklistedPeers);
+
+		await this._startDiscovery([...this._newPeers.values()]);
 	}
 
 	public async stop(): Promise<void> {
