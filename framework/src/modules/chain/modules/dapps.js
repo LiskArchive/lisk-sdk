@@ -83,7 +83,7 @@ class DApps {
 					logger: scope.components.logger,
 				},
 				schema: scope.schema,
-				network: scope.network,
+				channel: scope.channel,
 			})
 		);
 
@@ -98,6 +98,7 @@ class DApps {
 				schema: scope.schema,
 			})
 		);
+
 		__private.assetTypes[
 			transactionTypes.OUT_TRANSFER
 		] = library.logic.transaction.attachAssetType(

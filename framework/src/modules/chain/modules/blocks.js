@@ -57,8 +57,8 @@ __private.isActive = false;
 class Blocks {
 	constructor(cb, scope) {
 		library = {
+			channel: scope.channel,
 			logger: scope.components.logger,
-			network: scope.network,
 		};
 
 		// Initialize submodules with library content
@@ -265,7 +265,7 @@ Blocks.prototype.onNewBlock = async function(block) {
 		}
 	}
 
-	return library.network.io.sockets.emit('blocks/change', block);
+	return library.channel.publish('chain:blocks:change', block);
 };
 
 /**

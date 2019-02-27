@@ -38,7 +38,7 @@ describe('transport', () => {
 	let loggerStub;
 	let busStub;
 	let schemaStub;
-	let networkStub;
+	let channelStub;
 	let balancesSequenceStub;
 	let transactionStub;
 	let blockStub;
@@ -176,7 +176,9 @@ describe('transport', () => {
 
 		busStub = {};
 		schemaStub = {};
-		networkStub = {};
+		channelStub = {
+			publish: sinonSandbox.stub(),
+		};
 		balancesSequenceStub = {
 			add: async () => {},
 		};
@@ -209,7 +211,7 @@ describe('transport', () => {
 			},
 			bus: busStub,
 			schema: schemaStub,
-			network: networkStub,
+			channel: channelStub,
 			balancesSequence: balancesSequenceStub,
 			config: {
 				peers: {
@@ -276,8 +278,8 @@ describe('transport', () => {
 					.to.have.property('schema')
 					.which.is.equal(schemaStub);
 				expect(library)
-					.to.have.property('network')
-					.which.is.equal(networkStub);
+					.to.have.property('channel')
+					.which.is.equal(channelStub);
 				expect(library)
 					.to.have.property('balancesSequence')
 					.which.is.equal(balancesSequenceStub);
@@ -1014,13 +1016,7 @@ describe('transport', () => {
 						},
 						httpPort: 8000,
 					},
-					network: {
-						io: {
-							sockets: {
-								emit: sinonSandbox.stub(),
-							},
-						},
-					},
+					channel: channelStub,
 					logic: {
 						peers: {
 							me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
@@ -1242,14 +1238,12 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call library.network.io.sockets.emit with "signature/change" and signature', async () => {
-						expect(library.network.io.sockets.emit.calledOnce).to.be.true;
-						return expect(
-							library.network.io.sockets.emit.calledWith(
-								'signature/change',
-								SAMPLE_SIGNATURE_1
-							)
-						).to.be.true;
+					it('should call library.channel.publish with "chain:signature:change" and signature', async () => {
+						expect(library.channel.publish).to.be.calledOnce;
+						expect(library.channel.publish).to.be.calledWith(
+							'chain:signature:change',
+							SAMPLE_SIGNATURE_1
+						);
 					});
 				});
 			});
@@ -1308,14 +1302,12 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call library.network.io.sockets.emit with "transactions/change" and transaction as arguments', async () => {
-						expect(library.network.io.sockets.emit.calledOnce).to.be.true;
-						return expect(
-							library.network.io.sockets.emit.calledWith(
-								'transactions/change',
-								transaction
-							)
-						).to.be.true;
+					it('should call library.channel.publish with "chain:transactions:change" and transaction as arguments', async () => {
+						expect(library.channel.publish).to.be.calledOnce;
+						expect(library.channel.publish).to.be.calledWith(
+							'chain:transactions:change',
+							transaction
+						);
 					});
 				});
 			});

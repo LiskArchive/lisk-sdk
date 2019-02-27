@@ -24,6 +24,8 @@ const exceptions = global.exceptions;
 
 describe('delegates', () => {
 	let library;
+	let defaultPassword;
+	const testDelegate = genesisDelegates.delegates[0];
 
 	before(done => {
 		application.init(
@@ -34,6 +36,7 @@ describe('delegates', () => {
 				library.rewiredModules.delegates.__set__('__private.loaded', true);
 				// Load forging delegates
 				library.rewiredModules.delegates.__get__('__private');
+				defaultPassword = library.config.forging.defaultPassword;
 				done(err);
 			}
 		);
@@ -44,6 +47,247 @@ describe('delegates', () => {
 	});
 
 	afterEach(() => sinonSandbox.restore());
+
+	describe('fork', () => {
+		const cause = 'aCause';
+		const dummyBlock = {
+			height: 1,
+			generaterPublicKey: 'aDelegatePublicKey',
+			timestamp: 12312344,
+			id: 1231234234,
+			previousBlock: 1243453543,
+			cause,
+		};
+
+		beforeEach(async () => {
+			sinonSandbox
+				.stub(library.components.storage.entities.Account, 'insertFork')
+				.resolves();
+			sinonSandbox.stub(library.channel, 'publish').resolves();
+			library.modules.delegates.fork(dummyBlock, cause);
+		});
+
+		it('should call library.channel.publish with "chain:delegates:fork"', async () => {
+			const fork = {
+				delegatePublicKey: dummyBlock.generatorPublicKey,
+				blockTimestamp: dummyBlock.timestamp,
+				blockId: dummyBlock.id,
+				blockHeight: dummyBlock.height,
+				previousBlockId: dummyBlock.previousBlock,
+				cause,
+			};
+			const channel = library.rewiredModules.delegates.__get__(
+				'library.channel'
+			);
+			expect(channel.publish).to.be.calledWithExactly(
+				'chain:delegates:fork',
+				fork
+			);
+		});
+	});
+
+	describe('updateForgingStatus', () => {
+		let __private;
+
+		beforeEach(async () => {
+			__private = library.rewiredModules.delegates.__get__('__private');
+		});
+
+		it('should return error with invalid password', done => {
+			library.modules.delegates.updateForgingStatus(
+				testDelegate.publicKey,
+				'Invalid password',
+				true,
+				err => {
+					expect(err).to.equal('Invalid password and public key combination');
+					done();
+				}
+			);
+		});
+
+		it('should return error with invalid publicKey', done => {
+			const invalidPublicKey =
+				'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
+
+			library.modules.delegates.updateForgingStatus(
+				invalidPublicKey,
+				defaultPassword,
+				true,
+				err => {
+					expect(err).to.equal(
+						'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
+					);
+					done();
+				}
+			);
+		});
+
+		it('should return error with non delegate account', done => {
+			library.modules.delegates.updateForgingStatus(
+				accountFixtures.genesis.publicKey,
+				accountFixtures.genesis.password,
+				true,
+				err => {
+					expect(err).to.equal(
+						'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
+					);
+					done();
+				}
+			);
+		});
+
+		it('should update forging from enabled to disabled', done => {
+			library.modules.accounts.getAccount(
+				{ publicKey: testDelegate.publicKey },
+				(err, account) => {
+					expect(err).to.be.null;
+					expect(__private.keypairs[testDelegate.publicKey]).to.not.be
+						.undefined;
+					expect(account.publicKey).to.equal(testDelegate.publicKey);
+
+					library.modules.delegates.updateForgingStatus(
+						testDelegate.publicKey,
+						testDelegate.password,
+						false,
+						(error, data) => {
+							expect(error).to.be.null;
+							expect(__private.keypairs[testDelegate.publicKey]).to.be
+								.undefined;
+							expect(data.publicKey).to.equal(testDelegate.publicKey);
+							done();
+						}
+					);
+				}
+			);
+		});
+
+		it('should update forging from disabled to enabled', done => {
+			library.modules.accounts.getAccount(
+				{ publicKey: testDelegate.publicKey },
+				(err, account) => {
+					expect(err).to.be.null;
+					expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
+					expect(account.publicKey).to.equal(testDelegate.publicKey);
+
+					library.modules.delegates.updateForgingStatus(
+						testDelegate.publicKey,
+						testDelegate.password,
+						true,
+						(error, data) => {
+							expect(error).to.be.null;
+							expect(__private.keypairs[testDelegate.publicKey]).to.not.be
+								.undefined;
+							expect(data.publicKey).to.equal(testDelegate.publicKey);
+							done();
+						}
+					);
+				}
+			);
+		});
+	});
+
+	describe('generateDelegateList', () => {
+		let __private;
+		let sourceStub;
+		let originalExceptions;
+		const dummyDelegateList = ['x', 'y', 'z'];
+		beforeEach(done => {
+			__private = library.rewiredModules.delegates.__get__('__private');
+			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
+			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
+			done();
+		});
+
+		afterEach(done => {
+			exceptions.ignoreDelegateListCacheForRounds = originalExceptions;
+			done();
+		});
+
+		it('should return the cached delegate list when there is cache for the round', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				1,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(delegateList).to.deep.equal(initialSate[1]);
+					expect(sourceStub).to.not.been.called;
+					done();
+				}
+			);
+		});
+
+		it('should call the source function when cache not found', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				2,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(sourceStub).to.been.called;
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					done();
+				}
+			);
+		});
+
+		it('should update the delegate list cache when source function was executed', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+			const shuffledDummyDelegateList = ['y', 'z', 'x'];
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				2,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					expect(__private.delegatesListCache['2']).to.deep.equal(
+						shuffledDummyDelegateList
+					);
+					done();
+				}
+			);
+		});
+
+		it('should not update the delegate list cache when round is an exception', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+			exceptions.ignoreDelegateListCacheForRounds.push(666);
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				666,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					expect(__private.delegatesListCache).to.not.have.property('666');
+					done();
+				}
+			);
+		});
+	});
 
 	describe('__private', () => {
 		describe('loadDelegates', () => {
@@ -784,109 +1028,6 @@ describe('delegates', () => {
 					return expect(__private.delegatesListCache).to.deep.equal({});
 				});
 			});
-		});
-	});
-
-	describe('generateDelegateList', () => {
-		let __private;
-		let sourceStub;
-		let originalExceptions;
-		const dummyDelegateList = ['x', 'y', 'z'];
-		beforeEach(done => {
-			__private = library.rewiredModules.delegates.__get__('__private');
-			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
-			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
-			done();
-		});
-
-		afterEach(done => {
-			exceptions.ignoreDelegateListCacheForRounds = originalExceptions;
-			done();
-		});
-
-		it('should return the cached delegate list when there is cache for the round', done => {
-			// Arrange
-			const initialSate = {
-				1: ['j', 'k', 'l'],
-			};
-			__private.delegatesListCache = { ...initialSate };
-
-			// Act
-			library.modules.delegates.generateDelegateList(
-				1,
-				sourceStub,
-				(err, delegateList) => {
-					// Assert
-					expect(delegateList).to.deep.equal(initialSate[1]);
-					expect(sourceStub).to.not.been.called;
-					done();
-				}
-			);
-		});
-
-		it('should call the source function when cache not found', done => {
-			// Arrange
-			const initialSate = {
-				1: ['j', 'k', 'l'],
-			};
-			__private.delegatesListCache = { ...initialSate };
-
-			// Act
-			library.modules.delegates.generateDelegateList(
-				2,
-				sourceStub,
-				(err, delegateList) => {
-					// Assert
-					expect(sourceStub).to.been.called;
-					expect(delegateList).to.deep.equal(dummyDelegateList);
-					done();
-				}
-			);
-		});
-
-		it('should update the delegate list cache when source function was executed', done => {
-			// Arrange
-			const initialSate = {
-				1: ['j', 'k', 'l'],
-			};
-			__private.delegatesListCache = { ...initialSate };
-			const shuffledDummyDelegateList = ['y', 'z', 'x'];
-
-			// Act
-			library.modules.delegates.generateDelegateList(
-				2,
-				sourceStub,
-				(err, delegateList) => {
-					// Assert
-					expect(delegateList).to.deep.equal(dummyDelegateList);
-					expect(__private.delegatesListCache['2']).to.deep.equal(
-						shuffledDummyDelegateList
-					);
-					done();
-				}
-			);
-		});
-
-		it('should not update the delegate list cache when round is an exception', done => {
-			// Arrange
-			const initialSate = {
-				1: ['j', 'k', 'l'],
-			};
-			__private.delegatesListCache = { ...initialSate };
-			exceptions.ignoreDelegateListCacheForRounds.push(666);
-
-			// Act
-			library.modules.delegates.generateDelegateList(
-				666,
-				sourceStub,
-				(err, delegateList) => {
-					// Assert
-
-					expect(delegateList).to.deep.equal(dummyDelegateList);
-					expect(__private.delegatesListCache).to.not.have.property('666');
-					done();
-				}
-			);
 		});
 	});
 });

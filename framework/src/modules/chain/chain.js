@@ -1,4 +1,4 @@
-const util = require('util');
+const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs');
 const git = require('./helpers/git.js');
@@ -12,7 +12,6 @@ const { createLoggerComponent } = require('../../components/logger');
 const { createSystemComponent } = require('../../components/system');
 const {
 	lookupPeerIPs,
-	createHttpServer,
 	createBus,
 	bootstrapStorage,
 	bootstrapCache,
@@ -56,8 +55,8 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
-
 		this.scope = null;
+		this.blockReward = null;
 	}
 
 	async bootstrap() {
@@ -105,6 +104,9 @@ module.exports = class Chain {
 			this.options.exceptions
 		);
 
+		const BlockReward = require('./logic/block_reward');
+		this.blockReward = new BlockReward();
+
 		try {
 			// Cache
 			this.logger.debug('Initiating cache...');
@@ -146,6 +148,7 @@ module.exports = class Chain {
 					logger: self.logger,
 					system,
 				},
+				channel: this.channel,
 			};
 
 			// Lookup for peers ips from dns
@@ -158,7 +161,6 @@ module.exports = class Chain {
 			await bootstrapCache(scope);
 
 			scope.bus = await createBus();
-			scope.network = await createHttpServer(scope);
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
 			scope.webSocket = await createSocketCluster(scope);
@@ -174,8 +176,6 @@ module.exports = class Chain {
 
 			// Listen to websockets
 			await scope.webSocket.listen();
-			// Listen to http, https servers
-			await scope.network.listen();
 			self.logger.info('Modules ready and launched');
 
 			self.scope = scope;
@@ -186,6 +186,88 @@ module.exports = class Chain {
 			});
 			process.emit('cleanup', error);
 		}
+	}
+
+	get actions() {
+		return {
+			calculateSupply: action => this.blockReward.calcSupply(action.params[0]),
+			calculateMilestone: action =>
+				this.blockReward.calcMilestone(action.params[0]),
+			calculateReward: action => this.blockReward.calcReward(action.params[0]),
+			generateDelegateList: action =>
+				new Promise((resolve, reject) => {
+					this.scope.modules.delegates.generateDelegateList(
+						action.params[0],
+						action.params[1],
+						(err, data) => {
+							if (err) {
+								reject(err);
+							}
+
+							resolve(data);
+						},
+						action.params[2]
+					);
+				}),
+			getNetworkHeight: async action =>
+				promisify(this.scope.modules.peers.networkHeight)(action.params[0]),
+			getAllTransactionsCount: async () =>
+				promisify(
+					this.scope.modules.transactions.shared.getTransactionsCount
+				)(),
+			updateForgingStatus: async action =>
+				promisify(this.scope.modules.delegates.updateForgingStatus)(
+					action.params[0],
+					action.params[1],
+					action.params[2]
+				),
+			getPeers: async action =>
+				this.scope.modules.peers.shared.getPeers(
+					action.params[0],
+					action.params[1]
+				),
+			getPeersCountByFilter: async action =>
+				this.scope.modules.peers.shared.getPeersCountByFilter(action.params[0]),
+			postSignature: async action =>
+				this.scope.modules.signatures.shared.postSignature(
+					action.params[0],
+					action.params[1]
+				),
+			storageRead: async action =>
+				this.scope.logic.block.storageRead(action.params[0]),
+			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
+			loaderLoaded: async () => this.scope.modules.loader.loaded(),
+			loaderSyncing: async () => this.scope.modules.loader.syncing(),
+			getForgersKeyPairs: async () =>
+				this.scope.modules.delegates.getForgersKeyPairs(),
+			getUnProcessedTransactions: async action =>
+				this.scope.modules.transactions.shared.getUnProcessedTransactions(
+					action.params[0],
+					action.params[1]
+				),
+			getUnconfirmedTransactions: async action =>
+				this.scope.modules.transactions.shared.getUnconfirmedTransactions(
+					action.params[0],
+					action.params[1]
+				),
+			getMultisignatureTransactions: async action =>
+				this.scope.modules.transactions.shared.getMultisignatureTransactions(
+					action.params[0],
+					action.params[1]
+				),
+			getLastCommit: async () => this.scope.lastCommit,
+			getBuild: async () => this.scope.build,
+			postTransaction: async action =>
+				this.scope.modules.transactions.shared.postTransaction(
+					action.params[0],
+					action.params[1]
+				),
+			getDelegateBlocksRewards: async action =>
+				this.scope.components.storage.entities.Account.delegateBlocksRewards(
+					action.params[0],
+					action.params[1]
+				),
+		};
 	}
 
 	async cleanup(code, error) {
@@ -214,7 +296,7 @@ module.exports = class Chain {
 		await Promise.all(
 			modules.map(module => {
 				if (typeof module.cleanup === 'function') {
-					return util.promisify(module.cleanup)();
+					return promisify(module.cleanup)();
 				}
 				return true;
 			})

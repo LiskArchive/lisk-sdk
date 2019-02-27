@@ -57,6 +57,7 @@ __private.retries = 5;
 class Loader {
 	constructor(cb, scope) {
 		library = {
+			channel: scope.channel,
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			network: scope.network,
@@ -123,7 +124,7 @@ __private.syncTrigger = function(turnOn) {
 		library.logger.trace('Setting sync interval');
 		setImmediate(function nextSyncTrigger() {
 			library.logger.trace('Sync trigger');
-			library.network.io.sockets.emit('loader/sync', {
+			library.channel.publish('chain:loader:sync', {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.lastBlock.get().height,
 			});

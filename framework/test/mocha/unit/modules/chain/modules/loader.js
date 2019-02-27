@@ -42,6 +42,10 @@ describe('loader', () => {
 		application.cleanup(done);
 	});
 
+	afterEach(async () => {
+		sinonSandbox.restore();
+	});
+
 	describe('findGoodPeers', () => {
 		const HEIGHT_TWO = 2;
 		let getLastBlockStub;
@@ -114,6 +118,97 @@ describe('loader', () => {
 		});
 	});
 
+	describe('__private.syncTrigger', () => {
+		let turnOn;
+		let loggerStub;
+		let channelStub;
+		let restoreLogger;
+		let restoreChannel;
+
+		beforeEach(async () => {
+			loggerStub = {
+				trace: sinonSandbox.stub(),
+			};
+			channelStub = {
+				publish: sinonSandbox.stub(),
+			};
+			restoreLogger = library.rewiredModules.loader.__set__(
+				'library.logger',
+				loggerStub
+			);
+			restoreChannel = library.rewiredModules.loader.__set__(
+				'library.channel',
+				channelStub
+			);
+			__private.syncTrigger(turnOn);
+		});
+
+		afterEach(async () => {
+			restoreLogger();
+			restoreChannel();
+		});
+
+		describe('if turnOn === false and __private.syncIntervalId !== null', () => {
+			const originalSyncIntervalId = 3;
+			let restoreSyncIntervalId;
+
+			beforeEach(async () => {
+				turnOn = false;
+				restoreSyncIntervalId = library.rewiredModules.loader.__set__(
+					'__private.syncIntervalId',
+					originalSyncIntervalId
+				);
+				__private.syncTrigger(turnOn);
+			});
+
+			afterEach(async () => {
+				restoreSyncIntervalId();
+			});
+
+			it('should call logger.trace with "Clearing sync interval"', async () => {
+				expect(loggerStub.trace).to.be.calledWith('Clearing sync interval');
+			});
+
+			it('should assign null to __private.syncIntervalId', async () => {
+				expect(__private.syncIntervalId).to.be.null;
+			});
+		});
+
+		describe('if turnOn === true and __private.syncInternalId is null', () => {
+			let restoreSyncIntervalId;
+			let lastBlockGetStub;
+			const expectedBlockHeight = 1;
+
+			beforeEach(async () => {
+				turnOn = true;
+				restoreSyncIntervalId = library.rewiredModules.loader.__set__(
+					'__private.syncIntervalId',
+					null
+				);
+				lastBlockGetStub = sinonSandbox
+					.stub(library.modules.blocks.lastBlock, 'get')
+					.returns({ height: expectedBlockHeight });
+				__private.syncTrigger(turnOn);
+			});
+
+			afterEach(async () => {
+				restoreSyncIntervalId();
+				lastBlockGetStub.restore();
+			});
+
+			it('should call logger.trace with "Setting sync interval"', async () => {
+				expect(loggerStub.trace).to.be.calledWith('Setting sync interval');
+			});
+
+			it('should call library.channel.publish with "chain:loader:sync"', async () => {
+				expect(channelStub.publish).to.be.calledWith('chain:loader:sync', {
+					blocks: __private.blocksToSync,
+					height: expectedBlockHeight,
+				});
+			});
+		});
+	});
+
 	describe('__private.createSnapshot', () => {
 		let __privateVar;
 		let libraryVar;
@@ -148,7 +243,9 @@ describe('loader', () => {
 						},
 					},
 				},
-				network: sinonSandbox.stub(),
+				channel: {
+					publish: sinonSandbox.stub(),
+				},
 				schema: sinonSandbox.stub(),
 				sequence: sinonSandbox.stub(),
 				bus: { message: sinonSandbox.stub() },

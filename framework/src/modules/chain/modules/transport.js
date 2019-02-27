@@ -60,11 +60,11 @@ __private.messages = {};
 class Transport {
 	constructor(cb, scope) {
 		library = {
+			channel: scope.channel,
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			bus: scope.bus,
 			schema: scope.schema,
-			network: scope.network,
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				block: scope.logic.block,
@@ -345,7 +345,7 @@ Transport.prototype.onSignature = function(signature, broadcast) {
 			{},
 			{ api: 'postSignatures', data: { signature } }
 		);
-		library.network.io.sockets.emit('signature/change', signature);
+		library.channel.publish('chain:signature:change', signature);
 	}
 };
 
@@ -366,7 +366,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 			{},
 			{ api: 'postTransactions', data: { transaction } }
 		);
-		library.network.io.sockets.emit('transactions/change', transaction);
+		library.channel.publish('chain:transactions:change', transaction);
 	}
 };
 

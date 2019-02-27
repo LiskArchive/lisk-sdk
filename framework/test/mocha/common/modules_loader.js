@@ -48,7 +48,7 @@ const modulesLoader = new function() {
 			system: this.system,
 		},
 		network: {
-			app: express(),
+			expressApp: express(),
 			io: {
 				sockets: express(),
 			},

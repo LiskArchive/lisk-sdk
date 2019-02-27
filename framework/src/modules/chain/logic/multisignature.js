@@ -46,7 +46,7 @@ __scope.unconfirmedSignatures = {};
  * @param {Transaction} scope.logic.transaction
  * @param {Account} scope.logic.account
  * @param {ZSchema} scope.schema
- * @param {Object} scope.network
+ * @param {Object} scope.channel
  * @todo Add description for the params
  */
 class Multisignature {
@@ -54,13 +54,13 @@ class Multisignature {
 		components: { logger },
 		logic: { transaction, account },
 		schema,
-		network,
+		channel,
 	}) {
 		__scope.components = {
 			logger,
 		};
 		__scope.schema = schema;
-		__scope.network = network;
+		__scope.channel = channel;
 		__scope.logic = {
 			transaction,
 			account,
@@ -581,7 +581,7 @@ Multisignature.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
-	__scope.network.io.sockets.emit('multisignatures/change', transaction);
+	__scope.channel.publish('chain:multisignatures:change', transaction);
 	return setImmediate(cb);
 };
 

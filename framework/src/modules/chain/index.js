@@ -34,11 +34,55 @@ module.exports = class ChainModule extends BaseModule {
 	}
 
 	get events() {
-		return [];
+		return [
+			'blocks:change',
+			'signature:change',
+			'transactions:change',
+			'rounds:change',
+			'multisignatures:signature:change',
+			'multisignatures:change',
+			'delegates:fork',
+			'loader:sync',
+			'dapps:change',
+		];
 	}
 
 	get actions() {
-		return {};
+		return {
+			calculateSupply: action => this.chain.actions.calculateSupply(action),
+			calculateMilestone: action =>
+				this.chain.actions.calculateMilestone(action),
+			calculateReward: action => this.chain.actions.calculateReward(action),
+			generateDelegateList: action =>
+				this.chain.actions.generateDelegateList(action),
+			getNetworkHeight: async action =>
+				this.chain.actions.getNetworkHeight(action),
+			getAllTransactionsCount: async () =>
+				this.chain.actions.getAllTransactionsCount(),
+			updateForgingStatus: async action =>
+				this.chain.actions.updateForgingStatus(action),
+			getPeers: async action => this.chain.actions.getPeers(action),
+			getPeersCountByFilter: async action =>
+				this.chain.actions.getPeersCountByFilter(action),
+			postSignature: async action => this.chain.actions.postSignature(action),
+			storageRead: async action => this.chain.actions.storageRead(action),
+			getLastConsensus: async () => this.chain.actions.getLastConsensus(),
+			loaderLoaded: async () => this.chain.actions.loaderLoaded(),
+			loaderSyncing: async () => this.chain.actions.loaderSyncing(),
+			getForgersKeyPairs: async () => this.chain.actions.getForgersKeyPairs(),
+			getUnProcessedTransactions: async action =>
+				this.chain.actions.getUnProcessedTransactions(action),
+			getUnconfirmedTransactions: async action =>
+				this.chain.actions.getUnconfirmedTransactions(action),
+			getMultisignatureTransactions: async action =>
+				this.chain.actions.getMultisignatureTransactions(action),
+			getLastCommit: async () => this.chain.actions.getLastCommit(),
+			getBuild: async () => this.chain.actions.getBuild(),
+			postTransaction: async action =>
+				this.chain.actions.postTransaction(action),
+			getDelegateBlocksRewards: async action =>
+				this.chain.actions.getDelegateBlocksRewards(action),
+		};
 	}
 
 	async load(channel) {

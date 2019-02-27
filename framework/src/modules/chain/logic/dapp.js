@@ -41,17 +41,17 @@ __scope.unconfirmedAscii = {};
  * @param {Storage} scope.components.storage
  * @param {logger} scope.components.logger
  * @param {ZSchema} scope.schema
- * @param {Object} scope.network
+ * @param {Object} scope.channel
  * @todo Add description for the params
  */
 class DApp {
-	constructor({ components: { storage, logger }, network, schema }) {
+	constructor({ components: { storage, logger }, schema, channel }) {
 		__scope.components = {
 			storage,
 			logger,
 		};
-		__scope.network = network;
 		__scope.schema = schema;
+		__scope.channel = channel;
 	}
 }
 
@@ -504,8 +504,8 @@ DApp.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 DApp.prototype.afterSave = function(transaction, cb) {
-	if (__scope.network) {
-		__scope.network.io.sockets.emit('dapps/change', {});
+	if (__scope.channel) {
+		__scope.channel.publish('chain:dapps:change', {});
 	}
 	return setImmediate(cb);
 };

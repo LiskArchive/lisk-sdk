@@ -1,0 +1,1 @@
+../../chain/helpers/swagger_module_registry.js

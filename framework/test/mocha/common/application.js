@@ -18,7 +18,6 @@
 const util = require('util');
 const rewire = require('rewire');
 const async = require('async');
-const express = require('express');
 const ed = require('../../../src/modules/chain/helpers/ed.js');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
@@ -144,9 +143,10 @@ async function __init(sandbox, initScope) {
 						logger.warn('Balance queue', current);
 					},
 				}),
-				network: {
-					io: { sockets: { emit() {} } },
-					app: express(),
+				channel: {
+					invoke() {},
+					publish() {},
+					subscribe() {},
 				},
 			},
 			initScope

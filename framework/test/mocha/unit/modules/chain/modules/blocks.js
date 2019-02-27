@@ -38,6 +38,7 @@ describe('blocks', () => {
 	let accountStub;
 	let busStub;
 	let balancesSequenceStub;
+	let channelStub;
 	let scope;
 
 	beforeEach(done => {
@@ -69,6 +70,9 @@ describe('blocks', () => {
 		accountStub = sinonSandbox.stub();
 		busStub = sinonSandbox.stub();
 		balancesSequenceStub = sinonSandbox.stub();
+		channelStub = {
+			publish: sinonSandbox.stub(),
+		};
 		scope = {
 			components: { logger: loggerStub, storage: storageStub },
 			logic: {
@@ -77,13 +81,7 @@ describe('blocks', () => {
 				transaction: logicTransactionStub,
 				peers: peersStub,
 			},
-			network: {
-				io: {
-					sockets: {
-						emit: sinonSandbox.stub(),
-					},
-				},
-			},
+			channel: channelStub,
 			schema: schemaStub,
 			dbSequence: dbSequenceStub,
 			sequence: sequenceStub,
@@ -111,8 +109,10 @@ describe('blocks', () => {
 	});
 
 	describe('constructor', () => {
-		it('should assign params to library', async () =>
-			expect(library.logger).to.eql(loggerStub));
+		it('should assign params to library', async () => {
+			expect(library.logger).to.eql(loggerStub);
+			expect(library.channel).to.eql(channelStub);
+		});
 
 		it('should instantiate submodules', async () => {
 			expect(self.submodules.chain).to.be.an('object');
@@ -311,13 +311,12 @@ describe('blocks', () => {
 				done();
 			});
 
-			it('should call removeByPattern', async () =>
-				expect(components.cache.removeByPattern.calledTwice).to.be.true);
-
-			it('should call library.network.io.sockets.emit with "blocks/change" and block', async () =>
-				expect(
-					library.network.io.sockets.emit.calledWith('blocks/change', block)
-				).to.be.true);
+			it('should call library.channel.publish with "chain:blocks:change" and block data', async () => {
+				expect(library.channel.publish).to.be.calledWith(
+					'chain:blocks:change',
+					block
+				);
+			});
 		});
 
 		describe('when cache is not enabled', () => {
@@ -331,12 +330,11 @@ describe('blocks', () => {
 				}, scope);
 			});
 
-			it('should call library.network.io.sockets.emit with "blocks/change" and block', done => {
-				expect(
-					library.network.io.sockets.emit.calledWith('blocks/change', block)
-				).to.be.true;
-
-				done();
+			it('should call library.channel.publish with "chain:blocks:change" and block data', async () => {
+				expect(library.channel.publish).to.be.calledWith(
+					'chain:blocks:change',
+					block
+				);
 			});
 		});
 	});

@@ -8,6 +8,7 @@ const constantsSchema = require('./schema/constants');
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
+const HttpAPIModule = require('../modules/http_api');
 
 // Private __private used because private keyword is restricted
 const __private = {
@@ -122,6 +123,8 @@ class Application {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
 		});
+
+		this.registerModule(HttpAPIModule);
 	}
 
 	/**
