@@ -16,6 +16,7 @@
 
 import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
+import * as Listr from 'listr';
 import * as os from 'os';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
@@ -60,7 +61,7 @@ const validatePrerequisite = (installPath: string): void => {
 	}
 };
 
-const validateOptions = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
+const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
 	networkSupported(network);
 	isValidURL(releaseUrl);
 	isValidURL(snapshotUrl);
@@ -87,33 +88,6 @@ const buildOptions = async ({
 		liskTarUrl,
 		liskTarSHA256Url,
 	};
-};
-
-const installLisk = async (options: Flags, cacheDir: string): Promise<void> => {
-	const {
-		installDir,
-		liskTarUrl,
-		liskTarSHA256Url,
-		version,
-	} = await buildOptions(options);
-	const { name, network, snapshotUrl, 'no-snapshot': noSnapshot } = options;
-	const LISK_RELEASE_PATH = `${cacheDir}/${liskTar(version)}`;
-	const LISK_RELEASE_SHA256_PATH = `${cacheDir}/${liskTarSHA256(version)}`;
-
-	validatePrerequisite(installDir);
-
-	await download(liskTarUrl, LISK_RELEASE_PATH);
-	await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
-	await validateChecksum(cacheDir, liskTarSHA256(version));
-
-	if (!noSnapshot) {
-		const snapshotPath = `${cacheDir}/${liskDbSnapshot(name, network)}`;
-		const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
-		await download(snapshotURL, snapshotPath);
-	}
-
-	createDirectory(installDir);
-	await extract(cacheDir, liskTar(version), installDir);
 };
 
 const INSTALL_PATH = '~/.lisk/network';
@@ -165,12 +139,82 @@ export default class InstallCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(InstallCommand);
-		const options = flags as Flags;
+		const {
+			name,
+			network,
+			snapshotUrl,
+			'no-snapshot': noSnapshot,
+		} = flags as Flags;
 		const cacheDir = this.config.cacheDir;
 
-		validateNotARootUser();
-		validateOptions(options);
-		await installLisk(options, cacheDir);
-		this.print({ status: `Installed lisk network: ${options.network}` });
+		const tasks = new Listr.default([
+			{
+				title: `Install Lisk Core ${network}`,
+				task: () =>
+					new Listr.default([
+						{
+							title: 'Build options',
+							task: async ctx => {
+								const options: Options = await buildOptions(flags as Flags);
+								ctx.options = options;
+							},
+						},
+						{
+							title: 'Validate root user, flags, prerequisites',
+							task: ctx => {
+								validateNotARootUser();
+								validateFlags(flags as Flags);
+								validatePrerequisite(ctx.options.installDir);
+							},
+						},
+						{
+							title: 'Download lisk release',
+							task: async ctx => {
+								const {
+									version,
+									liskTarUrl,
+									liskTarSHA256Url,
+								}: Options = ctx.options;
+								const LISK_RELEASE_PATH = `${cacheDir}/${liskTar(version)}`;
+								const LISK_RELEASE_SHA256_PATH = `${cacheDir}/${liskTarSHA256(
+									version,
+								)}`;
+
+								await download(liskTarUrl, LISK_RELEASE_PATH);
+								await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
+								await validateChecksum(cacheDir, liskTarSHA256(version));
+							},
+						},
+						{
+							title: 'Download blockchain snapshot',
+							skip: () => {
+								if (noSnapshot) {
+									return true;
+								}
+
+								return false;
+							},
+							task: async () => {
+								const snapshotPath = `${cacheDir}/${liskDbSnapshot(
+									name,
+									network,
+								)}`;
+								const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
+								await download(snapshotURL, snapshotPath);
+							},
+						},
+						{
+							title: 'Extract lisk core',
+							task: async ctx => {
+								const { installDir, version }: Options = ctx.options;
+								createDirectory(installDir);
+								await extract(cacheDir, liskTar(version), installDir);
+							},
+						},
+					]),
+			},
+		]);
+
+		await tasks.run();
 	}
 }
