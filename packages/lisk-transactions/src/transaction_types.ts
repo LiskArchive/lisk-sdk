@@ -19,7 +19,8 @@ export interface Account {
 	readonly balance: string;
 	readonly delegate?: Delegate;
 	readonly publicKey?: string;
-	readonly secondPublicKey?: string;
+	readonly secondPublicKey?: string | null;
+	readonly secondSignature?: number;
 	readonly membersPublicKeys?: ReadonlyArray<string>;
 	readonly multiMin?: number;
 	readonly multiLifetime?: number;
