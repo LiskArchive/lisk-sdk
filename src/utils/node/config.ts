@@ -15,10 +15,29 @@
  */
 import * as fs from 'fs';
 
+interface CacheConfig {
+	readonly host: string;
+	readonly password: string | null;
+	readonly port: number;
+}
+
+interface DbConfig {
+	readonly database: boolean;
+	readonly host: boolean;
+	readonly password: boolean;
+	readonly port: boolean;
+}
+
+export interface NodeConfig {
+	readonly cacheEnabled: boolean;
+	readonly db: DbConfig;
+	readonly redis: CacheConfig;
+}
+
 export const configPath = (network: string = 'default'): string =>
 	`config/${network}/config.json`;
 
-export const getConfig = (filePath: string): T => {
+export const getConfig = (filePath: string): object => {
 	if (!fs.existsSync(filePath)) {
 		throw new Error(`Config file not exists in path: ${filePath}`);
 	}
@@ -27,12 +46,15 @@ export const getConfig = (filePath: string): T => {
 	return JSON.parse(config);
 };
 
-export const getAppConfig = (installDir: string, network: string): T => {
+export const getAppConfig = (
+	installDir: string,
+	network: string,
+): NodeConfig => {
 	const defaultConfigPath = `${installDir}/${configPath()}`;
 	const networkConfigPath = `${installDir}/${configPath(network)}`;
 
-	const defaultConfig = getConfig(defaultConfigPath);
-	const networkConfig = getConfig(networkConfigPath);
+	const defaultConfig = getConfig(defaultConfigPath) as NodeConfig;
+	const networkConfig = getConfig(networkConfigPath) as NodeConfig;
 
 	return { ...defaultConfig, ...networkConfig };
 };

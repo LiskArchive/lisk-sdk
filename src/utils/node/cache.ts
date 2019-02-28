@@ -14,7 +14,7 @@
  *
  */
 import { exec, ExecResult } from '../worker-process';
-import { getAppConfig } from './config';
+import { getAppConfig, NodeConfig } from './config';
 
 const CACHE_START_SUCCESS = '[+] Redis-Server started successfully.';
 const CACHE_START_FAILURE = '[-] Failed to start Redis-Server.';
@@ -27,9 +27,9 @@ export const isCacheEnabled = (
 	installDir: string,
 	network: string,
 ): boolean => {
-	const config = getAppConfig(installDir, network);
+	const { cacheEnabled }: NodeConfig = getAppConfig(installDir, network);
 
-	return config.cacheEnabled;
+	return cacheEnabled;
 };
 
 export const isCacheRunning = async (
@@ -37,7 +37,7 @@ export const isCacheRunning = async (
 	network: string,
 ): Promise<boolean> => {
 	try {
-		const { redis: { port } } = getAppConfig(installDir, network);
+		const { redis: { port } }: NodeConfig = getAppConfig(installDir, network);
 		const { stdout }: ExecResult = await exec(
 			`cd ${installDir}; ${REDIS_CLI} -p ${port} ping`,
 		);
