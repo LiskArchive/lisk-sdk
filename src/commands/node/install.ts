@@ -183,13 +183,7 @@ export default class InstallCommand extends BaseCommand {
 						},
 						{
 							title: 'Download blockchain snapshot',
-							skip: () => {
-								if (noSnapshot) {
-									return true;
-								}
-
-								return false;
-							},
+							skip: () => noSnapshot,
 							task: async () => {
 								const snapshotPath = `${cacheDir}/${liskDbSnapshot(
 									name,

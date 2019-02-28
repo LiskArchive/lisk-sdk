@@ -20,6 +20,9 @@ import { NETWORK, OS } from '../constants';
 export const liskInstall = (installPath: string): string =>
 	installPath.replace('~', os.homedir);
 
+export const installDirectory = (installPath: string, name: string): string =>
+	`${liskInstall(installPath)}/${name}`;
+
 export const liskVersion = (version: string): string =>
 	`lisk-${version}-${os.type()}-x86_64`;
 

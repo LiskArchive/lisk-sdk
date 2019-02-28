@@ -13,10 +13,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as Listr from 'listr';
 import BaseCommand from '../../../base';
+import { NETWORK } from '../../../utils/constants';
+import {
+	isCacheEnabled,
+	isCacheRunning,
+	startCache,
+} from '../../../utils/node/cache';
+import { installDirectory } from '../../../utils/node/commons';
 import InstallCommand from '../install';
 
-const { network, installationPath, name } = InstallCommand.flags;
+interface Flags {
+	readonly installationPath: string;
+	readonly name: string;
+	readonly network: NETWORK;
+}
 
 export default class CacheCommand extends BaseCommand {
 	static description = 'Start Lisk Core Cache';
@@ -29,12 +41,29 @@ export default class CacheCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		network,
-		installationPath,
-		name,
+		network: InstallCommand.flags.network,
+		installationPath: InstallCommand.flags.installationPath,
+		name: InstallCommand.flags.name,
 	};
 
 	async run(): Promise<void> {
-		this.parse(CacheCommand);
+		const { flags } = this.parse(CacheCommand);
+		const { network, installationPath, name } = flags as Flags;
+		const installDir = installDirectory(installationPath, name);
+
+		const tasks = new Listr.default([
+			{
+				title: 'Start Lisk Core Cache',
+				skip: () => !isCacheEnabled(installDir, network),
+				task: async () => {
+					const isRunning = await isCacheRunning(installDir, network);
+					if (!isRunning) {
+						await startCache(installDir);
+					}
+				},
+			},
+		]);
+
+		await tasks.run();
 	}
 }

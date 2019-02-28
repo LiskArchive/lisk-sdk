@@ -68,7 +68,8 @@ const noSignatureDescription =
 const networkDescription = 'Name of the network to install.';
 const installationPathDescription = 'Path of Lisk Core to install.';
 const nameDescription = 'Lisk Core installation directory name.';
-const releaseUrlDescription = 'URL of the repository to download the Lisk Core.';
+const releaseUrlDescription =
+	'URL of the repository to download the Lisk Core.';
 const snapshotUrlDescription = 'URL of the Lisk Core blockchain snapshot.';
 const noSnapshotDescription = 'Install Lisk Core without blockchain snapshot';
 
