@@ -419,9 +419,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _pickRandomDiscoveredPeers(count: number): ReadonlyArray<Peer> {
-		const discoveredPeerList: ReadonlyArray<Peer> = [
-			...this._peerMap.values(),
-		].filter(peer => peer.peerInfo.updatedAt); // Peers whose values has been updated atleast once.
+		const discoveredPeerList: ReadonlyArray<Peer> = [...this._peerMap.values()]; // Peers whose values has been updated atleast once.
 
 		return selectRandomPeerSample(discoveredPeerList, count);
 	}

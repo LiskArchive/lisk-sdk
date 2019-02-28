@@ -12,14 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PDiscoveredPeerInfo, P2PNodeInfo, P2PPeerInfo } from './p2p_types';
-import {
-	connectAndFetchPeers,
-	ConnectAndFetchResponse,
-	constructPeerIdFromPeerInfo,
-	Peer,
-	PeerConfig,
-} from './peer';
+import { P2PDiscoveredPeerInfo } from './p2p_types';
+import { constructPeerIdFromPeerInfo, Peer } from './peer';
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
 	readonly blacklist: ReadonlyArray<string>;
@@ -51,59 +45,6 @@ export const discoverPeers = async (
 
 	// Remove duplicates
 	const discoveredPeers = peersOfPeerFlat.reduce(
-		(
-			uniquePeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>,
-			peer: P2PDiscoveredPeerInfo,
-		) => {
-			const found = uniquePeersArray.find(
-				findPeer =>
-					constructPeerIdFromPeerInfo(findPeer) ===
-					constructPeerIdFromPeerInfo(peer),
-			);
-
-			return found ? uniquePeersArray : [...uniquePeersArray, peer];
-		},
-		[],
-	);
-
-	if (filterPeerOptions.blacklist.length === 0) {
-		return discoveredPeers;
-	}
-	// Remove blacklist ids
-	const discoveredPeersFiltered = discoveredPeers.filter(
-		(peer: P2PDiscoveredPeerInfo) =>
-			!filterPeerOptions.blacklist.includes(peer.ipAddress),
-	);
-
-	return discoveredPeersFiltered;
-};
-
-export const discoveryFromSeedNodes = async (
-	seeds: ReadonlyArray<P2PPeerInfo>,
-	filterPeerOptions: FilterPeerOptions = { blacklist: [] },
-	peerConfig?: PeerConfig,
-	nodeInfo?: P2PNodeInfo,
-): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> => {
-	const responses = await Promise.all(
-		seeds.map(async seed => connectAndFetchPeers(seed, peerConfig, nodeInfo)),
-	);
-	const peersOfSeed = responses.map((result: ConnectAndFetchResponse) => {
-		const peerList = result.peers;
-		result.socket.destroy();
-
-		return peerList;
-	});
-
-	const peersOfSeedsFlat = peersOfSeed.reduce(
-		(flattenedPeersList: ReadonlyArray<P2PDiscoveredPeerInfo>, peersList) =>
-			Array.isArray(peersList)
-				? [...flattenedPeersList, ...peersList]
-				: flattenedPeersList,
-		[],
-	);
-
-	// Remove duplicates
-	const discoveredPeers = peersOfSeedsFlat.reduce(
 		(
 			uniquePeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>,
 			peer: P2PDiscoveredPeerInfo,
