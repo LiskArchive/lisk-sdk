@@ -62,9 +62,12 @@
 		"@liskhq/lisk-blockchain": "0.1.0",
 		"@liskhq/lisk-db": "0.1.0",
 		"@liskhq/lisk-dpos": "0.1.0",
-		"@liskhq/lisk-transactions": "2.1.0-alpha.2",
 		"@liskhq/lisk-p2p": "0.1.0-alpha.2",
-		"@types/node": "10.12.21"
+		"@liskhq/lisk-transactions": "2.1.0-alpha.2",
+		"@types/bunyan": "1.8.5",
+		"@types/node": "10.12.21",
+		"bunyan": "1.8.12",
+		"rxjs": "6.4.0"
 	},
 	"devDependencies": {
 		"@types/chai": "4.1.7",
