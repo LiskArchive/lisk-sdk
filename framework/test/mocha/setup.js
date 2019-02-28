@@ -29,6 +29,13 @@ const applicationSchema = require('../../src/controller/schema/application');
 const chainModuleSchema = require('../../src/modules/chain/defaults/config');
 const apiModuleSchema = require('../../src/modules/http_api/defaults/config');
 
+const {
+	config: defaultStorageConfig,
+} = require('../../src/components/storage/defaults');
+const {
+	config: defaultCacheConfig,
+} = require('../../src/components/cache/defaults');
+
 const packageJson = require('../../../package.json');
 const netConfig = require('../../../config/devnet/config');
 const constants = require('../../../config/devnet/constants');
@@ -82,6 +89,15 @@ config.modules.http_api = {
 	version: config.version,
 	minVersion: config.minVersion,
 };
+
+config.components.storage = validator.validateWithDefaults(
+	defaultStorageConfig,
+	config.components.storage || {}
+);
+config.components.cache = validator.validateWithDefaults(
+	defaultCacheConfig,
+	config.components.cache || {}
+);
 
 coMocha(mocha);
 
