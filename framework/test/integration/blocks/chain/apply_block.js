@@ -133,18 +133,6 @@ describe('system test (blocks) - chain/applyBlock', async () => {
 			let transaction4;
 
 			beforeEach('with transactions in unconfirmed queue', done => {
-				/**
-				transaction3 = liskTransactions.registerDelegate({
-					passphrase: poolAccount3.passphrase,
-					username: poolAccount3.username,
-				});
-
-				transaction4 = liskTransactions.registerDelegate({
-					passphrase: poolAccount4.passphrase,
-					username: poolAccount4.username,
-				});
-				* */
-
 				transaction3 = liskTransactions.registerSecondPassphrase({
 					passphrase: poolAccount3.passphrase,
 					secondPassphrase: poolAccount3.secondPassphrase,
