@@ -353,7 +353,6 @@ export class P2P extends EventEmitter {
 					ipAddress: socket.remoteAddress,
 					wsPort,
 					height: queryObject.height ? +queryObject.height : 0,
-					isDiscoveredPeer: true,
 					version: queryObject.version,
 					...queryOptions,
 				};
@@ -468,7 +467,7 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 		await this._startPeerServer();
-
+		// TODO: Once we will a new peer discovery then we can remove this typecasting to P2PDiscoveredPeerInfo
 		await this._startDiscovery(this._config.seedPeers as ReadonlyArray<
 			P2PDiscoveredPeerInfo
 		>);

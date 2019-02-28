@@ -361,15 +361,7 @@ export class PeerPool extends EventEmitter {
 			return false;
 		}
 
-		this.addPeer(
-			{
-				ipAddress: peerInfo.ipAddress,
-				wsPort: peerInfo.wsPort,
-				height: peerInfo.height,
-				version: peerInfo.version,
-			},
-			socket,
-		);
+		this.addPeer(peerInfo, socket);
 
 		return true;
 	}
