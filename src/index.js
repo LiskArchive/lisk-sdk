@@ -33,6 +33,9 @@ try {
 				nonce: config.nonce,
 			},
 		},
+		modules: {
+			network: {}
+		}
 	});
 
 	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
