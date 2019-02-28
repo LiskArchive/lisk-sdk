@@ -1048,7 +1048,7 @@ describe('GET /api/transactions', () => {
 					});
 			});
 		});
-    
+
 		describe('signature', () => {
 			it('should not show signSignature when empty upon registering second passphrase', async () => {
 				// Prepare
