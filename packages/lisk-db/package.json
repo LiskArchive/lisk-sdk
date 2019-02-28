@@ -1,5 +1,5 @@
 {
-	"name": "lisk-db",
+	"name": "@liskhq/lisk-db",
 	"version": "0.1.0",
 	"description": "database implementation for lisk",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",

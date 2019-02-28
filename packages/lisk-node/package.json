@@ -1,5 +1,5 @@
 {
-	"name": "lisk-node",
+	"name": "@liskhq/lisk-node",
 	"version": "0.1.0",
 	"description": "database implementation for lisk",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -59,11 +59,11 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@types/node": "10.12.21",
 		"@liskhq/lisk-blockchain": "0.1.0",
-		"@liskhq/lisk-dpos": "0.1.0",
 		"@liskhq/lisk-db": "0.1.0",
-		"@liskhq/lisk-transactions": "2.1.0-alpha.2"
+		"@liskhq/lisk-dpos": "0.1.0",
+		"@liskhq/lisk-transactions": "2.1.0-alpha.2",
+		"@types/node": "10.12.21"
 	},
 	"devDependencies": {
 		"@types/chai": "4.1.7",
