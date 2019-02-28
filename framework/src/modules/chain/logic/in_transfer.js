@@ -20,9 +20,8 @@ const transactionTypes = require('../helpers/transaction_types.js');
 
 const { FEES } = global.constants;
 const exceptions = global.exceptions;
-let modules;
-let library;
-let shared;
+
+const __scope = {};
 
 /**
  * Main InTransfer logic. Initializes library.
@@ -32,16 +31,22 @@ let shared;
  * @see Parent: {@link logic}
  * @requires helpers/milestones
  * @requires helpers/slots
- * @param {ZSchema} schema
- * @param {Storage} storage
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {Storage} scope.components.storage
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {ZSchema} scope.schema
+ * @param {Object} scope.shared
  * @todo Add description for the params
  */
 class InTransfer {
-	constructor(storage, schema) {
-		library = {
-			schema,
+	constructor({ components: { storage }, schema }) {
+		__scope.components = {
 			storage,
 		};
+		__scope.schema = schema;
+		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -54,12 +59,12 @@ class InTransfer {
  * @param {Object} sharedApi
  * @todo Add description for the params
  */
-InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
-	modules = {
+// TODO: Remove this method as modules will be loaded prior to trs logic.
+InTransfer.prototype.bind = function(accounts, sharedApi) {
+	__scope.modules = {
 		accounts,
-		blocks,
 	};
-	shared = sharedApi;
+	__scope.shared = sharedApi;
 };
 
 /**
@@ -83,42 +88,48 @@ InTransfer.prototype.calculateFee = function() {
  * @todo Add description for the params
  */
 InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
-	const lastBlock = modules.blocks.lastBlock.get();
-	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
-		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
-	}
-
-	if (transaction.recipientId) {
-		return setImmediate(cb, 'Invalid recipient');
-	}
-
-	const amount = new Bignum(transaction.amount);
-	if (amount.isLessThanOrEqualTo(0)) {
-		return setImmediate(cb, 'Invalid transaction amount');
-	}
-
-	if (!transaction.asset || !transaction.asset.inTransfer) {
-		return setImmediate(cb, 'Invalid transaction asset');
-	}
-
-	return library.storage.entities.Transaction.isPersisted(
-		{
-			id: transaction.asset.inTransfer.dappId,
-			type: transactionTypes.DAPP,
-		},
+	__scope.components.storage.entities.Block.get(
 		{},
-		tx
-	)
-		.then(isPersisted => {
-			if (!isPersisted) {
-				return setImmediate(
-					cb,
-					`Application not found: ${transaction.asset.inTransfer.dappId}`
-				);
-			}
-			return setImmediate(cb);
-		})
-		.catch(err => setImmediate(cb, err));
+		{ sort: 'height:desc', limit: 1 }
+	).then(lastBlock => {
+		lastBlock = lastBlock[0];
+
+		if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
+			return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
+		}
+
+		if (transaction.recipientId) {
+			return setImmediate(cb, 'Invalid recipient');
+		}
+
+		const amount = new Bignum(transaction.amount);
+		if (amount.isLessThanOrEqualTo(0)) {
+			return setImmediate(cb, 'Invalid transaction amount');
+		}
+
+		if (!transaction.asset || !transaction.asset.inTransfer) {
+			return setImmediate(cb, 'Invalid transaction asset');
+		}
+
+		return __scope.components.storage.entities.Transaction.isPersisted(
+			{
+				id: transaction.asset.inTransfer.dappId,
+				type: transactionTypes.DAPP,
+			},
+			{},
+			tx
+		)
+			.then(isPersisted => {
+				if (!isPersisted) {
+					return setImmediate(
+						cb,
+						`Application not found: ${transaction.asset.inTransfer.dappId}`
+					);
+				}
+				return setImmediate(cb);
+			})
+			.catch(err => setImmediate(cb, err));
+	});
 };
 
 /**
@@ -173,13 +184,13 @@ InTransfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	shared.getGenesis(
+	__scope.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			return modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: transaction.amount,
@@ -213,13 +224,13 @@ InTransfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	shared.getGenesis(
+	__scope.shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			return modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: -transaction.amount,
@@ -283,13 +294,13 @@ InTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 InTransfer.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset.inTransfer,
 		InTransfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate inTransfer schema: ${library.schema
+		throw `Failed to validate inTransfer schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

@@ -57,8 +57,9 @@ __private.retries = 5;
 class Loader {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			network: scope.network,
 			schema: scope.schema,
 			sequence: scope.sequence,
@@ -104,7 +105,7 @@ __private.initialize = function() {
 };
 
 /**
- * Cancels timers based on input parameter and private constiable syncIntervalId
+ * Cancels timers based on input parameter and private constant syncIntervalId
  * or Sync trigger by sending a socket signal with 'loader/sync' and setting
  * next sync with 1000 milliseconds.
  *
@@ -123,7 +124,7 @@ __private.syncTrigger = function(turnOn) {
 		library.logger.trace('Setting sync interval');
 		setImmediate(function nextSyncTrigger() {
 			library.logger.trace('Sync trigger');
-			library.network.io.sockets.emit('loader/sync', {
+			library.channel.publish('chain:loader:sync', {
 				blocks: __private.blocksToSync,
 				height: modules.blocks.lastBlock.get().height,
 			});
@@ -955,7 +956,10 @@ __private.sync = function(cb) {
 			},
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				modules.system.update(seriesCb);
+				return components.system
+					.update()
+					.then(() => seriesCb())
+					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
@@ -1068,7 +1072,7 @@ Loader.prototype.getRandomPeerFromNetwork = function(cb) {
 };
 
 /**
- * Checks if private constiable syncIntervalId has value.
+ * Checks if private constant syncIntervalId has value.
  *
  * @returns {boolean} True if syncIntervalId has value
  */
@@ -1086,7 +1090,7 @@ Loader.prototype.isLoaded = function() {
 };
 
 /**
- * Checks private constiable loaded.
+ * Checks private constant loaded.
  *
  * @returns {boolean} False if not loaded
  */
@@ -1151,7 +1155,7 @@ Loader.prototype.onPeersReady = function() {
 };
 
 /**
- * Assigns needed modules from scope to private modules constiable.
+ * Assigns needed modules and components from scope to private constants.
  *
  * @param {modules} scope
  * @returns {function} Calling __private.loadBlockChain
@@ -1160,6 +1164,7 @@ Loader.prototype.onPeersReady = function() {
 Loader.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
+		system: scope.components.system,
 	};
 
 	modules = {
@@ -1169,7 +1174,6 @@ Loader.prototype.onBind = function(scope) {
 		rounds: scope.modules.rounds,
 		transport: scope.modules.transport,
 		multisignatures: scope.modules.multisignatures,
-		system: scope.modules.system,
 	};
 
 	definitions = scope.swagger.definitions;
@@ -1178,14 +1182,14 @@ Loader.prototype.onBind = function(scope) {
 };
 
 /**
- * Sets private constiable loaded to true.
+ * Sets private constant loaded to true.
  */
 Loader.prototype.onBlockchainReady = function() {
 	__private.loaded = true;
 };
 
 /**
- * Sets private constiable loaded to false.
+ * Sets private constant loaded to false.
  *
  * @param {function} cb
  * @returns {setImmediateCallback} cb
