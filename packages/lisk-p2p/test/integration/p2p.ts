@@ -122,7 +122,7 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover seed peers and add them to connectedPeers list', () => {
 				p2pNodeList.forEach(p2p => {
-					let { connectedPeers } = p2p.getNetworkStatus();
+					const { connectedPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = connectedPeers
 						.map(peerInfo => peerInfo.wsPort)
@@ -135,7 +135,6 @@ describe('Integration tests for P2P library', () => {
 						previousPeerPort < NETWORK_START_PORT
 							? NETWORK_END_PORT
 							: previousPeerPort,
-						p2p.nodeInfo.wsPort,
 						nextPeerPort > NETWORK_END_PORT ? NETWORK_START_PORT : nextPeerPort,
 					].sort();
 

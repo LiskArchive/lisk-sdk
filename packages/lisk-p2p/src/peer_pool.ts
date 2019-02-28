@@ -366,7 +366,6 @@ export class PeerPool extends EventEmitter {
 				ipAddress: peerInfo.ipAddress,
 				wsPort: peerInfo.wsPort,
 				height: peerInfo.height,
-				nonce: peerInfo.nonce,
 				version: peerInfo.version,
 			},
 			socket,
@@ -445,16 +444,15 @@ export class PeerPool extends EventEmitter {
 								: '',
 							height: peerDiscoveredInfo.height,
 							ip: peerDiscoveredInfo.ipAddress,
-							nonce: peerDiscoveredInfo.options
+							nonce: peerDiscoveredInfo.nonce
 								? (peerDiscoveredInfo.nonce as string)
 								: '',
 							os: peerDiscoveredInfo.os ? peerDiscoveredInfo.os : '',
 							version: peerDiscoveredInfo.version,
-							httpPort: peerDiscoveredInfo.options
+							httpPort: peerDiscoveredInfo.httpPort
 								? (peerDiscoveredInfo.httpPort as number)
 								: undefined,
 							wsPort: peerDiscoveredInfo.wsPort,
-							options: peerDiscoveredInfo.options,
 						};
 					},
 				)
