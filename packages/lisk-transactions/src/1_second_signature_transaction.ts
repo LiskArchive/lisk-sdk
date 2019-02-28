@@ -211,7 +211,8 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		const sender = store.account.get(this.senderId);
 		const strippedSender = {
 			...sender,
-			secondPublicKey: undefined,
+			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
+			secondPublicKey: null,
 			secondSignature: 0,
 		};
 

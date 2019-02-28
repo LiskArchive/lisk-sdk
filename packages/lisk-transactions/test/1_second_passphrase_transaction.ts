@@ -34,7 +34,7 @@ describe('Second signature registration transaction class', () => {
 		balance: '32981247530771',
 		publicKey:
 			'8aceda0f39b35d778f55593227f97152f0b5a78b80b5c4ae88979909095d6204',
-		secondPublicKey: undefined,
+		secondPublicKey: null,
 		secondSignature: 0,
 	};
 
@@ -212,7 +212,7 @@ describe('Second signature registration transaction class', () => {
 			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
 				...sender,
 				secondSignature: 0,
-				secondPublicKey: undefined,
+				secondPublicKey: null,
 			});
 		});
 
