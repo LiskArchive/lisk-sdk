@@ -185,137 +185,6 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.checkTransaction', () => {
-		const dummyBlock = { id: '5', height: 5 };
-		const dummyTransaction = { id: '5', type: 0 };
-
-		describe('when library.logic.transaction.getId fails', () => {
-			beforeEach(() => library.logic.transaction.getId.throws('getId-ERR'));
-
-			it('should call a callback with error', done => {
-				__private.checkTransaction(dummyBlock, dummyTransaction, true, err => {
-					expect(err).to.equal('getId-ERR');
-					done();
-				});
-			});
-		});
-
-		describe('when library.logic.transaction.getId succeeds', () => {
-			beforeEach(() => library.logic.transaction.getId.returns('4'));
-
-			describe('when modules.accounts.getAccount fails', () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
-				);
-
-				it('should call a callback with error', done => {
-					__private.checkTransaction(
-						dummyBlock,
-						dummyTransaction,
-						true,
-						err => {
-							expect(err).to.equal('getAccount-ERR');
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when modules.accounts.getAccount succeeds', () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, null, true)
-				);
-
-				describe('when library.logic.transaction.verify succeeds', () => {
-					beforeEach(() =>
-						library.logic.transaction.verify.callsArgWith(4, null, true)
-					);
-
-					it('should call a callback with no error', done => {
-						__private.checkTransaction(
-							dummyBlock,
-							dummyTransaction,
-							true,
-							err => {
-								expect(err).to.be.null;
-								done();
-							}
-						);
-					});
-				});
-
-				describe('when library.logic.transaction.verify fails', () => {
-					beforeEach(() =>
-						library.logic.transaction.verify.callsArgWith(4, 'verify-ERR', null)
-					);
-
-					it('should call a callback with error', done => {
-						__private.checkTransaction(
-							dummyBlock,
-							dummyTransaction,
-							true,
-							err => {
-								expect(err).to.equal('verify-ERR');
-								done();
-							}
-						);
-					});
-
-					describe('when failure is related to fork 2', () => {
-						beforeEach(() => {
-							library.logic.transaction.verify.callsArgWith(
-								4,
-								'Transaction is already confirmed',
-								null
-							);
-							modules.delegates.fork.returns();
-							modules.transactions.removeUnconfirmedTransaction.returns();
-							return modules.transactions.undoUnconfirmed.callsArgWith(1, null);
-						});
-
-						it('should log the fork 2 entry', done => {
-							__private.checkTransaction(
-								dummyBlock,
-								dummyTransaction,
-								true,
-								err => {
-									expect(err).to.equal('Transaction is already confirmed');
-									expect(modules.delegates.fork).to.be.calledOnce;
-									expect(modules.delegates.fork).to.be.calledWithExactly(
-										dummyBlock,
-										2
-									);
-									done();
-								}
-							);
-						});
-
-						it('should undo unconfirmed state for that transaction', done => {
-							__private.checkTransaction(
-								dummyBlock,
-								dummyTransaction,
-								true,
-								err => {
-									expect(err).to.equal('Transaction is already confirmed');
-									expect(modules.transactions.undoUnconfirmed).to.be.calledOnce;
-									expect(
-										modules.transactions.undoUnconfirmed.firstCall.args[0]
-									).to.be.eql(dummyTransaction);
-									expect(modules.transactions.removeUnconfirmedTransaction).to
-										.be.calledOnce;
-									expect(
-										modules.transactions.removeUnconfirmedTransaction
-									).to.be.calledWithExactly(dummyTransaction.id);
-									done();
-								}
-							);
-						});
-					});
-				});
-			});
-		});
-	});
-
 	describe('__private.setHeight', () => {
 		const dummyBlock = {
 			id: '6',
@@ -1917,6 +1786,8 @@ describe('blocks/verify', () => {
 
 	describe('__private.checkTransactions', () => {
 		let dummyBlock;
+		let validTransactionsResponse;
+		let invalidTransactionsResponse;
 
 		describe('when block.transactions is empty', () => {
 			it('should not throw', async () => {
@@ -1963,23 +1834,23 @@ describe('blocks/verify', () => {
 				});
 
 				describe('when Transaction.get returns empty array', () => {
-					const validTransactionsResponse = dummyBlock.transactions.map(
-						transaction => ({
-							id: transaction.id,
-							status: transactionStatus.OK,
-							errors: [],
-						})
-					);
-
-					const invalidTransactionsResponse = dummyBlock.transactions.map(
-						transaction => ({
-							id: transaction.id,
-							status: transactionStatus.FAIL,
-							errors: [new Error()],
-						})
-					);
-
 					beforeEach(async () => {
+						validTransactionsResponse = dummyBlock.transactions.map(
+							transaction => ({
+								id: transaction.id,
+								status: transactionStatus.OK,
+								errors: [],
+							})
+						);
+
+						invalidTransactionsResponse = dummyBlock.transactions.map(
+							transaction => ({
+								id: transaction.id,
+								status: transactionStatus.FAIL,
+								errors: [new Error()],
+							})
+						);
+
 						storageStub.entities.Transaction.get.resolves([]);
 					});
 
