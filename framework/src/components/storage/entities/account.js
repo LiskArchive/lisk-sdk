@@ -481,7 +481,7 @@ class Account extends BaseEntity {
 		) {
 			await this.adapter.executeFile(
 				this.SQLs.deleteVotes,
-				{ accountId: data.address },
+				{ accountId: filters.address },
 				{},
 				tx
 			);
