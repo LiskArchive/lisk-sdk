@@ -2,7 +2,6 @@ const assert = require('assert');
 const fs = require('fs-extra');
 const psList = require('ps-list');
 const systemDirs = require('./config/dirs');
-const validator = require('./helpers/validator');
 const EventEmitterChannel = require('./channels/event_emitter');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
@@ -163,12 +162,6 @@ class Controller {
 	async _loadInMemoryModule(alias, Klass, options) {
 		const moduleAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
-		const schema = Klass.defaults;
-
-		this.logger.info(
-			`Validating module options with alias: ${moduleAlias}(${name}:${version})`
-		);
-		options = validator.validateWithDefaults(schema, options);
 
 		const module = new Klass(options);
 		validateModuleSpec(module);

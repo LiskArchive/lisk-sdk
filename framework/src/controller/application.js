@@ -123,34 +123,8 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		const sharedConfiguration = {
-			version: this.config.version,
-			minVersion: this.config.minVersion,
-			protocolVersion: this.config.protocolVersion,
-			nonce: randomstring.generate(16),
-			nethash: this.genesisBlock.payloadHash,
-		};
-
-		// TODO: Improve the hardcoded system component values
-		this.config.components.system = {
-			...sharedConfiguration,
-		};
-
-		this.registerModule(ChainModule, {
-			genesisBlock: this.genesisBlock,
-			constants: this.constants,
-			...sharedConfiguration,
-		});
-
-		this.registerModule(
-			HttpAPIModule,
-			{
-				genesisBlock: this.genesisBlock,
-				constants: this.constants,
-				...sharedConfiguration,
-			},
-			HttpAPIModule.alias
-		);
+		this.registerModule(ChainModule);
+		this.registerModule(HttpAPIModule);
 	}
 
 	/**
@@ -273,6 +247,8 @@ class Application {
 	async run() {
 		this.logger.info(`Starting the app - ${this.banner}`);
 		// Freeze every module and configuration so it would not interrupt the app execution
+		this._compileAndValidateConfigurations();
+
 		Object.freeze(this.genesisBlock);
 		Object.freeze(this.constants);
 		Object.freeze(this.label);
@@ -301,6 +277,41 @@ class Application {
 		}
 		this.logger.log(`Shutting down with error code ${errorCode} ${message}`);
 		process.exit(errorCode);
+	}
+
+	_compileAndValidateConfigurations() {
+		const modules = this.getModules();
+
+		const sharedConfiguration = {
+			version: this.config.version,
+			minVersion: this.config.minVersion,
+			protocolVersion: this.config.protocolVersion,
+			nonce: randomstring.generate(16),
+			nethash: this.genesisBlock.payloadHash,
+		};
+
+		Object.keys(modules).forEach(alias => {
+			this.logger.info(`Validating module options with alias: ${alias}`);
+			this.config.modules[alias] = validator.validateWithDefaults(
+				modules[alias].defaults,
+				this.config.modules[alias]
+			);
+
+			this.overrideModuleOptions(alias, sharedConfiguration);
+			this.overrideModuleOptions(alias, {
+				genesisBlock: this.genesisBlock,
+				constants: this.constants,
+			});
+		});
+
+		// TODO: Improve the hardcoded system component values
+		this.config.components.system = {
+			...sharedConfiguration,
+			wsPort: this.config.modules.chain.network.wsPort,
+			httpPort: this.config.modules.http_api.httpPort,
+		};
+
+		this.logger.trace('Complied configurations', this.config);
 	}
 }
 
