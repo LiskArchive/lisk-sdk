@@ -58,7 +58,7 @@ export interface TransactionResponse {
 export interface StateStore {
 	get<T>(bucket: string, key: string): Promise<T>;
 	// tslint:disable-next-line no-any
-	set(bucket: string, key: string, value: any): Promise<boolean>;
+	set(bucket: string, key: string, value: any): Promise<void>;
 	getOrDefault(bucket: string, key: string): Promise<Account>;
 	exists(bucket: string, key: string): Promise<boolean>;
 	unset(bucket: string, key: string): Promise<void>;

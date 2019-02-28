@@ -4,6 +4,7 @@ export interface Account {
 	readonly publicKey?: string;
 	readonly votedDelegatesPublicKeys?: ReadonlyArray<string>;
 	readonly votes?: string;
+	readonly reward?: string;
 }
 
 export const createDefaultAccount = (address: string) => ({

@@ -160,7 +160,7 @@ export class Block {
 			payloadHash: this.payloadHash,
 			payloadLength: this.payloadLength,
 			generatorPublicKey: this.generatorPublicKey,
-			transactions: this.transactions.map(tx => tx.toJSON()),
+			transactions: this.transactions.map(tx => tx.toJSON() as TransactionJSON),
 		};
 	}
 

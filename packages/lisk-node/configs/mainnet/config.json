@@ -1,0 +1,53 @@
+{
+	"wsPort": 8001,
+	"httpPort": 8000,
+	"logFileName": "logs/mainnet/lisk.log",
+	"db": {
+		"database": "lisk_main",
+		"logFileName": "logs/mainnet/lisk_db.log"
+	},
+	"peers": {
+		"list": [
+			{
+				"ip": "mainnet-seed-01.lisk.io",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-02.lisk-nodes.net",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-03.lisk.io",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-04.lisk-nodes.net",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-05.lisk.io",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-06.lisk-nodes.net",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-07.lisk.io",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-08.lisk-nodes.net",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-09.lisk.io",
+				"wsPort": 8001
+			},
+			{
+				"ip": "mainnet-seed-10.lisk-nodes.net",
+				"wsPort": 8001
+			}
+		]
+	}
+}

@@ -1,10 +1,9 @@
 import { hash } from '@liskhq/lisk-cryptography';
 
 export interface Delegate {
-	readonly publicKey: string;
-	readonly vote: string;
-	readonly reward: string;
-	readonly forged: number;
+	readonly publicKey?: string;
+	readonly votes?: string;
+	readonly reward?: string;
 }
 
 export const generateDelegateList = (
@@ -30,10 +29,16 @@ export const generateDelegateList = (
 
 export const sortDelegates = (delegates: Delegate[]): Delegate[] =>
 	delegates.sort((prev, next) => {
-		if (prev.vote > next.vote) {
+		if (!prev.votes || !next.votes) {
+			return 0;
+		}
+		if (!prev.publicKey || !next.publicKey) {
+			return 0;
+		}
+		if (prev.votes > next.votes) {
 			return 1;
 		}
-		if (prev.vote < next.vote) {
+		if (prev.votes < next.votes) {
 			return -1;
 		}
 		if (prev.publicKey < next.publicKey) {

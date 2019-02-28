@@ -1,3 +1,4 @@
+import * as BigNum from 'browserify-bignum';
 import { StateStore } from './state_store';
 
 export interface BlockJSON {
@@ -31,7 +32,7 @@ export interface TransactionResponse {
 
 interface TransactionFunc {
 	getBytes(): Buffer;
-	toJSON(): TransactionJSON;
+	toJSON(): object;
 	validate(): TransactionResponse;
 	apply(store: StateStore): Promise<TransactionResponse>;
 	undo(store: StateStore): Promise<TransactionResponse>;
@@ -49,8 +50,8 @@ interface TransactionProps {
 	readonly type: number;
 	readonly senderId: string;
 	readonly recipientId?: string;
-	readonly fee: string;
-	readonly amount: string;
+	readonly fee: BigNum;
+	readonly amount: BigNum;
 }
 
 export type Transaction = TransactionFunc & TransactionProps;
@@ -76,7 +77,7 @@ export interface VoteTransaction extends Transaction {
 }
 
 export interface TransactionJSON {
-	readonly amount: string;
+	readonly amount: string | number;
 	readonly asset: object;
 	readonly fee: string;
 	readonly id?: string;
@@ -121,5 +122,5 @@ export interface DataStore {
 	put<T>(bucket: string, key: string, value: T): Promise<void>;
 	del(bucket: string, key: string): Promise<void>;
 	batch(tasks: ReadonlyArray<BatchCommand>): Promise<void>;
-	createReadStream(options?: ReadStreamOption): NodeJS.ReadStream;
+	createReadStream(options?: ReadStreamOption): NodeJS.ReadableStream;
 }

@@ -14,14 +14,21 @@ import {
 import { Slot, validateBlockSlot, validateBlockSlotWindow } from './slot';
 import { Block, DataStore } from './type';
 
+interface CandidateGetter {
+	readonly getCandidates: (num: number) => Promise<ReadonlyArray<Delegate>>;
+}
+
 export interface DPOSOptions {
-	readonly db: DataStore;
 	readonly numberOfActiveDelegates: number;
 	readonly slotTime: number;
 	readonly epochTime: number;
-	// tslint:disable-next-line no-mixed-interface
-	getCandidate(num: number): Promise<ReadonlyArray<Delegate>>;
 }
+
+const defaultOptions = {
+	numberOfActiveDelegates: 101,
+	slotTime: 10,
+	epochTime: 0,
+};
 
 const verifyBlockSlot = (
 	block: Block,
@@ -52,17 +59,21 @@ export class DPOS extends EventEmitter {
 	private readonly _db: DataStore;
 	private readonly _slotTime: number;
 	private readonly _numberOfActiveDelegates: number;
-	private readonly _getCandidate: (
+	private readonly _getCandidates: (
 		num: number,
 	) => Promise<ReadonlyArray<Delegate>>;
 	private readonly _slot: Slot;
 
-	public constructor(options: DPOSOptions) {
+	public constructor(
+		db: DataStore,
+		candidateGetter: CandidateGetter,
+		options: DPOSOptions = defaultOptions,
+	) {
 		super();
-		this._db = options.db;
+		this._db = db;
 		this._slotTime = options.slotTime;
 		this._numberOfActiveDelegates = options.numberOfActiveDelegates;
-		this._getCandidate = options.getCandidate;
+		this._getCandidates = candidateGetter.getCandidates;
 		this._slot = new Slot({
 			epochTime: options.epochTime,
 			slotInterval: options.slotTime,
@@ -88,7 +99,7 @@ export class DPOS extends EventEmitter {
 			block.height,
 			this._numberOfActiveDelegates,
 		)
-			? await this._getCandidate(this._numberOfActiveDelegates)
+			? await this._getCandidates(this._numberOfActiveDelegates)
 			: (await getRound(
 					this._db,
 					calculateRound(block.height, this._numberOfActiveDelegates),
@@ -126,7 +137,7 @@ export class DPOS extends EventEmitter {
 			block.height,
 			this._numberOfActiveDelegates,
 		)
-			? await this._getCandidate(this._numberOfActiveDelegates)
+			? await this._getCandidates(this._numberOfActiveDelegates)
 			: (await getRound(
 					this._db,
 					calculateRound(block.height, this._numberOfActiveDelegates),
@@ -180,7 +191,7 @@ export class DPOS extends EventEmitter {
 	}
 
 	private async _getStartingRound(height: number): Promise<Round> {
-		const delegates = await this._getCandidate(this._numberOfActiveDelegates);
+		const delegates = await this._getCandidates(this._numberOfActiveDelegates);
 
 		return defaultRound(
 			calculateRound(height, this._numberOfActiveDelegates),

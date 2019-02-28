@@ -36,5 +36,5 @@ export interface DataStore {
 	put<T>(bucket: string, key: string, value: T): Promise<void>;
 	del(bucket: string, key: string): Promise<void>;
 	batch(tasks: ReadonlyArray<BatchCommand>): Promise<void>;
-	createReadStream(options?: ReadStreamOption): NodeJS.ReadStream;
+	createReadStream(options?: ReadStreamOption): NodeJS.ReadableStream;
 }
