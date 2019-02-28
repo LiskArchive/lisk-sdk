@@ -25,7 +25,6 @@ const transactionStatus = liskTransactions.Status;
 
 describe('blocks/verifyTransactions', async () => {
 	let library;
-	let verifyTransactions;
 	const account = random.account();
 
 	const verifiableTransactions = [
@@ -54,6 +53,12 @@ describe('blocks/verifyTransactions', async () => {
 		...transaction,
 		senderId: accountFixtures.genesis.address,
 	}));
+
+	// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
+	// Therefore removing it from the appliable transactions
+	const appliableTransactions = verifiableTransactions.filter(
+		transaction => transaction.type !== 1
+	);
 
 	const nonVerifiableTransactions = [
 		liskTransactions.transfer({
@@ -86,37 +91,85 @@ describe('blocks/verifyTransactions', async () => {
 			},
 			(err, scope) => {
 				library = scope;
-				verifyTransactions =
-					scope.modules.processTransactions.verifyTransactions;
 				library.modules.blocks.lastBlock.set(genesisBlock);
 				done();
 			}
 		);
 	});
 
-	it('should return transactionResponses with status OK for verified transactions', async () => {
-		const transactionResponses = await verifyTransactions(
-			verifiableTransactions
-		);
-		transactionResponses.forEach(transactionResponse => {
-			expect(transactionResponse.status).to.equal(transactionStatus.OK);
+	describe('verifyTransactions', () => {
+		let verifyTransactions;
+
+		beforeEach(async () => {
+			verifyTransactions =
+				library.modules.processTransactions.verifyTransactions;
+		});
+
+		it('should return transactionResponses with status OK for verified transactions', async () => {
+			const transactionResponses = await verifyTransactions(
+				verifiableTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.OK);
+			});
+		});
+
+		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
+			const transactionResponses = await verifyTransactions(
+				nonVerifiableTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+			});
+		});
+
+		it('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
+			const transactionResponses = await verifyTransactions(
+				pendingTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
+			});
 		});
 	});
 
-	it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
-		const transactionResponses = await verifyTransactions(
-			nonVerifiableTransactions
-		);
-		transactionResponses.forEach(transactionResponse => {
-			expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+	describe('applyTransactions', () => {
+		let applyTransactions;
+		beforeEach(async () => {
+			applyTransactions = library.modules.processTransactions.applyTransactions;
 		});
-	});
 
-	/* eslint-disable mocha/no-skipped-tests */
-	it.skip('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
-		const transactionResponses = await verifyTransactions(pendingTransactions);
-		transactionResponses.forEach(transactionResponse => {
-			expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
+		it('should return stateStore', async () => {
+			const { stateStore } = await applyTransactions(appliableTransactions);
+
+			expect(stateStore).to.exist;
+		});
+
+		it('should return transactionResponses with status OK for verified transactions', async () => {
+			const { transactionResponses } = await applyTransactions(
+				appliableTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.OK);
+			});
+		});
+
+		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
+			const { transactionResponses } = await applyTransactions(
+				nonVerifiableTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+			});
+		});
+
+		it('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
+			const { transactionResponses } = await applyTransactions(
+				pendingTransactions
+			);
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
+			});
 		});
 	});
 });
