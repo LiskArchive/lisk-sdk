@@ -16,8 +16,8 @@
 
 const System = require('./system');
 
-function createSystemComponent(config, logger, storage) {
-	return new System(config, logger, storage);
+function createSystemComponent(config, logger, storage, onUpdateHandler) {
+	return new System(config, logger, storage, onUpdateHandler);
 }
 
 module.exports = {

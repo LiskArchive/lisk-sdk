@@ -39,7 +39,7 @@ const semver = require('semver');
  * @param {Object} logger
  */
 class System {
-	constructor(config, logger, storage) {
+	constructor(config, logger, storage, onUpdateHandler) {
 		this.logger = logger;
 		this.storage = storage;
 		this.headers = {
@@ -54,6 +54,7 @@ class System {
 			broadhash: config.nethash,
 			nonce: config.nonce,
 		};
+		this.onUpdateHandler = onUpdateHandler;
 	}
 
 	/**
@@ -138,6 +139,9 @@ class System {
 				.toString('hex');
 			this.headers.broadhash = newBroadhash;
 			this.logger.debug('System headers', this.headers);
+			if (this.onUpdateHandler) {
+				this.onUpdateHandler(this.headers);
+			}
 			return true;
 		} catch (err) {
 			this.logger.error(err.stack);
