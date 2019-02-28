@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const async = require('async');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots.js');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
@@ -539,66 +540,36 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
  */
 Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
-	const transactions = modules.transactions.getUnconfirmedTransactionList(
-		false,
-		MAX_TRANSACTIONS_PER_BLOCK
-	);
-	const ready = [];
+	const transactions =
+		modules.transactions.getUnconfirmedTransactionList(
+			false,
+			MAX_TRANSACTIONS_PER_BLOCK
+		) || [];
 
-	async.eachSeries(
-		transactions,
-		(transaction, eachSeriesCb) => {
-			modules.accounts.getAccount(
-				{ publicKey: transaction.senderPublicKey },
-				(err, sender) => {
-					if (err || !sender) {
-						return setImmediate(eachSeriesCb, 'Sender not found');
-					}
-
-					// Check transaction depends on type
-					if (library.logic.transaction.ready(transaction, sender)) {
-						// Verify transaction
-						return library.logic.transaction.verify(
-							transaction,
-							sender,
-							null,
-							true,
-							verifyErr => {
-								if (!verifyErr) {
-									ready.push(transaction);
-								}
-								return setImmediate(eachSeriesCb);
-							},
-							null
-						);
-					}
-					return setImmediate(eachSeriesCb);
-				}
+	modules.processTransactions
+		.verifyTransactions(transactions)
+		.then(responses => {
+			const readyTransactions = transactions.filter(transaction =>
+				responses
+					.filter(response => response.status === TransactionStatus.OK)
+					.map(response => response.id)
+					.includes(transaction.id)
 			);
-		},
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			let block;
 
-			try {
-				// Create a block
-				block = library.logic.block.create({
-					keypair,
-					timestamp,
-					previousBlock: modules.blocks.lastBlock.get(),
-					transactions: ready,
-				});
-			} catch (e) {
-				library.logger.error(e.stack);
-				return setImmediate(cb, e);
-			}
-
+			// Create a block
+			const block = library.logic.block.create({
+				keypair,
+				timestamp,
+				previousBlock: modules.blocks.lastBlock.get(),
+				transactions: readyTransactions,
+			});
 			// Start block processing - broadcast: true, saveBlock: true
 			return modules.blocks.verify.processBlock(block, true, true, cb);
-		}
-	);
+		})
+		.catch(e => {
+			library.logger.error(e.stack);
+			return setImmediate(cb, e);
+		});
 };
 
 /**
@@ -727,6 +698,7 @@ Process.prototype.onBind = function(scope) {
 		rounds: scope.modules.rounds,
 		transactions: scope.modules.transactions,
 		transport: scope.modules.transport,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	definitions = scope.swagger.definitions;
