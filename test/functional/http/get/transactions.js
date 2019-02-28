@@ -36,6 +36,7 @@ describe('GET /api/transactions', () => {
 	const account = randomUtil.account();
 	const account2 = randomUtil.account();
 	const account3 = accountFixtures.existingDelegate;
+	const accountSecondPass = randomUtil.account();
 	const minAmount = 20 * NORMALIZER; // 20 LSK
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
 	const transaction1 = lisk.transaction.transfer({
@@ -61,6 +62,12 @@ describe('GET /api/transactions', () => {
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account3.address,
 		data: 'Tx4',
+	});
+	const transaction5 = lisk.transaction.transfer({
+		amount: minAmount,
+		passphrase: accountFixtures.genesis.passphrase,
+		recipientId: accountSecondPass.address,
+		data: 'tx 5',
 	});
 	const transactionType5 = {
 		amount: '0',
@@ -126,10 +133,12 @@ describe('GET /api/transactions', () => {
 		const promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
+		promises.push(apiHelpers.sendTransactionPromise(transaction5));
 
 		return Promise.all(promises).then(() => {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
+			transactionList.push(transaction5);
 
 			return waitFor
 				.confirmations(_.map(transactionList, 'id'))
@@ -1011,6 +1020,72 @@ describe('GET /api/transactions', () => {
 						expect(res.body.meta.count).to.be.a('number');
 					});
 				});
+			});
+		});
+
+		describe('asset', () => {
+			it('assets for type 2 transactions should contain key username, publicKey and address', () => {
+				return transactionsEndpoint
+					.makeRequest({ type: transactionTypes.DELEGATE, limit: 1 }, 200)
+					.then(res => {
+						expect(res.body.data).to.not.empty;
+						res.body.data.map(transaction => {
+							expect(transaction.asset).to.have.key('delegate');
+							return expect(transaction.asset.delegate).to.have.all.keys(
+								'username',
+								'publicKey',
+								'address'
+							);
+						});
+					});
+			});
+		});
+
+		describe('signature', () => {
+			it('should not show signSignature when empty upon registering second passphrase', async () => {
+				// Prepare
+				const transaction = lisk.transaction.registerSecondPassphrase({
+					passphrase: accountSecondPass.passphrase,
+					secondPassphrase: accountSecondPass.secondPassphrase,
+				});
+
+				await apiHelpers.sendTransactionPromise(transaction, 200);
+				await waitFor.confirmations([transaction.id]);
+
+				// Act
+				const {
+					body: { data: transactions },
+				} = await transactionsEndpoint.makeRequest(
+					{
+						type: transactionTypes.SIGNATURE,
+						limit: 1,
+						senderPublicKey: accountSecondPass.senderId,
+						sort: 'timestamp:desc',
+					},
+					200
+				);
+				// Assert
+				expect(transactions[0]).to.not.have.property('signSignature');
+			});
+
+			it('should show signSignature whem signing a transfer transaction with second passphrase', async () => {
+				// Prepare
+				const transaction = lisk.transaction.transfer({
+					amount: 1,
+					passphrase: accountSecondPass.passphrase,
+					secondPassphrase: accountSecondPass.secondPassphrase,
+					recipientId: accountFixtures.existingDelegate.address,
+				});
+
+				await sendTransactionPromise(transaction, 200);
+				await waitFor.confirmations([transaction.id]);
+
+				// Act
+				const {
+					body: { data: transactions },
+				} = await transactionsEndpoint.makeRequest({ id: transaction.id }, 200);
+				// Assert
+				expect(transactions[0].signSignature).to.not.be.empty;
 			});
 		});
 
