@@ -18,6 +18,8 @@ import { getAppConfig, NodeConfig } from './config';
 
 const CACHE_START_SUCCESS = '[+] Redis-Server started successfully.';
 const CACHE_START_FAILURE = '[-] Failed to start Redis-Server.';
+const CACHE_STOP_SUCCESS = '[+] Redis-Server stopped successfully.';
+const CACHE_STOP_FAILURE = '[-] Failed to stop Redis-Server.';
 
 const REDIS_CONFIG = 'etc/redis.conf';
 const REDIS_BIN = 'bin/redis-server';
@@ -58,4 +60,32 @@ export const startCache = async (installDir: string): Promise<string> => {
 	}
 
 	throw new Error(`${CACHE_START_FAILURE}: \n\n ${stderr}`);
+};
+
+const stopCommand = (installDir: string, network: string): string => {
+	const { redis: { port, password } }: NodeConfig = getAppConfig(
+		installDir,
+		network,
+	);
+
+	if (password) {
+		return `${REDIS_CLI} -p ${port} -a ${password} shutdown`;
+	}
+
+	return `${REDIS_CLI} -p ${port} shutdown`;
+};
+
+export const stopCache = async (
+	installDir: string,
+	network: string,
+): Promise<string> => {
+	const { stdout, stderr }: ExecResult = await exec(
+		`cd ${installDir}; ${stopCommand(installDir, network)}`,
+	);
+
+	if (stdout.trim() === '') {
+		return CACHE_STOP_SUCCESS;
+	}
+
+	throw new Error(`${CACHE_STOP_FAILURE}: \n\n ${stderr}`);
 };
