@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import * as Listr from 'listr';
@@ -21,7 +20,7 @@ import * as os from 'os';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
 import { download, extract, validateChecksum } from '../../utils/download';
-import { getReleaseInfo } from '../../utils/node/release';
+import { flags as commonFlags } from '../../utils/flags';
 import {
 	createDirectory,
 	isSupportedOS,
@@ -34,7 +33,8 @@ import {
 	validateNetwork,
 	validateNotARootUser,
 	validURL,
-} from '../../utils/node/utils';
+} from '../../utils/node/commons';
+import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
 	readonly installationPath: string;
@@ -95,7 +95,7 @@ const RELEASE_URL = 'https://downloads.lisk.io/lisk';
 const SNAPSHOT_URL = 'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk';
 
 export default class InstallCommand extends BaseCommand {
-	static description = `Install lisk software`;
+	static description = 'Install lisk software';
 
 	static examples = [
 		'node:install',
@@ -106,32 +106,28 @@ export default class InstallCommand extends BaseCommand {
 	static flags = {
 		...BaseCommand.flags,
 		network: flagParser.string({
-			char: 'n',
-			description: 'Name of the network to install.',
+			...commonFlags.network,
 			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
-			char: 'p',
-			description: 'Path of Lisk Core to install.',
+			...commonFlags.installPath,
 			default: INSTALL_PATH,
 		}),
 		name: flagParser.string({
-			description: 'Name of the directory to install Lisk Core.',
+			...commonFlags.name,
 			default: NETWORK.MAINNET,
 		}),
 		releaseUrl: flagParser.string({
-			char: 'r',
-			description: 'URL of the repository to download the Lisk Core.',
+			...commonFlags.releaseUrl,
 			default: RELEASE_URL,
 		}),
 		snapshotUrl: flagParser.string({
-			char: 's',
-			description: 'URL of the Lisk Core blockchain snapshot.',
+			...commonFlags.snapshotUrl,
 			default: SNAPSHOT_URL,
 		}),
 		'no-snapshot': flagParser.boolean({
-			description: 'Install Lisk Core without blockchain snapshot',
+			...commonFlags.noSnapshot,
 			default: false,
 			allowNo: false,
 		}),

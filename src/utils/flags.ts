@@ -65,6 +65,13 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
+const networkDescription = 'Name of the network to install.';
+const installationPathDescription = 'Path of Lisk Core to install.';
+const nameDescription = 'Lisk Core installation directory name.';
+const releaseUrlDescription = 'URL of the repository to download the Lisk Core.';
+const snapshotUrlDescription = 'URL of the Lisk Core blockchain snapshot.';
+const noSnapshotDescription = 'Install Lisk Core without blockchain snapshot';
+
 export type AlphabetLowercase =
 	| 'a'
 	| 'b'
@@ -93,7 +100,7 @@ export type AlphabetLowercase =
 	| 'y'
 	| 'z';
 
-interface FlagMap {
+export interface FlagMap {
 	readonly [key: string]: {
 		readonly char?: AlphabetLowercase;
 		readonly description: string;
@@ -125,5 +132,27 @@ export const flags: FlagMap = {
 	},
 	votes: {
 		description: votesDescription,
+	},
+	network: {
+		char: 'n',
+		description: networkDescription,
+	},
+	installationPath: {
+		char: 'p',
+		description: installationPathDescription,
+	},
+	name: {
+		description: nameDescription,
+	},
+	releaseUrl: {
+		char: 'r',
+		description: releaseUrlDescription,
+	},
+	snapshotUrl: {
+		char: 's',
+		description: snapshotUrlDescription,
+	},
+	noSnapshot: {
+		description: noSnapshotDescription,
 	},
 };

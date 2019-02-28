@@ -13,34 +13,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
-import { NETWORK } from '../../../utils/constants';
+import InstallCommand from '../install';
 
-const INSTALL_PATH = '~/.lisk/network';
+const { snapshotUrl, releaseUrl, ...databaseFlags } = InstallCommand.flags;
 
 export default class DatabaseCommand extends BaseCommand {
-	static description = `Install lisk software`;
+	static description = 'Start Lisk Core Database';
 
 	static examples = [
-		'node:install',
-		'node:install --installation-path=/opt/lisk/lisk-testnet --network=testnet',
-		'node:install --no-snapshot',
+		'node:start:database',
+		'node:start:database --no-snapshot',
+		'node:start:database --network=testnet',
+		'node:start:database --installation-path=/opt/lisk/lisk-testnet --network=testnet',
 	];
 
 	static flags = {
 		...BaseCommand.flags,
-		network: flagParser.string({
-			char: 'n',
-			description: 'Name of the network to start.',
-			default: NETWORK.MAINNET,
-			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
-		}),
-		installationPath: flagParser.string({
-			char: 'p',
-			description: 'Path of Lisk Core to install.',
-			default: INSTALL_PATH,
-		}),
+		...databaseFlags,
 	};
 
 	async run(): Promise<void> {
