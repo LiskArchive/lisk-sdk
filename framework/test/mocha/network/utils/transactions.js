@@ -21,7 +21,10 @@ module.exports = {
 		return Promise.all(
 			_.flatMap(configurations, configuration => {
 				return transactions.map(transaction => {
-					return getTransaction(transaction.id, configuration.httpPort);
+					return getTransaction(
+						transaction.id,
+						configuration.modules.http_api.httpPort
+					);
 				});
 			})
 		).then(results => {

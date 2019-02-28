@@ -38,7 +38,7 @@ module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 							return peer.wsPort;
 						});
 						const allPorts = configurations.map(configuration => {
-							return configuration.wsPort;
+							return configuration.modules.chain.network.wsPort;
 						});
 						return expect(_.intersection(allPorts, peerPorts)).to.be.an('array')
 							.and.not.to.be.empty;

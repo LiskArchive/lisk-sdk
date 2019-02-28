@@ -1,11 +1,20 @@
+const path = require('path');
 const { Application } = require('../framework/src');
 
 // TODO: Remove the use this config helper
 const packageJSON = require('../package');
-const config = require('../config/devnet/config');
+let config = require('../config/devnet/config');
 const constants = require('../config/devnet/constants');
 const exceptions = require('../config/devnet/exceptions');
 const genesisBlock = require('../config/devnet/genesis_block');
+
+// TODO: WIll be resolved with issue https://github.com/LiskHQ/lisk/issues/2976
+const args = process.argv.slice(2);
+const index = args.indexOf('-c');
+if (index >= 0) {
+	// eslint-disable-next-line import/no-dynamic-require
+	config = require(path.resolve(args[index + 1]));
+}
 
 const appName = () => `devnet-${config.modules.http_api.httpPort}`;
 
