@@ -739,10 +739,6 @@ class Account extends BaseEntity {
 		const sqlForInsert = this.SQLs.createDependentRecords;
 		const tableName = dependentFieldsTableMap[dependencyName];
 
-		if (tableName === 'mem_accounts2delegates') {
-			debugger;
-		}
-
 		const dependentRecordsForAddress = await this.adapter.execute(
 			`SELECT "dependentId" FROM ${tableName} WHERE "accountId" = $1`,
 			[address]

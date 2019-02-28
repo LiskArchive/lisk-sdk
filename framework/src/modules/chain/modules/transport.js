@@ -225,14 +225,10 @@ __private.receiveTransaction = function(
 	try {
 		tx = initTransaction(transaction);
 		const { errors } = tx.validate();
-		if (errors.length > 0 ) {
-			console.log('errors');
-			console.log(errors);
-			if (errors[0].dataPath !== '.recipientPublicKey') {
-				throw `Transaction: ${transaction.id} failed at ${errors
+		if (errors.length > 0) {
+			throw `Transaction: ${transaction.id} failed at ${errors
 				.map(error => error.dataPath)
 				.join(',')}`;
-			}
 		}
 	} catch (e) {
 		library.logger.debug('Transaction validation failed', {

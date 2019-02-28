@@ -25,11 +25,6 @@ const defaultAccount = {
 	u_multiLifetime: 0,
 };
 
-const dependentFieldsTableMap = {
-	multisignatures: 'membersPublicKeys',
-	votes: 'votedDelegatesPublicKeys',
-};
-
 class AccountStore {
 	constructor(accountEntity, { mutate, tx } = { mutate: true, tx: undefined }) {
 		this.account = accountEntity;
@@ -134,10 +129,11 @@ class AccountStore {
 			})
 		);
 
-		const updateToAccounts = affectedAccounts.map(({ updatedItem, updatedKeys }) => {
-			const filter = { [this.primaryKey]: updatedItem[this.primaryKey] };
-			const updatedData = _.pick(updatedItem, updatedKeys);
-			updatedData.u_balance = updatedData.balance;
+		const updateToAccounts = affectedAccounts.map(
+			({ updatedItem, updatedKeys }) => {
+				const filter = { [this.primaryKey]: updatedItem[this.primaryKey] };
+				const updatedData = _.pick(updatedItem, updatedKeys);
+				updatedData.u_balance = updatedData.balance;
 
 				return this.account.upsert(filter, updatedData, null, this.tx);
 			}
