@@ -1736,13 +1736,11 @@ describe('blocks/process', () => {
 					);
 				});
 
-				describe('modules.accounts.getAccount', () => {
-					describe('when fails', () => {
-						beforeEach(() =>
-							modules.accounts.getAccount.callsArgWith(
-								1,
-								'accounts.getAccount-ERR',
-								null
+				describe('modules.processTransactions.verifyTransactions', () => {
+					describe('when transaction initializations fail', () => {
+						beforeEach(async () =>
+							modules.processTransactions.verifyTransactions.rejects(
+								new Error('Invalid field types')
 							)
 						);
 
