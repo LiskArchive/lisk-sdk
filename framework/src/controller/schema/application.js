@@ -179,6 +179,9 @@ module.exports = {
 					},
 				},
 			},
+			modules: {
+				type: 'object',
+			},
 		},
 		additionalProperties: false,
 	},
