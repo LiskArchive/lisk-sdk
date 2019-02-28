@@ -11,18 +11,20 @@ export class App {
 	private readonly _p2p: P2P;
 	private readonly _blockchain: Blockchain;
 	private readonly _dpos: DPOS;
-    private readonly _db: DB;
-    private readonly _logger: bunyan;
+	private readonly _db: DB;
+	private readonly _logger: bunyan;
+	private _started: boolean;
 
 	public constructor() {
-        this._logger = bunyan.createLogger({ name: 'lisk-node' });
-        this._logger.info('Starting application');
+		this._started = false;
+		this._logger = bunyan.createLogger({ name: 'lisk-node' });
+		this._logger.info('Starting application');
 
 		const genesisStr = fs.readFileSync(
 			`${__dirname}/../configs/mainnet/genesis_block.json`,
 			'utf8',
 		);
-        this._logger.info('Genesis block file obtained');
+		this._logger.info('Genesis block file obtained');
 		const genesis = JSON.parse(genesisStr);
 		this._p2p = new P2P({
 			blacklistedPeers: [],
@@ -38,7 +40,7 @@ export class App {
 			},
 		});
 		this._db = new DB('./blockchain.db');
-        this._logger.info('Database instansiated');
+		this._logger.info('Database instansiated');
 		this._blockchain = new Blockchain(genesis, this._db, {
 			0: transactions.TransferTransaction,
 			1: transactions.SecondSignatureTransaction,
@@ -49,20 +51,21 @@ export class App {
 			6: transactions.InTransferTransaction,
 			7: transactions.OutTransferTransaction,
 		});
-        this._logger.info('Blockchain instansiated');
+		this._logger.info('Blockchain instansiated');
 		this._dpos = new DPOS(this._db, this._blockchain, {
 			numberOfActiveDelegates: 101,
 			slotTime: 10,
 			epochTime: 0,
 		});
-        this._logger.info('DPOS instansiated');
+		this._logger.info('DPOS instansiated');
 	}
 
 	public async init(): Promise<void> {
-        this._logger.info('Starting initialization');
+		this._logger.info('Starting initialization');
 		await this._blockchain.init();
-        this._logger.info('Blockchain initialized.');
+		this._logger.info('Blockchain initialized.');
 		await this._dpos.getLatestHeight();
+		this._started = true;
 	}
 
 	public async start(): Promise<void> {
@@ -70,6 +73,8 @@ export class App {
 	}
 
 	public async stop(): Promise<void> {
-		await this._p2p.stop();
+		if (this._started) {
+			await this._p2p.stop();
+		}
 	}
 }

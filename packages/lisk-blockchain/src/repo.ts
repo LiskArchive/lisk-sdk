@@ -10,6 +10,18 @@ export const BUCKET_TX_ID_TX = 'transaction_id:transaction';
 export const BUCKET_BLOCK_HEIGHT_REWARDS = 'block_height:rewards';
 export const BUCKET_CANDIDATE = 'candidate';
 
+export const getGenesis = async (
+	db: DataStore,
+): Promise<BlockJSON | undefined> => {
+	try {
+		const blockId = await db.get<string>(BUCKET_HEIGHT_BLOCK_ID, '1');
+
+		return db.get<BlockJSON>(BUCKET_BLOCK_ID_BLOCK, blockId);
+	} catch (error) {
+		return undefined;
+	}
+};
+
 export const getBlockHeaderByHeight = async (
 	db: DataStore,
 	height: number,

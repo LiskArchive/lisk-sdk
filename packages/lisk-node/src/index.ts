@@ -9,6 +9,6 @@ const run = async () => {
 
 run().catch(async error => {
 	// tslint:disable-next-line
-	console.error(error);
+	console.error('error: ', error);
 	await app.stop();
 });

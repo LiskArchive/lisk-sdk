@@ -40,10 +40,22 @@ export class StateStore {
 	}
 
 	public async getOrDefault(bucket: string, key: string): Promise<Account> {
+		if (this._cacheMap[bucket] && this._cacheMap[bucket][key]) {
+			return clonedeep(this._cacheMap[bucket][key]);
+		}
+
 		try {
-			return this._db.get(bucket, key);
+			const account = await this._db.get<Account>(bucket, key);
+
+			return account;
 		} catch (err) {
-			return createDefaultAccount(key);
+			const newAccount = createDefaultAccount(key);
+			if (!this._cacheMap[bucket]) {
+				this._cacheMap[bucket] = {};
+			}
+			this._cacheMap[bucket][key] = newAccount;
+
+			return newAccount;
 		}
 	}
 

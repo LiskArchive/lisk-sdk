@@ -3,8 +3,8 @@ import { Account } from './account';
 import { Block, createBlock } from './block';
 import {
 	getBlockByHeight,
-	getBlockHeaderByHeight,
 	getCandidates,
+	getGenesis,
 	getRewardIfExist,
 } from './repo';
 import { applyReward, Reward, RewardsOption, undoReward } from './reward';
@@ -76,20 +76,18 @@ export class Blockchain extends EventEmitter {
 	}
 
 	public async init(): Promise<void> {
-		const genesis = await getBlockHeaderByHeight(this._db, 1);
+		const genesis = await getGenesis(this._db);
 		if (genesis && genesis.payloadHash === this._genesis.payloadHash) {
 			return;
 		}
 		if (genesis && genesis.payloadHash !== this._genesis.payloadHash) {
 			throw new Error('Nethash does not match with the genesis block');
 		}
-		const txs = rawTransactionToInstance(this._txMap, genesis.transactions);
-		const block = new Block(genesis, txs);
-		const store = new StateStore(this._db, block);
-		await block.apply(store);
+		const store = new StateStore(this._db, this._genesis);
+		await this._genesis.apply(store);
 		await store.finalize();
 		this.emit(EVENT_BLOCK_ADDED, {
-			block,
+			block: this._genesis,
 			accounts: store.getUpdatedAccount(),
 		});
 	}
