@@ -581,14 +581,22 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using one height should return transactions', () => {
-				return transactionsEndpoint
-					.makeRequest({ height: 1 }, 200)
-					.then(res => {
-						res.body.data.map(transaction => {
-							return expect(transaction.height).to.be.equal(1);
-						});
-					});
+			it('should filter transactions for a given height', async () => {
+				const { body: { data: [tx] } } = await transactionsEndpoint.makeRequest(
+					{ id: transaction1.id },
+					200
+				);
+				const {
+					body: { data: transactions },
+				} = await transactionsEndpoint.makeRequest({ height: tx.height }, 200);
+
+				const haveSameHeight = transactions.reduce(
+					(acc, curr) => acc && curr.height === tx.height,
+					true
+				);
+
+				expect(transactions).to.not.be.empty;
+				expect(haveSameHeight).to.be.true;
 			});
 		});
 
@@ -1040,7 +1048,7 @@ describe('GET /api/transactions', () => {
 					});
 			});
 		});
-
+    
 		describe('signature', () => {
 			it('should not show signSignature when empty upon registering second passphrase', async () => {
 				// Prepare
@@ -1095,7 +1103,7 @@ describe('GET /api/transactions', () => {
 		 * in config/default/exceptions to a value bigger than 0
 		 * */
 		/* eslint-disable mocha/no-skipped-tests */
-		describe.skip('assets', () => {
+		describe.skip('dapp', () => {
 			before(() => {
 				return sendTransactionPromise(transaction4) // send type 0 transaction
 					.then(result => {

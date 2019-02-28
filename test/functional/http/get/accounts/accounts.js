@@ -28,6 +28,7 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 describe('GET /accounts', () => {
 	const account = randomUtil.account();
 	const accountsEndpoint = new SwaggerEndpoint('GET /accounts');
+	const constantsEndPoint = new SwaggerEndpoint('GET /node/constants 200');
 
 	describe('?', () => {
 		describe('address', () => {
@@ -391,6 +392,27 @@ describe('GET /accounts', () => {
 						accountFixtures.existingDelegate.delegateName
 					);
 				});
+		});
+
+		it('should return correct delegate approval for a delegate account', async () => {
+			const promises = [
+				constantsEndPoint.makeRequest(),
+				accountsEndpoint.makeRequest(
+					{ address: accountFixtures.existingDelegate.address },
+					200
+				),
+			];
+
+			const [
+				{ body: { data: constansts } },
+				{ body: { data: [{ delegate }] } },
+			] = await Promise.all(promises);
+
+			const calculatedApproval = apiHelpers.calculateApproval(
+				delegate.vote,
+				constansts.supply
+			);
+			expect(delegate.approval).to.be.eql(calculatedApproval);
 		});
 
 		it('should return empty delegate property for a non delegate account', () => {

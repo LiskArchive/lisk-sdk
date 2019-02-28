@@ -65,7 +65,10 @@ function accountFormatter(totalSupply, account) {
 		object.delegate.rank = parseInt(object.delegate.rank);
 
 		// Computed fields
-		object.delegate.approval = calculateApproval(object.vote, totalSupply);
+		object.delegate.approval = calculateApproval(
+			object.delegate.vote,
+			totalSupply
+		);
 	}
 
 	object.publicKey = object.publicKey || '';
