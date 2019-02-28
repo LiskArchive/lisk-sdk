@@ -20,7 +20,7 @@ export interface DPOSOptions {
 	readonly slotTime: number;
 	readonly epochTime: number;
 	// tslint:disable-next-line no-mixed-interface
-	getCandidate(): Promise<ReadonlyArray<Delegate>>;
+	getCandidate(num: number): Promise<ReadonlyArray<Delegate>>;
 }
 
 const verifyBlockSlot = (
@@ -52,7 +52,9 @@ export class DPOS extends EventEmitter {
 	private readonly _db: DataStore;
 	private readonly _slotTime: number;
 	private readonly _numberOfActiveDelegates: number;
-	private readonly _getCandidate: () => Promise<ReadonlyArray<Delegate>>;
+	private readonly _getCandidate: (
+		num: number,
+	) => Promise<ReadonlyArray<Delegate>>;
 	private readonly _slot: Slot;
 
 	public constructor(options: DPOSOptions) {
@@ -86,7 +88,7 @@ export class DPOS extends EventEmitter {
 			block.height,
 			this._numberOfActiveDelegates,
 		)
-			? await this._getCandidate()
+			? await this._getCandidate(this._numberOfActiveDelegates)
 			: (await getRound(
 					this._db,
 					calculateRound(block.height, this._numberOfActiveDelegates),
@@ -124,7 +126,7 @@ export class DPOS extends EventEmitter {
 			block.height,
 			this._numberOfActiveDelegates,
 		)
-			? await this._getCandidate()
+			? await this._getCandidate(this._numberOfActiveDelegates)
 			: (await getRound(
 					this._db,
 					calculateRound(block.height, this._numberOfActiveDelegates),
@@ -178,7 +180,7 @@ export class DPOS extends EventEmitter {
 	}
 
 	private async _getStartingRound(height: number): Promise<Round> {
-		const delegates = await this._getCandidate();
+		const delegates = await this._getCandidate(this._numberOfActiveDelegates);
 
 		return defaultRound(
 			calculateRound(height, this._numberOfActiveDelegates),

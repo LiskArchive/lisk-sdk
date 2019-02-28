@@ -16,8 +16,8 @@ import * as BigNum from '@liskhq/bignum';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
+	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
 import { TransactionError } from './errors';
@@ -69,17 +69,6 @@ export class TransferTransaction extends BaseTransaction {
 		return {
 			...this.asset,
 		};
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			{
-				address: this.recipientId,
-			},
-		]);
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
@@ -180,9 +169,11 @@ export class TransferTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 
 		const balanceError = verifyAmountBalance(
 			this.id,
@@ -200,8 +191,11 @@ export class TransferTransaction extends BaseTransaction {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
-		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.getOrDefault(this.recipientId);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
+		const recipient = await store.getOrDefault(
+			ENTITY_ACCOUNT,
+			this.recipientId,
+		);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -222,14 +216,16 @@ export class TransferTransaction extends BaseTransaction {
 			...recipient,
 			balance: updatedRecipientBalance.toString(),
 		};
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		await store.set(ENTITY_ACCOUNT, updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
 
 		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
@@ -247,8 +243,11 @@ export class TransferTransaction extends BaseTransaction {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
-		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.getOrDefault(this.recipientId);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
+		const recipient = await store.getOrDefault(
+			ENTITY_ACCOUNT,
+			this.recipientId,
+		);
 
 		const balanceError = verifyBalance(this.id, recipient, this.amount);
 
@@ -265,7 +264,7 @@ export class TransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		await store.set(ENTITY_ACCOUNT, updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}

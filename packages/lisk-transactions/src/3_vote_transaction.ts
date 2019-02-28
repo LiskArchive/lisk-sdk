@@ -15,12 +15,12 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
+	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
 } from './base_transaction';
 import { VOTE_FEE } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput } from './utils';
 import { validateAddress, validator } from './utils/validation';
 
@@ -80,25 +80,6 @@ export class VoteTransaction extends BaseTransaction {
 		return {
 			votes: this.asset.votes,
 		};
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const publicKeyObjectArray = this.asset.votes.map(pkWithAction => {
-			const publicKey = pkWithAction.slice(1);
-
-			return {
-				publicKey,
-			};
-		});
-
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			...publicKeyObjectArray,
-		];
-
-		await store.account.cache(filterArray);
 	}
 
 	protected verifyAgainstTransactions(
@@ -215,13 +196,16 @@ export class VoteTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
-		this.asset.votes.forEach(actionVotes => {
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
+		this.asset.votes.forEach(async actionVotes => {
 			const vote = actionVotes.substring(1);
-			const voteAccount = store.account.find(
-				account => account.publicKey === vote,
+			const voteAccount = await store.get<Account>(
+				ENTITY_ACCOUNT,
+				getAddressFromPublicKey(vote),
 			);
 			if (
 				!voteAccount ||
@@ -276,14 +260,16 @@ export class VoteTransaction extends BaseTransaction {
 			...sender,
 			votedDelegatesPublicKeys,
 		};
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		const upvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
 			.map(vote => vote.substring(1));
@@ -311,7 +297,7 @@ export class VoteTransaction extends BaseTransaction {
 			...sender,
 			votedDelegatesPublicKeys,
 		};
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
 		return errors;
 	}

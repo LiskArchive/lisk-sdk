@@ -15,9 +15,9 @@
 import * as BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
+	ENTITY_ACCOUNT,
 	MultisignatureStatus,
 	StateStore,
-	StateStorePrepare,
 } from './base_transaction';
 import { MULTISIGNATURE_FEE } from './constants';
 import { SignatureObject } from './create_signature_object';
@@ -27,7 +27,7 @@ import {
 	TransactionPendingError,
 } from './errors';
 import { createResponse, Status, TransactionResponse } from './response';
-import { TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import { validateMultisignatures, validateSignature, validator } from './utils';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
@@ -104,14 +104,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 				keysgroup: [...this.asset.multisignature.keysgroup],
 			},
 		};
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-		]);
 	}
 
 	protected verifyAgainstTransactions(
@@ -217,7 +209,9 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	public processMultisignatures(_: StateStore): TransactionResponse {
+	public async processMultisignatures(
+		_: StateStore,
+	): Promise<TransactionResponse> {
 		const transactionBytes = this.getBasicBytes();
 
 		const { valid, errors } = validateMultisignatures(
@@ -254,9 +248,11 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 
 		// Check if multisignatures already exists on account
 		if (sender.membersPublicKeys && sender.membersPublicKeys.length > 0) {
@@ -288,13 +284,15 @@ export class MultisignatureTransaction extends BaseTransaction {
 			multiMin: this.asset.multisignature.min,
 			multiLifetime: this.asset.multisignature.lifetime,
 		};
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get(this.senderId);
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 
 		const resetSender = {
 			...sender,
@@ -303,15 +301,15 @@ export class MultisignatureTransaction extends BaseTransaction {
 			multiLifetime: 0,
 		};
 
-		store.account.set(resetSender.address, resetSender);
+		await store.set(ENTITY_ACCOUNT, resetSender.address, resetSender);
 
 		return [];
 	}
 
-	public addMultisignature(
+	public async addMultisignature(
 		store: StateStore,
 		signatureObject: SignatureObject,
-	): TransactionResponse {
+	): Promise<TransactionResponse> {
 		// Validate signature key belongs to pending multisig registration transaction
 		const keysgroup = this.asset.multisignature.keysgroup.map((aKey: string) =>
 			aKey.slice(1),

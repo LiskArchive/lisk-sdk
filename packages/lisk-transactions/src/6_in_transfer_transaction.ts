@@ -15,12 +15,13 @@
 import * as BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
+	ENTITY_ACCOUNT,
+	ENTITY_TRANSACTION,
 	StateStore,
-	StateStorePrepare,
 } from './base_transaction';
 import { IN_TRANSFER_FEE } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import { convertBeddowsToLSK, verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
 
@@ -64,29 +65,6 @@ export class InTransferTransaction extends BaseTransaction {
 
 	protected assetToBytes(): Buffer {
 		return Buffer.from(this.asset.inTransfer.dappId, 'utf8');
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		await store.account.cache([{ address: this.senderId }]);
-
-		const transactions = await store.transaction.cache([
-			{
-				id: this.asset.inTransfer.dappId,
-			},
-		]);
-
-		const dappTransaction =
-			transactions && transactions.length > 0
-				? transactions.find(
-						tx =>
-							tx.type === TRANSACTION_DAPP_TYPE &&
-							tx.id === this.asset.inTransfer.dappId,
-				  )
-				: undefined;
-
-		if (dappTransaction) {
-			await store.account.cache([{ id: dappTransaction.senderId as string }]);
-		}
 	}
 
 	public assetToJSON(): object {
@@ -171,13 +149,15 @@ export class InTransferTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const idExists = store.transaction.find(
-			(transaction: TransactionJSON) =>
-				transaction.type === TRANSACTION_DAPP_TYPE &&
-				transaction.id === this.asset.inTransfer.dappId,
+		const dappTx = await store.get<TransactionJSON>(
+			ENTITY_TRANSACTION,
+			this.asset.inTransfer.dappId,
 		);
+		const idExists = dappTx && dappTx.type === TRANSACTION_DAPP_TYPE;
 
 		if (!idExists) {
 			errors.push(
@@ -188,7 +168,7 @@ export class InTransferTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 
 		const balanceError = verifyAmountBalance(
 			this.id,
@@ -204,11 +184,12 @@ export class InTransferTransaction extends BaseTransaction {
 
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
-		const dappTransaction = store.transaction.get(this.asset.inTransfer.dappId);
-
-		const recipient = store.account.get(dappTransaction.senderId as string);
+		const recipient = await store.get<Account>(
+			ENTITY_ACCOUNT,
+			dappTx.senderId as string,
+		);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -218,22 +199,30 @@ export class InTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		await store.set(ENTITY_ACCOUNT, updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.amount);
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
-		const dappTransaction = store.transaction.get(this.asset.inTransfer.dappId);
+		const dappTransaction = await store.get<TransactionJSON>(
+			ENTITY_TRANSACTION,
+			this.asset.inTransfer.dappId,
+		);
 
-		const recipient = store.account.get(dappTransaction.senderId as string);
+		const recipient = await store.get<Account>(
+			ENTITY_ACCOUNT,
+			dappTransaction.senderId as string,
+		);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
@@ -254,7 +243,7 @@ export class InTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		await store.set(ENTITY_ACCOUNT, updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}

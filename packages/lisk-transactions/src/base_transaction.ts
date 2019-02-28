@@ -55,35 +55,20 @@ export interface TransactionResponse {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
-export interface StateStoreGetter<T> {
-	get(key: string): T;
-	find(func: (item: T) => boolean): T | undefined;
-}
-
-export interface StateStoreDefaultGetter<T> {
-	getOrDefault(key: string): T;
-}
-
-export interface StateStoreSetter<T> {
-	set(key: string, value: T): void;
-}
-
 export interface StateStore {
-	readonly account: StateStoreGetter<Account> &
-		StateStoreDefaultGetter<Account> &
-		StateStoreSetter<Account>;
-	readonly transaction: StateStoreGetter<TransactionJSON>;
-}
-
-export interface StateStoreCache<T> {
-	cache(
-		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-	): Promise<ReadonlyArray<T>>;
-}
-
-export interface StateStorePrepare {
-	readonly account: StateStoreCache<Account>;
-	readonly transaction: StateStoreCache<TransactionJSON>;
+	get<T>(bucket: string, key: string): Promise<T>;
+	// tslint:disable-next-line no-any
+	set(bucket: string, key: string, value: any): Promise<boolean>;
+	getOrDefault(bucket: string, key: string): Promise<Account>;
+	exists(bucket: string, key: string): Promise<boolean>;
+	unset(bucket: string, key: string): Promise<void>;
+	replace(
+		bucket: string,
+		oldKey: string,
+		newKey: string,
+		// tslint:disable-next-line no-any
+		value: any,
+	): Promise<void>;
 }
 
 export enum MultisignatureStatus {
@@ -94,8 +79,8 @@ export enum MultisignatureStatus {
 	FAIL = 4,
 }
 
-export const ENTITY_ACCOUNT = 'account';
-export const ENTITY_TRANSACTION = 'transaction';
+export const ENTITY_ACCOUNT = 'address:account';
+export const ENTITY_TRANSACTION = 'transaction_id:transaction';
 
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
@@ -118,15 +103,14 @@ export abstract class BaseTransaction {
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract assetToJSON(): object;
-	public abstract prepare(store: StateStorePrepare): Promise<void>;
 	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
-	): ReadonlyArray<TransactionError>;
+	): Promise<ReadonlyArray<TransactionError>>;
 	protected abstract undoAsset(
 		store: StateStore,
-	): ReadonlyArray<TransactionError>;
+	): Promise<ReadonlyArray<TransactionError>>;
 	protected abstract verifyAgainstTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): ReadonlyArray<TransactionError>;
@@ -253,12 +237,12 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public apply(store: StateStore): TransactionResponse {
-		const sender = store.account.getOrDefault(this.senderId);
+	public async apply(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.getOrDefault(ENTITY_ACCOUNT, this.senderId);
 		const errors = this._verify(sender) as TransactionError[];
 
 		// Verify MultiSignature
-		const { errors: multiSigError } = this.processMultisignatures(store);
+		const { errors: multiSigError } = await this.processMultisignatures(store);
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
@@ -269,8 +253,8 @@ export abstract class BaseTransaction {
 			balance: updatedBalance.toString(),
 			publicKey: sender.publicKey || this.senderPublicKey,
 		};
-		store.account.set(updatedSender.address, updatedSender);
-		const assetErrors = this.applyAsset(store);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
+		const assetErrors = await this.applyAsset(store);
 
 		errors.push(...assetErrors);
 
@@ -289,8 +273,8 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public undo(store: StateStore): TransactionResponse {
-		const sender = store.account.getOrDefault(this.senderId);
+	public async undo(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.getOrDefault(ENTITY_ACCOUNT, this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = {
 			...sender,
@@ -299,28 +283,20 @@ export abstract class BaseTransaction {
 		};
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
 			? []
-			: [
-					new TransactionError(
-						'Invalid balance amount',
-						this.id,
-						'.balance',
-						sender.balance,
-						updatedBalance.toString(),
-					),
-			  ];
-		store.account.set(updatedAccount.address, updatedAccount);
-		const assetErrors = this.undoAsset(store);
+			: [new TransactionError('Invalid balance amount', this.id)];
+		await store.set(ENTITY_ACCOUNT, updatedAccount.address, updatedAccount);
+		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 
 		return createResponse(this.id, errors);
 	}
 
-	public addMultisignature(
+	public async addMultisignature(
 		store: StateStore,
 		signatureObject: SignatureObject,
-	): TransactionResponse {
+	): Promise<TransactionResponse> {
 		// Get the account
-		const account = store.account.get(this.senderId);
+		const account = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		// Validate signature key belongs to account's multisignature group
 		if (
 			account.membersPublicKeys &&
@@ -387,8 +363,8 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public processMultisignatures(store: StateStore): TransactionResponse {
-		const sender = store.account.get(this.senderId);
+	public async processMultisignatures(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		const transactionBytes = this.getBasicBytes();
 
 		const { status, errors } = verifyMultiSignatures(
