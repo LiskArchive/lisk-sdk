@@ -1,4 +1,5 @@
 import { AbstractBatch } from 'abstract-leveldown';
+// tslint:disable-next-line match-default-export-name
 import levelup, { LevelUp } from 'levelup';
 import RocksDB from 'rocksdb';
 
@@ -27,7 +28,7 @@ export interface ReadStreamOption {
 }
 
 export class DB {
-	private _db: LevelUp<RocksDB>;
+	private readonly _db: LevelUp<RocksDB>;
 
 	public constructor(file: string) {
 		this._db = levelup(RocksDB(file));
