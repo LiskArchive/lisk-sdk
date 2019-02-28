@@ -43,7 +43,7 @@ const modulesInit = {
 	transactions: '../../../src/modules/chain/modules/transactions.js',
 	transport: '../../../src/modules/chain/modules/transport.js',
 	processTransactions:
-		'../../src/modules/chain/modules/process_transactions.js',
+		'../../../src/modules/chain/modules/process_transactions.js',
 };
 
 function init(options, cb) {
