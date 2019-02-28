@@ -24,7 +24,7 @@ import {
 import { installDirectory } from '../../../utils/node/commons';
 import InstallCommand from '../install';
 
-interface Flags {
+export interface Flags {
 	readonly installationPath: string;
 	readonly name: string;
 	readonly network: NETWORK;

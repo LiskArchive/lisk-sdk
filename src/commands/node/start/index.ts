@@ -13,10 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as Listr from 'listr';
 import BaseCommand from '../../../base';
 import InstallCommand from '../install';
-
-const { snapshotUrl, releaseUrl, ...startFlags } = InstallCommand.flags;
+import * as CacheCommand from './cache';
+import * as DatabaseCommand from './database';
 
 export default class StartCommand extends BaseCommand {
 	static description = 'Start Lisk Core';
@@ -30,10 +31,48 @@ export default class StartCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		...startFlags,
+		network: InstallCommand.flags.network,
+		installationPath: InstallCommand.flags.installationPath,
+		name: InstallCommand.flags.name,
 	};
 
 	async run(): Promise<void> {
-		this.parse(StartCommand);
+		const { flags } = this.parse(StartCommand);
+		const { network, installationPath, name } = flags as CacheCommand.Flags;
+
+		const tasks = new Listr.default([
+			{
+				title: 'Start Lisk Core',
+				task: () =>
+					new Listr.default([
+						{
+							title: 'Cache',
+							task: async () =>
+								CacheCommand.default.run([
+									'--network',
+									network,
+									'--installationPath',
+									installationPath,
+									'--name',
+									name,
+								]),
+						},
+						{
+							title: 'Database',
+							task: async () =>
+								DatabaseCommand.default.run([
+									'--network',
+									network,
+									'--installationPath',
+									installationPath,
+									'--name',
+									name,
+								]),
+						},
+					]),
+			},
+		]);
+
+		await tasks.run();
 	}
 }
