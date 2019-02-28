@@ -16,12 +16,9 @@
 import * as Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
-import {
-	isCacheEnabled,
-	isCacheRunning,
-	startCache,
-} from '../../../utils/node/cache';
+import { isCacheRunning, startCache } from '../../../utils/node/cache';
 import { installDirectory } from '../../../utils/node/commons';
+import { isCacheEnabled } from '../../../utils/node/config';
 import InstallCommand from '../install';
 
 export interface Flags {

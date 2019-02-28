@@ -15,17 +15,18 @@
  */
 import * as fs from 'fs';
 
-interface CacheConfig {
+export interface CacheConfig {
 	readonly host: string;
 	readonly password: string | null;
 	readonly port: number;
 }
 
-interface DbConfig {
-	readonly database: boolean;
-	readonly host: boolean;
+export interface DbConfig {
+	readonly database: string;
+	readonly host: string;
 	readonly password: boolean;
-	readonly port: boolean;
+	readonly port: number;
+	readonly user: string;
 }
 
 export interface NodeConfig {
@@ -46,15 +47,50 @@ export const getConfig = (filePath: string): object => {
 	return JSON.parse(config);
 };
 
-export const getAppConfig = (
-	installDir: string,
-	network: string,
-): NodeConfig => {
+const getDefaultConfig = (installDir: string): NodeConfig => {
 	const defaultConfigPath = `${installDir}/${configPath()}`;
-	const networkConfigPath = `${installDir}/${configPath(network)}`;
-
 	const defaultConfig = getConfig(defaultConfigPath) as NodeConfig;
+
+	return defaultConfig;
+};
+
+const getNetworkConfig = (installDir: string, network: string): NodeConfig => {
+	const networkConfigPath = `${installDir}/${configPath(network)}`;
 	const networkConfig = getConfig(networkConfigPath) as NodeConfig;
 
-	return { ...defaultConfig, ...networkConfig };
+	return networkConfig;
+};
+
+export const getDbConfig = (installDir: string, network: string): DbConfig => {
+	const defaultConfig: NodeConfig = getDefaultConfig(installDir);
+	const networkConfig = getNetworkConfig(installDir, network);
+
+	return { ...defaultConfig.db, ...networkConfig.db };
+};
+
+export const getCacheConfig = (
+	installDir: string,
+	network: string,
+): CacheConfig => {
+	const defaultConfig: NodeConfig = getDefaultConfig(installDir);
+	const networkConfig = getNetworkConfig(installDir, network);
+
+	return { ...defaultConfig.redis, ...networkConfig.redis };
+};
+
+export const isCacheEnabled = (
+	installDir: string,
+	network: string,
+): boolean => {
+	const defaultConfig: NodeConfig = getDefaultConfig(installDir);
+	const networkConfig = getNetworkConfig(installDir, network);
+
+	if (
+		networkConfig.cacheEnabled &&
+		typeof networkConfig.cacheEnabled === 'boolean'
+	) {
+		return networkConfig.cacheEnabled;
+	}
+
+	return defaultConfig.cacheEnabled;
 };

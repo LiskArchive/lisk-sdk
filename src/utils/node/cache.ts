@@ -14,7 +14,7 @@
  *
  */
 import { exec, ExecResult } from '../worker-process';
-import { getAppConfig, NodeConfig } from './config';
+import { CacheConfig, getCacheConfig } from './config';
 
 const CACHE_START_SUCCESS = '[+] Redis-Server started successfully.';
 const CACHE_START_FAILURE = '[-] Failed to start Redis-Server.';
@@ -25,21 +25,12 @@ const REDIS_CONFIG = 'etc/redis.conf';
 const REDIS_BIN = 'bin/redis-server';
 const REDIS_CLI = 'bin/redis-cli';
 
-export const isCacheEnabled = (
-	installDir: string,
-	network: string,
-): boolean => {
-	const { cacheEnabled }: NodeConfig = getAppConfig(installDir, network);
-
-	return cacheEnabled;
-};
-
 export const isCacheRunning = async (
 	installDir: string,
 	network: string,
 ): Promise<boolean> => {
 	try {
-		const { redis: { port } }: NodeConfig = getAppConfig(installDir, network);
+		const { port }: CacheConfig = getCacheConfig(installDir, network);
 		const { stdout }: ExecResult = await exec(
 			`cd ${installDir}; ${REDIS_CLI} -p ${port} ping`,
 		);
@@ -63,10 +54,7 @@ export const startCache = async (installDir: string): Promise<string> => {
 };
 
 const stopCommand = (installDir: string, network: string): string => {
-	const { redis: { port, password } }: NodeConfig = getAppConfig(
-		installDir,
-		network,
-	);
+	const { port, password }: CacheConfig = getCacheConfig(installDir, network);
 
 	if (password) {
 		return `${REDIS_CLI} -p ${port} -a ${password} shutdown`;

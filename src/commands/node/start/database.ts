@@ -13,10 +13,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as Listr from 'listr';
 import BaseCommand from '../../../base';
+import { NETWORK } from '../../../utils/constants';
+import { installDirectory } from '../../../utils/node/commons';
+import {
+	createDatabase,
+	createUser,
+	initDB,
+	startDatabase,
+} from '../../../utils/node/database';
 import InstallCommand from '../install';
 
-const { snapshotUrl, releaseUrl, ...databaseFlags } = InstallCommand.flags;
+export interface Flags {
+	readonly installationPath: string;
+	readonly name: string;
+	readonly network: NETWORK;
+	readonly 'no-snapshot': boolean;
+}
 
 export default class DatabaseCommand extends BaseCommand {
 	static description = 'Start Lisk Core Database';
@@ -30,10 +44,45 @@ export default class DatabaseCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		...databaseFlags,
+		network: InstallCommand.flags.network,
+		installationPath: InstallCommand.flags.installationPath,
+		name: InstallCommand.flags.name,
+		'no-snapshot': InstallCommand.flags['no-snapshot'],
 	};
 
 	async run(): Promise<void> {
-		this.parse(DatabaseCommand);
+		const { flags } = this.parse(DatabaseCommand);
+		const { network, installationPath, name } = flags as Flags;
+		const installDir = installDirectory(installationPath, name);
+
+		const tasks = new Listr.default([
+			{
+				title: 'Start Lisk Core Database',
+				task: () =>
+					new Listr.default([
+						{
+							title: 'Init Postgres',
+							task: async () => {
+								await initDB(installDir);
+							},
+						},
+						{
+							title: 'Start Postgres Server',
+							task: async () => {
+								await startDatabase(installDir);
+							},
+						},
+						{
+							title: 'Create user and database',
+							task: async () => {
+								await createUser(installDir, network);
+								await createDatabase(installDir, network);
+							},
+						},
+					]),
+			},
+		]);
+
+		await tasks.run();
 	}
 }

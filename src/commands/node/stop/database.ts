@@ -13,10 +13,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as Listr from 'listr';
 import BaseCommand from '../../../base';
+import { NETWORK } from '../../../utils/constants';
+import { installDirectory } from '../../../utils/node/commons';
+import { stopDatabase } from '../../../utils/node/database';
 import InstallCommand from '../install';
 
-const { snapshotUrl, releaseUrl, ...databaseFlags } = InstallCommand.flags;
+export interface Flags {
+	readonly installationPath: string;
+	readonly name: string;
+	readonly network: NETWORK;
+	readonly 'no-snapshot': boolean;
+}
 
 export default class DatabaseCommand extends BaseCommand {
 	static description = 'Stop Lisk Core Database';
@@ -30,10 +39,24 @@ export default class DatabaseCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		...databaseFlags,
+		network: InstallCommand.flags.network,
+		installationPath: InstallCommand.flags.installationPath,
+		name: InstallCommand.flags.name,
+		'no-snapshot': InstallCommand.flags['no-snapshot'],
 	};
 
 	async run(): Promise<void> {
-		this.parse(DatabaseCommand);
+		const { flags } = this.parse(DatabaseCommand);
+		const { installationPath, name } = flags as Flags;
+		const installDir = installDirectory(installationPath, name);
+
+		const tasks = new Listr.default([
+			{
+				title: 'Stop Lisk Core Database',
+				task: async () => stopDatabase(installDir),
+			},
+		]);
+
+		await tasks.run();
 	}
 }
