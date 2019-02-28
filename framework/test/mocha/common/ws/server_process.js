@@ -54,6 +54,15 @@ WSServer.prototype.start = function() {
 		nethash: self.headers.nethash,
 		port: self.headers.wsPort,
 		nonce: self.headers.nonce,
+		components: {
+			logger: {},
+			system: {
+				version: self.headers.version,
+				nethash: self.headers.nethash,
+				port: self.headers.wsPort,
+				nonce: self.headers.nonce,
+			},
+		},
 	};
 
 	return new Promise((resolve, reject) => {

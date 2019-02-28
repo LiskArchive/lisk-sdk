@@ -121,6 +121,7 @@ module.exports = class Chain {
 
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
+			this.options.systemConfig = systemConfig;
 
 			const self = this;
 			const scope = {

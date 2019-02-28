@@ -20,7 +20,7 @@ module.exports = async ({
 
 	const webSocketConfig = {
 		workers: 1,
-		port: config.wsPort,
+		port: config.network.wsPort,
 		host: '0.0.0.0',
 		wsEngine: config.network.options.wsEngine,
 		workerController: workersControllerPath,
@@ -40,11 +40,12 @@ module.exports = async ({
 		minVersion: config.minVersion,
 		protocolVersion: config.protocolVersion,
 		nethash: config.nethash,
-		port: config.wsPort,
+		port: config.network.wsPort,
 		nonce: config.nonce,
 		blackListedPeers: config.network.access.blackList,
 		components: {
 			logger: config.loggerConfig,
+			system: config.systemConfig,
 		},
 	};
 

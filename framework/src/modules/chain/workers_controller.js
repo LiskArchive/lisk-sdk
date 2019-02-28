@@ -100,7 +100,13 @@ SCWorker.create({
 				system: [
 					'config',
 					function(scope, cb) {
-						cb(null, createSystemComponent(scope.config, scope.logger));
+						cb(
+							null,
+							createSystemComponent(
+								scope.config.components.system,
+								scope.logger
+							)
+						);
 					},
 				],
 

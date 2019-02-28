@@ -35,8 +35,8 @@ function WSClient(headers = WSServerMaster.generatePeerHeaders()) {
 WSClient.prototype.start = function() {
 	this.client = connect(
 		{
-			ip: __testContext.config.address,
-			wsPort: __testContext.config.wsPort,
+			ip: __testContext.config.modules.chain.network.address,
+			wsPort: __testContext.config.modules.chain.network.wsPort,
 		},
 		{
 			trace() {},
