@@ -1272,21 +1272,15 @@ class Transaction {
 			return null;
 		}
 
+		const rawData = _.omitBy(raw, _.isNull);
+
 		const transaction = {
-			id: raw.id,
-			height: raw.height,
-			blockId: raw.blockId,
+			...rawData,
 			type: parseInt(raw.type),
 			timestamp: parseInt(raw.timestamp),
-			senderPublicKey: raw.senderPublicKey,
-			requesterPublicKey: raw.requesterPublicKey,
-			senderId: raw.senderId,
-			recipientId: raw.recipientId,
 			recipientPublicKey: raw.requesterPublicKey || null,
 			amount: new Bignum(raw.amount),
 			fee: new Bignum(raw.fee),
-			signature: raw.signature,
-			signSignature: raw.signSignature,
 			signatures: raw.signatures || [],
 			confirmations: parseInt(raw.confirmations),
 			asset: raw.asset || {},

@@ -161,7 +161,7 @@ class ChainAccount extends AccountEntity {
 		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
 			await this.updateDependentRecords(
 				'membersPublicKeys',
-				data.address,
+				filters.address,
 				data.membersPublicKeys,
 				tx
 			);
@@ -173,7 +173,7 @@ class ChainAccount extends AccountEntity {
 		) {
 			await this.updateDependentRecords(
 				'votedDelegatesPublicKeys',
-				data.address,
+				filters.address,
 				data.votedDelegatesPublicKeys,
 				tx
 			);
@@ -186,7 +186,7 @@ class ChainAccount extends AccountEntity {
 		) {
 			await this.adapter.executeFile(
 				this.SQLs.deleteVotes,
-				{ accountId: data.address },
+				{ accountId: filters.address },
 				{},
 				tx
 			);
@@ -562,7 +562,7 @@ class ChainAccount extends AccountEntity {
 			aPK => !oldDependentPublicKeys.includes(aPK)
 		);
 		const paramsForDelete = {
-			tableName: dependentFieldsTableMap[dependencyName],
+			tableName,
 			accountId: address,
 			dependentIds: publicKeysToBeRemoved,
 		};
