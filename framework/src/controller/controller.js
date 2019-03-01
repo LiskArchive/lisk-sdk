@@ -6,8 +6,6 @@ const EventEmitterChannel = require('./channels/event_emitter');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 
-/* eslint-disable no-underscore-dangle */
-
 const validateModuleSpec = moduleSpec => {
 	assert(moduleSpec.constructor.alias, 'Module alias is required.');
 	assert(moduleSpec.constructor.info.name, 'Module name is required.');
