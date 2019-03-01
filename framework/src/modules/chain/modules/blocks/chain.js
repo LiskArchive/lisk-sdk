@@ -19,7 +19,6 @@ const async = require('async');
 const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionTypes = require('../../helpers/transaction_types.js');
-const Bignum = require('../../helpers/bignum.js');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -283,10 +282,6 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		}
 		return 0;
 	});
-	block.transactions.forEach(transaction => {
-		transaction.amount = new Bignum(transaction.amount);
-		transaction.fee = new Bignum(transaction.fee);
-	});
 
 	__private.applyTransactions(block.transactions, err => {
 		if (err) {
@@ -314,13 +309,12 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.applyTransactions = function(transactions, cb) {
-	transactions.forEach(transaction => delete transaction.signSignature);
 	modules.processTransactions
 		.applyTransactions(transactions)
-		.then(({ stateStore }) => {
+		.then(({ stateStore }) =>
 			// TODO: Need to add logic for handling exceptions for genesis block transactions
-			Promise.all(stateStore.account.finalize());
-		})
+			stateStore.account.finalize()
+		)
 		.then(() => cb())
 		.catch(cb);
 };
@@ -423,7 +417,7 @@ __private.applyConfirmedStep = async function(block, tx) {
 		throw unappliedTransactionResponse.errors;
 	}
 
-	await Promise.all(stateStore.account.finalize());
+	await stateStore.account.finalize();
 };
 
 /**

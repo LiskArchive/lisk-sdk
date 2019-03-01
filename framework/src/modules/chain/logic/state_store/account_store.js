@@ -139,7 +139,7 @@ class AccountStore {
 			}
 		);
 
-		return updateToAccounts;
+		return Promise.all(updateToAccounts);
 	}
 }
 
