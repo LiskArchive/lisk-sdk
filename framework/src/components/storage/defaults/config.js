@@ -4,24 +4,30 @@ const defaultConfig = {
 		host: {
 			type: 'string',
 			default: 'localhost',
+			env: 'LISK_DB_HOST',
 		},
 		port: {
 			type: 'integer',
 			minimum: 1,
 			maximum: 65535,
 			default: 5432,
+			env: 'LISK_DB_PORT',
 		},
 		database: {
 			type: 'string',
 			default: '',
+			env: 'LISK_DB_NAME',
+			arg: '-d,--database',
 		},
 		user: {
 			type: 'string',
 			default: 'lisk',
+			env: 'LISK_DB_USER',
 		},
 		password: {
 			type: 'string',
 			default: 'password',
+			env: 'LISK_DB_PASSWORD',
 		},
 		min: {
 			type: 'integer',
