@@ -46,22 +46,26 @@ __private.assetTypes = {};
  */
 function Multisignatures(cb, scope) {
 	library = {
-		logger: scope.logger,
-		storage: scope.storage,
-		network: scope.network,
+		channel: scope.channel,
+		logger: scope.components.logger,
+		storage: scope.components.storage,
 		schema: scope.schema,
 		bus: scope.bus,
 		balancesSequence: scope.balancesSequence,
 		logic: {
 			transaction: scope.logic.transaction,
 			account: scope.logic.account,
-			multisignature: new Multisignature(
-				scope.schema,
-				scope.network,
-				scope.logic.transaction,
-				scope.logic.account,
-				scope.logger
-			),
+			multisignature: new Multisignature({
+				components: {
+					logger: scope.components.logger,
+				},
+				schema: scope.schema,
+				logic: {
+					account: scope.logic.account,
+					transaction: scope.logic.transaction,
+				},
+				channel: scope.channel,
+			}),
 		},
 	};
 	self = this;
@@ -172,10 +176,11 @@ __private.validateSignature = (
 	transaction.ready = library.logic.multisignature.ready(transaction, sender);
 
 	// Emit events
-	library.network.io.sockets.emit(
-		'multisignatures/signature/change',
+	library.channel.publish(
+		'chain:multisignatures:signature:change',
 		transaction
 	);
+
 	library.bus.message('signature', signature, true);
 	return setImmediate(cb);
 };

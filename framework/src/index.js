@@ -3,7 +3,7 @@ const constants = require('./controller/defaults/constants');
 const version = require('./version');
 
 /**
- * @namespace Framework
+ * @namespace framework
  * @type {{constants, Application: (module.Application|*), version: string}}
  */
 module.exports = {

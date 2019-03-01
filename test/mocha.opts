@@ -1,5 +1,1 @@
---timeout 1200s
---exit
---colors
---require ./test/setup.js
---recursive
+../framework/test/mocha/mocha.opts

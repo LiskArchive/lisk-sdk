@@ -1,10 +1,16 @@
 const Ajv = require('ajv');
 const { SchemaValidationError } = require('../../errors');
 
+const zSchema = require('../../modules/chain/helpers/z_schema');
+
 const validator = new Ajv({ allErrors: true, schemaId: 'auto' });
+Object.keys(zSchema.formatsCache).forEach(zSchemaType => {
+	validator.addFormat(zSchemaType, zSchema.formatsCache[zSchemaType]);
+});
 
 /**
- * @namespace Framework.helpers
+ * Function helps with loading and validating schemas.
+ *
  * @type {{loadSchema: module.exports.loadSchema, validate: (function(*=, *=): boolean)}}
  */
 module.exports = {
@@ -20,7 +26,7 @@ module.exports = {
 	},
 
 	/**
-	 * Validate data against provided schema
+	 * Validate data against provided schema.
 	 *
 	 * @param {Object} schema - JSON Schema object
 	 * @param {Object} data - Data object you want to validate

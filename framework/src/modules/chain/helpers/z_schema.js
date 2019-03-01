@@ -28,6 +28,8 @@ const UINT64_MAX = new Bignum('18446744073709551615');
  * So have to apply additional validation for IP and FQDN with **ipOrFQDN**.
  * - id
  * - address
+ * - amount
+ * - bignum
  * - username
  * - hex
  * - publicKey
@@ -312,6 +314,7 @@ const liskFormats = {
 	},
 	/**
 	 * Transaction amount/fee.
+	 * Also validate string amount to be lower than TOTAL_AMOUNT constant
 	 *
 	 * @param {Object} value
 	 * @returns {boolean}
@@ -328,6 +331,14 @@ const liskFormats = {
 				value.isLessThanOrEqualTo(TOTAL_AMOUNT)
 			);
 		}
+
+		if (typeof value === 'string' && /^[0-9]+$/.test(value)) {
+			const num = new Bignum(value);
+			return (
+				num.isGreaterThanOrEqualTo(0) && num.isLessThanOrEqualTo(TOTAL_AMOUNT)
+			);
+		}
+
 		return false;
 	},
 	/**
@@ -338,6 +349,65 @@ const liskFormats = {
 	 */
 	integerOrNull(value) {
 		return Number.isInteger(value) || value === null;
+	},
+	/**
+	 * Returns true if integer is odd.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	oddInteger: {
+		type: 'number',
+		validate: value => Number.isInteger(value) && /^\d*[13579]$/.test(value),
+	},
+	/**
+	 * Returns true if `MULTISIG_CONSTRAINTS.MIN.MAXIMUM` is lower than or equal to `MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS`.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	keysgroupLimit: {
+		type: 'number',
+		validate: value => {
+			const { MULTISIG_CONSTRAINTS } = global.constants;
+			return (
+				Number.isInteger(value) &&
+				MULTISIG_CONSTRAINTS.MIN.MAXIMUM <=
+					MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS
+			);
+		},
+	},
+	/**
+	 * Returns true if `MAX_VOTES_PER_ACCOUNT` is lower than or equal to `ACTIVE_DELEGATES`.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	maxVotesAccount: {
+		type: 'number',
+		validate: value => {
+			const { ACTIVE_DELEGATES, MAX_VOTES_PER_ACCOUNT } = global.constants;
+			return (
+				Number.isInteger(value) && MAX_VOTES_PER_ACCOUNT <= ACTIVE_DELEGATES
+			);
+		},
+	},
+	/**
+	 * Returns true if value is lower than or equal to `TOTAL_AMOUNT`.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	numAmount: {
+		type: 'number',
+		validate: value => {
+			const { TOTAL_AMOUNT } = global.constants;
+			if (new Bignum(value).isPositive()) {
+				return new Bignum(value).isLessThanOrEqualTo(TOTAL_AMOUNT);
+			}
+
+			return false;
+		},
 	},
 };
 

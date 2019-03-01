@@ -17,15 +17,13 @@
 /**
  * Object holding all Lisk Framework specific constants.
  *
- * @namespace Framework.defaults
- * @memberof config
- * @see Parent: {@link config}
+ * @memberof framework.controller.defaults
  * @property {number} ACTIVE_DELEGATES - The default number of delegates allowed to forge a block.
  * @property {number} ADDITIONAL_DATA.MIN_LENGTH - Additional data (Min length)
  * @property {number} ADDITIONAL_DATA.MAX_LENGTH - Additional data (Max length)
  * @property {number} BLOCK_SLOT_WINDOW - The default number of previous blocks to keep in memory.
  * @property {number} BLOCK_RECEIPT_TIMEOUT - Seconds to check if the block is fresh or not.
- * @property {Date} EPOCH_TIME - Timestamp indicating the start of Lisk Core.
+ * @property {string} EPOCH_TIME - Timestamp indicating the start of Lisk Core (`Date.toISOString()`).
  * @property {Object} FEES - Object representing amount of fees for different types of transactions.
  * @property {number} FEES.SEND - Fee for sending a transaction.
  * @property {number} FEES.VOTE - Fee for voting a delegate.
@@ -69,7 +67,7 @@ module.exports = {
 		MAX_LENGTH: 64,
 	},
 	BLOCK_RECEIPT_TIMEOUT: 20, // 2 blocks
-	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
+	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	FEES: {
 		SEND: '10000000',
 		VOTE: '100000000',

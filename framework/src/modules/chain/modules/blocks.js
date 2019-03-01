@@ -57,42 +57,42 @@ __private.isActive = false;
 class Blocks {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			network: scope.network,
+			channel: scope.channel,
+			logger: scope.components.logger,
 		};
 
 		// Initialize submodules with library content
 		this.submodules = {
 			verify: new BlocksVerify(
-				scope.logger,
+				scope.components.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.storage,
+				scope.components.storage,
 				scope.config
 			),
 			process: new BlocksProcess(
-				scope.logger,
+				scope.components.logger,
 				scope.logic.block,
 				scope.logic.peers,
 				scope.logic.transaction,
 				scope.schema,
-				scope.storage,
+				scope.components.storage,
 				scope.sequence,
 				scope.genesisBlock
 			),
 			utils: new BlocksUtils(
-				scope.logger,
+				scope.components.logger,
 				scope.logic.account,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.storage,
+				scope.components.storage,
 				scope.genesisBlock
 			),
 			chain: new BlocksChain(
-				scope.logger,
+				scope.components.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.storage,
+				scope.components.storage,
 				scope.genesisBlock,
 				scope.bus,
 				scope.balancesSequence
@@ -151,7 +151,7 @@ Blocks.prototype.lastBlock = {
 		// Current time in seconds - (epoch start in seconds + block timestamp)
 		const secondsAgo =
 			Math.floor(Date.now() / 1000) -
-			(Math.floor(EPOCH_TIME / 1000) + __private.lastBlock.timestamp);
+			(Math.floor(new Date(EPOCH_TIME) / 1000) + __private.lastBlock.timestamp);
 		return secondsAgo < BLOCK_RECEIPT_TIMEOUT;
 	},
 };
@@ -265,7 +265,7 @@ Blocks.prototype.onNewBlock = async function(block) {
 		}
 	}
 
-	return library.network.io.sockets.emit('blocks/change', block);
+	return library.channel.publish('chain:blocks:change', block);
 };
 
 /**

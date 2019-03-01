@@ -50,7 +50,7 @@ pipeline {
 	}
 	post {
 		always {
-			archiveArtifacts artifacts: 'test/network/logs/*.log', allowEmptyArchive: true
+			archiveArtifacts artifacts: 'framework/test/mocha/network/logs/*.log', allowEmptyArchive: true
 		}
 		failure {
 			script {
@@ -66,7 +66,7 @@ pipeline {
 		}
 		cleanup {
 			nvm(getNodejsVersion()) {
-				sh './node_modules/.bin/pm2 kill || true'
+				sh 'npx pm2 kill || true'
 			}
 		}
 	}

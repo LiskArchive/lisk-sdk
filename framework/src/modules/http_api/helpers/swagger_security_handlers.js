@@ -1,0 +1,1 @@
+../../chain/helpers/swagger_security_handlers.js

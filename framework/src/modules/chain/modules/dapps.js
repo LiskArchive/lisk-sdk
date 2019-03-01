@@ -58,8 +58,8 @@ __private.assetTypes = {};
 class DApps {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
-			storage: scope.storage,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
 			network: scope.network,
 			schema: scope.schema,
 			ed: scope.ed,
@@ -77,21 +77,40 @@ class DApps {
 			transactionTypes.DAPP
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DAPP,
-			new DApp(scope.storage, scope.logger, scope.schema, scope.network)
+			new DApp({
+				components: {
+					storage: scope.components.storage,
+					logger: scope.components.logger,
+				},
+				schema: scope.schema,
+				channel: scope.channel,
+			})
 		);
 
 		__private.assetTypes[
 			transactionTypes.IN_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.IN_TRANSFER,
-			new InTransfer(scope.storage, scope.schema)
+			new InTransfer({
+				components: {
+					storage: scope.components.storage,
+				},
+				schema: scope.schema,
+			})
 		);
 
 		__private.assetTypes[
 			transactionTypes.OUT_TRANSFER
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.OUT_TRANSFER,
-			new OutTransfer(scope.storage, scope.schema, scope.logger)
+
+			new OutTransfer({
+				components: {
+					storage: scope.components.storage,
+					logger: scope.components.logger,
+				},
+				schema: scope.schema,
+			})
 		);
 
 		/**
@@ -107,7 +126,7 @@ class DApps {
 
 // Events
 /**
- * Bounds used scope modules to private modules constiable and sets params
+ * Bounds used scope modules to private modules constant and sets params
  * to private Dapp, InTransfer and OutTransfer instances.
  *
  * @param {Object} scope - Loaded modules
@@ -122,13 +141,11 @@ DApps.prototype.onBind = function(scope) {
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
 		scope.modules.accounts,
-		scope.modules.blocks,
 		shared
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
 		scope.modules.accounts,
-		scope.modules.blocks,
 		scope.modules.dapps
 	);
 };

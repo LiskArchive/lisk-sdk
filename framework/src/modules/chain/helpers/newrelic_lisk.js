@@ -37,6 +37,10 @@ const modulesToInstrument = {
 			'removeByPattern',
 		],
 	},
+	'./componentes/system.js': {
+		identifier: 'componentes.system',
+		callbackMethods: ['update'],
+	},
 	'./helpers/sequence.js': {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
@@ -68,10 +72,6 @@ const modulesToInstrument = {
 	'./modules/signatures.js': {
 		identifier: 'modules.signatures',
 		callbackMethods: ['shared.postSignature', 'shared.postSignatures'],
-	},
-	'./modules/system.js': {
-		identifier: 'modules.system',
-		callbackMethods: ['update'],
 	},
 	'./modules/transactions.js': {
 		identifier: 'modules.transactions',
