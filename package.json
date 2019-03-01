@@ -42,6 +42,7 @@
 		"prepublishOnly": "npm run check:dependencies"
 	},
 	"dependencies": {
+		"@liskhq/lisk-p2p": "0.1.0-alpha.1",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
 		"bignumber.js": "8.0.2",
