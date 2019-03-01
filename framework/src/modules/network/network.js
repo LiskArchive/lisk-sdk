@@ -64,7 +64,7 @@ module.exports = class Network {
 				this.p2p.applyNodeInfo(event.data);
 			};
 
-			this.channel.subscribe('chain:updateNodeInfo', this._handleUpdateNodeInfo);
+			this.channel.subscribe('chain:system:updateNodeInfo', this._handleUpdateNodeInfo);
 
 			await this.p2p.start();
 		} catch (error) {
@@ -77,6 +77,6 @@ module.exports = class Network {
 	}
 
 	async cleanup() {
-		// TODO: Unsubscribe 'chain:updateNodeInfo' from channel.
+		// TODO: Unsubscribe 'chain:system:updateNodeInfo' from channel.
 	}
 };

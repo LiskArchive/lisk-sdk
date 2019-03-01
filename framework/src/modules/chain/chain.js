@@ -80,7 +80,7 @@ module.exports = class Chain {
 		);
 
 		const handleNodeInfoUpdate = (headers) => {
-			this.channel.publish('chain:updateNodeInfo', headers);
+			this.channel.publish('chain:system:updateNodeInfo', headers);
 		};
 
 		this.logger = createLoggerComponent(loggerConfig);
