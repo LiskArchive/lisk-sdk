@@ -5,4 +5,8 @@ module.exports = {
 	testMatch: ['<rootDir>/framework/test/jest/specs/unit/**/*.(spec|test).js'],
 	clearMocks: true,
 	coverageDirectory: '.coverage/unit',
+	collectCoverageFrom: [
+		'framework/src/controller/**',
+		'framework/src/components/**',
+	],
 };
