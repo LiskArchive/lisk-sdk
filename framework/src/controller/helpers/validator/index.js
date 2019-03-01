@@ -19,6 +19,7 @@ const Ajv = require('ajv');
 const { SchemaValidationError } = require('../../../errors');
 const formats = require('./formats');
 const ZSchema = require('./z_schema');
+const { env: envKeyword, arg: argKeyword } = require('./keywords');
 
 const validator = new Ajv({
 	allErrors: true,
@@ -33,6 +34,8 @@ const validatorWithDefaults = new Ajv({
 	useDefaults: true,
 	$data: true,
 });
+validatorWithDefaults.addKeyword('env', envKeyword);
+validatorWithDefaults.addKeyword('arg', argKeyword);
 
 Object.keys(formats).forEach(formatId => {
 	validator.addFormat(formatId, formats[formatId]);

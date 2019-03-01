@@ -23,7 +23,7 @@ const metaSchema = {
 					enum: Object.keys(formatters),
 				},
 			],
-			minItems: 1,
+			minItems: 2,
 			maxItems: 2,
 		},
 	],
