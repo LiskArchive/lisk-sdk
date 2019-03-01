@@ -16,7 +16,7 @@
 
 const async = require('async');
 const expect = require('chai').expect;
-const liskTransactions = require('lisk-elements').default.transaction;
+const { transaction: liskTransactions } = require('lisk-elements');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
