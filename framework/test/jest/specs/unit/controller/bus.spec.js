@@ -1,7 +1,10 @@
+const { EventEmitter2 } = require('eventemitter2');
+
 const Bus = require('../../../../../src/controller/bus');
 const Controller = require('../../../../../src/controller/controller');
 
 jest.mock('../../../../../src/controller/controller');
+jest.mock('eventemitter2');
 
 const controller = new Controller();
 const options = {};
@@ -65,7 +68,7 @@ describe('Bus', () => {
 			// Assert
 			expect(Object.keys(bus.actions)).toHaveLength(2);
 			actions.forEach(actionName => {
-				expect(bus.events[`${moduleAlias}:${actionName}`]).toBe(true);
+				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(true);
 			});
 		});
 
@@ -78,6 +81,68 @@ describe('Bus', () => {
 			expect(
 				bus.registerChannel(moduleAlias, [], actions)
 			).rejects.toBeInstanceOf(Error);
+		});
+	});
+
+	describe.todo('#invoke');
+
+	describe('#emit', () => {
+		it('should throw Error when unregistered event name was provided.', () => {
+			expect(() => bus.emit('unregisteredEvent')).toThrow();
+		});
+
+		it("should call eventemitter2 library's emit method", async () => {
+			// Arrange
+			// Arrange
+			const moduleAlias = 'alias';
+			const events = ['registeredEvent'];
+			const eventName = `${moduleAlias}:${events[0]}`;
+			const eventData = '#DATA';
+
+			await bus.registerChannel(moduleAlias, events, []);
+
+			// Act
+			bus.emit(eventName, eventData);
+
+			// Assert
+			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(
+				eventName,
+				eventData
+			);
+		});
+	});
+
+	describe('#getActions', () => {
+		it('should return the registered actions', async () => {
+			// Arrange
+			const moduleAlias = 'alias';
+			const actions = ['action1', 'action2'];
+			const expectedActions = actions.map(action => `${moduleAlias}:${action}`);
+
+			await bus.registerChannel(moduleAlias, [], actions);
+
+			// Act
+			const registeredActions = bus.getActions();
+
+			// Assert
+			expect(registeredActions).toEqual(expectedActions);
+		});
+	});
+
+	describe('#getEvents', () => {
+		it('should return the registered events.', async () => {
+			// Arrange
+			const moduleAlias = 'alias';
+			const events = ['event1', 'event2'];
+			const expectedEvents = events.map(event => `${moduleAlias}:${event}`);
+
+			await bus.registerChannel(moduleAlias, events, []);
+
+			// Act
+			const registeredEvent = bus.getEvents();
+
+			// Assert
+			expect(registeredEvent).toEqual(expectedEvents);
 		});
 	});
 });
