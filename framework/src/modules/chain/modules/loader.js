@@ -313,7 +313,7 @@ __private.loadTransactions = function(cb) {
 					);
 					modules.peers.remove(peer);
 
-					return setImmediate(waterCb, error, null);
+					return setImmediate(waterCb, error);
 				}
 
 				return setImmediate(waterCb, null, transactions);
