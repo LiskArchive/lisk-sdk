@@ -172,8 +172,7 @@ class Controller {
 			moduleAlias,
 			module.events,
 			module.actions,
-			this.bus,
-			{}
+			this.bus
 		);
 
 		this.modulesChannels[moduleAlias] = channel;
