@@ -84,7 +84,11 @@ describe('Bus', () => {
 		});
 	});
 
-	describe.todo('#invoke');
+	describe('#invoke', () => {
+		it.todo('should invoke controller channel action.');
+		it.todo('should invoke module channel action.');
+		it.todo('should throw error if action was not registered.');
+	});
 
 	describe('#emit', () => {
 		it('should throw Error when unregistered event name was provided.', () => {
