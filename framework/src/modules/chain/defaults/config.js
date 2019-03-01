@@ -83,6 +83,7 @@ const DefaultConfig = {
 				delegates: {
 					type: 'array',
 					default: [],
+					arg: ['LISK_FORGING_DELEGATES', 'stringToDelegateList'],
 					items: {
 						properties: {
 							encryptedPassphrase: {
@@ -128,6 +129,7 @@ const DefaultConfig = {
 				snapshotRound: {
 					type: 'integer',
 					default: 0,
+					arg: '-s,--snapshot',
 				},
 			},
 			required: ['loadPerIteration'],
@@ -287,11 +289,15 @@ const DefaultConfig = {
 					minimum: 1,
 					maximum: 65535,
 					default: 5000,
+					env: 'LISK_WS_PORT',
+					arg: '-p,--port',
 				},
 				address: {
 					type: 'string',
 					format: 'ip',
 					default: '0.0.0.0',
+					env: 'LISK_ADDRESS',
+					arg: '-a,--address',
 				},
 				enabled: {
 					type: 'boolean',
@@ -313,6 +319,8 @@ const DefaultConfig = {
 							},
 						},
 					},
+					env: ['LISK_PEERS', 'stringToIpPortSet'],
+					arg: ['-x,--peers', 'stringToIpPortSet'], // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 					default: [
 						{
 							ip: 'testnet-seed-01.lisk.io',

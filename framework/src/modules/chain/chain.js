@@ -104,6 +104,13 @@ module.exports = class Chain {
 		// Needs to be loaded here as its using constants that need to be initialized first
 		this.slots = require('./helpers/slots');
 
+		if (this.options.loading.snapshotRound) {
+			this.options.network.enabled = false;
+			this.options.network.list = [];
+			this.options.broadcasts.active = false;
+			this.options.syncing.active = false;
+		}
+
 		try {
 			// Cache
 			this.logger.debug('Initiating cache...');
