@@ -1,7 +1,11 @@
 const fs = require('fs-extra');
-const Controller = require('../../../../../../src/controller/controller');
+const Controller = require('../../../../../src/controller/controller');
+const Bus = require('../../../../../src/controller/bus');
+const EventEmitterChannel = require('../../../../../src/controller/channels/event_emitter');
 
 jest.mock('fs-extra');
+jest.mock('../../../../../src/controller/bus');
+jest.mock('../../../../../src/controller/channels/event_emitter');
 
 // Arrange
 const appLabel = '#LABEL';
@@ -136,14 +140,48 @@ describe('Controller Class', () => {
 	});
 
 	describe('#_setupBus', () => {
-		it.todo('should set created `Bus` instance to `controller.bus` property.');
-		it.todo('should call `controller.bus.setup()` method.');
+		beforeEach(async () => {
+			// Act
+			controller._setupBus();
+		});
 
-		it.todo(
-			'should set created `EventEmitterChannel` instance to `controller.channel` property.'
-		);
+		it('should set created `Bus` instance to `controller.bus` property.', () => {
+			// Assert
+			expect(Bus).toHaveBeenCalledWith(controller, {
+				wildcard: true,
+				delimiter: ':',
+				maxListeners: 1000,
+			});
+			expect(controller.bus).toBeInstanceOf(Bus);
+		});
+		it('should call `controller.bus.setup()` method.', () => {
+			// Assert
+			expect(controller.bus.setup).toHaveBeenCalled();
+		});
 
-		it.todo('should call `controller.channel.registerToBus()` method.');
+		it('should set created `EventEmitterChannel` instance to `controller.channel` property.', () => {
+			// Assert
+			/**
+			 * @todo it is not possible to test the arguments at the moment.
+				expect(EventEmitterChannel).toHaveBeenCalledWith(
+					'lisk',
+					['ready'],
+					{
+						getComponentConfig: () => {},
+					},
+					controller.bus,
+					{ skipInternalEvents: true }
+				);
+			*/
+			expect(controller.channel).toBeInstanceOf(EventEmitterChannel);
+		});
+
+		it('should call `controller.channel.registerToBus()` method.', () => {
+			// Assert
+			expect(controller.bus.setup).toHaveBeenCalled();
+		});
+
+		it.todo('should log events if level is greater than info.');
 	});
 
 	describe('#_loadModules', () => {
