@@ -18,8 +18,8 @@ const rewire = require('rewire');
 const accountsFixtures = require('../../../../fixtures/index').accounts;
 const transactionsFixtures = require('../../../../fixtures/index').transactions;
 const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
-const ApiError = require('../../../../../../src/modules/chain/helpers/api_error');
-const errorCodes = require('../../../../../../src/modules/chain/helpers/api_codes');
+const ApiError = require('../../../../../../src/modules/http_api/helpers/api_error');
+const errorCodes = require('../../../../../../src/modules/http_api/helpers/api_codes');
 
 const RewiredMultisignatures = rewire(
 	'../../../../../../src/modules/chain/modules/multisignatures.js'

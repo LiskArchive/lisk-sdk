@@ -17,8 +17,6 @@
 const async = require('async');
 const Multisignature = require('../logic/multisignature.js');
 const transactionTypes = require('../helpers/transaction_types.js');
-const ApiError = require('../helpers/api_error');
-const errorCodes = require('../helpers/api_codes');
 
 // Private fields
 let modules;
@@ -36,8 +34,6 @@ __private.assetTypes = {};
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires helpers/api_codes
- * @requires helpers/api_error
  * @requires helpers/transaction_types
  * @requires logic/multisignature
  * @param {function} cb - Callback function
@@ -343,13 +339,7 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 					}
 
 					if (!account) {
-						return setImmediate(
-							seriesCb,
-							new ApiError(
-								'Multisignature account not found',
-								errorCodes.NOT_FOUND
-							)
-						);
+						return setImmediate(seriesCb, 'Multisignature account not found');
 					}
 
 					scope.group = {

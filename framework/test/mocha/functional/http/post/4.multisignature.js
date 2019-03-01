@@ -19,13 +19,12 @@ const lisk = require('lisk-elements').default;
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const accountFixtures = require('../../../fixtures/accounts');
-const apiCodes = require('../../../../../src/modules/chain/helpers/api_codes');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const elements = require('../../../common/utils/elements');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const errorCodes = require('../../../../../src/modules/http_api/helpers/api_codes');
 const common = require('./common');
 
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
@@ -697,7 +696,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 						return signatureEndpoint.makeRequest(
 							{ signature },
-							apiCodes.PROCESSING_ERROR
+							errorCodes.PROCESSING_ERROR
 						);
 					})
 					.then(res => {
@@ -716,7 +715,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 
 				return signatureEndpoint
-					.makeRequest({ signature }, apiCodes.PROCESSING_ERROR)
+					.makeRequest({ signature }, errorCodes.PROCESSING_ERROR)
 					.then(res => {
 						expect(res)
 							.to.have.nested.property('body.message')

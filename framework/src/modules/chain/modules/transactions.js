@@ -19,8 +19,6 @@ const async = require('async');
 const {
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../framework/src/components/cache');
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;
 const TransactionPool = require('../logic/transaction_pool.js');
 const transactionTypes = require('../helpers/transaction_types.js');
@@ -44,8 +42,6 @@ __private.assetTypes = {};
  * @see Parent: {@link modules}
  * @requires bluebird
  * @requires lodash
- * @requires helpers/api_codes
- * @requires helpers/api_error
  * @requires helpers/sort_by
  * @requires helpers/transaction_types
  * @requires logic/transaction_pool
@@ -615,29 +611,6 @@ Transactions.prototype.onBind = function(scope) {
 	__private.assetTypes[transactionTypes.SEND].bind(scope.modules.accounts);
 };
 
-/**
- * Processes posted transaction result object.
- *
- * @param {Error} err - Error object
- * @param {Object} res - Result object
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, error, response
- */
-__private.processPostResult = function(err, res, cb) {
-	let error = null;
-	let response = null;
-
-	if (err) {
-		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
-	} else if (res.success) {
-		response = 'Transaction(s) accepted';
-	} else {
-		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
-	}
-
-	setImmediate(cb, error, response);
-};
-
 // Shared API
 /**
  * Public methods, accessible via API.
@@ -793,9 +766,7 @@ Transactions.prototype.shared = {
 	postTransaction(transaction, cb) {
 		return modules.transport.shared.postTransaction(
 			{ transaction },
-			(err, res) => {
-				__private.processPostResult(err, res, cb);
-			}
+			(err, res) => setImmediate(cb, err, res)
 		);
 	},
 
@@ -809,9 +780,7 @@ Transactions.prototype.shared = {
 	postTransactions(transactions, cb) {
 		return modules.transport.shared.postTransactions(
 			{ transactions },
-			(err, res) => {
-				__private.processPostResult(err, res, cb);
-			}
+			(err, res) => setImmediate(cb, err, res)
 		);
 	},
 };

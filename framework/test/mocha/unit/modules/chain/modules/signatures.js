@@ -16,7 +16,7 @@
 
 const application = require('../../../../common/application');
 const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
-const ApiError = require('../../../../../../src/modules/chain/helpers/api_error');
+const ApiError = require('../../../../../../src/modules/http_api/helpers/api_error');
 
 /* eslint-disable mocha/no-pending-tests */
 describe('signatures', () => {

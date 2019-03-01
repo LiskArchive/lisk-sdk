@@ -20,7 +20,7 @@ const typesRepresentatives = require('../../../fixtures/types_representatives');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const randomUtil = require('../../../common/utils/random');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const errorCodes = require('../../../../../src/modules/http_api/helpers/api_codes');
 
 function invalidAssets(option, badTransactions) {
 	describe('using invalid asset values', () => {

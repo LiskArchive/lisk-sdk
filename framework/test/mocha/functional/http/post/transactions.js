@@ -21,7 +21,7 @@ const randomUtil = require('../../../common/utils/random');
 const accountFixtures = require('../../../fixtures/accounts');
 const sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const errorCodes = require('../../../../../src/modules/http_api/helpers/api_codes');
 const phases = require('../../../common/phases');
 
 describe('POST /api/transactions (general)', () => {

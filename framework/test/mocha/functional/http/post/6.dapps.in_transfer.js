@@ -23,7 +23,7 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const errorCodes = require('../../../../../src/modules/http_api/helpers/api_codes');
 const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
