@@ -39,7 +39,7 @@ class Bus extends EventEmitter2 {
 	// eslint-disable-next-line class-methods-use-this
 	async setup() {
 		// Place holder for RPC server connection
-		return Promise.resolve();
+		return Promise.resolve('will be implemented');
 	}
 
 	/**
