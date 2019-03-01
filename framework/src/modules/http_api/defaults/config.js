@@ -6,11 +6,15 @@ const defaultConfig = {
 			minimum: 1,
 			maximum: 65535,
 			default: 4000,
+			env: 'LISK_HTTP_PORT',
+			arg: '-h,--http-port',
 		},
 		address: {
 			type: 'string',
 			format: 'ip',
 			default: '0.0.0.0',
+			env: 'LISK_ADDRESS',
+			arg: '-a,--address',
 		},
 		trustProxy: {
 			type: 'boolean',
@@ -26,10 +30,12 @@ const defaultConfig = {
 				public: {
 					type: 'boolean',
 					default: false,
+					env: 'LISK_API_PUBLIC',
 				},
 				whiteList: {
 					type: 'array',
 					default: ['127.0.0.1'],
+					env: ['LISK_API_WHITELIST', 'stringToIpPortSet'],
 				},
 			},
 			required: ['public', 'whiteList'],
@@ -178,6 +184,7 @@ const defaultConfig = {
 						whiteList: {
 							type: 'array',
 							default: ['127.0.0.1'],
+							env: ['LISK_FORGING_WHITELIST', 'stringToIpPortSet'],
 						},
 					},
 					required: ['whiteList'],
