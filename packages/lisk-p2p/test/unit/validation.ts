@@ -244,9 +244,7 @@ describe('response handlers', () => {
 				peer['ipAddress'] = peer.ip;
 				peer.wsPort = +peer.wsPort;
 				peer.height = +peer.height;
-				peer.broadhash = undefined;
-				peer.httpPort = undefined;
-				peer.nonce = undefined;
+
 				delete peer.ip;
 
 				return peer;

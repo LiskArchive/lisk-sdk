@@ -97,9 +97,8 @@ export interface PeerConnectionState {
 export const constructPeerId = (ipAddress: string, wsPort: number): string =>
 	`${ipAddress}:${wsPort}`;
 
-export const constructPeerIdFromPeerInfo = (
-	peerInfo: P2PPeerInfo | P2PDiscoveredPeerInfo,
-): string => `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
+	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
 
 // Format the node info so that it will be valid from the perspective of both new and legacy nodes.
 const convertNodeInfoToLegacyFormat = (

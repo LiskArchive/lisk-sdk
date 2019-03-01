@@ -422,8 +422,7 @@ export class PeerPool extends EventEmitter {
 			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
 				.map(
 					(peer: Peer): ProtocolPeerInfo | undefined => {
-						const peerDiscoveredInfo: P2PDiscoveredPeerInfo | undefined =
-							peer.peerInfo;
+						const peerDiscoveredInfo = peer.peerInfo;
 
 						if (!peerDiscoveredInfo) {
 							return undefined;
@@ -431,7 +430,7 @@ export class PeerPool extends EventEmitter {
 
 						// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
 						return {
-							broadhash: peerDiscoveredInfo.options
+							broadhash: peerDiscoveredInfo.broadhash
 								? (peerDiscoveredInfo.broadhash as string)
 								: '',
 							height: peerDiscoveredInfo.height,

@@ -82,9 +82,6 @@ export const validatePeerInfo = (
 		height,
 		os,
 		version,
-		httpPort: protocolPeer.httpPort,
-		broadhash: protocolPeer.broadhash,
-		nonce: protocolPeer.nonce,
 	};
 
 	const { ip, ...peerInfoUpdated } = peerInfo;

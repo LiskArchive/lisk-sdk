@@ -150,7 +150,7 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
-				const seedPeers: ReadonlyArray<P2PPeerInfo> = [
+				const seedPeers = [
 					{
 						ipAddress: '127.0.0.1',
 						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
@@ -384,7 +384,7 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers: ReadonlyArray<P2PPeerInfo> =
+				const seedPeers =
 					index === 0
 						? []
 						: [
