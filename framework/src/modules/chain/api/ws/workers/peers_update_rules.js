@@ -17,13 +17,13 @@
 const Peer = require('../../../logic/peer');
 const failureCodes = require('../rpc/failure_codes');
 const PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
-const swaggerHelper = require('../../../helpers/swagger');
+const ZSchema = require('../../../helpers/z_schema');
+const definitions = require('../../../schema/schema');
 const connectionsTable = require('./connections_table');
 const SlaveToMasterSender = require('./slave_to_master_sender');
 const Rules = require('./rules');
 
-const definitions = swaggerHelper.getSwaggerSpec().definitions;
-const z_schema = swaggerHelper.getValidator();
+const validator = new ZSchema();
 
 let self;
 
@@ -191,7 +191,7 @@ PeersUpdateRules.prototype.external = {
 	 * @todo Add @returns tag
 	 */
 	update(request, cb) {
-		z_schema.validate(request, definitions.WSPeerUpdateRequest, err => {
+		validator.validate(request, definitions.WSPeerUpdateRequest, err => {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}

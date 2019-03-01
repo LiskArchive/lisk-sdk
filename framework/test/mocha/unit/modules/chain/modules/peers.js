@@ -26,7 +26,6 @@ const generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers'
 	.generateMatchedAndUnmatchedBroadhashes;
 const modulesLoader = require('../../../../common/modules_loader');
 const random = require('../../../../common/utils/random');
-const swagerHelper = require('../../../../../../src/modules/chain/helpers/swagger');
 
 const { MAX_PEERS } = __testContext.config.constants;
 
@@ -77,12 +76,6 @@ describe('peers', () => {
 				system: systemComponentMock,
 			},
 		};
-
-		swagerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
-			bindings.swagger = {
-				definitions: resolvedSpec.definitions,
-			};
-		});
 
 		scope = _.defaultsDeep(
 			{

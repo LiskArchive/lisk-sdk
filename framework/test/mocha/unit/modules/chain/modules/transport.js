@@ -18,7 +18,6 @@ const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
-const swaggerHelper = require('../../../../../../src/modules/chain/helpers/swagger');
 const WSServer = require('../../../../common/ws/server_master');
 const generateRandomActivePeer = require('../../../../fixtures/peers')
 	.generateRandomActivePeer;
@@ -31,6 +30,7 @@ const TransportModule = rewire(
 
 const { MAX_PEERS, MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 const expect = chai.expect;
+const definitions = require('../../../../../../src/modules/chain/schema/schema');
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
@@ -52,7 +52,6 @@ describe('transport', () => {
 	let defaultScope;
 	let restoreRewiredTopDeps;
 	let peerMock;
-	let definitions;
 	let wsRPC;
 	let transaction;
 	let block;
@@ -83,7 +82,7 @@ describe('transport', () => {
 
 	const SAMPLE_AUTH_KEY = 'testkey123';
 
-	beforeEach(done => {
+	beforeEach(async () => {
 		// Recreate all the stubs and default structures before each test case to make
 		// sure that they are fresh every time; that way each test case can modify
 		// stubs without affecting other test cases.
@@ -233,14 +232,6 @@ describe('transport', () => {
 		peerMock = {
 			nonce: 'sYHEDBKcScaAAAYg',
 		};
-
-		swaggerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
-			definitions = resolvedSpec.definitions;
-			defaultScope.swagger = {
-				definitions,
-			};
-			done();
-		});
 	});
 
 	afterEach(done => {
@@ -356,8 +347,6 @@ describe('transport', () => {
 						},
 					},
 				};
-
-				definitions = {};
 
 				wsRPC = {
 					getServerAuthKey: sinonSandbox.stub().returns(SAMPLE_AUTH_KEY),

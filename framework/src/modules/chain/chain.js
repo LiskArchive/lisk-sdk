@@ -5,7 +5,7 @@ const git = require('./helpers/git.js');
 const Sequence = require('./helpers/sequence.js');
 const ed = require('./helpers/ed.js');
 // eslint-disable-next-line import/order
-const swaggerHelper = require('./helpers/swagger');
+const ZSchema = require('./helpers/z_schema');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -18,7 +18,6 @@ const {
 	createSocketCluster,
 	initLogicStructure,
 	initModules,
-	attachSwagger,
 } = require('./init_steps');
 const defaults = require('./defaults');
 
@@ -131,7 +130,7 @@ module.exports = class Chain {
 				build: versionBuild,
 				config: self.options.config,
 				genesisBlock: { block: self.options.config.genesisBlock },
-				schema: swaggerHelper.getValidator(),
+				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
@@ -164,10 +163,6 @@ module.exports = class Chain {
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
 			scope.webSocket = await createSocketCluster(scope);
-			scope.swagger = await attachSwagger(scope);
-
-			// TODO: Identify why its used
-			scope.modules.swagger = scope.swagger;
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 

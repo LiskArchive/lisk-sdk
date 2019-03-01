@@ -374,7 +374,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		});
 
 		swaggerHelper
-			.getResolvedSwaggerSpec()
+			.getSchemaAsJSON()
 			.then(resolvedSchema => {
 				// Successfully mounted the swagger runner
 				cb(null, {

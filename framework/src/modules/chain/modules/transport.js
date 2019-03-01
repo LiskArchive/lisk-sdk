@@ -21,6 +21,7 @@ let Broadcaster = require('../logic/broadcaster.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
+const definitions = require('../schema/schema');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
@@ -32,7 +33,6 @@ const {
 // Private fields
 let components;
 let modules;
-let definitions;
 let library;
 let self;
 // eslint-disable-next-line prefer-const
@@ -314,8 +314,6 @@ Transport.prototype.onBind = function(scope) {
 		peers: scope.modules.peers,
 		transactions: scope.modules.transactions,
 	};
-
-	definitions = scope.swagger.definitions;
 
 	__private.broadcaster.bind(
 		scope.modules.peers,
