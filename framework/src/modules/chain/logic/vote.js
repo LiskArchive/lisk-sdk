@@ -23,8 +23,7 @@ const Bignum = require('../helpers/bignum.js');
 const exceptions = global.exceptions;
 const { FEES, MAX_VOTES_PER_TRANSACTION } = global.constants;
 
-let modules;
-let library;
+const __scope = {};
 let self;
 
 /**
@@ -39,18 +38,27 @@ let self;
  * @requires lodash
  * @requires helpers/diff
  * @requires helpers/slots
- * @param {Object} logger
- * @param {ZSchema} schema
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {logger} scope.components.logger
+ * @param {Object} scope.modules
+ * @param {Delegates} scope.modules.delegates
+ * @param {Object} scope.logic
+ * @param {Account} scope.logic.account
+ * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
 class Vote {
-	constructor(logger, schema, account) {
+	constructor({ components: { logger }, logic: { account }, schema }) {
 		self = this;
-		library = {
+		__scope.components = {
 			logger,
-			schema,
+		};
+		__scope.logic = {
 			account,
 		};
+		__scope.schema = schema;
+		// TODO: Add modules to contructor argument and assign delegates module to __scope.modules.delegates
 	}
 
 	/**
@@ -73,7 +81,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		return library.account.merge(
+		return __scope.logic.account.merge(
 			sender.address,
 			{
 				votedDelegatesPublicKeys: votesInvert,
@@ -103,7 +111,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		return library.account.merge(
+		return __scope.logic.account.merge(
 			sender.address,
 			{ u_votedDelegatesPublicKeys: votesInvert },
 			mergeErr => setImmediate(cb, mergeErr),
@@ -121,8 +129,9 @@ class Vote {
  * @param {Delegates} delegates
  * @todo Add description for the params
  */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
 Vote.prototype.bind = function(delegates) {
-	modules = {
+	__scope.modules = {
 		delegates,
 	};
 };
@@ -208,13 +217,13 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 		waterErr => {
 			if (waterErr) {
 				if (exceptions.votes.includes(transaction.id)) {
-					library.logger.warn(
+					__scope.components.logger.warn(
 						`vote.verify: Invalid transaction identified as exception "${
 							transaction.id
 						}"`
 					);
-					library.logger.error(waterErr);
-					library.logger.debug(JSON.stringify(transaction));
+					__scope.components.logger.error(waterErr);
+					__scope.components.logger.debug(JSON.stringify(transaction));
 				} else {
 					return setImmediate(cb, waterErr);
 				}
@@ -263,13 +272,13 @@ Vote.prototype.verifyVote = function(vote, cb) {
  * @todo Add description for the params
  */
 Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
-	modules.delegates.checkConfirmedDelegates(
+	__scope.modules.delegates.checkConfirmedDelegates(
 		transaction.senderPublicKey,
 		transaction.asset.votes,
 		err => {
 			if (err && exceptions.votes.includes(transaction.id)) {
-				library.logger.debug(err);
-				library.logger.debug(JSON.stringify(transaction));
+				__scope.components.logger.debug(err);
+				__scope.components.logger.debug(JSON.stringify(transaction));
 				err = null;
 			}
 
@@ -288,13 +297,13 @@ Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
  * @todo Add description for the params
  */
 Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
-	modules.delegates.checkUnconfirmedDelegates(
+	__scope.modules.delegates.checkUnconfirmedDelegates(
 		transaction.senderPublicKey,
 		transaction.asset.votes,
 		err => {
 			if (err && exceptions.votes.includes(transaction.id)) {
-				library.logger.debug(err);
-				library.logger.debug(JSON.stringify(transaction));
+				__scope.components.logger.debug(err);
+				__scope.components.logger.debug(JSON.stringify(transaction));
 				err = null;
 			}
 
@@ -353,7 +362,7 @@ Vote.prototype.applyConfirmed = function(transaction, block, sender, cb, tx) {
 				self.checkConfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function() {
-				library.account.merge(
+				__scope.logic.account.merge(
 					sender.address,
 					{
 						votedDelegatesPublicKeys: transaction.asset.votes,
@@ -384,7 +393,7 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 				self.checkUnconfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				library.account.merge(
+				__scope.logic.account.merge(
 					sender.address,
 					{
 						u_votedDelegatesPublicKeys: transaction.asset.votes,
@@ -427,13 +436,13 @@ Vote.prototype.schema = {
  * @todo Add description for the params
  */
 Vote.prototype.objectNormalize = function(transaction) {
-	const report = library.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset,
 		Vote.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate vote schema: ${library.schema
+		throw `Failed to validate vote schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;

@@ -1,0 +1,1 @@
+../../chain/helpers/swagger.js

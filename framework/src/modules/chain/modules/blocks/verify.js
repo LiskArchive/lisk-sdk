@@ -22,6 +22,7 @@ const slots = require('../../helpers/slots.js');
 const blockVersion = require('../../logic/block_version.js');
 const Bignum = require('../../helpers/bignum.js');
 
+let components;
 let modules;
 let library;
 let self;
@@ -459,7 +460,7 @@ Verify.prototype.onBlockchainReady = function() {
 };
 
 /**
- * Maintains __private.lastNBlock constiable - a queue of fixed length (BLOCK_SLOT_WINDOW). Called when application triggers newBlock event.
+ * Maintains __private.lastNBlock constant - a queue of fixed length (BLOCK_SLOT_WINDOW). Called when application triggers newBlock event.
  *
  * @func onNewBlock
  * @param {block} block
@@ -795,9 +796,13 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'false' if block comes from chain synchronisation process
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				!library.config.loading.snapshotRound
-					? modules.system.update(seriesCb)
-					: seriesCb();
+				if (!library.config.loading.snapshotRound) {
+					return components.system
+						.update()
+						.then(() => seriesCb())
+						.catch(seriesCb);
+				}
+				return seriesCb();
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
@@ -809,24 +814,21 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 };
 
 /**
- * Handle modules initialization:
- * - accounts
- * - blocks
- * - delegates
- * - transactions
- * - system
- * - transport
+ * Handle modules initialization & components
  *
  * @param {Object} scope - Exposed modules
  */
 Verify.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
+	components = {
+		system: scope.components.system,
+	};
+
 	modules = {
 		accounts: scope.modules.accounts,
 		blocks: scope.modules.blocks,
 		delegates: scope.modules.delegates,
 		transactions: scope.modules.transactions,
-		system: scope.modules.system,
 		transport: scope.modules.transport,
 		processTransactions: scope.modules.processTransactions,
 	};

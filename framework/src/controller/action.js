@@ -6,11 +6,11 @@ const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][a-zA-Z0-9]*$/;
 /**
  * An action class which instance will be received by every event listener
  *
- * @namespace Framework
+ * @class
+ * @memberof framework.controller
  * @requires assert
- * @type {module.Action}
  */
-module.exports = class Action {
+class Action {
 	/**
 	 * Create Action object.
 	 *
@@ -81,4 +81,6 @@ module.exports = class Action {
 	key() {
 		return `${this.module}:${this.name}`;
 	}
-};
+}
+
+module.exports = Action;

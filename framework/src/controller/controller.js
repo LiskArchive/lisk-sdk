@@ -1,17 +1,18 @@
 const assert = require('assert');
-const Promise = require('bluebird');
 const fs = require('fs-extra');
-const config = require('./helpers/config');
+const psList = require('ps-list');
+const systemDirs = require('./config/dirs');
 const EventEmitterChannel = require('./channels/event_emitter');
 const Bus = require('./bus');
+const { DuplicateAppInstanceError } = require('../errors');
 
 /* eslint-disable no-underscore-dangle */
 
 const validateModuleSpec = moduleSpec => {
-	assert(moduleSpec.alias, 'Module alias is required.');
-	assert(moduleSpec.info.name, 'Module name is required.');
-	assert(moduleSpec.info.author, 'Module author is required.');
-	assert(moduleSpec.info.version, 'Module version is required.');
+	assert(moduleSpec.constructor.alias, 'Module alias is required.');
+	assert(moduleSpec.constructor.info.name, 'Module name is required.');
+	assert(moduleSpec.constructor.info.author, 'Module author is required.');
+	assert(moduleSpec.constructor.info.version, 'Module version is required.');
 	assert(moduleSpec.defaults, 'Module default options are required.');
 	assert(moduleSpec.events, 'Module events are required.');
 	assert(moduleSpec.actions, 'Module actions are required.');
@@ -19,48 +20,57 @@ const validateModuleSpec = moduleSpec => {
 	assert(moduleSpec.unload, 'Module unload actions is required.');
 };
 
+const isPidRunning = async pid =>
+	psList().then(list => list.some(x => x.pid === pid));
+
 /**
  * Controller logic responsible to run the application instance
  *
- * @namespace Framework
+ * @class
+ * @memberof framework.controller
  * @requires assert
  * @requires bluebird
  * @requires fs-extra
  * @requires helpers/config
  * @requires channels/event_emitter
  * @requires module.Bus
- * @type {module.Controller}
  */
-module.exports = class Controller {
+class Controller {
 	/**
-	 * Create controller object.
+	 * Controller responsible to run the application
 	 *
-	 * @param {Array} modules - All registered modules
+	 * @param {string} appLabel - Application label
 	 * @param {Object} componentConfig - Configurations for components
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
 	 */
-	constructor(modules, componentConfig, logger) {
+	constructor(appLabel, componentConfig, logger) {
 		this.logger = logger;
-		this.componentConfig = componentConfig;
+		this.appLabel = appLabel;
 		this.logger.info('Initializing controller');
+
+		this.componentConfig = componentConfig;
 		this.channel = null; // Channel for controller
-		this.channels = {}; // Keep track of all channels for modules
+		this.modulesChannels = {}; // Keep track of all channels for modules
 		this.bus = null;
-		this.modules = modules;
+		this.config = {
+			dirs: systemDirs(this.appLabel),
+		};
+		this.modules = {};
 	}
 
 	/**
 	 * Load the initial state and start listening for events or triggering actions.
 	 * Publishes 'lisk:ready' state on the bus.
 	 *
+	 * @param modules
 	 * @async
 	 */
-	async load() {
+	async load(modules) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
+		await this._validatePidFile();
 		await this._setupBus();
-		await this._setupControllerActions();
-		await this._loadModules();
+		await this._loadModules(modules);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
@@ -76,10 +86,28 @@ module.exports = class Controller {
 	// eslint-disable-next-line class-methods-use-this
 	async _setupDirectories() {
 		// Make sure all directories exists
-		fs.emptyDirSync(config.dirs.temp);
-		fs.ensureDirSync(config.dirs.sockets);
-		fs.ensureDirSync(config.dirs.pids);
-		fs.writeFileSync(`${config.dirs.pids}/controller.pid`, process.pid);
+		await fs.ensureDir(this.config.dirs.temp);
+		await fs.ensureDir(this.config.dirs.sockets);
+		await fs.ensureDir(this.config.dirs.pids);
+	}
+
+	async _validatePidFile() {
+		const pidPath = `${this.config.dirs.pids}/controller.pid`;
+		const pidExists = await fs.pathExists(pidPath);
+		if (pidExists) {
+			const pidRunning = await isPidRunning(
+				parseInt(await fs.readFile(pidPath))
+			);
+			if (pidRunning) {
+				this.logger.error(
+					`An instance of application "${
+						this.appLabel
+					}" is already running. You have to change application name to run another instance.`
+				);
+				throw new DuplicateAppInstanceError(this.appLabel, pidPath);
+			}
+		}
+		await fs.writeFile(pidPath, process.pid);
 	}
 
 	/**
@@ -98,7 +126,9 @@ module.exports = class Controller {
 		this.channel = new EventEmitterChannel(
 			'lisk',
 			['ready'],
-			['getComponentConfig'],
+			{
+				getComponentConfig: action => this.componentConfig[action.params],
+			},
 			this.bus,
 			{ skipInternalEvents: true }
 		);
@@ -115,67 +145,63 @@ module.exports = class Controller {
 		}
 	}
 
-	/**
-	 * Setup Controller actions.
-	 * Create action for getting component config.
-	 *
-	 * @async
-	 */
-	async _setupControllerActions() {
-		this.channel.action(
-			'getComponentConfig',
-			action => this.componentConfig[action.params]
-		);
+	async _loadModules(modules) {
+		// To perform operations in sequence and not using bluebird
+
+		// eslint-disable-next-line no-restricted-syntax
+		for (const alias of Object.keys(modules)) {
+			// eslint-disable-next-line no-await-in-loop
+			await this._loadInMemoryModule(
+				alias,
+				modules[alias].klass,
+				modules[alias].options
+			);
+		}
 	}
 
-	async _loadModules() {
-		return Promise.each(Object.keys(this.modules), m =>
-			this._loadInMemoryModule(m)
-		);
-	}
-
-	async _loadInMemoryModule(alias) {
-		const module = this.modules[alias].spec;
-		const moduleConfig = this.modules[alias].config;
+	async _loadInMemoryModule(alias, Klass, options) {
+		const module = new Klass(options);
 		validateModuleSpec(module);
 
+		const moduleAlias = alias || module.constructor.alias;
+		const { name, version } = module.constructor.info;
+
 		this.logger.info(
-			`Loading module with alias: ${module.alias}(${module.info.name}:${
-				module.info.version
-			})`
+			`Loading module with alias: ${moduleAlias}(${name}:${version})`
 		);
 
 		const channel = new EventEmitterChannel(
-			module.alias,
+			moduleAlias,
 			module.events,
-			Object.keys(module.actions),
+			module.actions,
 			this.bus,
 			{}
 		);
-		this.channels[alias] = channel;
+
+		this.modulesChannels[moduleAlias] = channel;
 
 		await channel.registerToBus();
 
-		Object.keys(module.actions).forEach(action => {
-			channel.action(action, module.actions[action]);
-		});
+		channel.publish(`${moduleAlias}:registeredToBus`);
+		channel.publish(`${moduleAlias}:loading:started`);
+		await module.load(channel);
+		channel.publish(`${moduleAlias}:loading:finished`);
 
-		channel.publish(`${module.alias}:registeredToBus`);
-		channel.publish(`${module.alias}:loading:started`);
-		await module.load(channel, moduleConfig);
-		channel.publish(`${module.alias}:loading:finished`);
+		this.modules[moduleAlias] = module;
 		this.logger.info(
-			`Module ready with alias: ${module.alias}(${module.info.name}:${
-				module.info.version
-			})`
+			`Module ready with alias: ${moduleAlias}(${name}:${version})`
 		);
 	}
 
-	async unloadModules(modules = null) {
-		return Promise.mapSeries(modules || Object.keys(this.modules), async m => {
-			await this.modules[m].spec.unload();
-			delete this.modules[m];
-		});
+	async unloadModules(modules = undefined) {
+		// To perform operations in sequence and not using bluebird
+
+		// eslint-disable-next-line no-restricted-syntax
+		for (const alias of modules || Object.keys(this.modules)) {
+			// eslint-disable-next-line no-await-in-loop
+			await this.modules[alias].unload();
+			delete this.modules[alias];
+		}
 	}
 
 	async cleanup(code, reason) {
@@ -192,4 +218,6 @@ module.exports = class Controller {
 			this.logger.error('Caused error during cleanup', error);
 		}
 	}
-};
+}
+
+module.exports = Controller;
