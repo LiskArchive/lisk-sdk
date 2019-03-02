@@ -73,7 +73,7 @@ export const blockSaveToBatch = (block: Block): ReadonlyArray<BatchCommand> => {
 			type: 'put',
 			bucket: BUCKET_BLOCK_ID_TX_ID,
 			key: blockHeader.id as string,
-			value: transactions.map(tx => tx.id as string).join(','),
+			value: transactions.map(tx => tx.id as string),
 		},
 		{
 			type: 'put',

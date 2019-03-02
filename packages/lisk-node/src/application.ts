@@ -6,6 +6,7 @@ import * as transactions from '@liskhq/lisk-transactions';
 import * as bunyan from 'bunyan';
 import * as fs from 'fs';
 import * as os from 'os';
+import { Sync } from './sync';
 
 export class App {
 	private readonly _p2p: P2P;
@@ -13,10 +14,11 @@ export class App {
 	private readonly _dpos: DPOS;
 	private readonly _db: DB;
 	private readonly _logger: bunyan;
-	private _started: boolean;
+	private _initialized: boolean;
+	private readonly _sync: Sync;
 
 	public constructor() {
-		this._started = false;
+		this._initialized = false;
 		this._logger = bunyan.createLogger({ name: 'lisk-node' });
 		this._logger.info('Starting application');
 
@@ -29,14 +31,25 @@ export class App {
 		this._p2p = new P2P({
 			blacklistedPeers: [],
 			connectTimeout: 5000,
-			seedPeers: [],
+			seedPeers: [
+			{
+				ipAddress: '83.136.254.92',
+				wsPort: 8001,
+				height: 1,
+			},
+			{
+				ipAddress: '83.136.249.76',
+				wsPort: 8001,
+				height: 1,
+			}
+			],
 			wsEngine: 'ws',
 			nodeInfo: {
-				wsPort: 40000,
+				wsPort: 8001,
 				nethash: genesis.payloadHash,
-				version: '1.4.0',
+				version: '1.5.0',
 				os: os.platform(),
-				height: 0,
+				height: 1,
 			},
 		});
 		this._db = new DB('./blockchain.db');
@@ -58,24 +71,26 @@ export class App {
 			epochTime: 0,
 		});
 		this._logger.info('DPOS instansiated');
+		this._sync = new Sync(this._blockchain, this._dpos, this._p2p, this._logger);
 	}
 
 	public async init(): Promise<void> {
-		this._logger.info('Starting initialization');
+        this._logger.info('Starting initialization');
 		await this._blockchain.init();
 		this._logger.info('Blockchain initialized.');
 		await this._dpos.init(this._blockchain.lastBlock);
 		this._logger.info('DPOS initialized.');
-		this._started = true;
+		this._initialized = true;
 		this._logger.info('Finished initialized.');
 	}
 
 	public async start(): Promise<void> {
 		await this._p2p.start();
+		await this._sync.start();
 	}
 
 	public async stop(): Promise<void> {
-		if (this._started) {
+		if (this._initialized) {
 			await this._db.close();
 			await this._p2p.stop();
 		}
