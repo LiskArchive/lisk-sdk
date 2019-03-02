@@ -1,4 +1,5 @@
 import { AbstractBatch } from 'abstract-leveldown';
+import EncodingDown from 'encoding-down';
 // tslint:disable-next-line match-default-export-name
 import levelup, { LevelUp } from 'levelup';
 import RocksDB from 'rocksdb';
@@ -31,7 +32,11 @@ export class DB {
 	private readonly _db: LevelUp<RocksDB>;
 
 	public constructor(file: string) {
-		this._db = levelup(RocksDB(file));
+		this._db = levelup(EncodingDown(RocksDB(file), { valueEncoding: 'json' }));
+	}
+
+	public async close(): Promise<void> {
+		return this._db.close();
 	}
 
 	// tslint:disable-next-line no-any
@@ -39,6 +44,21 @@ export class DB {
 		const fullKey = `${bucket}${delimitor}${key}`;
 
 		return this._db.get(fullKey);
+	}
+
+	// tslint:disable-next-line no-any
+	public async exists(bucket: string, key: string | number): Promise<boolean> {
+		const fullKey = `${bucket}${delimitor}${key}`;
+		try {
+			await this._db.get(fullKey);
+
+			return true;
+		} catch (error) {
+			if (error.notFound) {
+				return false;
+			}
+			throw error;
+		}
 	}
 
 	// tslint:disable-next-line no-any
@@ -61,7 +81,9 @@ export class DB {
 	public async batch(tasks: ReadonlyArray<BatchCommand>): Promise<void> {
 		const execTasks = tasks.map(t => ({
 			type: t.type,
-			key: `${t.bucket}${typeof t.key === 'string' ? t.key : t.key.toString()}`,
+			key: `${t.bucket}${delimitor}${
+				typeof t.key === 'string' ? t.key : t.key.toString()
+			}`,
 			value: t.value,
 		}));
 

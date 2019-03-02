@@ -10,18 +10,6 @@ export const BUCKET_TX_ID_TX = 'transaction_id:transaction';
 export const BUCKET_BLOCK_HEIGHT_REWARDS = 'block_height:rewards';
 export const BUCKET_CANDIDATE = 'candidate';
 
-export const getGenesis = async (
-	db: DataStore,
-): Promise<BlockJSON | undefined> => {
-	try {
-		const blockId = await db.get<string>(BUCKET_HEIGHT_BLOCK_ID, '1');
-
-		return db.get<BlockJSON>(BUCKET_BLOCK_ID_BLOCK, blockId);
-	} catch (error) {
-		return undefined;
-	}
-};
-
 export const getBlockHeaderByHeight = async (
 	db: DataStore,
 	height: number,
@@ -46,6 +34,32 @@ export const getBlockByHeight = async (
 	return db.get<BlockJSON>(BUCKET_BLOCK_ID_BLOCK, blockId);
 };
 
+export const getGenesisHeader = async (
+	db: DataStore,
+): Promise<BlockJSON | undefined> => {
+	try {
+		const block = await getBlockByHeight(db, 1);
+
+		return block;
+	} catch (error) {
+		return undefined;
+	}
+};
+
+const getBlockIdOrderHeight = async (
+	db: DataStore,
+	limit: number,
+): Promise<ReadonlyArray<string>> =>
+	new Promise((resolve, reject) => {
+		const result: string[] = [];
+		db.createReadStream({ limit, gte: BUCKET_HEIGHT_BLOCK_ID })
+			.on('data', data => result.push(data.value))
+			.on('error', reject)
+			.on('end', () => {
+				resolve(result);
+			});
+	});
+
 export const getBlockHeaderById = async (
 	db: DataStore,
 	id: string,
@@ -68,8 +82,31 @@ export const getRewardIfExist = async (
 	try {
 		return db.get<ReadonlyArray<Reward>>(BUCKET_TX_ID_TX, height);
 	} catch (error) {
-		return undefined;
+		if (error.notFound) {
+			return undefined;
+		}
+		throw error;
 	}
+};
+
+export const getLatestBlock = async (db: DataStore): Promise<BlockJSON> => {
+	const [heighestBlockId] = await getBlockIdOrderHeight(db, 1);
+	const blockHeader = await db.get<BlockJSON>(
+		BUCKET_BLOCK_ID_BLOCK,
+		heighestBlockId,
+	);
+	const transactionIds = await db.get<ReadonlyArray<string>>(
+		BUCKET_BLOCK_ID_TX_ID,
+		heighestBlockId,
+	);
+	const transactions = await Promise.all(
+		transactionIds.map(async id => getTransaction(db, id)),
+	);
+
+	return {
+		...blockHeader,
+		transactions,
+	};
 };
 
 export const getCandidateAddresses = async (
@@ -81,7 +118,7 @@ export const getCandidateAddresses = async (
 		db.createReadStream({ gte: BUCKET_CANDIDATE, limit })
 			.on('data', data => addresses.push(data.value))
 			.on('error', reject)
-			.on('close', () => {
+			.on('end', () => {
 				resolve(addresses);
 			});
 	});

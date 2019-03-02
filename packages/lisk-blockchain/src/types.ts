@@ -47,6 +47,7 @@ export interface CacheMap {
 }
 
 interface TransactionProps {
+	readonly id: string;
 	readonly type: number;
 	readonly senderId: string;
 	readonly recipientId?: string;

@@ -6,9 +6,16 @@ export const BUCKET_ROUND = 'round';
 export const getRound = async (db: DataStore, round: number): Promise<Round> =>
 	db.get(BUCKET_ROUND, round);
 
-export const getLatestRound = async (db: DataStore): Promise<Round> =>
+export const roundExists = async (
+	db: DataStore,
+	round: number,
+): Promise<boolean> => db.exists(BUCKET_ROUND, round);
+
+export const getLatestRound = async (
+	db: DataStore,
+): Promise<Round | undefined> =>
 	new Promise((resolve, reject) => {
-		db.createReadStream({ gt: BUCKET_ROUND, limit: 1 })
+		db.createReadStream({ gte: BUCKET_ROUND, limit: 1 })
 			.on('data', resolve)
 			.on('error', reject);
 	});

@@ -64,8 +64,10 @@ export class App {
 		this._logger.info('Starting initialization');
 		await this._blockchain.init();
 		this._logger.info('Blockchain initialized.');
-		await this._dpos.getLatestHeight();
+		await this._dpos.init(this._blockchain.lastBlock);
+		this._logger.info('DPOS initialized.');
 		this._started = true;
+		this._logger.info('Finished initialized.');
 	}
 
 	public async start(): Promise<void> {
@@ -74,6 +76,7 @@ export class App {
 
 	public async stop(): Promise<void> {
 		if (this._started) {
+			await this._db.close();
 			await this._p2p.stop();
 		}
 	}

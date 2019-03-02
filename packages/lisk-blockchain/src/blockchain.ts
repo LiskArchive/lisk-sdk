@@ -1,10 +1,12 @@
+import { debug } from 'debug';
 import { EventEmitter } from 'events';
 import { Account } from './account';
 import { Block, createBlock } from './block';
 import {
 	getBlockByHeight,
 	getCandidates,
-	getGenesis,
+	getGenesisHeader,
+	getLatestBlock,
 	getRewardIfExist,
 } from './repo';
 import { applyReward, Reward, RewardsOption, undoReward } from './reward';
@@ -18,6 +20,8 @@ import {
 	TransactionMap,
 } from './types';
 import { verifyExist } from './verify';
+
+const logger = debug('blockchain');
 
 export const EVENT_BLOCK_ADDED = 'block_added';
 export const EVENT_BLOCK_DELETED = 'block_deleted';
@@ -76,8 +80,22 @@ export class Blockchain extends EventEmitter {
 	}
 
 	public async init(): Promise<void> {
-		const genesis = await getGenesis(this._db);
+		const genesis = await getGenesisHeader(this._db);
 		if (genesis && genesis.payloadHash === this._genesis.payloadHash) {
+			logger('Genesis found with matching nethash', {
+				nethash: genesis.payloadHash,
+			});
+			// Genesis matches, then get latest block
+			const latest = await getLatestBlock(this._db);
+			this._lastBlock = new Block(
+				latest,
+				rawTransactionToInstance(this._txMap, latest.transactions),
+			);
+			logger('Obtained last block', {
+				height: this._lastBlock.height,
+				id: this._lastBlock.id,
+			});
+
 			return;
 		}
 		if (genesis && genesis.payloadHash !== this._genesis.payloadHash) {
@@ -85,7 +103,10 @@ export class Blockchain extends EventEmitter {
 		}
 		const store = new StateStore(this._db, this._genesis);
 		await this._genesis.apply(store);
+		logger('Finished applying');
 		await store.finalize();
+		logger('Finished finalizing');
+		this._lastBlock = this._genesis;
 		this.emit(EVENT_BLOCK_ADDED, {
 			block: this._genesis,
 			accounts: store.getUpdatedAccount(),

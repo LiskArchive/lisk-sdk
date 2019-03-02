@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { Delegate, generateDelegateList, sortDelegates } from './delegate';
-import { getLatestRound, getRound, updateRound } from './repo';
+import { getLatestRound, getRound, updateRound, roundExists } from './repo';
 import {
 	applyRound,
 	calculateRewards,
@@ -80,8 +80,27 @@ export class DPOS extends EventEmitter {
 		});
 	}
 
+	public async init(lastBlock: Block): Promise<void> {
+		if (lastBlock.height === 1) {
+			const exist = await roundExists(this._db, lastBlock.height);
+			if (!exist) {
+				const delegates = await this._getCandidates(
+					this._numberOfActiveDelegates,
+				);
+				const round = defaultRound(
+					calculateRound(lastBlock.height, this._numberOfActiveDelegates),
+					delegates,
+				);
+				await updateRound(this._db, '1', round);
+			}
+		}
+	}
+
 	public async getLatestHeight(): Promise<number> {
 		const latestRound = await getLatestRound(this._db);
+		if (!latestRound) {
+			return 0;
+		}
 
 		return Math.max(...Object.keys(latestRound.result).map(parseInt));
 	}

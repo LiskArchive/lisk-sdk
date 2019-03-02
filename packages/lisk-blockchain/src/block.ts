@@ -7,6 +7,7 @@ import {
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
+import { debug } from 'debug';
 import { calculateRewawrd, RewardsOption } from './reward';
 import { blockSchema } from './schema';
 import { StateStore } from './state_store';
@@ -27,6 +28,7 @@ import {
 import { validator } from './validate';
 import { applyVote, undoVote } from './vote';
 
+const logger = debug('blockchain:block');
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
@@ -124,6 +126,9 @@ export class Block {
 
 	public async apply(store: StateStore): Promise<ReadonlyArray<Error>> {
 		const errors = [];
+		logger('Start applying block', {
+			id: this.id,
+		});
 		// tslint:disable-next-line no-loop-statement
 		for (const tx of this.transactions) {
 			const res = await tx.apply(store);

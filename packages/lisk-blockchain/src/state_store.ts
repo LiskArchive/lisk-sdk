@@ -115,11 +115,9 @@ export class StateStore {
 			return;
 		}
 		// Case value exists in cache
-		if (this._cacheMap[bucket][oldKey]) {
-			// tslint:disable-next-line no-delete no-dynamic-delete
-			delete this._cacheMap[bucket][oldKey];
-			this._cacheMap[bucket][newKey] = value;
-		}
+		// tslint:disable-next-line no-delete no-dynamic-delete
+		delete this._cacheMap[bucket][oldKey];
+		this._cacheMap[bucket][newKey] = value;
 
 		return;
 	}

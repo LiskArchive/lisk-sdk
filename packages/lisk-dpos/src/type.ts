@@ -32,6 +32,7 @@ export interface ReadStreamOption {
 export interface DataStore {
 	// tslint:disable-next-line no-any
 	get<T>(bucket: string, key: string | number): Promise<T>;
+	exists(bucket: string, key: string | number): Promise<boolean>;
 	// tslint:disable-next-line no-any
 	put<T>(bucket: string, key: string, value: T): Promise<void>;
 	del(bucket: string, key: string): Promise<void>;
