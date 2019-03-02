@@ -96,7 +96,7 @@ export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
-	private readonly _newPeers: Map<string, P2PPeerInfo>;
+	private readonly _newPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _discoveryInterval: number;
 	private _discoveryIntervalId: NodeJS.Timer | undefined;
@@ -112,8 +112,12 @@ export class P2P extends EventEmitter {
 	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
-	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
-	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerConnect: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
+	private readonly _handlePeerConnectAbort: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
@@ -340,17 +344,17 @@ export class P2P extends EventEmitter {
 
 				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 				const peerId = constructPeerId(socket.remoteAddress, wsPort);
+				const queryOptions =
+					typeof queryObject.options === 'string'
+						? JSON.parse(queryObject.options)
+						: undefined;
 
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
 					ipAddress: socket.remoteAddress,
 					wsPort,
 					height: queryObject.height ? +queryObject.height : 0,
-					isDiscoveredPeer: true,
 					version: queryObject.version,
-					options:
-						typeof queryObject.options === 'string'
-							? JSON.parse(queryObject.options)
-							: undefined,
+					...queryOptions,
 				};
 
 				const isNewPeer = this._peerPool.addInboundPeer(
@@ -406,11 +410,11 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _discoverPeers(
-		knownPeers: ReadonlyArray<P2PPeerInfo> = [],
+		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
 	): Promise<void> {
-		const allKnownPeers: ReadonlyArray<P2PPeerInfo> = knownPeers.concat([
-			...this._triedPeers.values(),
-		]);
+		const allKnownPeers: ReadonlyArray<
+			P2PDiscoveredPeerInfo
+		> = knownPeers.concat([...this._triedPeers.values()]);
 
 		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
 		if (!this._isActive) {
@@ -428,7 +432,7 @@ export class P2P extends EventEmitter {
 			return;
 		}
 
-		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
+		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
 				this._newPeers.set(peerId, peerInfo);
@@ -439,7 +443,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _startDiscovery(
-		knownPeers: ReadonlyArray<P2PPeerInfo> = [],
+		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
 	): Promise<void> {
 		if (this._discoveryIntervalId) {
 			throw new Error('Discovery is already running');
@@ -463,7 +467,10 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 		await this._startPeerServer();
-		await this._startDiscovery(this._config.seedPeers);
+		// TODO: Once we will a new peer discovery then we can remove this typecasting to P2PDiscoveredPeerInfo
+		await this._startDiscovery(this._config.seedPeers as ReadonlyArray<
+			P2PDiscoveredPeerInfo
+		>);
 	}
 
 	public async stop(): Promise<void> {

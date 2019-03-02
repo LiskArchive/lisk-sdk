@@ -76,21 +76,17 @@ export const validatePeerInfo = (
 			: 0;
 
 	const peerInfo: P2PDiscoveredPeerInfo = {
+		...protocolPeer,
 		ipAddress: protocolPeer.ip,
 		wsPort,
 		height,
 		os,
 		version,
-		options: {
-			httpPort: protocolPeer.httpPort,
-			broadhash: protocolPeer.broadhash,
-			nonce: protocolPeer.nonce,
-			...protocolPeer.options
-		},
-		isDiscoveredPeer: true,
 	};
 
-	return peerInfo;
+	const { ip, ...peerInfoUpdated } = peerInfo;
+
+	return peerInfoUpdated;
 };
 
 export const validatePeerInfoList = (

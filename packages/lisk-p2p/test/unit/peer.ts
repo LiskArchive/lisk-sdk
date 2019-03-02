@@ -22,9 +22,8 @@ describe('peer', () => {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
-		os: 'darwin',
-		version: '1.1.0',
-		isDiscoveredPeer: true
+		isDiscoveredPeer: true,
+		version: '1.1.1',
 	};
 
 	const defaultPeer = new Peer(defaultPeerInfo);

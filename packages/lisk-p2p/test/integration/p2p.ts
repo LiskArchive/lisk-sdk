@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
+import { P2PPeerInfo } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
@@ -75,11 +76,10 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
-				const seedPeers = [
+				const seedPeers: ReadonlyArray<P2PPeerInfo> = [
 					{
 						ipAddress: '127.0.0.1',
 						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-						height: 0,
 					},
 				];
 
@@ -122,7 +122,7 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover seed peers and add them to connectedPeers list', () => {
 				p2pNodeList.forEach(p2p => {
-					let { connectedPeers } = p2p.getNetworkStatus();
+					const { connectedPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = connectedPeers
 						.map(peerInfo => peerInfo.wsPort)
@@ -135,7 +135,6 @@ describe('Integration tests for P2P library', () => {
 						previousPeerPort < NETWORK_START_PORT
 							? NETWORK_END_PORT
 							: previousPeerPort,
-						p2p.nodeInfo.wsPort,
 						nextPeerPort > NETWORK_END_PORT ? NETWORK_START_PORT : nextPeerPort,
 					].sort();
 
@@ -155,7 +154,6 @@ describe('Integration tests for P2P library', () => {
 					{
 						ipAddress: '127.0.0.1',
 						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-						height: 0,
 					},
 				];
 
@@ -394,7 +392,6 @@ describe('Integration tests for P2P library', () => {
 									ipAddress: '127.0.0.1',
 									wsPort:
 										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
-									height: 0,
 								},
 						  ];
 

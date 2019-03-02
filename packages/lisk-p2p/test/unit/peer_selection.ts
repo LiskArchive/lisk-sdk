@@ -13,13 +13,13 @@
  *
  */
 import { expect } from 'chai';
-import { initializePeerList } from '../utils/peers';
+import { initializePeerInfoList } from '../utils/peers';
 import { selectForConnection, selectPeers } from '../../src/peer_selection';
 import { P2PNodeInfo } from '../../src/p2p_types';
 
 describe('peer selector', () => {
 	describe('#selectPeer', () => {
-		let peerList = initializePeerList();
+		let peerList = initializePeerInfoList();
 		const nodeInfo: P2PNodeInfo = {
 			height: 545777,
 			nethash: '73458irc3yb7rg37r7326dbt7236',
@@ -30,7 +30,7 @@ describe('peer selector', () => {
 
 		describe('get a list of n number of good peers', () => {
 			beforeEach(async () => {
-				peerList = initializePeerList();
+				peerList = initializePeerInfoList();
 			});
 
 			it('should return an array without optional arguments', () => {
@@ -95,7 +95,7 @@ describe('peer selector', () => {
 
 		describe('peers with lower blockheight', () => {
 			beforeEach(async () => {
-				peerList = initializePeerList();
+				peerList = initializePeerInfoList();
 			});
 			const lowHeightPeers = peerList.filter(
 				peer => peer.height < nodeInfo.height,
@@ -110,7 +110,7 @@ describe('peer selector', () => {
 	});
 
 	describe('#selectForConnection', () => {
-		const peerList = initializePeerList();
+		const peerList = initializePeerInfoList();
 		const numberOfPeers = peerList.length;
 
 		describe('get all the peers for selection', () => {
