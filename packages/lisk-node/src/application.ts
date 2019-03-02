@@ -5,6 +5,7 @@ import { P2P } from '@liskhq/lisk-p2p';
 import * as transactions from '@liskhq/lisk-transactions';
 import * as bunyan from 'bunyan';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import * as os from 'os';
 import { Sync } from './sync';
 
@@ -32,24 +33,27 @@ export class App {
 			blacklistedPeers: [],
 			connectTimeout: 5000,
 			seedPeers: [
-			{
-				ipAddress: '83.136.254.92',
-				wsPort: 8001,
-				height: 1,
-			},
-			{
-				ipAddress: '83.136.249.76',
-				wsPort: 8001,
-				height: 1,
-			}
+				{
+					ipAddress: '83.136.254.92',
+					wsPort: 8001,
+				},
+				{
+					ipAddress: '83.136.249.76',
+					wsPort: 8001,
+				},
 			],
 			wsEngine: 'ws',
 			nodeInfo: {
 				wsPort: 8001,
 				nethash: genesis.payloadHash,
-				version: '1.5.0',
+				version: '1.4.1',
 				os: os.platform(),
 				height: 1,
+				state: 1,
+				httpPort: 8000,
+				broadhash:
+					'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+				nonce: crypto.randomBytes(8).toString('hex'),
 			},
 		});
 		this._db = new DB('./blockchain.db');
@@ -71,11 +75,16 @@ export class App {
 			epochTime: 0,
 		});
 		this._logger.info('DPOS instansiated');
-		this._sync = new Sync(this._blockchain, this._dpos, this._p2p, this._logger);
+		this._sync = new Sync(
+			this._blockchain,
+			this._dpos,
+			this._p2p,
+			this._logger,
+		);
 	}
 
 	public async init(): Promise<void> {
-        this._logger.info('Starting initialization');
+		this._logger.info('Starting initialization');
 		await this._blockchain.init();
 		this._logger.info('Blockchain initialized.');
 		await this._dpos.init(this._blockchain.lastBlock);
@@ -91,8 +100,8 @@ export class App {
 
 	public async stop(): Promise<void> {
 		if (this._initialized) {
-			await this._db.close();
 			await this._p2p.stop();
+			await this._db.close();
 		}
 	}
 }
