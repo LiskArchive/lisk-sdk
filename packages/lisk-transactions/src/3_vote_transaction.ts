@@ -13,7 +13,6 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
 	StateStore,
@@ -94,7 +93,6 @@ export class VoteTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as VoteAsset;
-		this._fee = new BigNum(VOTE_FEE);
 		this.containsUniqueData = true;
 	}
 

@@ -16,13 +16,19 @@ import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
+	MultisignatureStatus,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
 import { MULTISIGNATURE_FEE } from './constants';
-import { TransactionError, TransactionMultiError } from './errors';
+import {
+	TransactionError,
+	TransactionMultiError,
+	TransactionPendingError,
+} from './errors';
+import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
-import { validator, verifyMultiSignatures } from './utils';
+import { validateMultisignatures, validator } from './utils';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
 
@@ -115,9 +121,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as MultiSignatureAsset;
-		this._fee = new BigNum(MULTISIGNATURE_FEE).mul(
-			this.asset.multisignature.keysgroup.length + 1,
-		);
 	}
 
 	protected assetToBytes(): Buffer {
@@ -195,6 +198,18 @@ export class MultisignatureTransaction extends BaseTransaction {
 				),
 			);
 		}
+		const expectedFee = new BigNum(MULTISIGNATURE_FEE).mul(
+			this.asset.multisignature.keysgroup.length + 1,
+		);
+		if (!this.fee.eq(expectedFee)) {
+			errors.push(
+				new TransactionError(
+					`Fee must be equal to ${expectedFee.toString()}`,
+					this.id,
+					'.fee',
+				),
+			);
+		}
 
 		if (
 			this.asset.multisignature.min > this.asset.multisignature.keysgroup.length
@@ -225,6 +240,45 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		return errors;
+	}
+
+	public processMultisignatures(_: StateStore): TransactionResponse {
+		const transactionBytes = this.signSignature
+			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
+			: this.getBasicBytes();
+
+		const { valid, errors } = validateMultisignatures(
+			this.asset.multisignature.keysgroup.map(signedPublicKey =>
+				signedPublicKey.substring(1),
+			),
+			this.signatures,
+			// Required to get signature from all of keysgroup
+			this.asset.multisignature.keysgroup.length,
+			transactionBytes,
+			this.id,
+		);
+		if (valid) {
+			this._multisignatureStatus = MultisignatureStatus.READY;
+
+			return createResponse(this.id, errors);
+		}
+		if (
+			errors &&
+			errors.length === 1 &&
+			errors[0] instanceof TransactionPendingError
+		) {
+			this._multisignatureStatus = MultisignatureStatus.PENDING;
+
+			return {
+				id: this.id,
+				status: Status.PENDING,
+				errors,
+			};
+		}
+
+		this._multisignatureStatus = MultisignatureStatus.FAIL;
+
+		return createResponse(this.id, errors);
 	}
 
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
@@ -258,29 +312,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 			membersPublicKeys: this.asset.multisignature.keysgroup.map(key =>
 				key.substring(1),
 			),
-			multimin: this.asset.multisignature.min,
-			multilifetime: this.asset.multisignature.lifetime,
+			multiMin: this.asset.multisignature.min,
+			multiLifetime: this.asset.multisignature.lifetime,
 		};
-
 		store.account.set(updatedSender.address, updatedSender);
-
-		const transactionBytes = this.signSignature
-			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
-			: this.getBasicBytes();
-
-		const {
-			status: multisignatureStatus,
-			errors: multisignatureErrors,
-		} = verifyMultiSignatures(
-			this.id,
-			updatedSender,
-			this.signatures,
-			transactionBytes,
-		);
-
-		errors.push(...multisignatureErrors);
-
-		this._multisignatureStatus = multisignatureStatus;
 
 		return errors;
 	}
@@ -290,8 +325,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		const {
 			membersPublicKeys,
-			multimin,
-			multilifetime,
+			multiMin,
+			multiLifetime,
 			...strippedSender
 		} = sender;
 

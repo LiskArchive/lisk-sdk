@@ -199,7 +199,7 @@ describe('#verify', () => {
 				'c465d74511c2bfd136cf9764172acd3c1514fa7ad76475e03bc91cf679757a5b',
 				'c465d74511c2bfd136cf9764172acd3c1514fa7ad76475e03bc91cf679757a5c',
 			],
-			multimin: 3,
+			multiMin: 3,
 		};
 		const signatures = [
 			'00ef8fcf4e1815def245ad32d0d0e3e86993a4029c41e8ca1dc2674c9794d31cefc2226ac539dea8049c7085fdcb29768389b96104ac05a0ddabfb8b523af409',
@@ -254,7 +254,7 @@ describe('#verify', () => {
 			expect(validator.validateMultisignatures).to.be.calledWithExactly(
 				defaultAccount.membersPublicKeys,
 				signatures,
-				defaultAccount.multimin,
+				defaultAccount.multiMin,
 				fakeTransactionBuffer,
 				defaultId,
 			);

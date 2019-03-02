@@ -94,7 +94,6 @@ export class OutTransferTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid field types', tx.id, errors);
 		}
 		this.asset = tx.asset as OutTransferAsset;
-		this._fee = new BigNum(OUT_TRANSFER_FEE);
 		this.containsUniqueData = true;
 	}
 
@@ -246,11 +245,16 @@ export class OutTransferTransaction extends BaseTransaction {
 
 		const sender = store.account.get(this.senderId);
 
-		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
-		if(balanceError) {
+		const balanceError = verifyAmountBalance(
+			this.id,
+			sender,
+			this.amount,
+			this.fee,
+		);
+		if (balanceError) {
 			errors.push(balanceError);
 		}
-		
+
 		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
 
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };

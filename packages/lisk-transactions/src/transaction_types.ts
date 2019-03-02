@@ -19,10 +19,11 @@ export interface Account {
 	readonly balance: string;
 	readonly delegate?: Delegate;
 	readonly publicKey?: string;
-	readonly secondPublicKey?: string;
+	readonly secondPublicKey?: string | null;
+	readonly secondSignature?: number;
 	readonly membersPublicKeys?: ReadonlyArray<string>;
-	readonly multimin?: number;
-	readonly multilifetime?: number;
+	readonly multiMin?: number;
+	readonly multiLifetime?: number;
 	readonly username?: string;
 	readonly votedDelegatesPublicKeys?: ReadonlyArray<string>;
 	readonly isDelegate?: boolean;

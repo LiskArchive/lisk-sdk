@@ -116,8 +116,8 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
+	public readonly fee: BigNum;
 
-	protected _fee: BigNum;
 	protected _id?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
@@ -149,10 +149,10 @@ export abstract class BaseTransaction {
 		}
 
 		this.amount = new BigNum(rawTransaction.amount);
-		this._fee = new BigNum(rawTransaction.fee);
+		this.fee = new BigNum(rawTransaction.fee);
 		this._id = rawTransaction.id;
 		this.recipientId = rawTransaction.recipientId;
-		this.recipientPublicKey = rawTransaction.recipientPublicKey;
+		this.recipientPublicKey = rawTransaction.recipientPublicKey || '';
 		this.senderId =
 			rawTransaction.senderId ||
 			getAddressFromPublicKey(rawTransaction.senderPublicKey);
@@ -163,14 +163,6 @@ export abstract class BaseTransaction {
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
 		this.receivedAt = rawTransaction.receivedAt || new Date();
-	}
-
-	public get fee(): BigNum {
-		if (!this._fee) {
-			throw new Error('fee is required to be set before use');
-		}
-
-		return this._fee;
 	}
 
 	public get id(): string {
