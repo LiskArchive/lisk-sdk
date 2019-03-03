@@ -108,7 +108,8 @@ export const applyReward = async (
 	height: number,
 	rewards: ReadonlyArray<Reward>,
 ): Promise<void> => {
-	rewards.forEach(async reward => {
+	// tslint:disable-next-line no-loop-statement
+	for (const reward of rewards) {
 		const recipientId = getAddressFromPublicKey(reward.publicKey);
 		const recipient = await store.get<Account>(
 			BUCKET_ADDRESS_ACCOUNT,
@@ -117,7 +118,8 @@ export const applyReward = async (
 		const delegateAddresses = recipient.votedDelegatesPublicKeys
 			? recipient.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
 			: [];
-		delegateAddresses.forEach(async address => {
+		// tslint:disable-next-line no-loop-statement
+		for (const address of delegateAddresses) {
 			const delegate = await store.get<Account>(
 				BUCKET_ADDRESS_ACCOUNT,
 				address,
@@ -127,8 +129,8 @@ export const applyReward = async (
 				votes: new BigNum(delegate.votes || '0').add(reward.amount).toString(),
 			};
 			await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
-		});
-	});
+		}
+	}
 	await store.set(BUCKET_BLOCK_HEIGHT_REWARDS, height.toString(), rewards);
 };
 
@@ -137,7 +139,8 @@ export const undoReward = async (
 	height: number,
 	rewards: ReadonlyArray<Reward>,
 ): Promise<void> => {
-	rewards.forEach(async reward => {
+	// tslint:disable-next-line no-loop-statement
+	for (const reward of rewards) {
 		const recipientId = getAddressFromPublicKey(reward.publicKey);
 		const recipient = await store.get<Account>(
 			BUCKET_ADDRESS_ACCOUNT,
@@ -146,7 +149,8 @@ export const undoReward = async (
 		const delegateAddresses = recipient.votedDelegatesPublicKeys
 			? recipient.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
 			: [];
-		delegateAddresses.forEach(async address => {
+		// tslint:disable-next-line no-loop-statement
+		for (const address of delegateAddresses) {
 			const delegate = await store.get<Account>(
 				BUCKET_ADDRESS_ACCOUNT,
 				address,
@@ -156,7 +160,7 @@ export const undoReward = async (
 				votes: new BigNum(delegate.votes || '0').sub(reward.amount).toString(),
 			};
 			await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
-		});
-	});
+		}
+	}
 	await store.unset(BUCKET_BLOCK_HEIGHT_REWARDS, height.toString());
 };
