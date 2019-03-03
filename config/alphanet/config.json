@@ -20,7 +20,7 @@
 			"access": {
 				"public": true
 			},
-			"httpPort": 7000
+			"httpPort": 4000
 		},
 		"chain": {
 			"forging": {
@@ -641,7 +641,7 @@
 						"wsPort": "5000"
 					}
 				],
-				"wsPort": 7001
+				"wsPort": 5000
 			}
 		}
 	}
