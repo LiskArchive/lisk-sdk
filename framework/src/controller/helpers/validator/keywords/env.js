@@ -1,8 +1,5 @@
 const debug = require('debug')('lisk:validator:env');
-
-const formatters = {
-	format1: value => value,
-};
+const formatters = require('./formatters');
 
 const metaSchema = {
 	title: 'Env variables',

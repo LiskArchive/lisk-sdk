@@ -8,14 +8,14 @@ const metaSchema = {
 	anyOf: [
 		{
 			type: 'string',
-			pattern: '^([-][a-z][a-z0-9]*)(,[-]{2}[a-z][a-z0-9-]*)?$',
+			pattern: '^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$',
 		},
 		{
 			type: 'array',
 			items: [
 				{
 					type: 'string',
-					pattern: '^([-][a-z][a-z0-9]*)(,[-]{2}[a-z][a-z0-9-]*)?$',
+					pattern: '^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$',
 				},
 				{
 					type: 'string',

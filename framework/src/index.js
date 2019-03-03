@@ -1,5 +1,6 @@
 const Application = require('./controller/application');
 const version = require('./version');
+const validator = require('./controller/helpers/validator');
 
 /**
  * @namespace framework
@@ -8,4 +9,7 @@ const version = require('./version');
 module.exports = {
 	Application,
 	version,
+	helpers: {
+		validator,
+	},
 };
