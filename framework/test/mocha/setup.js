@@ -49,7 +49,9 @@ const config = {
 	...netConfig,
 	version: packageJson.version,
 	minVersion: packageJson.lisk.minVersion,
-	protocolVersion: packageJson.lisk.protocolVersion,
+	// Support for PROTOCOL_VERSION only for tests
+	protocolVersion:
+		process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
 };
 config.constants = validator.validateWithDefaults(
 	constantsSchema.constants,

@@ -9,6 +9,11 @@ const packageInfo = {
 	protocolVersion: packageJSON.lisk.protocolVersion,
 };
 
+// Support for PROTOCOL_VERSION only for tests
+if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
+	packageInfo.protocolVersion = process.env.PROTOCOL_VERSION;
+}
+
 const appSchema = {
 	type: 'object',
 	properties: {
