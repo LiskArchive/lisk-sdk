@@ -226,6 +226,12 @@ export class TransactionPool extends EventEmitter {
 		return this.addTransactionToQueue(receivedQueue, transaction);
 	}
 
+	public addPendingTransaction(transaction: Transaction): AddTransactionResult {
+		const pendingQueue: QueueNames = 'pending';
+
+		return this.addTransactionToQueue(pendingQueue, transaction);
+	}
+
 	public addVerifiedTransaction(
 		transaction: Transaction,
 	): AddTransactionResult {
