@@ -41,6 +41,9 @@ module.exports = {
 		'5384302058030309746', // 869890
 		'9352922026980330230', // 925165
 	],
+	// transfer transaction with null byte in the data field
+	// SELECT * FROM transfer WHERE position('\x00' in data) > 0;
+	transactionWithNullByte: ['11815860355204320743'], // 7292474
 	multisignatures: [
 		'14122550998639658526', // 1189962
 	],

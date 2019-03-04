@@ -16,6 +16,7 @@
 
 const async = require('async');
 const Bignum = require('../helpers/bignum.js');
+const regexpTester = require('../helpers/regexp_tester.js');
 
 const { FEES } = global.constants;
 let self;
@@ -97,6 +98,13 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 
 	if (!transaction.asset.delegate.username) {
 		return setImmediate(cb, 'Username is undefined');
+	}
+
+	if (regexpTester.isNullByteIncluded(transaction.asset.delegate.username)) {
+		return setImmediate(
+			cb,
+			'Delegate name has invalid character. Null character is not allowed.'
+		);
 	}
 
 	if (
