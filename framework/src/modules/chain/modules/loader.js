@@ -17,7 +17,7 @@
 const async = require('async');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const slots = require('../helpers/slots.js');
-const definitions = require('../schema/schema');
+const definitions = require('../schema/definitions');
 require('colors');
 
 // Private fields

@@ -20,7 +20,7 @@ const ip = require('ip');
 const failureCodes = require('../api/ws/rpc/failure_codes.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const Peer = require('../logic/peer.js');
-const definitions = require('../schema/schema');
+const definitions = require('../schema/definitions');
 
 // Private fields
 let components;

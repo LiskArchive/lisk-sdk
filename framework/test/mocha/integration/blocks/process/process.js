@@ -21,7 +21,7 @@ const modulesLoader = require('../../../common/modules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
-const definitions = require('../../../../../src/modules/chain/schema/schema');
+const definitions = require('../../../../../src/modules/chain/schema/definitions');
 
 const { REWARDS } = global.constants;
 

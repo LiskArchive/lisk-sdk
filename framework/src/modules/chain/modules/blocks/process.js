@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const async = require('async');
 const slots = require('../../helpers/slots.js');
-const definitions = require('../../schema/schema');
+const definitions = require('../../schema/definitions');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
