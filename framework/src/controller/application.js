@@ -85,7 +85,7 @@ class Application {
 		label,
 		genesisBlock,
 		constants = {},
-		config = { components: { logger: null }, modules: { network: {} } }
+		config = { components: { logger: null }, modules: { chain: {}, network: {} } }
 	) {
 		if (typeof label === 'function') {
 			label = label.call();
