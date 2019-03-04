@@ -2,7 +2,7 @@ const assert = require('assert');
 const fs = require('fs-extra');
 const psList = require('ps-list');
 const systemDirs = require('./config/dirs');
-const EventEmitterChannel = require('./channels/event_emitter');
+const InMemoryChannel = require('./channels/in_memory_channel');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 
@@ -123,7 +123,7 @@ class Controller {
 		});
 		await this.bus.setup();
 
-		this.channel = new EventEmitterChannel(
+		this.channel = new InMemoryChannel(
 			'lisk',
 			['ready'],
 			{
@@ -170,7 +170,7 @@ class Controller {
 			`Loading module with alias: ${moduleAlias}(${name}:${version})`
 		);
 
-		const channel = new EventEmitterChannel(
+		const channel = new InMemoryChannel(
 			moduleAlias,
 			module.events,
 			module.actions,

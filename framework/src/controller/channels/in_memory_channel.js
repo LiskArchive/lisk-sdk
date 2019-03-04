@@ -1,6 +1,6 @@
 const Event = require('../event');
 const Action = require('../action');
-const BaseChannel = require('./base');
+const BaseChannel = require('./base_channel');
 
 /**
  * Channel responsible to communicate with bus for modules running in same process
@@ -10,9 +10,9 @@ const BaseChannel = require('./base');
  * @requires module.Event
  * @requires module.Action
  * @requires channels/base
- * @type {module.EventEmitterChannel}
+ * @type {module.InMemoryChannel}
  */
-class EventEmitterChannel extends BaseChannel {
+class InMemoryChannel extends BaseChannel {
 	/**
 	 * Create new evnt emitter channel for module.
 	 *
@@ -115,4 +115,4 @@ class EventEmitterChannel extends BaseChannel {
 	}
 }
 
-module.exports = EventEmitterChannel;
+module.exports = InMemoryChannel;
