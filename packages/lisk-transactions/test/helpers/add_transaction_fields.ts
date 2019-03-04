@@ -18,7 +18,7 @@ export const addTransactionFields = (transaction: any) => {
 		signSignature: transaction.signSignature
 			? transaction.signSignature
 			: undefined,
-		receivedAt: new Date(),
+		receivedAt: new Date().toISOString(),
 		signatures: [...transaction.signatures],
 	};
 };

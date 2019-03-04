@@ -47,7 +47,7 @@ export interface TransactionJSON {
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
-	readonly receivedAt?: Date;
+	readonly receivedAt?: string;
 }
 
 export interface IsValidResponse {

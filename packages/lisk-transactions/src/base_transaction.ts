@@ -57,12 +57,6 @@ export interface TransactionResponse {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
-export interface Attributes {
-	readonly [entity: string]: {
-		readonly [property: string]: ReadonlyArray<string>;
-	};
-}
-
 export interface StateStoreGetter<T> {
 	get(key: string): T;
 	find(func: (item: T) => boolean): T | undefined;
@@ -162,7 +156,9 @@ export abstract class BaseTransaction {
 		this._signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
-		this.receivedAt = rawTransaction.receivedAt || new Date();
+		this.receivedAt = rawTransaction.receivedAt
+			? new Date(rawTransaction.receivedAt)
+			: new Date();
 	}
 
 	public get id(): string {
@@ -200,7 +196,7 @@ export abstract class BaseTransaction {
 			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
-			receivedAt: this.receivedAt,
+			receivedAt: this.receivedAt.toISOString(),
 		};
 
 		return transaction;
