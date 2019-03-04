@@ -37,7 +37,10 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	get actions() {
-		return {};
+		return {
+			request: async action => this.network.actions.request(action),
+			send: action => this.network.actions.send(action),
+		};
 	}
 
 	async load(channel) {
@@ -45,11 +48,8 @@ module.exports = class NetworkModule extends BaseModule {
 			...defaults,
 			...this.options,
 		};
-		this.network = new Network(channel, options);
-
-		channel.once('lisk:ready', () => {
-			this.network.bootstrap();
-		});
+		this.network = new Network(options);
+		await this.network.bootstrap(channel);
 	}
 
 	async unload() {
