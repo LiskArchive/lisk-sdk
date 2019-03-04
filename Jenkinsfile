@@ -202,11 +202,6 @@ pipeline {
 						setup()
 						run_test_jest('functional')
 					}
-					post {
-						cleanup {
-							// teardown('functional')
-						}
-					}
 				}
 				stage('Jest Unit tests') {
 					agent { node { label 'lisk-core' } }
@@ -214,22 +209,12 @@ pipeline {
 						setup()
 						run_test_jest('unit')
 					}
-					post {
-						cleanup {
-							// teardown('unit')
-						}
-					}
 				}
 				stage('Jest Integration tests') {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
 						run_test_jest('integration')
-					}
-					post {
-						cleanup {
-							// teardown('integration')
-						}
 					}
 				}
 			}
