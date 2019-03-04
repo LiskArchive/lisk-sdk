@@ -39,7 +39,7 @@ export const transaction = {
 			type: 'string',
 		},
 		recipientId: {
-			type: 'string',
+			type: ['string', 'null'],
 		},
 		recipientPublicKey: {
 			type: ['string', 'null'],
