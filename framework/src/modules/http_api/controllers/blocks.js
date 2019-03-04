@@ -134,6 +134,12 @@ __private.getAddressByPublicKey = function(publicKey) {
 	return address;
 };
 
+/**
+ * Parse raw block data from database into expected API response type for blocks
+ *
+ * @param {Object} raw Raw block data from database
+ * @return {block} Block formatted according to API specification
+ */
 function parseBlockFromDatabase(raw) {
 	if (!raw.id) {
 		return null;
