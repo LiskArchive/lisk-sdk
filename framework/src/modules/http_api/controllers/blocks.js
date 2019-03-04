@@ -15,9 +15,12 @@
 'use strict';
 
 const _ = require('lodash');
+const crypto = require('crypto');
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
+const Bignum = require('../helpers/bignum.js');
 
+const __private = {};
 let library;
 let sortFields;
 
@@ -109,6 +112,61 @@ BlocksController.getBlocks = function(context, next) {
 };
 
 /**
+ * Gets address by public.
+ *
+ * @private
+ * @param {publicKey} publicKey Public key
+ * @returns {address} address
+ * @todo Replace by Lisk Elements once integrated.
+ */
+__private.getAddressByPublicKey = function(publicKey) {
+	const publicKeyHash = crypto
+		.createHash('sha256')
+		.update(publicKey, 'hex')
+		.digest();
+	const temp = Buffer.alloc(8);
+
+	for (let i = 0; i < 8; i++) {
+		temp[i] = publicKeyHash[7 - i];
+	}
+
+	const address = `${Bignum.fromBuffer(temp).toString()}L`;
+	return address;
+};
+
+function parseBlockFromDatabase(raw) {
+	if (!raw.id) {
+		return null;
+	}
+
+	const block = {
+		id: raw.id,
+		version: parseInt(raw.version),
+		timestamp: parseInt(raw.timestamp),
+		height: parseInt(raw.height),
+		previousBlock: raw.previousBlockId,
+		numberOfTransactions: parseInt(raw.numberOfTransactions),
+		totalAmount: new Bignum(raw.totalAmount),
+		totalFee: new Bignum(raw.totalFee),
+		reward: new Bignum(raw.reward),
+		payloadLength: parseInt(raw.payloadLength),
+		payloadHash: raw.payloadHash,
+		generatorPublicKey: raw.generatorPublicKey,
+		generatorId: __private.getAddressByPublicKey(raw.generatorPublicKey),
+		blockSignature: raw.blockSignature,
+		confirmations: parseInt(raw.confirmations),
+	};
+
+	if (raw.transactions) {
+		block.transactions = raw.transactions;
+	}
+
+	block.totalForged = block.totalFee.plus(block.reward).toString();
+
+	return block;
+}
+
+/**
  * Get filtered list of blocks (without transactions - BasicBlock).
  *
  * @private
@@ -180,13 +238,7 @@ function _list(params, cb) {
 		library.storage.entities.Block.get(filters, options)
 			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 			.then(async rows =>
-				setImmediate(
-					cb,
-					null,
-					await Promise.all(
-						rows.map(row => library.channel.invoke('chain:storageRead', [row]))
-					)
-				)
+				setImmediate(cb, null, rows.map(parseBlockFromDatabase))
 			)
 			.catch(err => {
 				library.logger.error(err.stack);
