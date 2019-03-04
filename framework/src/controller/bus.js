@@ -7,13 +7,13 @@ const CONTROLLER_IDENTIFIER = 'lisk';
 /**
  * Bus responsible to maintain communication between modules
  *
- * @namespace Framework
+ * @class
+ * @memberof framework.controller
  * @requires bluebird
  * @requires eventemitter2
  * @requires module.Action
- * @type {module.Bus}
  */
-module.exports = class Bus extends EventEmitter2 {
+class Bus extends EventEmitter2 {
 	/**
 	 * Create the bus object
 	 *
@@ -55,20 +55,24 @@ module.exports = class Bus extends EventEmitter2 {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	async registerChannel(moduleAlias, events, actions, options) {
-		events.forEach(e => {
-			const eventName = `${moduleAlias}:${e}`;
-			if (this.events[eventName]) {
-				throw new Error(`Event "${eventName}" already registered with bus.`);
+		events.forEach(eventName => {
+			const eventFullName = `${moduleAlias}:${eventName}`;
+			if (this.events[eventFullName]) {
+				throw new Error(
+					`Event "${eventFullName}" already registered with bus.`
+				);
 			}
-			this.events[eventName] = true;
+			this.events[eventFullName] = true;
 		});
 
-		actions.forEach(a => {
-			const actionName = `${moduleAlias}:${a}`;
-			if (this.actions[actionName]) {
-				throw new Error(`Action "${actionName}" already registered with bus.`);
+		actions.forEach(actionName => {
+			const actionFullName = `${moduleAlias}:${actionName}`;
+			if (this.actions[actionFullName]) {
+				throw new Error(
+					`Action "${actionFullName}" already registered with bus.`
+				);
 			}
-			this.actions[actionName] = true;
+			this.actions[actionFullName] = true;
 		});
 	}
 
@@ -87,7 +91,7 @@ module.exports = class Bus extends EventEmitter2 {
 		}
 
 		if (this.actions[action.key()]) {
-			return this.controller.channels[action.module].invoke(action);
+			return this.controller.modulesChannels[action.module].invoke(action);
 		}
 
 		throw new Error(`Action ${action.key()} is not registered to bus.`);
@@ -125,4 +129,6 @@ module.exports = class Bus extends EventEmitter2 {
 	getEvents() {
 		return Object.keys(this.events);
 	}
-};
+}
+
+module.exports = Bus;

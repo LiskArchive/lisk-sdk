@@ -5,13 +5,14 @@ const BaseChannel = require('./base');
 /**
  * Channel responsible to communicate with bus for modules running in same process
  *
- * @namespace Framework.channels
+ * @class
+ * @memberof framework.controller.channels
  * @requires module.Event
  * @requires module.Action
  * @requires channels/base
  * @type {module.EventEmitterChannel}
  */
-module.exports = class EventEmitterChannel extends BaseChannel {
+class EventEmitterChannel extends BaseChannel {
 	/**
 	 * Create new evnt emitter channel for module.
 	 *
@@ -25,7 +26,6 @@ module.exports = class EventEmitterChannel extends BaseChannel {
 	constructor(moduleAlias, events, actions, bus, options = {}) {
 		super(moduleAlias, events, actions, options);
 		this.bus = bus;
-		this.actionMap = {};
 	}
 
 	/**
@@ -36,8 +36,8 @@ module.exports = class EventEmitterChannel extends BaseChannel {
 	async registerToBus() {
 		await this.bus.registerChannel(
 			this.moduleAlias,
-			this.getEvents().map(e => e.name),
-			this.getActions().map(a => a.name),
+			this.eventsList.map(event => event.name),
+			this.actionsList.map(action => action.name),
 			{}
 		);
 	}
@@ -73,20 +73,15 @@ module.exports = class EventEmitterChannel extends BaseChannel {
 	 * @param {Object} data - Data to publish with event
 	 */
 	publish(eventName, data) {
-		const event = new Event(eventName, data, this.moduleAlias);
+		const event = new Event(eventName, data);
+
+		if (event.module !== this.moduleAlias) {
+			throw new Error(
+				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`
+			);
+		}
 
 		this.bus.emit(event.key(), event.serialize());
-	}
-
-	/**
-	 * Register new action.
-	 *
-	 * @param {string} actionName - Name of action to create
-	 * @param {requestCallback} cb - The callback that handles the specified action
-	 */
-	action(actionName, cb) {
-		const action = new Action(`${this.moduleAlias}:${actionName}`, null, null);
-		this.actionMap[action.key()] = cb;
 	}
 
 	/**
@@ -109,10 +104,15 @@ module.exports = class EventEmitterChannel extends BaseChannel {
 			action = actionName;
 		}
 
-		if (action.module === this.moduleAlias) {
-			return this.actionMap[action.key()](action);
+		if (
+			action.module === this.moduleAlias &&
+			typeof this.actions[action.name] === 'function'
+		) {
+			return this.actions[action.name](action);
 		}
 
 		return this.bus.invoke(action.serialize());
 	}
-};
+}
+
+module.exports = EventEmitterChannel;

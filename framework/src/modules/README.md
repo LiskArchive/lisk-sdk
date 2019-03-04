@@ -1,32 +1,42 @@
 ## Modules
 
-Modules are individual building blocks for the lisk. The implementation of each module is up-to user but by default it should generate an object with this structure.
+Modules are individual building blocks for the lisk. The implementation of each module is up-to user but it must inherit from base module and implement the methods.
 
 ```js
 // Exported as main file to javascript package
-export default {
+export default class MyModule extends BaseModule {
+	/**
+	*
+ 	* @param {Object} options - An object of module options
+	*/
+	constructor(options) {
+	 super(options);
+	}
+
 	/**
 	 * A unique module name accessed through out the system.
 	 * If some module already registered with same alias, it will throw error
 	 */
-	alias: 'moduleAlias',
+	static get alias(){ return 'moduleAlias'; },
 
 	/**
 	 * Package detail referring the version and other details
 	 * Easiest way is to directly refer to package.json for all details
 	 */
 
-	info: {
-		author: '',
-		version: '',
-		name: '',
+	static get info(){
+		return {
+			author: '',
+			version: '',
+			name: '',
+			};
 	},
 
 	/**
 	 * Supported configurations for the module with default values
 	 */
 
-	defaults: {},
+	get defaults() { return {}; },
 
 	/**
 	 * List of valid events which this module want to register with the controller
@@ -35,7 +45,7 @@ export default {
 	 * Any module can subscribe or publish that event in the eco-system
 	 */
 
-	events: [],
+	get events() { return []; },
 
 	/**
 	 * Object of valid actions which this module want to register with the controller
@@ -44,8 +54,10 @@ export default {
 	 * Source module can define the action while others can invoke that action
 	 */
 
-	actions: {
-		action1: action => {},
+	get actions() {
+		return {
+			action1: action => {},
+		}
 	},
 
 	/**
@@ -55,17 +67,16 @@ export default {
 	 * some activities which you want to perform when every other module is loaded
 	 *
 	 * @param {Channel} channel - An interface to channel
-	 * @param {Object} options - An object of module options
 	 * @return {Promise<void>}
 	 */
-	load: async (channel, options) => {},
+	async load(channel){ },
 
 	/**
 	 * Method to be invoked by controller to perform the cleanup
 	 *
 	 * @return {Promise<void>}
 	 */
-	unload: async () => {},
+	async unload() {},
 };
 ```
 

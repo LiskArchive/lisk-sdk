@@ -28,12 +28,12 @@ module.exports = function(grunt) {
 						} else if (tagFilter === 'propagation') {
 							filter = '--grep @propagation';
 						}
-						return `./node_modules/.bin/_mocha framework/test/network/index.js ${filter}`;
+						return `npx mocha framework/test/mocha/network/index.js ${filter} --opts framework/test/mocha/mocha.opts`;
 					}
 					const toExecute = [tagFilter, suite, section]
 						.filter(val => val)
 						.join(' ');
-					return `node framework/test/common/parallel_tests.js ${toExecute}`;
+					return `node framework/test/mocha/common/parallel_tests.js ${toExecute}`;
 				},
 				maxBuffer: maxBufferSize,
 			},

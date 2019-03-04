@@ -53,10 +53,10 @@ __private.ticking = false;
 class Rounds {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
+			channel: scope.channel,
+			logger: scope.components.logger,
 			bus: scope.bus,
-			network: scope.network,
-			storage: scope.storage,
+			storage: scope.components.storage,
 		};
 		self = this;
 
@@ -497,7 +497,7 @@ Rounds.prototype.createRoundInformationWithDelegate = function(
 
 // Events
 /**
- * Assigns modules to private constiable `modules`.
+ * Assigns modules to private constant `modules`.
  *
  * @param {modules} scope - Loaded modules
  */
@@ -514,7 +514,7 @@ Rounds.prototype.onBind = function(scope) {
 };
 
 /**
- * Sets private constiable loaded to true.
+ * Sets private constant loaded to true.
  *
  * @listens module:loader~event:blockchainReady
  */
@@ -557,11 +557,11 @@ Rounds.prototype.onFinishRound = async function(round) {
 		}
 	}
 
-	return library.network.io.sockets.emit('rounds/change', { number: round });
+	return library.channel.publish('chain:rounds:change', { number: round });
 };
 
 /**
- * Sets private constiable `loaded` to false.
+ * Sets private constant `loaded` to false.
  *
  * @param {function} cb
  * @returns {setImmediateCallback} cb
@@ -574,7 +574,7 @@ Rounds.prototype.cleanup = function(cb) {
 
 // Private methods
 /**
- * Generates outsiders array and pushes to param scope constiable.
+ * Generates outsiders array and pushes to param scope constant.
  * Obtains delegate list and for each delegate generate address.
  *
  * @private
@@ -619,7 +619,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 
 /**
  * Gets rows from `round_blocks` and calculates rewards.
- * Loads into scope constiable fees, rewards and delegates.
+ * Loads into scope constant fees, rewards and delegates.
  *
  * @private
  * @param {number} round

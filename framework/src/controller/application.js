@@ -3,10 +3,12 @@ const Controller = require('./controller');
 const defaults = require('./defaults');
 const version = require('../version');
 const validator = require('./helpers/validator');
-const schema = require('./schema/application');
+const applicationSchema = require('./schema/application');
+const constantsSchema = require('./schema/constants');
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
+const HttpAPIModule = require('../modules/http_api');
 
 // Private __private used because private keyword is restricted
 const __private = {
@@ -47,16 +49,16 @@ const registerProcessHooks = app => {
 /**
  * Application class to start the block chain instance
  *
- * @namespace Framework
+ * @class
+ * @memberof framework.controller
  * @requires assert
  * @requires Controller
  * @requires module.defaults
  * @requires helpers/validator
  * @requires schema/application
  * @requires components/logger
- * @type {module.Application}
  */
-module.exports = class Application {
+class Application {
 	/**
 	 * Create the application object
 	 *
@@ -65,7 +67,7 @@ module.exports = class Application {
 	 * @example
 	 *    const app = new Application('my-app-devnet', myGenesisBlock, myConstants)
 	 *
-	 * @param {string} label - Application label used in logs. Useful if you have multiple networks for same application.
+	 * @param {string|function} label - Application label used in logs. Useful if you have multiple networks for same application.
 	 * @param {Object} genesisBlock - Genesis block object
 	 * @param {Object} [constants] - Override constants
 	 * @param {Object} [config] - Main configuration object
@@ -84,16 +86,25 @@ module.exports = class Application {
 		constants = {},
 		config = { components: { logger: null } }
 	) {
+		if (typeof label === 'function') {
+			label = label.call();
+		}
+
 		if (!config.components.logger) {
 			config.components.logger = {
 				filename: `~/.lisk/${label}/lisk.log`,
 			};
 		}
 
-		validator.loadSchema(schema);
-		validator.validate(schema.appLabel, label);
-		validator.validate(schema.constants, constants);
-		validator.validate(schema.config, config);
+		// Provide global constants for controller used by z_schema
+		global.constants = constants;
+
+		validator.loadSchema(applicationSchema);
+		validator.loadSchema(constantsSchema);
+		validator.validate(applicationSchema.appLabel, label);
+		validator.validate(constantsSchema.constants, constants);
+		validator.validate(applicationSchema.config, config);
+		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;
@@ -112,24 +123,26 @@ module.exports = class Application {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
 		});
+
+		this.registerModule(HttpAPIModule);
 	}
 
 	/**
 	 * Register module with the application
 	 *
-	 * @param {Object} moduleSpec - Module specification
+	 * @param {Object} moduleKlass - Module specification
 	 *  @see {@link '../modules/README.md'}
-	 * @param {Object} [config] - Modules configuration object. Provided config will override `moduleSpec.defaults` to generate final configuration used for the module
-	 * @param {string} [alias] - Will use this alias or fallback to `moduleSpec.alias`
+	 * @param {Object} [options] - Modules configuration object. Provided options will override `moduleKlass.defaults` to generate final configuration used for the module
+	 * @param {string} [alias] - Will use this alias or fallback to `moduleKlass.alias`
 	 */
-	registerModule(moduleSpec, config = {}, alias = undefined) {
-		assert(moduleSpec, 'ModuleSpec is required');
+	registerModule(moduleKlass, options = {}, alias = undefined) {
+		assert(moduleKlass, 'ModuleSpec is required');
 		assert(
-			typeof config === 'object',
-			'Module config must be provided or set to empty object.'
+			typeof options === 'object',
+			'Module options must be provided or set to empty object.'
 		);
-		assert(alias || moduleSpec.alias, 'Module alias must be provided.');
-		const moduleAlias = alias || moduleSpec.alias;
+		assert(alias || moduleKlass.alias, 'Module alias must be provided.');
+		const moduleAlias = alias || moduleKlass.alias;
 		assert(
 			!Object.keys(this.getModules()).includes(moduleAlias),
 			`A module with alias "${moduleAlias}" already registered.`
@@ -137,8 +150,8 @@ module.exports = class Application {
 
 		const modules = this.getModules();
 		modules[moduleAlias] = {
-			spec: moduleSpec,
-			config: config || {},
+			klass: moduleKlass,
+			options: options || {},
 		};
 		__private.modules.set(this, modules);
 	}
@@ -147,15 +160,15 @@ module.exports = class Application {
 	 * Override the module's configuration
 	 *
 	 * @param {string} alias - Alias of module used during registration
-	 * @param {Object} config - Override configurations, these will override existing configurations.
+	 * @param {Object} options - Override configurations, these will override existing configurations.
 	 */
-	overrideModuleConfig(alias, config) {
+	overrideModuleOptions(alias, options) {
 		const modules = this.getModules();
 		assert(
 			Object.keys(modules).includes(alias),
 			`No module ${alias} is registered`
 		);
-		modules[alias].config = Object.assign({}, modules[alias].config, config);
+		modules[alias].options = Object.assign({}, modules[alias].options, options);
 		__private.modules.set(this, modules);
 	}
 
@@ -206,7 +219,7 @@ module.exports = class Application {
 	 * Get one module for provided alias
 	 *
 	 * @param {string} alias - Alias for module used during registration
-	 * @return {{spec: Object, config: Object}}
+	 * @return {{klass: Object, options: Object}}
 	 */
 	getModule(alias) {
 		return __private.modules.get(this)[alias];
@@ -238,11 +251,11 @@ module.exports = class Application {
 		registerProcessHooks(this);
 
 		this.controller = new Controller(
-			this.getModules(),
+			this.label,
 			this.config.components,
 			this.logger
 		);
-		return this.controller.load();
+		return this.controller.load(this.getModules());
 	}
 
 	/**
@@ -259,4 +272,6 @@ module.exports = class Application {
 		this.logger.log(`Shutting down with error code ${errorCode} ${message}`);
 		process.exit(errorCode);
 	}
-};
+}
+
+module.exports = Application;

@@ -18,9 +18,7 @@ const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 
 const { ADDITIONAL_DATA, FEES } = global.constants;
-
-let modules;
-let library;
+const __scope = {};
 
 /**
  * Main transfer logic.
@@ -30,16 +28,21 @@ let library;
  * @see Parent: {@link logic}
  * @requires helpers/bignum
  * @requires helpers/slots
- * @param {Object} logger
- * @param {Object} schema
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {logger} scope.components.logger
+ * @param {Object} scope.modules
+ * @param {Accounts} scope.modules.accounts
+ * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
 class Transfer {
-	constructor(logger, schema) {
-		library = {
+	constructor({ components: { logger }, schema }) {
+		__scope.schema = schema;
+		__scope.components = {
 			logger,
-			schema,
 		};
+		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
 	}
 }
 
@@ -51,8 +54,9 @@ class Transfer {
  * @param {Accounts} accounts
  * @todo Add description for the params
  */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
 Transfer.prototype.bind = function(accounts) {
-	modules = {
+	__scope.modules = {
 		accounts,
 	};
 };
@@ -138,14 +142,14 @@ Transfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: transaction.amount,
@@ -178,14 +182,14 @@ Transfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	modules.accounts.setAccountAndGet(
+	__scope.modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return modules.accounts.mergeAccountAndGet(
+			return __scope.modules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: -transaction.amount,
@@ -257,13 +261,13 @@ Transfer.prototype.objectNormalize = function(transaction) {
 		return transaction;
 	}
 
-	const report = library.schema.validate(
+	const report = __scope.schema.validate(
 		transaction.asset,
 		Transfer.prototype.schema
 	);
 
 	if (!report) {
-		throw `Failed to validate transfer schema: ${library.schema
+		throw `Failed to validate transfer schema: ${__scope.schema
 			.getLastErrors()
 			.map(err => err.message)
 			.join(', ')}`;
@@ -285,7 +289,7 @@ Transfer.prototype.dbRead = function(raw) {
 			const data = raw.tf_data.toString('utf8');
 			return { data };
 		} catch (e) {
-			library.logger.error(
+			__scope.components.logger.error(
 				'Logic-Transfer-dbRead: Failed to convert data field into utf8'
 			);
 			return null;

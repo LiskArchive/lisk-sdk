@@ -17,8 +17,8 @@
 const Promise = require('bluebird');
 const async = require('async');
 const _ = require('lodash');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionTypes = require('../../helpers/transaction_types.js');
-const Bignum = require('../../helpers/bignum.js');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -282,95 +282,41 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		}
 		return 0;
 	});
-	// Initialize block progress tracker
-	const tracker = modules.blocks.utils.getBlockProgressLogger(
-		block.transactions.length,
-		block.transactions.length / 100,
-		'Genesis block loading'
-	);
-	async.eachSeries(
-		block.transactions,
-		(transaction, eachSeriesCb) => {
-			// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
-			// FIXME: Poor performance - every transaction cause SQL query to be executed
-			// WARNING: DB_WRITE
 
-			transaction.amount = new Bignum(transaction.amount);
-			transaction.fee = new Bignum(transaction.fee);
-
-			modules.accounts.setAccountAndGet(
-				{ publicKey: transaction.senderPublicKey },
-				(err, sender) => {
-					if (err) {
-						return setImmediate(eachSeriesCb, {
-							message: err,
-							transaction,
-							block,
-						});
-					}
-					// Apply transaction to confirmed & unconfirmed balances
-					// WARNING: DB_WRITE
-					__private.applyTransaction(block, transaction, sender, eachSeriesCb);
-					// Update block progress tracker
-					return tracker.applyNext();
-				}
-			);
-		},
-		err => {
-			if (err) {
-				// If genesis block is invalid, kill the node...
-				process.emit('cleanup', err.message);
-				return setImmediate(cb, err);
-			}
-			// Set genesis block as last block
-			modules.blocks.lastBlock.set(block);
-			// Tick round
-			// WARNING: DB_WRITE
-			return modules.rounds.tick(block, cb);
+	__private.applyTransactions(block.transactions, err => {
+		if (err) {
+			// If genesis block is invalid, kill the node...
+			process.emit('cleanup', err.message);
+			return setImmediate(cb, err);
 		}
-	);
+		// Set genesis block as last block
+		modules.blocks.lastBlock.set(block);
+		// Tick round
+		// WARNING: DB_WRITE
+		return modules.rounds.tick(block, cb);
+	});
 };
 
 /**
- * Apply transaction to unconfirmed and confirmed.
+ * Applies transactions to the confirmed state.
  *
  * @private
  * @param {Object} block - Block object
- * @param {Object} transaction - Transaction object
+ * @param {Object} transactions - Transaction object
  * @param {Object} sender - Sender account
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.applyTransaction = function(block, transaction, sender, cb) {
-	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'applyConfirmed' can be ok
-	modules.transactions.applyUnconfirmed(transaction, sender, err => {
-		if (err) {
-			return setImmediate(cb, {
-				message: err,
-				transaction,
-				block,
-			});
-		}
-
-		return modules.transactions.applyConfirmed(
-			transaction,
-			block,
-			sender,
-			applyConfirmedErr => {
-				if (applyConfirmedErr) {
-					return setImmediate(cb, {
-						message: `Failed to apply transaction: ${
-							transaction.id
-						} to confirmed state of account:`,
-						transaction,
-						block,
-					});
-				}
-				return setImmediate(cb);
-			}
-		);
-	});
+__private.applyTransactions = function(transactions, cb) {
+	modules.processTransactions
+		.applyTransactions(transactions)
+		.then(({ stateStore }) =>
+			// TODO: Need to add logic for handling exceptions for genesis block transactions
+			stateStore.account.finalize()
+		)
+		.then(() => cb())
+		.catch(cb);
 };
 
 /**
@@ -450,47 +396,28 @@ __private.applyUnconfirmedStep = function(block, tx) {
  * @param {function} tx - Database transaction
  * @returns {Promise<reject|resolve>}
  */
-__private.applyConfirmedStep = function(block, tx) {
-	return Promise.mapSeries(
-		block.transactions,
-		transaction =>
-			new Promise((resolve, reject) => {
-				modules.accounts.getAccount(
-					{ publicKey: transaction.senderPublicKey },
-					(accountErr, sender) => {
-						if (accountErr) {
-							const err = `Failed to get account for applying transaction to confirmed state: ${
-								transaction.id
-							} - ${accountErr}`;
-							library.logger.error(err);
-							library.logger.error('Transaction', transaction);
-							return setImmediate(reject, new Error(err));
-						}
-						// DATABASE: write
-						return modules.transactions.applyConfirmed(
-							transaction,
-							block,
-							sender,
-							err => {
-								if (err) {
-									// Fatal error, memory tables will be inconsistent
-									err = `Failed to apply transaction: ${
-										transaction.id
-									} to confirmed state of account - ${err}`;
-									library.logger.error(err);
-									library.logger.error('Transaction', transaction);
+__private.applyConfirmedStep = async function(block, tx) {
+	if (block.transactions.length <= 0) {
+		return;
+	}
 
-									return setImmediate(reject, new Error(err));
-								}
-								return setImmediate(resolve);
-							},
-							tx
-						);
-					},
-					tx
-				);
-			})
+	const {
+		stateStore,
+		transactionResponses,
+	} = await modules.processTransactions.applyTransactions(
+		block.transactions,
+		tx
 	);
+
+	const unappliedTransactionResponse = transactionResponses.find(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
+
+	if (unappliedTransactionResponse) {
+		throw unappliedTransactionResponse.errors;
+	}
+
+	await stateStore.account.finalize();
 };
 
 /**
@@ -831,12 +758,15 @@ Chain.prototype.deleteLastBlock = function(cb) {
 						// Set previous block as our new last block
 						lastBlock = modules.blocks.lastBlock.set(previousBlock);
 					}
-					return setImmediate(seriesCb, err);
+					return seriesCb(err);
 				});
 			},
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				modules.system.update(seriesCb);
+				return components.system
+					.update()
+					.then(() => seriesCb())
+					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
@@ -852,7 +782,7 @@ Chain.prototype.deleteLastBlock = function(cb) {
 							library.logger.error('Error adding transactions', err);
 						}
 						deletedBlockTransactions = null;
-						return setImmediate(seriesCb);
+						return seriesCb();
 					}
 				);
 			},
@@ -882,11 +812,7 @@ Chain.prototype.recoverChain = function(cb) {
 };
 
 /**
- * Handle modules initialization:
- * - accounts
- * - blocks
- * - rounds
- * - transactions
+ * Handle modules & components initialization
  *
  * @param {modules} scope - Exposed modules
  */
@@ -894,6 +820,7 @@ Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
+		system: scope.components.system,
 	};
 
 	modules = {
@@ -901,8 +828,8 @@ Chain.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		rounds: scope.modules.rounds,
 		transactions: scope.modules.transactions,
-		system: scope.modules.system,
 		transport: scope.modules.transport,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	// Set module as loaded
