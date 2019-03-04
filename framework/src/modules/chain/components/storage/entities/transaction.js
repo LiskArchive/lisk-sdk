@@ -14,6 +14,7 @@
 
 'use strict';
 
+const _ = require('lodash');
 const path = require('path');
 const {
 	Transaction: TransactionEntity,
@@ -178,109 +179,37 @@ class ChainTransaction extends TransactionEntity {
 		);
 	}
 
-	_createSubTransactions(type, transactions, tx) {
-		let fields;
-		let values;
+	static _sanitizeCreateData(data) {
+		const transactions = Array.isArray(data)
+			? _.cloneDeep(data)
+			: [_.cloneDeep(data)];
 
-		switch (type) {
-			case 0:
-				fields = ['transactionId', 'data'];
-				values = transactions
-					.filter(transaction => transaction.asset && transaction.asset.data)
-					.map(transaction => ({
-						transactionId: transaction.id,
-						data: Buffer.from(transaction.asset.data, 'utf8'),
-					}));
-				break;
-			case 1:
-				fields = ['transactionId', 'publicKey'];
-				values = transactions.map(transaction => ({
-					transactionId: transaction.id,
-					publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex'),
-				}));
-				break;
-			case 2:
-				fields = ['transactionId', 'username'];
-				values = transactions.map(transaction => ({
-					transactionId: transaction.id,
-					username: transaction.asset.delegate.username,
-				}));
-				break;
-			case 3:
-				fields = ['transactionId', 'votes'];
-				values = transactions.map(transaction => ({
-					votes: Array.isArray(transaction.asset.votes)
-						? transaction.asset.votes.join()
-						: null,
-					transactionId: transaction.id,
-				}));
-				break;
-			case 4:
-				fields = ['transactionId', 'min', 'lifetime', 'keysgroup'];
-				values = transactions.map(transaction => ({
-					min: transaction.asset.multisignature.min,
-					lifetime: transaction.asset.multisignature.lifetime,
-					keysgroup: transaction.asset.multisignature.keysgroup.join(),
-					transactionId: transaction.id,
-				}));
-				break;
-			case 5:
-				fields = [
-					'transactionId',
-					'type',
-					'name',
-					'description',
-					'tags',
-					'link',
-					'icon',
-					'category',
-				];
-				values = transactions.map(transaction => ({
-					type: transaction.asset.dapp.type,
-					name: transaction.asset.dapp.name,
-					description: transaction.asset.dapp.description || null,
-					tags: transaction.asset.dapp.tags || null,
-					link: transaction.asset.dapp.link || null,
-					icon: transaction.asset.dapp.icon || null,
-					category: transaction.asset.dapp.category,
-					transactionId: transaction.id,
-				}));
-				break;
-			case 6:
-				fields = ['transactionId', 'dappId'];
-				values = transactions.map(transaction => ({
-					dappId: transaction.asset.inTransfer.dappId,
-					transactionId: transaction.id,
-				}));
-				break;
-			case 7:
-				fields = ['transactionId', 'dappId', 'outTransactionId'];
-				values = transactions.map(transaction => ({
-					dappId: transaction.asset.outTransfer.dappId,
-					outTransactionId: transaction.asset.outTransfer.transactionId,
-					transactionId: transaction.id,
-				}));
-				break;
-			default:
-				throw new Error(`Unsupported transaction type: ${type}`);
-		}
+		transactions.forEach(transaction => {
+			transaction.signatures = transaction.signatures
+				? transaction.signatures.join()
+				: null;
+			transaction.amount = transaction.amount.toString();
+			transaction.fee = transaction.fee.toString();
+			transaction.recipientId = transaction.recipientId || null;
+			transaction.transferData = null;
 
-		if (values.length < 1) {
-			return Promise.resolve(null);
-		}
+			// Transfer data is bytea and can not be included as json when null byte is present
+			if (
+				transaction.type === 0 &&
+				transaction.asset &&
+				transaction.asset.data
+			) {
+				transaction.transferData = Buffer.from(transaction.asset.data, 'utf8');
+				delete transaction.asset;
+			}
 
-		return this.adapter.executeFile(
-			this.SQLs[`createType${type}`],
-			{
-				values: this.getValuesSet(values, fields, {
-					useRawObject: true,
-				}),
-			},
-			{
-				expectedResultCount: 0,
-			},
-			tx
-		);
+			// stringify should be done after converting asset.data into transferData
+			transaction.asset = transaction.asset
+				? JSON.stringify(transaction.asset)
+				: null;
+		});
+
+		return transactions;
 	}
 }
 

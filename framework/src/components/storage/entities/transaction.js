@@ -455,39 +455,6 @@ class Transaction extends BaseEntity {
 
 		return filters;
 	}
-
-	static _sanitizeCreateData(data) {
-		const transactions = Array.isArray(data)
-			? _.cloneDeep(data)
-			: [_.cloneDeep(data)];
-
-		transactions.forEach(transaction => {
-			transaction.signatures = transaction.signatures
-				? transaction.signatures.join()
-				: null;
-			transaction.amount = transaction.amount.toString();
-			transaction.fee = transaction.fee.toString();
-			transaction.recipientId = transaction.recipientId || null;
-			transaction.transferData = null;
-
-			// Transfer data is bytea and can not be included as json when null byte is present
-			if (
-				transaction.type === 0 &&
-				transaction.asset &&
-				transaction.asset.data
-			) {
-				transaction.transferData = Buffer.from(transaction.asset.data, 'utf8');
-				delete transaction.asset;
-			}
-
-			// stringify should be done after converting asset.data into transferData
-			transaction.asset = transaction.asset
-				? JSON.stringify(transaction.asset)
-				: null;
-		});
-
-		return transactions;
-	}
 }
 
 module.exports = Transaction;
