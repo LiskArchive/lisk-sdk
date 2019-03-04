@@ -48,6 +48,16 @@ def run_test(test_name) {
 	}
 }
 
+def run_test_jest(test_name) {
+	ansiColor('xterm') {
+		timestamps {
+			nvm(getNodejsVersion()) {
+				sh 'npm run jest:' + "${test_name}"
+			}
+		}
+	}
+}
+
 def teardown(test_name) {
 	// teardown() gets called in post actions and so we don't want it to fail
 	try {
@@ -183,6 +193,42 @@ pipeline {
 					post {
 						cleanup {
 							teardown('integration')
+						}
+					}
+				}
+				stage('Jest Functional tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test_jest('functional')
+					}
+					post {
+						cleanup {
+							// teardown('functional')
+						}
+					}
+				}
+				stage('Jest Unit tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test_jest('unit')
+					}
+					post {
+						cleanup {
+							// teardown('unit')
+						}
+					}
+				}
+				stage('Jest Integration tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test_jest('integration')
+					}
+					post {
+						cleanup {
+							// teardown('integration')
 						}
 					}
 				}
