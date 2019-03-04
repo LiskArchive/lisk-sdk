@@ -61,7 +61,9 @@ export class TransferTransaction extends BaseTransaction {
 
 	public constructor(tx: TransactionJSON) {
 		super(tx);
-		const typeValid = validator.validate(transferAssetTypeSchema, tx.asset);
+		// Initializes to empty object if it doesn't exist
+		const asset = tx.asset || {};
+		const typeValid = validator.validate(transferAssetTypeSchema, asset);
 		const errors = validator.errors
 			? validator.errors.map(
 					error =>
@@ -76,7 +78,7 @@ export class TransferTransaction extends BaseTransaction {
 			throw new TransactionMultiError('Invalid asset types', tx.id, errors);
 		}
 
-		this.asset = tx.asset as TransferAsset;
+		this.asset = asset as TransferAsset;
 	}
 
 	protected assetToBytes(): Buffer {
