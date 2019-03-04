@@ -24,7 +24,7 @@ const Bignum = require('bignumber.js');
 const SwaggerRunner = require('swagger-node-runner');
 const swaggerHelper = require('../helpers/swagger');
 const checkIpInList = require('./check_ip_in_list');
-const apiCodes = require('./api_codes');
+const apiCodes = require('../api_codes');
 
 // Its necessary to require this file to extend swagger validator with our custom formats
 require('./swagger').getValidator();
@@ -36,7 +36,7 @@ require('./swagger').getValidator();
  * @see Parent: {@link helpers}
  * @requires extend
  * @requires lodash
- * @requires helpers/api_codes
+ * @requires api_codes
  * @requires helpers/check_ip_in_list
  * @property {Object} middleware
  * @todo Add description for the module and the properties

@@ -16,8 +16,8 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
-// TODO Reference http_module for api_error.js and remove it from chain module
-const ApiError = require('../../../../src/modules/http_api/helpers/api_error');
+const ApiError = require('../api_error');
+const apiCodes = require('../api_codes.js');
 
 // Private Fields
 let storage;
@@ -133,19 +133,24 @@ TransactionsController.postTransaction = function(context, next) {
 	return channel.invoke('chain:postTransaction', [
 		transaction,
 		(err, data) => {
-			if (err) {
-				if (err instanceof ApiError) {
-					context.statusCode = err.code;
-					delete err.code;
-				}
+			let error = null;
 
-				return next(err);
+			if (data.success) {
+				return next(null, {
+					data: { message: 'Transaction(s) accepted' },
+					meta: { status: true },
+				});
 			}
 
-			return next(null, {
-				data: { message: data },
-				meta: { status: true },
-			});
+			if (err) {
+				error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+			} else {
+				error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
+			}
+
+			context.statusCode = error.code;
+			delete error.code;
+			return next(error);
 		},
 	]);
 };

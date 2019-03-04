@@ -15,8 +15,8 @@
 'use strict';
 
 const _ = require('lodash');
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
+const ApiError = require('../api_error');
+const apiCodes = require('../api_codes.js');
 
 let library;
 let sortFields;

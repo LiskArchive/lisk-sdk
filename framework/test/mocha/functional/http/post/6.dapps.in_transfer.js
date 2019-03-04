@@ -23,7 +23,7 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
@@ -110,7 +110,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate inTransfer schema: Missing required property: dappId'
@@ -129,7 +129,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type integer'
@@ -148,7 +148,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number, Object didn't pass validation for format id: 1.2"
@@ -167,7 +167,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type array'
@@ -186,7 +186,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object, Object didn't pass validation for format id: {}"
@@ -204,7 +204,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate inTransfer schema: String is too short (0 chars), minimum 1'
@@ -223,7 +223,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate inTransfer schema: Object didn't pass validation for format id: ${invalidDappId}`
@@ -243,7 +243,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0'
@@ -270,7 +270,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 						return sendTransactionPromise(
 							transaction,
-							errorCodes.PROCESSING_ERROR
+							apiCodes.PROCESSING_ERROR
 						);
 					})
 					.then(res => {
@@ -294,7 +294,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${unknownDappId}`
@@ -313,7 +313,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${inexistentId}`
@@ -331,7 +331,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${transactionsToWaitFor[0]}`
@@ -363,7 +363,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/^Account does not have enough LSK: /
@@ -411,7 +411,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Transaction type ${transaction.type} is frozen`

@@ -17,8 +17,8 @@
 const _ = require('lodash');
 const Bignum = require('../helpers/bignum.js');
 const swaggerHelper = require('../helpers/swagger');
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
+const apiCodes = require('../api_codes.js');
+const ApiError = require('../api_error.js');
 const { calculateApproval } = require('../helpers/http_api');
 const slots = require('../helpers/slots.js');
 // Private Fields

@@ -16,7 +16,7 @@
 
 const _ = require('lodash');
 const checkIpInList = require('../helpers/check_ip_in_list.js');
-const apiCodes = require('../helpers/api_codes');
+const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 const slots = require('../helpers/slots.js');
 

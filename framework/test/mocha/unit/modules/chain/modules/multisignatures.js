@@ -18,8 +18,6 @@ const rewire = require('rewire');
 const accountsFixtures = require('../../../../fixtures/index').accounts;
 const transactionsFixtures = require('../../../../fixtures/index').transactions;
 const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
-const ApiError = require('../../../../../../src/modules/chain/helpers/api_error');
-const errorCodes = require('../../../../../../src/modules/chain/helpers/api_codes');
 
 const RewiredMultisignatures = rewire(
 	'../../../../../../src/modules/chain/modules/multisignatures.js'
@@ -1011,9 +1009,7 @@ describe('multisignatures', () => {
 					cb(null, null);
 				});
 			self.getGroup('', (err, scopeGroup) => {
-				expect(err).to.be.an.instanceof(ApiError);
-				expect(err.message).to.equal('Multisignature account not found');
-				expect(err.code).to.equal(errorCodes.NOT_FOUND);
+				expect(err).to.equal('Multisignature account not found');
 				expect(scopeGroup).to.not.exist;
 				done();
 			});

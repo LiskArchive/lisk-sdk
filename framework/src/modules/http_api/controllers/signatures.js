@@ -14,7 +14,8 @@
 
 'use strict';
 
-const ApiError = require('../../http_api/helpers/api_error');
+const ApiError = require('../api_error');
+const apiCodes = require('../api_codes.js');
 
 // Private Fields
 let channel;
@@ -46,17 +47,33 @@ SignaturesController.postSignature = async function(context, next) {
 	await channel.invoke('chain:postSignature', [
 		signature,
 		(err, data) => {
-			if (err) {
-				if (err instanceof ApiError) {
-					context.statusCode = err.code;
-					delete err.code;
-				}
-				return next(err);
+			let error = null;
+
+			if (data.success) {
+				return next(null, {
+					data: { message: 'Signature Accepted' },
+					meta: { status: true },
+				});
 			}
-			return next(null, {
-				data: { message: data.status },
-				meta: { status: true },
-			});
+
+			// TODO: Need to improve error handling so that we don't
+			// need to parse the error message to determine the error type.
+			const processingError = /^Error processing signature/;
+			const badRequestBodyError = /^Invalid signature body/;
+
+			if (err) {
+				error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+			} else if (processingError.test(data.message)) {
+				error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
+			} else if (badRequestBodyError.test(data.message)) {
+				error = new ApiError(data.message, apiCodes.BAD_REQUEST);
+			} else {
+				error = new ApiError(data.message, apiCodes.INTERNAL_SERVER_ERROR);
+			}
+
+			context.statusCode = error.code;
+			delete error.code;
+			return next(error);
 		},
 	]);
 };

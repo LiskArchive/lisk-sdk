@@ -15,7 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
-const apiCodes = require('../../../../../../src/modules/http_api/helpers/api_codes');
+const apiCodes = require('../../../../../../src/modules/http_api/api_codes');
 
 const httpApi = rewire(
 	'../../../../../../src/modules/http_api/helpers/http_api'

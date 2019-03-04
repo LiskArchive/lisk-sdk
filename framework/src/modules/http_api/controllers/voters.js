@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const apiCodes = require('../helpers/api_codes');
+const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
 const { MAX_VOTES_PER_ACCOUNT } = global.constants;
