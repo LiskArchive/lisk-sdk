@@ -64,7 +64,10 @@ function accountFormatter(totalSupply, account) {
 		object.delegate.rank = parseInt(object.delegate.rank);
 
 		// Computed fields
-		object.delegate.approval = calculateApproval(object.vote, totalSupply);
+		object.delegate.approval = calculateApproval(
+			object.delegate.vote,
+			totalSupply
+		);
 	}
 
 	object.publicKey = object.publicKey || '';
@@ -94,7 +97,6 @@ AccountsController.getAccounts = async function(context, next) {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
-		extended: true,
 	};
 
 	// Remove filters with null values
