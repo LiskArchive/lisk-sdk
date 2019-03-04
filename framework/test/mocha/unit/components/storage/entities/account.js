@@ -28,13 +28,11 @@ const {
 const storageSandbox = require('../../../../common/storage_sandbox');
 const seeder = require('../../../../common/storage_seed');
 const accountFixtures = require('../../../../fixtures').accounts;
-const transactionsFixtures = require('../../../../fixtures').transactions;
 
 describe('Account', () => {
 	let adapter;
 	let storage;
 	let AccountEntity;
-	let TransactionEntity;
 	let SQLs;
 	let validAccountSQLs;
 	let validAccountFields;
@@ -53,16 +51,9 @@ describe('Account', () => {
 		adapter = storage.adapter;
 
 		AccountEntity = storage.entities.Account;
-		TransactionEntity = storage.entities.Transaction;
 		SQLs = AccountEntity.SQLs;
 
-		validAccountSQLs = [
-			'selectSimple',
-			'selectFull',
-			'count',
-			'isPersisted',
-			'countDuplicatedDelegates',
-		];
+		validAccountSQLs = ['selectSimple', 'selectFull', 'count', 'isPersisted'];
 
 		validAccountFields = [
 			'address',
@@ -138,6 +129,14 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
+			'u_username',
+			'u_isDelegate',
+			'u_secondSignature',
+			'u_nameExist',
+			'u_multiMin',
+			'u_multiLifetime',
+			'u_balance',
+			'productivity',
 		];
 
 		validFilters = [
@@ -535,17 +534,33 @@ describe('Account', () => {
 				);
 			});
 
-			it('should fetch "productivity" with correct query', async () => {
-				const producedBlocks = 5;
-				const missedBlocks = 3;
+			it('should fetch "productivity" with two decimal places when value is not integer', async () => {
+				const producedBlocks = 50;
+				const missedBlocks = 25;
 				const validAccount = new accountFixtures.Account({
 					producedBlocks,
 					missedBlocks,
 				});
 				await AccountEntity.create(validAccount);
-				const productivity = parseInt(
-					producedBlocks / (producedBlocks + missedBlocks) * 100.0
+				const productivity = 66.67;
+
+				const account = await AccountEntity.getOne(
+					{ address: validAccount.address },
+					{ extended: true }
 				);
+
+				expect(account.productivity).to.be.eql(productivity);
+			});
+
+			it('should fetch "productivity" with no decimal places when value is integer', async () => {
+				const producedBlocks = 75;
+				const missedBlocks = 25;
+				const validAccount = new accountFixtures.Account({
+					producedBlocks,
+					missedBlocks,
+				});
+				await AccountEntity.create(validAccount);
+				const productivity = 75;
 
 				const account = await AccountEntity.getOne(
 					{ address: validAccount.address },
@@ -909,86 +924,6 @@ describe('Account', () => {
 			await AccountEntity.create(account);
 			const res = await AccountEntity.isPersisted({ address: 'ABFFFF' });
 			expect(res).to.be.false;
-		});
-	});
-
-	describe('countDuplicatedDelegates()', () => {
-		it('should use the correct SQL no with parameter', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			await AccountEntity.countDuplicatedDelegates();
-
-			expect(adapter.executeFile).to.be.calledOnce;
-			expect(adapter.executeFile).to.be.calledWith(
-				SQLs.countDuplicatedDelegates,
-				{},
-				{ expectedResultCount: 1 }
-			);
-		});
-
-		it('should return zero if no delegate records available', async () => {
-			const block = seeder.getLastBlock();
-
-			const trs1 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-				type: 2,
-			});
-			const trs2 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-				type: 2,
-			});
-			await TransactionEntity.create([trs1, trs2]);
-
-			const delegates = await adapter.execute('SELECT * from delegates');
-
-			// As we created two delegate transactions
-			expect(delegates).to.have.lengthOf(2);
-
-			const result = await AccountEntity.countDuplicatedDelegates();
-
-			expect(result).to.be.eql(0);
-		});
-
-		it('should return zero if there are delegates but no duplicates', async () => {
-			const result = await AccountEntity.countDuplicatedDelegates();
-
-			expect(result).to.be.eql(0);
-		});
-
-		it('should return integer value of duplicate delegates', async () => {
-			const block = seeder.getLastBlock();
-
-			const trs1 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-				type: 2,
-			});
-			const trs2 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-				type: 2,
-			});
-			await TransactionEntity.create([trs1, trs2]);
-
-			const delegates = await adapter.execute('SELECT * from delegates');
-
-			// As we created two delegate transactions
-			expect(delegates).to.have.lengthOf(2);
-
-			// Create duplicate records for each delegate
-			await Promise.all(
-				delegates.map(delegate => {
-					const username = randomstring.generate({
-						length: 10,
-						charset: 'alphabetic',
-					});
-					return adapter.execute(
-						'INSERT INTO delegates ("transactionId", "username") VALUES ($1, $2)',
-						[delegate.transactionId, username]
-					);
-				})
-			);
-
-			const result = await AccountEntity.countDuplicatedDelegates();
-
-			expect(result).to.be.eql(2);
 		});
 	});
 });

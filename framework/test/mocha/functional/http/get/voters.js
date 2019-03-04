@@ -237,6 +237,32 @@ describe('GET /api/voters', () => {
 			});
 		});
 
+		describe('votes', () => {
+			it('should return total number of accounts that voted for the queried delegate', async () => {
+				let delegate;
+				let hasResult = true;
+				let votesCount = 0;
+
+				// The following loop is a workaround to get votes count as the number of votes will change each time the test runs
+				// REF.: https://github.com/LiskHQ/lisk/pull/2969
+				do {
+					// eslint-disable-next-line no-await-in-loop
+					const result = await votersEndpoint.makeRequest(
+						{
+							username: validVotedDelegate.delegateName,
+							limit: 1,
+							offset: votesCount,
+						},
+						200
+					);
+					delegate = result.body.data;
+					hasResult = delegate.voters.length > 0 ? ++votesCount : false;
+				} while (hasResult);
+
+				expect(delegate.votes).to.eql(votesCount);
+			});
+		});
+
 		describe('sort', () => {
 			const validExtraDelegateVoter = randomUtil.account();
 

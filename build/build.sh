@@ -16,10 +16,10 @@ IFS=$'\n\t'
 
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 
-if [[ ${LISK_NETWORK:-} && ${LISK_VERSION:-} && ${NODE_VERSION:-} ]]; then
+if [[ ${LISK_NETWORK:-} && ${LISK_VERSION:-} ]]; then
 	echo "Building version ${LISK_VERSION} for ${LISK_NETWORK}."
 else
-	echo "LISK_NETWORK, LISK_VERSION and NODE_VERSION must be set."
+	echo "LISK_NETWORK and LISK_VERSION must be set."
 	exit 1
 fi
 
@@ -31,42 +31,6 @@ pushd src
 
 echo "Cleaning build."
 rm -rf "$BUILD_NAME"
-
-echo "Running 'npm pack'"
-echo "--------------------------------------------------------------------------"
-(
-	PATH="$PWD/$NODE_DIR/bin:$PATH"
-	cd ../..
-	npm pack
-	mv "$LISK_FILE" build/src/
-)
-
-echo
-echo "Downloading jq..."
-echo "--------------------------------------------------------------------------"
-[[ -f "$JQ_FILE" ]] || wget -nv "$JQ_BIN_URL" --output-document="$JQ_FILE"
-echo "$JQ_SHA256SUM  $JQ_FILE" |sha256sum -c
-
-echo
-echo "Downloading and building redis..."
-echo "--------------------------------------------------------------------------"
-[[ -f "$REDIS_SERVER_FILE" ]] || wget -nv "$REDIS_SERVER_URL" --output-document="$REDIS_SERVER_FILE"
-echo "$REDIS_SHA256SUM  $REDIS_SERVER_FILE" |sha256sum -c
-if [ ! -f "$REDIS_SERVER_DIR/finished" ]; then
-	rm -rf "$REDIS_SERVER_DIR"
-	tar xf "$REDIS_SERVER_FILE"
-	pushd "$REDIS_SERVER_DIR"
-	make
-	make check
-	touch finished
-	popd
-fi
-
-echo
-echo "Downloading postgresql..."
-echo "--------------------------------------------------------------------------"
-[[ -f "$POSTGRESQL_FILE" ]] || wget -nv "$POSTGRESQL_BIN_URL" --output-document="$POSTGRESQL_FILE"
-echo "$POSTGRESQL_SHA256SUM  $POSTGRESQL_FILE" |sha256sum -c
 
 echo
 echo "Installing lisk-scripts..."
@@ -90,7 +54,7 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 
 	# extract postgresql
 	tar xf "$POSTGRESQL_FILE" --directory="$BUILD_NAME" \
-	    --exclude=doc --exclude=include --exclude="pgAdmin 4" --exclude=stackbuilder
+	    --exclude=doc --exclude=include --exclude="pgAdmin 4*" --exclude=stackbuilder
 
 	# copy redis binaries
 	cp -f "$REDIS_SERVER_DIR/src/$REDIS_SERVER_OUT" "$BUILD_NAME/bin/$REDIS_SERVER_OUT"
@@ -100,15 +64,15 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	mkdir -p "$BUILD_NAME/redis"
 
 	# copy jq binary
-	cp -f "$JQ_FILE" "$BUILD_NAME/bin/$JQ_FILE"
-	strip "$BUILD_NAME/bin/$JQ_FILE"
-	chmod +x "$BUILD_NAME/bin/$JQ_FILE"
+	cp -f jq "$BUILD_NAME/bin/jq"
+	strip "$BUILD_NAME/bin/jq"
+	chmod +x "$BUILD_NAME/bin/jq"
 
 	# copy lisk "packaged" scripts
 	cp -vrf "$LISK_SCRIPTS_DIR/packaged/"* "$BUILD_NAME"
 
 	# extract nodejs
-	tar xf "$NODE_FILE" --strip-components=1 --directory="$BUILD_NAME"
+	tar xf "$NODE_DIR.tar.xz" --strip-components=1 --directory="$BUILD_NAME" --exclude=README.md
 
 	pushd "$BUILD_NAME"
 
@@ -123,13 +87,13 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	echo "Creating etc/snapshot.json..."
 	echo "--------------------------------------------------------------------------"
 	cp config.json etc/snapshot.json
-	"./bin/$JQ_FILE" '.httpPort=9000' etc/snapshot.json |sponge etc/snapshot.json
-	"./bin/$JQ_FILE" '.wsPort=9001' etc/snapshot.json |sponge etc/snapshot.json
-	"./bin/$JQ_FILE" '.logFileName="logs/lisk_snapshot.log"' etc/snapshot.json |sponge etc/snapshot.json
-	"./bin/$JQ_FILE" '.fileLogLevel="info"' etc/snapshot.json |sponge etc/snapshot.json
-	"./bin/$JQ_FILE" '.db.database="lisk_snapshot"' etc/snapshot.json |sponge etc/snapshot.json
-	"./bin/$JQ_FILE" '.peers.list=[]' etc/snapshot.json |sponge etc/snapshot.json
-	"./bin/$JQ_FILE" '.loading.loadPerIteration=101' etc/snapshot.json |sponge etc/snapshot.json
+	./bin/jq '.httpPort=9000' etc/snapshot.json |sponge etc/snapshot.json
+	./bin/jq '.wsPort=9001' etc/snapshot.json |sponge etc/snapshot.json
+	./bin/jq '.logFileName="logs/lisk_snapshot.log"' etc/snapshot.json |sponge etc/snapshot.json
+	./bin/jq '.fileLogLevel="info"' etc/snapshot.json |sponge etc/snapshot.json
+	./bin/jq '.db.database="lisk_snapshot"' etc/snapshot.json |sponge etc/snapshot.json
+	./bin/jq '.peers.list=[]' etc/snapshot.json |sponge etc/snapshot.json
+	./bin/jq '.loading.loadPerIteration=101' etc/snapshot.json |sponge etc/snapshot.json
 
 	echo "Installing lisk..."
 	echo "--------------------------------------------------------------------------"
@@ -138,11 +102,11 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	. "$(pwd)/env.sh"
 	set -u
 	npm ci --production
-	ln --symbolic ../node_modules/lisk-commander/bin/run bin/lisk
-	ln --symbolic ../node_modules/pm2/bin/pm2 bin/pm2
+	"$LN" --symbolic ../node_modules/lisk-commander/bin/run bin/lisk
+	"$LN" --symbolic ../node_modules/pm2/bin/pm2 bin/pm2
 
-	date --utc "+%Y-%m-%dT%H:%M:%S.000Z" >.build
-	date >finished
+	"$DATE" --utc "+%Y-%m-%dT%H:%M:%S.000Z" >.build
+	"$DATE" >finished
 	popd
 fi
 
@@ -150,12 +114,5 @@ echo
 echo "Creating tarball..."
 echo "--------------------------------------------------------------------------"
 rm -rf ../release/*
-tar czf "../release/$BUILD_NAME.tar.gz" "$BUILD_NAME"
-
-echo
-echo "Creating checksums of tarball..."
-echo "--------------------------------------------------------------------------"
-pushd ../release
-sha256sum "$BUILD_NAME.tar.gz" >"$BUILD_NAME.tar.gz.SHA256"
-popd
+GZIP=-9 tar czf "../release/$BUILD_NAME.tar.gz" "$BUILD_NAME"
 popd
