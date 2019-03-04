@@ -528,7 +528,7 @@ describe('Transaction', () => {
 			expectValidTransaction(result[0], transaction, false);
 		});
 
-		it('should return result in valid format for extended version', async () => {
+		it('should return result valid format for extended version', async () => {
 			let transaction = null;
 			const transactions = [];
 
@@ -873,8 +873,6 @@ describe('Transaction', () => {
 			});
 			let result = await storage.entities.Transaction.create(transaction);
 
-			expect(result).to.be.eql(true);
-
 			result = await storage.adapter.execute('SELECT * from trs');
 
 			expect(result).to.not.empty;
@@ -894,8 +892,6 @@ describe('Transaction', () => {
 				transaction1,
 				transaction2,
 			]);
-
-			expect(result).to.be.eql(true);
 
 			result = await storage.adapter.execute('SELECT * from trs');
 
@@ -917,88 +913,7 @@ describe('Transaction', () => {
 			).to.be.rejectedWith('invalid hexadecimal digit: "G"');
 		});
 
-		it('should execute all queries in one database transaction', async () => {
-			const block = seeder.getLastBlock();
-			const transaction = new transactionsFixtures.Transaction({
-				blockId: block.id,
-			});
-
-			storage.adapter.db.$config.options.query = function(event) {
-				if (
-					!(
-						event.ctx &&
-						event.ctx.isTX &&
-						event.ctx.txLevel === 0 &&
-						event.ctx.tag === 'transactions:create'
-					)
-				) {
-					throw (`Some query executed outside transaction context: ${
-						event.query
-					}`,
-					event);
-				}
-			};
-
-			const connect = sinonSandbox.stub();
-			const disconnect = sinonSandbox.stub();
-
-			storage.adapter.db.$config.options.connect = connect;
-			storage.adapter.db.$config.options.disconnect = disconnect;
-
-			await storage.entities.Transaction.create(transaction);
-			expect(connect.calledOnce).to.be.true;
-			expect(disconnect.calledOnce).to.be.true;
-
-			delete storage.adapter.db.$config.options.connect;
-			delete storage.adapter.db.$config.options.disconnect;
-			delete storage.adapter.db.$config.options.query;
-		});
-
-		it('should create respective transaction type once for each transaction type', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			// Create two transactions of each type to test respective transaction type
-			//  save function called once for both transactions
-
-			Object.keys(transactionTypes).forEach(type => {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes[type],
-					})
-				);
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes[type],
-					})
-				);
-			});
-
-			const _createSubTransactionsSpy = sinonSandbox.spy(
-				storage.entities.Transaction,
-				'_createSubTransactions'
-			);
-
-			await storage.entities.Transaction.create(transactions);
-
-			// Expect that _createSubTransactions was called once for each transaction type
-			// with two transactions that we created above
-			expect(_createSubTransactionsSpy).to.have.callCount(8);
-
-			// Make sure each call contains proper arguments
-			[0, 1, 2, 3, 4, 5, 6, 7].forEach(i => {
-				expect(_createSubTransactionsSpy.getCall(i).args[0]).to.be.eql(i);
-				expect(_createSubTransactionsSpy.getCall(i).args[1]).to.have.lengthOf(
-					2
-				);
-				_createSubTransactionsSpy
-					.getCall(i)
-					.args[1].forEach(t => expect(t.type).to.be.eql(i));
-			});
-		});
-
-		it('should insert entry into "transfer" table for type 0 transactions', async () => {
+		it('should populate asset field with "transfer" json for type 0 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];
 			for (let i = 0; i < numSeedRecords; i++) {
@@ -1010,20 +925,21 @@ describe('Transaction', () => {
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
-
-			const result = await storage.adapter.execute('SELECT * FROM transfer');
+			const transactionIds = transactions.map(({ id }) => id);
+			const result = await storage.entities.Transaction.get(
+				{ id_in: transactionIds },
+				{ extended: true }
+			);
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => Buffer.from(r.data).toString())).to.be.eql(
+			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
+			expect(result.map(r => r.asset.data)).to.be.eql(
 				transactions.map(t => t.asset.data)
-			);
-			expect(result.map(r => r.transactionId)).to.be.eql(
-				transactions.map(t => t.id)
 			);
 		});
 
-		it('should insert entry into "signatures" table for type 1 transactions', async () => {
+		it('should populate asset field with "signatures" json for type 1 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];
 			for (let i = 0; i < numSeedRecords; i++) {
@@ -1035,20 +951,21 @@ describe('Transaction', () => {
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
-
-			const result = await storage.adapter.execute('SELECT * FROM signatures');
+			const transactionIds = transactions.map(({ id }) => id);
+			const result = await storage.entities.Transaction.get(
+				{ id_in: transactionIds },
+				{ extended: true }
+			);
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(
-				result.map(r => Buffer.from(r.publicKey).toString('hex'))
-			).to.be.eql(transactions.map(t => t.asset.signature.publicKey));
-			expect(result.map(r => r.transactionId)).to.be.eql(
-				transactions.map(t => t.id)
+			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
+			expect(result.map(r => r.asset.signature)).to.be.eql(
+				transactions.map(t => t.asset.signature)
 			);
 		});
 
-		it('should insert entry into "delegates" table for type 2 transactions', async () => {
+		it('should populate asset field with "delegates" json for type 2 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];
 			for (let i = 0; i < numSeedRecords; i++) {
@@ -1060,23 +977,21 @@ describe('Transaction', () => {
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
-
-			const result = await storage.adapter.execute('SELECT * FROM delegates');
+			const transactionIds = transactions.map(({ id }) => id);
+			const result = await storage.entities.Transaction.get(
+				{ id_in: transactionIds },
+				{ extended: true }
+			);
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.transactionId)).to.be.eql(
-				transactions.map(t => t.id)
+			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
+			expect(result.map(r => r.asset.delegate)).to.be.eql(
+				transactions.map(t => t.asset.delegate)
 			);
-			expect(
-				result.map(r => {
-					delete r.transactionId;
-					return r;
-				})
-			).to.be.eql(transactions.map(t => t.asset.delegate));
 		});
 
-		it('should insert entry into "votes" table for type 3 transactions', async () => {
+		it('should populate asset field with "votes" json for type 3 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];
 			for (let i = 0; i < numSeedRecords; i++) {
@@ -1088,20 +1003,21 @@ describe('Transaction', () => {
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
-
-			const result = await storage.adapter.execute('SELECT * FROM votes');
+			const transactionIds = transactions.map(({ id }) => id);
+			const result = await storage.entities.Transaction.get(
+				{ id_in: transactionIds },
+				{ extended: true }
+			);
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.votes)).to.be.eql(
-				transactions.map(t => t.asset.votes.join())
-			);
-			expect(result.map(r => r.transactionId)).to.be.eql(
-				transactions.map(t => t.id)
+			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
+			expect(result.map(r => r.asset.votes)).to.be.eql(
+				transactions.map(t => t.asset.votes)
 			);
 		});
 
-		it('should insert entry into "multisignatures" table for type 4 transactions', async () => {
+		it('should populate asset field with "multisignatures" json for type 4 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];
 			for (let i = 0; i < numSeedRecords; i++) {
@@ -1113,28 +1029,21 @@ describe('Transaction', () => {
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
-
-			const result = await storage.adapter.execute(
-				'SELECT * FROM multisignatures'
+			const transactionIds = transactions.map(({ id }) => id);
+			const result = await storage.entities.Transaction.get(
+				{ id_in: transactionIds },
+				{ extended: true }
 			);
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.min)).to.be.eql(
-				transactions.map(t => t.asset.multisignature.min)
-			);
-			expect(result.map(r => r.lifetime)).to.be.eql(
-				transactions.map(t => t.asset.multisignature.lifetime)
-			);
-			expect(result.map(r => r.keysgroup)).to.be.eql(
-				transactions.map(t => t.asset.multisignature.keysgroup.join())
-			);
-			expect(result.map(r => r.transactionId)).to.be.eql(
-				transactions.map(t => t.id)
+			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
+			expect(result.map(r => r.asset.multisignature)).to.be.eql(
+				transactions.map(t => t.asset.multisignature)
 			);
 		});
 
-		it('should insert entry into "dapps" table for type 5 transactions', async () => {
+		it('should populate asset field with "dapps" json for type 5 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];
 			for (let i = 0; i < numSeedRecords; i++) {
@@ -1146,18 +1055,21 @@ describe('Transaction', () => {
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
-
-			const result = await storage.adapter.execute('SELECT * FROM dapps');
+			const transactionIds = transactions.map(({ id }) => id);
+			const result = await storage.entities.Transaction.get(
+				{ id_in: transactionIds },
+				{ extended: true }
+			);
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.transactionId)).to.be.eql(
-				transactions.map(t => t.id)
+			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
+			expect(result.map(t => t.asset.dapp)).to.be.eql(
+				transactions.map(t => t.asset.dapp)
 			);
-			expect(result).to.be.eql(transactions.map(t => t.asset.dapp));
 		});
 
-		it('should insert entry into "intransfer" table for type 6 transactions', async () => {
+		it('should populate asset field with "intransfer" json for type 6 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];
 			for (let i = 0; i < numSeedRecords; i++) {
@@ -1169,20 +1081,24 @@ describe('Transaction', () => {
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
-
-			const result = await storage.adapter.execute('SELECT * FROM intransfer');
+			const transactionIds = transactions.map(({ id }) => id);
+			const result = await storage.entities.Transaction.get(
+				{ id_in: transactionIds },
+				{ extended: true }
+			);
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.transactionId)).to.be.eql(
-				transactions.map(t => t.id)
+			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
+			expect(result.map(r => r.asset.inTransfer.transactionId)).to.be.eql(
+				transactions.map(t => t.asset.inTransfer.transactionId)
 			);
-			expect(result.map(r => r.dappId)).to.be.eql(
+			expect(result.map(r => r.asset.inTransfer.dappId)).to.be.eql(
 				transactions.map(t => t.asset.inTransfer.dappId)
 			);
 		});
 
-		it('should insert entry into "outtransfer" table for type 7 transactions', async () => {
+		it('should populate asset field with "outtransfer" json for type 7 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];
 			for (let i = 0; i < numSeedRecords; i++) {
@@ -1194,19 +1110,20 @@ describe('Transaction', () => {
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
-
-			const result = await storage.adapter.execute('SELECT * FROM outtransfer');
+			const transactionIds = transactions.map(({ id }) => id);
+			const result = await storage.entities.Transaction.get(
+				{ id_in: transactionIds },
+				{ extended: true }
+			);
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.transactionId)).to.be.eql(
-				transactions.map(t => t.id)
-			);
-			expect(result.map(r => r.dappId)).to.be.eql(
-				transactions.map(t => t.asset.outTransfer.dappId)
-			);
-			expect(result.map(r => r.outTransactionId)).to.be.eql(
+			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
+			expect(result.map(r => r.asset.outTransfer.transactionId)).to.be.eql(
 				transactions.map(t => t.asset.outTransfer.transactionId)
+			);
+			expect(result.map(r => r.asset.outTransfer.dappId)).to.be.eql(
+				transactions.map(t => t.asset.outTransfer.dappId)
 			);
 		});
 	});

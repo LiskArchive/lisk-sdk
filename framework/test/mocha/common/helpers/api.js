@@ -17,6 +17,9 @@
 const lisk = require('lisk-elements').default;
 const Promise = require('bluebird');
 const accountFixtures = require('../../fixtures/accounts');
+const {
+	calculateApproval,
+} = require('../../../../src/modules/http_api/helpers/http_api');
 const SwaggerSpec = require('../swagger_spec');
 
 const http = {
@@ -403,4 +406,5 @@ module.exports = {
 	expectSwaggerParamError,
 	createSignatureObject,
 	getNotFoundEndpointPromise,
+	calculateApproval,
 };
