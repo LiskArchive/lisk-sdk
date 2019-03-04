@@ -81,7 +81,6 @@ class ProcessTransactions {
 
 		const transactionResponses = transactionInstances.map(transaction => {
 			const transactionResponse = transaction.undo(stateStore);
-			stateStore.transaction.add(transaction);
 			return transactionResponse;
 		});
 
