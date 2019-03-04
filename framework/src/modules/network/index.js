@@ -11,6 +11,7 @@ const BaseModule = require('../base_module');
  * @type {module.NetworkModule}
  */
 module.exports = class NetworkModule extends BaseModule {
+	/* eslint-disable-next-line no-useless-constructor */
 	constructor(options) {
 		super(options);
 	}
@@ -40,9 +41,9 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	async load(channel) {
-		let options = {
+		const options = {
 			...defaults,
-			...this.options
+			...this.options,
 		};
 		this.network = new Network(channel, options);
 

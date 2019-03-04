@@ -44,7 +44,7 @@ module.exports = class ChainModule extends BaseModule {
 			'delegates:fork',
 			'loader:sync',
 			'dapps:change',
-			'system:updateNodeInfo'
+			'system:updateNodeInfo',
 		];
 	}
 

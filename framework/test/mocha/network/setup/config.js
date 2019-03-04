@@ -58,15 +58,15 @@ const config = {
 			devConfigCopy.logFileName = `../logs/lisk_node_${index}.log`;
 			devConfigCopy.modules = {
 				network: {
-				  blacklistedPeers: [],
-				  connectTimeout: 5000,
-				  seedPeers: [],
-				  wsEngine: 'ws',
-				  nodeInfo: {
-				    wsPort: 6000 + index,
-				    height: 0,
-				  }
-				}
+					blacklistedPeers: [],
+					connectTimeout: 5000,
+					seedPeers: [],
+					wsEngine: 'ws',
+					nodeInfo: {
+						wsPort: 6000 + index,
+						height: 0,
+					},
+				},
 			};
 			return devConfigCopy;
 		});

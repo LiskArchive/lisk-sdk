@@ -60,7 +60,7 @@ module.exports = class Network {
 
 			this.p2p = new P2P(p2pConfig);
 
-			this._handleUpdateNodeInfo = (event) => {
+			this._handleUpdateNodeInfo = event => {
 				this.p2p.applyNodeInfo(event.data);
 			};
 
@@ -76,6 +76,7 @@ module.exports = class Network {
 		}
 	}
 
+	/* eslint-disable-next-line class-methods-use-this */
 	async cleanup() {
 		// TODO: Unsubscribe 'chain:system:updateNodeInfo' from channel.
 	}

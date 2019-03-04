@@ -79,7 +79,7 @@ module.exports = class Chain {
 			'system'
 		);
 
-		const handleNodeInfoUpdate = (headers) => {
+		const handleNodeInfoUpdate = headers => {
 			this.channel.publish('chain:system:updateNodeInfo', headers);
 		};
 
