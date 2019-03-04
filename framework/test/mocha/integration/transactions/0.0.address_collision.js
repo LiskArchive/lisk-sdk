@@ -15,7 +15,11 @@
 'use strict';
 
 const async = require('async');
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
+const {
+	getAddressFromPublicKey,
+	getPrivateAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../fixtures/accounts');
 const localCommon = require('../common');
 
@@ -36,34 +40,30 @@ describe('system test (type 0) - address collision', () => {
 	};
 
 	const publicKeys = [
-		lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
-			collision.passphrases[0]
-		).publicKey,
-		lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
-			collision.passphrases[1]
-		).publicKey,
+		getPrivateAndPublicKeyFromPassphrase(collision.passphrases[0]).publicKey,
+		getPrivateAndPublicKeyFromPassphrase(collision.passphrases[1]).publicKey,
 	];
 
-	const firstTransaction = lisk.transaction.transfer({
+	const firstTransaction = transfer({
 		amount: 10 * NORMALIZER,
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 	});
 
-	const secondTransaction = lisk.transaction.transfer({
+	const secondTransaction = transfer({
 		amount: 10 * NORMALIZER,
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 	});
 
-	const firstTransactionWithData = lisk.transaction.transfer({
+	const firstTransactionWithData = transfer({
 		amount: 10 * NORMALIZER,
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 		data: 'addtional data from 1',
 	});
 
-	const secondTransactionWithData = lisk.transaction.transfer({
+	const secondTransactionWithData = transfer({
 		amount: 10 * NORMALIZER,
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
@@ -71,7 +71,7 @@ describe('system test (type 0) - address collision', () => {
 	});
 
 	before(done => {
-		const creditTransaction = lisk.transaction.transfer({
+		const creditTransaction = transfer({
 			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
@@ -88,8 +88,8 @@ describe('system test (type 0) - address collision', () => {
 	});
 
 	it('both passphrases should have the same address', done => {
-		expect(lisk.cryptography.getAddressFromPublicKey(publicKeys[0])).to.equal(
-			lisk.cryptography.getAddressFromPublicKey(publicKeys[1])
+		expect(getAddressFromPublicKey(publicKeys[0])).to.equal(
+			getAddressFromPublicKey(publicKeys[1])
 		);
 		done();
 	});

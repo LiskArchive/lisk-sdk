@@ -16,7 +16,11 @@
 
 const async = require('async');
 const expect = require('chai').expect;
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	registerDelegate,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -59,25 +63,25 @@ describe('system test (blocks) - chain/applyBlock', () => {
 		poolAccount3 = randomUtil.account();
 		poolAccount4 = randomUtil.account();
 
-		const fundTrsForAccount1 = lisk.transaction.transfer({
+		const fundTrsForAccount1 = transfer({
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});
 
-		const fundTrsForAccount2 = lisk.transaction.transfer({
+		const fundTrsForAccount2 = transfer({
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount2.address,
 		});
 
-		const fundTrsForAccount3 = lisk.transaction.transfer({
+		const fundTrsForAccount3 = transfer({
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount3.address,
 		});
 
-		const fundTrsForAccount4 = lisk.transaction.transfer({
+		const fundTrsForAccount4 = transfer({
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount4.address,
@@ -104,11 +108,11 @@ describe('system test (blocks) - chain/applyBlock', () => {
 		let blockTransaction2;
 
 		beforeEach('create block', done => {
-			blockTransaction1 = lisk.transaction.registerDelegate({
+			blockTransaction1 = registerDelegate({
 				passphrase: blockAccount1.passphrase,
 				username: blockAccount1.username,
 			});
-			blockTransaction2 = lisk.transaction.registerDelegate({
+			blockTransaction2 = registerDelegate({
 				passphrase: blockAccount2.passphrase,
 				username: blockAccount2.username,
 			});
@@ -129,12 +133,12 @@ describe('system test (blocks) - chain/applyBlock', () => {
 			let transaction4;
 
 			beforeEach('with transactions in unconfirmed queue', done => {
-				transaction3 = lisk.transaction.registerSecondPassphrase({
+				transaction3 = registerSecondPassphrase({
 					passphrase: poolAccount3.passphrase,
 					secondPassphrase: poolAccount3.secondPassphrase,
 				});
 
-				transaction4 = lisk.transaction.registerSecondPassphrase({
+				transaction4 = registerSecondPassphrase({
 					passphrase: poolAccount4.passphrase,
 					secondPassphrase: poolAccount4.secondPassphrase,
 				});

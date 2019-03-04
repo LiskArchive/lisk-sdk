@@ -14,7 +14,11 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	registerMultisignature,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('./utils/random');
 
@@ -42,27 +46,25 @@ function Multisig(options) {
 	this.lifetime = options.lifetime || 1;
 	this.amount = options.amount || 100000000000;
 
-	this.multiSigTransaction = lisk.transaction.registerMultisignature({
+	this.multiSigTransaction = registerMultisignature({
 		passphrase: this.account.passphrase,
 		keysgroup: this.keysgroup,
 		lifetime: this.lifetime,
 		minimum: this.minimum,
 	});
-	this.multiSigSecondSignatureTransaction = lisk.transaction.registerMultisignature(
-		{
-			passphrase: this.account.passphrase,
-			secondPassphrase: this.account.secondPassphrase,
-			keysgroup: this.keysgroup,
-			lifetime: this.lifetime,
-			minimum: this.minimum,
-		}
-	);
-	this.creditTransaction = lisk.transaction.transfer({
+	this.multiSigSecondSignatureTransaction = registerMultisignature({
+		passphrase: this.account.passphrase,
+		secondPassphrase: this.account.secondPassphrase,
+		keysgroup: this.keysgroup,
+		lifetime: this.lifetime,
+		minimum: this.minimum,
+	});
+	this.creditTransaction = transfer({
 		amount: this.amount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: this.account.address,
 	});
-	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase({
+	this.secondSignatureTransaction = registerSecondPassphrase({
 		passphrase: this.account.passphrase,
 		secondPassphrase: this.account.secondPassphrase,
 	});

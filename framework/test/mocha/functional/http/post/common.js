@@ -15,7 +15,13 @@
 'use strict';
 
 require('../../functional.js');
-const lisk = require('lisk-elements').default;
+const {
+	registerSecondPassphrase,
+	registerDelegate,
+	castVotes,
+	registerMultisignature,
+	createDapp,
+} = require('@liskhq/lisk-transactions');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
@@ -29,26 +35,26 @@ function invalidAssets(option, badTransactions) {
 		beforeEach(done => {
 			switch (option) {
 				case 'signature':
-					transaction = lisk.transaction.registerSecondPassphrase({
+					transaction = registerSecondPassphrase({
 						passphrase: accountFixtures.genesis.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
 					break;
 				case 'delegate':
-					transaction = lisk.transaction.registerDelegate({
+					transaction = registerDelegate({
 						passphrase: accountFixtures.genesis.passphrase,
 						username: randomUtil.delegateName(),
 					});
 					break;
 				case 'votes':
-					transaction = lisk.transaction.castVotes({
+					transaction = castVotes({
 						passphrase: accountFixtures.genesis.passphrase,
 						votes: [],
 						unvotes: [],
 					});
 					break;
 				case 'multisignature':
-					transaction = lisk.transaction.registerMultisignature({
+					transaction = registerMultisignature({
 						passphrase: accountFixtures.genesis.passphrase,
 						keysgroup: [`${accountFixtures.existingDelegate.publicKey}`],
 						lifetime: 1,
@@ -56,7 +62,7 @@ function invalidAssets(option, badTransactions) {
 					});
 					break;
 				case 'dapp':
-					transaction = lisk.transaction.createDapp({
+					transaction = createDapp({
 						passphrase: accountFixtures.genesis.passphrase,
 						options: randomUtil.guestbookDapp,
 					});

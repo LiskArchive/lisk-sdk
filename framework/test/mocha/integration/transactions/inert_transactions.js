@@ -1,6 +1,10 @@
 const async = require('async');
 const expect = require('chai').expect;
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerDelegate,
+	castVotes,
+} = require('@liskhq/lisk-transactions');
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
@@ -11,18 +15,18 @@ describe('inert transactions', () => {
 	let library;
 	const senderAccount = accountFixtures.genesis;
 	const recipientAccount = randomUtil.account();
-	const transferInertTransaction = lisk.transaction.transfer({
+	const transferInertTransaction = transfer({
 		recipientId: recipientAccount.address,
 		amount: 1000000000 * 100,
 		passphrase: senderAccount.passphrase,
 	});
 
-	const voteInertTransaction = lisk.transaction.castVotes({
+	const voteInertTransaction = castVotes({
 		passphrase: recipientAccount.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
 
-	const delegateInertTransaction = lisk.transaction.registerDelegate({
+	const delegateInertTransaction = registerDelegate({
 		passphrase: recipientAccount.passphrase,
 		username: recipientAccount.username,
 	});
@@ -39,7 +43,7 @@ describe('inert transactions', () => {
 
 	describe('send funds to account', () => {
 		before(done => {
-			const transferTransaction = lisk.transaction.transfer({
+			const transferTransaction = transfer({
 				recipientId: recipientAccount.address,
 				amount: 5000000000 * 100,
 				passphrase: senderAccount.passphrase,

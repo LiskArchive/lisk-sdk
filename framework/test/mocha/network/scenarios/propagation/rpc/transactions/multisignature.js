@@ -15,7 +15,10 @@
 'use strict';
 
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerMultisignature,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const randomUtil = require('../../../../../common/utils/random');
 const {
@@ -56,7 +59,7 @@ module.exports = function(configurations, network) {
 				return Promise.all(
 					_.range(numberOfTransactions).map(() => {
 						const tmpAccount = randomUtil.account();
-						const transaction = lisk.transaction.transfer({
+						const transaction = transfer({
 							amount: 2500000000,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
@@ -85,7 +88,7 @@ module.exports = function(configurations, network) {
 					numbers.map(num => {
 						i = (num + 1) % numbers.length;
 						j = (num + 2) % numbers.length;
-						const transaction = lisk.transaction.registerMultisignature({
+						const transaction = registerMultisignature({
 							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,

@@ -14,7 +14,7 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common.js');
@@ -49,7 +49,7 @@ describe('delegate', () => {
 
 		beforeEach('send funds to delegate account', done => {
 			delegateAccount = randomUtil.account();
-			const sendTransaction = lisk.transaction.transfer({
+			const sendTransaction = transfer({
 				amount: 1000 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
@@ -64,7 +64,7 @@ describe('delegate', () => {
 			beforeEach(done => {
 				username = randomUtil.username().toLowerCase();
 
-				delegateTransaction = lisk.transaction.registerDelegate({
+				delegateTransaction = registerDelegate({
 					passphrase: delegateAccount.passphrase,
 					username,
 				});
@@ -129,7 +129,7 @@ describe('delegate', () => {
 
 				beforeEach(done => {
 					username2 = randomUtil.username().toLowerCase();
-					delegateTransaction2 = lisk.transaction.registerDelegate({
+					delegateTransaction2 = registerDelegate({
 						passphrase: delegateAccount.passphrase,
 						username: username2,
 					});

@@ -15,7 +15,10 @@
 'use strict';
 
 const crypto = require('crypto');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../fixtures/accounts');
 const modulesLoader = require('../../../../common/modules_loader');
 const application = require('../../../../common/application');
@@ -169,7 +172,7 @@ describe('transaction', () => {
 	let accountModule;
 
 	before(done => {
-		const transfer = new Transfer({
+		const transferTransaction = new Transfer({
 			components: {
 				logger: modulesLoader.scope.components.logger,
 			},
@@ -181,7 +184,7 @@ describe('transaction', () => {
 				transactionLogic = scope.logic.transaction;
 				accountLogic = scope.logic.account;
 				accountModule = scope.modules.accounts;
-				transfer.bind(accountModule);
+				transferTransaction.bind(accountModule);
 				transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
 				done();
 			}
@@ -298,7 +301,7 @@ describe('transaction', () => {
 			const transactionBytesFromLogic = transactionLogic.getBytes(
 				validTransaction
 			);
-			const transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(
+			const transactionBytesFromLiskJs = transactionUtils.getTransactionBytes(
 				validTransaction
 			);
 
@@ -415,7 +418,7 @@ describe('transaction', () => {
 		});
 
 		it('should not return error when transaction is not confirmed', done => {
-			const transaction = lisk.transaction.transfer({
+			const transaction = transfer({
 				amount: transactionData.amount,
 				passphrase: transactionData.passphrase,
 				recipientId: transactionData.recipientId,
@@ -541,7 +544,7 @@ describe('transaction', () => {
 				secondPassphrase: transactionDataArg.secondPassphrase,
 				recipientId: transactionDataArg.recipientId,
 			};
-			const transaction = lisk.transaction.transfer(transferObject);
+			const transaction = transfer(transferObject);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.process(

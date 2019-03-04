@@ -14,17 +14,17 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const { utils: transactionUtils } = require('@liskhq/lisk-transactions');
 
 const elements = {};
 
 elements.redoSignature = function(transaction, passphrase) {
 	delete transaction.signature;
-	transaction.signature = lisk.transaction.utils.signTransaction(
+	transaction.signature = transactionUtils.signTransaction(
 		transaction,
 		passphrase
 	);
-	transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+	transaction.id = transactionUtils.getTransactionId(transaction);
 	return transaction;
 };
 

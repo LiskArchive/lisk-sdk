@@ -14,7 +14,9 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').cryptography;
+const {
+	getPrivateAndPublicKeyBytesFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const genesisDelegates = require('../../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../../data/delegates_rounds_list.json');
 const accountFixtures = require('../../../../fixtures/accounts');
@@ -765,13 +767,13 @@ describe('delegates', () => {
 				delegates = library.rewiredModules.delegates.__get__('self');
 				__private = library.rewiredModules.delegates.__get__('__private');
 
-				genesis1Keypair = lisk.getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis1Keypair = getPrivateAndPublicKeyBytesFromPassphrase(
 					genesis1.passphrase
 				);
-				genesis2Keypair = lisk.getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis2Keypair = getPrivateAndPublicKeyBytesFromPassphrase(
 					genesis2.passphrase
 				);
-				genesis3Keypair = lisk.getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis3Keypair = getPrivateAndPublicKeyBytesFromPassphrase(
 					genesis3.passphrase
 				);
 

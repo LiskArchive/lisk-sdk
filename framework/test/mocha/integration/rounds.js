@@ -15,7 +15,11 @@
 'use strict';
 
 const async = require('async');
-const elements = require('lisk-elements').default;
+const {
+	transfer,
+	castVotes,
+	registerDelegate,
+} = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const ed = require('../../../src/modules/chain/helpers/ed.js');
 const slots = require('../../../src/modules/chain/helpers/slots');
@@ -602,7 +606,7 @@ describe('rounds', () => {
 			const transactions = [];
 
 			before(done => {
-				const transaction = elements.transaction.transfer({
+				const transaction = transfer({
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000),
 					passphrase: accountsFixtures.genesis.passphrase,
@@ -621,7 +625,7 @@ describe('rounds', () => {
 				const transactionsPerBlock = 25;
 
 				for (let i = transactionsPerBlock - 1; i >= 0; i--) {
-					const transaction = elements.transaction.transfer({
+					const transaction = transfer({
 						recipientId: randomUtil.account().address,
 						amount: randomUtil.number(100000000, 1000000000),
 						passphrase: accountsFixtures.genesis.passphrase,
@@ -645,7 +649,7 @@ describe('rounds', () => {
 					++blocksProcessed;
 					const transactions = [];
 					for (let t = transactionsPerBlock - 1; t >= 0; t--) {
-						const transaction = elements.transaction.transfer({
+						const transaction = transfer({
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000),
 							passphrase: accountsFixtures.genesis.passphrase,
@@ -672,7 +676,7 @@ describe('rounds', () => {
 			const transactions = [];
 
 			before(() => {
-				const transaction = elements.transaction.transfer({
+				const transaction = transfer({
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000),
 					passphrase: accountsFixtures.genesis.passphrase,
@@ -846,7 +850,7 @@ describe('rounds', () => {
 					lastBlockForger = delegatePublicKey;
 
 					// Create unvote transaction
-					const transaction = elements.transaction.castVotes({
+					const transaction = castVotes({
 						passphrase: accountsFixtures.genesis.passphrase,
 						unvotes: [lastBlockForger],
 					});
@@ -979,7 +983,7 @@ describe('rounds', () => {
 					tmpAccount = randomUtil.account();
 
 					// Create transfer transaction (fund new account)
-					let transaction = elements.transaction.transfer({
+					let transaction = transfer({
 						recipientId: tmpAccount.address,
 						amount: 5000000000,
 						passphrase: accountsFixtures.genesis.passphrase,
@@ -987,13 +991,13 @@ describe('rounds', () => {
 					transactions.transfer.push(transaction);
 
 					// Create register delegate transaction
-					transaction = elements.transaction.registerDelegate({
+					transaction = registerDelegate({
 						passphrase: tmpAccount.passphrase,
 						username: 'my_little_delegate',
 					});
 					transactions.delegate.push(transaction);
 
-					transaction = elements.transaction.castVotes({
+					transaction = castVotes({
 						passphrase: accountsFixtures.genesis.passphrase,
 						unvotes: [lastBlockForger],
 						votes: [tmpAccount.publicKey],
@@ -1159,7 +1163,7 @@ describe('rounds', () => {
 						++blocksProcessed;
 						const transactions = [];
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
-							const transaction = elements.transaction.transfer({
+							const transaction = transfer({
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000),
 								passphrase: accountsFixtures.genesis.passphrase,
@@ -1215,7 +1219,7 @@ describe('rounds', () => {
 						++blocksProcessed;
 						const transactions = [];
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
-							const transaction = elements.transaction.transfer({
+							const transaction = transfer({
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000),
 								passphrase: accountsFixtures.genesis.passphrase,

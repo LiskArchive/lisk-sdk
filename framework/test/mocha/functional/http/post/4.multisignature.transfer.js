@@ -16,7 +16,10 @@
 
 require('../../functional.js');
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	createSignatureObject,
+} = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
@@ -90,7 +93,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 	describe('Transfers processing', () => {
 		it('with no signatures present it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
-			const trs = lisk.transaction.transfer({
+			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: 1,
@@ -104,16 +107,14 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with some signatures present it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
-			const trs = lisk.transaction.transfer({
+			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: 1,
 			});
 			trs.signatures = [
-				lisk.transaction.createSignatureObject(
-					trs,
-					multiSigAccount.members[0].passphrase
-				).signature,
+				createSignatureObject(trs, multiSigAccount.members[0].passphrase)
+					.signature,
 			];
 
 			return sendTransactionPromise(trs).then(res => {
@@ -124,7 +125,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with all signatures present it should be confirmed', async () => {
 			const targetAccount = randomUtil.account();
-			const trs = lisk.transaction.transfer({
+			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: 1,
@@ -135,8 +136,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			];
 
 			trs.signatures = membersPassphrases.map(
-				aSigner =>
-					lisk.transaction.createSignatureObject(trs, aSigner).signature
+				aSigner => createSignatureObject(trs, aSigner).signature
 			);
 
 			return sendTransactionPromise(trs).then(res => {
@@ -147,7 +147,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with no signatures present, ready set to true, it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
-			const trs = lisk.transaction.transfer({
+			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: 1,
@@ -162,17 +162,15 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with some signatures present, ready set to true, it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
-			const trs = lisk.transaction.transfer({
+			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: 1,
 			});
 
 			trs.signatures = [
-				lisk.transaction.createSignatureObject(
-					trs,
-					multiSigAccount.members[0].passphrase
-				).signature,
+				createSignatureObject(trs, multiSigAccount.members[0].passphrase)
+					.signature,
 			];
 			trs.ready = true;
 
@@ -184,7 +182,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with all signatures present, ready set to false, it should be confirmed', async () => {
 			const targetAccount = randomUtil.account();
-			const trs = lisk.transaction.transfer({
+			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: 1,
@@ -194,8 +192,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			];
 
 			trs.signatures = membersPassphrases.map(
-				aSigner =>
-					lisk.transaction.createSignatureObject(trs, aSigner).signature
+				aSigner => createSignatureObject(trs, aSigner).signature
 			);
 			trs.ready = false;
 

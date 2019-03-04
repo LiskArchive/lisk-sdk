@@ -14,7 +14,11 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	createDapp,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
@@ -26,17 +30,17 @@ describe('system test (type 1) - checking validated second signature registratio
 	let library;
 
 	const account = randomUtil.account();
-	const creditTransaction = lisk.transaction.transfer({
+	const creditTransaction = transfer({
 		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
-	const transaction = lisk.transaction.registerSecondPassphrase({
+	const transaction = registerSecondPassphrase({
 		passphrase: account.passphrase,
 		secondPassphrase: account.secondPassphrase,
 	});
 	const dapp = randomUtil.application();
-	const dappTransaction = lisk.transaction.createDapp({
+	const dappTransaction = createDapp({
 		passphrase: account.passphrase,
 		options: dapp,
 	});
@@ -92,7 +96,7 @@ describe('system test (type 1) - checking validated second signature registratio
 		});
 
 		it('adding to pool second signature registration for same account should fail', done => {
-			const auxTransaction = lisk.transaction.registerSecondPassphrase({
+			const auxTransaction = registerSecondPassphrase({
 				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});

@@ -15,7 +15,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -55,7 +55,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 
 	beforeEach('send funds to accounts', done => {
 		blockAccount1 = randomUtil.account();
-		fundTrsForAccount1 = lisk.transaction.transfer({
+		fundTrsForAccount1 = transfer({
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,

@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const SwaggerSpec = require('../../../common/swagger_spec');
 const randomUtil = require('../../../common/utils/random');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -27,7 +27,7 @@ const phases = require('../../../common/phases');
 describe('POST /api/transactions (general)', () => {
 	const transactionsEndpoint = new SwaggerSpec('POST /transactions');
 	const account = randomUtil.account();
-	const transaction = lisk.transaction.transfer({
+	const transaction = transfer({
 		amount: 1,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,

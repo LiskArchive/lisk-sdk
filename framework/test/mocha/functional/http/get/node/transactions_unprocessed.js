@@ -16,7 +16,7 @@
 
 require('../../../functional.js');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const apiHelpers = require('../../../../common/helpers/api');
 const randomUtil = require('../../../../common/utils/random');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
@@ -42,7 +42,7 @@ describe('GET /api/node', () => {
 				// Create numOfTransactions transactions
 				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
-						lisk.transaction.transfer({
+						transfer({
 							amount: randomUtil.number(100000000, 1000000000),
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,

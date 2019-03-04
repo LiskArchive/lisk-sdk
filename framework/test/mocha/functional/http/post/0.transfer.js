@@ -16,7 +16,10 @@
 
 require('../../functional.js');
 const crypto = require('crypto');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const phases = require('../../../common/phases');
@@ -58,7 +61,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			transaction = randomUtil.transaction();
 			transaction.recipientId = transaction.recipientId.toLowerCase();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+			transaction.id = transactionUtils.getTransactionId(transaction);
 
 			return sendTransactionPromise(transaction, 400).then(res => {
 				expect(res.body.message).to.be.equal('Validation errors');
@@ -71,7 +74,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('with invalid signature should fail', async () => {
 			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+			transaction.id = transactionUtils.getTransactionId(transaction);
 
 			return sendTransactionPromise(
 				transaction,
@@ -96,7 +99,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('using zero amount should fail', async () => {
-			transaction = lisk.transaction.transfer({
+			transaction = transfer({
 				amount: new Bignum(0),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -112,7 +115,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('when sender has no funds should fail', async () => {
-			transaction = lisk.transaction.transfer({
+			transaction = transfer({
 				amount: new Bignum(1),
 				passphrase: account.passphrase,
 				recipientId: '1L',
@@ -130,7 +133,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('using entire balance should fail', async () => {
-			transaction = lisk.transaction.transfer({
+			transaction = transfer({
 				amount: accountFixtures.genesis.balance,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -220,7 +223,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		describe('with offset', () => {
 			it('using -10000 should be ok', async () => {
-				transaction = lisk.transaction.transfer({
+				transaction = transfer({
 					amount: 1,
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: accountOffset.address,
@@ -234,7 +237,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 
 			it('using future timestamp should fail', async () => {
-				transaction = lisk.transaction.transfer({
+				transaction = transfer({
 					amount: 1,
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: accountOffset.address,
@@ -262,7 +265,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				invalidCases.forEach(test => {
 					it(`using ${test.description} should fail`, async () => {
 						const accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.transfer({
+						transaction = transfer({
 							amount: 1,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
@@ -288,7 +291,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				validCases.forEach(test => {
 					it(`using ${test.description} should be ok`, async () => {
 						const accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.transfer({
+						transaction = transfer({
 							amount: 1,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
@@ -307,7 +310,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it('using SQL characters escaped as single quote should be ok', async () => {
 					const additioinalData = "'0'";
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
+					transaction = transfer({
 						amount: 1,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
@@ -327,7 +330,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it('using specialChar should be ok', () => {
 					const additioinalData = `${specialChar} hey \x01 :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
+					transaction = transfer({
 						amount: 1,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,

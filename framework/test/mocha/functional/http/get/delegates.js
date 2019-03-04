@@ -16,7 +16,11 @@
 
 require('../../functional.js');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	registerDelegate,
+} = require('@liskhq/lisk-transactions');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../fixtures/accounts');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
@@ -103,16 +107,16 @@ describe('GET /delegates', () => {
 		describe('secondPublicKey', () => {
 			const secondPassphraseAccount = randomUtil.account();
 
-			const creditTransaction = lisk.transaction.transfer({
+			const creditTransaction = transfer({
 				amount: new Bignum(FEES.SECOND_SIGNATURE).plus(FEES.DELEGATE),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPassphraseAccount.address,
 			});
-			const signatureTransaction = lisk.transaction.registerSecondPassphrase({
+			const signatureTransaction = registerSecondPassphrase({
 				passphrase: secondPassphraseAccount.passphrase,
 				secondPassphrase: secondPassphraseAccount.secondPassphrase,
 			});
-			const delegateTransaction = lisk.transaction.registerDelegate({
+			const delegateTransaction = registerDelegate({
 				passphrase: secondPassphraseAccount.passphrase,
 				username: secondPassphraseAccount.username,
 			});

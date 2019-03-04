@@ -14,7 +14,10 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerMultisignature,
+} = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
@@ -50,7 +53,7 @@ describe('expire transactions', () => {
 		);
 
 	const createTransaction = (amount, recipientId) => {
-		return lisk.transaction.transfer({
+		return transfer({
 			recipientId,
 			amount,
 			passphrase: accountsFixtures.genesis.passphrase,
@@ -240,7 +243,7 @@ describe('expire transactions', () => {
 		it('should be able to add multi-signature transaction to unconfirmed queue', done => {
 			const keysgroup = [signer1.publicKey, signer2.publicKey];
 
-			multiSigTransaction = lisk.transaction.registerMultisignature({
+			multiSigTransaction = registerMultisignature({
 				passphrase: account.passphrase,
 				keysgroup,
 				lifetime,

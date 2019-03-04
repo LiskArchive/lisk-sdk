@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types');
 const randomUtil = require('../../../common/utils/random');
@@ -39,25 +39,25 @@ describe('GET /api/transactions', () => {
 	const accountSecondPass = randomUtil.account();
 	const minAmount = 20 * NORMALIZER; // 20 LSK
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
-	const transaction1 = lisk.transaction.transfer({
+	const transaction1 = {
 		amount: maxAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 		data: 'transaction1',
-	});
-	const transaction2 = lisk.transaction.transfer({
+	};
+	const transaction2 = transfer({
 		amount: minAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 		data: 'transaction2 ฿',
 	});
-	const transaction3 = lisk.transaction.transfer({
+	const transaction3 = transfer({
 		amount: 20 * NORMALIZER, // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
 		data: 'hey :)',
 	});
-	const transaction4 = lisk.transaction.transfer({
+	const transaction4 = transfer({
 		amount: maxAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account3.address,

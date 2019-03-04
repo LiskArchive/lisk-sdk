@@ -15,7 +15,15 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	createDapp,
+	createSignatureObject,
+} = require('@liskhq/lisk-transactions');
+const {
+	getKeys,
+	getAddressFromPublicKey,
+} = require('@liskhq/lisk-cryptography');
 const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
 const accountFixtures = require('../../fixtures/accounts');
 
@@ -108,20 +116,16 @@ random.account = function() {
 	account.passphrase = random.password();
 	account.secondPassphrase = random.password();
 	account.username = random.delegateName();
-	account.publicKey = lisk.cryptography.getKeys(account.passphrase).publicKey;
-	account.address = lisk.cryptography.getAddressFromPublicKey(
-		account.publicKey
-	);
-	account.secondPublicKey = lisk.cryptography.getKeys(
-		account.secondPassphrase
-	).publicKey;
+	account.publicKey = getKeys(account.passphrase).publicKey;
+	account.address = getAddressFromPublicKey(account.publicKey);
+	account.secondPublicKey = getKeys(account.secondPassphrase).publicKey;
 
 	return account;
 };
 
 // Returns an random basic transfer transaction to send 1 LSK from genesis account to a random account
 random.transaction = function(offset) {
-	return lisk.transaction.transfer({
+	return transfer({
 		amount: 1,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
@@ -169,7 +173,7 @@ random.multisigDappRegistrationMaxiumData = function(
 		icon: `https://${string1KB}.png`,
 	};
 
-	const dappTransaction = lisk.transaction.createDapp({
+	const dappTransaction = createDapp({
 		passphrase: account.passphrase,
 		options: application,
 	});
@@ -177,10 +181,8 @@ random.multisigDappRegistrationMaxiumData = function(
 	const signatures = members
 		.map(aMember => aMember.passphrase)
 		.map(memberPassphrase => {
-			const sigObj = lisk.transaction.createSignatureObject(
-				dappTransaction,
-				memberPassphrase
-			).signature;
+			const sigObj = createSignatureObject(dappTransaction, memberPassphrase)
+				.signature;
 			return sigObj;
 		});
 

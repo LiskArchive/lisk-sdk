@@ -14,7 +14,10 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -25,7 +28,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 	let library;
 
 	const account = randomUtil.account();
-	const transaction = lisk.transaction.transfer({
+	const transaction = transfer({
 		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
@@ -44,7 +47,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 	});
 
 	it('adding to pool second signature registration should be ok', done => {
-		transaction1 = lisk.transaction.registerSecondPassphrase({
+		transaction1 = registerSecondPassphrase({
 			passphrase: account.passphrase,
 			secondPassphrase: account.secondPassphrase,
 			timeOffset: -10000,
@@ -56,7 +59,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 	});
 
 	it('adding to pool same second signature registration with different timestamp should be ok', done => {
-		transaction2 = lisk.transaction.registerSecondPassphrase({
+		transaction2 = registerSecondPassphrase({
 			passphrase: account.passphrase,
 			secondPassphrase: account.secondPassphrase,
 		});
