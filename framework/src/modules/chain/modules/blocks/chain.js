@@ -568,11 +568,11 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 
 /**
  * Reverts confirmed transactions due to block deletion
- * @param {Object} blockToBeUndone - secondLastBlock
+ * @param {Object} block - secondLastBlock
  * @param {Object} tx - database transaction
  */
-__private.undoConfirmedStep = async function(blockToBeUndone, tx) {
-	if (blockToBeUndone.transactions.length <= 0) {
+__private.undoConfirmedStep = async function(block, tx) {
+	if (block.transactions.length <= 0) {
 		return;
 	}
 
@@ -580,7 +580,7 @@ __private.undoConfirmedStep = async function(blockToBeUndone, tx) {
 		stateStore,
 		transactionResponses,
 	} = await modules.processTransactions.undoTransactions(
-		blockToBeUndone.transactions,
+		block.transactions,
 		tx
 	);
 
