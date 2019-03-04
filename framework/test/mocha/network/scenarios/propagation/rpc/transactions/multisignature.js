@@ -60,7 +60,7 @@ module.exports = function(configurations, network) {
 					_.range(numberOfTransactions).map(() => {
 						const tmpAccount = randomUtil.account();
 						const transaction = transfer({
-							amount: 2500000000,
+							amount: '2500000000',
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 							ready: true,

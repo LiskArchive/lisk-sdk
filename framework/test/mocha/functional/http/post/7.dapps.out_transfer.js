@@ -44,7 +44,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	// Crediting accounts
 	before(() => {
 		const transaction1 = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});

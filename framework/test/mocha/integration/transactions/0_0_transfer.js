@@ -35,7 +35,7 @@ describe('system test (type 0) - double transfers', () => {
 		describe('executing 30 times', () => {
 			const account = randomUtil.account();
 			const transaction = transfer({
-				amount: 1100 * NORMALIZER,
+				amount: (1100 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -55,7 +55,7 @@ describe('system test (type 0) - double transfers', () => {
 
 			it('adding to pool transfer should be ok', done => {
 				transaction1 = transfer({
-					amount: 1000 * NORMALIZER,
+					amount: (1000 * NORMALIZER).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 					timeOffset: -10000,
@@ -68,7 +68,7 @@ describe('system test (type 0) - double transfers', () => {
 
 			it('adding to pool same transfer with different timestamp should be ok', done => {
 				transaction2 = transfer({
-					amount: 1000 * NORMALIZER,
+					amount: (1000 * NORMALIZER).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 				});

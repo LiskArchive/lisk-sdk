@@ -608,7 +608,7 @@ describe('rounds', () => {
 			before(done => {
 				const transaction = transfer({
 					recipientId: randomUtil.account().address,
-					amount: randomUtil.number(100000000, 1000000000),
+					amount: randomUtil.number(100000000, 1000000000).toString(),
 					passphrase: accountsFixtures.genesis.passphrase,
 				});
 				transactions.push(transaction);
@@ -627,7 +627,7 @@ describe('rounds', () => {
 				for (let i = transactionsPerBlock - 1; i >= 0; i--) {
 					const transaction = transfer({
 						recipientId: randomUtil.account().address,
-						amount: randomUtil.number(100000000, 1000000000),
+						amount: randomUtil.number(100000000, 1000000000).toString(),
 						passphrase: accountsFixtures.genesis.passphrase,
 					});
 					transactions.push(transaction);
@@ -651,7 +651,7 @@ describe('rounds', () => {
 					for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 						const transaction = transfer({
 							recipientId: randomUtil.account().address,
-							amount: randomUtil.number(100000000, 1000000000),
+							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountsFixtures.genesis.passphrase,
 							data,
 						});
@@ -678,7 +678,7 @@ describe('rounds', () => {
 			before(() => {
 				const transaction = transfer({
 					recipientId: randomUtil.account().address,
-					amount: randomUtil.number(100000000, 1000000000),
+					amount: randomUtil.number(100000000, 1000000000).toString(),
 					passphrase: accountsFixtures.genesis.passphrase,
 				});
 				transactions.push(transaction);
@@ -985,7 +985,7 @@ describe('rounds', () => {
 					// Create transfer transaction (fund new account)
 					let transaction = transfer({
 						recipientId: tmpAccount.address,
-						amount: 5000000000,
+						amount: '5000000000',
 						passphrase: accountsFixtures.genesis.passphrase,
 					});
 					transactions.transfer.push(transaction);
@@ -1165,7 +1165,7 @@ describe('rounds', () => {
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 							const transaction = transfer({
 								recipientId: randomUtil.account().address,
-								amount: randomUtil.number(100000000, 1000000000),
+								amount: randomUtil.number(100000000, 1000000000).toString(),
 								passphrase: accountsFixtures.genesis.passphrase,
 							});
 							transactions.push(transaction);
@@ -1221,7 +1221,7 @@ describe('rounds', () => {
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 							const transaction = transfer({
 								recipientId: randomUtil.account().address,
-								amount: randomUtil.number(100000000, 1000000000),
+								amount: randomUtil.number(100000000, 1000000000).toString(),
 								passphrase: accountsFixtures.genesis.passphrase,
 							});
 							transactions.push(transaction);

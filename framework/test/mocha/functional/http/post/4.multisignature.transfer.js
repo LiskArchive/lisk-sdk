@@ -96,7 +96,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
-				amount: 1,
+				amount: '1',
 			});
 
 			return sendTransactionPromise(trs).then(res => {
@@ -110,7 +110,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
-				amount: 1,
+				amount: '1',
 			});
 			trs.signatures = [
 				createSignatureObject(trs, multiSigAccount.members[0].passphrase)
@@ -128,7 +128,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
-				amount: 1,
+				amount: '1',
 			});
 
 			const membersPassphrases = [
@@ -150,7 +150,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
-				amount: 1,
+				amount: '1',
 			});
 			trs.ready = true;
 
@@ -165,7 +165,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
-				amount: 1,
+				amount: '1',
 			});
 
 			trs.signatures = [
@@ -185,7 +185,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			const trs = transfer({
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
-				amount: 1,
+				amount: '1',
 			});
 			const membersPassphrases = [
 				...multiSigAccount.members.map(anAccount => anAccount.passphrase),

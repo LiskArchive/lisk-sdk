@@ -17,7 +17,7 @@ describe('inert transactions', () => {
 	const recipientAccount = randomUtil.account();
 	const transferInertTransaction = transfer({
 		recipientId: recipientAccount.address,
-		amount: 1000000000 * 100,
+		amount: (1000000000 * 100).toString(),
 		passphrase: senderAccount.passphrase,
 	});
 
@@ -45,7 +45,7 @@ describe('inert transactions', () => {
 		before(done => {
 			const transferTransaction = transfer({
 				recipientId: recipientAccount.address,
-				amount: 5000000000 * 100,
+				amount: (5000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
 			});
 			localCommon.addTransactionsAndForge(library, [transferTransaction], done);

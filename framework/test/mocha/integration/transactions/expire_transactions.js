@@ -55,7 +55,7 @@ describe('expire transactions', () => {
 	const createTransaction = (amount, recipientId) => {
 		return transfer({
 			recipientId,
-			amount,
+			amount: amount.toString(),
 			passphrase: accountsFixtures.genesis.passphrase,
 		});
 	};

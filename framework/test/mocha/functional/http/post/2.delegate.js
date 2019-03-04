@@ -53,7 +53,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	before(() => {
 		const transactions = [];
 		const transaction1 = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});

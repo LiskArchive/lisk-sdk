@@ -39,7 +39,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			let transaction1;
 			let transaction2;
 			transaction = transfer({
-				amount: 1000 * NORMALIZER,
+				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -58,7 +58,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			describe('with two different accounts using same username', () => {
 				before(done => {
 					transaction = transfer({
-						amount: 1000 * NORMALIZER,
+						amount: (1000 * NORMALIZER).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account2.address,
 					});

@@ -29,7 +29,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 
 	const account = randomUtil.account();
 	const transaction = transfer({
-		amount: 1000 * NORMALIZER,
+		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});

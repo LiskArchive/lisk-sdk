@@ -27,7 +27,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 	const account = randomUtil.account();
 	const transaction = transfer({
-		amount: 1000 * NORMALIZER,
+		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});

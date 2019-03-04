@@ -31,7 +31,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 
 	const account = randomUtil.account();
 	const transaction = transfer({
-		amount: 1000 * NORMALIZER,
+		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});

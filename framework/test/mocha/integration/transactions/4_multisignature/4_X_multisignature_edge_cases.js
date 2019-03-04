@@ -31,7 +31,7 @@ describe('system test - multi signature edge cases', () => {
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;
 	const creditTransaction = transfer({
-		amount: 65 * NORMALIZER,
+		amount: (65 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: multisigAccount.address,
 	});

@@ -44,7 +44,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	// Crediting accounts
 	before(() => {
 		const transaction1 = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
@@ -85,7 +85,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	describe('transactions processing', () => {
 		it('using second passphrase on a fresh account should fail', async () => {
 			transaction = transfer({
-				amount: 1,
+				amount: '1',
 				passphrase: accountNoSecondPassphrase.passphrase,
 				secondPassphrase: accountNoSecondPassphrase.secondPassphrase,
 				recipientId: accountFixtures.existingDelegate.address,

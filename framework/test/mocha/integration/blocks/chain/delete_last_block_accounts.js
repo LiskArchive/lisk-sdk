@@ -60,7 +60,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 			function createAccountWithFunds(done) {
 				testAccount = randomUtil.account();
 				const sendTransaction = transfer({
-					amount: 100000000 * 100,
+					amount: (100000000 * 100).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: testAccount.address,
 				});
@@ -88,7 +88,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				it('should create a transaction and forge a block', done => {
 					testReceipt = randomUtil.account();
 					const transferTransaction = transfer({
-						amount: 100000000,
+						amount: '100000000',
 						passphrase: testAccount.passphrase,
 						recipientId: testReceipt.address,
 					});
@@ -778,7 +778,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					it('should forge a block', done => {
 						const inTransferTransaction = transferIntoDapp({
 							passphrase: testAccount.passphrase,
-							amount: 10 * 100000000,
+							amount: (10 * 100000000).toString(),
 							dappId: randomUtil.guestbookDapp.id,
 						});
 						localCommon.addTransactionsAndForge(
@@ -859,7 +859,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					it('should forge a block', done => {
 						const outTransferTransaction = transferOutOfDapp({
 							passphrase: testAccount.passphrase,
-							amount: 10 * 100000000,
+							amount: (10 * 100000000).toString(),
 							dappId: randomUtil.guestbookDapp.id,
 							transactionId: randomUtil.transaction().id,
 							recipientId: accountFixtures.genesis.address,

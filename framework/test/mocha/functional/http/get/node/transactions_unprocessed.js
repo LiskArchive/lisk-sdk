@@ -43,7 +43,7 @@ describe('GET /api/node', () => {
 				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
 						transfer({
-							amount: randomUtil.number(100000000, 1000000000),
+							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,
 							data,

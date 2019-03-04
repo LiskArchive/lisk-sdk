@@ -65,7 +65,7 @@ describe('snapshotting', () => {
 					.then(() => {
 						const transaction = transfer({
 							recipientId: randomUtil.account().address,
-							amount: randomUtil.number(100000000, 1000000000),
+							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountsFixtures.genesis.passphrase,
 							data,
 						});

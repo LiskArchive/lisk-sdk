@@ -33,7 +33,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;
 	const creditTransaction = transfer({
-		amount: 1000 * NORMALIZER,
+		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: multisigAccount.address,
 	});

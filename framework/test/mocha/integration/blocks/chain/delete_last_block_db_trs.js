@@ -56,7 +56,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 	beforeEach('send funds to accounts', done => {
 		blockAccount1 = randomUtil.account();
 		fundTrsForAccount1 = transfer({
-			amount: transferAmount,
+			amount: transferAmount.toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});

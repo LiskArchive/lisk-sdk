@@ -378,7 +378,7 @@ describe('GET /api/votes', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				const account = randomUtil.account();
 				const creditTransaction = transfer({
-					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE),
+					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});

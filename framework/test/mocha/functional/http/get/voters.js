@@ -273,7 +273,8 @@ describe('GET /api/voters', () => {
 			before(() => {
 				const amount = new Bignum(FEES.DELEGATE)
 					.plus(FEES.VOTE)
-					.plus(FEES.SECOND_SIGNATURE);
+					.plus(FEES.SECOND_SIGNATURE)
+					.toString();
 				const enrichExtraDelegateVoterTransaction = transfer({
 					amount,
 					passphrase: accountFixtures.genesis.passphrase,

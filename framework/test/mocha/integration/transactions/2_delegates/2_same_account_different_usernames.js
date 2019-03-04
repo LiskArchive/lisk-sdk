@@ -38,7 +38,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			let transaction2;
 			const differentDelegateName = randomUtil.delegateName();
 			const transaction = transfer({
-				amount: 1000 * NORMALIZER,
+				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});

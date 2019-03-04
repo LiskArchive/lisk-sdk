@@ -411,7 +411,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				const scenario = scenarios.requesterPublicKey;
 
 				const transaction = transfer({
-					amount: 1 * NORMALIZER,
+					amount: (1 * NORMALIZER).toString(),
 					passphrase: scenario.members[0].passphrase,
 					recipientId: randomUtil.account().address,
 				});

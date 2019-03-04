@@ -28,7 +28,7 @@ describe('POST /api/transactions (general)', () => {
 	const transactionsEndpoint = new SwaggerSpec('POST /transactions');
 	const account = randomUtil.account();
 	const transaction = transfer({
-		amount: 1,
+		amount: '1',
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 		timeOffset: -10000,

@@ -46,19 +46,19 @@ describe('GET /api/transactions', () => {
 		data: 'transaction1',
 	};
 	const transaction2 = transfer({
-		amount: minAmount,
+		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 		data: 'transaction2 ฿',
 	});
 	const transaction3 = transfer({
-		amount: 20 * NORMALIZER, // 20 LSK
+		amount: (20 * NORMALIZER).toString(), // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
 		data: 'hey :)',
 	});
 	const transaction4 = transfer({
-		amount: maxAmount,
+		amount: maxAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account3.address,
 		data: 'Tx4',

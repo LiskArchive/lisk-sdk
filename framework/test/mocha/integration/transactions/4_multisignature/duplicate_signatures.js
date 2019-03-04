@@ -66,7 +66,7 @@ describe('duplicate_signatures', () => {
 		// Create transfer transaction (fund new account)
 		let transaction = transfer({
 			recipientId: accounts.multisignature.address,
-			amount: 5000000000,
+			amount: '5000000000',
 			passphrase: accountsFixtures.genesis.passphrase,
 		});
 		transactions.transfer = transaction;
@@ -110,7 +110,7 @@ describe('duplicate_signatures', () => {
 		// Create transfer transaction (fund new account)
 		const transaction = transfer({
 			recipientId: accounts.random.address,
-			amount: 100000000,
+			amount: '100000000',
 			passphrase: accounts.multisignature.passphrase,
 		});
 		transactions.transfer = transaction;

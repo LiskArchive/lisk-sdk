@@ -44,7 +44,7 @@ describe('system test (type 0) - votes collision', () => {
 	};
 
 	const creditTransaction = transfer({
-		amount: 10000 * NORMALIZER,
+		amount: (10000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: collisionAccount.address,
 	});

@@ -50,7 +50,7 @@ describe('delegate', () => {
 		beforeEach('send funds to delegate account', done => {
 			delegateAccount = randomUtil.account();
 			const sendTransaction = transfer({
-				amount: 1000 * NORMALIZER,
+				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});

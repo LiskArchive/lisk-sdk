@@ -51,7 +51,7 @@ describe('GET /api/node', () => {
 			before(() => {
 				// Credit account with some funds
 				transaction = transfer({
-					amount: 1000 * NORMALIZER,
+					amount: (1000 * NORMALIZER).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: senderAccount.address,
 				});
@@ -114,7 +114,7 @@ describe('GET /api/node', () => {
 						for (let i = 0; i < numOfTransactions; i++) {
 							transactionList.push(
 								transfer({
-									amount: (i + 1) * NORMALIZER,
+									amount: ((i + 1) * NORMALIZER).toString(),
 									passphrase: senderAccount.passphrase,
 									secondPassphrase: senderAccount.secondPassphrase,
 									recipientId: recipientAccount.address,

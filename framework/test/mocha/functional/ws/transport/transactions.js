@@ -58,7 +58,7 @@ describe('Posting transaction (type 0)', () => {
 	describe('transaction processing', () => {
 		it('when sender has no funds should broadcast transaction but not confirm', done => {
 			transaction = transfer({
-				amount: 1,
+				amount: '1',
 				passphrase: account.passphrase,
 				recipientId: '1L',
 			});

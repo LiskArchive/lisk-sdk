@@ -40,7 +40,7 @@ describe('GET /dapps', () => {
 
 	before(() => {
 		const transaction = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});

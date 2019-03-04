@@ -31,7 +31,7 @@ describe('system test (type 1) - checking validated second signature registratio
 
 	const account = randomUtil.account();
 	const creditTransaction = transfer({
-		amount: 1000 * NORMALIZER,
+		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});

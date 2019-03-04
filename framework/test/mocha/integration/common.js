@@ -313,7 +313,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	switch (key) {
 		case 'SEND':
 			transaction = transfer({
-				amount: 1,
+				amount: '1',
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				recipientId: randomUtil.account().address,

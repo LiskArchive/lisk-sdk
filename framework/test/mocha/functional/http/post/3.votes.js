@@ -73,7 +73,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 	before(() => {
 		const transactions = [];
 		const transaction1 = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: delegateAccount.address,
 		});
@@ -83,17 +83,17 @@ describe('POST /api/transactions (type 3) votes', () => {
 			recipientId: accountMinimalFunds.address,
 		});
 		const transaction3 = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFixtures.existingDelegate.address,
 		});
 		const transaction4 = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerTransaction.address,
 		});
 		const transaction5 = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerAccount.address,
 		});

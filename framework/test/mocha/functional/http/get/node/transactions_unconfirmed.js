@@ -44,7 +44,7 @@ describe('GET /api/node', () => {
 				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
 						transfer({
-							amount: (i + 1) * NORMALIZER,
+							amount: ((i + 1) * NORMALIZER).toString(),
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,
 							data,

@@ -40,7 +40,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 
 			const account = randomUtil.account();
 			const transaction = transfer({
-				amount: 1000 * NORMALIZER,
+				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});

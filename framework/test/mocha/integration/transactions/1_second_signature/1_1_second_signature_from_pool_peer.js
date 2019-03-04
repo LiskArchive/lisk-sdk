@@ -53,7 +53,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 		beforeEach('send funds to signature account', done => {
 			signatureAccount = randomUtil.account();
 			const sendTransaction = transfer({
-				amount: 1000 * NORMALIZER,
+				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: signatureAccount.address,
 			});

@@ -45,26 +45,26 @@ describe('system test (type 0) - address collision', () => {
 	];
 
 	const firstTransaction = transfer({
-		amount: 10 * NORMALIZER,
+		amount: (10 * NORMALIZER).toString(),
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 	});
 
 	const secondTransaction = transfer({
-		amount: 10 * NORMALIZER,
+		amount: (10 * NORMALIZER).toString(),
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 	});
 
 	const firstTransactionWithData = transfer({
-		amount: 10 * NORMALIZER,
+		amount: (10 * NORMALIZER).toString(),
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 		data: 'addtional data from 1',
 	});
 
 	const secondTransactionWithData = transfer({
-		amount: 10 * NORMALIZER,
+		amount: (10 * NORMALIZER).toString(),
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 		data: 'addtional data from 2',
@@ -72,7 +72,7 @@ describe('system test (type 0) - address collision', () => {
 
 	before(done => {
 		const creditTransaction = transfer({
-			amount: 1000 * NORMALIZER,
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
 			data: 'addtional data from 2',
