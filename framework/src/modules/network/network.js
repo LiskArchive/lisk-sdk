@@ -80,11 +80,17 @@ module.exports = class Network {
 			this.p2p.applyNodeInfo(event.data);
 		};
 
-		this.channel.subscribe('chain:system:updateNodeInfo', this._handleUpdateNodeInfo);
+		this.channel.subscribe(
+			'chain:system:updateNodeInfo',
+			this._handleUpdateNodeInfo
+		);
 
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
 			try {
-				const result = await this.channel.invoke(request.procedure, request.data);
+				const result = await this.channel.invoke(
+					request.procedure,
+					request.data
+				);
 				request.end(result); // Send the response back to the peer.
 			} catch (error) {
 				request.error(error); // Send an error back to the peer.
@@ -113,15 +119,19 @@ module.exports = class Network {
 					procedure: action.params.procedure,
 					data: action.params.data,
 				}),
-			send: action => this.p2p.send({
+			send: action =>
+				this.p2p.send({
 					event: action.params.event,
 					data: action.params.data,
 				}),
+			getNetworkStatus: () => this.p2p.getNetworkStatus(),
+			applyPenalty: action => this.p2p.applyPenalty(action.params),
 		};
 	}
 
 	/* eslint-disable-next-line class-methods-use-this */
 	async cleanup() {
 		// TODO: Unsubscribe 'chain:system:updateNodeInfo' from channel.
+		await this.p2p.stop();
 	}
 };
