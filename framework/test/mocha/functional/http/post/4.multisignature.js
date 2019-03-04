@@ -24,7 +24,7 @@ const waitFor = require('../../../common/utils/wait_for');
 const elements = require('../../../common/utils/elements');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/http_api/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
@@ -101,7 +101,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Array is too short (0), minimum ${
@@ -134,7 +134,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal('Invalid member in keysgroup');
 					badTransactions.push(transaction);
@@ -156,7 +156,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid multisignature keysgroup. Can not contain sender'
@@ -189,7 +189,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Encountered duplicate public key in multisignature keysgroup'
@@ -222,7 +222,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid public key in multisignature keysgroup'
@@ -256,7 +256,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid math operator in multisignature keysgroup'
@@ -286,7 +286,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid public key in multisignature keysgroup'
@@ -319,7 +319,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid math operator in multisignature keysgroup'
@@ -352,7 +352,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid public key in multisignature keysgroup'
@@ -372,7 +372,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Array is too long (${MULTISIG_CONSTRAINTS
@@ -396,7 +396,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid multisignature min. Must be less than or equal to keysgroup size'
@@ -417,7 +417,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Value ${MULTISIG_CONSTRAINTS
@@ -441,7 +441,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Value ${MULTISIG_CONSTRAINTS
@@ -467,7 +467,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Value ${MULTISIG_CONSTRAINTS
@@ -491,7 +491,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Value ${MULTISIG_CONSTRAINTS
@@ -511,7 +511,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 			return sendTransactionPromise(
 				scenario.multiSigTransaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Account does not have enough LSK: ${
@@ -696,7 +696,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 						return signatureEndpoint.makeRequest(
 							{ signature },
-							errorCodes.PROCESSING_ERROR
+							apiCodes.PROCESSING_ERROR
 						);
 					})
 					.then(res => {
@@ -715,7 +715,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 
 				return signatureEndpoint
-					.makeRequest({ signature }, errorCodes.PROCESSING_ERROR)
+					.makeRequest({ signature }, apiCodes.PROCESSING_ERROR)
 					.then(res => {
 						expect(res)
 							.to.have.nested.property('body.message')

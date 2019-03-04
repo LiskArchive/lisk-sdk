@@ -20,7 +20,7 @@ const typesRepresentatives = require('../../../fixtures/types_representatives');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const randomUtil = require('../../../common/utils/random');
-const errorCodes = require('../../../../../src/modules/http_api/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
 function invalidAssets(option, badTransactions) {
 	describe('using invalid asset values', () => {
@@ -73,8 +73,8 @@ function invalidAssets(option, badTransactions) {
 
 					const expectedResponse =
 						test.expectation === 'object' && test.description !== 'date'
-							? errorCodes.PROCESSING_ERROR
-							: errorCodes.BAD_REQUEST;
+							? apiCodes.PROCESSING_ERROR
+							: apiCodes.BAD_REQUEST;
 
 					return apiHelpers
 						.sendTransactionPromise(transaction, expectedResponse)
@@ -89,7 +89,7 @@ function invalidAssets(option, badTransactions) {
 				delete transaction.asset;
 
 				return apiHelpers
-					.sendTransactionPromise(transaction, errorCodes.BAD_REQUEST)
+					.sendTransactionPromise(transaction, apiCodes.BAD_REQUEST)
 					.then(res => {
 						expect(res.body.message).to.not.be.empty;
 						badTransactions.push(transaction);
@@ -102,7 +102,7 @@ function invalidAssets(option, badTransactions) {
 					transaction.asset[option] = test.input;
 
 					return apiHelpers
-						.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
+						.sendTransactionPromise(transaction, apiCodes.PROCESSING_ERROR)
 						.then(res => {
 							expect(res.body.message).to.not.be.empty;
 							badTransactions.push(transaction);
@@ -114,7 +114,7 @@ function invalidAssets(option, badTransactions) {
 				delete transaction.asset[option];
 
 				return apiHelpers
-					.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
+					.sendTransactionPromise(transaction, apiCodes.PROCESSING_ERROR)
 					.then(res => {
 						expect(res.body.message).to.not.be.empty;
 						badTransactions.push(transaction);

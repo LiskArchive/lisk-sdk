@@ -22,7 +22,7 @@ const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
 const randomUtil = require('../../../common/utils/random');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/http_api/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
 const { NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
@@ -121,7 +121,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -134,7 +134,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -147,7 +147,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -160,7 +160,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -173,7 +173,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -186,7 +186,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.be.equal(
 							'Failed to verify multisignature: '
@@ -201,7 +201,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -244,7 +244,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.equal(
 							`Failed to verify multisignature: ${
@@ -270,7 +270,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.match(
 							/^Invalid transaction body - Failed to validate transaction schema: Array items are not unique \(indexes/
@@ -301,7 +301,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.match(
 							/^Invalid transaction body - Failed to validate transaction schema: Array items are not unique \(indexes/
@@ -417,7 +417,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal('Multisig request is not allowed');
 					badTransactions.push(transaction);

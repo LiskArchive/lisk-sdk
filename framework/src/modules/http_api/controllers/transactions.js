@@ -16,8 +16,8 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
-const ApiError = require('../helpers/api_error');
-const apiCodes = require('../helpers/api_codes.js');
+const ApiError = require('../api_error');
+const apiCodes = require('../api_codes.js');
 
 // Private Fields
 let storage;
@@ -150,7 +150,7 @@ TransactionsController.postTransaction = function(context, next) {
 
 			context.statusCode = error.code;
 			delete error.code;
-			return next(err);
+			return next(error);
 		},
 	]);
 };
