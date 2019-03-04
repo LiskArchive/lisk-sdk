@@ -60,7 +60,7 @@ function Multisig(options) {
 		minimum: this.minimum,
 	});
 	this.creditTransaction = transfer({
-		amount: this.amount,
+		amount: this.amount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: this.account.address,
 	});
