@@ -40,7 +40,7 @@ describe('GET /api/transactions', () => {
 	const minAmount = 20 * NORMALIZER; // 20 LSK
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
 	const transaction1 = {
-		amount: maxAmount,
+		amount: maxAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 		data: 'transaction1',

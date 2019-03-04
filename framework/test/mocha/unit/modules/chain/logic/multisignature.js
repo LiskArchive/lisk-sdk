@@ -16,7 +16,11 @@
 
 const crypto = require('crypto');
 const rewire = require('rewire');
-const { registerMultisignature } = require('@liskhq/lisk-transactions');
+const {
+	registerMultisignature,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
+const BigNumber = require('bignumber.js');
 const { getKeys } = require('@liskhq/lisk-cryptography');
 const modulesLoader = require('../../../../common/modules_loader');
 const randomUtil = require('../../../../common/utils/random');
@@ -25,7 +29,7 @@ const slots = require('../../../../../../src/modules/chain/helpers/slots');
 const Diff = require('../../../../../../src/modules/chain/helpers/diff');
 const testData = require('./test_data/multisignature');
 
-const { MULTISIG_CONSTRAINTS } = __testContext.config.constants;
+const { FEES, MULTISIG_CONSTRAINTS } = __testContext.config.constants;
 const Multisignature = rewire(
 	'../../../../../../src/modules/chain/logic/multisignature'
 );
@@ -35,6 +39,30 @@ const validTransaction = testData.validTransaction;
 const rawValidTransaction = testData.rawValidTransaction;
 const multiSigAccount1 = testData.multiSigAccount1;
 const multiSigAccount2 = testData.multiSigAccount2;
+
+const createInvalidRegisterMultisignatureTransaction = ({
+	keysgroup,
+	lifetime,
+	minimum,
+	passphrase,
+	secondPassphrase,
+}) =>
+	transactionUtils.signRawTransaction({
+		transaction: {
+			type: 4,
+			amount: '0',
+			fee: new BigNumber(FEES.MULTISIGNATURE).times(keysgroup).toString(),
+			asset: {
+				multisignature: {
+					keysgroup,
+					lifetime,
+					min: minimum,
+				},
+			},
+		},
+		passphrase,
+		secondPassphrase,
+	});
 
 describe('multisignature', () => {
 	let transactionMock;
@@ -208,12 +236,14 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				const multisigRegistration = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime: 1,
-					minimum: 1,
-				});
+				const multisigRegistration = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime: 1,
+						minimum: 1,
+					}
+				);
 				multisigRegistration.asset.multisignature.min = minimum.toString();
 
 				multisignature.verify(
@@ -911,12 +941,14 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				const multisigRegistration4 = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime: 1,
-					minimum: 1,
-				});
+				const multisigRegistration4 = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime: 1,
+						minimum: 1,
+					}
+				);
 				multisigRegistration4.asset.multisignature.min = minimum;
 
 				return expect(() => {
@@ -932,12 +964,14 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				const multisigRegistration5 = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime: 1,
-					minimum,
-				});
+				const multisigRegistration5 = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime: 1,
+						minimum,
+					}
+				);
 
 				return expect(() => {
 					multisignature.objectNormalize(multisigRegistration5);
@@ -952,12 +986,14 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				const multisigRegistration6 = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime: 1,
-					minimum,
-				});
+				const multisigRegistration6 = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime: 1,
+						minimum,
+					}
+				);
 
 				return expect(() => {
 					multisignature.objectNormalize(multisigRegistration6);
@@ -995,12 +1031,14 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				const multisigRegistration8 = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime: 1,
-					minimum: 2,
-				});
+				const multisigRegistration8 = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime: 1,
+						minimum: 2,
+					}
+				);
 				multisigRegistration8.asset.multisignature.lifetime = lifetime;
 
 				return expect(() => {
@@ -1016,12 +1054,14 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				const multisigRegistration9 = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime,
-					minimum: 2,
-				});
+				const multisigRegistration9 = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime,
+						minimum: 2,
+					}
+				);
 
 				return expect(() => {
 					multisignature.objectNormalize(multisigRegistration9);
@@ -1056,12 +1096,14 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				const multisigRegistration11 = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime: 1,
-					minimum: 2,
-				});
+				const multisigRegistration11 = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime: 1,
+						minimum: 2,
+					}
+				);
 				multisigRegistration11.asset.multisignature.lifetime = lifetime;
 
 				return expect(() => {
@@ -1075,12 +1117,14 @@ describe('multisignature', () => {
 		describe('keysgroup', () => {
 			it('should return error when it is not an array', async () => {
 				const keysgroup = [multiSigAccount1.publicKey];
-				const multisigRegistration12 = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime: 1,
-					minimum: 2,
-				});
+				const multisigRegistration12 = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime: 1,
+						minimum: 2,
+					}
+				);
 				multisigRegistration12.asset.multisignature.keysgroup = '';
 
 				return expect(() => {
@@ -1111,12 +1155,14 @@ describe('multisignature', () => {
 				const keysgroup = Array(
 					...Array(MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS + 1)
 				).map(() => `${getKeys(randomUtil.password()).publicKey}`);
-				const multisigRegistration14 = registerMultisignature({
-					passphrase: accountFixtures.genesis.passphrase,
-					keysgroup,
-					lifetime: 1,
-					minimum: 2,
-				});
+				const multisigRegistration14 = createInvalidRegisterMultisignatureTransaction(
+					{
+						passphrase: accountFixtures.genesis.passphrase,
+						keysgroup,
+						lifetime: 1,
+						minimum: 2,
+					}
+				);
 
 				return expect(() => {
 					multisignature.objectNormalize(multisigRegistration14);
