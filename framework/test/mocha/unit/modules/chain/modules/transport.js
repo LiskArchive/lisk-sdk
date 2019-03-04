@@ -30,7 +30,6 @@ const TransportModule = rewire(
 
 const { MAX_PEERS, MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 const expect = chai.expect;
-const definitions = require('../../../../../../src/modules/chain/schema/schema');
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
@@ -61,6 +60,7 @@ describe('transport', () => {
 	let multisignatureTransactionsList;
 	let blockMock;
 	let error;
+	let definitions;
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
@@ -196,6 +196,8 @@ describe('transport', () => {
 				broadcasterStubRef = this;
 			},
 		});
+
+		definitions = TransportModule.__get__('definitions');
 
 		defaultScope = {
 			logic: {
@@ -1191,7 +1193,7 @@ describe('transport', () => {
 				});
 
 				it('should assign definitions object', async () =>
-					expect(definitionsObject).to.equal(defaultScope.swagger.definitions));
+					expect(definitionsObject).to.equal(definitions));
 			});
 		});
 

@@ -37,7 +37,6 @@ let self;
  * @requires api/ws/workers/connectionsTable
  * @requires api/ws/workers/rules
  * @requires api/ws/workers/slaveToMaster
- * @requires helpers/swagger
  * @requires helpers/z_schema
  * @requires logic/peer
  * @param {Object} slaveWAMPServer - Used to send verified update requests to master process

@@ -31,7 +31,6 @@ const validator = new ZSchema();
  * @requires lodash
  * @requires url
  * @requires api/ws/rpc/failure_codes
- * @requires helpers/swagger
  * @requires logic/peer
  * @property {Object} middleware
  * @property {function} extractHeaders

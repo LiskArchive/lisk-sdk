@@ -173,10 +173,7 @@ async function __init(sandbox, initScope) {
 		scope.webSocket = await initStepsForTest.createSocketCluster(scope);
 		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
-		scope.swagger = await initSteps.attachSwagger(scope);
 
-		// TODO: Identify why its used
-		scope.modules.swagger = scope.swagger;
 		// Ready to bind modules
 		scope.logic.peers.bindModules(scope.modules);
 

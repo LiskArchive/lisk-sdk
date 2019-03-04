@@ -9,8 +9,6 @@
  * @property {module:helpers/jobs_queue} Jobs_queue
  * @property {module:helpers/slots} Slots
  * @property {module:helpers/sort_by} Sort_by
- * @property {module:helpers/swagger} Swagger
- * @property {module:helpers/swagger_module_registry} Swagger_module_registry
  * @property {module:helpers/ws_api} WS_API
  * @property {module:helpers/z_schema} Z_schema
  */
