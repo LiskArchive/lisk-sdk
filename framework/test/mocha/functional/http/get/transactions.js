@@ -67,7 +67,7 @@ describe('GET /api/transactions', () => {
 		data: 'Tx4',
 	});
 	const transaction5 = transfer({
-		amount: minAmount,
+		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: accountSecondPass.address,
 		data: 'tx 5',
