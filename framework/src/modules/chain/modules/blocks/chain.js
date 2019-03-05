@@ -692,7 +692,14 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 			.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
 			.then(res => {
 				secondLastBlock = res;
-				return __private.undoConfirmedStep(oldLastBlock, tx);
+				secondLastBlock = res;
+				return Promise.mapSeries(
+					oldLastBlock.transactions.reverse(),
+					transaction =>
+						__private
+							.undoConfirmedStep(oldLastBlock, tx)
+							.then(() => __private.undoUnconfirmStep(transaction, tx))
+				);
 			})
 			.then(() => __private.backwardTickStep(oldLastBlock, secondLastBlock, tx))
 			.then(() => __private.deleteBlockStep(oldLastBlock, tx))
