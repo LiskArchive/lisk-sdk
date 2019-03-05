@@ -185,7 +185,10 @@ describe('transaction', () => {
 				accountLogic = scope.logic.account;
 				accountModule = scope.modules.accounts;
 				transferTransaction.bind(accountModule);
-				transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
+				transactionLogic.attachAssetType(
+					transactionTypes.SEND,
+					transferTransaction
+				);
 				done();
 			}
 		);
