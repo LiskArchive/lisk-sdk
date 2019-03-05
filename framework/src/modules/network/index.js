@@ -33,7 +33,7 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	get events() {
-		return [];
+		return ['ready'];
 	}
 
 	get actions() {
@@ -51,7 +51,11 @@ module.exports = class NetworkModule extends BaseModule {
 			...this.options,
 		};
 		this.network = new Network(options);
-		await this.network.bootstrap(channel);
+
+		channel.once('chain:ready', async () => {
+			await this.network.bootstrap(channel);
+			channel.publish('network:ready');
+		});
 	}
 
 	async unload() {

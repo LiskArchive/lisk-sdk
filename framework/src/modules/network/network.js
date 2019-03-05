@@ -3,8 +3,6 @@ const {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 } = require('@liskhq/lisk-p2p');
-const { createSystemComponent } = require('../../components/system');
-const { createStorageComponent } = require('../../components/storage');
 const { createLoggerComponent } = require('../../components/logger');
 
 /**
@@ -18,58 +16,24 @@ module.exports = class Network {
 		this.options = options;
 		this.channel = null;
 		this.logger = null;
-		this.system = null;
 	}
 
 	async bootstrap(channel) {
 		this.channel = channel;
 
-		try {
-			const loggerConfig = await this.channel.invoke(
-				'lisk:getComponentConfig',
-				'logger'
-			);
-			const storageConfig = await this.channel.invoke(
-				'lisk:getComponentConfig',
-				'storage'
-			);
-			const systemConfig = await this.channel.invoke(
-				'lisk:getComponentConfig',
-				'system'
-			);
+		const loggerConfig = await this.channel.invoke(
+			'lisk:getComponentConfig',
+			'logger'
+		);
 
-			this.logger = createLoggerComponent(loggerConfig);
-			const dbLogger =
-				storageConfig.logFileName &&
-				storageConfig.logFileName === loggerConfig.logFileName
-					? this.logger
-					: createLoggerComponent(
-							Object.assign({}, loggerConfig, {
-								logFileName: storageConfig.logFileName,
-							})
-						);
+		this.logger = createLoggerComponent(loggerConfig);
 
-			// Storage
-			this.logger.debug('Initiating storage...');
-			const storage = createStorageComponent(storageConfig, dbLogger);
-
-			// System
-			this.logger.debug('Initiating system...');
-			this.system = createSystemComponent(systemConfig, this.logger, storage);
-		} catch (error) {
-			this.logger.fatal('Network initialization', {
-				message: error.message,
-				stack: error.stack,
-			});
-			process.emit('cleanup', error);
-
-			return;
-		}
+		const initialNodeInfo = await this.channel.invoke('chain:getNodeInfo');
 
 		const p2pConfig = {
 			...this.options,
 			nodeInfo: {
-				...this.system.headers,
+				...initialNodeInfo,
 				wsPort: this.options.nodeInfo.wsPort,
 			},
 		};

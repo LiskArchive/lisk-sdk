@@ -55,6 +55,7 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
+		this.system = null;
 		this.scope = null;
 		this.blockReward = null;
 	}
@@ -78,10 +79,6 @@ module.exports = class Chain {
 			'lisk:getComponentConfig',
 			'system'
 		);
-
-		const handleNodeInfoUpdate = headers => {
-			this.channel.publish('chain:system:updateNodeInfo', headers);
-		};
 
 		this.logger = createLoggerComponent(loggerConfig);
 		const dbLogger =
@@ -122,12 +119,12 @@ module.exports = class Chain {
 
 			// System
 			this.logger.debug('Initiating system...');
-			const system = createSystemComponent(
-				systemConfig,
-				this.logger,
-				storage,
-				handleNodeInfoUpdate
-			);
+			this.system = createSystemComponent(systemConfig, this.logger, storage);
+
+			// Publish an event whenever the system headers are updated.
+			this.system.on('update', nodeInfo => {
+				this.channel.publish('chain:system:updateNodeInfo', nodeInfo);
+			});
 
 			if (!this.options.config) {
 				throw Error('Failed to assign nethash from genesis block');
@@ -155,7 +152,7 @@ module.exports = class Chain {
 					storage,
 					cache,
 					logger: self.logger,
-					system,
+					system: this.system,
 				},
 				channel: this.channel,
 			};
@@ -199,6 +196,7 @@ module.exports = class Chain {
 
 	get actions() {
 		return {
+			getNodeInfo: () => this.system.headers,
 			calculateSupply: action => this.blockReward.calcSupply(action.params[0]),
 			calculateMilestone: action =>
 				this.blockReward.calcMilestone(action.params[0]),
