@@ -54,7 +54,6 @@ describe('blocks/api', () => {
 			entities: {
 				Block: {
 					get: sinonSandbox.stub().resolves([]),
-					getRaw: sinonSandbox.stub().resolves(rawBlock),
 				},
 			},
 		};
