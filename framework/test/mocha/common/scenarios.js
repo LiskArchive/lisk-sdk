@@ -54,7 +54,9 @@ function Multisig(options) {
 		transaction: {
 			type: 4,
 			amount: '0',
-			fee: new BigNumber(FEES.MULTISIGNATURE).times(this.keysgroup).toString(),
+			fee: new BigNumber(FEES.MULTISIGNATURE)
+				.times(this.keysgroup.length + 1)
+				.toString(),
 			asset: {
 				multisignature: {
 					keysgroup: this.keysgroup,
@@ -73,7 +75,7 @@ function Multisig(options) {
 				type: 4,
 				amount: '0',
 				fee: new BigNumber(FEES.MULTISIGNATURE)
-					.times(this.keysgroup)
+					.times(this.keysgroup.length + 1)
 					.toString(),
 				asset: {
 					multisignature: {
