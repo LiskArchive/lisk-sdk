@@ -42,12 +42,12 @@ describe('GET /api/transactions', () => {
 	const accountSecondPass = randomUtil.account();
 	const minAmount = 20 * NORMALIZER; // 20 LSK
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
-	const transaction1 = {
+	const transaction1 = transfer({
 		amount: maxAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 		data: 'transaction1',
-	};
+	});
 	const transaction2 = transfer({
 		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
@@ -1082,7 +1082,7 @@ describe('GET /api/transactions', () => {
 			it('should show signSignature whem signing a transfer transaction with second passphrase', async () => {
 				// Prepare
 				const transaction = transfer({
-					amount: 1,
+					amount: '1',
 					passphrase: accountSecondPass.passphrase,
 					secondPassphrase: accountSecondPass.secondPassphrase,
 					recipientId: accountFixtures.existingDelegate.address,
