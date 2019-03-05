@@ -15,7 +15,7 @@
 'use strict';
 
 const {
-	getPrivateAndPublicKeyBytesFromPassphrase,
+	getPrivateAndPublicKeyFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const genesisDelegates = require('../../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../../data/delegates_rounds_list.json');
@@ -420,12 +420,12 @@ describe('delegates', () => {
 				config.forging.delegates = [accountDetails];
 
 				// TODO: Update the expectation after fixing
-				// https://github.com/LiskHQ/lisk-elements/issues/688
+				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. Argument must be a string.`
+						}.  Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -465,12 +465,12 @@ describe('delegates', () => {
 				config.forging.delegates = [accountDetails];
 
 				// TODO: Update the expectation after fixing
-				// https://github.com/LiskHQ/lisk-elements/issues/688
+				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. Argument must be a string.`
+						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -510,12 +510,12 @@ describe('delegates', () => {
 				config.forging.delegates = [accountDetails];
 
 				// TODO: Update the expectation after fixing
-				// https://github.com/LiskHQ/lisk-elements/issues/688
+				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. Argument must be a string.`
+						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -767,13 +767,13 @@ describe('delegates', () => {
 				delegates = library.rewiredModules.delegates.__get__('self');
 				__private = library.rewiredModules.delegates.__get__('__private');
 
-				genesis1Keypair = getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis1Keypair = getPrivateAndPublicKeyFromPassphrase(
 					genesis1.passphrase
 				);
-				genesis2Keypair = getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis2Keypair = getPrivateAndPublicKeyFromPassphrase(
 					genesis2.passphrase
 				);
-				genesis3Keypair = getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis3Keypair = getPrivateAndPublicKeyFromPassphrase(
 					genesis3.passphrase
 				);
 
