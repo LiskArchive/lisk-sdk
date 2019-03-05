@@ -321,9 +321,7 @@ export abstract class BaseTransaction {
 
 	public processMultisignatures(store: StateStore): TransactionResponse {
 		const sender = store.account.get(this.senderId);
-		const transactionBytes = this.signSignature
-			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
-			: this.getBasicBytes();
+		const transactionBytes = this.getBasicBytes();
 
 		const { status, errors } = verifyMultiSignatures(
 			this.id,
