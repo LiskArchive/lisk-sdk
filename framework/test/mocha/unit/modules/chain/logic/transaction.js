@@ -422,7 +422,7 @@ describe('transaction', () => {
 
 		it('should not return error when transaction is not confirmed', done => {
 			const transaction = transfer({
-				amount: transactionData.amount,
+				amount: transactionData.amount.toString(),
 				passphrase: transactionData.passphrase,
 				recipientId: transactionData.recipientId,
 			});
@@ -542,7 +542,7 @@ describe('transaction', () => {
 	describe('verify', () => {
 		function createAndProcess(transactionDataArg, senderArg, cb) {
 			const transferObject = {
-				amount: transactionDataArg.amount,
+				amount: transactionDataArg.amount.toString(),
 				passphrase: transactionDataArg.passphrase,
 				secondPassphrase: transactionDataArg.secondPassphrase,
 				recipientId: transactionDataArg.recipientId,
