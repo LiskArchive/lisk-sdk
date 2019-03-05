@@ -20,7 +20,6 @@ const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const Bignum = require('../helpers/bignum.js');
 
-const __private = {};
 let library;
 let sortFields;
 
@@ -119,7 +118,7 @@ BlocksController.getBlocks = function(context, next) {
  * @returns {address} address
  * @todo Replace by Lisk Elements once integrated.
  */
-__private.getAddressByPublicKey = function(publicKey) {
+function getAddressByPublicKey(publicKey) {
 	const publicKeyHash = crypto
 		.createHash('sha256')
 		.update(publicKey, 'hex')
@@ -132,7 +131,7 @@ __private.getAddressByPublicKey = function(publicKey) {
 
 	const address = `${Bignum.fromBuffer(temp).toString()}L`;
 	return address;
-};
+}
 
 /**
  * Parse raw block data from database into expected API response type for blocks
@@ -152,22 +151,21 @@ function parseBlockFromDatabase(raw) {
 		height: parseInt(raw.height),
 		previousBlock: raw.previousBlockId,
 		numberOfTransactions: parseInt(raw.numberOfTransactions),
-		totalAmount: new Bignum(raw.totalAmount),
-		totalFee: new Bignum(raw.totalFee),
-		reward: new Bignum(raw.reward),
+		totalAmount: new Bignum(raw.totalAmount).toString(),
+		totalFee: new Bignum(raw.totalFee).toString(),
+		reward: new Bignum(raw.reward).toString(),
 		payloadLength: parseInt(raw.payloadLength),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
-		generatorId: __private.getAddressByPublicKey(raw.generatorPublicKey),
+		generatorId: getAddressByPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
 		confirmations: parseInt(raw.confirmations),
+		totalForged: new Bignum(raw.totalFee).plus(raw.reward).toString(),
 	};
 
 	if (raw.transactions) {
 		block.transactions = raw.transactions;
 	}
-
-	block.totalForged = block.totalFee.plus(block.reward).toString();
 
 	return block;
 }

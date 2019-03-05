@@ -22,16 +22,39 @@ const BlocksController = rewire(
 
 describe('blocks/api', () => {
 	let _list;
+	let parseBlockFromDatabase;
 	let library;
 	let loggerSpy;
 	let storageStub;
 	let channelStub;
+	let rawBlock;
 
 	beforeEach(done => {
+		rawBlock = {
+			id: '8999789716699660339',
+			payloadHash:
+				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+			generatorPublicKey:
+				'68680ca0bcd4676489976837edeac305c34f652e970386013ef26e67589a2516',
+			blockSignature:
+				'51356c69d94762ef355a95a960002aabc80d331da136cc07082bf98856e57ea9d13d2c74dd923c412221b36f4c3e276b2d83d9019521ddf003d0b39698d4ae0a',
+			height: 1860,
+			totalFee: '0',
+			reward: '0',
+			payloadLength: 0,
+			previousBlockId: '14888522644597494628',
+			numberOfTransactions: 0,
+			totalAmount: '0',
+			timestamp: 87670360,
+			version: '1',
+			confirmations: 37,
+		};
+
 		storageStub = {
 			entities: {
 				Block: {
 					get: sinonSandbox.stub().resolves([]),
+					getRaw: sinonSandbox.stub().resolves(rawBlock),
 				},
 			},
 		};
@@ -52,6 +75,7 @@ describe('blocks/api', () => {
 		});
 		library = BlocksController.__get__('library');
 		_list = BlocksController.__get__('_list');
+		parseBlockFromDatabase = BlocksController.__get__('parseBlockFromDatabase');
 
 		done();
 	});
@@ -66,6 +90,35 @@ describe('blocks/api', () => {
 			expect(library.logger).to.eql(loggerSpy);
 			expect(library.storage).to.eql(storageStub);
 			expect(library.channel).to.eql(channelStub);
+		});
+	});
+
+	describe('parseBlockFromDatabase', () => {
+		let formattedBlock;
+
+		beforeEach(async () => {
+			formattedBlock = parseBlockFromDatabase(rawBlock);
+		});
+
+		it('should return a block properly formatted when transactions is undefined', async () => {
+			const rawBlockWithTransactions = _.cloneDeep(rawBlock);
+			formattedBlock = parseBlockFromDatabase(rawBlockWithTransactions);
+			expect(formattedBlock).deep.equal(formattedBlock);
+			expect(formattedBlock).to.not.have.property('transactions');
+		});
+
+		it('should return a block properly formatted when transactions is not undefined', async () => {
+			const rawBlockWithTransactions = _.cloneDeep(rawBlock);
+			rawBlockWithTransactions.transactions = [];
+			formattedBlock = parseBlockFromDatabase(rawBlockWithTransactions);
+			expect(formattedBlock).to.have.property('transactions');
+		});
+
+		it('should return null when no id is present for raw data', async () => {
+			const rawBlockWithoutID = _.cloneDeep(rawBlock);
+			delete rawBlockWithoutID.id;
+			formattedBlock = parseBlockFromDatabase(rawBlockWithoutID);
+			expect(formattedBlock).to.be.null;
 		});
 	});
 
