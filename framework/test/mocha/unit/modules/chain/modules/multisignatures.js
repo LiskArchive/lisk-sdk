@@ -1009,7 +1009,7 @@ describe('multisignatures', () => {
 					cb(null, null);
 				});
 			self.getGroup('', (err, scopeGroup) => {
-				expect(err).to.equal('Multisignature account not found');
+				expect(err.message).to.equal('Multisignature account not found');
 				expect(scopeGroup).to.not.exist;
 				done();
 			});

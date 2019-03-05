@@ -339,7 +339,10 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 					}
 
 					if (!account) {
-						return setImmediate(seriesCb, 'Multisignature account not found');
+						return setImmediate(
+							seriesCb,
+							new Error('Multisignature account not found')
+						);
 					}
 
 					scope.group = {

@@ -28,6 +28,12 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
+const specialChar = '❤';
+const nullChar1 = '\0';
+const nullChar2 = '\x00';
+const nullChar3 = '\u0000';
+const nullChar4 = '\\U00000000';
+
 describe('POST /api/transactions (type 0) transfer funds', () => {
 	let transaction;
 	const goodTransaction = randomUtil.transaction();
@@ -318,8 +324,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 
 			describe('edge cases', () => {
-				it("using '\u0000 hey:)' should be ok", async () => {
-					const additioinalData = '\u0000 hey:)';
+				it('using specialChar should be ok', () => {
+					const additioinalData = `${specialChar} hey \x01 :)`;
 					const accountAdditionalData = randomUtil.account();
 					transaction = lisk.transaction.transfer({
 						amount: 1,
@@ -333,6 +339,90 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 							'Transaction(s) accepted'
 						);
 						goodTransactions.push(transaction);
+					});
+				});
+
+				it('using nullChar1 should fail', () => {
+					const additioinalData = `${nullChar1} hey :)`;
+					const accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(
+						transaction,
+						apiCodes.PROCESSING_ERROR
+					).then(res => {
+						expect(res.body.message).to.be.equal(
+							'Transfer data field has invalid character. Null character is not allowed.'
+						);
+						badTransactions.push(transaction);
+					});
+				});
+
+				it('using nullChar2 should fail', () => {
+					const additioinalData = `${nullChar2} hey :)`;
+					const accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(
+						transaction,
+						apiCodes.PROCESSING_ERROR
+					).then(res => {
+						expect(res.body.message).to.be.equal(
+							'Transfer data field has invalid character. Null character is not allowed.'
+						);
+						badTransactions.push(transaction);
+					});
+				});
+
+				it('using nullChar3 should fail', () => {
+					const additioinalData = `${nullChar3} hey :)`;
+					const accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(
+						transaction,
+						apiCodes.PROCESSING_ERROR
+					).then(res => {
+						expect(res.body.message).to.be.equal(
+							'Transfer data field has invalid character. Null character is not allowed.'
+						);
+						badTransactions.push(transaction);
+					});
+				});
+
+				it('using nullChar4 should fail', () => {
+					const additioinalData = `${nullChar4} hey :)`;
+					const accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(
+						transaction,
+						apiCodes.PROCESSING_ERROR
+					).then(res => {
+						expect(res.body.message).to.be.equal(
+							'Transfer data field has invalid character. Null character is not allowed.'
+						);
+						badTransactions.push(transaction);
 					});
 				});
 			});

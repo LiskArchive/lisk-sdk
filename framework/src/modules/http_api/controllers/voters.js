@@ -111,7 +111,6 @@ VotersController.getVoters = async function(context, next) {
 			'address',
 			'balance',
 		]);
-		data.votes = parseInt(delegate.vote);
 
 		// TODO: Make sure we return empty string in case of null username
 		// This can be avoided when we fix the `isDelegate` inconsistency mentioned above.
@@ -125,6 +124,12 @@ VotersController.getVoters = async function(context, next) {
 		data.voters = _.map(voters, voter =>
 			_.pick(voter, ['address', 'publicKey', 'balance'])
 		);
+
+		const votersCount = await storage.entities.Account.count({
+			votedDelegatesPublicKeys_in: [delegate.publicKey],
+		});
+
+		data.votes = votersCount;
 
 		return next(null, {
 			data,
