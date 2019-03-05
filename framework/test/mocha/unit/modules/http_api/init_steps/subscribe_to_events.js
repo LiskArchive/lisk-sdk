@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 
-describe('__subscribeToEvent()', () => {
+describe('init_steps/subscribeToEvents', () => {
 	it(
 		'should subscribe to "blocks:change" on channel and emit "blocks/change" event on wsServer with proper data'
 	);
