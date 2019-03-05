@@ -162,7 +162,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('with specialChar should fail', () => {
 			const username = `lorem${specialChar}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -180,7 +180,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('with nullChar1 should fail', () => {
 			const username = `lorem${nullChar1}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -198,7 +198,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('with nullChar2 should fail', () => {
 			const username = `lorem${nullChar2}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -216,7 +216,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('with nullChar3 should fail', () => {
 			const username = `lorem${nullChar3}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -234,7 +234,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('with nullChar4 should fail', () => {
 			const username = `lorem${nullChar4}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});

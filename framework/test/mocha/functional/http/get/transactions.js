@@ -16,7 +16,10 @@
 
 require('../../functional.js');
 const Promise = require('bluebird');
-const { transfer } = require('@liskhq/lisk-transactions');
+const {
+	transfer,
+	registerSecondPassphrase,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types');
 const randomUtil = require('../../../common/utils/random');
@@ -63,7 +66,7 @@ describe('GET /api/transactions', () => {
 		recipientId: account3.address,
 		data: 'Tx4',
 	});
-	const transaction5 = lisk.transaction.transfer({
+	const transaction5 = transfer({
 		amount: minAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: accountSecondPass.address,
@@ -1052,7 +1055,7 @@ describe('GET /api/transactions', () => {
 		describe('signature', () => {
 			it('should not show signSignature when empty upon registering second passphrase', async () => {
 				// Prepare
-				const transaction = lisk.transaction.registerSecondPassphrase({
+				const transaction = registerSecondPassphrase({
 					passphrase: accountSecondPass.passphrase,
 					secondPassphrase: accountSecondPass.secondPassphrase,
 				});
@@ -1078,7 +1081,7 @@ describe('GET /api/transactions', () => {
 
 			it('should show signSignature whem signing a transfer transaction with second passphrase', async () => {
 				// Prepare
-				const transaction = lisk.transaction.transfer({
+				const transaction = transfer({
 					amount: 1,
 					passphrase: accountSecondPass.passphrase,
 					secondPassphrase: accountSecondPass.secondPassphrase,

@@ -254,7 +254,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `Lorem ${specialChar} ipsum`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -269,7 +269,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar1} ipsum`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -289,7 +289,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar2} ipsum`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -309,7 +309,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar3} ipsum`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -329,7 +329,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar4}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -554,7 +554,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				// Add special charactr insuring the name is unique and isn't longer than maximun length
 				application.name = specialChar + application.name.substring(2);
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -569,7 +569,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar1}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -589,7 +589,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar2}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -609,7 +609,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar3}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -629,7 +629,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar4}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -756,7 +756,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,${specialChar}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -771,7 +771,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar1}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -791,7 +791,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar2}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -811,7 +811,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar3}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -831,7 +831,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar4}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});

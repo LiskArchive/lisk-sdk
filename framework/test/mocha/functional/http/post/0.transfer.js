@@ -348,7 +348,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it('using nullChar1 should fail', () => {
 					const additioinalData = `${nullChar1} hey :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
+					transaction = transfer({
 						amount: 1,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
@@ -369,7 +369,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it('using nullChar2 should fail', () => {
 					const additioinalData = `${nullChar2} hey :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
+					transaction = transfer({
 						amount: 1,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
@@ -390,7 +390,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it('using nullChar3 should fail', () => {
 					const additioinalData = `${nullChar3} hey :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
+					transaction = transfer({
 						amount: 1,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
@@ -411,7 +411,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it('using nullChar4 should fail', () => {
 					const additioinalData = `${nullChar4} hey :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
+					transaction = transfer({
 						amount: 1,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
