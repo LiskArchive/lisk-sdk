@@ -16,7 +16,12 @@
 
 require('../../functional.js');
 const Promise = require('bluebird');
-const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
+const {
+	transfer,
+	registerDelegate,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
@@ -128,9 +133,19 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using blank username should fail', async () => {
-			transaction = registerDelegate({
+			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+			transaction = transactionUtils.signRawTransaction({
+				transaction: {
+					type: 2,
+					amount: '0',
+					fee: new Bignum(FEES.DELEGATE).toString(),
+					asset: {
+						delegate: {
+							username: '',
+						},
+					},
+				},
 				passphrase: account.passphrase,
-				username: '',
 			});
 
 			return sendTransactionPromise(
@@ -252,9 +267,19 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using username longer than 20 characters should fail', () => {
 			const delegateName = `${randomUtil.delegateName()}x`;
-			transaction = registerDelegate({
+			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+			transaction = transactionUtils.signRawTransaction({
+				transaction: {
+					type: 2,
+					amount: '0',
+					fee: new Bignum(FEES.DELEGATE).toString(),
+					asset: {
+						delegate: {
+							username: delegateName,
+						},
+					},
+				},
 				passphrase: account.passphrase,
-				username: delegateName,
 			});
 
 			return sendTransactionPromise(
