@@ -425,7 +425,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}.  Encrypted passphrase to parse must have only one value per key.`
+						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -555,12 +555,12 @@ describe('delegates', () => {
 				config.forging.delegates = [accountDetails];
 
 				// TODO: Update the expectation after fixing
-				// https://github.com/LiskHQ/lisk-elements/issues/688
+				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. Argument must be a string.`
+						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
