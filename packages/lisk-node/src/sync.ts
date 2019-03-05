@@ -4,6 +4,8 @@ import { P2P } from '@liskhq/lisk-p2p';
 import { EventEmitter } from 'events';
 import * as bunyan from 'bunyan';
 import { Observable } from 'rxjs';
+import { protocolBlockToDomain } from './utils';
+import { ProtocolBlock } from './type';
 
 export class Sync extends EventEmitter {
 	private readonly _blockchain: Blockchain;
@@ -58,6 +60,17 @@ export class Sync extends EventEmitter {
 				lastBlockId: lastBlock.id,
 			},
 		});
-		this._logger.info('recived', responseData);
+		if (
+			typeof responseData === 'object' &&
+			responseData !== null &&
+			'blocks' in responseData
+		) {
+			const { blocks: protocolBlocks } = responseData as {
+				readonly blocks: ReadonlyArray<ProtocolBlock>;
+			};
+			const blocks = protocolBlockToDomain(protocolBlocks);
+
+			console.log(blocks);
+		}
 	}
 }

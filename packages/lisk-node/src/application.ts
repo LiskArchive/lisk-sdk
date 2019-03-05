@@ -32,6 +32,7 @@ export class App {
 		this._p2p = new P2P({
 			blacklistedPeers: [],
 			connectTimeout: 5000,
+			ackTimeout: 15000,
 			seedPeers: [
 				{
 					ipAddress: '83.136.254.92',
