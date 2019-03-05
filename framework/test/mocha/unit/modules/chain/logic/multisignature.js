@@ -51,10 +51,12 @@ const createInvalidRegisterMultisignatureTransaction = ({
 		transaction: {
 			type: 4,
 			amount: '0',
-			fee: new BigNumber(FEES.MULTISIGNATURE).times(keysgroup).toString(),
+			fee: new BigNumber(FEES.MULTISIGNATURE)
+				.times(keysgroup.length + 1)
+				.toString(),
 			asset: {
 				multisignature: {
-					keysgroup,
+					keysgroup: keysgroup.map(key => `+${key}`),
 					lifetime,
 					min: minimum,
 				},

@@ -59,7 +59,7 @@ function Multisig(options) {
 				.toString(),
 			asset: {
 				multisignature: {
-					keysgroup: this.keysgroup,
+					keysgroup: this.keysgroup.map(key => `+${key}`),
 					lifetime: this.lifetime,
 					min: this.minimum,
 				},
@@ -79,7 +79,7 @@ function Multisig(options) {
 					.toString(),
 				asset: {
 					multisignature: {
-						keysgroup: this.keysgroup,
+						keysgroup: this.keysgroup.map(key => `+${key}`),
 						lifetime: this.lifetime,
 						min: this.minimum,
 					},
