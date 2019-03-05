@@ -15,7 +15,11 @@
 'use strict';
 
 require('../../functional.js');
-const { registerMultisignature } = require('@liskhq/lisk-transactions');
+const {
+	registerMultisignature,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
+const BigNumber = require('bignumber.js');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -30,6 +34,32 @@ const common = require('./common');
 
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
+
+const createInvalidRegisterMultisignatureTransaction = ({
+	keysgroup,
+	lifetime,
+	minimum,
+	passphrase,
+	secondPassphrase,
+}) =>
+	transactionUtils.signRawTransaction({
+		transaction: {
+			type: 4,
+			amount: '0',
+			fee: new BigNumber(FEES.MULTISIGNATURE)
+				.times(keysgroup.length + 1)
+				.toString(),
+			asset: {
+				multisignature: {
+					keysgroup: keysgroup.map(key => `+${key}`),
+					lifetime,
+					min: minimum,
+				},
+			},
+		},
+		passphrase,
+		secondPassphrase,
+	});
 
 describe('POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
@@ -302,7 +332,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					scenarios.no_funds.account.publicKey,
 				];
 
-				transaction = registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -335,7 +365,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					scenarios.no_funds.account.publicKey,
 				];
 
-				transaction = registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -364,7 +394,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 			it(`using more_than_max_members scenario(${MULTISIG_CONSTRAINTS.KEYSGROUP
 				.MAX_ITEMS + 2}, 2) should fail`, async () => {
-				transaction = registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.more_than_max_members.account.passphrase,
 					keysgroup: scenarios.more_than_max_members.keysgroup,
 					lifetime: 1,
@@ -388,7 +418,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		describe('min', () => {
 			it('using bigger than keysgroup size plus 1 should fail', async () => {
-				transaction = registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: [accountFixtures.existingDelegate.publicKey],
 					lifetime: 1,
@@ -409,7 +439,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using min greater than maximum(${
 				MULTISIG_CONSTRAINTS.MIN.MAXIMUM
 			}) should fail`, async () => {
-				transaction = registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.max_members_max_min.account.passphrase,
 					keysgroup: scenarios.max_members_max_min.keysgroup,
 					lifetime: 1,
@@ -433,7 +463,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using min less than minimum(${
 				MULTISIG_CONSTRAINTS.MIN.MINIMUM
 			}) should fail`, async () => {
-				transaction = registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.max_members.account.passphrase,
 					keysgroup: scenarios.max_members.keysgroup,
 					lifetime: 1,
@@ -459,7 +489,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using greater than maximum(${
 				MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
 			}) should fail`, async () => {
-				transaction = registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1,
@@ -483,7 +513,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using less than minimum(${
 				MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM
 			}) should fail`, async () => {
-				transaction = registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1,

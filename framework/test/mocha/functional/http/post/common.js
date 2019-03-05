@@ -19,14 +19,17 @@ const {
 	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
-	registerMultisignature,
 	createDapp,
+	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
+const BigNumber = require('bignumber.js');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const randomUtil = require('../../../common/utils/random');
 const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+
+const { FEES } = global.constants;
 
 function invalidAssets(option, badTransactions) {
 	describe('using invalid asset values', () => {
@@ -54,11 +57,21 @@ function invalidAssets(option, badTransactions) {
 					});
 					break;
 				case 'multisignature':
-					transaction = registerMultisignature({
+					// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+					transaction = transactionUtils.signRawTransaction({
+						transaction: {
+							type: 4,
+							amount: '0',
+							fee: new BigNumber(FEES.MULTISIGNATURE).times(2).toString(),
+							asset: {
+								multisignature: {
+									keysgroup: [`+${accountFixtures.existingDelegate.publicKey}`],
+									lifetime: 1,
+									min: 2,
+								},
+							},
+						},
 						passphrase: accountFixtures.genesis.passphrase,
-						keysgroup: [`${accountFixtures.existingDelegate.publicKey}`],
-						lifetime: 1,
-						minimum: 2,
 					});
 					break;
 				case 'dapp':
