@@ -20,6 +20,7 @@ const _ = require('lodash');
 const Bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 const transactionTypes = require('../helpers/transaction_types.js');
+const initTransaction = require('../helpers/init_transaction.js');
 
 const exceptions = global.exceptions;
 const POSTGRESQL_BIGINT_MAX_VALUE = '9223372036854775807';
@@ -1274,23 +1275,7 @@ class Transaction {
 
 		const rawData = _.omitBy(raw, _.isNull);
 
-		const transaction = {
-			...rawData,
-			type: parseInt(raw.type),
-			timestamp: parseInt(raw.timestamp),
-			recipientPublicKey: raw.requesterPublicKey || null,
-			amount: new Bignum(raw.amount),
-			fee: new Bignum(raw.fee),
-			signatures: raw.signatures || [],
-			confirmations: parseInt(raw.confirmations),
-			asset: raw.asset || {},
-		};
-
-		if (!__private.types[transaction.type]) {
-			throw `Unknown transaction type ${transaction.type}`;
-		}
-
-		return transaction;
+		return initTransaction(rawData);
 	}
 	/* eslint-enable class-methods-use-this */
 }
