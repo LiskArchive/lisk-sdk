@@ -151,7 +151,7 @@ export abstract class BaseTransaction {
 		this.amount = new BigNum(rawTransaction.amount);
 		this.fee = new BigNum(rawTransaction.fee);
 		this._id = rawTransaction.id;
-		this.recipientId = rawTransaction.recipientId;
+		this.recipientId = rawTransaction.recipientId || '';
 		this.recipientPublicKey = rawTransaction.recipientPublicKey || '';
 		this.senderId =
 			rawTransaction.senderId ||
