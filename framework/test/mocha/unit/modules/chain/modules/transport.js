@@ -739,6 +739,34 @@ describe('transport', () => {
 					).to.be.true);
 			});
 
+			describe('when transaction is invalid', () => {
+				let invalidTransaction;
+				beforeEach(done => {
+					const { signature, ...filteredTransaction } = transaction;
+					invalidTransaction = filteredTransaction;
+					__private.receiveTransaction(
+						invalidTransaction,
+						validNonce,
+						'This is a log message',
+						async () => {
+							done();
+						}
+					);
+				});
+
+				it('should call modules.processTransactions.validateTransactions', async () => {
+					expect(library.logger.debug).to.be.calledWith(
+						'Transaction normalization failed',
+						{
+							id: invalidTransaction.id,
+							err: '',
+							module: 'transport',
+							invalidTransaction,
+						}
+					);
+				});
+			});
+
 			describe('when nonce is undefined', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(

@@ -222,9 +222,8 @@ __private.receiveTransaction = function(
 	cb
 ) {
 	const id = transaction ? transaction.id : 'null';
-	let tx;
 	try {
-		tx = initTransaction(transaction);
+		const tx = initTransaction(transaction);
 		const { errors } = tx.validate();
 		if (errors) {
 			throw errors;
