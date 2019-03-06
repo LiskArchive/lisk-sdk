@@ -129,26 +129,7 @@ const sqlFiles = {
 	isPersisted: 'transactions/is_persisted.sql',
 	count: 'transactions/count.sql',
 	count_all: 'transactions/count_all.sql',
-	create: 'transactions/create.sql',
 };
-
-const trsCreateFields = [
-	'id',
-	'blockId',
-	'type',
-	'timestamp',
-	'senderPublicKey',
-	'requesterPublicKey',
-	'senderId',
-	'recipientId',
-	'amount',
-	'fee',
-	'signature',
-	'signSignature',
-	'signatures',
-	'asset',
-	'transferData',
-];
 
 class Transaction extends BaseEntity {
 	/**
@@ -330,53 +311,35 @@ class Transaction extends BaseEntity {
 	 * @param {Object} [tx] - Transaction object
 	 * @return {*}
 	 */
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
 	create(data, _options, tx) {
-		const transactions = Transaction._sanitizeCreateData(data);
-
-		const createSet = this.getValuesSet(transactions, trsCreateFields);
-
-		return this.adapter.executeFile(
-			this.SQLs.create,
-			{ values: createSet, attributes: trsCreateFields },
-			{ expectedResultCount: 0 },
-			tx
-		);
+		throw new NonSupportedOperationError();
 	}
 
 	/**
-	 * Update the records based on given condition
+	 * Update object record
 	 *
-	 * @param {filters.Account} [filters]
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
+	 * @override
+	 * @throws {NonSupportedOperationError}
 	 */
-	// eslint-disable-next-line class-methods-use-this,no-unused-vars
-	update(filters, data, options, tx) {
-		throw new NonSupportedOperationError(
-			'Updating transaction is not supported.'
-		);
+	// eslint-disable-next-line class-methods-use-this
+	update() {
+		throw new NonSupportedOperationError();
 	}
 
 	/**
-	 * Update one record based on the condition given
+	 * Update object record
 	 *
-	 * @param {filters.Account} filters
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
+	 * @override
+	 * @throws {NonSupportedOperationError}
 	 */
-	// eslint-disable-next-line class-methods-use-this,no-unused-vars
-	updateOne(filters, data, options, tx) {
-		throw new NonSupportedOperationError(
-			'Updating transaction is not supported.'
-		);
+	// eslint-disable-next-line class-methods-use-this
+	updateOne() {
+		throw new NonSupportedOperationError();
 	}
 
 	/**
-	 * Delete operation is not supported for Transactions
+	 * Delete object record
 	 *
 	 * @override
 	 * @throws {NonSupportedOperationError}
@@ -491,39 +454,6 @@ class Transaction extends BaseEntity {
 		}
 
 		return filters;
-	}
-
-	static _sanitizeCreateData(data) {
-		const transactions = Array.isArray(data)
-			? _.cloneDeep(data)
-			: [_.cloneDeep(data)];
-
-		transactions.forEach(transaction => {
-			transaction.signatures = transaction.signatures
-				? transaction.signatures.join()
-				: null;
-			transaction.amount = transaction.amount.toString();
-			transaction.fee = transaction.fee.toString();
-			transaction.recipientId = transaction.recipientId || null;
-			transaction.transferData = null;
-
-			// Transfer data is bytea and can not be included as json when null byte is present
-			if (
-				transaction.type === 0 &&
-				transaction.asset &&
-				transaction.asset.data
-			) {
-				transaction.transferData = Buffer.from(transaction.asset.data, 'utf8');
-				delete transaction.asset;
-			}
-
-			// stringify should be done after converting asset.data into transferData
-			transaction.asset = transaction.asset
-				? JSON.stringify(transaction.asset)
-				: null;
-		});
-
-		return transactions;
 	}
 }
 
