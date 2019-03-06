@@ -16,11 +16,7 @@
 
 const crypto = require('crypto');
 const rewire = require('rewire');
-const {
-	registerMultisignature,
-	utils: transactionUtils,
-} = require('@liskhq/lisk-transactions');
-const BigNumber = require('bignumber.js');
+const { registerMultisignature } = require('@liskhq/lisk-transactions');
 const { getKeys } = require('@liskhq/lisk-cryptography');
 const modulesLoader = require('../../../../common/modules_loader');
 const randomUtil = require('../../../../common/utils/random');
@@ -28,6 +24,9 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const slots = require('../../../../../../src/modules/chain/helpers/slots');
 const Diff = require('../../../../../../src/modules/chain/helpers/diff');
 const testData = require('./test_data/multisignature');
+const {
+	createInvalidRegisterMultisignatureTransaction,
+} = require('../../../../common/transaction');
 
 const { FEES, MULTISIG_CONSTRAINTS } = __testContext.config.constants;
 const Multisignature = rewire(
@@ -39,32 +38,6 @@ const validTransaction = testData.validTransaction;
 const rawValidTransaction = testData.rawValidTransaction;
 const multiSigAccount1 = testData.multiSigAccount1;
 const multiSigAccount2 = testData.multiSigAccount2;
-
-const createInvalidRegisterMultisignatureTransaction = ({
-	keysgroup,
-	lifetime,
-	minimum,
-	passphrase,
-	secondPassphrase,
-}) =>
-	transactionUtils.signRawTransaction({
-		transaction: {
-			type: 4,
-			amount: '0',
-			fee: new BigNumber(FEES.MULTISIGNATURE)
-				.times(keysgroup.length + 1)
-				.toString(),
-			asset: {
-				multisignature: {
-					keysgroup: keysgroup.map(key => `+${key}`),
-					lifetime,
-					min: minimum,
-				},
-			},
-		},
-		passphrase,
-		secondPassphrase,
-	});
 
 describe('multisignature', () => {
 	let transactionMock;
@@ -244,6 +217,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 1,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration.asset.multisignature.min = minimum.toString();
@@ -273,6 +247,7 @@ describe('multisignature', () => {
 					keysgroup,
 					lifetime: 1,
 					minimum,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				}
 			);
 
@@ -951,6 +926,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 1,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration4.asset.multisignature.min = minimum;
@@ -974,6 +950,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 
@@ -996,6 +973,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 
@@ -1041,6 +1019,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration8.asset.multisignature.lifetime = lifetime;
@@ -1064,6 +1043,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime,
 						minimum: 2,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 
@@ -1086,6 +1066,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime,
 						minimum: 2,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 
@@ -1108,6 +1089,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration11.asset.multisignature.lifetime = lifetime;
@@ -1129,6 +1111,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration12.asset.multisignature.keysgroup = '';
@@ -1148,6 +1131,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration13.asset.multisignature.keysgroup = [];
@@ -1169,6 +1153,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
+						baseFee: FEES.EES.MULTISIGNATURE,
 					}
 				);
 

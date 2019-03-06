@@ -15,11 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-const {
-	registerMultisignature,
-	utils: transactionUtils,
-} = require('@liskhq/lisk-transactions');
-const BigNumber = require('bignumber.js');
+const { registerMultisignature } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -31,35 +27,12 @@ const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
 const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
 const common = require('./common');
+const {
+	createInvalidRegisterMultisignatureTransaction,
+} = require('../../../common/transaction');
 
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
-
-const createInvalidRegisterMultisignatureTransaction = ({
-	keysgroup,
-	lifetime,
-	minimum,
-	passphrase,
-	secondPassphrase,
-}) =>
-	transactionUtils.signRawTransaction({
-		transaction: {
-			type: 4,
-			amount: '0',
-			fee: new BigNumber(FEES.MULTISIGNATURE)
-				.times(keysgroup.length + 1)
-				.toString(),
-			asset: {
-				multisignature: {
-					keysgroup: keysgroup.map(key => `+${key}`),
-					lifetime,
-					min: minimum,
-				},
-			},
-		},
-		passphrase,
-		secondPassphrase,
-	});
 
 describe('POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
@@ -337,6 +310,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				});
 
 				transaction.asset.multisignature.keysgroup = [
@@ -370,6 +344,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				});
 
 				transaction.asset.multisignature.keysgroup = [
@@ -399,6 +374,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.more_than_max_members.keysgroup,
 					lifetime: 1,
 					minimum: 2,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -423,6 +399,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: [accountFixtures.existingDelegate.publicKey],
 					lifetime: 1,
 					minimum: 2,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -444,6 +421,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.max_members_max_min.keysgroup,
 					lifetime: 1,
 					minimum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -468,6 +446,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.max_members.keysgroup,
 					lifetime: 1,
 					minimum: MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -494,6 +473,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1,
 					minimum: 2,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -518,6 +498,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1,
 					minimum: 2,
+					baseFee: FEES.EES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
