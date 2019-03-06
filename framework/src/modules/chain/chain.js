@@ -224,9 +224,8 @@ module.exports = class Chain {
 			getPeersCountByFilter: async action =>
 				this.scope.modules.peers.shared.getPeersCountByFilter(action.params[0]),
 			postSignature: async action =>
-				this.scope.modules.signatures.shared.postSignature(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.signatures.shared.postSignature)(
+					action.params[0]
 				),
 			storageRead: async action =>
 				this.scope.logic.block.storageRead(action.params[0]),
