@@ -310,7 +310,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				transaction.asset.multisignature.keysgroup = [
@@ -344,7 +344,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				transaction.asset.multisignature.keysgroup = [
@@ -374,7 +374,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.more_than_max_members.keysgroup,
 					lifetime: 1,
 					minimum: 2,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -399,7 +399,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: [accountFixtures.existingDelegate.publicKey],
 					lifetime: 1,
 					minimum: 2,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -421,7 +421,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.max_members_max_min.keysgroup,
 					lifetime: 1,
 					minimum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -446,7 +446,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.max_members.keysgroup,
 					lifetime: 1,
 					minimum: MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -473,7 +473,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1,
 					minimum: 2,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -498,7 +498,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1,
 					minimum: 2,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(

@@ -217,7 +217,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 1,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration.asset.multisignature.min = minimum.toString();
@@ -247,7 +247,7 @@ describe('multisignature', () => {
 					keysgroup,
 					lifetime: 1,
 					minimum,
-					baseFee: FEES.EES.MULTISIGNATURE,
+					baseFee: FEES.MULTISIGNATURE,
 				}
 			);
 
@@ -926,7 +926,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 1,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration4.asset.multisignature.min = minimum;
@@ -950,7 +950,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 
@@ -973,7 +973,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 
@@ -1019,7 +1019,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration8.asset.multisignature.lifetime = lifetime;
@@ -1043,7 +1043,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime,
 						minimum: 2,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 
@@ -1066,7 +1066,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime,
 						minimum: 2,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 
@@ -1089,7 +1089,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration11.asset.multisignature.lifetime = lifetime;
@@ -1111,7 +1111,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration12.asset.multisignature.keysgroup = '';
@@ -1131,7 +1131,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 				multisigRegistration13.asset.multisignature.keysgroup = [];
@@ -1153,7 +1153,7 @@ describe('multisignature', () => {
 						keysgroup,
 						lifetime: 1,
 						minimum: 2,
-						baseFee: FEES.EES.MULTISIGNATURE,
+						baseFee: FEES.MULTISIGNATURE,
 					}
 				);
 
