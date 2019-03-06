@@ -1,5 +1,4 @@
 export const blockSchema = {
-	id: 'Block',
 	type: 'object',
 	required: [
 		'blockSignature',

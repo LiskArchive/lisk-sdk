@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as publicKeyList from '../fixtures/public_key_list.json';
-import { sortDelegates, Delegate, generateDelegateList } from '../../src/delegate';
+import { sortDelegates, Delegate } from '../../src/delegate';
 
 describe('delegate', () => {
     describe('#sortDelegates', () => {
