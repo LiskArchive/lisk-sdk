@@ -742,11 +742,13 @@ describe('transport', () => {
 			describe('when transaction is invalid', () => {
 				let invalidTransaction;
 				beforeEach(done => {
-					const { signature, ...filteredTransaction } = transaction;
-					invalidTransaction = filteredTransaction;
+					invalidTransaction = {
+						...transaction,
+						amount: '0',
+					};
 					__private.receiveTransaction(
 						invalidTransaction,
-						validNonce,
+						undefined,
 						'This is a log message',
 						async () => {
 							done();
@@ -754,14 +756,15 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call modules.processTransactions.validateTransactions', async () => {
+				it('should call debug log with error message', async () => {
 					expect(library.logger.debug).to.be.calledWith(
 						'Transaction normalization failed',
 						{
 							id: invalidTransaction.id,
-							err: '',
+							err:
+								'Transaction: 222675625422353767 failed at .id: Invalid transaction id, actual: 2314501589829262714, expected: 222675625422353767',
 							module: 'transport',
-							invalidTransaction,
+							transaction: invalidTransaction,
 						}
 					);
 				});
