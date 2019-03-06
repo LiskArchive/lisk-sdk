@@ -105,29 +105,29 @@ describe('blocks/verifyTransactions', () => {
 				library.modules.processTransactions.verifyTransactions;
 		});
 
-		it('should return transactionResponses with status OK for verified transactions', async () => {
-			const transactionResponses = await verifyTransactions(
+		it('should return transactionsResponses with status OK for verified transactions', async () => {
+			const { transactionsResponses } = await verifyTransactions(
 				verifiableTransactions
 			);
-			transactionResponses.forEach(transactionResponse => {
+			transactionsResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.OK);
 			});
 		});
 
 		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
-			const transactionResponses = await verifyTransactions(
+			const { transactionsResponses } = await verifyTransactions(
 				nonVerifiableTransactions
 			);
-			transactionResponses.forEach(transactionResponse => {
+			transactionsResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
 			});
 		});
 
 		it('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
-			const transactionResponses = await verifyTransactions(
+			const { transactionsResponses } = await verifyTransactions(
 				pendingTransactions
 			);
-			transactionResponses.forEach(transactionResponse => {
+			transactionsResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
 			});
 		});
@@ -145,29 +145,29 @@ describe('blocks/verifyTransactions', () => {
 			expect(stateStore).to.exist;
 		});
 
-		it('should return transactionResponses with status OK for verified transactions', async () => {
-			const { transactionResponses } = await applyTransactions(
+		it('should return transactionsResponses with status OK for verified transactions', async () => {
+			const { transactionsResponses } = await applyTransactions(
 				appliableTransactions
 			);
-			transactionResponses.forEach(transactionResponse => {
+			transactionsResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.OK);
 			});
 		});
 
 		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
-			const { transactionResponses } = await applyTransactions(
+			const { transactionsResponses } = await applyTransactions(
 				nonVerifiableTransactions
 			);
-			transactionResponses.forEach(transactionResponse => {
+			transactionsResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
 			});
 		});
 
 		it('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
-			const { transactionResponses } = await applyTransactions(
+			const { transactionsResponses } = await applyTransactions(
 				pendingTransactions
 			);
-			transactionResponses.forEach(transactionResponse => {
+			transactionsResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
 			});
 		});

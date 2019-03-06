@@ -14,8 +14,6 @@
 
 'use strict';
 
-const initTransaction = require('../helpers/init_transaction.js');
-
 let library;
 
 class ProcessTransactions {
@@ -37,25 +35,16 @@ class ProcessTransactions {
 			tx,
 		});
 
-		const transactionInstances = transactions
-			.map(transaction => ({
-				...transaction,
-				fee: transaction.fee.toString(),
-				amount: transaction.amount.toString(),
-				recipientId: transaction.recipientId || '',
-			}))
-			.map(initTransaction);
+		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
-		await Promise.all(transactionInstances.map(t => t.prepare(stateStore)));
-
-		const transactionResponses = transactionInstances.map(transaction => {
+		const transactionsResponses = transactions.map(transaction => {
 			const transactionResponse = transaction.apply(stateStore);
 			stateStore.transaction.add(transaction);
 			return transactionResponse;
 		});
 
 		return {
-			transactionResponses,
+			transactionsResponses,
 			stateStore,
 		};
 	}
@@ -67,23 +56,18 @@ class ProcessTransactions {
 			mutate: false,
 		});
 
-		const transactionInstances = transactions
-			.map(transaction => ({
-				...transaction,
-				fee: transaction.fee.toString(),
-				amount: transaction.amount.toString(),
-				recipientId: transaction.recipientId || '',
-			}))
-			.map(initTransaction);
+		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
-		await Promise.all(transactionInstances.map(t => t.prepare(stateStore)));
-
-		return transactionInstances.map(transaction => {
+		const transactionsResponses = transactions.map(transaction => {
 			library.logic.stateManager.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
 			library.logic.stateManager.restoreSnapshot();
 			return transactionResponse;
 		});
+
+		return {
+			transactionsResponses,
+		};
 	}
 }
 

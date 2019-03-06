@@ -353,13 +353,13 @@ __private.applyConfirmedStep = async function(block, tx) {
 
 	const {
 		stateStore,
-		transactionResponses,
+		transactionsResponses,
 	} = await modules.processTransactions.applyTransactions(
 		block.transactions,
 		tx
 	);
 
-	const unappliedTransactionResponse = transactionResponses.find(
+	const unappliedTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 

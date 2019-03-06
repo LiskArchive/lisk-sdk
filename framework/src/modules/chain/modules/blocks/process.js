@@ -548,7 +548,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 
 	modules.processTransactions
 		.verifyTransactions(transactions)
-		.then(responses => {
+		.then(({ transactionsResponses: responses }) => {
 			const readyTransactions = transactions.filter(transaction =>
 				responses
 					.filter(response => response.status === TransactionStatus.OK)

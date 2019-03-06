@@ -106,11 +106,11 @@ __private.checkTransactions = async (transactions, checkExists) => {
 		}
 	}
 
-	const transactionResponses = await modules.processTransactions.verifyTransactions(
-		transactions
-	);
+	const {
+		transactionsResponses,
+	} = await modules.processTransactions.verifyTransactions(transactions);
 
-	const unverifiableTransactionResponse = transactionResponses.find(
+	const unverifiableTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
