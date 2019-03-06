@@ -16,10 +16,10 @@
 'use strict';
 
 const pgpLib = require('pg-promise');
-const filterTypes = require('../../../../../../src/components/storage/utils/filter_types.js');
 const {
-	BaseEntity,
-} = require('../../../../../../src/components/storage/entities');
+	entities: { BaseEntity },
+	utils: { filterTypes: { NUMBER } },
+} = require('../../../../../../src/components/storage');
 
 describe('BaseEntity', () => {
 	let adapter;
@@ -40,16 +40,16 @@ describe('BaseEntity', () => {
 		defaultFields = [
 			{
 				name: 'id',
-				type: filterTypes.NUMBER,
+				type: NUMBER,
 				options: {
-					filter: filterTypes.NUMBER,
+					filter: NUMBER,
 				},
 			},
 			{
 				name: 'name',
-				type: filterTypes.NUMBER,
+				type: NUMBER,
 				options: {
-					filter: filterTypes.NUMBER,
+					filter: NUMBER,
 				},
 			},
 		];

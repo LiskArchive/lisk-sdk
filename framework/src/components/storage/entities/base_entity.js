@@ -24,7 +24,7 @@ const { isSortOptionValid, parseSortString } = require('../utils/sort_option');
 const filterTypes = require('../utils/filter_types');
 const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
-const { defaultInput } = require('../utils/inputSerializers');
+const { defaultInput } = require('../utils/input_serializers');
 
 class BaseEntity {
 	/**
