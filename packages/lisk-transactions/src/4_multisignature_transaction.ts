@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
@@ -243,9 +242,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public processMultisignatures(_: StateStore): TransactionResponse {
-		const transactionBytes = this.signSignature
-			? Buffer.concat([this.getBasicBytes(), hexToBuffer(this.signature)])
-			: this.getBasicBytes();
+		const transactionBytes = this.getBasicBytes();
 
 		const { valid, errors } = validateMultisignatures(
 			this.asset.multisignature.keysgroup.map(signedPublicKey =>
