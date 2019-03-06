@@ -27,7 +27,7 @@ export interface DPOSOptions {
 const defaultOptions = {
 	numberOfActiveDelegates: 101,
 	slotTime: 10,
-	epochTime: 0,
+	epochTime: 1464109200,
 };
 
 const verifyBlockSlot = (
@@ -81,19 +81,19 @@ export class DPOS extends EventEmitter {
 	}
 
 	public async init(lastBlock: Block): Promise<void> {
-		if (lastBlock.height === 1) {
-			const exist = await roundExists(this._db, lastBlock.height);
-			if (!exist) {
-				const delegates = await this._getCandidates(
-					this._numberOfActiveDelegates,
-				);
-				const round = defaultRound(
-					calculateRound(lastBlock.height, this._numberOfActiveDelegates),
-					delegates,
-				);
-				await updateRound(this._db, '1', round);
-			}
+		if (lastBlock.height !== 1) {
+			return;
 		}
+		const exist = await roundExists(this._db, lastBlock.height);
+		if (exist) {
+			return;
+		}
+		const delegates = await this._getCandidates(this._numberOfActiveDelegates);
+		const round = defaultRound(
+			calculateRound(lastBlock.height, this._numberOfActiveDelegates),
+			delegates,
+		);
+		await updateRound(this._db, '1', round);
 	}
 
 	public async getLatestHeight(): Promise<number> {

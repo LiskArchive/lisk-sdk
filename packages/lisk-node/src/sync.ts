@@ -69,8 +69,25 @@ export class Sync extends EventEmitter {
 				readonly blocks: ReadonlyArray<ProtocolBlock>;
 			};
 			const blocks = protocolBlockToDomain(protocolBlocks);
-
-			console.log(blocks);
+			// tslint:disable-next-line no-loop-statement
+			for (const block of blocks) {
+				const blockWithHeight = {
+					...block,
+					height: block.height || this._blockchain.lastBlock.height,
+				};
+				if (blockWithHeight.height === 1) {
+					continue;
+				}
+				console.log(
+					this._blockchain.lastBlock.timestamp,
+					blockWithHeight.timestamp,
+				);
+				const dposErrors = await this._dpos.verifyDownloadedBlock(
+					this._blockchain.lastBlock,
+					blockWithHeight,
+				);
+				console.log(dposErrors, blockWithHeight.height);
+			}
 		}
 	}
 }

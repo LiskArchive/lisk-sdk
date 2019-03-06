@@ -19,7 +19,7 @@ export class Slot {
 	}
 
 	public slotNumber(time?: number): number {
-		const referenceTime = time ? time : this._getTime();
+		const referenceTime = time !== undefined ? time : this._getTime();
 
 		return Math.floor(referenceTime / this._slotInterval);
 	}

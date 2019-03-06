@@ -70,11 +70,7 @@ export class App {
 			7: transactions.OutTransferTransaction,
 		});
 		this._logger.info('Blockchain instansiated');
-		this._dpos = new DPOS(this._db, this._blockchain, {
-			numberOfActiveDelegates: 101,
-			slotTime: 10,
-			epochTime: 0,
-		});
+		this._dpos = new DPOS(this._db, this._blockchain);
 		this._logger.info('DPOS instansiated');
 		this._sync = new Sync(
 			this._blockchain,
