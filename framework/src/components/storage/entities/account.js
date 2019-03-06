@@ -25,7 +25,6 @@ const sqlFiles = {
 	selectFull: 'accounts/get_extended.sql',
 	count: 'accounts/count.sql',
 	isPersisted: 'accounts/is_persisted.sql',
-	countDuplicatedDelegates: 'accounts/count_duplicated_delegates.sql',
 };
 
 /**
@@ -47,11 +46,6 @@ const sqlFiles = {
  * @property {string} fees
  * @property {string} rewards
  * @property {string} vote
- */
-
-/**
- * Extended Account
- * @typedef {BasicAccount} ExtendedAccount
  * @property {string} u_username
  * @property {Boolean} u_isDelegate
  * @property {Boolean} u_secondSignature
@@ -60,6 +54,11 @@ const sqlFiles = {
  * @property {number} u_multiLifetime
  * @property {string} u_balance
  * @property {number} productivity
+ */
+
+/**
+ * Extended Account
+ * @typedef {BasicAccount} ExtendedAccount
  * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
  * @property {Array.<string>} u_membersPublicKeys - Public keys of all members including unconfirmed if its a multi-signature account
  * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
@@ -394,24 +393,6 @@ class Account extends BaseEntity {
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => result[0].exists);
-	}
-
-	/**
-	 * Counts duplicate delegates by transactionId.
-	 *
-	 * @param {Object} [tx] - Database transaction object
-	 *
-	 * @returns {Promise<number>}
-	 */
-	countDuplicatedDelegates(tx) {
-		return this.adapter
-			.executeFile(
-				this.SQLs.countDuplicatedDelegates,
-				{},
-				{ expectedResultCount: 1 },
-				tx
-			)
-			.then(result => +result.count);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
