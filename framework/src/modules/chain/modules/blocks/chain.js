@@ -692,7 +692,6 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 			.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
 			.then(res => {
 				secondLastBlock = res;
-				secondLastBlock = res;
 				return Promise.mapSeries(
 					oldLastBlock.transactions.reverse(),
 					transaction =>
