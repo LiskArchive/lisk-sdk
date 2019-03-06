@@ -26,7 +26,7 @@ const Diff = require('../../../../../../src/modules/chain/helpers/diff');
 const testData = require('./test_data/multisignature');
 const {
 	createInvalidRegisterMultisignatureTransaction,
-} = require('../../../../common/transaction');
+} = require('../../../../common/utils/elements');
 
 const { FEES, MULTISIG_CONSTRAINTS } = __testContext.config.constants;
 const Multisignature = rewire(

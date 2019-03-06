@@ -15,18 +15,51 @@
 'use strict';
 
 const { utils: transactionUtils } = require('@liskhq/lisk-transactions');
+const BigNumber = require('bignumber.js');
 
-const elements = {};
-
-elements.redoSignature = function(transaction, passphrase) {
-	delete transaction.signature;
-	transaction.signature = transactionUtils.signTransaction(
-		transaction,
+const redoSignature = (transaction, passphrase) => {
+	const { signature: discarded, ...transactionWithoutSignature } = transaction;
+	const signature = transactionUtils.signTransaction(
+		transactionWithoutSignature,
 		passphrase
 	);
-	transaction.id = transactionUtils.getTransactionId(transaction);
-	return transaction;
+	const newTransaction = {
+		...transactionWithoutSignature,
+		signature,
+	};
+	return {
+		...newTransaction,
+		id: transactionUtils.getTransactionId(newTransaction),
+	};
 };
 
+const createInvalidRegisterMultisignatureTransaction = ({
+	keysgroup,
+	lifetime,
+	minimum,
+	passphrase,
+	secondPassphrase,
+	baseFee,
+}) =>
+	transactionUtils.signRawTransaction({
+		transaction: {
+			type: 4,
+			amount: '0',
+			fee: new BigNumber(baseFee).times(keysgroup.length + 1).toString(),
+			asset: {
+				multisignature: {
+					keysgroup: keysgroup.map(key => `+${key}`),
+					lifetime,
+					min: minimum,
+				},
+			},
+		},
+		passphrase,
+		secondPassphrase,
+	});
+
 // Exports
-module.exports = elements;
+module.exports = {
+	redoSignature,
+	createInvalidRegisterMultisignatureTransaction,
+};

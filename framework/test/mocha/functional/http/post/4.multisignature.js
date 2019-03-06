@@ -29,7 +29,7 @@ const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes')
 const common = require('./common');
 const {
 	createInvalidRegisterMultisignatureTransaction,
-} = require('../../../common/transaction');
+} = require('../../../common/utils/elements');
 
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
