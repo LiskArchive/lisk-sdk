@@ -320,25 +320,6 @@ __private.applyTransactions = function(transactions, cb) {
 };
 
 /**
- * Calls undoUnconfirmedList from modules transactions
- *
- * @private
- * @param  {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object}   cb.err - Error if occurred
- */
-__private.undoUnconfirmedListStep = function(cb) {
-	return modules.transactions.undoUnconfirmedList(err => {
-		if (err) {
-			// Fatal error, memory tables will be inconsistent
-			library.logger.error('Failed to undo unconfirmed list', err);
-			return setImmediate(cb, 'Failed to undo unconfirmed list');
-		}
-		return setImmediate(cb);
-	});
-};
-
-/**
  * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
@@ -445,41 +426,33 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
  * @todo Add description for the function
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	__private.undoUnconfirmedListStep(err => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
-			modules.blocks.isActive.set(true);
+	return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
+		modules.blocks.isActive.set(true);
 
-			return __private
-				.applyConfirmedStep(block, tx)
-				.then(() => __private.saveBlockStep(block, saveBlock, tx));
+		return __private
+			.applyConfirmedStep(block, tx)
+			.then(() => __private.saveBlockStep(block, saveBlock, tx));
+	})
+		.then(() => {
+			modules.transactions.onConfirmedTransactions(block.transactions);
+			modules.blocks.isActive.set(false);
+			block = null;
+
+			return setImmediate(cb, null);
 		})
-			.then(() => {
-				// Remove block transactions from transaction pool
-				block.transactions.forEach(transaction => {
-					modules.transactions.removeUnconfirmedTransaction(transaction.id);
-				});
-				modules.blocks.isActive.set(false);
-				block = null;
+		.catch(reason => {
+			modules.blocks.isActive.set(false);
+			block = null;
 
-				return setImmediate(cb, null);
-			})
-			.catch(reason => {
-				modules.blocks.isActive.set(false);
-				block = null;
+			// Finish here if snapshotting.
+			// FIXME: Not the best place to do that
+			if (reason.name === 'Snapshot finished') {
+				library.logger.info(reason);
+				process.emit('SIGTERM');
+			}
 
-				// Finish here if snapshotting.
-				// FIXME: Not the best place to do that
-				if (reason.name === 'Snapshot finished') {
-					library.logger.info(reason);
-					process.emit('SIGTERM');
-				}
-
-				return setImmediate(cb, reason);
-			});
-	});
+			return setImmediate(cb, reason);
+		});
 };
 
 /**
