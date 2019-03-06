@@ -88,10 +88,10 @@ class Block {
 				return 1;
 			}
 			// Place depending on amount (lower first)
-			if (a.amount.isLessThan(b.amount)) {
+			if (a.amount.lt(b.amount)) {
 				return -1;
 			}
-			if (a.amount.isGreaterThan(b.amount)) {
+			if (a.amount.gt(b.amount)) {
 				return 1;
 			}
 			return 0;
