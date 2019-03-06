@@ -22,7 +22,7 @@ const slots = require('../../../src/modules/chain/helpers/slots');
 const Bignum = require('../../../src/modules/chain/helpers/bignum.js');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
-const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../common/integration/sql/queries_helper.js');
 const localCommon = require('./common');
 
 const { REWARDS, ACTIVE_DELEGATES } = global.constants;
