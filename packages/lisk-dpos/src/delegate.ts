@@ -1,4 +1,5 @@
 import { hash } from '@liskhq/lisk-cryptography';
+import * as BigNum from 'browserify-bignum';
 
 export interface Delegate {
 	readonly username?: string;
@@ -13,19 +14,21 @@ export const generateDelegateList = (
 ): ReadonlyArray<string> => {
 	// tslint:disable-next-line no-let
 	let hashedRound = hash(round, 'utf8');
+	const list = [...delegateList];
+	const numberOfDelegates = delegateList.length;
 	// tslint:disable-next-line
-	for (let i = 0, delCount = delegateList.length; i < delCount; i++) {
+	for (let i = 0; i < numberOfDelegates; i++) {
 		// tslint:disable-next-line
-		for (let j = 0; j < 4 && i < delCount; i++, j++) {
-			const newIndex = hashedRound[j] % delCount;
-			const temp = delegateList[newIndex];
-			delegateList[newIndex] = delegateList[i];
-			delegateList[i] = temp;
+		for (let j = 0; j < 4 && i < numberOfDelegates; i++, j++) {
+			const newIndex = hashedRound[j] % numberOfDelegates;
+			const temp = list[newIndex];
+			list[newIndex] = list[i];
+			list[i] = temp;
 		}
 		hashedRound = hash(hashedRound, 'utf8');
 	}
 
-	return delegateList;
+	return list;
 };
 
 export const onlyDelegateProperty = (
@@ -41,19 +44,22 @@ export const onlyDelegateProperty = (
 export const sortDelegates = (delegates: Delegate[]): Delegate[] =>
 	delegates.sort((prev, next) => {
 		if (!prev.votes || !next.votes) {
-			return 0;
+			throw new Error('Delegate cannot be sorted without votes');
 		}
 		if (!prev.publicKey || !next.publicKey) {
-			return 0;
+			throw new Error('Delegate cannot be sorted without public key');
 		}
-		if (prev.votes > next.votes) {
-			return 1;
-		}
-		if (prev.votes < next.votes) {
+		if (new BigNum(prev.votes).sub(next.votes).gte(1)) {
 			return -1;
 		}
-		if (prev.publicKey < next.publicKey) {
+		if (new BigNum(prev.votes).sub(next.votes).lte(-1)) {
 			return 1;
+		}
+		if (prev.publicKey > next.publicKey) {
+			return 1;
+		}
+		if (prev.publicKey < next.publicKey) {
+			return -1;
 		}
 
 		return 0;
