@@ -67,6 +67,7 @@ export interface TransactionPoolConfiguration {
 export interface AddTransactionResult {
 	readonly alreadyExists: boolean;
 	readonly isFull: boolean;
+	readonly queueName: QueueNames;
 }
 
 interface TransactionPoolDependencies {
@@ -432,6 +433,7 @@ export class TransactionPool extends EventEmitter {
 			return {
 				isFull: false,
 				alreadyExists: true,
+				queueName,
 			};
 		}
 
@@ -439,6 +441,7 @@ export class TransactionPool extends EventEmitter {
 			return {
 				isFull: true,
 				alreadyExists: false,
+				queueName,
 			};
 		}
 		// Add receivedAt property for the transaction
@@ -455,6 +458,7 @@ export class TransactionPool extends EventEmitter {
 		return {
 			isFull: false,
 			alreadyExists: false,
+			queueName,
 		};
 	}
 
