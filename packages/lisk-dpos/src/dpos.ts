@@ -1,5 +1,10 @@
 import { EventEmitter } from 'events';
-import { Delegate, generateDelegateList, sortDelegates } from './delegate';
+import {
+	Delegate,
+	generateDelegateList,
+	sortDelegates,
+	onlyDelegateProperty,
+} from './delegate';
 import { getLatestRound, getRound, updateRound, roundExists } from './repo';
 import {
 	applyRound,
@@ -38,15 +43,18 @@ const verifyBlockSlot = (
 ): Error | undefined => {
 	const round = calculateRound(block.height, activeDelegates);
 	const sortedDelegates = sortDelegates(delegates as Delegate[]);
-	const delegateList = generateDelegateList(round.toString(), sortedDelegates);
+	const delegateList = generateDelegateList(
+		round.toString(),
+		sortedDelegates.map(sortedDelegate => sortedDelegate.publicKey as string),
+	);
 	const slotNumber = slot.slotNumber(block.timestamp);
-	const delegate = delegateList[slotNumber % delegateList.length];
+	const delegatePublicKey = delegateList[slotNumber % delegateList.length];
 	if (
-		delegate.publicKey === '' ||
-		delegate.publicKey !== block.generatorPublicKey
+		delegatePublicKey === '' ||
+		delegatePublicKey !== block.generatorPublicKey
 	) {
 		return new Error(
-			`Invalid generator public key, expected: ${delegate.publicKey}, actual: ${
+			`Invalid generator public key, expected: ${delegatePublicKey}, actual: ${
 				block.generatorPublicKey
 			}`,
 		);
@@ -89,9 +97,10 @@ export class DPOS extends EventEmitter {
 			return;
 		}
 		const delegates = await this._getCandidates(this._numberOfActiveDelegates);
+		const filteredDelegates = onlyDelegateProperty(delegates);
 		const round = defaultRound(
 			calculateRound(lastBlock.height, this._numberOfActiveDelegates),
-			delegates,
+			filteredDelegates,
 		);
 		await updateRound(this._db, '1', round);
 	}
@@ -123,9 +132,10 @@ export class DPOS extends EventEmitter {
 					this._db,
 					calculateRound(block.height, this._numberOfActiveDelegates),
 			  )).delegates;
+		const filteredDelegates = onlyDelegateProperty(delegates);
 		const veriyBlockSlotError = verifyBlockSlot(
 			block,
-			delegates,
+			filteredDelegates,
 			this._slot,
 			this._numberOfActiveDelegates,
 		);
@@ -161,9 +171,10 @@ export class DPOS extends EventEmitter {
 					this._db,
 					calculateRound(block.height, this._numberOfActiveDelegates),
 			  )).delegates;
+		const filteredDelegates = onlyDelegateProperty(delegates);
 		const veriyBlockSlotError = verifyBlockSlot(
 			block,
-			delegates,
+			filteredDelegates,
 			this._slot,
 			this._numberOfActiveDelegates,
 		);
@@ -211,10 +222,11 @@ export class DPOS extends EventEmitter {
 
 	private async _getStartingRound(height: number): Promise<Round> {
 		const delegates = await this._getCandidates(this._numberOfActiveDelegates);
+		const filteredDelegates = onlyDelegateProperty(delegates);
 
 		return defaultRound(
 			calculateRound(height, this._numberOfActiveDelegates),
-			delegates,
+			filteredDelegates,
 		);
 	}
 }

@@ -1,6 +1,7 @@
 import { hash } from '@liskhq/lisk-cryptography';
 
 export interface Delegate {
+	readonly username?: string;
 	readonly publicKey?: string;
 	readonly votes?: string;
 	readonly reward?: string;
@@ -8,10 +9,10 @@ export interface Delegate {
 
 export const generateDelegateList = (
 	round: string,
-	delegateList: Delegate[],
-): ReadonlyArray<Delegate> => {
+	delegateList: string[],
+): ReadonlyArray<string> => {
 	// tslint:disable-next-line no-let
-	let hashedRound = hash(round);
+	let hashedRound = hash(round, 'utf8');
 	// tslint:disable-next-line
 	for (let i = 0, delCount = delegateList.length; i < delCount; i++) {
 		// tslint:disable-next-line
@@ -21,11 +22,21 @@ export const generateDelegateList = (
 			delegateList[newIndex] = delegateList[i];
 			delegateList[i] = temp;
 		}
-		hashedRound = hash(hashedRound);
+		hashedRound = hash(hashedRound, 'utf8');
 	}
 
 	return delegateList;
 };
+
+export const onlyDelegateProperty = (
+	delegates: ReadonlyArray<Delegate>,
+): ReadonlyArray<Delegate> =>
+	delegates.map(({ votes, publicKey, reward, username }) => ({
+		votes,
+		publicKey,
+		reward,
+		username,
+	}));
 
 export const sortDelegates = (delegates: Delegate[]): Delegate[] =>
 	delegates.sort((prev, next) => {
