@@ -18,7 +18,7 @@ const Promise = require('bluebird');
 const elements = require('lisk-elements').default;
 const randomUtil = require('../common/utils/random');
 const accountsFixtures = require('../fixtures/accounts');
-const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../common/integration/sql/queries_helper.js');
 const localCommon = require('./common');
 
 const { REWARDS } = global.constants;
