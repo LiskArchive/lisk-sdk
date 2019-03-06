@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 
 const BlocksChain = rewire(
-	'../../../../../../../src/modules/chain/modules/blocks/chain.js'
+	'../../../../../../../src/modules/chain/submodules/blocks/chain.js'
 );
 
 describe('blocks/chain', () => {

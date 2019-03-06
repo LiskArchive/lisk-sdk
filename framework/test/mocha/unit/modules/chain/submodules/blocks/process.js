@@ -19,7 +19,7 @@ const Promise = require('bluebird');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum.js');
 
 const BlocksProcess = rewire(
-	'../../../../../../../src/modules/chain/modules/blocks/process.js'
+	'../../../../../../../src/modules/chain/submodules/blocks/process.js'
 );
 
 describe('blocks/process', () => {

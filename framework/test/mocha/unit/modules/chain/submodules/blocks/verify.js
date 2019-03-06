@@ -18,7 +18,7 @@ const rewire = require('rewire');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum.js');
 
 const BlocksVerify = rewire(
-	'../../../../../../../src/modules/chain/modules/blocks/verify.js'
+	'../../../../../../../src/modules/chain/submodules/blocks/verify.js'
 );
 
 const exceptions = global.exceptions;

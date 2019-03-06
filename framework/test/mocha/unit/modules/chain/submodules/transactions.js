@@ -24,9 +24,9 @@ const transactionTypes = require('../../../../../../src/modules/chain/helpers/tr
 const modulesLoader = require('../../../../common/modules_loader');
 const AccountLogic = require('../../../../../../src/modules/chain/logic/account.js');
 const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction.js');
-const DelegateModule = require('../../../../../../src/modules/chain/modules/delegates.js');
-const AccountModule = require('../../../../../../src/modules/chain/modules/accounts.js');
-const LoaderModule = require('../../../../../../src/modules/chain/modules/loader.js');
+const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates.js');
+const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts.js');
+const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader.js');
 const VoteLogic = require('../../../../../../src/modules/chain/logic/vote.js');
 const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer.js');
 const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate.js');
@@ -37,7 +37,7 @@ const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_t
 const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer.js');
 
 const TransactionModule = rewire(
-	'../../../../../../src/modules/chain/modules/transactions.js'
+	'../../../../../../src/modules/chain/submodules/transactions.js'
 );
 
 describe('transactions', () => {
