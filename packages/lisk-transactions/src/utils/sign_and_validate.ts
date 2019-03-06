@@ -125,7 +125,7 @@ export const validateMultisignatures = (
 							new TransactionError(
 								`Failed to validate signature ${signature}`,
 								id,
-								'.signature',
+								'.signatures',
 							),
 				  )
 				: [],
