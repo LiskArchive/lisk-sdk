@@ -60,6 +60,8 @@ const config = {
 				network: {
 					blacklistedPeers: [],
 					connectTimeout: 5000,
+					ackTimeout: 5000,
+					discoveryInterval: 30000,
 					seedPeers: [],
 					wsEngine: 'ws',
 					nodeInfo: {
