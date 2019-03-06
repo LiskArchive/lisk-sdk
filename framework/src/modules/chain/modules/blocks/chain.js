@@ -521,7 +521,7 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
  * @param {Object} tx - database transaction
  */
 __private.undoConfirmedStep = async function(block, tx) {
-	if (block.transactions.length <= 0) {
+	if (block.transactions.length === 0) {
 		return;
 	}
 
