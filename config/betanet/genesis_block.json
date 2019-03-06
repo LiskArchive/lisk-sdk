@@ -1,8 +1,8 @@
 {
 	"version": 0,
 	"totalAmount": "10000000000000000",
-	"totalFee": 0,
-	"reward": 0,
+	"totalFee": "0",
+	"reward": "0",
 	"payloadHash":
 		"ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c",
 	"timestamp": 0,
@@ -15,7 +15,7 @@
 		{
 			"type": 0,
 			"amount": "10000000000000000",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": "5057926541223936699L",
 			"senderId": "9594788837974552645L",
@@ -28,7 +28,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "9599268798473959334L",
@@ -46,7 +46,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "8297342117955691749L",
@@ -64,7 +64,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "6506839327377338710L",
@@ -82,7 +82,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "18144940737493947668L",
@@ -100,7 +100,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "12108854850941227449L",
@@ -118,7 +118,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7283743314461554912L",
@@ -136,7 +136,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "12577917432507761736L",
@@ -154,7 +154,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "13179243681104361576L",
@@ -172,7 +172,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "5370200325671668788L",
@@ -190,7 +190,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "16003289837583818697L",
@@ -208,7 +208,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "9566915080051815704L",
@@ -226,7 +226,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "3066234107496623317L",
@@ -244,7 +244,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2225757506242819339L",
@@ -262,7 +262,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7549491900148497689L",
@@ -280,7 +280,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "1331377513055030482L",
@@ -298,7 +298,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "4460458459545688961L",
@@ -316,7 +316,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "619547416352742427L",
@@ -334,7 +334,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "12818616684165792775L",
@@ -352,7 +352,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "8662469807681796974L",
@@ -370,7 +370,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "5893463983889169138L",
@@ -388,7 +388,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "16260793411010498693L",
@@ -406,7 +406,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2040776293346035330L",
@@ -424,7 +424,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "10756418651392926596L",
@@ -442,7 +442,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "15230020972653680319L",
@@ -460,7 +460,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "12666568332839112261L",
@@ -478,7 +478,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "528628027376745866L",
@@ -496,7 +496,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "18128675641736923161L",
@@ -514,7 +514,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "4093945649257196394L",
@@ -532,7 +532,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "375276282518448358L",
@@ -550,7 +550,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2091644864751040722L",
@@ -568,7 +568,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "14791690666447247393L",
@@ -586,7 +586,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "16547446877748127427L",
@@ -604,7 +604,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "14868861125384761818L",
@@ -622,7 +622,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "18106556407344166019L",
@@ -640,7 +640,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "8590449891946700316L",
@@ -658,7 +658,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "1861553262909759721L",
@@ -676,7 +676,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "17466705131364624372L",
@@ -694,7 +694,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "4648073518001196235L",
@@ -712,7 +712,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "15505467383917055354L",
@@ -730,7 +730,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "12725565306498455722L",
@@ -748,7 +748,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "8883267454474937136L",
@@ -766,7 +766,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "8546346710767473316L",
@@ -784,7 +784,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "15555711937382134455L",
@@ -802,7 +802,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "15205258317333561497L",
@@ -820,7 +820,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "15622342449324425858L",
@@ -838,7 +838,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "183832415401159935L",
@@ -856,7 +856,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "10907080765849513867L",
@@ -874,7 +874,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "5551728081135333369L",
@@ -892,7 +892,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2676090374023786863L",
@@ -910,7 +910,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2698939631194176774L",
@@ -928,7 +928,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "17956766617869547133L",
@@ -946,7 +946,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2193676322954236363L",
@@ -964,7 +964,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "8296116003987221233L",
@@ -982,7 +982,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7688541383703407027L",
@@ -1000,7 +1000,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "1729459574949937817L",
@@ -1018,7 +1018,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "16453926881535411425L",
@@ -1036,7 +1036,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7072258413170632027L",
@@ -1054,7 +1054,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2349405299999925988L",
@@ -1072,7 +1072,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "9225466541780674347L",
@@ -1090,7 +1090,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "853527863251661123L",
@@ -1108,7 +1108,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "10500219976968717430L",
@@ -1126,7 +1126,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "18053421712227850241L",
@@ -1144,7 +1144,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "3140790823164307049L",
@@ -1162,7 +1162,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "12845880580091620532L",
@@ -1180,7 +1180,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "12855817723964405877L",
@@ -1198,7 +1198,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "18258054336678546872L",
@@ -1216,7 +1216,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "11775900610622967344L",
@@ -1234,7 +1234,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "5202832549098211959L",
@@ -1252,7 +1252,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "11395463834478228815L",
@@ -1270,7 +1270,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "16425079235073154307L",
@@ -1288,7 +1288,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "16741098748880332286L",
@@ -1306,7 +1306,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "16459074898077141306L",
@@ -1324,7 +1324,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "13236246470225868516L",
@@ -1342,7 +1342,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "17882005813995218741L",
@@ -1360,7 +1360,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "5765376524396134055L",
@@ -1378,7 +1378,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "14661372463477871655L",
@@ -1396,7 +1396,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "12691716351984140582L",
@@ -1414,7 +1414,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "9972782797504924531L",
@@ -1432,7 +1432,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "17862988679601152537L",
@@ -1450,7 +1450,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2576533421743541334L",
@@ -1468,7 +1468,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "1436344917703966803L",
@@ -1486,7 +1486,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "14763246841156172877L",
@@ -1504,7 +1504,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "9394730630566589283L",
@@ -1522,7 +1522,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "16018934037271383860L",
@@ -1540,7 +1540,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "5809349990080754322L",
@@ -1558,7 +1558,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "10855041329780447466L",
@@ -1576,7 +1576,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "9494067311732179131L",
@@ -1594,7 +1594,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "2904563545748225697L",
@@ -1612,7 +1612,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7737989013215138738L",
@@ -1630,7 +1630,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "8636595276350466451L",
@@ -1648,7 +1648,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7559236880452970335L",
@@ -1666,7 +1666,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7856462165043403844L",
@@ -1684,7 +1684,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "4913750582093826587L",
@@ -1702,7 +1702,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "10885488775109808482L",
@@ -1720,7 +1720,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "14538534114820652534L",
@@ -1738,7 +1738,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "11698156576635877766L",
@@ -1756,7 +1756,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7035825815022758321L",
@@ -1774,7 +1774,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "752128942908618945L",
@@ -1792,7 +1792,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "7185925503841360543L",
@@ -1810,7 +1810,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "17905456591433106263L",
@@ -1828,7 +1828,7 @@
 		{
 			"type": 2,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": null,
 			"senderId": "6863230959130270198L",
@@ -1846,7 +1846,7 @@
 		{
 			"type": 3,
 			"amount": "0",
-			"fee": 0,
+			"fee": "0",
 			"timestamp": 0,
 			"recipientId": "5057926541223936699L",
 			"senderId": "5057926541223936699L",

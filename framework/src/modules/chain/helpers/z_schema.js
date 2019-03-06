@@ -392,23 +392,6 @@ const liskFormats = {
 			);
 		},
 	},
-	/**
-	 * Returns true if value is lower than or equal to `TOTAL_AMOUNT`.
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
-	numAmount: {
-		type: 'number',
-		validate: value => {
-			const { TOTAL_AMOUNT } = global.constants;
-			if (new Bignum(value).isPositive()) {
-				return new Bignum(value).isLessThanOrEqualTo(TOTAL_AMOUNT);
-			}
-
-			return false;
-		},
-	},
 };
 
 // Register the formats

@@ -89,110 +89,6 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				});
 			});
 
-			describe('when undoConfirmedStep fails', () => {
-				let setAccountAndGet;
-				beforeEach(done => {
-					// Artifically fail setAccountAndGet so we can check that test fails
-					setAccountAndGet = library.modules.accounts.setAccountAndGet;
-					sinonSandbox
-						.stub(library.modules.accounts, 'setAccountAndGet')
-						.callThrough()
-						.withArgs({
-							address: fundTrsForAccount1.recipientId,
-						})
-						.callsArgWith(1, 'err');
-					done();
-				});
-
-				afterEach(done => {
-					library.modules.accounts.setAccountAndGet = setAccountAndGet;
-					done();
-				});
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('[feature/improve_transactions_processing_efficiency] should fail with proper error', done => {
-					library.modules.blocks.chain.deleteLastBlock(err => {
-						expect(err).to.exist;
-						expect(err).to.eql('err');
-						done();
-					});
-				});
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('[feature/improve_transactions_processing_efficiency] should not have perform undoConfirmedStep on transactions of block', done => {
-					library.modules.blocks.chain.deleteLastBlock(err => {
-						expect(err).to.exist;
-						expect(err).to.eql('err');
-						localCommon
-							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
-							.then(account => {
-								expect(account.mem_accounts.balance).to.equal(
-									transferAmount.toString()
-								);
-								done();
-							});
-					});
-				});
-			});
-
-			describe('when undoUnconfirmStep fails', () => {
-				let merge;
-				beforeEach(done => {
-					// Artifically fail setAccountAndGet so we can check that test fails
-					merge = library.logic.transaction.scope.account.merge;
-
-					sinonSandbox
-						.stub(library.logic.transaction.scope.account, 'merge')
-						.callThrough()
-						.withArgs(fundTrsForAccount1.senderId, {
-							u_balance: fundTrsForAccount1.amount.plus(fundTrsForAccount1.fee),
-						})
-						.callsArgWith(2, 'err');
-					done();
-				});
-
-				afterEach(done => {
-					library.logic.account.merge = merge;
-					done();
-				});
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('[feature/improve_transactions_processing_efficiency] should fail with proper error', done => {
-					library.modules.blocks.chain.deleteLastBlock(err => {
-						expect(err).to.exist;
-						expect(err).to.eql('err');
-						done();
-					});
-				});
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('[feature/improve_transactions_processing_efficiency] should not change balance in mem_accounts table', done => {
-					library.modules.blocks.chain.deleteLastBlock(err => {
-						expect(err).to.exist;
-						expect(err).to.eql('err');
-						localCommon
-							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
-							.then(account => {
-								expect(account.mem_accounts.balance).to.equal(
-									transferAmount.toString()
-								);
-								done();
-							});
-					});
-				});
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('[feature/improve_transactions_processing_efficiency] should not change u_balance in mem_accounts table', done => {
-					library.modules.blocks.chain.deleteLastBlock(err => {
-						expect(err).to.exist;
-						expect(err).to.eql('err');
-						localCommon
-							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
-							.then(account => {
-								expect(account.mem_accounts.u_balance).to.equal(
-									transferAmount.toString()
-								);
-								done();
-							});
-					});
-				});
-			});
-
 			describe('when backwardTickStep fails', () => {
 				let backwardTick;
 				beforeEach(done => {
@@ -239,21 +135,6 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
 								expect(account.mem_accounts.balance).to.equal(
-									transferAmount.toString()
-								);
-								done();
-							});
-					});
-				});
-
-				it('should not change u_balance in mem_accounts table', done => {
-					library.modules.blocks.chain.deleteLastBlock(err => {
-						expect(err).to.exist;
-						expect(err).to.eql('err');
-						localCommon
-							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
-							.then(account => {
-								expect(account.mem_accounts.u_balance).to.equal(
 									transferAmount.toString()
 								);
 								done();
@@ -308,21 +189,6 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
 								expect(account.mem_accounts.balance).to.equal(
-									transferAmount.toString()
-								);
-								done();
-							});
-					});
-				});
-
-				it('should not change u_balance in mem_accounts table', done => {
-					library.modules.blocks.chain.deleteLastBlock(err => {
-						expect(err).to.exist;
-						expect(err).to.eql('err');
-						localCommon
-							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
-							.then(account => {
-								expect(account.mem_accounts.u_balance).to.equal(
 									transferAmount.toString()
 								);
 								done();
@@ -391,18 +257,6 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 						.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 						.then(account => {
 							expect(account.mem_accounts.balance).to.equal('0');
-							done();
-						});
-				});
-			});
-
-			it('should revert u_balance for accounts in block', done => {
-				library.modules.blocks.chain.deleteLastBlock(err => {
-					expect(err).to.not.exist;
-					localCommon
-						.getAccountFromDb(library, fundTrsForAccount1.recipientId)
-						.then(account => {
-							expect(account.mem_accounts.u_balance).to.equal('0');
 							done();
 						});
 				});
