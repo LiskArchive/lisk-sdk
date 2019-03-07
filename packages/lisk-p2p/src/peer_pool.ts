@@ -256,28 +256,24 @@ export class PeerPool extends EventEmitter {
 	public async runDiscovery(
 		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 		blacklist: ReadonlyArray<P2PPeerInfo>,
+		nodeInfo: P2PNodeInfo,
 	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
-		const peersObjectList = knownPeers.map(
-			(peerInfo: P2PDiscoveredPeerInfo) => {
-				const peerId = constructPeerIdFromPeerInfo(peerInfo);
-				if (this.hasPeer(peerId)) {
-					const existingPeer = this.getPeer(peerId) as Peer;
-					existingPeer.updatePeerInfo(peerInfo);
-
-					return existingPeer;
-				}
-
-				return this.addPeer(peerInfo);
+		const discoveredPeers = await discoverPeers(
+			knownPeers,
+			{
+				blacklist: blacklist.map(peer => peer.ipAddress),
 			},
+			nodeInfo,
 		);
 
-		const peerSampleToProbe = selectRandomPeerSample(
-			peersObjectList,
-			MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE,
-		);
+		// Check for received discovery info and then find it in peer pool and then update it
+		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			if (this.hasPeer(peerId)) {
+				const existingPeer = this.getPeer(peerId) as Peer;
 
-		const discoveredPeers = await discoverPeers(peerSampleToProbe, {
-			blacklist: blacklist.map(peer => peer.ipAddress),
+				existingPeer.updatePeerInfo(peerInfo);
+			}
 		});
 
 		return discoveredPeers;
@@ -293,6 +289,11 @@ export class PeerPool extends EventEmitter {
 			if (!this.hasPeer(peerId)) {
 				this.addPeer(peerInfo);
 			}
+			const existingPeer = this.getPeer(peerId) as Peer;
+
+			existingPeer.updatePeerInfo(peerInfo);
+
+			return existingPeer;
 		});
 
 		return peersToConnect;

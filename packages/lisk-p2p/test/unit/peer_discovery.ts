@@ -17,7 +17,7 @@ import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 import { initializePeerList } from '../utils/peers';
 import * as discoverPeersModule from '../../src/peer_discovery';
 
-describe('peer discovery', () => {
+describe.skip('peer discovery', () => {
 	const samplePeers = initializePeerList();
 	const seedPeer1 = samplePeers[0];
 	const seedPeer2 = samplePeers[1];

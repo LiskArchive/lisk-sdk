@@ -572,3 +572,149 @@ export class Peer extends EventEmitter {
 		request.end(legacyNodeInfo);
 	}
 }
+
+export interface ConnectAndFetchResponse {
+	readonly responsePacket: P2PResponsePacket;
+	readonly socket?: SCClientSocket;
+}
+
+export const connectAndRequest = async (
+	basicPeerInfo: P2PPeerInfo,
+	procedure: string,
+	nodeInfo?: P2PNodeInfo,
+	peerConfig?: PeerConfig,
+): Promise<ConnectAndFetchResponse> =>
+	new Promise<ConnectAndFetchResponse>(
+		(
+			resolve: (result: ConnectAndFetchResponse) => void,
+			reject: (result: Error) => void,
+		): void => {
+			const legacyNodeInfo = nodeInfo
+				? convertNodeInfoToLegacyFormat(nodeInfo)
+				: undefined;
+			// Add a new field discovery to tell the receiving side that the connection will be short lived
+			const nodeInfoForDiscovery = { discovery: true, ...legacyNodeInfo };
+			const requestPacket = {
+				procedure,
+			};
+			const clientOptions: ClientOptionsUpdated = {
+				hostname: basicPeerInfo.ipAddress,
+				port: basicPeerInfo.wsPort,
+				query: querystring.stringify(nodeInfoForDiscovery),
+				connectTimeout: peerConfig
+					? peerConfig.connectTimeout
+						? peerConfig.connectTimeout
+						: DEFAULT_CONNECT_TIMEOUT
+					: DEFAULT_CONNECT_TIMEOUT,
+				ackTimeout: peerConfig
+					? peerConfig.connectTimeout
+						? peerConfig.connectTimeout
+						: DEFAULT_CONNECT_TIMEOUT
+					: DEFAULT_ACK_TIMEOUT,
+				multiplex: false,
+				autoConnect: false,
+				autoReconnect: false,
+				pingTimeoutDisabled: true,
+			};
+
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			// Attaching handlers for various events that could be used future for logging or any other application
+			outboundSocket.on('error', async (error: Error) =>
+				Promise.resolve(error),
+			);
+			outboundSocket.on('close', async () =>
+				Promise.resolve('Connection closed'),
+			);
+			outboundSocket.on('connect', async () =>
+				Promise.resolve('Connection Successful'),
+			);
+
+			outboundSocket.emit(
+				REMOTE_EVENT_RPC_REQUEST,
+				{
+					type: '/RPCRequest',
+					procedure: requestPacket.procedure,
+				},
+				(err: Error | undefined, responseData: unknown) => {
+					if (err) {
+						reject(err);
+
+						return;
+					}
+					if (responseData) {
+						const responsePacket = responseData as P2PResponsePacket;
+						resolve({
+							responsePacket,
+							socket: outboundSocket,
+						});
+
+						return;
+					}
+
+					reject(
+						new RPCResponseError(
+							`Failed to handle response for procedure ${
+								requestPacket.procedure
+							}`,
+							new Error('RPC response format was invalid'),
+							basicPeerInfo.ipAddress,
+							basicPeerInfo.wsPort,
+						),
+					);
+				},
+			);
+		},
+	);
+
+export const connectAndFetchPeers = async (
+	basicPeerInfo: P2PPeerInfo,
+	nodeInfo?: P2PNodeInfo,
+	peerConfig?: PeerConfig,
+): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> => {
+	try {
+		const { responsePacket, socket } = await connectAndRequest(
+			basicPeerInfo,
+			REMOTE_RPC_GET_ALL_PEERS_LIST,
+			nodeInfo,
+			peerConfig,
+		);
+
+		if (socket) {
+			socket.destroy();
+		}
+		const peers = validatePeerInfoList(responsePacket.data);
+
+		return peers;
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const connectAndFetchStatus = async (
+	basicPeerInfo: P2PPeerInfo,
+	nodeInfo?: P2PNodeInfo,
+	peerConfig?: PeerConfig,
+): Promise<P2PDiscoveredPeerInfo> => {
+	try {
+		const { responsePacket, socket } = await connectAndRequest(
+			basicPeerInfo,
+			REMOTE_RPC_GET_NODE_INFO,
+			nodeInfo,
+			peerConfig,
+		);
+		if (socket) {
+			socket.destroy();
+		}
+		const protocolPeerInfo = responsePacket.data;
+		const rawPeerInfo = {
+			...protocolPeerInfo,
+			ip: basicPeerInfo.ipAddress,
+			wsPort: basicPeerInfo.wsPort,
+		};
+		const peerInfo = validatePeerInfo(rawPeerInfo);
+
+		return peerInfo;
+	} catch (error) {
+		throw error;
+	}
+};
