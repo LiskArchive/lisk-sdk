@@ -592,14 +592,15 @@ export const connectAndRequest = async (
 			const legacyNodeInfo = nodeInfo
 				? convertNodeInfoToLegacyFormat(nodeInfo)
 				: undefined;
-
+			// Add a new field discovery to tell the receiving side that the connection will be short lived
+			const nodeInfoForDiscovery = { discovery: true, ...legacyNodeInfo };
 			const requestPacket = {
 				procedure,
 			};
 			const clientOptions: ClientOptionsUpdated = {
 				hostname: basicPeerInfo.ipAddress,
 				port: basicPeerInfo.wsPort,
-				query: querystring.stringify(legacyNodeInfo),
+				query: querystring.stringify(nodeInfoForDiscovery),
 				connectTimeout: peerConfig
 					? peerConfig.connectTimeout
 						? peerConfig.connectTimeout
@@ -617,6 +618,16 @@ export const connectAndRequest = async (
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
+			// Attaching handlers for various events that could be used future for logging or any other application
+			outboundSocket.on('error', async (error: Error) =>
+				Promise.resolve(error),
+			);
+			outboundSocket.on('close', async () =>
+				Promise.resolve('Connection closed'),
+			);
+			outboundSocket.on('connect', async () =>
+				Promise.resolve('Connection Successful'),
+			);
 
 			outboundSocket.emit(
 				REMOTE_EVENT_RPC_REQUEST,
@@ -632,7 +643,6 @@ export const connectAndRequest = async (
 					}
 					if (responseData) {
 						const responsePacket = responseData as P2PResponsePacket;
-
 						resolve({
 							responsePacket,
 							socket: outboundSocket,
@@ -661,17 +671,17 @@ export const connectAndFetchPeers = async (
 	nodeInfo?: P2PNodeInfo,
 	peerConfig?: PeerConfig,
 ): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> => {
-	const { responsePacket, socket } = await connectAndRequest(
-		basicPeerInfo,
-		REMOTE_RPC_GET_ALL_PEERS_LIST,
-		nodeInfo,
-		peerConfig,
-	);
-	if (socket) {
-		socket.destroy();
-	}
-
 	try {
+		const { responsePacket, socket } = await connectAndRequest(
+			basicPeerInfo,
+			REMOTE_RPC_GET_ALL_PEERS_LIST,
+			nodeInfo,
+			peerConfig,
+		);
+
+		if (socket) {
+			socket.destroy();
+		}
 		const peers = validatePeerInfoList(responsePacket.data);
 
 		return peers;
@@ -685,22 +695,22 @@ export const connectAndFetchStatus = async (
 	nodeInfo?: P2PNodeInfo,
 	peerConfig?: PeerConfig,
 ): Promise<P2PDiscoveredPeerInfo> => {
-	const { responsePacket, socket } = await connectAndRequest(
-		basicPeerInfo,
-		REMOTE_RPC_GET_NODE_INFO,
-		nodeInfo,
-		peerConfig,
-	);
-	if (socket) {
-		socket.destroy();
-	}
-	const protocolPeerInfo = responsePacket.data;
-	const rawPeerInfo = {
-		...protocolPeerInfo,
-		ip: basicPeerInfo.ipAddress,
-		wsPort: basicPeerInfo.wsPort,
-	};
 	try {
+		const { responsePacket, socket } = await connectAndRequest(
+			basicPeerInfo,
+			REMOTE_RPC_GET_NODE_INFO,
+			nodeInfo,
+			peerConfig,
+		);
+		if (socket) {
+			socket.destroy();
+		}
+		const protocolPeerInfo = responsePacket.data;
+		const rawPeerInfo = {
+			...protocolPeerInfo,
+			ip: basicPeerInfo.ipAddress,
+			wsPort: basicPeerInfo.wsPort,
+		};
 		const peerInfo = validatePeerInfo(rawPeerInfo);
 
 		return peerInfo;
