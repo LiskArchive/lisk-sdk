@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const phases = require('../../../common/phases');
 const randomUtil = require('../../../common/utils/random');
@@ -57,8 +57,8 @@ describe('Posting transaction (type 0)', () => {
 
 	describe('transaction processing', () => {
 		it('when sender has no funds should broadcast transaction but not confirm', done => {
-			transaction = lisk.transaction.transfer({
-				amount: 1,
+			transaction = transfer({
+				amount: '1',
 				passphrase: account.passphrase,
 				recipientId: '1L',
 			});

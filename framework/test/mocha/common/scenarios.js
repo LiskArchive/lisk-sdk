@@ -14,9 +14,16 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
+const BigNumber = require('bignumber.js');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('./utils/random');
+
+const { FEES } = global.constants;
 
 function Multisig(options) {
 	if (!options) {
@@ -42,27 +49,53 @@ function Multisig(options) {
 	this.lifetime = options.lifetime || 1;
 	this.amount = options.amount || 100000000000;
 
-	this.multiSigTransaction = lisk.transaction.registerMultisignature({
+	// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+	this.multiSigTransaction = transactionUtils.signRawTransaction({
+		transaction: {
+			type: 4,
+			amount: '0',
+			fee: new BigNumber(FEES.MULTISIGNATURE)
+				.times(this.keysgroup.length + 1)
+				.toString(),
+			asset: {
+				multisignature: {
+					keysgroup: this.keysgroup.map(key => `+${key}`),
+					lifetime: this.lifetime,
+					min: this.minimum,
+				},
+			},
+		},
 		passphrase: this.account.passphrase,
-		keysgroup: this.keysgroup,
-		lifetime: this.lifetime,
-		minimum: this.minimum,
 	});
-	this.multiSigSecondSignatureTransaction = lisk.transaction.registerMultisignature(
+
+	// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+	this.multiSigSecondSignatureTransaction = transactionUtils.signRawTransaction(
 		{
+			transaction: {
+				type: 4,
+				amount: '0',
+				fee: new BigNumber(FEES.MULTISIGNATURE)
+					.times(this.keysgroup.length + 1)
+					.toString(),
+				asset: {
+					multisignature: {
+						keysgroup: this.keysgroup.map(key => `+${key}`),
+						lifetime: this.lifetime,
+						min: this.minimum,
+					},
+				},
+			},
 			passphrase: this.account.passphrase,
 			secondPassphrase: this.account.secondPassphrase,
-			keysgroup: this.keysgroup,
-			lifetime: this.lifetime,
-			minimum: this.minimum,
 		}
 	);
-	this.creditTransaction = lisk.transaction.transfer({
-		amount: this.amount,
+
+	this.creditTransaction = transfer({
+		amount: this.amount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: this.account.address,
 	});
-	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase({
+	this.secondSignatureTransaction = registerSecondPassphrase({
 		passphrase: this.account.passphrase,
 		secondPassphrase: this.account.secondPassphrase,
 	});

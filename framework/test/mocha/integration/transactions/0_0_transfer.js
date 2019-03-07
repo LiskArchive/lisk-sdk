@@ -14,7 +14,7 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 const localCommon = require('../common');
@@ -34,8 +34,8 @@ describe('system test (type 0) - double transfers', () => {
 	while (i < 1) {
 		describe('executing 30 times', () => {
 			const account = randomUtil.account();
-			const transaction = lisk.transaction.transfer({
-				amount: 1100 * NORMALIZER,
+			const transaction = transfer({
+				amount: (1100 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -54,8 +54,8 @@ describe('system test (type 0) - double transfers', () => {
 			});
 
 			it('adding to pool transfer should be ok', done => {
-				transaction1 = lisk.transaction.transfer({
-					amount: 1000 * NORMALIZER,
+				transaction1 = transfer({
+					amount: (1000 * NORMALIZER).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 					timeOffset: -10000,
@@ -67,8 +67,8 @@ describe('system test (type 0) - double transfers', () => {
 			});
 
 			it('adding to pool same transfer with different timestamp should be ok', done => {
-				transaction2 = lisk.transaction.transfer({
-					amount: 1000 * NORMALIZER,
+				transaction2 = transfer({
+					amount: (1000 * NORMALIZER).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 				});

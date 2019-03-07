@@ -14,7 +14,10 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	registerMultisignature,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
 
@@ -25,7 +28,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		regular: new Scenarios.Multisig(),
 	};
 
-	const transactionToBeNotConfirmed = lisk.transaction.registerMultisignature({
+	const transactionToBeNotConfirmed = registerMultisignature({
 		passphrase: scenarios.regular.account.passphrase,
 		keysgroup: scenarios.regular.keysgroup,
 		lifetime: scenarios.regular.lifetime,
@@ -39,12 +42,12 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	transactionToBeNotConfirmed.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		const signatureToBeNotconfirmed = lisk.transaction.utils.multiSignTransaction(
+		const signatureToBeNotconfirmed = transactionUtils.multiSignTransaction(
 			transactionToBeNotConfirmed,
 			member.passphrase
 		);
 		transactionToBeNotConfirmed.signatures.push(signatureToBeNotconfirmed);
-		const signature = lisk.transaction.utils.multiSignTransaction(
+		const signature = transactionUtils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
 			member.passphrase
 		);
@@ -126,15 +129,13 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		});
 
 		it('adding to pool multisignature registration for same account should fail', done => {
-			const multiSignatureToSameAccount = lisk.transaction.registerMultisignature(
-				{
-					passphrase: scenarios.regular.account.passphrase,
-					keysgroup: scenarios.regular.keysgroup,
-					lifetime: scenarios.regular.lifetime,
-					minimum: scenarios.regular.minimum,
-					timeOffset: -10000,
-				}
-			);
+			const multiSignatureToSameAccount = registerMultisignature({
+				passphrase: scenarios.regular.account.passphrase,
+				keysgroup: scenarios.regular.keysgroup,
+				lifetime: scenarios.regular.lifetime,
+				minimum: scenarios.regular.minimum,
+				timeOffset: -10000,
+			});
 			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
 				expect(err).to.equal('Account already has multisignatures enabled');
 				done();
