@@ -97,7 +97,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		common.invalidAssets('dapp', badTransactions);
 
 		describe('category', () => {
-			it('without should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] without should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -115,7 +116,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with string should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with string should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -133,7 +135,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer less than minimum should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer less than minimum should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -149,7 +152,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer greater than maximum should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer greater than maximum should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -196,7 +200,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -229,7 +234,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with string longer than maximum(160) should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with string longer than maximum(160) should fail', async () => {
 				const application = randomUtil.application();
 				application.description = randomstring.generate({
 					length: 161,
@@ -265,7 +271,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar1 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar1 should fail', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar1} ipsum`;
 
@@ -285,7 +292,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar2 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar2 should fail', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar2} ipsum`;
 
@@ -305,7 +313,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar3 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar3 should fail', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar3} ipsum`;
 
@@ -325,7 +334,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar4 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar4 should fail', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar4}`;
 
@@ -362,7 +372,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -380,7 +391,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with invalid url should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with invalid url should fail', async () => {
 				const application = randomUtil.application();
 				application.icon = 'invalidUrl';
 
@@ -398,7 +410,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with invalid file type should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with invalid file type should fail', async () => {
 				const application = randomUtil.application();
 				application.icon += '.invalid';
 
@@ -420,7 +433,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		describe('link', () => {
-			it('with empty string should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with empty string should fail', async () => {
 				const application = randomUtil.application();
 				application.link = '';
 
@@ -438,7 +452,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -456,7 +471,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with invalid extension type should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with invalid extension type should fail', async () => {
 				const application = randomUtil.application();
 				application.link += '.invalid';
 
@@ -476,7 +492,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		describe('name', () => {
-			it('without should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] without should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -492,7 +509,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -510,7 +528,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with empty string should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with empty string should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -528,7 +547,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with string longer than maximum(32) should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with string longer than maximum(32) should fail', async () => {
 				const application = randomUtil.application();
 				application.name = randomstring.generate({
 					length: 33,
@@ -565,7 +585,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar1 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar1 should fail', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar1}`;
 
@@ -585,7 +606,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar2 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar2 should fail', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar2}`;
 
@@ -605,7 +627,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar3 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar3 should fail', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar3}`;
 
@@ -625,7 +648,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar4 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar4 should fail', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar4}`;
 
@@ -662,7 +686,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -680,7 +705,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with empty string should be ok', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with empty string should be ok', async () => {
 				const application = randomUtil.application();
 				application.tags = '';
 
@@ -695,7 +721,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with string longer than maximum(160) should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with string longer than maximum(160) should fail', async () => {
 				const application = randomUtil.application();
 				application.tags = randomstring.generate({
 					length: 161,
@@ -731,7 +758,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with duplicate tag should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with duplicate tag should fail', () => {
 				const application = randomUtil.application();
 				const tag = application.tags;
 				application.tags += `,${tag}`;
@@ -767,7 +795,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar1 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar1 should fail', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar1}`;
 
@@ -787,7 +816,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar2 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar2 should fail', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar2}`;
 
@@ -807,7 +837,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar3 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar3 should fail', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar3}`;
 
@@ -827,7 +858,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with nullChar4 should fail', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with nullChar4 should fail', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar4}`;
 
@@ -849,7 +881,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		describe('type', () => {
-			it('without should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] without should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -865,7 +898,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with negative integer should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with negative integer should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -881,7 +915,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer smaller than minimum should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer smaller than minimum should fail', async () => {
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
@@ -897,7 +932,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with integer greater than maximum should fail', async () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('[1.7-transactions-changes-revisit] with integer greater than maximum should fail', async () => {
 				const application = randomUtil.application();
 				application.type = 2;
 				transaction = lisk.transaction.createDapp({
