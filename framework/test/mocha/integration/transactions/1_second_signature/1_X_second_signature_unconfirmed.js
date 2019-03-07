@@ -14,7 +14,11 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	createDapp,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
@@ -26,19 +30,19 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	let library;
 
 	const account = randomUtil.account();
-	const transaction = lisk.transaction.transfer({
-		amount: 1000 * NORMALIZER,
+	const transaction = transfer({
+		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	const dapp = randomUtil.application();
-	const dappTransaction = lisk.transaction.createDapp({
+	const dappTransaction = createDapp({
 		passphrase: account.passphrase,
 		options: dapp,
 	});
 	dapp.id = dappTransaction.id;
 	let transactionWith;
-	const transactionSecondSignature = lisk.transaction.registerSecondPassphrase({
+	const transactionSecondSignature = registerSecondPassphrase({
 		passphrase: account.passphrase,
 		secondPassphrase: account.secondPassphrase,
 	});
@@ -93,7 +97,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					});
 
 					it(`type ${index}: ${key} with different timestamp should be ok`, done => {
-						transactionWith = lisk.transaction.registerSecondPassphrase({
+						transactionWith = registerSecondPassphrase({
 							passphrase: account.passphrase,
 							secondPassphrase: account.secondPassphrase,
 							timeOffset: -10000,
