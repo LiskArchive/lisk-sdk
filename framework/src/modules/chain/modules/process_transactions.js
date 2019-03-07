@@ -30,6 +30,18 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
+	validateTransactions(transactions) {
+		return transactions
+			.map(transaction => ({
+				...transaction,
+				fee: transaction.fee.toString(),
+				amount: transaction.amount.toString(),
+			}))
+			.map(initTransaction)
+			.map(transactionInstance => transactionInstance.validate());
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	async applyTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
 		const stateStore = library.logic.stateManager.createStore({
