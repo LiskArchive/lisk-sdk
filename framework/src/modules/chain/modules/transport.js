@@ -225,12 +225,11 @@ __private.receiveTransaction = function(
 	try {
 		const tx = initTransaction(transaction);
 		const { errors } = tx.validate();
-		if (errors) {
+		if (errors.length > 0) {
 			throw errors;
 		}
 	} catch (errors) {
-		const error =
-			Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+		const error = errors.length > 0 ? errors[0] : errors;
 		library.logger.debug('Transaction normalization failed', {
 			id,
 			err: error.toString(),
