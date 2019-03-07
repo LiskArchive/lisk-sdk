@@ -9,7 +9,7 @@ const BaseChannel = require('./base_channel');
  * @memberof framework.controller.channels
  * @requires module.Event
  * @requires module.Action
- * @requires channels/base
+ * @requires channels/base_channel
  * @type {module.InMemoryChannel}
  */
 class InMemoryChannel extends BaseChannel {
@@ -49,7 +49,7 @@ class InMemoryChannel extends BaseChannel {
 	 * @returns {setImmediateCallback} cb, err, self - The callback that handles events
 	 */
 	subscribe(eventName, cb) {
-		this.bus.on(new Event(eventName).key(), data =>
+		this.bus.subscribe(new Event(eventName).key(), data =>
 			setImmediate(cb, Event.deserialize(data))
 		);
 	}

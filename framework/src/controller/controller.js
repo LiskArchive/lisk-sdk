@@ -2,7 +2,7 @@ const assert = require('assert');
 const fs = require('fs-extra');
 const psList = require('ps-list');
 const systemDirs = require('./config/dirs');
-const InMemoryChannel = require('./channels/in_memory_channel');
+const { InMemoryChannel, ChildProcessChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 
@@ -49,13 +49,16 @@ class Controller {
 		this.logger.info('Initializing controller');
 
 		this.componentConfig = componentConfig;
+		this.modules = {};
 		this.channel = null; // Channel for controller
 		this.modulesChannels = {}; // Keep track of all channels for modules
 		this.bus = null;
-		this.config = {
-			dirs: systemDirs(this.appLabel),
+		this.config = { dirs: systemDirs(this.appLabel) };
+		this.socketsPath = {
+			pub: `unix://${this.config.dirs.sockets}/bus_pub.sock`,
+			sub: `unix://${this.config.dirs.sockets}/bus_sub.sock`,
+			rpc: `unix://${this.config.dirs.sockets}/bus_rpc.sock`,
 		};
-		this.modules = {};
 	}
 
 	/**
@@ -121,7 +124,8 @@ class Controller {
 			delimiter: ':',
 			maxListeners: 1000,
 		});
-		await this.bus.setup();
+
+		await this.bus.setup(this.socketsPath);
 
 		this.channel = new InMemoryChannel(
 			'lisk',
@@ -132,6 +136,7 @@ class Controller {
 			this.bus,
 			{ skipInternalEvents: true }
 		);
+
 		await this.channel.registerToBus();
 
 		// If log level is greater than info
@@ -147,15 +152,16 @@ class Controller {
 
 	async _loadModules(modules) {
 		// To perform operations in sequence and not using bluebird
-
 		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of Object.keys(modules)) {
-			// eslint-disable-next-line no-await-in-loop
-			await this._loadInMemoryModule(
-				alias,
-				modules[alias].klass,
-				modules[alias].options
-			);
+			const { klass, options } = modules[alias];
+			if (options.useSocketChannel) {
+				// eslint-disable-next-line no-await-in-loop
+				await this._loadModuleWithSocketChannel(alias, klass, options);
+			} else {
+				// eslint-disable-next-line no-await-in-loop
+				await this._loadInMemoryModule(alias, klass, options);
+			}
 		}
 	}
 
@@ -174,12 +180,44 @@ class Controller {
 			moduleAlias,
 			module.events,
 			module.actions,
-			this.bus,
-			{}
+			this.bus
 		);
 
 		this.modulesChannels[moduleAlias] = channel;
 
+		await channel.registerToBus();
+
+		channel.publish(`${moduleAlias}:registeredToBus`);
+		channel.publish(`${moduleAlias}:loading:started`);
+		await module.load(channel);
+		channel.publish(`${moduleAlias}:loading:finished`);
+
+		this.modules[moduleAlias] = module;
+		this.logger.info(
+			`Module ready with alias: ${moduleAlias}(${name}:${version})`
+		);
+	}
+
+	async _loadModuleWithSocketChannel(alias, Klass, options) {
+		const module = new Klass(options);
+		validateModuleSpec(module);
+
+		const moduleAlias = alias || module.constructor.alias;
+		const { name, version } = module.constructor.info;
+
+		this.logger.info(
+			`Loading module with alias: ${moduleAlias}(${name}:${version})`
+		);
+
+		const channel = new ChildProcessChannel(
+			moduleAlias,
+			module.events,
+			module.actions
+		);
+
+		this.modulesChannels[moduleAlias] = channel;
+
+		await channel.connect(this.socketsPath);
 		await channel.registerToBus();
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
@@ -212,6 +250,7 @@ class Controller {
 		}
 
 		try {
+			await this.bus.cleanup();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
 		} catch (error) {

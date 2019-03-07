@@ -1,4 +1,5 @@
-const Promise = require('bluebird');
+const axon = require('axon');
+const { Server: RPCServer } = require('axon-rpc');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
@@ -36,10 +37,37 @@ class Bus extends EventEmitter2 {
 	 * @async
 	 * @return {Promise.<void>}
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	async setup() {
-		// Place holder for RPC server connection
-		return Promise.resolve();
+	async setup(socketsPath) {
+		this.pubSocket = axon.socket('pub-emitter');
+		this.pubSocket.bind(socketsPath.pub);
+
+		this.subSocket = axon.socket('sub-emitter');
+		this.subSocket.bind(socketsPath.sub);
+
+		this.rpcSocket = axon.socket('rep');
+		this.rpcServer = new RPCServer(this.rpcSocket);
+
+		this.rpcServer.expose(
+			'registerChannel',
+			(moduleAlias, events, actions, options, cb) => {
+				this.registerChannel(moduleAlias, events, actions, options)
+					.then(() => setImmediate(cb, null))
+					.catch(error => setImmediate(cb, error));
+			}
+		);
+
+		this.rpcServer.expose('invoke', (action, cb) => {
+			this.invoke(action)
+				.then(data => setImmediate(cb, null, data))
+				.catch(error => setImmediate(cb, error));
+		});
+
+		return new Promise((resolve, reject) => {
+			// TODO: wait for all sockets to be created
+			this.rpcSocket.once('bind', resolve);
+			this.rpcSocket.once('error', reject);
+			this.rpcSocket.bind(socketsPath.rpc);
+		});
 	}
 
 	/**
@@ -109,7 +137,18 @@ class Bus extends EventEmitter2 {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
-		super.emit(eventName, eventValue); // Use Emit function from EventEmitter2 package
+
+		super.emit(eventName, eventValue); // Communicate throw event emitter
+		this.pubSocket.emit(eventName, eventValue); // Communicate throw unix socket
+	}
+
+	subscribe(eventName, cb) {
+		if (!this.getEvents().includes(eventName)) {
+			throw new Error(`Event ${eventName} is not registered to bus.`);
+		}
+
+		super.on(eventName, cb); // Communicate throw event emitter
+		this.subSocket.on(eventName, cb); // Communicate throw unix socket
 	}
 
 	/**
@@ -128,6 +167,18 @@ class Bus extends EventEmitter2 {
 	 */
 	getEvents() {
 		return Object.keys(this.events);
+	}
+
+	async cleanup() {
+		if (this.pubSocket && typeof this.pubSocket.close === 'function') {
+			this.pubSocket.close();
+		}
+		if (this.subSocket && typeof this.subSocket.close === 'function') {
+			this.subSocket.close();
+		}
+		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
+			this.rpcSocket.close();
+		}
 	}
 }
 
