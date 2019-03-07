@@ -190,20 +190,10 @@ module.exports = class Chain {
 				this.blockReward.calcMilestone(action.params[0]),
 			calculateReward: action => this.blockReward.calcReward(action.params[0]),
 			generateDelegateList: action =>
-				new Promise((resolve, reject) => {
-					this.scope.modules.delegates.generateDelegateList(
-						action.params[0],
-						action.params[1],
-						(err, data) => {
-							if (err) {
-								reject(err);
-							}
-
-							resolve(data);
-						},
-						action.params[2]
-					);
-				}),
+				promisify(this.scope.modules.delegates.generateDelegateList)(
+					action.params[0],
+					action.params[1]
+				),
 			getNetworkHeight: async action =>
 				promisify(this.scope.modules.peers.networkHeight)(action.params[0]),
 			getAllTransactionsCount: async () =>

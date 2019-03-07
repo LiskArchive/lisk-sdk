@@ -193,8 +193,6 @@ async function _getForgers(filters) {
 
 	const activeDelegates = await channel.invoke('chain:generateDelegateList', [
 		round,
-		null,
-		null,
 	]);
 
 	for (
