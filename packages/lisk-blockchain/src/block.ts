@@ -84,8 +84,11 @@ export class Block {
 		this.payloadHash = blockHeader.payloadHash;
 		this.payloadLength = blockHeader.payloadLength;
 		this.generatorPublicKey = blockHeader.generatorPublicKey;
+		this.blockSignature = blockHeader.blockSignature;
 		this.transactions = transactions;
-		this.id = getBlockId(this._getBytes());
+		this.id = blockHeader.id as string;
+		// TODO: recalculate blockID, but blockID calculation is wrong
+		// this.id = getBlockId(this._getBytes());
 	}
 
 	public validate(): ReadonlyArray<Error> {
@@ -99,6 +102,10 @@ export class Block {
 				[] as ReadonlyArray<TransactionResponse>,
 			)
 			.reduce((prev, current) => prev.concat(current.errors), [] as Error[]);
+
+		logger('Validated block schema with errors', {
+			error: [...blockError, ...txErrors],
+		});
 
 		return [...blockError, ...txErrors];
 	}
@@ -164,6 +171,7 @@ export class Block {
 			reward: this.reward,
 			payloadHash: this.payloadHash,
 			payloadLength: this.payloadLength,
+			blockSignature: this.blockSignature,
 			generatorPublicKey: this.generatorPublicKey,
 			transactions: this.transactions.map(tx => tx.toJSON() as TransactionJSON),
 		};

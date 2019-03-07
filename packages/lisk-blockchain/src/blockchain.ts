@@ -130,6 +130,7 @@ export class Blockchain extends EventEmitter {
 		rewards?: ReadonlyArray<Reward>,
 	): Promise<ReadonlyArray<Error> | undefined> {
 		// Recalculate blockID
+		logger('Start adding block', { id: rawBlock.id, height: rawBlock.height });
 		const txs = rawTransactionToInstance(this._txMap, rawBlock.transactions);
 		const block = new Block(rawBlock, txs);
 		// Check if blockID exists
@@ -137,17 +138,29 @@ export class Blockchain extends EventEmitter {
 		if (existError) {
 			return [existError];
 		}
+		logger('Checked block does not exists in blockchain', {
+			id: rawBlock.id,
+			height: rawBlock.height,
+		});
 		// Validate block
 		const validateErrors = block.validate();
-		if (validateErrors) {
+		if (validateErrors.length > 0) {
 			return validateErrors;
 		}
+		logger('Successfully validated', {
+			id: rawBlock.id,
+			height: rawBlock.height,
+		});
 		const store = new StateStore(this._db, block);
 		// Verify block
 		const verifyErrors = await block.verify(store);
 		if (verifyErrors.length > 0) {
 			return verifyErrors;
 		}
+		logger('Successfully verified', {
+			id: rawBlock.id,
+			height: rawBlock.height,
+		});
 		// Fork choice
 		if (block.height === this.lastBlock.height) {
 			const deleteError = await this._deleteBlock();
@@ -165,10 +178,19 @@ export class Blockchain extends EventEmitter {
 		) {
 			return applyErrors;
 		}
+		logger('Successfully applied', {
+			id: rawBlock.id,
+			height: rawBlock.height,
+		});
 		if (rewards) {
 			await applyReward(store, block.height, rewards);
 		}
 		await store.finalize();
+		logger('Successfully finalized', {
+			id: rawBlock.id,
+			height: rawBlock.height,
+		});
+		this._lastBlock = block;
 		this.emit(EVENT_BLOCK_ADDED, {
 			block,
 			accounts: store.getUpdatedAccount(),

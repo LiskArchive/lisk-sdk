@@ -16,7 +16,6 @@ export const blockSchema = {
 	properties: {
 		id: {
 			type: 'string',
-			format: 'id',
 			minLength: 1,
 			maxLength: 20,
 		},
@@ -25,25 +24,21 @@ export const blockSchema = {
 		},
 		blockSignature: {
 			type: 'string',
-			format: 'signature',
 		},
 		generatorPublicKey: {
 			type: 'string',
-			format: 'publicKey',
 		},
 		numberOfTransactions: {
 			type: 'integer',
 		},
 		payloadHash: {
 			type: 'string',
-			format: 'hex',
 		},
 		payloadLength: {
 			type: 'integer',
 		},
 		previousBlock: {
 			type: 'string',
-			format: 'id',
 			minLength: 1,
 			maxLength: 20,
 		},
@@ -52,15 +47,12 @@ export const blockSchema = {
 		},
 		totalAmount: {
 			type: 'string',
-			format: 'amount',
 		},
 		totalFee: {
 			type: 'string',
-			format: 'amount',
 		},
 		reward: {
 			type: 'string',
-			format: 'amount',
 		},
 		transactions: {
 			type: 'array',

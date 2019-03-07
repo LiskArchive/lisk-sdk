@@ -23,8 +23,8 @@ export class Sync extends EventEmitter {
 	private readonly _dpos: DPOS;
 	private readonly _p2p: P2P;
 	private readonly _logger: bunyan;
-	private readonly _syncing: boolean;
 	private readonly _observer: Observable<void>;
+	private _syncing: boolean;
 
 	public constructor(
 		blockchain: Blockchain,
@@ -39,10 +39,14 @@ export class Sync extends EventEmitter {
 		this._p2p = p2p;
 		this._logger = logger;
 		this._syncing = false;
-		this._observer = interval(options.interval)
-			.pipe(filter(() => !this._syncing), mergeMap(async () => {
+		this._observer = interval(options.interval).pipe(
+			filter(() => !this._syncing),
+			mergeMap(async () => {
+				this._syncing = true;
 				await this._sync();
-			}), retry(options.retry))
+			}),
+			retry(options.retry),
+		);
 	}
 
 	public async start(): Promise<void> {
@@ -51,7 +55,7 @@ export class Sync extends EventEmitter {
 			next: () => {
 				this._logger.info('Calling next');
 			},
-			error: (error) => {
+			error: error => {
 				this._logger.error(error, 'Error on syncing');
 			},
 		});
@@ -67,6 +71,10 @@ export class Sync extends EventEmitter {
 
 	private async _sync(): Promise<void> {
 		const lastBlock = this._blockchain.lastBlock;
+		this._logger.info(
+			{ id: lastBlock.id, height: lastBlock.height },
+			'Syncing started',
+		);
 		const { data: responseData } = await this._p2p.request({
 			procedure: 'blocks',
 			data: {
@@ -82,12 +90,21 @@ export class Sync extends EventEmitter {
 				readonly blocks: ReadonlyArray<ProtocolBlock>;
 			};
 			const blocks = protocolBlockToDomain(protocolBlocks);
+
+			this._logger.info(
+				{ id: lastBlock.id, height: lastBlock.height },
+				'Syncing started',
+			);
 			// tslint:disable-next-line no-loop-statement
 			for (const block of blocks) {
 				const blockWithHeight = {
 					...block,
 					height: block.height || this._blockchain.lastBlock.height,
 				};
+				this._logger.info(
+					{ id: block.id, height: block.height },
+					'processing block',
+				);
 				if (blockWithHeight.height === 1) {
 					this._logger.debug('Height 1 received. Ignoring.');
 					continue;
@@ -97,15 +114,41 @@ export class Sync extends EventEmitter {
 					blockWithHeight,
 				);
 				if (dposErrors) {
-					this._logger.error(dposErrors, 'Failed to verify block with dpos');
+					this._logger.error(
+						{ error: dposErrors },
+						'Failed to verify block with dpos',
+					);
 					throw dposErrors;
 				}
+				this._logger.info(
+					{ id: block.id, height: block.height },
+					'verified block for dpos',
+				);
 				const rewards = await this._dpos.getRewards(blockWithHeight);
-				const blockAddError = await this._blockchain.addBlock(blockWithHeight, rewards);
+				this._logger.info(
+					{ id: block.id, height: block.height, rewards },
+					'rewards obtained',
+				);
+				const dposProcessError = await this._dpos.process(blockWithHeight);
+				if (dposProcessError) {
+					this._logger.error(
+						{ error: dposProcessError },
+						'Failed to process dpos',
+					);
+					throw dposProcessError;
+				}
+				const blockAddError = await this._blockchain.addBlock(
+					blockWithHeight,
+					rewards,
+				);
 				if (blockAddError) {
-					this._logger.error(blockAddError, 'Failed to add block');
+					this._logger.error({ error: blockAddError }, 'Failed to add block');
 					throw blockAddError;
 				}
+				this._logger.info(
+					{ id: block.id, height: block.height },
+					'block added',
+				);
 			}
 		}
 

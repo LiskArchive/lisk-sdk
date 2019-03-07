@@ -1,4 +1,5 @@
 import { Account } from './account';
+import { MAX_DIGITS } from './constants';
 import { Reward } from './reward';
 import { BlockJSON, DataStore, TransactionJSON } from './types';
 
@@ -10,13 +11,22 @@ export const BUCKET_TX_ID_TX = 'transaction_id:transaction';
 export const BUCKET_BLOCK_HEIGHT_REWARDS = 'block_height:rewards';
 export const BUCKET_CANDIDATE = 'candidate';
 
+const numberKeyToString = (key: number): string =>
+	key.toString().padStart(MAX_DIGITS, '0');
+
+const getEndingKey = (key: string): string => {
+	const lastChar = String.fromCharCode(key.charCodeAt(key.length - 1) + 1);
+
+	return key.slice(0, -1) + lastChar;
+};
+
 export const getBlockHeaderByHeight = async (
 	db: DataStore,
 	height: number,
 ): Promise<BlockJSON> => {
 	const blockId = await db.get<string>(
 		BUCKET_HEIGHT_BLOCK_ID,
-		height.toString(),
+		numberKeyToString(height),
 	);
 
 	return db.get<BlockJSON>(BUCKET_BLOCK_ID_BLOCK, blockId);
@@ -28,7 +38,7 @@ export const getBlockByHeight = async (
 ): Promise<BlockJSON> => {
 	const blockId = await db.get<string>(
 		BUCKET_HEIGHT_BLOCK_ID,
-		height.toString(),
+		numberKeyToString(height),
 	);
 
 	return db.get<BlockJSON>(BUCKET_BLOCK_ID_BLOCK, blockId);
@@ -52,8 +62,15 @@ const getBlockIdOrderHeight = async (
 ): Promise<ReadonlyArray<string>> =>
 	new Promise((resolve, reject) => {
 		const result: string[] = [];
-		db.createReadStream({ limit, gte: BUCKET_HEIGHT_BLOCK_ID })
-			.on('data', data => result.push(data.value))
+		db.createReadStream({
+			limit,
+			gte: BUCKET_HEIGHT_BLOCK_ID,
+			lt: getEndingKey(BUCKET_HEIGHT_BLOCK_ID),
+			reverse: true,
+		})
+			.on('data', data => {
+				result.push(data.value);
+			})
 			.on('error', reject)
 			.on('end', () => {
 				resolve(result);
@@ -80,7 +97,7 @@ export const getRewardIfExist = async (
 	height: number,
 ): Promise<ReadonlyArray<Reward> | undefined> => {
 	try {
-		return db.get<ReadonlyArray<Reward>>(BUCKET_TX_ID_TX, height);
+		return db.get<ReadonlyArray<Reward>>(BUCKET_BLOCK_HEIGHT_REWARDS, height);
 	} catch (error) {
 		if (error.notFound) {
 			return undefined;

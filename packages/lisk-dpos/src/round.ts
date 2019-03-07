@@ -78,8 +78,10 @@ export const isStartingRound = (
 
 export const calculateRewards = (round: Round): ReadonlyArray<Reward> => {
 	const { result, delegates } = round;
+	if (Object.entries(result).length === 0) {
+		return [];
+	}
 	const numberOfDelegates = delegates.length;
-
 	const totalFee = Object.values(result).reduce(
 		(prev: string, current: RoundInfo) =>
 			new BigNum(prev).add(current.fee).toString(),

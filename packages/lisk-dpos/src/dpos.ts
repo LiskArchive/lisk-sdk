@@ -2,10 +2,10 @@ import { EventEmitter } from 'events';
 import {
 	Delegate,
 	generateDelegateList,
-	sortDelegates,
 	onlyDelegateProperty,
+	sortDelegates,
 } from './delegate';
-import { getLatestRound, getRound, updateRound, roundExists } from './repo';
+import { getLatestRound, getRound, roundExists, updateRound } from './repo';
 import {
 	applyRound,
 	calculateRewards,
@@ -122,7 +122,6 @@ export class DPOS extends EventEmitter {
 		if (blockSlotError) {
 			return blockSlotError;
 		}
-
 		const delegates = isStartingRound(
 			block.height,
 			this._numberOfActiveDelegates,

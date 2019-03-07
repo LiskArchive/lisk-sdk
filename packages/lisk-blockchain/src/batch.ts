@@ -1,4 +1,5 @@
 import { Block } from './block';
+import { MAX_DIGITS } from './constants';
 import {
 	BUCKET_BLOCK_ID_BLOCK,
 	BUCKET_BLOCK_ID_TX_ID,
@@ -78,7 +79,7 @@ export const blockSaveToBatch = (block: Block): ReadonlyArray<BatchCommand> => {
 		{
 			type: 'put',
 			bucket: BUCKET_HEIGHT_BLOCK_ID,
-			key: (blockHeader.height as number).toString(),
+			key: (blockHeader.height as number).toString().padStart(MAX_DIGITS, '0'),
 			value: blockHeader.id as string,
 		},
 		...transactionBatch,
@@ -110,7 +111,7 @@ export const blockDeleteToBatch = (
 		{
 			type: 'del',
 			bucket: BUCKET_HEIGHT_BLOCK_ID,
-			key: (blockHeader.height as number).toString(),
+			key: (blockHeader.height as number).toString().padStart(MAX_DIGITS, '0'),
 		},
 		...transactionBatch,
 	];

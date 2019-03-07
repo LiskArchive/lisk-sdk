@@ -69,9 +69,6 @@ export class App {
 			6: transactions.InTransferTransaction,
 			7: transactions.OutTransferTransaction,
 		});
-		this._blockchain.on('block_added', (data) => {
-			this._logger.info(data, 'added new block');
-		});
 		this._logger.info('Blockchain instansiated');
 		this._dpos = new DPOS(this._db, this._blockchain);
 		this._logger.info('DPOS instansiated');
