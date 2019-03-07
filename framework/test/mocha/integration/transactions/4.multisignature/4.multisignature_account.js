@@ -22,7 +22,8 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 4) - effect of multisignature registration on memory tables', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test (type 4) - effect of multisignature registration on memory tables', () => {
 	let library;
 	let multisigSender;
 

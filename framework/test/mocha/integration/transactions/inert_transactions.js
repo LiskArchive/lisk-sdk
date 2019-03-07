@@ -7,7 +7,8 @@ const randomUtil = require('../../common/utils/random');
 
 const exceptions = global.exceptions;
 
-describe('inert transactions', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] inert transactions', () => {
 	let library;
 	const senderAccount = accountFixtures.genesis;
 	const recipientAccount = randomUtil.account();

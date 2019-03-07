@@ -38,7 +38,8 @@ describe('validateOwnChain', () => {
 		}
 	);
 
-	describe('forge 3 rounds (303 blocks) with version = 0', () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[1.7-transactions-changes-revisit] forge 3 rounds (303 blocks) with version = 0', () => {
 		before(() => {
 			// Set current block version to 0
 			blockVersion.currentBlockVersion = 0;

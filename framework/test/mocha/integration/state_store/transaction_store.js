@@ -1,7 +1,8 @@
 const localCommon = require('../common');
 const TransactionStore = require('../../../../src/modules/chain/logic/state_store/transaction_store.js');
 
-describe('system test - transaction store', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test - transaction store', () => {
 	let library;
 	let transactionStore;
 	const persistedIds = ['1465651642158264047', '3634383815892709956'];

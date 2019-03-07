@@ -122,7 +122,8 @@ describe('system test (type 0) - votes collision', () => {
 			});
 		});
 
-		describe('voting for account using registered publicKey', () => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		describe.skip('[1.7-transactions-changes-revisit] voting for account using registered publicKey', () => {
 			let voteTransactionWithActualPublicKey;
 			before(done => {
 				voteTransactionWithActualPublicKey = lisk.transaction.castVotes({

@@ -27,7 +27,8 @@ const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes')
 const { NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 4) register multisignature', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
 		incorrectly_offline_signed: new Scenarios.Multisig(),
 		offline_signed_empty_signatures: new Scenarios.Multisig(),
