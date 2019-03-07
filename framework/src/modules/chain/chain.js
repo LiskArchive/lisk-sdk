@@ -217,10 +217,7 @@ module.exports = class Chain {
 					action.params[2]
 				),
 			getPeers: async action =>
-				this.scope.modules.peers.shared.getPeers(
-					action.params[0],
-					action.params[1]
-				),
+				promisify(this.scope.modules.peers.shared.getPeers)(action.params[0]),
 			getPeersCountByFilter: async action =>
 				this.scope.modules.peers.shared.getPeersCountByFilter(action.params[0]),
 			postSignature: async action =>
@@ -252,9 +249,8 @@ module.exports = class Chain {
 			getLastCommit: async () => this.scope.lastCommit,
 			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
-				this.scope.modules.transactions.shared.postTransaction(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.transactions.shared.postTransaction)(
+					action.params[0]
 				),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(

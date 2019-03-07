@@ -46,11 +46,7 @@ SignaturesController.postSignature = async function(context, next) {
 	let error;
 
 	try {
-		const data = await channel.invoke('chain:postSignature', [
-			signature,
-		]);
-
-		console.log(data);
+		const data = await channel.invoke('chain:postSignature', [signature]);
 
 		if (data.success) {
 			return next(null, {
@@ -73,12 +69,9 @@ SignaturesController.postSignature = async function(context, next) {
 		}
 	} catch (err) {
 		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
-		console.log('inside');
-
-		context.statusCode = error.code;
-		delete error.code;
 	}
 
+	context.statusCode = error.code;
 	return next(error);
 };
 

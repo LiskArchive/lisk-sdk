@@ -15,6 +15,8 @@
 'use strict';
 
 const rewire = require('rewire');
+const apiCodes = require('../../../../../../src/modules/http_api/api_codes');
+const ApiError = require('../../../../../../src/modules/http_api/api_error');
 
 const SignaturesController = rewire(
 	'../../../../../../src/modules/http_api/controllers/signatures'
@@ -22,58 +24,102 @@ const SignaturesController = rewire(
 
 describe('signatures/api', () => {
 	let postSignature;
-    let channelStub;
-    let contextStub;
-    let nextStub;
+	let channelStub;
+	const contextStub = {
+		request: {
+			swagger: {
+				params: {
+					signature: {
+						value: sinonSandbox.stub().returns({}),
+					},
+				},
+			},
+		},
+	};
 
-	beforeEach(done => {
-        channelStub = {
-            invoke: sinonSandbox.stub().resolves({
-                success: false,
-                message: 'Error processing signature: Unable to process signature, corresponding transaction not found',
-            }),
-        }; // callsArgWith(1, [contextStub])
-        nextStub = sinonSandbox.stub();
-        contextStub = {
-            request: {
-                swagger: {
-                    params: {
-                        signature:
-                        {
-                            value: 'invalid signature',
-                        },
-                    },
-                },
-            },
-        };
-
-        postSignature = SignaturesController.postSignature;
-
-        new SignaturesController({
+	beforeEach(async () => {
+		new SignaturesController({
 			channel: channelStub,
-        });
-        done();
+		});
+
+		postSignature = SignaturesController.postSignature;
 	});
 
 	afterEach(() => {
-        // channelStub.invoke.resolves();
 		return sinonSandbox.restore();
 	});
 
 	describe('constructor', () => {
-		it('should assign channel', async () => {
-			expect(SignaturesController.__get__('channel')).to.equal(channelStub);
+		it('should assign channel', async () =>
+			expect(SignaturesController.__get__('channel')).to.equal(channelStub));
+	});
+
+	describe('postSignature', () => {
+		describe('when err.message = "Error processing signature"', () => {
+			beforeEach(async () => {
+				channelStub = SignaturesController.__set__('channel', {
+					invoke: sinonSandbox
+						.stub()
+						.resolves({
+							success: false,
+							message:
+								'Error processing signature: Unable to process signature, corresponding transaction not found',
+						}),
+				});
+			});
+
+			it('should call callback with ApiError', async () =>
+				postSignature(contextStub, err =>
+					expect(err).to.be.instanceof(ApiError)
+				));
+
+			it('should call callback with ApiError containing code = 409', async () =>
+				postSignature(contextStub, err =>
+					expect(err.code).to.equal(apiCodes.PROCESSING_ERROR)
+				));
 		});
-    });
-    
-    describe('postSignature', () => {
-        try {
-            const response = await postSignature(contextStub, (error) => {
-                console.log('final');
-                console.log(error.message);
-            });
-        } catch (err) {
-            console.log(err);
-        }
-    })
+
+		describe('when err.message = "Invalid signature body"', () => {
+			beforeEach(async () => {
+				channelStub = SignaturesController.__set__('channel', {
+					invoke: sinonSandbox
+						.stub()
+						.resolves({ success: false, message: 'Invalid signature body' }),
+				});
+			});
+
+			it('should call callback with ApiError containing code = 400', async () =>
+				postSignature(contextStub, err =>
+					expect(err.code).to.equal(apiCodes.BAD_REQUEST)
+				));
+		});
+
+		describe('when internal processing error"', () => {
+			beforeEach(async () => {
+				channelStub = SignaturesController.__set__('channel', {
+					invoke: sinonSandbox
+						.stub()
+						.resolves({ success: false, message: 'Bad stuff happened' }),
+				});
+			});
+
+			it('should call callback with ApiError containing code = 500', async () =>
+				postSignature(contextStub, err =>
+					expect(err.code).to.equal(apiCodes.INTERNAL_SERVER_ERROR)
+				));
+		});
+
+		describe('when signature successful accepted', () => {
+			beforeEach(async () => {
+				channelStub = SignaturesController.__set__('channel', {
+					invoke: sinonSandbox.stub().resolves({ success: true }),
+				});
+			});
+
+			it('should call callback with success data', async () =>
+				postSignature(contextStub, (err, resp) =>
+					expect(resp.data.message).to.equal('Signature Accepted')
+				));
+		});
+	});
 });

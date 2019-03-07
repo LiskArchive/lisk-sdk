@@ -15,6 +15,8 @@
 'use strict';
 
 const _ = require('lodash');
+const ApiError = require('../api_error');
+const apiCodes = require('../api_codes.js');
 
 // Private Fields
 let channel;
@@ -41,6 +43,7 @@ function PeersController(scope) {
  */
 PeersController.getPeers = async function(context, next) {
 	const params = context.request.swagger.params;
+	let error;
 
 	let filters = {
 		ip: params.ip.value,
@@ -60,33 +63,34 @@ PeersController.getPeers = async function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	await channel.invoke('chain:getPeers', [
-		filters,
-		async (err, data) => {
-			if (err) {
-				return next(err);
-			}
+	try {
+		const data = await channel.invoke('chain:getPeers', [filters]);
 
-			const clonedData = _.cloneDeep(data);
-			const filteredData = clonedData.map(peer => {
-				const { updated, ...filtered } = peer;
-				return filtered;
-			});
+		const clonedData = _.cloneDeep(data);
+		const filteredData = clonedData.map(peer => {
+			const { updated, ...filtered } = peer;
+			return filtered;
+		});
 
-			const peersCount = await channel.invoke('chain:getPeersCountByFilter', [
-				_.cloneDeep(filters),
-			]);
+		const peersCount = await channel.invoke('chain:getPeersCountByFilter', [
+			_.cloneDeep(filters),
+		]);
 
-			return next(null, {
-				data: filteredData,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-					count: peersCount,
-				},
-			});
-		},
-	]);
+		return next(null, {
+			data: filteredData,
+			meta: {
+				offset: filters.offset,
+				limit: filters.limit,
+				count: peersCount,
+			},
+		});
+	} catch (err) {
+		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+	}
+
+	context.statusCode = error.code;
+	delete error.code;
+	return next(error);
 };
 
 module.exports = PeersController;
