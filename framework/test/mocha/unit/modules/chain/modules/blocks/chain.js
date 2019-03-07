@@ -744,137 +744,6 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('__private.applyUnconfirmedStep', () => {
-		describe('when block.transactions is undefined', () => {
-			it('should return rejected promise with error', done => {
-				__private
-					.applyUnconfirmedStep(
-						blockWithUndefinedTransactions,
-						storageStub.entities.Block.begin
-					)
-					.catch(err => {
-						expect(err).instanceOf(Error);
-						expect(err.message).to.equal(
-							'expecting an array or an iterable object but got [object Null]'
-						);
-						done();
-					});
-			});
-		});
-
-		describe('when block.transactions is empty', () => {
-			it('should return resolved promise with no error', done => {
-				__private
-					.applyUnconfirmedStep(
-						blockWithEmptyTransactions,
-						storageStub.entities.Block.begin
-					)
-					.then(resolved => {
-						expect(resolved).to.be.an('array').that.is.empty;
-						done();
-					});
-			});
-		});
-
-		describe('when block.transactions is not empty', () => {
-			// eslint-disable-next-line mocha/no-skipped-tests
-			describe.skip('[1.7-transactions-changes-revisit] when modules.accounts.setAccountAndGet fails', () => {
-				beforeEach(() =>
-					modules.accounts.setAccountAndGet.callsArgWith(
-						1,
-						'setAccountAndGet-ERR',
-						null
-					)
-				);
-				it('should return rejected promise with error', done => {
-					__private
-						.applyUnconfirmedStep(
-							blockWithTransactions,
-							storageStub.entities.Block.begin
-						)
-						.catch(err => {
-							expect(err).instanceOf(Error);
-							expect(err.message).to.equal(
-								'Failed to get account to apply unconfirmed transaction: 6 - setAccountAndGet-ERR'
-							);
-							expect(loggerStub.error.args[0][0]).to.equal(
-								'Failed to get account to apply unconfirmed transaction: 6 - setAccountAndGet-ERR'
-							);
-							expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-							expect(loggerStub.error.args[1][1]).to.deep.equal(
-								blockWithTransactions.transactions[0]
-							);
-							done();
-						});
-				});
-			});
-
-			describe('when modules.accounts.setAccountAndGet succeeds', () => {
-				beforeEach(() =>
-					modules.accounts.setAccountAndGet.callsArgWith(1, null, 'sender1')
-				);
-
-				// eslint-disable-next-line mocha/no-skipped-tests
-				describe.skip('[1.7-transactions-changes-revisit] when modules.transactions.applyUnconfirmed fails', () => {
-					beforeEach(() =>
-						modules.transactions.applyUnconfirmed.callsArgWith(
-							2,
-							'applyUnconfirmed-ERR',
-							null
-						)
-					);
-					it('should return rejected promise with error', done => {
-						__private
-							.applyUnconfirmedStep(
-								blockWithTransactions,
-								storageStub.entities.Block.begin
-							)
-							.catch(err => {
-								expect(err).instanceOf(Error);
-								expect(err.message).to.equal(
-									'Failed to apply transaction: 6 to unconfirmed state of account - applyUnconfirmed-ERR'
-								);
-								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to apply transaction: 6 to unconfirmed state of account - applyUnconfirmed-ERR'
-								);
-								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-								expect(loggerStub.error.args[1][1]).to.deep.equal(
-									blockWithTransactions.transactions[0]
-								);
-								done();
-							});
-					});
-				});
-
-				describe('when modules.transactions.applyUnconfirmed succeeds', () => {
-					beforeEach(() =>
-						modules.transactions.applyUnconfirmed.callsArgWith(2, null, true)
-					);
-
-					it('should return resolved promise with no error', done => {
-						__private
-							.applyUnconfirmedStep(
-								blockWithTransactions,
-								storageStub.entities.Block.begin
-							)
-							.then(resolve => {
-								expect(resolve).to.deep.equal([
-									undefined,
-									undefined,
-									undefined,
-								]);
-								expect(modules.accounts.setAccountAndGet.callCount).to.equal(3);
-								expect(
-									modules.transactions.applyUnconfirmed.callCount
-								).to.equal(3);
-								done();
-							});
-					});
-				});
-			});
-		});
-	});
-
 	describe('__private.applyConfirmedStep', () => {
 		// eslint-disable-next-line mocha/no-skipped-tests
 		describe.skip('[1.7-transactions-changes-revisit] when block transaction is undefined', () => {
@@ -1172,9 +1041,6 @@ describe('blocks/chain', () => {
 			privateTemp = __private;
 			process.emit = sinonSandbox.stub();
 			modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
-			__private.applyUnconfirmedStep = sinonSandbox
-				.stub()
-				.resolves(blockWithTransactions);
 			__private.applyConfirmedStep = sinonSandbox
 				.stub()
 				.resolves(blockWithTransactions);
@@ -1185,10 +1051,6 @@ describe('blocks/chain', () => {
 		});
 
 		afterEach(done => {
-			expect(__private.applyUnconfirmedStep).calledWith(
-				blockWithTransactions,
-				txTemp
-			);
 			expect(__private.applyConfirmedStep).calledWith(
 				blockWithTransactions,
 				txTemp
@@ -1379,70 +1241,6 @@ describe('blocks/chain', () => {
 				it('should resolve the promise', done => {
 					__private
 						.undoConfirmedStep(
-							blockWithTransactions.transactions[0],
-							blockWithTransactions,
-							tx
-						)
-						.then(res => {
-							expect(res).to.not.exist;
-							done();
-						});
-				});
-			});
-		});
-	});
-
-	describe('__private.undoUnconfirmStep', () => {
-		let tx;
-		describe('when oldLastBlock.transactions is not empty', () => {
-			describe('when modules.transactions.undoUnconfirmed fails', () => {
-				beforeEach(done => {
-					modules.transactions.undoUnconfirmed.callsArgWith(
-						1,
-						'undoUnconfirmed-ERR',
-						null
-					);
-					done();
-				});
-
-				it('should reject promise with "undoUnconfirmed-ERR"', done => {
-					__private
-						.undoUnconfirmStep(
-							blockWithTransactions.transactions[0],
-							blockWithTransactions,
-							tx
-						)
-						.catch(err => {
-							expect(err).to.equal('undoUnconfirmed-ERR');
-							done();
-						});
-				});
-			});
-
-			describe('when modules.transactions.undoUnconfirmed succeeds', () => {
-				beforeEach(done => {
-					modules.transactions.undoUnconfirmed.callsArgWith(1, null, true);
-					done();
-				});
-
-				it('should call modules.transactions.undoUnconfirmed', done => {
-					__private
-						.undoUnconfirmStep(
-							blockWithTransactions.transactions[0],
-							blockWithTransactions,
-							tx
-						)
-						.then(() => {
-							expect(modules.transactions.undoUnconfirmed.callCount).to.equal(
-								1
-							);
-							done();
-						});
-				});
-
-				it('should resolve the promise', done => {
-					__private
-						.undoUnconfirmStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx

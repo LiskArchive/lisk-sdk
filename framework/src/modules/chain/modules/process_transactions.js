@@ -30,6 +30,18 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
+	validateTransactions(transactions) {
+		return transactions
+			.map(transaction => ({
+				...transaction,
+				fee: transaction.fee.toString(),
+				amount: transaction.amount.toString(),
+			}))
+			.map(initTransaction)
+			.map(transactionInstance => transactionInstance.validate());
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	async applyTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
 		const stateStore = library.logic.stateManager.createStore({
@@ -51,6 +63,36 @@ class ProcessTransactions {
 		const transactionResponses = transactionInstances.map(transaction => {
 			const transactionResponse = transaction.apply(stateStore);
 			stateStore.transaction.add(transaction);
+			return transactionResponse;
+		});
+
+		return {
+			transactionResponses,
+			stateStore,
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	async undoTransactions(transactions, tx = undefined) {
+		// Get data required for verifying transactions
+		const stateStore = library.logic.stateManager.createStore({
+			mutate: true,
+			tx,
+		});
+
+		const transactionInstances = transactions
+			.map(transaction => ({
+				...transaction,
+				fee: transaction.fee.toString(),
+				amount: transaction.amount.toString(),
+				recipientId: transaction.recipientId || '',
+			}))
+			.map(initTransaction);
+
+		await Promise.all(transactionInstances.map(t => t.prepare(stateStore)));
+
+		const transactionResponses = transactionInstances.map(transaction => {
+			const transactionResponse = transaction.undo(stateStore);
 			return transactionResponse;
 		});
 

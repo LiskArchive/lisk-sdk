@@ -222,19 +222,18 @@ __private.receiveTransaction = function(
 	cb
 ) {
 	const id = transaction ? transaction.id : 'null';
-	let tx;
 	try {
-		tx = initTransaction(transaction);
+		const tx = initTransaction(transaction);
 		const { errors } = tx.validate();
-		if (errors.length > 0) {
-			throw `Transaction: ${transaction.id} failed at ${errors
-				.map(error => error.dataPath)
-				.join(',')}`;
+		if (errors) {
+			throw errors;
 		}
-	} catch (e) {
-		library.logger.debug('Transaction validation failed', {
+	} catch (errors) {
+		const error =
+			Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+		library.logger.debug('Transaction normalization failed', {
 			id,
-			err: e.toString(),
+			err: error.toString(),
 			module: 'transport',
 			transaction,
 		});
@@ -247,7 +246,7 @@ __private.receiveTransaction = function(
 			extraLogMessage
 		);
 
-		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
+		return setImmediate(cb, `${error.toString()}`);
 	}
 
 	if (transaction.requesterPublicKey) {

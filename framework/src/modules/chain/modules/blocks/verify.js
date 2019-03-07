@@ -618,8 +618,8 @@ __private.addBlockProperties = function(block, broadcast, cb) {
 __private.normalizeBlock = function(block, cb) {
 	try {
 		block = library.logic.block.objectNormalize(block);
-	} catch (err) {
-		return setImmediate(cb, err);
+	} catch (error) {
+		return setImmediate(cb, error);
 	}
 
 	return setImmediate(cb);

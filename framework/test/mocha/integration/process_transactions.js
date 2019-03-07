@@ -14,10 +14,13 @@
 
 'use strict';
 
+const util = require('util');
+
 const liskTransactions = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../fixtures/accounts');
 const application = require('../common/application');
 const random = require('../common/utils/random');
+const localCommon = require('./common');
 
 const genesisBlock = __testContext.config.genesisBlock;
 const { NORMALIZER } = global.constants;
@@ -169,6 +172,54 @@ describe('blocks/verifyTransactions', () => {
 			);
 			transactionResponses.forEach(transactionResponse => {
 				expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
+			});
+		});
+	});
+
+	describe('undoTransactions', () => {
+		let undoTransactions;
+		before(done => {
+			undoTransactions = library.modules.processTransactions.undoTransactions;
+			localCommon.addTransactionsAndForge(
+				library,
+				appliableTransactions,
+				0,
+				() => done()
+			);
+		});
+
+		it('should return stateStore', async () => {
+			const { stateStore } = await undoTransactions(appliableTransactions);
+			expect(stateStore).to.exist;
+		});
+
+		it('should return transactionResponses with status OK for verified transactions', async () => {
+			const { transactionResponses } = await undoTransactions(
+				appliableTransactions
+			);
+
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.OK);
+			});
+		});
+
+		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
+			const forge = util.promisify(localCommon.forge);
+			await forge(library);
+
+			const sender = random.account();
+			const recipient = random.account();
+
+			const { transactionResponses } = await undoTransactions([
+				liskTransactions.transfer({
+					amount: (NORMALIZER * 1000).toString(),
+					recipientId: recipient.address,
+					passphrase: sender.passphrase,
+				}),
+			]);
+
+			transactionResponses.forEach(transactionResponse => {
+				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
 			});
 		});
 	});

@@ -727,11 +727,6 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call library.logic.transaction.objectNormalize with transaction', async () =>
-					expect(
-						library.logic.transaction.objectNormalize.calledWith(transaction)
-					).to.be.true);
-
 				it('should call library.balancesSequence.add', async () =>
 					expect(library.balancesSequence.add.called).to.be.true);
 
@@ -744,56 +739,31 @@ describe('transport', () => {
 					).to.be.true);
 			});
 
-			describe('when library.logic.transaction.objectNormalize throws', () => {
-				let extraLogMessage;
-				let objectNormalizeError;
+			describe('when transaction is invalid', () => {
+				let invalidTransaction;
+				let errorResult;
 
 				beforeEach(done => {
-					extraLogMessage = 'This is a log message';
-					objectNormalizeError = 'Unknown transaction type 0';
-
-					library.logic.transaction.objectNormalize = sinonSandbox
-						.stub()
-						.throws(objectNormalizeError);
-					__private.removePeer = sinonSandbox.spy();
-
+					invalidTransaction = {
+						...transaction,
+						amount: '0',
+					};
 					__private.receiveTransaction(
-						transaction,
-						validNonce,
-						extraLogMessage,
+						invalidTransaction,
+						undefined,
+						'This is a log message',
 						err => {
-							error = err;
+							errorResult = err;
 							done();
 						}
 					);
 				});
 
-				it('should call library.logger.debug with "Transaction normalization failed" error message and error details object', async () => {
-					const errorDetails = {
-						id: transaction.id,
-						err: 'Unknown transaction type 0',
-						module: 'transport',
-						transaction,
-					};
-					return expect(
-						library.logger.debug.calledWith(
-							'Transaction normalization failed',
-							errorDetails
-						)
-					).to.be.true;
+				it('should call the call back with error message', async () => {
+					expect(errorResult).to.equal(
+						'Transaction: 222675625422353767 failed at .id: Invalid transaction id, actual: 2314501589829262714, expected: 222675625422353767'
+					);
 				});
-
-				it('should call __private.removePeer with peer details object', async () => {
-					const peerDetails = { nonce: validNonce, code: 'ETRANSACTION' };
-					return expect(
-						__private.removePeer.calledWith(peerDetails, extraLogMessage)
-					).to.be.true;
-				});
-
-				it('should call callback with error = "Invalid transaction body"', async () =>
-					expect(error).to.equal(
-						`Invalid transaction body - ${objectNormalizeError}`
-					));
 			});
 
 			describe('when nonce is undefined', () => {
