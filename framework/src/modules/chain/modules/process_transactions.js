@@ -73,6 +73,36 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
+	async undoTransactions(transactions, tx = undefined) {
+		// Get data required for verifying transactions
+		const stateStore = library.logic.stateManager.createStore({
+			mutate: true,
+			tx,
+		});
+
+		const transactionInstances = transactions
+			.map(transaction => ({
+				...transaction,
+				fee: transaction.fee.toString(),
+				amount: transaction.amount.toString(),
+				recipientId: transaction.recipientId || '',
+			}))
+			.map(initTransaction);
+
+		await Promise.all(transactionInstances.map(t => t.prepare(stateStore)));
+
+		const transactionResponses = transactionInstances.map(transaction => {
+			const transactionResponse = transaction.undo(stateStore);
+			return transactionResponse;
+		});
+
+		return {
+			transactionResponses,
+			stateStore,
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	async verifyTransactions(transactions) {
 		// Get data required for verifying transactions
 		const stateStore = library.logic.stateManager.createStore({
