@@ -58,13 +58,11 @@ describe('signatures/api', () => {
 		describe('when err.message = "Error processing signature"', () => {
 			beforeEach(async () => {
 				channelStub = SignaturesController.__set__('channel', {
-					invoke: sinonSandbox
-						.stub()
-						.resolves({
-							success: false,
-							message:
-								'Error processing signature: Unable to process signature, corresponding transaction not found',
-						}),
+					invoke: sinonSandbox.stub().resolves({
+						success: false,
+						message:
+							'Error processing signature: Unable to process signature, corresponding transaction not found',
+					}),
 				});
 			});
 
@@ -107,6 +105,20 @@ describe('signatures/api', () => {
 				postSignature(contextStub, err =>
 					expect(err.code).to.equal(apiCodes.INTERNAL_SERVER_ERROR)
 				));
+		});
+
+		describe('when invoke function fails unexpectedly"', () => {
+			beforeEach(async () => {
+				channelStub = SignaturesController.__set__('channel', {
+					invoke: sinonSandbox.stub().throws(),
+				});
+			});
+
+			it('should call callback with ApiError containing code = 500', async () =>
+				postSignature(contextStub, err => {
+					expect(err).to.be.instanceof(ApiError);
+					expect(err.code).to.equal(apiCodes.INTERNAL_SERVER_ERROR);
+				}));
 		});
 
 		describe('when signature successful accepted', () => {
