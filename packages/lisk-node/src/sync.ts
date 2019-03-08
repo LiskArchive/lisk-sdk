@@ -108,6 +108,7 @@ export class Sync extends EventEmitter {
 					this._logger.debug('Height 1 received. Ignoring.');
 					continue;
 				}
+
 				const dposErrors = await this._dpos.verifyDownloadedBlock(
 					this._blockchain.lastBlock,
 					blockWithHeight,
