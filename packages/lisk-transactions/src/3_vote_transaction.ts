@@ -203,9 +203,10 @@ export class VoteTransaction extends BaseTransaction {
 		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		this.asset.votes.forEach(async actionVotes => {
 			const vote = actionVotes.substring(1);
+			const voteAddress = getAddressFromPublicKey(vote);
 			const voteAccount = await store.get<Account>(
 				ENTITY_ACCOUNT,
-				getAddressFromPublicKey(vote),
+				voteAddress,
 			);
 			if (
 				!voteAccount ||

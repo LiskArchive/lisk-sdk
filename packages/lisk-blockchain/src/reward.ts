@@ -3,6 +3,9 @@ import * as BigNum from 'browserify-bignum';
 import { Account } from './account';
 import { BUCKET_ADDRESS_ACCOUNT, BUCKET_BLOCK_HEIGHT_REWARDS } from './repo';
 import { StateStore } from './state_store';
+import { debug } from 'debug';
+
+const logger = debug('blockchain:reward');
 
 export interface Reward {
 	readonly publicKey: string;
@@ -110,11 +113,23 @@ export const applyReward = async (
 ): Promise<void> => {
 	// tslint:disable-next-line no-loop-statement
 	for (const reward of rewards) {
+		if (new BigNum(reward.amount).eq(0) && new BigNum(reward.fee).eq(0)) {
+			logger('Skipping apply rewards', { reward });
+			continue;
+		}
+		logger('Applying reward', { reward });
 		const recipientId = getAddressFromPublicKey(reward.publicKey);
-		const recipient = await store.get<Account>(
+		const recipient = await store.getOrDefault(
 			BUCKET_ADDRESS_ACCOUNT,
 			recipientId,
 		);
+		logger('Applying reward to recipient', { recipientId, recipient });
+		const updatedRecipient = {
+			...recipient,
+			balance: new BigNum(recipient.balance).add(reward.amount).add(reward.fee).toString(),
+		}
+		await store.set(BUCKET_ADDRESS_ACCOUNT, updatedRecipient.address, updatedRecipient);
+		logger('updating recipient', { updatedRecipient });
 		const delegateAddresses = recipient.votedDelegatesPublicKeys
 			? recipient.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
 			: [];
@@ -126,8 +141,9 @@ export const applyReward = async (
 			);
 			const updateDelegateVote = {
 				...delegate,
-				votes: new BigNum(delegate.votes || '0').add(reward.amount).toString(),
+				votes: new BigNum(delegate.votes || '0').add(reward.fee).add(reward.amount).toString(),
 			};
+			logger('updating delegate', { updateDelegateVote });
 			await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
 		}
 	}

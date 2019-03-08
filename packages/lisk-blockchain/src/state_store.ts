@@ -6,7 +6,9 @@ import { blockSaveToBatch, cacheToBatch, deleteMapToBatch } from './batch';
 import { Block } from './block';
 import { BUCKET_ADDRESS_ACCOUNT } from './repo';
 import { CacheMap, DataStore } from './types';
+import { debug } from 'debug';
 
+const logger = debug('blockchain:stateStore');
 const SNAPSHOT_ID_LENGTH = 16;
 const randomString = (num: number) => crypto.randomBytes(num).toString('hex');
 
@@ -26,15 +28,19 @@ export class StateStore {
 	}
 
 	public async get<T>(bucket: string, key: string): Promise<T> {
+		logger('getting from store', { bucket, key });
 		if (this._cacheMap[bucket] && this._cacheMap[bucket][key]) {
+			logger('getting from store, found in cache', { bucket, key, result: this._cacheMap[bucket][key] });
+
 			return clonedeep(this._cacheMap[bucket][key]);
 		}
 
-		const result = this._db.get<T>(bucket, key);
+		const result = await this._db.get<T>(bucket, key);
 		if (!this._cacheMap[bucket]) {
 			this._cacheMap[bucket] = {};
 		}
 		this._cacheMap[bucket][key] = result;
+		logger('Saved result to bucket', { bucket, key, result });
 
 		return clonedeep(result);
 	}

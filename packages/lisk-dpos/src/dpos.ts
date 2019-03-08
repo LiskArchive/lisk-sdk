@@ -18,6 +18,9 @@ import {
 } from './round';
 import { Slot, validateBlockSlot, validateBlockSlotWindow } from './slot';
 import { Block, DataStore } from './type';
+import { debug } from 'debug';
+
+const logger = debug('dpos');
 
 interface CandidateGetter {
 	readonly getCandidates: (num: number) => Promise<ReadonlyArray<Delegate>>;
@@ -215,6 +218,8 @@ export class DPOS extends EventEmitter {
 
 			return undefined;
 		} catch (error) {
+			logger('Error on process', { error });
+
 			return error;
 		}
 	}

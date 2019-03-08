@@ -1,6 +1,9 @@
 import * as BigNum from 'browserify-bignum';
 import { Delegate } from './delegate';
 import { Block } from './type';
+import { debug } from 'debug';
+
+const logger = debug('dpos:round');
 
 export interface Round {
 	readonly roundNumber: number;
@@ -78,9 +81,6 @@ export const isStartingRound = (
 
 export const calculateRewards = (round: Round): ReadonlyArray<Reward> => {
 	const { result, delegates } = round;
-	if (Object.entries(result).length === 0) {
-		return [];
-	}
 	const numberOfDelegates = delegates.length;
 	const totalFee = Object.values(result).reduce(
 		(prev: string, current: RoundInfo) =>
@@ -88,15 +88,20 @@ export const calculateRewards = (round: Round): ReadonlyArray<Reward> => {
 		'0',
 	);
 
+	logger('calculating rewards, totalfee', { totalFee });
+
 	const totalFeeBigNum = new BigNum(totalFee);
 	const [calculatedFee] = totalFeeBigNum
 		.div(numberOfDelegates)
 		.toString()
 		.split('.');
 	const remainder = totalFeeBigNum.sub(calculatedFee).toString();
-	const heighestHeight = Math.max(...Object.keys(result).map(parseInt));
+	logger('calculating rewards, calculated fee and remainder', { calculatedFee, remainder });
+	const keyList = Object.keys(result).map((key) => parseInt(key, 10));
+	const heighestHeight = Math.max(...keyList);
 
 	const remainderTaker = result[heighestHeight].generatorPublicKey;
+	logger('calculating rewards, remainderTaker', { remainderTaker });
 
 	const rewardMap = Object.values(result)
 		.map((res: RoundInfo) => ({

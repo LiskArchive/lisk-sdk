@@ -47,11 +47,13 @@
 	},
 	"dependencies": {
 		"@types/abstract-leveldown": "5.0.1",
+		"@types/debug": "4.1.2",
 		"@types/encoding-down": "5.0.0",
 		"@types/levelup": "3.1.0",
 		"@types/node": "10.12.21",
 		"@types/rocksdb": "3.0.0",
 		"abstract-leveldown": "6.0.1",
+		"debug": "4.1.1",
 		"encoding-down": "6.0.1",
 		"levelup": "4.0.0",
 		"rocksdb": "3.0.3"

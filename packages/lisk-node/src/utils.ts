@@ -94,13 +94,17 @@ export const protocolBlockToDomain = (
 			amount: current.t_amount,
 			fee: current.t_fee,
 		};
+		if (current.b_id === '10403252952155755060') {
+			console.log(current)
+
+		}
 
 		switch (current.t_type) {
 			case TRANSACTION_TRANSFER: {
 				const tx = {
 					...baseTransaction,
 					asset: {
-						data: current.tf_data,
+						data: current.tf_data || undefined,
 					},
 				};
 				prev.set(current.b_id, {

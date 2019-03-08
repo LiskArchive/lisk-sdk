@@ -4,7 +4,7 @@ import { P2P } from '@liskhq/lisk-p2p';
 import * as bunyan from 'bunyan';
 import { EventEmitter } from 'events';
 import { interval, Observable } from 'rxjs';
-import { mergeMap, retry, filter } from 'rxjs/operators';
+import { mergeMap, filter } from 'rxjs/operators';
 import { ProtocolBlock } from './type';
 import { protocolBlockToDomain } from './utils';
 
@@ -45,7 +45,6 @@ export class Sync extends EventEmitter {
 				this._syncing = true;
 				await this._sync();
 			}),
-			retry(options.retry),
 		);
 	}
 

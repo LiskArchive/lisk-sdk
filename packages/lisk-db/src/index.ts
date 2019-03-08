@@ -3,6 +3,9 @@ import EncodingDown from 'encoding-down';
 // tslint:disable-next-line match-default-export-name
 import levelup, { LevelUp } from 'levelup';
 import RocksDB from 'rocksdb';
+import { debug } from 'debug';
+
+const logger = debug('db');
 
 const delimitor = ':';
 export interface BatchCommand {
@@ -32,6 +35,7 @@ export class DB {
 	private readonly _db: LevelUp<RocksDB>;
 
 	public constructor(file: string) {
+		logger('opening file', { file });
 		this._db = levelup(EncodingDown(RocksDB(file), { valueEncoding: 'json' }));
 	}
 
@@ -43,6 +47,7 @@ export class DB {
 	public async get(bucket: string, key: string | number): Promise<any> {
 		const fullKey = `${bucket}${delimitor}${key}`;
 
+		logger('get', { key: fullKey });
 		return this._db.get(fullKey);
 	}
 
@@ -50,6 +55,7 @@ export class DB {
 	public async exists(bucket: string, key: string | number): Promise<boolean> {
 		const fullKey = `${bucket}${delimitor}${key}`;
 		try {
+			logger('exists', { key: fullKey });
 			await this._db.get(fullKey);
 
 			return true;
@@ -65,16 +71,19 @@ export class DB {
 	public async put(bucket: string, key: string, val: any): Promise<void> {
 		const fullKey = `${bucket}${delimitor}${key}`;
 
+		logger('put', { key: fullKey });
 		return this._db.put(fullKey, val);
 	}
 
 	public async del(bucket: string, key: string): Promise<void> {
 		const fullKey = `${bucket}${delimitor}${key}`;
 
+		logger('del', { key: fullKey });
 		return this._db.del(fullKey);
 	}
 
 	public createReadStream(options?: ReadStreamOption): NodeJS.ReadableStream {
+		logger('readStream', { options });
 		return this._db.createReadStream(options);
 	}
 
