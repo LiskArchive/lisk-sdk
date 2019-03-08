@@ -48,6 +48,34 @@ const applyAmount = async (
 	) {
 		return;
 	}
+	// Handle sender amount
+	const sender = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, tx.senderId);
+	const senderDelegateAddresses = sender.votedDelegatesPublicKeys
+		? sender.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
+		: [];
+	// tslint:disable-next-line no-loop-statement
+	for (const address of senderDelegateAddresses) {
+		logger('apply amount for sender', {
+			to: address,
+			amount: tx.amount.toString(),
+		});
+
+		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
+		const updateDelegateVote = {
+			...delegate,
+			votes: new BigNum(delegate.votes || '0').sub(tx.amount).toString(),
+		};
+		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+
+		await updateCandidateKey(
+			store,
+			delegate.votes as string,
+			updateDelegateVote.votes,
+			delegate.address,
+			delegate.publicKey as string,
+		);
+	}
+	// Handle recipient amount
 	// tslint:disable-next-line no-let
 	let recipientId = tx.recipientId as string;
 	if (tx.type === TRANSACTION_TYPE_IN_TRANSFER) {
@@ -62,12 +90,14 @@ const applyAmount = async (
 		BUCKET_ADDRESS_ACCOUNT,
 		recipientId,
 	);
-	const delegateAddresses = recipient.votedDelegatesPublicKeys
+	logger('recipient for apply amount', { recipient });
+	const recipientDelegateAddresses = recipient.votedDelegatesPublicKeys
 		? recipient.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
 		: [];
 	// tslint:disable-next-line no-loop-statement
-	for (const address of delegateAddresses) {
-		logger('apply amount', { address });
+	for (const address of recipientDelegateAddresses) {
+		logger('apply amount', { to: address, amount: tx.amount.toString() });
+
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -98,6 +128,33 @@ const undoAmount = async (
 	) {
 		return;
 	}
+	// Handle sender amount
+	const sender = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, tx.senderId);
+	const senderDelegateAddresses = sender.votedDelegatesPublicKeys
+		? sender.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
+		: [];
+	// tslint:disable-next-line no-loop-statement
+	for (const address of senderDelegateAddresses) {
+		logger('apply amount for sender', {
+			to: address,
+			amount: tx.amount.toString(),
+		});
+
+		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
+		const updateDelegateVote = {
+			...delegate,
+			votes: new BigNum(delegate.votes || '0').add(tx.amount).toString(),
+		};
+		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
+
+		await updateCandidateKey(
+			store,
+			delegate.votes as string,
+			updateDelegateVote.votes,
+			delegate.address,
+			delegate.publicKey as string,
+		);
+	}
 	// tslint:disable-next-line no-let
 	let recipientId = tx.recipientId as string;
 	if (tx.type === TRANSACTION_TYPE_IN_TRANSFER) {
@@ -112,11 +169,11 @@ const undoAmount = async (
 		BUCKET_ADDRESS_ACCOUNT,
 		recipientId,
 	);
-	const delegateAddresses = recipient.votedDelegatesPublicKeys
+	const recipientDelegateAddresses = recipient.votedDelegatesPublicKeys
 		? recipient.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
 		: [];
 	// tslint:disable-next-line no-loop-statement
-	for (const address of delegateAddresses) {
+	for (const address of recipientDelegateAddresses) {
 		logger('undo amount', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
@@ -140,10 +197,14 @@ const applyFee = async (store: StateStore, tx: Transaction): Promise<void> => {
 	const delegateAddresses = sender.votedDelegatesPublicKeys
 		? sender.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
 		: [];
-	logger('apply fee for sender with id', { sender, id: tx.id });
+	logger('apply fee for sender with id', {
+		sender: sender.address,
+		delegates: delegateAddresses,
+		id: tx.id,
+	});
 	// tslint:disable-next-line no-loop-statement
 	for (const address of delegateAddresses) {
-		logger('apply fee', { address });
+		logger('apply fee', { address, fee: tx.fee.toString() });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -215,7 +276,10 @@ const applyNewVote = async (
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
-			votes: new BigNum(delegate.votes || '0').add(sender.balance).toString(),
+			votes: new BigNum(delegate.votes || '0')
+				.add(sender.balance)
+				.add(tx.fee)
+				.toString(),
 		};
 		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
 
@@ -233,10 +297,7 @@ const applyNewVote = async (
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
-			votes: new BigNum(delegate.votes || '0')
-				.sub(sender.balance)
-				.add(tx.fee)
-				.toString(),
+			votes: new BigNum(delegate.votes || '0').sub(sender.balance).toString(),
 		};
 		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
 
