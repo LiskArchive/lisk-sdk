@@ -31,7 +31,7 @@ export const cacheToBatch = (map: CacheMap): ReadonlyArray<BatchCommand> =>
 	);
 
 export const deleteMapToBatch = (
-	deleteMap: Map<string, string>,
+	deleteMap: CacheMap,
 ): ReadonlyArray<BatchCommand> =>
 	Object.entries(deleteMap).reduce(
 		(accumulated, [bucket, values]) => {

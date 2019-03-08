@@ -99,7 +99,9 @@ export class DPOS extends EventEmitter {
 		if (exist) {
 			return;
 		}
-		const delegates = await this._getCandidates(this._numberOfActiveDelegates);
+		const delegates = await this._getCandidatesWithBuffer(
+			this._numberOfActiveDelegates,
+		);
 		const filteredDelegates = onlyDelegateProperty(delegates);
 		const round = defaultRound(
 			calculateRound(lastBlock.height, this._numberOfActiveDelegates),
@@ -129,7 +131,7 @@ export class DPOS extends EventEmitter {
 			block.height,
 			this._numberOfActiveDelegates,
 		)
-			? await this._getCandidates(this._numberOfActiveDelegates)
+			? await this._getCandidatesWithBuffer(this._numberOfActiveDelegates)
 			: (await getRound(
 					this._db,
 					calculateRound(block.height, this._numberOfActiveDelegates),
@@ -168,7 +170,7 @@ export class DPOS extends EventEmitter {
 			block.height,
 			this._numberOfActiveDelegates,
 		)
-			? await this._getCandidates(this._numberOfActiveDelegates)
+			? await this._getCandidatesWithBuffer(this._numberOfActiveDelegates)
 			: (await getRound(
 					this._db,
 					calculateRound(block.height, this._numberOfActiveDelegates),
@@ -225,12 +227,24 @@ export class DPOS extends EventEmitter {
 	}
 
 	private async _getStartingRound(height: number): Promise<Round> {
-		const delegates = await this._getCandidates(this._numberOfActiveDelegates);
+		const delegates = await this._getCandidatesWithBuffer(
+			this._numberOfActiveDelegates,
+		);
+		logger('candidates for starting round', { delegates });
 		const filteredDelegates = onlyDelegateProperty(delegates);
 
 		return defaultRound(
 			calculateRound(height, this._numberOfActiveDelegates),
 			filteredDelegates,
 		);
+	}
+
+	private async _getCandidatesWithBuffer(
+		limit: number,
+	): Promise<ReadonlyArray<Delegate>> {
+		const orderBuffer = 100;
+		const delegates = await this._getCandidates(limit + orderBuffer);
+
+		return sortDelegates(delegates as Delegate[]).slice(0, limit);
 	}
 }

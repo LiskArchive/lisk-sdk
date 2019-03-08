@@ -4,7 +4,7 @@ import clonedeep = require('lodash.clonedeep');
 import { Account, createDefaultAccount } from './account';
 import { blockSaveToBatch, cacheToBatch, deleteMapToBatch } from './batch';
 import { Block } from './block';
-import { BUCKET_ADDRESS_ACCOUNT } from './repo';
+import { BUCKET_ADDRESS_ACCOUNT, BUCKET_CANDIDATE } from './repo';
 import { CacheMap, DataStore } from './types';
 import { debug } from 'debug';
 
@@ -15,14 +15,14 @@ const randomString = (num: number) => crypto.randomBytes(num).toString('hex');
 export class StateStore {
 	private readonly _db: DataStore;
 	private _cacheMap: CacheMap;
-	private readonly _deleteMap: Map<string, string>;
+	private readonly _deleteMap: CacheMap;
 	private readonly _snapshot: { [key: string]: CacheMap };
 	private readonly _block: Block;
 
 	public constructor(db: DataStore, block: Block) {
 		this._db = db;
 		this._cacheMap = {};
-		this._deleteMap = new Map();
+		this._deleteMap = {};
 		this._snapshot = {};
 		this._block = block;
 	}
@@ -30,7 +30,11 @@ export class StateStore {
 	public async get<T>(bucket: string, key: string): Promise<T> {
 		logger('getting from store', { bucket, key });
 		if (this._cacheMap[bucket] && this._cacheMap[bucket][key]) {
-			logger('getting from store, found in cache', { bucket, key, result: this._cacheMap[bucket][key] });
+			logger('getting from store, found in cache', {
+				bucket,
+				key,
+				result: this._cacheMap[bucket][key],
+			});
 
 			return clonedeep(this._cacheMap[bucket][key]);
 		}
@@ -97,8 +101,11 @@ export class StateStore {
 
 			return;
 		}
+		if (!this._deleteMap[bucket]) {
+			this._deleteMap[bucket] = {};
+		}
 
-		this._deleteMap.set(bucket, key);
+		this._deleteMap[bucket][key] = true;
 	}
 	public async replace(
 		bucket: string,
@@ -114,7 +121,10 @@ export class StateStore {
 		if (!this._cacheMap[bucket][oldKey]) {
 			const exists = await this.exists(bucket, oldKey);
 			if (exists) {
-				this._deleteMap.set(bucket, oldKey);
+				if (!this._deleteMap[bucket]) {
+					this._deleteMap[bucket] = {};
+				}
+				this._deleteMap[bucket][oldKey] = true;
 			}
 			this._cacheMap[bucket][newKey] = value;
 
@@ -153,6 +163,8 @@ export class StateStore {
 	}
 
 	public async finalize(): Promise<void> {
+		logger('candidate update map', this._cacheMap[BUCKET_CANDIDATE]);
+		logger('candidate delete map', this._deleteMap[BUCKET_CANDIDATE]);
 		const txTasks = [
 			...blockSaveToBatch(this._block),
 			...cacheToBatch(this._cacheMap),

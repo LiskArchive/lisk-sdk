@@ -1,7 +1,9 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as BigNum from 'browserify-bignum';
+import { debug } from 'debug';
 import { Account } from './account';
 import {
+	MAX_DIGITS,
 	TRANSACTION_TYPE_IN_TRANSFER,
 	TRANSACTION_TYPE_OUT_TRANSFER,
 	TRANSACTION_TYPE_TRANSFER,
@@ -15,8 +17,9 @@ import {
 import { StateStore } from './state_store';
 import { InTransferTransaction, Transaction, VoteTransaction } from './types';
 
+const logger = debug('blockchain:vote');
 const candidateKey = (weight: string, publicKey: string): string =>
-	`${weight}:${publicKey}`;
+	`${weight.padStart(MAX_DIGITS, '0')}:${publicKey}`;
 
 const updateCandidateKey = async (
 	store: StateStore,
@@ -27,6 +30,7 @@ const updateCandidateKey = async (
 ) => {
 	const oldKey = candidateKey(oldWeight, publicKey);
 	const newKey = candidateKey(newWeight, publicKey);
+	logger('Replacing', { oldKey, newKey, address });
 
 	return store.replace(BUCKET_CANDIDATE, oldKey, newKey, address);
 };
@@ -63,6 +67,7 @@ const applyAmount = async (
 		: [];
 	// tslint:disable-next-line no-loop-statement
 	for (const address of delegateAddresses) {
+		logger('apply amount', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -112,6 +117,7 @@ const undoAmount = async (
 		: [];
 	// tslint:disable-next-line no-loop-statement
 	for (const address of delegateAddresses) {
+		logger('undo amount', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -134,8 +140,10 @@ const applyFee = async (store: StateStore, tx: Transaction): Promise<void> => {
 	const delegateAddresses = sender.votedDelegatesPublicKeys
 		? sender.votedDelegatesPublicKeys.map(getAddressFromPublicKey)
 		: [];
+	logger('apply fee for sender with id', { sender, id: tx.id });
 	// tslint:disable-next-line no-loop-statement
 	for (const address of delegateAddresses) {
+		logger('apply fee', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -145,7 +153,7 @@ const applyFee = async (store: StateStore, tx: Transaction): Promise<void> => {
 
 		await updateCandidateKey(
 			store,
-			delegate.votes as string,
+			delegate.votes || '0',
 			updateDelegateVote.votes,
 			delegate.address,
 			delegate.publicKey as string,
@@ -160,6 +168,7 @@ const undoFee = async (store: StateStore, tx: Transaction): Promise<void> => {
 		: [];
 	// tslint:disable-next-line no-loop-statement
 	for (const address of delegateAddresses) {
+		logger('undo fee', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -169,7 +178,7 @@ const undoFee = async (store: StateStore, tx: Transaction): Promise<void> => {
 
 		await updateCandidateKey(
 			store,
-			delegate.votes as string,
+			delegate.votes || '0',
 			updateDelegateVote.votes,
 			delegate.address,
 			delegate.publicKey as string,
@@ -202,6 +211,7 @@ const applyNewVote = async (
 
 	// tslint:disable-next-line no-loop-statement
 	for (const address of upvotes) {
+		logger('apply new upvote', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -211,7 +221,7 @@ const applyNewVote = async (
 
 		await updateCandidateKey(
 			store,
-			delegate.votes as string,
+			delegate.votes || '0',
 			updateDelegateVote.votes,
 			delegate.address,
 			delegate.publicKey as string,
@@ -219,6 +229,7 @@ const applyNewVote = async (
 	}
 	// tslint:disable-next-line no-loop-statement
 	for (const address of downvotes) {
+		logger('apply new downvote', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -231,7 +242,7 @@ const applyNewVote = async (
 
 		await updateCandidateKey(
 			store,
-			delegate.votes as string,
+			delegate.votes || '0',
 			updateDelegateVote.votes,
 			delegate.address,
 			delegate.publicKey as string,
@@ -263,6 +274,7 @@ const undoNewVote = async (
 		});
 	// tslint:disable-next-line no-loop-statement
 	for (const address of upvotes) {
+		logger('undo new upvote', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -272,7 +284,7 @@ const undoNewVote = async (
 
 		await updateCandidateKey(
 			store,
-			delegate.votes as string,
+			delegate.votes || '0',
 			updateDelegateVote.votes,
 			delegate.address,
 			delegate.publicKey as string,
@@ -280,6 +292,7 @@ const undoNewVote = async (
 	}
 	// tslint:disable-next-line no-loop-statement
 	for (const address of downvotes) {
+		logger('undo new downvote', { address });
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
@@ -292,7 +305,7 @@ const undoNewVote = async (
 
 		await updateCandidateKey(
 			store,
-			delegate.votes as string,
+			delegate.votes || '0',
 			updateDelegateVote.votes,
 			delegate.address,
 			delegate.publicKey as string,
@@ -304,9 +317,9 @@ export const applyVote = async (
 	store: StateStore,
 	tx: Transaction,
 ): Promise<void> => {
-	await applyFee(store, tx);
-	await applyAmount(store, tx);
 	await applyNewVote(store, tx);
+	await applyAmount(store, tx);
+	await applyFee(store, tx);
 };
 
 export const undoVote = async (
