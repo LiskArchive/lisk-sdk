@@ -1,7 +1,6 @@
 import { Blockchain } from '@liskhq/lisk-blockchain';
 import { DPOS } from '@liskhq/lisk-dpos';
 import { P2P } from '@liskhq/lisk-p2p';
-import { DB } from '@liskhq/lisk-db';
 import * as bunyan from 'bunyan';
 import { EventEmitter } from 'events';
 import { interval, Observable } from 'rxjs';
