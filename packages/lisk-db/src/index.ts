@@ -46,8 +46,8 @@ export class DB {
 	// tslint:disable-next-line no-any
 	public async get(bucket: string, key: string | number): Promise<any> {
 		const fullKey = `${bucket}${delimitor}${key}`;
-
 		logger('get', { key: fullKey });
+
 		return this._db.get(fullKey);
 	}
 
@@ -70,20 +70,21 @@ export class DB {
 	// tslint:disable-next-line no-any
 	public async put(bucket: string, key: string, val: any): Promise<void> {
 		const fullKey = `${bucket}${delimitor}${key}`;
-
 		logger('put', { key: fullKey });
+
 		return this._db.put(fullKey, val);
 	}
 
 	public async del(bucket: string, key: string): Promise<void> {
 		const fullKey = `${bucket}${delimitor}${key}`;
-
 		logger('del', { key: fullKey });
+
 		return this._db.del(fullKey);
 	}
 
 	public createReadStream(options?: ReadStreamOption): NodeJS.ReadableStream {
 		logger('readStream', { options });
+
 		return this._db.createReadStream(options);
 	}
 

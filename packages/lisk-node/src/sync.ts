@@ -100,6 +100,14 @@ export class Sync extends EventEmitter {
 					...block,
 					height: block.height || this._blockchain.lastBlock.height,
 				};
+				if (
+					process.env.BREAK_HEIGHT &&
+					process.env.BREAK_HEIGHT === blockWithHeight.height.toString()
+				) {
+					process.emit('exit', 0);
+
+					return;
+				}
 				this._logger.info(
 					{ id: block.id, height: block.height },
 					'processing block',

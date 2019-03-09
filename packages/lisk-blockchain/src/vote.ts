@@ -297,7 +297,10 @@ const applyNewVote = async (
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
-			votes: new BigNum(delegate.votes || '0').sub(sender.balance).toString(),
+			votes: new BigNum(delegate.votes || '0')
+				.sub(sender.balance)
+				.sub(tx.fee)
+				.toString(),
 		};
 		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
 
@@ -339,7 +342,10 @@ const undoNewVote = async (
 		const delegate = await store.get<Account>(BUCKET_ADDRESS_ACCOUNT, address);
 		const updateDelegateVote = {
 			...delegate,
-			votes: new BigNum(delegate.votes || '0').sub(sender.balance).toString(),
+			votes: new BigNum(delegate.votes || '0')
+				.sub(sender.balance)
+				.sub(tx.fee)
+				.toString(),
 		};
 		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
 
@@ -359,7 +365,7 @@ const undoNewVote = async (
 			...delegate,
 			votes: new BigNum(delegate.votes || '0')
 				.add(sender.balance)
-				.sub(tx.fee)
+				.add(tx.fee)
 				.toString(),
 		};
 		await store.set(BUCKET_ADDRESS_ACCOUNT, address, updateDelegateVote);
@@ -378,9 +384,13 @@ export const applyVote = async (
 	store: StateStore,
 	tx: Transaction,
 ): Promise<void> => {
+	logger('Start apply vote', { id: tx.id });
 	await applyNewVote(store, tx);
+	logger('Applied new votes', { id: tx.id });
 	await applyAmount(store, tx);
+	logger('Applied amount', { id: tx.id });
 	await applyFee(store, tx);
+	logger('Applied fees', { id: tx.id });
 };
 
 export const undoVote = async (

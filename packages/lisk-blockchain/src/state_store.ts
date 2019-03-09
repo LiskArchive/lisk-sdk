@@ -71,11 +71,12 @@ export class StateStore {
 
 	public async exists(bucket: string, key: string): Promise<boolean> {
 		try {
-			await this._db.get(bucket, key);
-
+			const res = await this._db.get(bucket, key);
+			logger('exists', { bucket, key, res });
 			return true;
 		} catch (err) {
 			if (err.type === 'NotFoundError') {
+				logger('not exists', { bucket, key, err });
 				return false;
 			}
 			throw err;
@@ -124,6 +125,7 @@ export class StateStore {
 				if (!this._deleteMap[bucket]) {
 					this._deleteMap[bucket] = {};
 				}
+				logger('Delete old key for replacing', { oldKey });
 				this._deleteMap[bucket][oldKey] = true;
 			}
 			this._cacheMap[bucket][newKey] = value;
@@ -163,6 +165,7 @@ export class StateStore {
 	}
 
 	public async finalize(): Promise<void> {
+		this._removeReaddedItems();
 		logger('candidate update map', this._cacheMap[BUCKET_CANDIDATE]);
 		logger('candidate delete map', this._deleteMap[BUCKET_CANDIDATE]);
 		const txTasks = [
@@ -172,5 +175,17 @@ export class StateStore {
 		];
 
 		return this._db.batch(txTasks);
+	}
+
+	private _removeReaddedItems(): void {
+		Object.entries(this._deleteMap).forEach(([bucket, values]) => {
+			Object.keys(values).forEach(key => {
+				// If deleted value was return back at the end, change value to false
+				if (this._cacheMap[bucket] && this._cacheMap[bucket][key]) {
+					// tslint:disable-next-line no-delete no-dynamic-delete
+					delete this._deleteMap[bucket][key];
+				}
+			});
+		});
 	}
 }

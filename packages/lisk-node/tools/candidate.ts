@@ -12,12 +12,17 @@ const getEndingKey = (key: string): string => {
 	return key.slice(0, -1) + lastChar;
 };
 
+interface PKWeight {
+	readonly publicKey: string;
+	readonly weight: string;
+}
+
 const getCandidates = async (
 	db: DB,
 	limit: number,
-): Promise<Map<string, string>> =>
-	new Promise<Map<string, string>>((resolve, reject) => {
-		const res = new Map<string, string>();
+): Promise<Map<string, PKWeight>> =>
+	new Promise<Map<string, PKWeight>>((resolve, reject) => {
+		const res = new Map<string, PKWeight>();
 		db.createReadStream({
 			gte: BUCKET_CANDIDATE,
 			lt: getEndingKey(BUCKET_CANDIDATE),
@@ -26,7 +31,7 @@ const getCandidates = async (
 		})
 			.on('data', data => {
 				const keys = data.key.split(':');
-				res.set(data.value, keys[1]);
+				res.set(data.value, { weight: keys[1], publicKey: keys[2] });
 			})
 			.on('error', reject)
 			.on('end', () => {
@@ -71,25 +76,81 @@ const calculateWeight = async (db: DB): Promise<Map<string, string>> => {
 export const validateWeight = async (db: DB): Promise<void> => {
 	const candidates = await getCandidates(db, 500);
 	const calculatedWeight = await calculateWeight(db);
+	const errors = [] as Error[];
 	calculatedWeight.forEach((val, address) => {
-		const weight = candidates.get(address);
-		const weightStr = weight ? parseInt(weight, 10).toString() : '';
+		const candidate = candidates.get(address);
+		const weightStr = candidate
+			? parseInt(candidate.weight, 10).toString()
+			: '';
 		if (val !== weightStr) {
-			throw new Error(
-				`Invalid vote weight Address: ${address} Expected: ${val} Actual: ${weightStr}`,
+			errors.push(
+				new Error(
+					`Invalid vote weight Address: ${address} Expected: ${val} Actual: ${weightStr}`,
+				),
 			);
 		}
+	});
+	if (errors.length > 0) {
+		throw errors;
+	}
+};
+
+export const validateDuplicate = async (db: DB): Promise<void> => {
+	const candidates = await new Promise<PKWeight[]>((resolve, reject) => {
+		const res = [] as PKWeight[];
+		db.createReadStream({
+			gte: BUCKET_CANDIDATE,
+			lt: getEndingKey(BUCKET_CANDIDATE),
+			limit: 500,
+		})
+			.on('data', data => {
+				const keys = data.key.split(':');
+				res.push({ weight: keys[1], publicKey: keys[2] });
+			})
+			.on('error', reject)
+			.on('end', () => {
+				resolve(res);
+			});
+	});
+	const map = new Map<string, string>();
+	candidates.forEach(candidate => {
+		if (map.has(candidate.publicKey)) {
+			throw new Error(
+				`Candidate ${candidate.publicKey} is duplicate with ${
+					candidate.weight
+				} and ${map.get(candidate.publicKey)}`,
+			);
+		}
+		map.set(candidate.publicKey, candidate.weight);
 	});
 };
 
 // const run = async () => {
-// 	const candidates = await getCandidates(dbi, 500);
-// 	const calculatedWeight = await calculateWeight(dbi);
-// 	calculatedWeight.forEach((val, address) => {
-// 		const weight = candidates.get(address);
-// 		const weightStr = weight ? parseInt(weight, 10).toString(): '';
-// 		console.log(`Address: ${address} Value: ${val} weight: ${weightStr} ok?: ${val === weightStr}`);
+// 	const target = 'eddeb37070a19e1277db5ec34ea12225e84ccece9e6b2bb1bb27c3ba3999dac7';
+// 	const targetAddress = getAddressFromPublicKey(target);
+// 	const targetAccount = await dbi.get(BUCKET_ACCOUNT, targetAddress);
+// 	const calculatedWeight = await new Promise<BigNum>((resolve, reject) => {
+// 		let weight = new BigNum(0);
+// 		dbi.createReadStream({
+// 			gte: BUCKET_ACCOUNT,
+// 			lt: getEndingKey(BUCKET_ACCOUNT),
+// 		})
+// 			.on('data', ({ value }) => {
+// 				if (
+// 					value.votedDelegatesPublicKeys &&
+// 					value.votedDelegatesPublicKeys.length > 0 &&
+// 					value.votedDelegatesPublicKeys.includes(target)
+// 				) {
+// 					weight = weight.add(value.balance);
+// 				}
+// 			})
+// 			.on('error', reject)
+// 			.on('end', () => {
+// 				resolve(weight);
+// 			});
 // 	});
+// 	console.log(targetAccount.votes);
+// 	console.log(calculatedWeight.toString());
 // };
 
 // run()
