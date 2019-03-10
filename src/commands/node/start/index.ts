@@ -19,7 +19,7 @@ import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
 import { defaultInstallationPath } from '../../../utils/node/config';
-import { startApplication } from '../../../utils/node/pm2';
+import { restartApplication } from '../../../utils/node/pm2';
 import CacheCommand, { Flags } from './cache';
 import DatabaseCommand from './database';
 
@@ -85,8 +85,9 @@ export default class StartCommand extends BaseCommand {
 						},
 						{
 							title: 'Lisk Core',
-							task: async () =>
-								startApplication(installationPath, name),
+							task: async () => {
+								await restartApplication(name);
+							},
 						},
 					]),
 			},

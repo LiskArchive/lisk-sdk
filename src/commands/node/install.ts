@@ -35,6 +35,7 @@ import {
 	validURL,
 } from '../../utils/node/commons';
 import { defaultInstallationPath } from '../../utils/node/config';
+import { registerApplication } from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
@@ -143,11 +144,11 @@ export default class InstallCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: `Install Lisk Core ${network}`,
+				title: `Install Lisk Core ${network} as ${name}`,
 				task: () =>
 					new Listr([
 						{
-							title: 'Build options',
+							title: 'Setup Build options',
 							task: async ctx => {
 								const options: Options = await buildOptions(flags as Flags);
 								ctx.options = options;
@@ -197,6 +198,13 @@ export default class InstallCommand extends BaseCommand {
 								const { installDir, version }: Options = ctx.options;
 								createDirectory(installDir);
 								await extract(cacheDir, liskTar(version), installDir);
+							},
+						},
+						{
+							title: 'Register Lisk Core',
+							task: async ctx => {
+								const { installDir }: Options = ctx.options;
+								await registerApplication(installDir, name);
 							},
 						},
 					]),

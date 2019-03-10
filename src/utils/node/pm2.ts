@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { connect, list, ProcessDescription, start } from 'pm2';
+import { connect, describe, disconnect, list, ProcessDescription, restart, start, stop } from 'pm2';
 
 const connectPM2 = async (): Promise<void> =>
     new Promise<void>((resolve, reject) => {
@@ -16,13 +16,13 @@ const connectPM2 = async (): Promise<void> =>
 const startPM2 = async (installPath: string, name: string): Promise<void> =>
     new Promise<void>((resolve, reject) => {
         start({
-            name: `lisk.app/${name}`,
+            name,
             script: 'app.js',
             args: '-c config.json',
-            cwd: path.join(installPath, name),
-            pid: path.join(installPath, name, '/pids/lisk.app.pid'),
-            output: path.join(installPath, name, '/logs/lisk.app.log'),
-            error: path.join(installPath, name, '/logs/lisk.app.err'),
+            cwd: installPath,
+            pid: path.join(installPath, '/pids/lisk.app.pid'),
+            output: path.join(installPath, '/logs/lisk.app.log'),
+            error: path.join(installPath, '/logs/lisk.app.err'),
             log_date_format: 'YYYY-MM-DD HH:mm:ss SSS',
             watch: false,
             kill_timeout: 10000,
@@ -41,12 +41,47 @@ const startPM2 = async (installPath: string, name: string): Promise<void> =>
         })
     });
 
-export const startApplication = async (installPath: string, name: string): Promise<void> => {
-    await connectPM2();
-    await startPM2(installPath, name);
-}
+const restartPM2 = async (process: string | number): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+        restart(process, err => {
+            if (err) {
+                reject();
 
-export const listApplication = async (): Promise<ReadonlyArray<ProcessDescription>> =>
+                return;
+            }
+            resolve();
+        })
+    });
+
+const stopPM2 = async (process: string | number): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+        stop(process, err => {
+            if (err) {
+                reject();
+
+                return;
+            }
+            resolve();
+        })
+    });
+
+const describePM2 = async (process: string | number): Promise<ProcessDescription> =>
+    new Promise<ProcessDescription>((resolve, reject) => {
+        describe(process, (err, descs) => {
+            if (err) {
+                reject(err);
+
+                return;
+            }
+            const pDesc = descs.find(desc => desc.pid === process || desc.name === process);
+            if (!pDesc) {
+                reject(new Error(`Process ${process} not found`));
+            }
+            resolve(pDesc);
+        })
+    });
+
+const listPM2 = async (): Promise<ReadonlyArray<ProcessDescription>> =>
     new Promise<ReadonlyArray<ProcessDescription>>((resolve, reject) => {
         list((err, res) => {
             if (err) {
@@ -57,3 +92,38 @@ export const listApplication = async (): Promise<ReadonlyArray<ProcessDescriptio
             resolve(res);
         });
     });
+
+export const registerApplication = async (installPath: string, name: string): Promise<void> => {
+    await connectPM2();
+    await startPM2(installPath, name);
+    await stopPM2(name);
+    disconnect();
+}
+
+export const restartApplication = async (name: string): Promise<void> => {
+    await connectPM2();
+    await restartPM2(name);
+    disconnect();
+}
+
+export const stopApplication = async (name: string): Promise<void> => {
+    await connectPM2();
+    await stopPM2(name);
+    disconnect();
+};
+
+export const listApplication = async (): Promise<ReadonlyArray<ProcessDescription>> => {
+    await connectPM2();
+    const applications = await listPM2();
+    disconnect();
+
+    return applications;
+};
+
+export const describeApplicationByName = async (name: string): Promise<ProcessDescription> => {
+    await connectPM2();
+    const application = await describePM2(name);
+    disconnect();
+
+    return application;
+};
