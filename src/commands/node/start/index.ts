@@ -13,11 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Listr from 'listr';
+import Listr from 'listr';
 import BaseCommand from '../../../base';
+import { startApplication } from '../../../utils/node/pm2';
 import InstallCommand from '../install';
-import * as CacheCommand from './cache';
-import * as DatabaseCommand from './database';
+import CacheCommand, { Flags } from './cache';
+import DatabaseCommand from './database';
 
 export default class StartCommand extends BaseCommand {
 	static description = 'Start Lisk Core';
@@ -38,17 +39,17 @@ export default class StartCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(StartCommand);
-		const { network, installationPath, name } = flags as CacheCommand.Flags;
+		const { network, installationPath, name } = flags as Flags;
 
-		const tasks = new Listr.default([
+		const tasks = new Listr([
 			{
 				title: 'Start Lisk Core',
 				task: () =>
-					new Listr.default([
+					new Listr([
 						{
 							title: 'Cache',
 							task: async () =>
-								CacheCommand.default.run([
+								CacheCommand.run([
 									'--network',
 									network,
 									'--installationPath',
@@ -60,7 +61,7 @@ export default class StartCommand extends BaseCommand {
 						{
 							title: 'Database',
 							task: async () =>
-								DatabaseCommand.default.run([
+								DatabaseCommand.run([
 									'--network',
 									network,
 									'--installationPath',
@@ -68,6 +69,11 @@ export default class StartCommand extends BaseCommand {
 									'--name',
 									name,
 								]),
+						},
+						{
+							title: 'Lisk Core',
+							task: async () =>
+								startApplication(installationPath, name),
 						},
 					]),
 			},

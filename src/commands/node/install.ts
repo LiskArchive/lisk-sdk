@@ -15,7 +15,7 @@
  */
 import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
-import * as Listr from 'listr';
+import Listr from 'listr';
 import * as os from 'os';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
@@ -143,11 +143,11 @@ export default class InstallCommand extends BaseCommand {
 		} = flags as Flags;
 		const cacheDir = this.config.cacheDir;
 
-		const tasks = new Listr.default([
+		const tasks = new Listr([
 			{
 				title: `Install Lisk Core ${network}`,
 				task: () =>
-					new Listr.default([
+					new Listr([
 						{
 							title: 'Build options',
 							task: async ctx => {

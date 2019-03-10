@@ -47,7 +47,7 @@ export const isDbRunning = async (installDir: string): Promise<boolean> => {
 };
 
 export const initDB = async (installDir: string): Promise<string> => {
-	if (isDbInitialized) {
+	if (isDbInitialized(installDir)) {
 		return 'Postgres database initialized';
 	}
 

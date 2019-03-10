@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Listr from 'listr';
+import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
 import { isCacheRunning, startCache } from '../../../utils/node/cache';
@@ -48,7 +48,7 @@ export default class CacheCommand extends BaseCommand {
 		const { network, installationPath, name } = flags as Flags;
 		const installDir = installDirectory(installationPath, name);
 
-		const tasks = new Listr.default([
+		const tasks = new Listr([
 			{
 				title: 'Start Lisk Core Cache',
 				skip: () => !isCacheEnabled(installDir, network),

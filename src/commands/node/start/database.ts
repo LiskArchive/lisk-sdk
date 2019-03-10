@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Listr from 'listr';
+import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
 import { installDirectory } from '../../../utils/node/commons';
@@ -55,11 +55,11 @@ export default class DatabaseCommand extends BaseCommand {
 		const { network, installationPath, name } = flags as Flags;
 		const installDir = installDirectory(installationPath, name);
 
-		const tasks = new Listr.default([
+		const tasks = new Listr([
 			{
 				title: 'Start Lisk Core Database',
 				task: () =>
-					new Listr.default([
+					new Listr([
 						{
 							title: 'Init Postgres',
 							task: async () => {
