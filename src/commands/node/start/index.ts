@@ -18,6 +18,7 @@ import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
+import { defaultInstallationPath } from '../../../utils/node/config';
 import { startApplication } from '../../../utils/node/pm2';
 import CacheCommand, { Flags } from './cache';
 import DatabaseCommand from './database';
@@ -36,13 +37,16 @@ export default class StartCommand extends BaseCommand {
 		...BaseCommand.flags,
 		network: flagParser.string({
 			...commonFlags.network,
+			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
+			default: defaultInstallationPath,
 		}),
 		name: flagParser.string({
 			...commonFlags.name,
+			default: NETWORK.MAINNET,
 		}),
 	};
 

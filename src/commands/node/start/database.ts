@@ -19,6 +19,7 @@ import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
 import { installDirectory } from '../../../utils/node/commons';
+import { defaultInstallationPath } from '../../../utils/node/config';
 import {
 	createDatabase,
 	createUser,
@@ -47,13 +48,16 @@ export default class DatabaseCommand extends BaseCommand {
 		...BaseCommand.flags,
 		network: flagParser.string({
 			...commonFlags.network,
+			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
+			default: defaultInstallationPath,
 		}),
 		name: flagParser.string({
 			...commonFlags.name,
+			default: NETWORK.MAINNET,
 		}),
 		'no-snapshot': flagParser.boolean({
 			...commonFlags.noSnapshot,

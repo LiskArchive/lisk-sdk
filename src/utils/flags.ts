@@ -14,8 +14,6 @@
  *
  */
 
-import { NETWORK, RELEASE_URL, SNAPSHOT_URL } from './constants';
-import { defaultInstallationPath } from './node/config';
 
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 	Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
@@ -108,7 +106,6 @@ export type AlphabetLowercase =
 export interface FlagMap {
 	readonly [key: string]: {
 		readonly char?: AlphabetLowercase;
-		readonly default?: string;
 		readonly description: string;
 	};
 }
@@ -143,26 +140,21 @@ export const flags: FlagMap = {
 	network: {
 		char: 'n',
 		description: networkDescription,
-		default: NETWORK.MAINNET,
 	},
 	installationPath: {
 		char: 'p',
 		description: installationPathDescription,
-		default: defaultInstallationPath,
 	},
 	name: {
 		description: nameDescription,
-		default: NETWORK.MAINNET,
 	},
 	releaseUrl: {
 		char: 'r',
 		description: releaseUrlDescription,
-		default: RELEASE_URL,
 	},
 	snapshotUrl: {
 		char: 's',
 		description: snapshotUrlDescription,
-		default: SNAPSHOT_URL,
 	},
 	noSnapshot: {
 		description: noSnapshotDescription,

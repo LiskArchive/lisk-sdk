@@ -20,7 +20,7 @@ import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
 import { isCacheRunning, startCache } from '../../../utils/node/cache';
 import { installDirectory } from '../../../utils/node/commons';
-import { isCacheEnabled } from '../../../utils/node/config';
+import { defaultInstallationPath, isCacheEnabled } from '../../../utils/node/config';
 
 export interface Flags {
 	readonly installationPath: string;
@@ -41,13 +41,16 @@ export default class CacheCommand extends BaseCommand {
 		...BaseCommand.flags,
 		network: flagParser.string({
 			...commonFlags.network,
+			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
+			default: defaultInstallationPath,
 		}),
 		name: flagParser.string({
 			...commonFlags.name,
+			default: NETWORK.MAINNET,
 		}),
 	};
 

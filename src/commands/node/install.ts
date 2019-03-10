@@ -18,7 +18,7 @@ import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
 import BaseCommand from '../../base';
-import { NETWORK } from '../../utils/constants';
+import { NETWORK, RELEASE_URL, SNAPSHOT_URL } from '../../utils/constants';
 import { download, extract, validateChecksum } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 import {
@@ -34,6 +34,7 @@ import {
 	validateNotARootUser,
 	validURL,
 } from '../../utils/node/commons';
+import { defaultInstallationPath } from '../../utils/node/config';
 import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
@@ -104,18 +105,24 @@ export default class InstallCommand extends BaseCommand {
 		...BaseCommand.flags,
 		network: flagParser.string({
 			...commonFlags.network,
+			default: NETWORK.MAINNET,
+			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
+			default: defaultInstallationPath,
 		}),
 		name: flagParser.string({
 			...commonFlags.name,
+			default: NETWORK.MAINNET,
 		}),
 		releaseUrl: flagParser.string({
 			...commonFlags.releaseUrl,
+			default: RELEASE_URL,
 		}),
 		snapshotUrl: flagParser.string({
 			...commonFlags.snapshotUrl,
+			default: SNAPSHOT_URL,
 		}),
 		'no-snapshot': flagParser.boolean({
 			...commonFlags.noSnapshot,
