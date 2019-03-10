@@ -17,6 +17,7 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
+import * as path from 'path';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
 import { download, extract, validateChecksum } from '../../utils/download';
@@ -90,7 +91,7 @@ const buildOptions = async ({
 	};
 };
 
-const INSTALL_PATH = '~/.lisk/network';
+const INSTALL_PATH = path.join(os.homedir(), '.lisk/network');
 const RELEASE_URL = 'https://downloads.lisk.io/lisk';
 const SNAPSHOT_URL = 'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk';
 

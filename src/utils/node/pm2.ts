@@ -16,13 +16,13 @@ const connectPM2 = async (): Promise<void> =>
 const startPM2 = async (installPath: string, name: string): Promise<void> =>
     new Promise<void>((resolve, reject) => {
         start({
-            name: 'lisk.app',
+            name: `lisk.app/${name}`,
             script: 'app.js',
             args: '-c config.json',
-            cwd: path.resolve(installPath, name),
-            pid: path.resolve(installPath, name, '/pids/lisk.app.pid'),
-            output: path.resolve(installPath, name, '/logs/lisk.app.log'),
-            error: path.resolve(installPath, name, '/logs/lisk.app.err'),
+            cwd: path.join(installPath, name),
+            pid: path.join(installPath, name, '/pids/lisk.app.pid'),
+            output: path.join(installPath, name, '/logs/lisk.app.log'),
+            error: path.join(installPath, name, '/logs/lisk.app.err'),
             log_date_format: 'YYYY-MM-DD HH:mm:ss SSS',
             watch: false,
             kill_timeout: 10000,
