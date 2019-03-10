@@ -120,6 +120,7 @@ export default class InstallCommand extends BaseCommand {
 		'no-snapshot': flagParser.boolean({
 			...commonFlags.noSnapshot,
 			default: false,
+			allowNo: false,
 		}),
 	};
 

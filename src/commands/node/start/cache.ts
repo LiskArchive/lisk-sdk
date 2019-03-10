@@ -13,13 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
+import { flags as commonFlags } from '../../../utils/flags';
 import { isCacheRunning, startCache } from '../../../utils/node/cache';
 import { installDirectory } from '../../../utils/node/commons';
 import { isCacheEnabled } from '../../../utils/node/config';
-import InstallCommand from '../install';
 
 export interface Flags {
 	readonly installationPath: string;
@@ -38,9 +39,16 @@ export default class CacheCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		network: InstallCommand.flags.network,
-		installationPath: InstallCommand.flags.installationPath,
-		name: InstallCommand.flags.name,
+		network: flagParser.string({
+			...commonFlags.network,
+			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
+		}),
+		installationPath: flagParser.string({
+			...commonFlags.installationPath,
+		}),
+		name: flagParser.string({
+			...commonFlags.name,
+		}),
 	};
 
 	async run(): Promise<void> {

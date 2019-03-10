@@ -16,6 +16,7 @@
 import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
+import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
 import { startApplication } from '../../../utils/node/pm2';
 import CacheCommand, { Flags } from './cache';
@@ -35,6 +36,7 @@ export default class StartCommand extends BaseCommand {
 		...BaseCommand.flags,
 		network: flagParser.string({
 			...commonFlags.network,
+			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,

@@ -13,9 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
+import { flags as commonFlags } from '../../../utils/flags';
 import { installDirectory } from '../../../utils/node/commons';
 import {
 	createDatabase,
@@ -23,7 +25,6 @@ import {
 	initDB,
 	startDatabase,
 } from '../../../utils/node/database';
-import InstallCommand from '../install';
 
 export interface Flags {
 	readonly installationPath: string;
@@ -44,10 +45,21 @@ export default class DatabaseCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		network: InstallCommand.flags.network,
-		installationPath: InstallCommand.flags.installationPath,
-		name: InstallCommand.flags.name,
-		'no-snapshot': InstallCommand.flags['no-snapshot'],
+		network: flagParser.string({
+			...commonFlags.network,
+			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
+		}),
+		installationPath: flagParser.string({
+			...commonFlags.installationPath,
+		}),
+		name: flagParser.string({
+			...commonFlags.name,
+		}),
+		'no-snapshot': flagParser.boolean({
+			...commonFlags.noSnapshot,
+			default: false,
+			allowNo: false,
+		}),
 	};
 
 	async run(): Promise<void> {

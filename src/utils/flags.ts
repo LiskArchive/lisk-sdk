@@ -107,11 +107,9 @@ export type AlphabetLowercase =
 
 export interface FlagMap {
 	readonly [key: string]: {
-		readonly allowNo?: boolean;
 		readonly char?: AlphabetLowercase;
 		readonly default?: string;
 		readonly description: string;
-		readonly options?: string[];
 	};
 }
 
@@ -146,7 +144,6 @@ export const flags: FlagMap = {
 		char: 'n',
 		description: networkDescription,
 		default: NETWORK.MAINNET,
-		options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 	},
 	installationPath: {
 		char: 'p',
@@ -169,6 +166,5 @@ export const flags: FlagMap = {
 	},
 	noSnapshot: {
 		description: noSnapshotDescription,
-		allowNo: false,
 	},
 };
