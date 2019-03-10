@@ -13,10 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
+import { flags as commonFlags } from '../../../utils/flags';
 import { startApplication } from '../../../utils/node/pm2';
-import InstallCommand from '../install';
 import CacheCommand, { Flags } from './cache';
 import DatabaseCommand from './database';
 
@@ -32,9 +33,15 @@ export default class StartCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		network: InstallCommand.flags.network,
-		installationPath: InstallCommand.flags.installationPath,
-		name: InstallCommand.flags.name,
+		network: flagParser.string({
+			...commonFlags.network,
+		}),
+		installationPath: flagParser.string({
+			...commonFlags.installationPath,
+		}),
+		name: flagParser.string({
+			...commonFlags.name,
+		}),
 	};
 
 	async run(): Promise<void> {
@@ -78,7 +85,6 @@ export default class StartCommand extends BaseCommand {
 					]),
 			},
 		]);
-
 		await tasks.run();
 	}
 }

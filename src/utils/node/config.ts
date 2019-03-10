@@ -14,6 +14,8 @@
  *
  */
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 export interface CacheConfig {
 	readonly host: string;
@@ -34,6 +36,8 @@ export interface NodeConfig {
 	readonly db: DbConfig;
 	readonly redis: CacheConfig;
 }
+
+export const defaultInstallationPath = path.join(os.homedir(), '.lisk/network');
 
 export const configPath = (network: string = 'default'): string =>
 	`config/${network}/config.json`;

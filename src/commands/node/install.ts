@@ -17,7 +17,6 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
-import * as path from 'path';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
 import { download, extract, validateChecksum } from '../../utils/download';
@@ -91,9 +90,6 @@ const buildOptions = async ({
 	};
 };
 
-const INSTALL_PATH = path.join(os.homedir(), '.lisk/network');
-const RELEASE_URL = 'https://downloads.lisk.io/lisk';
-const SNAPSHOT_URL = 'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk';
 
 export default class InstallCommand extends BaseCommand {
 	static description = 'Install lisk software';
@@ -108,29 +104,22 @@ export default class InstallCommand extends BaseCommand {
 		...BaseCommand.flags,
 		network: flagParser.string({
 			...commonFlags.network,
-			default: NETWORK.MAINNET,
-			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
-			...commonFlags.installPath,
-			default: INSTALL_PATH,
+			...commonFlags.installationPath,
 		}),
 		name: flagParser.string({
 			...commonFlags.name,
-			default: NETWORK.MAINNET,
 		}),
 		releaseUrl: flagParser.string({
 			...commonFlags.releaseUrl,
-			default: RELEASE_URL,
 		}),
 		snapshotUrl: flagParser.string({
 			...commonFlags.snapshotUrl,
-			default: SNAPSHOT_URL,
 		}),
 		'no-snapshot': flagParser.boolean({
 			...commonFlags.noSnapshot,
 			default: false,
-			allowNo: false,
 		}),
 	};
 
