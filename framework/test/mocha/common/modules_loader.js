@@ -251,22 +251,26 @@ const modulesLoader = new function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ accounts: require('../../../src/modules/chain/modules/accounts') },
-				{ blocks: require('../../../src/modules/chain/modules/blocks') },
-				{ delegates: require('../../../src/modules/chain/modules/delegates') },
-				{ loader: require('../../../src/modules/chain/modules/loader') },
+				{ accounts: require('../../../src/modules/chain/submodules/accounts') },
+				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
 				{
-					multisignatures: require('../../../src/modules/chain/modules/multisignatures'),
+					delegates: require('../../../src/modules/chain/submodules/delegates'),
 				},
-				{ peers: require('../../../src/modules/chain/modules/peers') },
-				{ rounds: require('../../../src/modules/chain/modules/rounds') },
+				{ loader: require('../../../src/modules/chain/submodules/loader') },
 				{
-					signatures: require('../../../src/modules/chain/modules/signatures'),
+					multisignatures: require('../../../src/modules/chain/submodules/multisignatures'),
+				},
+				{ peers: require('../../../src/modules/chain/submodules/peers') },
+				{ rounds: require('../../../src/modules/chain/submodules/rounds') },
+				{
+					signatures: require('../../../src/modules/chain/submodules/signatures'),
 				},
 				{
-					transactions: require('../../../src/modules/chain/modules/transactions'),
+					transactions: require('../../../src/modules/chain/submodules/transactions'),
 				},
-				{ transport: require('../../../src/modules/chain/modules/transport') },
+				{
+					transport: require('../../../src/modules/chain/submodules/transport'),
+				},
 			],
 			[
 				{

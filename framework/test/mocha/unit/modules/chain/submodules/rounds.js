@@ -17,7 +17,9 @@
 // Init tests dependencies
 const rewire = require('rewire');
 // Instantiate test subject
-const Rounds = rewire('../../../../../../src/modules/chain/modules/rounds.js');
+const Rounds = rewire(
+	'../../../../../../src/modules/chain/submodules/rounds.js'
+);
 const Round = rewire('../../../../../../src/modules/chain/logic/round.js'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 const {

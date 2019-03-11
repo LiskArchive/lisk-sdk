@@ -18,7 +18,9 @@ const rewire = require('rewire');
 
 const { EPOCH_TIME } = global.constants;
 
-const Blocks = rewire('../../../../../../src/modules/chain/modules/blocks.js');
+const Blocks = rewire(
+	'../../../../../../src/modules/chain/submodules/blocks.js'
+);
 
 describe('blocks', () => {
 	let blocksInstance;

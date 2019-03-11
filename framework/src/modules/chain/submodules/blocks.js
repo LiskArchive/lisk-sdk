@@ -45,10 +45,10 @@ __private.isActive = false;
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires modules/blocks/verify
- * @requires modules/blocks/process
- * @requires modules/blocks/utils
- * @requires modules/blocks/chain
+ * @requires submodules/blocks/verify
+ * @requires submodules/blocks/process
+ * @requires submodules/blocks/utils
+ * @requires submodules/blocks/chain
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, err, self
