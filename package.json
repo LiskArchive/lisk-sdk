@@ -42,6 +42,7 @@
 		"prepublishOnly": "npm run check:dependencies"
 	},
 	"dependencies": {
+		"@liskhq/lisk-transaction-pool": "0.1.0-alpha.0",
 		"@liskhq/lisk-transactions": "2.1.0-alpha.2",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
