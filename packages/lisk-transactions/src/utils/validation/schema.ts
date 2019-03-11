@@ -20,6 +20,9 @@ export const transaction = {
 		id: {
 			type: 'string',
 		},
+		blockId: {
+			type: 'string',
+		},
 		amount: {
 			type: ['string', 'integer'],
 		},
@@ -78,6 +81,10 @@ export const baseTransaction = {
 	],
 	properties: {
 		id: {
+			type: 'string',
+			format: 'id',
+		},
+		blockId: {
 			type: 'string',
 			format: 'id',
 		},

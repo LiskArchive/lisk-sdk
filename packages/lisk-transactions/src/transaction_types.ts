@@ -38,6 +38,7 @@ export interface TransactionJSON {
 	readonly asset: object;
 	readonly fee: string | number;
 	readonly id?: string;
+	readonly blockId?: string;
 	readonly recipientId: string | null;
 	readonly recipientPublicKey?: string;
 	readonly senderId?: string;
