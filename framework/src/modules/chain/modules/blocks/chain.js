@@ -664,19 +664,10 @@ Chain.prototype.deleteLastBlock = function(cb) {
 				// Notify all remote peers about our new headers
 				modules.transport.broadcastHeaders(seriesCb);
 			},
-			receiveTransactions(seriesCb) {
+			addDeletedTransactions(seriesCb) {
 				// Put transactions back into transaction pool
-				modules.transactions.receiveTransactions(
-					deletedBlockTransactions,
-					false,
-					err => {
-						if (err) {
-							library.logger.error('Error adding transactions', err);
-						}
-						deletedBlockTransactions = null;
-						return seriesCb();
-					}
-				);
+				modules.transactions.onDeletedTransactions(deletedBlockTransactions);
+				seriesCb();
 			},
 		},
 		err => setImmediate(cb, err, lastBlock)
