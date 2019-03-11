@@ -138,8 +138,6 @@ TransactionsController.postTransaction = function(context, next) {
 	return channel.invoke('chain:postTransaction', [
 		transaction,
 		(err, data) => {
-			let error = null;
-
 			if (data.success) {
 				return next(null, {
 					data: { message: 'Transaction(s) accepted' },
@@ -147,11 +145,10 @@ TransactionsController.postTransaction = function(context, next) {
 				});
 			}
 
-			if (err) {
-				error = new ApiError(err, apiCodes.PROCESSING_ERROR);
-			} else {
-				error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
-			}
+			const error = new ApiError(
+				err || data.message,
+				apiCodes.PROCESSING_ERROR
+			);
 
 			context.statusCode = error.code;
 			delete error.code;
