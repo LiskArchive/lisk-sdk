@@ -72,7 +72,7 @@ export const startDatabase = async (installDir: string): Promise<string> => {
 		`cd ${installDir}; pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} start >> ${SH_LOG_FILE}`,
 	);
 
-	if (stdout.trim() === '') {
+	if (stdout.trim() === '' && !stderr) {
 		return DATABASE_START_SUCCESS;
 	}
 
@@ -129,7 +129,7 @@ export const stopDatabase = async (installDir: string): Promise<string> => {
 		`cd ${installDir}; pg_ctl -D ${DB_DATA} -l ${DB_LOG_FILE} stop >> ${SH_LOG_FILE}`,
 	);
 
-	if (stdout.search('server stopped') >= 0) {
+	if (stdout.trim() === '' && !stderr) {
 		return DATABASE_STOP_SUCCESS;
 	}
 
