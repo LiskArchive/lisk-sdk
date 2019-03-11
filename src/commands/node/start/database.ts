@@ -21,9 +21,6 @@ import { flags as commonFlags } from '../../../utils/flags';
 import { installDirectory } from '../../../utils/node/commons';
 import { defaultInstallationPath } from '../../../utils/node/config';
 import {
-	createDatabase,
-	createUser,
-	initDB,
 	startDatabase,
 } from '../../../utils/node/database';
 
@@ -68,34 +65,13 @@ export default class DatabaseCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(DatabaseCommand);
-		const { network, installationPath, name } = flags as Flags;
+		const { installationPath, name } = flags as Flags;
 		const installDir = installDirectory(installationPath, name);
 
 		const tasks = new Listr([
 			{
 				title: 'Start Lisk Core Database',
-				task: () =>
-					new Listr([
-						{
-							title: 'Init Postgres',
-							task: async () => {
-								await initDB(installDir);
-							},
-						},
-						{
-							title: 'Start Postgres Server',
-							task: async () => {
-								await startDatabase(installDir);
-							},
-						},
-						{
-							title: 'Create user and database',
-							task: async () => {
-								await createUser(installDir, network);
-								await createDatabase(installDir, network);
-							},
-						},
-					]),
+				task: async () => startDatabase(installDir)
 			},
 		]);
 
