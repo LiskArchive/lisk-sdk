@@ -41,6 +41,7 @@ const wrapAddTransactionResponseInCb = (addTransactionResponse, cb, transaction,
 };
 
 const receivedQueue = 'recieved';
+// TODO: Need to decide which queue will include transactions in the validated queue
 const validatedQueue = 'validated';
 const pendingQueue = 'pending';
 const verifiedQueue = 'verified';
