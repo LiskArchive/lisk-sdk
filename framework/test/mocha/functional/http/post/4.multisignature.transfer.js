@@ -28,7 +28,8 @@ const apiHelpers = require('../../../common/helpers/api');
 
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 0) transfer from multisignature account', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 0) transfer from multisignature account', () => {
 	const scenarios = {
 		register_multisignature: new Scenarios.Multisig(),
 	};
