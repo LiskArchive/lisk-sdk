@@ -1,7 +1,7 @@
 module.exports = {
 	blacklistedPeers: [],
 	connectTimeout: 5000,
-	ackTimeout: 5000,
+	ackTimeout: 10000,
 	discoveryInterval: 30000,
 	seedPeers: [],
 	wsEngine: 'ws',

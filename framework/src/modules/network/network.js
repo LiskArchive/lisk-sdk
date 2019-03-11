@@ -1,5 +1,14 @@
 const {
 	P2P,
+	EVENT_CLOSE_OUTBOUND,
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_INBOUND_SOCKET_ERROR,
+	EVENT_UPDATED_PEER_INFO,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 } = require('@liskhq/lisk-p2p');
@@ -49,21 +58,77 @@ module.exports = class Network {
 			this._handleUpdateNodeInfo
 		);
 
+		// ---- START: Bind event handlers ----
+
+		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
+			this.logger.debug(
+				`Outbound connection of peer ${closePacket.peerInfo.ipAddress}:${
+					closePacket.peerInfo.wsPort
+				} was closed with code ${closePacket.code} and reason: ${
+					closePacket.reason
+				}`
+			);
+		});
+		this.p2p.on(EVENT_CONNECT_OUTBOUND, peerInfo => {
+			this.logger.info(
+				`Connected to peer ${peerInfo.ipAddress}:${peerInfo.wsPort}`
+			);
+		});
+		this.p2p.on(EVENT_DISCOVERED_PEER, peerInfo => {
+			this.logger.info(
+				`Discovered peer ${peerInfo.ipAddress}:${peerInfo.wsPort}`
+			);
+		});
+		this.p2p.on(EVENT_FAILED_TO_FETCH_PEER_INFO, error => {
+			this.logger.debug(error.message);
+		});
+		this.p2p.on(EVENT_FAILED_TO_PUSH_NODE_INFO, error => {
+			this.logger.debug(error.message);
+		});
+		this.p2p.on(EVENT_OUTBOUND_SOCKET_ERROR, error => {
+			this.logger.debug(error.message);
+		});
+		this.p2p.on(EVENT_INBOUND_SOCKET_ERROR, error => {
+			this.logger.debug(error.message);
+		});
+		this.p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
+			this.logger.info(
+				`Updated info of peer ${peerInfo.ipAddress}:${
+					peerInfo.wsPort
+				} to ${JSON.stringify(peerInfo)}`
+			);
+		});
+		this.p2p.on(EVENT_FAILED_PEER_INFO_UPDATE, error => {
+			this.logger.debug(error.message);
+		});
+
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
+			this.logger.info(
+				`Received inbound request for procedure ${request.procedure}`
+			);
 			try {
 				const result = await this.channel.invoke(
 					request.procedure,
 					request.data
 				);
 				request.end(result); // Send the response back to the peer.
+				this.logger.info(`Responsed to peer request ${request.procedure}`);
 			} catch (error) {
 				request.error(error); // Send an error back to the peer.
+				this.logger.debug(
+					`Could not respond to peer request ${
+						request.procedure
+					} because of error: ${error.message}`
+				);
 			}
 		});
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
+			this.logger.info(`Received inbound message for event ${packet.event}`);
 			this.channel.publish(`network:${packet.event}`, packet.data);
 		});
+
+		// ---- END: Bind event handlers ----
 
 		try {
 			await this.p2p.start();
