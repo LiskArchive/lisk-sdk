@@ -69,7 +69,7 @@ const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
 	validURL(snapshotUrl);
 };
 
-const buildOptions = async ({
+const installOptions = async ({
 	installationPath,
 	name,
 	network,
@@ -93,7 +93,7 @@ const buildOptions = async ({
 };
 
 export default class InstallCommand extends BaseCommand {
-	static description = 'Install lisk software';
+	static description = 'Install Lisk Core';
 
 	static examples = [
 		'node:install',
@@ -147,9 +147,9 @@ export default class InstallCommand extends BaseCommand {
 				task: () =>
 					new Listr([
 						{
-							title: 'Setup Build options',
+							title: 'Prepare Install Options',
 							task: async ctx => {
-								const options: Options = await buildOptions(flags as Flags);
+								const options: Options = await installOptions(flags as Flags);
 								ctx.options = options;
 							},
 						},
@@ -162,7 +162,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download Lisk Core release',
+							title: 'Download Lisk Core Release',
 							task: async ctx => {
 								const {
 									version,
@@ -180,7 +180,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download blockchain snapshot',
+							title: 'Download Blockchain Snapshot',
 							skip: () => noSnapshot,
 							task: async () => {
 								const snapshotPath = `${cacheDir}/${liskDbSnapshot(
