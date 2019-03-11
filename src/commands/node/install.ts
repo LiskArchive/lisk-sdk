@@ -92,7 +92,6 @@ const buildOptions = async ({
 	};
 };
 
-
 export default class InstallCommand extends BaseCommand {
 	static description = 'Install lisk software';
 

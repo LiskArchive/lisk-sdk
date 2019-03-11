@@ -20,7 +20,10 @@ import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
 import { isCacheRunning, startCache } from '../../../utils/node/cache';
 import { installDirectory } from '../../../utils/node/commons';
-import { defaultInstallationPath, isCacheEnabled } from '../../../utils/node/config';
+import {
+	defaultInstallationPath,
+	isCacheEnabled,
+} from '../../../utils/node/config';
 
 export interface Flags {
 	readonly installationPath: string;

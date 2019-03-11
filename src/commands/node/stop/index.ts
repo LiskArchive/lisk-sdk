@@ -13,42 +13,54 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Listr from 'listr';
+import { flags as flagParser } from '@oclif/command';
+import Listr from 'listr';
 import BaseCommand from '../../../base';
-import InstallCommand from '../install';
-import * as CacheCommand from './cache';
-import * as DatabaseCommand from './database';
+import { NETWORK } from '../../../utils/constants';
+import { flags as commonFlags } from '../../../utils/flags';
+import { defaultInstallationPath } from '../../../utils/node/config';
+import CacheCommand, { Flags } from './cache';
+import DatabaseCommand from './database';
 
 export default class StopCommand extends BaseCommand {
 	static description = 'Stop Lisk Core';
 
 	static examples = [
 		'node:stop',
-		'node:stop --no-snapshot',
 		'node:stop --network=testnet',
 		'node:stop --installation-path=/opt/lisk/lisk-testnet --network=testnet',
 	];
 
 	static flags = {
 		...BaseCommand.flags,
-		network: InstallCommand.flags.network,
-		installationPath: InstallCommand.flags.installationPath,
-		name: InstallCommand.flags.name,
+		network: flagParser.string({
+			...commonFlags.network,
+			default: NETWORK.MAINNET,
+			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
+		}),
+		installationPath: flagParser.string({
+			...commonFlags.installationPath,
+			default: defaultInstallationPath,
+		}),
+		name: flagParser.string({
+			...commonFlags.name,
+			default: NETWORK.MAINNET,
+		}),
 	};
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(StopCommand);
-		const { network, installationPath, name } = flags as CacheCommand.Flags;
+		const { network, installationPath, name } = flags as Flags;
 
-		const tasks = new Listr.default([
+		const tasks = new Listr([
 			{
 				title: 'Stop Lisk Core',
 				task: () =>
-					new Listr.default([
+					new Listr([
 						{
 							title: 'Cache',
 							task: async () =>
-								CacheCommand.default.run([
+								CacheCommand.run([
 									'--network',
 									network,
 									'--installationPath',
@@ -60,7 +72,7 @@ export default class StopCommand extends BaseCommand {
 						{
 							title: 'Database',
 							task: async () =>
-								DatabaseCommand.default.run([
+								DatabaseCommand.run([
 									'--network',
 									network,
 									'--installationPath',

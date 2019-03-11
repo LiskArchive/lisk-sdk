@@ -13,16 +13,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Listr from 'listr';
+import { flags as flagParser } from '@oclif/command';
+import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
-import {
-	isCacheRunning,
-	stopCache,
-} from '../../../utils/node/cache';
+import { flags as commonFlags } from '../../../utils/flags';
+import { isCacheRunning, stopCache } from '../../../utils/node/cache';
 import { installDirectory } from '../../../utils/node/commons';
-import { isCacheEnabled } from '../../../utils/node/config';
-import InstallCommand from '../install';
+import {
+	defaultInstallationPath,
+	isCacheEnabled,
+} from '../../../utils/node/config';
 
 export interface Flags {
 	readonly installationPath: string;
@@ -41,9 +42,19 @@ export default class CacheCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		network: InstallCommand.flags.network,
-		installationPath: InstallCommand.flags.installationPath,
-		name: InstallCommand.flags.name,
+		network: flagParser.string({
+			...commonFlags.network,
+			default: NETWORK.MAINNET,
+			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
+		}),
+		installationPath: flagParser.string({
+			...commonFlags.installationPath,
+			default: defaultInstallationPath,
+		}),
+		name: flagParser.string({
+			...commonFlags.name,
+			default: NETWORK.MAINNET,
+		}),
 	};
 
 	async run(): Promise<void> {
@@ -51,7 +62,7 @@ export default class CacheCommand extends BaseCommand {
 		const { network, installationPath, name } = flags as Flags;
 		const installDir = installDirectory(installationPath, name);
 
-		const tasks = new Listr.default([
+		const tasks = new Listr([
 			{
 				title: 'Stop Lisk Core Cache',
 				skip: () => !isCacheEnabled(installDir, network),
