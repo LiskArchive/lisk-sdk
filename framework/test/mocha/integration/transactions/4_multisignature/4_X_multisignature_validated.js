@@ -24,7 +24,8 @@ const Scenarios = require('../../../common/scenarios');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
 const localCommon = require('../../common');
 
-describe('system test (type 4) - checking registered multisignature transaction against other transaction types', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test (type 4) - checking registered multisignature transaction against other transaction types', () => {
 	let library;
 
 	const scenarios = {

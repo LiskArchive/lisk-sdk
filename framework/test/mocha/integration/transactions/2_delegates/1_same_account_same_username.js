@@ -21,7 +21,8 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 2) - double delegate registrations', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test (type 2) - double delegate registrations', () => {
 	let library;
 	localCommon.beforeBlock('system_2_2_delegates_1', lib => {
 		library = lib;

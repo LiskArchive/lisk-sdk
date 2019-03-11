@@ -23,7 +23,8 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
-describe('delegate', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] delegate', () => {
 	let library;
 	let storage;
 

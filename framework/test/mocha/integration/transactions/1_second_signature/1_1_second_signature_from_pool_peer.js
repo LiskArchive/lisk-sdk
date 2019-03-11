@@ -26,7 +26,8 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - second signature transactions from pool and peer', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
 	let storage;
 

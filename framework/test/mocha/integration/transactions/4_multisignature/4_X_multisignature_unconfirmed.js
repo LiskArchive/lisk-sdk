@@ -20,7 +20,8 @@ const Scenarios = require('../../../common/scenarios');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
 const localCommon = require('../../common');
 
-describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
 	let library;
 
 	const scenarios = {

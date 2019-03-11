@@ -48,7 +48,8 @@ describe('GET /node', () => {
 			return expect(parseInt(constantsResponse.reward)).to.at.most(500000000);
 		});
 
-		it('should return a result containing supply that is a number = 10000000000000000', async () => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('[1.7-transactions-changes-revisit] should return a result containing supply that is a number = 10000000000000000', async () => {
 			return expect(constantsResponse.supply).to.be.equal('10000000000000000');
 		});
 

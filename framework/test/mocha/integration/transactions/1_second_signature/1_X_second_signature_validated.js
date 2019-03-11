@@ -26,7 +26,8 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	let library;
 
 	const account = randomUtil.account();

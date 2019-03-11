@@ -193,7 +193,8 @@ describe('expire transactions', () => {
 		});
 	});
 
-	describe('multi-signature', () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('[1.7-transactions-changes-revisit] multi-signature', () => {
 		let transaction;
 		let address;
 		let memAccountBefore;

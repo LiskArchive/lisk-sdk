@@ -26,7 +26,8 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test - multi signature edge cases', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test - multi signature edge cases', () => {
 	let library;
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;

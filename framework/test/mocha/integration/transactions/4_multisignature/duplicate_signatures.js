@@ -28,7 +28,8 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const exceptions = global.exceptions;
 
-describe('duplicate_signatures', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] duplicate_signatures', () => {
 	let library;
 	let addTransactionsAndForgePromise;
 	let transactionPool;
