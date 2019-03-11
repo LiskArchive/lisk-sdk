@@ -23,9 +23,8 @@ class InMemoryChannel extends BaseChannel {
 	 * @param {Object} [options] - Options impacting events and actions list
 	 * @param {boolean} [options.skipInternalEvents] - Skip internal events
 	 */
-	constructor(moduleAlias, events, actions, bus, options = {}) {
+	constructor(moduleAlias, events, actions, options = {}) {
 		super(moduleAlias, events, actions, options);
-		this.bus = bus;
 	}
 
 	/**
@@ -33,7 +32,8 @@ class InMemoryChannel extends BaseChannel {
 	 *
 	 * @async
 	 */
-	async registerToBus() {
+	async registerBus(bus) {
+		this.bus = bus;
 		await this.bus.registerChannel(
 			this.moduleAlias,
 			this.eventsList.map(event => event.name),

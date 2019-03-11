@@ -51,7 +51,6 @@ class Controller {
 		this.componentConfig = componentConfig;
 		this.modules = {};
 		this.channel = null; // Channel for controller
-		this.modulesChannels = {}; // Keep track of all channels for modules
 		this.bus = null;
 		this.config = { dirs: systemDirs(this.appLabel) };
 		this.socketsPath = {
@@ -134,11 +133,10 @@ class Controller {
 			{
 				getComponentConfig: action => this.componentConfig[action.params],
 			},
-			this.bus,
 			{ skipInternalEvents: true }
 		);
 
-		await this.channel.registerToBus();
+		await this.channel.registerBus(this.bus);
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
@@ -180,13 +178,10 @@ class Controller {
 		const channel = new InMemoryChannel(
 			moduleAlias,
 			module.events,
-			module.actions,
-			this.bus
+			module.actions
 		);
 
-		this.modulesChannels[moduleAlias] = channel;
-
-		await channel.registerToBus();
+		await channel.registerBus(this.bus);
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
 		channel.publish(`${moduleAlias}:loading:started`);
@@ -216,10 +211,7 @@ class Controller {
 			module.actions
 		);
 
-		this.modulesChannels[moduleAlias] = channel;
-
-		await channel.connect(this.socketsPath);
-		await channel.registerToBus();
+		await channel.registerBus(this.socketsPath);
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
 		channel.publish(`${moduleAlias}:loading:started`);

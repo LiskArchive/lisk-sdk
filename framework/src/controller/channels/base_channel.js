@@ -66,7 +66,7 @@ class BaseChannel {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	async registerToBus() {
+	async registerBus() {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 

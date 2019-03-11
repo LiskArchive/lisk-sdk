@@ -21,7 +21,7 @@ class ChildProcessChannel extends BaseChannel {
 		this.localBus = new EventEmitter2();
 	}
 
-	async connect(socketsPath) {
+	async registerBus(socketsPath) {
 		this.rpcSocketPath = `${socketsPath.root}/${this.moduleAlias}_rpc.sock`;
 
 		this.pubSocket = axon.socket('pub-emitter');
@@ -44,16 +44,8 @@ class ChildProcessChannel extends BaseChannel {
 		});
 
 		this.rpcServer.expose('cleanup', this.cleanup);
+		this.rpcSocket.bind(this.rpcSocketPath);
 
-		return new Promise((resolve, reject) => {
-			// TODO: wait for all sockets to be created
-			this.rpcSocket.once('bind', resolve);
-			this.rpcSocket.once('error', reject);
-			this.rpcSocket.bind(this.rpcSocketPath);
-		});
-	}
-
-	async registerToBus() {
 		return new Promise((resolve, reject) => {
 			this.busRpcClient.call(
 				'registerChannel',
