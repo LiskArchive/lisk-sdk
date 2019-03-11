@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
@@ -39,8 +39,8 @@ describe('GET /dapps', () => {
 	const registeredDappsAmount = 2;
 
 	before(() => {
-		const transaction = lisk.transaction.transfer({
-			amount: 1000 * NORMALIZER,
+		const transaction = transfer({
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
@@ -56,11 +56,11 @@ describe('GET /dapps', () => {
 			.then(() => {
 				transactionsToWaitFor = [];
 
-				const transaction1 = lisk.transaction.createDapp({
+				const transaction1 = createDapp({
 					passphrase: account.passphrase,
 					options: dapp1,
 				});
-				const transaction2 = lisk.transaction.createDapp({
+				const transaction2 = createDapp({
 					passphrase: account.passphrase,
 					options: dapp2,
 				});
@@ -259,7 +259,7 @@ describe('GET /dapps', () => {
 				const transactionsToWaitFor2 = [];
 
 				for (let i = 1; i <= 20; i++) {
-					transaction = lisk.transaction.createDapp({
+					transaction = createDapp({
 						passphrase: account.passphrase,
 						options: randomUtil.application(),
 					});

@@ -214,8 +214,6 @@ module.exports = class Chain {
 				promisify(this.scope.modules.signatures.shared.postSignature)(
 					action.params[0]
 				),
-			storageRead: async action =>
-				this.scope.logic.block.storageRead(action.params[0]),
 			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
 			loaderLoaded: async () => this.scope.modules.loader.loaded(),
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),

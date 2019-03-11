@@ -16,7 +16,7 @@
 
 const { NonSupportedFilterTypeError } = require('../errors');
 const filterTypes = require('./filter_types');
-const inputSerializers = require('./inputSerializers');
+const inputSerializers = require('./input_serializers');
 
 function filterGenerator(
 	filterType,

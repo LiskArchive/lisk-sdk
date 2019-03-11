@@ -31,17 +31,17 @@ const promisifyParallel = util.promisify(async.parallel);
 let currentAppScope;
 
 const modulesInit = {
-	accounts: '../../../src/modules/chain/modules/accounts.js',
-	blocks: '../../../src/modules/chain/modules/blocks.js',
-	dapps: '../../../src/modules/chain/modules/dapps.js',
-	delegates: '../../../src/modules/chain/modules/delegates.js',
-	loader: '../../../src/modules/chain/modules/loader.js',
-	multisignatures: '../../../src/modules/chain/modules/multisignatures.js',
-	peers: '../../../src/modules/chain/modules/peers.js',
-	rounds: '../../../src/modules/chain/modules/rounds.js',
-	signatures: '../../../src/modules/chain/modules/signatures.js',
-	transactions: '../../../src/modules/chain/modules/transactions.js',
-	transport: '../../../src/modules/chain/modules/transport.js',
+	accounts: '../../../src/modules/chain/submodules/accounts.js',
+	blocks: '../../../src/modules/chain/submodules/blocks.js',
+	dapps: '../../../src/modules/chain/submodules/dapps.js',
+	delegates: '../../../src/modules/chain/submodules/delegates.js',
+	loader: '../../../src/modules/chain/submodules/loader.js',
+	multisignatures: '../../../src/modules/chain/submodules/multisignatures.js',
+	peers: '../../../src/modules/chain/submodules/peers.js',
+	rounds: '../../../src/modules/chain/submodules/rounds.js',
+	signatures: '../../../src/modules/chain/submodules/signatures.js',
+	transactions: '../../../src/modules/chain/submodules/transactions.js',
+	transport: '../../../src/modules/chain/submodules/transport.js',
 };
 
 function init(options, cb) {

@@ -15,8 +15,9 @@
 
 'use strict';
 
-const Field = require('../../../../../../src/components/storage/utils/field');
-const inputSerializers = require('../../../../../../src/components/storage/utils/inputSerializers');
+const {
+	utils: { Field, inputSerializers },
+} = require('../../../../../../src/components/storage');
 
 describe('Field', () => {
 	beforeEach(async () => {
