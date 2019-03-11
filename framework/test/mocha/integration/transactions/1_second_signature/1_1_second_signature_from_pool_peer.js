@@ -14,7 +14,10 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+} = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common.js');
@@ -49,8 +52,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 		beforeEach('send funds to signature account', done => {
 			signatureAccount = randomUtil.account();
-			const sendTransaction = lisk.transaction.transfer({
-				amount: 1000 * NORMALIZER,
+			const sendTransaction = transfer({
+				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: signatureAccount.address,
 			});
@@ -63,7 +66,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 			let signatureTransaction;
 
 			beforeEach(done => {
-				signatureTransaction = lisk.transaction.registerSecondPassphrase({
+				signatureTransaction = registerSecondPassphrase({
 					passphrase: signatureAccount.passphrase,
 					secondPassphrase: signatureAccount.secondPassphrase,
 				});
@@ -128,7 +131,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				let signatureTransaction2;
 
 				beforeEach(done => {
-					signatureTransaction2 = lisk.transaction.registerSecondPassphrase({
+					signatureTransaction2 = registerSecondPassphrase({
 						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
@@ -189,13 +192,13 @@ describe('system test (type 1) - second signature transactions from pool and pee
 					let blockId;
 
 					beforeEach(done => {
-						signatureTransaction3 = lisk.transaction.registerSecondPassphrase({
+						signatureTransaction3 = registerSecondPassphrase({
 							passphrase: signatureAccount.passphrase,
 							secondPassphrase: randomUtil.password(),
 						});
 						signatureTransaction3.senderId = signatureAccount.address;
 
-						signatureTransaction4 = lisk.transaction.registerSecondPassphrase({
+						signatureTransaction4 = registerSecondPassphrase({
 							passphrase: signatureAccount.passphrase,
 							secondPassphrase: randomUtil.password(),
 						});

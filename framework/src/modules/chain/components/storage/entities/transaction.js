@@ -17,8 +17,8 @@
 const _ = require('lodash');
 const path = require('path');
 const {
-	Transaction: TransactionEntity,
-} = require('../../../../../components/storage/entities/');
+	entities: { Transaction: TransactionEntity },
+} = require('../../../../../components/storage');
 
 /**
  * Basic Transaction

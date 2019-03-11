@@ -15,10 +15,10 @@
 'use strict';
 
 const Promise = require('bluebird');
-const elements = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const randomUtil = require('../common/utils/random');
 const accountsFixtures = require('../fixtures/accounts');
-const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../common/integration/sql/queries_helper.js');
 const localCommon = require('./common');
 
 const { REWARDS } = global.constants;
@@ -63,9 +63,9 @@ describe('snapshotting', () => {
 				})
 					// Forge 1 block with transaction to reach height 101
 					.then(() => {
-						const transaction = elements.transaction.transfer({
+						const transaction = transfer({
 							recipientId: randomUtil.account().address,
-							amount: randomUtil.number(100000000, 1000000000),
+							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountsFixtures.genesis.passphrase,
 							data,
 						});

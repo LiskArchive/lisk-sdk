@@ -489,48 +489,32 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 };
 
 /**
- * Reverts changes on confirmed columns of mem_account for one transaction
- * @param {Object} transaction - transaction to undo
- * @param {Object} oldLastBlock - secondLastBlock
+ * Reverts confirmed transactions due to block deletion
+ * @param {Object} block - secondLastBlock
  * @param {Object} tx - database transaction
  */
-__private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
-	return new Promise((resolve, reject) => {
-		// Retrieve sender by public key
-		modules.accounts.getAccount(
-			{ publicKey: transaction.senderPublicKey },
-			(accountErr, sender) => {
-				if (accountErr) {
-					// Fatal error, memory tables will be inconsistent
-					library.logger.error(
-						'Failed to get account for undoing transaction to confirmed state',
-						accountErr
-					);
-					return setImmediate(reject, accountErr);
-				}
-				// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
-				// WARNING: DB_WRITE
-				return modules.transactions.undoConfirmed(
-					transaction,
-					oldLastBlock,
-					sender,
-					undoConfirmedErr => {
-						if (undoConfirmedErr) {
-							// Fatal error, memory tables will be inconsistent
-							library.logger.error(
-								'Failed to undo transaction to confirmed state of account',
-								undoConfirmedErr
-							);
-							return setImmediate(reject, undoConfirmedErr);
-						}
-						return setImmediate(resolve);
-					},
-					tx
-				);
-			},
-			tx
-		);
-	});
+__private.undoConfirmedStep = async function(block, tx) {
+	if (block.transactions.length === 0) {
+		return;
+	}
+
+	const {
+		stateStore,
+		transactionResponses,
+	} = await modules.processTransactions.undoTransactions(
+		block.transactions,
+		tx
+	);
+
+	const unappliedTransactionResponse = transactionResponses.find(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
+
+	if (unappliedTransactionResponse) {
+		throw unappliedTransactionResponse.errors;
+	}
+
+	await stateStore.account.finalize();
 };
 
 /**
@@ -604,8 +588,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 				secondLastBlock = res;
 				return Promise.mapSeries(
 					oldLastBlock.transactions.reverse(),
-					transaction =>
-						__private.undoConfirmedStep(transaction, oldLastBlock, tx)
+					__private.undoConfirmedStep(oldLastBlock, tx)
 				);
 			})
 			.then(() => __private.backwardTickStep(oldLastBlock, secondLastBlock, tx))

@@ -67,7 +67,7 @@
 		"js-yaml": "3.12.1",
 		"json-refs": "3.0.12",
 		"lisk-commander": "2.0.0",
-		"lisk-elements": "1.0.0",
+		"@liskhq/lisk-cryptography": "2.0.0",
 		"lisk-newrelic": "LiskHQ/lisk-newrelic#d1ca762",
 		"lodash": "4.17.11",
 		"method-override": "3.0.0",

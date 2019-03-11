@@ -17,7 +17,7 @@
 const Promise = require('bluebird');
 const Bignum = require('../../../src/modules/chain/helpers/bignum.js');
 const application = require('../common/application');
-const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../common/integration/sql/queries_helper.js');
 const accountsFixtures = require('../fixtures/accounts');
 const roundsFixtures = require('../fixtures/rounds').rounds;
 

@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const Bignum = require('../helpers/bignum.js');
@@ -23,6 +24,7 @@ const BlockReward = require('./block_reward.js');
 
 const { MAX_PAYLOAD_LENGTH, FEES } = global.constants;
 const __private = {};
+let modules;
 
 /**
  * Main Block logic.
@@ -232,24 +234,28 @@ class Block {
 				delete block[key];
 			}
 		});
-
 		const report = this.scope.schema.validate(block, Block.prototype.schema);
-
 		if (!report) {
 			throw `Failed to validate block schema: ${this.scope.schema
 				.getLastErrors()
 				.map(err => err.message)
 				.join(', ')}`;
 		}
-
 		try {
-			for (let i = 0; i < block.transactions.length; i++) {
-				block.transactions[i] = this.scope.transaction.objectNormalize(
-					block.transactions[i]
-				);
+			const transactionResponses = modules.processTransactions.validateTransactions(
+				block.transactions
+			);
+			const invalidTransactionResponse = transactionResponses.find(
+				transactionResponse =>
+					transactionResponse.status !== TransactionStatus.OK
+			);
+			if (invalidTransactionResponse) {
+				throw invalidTransactionResponse.errors;
 			}
-		} catch (e) {
-			throw e;
+		} catch (errors) {
+			const error =
+				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+			throw error;
 		}
 
 		return block;
@@ -281,6 +287,14 @@ __private.getAddressByPublicKey = function(publicKey) {
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds scope.modules to private variable modules.
+ */
+Block.prototype.bindModules = function(__modules) {
+	modules = {
+		processTransactions: __modules.processTransactions,
+	};
+};
 /**
  * @typedef {Object} block
  * @property {string} id - Between 1 and 20 chars
@@ -517,11 +531,10 @@ Block.prototype.dbRead = function(raw) {
 };
 
 /**
- * Creates block object based on raw data.
+ * Creates block object based on raw database block data.
  *
- * @param {Object} raw
+ * @param {Object} raw Raw database data block object
  * @returns {null|block} Block object
- * @todo Add description for the params
  */
 Block.prototype.storageRead = function(raw) {
 	if (!raw.id) {
