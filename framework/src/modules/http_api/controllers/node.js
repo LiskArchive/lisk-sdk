@@ -218,7 +218,7 @@ NodeController.updateForgingStatus = async (context, next) => {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getPooledTransactions = function(context, next) {
+NodeController.getPooledTransactions = async function(context, next) {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -250,37 +250,33 @@ NodeController.getPooledTransactions = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	return library.channel.invoke(`chain:${stateMap[state]}`, [
-		_.clone(filters),
-		(err, data) => {
-			if (err) {
-				return next(err);
-			}
+	try {
+		const data = await library.channel.invoke(`chain:${stateMap[state]}`, [
+			_.clone(filters),
+		]);
 
-			const transactions = _.map(
-				_.cloneDeep(data.transactions),
-				transaction => {
-					transaction.senderId = transaction.senderId || '';
-					transaction.recipientId = transaction.recipientId || '';
-					transaction.recipientPublicKey = transaction.recipientPublicKey || '';
+		const transactions = _.map(_.cloneDeep(data.transactions), transaction => {
+			transaction.senderId = transaction.senderId || '';
+			transaction.recipientId = transaction.recipientId || '';
+			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
 
-					transaction.amount = transaction.amount.toString();
-					transaction.fee = transaction.fee.toString();
+			transaction.amount = transaction.amount.toString();
+			transaction.fee = transaction.fee.toString();
 
-					return transaction;
-				}
-			);
+			return transaction;
+		});
 
-			return next(null, {
-				data: transactions,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-					count: parseInt(data.count),
-				},
-			});
-		},
-	]);
+		return next(null, {
+			data: transactions,
+			meta: {
+				offset: filters.offset,
+				limit: filters.limit,
+				count: parseInt(data.count),
+			},
+		});
+	} catch (err) {
+		return next(err);
+	}
 };
 
 /**
