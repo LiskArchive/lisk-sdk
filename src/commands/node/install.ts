@@ -204,7 +204,7 @@ export default class InstallCommand extends BaseCommand {
 							title: 'Register Lisk Core',
 							task: async ctx => {
 								const { installDir }: Options = ctx.options;
-								await registerApplication(installDir, name);
+								await registerApplication(installDir, network, name);
 							},
 						},
 					]),

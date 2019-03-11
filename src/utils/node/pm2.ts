@@ -13,13 +13,15 @@ const connectPM2 = async (): Promise<void> =>
         })
     })
 
-const startPM2 = async (installPath: string, name: string): Promise<void> =>
+const startPM2 = async (installPath: string, network: string, name: string): Promise<void> =>
     new Promise<void>((resolve, reject) => {
         start({
             name,
             script: 'app.js',
-            args: '-c config.json',
             cwd: installPath,
+            env: {
+                LISK_NETWORK: network,
+            },
             pid: path.join(installPath, '/pids/lisk.app.pid'),
             output: path.join(installPath, '/logs/lisk.app.log'),
             error: path.join(installPath, '/logs/lisk.app.err'),
@@ -93,9 +95,9 @@ const listPM2 = async (): Promise<ReadonlyArray<ProcessDescription>> =>
         });
     });
 
-export const registerApplication = async (installPath: string, name: string): Promise<void> => {
+export const registerApplication = async (installPath: string, network: string, name: string): Promise<void> => {
     await connectPM2();
-    await startPM2(installPath, name);
+    await startPM2(installPath, network, name);
     await stopPM2(name);
     disconnect();
 }
@@ -120,7 +122,7 @@ export const listApplication = async (): Promise<ReadonlyArray<ProcessDescriptio
     return applications;
 };
 
-export const describeApplicationByName = async (name: string): Promise<ProcessDescription> => {
+export const describeApplication = async (name: string): Promise<ProcessDescription> => {
     await connectPM2();
     const application = await describePM2(name);
     disconnect();
