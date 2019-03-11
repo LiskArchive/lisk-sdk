@@ -16,7 +16,12 @@
 
 require('../../functional.js');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const Bignum = require('bignumber.js');
+const {
+	transfer,
+	registerDelegate,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
@@ -52,22 +57,22 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	// Crediting accounts
 	before(() => {
 		const transactions = [];
-		const transaction1 = lisk.transaction.transfer({
-			amount: 1000 * NORMALIZER,
+		const transaction1 = transfer({
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		const transaction2 = lisk.transaction.transfer({
+		const transaction2 = transfer({
 			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
-		const transaction3 = lisk.transaction.transfer({
+		const transaction3 = transfer({
 			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountUpperCase.address,
 		});
-		const transaction4 = lisk.transaction.transfer({
+		const transaction4 = transfer({
 			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFormerDelegate.address,
@@ -97,7 +102,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 	describe('transactions processing', () => {
 		it('with no funds should fail', async () => {
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: accountNoFunds.passphrase,
 				username: accountNoFunds.username,
 			});
@@ -116,7 +121,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('with minimal required amount of funds should be ok', async () => {
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: accountMinimalFunds.passphrase,
 				username: accountMinimalFunds.username,
 			});
@@ -129,9 +134,19 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] using blank username should fail', async () => {
-			transaction = lisk.transaction.registerDelegate({
+			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+			transaction = transactionUtils.signRawTransaction({
+				transaction: {
+					type: 2,
+					amount: '0',
+					fee: new Bignum(FEES.DELEGATE).toString(),
+					asset: {
+						delegate: {
+							username: '',
+						},
+					},
+				},
 				passphrase: account.passphrase,
-				username: '',
 			});
 
 			return sendTransactionPromise(
@@ -146,7 +161,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] using invalid username should fail', async () => {
 			const username = '~!@#$ %^&*()_+.,?/';
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -165,7 +180,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] with specialChar should fail', () => {
 			const username = `lorem${specialChar}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -184,7 +199,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] with nullChar1 should fail', () => {
 			const username = `lorem${nullChar1}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -203,7 +218,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] with nullChar2 should fail', () => {
 			const username = `lorem${nullChar2}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -222,7 +237,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] with nullChar3 should fail', () => {
 			const username = `lorem${nullChar3}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -241,7 +256,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] with nullChar4 should fail', () => {
 			const username = `lorem${nullChar4}`;
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username,
 			});
@@ -260,9 +275,19 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] using username longer than 20 characters should fail', () => {
 			const delegateName = `${randomUtil.delegateName()}x`;
-			transaction = lisk.transaction.registerDelegate({
+			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+			transaction = transactionUtils.signRawTransaction({
+				transaction: {
+					type: 2,
+					amount: '0',
+					fee: new Bignum(FEES.DELEGATE).toString(),
+					asset: {
+						delegate: {
+							username: delegateName,
+						},
+					},
+				},
 				passphrase: account.passphrase,
-				username: delegateName,
 			});
 
 			return sendTransactionPromise(
@@ -278,7 +303,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] using uppercase username should fail', async () => {
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: accountUpperCase.passphrase,
 				username: accountUpperCase.username.toUpperCase(),
 			});
@@ -293,7 +318,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using valid params should be ok', async () => {
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username: account.username,
 			});
@@ -311,7 +336,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 	describe('validation', () => {
 		it('setting same delegate twice should fail', async () => {
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username: account.username,
 			});
@@ -326,7 +351,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using existing username should fail', async () => {
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: accountFormerDelegate.passphrase,
 				username: account.username,
 			});
@@ -343,7 +368,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('updating registered delegate should fail', async () => {
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: account.passphrase,
 				username: 'newusername',
 			});

@@ -17,7 +17,7 @@
 require('../../functional.js');
 const Promise = require('bluebird');
 const randomstring = require('randomstring');
-const lisk = require('lisk-elements').default;
+const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -47,12 +47,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 	// Crediting accounts
 	before(() => {
-		const transaction1 = lisk.transaction.transfer({
-			amount: 1000 * NORMALIZER,
+		const transaction1 = transfer({
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		const transaction2 = lisk.transaction.transfer({
+		const transaction2 = transfer({
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
@@ -74,7 +74,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(() => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.guestbookDapp,
 				});
@@ -99,7 +99,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		describe('category', () => {
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] without should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -118,7 +118,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with string should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -137,7 +137,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with integer less than minimum should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -154,7 +154,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with integer greater than maximum should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -172,7 +172,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with correct integer should be ok', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -189,7 +189,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				delete application.description;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -202,7 +202,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -223,7 +223,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = '';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -240,7 +240,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.description = randomstring.generate({
 					length: 161,
 				});
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -260,7 +260,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `Lorem ${specialChar} ipsum`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -276,7 +276,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar1} ipsum`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -297,7 +297,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar2} ipsum`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -318,7 +318,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar3} ipsum`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -339,7 +339,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = `lorem${nullChar4}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -361,7 +361,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				delete application.icon;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -374,7 +374,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -396,7 +396,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.icon = 'invalidUrl';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -415,7 +415,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.icon += '.invalid';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -438,7 +438,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.link = '';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -454,7 +454,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -476,7 +476,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.link += '.invalid';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -494,7 +494,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		describe('name', () => {
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] without should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -511,7 +511,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -530,7 +530,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with empty string should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -553,7 +553,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.name = randomstring.generate({
 					length: 33,
 				});
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -574,7 +574,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				// Add special charactr insuring the name is unique and isn't longer than maximun length
 				application.name = specialChar + application.name.substring(2);
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -590,7 +590,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar1}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -611,7 +611,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar2}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -632,7 +632,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar3}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -653,7 +653,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.name = `lorem${nullChar4}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -675,7 +675,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				delete application.tags;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -688,7 +688,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -710,7 +710,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags = '';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -727,7 +727,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.tags = randomstring.generate({
 					length: 161,
 				});
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -747,7 +747,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,${randomUtil.applicationName()}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -764,7 +764,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const tag = application.tags;
 				application.tags += `,${tag}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -784,7 +784,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,${specialChar}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -800,7 +800,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar1}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -821,7 +821,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar2}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -842,7 +842,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar3}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -863,7 +863,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,lorem${nullChar4}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -883,7 +883,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		describe('type', () => {
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] without should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -900,7 +900,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with negative integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -917,7 +917,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] with integer smaller than minimum should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -936,7 +936,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			it.skip('[1.7-transactions-changes-revisit] with integer greater than maximum should fail', async () => {
 				const application = randomUtil.application();
 				application.type = 2;
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -956,7 +956,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		it('using registered name should fail', async () => {
 			const dapp = randomUtil.application();
 			dapp.name = randomUtil.guestbookDapp.name;
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: account.passphrase,
 				options: dapp,
 			});
@@ -975,7 +975,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		it('using registered link should fail', async () => {
 			const dapp = randomUtil.application();
 			dapp.link = randomUtil.guestbookDapp.link;
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: account.passphrase,
 				options: dapp,
 			});
@@ -992,7 +992,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		it('with no funds should fail', async () => {
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: accountNoFunds.passphrase,
 				options: randomUtil.application(),
 			});
@@ -1011,7 +1011,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		it('with minimal funds should be ok', async () => {
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: accountMinimalFunds.passphrase,
 				options: randomUtil.application(),
 			});
@@ -1023,7 +1023,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		it('with valid params should be ok', async () => {
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: account.passphrase,
 				options: randomUtil.application(),
 			});

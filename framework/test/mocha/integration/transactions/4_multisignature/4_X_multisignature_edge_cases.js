@@ -15,7 +15,11 @@
 'use strict';
 
 const async = require('async');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerMultisignature,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -26,8 +30,8 @@ describe('system test - multi signature edge cases', () => {
 	let library;
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;
-	const creditTransaction = lisk.transaction.transfer({
-		amount: 65 * NORMALIZER,
+	const creditTransaction = transfer({
+		amount: (65 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: multisigAccount.address,
 	});
@@ -48,17 +52,17 @@ describe('system test - multi signature edge cases', () => {
 				async () => {
 					const keysgroup = [signer1.publicKey, signer2.publicKey];
 
-					multisigTransaction = lisk.transaction.registerMultisignature({
+					multisigTransaction = registerMultisignature({
 						passphrase: multisigAccount.passphrase,
 						keysgroup,
 						lifetime: 4,
 						minimum: 2,
 					});
-					const sign1 = lisk.transaction.utils.multiSignTransaction(
+					const sign1 = transactionUtils.multiSignTransaction(
 						multisigTransaction,
 						signer1.passphrase
 					);
-					const sign2 = lisk.transaction.utils.multiSignTransaction(
+					const sign2 = transactionUtils.multiSignTransaction(
 						multisigTransaction,
 						signer2.passphrase
 					);

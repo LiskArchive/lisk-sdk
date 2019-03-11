@@ -16,7 +16,10 @@
 
 require('../../functional.js');
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
@@ -412,13 +415,13 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 			it.skip('[1.7-transactions-changes-revisit] requesting multisig group transaction from non author account', async () => {
 				const scenario = scenarios.requesterPublicKey;
 
-				const transaction = lisk.transaction.transfer({
-					amount: 1 * NORMALIZER,
+				const transaction = transfer({
+					amount: (1 * NORMALIZER).toString(),
 					passphrase: scenario.members[0].passphrase,
 					recipientId: randomUtil.account().address,
 				});
 				transaction.requesterPublicKey = scenario.account.publicKey;
-				transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+				transaction.id = transactionUtils.getTransactionId(transaction);
 
 				return sendTransactionPromise(
 					transaction,

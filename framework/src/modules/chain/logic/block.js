@@ -531,11 +531,10 @@ Block.prototype.dbRead = function(raw) {
 };
 
 /**
- * Creates block object based on raw data.
+ * Creates block object based on raw database block data.
  *
- * @param {Object} raw
+ * @param {Object} raw Raw database data block object
  * @returns {null|block} Block object
- * @todo Add description for the params
  */
 Block.prototype.storageRead = function(raw) {
 	if (!raw.id) {

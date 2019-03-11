@@ -17,14 +17,13 @@
 
 const randomstring = require('randomstring');
 const {
-	BaseEntity,
-	Account,
-} = require('../../../../../../src/components/storage/entities');
-const {
-	NonSupportedFilterTypeError,
-	NonSupportedOptionError,
-	NonSupportedOperationError,
-} = require('../../../../../../src/components/storage/errors');
+	entities: { BaseEntity, Account },
+	errors: {
+		NonSupportedFilterTypeError,
+		NonSupportedOptionError,
+		NonSupportedOperationError,
+	},
+} = require('../../../../../../src/components/storage');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const seeder = require('../../../../common/storage_seed');
 const accountFixtures = require('../../../../fixtures').accounts;

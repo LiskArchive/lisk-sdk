@@ -16,7 +16,10 @@
 
 require('../../functional.js');
 const crypto = require('crypto');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const phases = require('../../../common/phases');
@@ -58,7 +61,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			transaction = randomUtil.transaction();
 			transaction.recipientId = transaction.recipientId.toLowerCase();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+			transaction.id = transactionUtils.getTransactionId(transaction);
 
 			return sendTransactionPromise(transaction, 400).then(res => {
 				expect(res.body.message).to.be.equal('Validation errors');
@@ -72,7 +75,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it.skip('[1.7-transactions-changes-revisit] with invalid signature should fail', async () => {
 			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+			transaction.id = transactionUtils.getTransactionId(transaction);
 
 			return sendTransactionPromise(
 				transaction,
@@ -99,10 +102,16 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		// eslint-disable-next-line mocha/no-skipped-tests
 		it.skip('[1.7-transactions-changes-revisit] using zero amount should fail', async () => {
-			transaction = lisk.transaction.transfer({
-				amount: new Bignum(0),
+			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+			transaction = transactionUtils.signRawTransaction({
+				transaction: {
+					type: 0,
+					amount: '0',
+					recipientId: account.address,
+					fee: new Bignum(10000000).toString(),
+					asset: {},
+				},
 				passphrase: accountFixtures.genesis.passphrase,
-				recipientId: account.address,
 			});
 
 			return sendTransactionPromise(
@@ -115,8 +124,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('when sender has no funds should fail', async () => {
-			transaction = lisk.transaction.transfer({
-				amount: new Bignum(1),
+			transaction = transfer({
+				amount: '1',
 				passphrase: account.passphrase,
 				recipientId: '1L',
 			});
@@ -133,7 +142,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('using entire balance should fail', async () => {
-			transaction = lisk.transaction.transfer({
+			transaction = transfer({
 				amount: accountFixtures.genesis.balance,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -153,7 +162,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('from the genesis account should fail', async () => {
 			const signedTransactionFromGenesis = {
 				type: 0,
-				amount: new Bignum('1000'),
+				amount: new Bignum('1000').toString(),
 				senderPublicKey:
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 				requesterPublicKey: null,
@@ -226,8 +235,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		describe('with offset', () => {
 			it('using -10000 should be ok', async () => {
-				transaction = lisk.transaction.transfer({
-					amount: 1,
+				transaction = transfer({
+					amount: '1',
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: accountOffset.address,
 					timeOffset: -10000,
@@ -240,8 +249,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 
 			it('using future timestamp should fail', async () => {
-				transaction = lisk.transaction.transfer({
-					amount: 1,
+				transaction = transfer({
+					amount: '1',
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: accountOffset.address,
 					timeOffset: 10000,
@@ -268,8 +277,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				invalidCases.forEach(test => {
 					it(`using ${test.description} should fail`, async () => {
 						const accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.transfer({
-							amount: 1,
+						transaction = transfer({
+							amount: '1',
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
 						});
@@ -294,8 +303,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				validCases.forEach(test => {
 					it(`using ${test.description} should be ok`, async () => {
 						const accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.transfer({
-							amount: 1,
+						transaction = transfer({
+							amount: '1',
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
 							data: test.input,
@@ -313,8 +322,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it('using SQL characters escaped as single quote should be ok', async () => {
 					const additioinalData = "'0'";
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
-						amount: 1,
+					transaction = transfer({
+						amount: '1',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -333,8 +342,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it('using specialChar should be ok', () => {
 					const additioinalData = `${specialChar} hey \x01 :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
-						amount: 1,
+					transaction = transfer({
+						amount: '1',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -352,8 +361,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it.skip('[1.7-transactions-changes-revisit] using nullChar1 should fail', () => {
 					const additioinalData = `${nullChar1} hey :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
-						amount: 1,
+					transaction = transfer({
+						amount: '1',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -374,8 +383,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it.skip('[1.7-transactions-changes-revisit] using nullChar2 should fail', () => {
 					const additioinalData = `${nullChar2} hey :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
-						amount: 1,
+					transaction = transfer({
+						amount: '1',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -396,8 +405,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it.skip('[1.7-transactions-changes-revisit] using nullChar3 should fail', () => {
 					const additioinalData = `${nullChar3} hey :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
-						amount: 1,
+					transaction = transfer({
+						amount: '1',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -418,8 +427,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				it.skip('[1.7-transactions-changes-revisit] using nullChar4 should fail', () => {
 					const additioinalData = `${nullChar4} hey :)`;
 					const accountAdditionalData = randomUtil.account();
-					transaction = lisk.transaction.transfer({
-						amount: 1,
+					transaction = transfer({
+						amount: '1',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,

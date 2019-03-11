@@ -14,7 +14,7 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const { createDapp } = require('@liskhq/lisk-transactions');
 const randomUtil = require('../../../common/utils/random');
 const Scenarios = require('../../../common/scenarios');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
@@ -28,7 +28,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	const dappTransaction = lisk.transaction.createDapp({
+	const dappTransaction = createDapp({
 		passphrase: scenarios.regular.account.passphrase,
 		options: scenarios.regular.dapp,
 	});

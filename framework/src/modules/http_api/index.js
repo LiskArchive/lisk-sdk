@@ -1,4 +1,4 @@
-const HttpApi = require('./httpApi');
+const HttpApi = require('./http_api');
 const BaseModule = require('../base_module');
 
 /* eslint-disable class-methods-use-this */

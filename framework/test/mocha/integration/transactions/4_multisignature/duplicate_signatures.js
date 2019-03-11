@@ -16,7 +16,11 @@
 
 const Promise = require('bluebird');
 const async = require('async');
-const elements = require('lisk-elements').default;
+const {
+	transfer,
+	registerMultisignature,
+	createSignatureObject,
+} = require('@liskhq/lisk-transactions');
 const accountsFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -60,15 +64,15 @@ describe('duplicate_signatures', () => {
 		);
 
 		// Create transfer transaction (fund new account)
-		let transaction = elements.transaction.transfer({
+		let transaction = transfer({
 			recipientId: accounts.multisignature.address,
-			amount: 5000000000,
+			amount: '5000000000',
 			passphrase: accountsFixtures.genesis.passphrase,
 		});
 		transactions.transfer = transaction;
 
 		// Create multisignature registration transaction
-		transaction = elements.transaction.registerMultisignature({
+		transaction = registerMultisignature({
 			passphrase: accounts.multisignature.passphrase,
 			keysgroup: [
 				accounts.multisignatureMembers[0].publicKey,
@@ -81,13 +85,13 @@ describe('duplicate_signatures', () => {
 
 		// Create signatures (object)
 		signatures.push(
-			elements.transaction.createSignatureObject(
+			createSignatureObject(
 				transaction,
 				accounts.multisignatureMembers[0].passphrase
 			)
 		);
 		signatures.push(
-			elements.transaction.createSignatureObject(
+			createSignatureObject(
 				transaction,
 				accounts.multisignatureMembers[1].passphrase
 			)
@@ -104,22 +108,22 @@ describe('duplicate_signatures', () => {
 		accounts.random = randomUtil.account();
 
 		// Create transfer transaction (fund new account)
-		const transaction = elements.transaction.transfer({
+		const transaction = transfer({
 			recipientId: accounts.random.address,
-			amount: 100000000,
+			amount: '100000000',
 			passphrase: accounts.multisignature.passphrase,
 		});
 		transactions.transfer = transaction;
 
 		// Create signatures (object)
 		signatures.push(
-			elements.transaction.createSignatureObject(
+			createSignatureObject(
 				transaction,
 				accounts.multisignatureMembers[0].passphrase
 			)
 		);
 		signatures.push(
-			elements.transaction.createSignatureObject(
+			createSignatureObject(
 				transaction,
 				accounts.multisignatureMembers[1].passphrase
 			)

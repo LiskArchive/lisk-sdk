@@ -14,7 +14,11 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	createDapp,
+	registerMultisignature,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const randomUtil = require('../../../common/utils/random');
 const Scenarios = require('../../../common/scenarios');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
@@ -28,7 +32,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	const dappTransaction = lisk.transaction.createDapp({
+	const dappTransaction = createDapp({
 		passphrase: scenarios.regular.account.passphrase,
 		options: scenarios.regular.dapp,
 	});
@@ -38,7 +42,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 	scenarios.regular.multiSigTransaction.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		const signature = lisk.transaction.utils.multiSignTransaction(
+		const signature = transactionUtils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
 			member.passphrase
 		);
@@ -101,15 +105,13 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		});
 
 		it('adding to pool multisignature registration for same account should fail', done => {
-			const multiSignatureToSameAccount = lisk.transaction.registerMultisignature(
-				{
-					passphrase: scenarios.regular.account.passphrase,
-					keysgroup: scenarios.regular.keysgroup,
-					lifetime: scenarios.regular.lifetime,
-					minimum: scenarios.regular.minimum,
-					timeOffset: -10000,
-				}
-			);
+			const multiSignatureToSameAccount = registerMultisignature({
+				passphrase: scenarios.regular.account.passphrase,
+				keysgroup: scenarios.regular.keysgroup,
+				lifetime: scenarios.regular.lifetime,
+				minimum: scenarios.regular.minimum,
+				timeOffset: -10000,
+			});
 			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
 				expect(err).to.equal('Account already has multisignatures enabled');
 				done();

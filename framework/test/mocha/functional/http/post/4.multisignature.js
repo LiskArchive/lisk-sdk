@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-const lisk = require('lisk-elements').default;
+const { registerMultisignature } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -27,6 +27,9 @@ const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
 const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
 const common = require('./common');
+const {
+	createInvalidRegisterMultisignatureTransaction,
+} = require('../../../common/utils/elements');
 
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
@@ -90,7 +93,7 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 		describe('keysgroup', () => {
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] using empty array should fail', async () => {
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: 1,
@@ -123,7 +126,7 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 					`${scenarios.minimal_funds.account.publicKey}`,
 				];
 
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -151,7 +154,7 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 					`${scenarios.regular.account.publicKey}`,
 				];
 
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -176,7 +179,7 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 					randomUtil.account().publicKey,
 				];
 
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -210,7 +213,7 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 					accountFixtures.existingDelegate.publicKey,
 				];
 
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -245,7 +248,7 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 					scenarios.minimal_funds.account.publicKey,
 				];
 
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -279,7 +282,7 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 					randomUtil.account().publicKey,
 				];
 
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -310,11 +313,12 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 					scenarios.no_funds.account.publicKey,
 				];
 
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				transaction.asset.multisignature.keysgroup = [
@@ -344,11 +348,12 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 					scenarios.no_funds.account.publicKey,
 				];
 
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				transaction.asset.multisignature.keysgroup = [
@@ -374,11 +379,12 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip(`[1.7-transactions-changes-revisit] using more_than_max_members scenario(${MULTISIG_CONSTRAINTS
 				.KEYSGROUP.MAX_ITEMS + 2}, 2) should fail`, async () => {
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.more_than_max_members.account.passphrase,
 					keysgroup: scenarios.more_than_max_members.keysgroup,
 					lifetime: 1,
 					minimum: 2,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -399,11 +405,12 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 		describe('min', () => {
 			// eslint-disable-next-line mocha/no-skipped-tests
 			it.skip('[1.7-transactions-changes-revisit] using bigger than keysgroup size plus 1 should fail', async () => {
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: [accountFixtures.existingDelegate.publicKey],
 					lifetime: 1,
 					minimum: 2,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -421,11 +428,12 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 			it.skip(`[1.7-transactions-changes-revisit] using min greater than maximum(${
 				MULTISIG_CONSTRAINTS.MIN.MAXIMUM
 			}) should fail`, async () => {
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.max_members_max_min.account.passphrase,
 					keysgroup: scenarios.max_members_max_min.keysgroup,
 					lifetime: 1,
 					minimum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -446,11 +454,12 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 			it.skip(`[1.7-transactions-changes-revisit] using min less than minimum(${
 				MULTISIG_CONSTRAINTS.MIN.MINIMUM
 			}) should fail`, async () => {
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.max_members.account.passphrase,
 					keysgroup: scenarios.max_members.keysgroup,
 					lifetime: 1,
 					minimum: MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -473,11 +482,12 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 			it.skip(`[1.7-transactions-changes-revisit] using greater than maximum(${
 				MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
 			}) should fail`, async () => {
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1,
 					minimum: 2,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -498,11 +508,12 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 			it.skip(`[1.7-transactions-changes-revisit] using less than minimum(${
 				MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM
 			}) should fail`, async () => {
-				transaction = lisk.transaction.registerMultisignature({
+				transaction = createInvalidRegisterMultisignatureTransaction({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1,
 					minimum: 2,
+					baseFee: FEES.MULTISIGNATURE,
 				});
 
 				return sendTransactionPromise(
@@ -578,15 +589,13 @@ describe.skip('[1.7-transactions-changes-revisit] POST /api/transactions (type 4
 
 		it('using valid params regular_with_second_signature scenario should be ok', async () => {
 			const scenario = scenarios.regular_with_second_signature;
-			const multiSigSecondPassphraseTransaction = lisk.transaction.registerMultisignature(
-				{
-					passphrase: scenario.account.passphrase,
-					secondPassphrase: scenario.account.secondPassphrase,
-					keysgroup: scenario.keysgroup,
-					lifetime: 1,
-					minimum: 2,
-				}
-			);
+			const multiSigSecondPassphraseTransaction = registerMultisignature({
+				passphrase: scenario.account.passphrase,
+				secondPassphrase: scenario.account.secondPassphrase,
+				keysgroup: scenario.keysgroup,
+				lifetime: 1,
+				minimum: 2,
+			});
 
 			return sendTransactionPromise(scenario.secondSignatureTransaction)
 				.then(res => {

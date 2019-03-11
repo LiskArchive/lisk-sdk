@@ -14,7 +14,11 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerDelegate,
+	castVotes,
+} = require('@liskhq/lisk-transactions');
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 
@@ -39,8 +43,8 @@ describe('system test (type 0) - votes collision', () => {
 		username: 'xyz',
 	};
 
-	const creditTransaction = lisk.transaction.transfer({
-		amount: 10000 * NORMALIZER,
+	const creditTransaction = transfer({
+		amount: (10000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: collisionAccount.address,
 	});
@@ -58,7 +62,7 @@ describe('system test (type 0) - votes collision', () => {
 	describe('register delegate from collision account', () => {
 		let delegateRegistrationTransaction;
 		before(done => {
-			delegateRegistrationTransaction = lisk.transaction.registerDelegate({
+			delegateRegistrationTransaction = registerDelegate({
 				passphrase: collisionAccount.passphrase,
 				username: collisionAccount.username,
 			});
@@ -92,7 +96,7 @@ describe('system test (type 0) - votes collision', () => {
 		describe('when voting for account with collision publicKey', () => {
 			let voteTransactionWithCollisionPublicKey;
 			before(done => {
-				voteTransactionWithCollisionPublicKey = lisk.transaction.castVotes({
+				voteTransactionWithCollisionPublicKey = castVotes({
 					passphrase: collisionAccount.passphrase,
 					votes: [`${collisionAccount.collisionPublicKey}`],
 				});
@@ -126,7 +130,7 @@ describe('system test (type 0) - votes collision', () => {
 		describe.skip('[1.7-transactions-changes-revisit] voting for account using registered publicKey', () => {
 			let voteTransactionWithActualPublicKey;
 			before(done => {
-				voteTransactionWithActualPublicKey = lisk.transaction.castVotes({
+				voteTransactionWithActualPublicKey = castVotes({
 					passphrase: collisionAccount.passphrase,
 					votes: [`${collisionAccount.publicKey}`],
 				});

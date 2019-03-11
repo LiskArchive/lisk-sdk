@@ -16,8 +16,8 @@
 'use strict';
 
 const {
-	BaseEntity,
-} = require('../../../../../../../../src/components/storage/entities');
+	entities: { BaseEntity },
+} = require('../../../../../../../../src/components/storage');
 const {
 	Transaction,
 } = require('../../../../../../../../src/modules/chain/components/storage/entities');

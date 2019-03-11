@@ -17,7 +17,7 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const async = require('async');
-const lisk = require('lisk-elements').default;
+const { getKeys } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../../fixtures/accounts');
 const application = require('../../../../common/application');
 const randomUtil = require('../../../../common/utils/random');
@@ -738,9 +738,7 @@ describe('vote', () => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(
 				...Array(MAX_VOTES_PER_TRANSACTION + 1)
-			).map(
-				() => `+${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`
-			);
+			).map(() => `+${getKeys(randomUtil.password()).publicKey}`);
 			return expect(() => {
 				vote.objectNormalize(transaction);
 			}).to.throw(

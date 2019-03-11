@@ -14,7 +14,11 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerMultisignature,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -29,8 +33,8 @@ describe.skip('[1.7-transactions-changes-revisit] system test (type 4) - effect 
 
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;
-	const creditTransaction = lisk.transaction.transfer({
-		amount: 1000 * NORMALIZER,
+	const creditTransaction = transfer({
+		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: multisigAccount.address,
 	});
@@ -61,17 +65,17 @@ describe.skip('[1.7-transactions-changes-revisit] system test (type 4) - effect 
 		before('forge block with multisignature transaction', done => {
 			const keysgroup = [signer1.publicKey, signer2.publicKey];
 
-			multisigTransaction = lisk.transaction.registerMultisignature({
+			multisigTransaction = registerMultisignature({
 				passphrase: multisigAccount.passphrase,
 				keysgroup,
 				lifetime: 4,
 				minimum: 2,
 			});
-			const sign1 = lisk.transaction.utils.multiSignTransaction(
+			const sign1 = transactionUtils.multiSignTransaction(
 				multisigTransaction,
 				signer1.passphrase
 			);
-			const sign2 = lisk.transaction.utils.multiSignTransaction(
+			const sign2 = transactionUtils.multiSignTransaction(
 				multisigTransaction,
 				signer2.passphrase
 			);
@@ -288,17 +292,17 @@ describe.skip('[1.7-transactions-changes-revisit] system test (type 4) - effect 
 	describe('apply unconfirmed transaction', () => {
 		before('apply unconfirmed multisig transaction', done => {
 			const keysgroup = [signer1.publicKey, signer2.publicKey];
-			multisigTransaction = lisk.transaction.registerMultisignature({
+			multisigTransaction = registerMultisignature({
 				passphrase: multisigAccount.passphrase,
 				keysgroup,
 				lifetime: 4,
 				minimum: 2,
 			});
-			const sign1 = lisk.transaction.utils.multiSignTransaction(
+			const sign1 = transactionUtils.multiSignTransaction(
 				multisigTransaction,
 				signer1.passphrase
 			);
-			const sign2 = lisk.transaction.utils.multiSignTransaction(
+			const sign2 = transactionUtils.multiSignTransaction(
 				multisigTransaction,
 				signer2.passphrase
 			);
@@ -408,7 +412,7 @@ describe.skip('[1.7-transactions-changes-revisit] system test (type 4) - effect 
 
 			before('process multisignature transaction', done => {
 				const keysgroup = [signer3.publicKey, signer4.publicKey];
-				multisigTransaction2 = lisk.transaction.registerMultisignature({
+				multisigTransaction2 = registerMultisignature({
 					passphrase: multisigAccount.passphrase,
 					keysgroup,
 					lifetime: 4,
@@ -416,11 +420,11 @@ describe.skip('[1.7-transactions-changes-revisit] system test (type 4) - effect 
 				});
 				multisigTransaction2.amount = new Bignum(multisigTransaction2.amount);
 				multisigTransaction2.fee = new Bignum(multisigTransaction2.fee);
-				const sign3 = lisk.transaction.utils.multiSignTransaction(
+				const sign3 = transactionUtils.multiSignTransaction(
 					multisigTransaction2,
 					signer3.passphrase
 				);
-				const sign4 = lisk.transaction.utils.multiSignTransaction(
+				const sign4 = transactionUtils.multiSignTransaction(
 					multisigTransaction2,
 					signer4.passphrase
 				);

@@ -14,7 +14,11 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerDelegate: createRegisterDelegate,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const accountFixtures = require('../../fixtures/accounts');
 const {
@@ -220,7 +224,7 @@ function sendSignature(signature, cb) {
 }
 
 function creditAccount(address, amount, cb) {
-	const transaction = lisk.transaction.transfer({
+	const transaction = transfer({
 		amount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: address,
@@ -233,7 +237,7 @@ function getCount(param, cb) {
 }
 
 function registerDelegate(account, cb) {
-	const transaction = lisk.transaction.registerDelegate({
+	const transaction = createRegisterDelegate({
 		passphrase: account.passphrase,
 		username: account.username,
 	});
@@ -329,7 +333,7 @@ function createSignatureObject(transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: lisk.transaction.utils.multiSignTransaction(
+		signature: transactionUtils.multiSignTransaction(
 			transaction,
 			signer.passphrase
 		),
