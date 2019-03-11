@@ -1,7 +1,7 @@
 {
         "apps": [{
                 "name": "lisk.app",
-                "script": "app.js",
+                "script": "src/index.js",
                 "cwd": ".",
                 "pid_file": "./pids/lisk.app.pid",
                 "out_file": "./logs/lisk.app.log",
