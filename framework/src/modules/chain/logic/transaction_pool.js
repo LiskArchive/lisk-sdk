@@ -196,6 +196,10 @@ class TransactionPool {
 		return transactionList;
 	}
 
+	fillPool(cb) {
+		return this.pool.processVerifiedTransactions().then(() => cb()).catch(cb);
+	}
+
 
 	/**
 	 * Gets unconfirmed, multisignature and queued transactions based on limit and reverse option.
@@ -252,6 +256,10 @@ class TransactionPool {
 
 	onConfirmedTransactions(transactions) {
 		this.pool.removeConfirmedTransactions(transactions);
+	}
+
+	onDeletedTransactions(transactions) {
+		this.pool.addVerifiedRemovedTransactions(transactions);
 	}
 }
 
