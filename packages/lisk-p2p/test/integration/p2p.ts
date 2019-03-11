@@ -341,12 +341,9 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe.skip('When half of the nodes crash', () => {
+		describe('When half of the nodes crash', () => {
 			it('should get network status with all unresponsive nodes removed', async () => {
 				const firstP2PNode = p2pNodeList[0];
-				p2pNodeList.forEach(p2p =>
-					console.log(p2p.isActive, p2p.nodeInfo.wsPort),
-				);
 				// Stop all the nodes with port from 5001 to 5005
 				p2pNodeList.forEach(async (p2p: any, index: number) => {
 					if (index !== 0 && index < NETWORK_PEER_COUNT / 2) {
@@ -488,26 +485,30 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe.skip('Cleanup unresponsive peers', () => {
+		describe('Cleanup unresponsive peers', () => {
 			it('should remove inactive 2nd node from connected peer list of other', async () => {
-				const initialNetworkStatus = p2pNodeList[2].getNetworkStatus();
+				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
 				const secondNode = p2pNodeList[1];
 				const initialPeerPorts = initialNetworkStatus.connectedPeers
 					.map(peerInfo => peerInfo.wsPort)
 					.sort();
 
-				expect(initialPeerPorts).to.be.eql(ALL_NODE_PORTS);
+				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
+					return port !== 5000;
+				});
+				expect(initialPeerPorts).to.be.eql(expectedPeerPorts);
 				await secondNode.stop();
-				await wait(100);
 
-				const networkStatusAfterPeerCrash = p2pNodeList[2].getNetworkStatus();
+				await wait(200);
+
+				const networkStatusAfterPeerCrash = p2pNodeList[0].getNetworkStatus();
 
 				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
 					.map(peerInfo => peerInfo.wsPort)
 					.sort();
 
 				const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
-					return port !== 5001;
+					return port !== 5000 && port != 5001;
 				});
 
 				expect(peerPortsAfterPeerCrash).to.be.eql(
@@ -711,7 +712,7 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe.skip('when couple of node shuts down and are unresponsive', () => {
+		describe('when couple of node shuts down and are unresponsive', () => {
 			it('should remove the unresponsive nodes from network status of other nodes', async () => {
 				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
 				const initialPeerPorts = initialNetworkStatus.connectedPeers

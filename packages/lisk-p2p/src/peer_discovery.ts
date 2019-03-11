@@ -12,12 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PDiscoveredPeerInfo, P2PNodeInfo, P2PPeerInfo } from './p2p_types';
-import {
-	connectAndFetchPeers,
-	constructPeerIdFromPeerInfo,
-	PeerConfig,
-} from './peer';
+import { P2PDiscoveredPeerInfo } from './p2p_types';
+import { constructPeerIdFromPeerInfo, Peer } from './peer';
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
 	readonly blacklist: ReadonlyArray<string>;
@@ -25,17 +21,15 @@ export interface FilterPeerOptions {
 
 // TODO later: Implement LIPS to handle fixed and white list
 export const discoverPeers = async (
-	knownPeers: ReadonlyArray<P2PPeerInfo>,
+	knownPeers: ReadonlyArray<Peer>,
 	filterPeerOptions: FilterPeerOptions = { blacklist: [] },
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
 ): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> => {
 	const peersOfPeer: ReadonlyArray<
 		ReadonlyArray<P2PDiscoveredPeerInfo>
 	> = await Promise.all(
 		knownPeers.map(async peer => {
 			try {
-				return await connectAndFetchPeers(peer, nodeInfo, peerConfig);
+				return await peer.fetchPeers();
 			} catch (error) {
 				return [];
 			}

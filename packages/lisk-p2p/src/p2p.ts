@@ -424,7 +424,6 @@ export class P2P extends EventEmitter {
 		const discoveredPeers = await this._peerPool.runDiscovery(
 			knownPeers,
 			this._config.blacklistedPeers,
-			this._nodeInfo,
 		);
 
 		// Stop discovery if node is no longer active. That way we don't try to connect to peers.
