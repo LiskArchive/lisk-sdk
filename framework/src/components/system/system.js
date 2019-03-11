@@ -17,6 +17,7 @@
 const os = require('os');
 const crypto = require('crypto');
 const semver = require('semver');
+const { EventEmitter } = require('events');
 
 /**
  * Main system methods. Initializes library with scope content and headers:
@@ -38,8 +39,9 @@ const semver = require('semver');
  * @param {Object} options - System options
  * @param {Object} logger
  */
-class System {
+class System extends EventEmitter {
 	constructor(config, logger, storage) {
+		super();
 		this.logger = logger;
 		this.storage = storage;
 		this.headers = {
@@ -138,6 +140,7 @@ class System {
 				.toString('hex');
 			this.headers.broadhash = newBroadhash;
 			this.logger.debug('System headers', this.headers);
+			this.emit('update', this.headers);
 			return true;
 		} catch (err) {
 			this.logger.error(err.stack);

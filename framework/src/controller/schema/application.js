@@ -179,6 +179,18 @@ module.exports = {
 					},
 				},
 			},
+			modules: {
+				type: 'object',
+				properties: {
+					chain: {
+						type: 'object',
+					},
+					network: {
+						type: 'object',
+					},
+				},
+				additionalProperties: true,
+			},
 		},
 		additionalProperties: false,
 	},

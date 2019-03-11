@@ -56,6 +56,20 @@ const config = {
 			devConfigCopy.wsPort = 5000 + index;
 			devConfigCopy.httpPort = 4000 + index;
 			devConfigCopy.logFileName = `../logs/lisk_node_${index}.log`;
+			devConfigCopy.modules = {
+				network: {
+					blacklistedPeers: [],
+					connectTimeout: 5000,
+					ackTimeout: 5000,
+					discoveryInterval: 30000,
+					seedPeers: [],
+					wsEngine: 'ws',
+					nodeInfo: {
+						wsPort: 6000 + index,
+						height: 0,
+					},
+				},
+			};
 			return devConfigCopy;
 		});
 
