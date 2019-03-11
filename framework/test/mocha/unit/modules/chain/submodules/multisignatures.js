@@ -20,7 +20,7 @@ const transactionsFixtures = require('../../../../fixtures/index').transactions;
 const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 
 const RewiredMultisignatures = rewire(
-	'../../../../../../src/modules/chain/modules/multisignatures.js'
+	'../../../../../../src/modules/chain/submodules/multisignatures.js'
 );
 
 const validAccount = new accountsFixtures.Account();

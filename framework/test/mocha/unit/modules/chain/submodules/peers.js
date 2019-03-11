@@ -52,7 +52,9 @@ describe('peers', () => {
 			},
 		};
 
-		PeersRewired = rewire('../../../../../../src/modules/chain/modules/peers');
+		PeersRewired = rewire(
+			'../../../../../../src/modules/chain/submodules/peers'
+		);
 		__private = PeersRewired.__get__('__private');
 
 		peersLogicMock = {

@@ -25,7 +25,7 @@ const Block = require('../../../../fixtures/blocks').Block;
 const Rules = require('../../../../../../src/modules/chain/api/ws/workers/rules');
 
 const TransportModule = rewire(
-	'../../../../../../src/modules/chain/modules/transport.js'
+	'../../../../../../src/modules/chain/submodules/transport.js'
 );
 
 const { MAX_PEERS, MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
