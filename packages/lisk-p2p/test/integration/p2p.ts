@@ -6,6 +6,7 @@ import {
 	P2PPeerSelectionForSendRequest,
 	P2PNodeInfo,
 	P2PDiscoveredPeerInfo,
+	P2PPeerSelectionForConnection,
 } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
@@ -676,50 +677,94 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Connected network: User custom selection algorithm is passed to each node', () => {
 		const DISCOVERY_INTERVAL = 200;
-		// Custom selection function that takes peers with equal height and which are not discovered yet
+		// Custom selection function that finds peers having common values for modules field for example.
 		const peerSelectionForSendRequest: P2PPeerSelectionForSendRequest = (
 			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
 			nodeInfo?: P2PNodeInfo,
 			_numOfPeer?: number,
-		) =>
-			peersList.filter(peer =>
-				nodeInfo ? nodeInfo.height <= peer.height : false,
-			);
+		) => {
+			const filteredPeers = peersList.filter(peer => {
+				if (nodeInfo && nodeInfo.height <= peer.height) {
+					const nodesModules = nodeInfo.modules
+						? (nodeInfo.modules as ReadonlyArray<string>)
+						: undefined;
+					const peerModules = peer.modules
+						? (peer.modules as ReadonlyArray<string>)
+						: undefined;
+
+					if (
+						nodesModules &&
+						peerModules &&
+						nodesModules.filter(value => -1 !== peerModules.indexOf(value))
+							.length > 0
+					) {
+						return true;
+					}
+				}
+
+				return false;
+			});
+
+			// In case there are no peers with same modules or less than 30% of the peers are selected then use only height to select peers
+			if (
+				filteredPeers.length === 0 ||
+				(filteredPeers.length / peersList.length) * 100 < 30
+			) {
+				return peersList.filter(
+					peer => peer.height >= (nodeInfo ? nodeInfo.height : 0),
+				);
+			}
+
+			return filteredPeers;
+		};
+		// Custom Peer selection for connection that returns all the peers
+		const peerSelectionForConnection: P2PPeerSelectionForConnection = (
+			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+		) => peersList;
 
 		beforeEach(async () => {
 			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
-				// Each node will have the next node in the sequence as a seed peer.
-				const seedPeers = [
-					{
-						ipAddress: '127.0.0.1',
-						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-						height: 1000 + index,
-					},
-				];
+				// Each node will have the previous node in the sequence as a seed peer except the first node.
+				const seedPeers =
+					index === 0
+						? []
+						: [
+								{
+									ipAddress: '127.0.0.1',
+									wsPort:
+										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
+								},
+						  ];
 
 				return new P2P({
 					blacklistedPeers: [],
+					connectTimeout: 5000,
+					peerSelectionForSendRequest,
+					peerSelectionForConnection,
+					discoveryInterval: DISCOVERY_INTERVAL,
 					seedPeers,
 					wsEngine: 'ws',
-					peerSelectionForSendRequest,
-					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
-					connectTimeout: 100,
-					ackTimeout: 100,
-					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
-					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					nodeInfo: {
 						wsPort: NETWORK_START_PORT + index,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.0',
 						os: platform(),
-						height: 1000,
+						height: 1000 + index,
 						broadhash:
-								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						nonce: 'O2wTkjqplHII5wPv',
+						modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
 					},
 				});
 			});
+
+			// Launch nodes one at a time with a delay between each launch.
+			for (const p2p of p2pNodeList) {
+				await p2p.start();
+				await wait(100);
+			}
+			await wait(100);
 		});
 
 		afterEach(async () => {
@@ -730,31 +775,13 @@ describe('Integration tests for P2P library', () => {
 			);
 		});
 
-		it('should start all the nodes with custom selection function without fail', async () => {
-			p2pNodeList.forEach(async p2p => await p2p.start());
-
-			await wait(200);
-
+		it('should start all the nodes with custom selection functions without fail', async () => {
 			p2pNodeList.forEach(p2p =>
 				expect(p2p).to.have.property('isActive', true),
 			);
 		});
 
 		describe('Peer Discovery', () => {
-			beforeEach(async () => {
-				p2pNodeList.forEach(async p2p => await p2p.start());
-
-				await wait(200);
-			});
-
-			afterEach(async () => {
-				await Promise.all(
-					p2pNodeList
-						.filter(p2p => p2p.isActive)
-						.map(async p2p => await p2p.stop()),
-				);
-			});
-
 			it('should run peer discovery successfully', async () => {
 				p2pNodeList.forEach(p2p => {
 					const connectedPeers = p2p.getNetworkStatus().connectedPeers;
@@ -768,8 +795,6 @@ describe('Integration tests for P2P library', () => {
 		describe('P2P.request', () => {
 			beforeEach(async () => {
 				p2pNodeList.forEach(async p2p => {
-					await p2p.start();
-					await wait(200);
 					// Collect port numbers to check which peer handled which request.
 					p2p.on('requestReceived', request => {
 						request.end({
@@ -781,11 +806,7 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			afterEach(async () => {
-				p2pNodeList.forEach(async p2p => await p2p.stop());
-			});
-
-			it('should make a request to the network; it should reach a single peer', async () => {
+			it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
 				const firstP2PNode = p2pNodeList[0];
 				const response = await firstP2PNode.request({
 					procedure: 'foo',
@@ -810,9 +831,6 @@ describe('Integration tests for P2P library', () => {
 			beforeEach(async () => {
 				collectedMessages = [];
 				p2pNodeList.forEach(async p2p => {
-					await p2p.start();
-					await wait(200);
-
 					p2p.on('messageReceived', message => {
 						collectedMessages.push({
 							nodePort: p2p.nodeInfo.wsPort,
