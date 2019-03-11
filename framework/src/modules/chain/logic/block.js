@@ -253,7 +253,8 @@ class Block {
 				throw invalidTransactionResponse.errors;
 			}
 		} catch (errors) {
-			const error = Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+			const error =
+				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
 			throw error;
 		}
 
@@ -530,11 +531,10 @@ Block.prototype.dbRead = function(raw) {
 };
 
 /**
- * Creates block object based on raw data.
+ * Creates block object based on raw database block data.
  *
- * @param {Object} raw
+ * @param {Object} raw Raw database data block object
  * @returns {null|block} Block object
- * @todo Add description for the params
  */
 Block.prototype.storageRead = function(raw) {
 	if (!raw.id) {

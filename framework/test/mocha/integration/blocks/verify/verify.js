@@ -15,7 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const rewire = require('rewire');
 const async = require('async');
@@ -1109,7 +1109,7 @@ describe('blocks/verify', () => {
 
 				it('should fail when transaction is invalid', done => {
 					const account = random.account();
-					const transaction = lisk.transaction.transfer({
+					const transaction = transfer({
 						amount: new Bignum(NORMALIZER).multipliedBy(1000),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
@@ -1156,8 +1156,8 @@ describe('blocks/verify', () => {
 
 				it('should fail when transaction is already confirmed (fork:2)', done => {
 					const account = random.account();
-					const transaction = lisk.transaction.transfer({
-						amount: new Bignum(NORMALIZER).multipliedBy(1000),
+					const transaction = transfer({
+						amount: new Bignum(NORMALIZER).multipliedBy(1000).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});

@@ -15,12 +15,21 @@
 'use strict';
 
 require('../../functional.js');
-const lisk = require('lisk-elements').default;
+const {
+	registerSecondPassphrase,
+	registerDelegate,
+	castVotes,
+	createDapp,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
+const BigNumber = require('bignumber.js');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const randomUtil = require('../../../common/utils/random');
 const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+
+const { FEES } = global.constants;
 
 function invalidAssets(option, badTransactions) {
 	describe('using invalid asset values', () => {
@@ -29,34 +38,44 @@ function invalidAssets(option, badTransactions) {
 		beforeEach(done => {
 			switch (option) {
 				case 'signature':
-					transaction = lisk.transaction.registerSecondPassphrase({
+					transaction = registerSecondPassphrase({
 						passphrase: accountFixtures.genesis.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
 					break;
 				case 'delegate':
-					transaction = lisk.transaction.registerDelegate({
+					transaction = registerDelegate({
 						passphrase: accountFixtures.genesis.passphrase,
 						username: randomUtil.delegateName(),
 					});
 					break;
 				case 'votes':
-					transaction = lisk.transaction.castVotes({
+					transaction = castVotes({
 						passphrase: accountFixtures.genesis.passphrase,
 						votes: [],
 						unvotes: [],
 					});
 					break;
 				case 'multisignature':
-					transaction = lisk.transaction.registerMultisignature({
+					// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
+					transaction = transactionUtils.signRawTransaction({
+						transaction: {
+							type: 4,
+							amount: '0',
+							fee: new BigNumber(FEES.MULTISIGNATURE).times(2).toString(),
+							asset: {
+								multisignature: {
+									keysgroup: [`+${accountFixtures.existingDelegate.publicKey}`],
+									lifetime: 1,
+									min: 2,
+								},
+							},
+						},
 						passphrase: accountFixtures.genesis.passphrase,
-						keysgroup: [`${accountFixtures.existingDelegate.publicKey}`],
-						lifetime: 1,
-						minimum: 2,
 					});
 					break;
 				case 'dapp':
-					transaction = lisk.transaction.createDapp({
+					transaction = createDapp({
 						passphrase: accountFixtures.genesis.passphrase,
 						options: randomUtil.guestbookDapp,
 					});

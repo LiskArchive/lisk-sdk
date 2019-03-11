@@ -16,7 +16,11 @@
 
 require('../../functional.js');
 const randomstring = require('randomstring');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerDelegate,
+	castVotes,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
@@ -373,12 +377,12 @@ describe('GET /api/votes', () => {
 		describe('increased votes numbers after posting vote transaction', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				const account = randomUtil.account();
-				const creditTransaction = lisk.transaction.transfer({
-					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE),
+				const creditTransaction = transfer({
+					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});
-				const delegateTransaction = lisk.transaction.registerDelegate({
+				const delegateTransaction = registerDelegate({
 					passphrase: account.passphrase,
 					username: randomstring.generate({
 						length: 10,
@@ -386,7 +390,7 @@ describe('GET /api/votes', () => {
 						capitalization: 'lowercase',
 					}),
 				});
-				const voteTransaction = lisk.transaction.castVotes({
+				const voteTransaction = castVotes({
 					passphrase: account.passphrase,
 					votes: [`${nonVoterDelegate.publicKey}`],
 				});

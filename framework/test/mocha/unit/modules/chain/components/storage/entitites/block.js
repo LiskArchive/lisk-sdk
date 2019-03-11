@@ -16,17 +16,14 @@
 'use strict';
 
 const {
-	BaseEntity,
-} = require('../../../../../../../../src/components/storage/entities');
+	entities: { BaseEntity },
+	errors: { NonSupportedFilterTypeError, NonSupportedOperationError },
+} = require('../../../../../../../../src/components/storage');
 const {
 	Block,
 } = require('../../../../../../../../src/modules/chain/components/storage/entities');
 const storageSandbox = require('../../../../../../common/storage_sandbox');
 const blocksFixtures = require('../../../../../../fixtures/blocks');
-const {
-	NonSupportedFilterTypeError,
-	NonSupportedOperationError,
-} = require('../../../../../../../../src/components/storage/errors');
 
 describe('Block', () => {
 	let adapter;
