@@ -21,9 +21,23 @@ const _ = require('lodash');
 const randomstring = require('randomstring');
 const configSchema = require('../schema/config.js');
 const Z_schema = require('./z_schema.js');
-const deepFreeze = require('./deep_freeze_object.js');
 
 const rootPath = path.dirname(path.resolve(__filename, '..'));
+
+const deepFreeze = function(o) {
+	Object.freeze(o);
+	Object.getOwnPropertyNames(o).forEach(prop => {
+		if (
+			o[prop] !== null &&
+			typeof o[prop] === 'object' &&
+			!Object.isFrozen(o[prop])
+		) {
+			deepFreeze(o[prop]);
+		}
+	});
+
+	return o;
+};
 
 /**
  * Description of the module.
