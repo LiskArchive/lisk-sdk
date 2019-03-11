@@ -22,11 +22,7 @@ interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
 
-import {
-	connectAndFetchStatus,
-	constructPeerId,
-	constructPeerIdFromPeerInfo,
-} from './peer';
+import { constructPeerId, constructPeerIdFromPeerInfo } from './peer';
 
 import {
 	INCOMPATIBLE_NETWORK_CODE,
@@ -469,10 +465,10 @@ export class P2P extends EventEmitter {
 			ackTimeout: this._config.ackTimeout,
 			connectTimeout: this._config.connectTimeout,
 		};
-		const seedPeerUpdatedInfos = await Promise.all(
-			seedPeers.map(async seedPeer =>
-				connectAndFetchStatus(seedPeer, this._nodeInfo, peerConfig),
-			),
+		const seedPeerUpdatedInfos = await this._peerPool.fetchStatusAndCreatePeer(
+			seedPeers,
+			this._nodeInfo,
+			peerConfig,
 		);
 
 		return seedPeerUpdatedInfos;

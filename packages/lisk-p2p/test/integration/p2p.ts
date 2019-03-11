@@ -2,7 +2,6 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
-import { P2PPeerInfo } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
@@ -10,7 +9,6 @@ describe('Integration tests for P2P library', () => {
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
 		...Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
-	const NETWORK_END_PORT = ALL_NODE_PORTS[ALL_NODE_PORTS.length - 1];
 	const NO_PEERS_FOUND_ERROR = `Request failed due to no peers found in peer selection`;
 
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -68,75 +66,6 @@ describe('Integration tests for P2P library', () => {
 				});
 
 				expect(response).to.be.rejectedWith(Error, NO_PEERS_FOUND_ERROR);
-			});
-		});
-	});
-
-	describe.skip('Partially connected network: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence', () => {
-		beforeEach(async () => {
-			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
-				// Each node will have the next node in the sequence as a seed peer.
-				const seedPeers: ReadonlyArray<P2PPeerInfo> = [
-					{
-						ipAddress: '127.0.0.1',
-						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-					},
-				];
-
-				return new P2P({
-					blacklistedPeers: [],
-					connectTimeout: 5000,
-					seedPeers,
-					wsEngine: 'ws',
-					nodeInfo: {
-						wsPort: NETWORK_START_PORT + index,
-						nethash:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.0',
-						os: platform(),
-						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: 'O2wTkjqplHII5wPv',
-					},
-				});
-			});
-
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => p2p.start(),
-			);
-
-			await Promise.all(peerStartPromises);
-			await wait(100);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-		});
-
-		it('should discover seed peers and add them to connectedPeers list', async () => {
-			p2pNodeList.forEach(p2p => {
-				const { connectedPeers } = p2p.getNetworkStatus();
-				const peerPorts = connectedPeers
-					.map(peerInfo => peerInfo.wsPort)
-					.sort();
-
-				const previousPeerPort = p2p.nodeInfo.wsPort - 1;
-				const nextPeerPort = p2p.nodeInfo.wsPort + 1;
-
-				const expectedPeerPorts = [
-					p2p.nodeInfo.wsPort,
-					previousPeerPort < NETWORK_START_PORT
-						? NETWORK_END_PORT
-						: previousPeerPort,
-					nextPeerPort > NETWORK_END_PORT ? NETWORK_START_PORT : nextPeerPort,
-				].sort();
-
-				expect(peerPorts).to.be.eql(expectedPeerPorts);
 			});
 		});
 	});

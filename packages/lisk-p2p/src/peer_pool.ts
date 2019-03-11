@@ -21,6 +21,7 @@
 import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
+import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { RequestFailError } from './errors';
 import { P2PRequest } from './p2p_request';
@@ -38,6 +39,7 @@ import {
 	ProtocolPeerInfoList,
 } from './p2p_types';
 import {
+	connectAndFetchStatus,
 	ConnectionState,
 	constructPeerIdFromPeerInfo,
 	EVENT_CLOSE_OUTBOUND,
@@ -50,6 +52,7 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
 	Peer,
+	PeerConfig,
 	REMOTE_RPC_GET_ALL_PEERS_LIST,
 } from './peer';
 import { discoverPeers } from './peer_discovery';
@@ -253,6 +256,32 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
+	public async fetchStatusAndCreatePeer(
+		seedPeers: ReadonlyArray<P2PPeerInfo>,
+		nodeInfo: P2PNodeInfo,
+		peerConfig: PeerConfig,
+	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+		const seedPeerUpdatedInfosAndSocket = await Promise.all(
+			seedPeers.map(async seedPeer =>
+				connectAndFetchStatus(seedPeer, nodeInfo, peerConfig),
+			),
+		);
+
+		const peerInfoList = seedPeerUpdatedInfosAndSocket.map(seedPeerResponse => {
+			const peerId = constructPeerIdFromPeerInfo(seedPeerResponse.peerInfo);
+
+			this.addOutboundPeer(
+				peerId,
+				seedPeerResponse.peerInfo,
+				seedPeerResponse.socket,
+			);
+
+			return seedPeerResponse.peerInfo;
+		});
+
+		return peerInfoList;
+	}
+
 	public async runDiscovery(
 		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 		blacklist: ReadonlyArray<P2PPeerInfo>,
@@ -376,6 +405,42 @@ export class PeerPool extends EventEmitter {
 		}
 
 		this.addPeer(peerInfo, socket);
+
+		return true;
+	}
+
+	public addOutboundPeer(
+		peerId: string,
+		peerInfo: P2PDiscoveredPeerInfo,
+		socket: SCClientSocket,
+	): boolean {
+		const existingPeer = this.getPeer(peerId);
+
+		if (existingPeer) {
+			// Update the peerInfo from the latest inbound socket.
+			existingPeer.updatePeerInfo(peerInfo);
+			if (existingPeer.state.outbound === ConnectionState.DISCONNECTED) {
+				existingPeer.outboundSocket = socket;
+
+				return false;
+			}
+
+			return false;
+		}
+
+		const peerConfig = {
+			connectTimeout: this._peerPoolConfig.connectTimeout,
+			ackTimeout: this._peerPoolConfig.ackTimeout,
+		};
+		const peer = new Peer(peerInfo, peerConfig);
+		peer.createPeerFromOutboundConnection(socket);
+
+		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to itentify and debug.
+		this._peerMap.set(peer.id, peer);
+		this._bindHandlersToPeer(peer);
+		if (this._nodeInfo) {
+			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
+		}
 
 		return true;
 	}

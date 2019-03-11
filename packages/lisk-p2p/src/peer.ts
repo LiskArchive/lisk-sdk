@@ -316,6 +316,13 @@ export class Peer extends EventEmitter {
 		this._outboundSocket.connect();
 	}
 
+	public createPeerFromOutboundConnection(
+		outboundSocket: SCClientSocket,
+	): void {
+		this._outboundSocket = outboundSocket;
+		this._bindHandlersToOutboundSocket(outboundSocket);
+	}
+
 	public disconnect(code: number = 1000, reason?: string): void {
 		this.dropInboundConnection(code, reason);
 		this.dropOutboundConnection(code, reason);
@@ -575,7 +582,12 @@ export class Peer extends EventEmitter {
 
 export interface ConnectAndFetchResponse {
 	readonly responsePacket: P2PResponsePacket;
-	readonly socket?: SCClientSocket;
+	readonly socket: SCClientSocket;
+}
+
+export interface PeerInfoAndOutboundConnection {
+	readonly peerInfo: P2PDiscoveredPeerInfo;
+	readonly socket: SCClientSocket;
 }
 
 export const connectAndRequest = async (
@@ -585,22 +597,18 @@ export const connectAndRequest = async (
 	peerConfig?: PeerConfig,
 ): Promise<ConnectAndFetchResponse> =>
 	new Promise<ConnectAndFetchResponse>(
-		(
-			resolve: (result: ConnectAndFetchResponse) => void,
-			reject: (result: Error) => void,
-		): void => {
+		(resolve, reject): void => {
 			const legacyNodeInfo = nodeInfo
 				? convertNodeInfoToLegacyFormat(nodeInfo)
 				: undefined;
 			// Add a new field discovery to tell the receiving side that the connection will be short lived
-			const nodeInfoForDiscovery = { discovery: true, ...legacyNodeInfo };
 			const requestPacket = {
 				procedure,
 			};
 			const clientOptions: ClientOptionsUpdated = {
 				hostname: basicPeerInfo.ipAddress,
 				port: basicPeerInfo.wsPort,
-				query: querystring.stringify(nodeInfoForDiscovery),
+				query: querystring.stringify(legacyNodeInfo),
 				connectTimeout: peerConfig
 					? peerConfig.connectTimeout
 						? peerConfig.connectTimeout
@@ -619,16 +627,6 @@ export const connectAndRequest = async (
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			// Attaching handlers for various events that could be used future for logging or any other application
-			outboundSocket.on('error', async (error: Error) =>
-				Promise.resolve(error),
-			);
-			outboundSocket.on('close', async () =>
-				Promise.resolve('Connection closed'),
-			);
-			outboundSocket.on('connect', async () =>
-				Promise.resolve('Connection Successful'),
-			);
-
 			outboundSocket.emit(
 				REMOTE_EVENT_RPC_REQUEST,
 				{
@@ -666,35 +664,11 @@ export const connectAndRequest = async (
 		},
 	);
 
-export const connectAndFetchPeers = async (
-	basicPeerInfo: P2PPeerInfo,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
-): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> => {
-	try {
-		const { responsePacket, socket } = await connectAndRequest(
-			basicPeerInfo,
-			REMOTE_RPC_GET_ALL_PEERS_LIST,
-			nodeInfo,
-			peerConfig,
-		);
-
-		if (socket) {
-			socket.destroy();
-		}
-		const peers = validatePeerInfoList(responsePacket.data);
-
-		return peers;
-	} catch (error) {
-		throw error;
-	}
-};
-
 export const connectAndFetchStatus = async (
 	basicPeerInfo: P2PPeerInfo,
 	nodeInfo?: P2PNodeInfo,
 	peerConfig?: PeerConfig,
-): Promise<P2PDiscoveredPeerInfo> => {
+): Promise<PeerInfoAndOutboundConnection> => {
 	try {
 		const { responsePacket, socket } = await connectAndRequest(
 			basicPeerInfo,
@@ -702,9 +676,7 @@ export const connectAndFetchStatus = async (
 			nodeInfo,
 			peerConfig,
 		);
-		if (socket) {
-			socket.destroy();
-		}
+
 		const protocolPeerInfo = responsePacket.data;
 		const rawPeerInfo = {
 			...protocolPeerInfo,
@@ -713,7 +685,7 @@ export const connectAndFetchStatus = async (
 		};
 		const peerInfo = validatePeerInfo(rawPeerInfo);
 
-		return peerInfo;
+		return { peerInfo, socket };
 	} catch (error) {
 		throw error;
 	}
