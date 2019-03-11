@@ -102,6 +102,7 @@ export const ENTITY_TRANSACTION = 'transaction';
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
 	public readonly recipientId: string;
+	public readonly blockId?: string;
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
@@ -184,6 +185,7 @@ export abstract class BaseTransaction {
 	public toJSON(): TransactionJSON {
 		const transaction = {
 			id: this.id,
+			blockId: this.blockId,
 			amount: this.amount.toString(),
 			type: this.type,
 			timestamp: this.timestamp,
