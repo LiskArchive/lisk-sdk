@@ -1,5 +1,5 @@
 const axon = require('axon');
-const { Server: RPCServer } = require('axon-rpc');
+const { Server: RPCServer, Client: RPCClient } = require('axon-rpc');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
@@ -29,6 +29,7 @@ class Bus extends EventEmitter2 {
 		// Hash map used instead of arrays for performance.
 		this.actions = {};
 		this.events = {};
+		this.channels = {};
 	}
 
 	/**
@@ -82,7 +83,12 @@ class Bus extends EventEmitter2 {
 	 * @throws {Error} If event name is already registered.
 	 */
 	// eslint-disable-next-line no-unused-vars
-	async registerChannel(moduleAlias, events, actions, options) {
+	async registerChannel(
+		moduleAlias,
+		events,
+		actions,
+		options = { type: 'inMemory' }
+	) {
 		events.forEach(eventName => {
 			const eventFullName = `${moduleAlias}:${eventName}`;
 			if (this.events[eventFullName]) {
@@ -102,6 +108,21 @@ class Bus extends EventEmitter2 {
 			}
 			this.actions[actionFullName] = true;
 		});
+
+		let channel;
+		if (options.type === 'inMemory') {
+			channel = options.channel;
+		} else {
+			const rpcSocket = axon.socket('req');
+			rpcSocket.connect(options.rpcSocketPath);
+			channel = new RPCClient(rpcSocket);
+		}
+		this.channels[moduleAlias] = {
+			channel,
+			actions,
+			events,
+			type: options.type,
+		};
 	}
 
 	/**
@@ -114,15 +135,30 @@ class Bus extends EventEmitter2 {
 	invoke(actionData) {
 		const action = Action.deserialize(actionData);
 
+		if (!this.actions[action.key()]) {
+			throw new Error(`Action ${action.key()} is not registered to bus.`);
+		}
+
 		if (action.module === CONTROLLER_IDENTIFIER) {
-			return this.controller.channel.invoke(action);
+			return this.channels[CONTROLLER_IDENTIFIER].channel.invoke(action);
 		}
 
-		if (this.actions[action.key()]) {
-			return this.controller.modulesChannels[action.module].invoke(action);
+		if (this.channels[action.module].type === 'inMemory') {
+			return this.channels[action.module].channel.invoke(action);
 		}
 
-		throw new Error(`Action ${action.key()} is not registered to bus.`);
+		return new Promise((resolve, reject) => {
+			this.channels[action.module].channel.call(
+				'invoke',
+				action.serialize(),
+				(err, data) => {
+					if (err) {
+						return setImmediate(reject, err);
+					}
+					return setImmediate(resolve, data);
+				}
+			);
+		});
 	}
 
 	/**
@@ -133,7 +169,7 @@ class Bus extends EventEmitter2 {
 	 *
 	 * @throws {Error} If event name does not exist to bus.
 	 */
-	emit(eventName, eventValue) {
+	publish(eventName, eventValue) {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
@@ -179,6 +215,13 @@ class Bus extends EventEmitter2 {
 		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
 			this.rpcSocket.close();
 		}
+
+		Object.values(this.channels).forEach(channel => {
+			if (channel.type === 'ipcSocket') {
+				// FIXME: this is not working
+				channel.channel.call('cleanup');
+			}
+		});
 	}
 }
 

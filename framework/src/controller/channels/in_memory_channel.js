@@ -38,7 +38,7 @@ class InMemoryChannel extends BaseChannel {
 			this.moduleAlias,
 			this.eventsList.map(event => event.name),
 			this.actionsList.map(action => action.name),
-			{}
+			{ type: 'inMemory', channel: this }
 		);
 	}
 
@@ -81,7 +81,7 @@ class InMemoryChannel extends BaseChannel {
 			);
 		}
 
-		this.bus.emit(event.key(), event.serialize());
+		this.bus.publish(event.key(), event.serialize());
 	}
 
 	/**

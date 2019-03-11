@@ -3,7 +3,6 @@ const axon = require('axon');
 const { Server: RPCServer, Client: RPCClient } = require('axon-rpc');
 const Action = require('../action');
 const Event = require('../event');
-const systemDirs = require('../config/dirs');
 const BaseChannel = require('./base_channel');
 
 /**
@@ -23,22 +22,34 @@ class ChildProcessChannel extends BaseChannel {
 	}
 
 	async connect(socketsPath) {
-		this.pubSock = axon.socket('pub-emitter');
-		this.pubSock.connect(socketsPath.sub);
+		this.rpcSocketPath = `${socketsPath.root}/${this.moduleAlias}_rpc.sock`;
 
-		this.subSock = axon.socket('sub-emitter');
-		this.subSock.connect(socketsPath.pub);
+		this.pubSocket = axon.socket('pub-emitter');
+		this.pubSocket.connect(socketsPath.sub);
+
+		this.subSocket = axon.socket('sub-emitter');
+		this.subSocket.connect(socketsPath.pub);
 
 		this.busRpcSocket = axon.socket('req');
 		this.busRpcSocket.connect(socketsPath.rpc);
 		this.busRpcClient = new RPCClient(this.busRpcSocket);
 
-		return new Promise((resolve, reject) => {
-			// this.subSock.once('connect', resolve);
-			// this.subSock.once('error', reject);
+		this.rpcSocket = axon.socket('rep');
+		this.rpcServer = new RPCServer(this.rpcSocket);
 
+		this.rpcServer.expose('invoke', (action, cb) => {
+			this.invoke(action)
+				.then(data => setImmediate(cb, null, data))
+				.catch(error => setImmediate(cb, error));
+		});
+
+		this.rpcServer.expose('cleanup', this.cleanup);
+
+		return new Promise((resolve, reject) => {
 			// TODO: wait for all sockets to be created
-			setTimeout(resolve, 1000);
+			this.rpcSocket.once('bind', resolve);
+			this.rpcSocket.once('error', reject);
+			this.rpcSocket.bind(this.rpcSocketPath);
 		});
 	}
 
@@ -49,7 +60,7 @@ class ChildProcessChannel extends BaseChannel {
 				this.moduleAlias,
 				this.eventsList.map(event => event.name),
 				this.actionsList.map(action => action.name),
-				{},
+				{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
 				(err, result) => {
 					if (err) return reject(err);
 					return resolve(result);
@@ -64,7 +75,7 @@ class ChildProcessChannel extends BaseChannel {
 		if (event.module === this.moduleAlias) {
 			this.localBus.on(eventName, cb);
 		} else {
-			this.subSock.on(eventName, data => {
+			this.subSocket.on(eventName, data => {
 				setImmediate(cb, data);
 			});
 		}
@@ -77,7 +88,7 @@ class ChildProcessChannel extends BaseChannel {
 			this.localBus.once(eventName, cb);
 		} else {
 			// TODO: make it `once` instead of `on`
-			this.subSock.on(eventName, data => {
+			this.subSocket.on(eventName, data => {
 				setImmediate(cb, data);
 			});
 		}
@@ -93,7 +104,7 @@ class ChildProcessChannel extends BaseChannel {
 		}
 
 		this.localBus.emit(event.key(), event.serialize());
-		this.pubSock.emit(event.key(), event.serialize());
+		this.pubSocket.emit(event.key(), event.serialize());
 	}
 
 	async invoke(actionName, params) {
@@ -118,6 +129,12 @@ class ChildProcessChannel extends BaseChannel {
 				return setImmediate(resolve, data);
 			});
 		});
+	}
+
+	async cleanup() {
+		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
+			this.rpcSocket.close();
+		}
 	}
 }
 

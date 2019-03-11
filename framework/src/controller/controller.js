@@ -55,6 +55,7 @@ class Controller {
 		this.bus = null;
 		this.config = { dirs: systemDirs(this.appLabel) };
 		this.socketsPath = {
+			root: `unix://${this.config.dirs.sockets}`,
 			pub: `unix://${this.config.dirs.sockets}/bus_pub.sock`,
 			sub: `unix://${this.config.dirs.sockets}/bus_sub.sock`,
 			rpc: `unix://${this.config.dirs.sockets}/bus_rpc.sock`,
