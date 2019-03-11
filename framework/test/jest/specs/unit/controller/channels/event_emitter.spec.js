@@ -1,15 +1,10 @@
-const EventEmitterChannel = require('../../../../../../src/controller/channels/event_emitter');
-const Action = require('../../../../../../src/controller/action');
-const Event = require('../../../../../../src/controller/event');
 const Bus = require('../../../../../../src/controller/bus');
 
-jest.mock('../../../../../../src/controller/action');
-jest.mock('../../../../../../src/controller/event');
 jest.mock('../../../../../../src/controller/bus');
 
 // Arrange
 const params = {
-	alias: 'alias',
+	moduleAlias: 'moduleAlias',
 	events: ['event1', 'event2'],
 	actions: {
 		action1: jest.fn(),
@@ -21,12 +16,17 @@ const params = {
 };
 
 describe('EventEmitterChannel Channel', () => {
+	let EventEmitterChannel;
 	let eventEmitterChannel = null;
 
 	beforeEach(() => {
+		// Arrange
+		jest.isolateModules(() => {
+			EventEmitterChannel = require('../../../../../../src/controller/channels/event_emitter');
+		});
 		// Act
 		eventEmitterChannel = new EventEmitterChannel(
-			params.alias,
+			params.moduleAlias,
 			params.events,
 			params.actions,
 			params.bus,
@@ -34,20 +34,53 @@ describe('EventEmitterChannel Channel', () => {
 		);
 	});
 
+	describe('inheritance', () => {
+		it('should be extended from BaseChannel class', () => {
+			let IsolatedEventEmitterChannel;
+			let IsolatedBaseChannel;
+			// Assert
+			jest.isolateModules(() => {
+				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base');
+				IsolatedEventEmitterChannel = require('../../../../../../src/controller/channels/event_emitter');
+			});
+			expect(IsolatedEventEmitterChannel.prototype).toBeInstanceOf(
+				IsolatedBaseChannel
+			);
+		});
+
+		it('should call BaseChannel class constructor with arguments', () => {
+			jest.doMock('../../../../../../src/controller/channels/base');
+			const BaseChannel = require('../../../../../../src/controller/channels/base');
+
+			let IsolatedEventEmitterChannel;
+			jest.isolateModules(() => {
+				IsolatedEventEmitterChannel = require('../../../../../../src/controller/channels/event_emitter');
+			});
+			// Act
+			eventEmitterChannel = new IsolatedEventEmitterChannel(
+				params.moduleAlias,
+				params.events,
+				params.actions,
+				params.bus,
+				params.options
+			);
+
+			// Assert
+			expect(BaseChannel).toHaveBeenCalledWith(
+				params.moduleAlias,
+				params.events,
+				params.actions,
+				params.options
+			);
+
+			jest.dontMock('../../../../../../src/controller/channels/base');
+		});
+	});
+
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(eventEmitterChannel.moduleAlias).toBe(params.alias);
-			expect(eventEmitterChannel.options).toBe(params.options);
 			expect(eventEmitterChannel.bus).toBe(params.bus);
-
-			params.events.forEach(event => {
-				expect(Event).toHaveBeenCalledWith(`${params.alias}:${event}`);
-			});
-
-			Object.keys(params.actions).forEach(action => {
-				expect(Action).toHaveBeenCalledWith(`${params.alias}:${action}`);
-			});
 		});
 	});
 
@@ -76,7 +109,9 @@ describe('EventEmitterChannel Channel', () => {
 	describe('#publish', () => {
 		it('should throw TypeError', () => {
 			// Assert
-			expect(eventEmitterChannel.publish).toThrow(TypeError);
+			expect(eventEmitterChannel.publish).toThrow(
+				'Event name "undefined" must be a valid name with module name.'
+			);
 		});
 	});
 
@@ -84,54 +119,6 @@ describe('EventEmitterChannel Channel', () => {
 		it('should throw TypeError', () => {
 			// Assert
 			expect(eventEmitterChannel.invoke()).rejects.toBeInstanceOf(TypeError);
-		});
-	});
-
-	describe('#isValidEventName', () => {
-		// Arrange
-		const eventName = params.events[0];
-
-		it('should return false when invalid event name was provided', () => {
-			//  Act & Assert
-			expect(eventEmitterChannel.isValidEventName(eventName, false)).toBe(
-				false
-			);
-		});
-
-		it('should throw error when throwError was set to `true`.', () => {
-			// Act & Assert
-			expect(() => eventEmitterChannel.isValidEventName(eventName)).toThrow();
-		});
-
-		it('should return true when valid event name was provided.', () => {
-			// Act & Assert
-			expect(
-				eventEmitterChannel.isValidEventName(`${params.alias}:${eventName}`)
-			).toBe(true);
-		});
-	});
-
-	describe('#isValidActionName', () => {
-		// Arrange
-		const actionName = 'actionName';
-
-		it('should return false when invalid action name was provided', () => {
-			//  Act & Assert
-			expect(eventEmitterChannel.isValidActionName(actionName, false)).toBe(
-				false
-			);
-		});
-
-		it('should throw error when throwError was set to `true`.', () => {
-			// Act & Assert
-			expect(() => eventEmitterChannel.isValidActionName(actionName)).toThrow();
-		});
-
-		it('should return true when valid event name was provided.', () => {
-			// Act & Assert
-			expect(
-				eventEmitterChannel.isValidActionName(`${params.alias}:${actionName}`)
-			).toBe(true);
 		});
 	});
 });
