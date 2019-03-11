@@ -22,9 +22,8 @@ class Bus extends EventEmitter2 {
 	 * @param {Object} options - EventEmitter2 native options object
 	 * @see {@link https://github.com/EventEmitter2/EventEmitter2/blob/master/eventemitter2.d.ts|String}
 	 */
-	constructor(controller, options) {
+	constructor(options) {
 		super(options);
-		this.controller = controller;
 
 		// Hash map used instead of arrays for performance.
 		this.actions = {};

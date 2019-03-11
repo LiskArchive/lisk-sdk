@@ -120,7 +120,7 @@ class Controller {
 	 * @async
 	 */
 	async _setupBus() {
-		this.bus = new Bus(this, {
+		this.bus = new Bus({
 			wildcard: true,
 			delimiter: ':',
 			maxListeners: 1000,
