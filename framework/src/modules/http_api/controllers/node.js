@@ -229,12 +229,6 @@ NodeController.getPooledTransactions = async function(context, next) {
 
 	const state = context.request.swagger.params.state.value;
 
-	const stateMap = {
-		unprocessed: 'getUnProcessedTransactions',
-		unconfirmed: 'getUnconfirmedTransactions',
-		unsigned: 'getMultisignatureTransactions',
-	};
-
 	let filters = {
 		id: params.id.value,
 		recipientId: params.recipientId.value,
@@ -251,7 +245,8 @@ NodeController.getPooledTransactions = async function(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await library.channel.invoke(`chain:${stateMap[state]}`, [
+		const data = await library.channel.invoke('chain:getTransactionsFromPool', [
+			state,
 			_.clone(filters),
 		]);
 

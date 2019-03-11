@@ -640,9 +640,7 @@ __private.processPostResult = function(err, res, cb) {
  *
  * @property {function} getTransactions - Search transactions based on the query parameter passed
  * @property {function} getTransactionsCount
- * @property {function} getUnProcessedTransactions
- * @property {function} getMultisignatureTransactions
- * @property {function} getUnconfirmedTransactions
+ * @property {function} getTransactionsFromPool
  * @property {function} postTransactions
  * @todo Add description for the functions
  */
@@ -735,48 +733,20 @@ Transactions.prototype.shared = {
 	},
 
 	/**
-	 * Description of getUnProcessedTransactions.
+	 * Retrieve specific type of transactions from transaction pool.
 	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
+	 * @param {string} type Type of transaction retrieved from transaction pool
+	 * @param {object} filters
+	 * @param {*} cb
 	 */
-	getUnProcessedTransactions(filters, cb) {
-		return __private.getPooledTransactions(
-			'getQueuedTransactionList',
-			filters,
-			cb
-		);
-	},
+	getTransactionsFromPool(type, filters, cb) {
+		const typeMap = {
+			unprocessed: 'getQueuedTransactionList',
+			unconfirmed: 'getUnconfirmedTransactionList',
+			unsigned: 'getMultisignatureTransactionList',
+		};
 
-	/**
-	 * Description of getMultisignatureTransactions.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	getMultisignatureTransactions(req, cb) {
-		return __private.getPooledTransactions(
-			'getMultisignatureTransactionList',
-			req,
-			cb
-		);
-	},
-
-	/**
-	 * Description of getUnconfirmedTransactions.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	getUnconfirmedTransactions(req, cb) {
-		return __private.getPooledTransactions(
-			'getUnconfirmedTransactionList',
-			req,
-			cb
-		);
+		return __private.getPooledTransactions(typeMap[type], filters, cb);
 	},
 
 	/**

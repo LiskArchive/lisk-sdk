@@ -77,9 +77,7 @@ const modulesToInstrument = {
 		identifier: 'modules.transactions',
 		callbackMethods: [
 			'shared.getTransactionsCount',
-			'shared.getUnProcessedTransactions',
-			'shared.getMultisignatureTransactions',
-			'shared.getUnconfirmedTransactions',
+			'shared.getTransactionsFromPool',
 			'shared.postTransaction',
 			'shared.postTransactions',
 		],
