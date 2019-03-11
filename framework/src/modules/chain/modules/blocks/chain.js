@@ -19,6 +19,7 @@ const async = require('async');
 const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionTypes = require('../../helpers/transaction_types.js');
+const initTransaction = require('../../helpers/init_transaction.js');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -96,9 +97,13 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 			// If there is no block with genesis ID - save to database
 			// WARNING: DB_WRITE
 			// FIXME: This will fail if we already have genesis block in database, but with different ID
-			return self.saveBlock(library.genesisBlock.block, err =>
-				setImmediate(cb, err)
-			);
+			const block = {
+				...library.genesisBlock.block,
+				transactions: library.genesisBlock.block.transactions.map(
+					initTransaction
+				),
+			};
+			return self.saveBlock(block, err => setImmediate(cb, err));
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -142,7 +147,7 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 		if (parsedBlock.transactions.length) {
 			promises.push(
 				library.storage.entities.Transaction.create(
-					parsedBlock.transactions,
+					parsedBlock.transactions.map(transaction => transaction.toJSON()),
 					{},
 					saveBlockBatchTx
 				)
