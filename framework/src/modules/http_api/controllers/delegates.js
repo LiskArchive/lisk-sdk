@@ -19,7 +19,7 @@ const Bignum = require('../helpers/bignum');
 const swaggerHelper = require('../helpers/swagger');
 const apiCodes = require('../api_codes');
 const ApiError = require('../api_error');
-const { calculateApproval } = require('../helpers/http_api');
+const { calculateApproval } = require('../helpers/utils');
 const slots = require('../helpers/slots');
 // Private Fields
 let storage;
