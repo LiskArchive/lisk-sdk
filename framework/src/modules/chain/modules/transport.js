@@ -230,8 +230,7 @@ __private.receiveTransaction = function(
 			throw errors;
 		}
 	} catch (errors) {
-		const error =
-			Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+		const error = errors.length > 0 ? errors[0] : errors;
 		library.logger.debug('Transaction normalization failed', {
 			id,
 			err: error.toString(),
