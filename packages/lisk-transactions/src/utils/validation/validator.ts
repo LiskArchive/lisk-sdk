@@ -113,12 +113,6 @@ validator.addFormat('additionPublicKey', data => {
 	}
 });
 
-validator.addFormat(
-	'receivedAt',
-	(data: unknown) =>
-		data instanceof Date && !isNaN((data as unknown) as number),
-);
-
 validator.addFormat('username', validateUsername);
 
 validator.addFormat('noNullByte', data => !isNullByteIncluded(data));

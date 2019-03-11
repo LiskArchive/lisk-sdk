@@ -57,7 +57,7 @@ export const transaction = {
 			type: 'object',
 		},
 		receivedAt: {
-			type: 'object',
+			type: 'string',
 		},
 	},
 };
@@ -140,8 +140,8 @@ export const baseTransaction = {
 			type: 'object',
 		},
 		receivedAt: {
-			type: 'object',
-			format: 'receivedAt',
+			type: 'string',
+			format: 'date-time',
 		},
 	},
 };

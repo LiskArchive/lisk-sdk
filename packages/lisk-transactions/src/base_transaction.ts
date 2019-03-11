@@ -57,12 +57,6 @@ export interface TransactionResponse {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
-export interface Attributes {
-	readonly [entity: string]: {
-		readonly [property: string]: ReadonlyArray<string>;
-	};
-}
-
 export interface StateStoreGetter<T> {
 	get(key: string): T;
 	find(func: (item: T) => boolean): T | undefined;
@@ -114,9 +108,9 @@ export abstract class BaseTransaction {
 	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
-	public readonly receivedAt: Date;
 	public readonly containsUniqueData?: boolean;
 	public readonly fee: BigNum;
+	public receivedAt?: Date;
 
 	protected _id?: string;
 	protected _signature?: string;
@@ -162,7 +156,9 @@ export abstract class BaseTransaction {
 		this._signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
-		this.receivedAt = rawTransaction.receivedAt || new Date();
+		this.receivedAt = rawTransaction.receivedAt
+			? new Date(rawTransaction.receivedAt)
+			: undefined;
 	}
 
 	public get id(): string {
@@ -200,7 +196,7 @@ export abstract class BaseTransaction {
 			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
-			receivedAt: this.receivedAt,
+			receivedAt: this.receivedAt ? this.receivedAt.toISOString() : undefined,
 		};
 
 		return transaction;
@@ -342,6 +338,9 @@ export abstract class BaseTransaction {
 	}
 
 	public isExpired(date: Date = new Date()): boolean {
+		if (!this.receivedAt) {
+			this.receivedAt = new Date();
+		}
 		// tslint:disable-next-line no-magic-numbers
 		const timeNow = Math.floor(date.getTime() / 1000);
 		const timeOut =
