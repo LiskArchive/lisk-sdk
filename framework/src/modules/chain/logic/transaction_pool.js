@@ -24,7 +24,12 @@ const {
 	MAX_SHARED_TRANSACTIONS,
 } = global.constants;
 
-const wrapAddTransactionResponseInCb = (addTransactionResponse, cb, transaction, err) => {
+const wrapAddTransactionResponseInCb = (
+	addTransactionResponse,
+	cb,
+	transaction,
+	err
+) => {
 	if (err) {
 		return cb(err);
 	}
@@ -42,7 +47,7 @@ const wrapAddTransactionResponseInCb = (addTransactionResponse, cb, transaction,
 
 const receivedQueue = 'recieved';
 // TODO: Need to decide which queue will include transactions in the validated queue
-const validatedQueue = 'validated';
+// const validatedQueue = 'validated';
 const pendingQueue = 'pending';
 const verifiedQueue = 'verified';
 const readyQueue = 'ready';
@@ -62,12 +67,7 @@ const readyQueue = 'ready';
  * @param {Object} config - config variable
  */
 class TransactionPool {
-	constructor(
-		broadcastInterval,
-		releaseLimit,
-		logger,
-		config
-	) {
+	constructor(broadcastInterval, releaseLimit, logger, config) {
 		this.maxTransactionsPerQueue = config.transactions.maxTransactionsPerQueue;
 		this.expiryInterval = EXPIRY_INTERVAL;
 		this.bundledInterval = broadcastInterval;
@@ -100,7 +100,8 @@ class TransactionPool {
 		const poolDependencies = {
 			validateTransactions: processTransactions.validateTransactions,
 			verifyTransactions: processTransactions.verifyTransactions,
-			processTransactions: transactions => processTransactions.applyTransactions(transactions),
+			processTransactions: transactions =>
+				processTransactions.applyTransactions(transactions),
 		};
 
 		this.pool = new pool.TransactionPool({
@@ -158,21 +159,13 @@ class TransactionPool {
 	 * @param {boolean} ready - Limits results to transactions deemed "ready"
 	 * @returns {Object[]} Of multisignature transactions
 	 */
-	getMultisignatureTransactionList(
-		reverse,
-		limit,
-		ready
-	) {
+	getMultisignatureTransactionList(reverse, limit, ready) {
 		if (ready) {
-			return this
-				.getTransactionsList(pendingQueue, reverse)
-				.filter(transaction => transaction.ready);
+			return this.getTransactionsList(pendingQueue, reverse).filter(
+				transaction => transaction.ready
+			);
 		}
-		return this.getTransactionsList(
-			pendingQueue,
-			reverse,
-			limit
-		);
+		return this.getTransactionsList(pendingQueue, reverse, limit);
 	}
 
 	getCountByQueue(queueName) {
@@ -198,9 +191,11 @@ class TransactionPool {
 	}
 
 	fillPool(cb) {
-		return this.pool.processVerifiedTransactions().then(() => cb()).catch(cb);
+		return this.pool
+			.processVerifiedTransactions()
+			.then(() => cb())
+			.catch(cb);
 	}
-
 
 	/**
 	 * Gets unconfirmed, multisignature and queued transactions based on limit and reverse option.
@@ -215,9 +210,15 @@ class TransactionPool {
 			limit = MAX_SHARED_TRANSACTIONS;
 		}
 
-		const ready = this.getUnconfirmedTransactionList(reverse, Math.min(MAX_TRANSACTIONS_PER_BLOCK, limit));
+		const ready = this.getUnconfirmedTransactionList(
+			reverse,
+			Math.min(MAX_TRANSACTIONS_PER_BLOCK, limit)
+		);
 		limit -= ready.length;
-		const pending = this.getMultisignatureTransactionList(reverse, Math.min(MAX_TRANSACTIONS_PER_BLOCK, limit));
+		const pending = this.getMultisignatureTransactionList(
+			reverse,
+			Math.min(MAX_TRANSACTIONS_PER_BLOCK, limit)
+		);
 		limit -= pending.length;
 		const verified = this.getQueuedTransactionList(reverse, limit);
 		limit -= verified.length;
@@ -226,15 +227,27 @@ class TransactionPool {
 	}
 
 	addBundledTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(this.pool.addTransaction(transaction), cb, transaction);
+		return wrapAddTransactionResponseInCb(
+			this.pool.addTransaction(transaction),
+			cb,
+			transaction
+		);
 	}
 
 	addVerifiedTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(this.pool.addVerifiedTransaction(transaction), cb, transaction);
+		return wrapAddTransactionResponseInCb(
+			this.pool.addVerifiedTransaction(transaction),
+			cb,
+			transaction
+		);
 	}
 
 	addMultisignatureTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(this.pool.addMultisignatureTransaction(transaction), cb, transaction);
+		return wrapAddTransactionResponseInCb(
+			this.pool.addMultisignatureTransaction(transaction),
+			cb,
+			transaction
+		);
 	}
 
 	processUnconfirmedTransaction(transaction, broadcast, cb) {
@@ -244,15 +257,17 @@ class TransactionPool {
 				`Transaction is already processed: ${transaction.id}`
 			);
 		}
-		return modules.processTransactions.verifyTransactions([transaction]).then(({ transactionsResponses }) => {
-			if (transactionsResponses[0].status === TransactionStatus.OK) {
-				return this.addVerifiedTransaction(transaction, cb);
-			}
-			if (transactionsResponses[0].status === TransactionStatus.PENDING) {
-				return this.addMultisignatureTransaction(transaction, cb);
-			}
-			return cb(transactionsResponses[0].errors);
-		});
+		return modules.processTransactions
+			.verifyTransactions([transaction])
+			.then(({ transactionsResponses }) => {
+				if (transactionsResponses[0].status === TransactionStatus.OK) {
+					return this.addVerifiedTransaction(transaction, cb);
+				}
+				if (transactionsResponses[0].status === TransactionStatus.PENDING) {
+					return this.addMultisignatureTransaction(transaction, cb);
+				}
+				return cb(transactionsResponses[0].errors);
+			});
 	}
 
 	onConfirmedTransactions(transactions) {
