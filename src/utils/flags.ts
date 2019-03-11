@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 	Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
 	Examples:
@@ -65,6 +66,14 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
+const networkDescription = 'Name of the network to install.';
+const installationPathDescription = 'Path of Lisk Core to install.';
+const nameDescription = 'Lisk Core installation directory name.';
+const releaseUrlDescription =
+	'URL of the repository to download the Lisk Core.';
+const snapshotUrlDescription = 'URL of the Lisk Core blockchain snapshot.';
+const noSnapshotDescription = 'Install Lisk Core without blockchain snapshot';
+
 export type AlphabetLowercase =
 	| 'a'
 	| 'b'
@@ -93,7 +102,7 @@ export type AlphabetLowercase =
 	| 'y'
 	| 'z';
 
-interface FlagMap {
+export interface FlagMap {
 	readonly [key: string]: {
 		readonly char?: AlphabetLowercase;
 		readonly description: string;
@@ -125,5 +134,27 @@ export const flags: FlagMap = {
 	},
 	votes: {
 		description: votesDescription,
+	},
+	network: {
+		char: 'n',
+		description: networkDescription,
+	},
+	installationPath: {
+		char: 'p',
+		description: installationPathDescription,
+	},
+	name: {
+		description: nameDescription,
+	},
+	releaseUrl: {
+		char: 'r',
+		description: releaseUrlDescription,
+	},
+	snapshotUrl: {
+		char: 's',
+		description: snapshotUrlDescription,
+	},
+	noSnapshot: {
+		description: noSnapshotDescription,
 	},
 };

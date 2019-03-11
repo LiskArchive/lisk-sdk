@@ -13,15 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
-import * as Listr from 'listr';
+import Listr from 'listr';
 import * as os from 'os';
 import BaseCommand from '../../base';
-import { NETWORK } from '../../utils/constants';
+import { NETWORK, RELEASE_URL, SNAPSHOT_URL } from '../../utils/constants';
 import { download, extract, validateChecksum } from '../../utils/download';
-import { getReleaseInfo } from '../../utils/node/release';
+import { flags as commonFlags } from '../../utils/flags';
 import {
 	createDirectory,
 	isSupportedOS,
@@ -34,7 +33,17 @@ import {
 	validateNetwork,
 	validateNotARootUser,
 	validURL,
-} from '../../utils/node/utils';
+} from '../../utils/node/commons';
+import { defaultInstallationPath } from '../../utils/node/config';
+import {
+	createDatabase,
+	createUser,
+	initDB,
+	startDatabase,
+	stopDatabase,
+} from '../../utils/node/database';
+import { registerApplication } from '../../utils/node/pm2';
+import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
 	readonly installationPath: string;
@@ -67,7 +76,7 @@ const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
 	validURL(snapshotUrl);
 };
 
-const buildOptions = async ({
+const installOptions = async ({
 	installationPath,
 	name,
 	network,
@@ -90,12 +99,8 @@ const buildOptions = async ({
 	};
 };
 
-const INSTALL_PATH = '~/.lisk/network';
-const RELEASE_URL = 'https://downloads.lisk.io/lisk';
-const SNAPSHOT_URL = 'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk';
-
 export default class InstallCommand extends BaseCommand {
-	static description = `Install lisk software`;
+	static description = 'Install Lisk Core';
 
 	static examples = [
 		'node:install',
@@ -106,32 +111,28 @@ export default class InstallCommand extends BaseCommand {
 	static flags = {
 		...BaseCommand.flags,
 		network: flagParser.string({
-			char: 'n',
-			description: 'Name of the network to install.',
+			...commonFlags.network,
 			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
 		installationPath: flagParser.string({
-			char: 'p',
-			description: 'Path of Lisk Core to install.',
-			default: INSTALL_PATH,
+			...commonFlags.installationPath,
+			default: defaultInstallationPath,
 		}),
 		name: flagParser.string({
-			description: 'Name of the directory to install Lisk Core.',
+			...commonFlags.name,
 			default: NETWORK.MAINNET,
 		}),
 		releaseUrl: flagParser.string({
-			char: 'r',
-			description: 'URL of the repository to download the Lisk Core.',
+			...commonFlags.releaseUrl,
 			default: RELEASE_URL,
 		}),
 		snapshotUrl: flagParser.string({
-			char: 's',
-			description: 'URL of the Lisk Core blockchain snapshot.',
+			...commonFlags.snapshotUrl,
 			default: SNAPSHOT_URL,
 		}),
 		'no-snapshot': flagParser.boolean({
-			description: 'Install Lisk Core without blockchain snapshot',
+			...commonFlags.noSnapshot,
 			default: false,
 			allowNo: false,
 		}),
@@ -147,15 +148,15 @@ export default class InstallCommand extends BaseCommand {
 		} = flags as Flags;
 		const cacheDir = this.config.cacheDir;
 
-		const tasks = new Listr.default([
+		const tasks = new Listr([
 			{
-				title: `Install Lisk Core ${network}`,
+				title: `Install Lisk Core ${network} as ${name}`,
 				task: () =>
-					new Listr.default([
+					new Listr([
 						{
-							title: 'Build options',
+							title: 'Prepare Install Options',
 							task: async ctx => {
-								const options: Options = await buildOptions(flags as Flags);
+								const options: Options = await installOptions(flags as Flags);
 								ctx.options = options;
 							},
 						},
@@ -168,7 +169,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download Lisk Core release',
+							title: 'Download Lisk Core Release',
 							task: async ctx => {
 								const {
 									version,
@@ -186,14 +187,8 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download blockchain snapshot',
-							skip: () => {
-								if (noSnapshot) {
-									return true;
-								}
-
-								return false;
-							},
+							title: 'Download Blockchain Snapshot',
+							skip: () => noSnapshot,
 							task: async () => {
 								const snapshotPath = `${cacheDir}/${liskDbSnapshot(
 									name,
@@ -209,6 +204,25 @@ export default class InstallCommand extends BaseCommand {
 								const { installDir, version }: Options = ctx.options;
 								createDirectory(installDir);
 								await extract(cacheDir, liskTar(version), installDir);
+							},
+						},
+						{
+							title: 'Create Database',
+							task: async ctx => {
+								const { installDir }: Options = ctx.options;
+
+								await initDB(installDir);
+								await startDatabase(installDir);
+								await createUser(installDir, network);
+								await createDatabase(installDir, network);
+								await stopDatabase(installDir);
+							},
+						},
+						{
+							title: 'Register Lisk Core',
+							task: async ctx => {
+								const { installDir }: Options = ctx.options;
+								await registerApplication(installDir, network, name);
 							},
 						},
 					]),

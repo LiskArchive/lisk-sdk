@@ -15,7 +15,7 @@
  */
 import * as axios from 'axios';
 import { NETWORK } from '../constants';
-import { liskTar, liskTarSHA256 } from './utils';
+import { liskTar, liskTarSHA256 } from './commons';
 
 export const getLatestVersion = async (url: string): Promise<string> => {
 	const version = await axios.default.get(url);

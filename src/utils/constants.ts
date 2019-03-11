@@ -71,3 +71,7 @@ export enum OS {
 	Darwin = 'MACOS',
 	Linux = 'LINUX',
 }
+
+export const RELEASE_URL = 'https://downloads.lisk.io/lisk';
+export const SNAPSHOT_URL =
+	'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk';
