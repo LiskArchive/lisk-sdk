@@ -31,7 +31,8 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 const { FEES, MAX_VOTES_PER_ACCOUNT } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /api/votes', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] GET /api/votes', () => {
 	const votesEndpoint = new SwaggerEndpoint('GET /votes');
 	const nonVoterDelegate = accountFixtures.existingDelegate;
 	const voterDelegate = accountFixtures.genesis;
