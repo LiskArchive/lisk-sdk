@@ -226,7 +226,7 @@ __private.receiveTransaction = function(
 	try {
 		transaction = initTransaction(transactionJSON);
 		const { errors } = transaction.validate();
-		if (errors) {
+		if (errors.length > 0) {
 			throw errors;
 		}
 	} catch (errors) {
