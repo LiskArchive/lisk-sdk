@@ -20,9 +20,7 @@ import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
 import { installDirectory } from '../../../utils/node/commons';
 import { defaultInstallationPath } from '../../../utils/node/config';
-import {
-	startDatabase,
-} from '../../../utils/node/database';
+import { startDatabase } from '../../../utils/node/database';
 
 export interface Flags {
 	readonly installationPath: string;
@@ -71,7 +69,7 @@ export default class DatabaseCommand extends BaseCommand {
 		const tasks = new Listr([
 			{
 				title: 'Start Lisk Core Database',
-				task: async () => startDatabase(installDir)
+				task: async () => startDatabase(installDir),
 			},
 		]);
 

@@ -35,6 +35,13 @@ import {
 	validURL,
 } from '../../utils/node/commons';
 import { defaultInstallationPath } from '../../utils/node/config';
+import {
+	createDatabase,
+	createUser,
+	initDB,
+	startDatabase,
+	stopDatabase,
+} from '../../utils/node/database';
 import { registerApplication } from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
 
@@ -197,6 +204,18 @@ export default class InstallCommand extends BaseCommand {
 								const { installDir, version }: Options = ctx.options;
 								createDirectory(installDir);
 								await extract(cacheDir, liskTar(version), installDir);
+							},
+						},
+						{
+							title: 'Create Database',
+							task: async ctx => {
+								const { installDir }: Options = ctx.options;
+
+								await initDB(installDir);
+								await startDatabase(installDir);
+								await createUser(installDir, network);
+								await createDatabase(installDir, network);
+								await stopDatabase(installDir);
 							},
 						},
 						{

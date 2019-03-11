@@ -9,7 +9,6 @@ import {
 	start,
 	stop,
 } from 'pm2';
-import { createDatabase, createUser, initDB } from './database';
 
 const connectPM2 = async (): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
@@ -122,9 +121,6 @@ export const registerApplication = async (
 	name: string,
 ): Promise<void> => {
 	await connectPM2();
-	await initDB(installPath);
-	await createUser(installPath, network);
-	await createDatabase(installPath, network);
 	await startPM2(installPath, network, name);
 	await stopPM2(name);
 	disconnect();
