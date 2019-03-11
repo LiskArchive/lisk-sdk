@@ -15,8 +15,6 @@
 'use strict';
 
 const _ = require('lodash');
-const ApiError = require('../api_error');
-const apiCodes = require('../api_codes.js');
 
 // Private Fields
 let channel;
@@ -43,7 +41,6 @@ function PeersController(scope) {
  */
 PeersController.getPeers = async function(context, next) {
 	const params = context.request.swagger.params;
-	let error;
 
 	let filters = {
 		ip: params.ip.value,
@@ -85,12 +82,8 @@ PeersController.getPeers = async function(context, next) {
 			},
 		});
 	} catch (err) {
-		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+		return next(err);
 	}
-
-	context.statusCode = error.code;
-	delete error.code;
-	return next(error);
 };
 
 module.exports = PeersController;
