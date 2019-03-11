@@ -15,10 +15,9 @@
 'use strict';
 
 module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	Migration: require('./migration'),
-	Peer: require('./peer'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
+	Field: require('./field'),
+	filterTypes: require('./filter_types'),
+	filterGenerator: require('./filters'),
+	inputSerializers: require('./input_serializers'),
+	sortOptions: require('./sort_option'),
 };

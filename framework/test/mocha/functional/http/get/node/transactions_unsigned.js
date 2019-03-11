@@ -16,7 +16,11 @@
 
 require('../../../functional.js');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	registerMultisignature,
+} = require('@liskhq/lisk-transactions');
 const apiHelpers = require('../../../../common/helpers/api');
 const randomUtil = require('../../../../common/utils/random');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
@@ -46,8 +50,8 @@ describe('GET /api/node', () => {
 
 			before(() => {
 				// Credit account with some funds
-				transaction = lisk.transaction.transfer({
-					amount: 1000 * NORMALIZER,
+				transaction = transfer({
+					amount: (1000 * NORMALIZER).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: senderAccount.address,
 				});
@@ -62,7 +66,7 @@ describe('GET /api/node', () => {
 					})
 					.then(() => {
 						// Create Second Signature for sender account
-						transaction = lisk.transaction.registerSecondPassphrase({
+						transaction = registerSecondPassphrase({
 							passphrase: senderAccount.passphrase,
 							secondPassphrase: senderAccount.secondPassphrase,
 						});
@@ -78,7 +82,7 @@ describe('GET /api/node', () => {
 					})
 					.then(() => {
 						// Convert account to multisig account
-						transaction = lisk.transaction.registerMultisignature({
+						transaction = registerMultisignature({
 							passphrase: senderAccount.passphrase,
 							secondPassphrase: senderAccount.secondPassphrase,
 							keysgroup: [`${randomMember.publicKey}`],
@@ -109,8 +113,8 @@ describe('GET /api/node', () => {
 						// Create numOfTransactions transactions
 						for (let i = 0; i < numOfTransactions; i++) {
 							transactionList.push(
-								lisk.transaction.transfer({
-									amount: (i + 1) * NORMALIZER,
+								transfer({
+									amount: ((i + 1) * NORMALIZER).toString(),
 									passphrase: senderAccount.passphrase,
 									secondPassphrase: senderAccount.secondPassphrase,
 									recipientId: recipientAccount.address,

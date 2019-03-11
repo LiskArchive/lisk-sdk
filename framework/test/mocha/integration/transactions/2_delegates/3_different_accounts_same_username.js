@@ -14,7 +14,7 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -38,8 +38,8 @@ describe('system test (type 2) - double delegate registrations', () => {
 			let transaction;
 			let transaction1;
 			let transaction2;
-			transaction = lisk.transaction.transfer({
-				amount: 1000 * NORMALIZER,
+			transaction = transfer({
+				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -57,8 +57,8 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 			describe('with two different accounts using same username', () => {
 				before(done => {
-					transaction = lisk.transaction.transfer({
-						amount: 1000 * NORMALIZER,
+					transaction = transfer({
+						amount: (1000 * NORMALIZER).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account2.address,
 					});
@@ -66,7 +66,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 				});
 
 				it('adding to pool delegate registration should be ok', done => {
-					transaction1 = lisk.transaction.registerDelegate({
+					transaction1 = registerDelegate({
 						passphrase: account.passphrase,
 						username: account.username,
 					});
@@ -77,7 +77,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 				});
 
 				it('adding to pool delegate registration from different account and same username should be ok', done => {
-					transaction2 = lisk.transaction.registerDelegate({
+					transaction2 = registerDelegate({
 						passphrase: account2.passphrase,
 						username: account.username,
 					});
@@ -141,7 +141,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 					});
 
 					it('adding to pool delegate registration from same account should fail', done => {
-						const transaction3 = lisk.transaction.registerDelegate({
+						const transaction3 = registerDelegate({
 							passphrase: account2.passphrase,
 							username: account.username,
 							timeOffset: -10000,

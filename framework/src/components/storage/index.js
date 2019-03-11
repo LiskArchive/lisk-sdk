@@ -15,18 +15,26 @@
 'use strict';
 
 const Storage = require('./storage');
-const { Account, Block, Transaction } = require('./entities');
+const adapters = require('./adapters');
+const entities = require('./entities');
+const utils = require('./utils');
+const errors = require('./errors');
 
 function createStorageComponent(options, logger) {
 	const storage = new Storage(options, logger);
 
-	storage.registerEntity('Account', Account);
-	storage.registerEntity('Block', Block);
-	storage.registerEntity('Transaction', Transaction);
+	storage.registerEntity('Account', entities.Account);
+	storage.registerEntity('Block', entities.Block);
+	storage.registerEntity('Transaction', entities.Transaction);
 
 	return storage;
 }
 
 module.exports = {
 	createStorageComponent,
+	adapters,
+	entities,
+	errors,
+	utils,
+	Storage,
 };

@@ -17,7 +17,10 @@
 const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
-const lisk = require('lisk-elements').default;
+const {
+	decryptPassphraseWithPassword,
+	parseEncryptedPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const BlockReward = require('../logic/block_reward.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const Delegate = require('../logic/delegate.js');
@@ -353,8 +356,8 @@ __private.forge = function(cb) {
  * @todo Add description for the params
  */
 __private.decryptPassphrase = function(encryptedPassphrase, password) {
-	return lisk.cryptography.decryptPassphraseWithPassword(
-		lisk.cryptography.parseEncryptedPassphrase(encryptedPassphrase),
+	return decryptPassphraseWithPassword(
+		parseEncryptedPassphrase(encryptedPassphrase),
 		password
 	);
 };

@@ -15,7 +15,9 @@
 
 'use strict';
 
-const inputSerializers = require('../../../../../../src/components/storage/utils/inputSerializers');
+const {
+	utils: { inputSerializers },
+} = require('../../../../../../src/components/storage');
 
 describe('inputSerializers', () => {
 	afterEach(() => sinonSandbox.restore());
