@@ -158,9 +158,8 @@ module.exports = class Network {
 		};
 	}
 
-	/* eslint-disable-next-line class-methods-use-this */
 	async cleanup() {
 		// TODO: Unsubscribe 'chain:system:updateNodeInfo' from channel.
-		await this.p2p.stop();
+		return this.p2p.stop();
 	}
 };
