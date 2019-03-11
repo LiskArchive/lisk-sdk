@@ -17,8 +17,8 @@
 const _ = require('lodash');
 const crypto = require('crypto');
 const ApiError = require('../api_error');
-const apiCodes = require('../api_codes.js');
-const Bignum = require('../helpers/bignum.js');
+const apiCodes = require('../api_codes');
+const Bignum = require('../helpers/bignum');
 
 let library;
 let sortFields;

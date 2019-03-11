@@ -15,12 +15,12 @@
 'use strict';
 
 const _ = require('lodash');
-const Bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum');
 const swaggerHelper = require('../helpers/swagger');
-const apiCodes = require('../api_codes.js');
-const ApiError = require('../api_error.js');
+const apiCodes = require('../api_codes');
+const ApiError = require('../api_error');
 const { calculateApproval } = require('../helpers/http_api');
-const slots = require('../helpers/slots.js');
+const slots = require('../helpers/slots');
 // Private Fields
 let storage;
 let logger;

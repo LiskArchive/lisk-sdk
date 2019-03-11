@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const transactionTypes = require('../helpers/transaction_types.js');
+const transactionTypes = require('../helpers/transaction_types');
 
 // Private Fields
 let storage;

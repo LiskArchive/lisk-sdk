@@ -18,7 +18,7 @@ const ip = require('ip');
 const _ = require('lodash');
 const z_schema = require('z-schema');
 const FormatValidators = require('z-schema/src/FormatValidators');
-const Bignum = require('./bignum.js');
+const Bignum = require('./bignum');
 // new BigNumber(2).pow(64).minus(1)
 const UINT64_MAX = new Bignum('18446744073709551615');
 
