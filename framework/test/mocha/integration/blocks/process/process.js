@@ -24,7 +24,8 @@ const loadTables = require('./process_tables_data.json');
 
 const { REWARDS } = global.constants;
 
-describe('system test (blocks) - process', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('[1.7-transactions-changes-revisit] system test (blocks) - process', () => {
 	let blocksProcess;
 	let blocks;
 	let storage;
