@@ -416,8 +416,9 @@ describe('Integration tests for P2P library', () => {
 			// Launch nodes one at a time with a delay between each launch.
 			for (const p2p of p2pNodeList) {
 				await p2p.start();
+				await wait(100);
 			}
-			await wait(200);
+			await wait(100);
 		});
 
 		afterEach(async () => {

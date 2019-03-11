@@ -269,7 +269,13 @@ export class PeerPool extends EventEmitter {
 
 			return this.addPeer(peerInfo);
 		});
-		const discoveredPeers = await discoverPeers(peersForDiscovery, {
+
+		const peerSampleToProbe = selectRandomPeerSample(
+			peersForDiscovery,
+			MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE,
+		);
+
+		const discoveredPeers = await discoverPeers(peerSampleToProbe, {
 			blacklist: blacklist.map(peer => peer.ipAddress),
 		});
 
