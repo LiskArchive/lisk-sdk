@@ -28,11 +28,9 @@ describe('Integration tests for P2P library', () => {
 						version: '1.0.0',
 						os: platform(),
 						height: 0,
-						options: {
-							broadhash:
-								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-							nonce: 'O2wTkjqplHII5wPv',
-						},
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: 'O2wTkjqplHII5wPv',
 					},
 				});
 			});
@@ -99,11 +97,9 @@ describe('Integration tests for P2P library', () => {
 						version: '1.0.0',
 						os: platform(),
 						height: 0,
-						options: {
-							broadhash:
-								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-							nonce: 'O2wTkjqplHII5wPv',
-						},
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: 'O2wTkjqplHII5wPv',
 					},
 				});
 			});
@@ -333,11 +329,9 @@ describe('Integration tests for P2P library', () => {
 						version: '1.0.0',
 						os: platform(),
 						height: 0,
-						options: {
-							broadhash:
-								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-							nonce: 'O2wTkjqplHII5wPv',
-						},
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: 'O2wTkjqplHII5wPv',
 					},
 				});
 			});

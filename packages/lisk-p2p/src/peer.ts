@@ -103,12 +103,31 @@ export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 // Format the node info so that it will be valid from the perspective of both new and legacy nodes.
 const convertNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
-): ProtocolNodeInfo => ({
-	...nodeInfo,
-	httpPort: nodeInfo ? (nodeInfo.httpPort as number) : 0,
-	broadhash: nodeInfo ? (nodeInfo.broadhash as string) : '',
-	nonce: nodeInfo ? (nodeInfo.nonce as string) : '',
-});
+): ProtocolNodeInfo => {
+	const {
+		height,
+		nethash,
+		version,
+		os,
+		wsPort,
+		httpPort,
+		nonce,
+		broadhash,
+		...options
+	} = nodeInfo;
+
+	return {
+		height,
+		nethash,
+		version,
+		os,
+		wsPort,
+		broadhash: broadhash ? (broadhash as string) : '',
+		httpPort: httpPort ? (httpPort as number) : 0,
+		nonce: nonce ? (nonce as string) : '',
+		options,
+	};
+};
 
 export interface PeerConfig {
 	readonly connectTimeout?: number;
@@ -608,7 +627,13 @@ export const connectAndRequest = async (
 			const clientOptions: ClientOptionsUpdated = {
 				hostname: basicPeerInfo.ipAddress,
 				port: basicPeerInfo.wsPort,
-				query: querystring.stringify(legacyNodeInfo),
+				query: querystring.stringify({
+					...legacyNodeInfo,
+					options:
+						legacyNodeInfo && legacyNodeInfo.options
+							? JSON.stringify(legacyNodeInfo.options)
+							: undefined,
+				}),
 				connectTimeout: peerConfig
 					? peerConfig.connectTimeout
 						? peerConfig.connectTimeout

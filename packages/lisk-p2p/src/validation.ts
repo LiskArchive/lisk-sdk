@@ -74,10 +74,12 @@ export const validatePeerInfo = (
 		protocolPeer.height && isNumeric(protocolPeer.height.toString())
 			? +protocolPeer.height
 			: 0;
+	const { options, ...protocolPeerWithoutOptions } = protocolPeer;
 
 	const peerInfo: P2PDiscoveredPeerInfo = {
-		...protocolPeer,
-		ipAddress: protocolPeer.ip,
+		...(options as object),
+		...protocolPeerWithoutOptions,
+		ipAddress: protocolPeerWithoutOptions.ip,
 		wsPort,
 		height,
 		os,
