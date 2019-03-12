@@ -24,7 +24,7 @@ interface Flags {
 }
 
 export default class StatusCommand extends BaseCommand {
-	static description = 'Status of Lisk Core Instance';
+	static description = 'Show status of a Lisk Core instance';
 
 	static examples = ['node:status --name=testnet-1.6'];
 
