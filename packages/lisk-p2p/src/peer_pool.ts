@@ -354,7 +354,7 @@ export class PeerPool extends EventEmitter {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 		};
-		const peer = new Peer(peerInfo, peerConfig, inboundSocket);
+		const peer = new Peer(peerInfo, peerConfig, { inbound: inboundSocket });
 
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to itentify and debug.
 		if (this._peerMap.has(peer.id)) {
@@ -378,7 +378,9 @@ export class PeerPool extends EventEmitter {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 		};
-		const peer = new Peer(detailedPeerInfo, peerConfig, inboundSocket);
+		const peer = new Peer(detailedPeerInfo, peerConfig, {
+			inbound: inboundSocket,
+		});
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
@@ -437,8 +439,7 @@ export class PeerPool extends EventEmitter {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 		};
-		const peer = new Peer(peerInfo, peerConfig);
-		peer.createPeerFromOutboundConnection(socket);
+		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
 
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to itentify and debug.
 		this._peerMap.set(peer.id, peer);

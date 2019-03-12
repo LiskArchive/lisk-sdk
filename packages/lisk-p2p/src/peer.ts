@@ -133,6 +133,10 @@ export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 }
+export interface PeerSockets {
+	readonly outbound?: SCClientSocket;
+	readonly inbound?: SCServerSocket;
+}
 
 export class Peer extends EventEmitter {
 	private readonly _id: string;
@@ -161,7 +165,7 @@ export class Peer extends EventEmitter {
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
 		peerConfig?: PeerConfig,
-		inboundSocket?: SCServerSocket,
+		peerSockets?: PeerSockets,
 	) {
 		super();
 		this._peerInfo = peerInfo;
@@ -244,9 +248,13 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
-		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
+		this._inboundSocket = peerSockets ? peerSockets.inbound : undefined;
 		if (this._inboundSocket) {
 			this._bindHandlersToInboundSocket(this._inboundSocket);
+		}
+		this._outboundSocket = peerSockets ? peerSockets.outbound : undefined;
+		if (this._outboundSocket) {
+			this._bindHandlersToOutboundSocket(this._outboundSocket);
 		}
 	}
 
@@ -333,13 +341,6 @@ export class Peer extends EventEmitter {
 			this._outboundSocket = this._createOutboundSocket();
 		}
 		this._outboundSocket.connect();
-	}
-
-	public createPeerFromOutboundConnection(
-		outboundSocket: SCClientSocket,
-	): void {
-		this._outboundSocket = outboundSocket;
-		this._bindHandlersToOutboundSocket(outboundSocket);
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
