@@ -15,7 +15,7 @@
 'use strict';
 
 const popsicle = require('popsicle');
-const apiCodes = require('../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../src/modules/http_api/api_codes');
 
 const headers = {
 	Accept: 'application/json',

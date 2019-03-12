@@ -14,7 +14,7 @@
 
 'use strict';
 
-const checkIpInList = require('../../../../../../src/modules/chain/helpers/check_ip_in_list');
+const checkIpInList = require('../../../../../../src/modules/http_api/helpers/check_ip_in_list');
 
 describe('checkIpInList', () => {
 	describe('CheckIpInList', () => {

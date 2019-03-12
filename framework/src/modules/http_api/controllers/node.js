@@ -15,10 +15,10 @@
 'use strict';
 
 const _ = require('lodash');
-const checkIpInList = require('../helpers/check_ip_in_list.js');
-const apiCodes = require('../helpers/api_codes');
+const checkIpInList = require('../helpers/check_ip_in_list');
+const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
-const slots = require('../helpers/slots.js');
+const slots = require('../helpers/slots');
 
 const { EPOCH_TIME, FEES } = global.constants;
 

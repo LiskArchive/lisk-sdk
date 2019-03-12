@@ -17,7 +17,11 @@
 
 const {
 	entities: { BaseEntity, Transaction },
-	errors: { NonSupportedFilterTypeError, NonSupportedOperationError, NonSupportedOptionError },
+	errors: {
+		NonSupportedFilterTypeError,
+		NonSupportedOperationError,
+		NonSupportedOptionError,
+	},
 } = require('../../../../../../src/components/storage');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const seeder = require('../../../../common/storage_seed');

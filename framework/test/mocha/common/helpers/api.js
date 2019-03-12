@@ -23,7 +23,7 @@ const Promise = require('bluebird');
 const accountFixtures = require('../../fixtures/accounts');
 const {
 	calculateApproval,
-} = require('../../../../src/modules/http_api/helpers/http_api');
+} = require('../../../../src/modules/http_api/helpers/utils');
 const SwaggerSpec = require('../swagger_spec');
 
 const http = {

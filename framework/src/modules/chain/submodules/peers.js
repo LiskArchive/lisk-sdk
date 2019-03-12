@@ -20,6 +20,7 @@ const ip = require('ip');
 const failureCodes = require('../api/ws/rpc/failure_codes.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const Peer = require('../logic/peer.js');
+const definitions = require('../schema/definitions');
 
 // Private fields
 let components;
@@ -27,7 +28,6 @@ let library;
 let self;
 const { MAX_PEERS } = global.constants;
 const __private = {};
-let definitions;
 
 const peerDiscoveryFrequency = 30000;
 
@@ -795,8 +795,6 @@ Peers.prototype.onBind = function(scope) {
 	components = {
 		system: scope.components.system,
 	};
-
-	definitions = scope.swagger.definitions;
 };
 
 /**

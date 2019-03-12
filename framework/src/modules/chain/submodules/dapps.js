@@ -41,8 +41,6 @@ __private.assetTypes = {};
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires helpers/api_codes
- * @requires helpers/api_error
  * @requires helpers/dapp_categories
  * @requires helpers/sort_by
  * @requires helpers/transaction_types
