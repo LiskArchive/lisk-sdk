@@ -1,59 +1,36 @@
 const debug = require('debug')('lisk:validator:arg');
-const formatters = require('./formatters');
-
-const metaSchema = {
-	title: 'Command line arguments',
-	anyOf: [
-		{
-			type: 'string',
-			pattern: '^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$',
-		},
-		{
-			type: 'array',
-			items: [
-				{
-					type: 'string',
-					pattern: '^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$',
-				},
-				{
-					type: 'string',
-					enum: Object.keys(formatters),
-				},
-			],
-			minItems: 2,
-			maxItems: 2,
-		},
-	],
-};
+const formatters = require('../formatters');
+const metaSchema = require('./meta_schema');
 
 const compile = (schema, parentSchema) => {
 	debug('compile: schema: %j', schema);
 	debug('compile: parent schema: %j', parentSchema);
-	let argNames;
-	let argsFormatter;
 
-	if (typeof schema === 'string') {
-		argNames = schema.split(',');
-		argsFormatter = null;
-	} else if (Array.isArray(schema)) {
-		argNames = schema[0].split(',');
-		argsFormatter = formatters[schema[1]] || null;
-	}
-
-	argNames = argNames || [];
+	const argVariable =
+		typeof schema === 'string'
+			? {
+					names: schema.split(',') || [],
+					formatter: null,
+				}
+			: {
+					names: schema[0].split(',') || [],
+					formatter: formatters[schema[1]] || null,
+				};
 
 	return function(data, dataPath, object, key) {
 		let argValue;
 
 		const commandLineArguments = _reduceProcessArgvArray();
-		argNames.forEach(argName => {
+		argVariable.names.forEach(argName => {
 			if (!argValue) {
 				argValue = commandLineArguments[argName] || undefined;
 			}
 		});
 
 		if (argValue) {
-			object[key] = argsFormatter ? argsFormatter(argValue) : argValue;
+			object[key] = argVariable.formatter
+				? argVariable.formatter(argValue)
+				: argValue;
 		}
 	};
 };
