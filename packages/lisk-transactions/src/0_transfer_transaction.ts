@@ -20,7 +20,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
-import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import {
 	validateAddress,
@@ -36,15 +36,6 @@ export interface TransferAsset {
 	readonly data: string;
 }
 
-export const transferAssetTypeSchema = {
-	type: 'object',
-	properties: {
-		data: {
-			type: 'string',
-		},
-	},
-};
-
 export const transferAssetFormatSchema = {
 	type: 'object',
 	properties: {
@@ -59,26 +50,13 @@ export const transferAssetFormatSchema = {
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
 
-	public constructor(tx: TransactionJSON) {
-		super(tx);
+	public constructor(rawTransaction: unknown) {
+		super(rawTransaction);
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
 		// Initializes to empty object if it doesn't exist
-		const asset = tx.asset || {};
-		const typeValid = validator.validate(transferAssetTypeSchema, asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							tx.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		if (!typeValid || errors.length > 0) {
-			throw new TransactionMultiError('Invalid asset types', tx.id, errors);
-		}
-
-		this.asset = asset as TransferAsset;
+		this.asset = (tx.asset || {}) as TransferAsset;
 	}
 
 	protected assetToBytes(): Buffer {
@@ -125,7 +103,15 @@ export class TransferTransaction extends BaseTransaction {
 			: [];
 
 		if (this.type !== TRANSACTION_TRANSFER_TYPE) {
-			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+			errors.push(
+				new TransactionError(
+					'Invalid type',
+					this.id,
+					'.type',
+					this.type,
+					TRANSACTION_TRANSFER_TYPE,
+				),
+			);
 		}
 
 		if (!validateTransferAmount(this.amount.toString())) {
@@ -133,7 +119,8 @@ export class TransferTransaction extends BaseTransaction {
 				new TransactionError(
 					'Amount must be a valid number in string format.',
 					this.id,
-					'.recipientId',
+					'.amount',
+					this.amount.toString(),
 				),
 			);
 		}
@@ -144,6 +131,8 @@ export class TransferTransaction extends BaseTransaction {
 					`Fee must be equal to ${TRANSFER_FEE}`,
 					this.id,
 					'.fee',
+					this.fee.toString(),
+					TRANSFER_FEE,
 				),
 			);
 		}
@@ -161,20 +150,34 @@ export class TransferTransaction extends BaseTransaction {
 		try {
 			validateAddress(this.recipientId);
 		} catch (error) {
-			errors.push(new TransactionError(error.message, this.id, '.recipientId'));
+			errors.push(
+				new TransactionError(
+					error.message,
+					this.id,
+					'.recipientId',
+					this.recipientId,
+				),
+			);
 		}
 
 		if (
 			this.recipientPublicKey &&
 			this.recipientId !== getAddressFromPublicKey(this.recipientPublicKey)
 		) {
-			errors.push(
-				new TransactionError(
-					'recipientId does not match recipientPublicKey.',
-					this.id,
-					'.recipientId',
-				),
+			const calculatedAddress = getAddressFromPublicKey(
+				this.recipientPublicKey,
 			);
+			if (this.recipientId !== calculatedAddress) {
+				errors.push(
+					new TransactionError(
+						'recipientId does not match recipientPublicKey.',
+						this.id,
+						'.recipientId',
+						this.recipientId,
+						calculatedAddress,
+					),
+				);
+			}
 		}
 
 		return errors;
@@ -208,7 +211,14 @@ export class TransferTransaction extends BaseTransaction {
 		);
 
 		if (updatedRecipientBalance.gt(MAX_TRANSACTION_AMOUNT)) {
-			errors.push(new TransactionError('Invalid amount', this.id, '.amount'));
+			errors.push(
+				new TransactionError(
+					'Invalid amount',
+					this.id,
+					'.amount',
+					this.amount.toString(),
+				),
+			);
 		}
 
 		const updatedRecipient = {
@@ -226,7 +236,14 @@ export class TransferTransaction extends BaseTransaction {
 		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
 
 		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
-			errors.push(new TransactionError('Invalid amount', this.id, '.amount'));
+			errors.push(
+				new TransactionError(
+					'Invalid amount',
+					this.id,
+					'.amount',
+					this.amount.toString(),
+				),
+			);
 		}
 
 		const updatedSender = {

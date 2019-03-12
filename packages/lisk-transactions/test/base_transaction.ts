@@ -19,11 +19,7 @@ import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
-import {
-	TransactionError,
-	TransactionMultiError,
-	TransactionPendingError,
-} from '../src/errors';
+import { TransactionError, TransactionPendingError } from '../src/errors';
 import * as BigNum from 'browserify-bignum';
 import {
 	addTransactionFields,
@@ -163,17 +159,34 @@ describe('Base transaction class', () => {
 				.and.be.a('number');
 		});
 
-		it('should throw a transaction multierror with incorrectly typed transaction properties', async () => {
+		it('should not throw with undefined input', async () => {
+			expect(() => new TestTransaction(undefined as any)).not.to.throw();
+		});
+
+		it('should not throw with null input', async () => {
+			expect(() => new TestTransaction(null as any)).not.to.throw();
+		});
+
+		it('should not throw with string input', async () => {
+			expect(() => new TestTransaction('abc' as any)).not.to.throw();
+		});
+
+		it('should not throw with number input', async () => {
+			expect(() => new TestTransaction(123 as any)).not.to.throw();
+		});
+
+		it('should not throw with incorrectly typed transaction properties', async () => {
 			const invalidTransaction = {
 				...defaultTransaction,
 				amount: 0,
 				fee: 10,
 			};
-			try {
-				new TestTransaction((invalidTransaction as unknown) as TransactionJSON);
-			} catch (error) {
-				expect(error).to.be.an.instanceOf(TransactionMultiError);
-			}
+			expect(
+				() =>
+					new TestTransaction(
+						(invalidTransaction as unknown) as TransactionJSON,
+					),
+			).not.to.throw();
 		});
 	});
 

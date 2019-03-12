@@ -98,10 +98,10 @@ describe('Multisignature transaction class', () => {
 			expect(
 				() =>
 					new MultisignatureTransaction(invalidMultisignatureTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 
-		it('should throw TransactionMultiError when asset lifetime is not a number', async () => {
+		it('should not throw TransactionMultiError when asset lifetime is not a number', async () => {
 			const invalidMultisignatureTransactionData = {
 				...validMultisignatureTransaction,
 				asset: {
@@ -114,7 +114,7 @@ describe('Multisignature transaction class', () => {
 			expect(
 				() =>
 					new MultisignatureTransaction(invalidMultisignatureTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 

@@ -33,7 +33,6 @@ import { SignatureObject } from './create_signature_object';
 import {
 	convertToTransactionError,
 	TransactionError,
-	TransactionMultiError,
 	TransactionPendingError,
 } from './errors';
 import { createResponse, Status } from './response';
@@ -134,33 +133,32 @@ export abstract class BaseTransaction {
 		transactions: ReadonlyArray<TransactionJSON>,
 	): ReadonlyArray<TransactionError>;
 
-	public constructor(rawTransaction: TransactionJSON) {
-		const valid = validator.validate(schemas.transaction, rawTransaction);
-		if (!valid) {
-			throw new TransactionMultiError(
-				'Invalid field types',
-				rawTransaction.id,
-				convertToTransactionError(rawTransaction.id || '', validator.errors),
-			);
+	// tslint:disable-next-line cyclomatic-complexity
+	public constructor(rawTransaction: unknown) {
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
+		this.amount = new BigNum(tx.amount || '0');
+		this.fee = new BigNum(tx.fee || '0');
+		this._id = tx.id;
+		this.recipientId = tx.recipientId || '';
+		this.recipientPublicKey = tx.recipientPublicKey || undefined;
+		this.senderPublicKey = tx.senderPublicKey || '';
+		try {
+			this.senderId = tx.senderId
+				? tx.senderId
+				: getAddressFromPublicKey(this.senderPublicKey);
+		} catch (error) {
+			this.senderId = '';
 		}
 
-		this.amount = new BigNum(rawTransaction.amount);
-		this.fee = new BigNum(rawTransaction.fee);
-		this._id = rawTransaction.id;
-		this.recipientId = rawTransaction.recipientId || '';
-		this.recipientPublicKey = rawTransaction.recipientPublicKey || '';
-		this.senderId =
-			rawTransaction.senderId ||
-			getAddressFromPublicKey(rawTransaction.senderPublicKey);
-		this.senderPublicKey = rawTransaction.senderPublicKey;
-		this._signature = rawTransaction.signature;
-		this.signatures = (rawTransaction.signatures as string[]) || [];
-		this._signSignature = rawTransaction.signSignature;
-		this.timestamp = rawTransaction.timestamp;
-		this.type = rawTransaction.type;
-		this.receivedAt = rawTransaction.receivedAt
-			? new Date(rawTransaction.receivedAt)
-			: undefined;
+		this._signature = tx.signature;
+		this.signatures = (tx.signatures as string[]) || [];
+		this._signSignature = tx.signSignature;
+		// Infinity is invalid for these types
+		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : Infinity;
+		this.type = typeof tx.type === 'number' ? tx.type : Infinity;
+		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
 	}
 
 	public get id(): string {
@@ -298,7 +296,15 @@ export abstract class BaseTransaction {
 		};
 		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
 			? []
-			: [new TransactionError('Invalid balance amount', this.id)];
+			: [
+					new TransactionError(
+						'Invalid balance amount',
+						this.id,
+						'.balance',
+						sender.balance,
+						updatedBalance.toString(),
+					),
+			  ];
 		store.account.set(updatedAccount.address, updatedAccount);
 		const assetErrors = this.undoAsset(store);
 		errors.push(...assetErrors);

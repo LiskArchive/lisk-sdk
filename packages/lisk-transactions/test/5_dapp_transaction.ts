@@ -43,7 +43,7 @@ describe('Dapp transaction class', () => {
 			expect(validTestTransaction.asset.dapp).to.be.an('object');
 		});
 
-		it('should throw TransactionMultiError when asset is not string array', async () => {
+		it('should not throw TransactionMultiError when asset is not string array', async () => {
 			const invalidDappTransactionData = {
 				...defaultValidDappTransaction,
 				asset: {
@@ -52,9 +52,9 @@ describe('Dapp transaction class', () => {
 					},
 				},
 			};
-			expect(() => new DappTransaction(invalidDappTransactionData)).to.throw(
-				'Invalid field types.',
-			);
+			expect(
+				() => new DappTransaction(invalidDappTransactionData),
+			).not.to.throw();
 		});
 	});
 

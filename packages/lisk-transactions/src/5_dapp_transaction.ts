@@ -18,7 +18,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { DAPP_FEE } from './constants';
-import { TransactionError, TransactionMultiError } from './errors';
+import { convertToTransactionError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { stringEndsWith, validator } from './utils/validation';
 
@@ -35,40 +35,6 @@ export interface DappAsset {
 		readonly type: number;
 	};
 }
-
-export const dappAssetTypeSchema = {
-	type: 'object',
-	required: ['dapp'],
-	properties: {
-		dapp: {
-			type: 'object',
-			required: ['name', 'type', 'category'],
-			properties: {
-				icon: {
-					type: 'string',
-				},
-				category: {
-					type: 'integer',
-				},
-				type: {
-					type: 'integer',
-				},
-				link: {
-					type: 'string',
-				},
-				tags: {
-					type: 'string',
-				},
-				description: {
-					type: 'string',
-				},
-				name: {
-					type: 'string',
-				},
-			},
-		},
-	},
-};
 
 export const dappAssetFormatSchema = {
 	type: 'object',
@@ -124,23 +90,13 @@ export class DappTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: DappAsset;
 
-	public constructor(tx: TransactionJSON) {
-		super(tx);
-		const typeValid = validator.validate(dappAssetTypeSchema, tx.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							tx.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types.', tx.id, errors);
-		}
-		this.asset = tx.asset as DappAsset;
+	public constructor(rawTransaction: unknown) {
+		super(rawTransaction);
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
+
+		this.asset = (tx.asset || { dapp: {} }) as DappAsset;
 		this.containsUniqueData = true;
 	}
 
@@ -219,6 +175,7 @@ export class DappTransaction extends BaseTransaction {
 							'Dapp with the same name already exists.',
 							this.id,
 							'.asset.dapp.name',
+							this.asset.dapp.name,
 						),
 				  ]
 				: [];
@@ -235,6 +192,7 @@ export class DappTransaction extends BaseTransaction {
 					'Dapp with the same link already exists.',
 					this.id,
 					'.asset.dapp.link',
+					this.asset.dapp.link,
 				),
 			);
 		}
@@ -244,19 +202,21 @@ export class DappTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(dappAssetFormatSchema, this.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+		const errors = convertToTransactionError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_DAPP_TYPE) {
-			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+			errors.push(
+				new TransactionError(
+					'Invalid type',
+					this.id,
+					'.type',
+					this.type,
+					TRANSACTION_DAPP_TYPE,
+				),
+			);
 		}
 
 		if (!this.amount.eq(0)) {
@@ -265,13 +225,19 @@ export class DappTransaction extends BaseTransaction {
 					'Amount must be zero for vote transaction',
 					this.id,
 					'.amount',
+					this.amount.toString(),
+					'0',
 				),
 			);
 		}
 
 		if (this.recipientId) {
 			errors.push(
-				new TransactionError(`Invalid recipient id`, this.id, '.recipientId'),
+				new TransactionError(
+					`RecipientId is expected to be undefined`,
+					this.id,
+					'.recipientId',
+				),
 			);
 		}
 
@@ -281,6 +247,8 @@ export class DappTransaction extends BaseTransaction {
 					`Fee must be equal to ${DAPP_FEE}`,
 					this.id,
 					'.fee',
+					this.fee.toString(),
+					DAPP_FEE,
 				),
 			);
 		}
@@ -294,6 +262,7 @@ export class DappTransaction extends BaseTransaction {
 					`Dapp icon must have suffix ${validLinkSuffix.toString()}`,
 					this.id,
 					'.asset.dapp.link',
+					this.asset.dapp.link,
 				),
 			);
 		}
@@ -308,6 +277,7 @@ export class DappTransaction extends BaseTransaction {
 					`Dapp icon must have suffix of one of ${validIconSuffix.toString()}`,
 					this.id,
 					'.asset.dapp.icon',
+					this.asset.dapp.icon,
 				),
 			);
 		}
@@ -323,6 +293,7 @@ export class DappTransaction extends BaseTransaction {
 						`Dapp tags must have unique set`,
 						this.id,
 						'.asset.dapp.tags',
+						this.asset.dapp.tags,
 					),
 				);
 			}
@@ -345,6 +316,7 @@ export class DappTransaction extends BaseTransaction {
 				new TransactionError(
 					`Application name already exists: ${this.asset.dapp.name}`,
 					this.id,
+					this.asset.dapp.name,
 				),
 			);
 		}
@@ -361,6 +333,7 @@ export class DappTransaction extends BaseTransaction {
 				new TransactionError(
 					`Application link already exists: ${this.asset.dapp.link}`,
 					this.id,
+					this.asset.dapp.link,
 				),
 			);
 		}

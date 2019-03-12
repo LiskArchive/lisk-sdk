@@ -58,7 +58,7 @@ describe('Second signature registration transaction class', () => {
 				.and.to.have.property('publicKey');
 		});
 
-		it('should throw TransactionMultiError when asset signature publicKey is not string', async () => {
+		it('should not throw when asset signature publicKey is not string', async () => {
 			const invalidSecondSignatureTransaction = {
 				...validRegisterSecondSignatureTransaction,
 				asset: {
@@ -67,7 +67,7 @@ describe('Second signature registration transaction class', () => {
 			};
 			expect(
 				() => new SecondSignatureTransaction(invalidSecondSignatureTransaction),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 

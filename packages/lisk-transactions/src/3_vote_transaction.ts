@@ -19,7 +19,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { VOTE_FEE } from './constants';
-import { TransactionError, TransactionMultiError } from './errors';
+import { convertToTransactionError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput } from './utils';
 import { validateAddress, validator } from './utils/validation';
@@ -42,19 +42,6 @@ export interface CreateVoteAssetInput {
 
 export type CastVoteInput = CreateBaseTransactionInput & CreateVoteAssetInput;
 
-export const voteAssetTypeSchema = {
-	type: 'object',
-	required: ['votes'],
-	properties: {
-		votes: {
-			type: 'array',
-			items: {
-				type: 'string',
-			},
-		},
-	},
-};
-
 export const voteAssetFormatSchema = {
 	type: 'object',
 	required: ['votes'],
@@ -76,23 +63,12 @@ export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
 
-	public constructor(tx: TransactionJSON) {
-		super(tx);
-		const typeValid = validator.validate(voteAssetTypeSchema, tx.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							tx.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, errors);
-		}
-		this.asset = tx.asset as VoteAsset;
+	public constructor(rawTransaction: unknown) {
+		super(rawTransaction);
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
+		this.asset = (tx.asset || {}) as VoteAsset;
 		this.containsUniqueData = true;
 	}
 
@@ -160,28 +136,32 @@ export class VoteTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(voteAssetFormatSchema, this.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+		const errors = convertToTransactionError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
 					'Amount must be zero for vote transaction',
 					this.id,
 					'.amount',
+					this.amount.toString(),
+					'0',
 				),
 			);
 		}
 
 		if (this.type !== TRANSACTION_VOTE_TYPE) {
-			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+			errors.push(
+				new TransactionError(
+					'Invalid type',
+					this.id,
+					'.type',
+					this.type,
+					TRANSACTION_VOTE_TYPE,
+				),
+			);
 		}
 
 		try {
@@ -192,6 +172,7 @@ export class VoteTransaction extends BaseTransaction {
 					'RecipientId must be set for vote transaction',
 					this.id,
 					'.recipientId',
+					this.recipientId,
 				),
 			);
 		}
@@ -215,6 +196,8 @@ export class VoteTransaction extends BaseTransaction {
 					`Fee must be equal to ${VOTE_FEE}`,
 					this.id,
 					'.fee',
+					this.fee.toString(),
+					VOTE_FEE,
 				),
 			);
 		}
@@ -228,31 +211,6 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
-
-		if (
-			this.recipientPublicKey &&
-			this.recipientId !== getAddressFromPublicKey(this.recipientPublicKey)
-		) {
-			errors.push(
-				new TransactionError(
-					'recipientId does not match recipientPublicKey.',
-					this.id,
-					'.recipientId',
-				),
-			);
-		}
-
-		const assetErrors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		errors.push(...assetErrors);
 
 		return errors;
 	}
@@ -309,6 +267,8 @@ export class VoteTransaction extends BaseTransaction {
 						votedDelegatesPublicKeys.length
 					}.`,
 					this.id,
+					votedDelegatesPublicKeys.length.toString(),
+					MAX_VOTE_PER_ACCOUNT,
 				),
 			);
 		}
@@ -342,6 +302,8 @@ export class VoteTransaction extends BaseTransaction {
 						votedDelegatesPublicKeys.length
 					}.`,
 					this.id,
+					votedDelegatesPublicKeys.length.toString(),
+					MAX_VOTE_PER_ACCOUNT,
 				),
 			);
 		}
