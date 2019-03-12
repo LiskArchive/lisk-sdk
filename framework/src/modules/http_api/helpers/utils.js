@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('bignumber.js');
+const Bignumber = require('bignumber.js');
 
 // TODO: This file will be renamed or deleted after deciding where calculateApproval belongs
 
@@ -22,8 +22,8 @@ const Bignum = require('bignumber.js');
 function calculateApproval(votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings,
 	// we convert them into bignum and send the response as number as well
-	const votersBalanceBignum = new Bignum(votersBalance || 0);
-	const totalSupplyBignum = new Bignum(totalSupply);
+	const votersBalanceBignum = new Bignumber(votersBalance || 0);
+	const totalSupplyBignum = new Bignumber(totalSupply);
 	const approvalBignum = votersBalanceBignum
 		.dividedBy(totalSupplyBignum)
 		.multipliedBy(100)

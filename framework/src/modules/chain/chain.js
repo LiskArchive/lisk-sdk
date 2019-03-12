@@ -20,6 +20,7 @@ const {
 	initModules,
 } = require('./init_steps');
 const defaults = require('./defaults');
+const slots = require('./helpers/slots');
 
 // Begin reading from stdin
 process.stdin.resume();
@@ -260,6 +261,7 @@ module.exports = class Chain {
 					action.params[0],
 					action.params[1]
 				),
+			getSlotsHelper: async () => slots,
 		};
 	}
 

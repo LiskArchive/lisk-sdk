@@ -18,7 +18,6 @@ const _ = require('lodash');
 const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
-const slots = require('../helpers/slots');
 
 const { EPOCH_TIME, FEES } = global.constants;
 
@@ -136,6 +135,8 @@ NodeController.getStatus = async (context, next) => {
 		const transactions = await library.channel.invoke(
 			'chain:getAllTransactionsCount'
 		);
+
+		const slots = await library.channel.invoke('chain:getSlotsHelper');
 
 		const data = {
 			broadhash: library.components.system.headers.broadhash,
