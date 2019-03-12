@@ -27,7 +27,6 @@ const errorCacheDisabled = 'Cache Disabled';
  * @see Parent: {@link components}
  * @requires redis
  * @requires util
- * @requires helpers/transaction_types
  * @param {Object} options - Cache options
  * @param {Object} logger
  */
