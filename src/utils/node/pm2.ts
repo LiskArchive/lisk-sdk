@@ -11,6 +11,10 @@ import {
 	stop,
 } from 'pm2';
 
+export interface Pm2Env {
+	readonly pm_cwd: string;
+}
+
 const connectPM2 = async (): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		connect(err => {
@@ -116,10 +120,8 @@ const listPM2 = async (): Promise<ReadonlyArray<ProcessDescription>> =>
 		});
 	});
 
-const deleteProcess = async (
-	process: string | number,
-): Promise<ReadonlyArray<ProcessDescription>> =>
-	new Promise<ReadonlyArray<ProcessDescription>>((resolve, reject) => {
+const deleteProcess = async (process: string | number): Promise<void> =>
+	new Promise<void>((resolve, reject) => {
 		del(process, err => {
 			if (err) {
 				reject(err);

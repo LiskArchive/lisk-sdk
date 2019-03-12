@@ -19,9 +19,12 @@ import Listr from 'listr';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
 import { flags as commonFlags } from '../../utils/flags';
-import { installDirectory } from '../../utils/node/commons';
 import { defaultInstallationPath } from '../../utils/node/config';
-import { unRegisterApplication } from '../../utils/node/pm2';
+import {
+	describeApplication,
+	Pm2Env,
+	unRegisterApplication,
+} from '../../utils/node/pm2';
 import StopCommand from './stop';
 
 interface Flags {
@@ -58,7 +61,9 @@ export default class UnInstallCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(UnInstallCommand);
-		const { installationPath, name, network } = flags as Flags;
+		const { network, name } = flags as Flags;
+		const { pm2_env } = await describeApplication(name);
+		const { pm_cwd: installDir } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{
@@ -67,22 +72,12 @@ export default class UnInstallCommand extends BaseCommand {
 					new Listr([
 						{
 							title: 'Stop Services',
-							skip: () => true,
 							task: async () =>
-								StopCommand.run([
-									'--network',
-									network,
-									'--installationPath',
-									installationPath,
-									'--name',
-									name,
-								]),
+								StopCommand.run(['--network', network, '--name', name]),
 						},
 						{
 							title: 'Remove Process and Directory',
 							task: async () => {
-								const installDir = installDirectory(installationPath, name);
-
 								await unRegisterApplication(name);
 								fsExtra.removeSync(installDir);
 							},
