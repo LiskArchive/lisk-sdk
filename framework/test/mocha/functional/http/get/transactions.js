@@ -359,7 +359,7 @@ describe('GET /api/transactions', () => {
 			});
 
 			describe('asset field', () => {
-				it('using type 0 should return asset field', async () => {
+				it('using type 0 should return asset field with correct properties', async () => {
 					return transactionsEndpoint
 						.makeRequest({ type: transactionTypes.SEND }, 200)
 						.then(res => {
@@ -370,6 +370,116 @@ describe('GET /api/transactions', () => {
 								return expect(
 									Object.keys(transaction.asset).length
 								).to.be.below(2);
+							});
+						});
+				});
+
+				it('using type 1 should return asset field with correct properties', async () => {
+					return transactionsEndpoint
+						.makeRequest({ type: transactionTypes.SIGNATURE }, 200)
+						.then(res => {
+							expect(res.body.data).to.not.empty;
+
+							res.body.data.map(transaction => {
+								expect(transaction).to.have.property('asset');
+								expect(transaction.asset).to.have.property('signature');
+								expect(transaction.asset.signature).to.have.property(
+									'publicKey'
+								);
+								return expect(transaction.asset.signature.publicKey).to.be.a(
+									'string'
+								);
+							});
+						});
+				});
+
+				it('using type 2 should return asset field with correct properties', async () => {
+					return transactionsEndpoint
+						.makeRequest({ type: transactionTypes.DELEGATE }, 200)
+						.then(res => {
+							expect(res.body.data).to.not.empty;
+
+							res.body.data.map(transaction => {
+								expect(transaction).to.have.property('asset');
+								expect(transaction.asset).to.have.property('delegate');
+								expect(transaction.asset.delegate).to.have.property(
+									'publicKey'
+								);
+								expect(transaction.asset.delegate).to.have.property('username');
+								return expect(transaction.asset.delegate).to.have.property(
+									'address'
+								);
+							});
+						});
+				});
+
+				it('using type 3 should return asset field with correct properties', async () => {
+					return transactionsEndpoint
+						.makeRequest({ type: transactionTypes.VOTE }, 200)
+						.then(res => {
+							expect(res.body.data).to.not.empty;
+
+							res.body.data.map(transaction => {
+								expect(transaction).to.have.property('asset');
+								expect(transaction.asset).to.have.property('votes');
+								expect(Object.keys(transaction.asset).length).to.equal(1);
+								return expect(transaction.asset.votes).to.be.an('array');
+							});
+						});
+				});
+
+				it('using type 4 should return asset field with correct properties', async () => {
+					return transactionsEndpoint
+						.makeRequest({ type: transactionTypes.MULTI }, 200)
+						.then(res => {
+							expect(res.body.data).to.not.empty;
+
+							res.body.data.map(transaction => {
+								expect(transaction).to.have.property('asset');
+								expect(transaction.asset).to.have.property('multisignature');
+								expect(Object.keys(transaction.asset).length).to.equal(1);
+								expect(transaction.asset.multisignature).to.have.property(
+									'min'
+								);
+								expect(transaction.asset.multisignature).to.have.property(
+									'lifetime'
+								);
+								expect(transaction.asset.multisignature).to.have.property(
+									'keysgroup'
+								);
+								expect(transaction.asset.multisignature.keysgroup).to.be.an(
+									'array'
+								);
+								return expect(transaction.asset.multisignature.keysgroup).to.not
+									.empty;
+							});
+						});
+				});
+
+				it('using type 5 should return asset field with correct properties', async () => {
+					return transactionsEndpoint
+						.makeRequest({ type: transactionTypes.DAPP }, 200)
+						.then(res => {
+							expect(res.body.data).to.not.empty;
+
+							res.body.data.map(transaction => {
+								expect(transaction).to.have.property('asset');
+								expect(transaction.asset).to.have.property('dapp');
+								expect(Object.keys(transaction.asset).length).to.equal(1);
+								expect(transaction.asset.dapp).to.have.keys(
+									'icon',
+									'link',
+									'name',
+									'tags',
+									'category',
+									'description',
+									'type'
+								);
+								expect(transaction.asset.dapp.type).to.be.within(0, 2);
+								return expect(transaction.asset.dapp.category).to.be.within(
+									0,
+									9
+								);
 							});
 						});
 				});
