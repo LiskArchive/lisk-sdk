@@ -14,11 +14,14 @@
 
 'use strict';
 
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+
 let library;
 
 class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
+			storage: scope.components.storage,
 			logic: {
 				stateManager: scope.logic.stateManager,
 			},
@@ -30,6 +33,41 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	validateTransactions(transactions) {
 		return transactions.map(transaction => transaction.validate());
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	async checkPersistedTransactions(transactions) {
+		const confirmedTransactions = await library.storage.entities.Transaction.get(
+			{
+				id_in: transactions.map(transaction => transaction.id),
+			}
+		);
+
+		const persistedTransactionIds = confirmedTransactions.map(
+			transaction => transaction.id
+		);
+		const persistedTransactions = transactions.filter(transaction =>
+			persistedTransactionIds.includes(transaction.id)
+		);
+		const unpersistedTransactions = transactions.filter(
+			transaction => !persistedTransactionIds.includes(transaction.id)
+		);
+		const transactionsResponses = [
+			...unpersistedTransactions.map(transaction => ({
+				id: transaction.id,
+				status: TransactionStatus.OK,
+				errors: [],
+			})),
+			...persistedTransactions.map(transaction => ({
+				id: transaction.id,
+				status: TransactionStatus.FAIL,
+				errors: `Transaction is already confirmed: ${transaction.id}`,
+			})),
+		];
+
+		return {
+			transactionsResponses,
+		};
 	}
 
 	// eslint-disable-next-line class-methods-use-this
