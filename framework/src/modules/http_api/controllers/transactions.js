@@ -132,29 +132,27 @@ TransactionsController.getTransactions = async function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-TransactionsController.postTransaction = function(context, next) {
+TransactionsController.postTransaction = async function(context, next) {
 	const transaction = context.request.swagger.params.transaction.value;
+	let error;
 
-	return channel.invoke('chain:postTransaction', [
-		transaction,
-		(err, data) => {
-			if (data.success) {
-				return next(null, {
-					data: { message: 'Transaction(s) accepted' },
-					meta: { status: true },
-				});
-			}
+	try {
+		const data = await channel.invoke('chain:postTransaction', [transaction]);
 
-			const error = new ApiError(
-				err || data.message,
-				apiCodes.PROCESSING_ERROR
-			);
+		if (data.success) {
+			return next(null, {
+				data: { message: 'Transaction(s) accepted' },
+				meta: { status: true },
+			});
+		}
 
-			context.statusCode = error.code;
-			delete error.code;
-			return next(error);
-		},
-	]);
+		error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
+	} catch (err) {
+		error = new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR);
+	}
+
+	context.statusCode = error.code;
+	return next(error);
 };
 
 module.exports = TransactionsController;
