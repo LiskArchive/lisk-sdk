@@ -39,7 +39,7 @@ import {
 	ProtocolPeerInfoList,
 } from './p2p_types';
 import {
-	connectAndFetchStatus,
+	connectAndFetchPeerInfo,
 	ConnectionState,
 	constructPeerIdFromPeerInfo,
 	EVENT_CLOSE_OUTBOUND,
@@ -263,23 +263,29 @@ export class PeerPool extends EventEmitter {
 	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
 		const seedPeerUpdatedInfosAndSocket = await Promise.all(
 			seedPeers.map(async seedPeer =>
-				connectAndFetchStatus(seedPeer, nodeInfo, peerConfig),
+				connectAndFetchPeerInfo(seedPeer, nodeInfo, peerConfig),
 			),
 		);
+		// We can log the errors returned but it will not fail if one of the calls failed
+		const listOfPeerInfos = seedPeerUpdatedInfosAndSocket.reduce<
+			ReadonlyArray<P2PDiscoveredPeerInfo>
+		>((peerInfoList, seedPeerResponse) => {
+			if (!(seedPeerResponse instanceof Error)) {
+				const peerId = constructPeerIdFromPeerInfo(seedPeerResponse.peerInfo);
 
-		const peerInfoList = seedPeerUpdatedInfosAndSocket.map(seedPeerResponse => {
-			const peerId = constructPeerIdFromPeerInfo(seedPeerResponse.peerInfo);
+				this.addOutboundPeer(
+					peerId,
+					seedPeerResponse.peerInfo,
+					seedPeerResponse.socket,
+				);
 
-			this.addOutboundPeer(
-				peerId,
-				seedPeerResponse.peerInfo,
-				seedPeerResponse.socket,
-			);
+				return [...peerInfoList, seedPeerResponse.peerInfo];
+			}
 
-			return seedPeerResponse.peerInfo;
-		});
+			return peerInfoList;
+		}, []);
 
-		return peerInfoList;
+		return listOfPeerInfos;
 	}
 
 	public async runDiscovery(

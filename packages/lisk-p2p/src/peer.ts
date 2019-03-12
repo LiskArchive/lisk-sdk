@@ -664,11 +664,11 @@ export const connectAndRequest = async (
 		},
 	);
 
-export const connectAndFetchStatus = async (
+export const connectAndFetchPeerInfo = async (
 	basicPeerInfo: P2PPeerInfo,
 	nodeInfo?: P2PNodeInfo,
 	peerConfig?: PeerConfig,
-): Promise<PeerInfoAndOutboundConnection> => {
+): Promise<PeerInfoAndOutboundConnection | Error> => {
 	try {
 		const { responsePacket, socket } = await connectAndRequest(
 			basicPeerInfo,
@@ -687,6 +687,6 @@ export const connectAndFetchStatus = async (
 
 		return { peerInfo, socket };
 	} catch (error) {
-		throw error;
+		return error;
 	}
 };
