@@ -16,11 +16,10 @@
 
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
-const transactionTypes = require('../helpers/transaction_types');
 const Bignum = require('../helpers/bignum.js');
 const regexpTester = require('../helpers/regexp_tester.js');
 
-const { FEES } = global.constants;
+const { FEES, TRANSACTION_TYPES } = global.constants;
 
 const __scope = {};
 __scope.unconfirmedNames = {};
@@ -228,12 +227,12 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		{
 			dapp_name: transaction.asset.dapp.name,
 			id_ne: transaction.id,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		},
 		{
 			dapp_link: transaction.asset.dapp.link || null,
 			id_ne: transaction.id,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		},
 	];
 

@@ -20,10 +20,9 @@ const randomstring = require('randomstring');
 const modulesLoader = require('../../../../common/modules_loader.js');
 const randomUtil = require('../../../../common/utils/random');
 const typeRepresentatives = require('../../../../fixtures/types_representatives.js');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
 const testData = require('./test_data/dapp.js');
 
-const { FEES } = __testContext.config.constants;
+const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 const Dapp = rewire('../../../../../../src/modules/chain/logic/dapp.js');
 const validKeypair = testData.validKeypair;
 const validSender = testData.validSender;
@@ -341,12 +340,12 @@ describe('dapp', () => {
 							{
 								dapp_name: transaction.asset.dapp.name,
 								id_ne: transaction.id,
-								type: transactionTypes.DAPP,
+								type: TRANSACTION_TYPES.DAPP,
 							},
 							{
 								dapp_link: transaction.asset.dapp.link || null,
 								id_ne: transaction.id,
-								type: transactionTypes.DAPP,
+								type: TRANSACTION_TYPES.DAPP,
 							},
 						];
 						done();
@@ -425,12 +424,12 @@ describe('dapp', () => {
 						{
 							dapp_name: transaction.asset.dapp.name,
 							id_ne: transaction.id,
-							type: transactionTypes.DAPP,
+							type: TRANSACTION_TYPES.DAPP,
 						},
 						{
 							dapp_link: transaction.asset.dapp.link || null,
 							id_ne: transaction.id,
-							type: transactionTypes.DAPP,
+							type: TRANSACTION_TYPES.DAPP,
 						},
 					];
 

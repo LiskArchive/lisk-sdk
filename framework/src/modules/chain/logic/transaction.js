@@ -19,8 +19,8 @@ const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const Bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
-const transactionTypes = require('../helpers/transaction_types.js');
 
+const { TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
 const POSTGRESQL_BIGINT_MAX_VALUE = '9223372036854775807';
 const __private = {};
@@ -428,7 +428,7 @@ class Transaction {
 		// Check if sender account has second signature enabled.
 		// Abort if registering again.
 		if (
-			transaction.type === transactionTypes.SIGNATURE &&
+			transaction.type === TRANSACTION_TYPES.SIGNATURE &&
 			sender.secondSignature
 		) {
 			return setImmediate(cb, 'Sender already has second signature enabled');

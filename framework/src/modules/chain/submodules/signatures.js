@@ -15,7 +15,8 @@
 'use strict';
 
 const Signature = require('../logic/signature.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
 let modules;
@@ -32,7 +33,6 @@ __private.assetTypes = {};
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires helpers/transaction_types
  * @requires logic/signature
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
@@ -51,9 +51,9 @@ class Signatures {
 		self = this;
 
 		__private.assetTypes[
-			transactionTypes.SIGNATURE
+			TRANSACTION_TYPES.SIGNATURE
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.SIGNATURE,
+			TRANSACTION_TYPES.SIGNATURE,
 			new Signature({
 				components: {
 					logger: scope.components.logger,
@@ -89,7 +89,9 @@ Signatures.prototype.onBind = function(scope) {
 		transport: scope.modules.transport,
 	};
 
-	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.modules.accounts);
+	__private.assetTypes[TRANSACTION_TYPES.SIGNATURE].bind(
+		scope.modules.accounts
+	);
 };
 
 // Shared API

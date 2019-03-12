@@ -18,7 +18,8 @@ const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
 const ApiError = require('../api_error');
 const apiCodes = require('../api_codes');
-const transactionTypes = require('../helpers/transaction_types');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private Fields
 let storage;
@@ -48,7 +49,7 @@ function transactionFormatter(transaction) {
 	result.recipientPublicKey = result.recipientPublicKey || '';
 	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
-	if (transaction.type === transactionTypes.DELEGATE) {
+	if (transaction.type === TRANSACTION_TYPES.DELEGATE) {
 		result.asset.delegate.publicKey = result.senderPublicKey;
 		result.asset.delegate.address = result.senderId;
 	}

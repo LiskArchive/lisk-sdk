@@ -20,8 +20,9 @@ const {
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../framework/src/components/cache');
 const TransactionPool = require('../logic/transaction_pool.js');
-const transactionTypes = require('../helpers/transaction_types.js');
 const Transfer = require('../logic/transfer.js');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
 const __private = {};
@@ -41,7 +42,6 @@ __private.assetTypes = {};
  * @see Parent: {@link modules}
  * @requires bluebird
  * @requires lodash
- * @requires helpers/transaction_types
  * @requires logic/transaction_pool
  * @requires logic/transfer
  * @param {function} cb - Callback function
@@ -75,9 +75,9 @@ class Transactions {
 		);
 
 		__private.assetTypes[
-			transactionTypes.SEND
+			TRANSACTION_TYPES.SEND
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.SEND,
+			TRANSACTION_TYPES.SEND,
 			new Transfer({
 				components: {
 					logger: library.logger,
@@ -723,7 +723,7 @@ Transactions.prototype.onBind = function(scope) {
 		scope.modules.loader
 	);
 
-	__private.assetTypes[transactionTypes.SEND].bind(scope.modules.accounts);
+	__private.assetTypes[TRANSACTION_TYPES.SEND].bind(scope.modules.accounts);
 };
 
 // Shared API

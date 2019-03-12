@@ -20,7 +20,6 @@ const {
 	createCacheComponent,
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../../src/components/cache');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 const modulesLoader = require('../../../../common/modules_loader');
 const AccountLogic = require('../../../../../../src/modules/chain/logic/account.js');
 const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction.js');
@@ -36,6 +35,7 @@ const DappLogic = require('../../../../../../src/modules/chain/logic/dapp.js');
 const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_transfer.js');
 const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer.js');
 
+const { TRANSACTION_TYPES } = global.constants;
 const TransactionModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transactions.js'
 );
@@ -52,7 +52,7 @@ describe('transactions', () => {
 		accountsModule
 	) {
 		const sendLogic = transactionLogic.attachAssetType(
-			transactionTypes.SEND,
+			TRANSACTION_TYPES.SEND,
 			new TransferLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -64,7 +64,7 @@ describe('transactions', () => {
 		expect(sendLogic).to.be.an.instanceof(TransferLogic);
 
 		const voteLogic = transactionLogic.attachAssetType(
-			transactionTypes.VOTE,
+			TRANSACTION_TYPES.VOTE,
 			new VoteLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -77,7 +77,7 @@ describe('transactions', () => {
 		expect(voteLogic).to.be.an.instanceof(VoteLogic);
 
 		const delegateLogic = transactionLogic.attachAssetType(
-			transactionTypes.DELEGATE,
+			TRANSACTION_TYPES.DELEGATE,
 			new DelegateLogic({
 				schema: modulesLoader.scope.schema,
 			})
@@ -86,7 +86,7 @@ describe('transactions', () => {
 		expect(delegateLogic).to.be.an.instanceof(DelegateLogic);
 
 		const signatureLogic = transactionLogic.attachAssetType(
-			transactionTypes.SIGNATURE,
+			TRANSACTION_TYPES.SIGNATURE,
 			new SignatureLogic({
 				components: {
 					logger: modulesLoader,
@@ -98,7 +98,7 @@ describe('transactions', () => {
 		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
 		const multiLogic = transactionLogic.attachAssetType(
-			transactionTypes.MULTI,
+			TRANSACTION_TYPES.MULTI,
 			new MultisignatureLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -116,7 +116,7 @@ describe('transactions', () => {
 		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
 		const dappLogic = transactionLogic.attachAssetType(
-			transactionTypes.DAPP,
+			TRANSACTION_TYPES.DAPP,
 			new DappLogic({
 				components: {
 					storage: modulesLoader.storage,
@@ -129,7 +129,7 @@ describe('transactions', () => {
 		expect(dappLogic).to.be.an.instanceof(DappLogic);
 
 		const inTransferLogic = transactionLogic.attachAssetType(
-			transactionTypes.IN_TRANSFER,
+			TRANSACTION_TYPES.IN_TRANSFER,
 			new InTransferLogic({
 				components: {
 					storage: modulesLoader.storage,
@@ -141,7 +141,7 @@ describe('transactions', () => {
 		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
 
 		const outTransfer = transactionLogic.attachAssetType(
-			transactionTypes.OUT_TRANSFER,
+			TRANSACTION_TYPES.OUT_TRANSFER,
 			new OutTransferLogic({
 				components: {
 					storage: modulesLoader.storage,
@@ -603,9 +603,9 @@ describe('transactions', () => {
 
 			it('should get transaction for send transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.SEND].transactionId;
+					transactionsByType[TRANSACTION_TYPES.SEND].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.SEND].transaction;
+					transactionsByType[TRANSACTION_TYPES.SEND].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -619,9 +619,9 @@ describe('transactions', () => {
 
 			it('should get transaction with singature asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.SIGNATURE].transactionId;
+					transactionsByType[TRANSACTION_TYPES.SIGNATURE].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.SIGNATURE].transaction;
+					transactionsByType[TRANSACTION_TYPES.SIGNATURE].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -635,9 +635,9 @@ describe('transactions', () => {
 
 			it('should get transaction with delegate asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.DELEGATE].transactionId;
+					transactionsByType[TRANSACTION_TYPES.DELEGATE].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.DELEGATE].transaction;
+					transactionsByType[TRANSACTION_TYPES.DELEGATE].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -651,9 +651,9 @@ describe('transactions', () => {
 
 			it('should get transaction with vote asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.VOTE].transactionId;
+					transactionsByType[TRANSACTION_TYPES.VOTE].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.VOTE].transaction;
+					transactionsByType[TRANSACTION_TYPES.VOTE].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -667,9 +667,9 @@ describe('transactions', () => {
 
 			it('should get transaction with MULTI asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.MULTI].transactionId;
+					transactionsByType[TRANSACTION_TYPES.MULTI].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.MULTI].transaction;
+					transactionsByType[TRANSACTION_TYPES.MULTI].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -683,9 +683,9 @@ describe('transactions', () => {
 
 			it('should get transaction with DAPP asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.DAPP].transactionId;
+					transactionsByType[TRANSACTION_TYPES.DAPP].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.DAPP].transaction;
+					transactionsByType[TRANSACTION_TYPES.DAPP].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -700,9 +700,9 @@ describe('transactions', () => {
 			/* eslint-disable mocha/no-skipped-tests */
 			it.skip('should get transaction with intransfer asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.IN_TRANSFER].transactionId;
+					transactionsByType[TRANSACTION_TYPES.IN_TRANSFER].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.IN_TRANSFER].transaction;
+					transactionsByType[TRANSACTION_TYPES.IN_TRANSFER].transaction;
 
 				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
@@ -718,7 +718,7 @@ describe('transactions', () => {
 						transaction.asset.inTransfer.dappId
 					);
 					expect(res.transactions[0].type).to.equal(
-						transactionTypes.IN_TRANSFER
+						TRANSACTION_TYPES.IN_TRANSFER
 					);
 					done();
 				});

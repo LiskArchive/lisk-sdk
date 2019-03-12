@@ -21,6 +21,7 @@ module.exports = {
 			'NORMALIZER',
 			'REWARDS',
 			'TOTAL_AMOUNT',
+			'TRANSACTION_TYPES',
 			'UNCONFIRMED_TRANSACTION_TIMEOUT',
 			'EXPIRY_INTERVAL',
 		],
@@ -108,6 +109,9 @@ module.exports = {
 			TOTAL_AMOUNT: {
 				type: 'string',
 				format: 'amount',
+			},
+			TRANSACTION_TYPES: {
+				$ref: 'transactionTypes',
 			},
 			UNCONFIRMED_TRANSACTION_TIMEOUT: {
 				type: 'integer',
@@ -260,6 +264,56 @@ module.exports = {
 			DISTANCE: {
 				type: 'integer',
 				min: 1,
+			},
+		},
+		additionalProperties: false,
+	},
+
+	transactionTypes: {
+		id: 'transactionTypes',
+		type: 'object',
+		required: [
+			'SEND',
+			'SIGNATURE',
+			'DELEGATE',
+			'VOTE',
+			'MULTI',
+			'DAPP',
+			'IN_TRANSFER',
+			'OUT_TRANSFER',
+		],
+		properties: {
+			SEND: {
+				type: 'integer',
+				min: 0,
+			},
+			SIGNATURE: {
+				type: 'integer',
+				min: 1,
+			},
+			DELEGATE: {
+				type: 'integer',
+				min: 2,
+			},
+			VOTE: {
+				type: 'integer',
+				min: 3,
+			},
+			MULTI: {
+				type: 'integer',
+				min: 4,
+			},
+			DAPP: {
+				type: 'integer',
+				min: 5,
+			},
+			IN_TRANSFER: {
+				type: 'integer',
+				min: 6,
+			},
+			OUT_TRANSFER: {
+				type: 'integer',
+				min: 7,
 			},
 		},
 		additionalProperties: false,
