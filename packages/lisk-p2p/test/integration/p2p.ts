@@ -13,7 +13,7 @@ describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
-		...Array(NETWORK_PEER_COUNT).keys(),
+		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
 	const NO_PEERS_FOUND_ERROR = `Request failed due to no peers found in peer selection`;
 
@@ -78,7 +78,7 @@ describe('Integration tests for P2P library', () => {
 		const DISCOVERY_INTERVAL = 200;
 
 		beforeEach(async () => {
-			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
 				const seedPeers = [
 					{
@@ -310,7 +310,7 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Fully connected network: Nodes are started gradually, one at a time. The seedPeers list of each node contains the previously launched node', () => {
 		beforeEach(async () => {
-			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
 				const seedPeers =
 					index === 0
@@ -695,8 +695,7 @@ describe('Integration tests for P2P library', () => {
 					if (
 						nodesModules &&
 						peerModules &&
-						nodesModules.filter(value => -1 !== peerModules.indexOf(value))
-							.length > 0
+						nodesModules.filter(value => peerModules.includes(value)).length > 0
 					) {
 						return true;
 					}
@@ -723,7 +722,7 @@ describe('Integration tests for P2P library', () => {
 		) => peersList;
 
 		beforeEach(async () => {
-			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
 				const seedPeers =
 					index === 0
