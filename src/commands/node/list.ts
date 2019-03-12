@@ -34,21 +34,23 @@ export default class ListCommand extends BaseCommand {
 				title: 'Lisk Core Instances',
 				task: async () => {
 					const apps = await listApplication();
-					this.print(apps.map(app => {
-						const { name, pm2_env } = app;
-						const {
-							status,
-							pm_uptime,
-							unstable_restarts,
-						} = pm2_env as Pm2Env;
+					this.print(
+						apps.map(app => {
+							const { name, pm2_env } = app;
+							const {
+								status,
+								pm_uptime,
+								unstable_restarts,
+							} = pm2_env as Pm2Env;
 
-						return {
-							name,
-							status,
-							uptime: new Date(pm_uptime).toISOString(),
-							restart_count: unstable_restarts,
-						};
-					}));
+							return {
+								name,
+								status,
+								uptime: new Date(pm_uptime).toISOString(),
+								restart_count: unstable_restarts,
+							};
+						}),
+					);
 				},
 			},
 		]);
