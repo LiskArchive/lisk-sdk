@@ -668,4 +668,108 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 	});
+
+	describe('Partially connected network of 4 nodes: All nodes launch at the same time. The custom fields that are passed in nodeinfo is captured by other nodes.', () => {
+		const DISCOVERY_INTERVAL = 200;
+
+		beforeEach(async () => {
+			p2pNodeList = [...Array(4).keys()].map(index => {
+				// Each node will have the next node in the sequence as a seed peer.
+				const seedPeers = [
+					{
+						ipAddress: '127.0.0.1',
+						wsPort: NETWORK_START_PORT + ((index + 1) % 4),
+					},
+				];
+
+				return new P2P({
+					blacklistedPeers: [],
+					seedPeers,
+					wsEngine: 'ws',
+					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
+					connectTimeout: 100,
+					ackTimeout: 100,
+					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
+					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
+					nodeInfo: {
+						wsPort: NETWORK_START_PORT + index,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.0',
+						os: platform(),
+						height: 0,
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: 'O2wTkjqplHII5wPv',
+						modules: {
+							names: ['test', 'crypto'],
+							active: true,
+						},
+					},
+				});
+			});
+
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
+			);
+			await Promise.all(peerStartPromises);
+			await wait(100);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+		});
+
+		describe('all the nodes should be able to communicate and receive custom fields passed in nodeinfo', () => {
+			it('should have tried peers with custom test field "modules" that was passed as nodeinfo', async () => {
+				p2pNodeList.forEach(p2p => {
+					const {
+						connectedPeers,
+						newPeers,
+						triedPeers,
+					} = p2p.getNetworkStatus();
+
+					triedPeers.forEach(peer => {
+						expect(peer)
+							.has.property('modules')
+							.has.property('names')
+							.is.an('array');
+
+						expect(peer)
+							.has.property('modules')
+							.has.property('active')
+							.is.a('boolean');
+					});
+
+					newPeers.forEach(peer => {
+						expect(peer)
+							.has.property('modules')
+							.has.property('names')
+							.is.an('array');
+
+						expect(peer)
+							.has.property('modules')
+							.has.property('active')
+							.is.a('boolean');
+					});
+
+					connectedPeers.forEach(peer => {
+						expect(peer)
+							.has.property('modules')
+							.has.property('names')
+							.is.an('array');
+
+						expect(peer)
+							.has.property('modules')
+							.has.property('active')
+							.is.a('boolean');
+					});
+				});
+			});
+		});
+	});
 });
