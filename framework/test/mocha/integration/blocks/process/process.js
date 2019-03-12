@@ -21,6 +21,7 @@ const modulesLoader = require('../../../common/modules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
+const definitions = require('../../../../../src/modules/chain/schema/definitions');
 
 const { REWARDS } = global.constants;
 
@@ -144,7 +145,7 @@ describe('system test (blocks) - process', () => {
 			beforeEach(() => {
 				return scope.schema.validate(
 					validCommonBlock,
-					scope.swagger.definitions.CommonBlock,
+					definitions.CommonBlock,
 					err => {
 						commonBlockValidationError = err;
 					}

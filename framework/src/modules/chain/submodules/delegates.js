@@ -52,8 +52,6 @@ __private.delegatesListCache = {};
  * @requires async
  * @requires crypto
  * @requires lodash
- * @requires helpers/api_codes
- * @requires helpers/api_error
  * @requires helpers/jobs_queue
  * @requires helpers/slots
  * @requires logic/block_reward

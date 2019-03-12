@@ -38,7 +38,6 @@ describe('blocks/process', () => {
 	let sequenceStub;
 	let genesisBlockStub;
 	let bindingsStub;
-	let definitions;
 
 	beforeEach(done => {
 		storageStub = {
@@ -212,8 +211,6 @@ describe('blocks/process', () => {
 			remove: sinonSandbox.spy(),
 		};
 
-		const swaggerDefinitionsStub = sinonSandbox.stub();
-
 		bindingsStub = {
 			modules: {
 				accounts: modulesAccountsStub,
@@ -225,14 +222,10 @@ describe('blocks/process', () => {
 				transactions: modulesTransactionsStub,
 				transport: modulesTransportStub,
 			},
-			swagger: {
-				definitions: swaggerDefinitionsStub,
-			},
 		};
 
 		blocksProcessModule.onBind(bindingsStub);
 		modules = BlocksProcess.__get__('modules');
-		definitions = BlocksProcess.__get__('definitions');
 		done();
 	});
 
@@ -2325,9 +2318,6 @@ describe('blocks/process', () => {
 			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			done();
 		});
-
-		it('should assign definitions with swagger.definitions', async () =>
-			expect(definitions).to.equal(bindingsStub.swagger.definitions));
 
 		it('should set __private.loaded to true', async () =>
 			expect(__private.loaded).to.be.true);

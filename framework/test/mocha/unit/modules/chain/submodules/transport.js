@@ -18,7 +18,6 @@ const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
-const swaggerHelper = require('../../../../../../src/modules/chain/helpers/swagger');
 const WSServer = require('../../../../common/ws/server_master');
 const generateRandomActivePeer = require('../../../../fixtures/peers')
 	.generateRandomActivePeer;
@@ -52,7 +51,6 @@ describe('transport', () => {
 	let defaultScope;
 	let restoreRewiredTopDeps;
 	let peerMock;
-	let definitions;
 	let wsRPC;
 	let transaction;
 	let block;
@@ -62,6 +60,7 @@ describe('transport', () => {
 	let multisignatureTransactionsList;
 	let blockMock;
 	let error;
+	let definitions;
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
@@ -83,7 +82,7 @@ describe('transport', () => {
 
 	const SAMPLE_AUTH_KEY = 'testkey123';
 
-	beforeEach(done => {
+	beforeEach(async () => {
 		// Recreate all the stubs and default structures before each test case to make
 		// sure that they are fresh every time; that way each test case can modify
 		// stubs without affecting other test cases.
@@ -198,6 +197,8 @@ describe('transport', () => {
 			},
 		});
 
+		definitions = TransportModule.__get__('definitions');
+
 		defaultScope = {
 			logic: {
 				block: blockStub,
@@ -233,14 +234,6 @@ describe('transport', () => {
 		peerMock = {
 			nonce: 'sYHEDBKcScaAAAYg',
 		};
-
-		swaggerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
-			definitions = resolvedSpec.definitions;
-			defaultScope.swagger = {
-				definitions,
-			};
-			done();
-		});
 	});
 
 	afterEach(done => {
@@ -356,8 +349,6 @@ describe('transport', () => {
 						},
 					},
 				};
-
-				definitions = {};
 
 				wsRPC = {
 					getServerAuthKey: sinonSandbox.stub().returns(SAMPLE_AUTH_KEY),
@@ -1202,7 +1193,7 @@ describe('transport', () => {
 				});
 
 				it('should assign definitions object', async () =>
-					expect(definitionsObject).to.equal(defaultScope.swagger.definitions));
+					expect(definitionsObject).to.equal(definitions));
 			});
 		});
 

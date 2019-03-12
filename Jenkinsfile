@@ -55,9 +55,9 @@ def teardown(test_name) {
 			sh """
 			rm -rf coverage_${test_name}; mkdir -p coverage_${test_name}
 			npx istanbul report --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
-			cp test/.coverage-unit/lcov.info coverage_${test_name}/ || true
+			cp framework/test/mocha/.coverage-unit/lcov.info coverage_${test_name}/ || true
 			npx istanbul report cobertura --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
-			cp test/.coverage-unit/cobertura-coverage.xml coverage_${test_name}/ || true
+			cp framework/test/mocha/.coverage-unit/cobertura-coverage.xml coverage_${test_name}/ || true
 			curl --silent http://localhost:4000/coverage/download --output functional-coverage.zip
 			unzip functional-coverage.zip lcov.info -d coverage_${test_name}/functional/
 			"""
