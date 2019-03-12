@@ -294,9 +294,8 @@ export class PeerPool extends EventEmitter {
 	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
 		const peersForDiscovery = knownPeers.map(peerInfo => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (this.hasPeer(peerId)) {
-				const existingPeer = this.getPeer(peerId) as Peer;
-
+			const existingPeer = this.getPeer(peerId);
+			if (existingPeer) {
 				existingPeer.updatePeerInfo(peerInfo);
 
 				return existingPeer;
@@ -317,9 +316,9 @@ export class PeerPool extends EventEmitter {
 		// Check for received discovery info and then find it in peer pool and then update it
 		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (this.hasPeer(peerId)) {
-				const existingPeer = this.getPeer(peerId) as Peer;
+			const existingPeer = this.getPeer(peerId);
 
+			if (existingPeer) {
 				existingPeer.updatePeerInfo(peerInfo);
 			}
 		});
@@ -334,10 +333,10 @@ export class PeerPool extends EventEmitter {
 
 		peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (!this.hasPeer(peerId)) {
-				this.addPeer(peerInfo);
+			const existingPeer = this.getPeer(peerId);
+			if (!existingPeer) {
+				return this.addPeer(peerInfo);
 			}
-			const existingPeer = this.getPeer(peerId) as Peer;
 
 			existingPeer.updatePeerInfo(peerInfo);
 

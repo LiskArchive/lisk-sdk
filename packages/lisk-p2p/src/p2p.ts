@@ -496,7 +496,7 @@ export class P2P extends EventEmitter {
 				this._triedPeers.set(peerId, seedInfo);
 			}
 		});
-		// TODO: Once we will a new peer discovery then we can remove this typecasting to P2PDiscoveredPeerInfo
+
 		await this._startDiscovery(seedPeerInfos);
 	}
 
