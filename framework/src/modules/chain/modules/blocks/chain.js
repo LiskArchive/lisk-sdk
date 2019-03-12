@@ -505,13 +505,13 @@ __private.undoConfirmedStep = async function(block, tx) {
 
 	const {
 		stateStore,
-		transactionResponses,
+		transactionsResponses,
 	} = await modules.processTransactions.undoTransactions(
 		block.transactions,
 		tx
 	);
 
-	const unappliedTransactionResponse = transactionResponses.find(
+	const unappliedTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 

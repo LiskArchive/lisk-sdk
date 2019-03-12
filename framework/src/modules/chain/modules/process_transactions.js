@@ -32,7 +32,11 @@ class ProcessTransactions {
 
 	// eslint-disable-next-line class-methods-use-this
 	validateTransactions(transactions) {
-		return transactions.map(transaction => transaction.validate());
+		return {
+			transactionsResponses: transactions.map(transaction =>
+				transaction.validate()
+			),
+		};
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -102,13 +106,13 @@ class ProcessTransactions {
 
 		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
-		const transactionResponses = transactions.map(transaction => {
+		const transactionsResponses = transactions.map(transaction => {
 			const transactionResponse = transaction.undo(stateStore);
 			return transactionResponse;
 		});
 
 		return {
-			transactionResponses,
+			transactionsResponses,
 			stateStore,
 		};
 	}

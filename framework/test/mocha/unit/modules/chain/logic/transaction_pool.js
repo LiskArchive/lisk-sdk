@@ -17,9 +17,7 @@
 const pool = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
-const TransactionPool = require(
-	'../../../../../../src/modules/chain/logic/transaction_pool.js'
-);
+const TransactionPool = require('../../../../../../src/modules/chain/logic/transaction_pool.js');
 
 const config = __testContext.config;
 
@@ -41,9 +39,10 @@ describe('transactionPool', () => {
 	};
 
 	const processTransactionsStub = {
-		validateTransactions: sinonSandbox.stub(),
-		verifyTransactions: sinonSandbox.stub(),
-		applyTransactions: sinonSandbox.stub(),
+		checkPersistedTransactions: sinonSandbox.stub().resolves(),
+		validateTransactions: sinonSandbox.stub().resolves(),
+		verifyTransactions: sinonSandbox.stub().resolves(),
+		applyTransactions: sinonSandbox.stub().resolves(),
 	};
 
 	beforeEach(async () => {
@@ -55,16 +54,10 @@ describe('transactionPool', () => {
 			config
 		);
 
-		dummyTransactions = [
-			{ id: 1 },
-			{ id: 2 },
-			{ id: 3 },
-		];
+		dummyTransactions = [{ id: 1 }, { id: 2 }, { id: 3 }];
 
 		// Bind stub modules
-		transactionPool.bind(
-			processTransactionsStub
-		);
+		transactionPool.bind(processTransactionsStub);
 	});
 
 	describe('constructor', () => {
@@ -76,7 +69,9 @@ describe('transactionPool', () => {
 				config
 			);
 
-			expect(tp.maxTransactionsPerQueue).to.equal(config.transactions.maxTransactionsPerQueue);
+			expect(tp.maxTransactionsPerQueue).to.equal(
+				config.transactions.maxTransactionsPerQueue
+			);
 			expect(tp.bundledInterval).to.equal(config.broadcasts.broadcastInterval);
 			expect(tp.bundleLimit).to.equal(config.broadcasts.releaseLimit);
 			expect(tp.logger).to.equal(logger);
@@ -101,7 +96,9 @@ describe('transactionPool', () => {
 		const id = '123';
 
 		beforeEach(async () => {
-			existsInTransactionPoolStub = sinonSandbox.stub(transactionPool.pool, 'existsInTransactionPool').returns(true);
+			existsInTransactionPoolStub = sinonSandbox
+				.stub(transactionPool.pool, 'existsInTransactionPool')
+				.returns(true);
 		});
 
 		it('should call the this.existsInTransactionPool', async () => {
@@ -118,20 +115,28 @@ describe('transactionPool', () => {
 		let getTransactionsListStub;
 
 		beforeEach(async () => {
-			getTransactionsListStub = sinonSandbox.stub(transactionPool, 'getTransactionsList').returns([]);
+			getTransactionsListStub = sinonSandbox
+				.stub(transactionPool, 'getTransactionsList')
+				.returns([]);
 		});
 
 		it('should call getTransactionsList with correct params', async () => {
 			const reverse = true;
 			const limit = 10;
 			transactionPool.getUnconfirmedTransactionList(reverse, limit);
-			expect(getTransactionsListStub).to.be.calledWithExactly('ready', reverse, limit);
+			expect(getTransactionsListStub).to.be.calledWithExactly(
+				'ready',
+				reverse,
+				limit
+			);
 		});
 
 		it('should return the value returned by pool.getTransactionsList', async () => {
 			const reverse = true;
 			const limit = 10;
-			expect(transactionPool.getUnconfirmedTransactionList(reverse, limit)).to.eql([]);
+			expect(
+				transactionPool.getUnconfirmedTransactionList(reverse, limit)
+			).to.eql([]);
 		});
 	});
 
@@ -139,20 +144,28 @@ describe('transactionPool', () => {
 		let getTransactionsListStub;
 
 		beforeEach(async () => {
-			getTransactionsListStub = sinonSandbox.stub(transactionPool, 'getTransactionsList').returns([]);
+			getTransactionsListStub = sinonSandbox
+				.stub(transactionPool, 'getTransactionsList')
+				.returns([]);
 		});
 
 		it('should call getTransactionsList with correct params', async () => {
 			const reverse = true;
 			const limit = 10;
 			transactionPool.getBundledTransactionList(reverse, limit);
-			expect(getTransactionsListStub).to.be.calledWithExactly('recieved', reverse, limit);
+			expect(getTransactionsListStub).to.be.calledWithExactly(
+				'recieved',
+				reverse,
+				limit
+			);
 		});
 
 		it('should return the value returned by pool.getTransactionsList', async () => {
 			const reverse = true;
 			const limit = 10;
-			expect(transactionPool.getBundledTransactionList(reverse, limit)).to.eql([]);
+			expect(transactionPool.getBundledTransactionList(reverse, limit)).to.eql(
+				[]
+			);
 		});
 	});
 
@@ -160,20 +173,28 @@ describe('transactionPool', () => {
 		let getTransactionsListStub;
 
 		beforeEach(async () => {
-			getTransactionsListStub = sinonSandbox.stub(transactionPool, 'getTransactionsList').returns([]);
+			getTransactionsListStub = sinonSandbox
+				.stub(transactionPool, 'getTransactionsList')
+				.returns([]);
 		});
 
 		it('should call getTransactionsList with correct params', async () => {
 			const reverse = true;
 			const limit = 10;
 			transactionPool.getQueuedTransactionList(reverse, limit);
-			expect(getTransactionsListStub).to.be.calledWithExactly('verified', reverse, limit);
+			expect(getTransactionsListStub).to.be.calledWithExactly(
+				'verified',
+				reverse,
+				limit
+			);
 		});
 
 		it('should return the value returned by pool.getTransactionsList', async () => {
 			const reverse = true;
 			const limit = 10;
-			expect(transactionPool.getQueuedTransactionList(reverse, limit)).to.eql([]);
+			expect(transactionPool.getQueuedTransactionList(reverse, limit)).to.eql(
+				[]
+			);
 		});
 	});
 
@@ -181,26 +202,36 @@ describe('transactionPool', () => {
 		let getTransactionsListStub;
 
 		beforeEach(async () => {
-			getTransactionsListStub = sinonSandbox.stub(transactionPool, 'getTransactionsList').returns([]);
+			getTransactionsListStub = sinonSandbox
+				.stub(transactionPool, 'getTransactionsList')
+				.returns([]);
 		});
 
 		it('should call getTransactionsList with correct params', async () => {
 			const reverse = true;
 			const limit = 10;
 			transactionPool.getMultisignatureTransactionList(reverse, limit);
-			expect(getTransactionsListStub).to.be.calledWithExactly('pending', reverse, limit);
+			expect(getTransactionsListStub).to.be.calledWithExactly(
+				'pending',
+				reverse,
+				limit
+			);
 		});
 
 		it('should return the value returned by pool.getTransactionsList', async () => {
 			const reverse = true;
 			const limit = 10;
-			expect(transactionPool.getMultisignatureTransactionList(reverse, limit)).to.eql([]);
+			expect(
+				transactionPool.getMultisignatureTransactionList(reverse, limit)
+			).to.eql([]);
 		});
 	});
 
 	describe('getTransactionsList', () => {
 		const queueName = 'testQueue';
-		const dummyTransactionsList = new Array(100).fill(0).map((_, index) => index);
+		const dummyTransactionsList = new Array(100)
+			.fill(0)
+			.map((_, index) => index);
 
 		beforeEach(async () => {
 			transactionPool.pool.queues[queueName] = {
@@ -209,16 +240,22 @@ describe('transactionPool', () => {
 		});
 
 		it('should return transactions from the queue passed as parameter', async () => {
-			expect(transactionPool.getTransactionsList(queueName)).to.eql(dummyTransactionsList);
+			expect(transactionPool.getTransactionsList(queueName)).to.eql(
+				dummyTransactionsList
+			);
 		});
 
 		it('should reverse transactions if reverse parameter is set to true', async () => {
-			expect(transactionPool.getTransactionsList(queueName, true)).to.eql(dummyTransactionsList.reverse());
+			expect(transactionPool.getTransactionsList(queueName, true)).to.eql(
+				dummyTransactionsList.reverse()
+			);
 		});
 
 		it('should limit the transactions returned based on the limit parameter', async () => {
 			const slicedTransactions = dummyTransactionsList.slice(0, 10);
-			expect(transactionPool.getTransactionsList(queueName, false, 10)).to.eql(slicedTransactions);
+			expect(transactionPool.getTransactionsList(queueName, false, 10)).to.eql(
+				slicedTransactions
+			);
 		});
 	});
 
@@ -228,29 +265,50 @@ describe('transactionPool', () => {
 		let getQueuedTransactionListStub;
 
 		beforeEach(async () => {
-			getUnconfirmedTransactionListStub = sinonSandbox.stub(transactionPool, 'getUnconfirmedTransactionList').returns([dummyTransactions[0]]);
-			getMultisignatureTransactionListStub = sinonSandbox.stub(transactionPool, 'getMultisignatureTransactionList').returns([dummyTransactions[1]]);
-			getQueuedTransactionListStub = sinonSandbox.stub(transactionPool, 'getQueuedTransactionList').returns([dummyTransactions[2]]);
+			getUnconfirmedTransactionListStub = sinonSandbox
+				.stub(transactionPool, 'getUnconfirmedTransactionList')
+				.returns([dummyTransactions[0]]);
+			getMultisignatureTransactionListStub = sinonSandbox
+				.stub(transactionPool, 'getMultisignatureTransactionList')
+				.returns([dummyTransactions[1]]);
+			getQueuedTransactionListStub = sinonSandbox
+				.stub(transactionPool, 'getQueuedTransactionList')
+				.returns([dummyTransactions[2]]);
 		});
 
 		it('should get transactions from queues using correct parameters', async () => {
 			transactionPool.getMergedTransactionList(false, MAX_SHARED_TRANSACTIONS);
-			expect(getUnconfirmedTransactionListStub).to.be.calledWithExactly(false, MAX_TRANSACTIONS_PER_BLOCK);
-			expect(getMultisignatureTransactionListStub).to.be.calledWithExactly(false, MAX_TRANSACTIONS_PER_BLOCK);
-			expect(getQueuedTransactionListStub).to.be.calledWithExactly(false, MAX_SHARED_TRANSACTIONS - 2);
+			expect(getUnconfirmedTransactionListStub).to.be.calledWithExactly(
+				false,
+				MAX_TRANSACTIONS_PER_BLOCK
+			);
+			expect(getMultisignatureTransactionListStub).to.be.calledWithExactly(
+				false,
+				MAX_TRANSACTIONS_PER_BLOCK
+			);
+			expect(getQueuedTransactionListStub).to.be.calledWithExactly(
+				false,
+				MAX_SHARED_TRANSACTIONS - 2
+			);
 		});
 
 		it('should return transactions from all the queues', async () => {
-			expect(transactionPool.getMergedTransactionList(false, MAX_SHARED_TRANSACTIONS)).to.eql(dummyTransactions);
+			expect(
+				transactionPool.getMergedTransactionList(false, MAX_SHARED_TRANSACTIONS)
+			).to.eql(dummyTransactions);
 		});
 	});
 
 	describe('addBundledTransaction', () => {
 		it('should call this.pool.addTransaction with tranasction as parameter', done => {
-			const addTransactionStub = sinonSandbox.stub(transactionPool.pool, 'addTransaction').returns({ isFull: false, exists: false, queueName: 'recieved' });
+			const addTransactionStub = sinonSandbox
+				.stub(transactionPool.pool, 'addTransaction')
+				.returns({ isFull: false, exists: false, queueName: 'recieved' });
 			transactionPool.addBundledTransaction(dummyTransactions[0], err => {
 				expect(err).to.not.exist;
-				expect(addTransactionStub).to.be.calledWithExactly(dummyTransactions[0]);
+				expect(addTransactionStub).to.be.calledWithExactly(
+					dummyTransactions[0]
+				);
 				done();
 			});
 		});
@@ -258,21 +316,32 @@ describe('transactionPool', () => {
 
 	describe('addQueuedTransaction', () => {
 		it('should call this.pool.addVerifiedTransaction with tranasction as parameter', async () => {
-			const addVerifiedTransactionStub = sinonSandbox.stub(transactionPool.pool, 'addVerifiedTransaction').returns({ isFull: false, exists: false, queueName: 'verified' });
+			const addVerifiedTransactionStub = sinonSandbox
+				.stub(transactionPool.pool, 'addVerifiedTransaction')
+				.returns({ isFull: false, exists: false, queueName: 'verified' });
 			transactionPool.addVerifiedTransaction(dummyTransactions[0], err => {
 				expect(err).to.not.exist;
-				expect(addVerifiedTransactionStub).to.be.calledWithExactly(dummyTransactions[0]);
+				expect(addVerifiedTransactionStub).to.be.calledWithExactly(
+					dummyTransactions[0]
+				);
 			});
 		});
 	});
 
 	describe('addMultisignatureTransaction', () => {
 		it('should call this.pool.addMultisignatureTransaction with tranasction as parameter', async () => {
-			const addMultisignatureTransactionStub = sinonSandbox.stub(transactionPool.pool, 'addMultisignatureTransaction').returns({ isFull: false, exists: false, queueName: 'pending' });
-			transactionPool.addMultisignatureTransaction(dummyTransactions[0], err => {
-				expect(err).to.not.exist;
-				expect(addMultisignatureTransactionStub).to.be.calledWithExactly(dummyTransactions[0]);
-			});
+			const addMultisignatureTransactionStub = sinonSandbox
+				.stub(transactionPool.pool, 'addPendingTransaction')
+				.returns({ isFull: false, exists: false, queueName: 'pending' });
+			transactionPool.addMultisignatureTransaction(
+				dummyTransactions[0],
+				err => {
+					expect(err).to.not.exist;
+					expect(addMultisignatureTransactionStub).to.be.calledWithExactly(
+						dummyTransactions[0]
+					);
+				}
+			);
 		});
 	});
 
@@ -286,18 +355,29 @@ describe('transactionPool', () => {
 		it('should call the callback with error if the transaction already exists', done => {
 			sinonSandbox.stub(transactionPool, 'transactionInPool').returns(true);
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
-				expect(err).to.equal(`Transaction is already processed: ${transaction.id}`);
+				expect(err).to.equal(
+					`Transaction is already processed: ${transaction.id}`
+				);
 				done();
 			});
 		});
 
 		it('should add transaction to the verified queue when status is OK', done => {
-			const transactionResponse = {
-				status: TransactionStatus.OK,
-				errors: [],
-			};
-			const addVerifiedTransactionStub = sinonSandbox.stub(transactionPool, 'addVerifiedTransaction').callsArg(1);
-			processTransactionsStub.verifyTransactions.resolves({ transactionsResponses: [transactionResponse] });
+			const transactionsResponses = [
+				{
+					status: TransactionStatus.OK,
+					errors: [],
+				},
+			];
+			const addVerifiedTransactionStub = sinonSandbox
+				.stub(transactionPool, 'addVerifiedTransaction')
+				.callsArg(1);
+			processTransactionsStub.checkPersistedTransactions.resolves({
+				transactionsResponses,
+			});
+			processTransactionsStub.verifyTransactions.resolves({
+				transactionsResponses,
+			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
 				expect(addVerifiedTransactionStub).to.be.calledWith(transaction);
 				done();
@@ -305,12 +385,27 @@ describe('transactionPool', () => {
 		});
 
 		it('should add transaction to pending when status is PENDING', done => {
-			const transactionResponse = {
-				status: TransactionStatus.PENDING,
-				errors: [],
-			};
-			const addMultisignatureTransactionStub = sinonSandbox.stub(transactionPool, 'addMultisignatureTransaction').callsArg(1);
-			processTransactionsStub.verifyTransactions.resolves({ transactionsResponses: [transactionResponse] });
+			const transactionsResponses1 = [
+				{
+					status: TransactionStatus.OK,
+					errors: [],
+				},
+			];
+			const transactionsResponses2 = [
+				{
+					status: TransactionStatus.PENDING,
+					errors: [],
+				},
+			];
+			const addMultisignatureTransactionStub = sinonSandbox
+				.stub(transactionPool, 'addMultisignatureTransaction')
+				.callsArg(1);
+			processTransactionsStub.checkPersistedTransactions.resolves({
+				transactionsResponses: transactionsResponses1,
+			});
+			processTransactionsStub.verifyTransactions.resolves({
+				transactionsResponses: transactionsResponses2,
+			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
 				expect(addMultisignatureTransactionStub).to.be.calledWith(transaction);
 				done();
@@ -318,13 +413,26 @@ describe('transactionPool', () => {
 		});
 
 		it('should return error when when status is FAIL', done => {
-			const transactionResponse = {
-				status: TransactionStatus.FAIL,
-				errors: [new Error()],
-			};
-			processTransactionsStub.verifyTransactions.resolves({ transactionsResponses: [transactionResponse] });
+			const transactionsResponses1 = [
+				{
+					status: TransactionStatus.OK,
+					errors: [],
+				},
+			];
+			const transactionsResponses2 = [
+				{
+					status: TransactionStatus.FAIL,
+					errors: [new Error()],
+				},
+			];
+			processTransactionsStub.checkPersistedTransactions.resolves({
+				transactionsResponses: transactionsResponses1,
+			});
+			processTransactionsStub.verifyTransactions.resolves({
+				transactionsResponses: transactionsResponses2,
+			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
-				expect(err).to.eql(transactionResponse.errors);
+				expect(err).to.eql(transactionsResponses2[0].errors);
 				done();
 			});
 		});

@@ -242,10 +242,10 @@ class Block {
 				.join(', ')}`;
 		}
 		try {
-			const transactionResponses = modules.processTransactions.validateTransactions(
-				block.transactions
-			);
-			const invalidTransactionResponse = transactionResponses.find(
+			const {
+				transactionsResponses,
+			} = modules.processTransactions.validateTransactions(block.transactions);
+			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK
 			);

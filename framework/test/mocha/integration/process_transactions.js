@@ -132,7 +132,7 @@ describe('processTransactions', () => {
 					});
 				});
 
-				it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
+				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
 					const { transactionsResponses } = await verifyTransactions(
 						nonVerifiableTransactions
 					);
@@ -141,7 +141,7 @@ describe('processTransactions', () => {
 					});
 				});
 
-				it('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
+				it('should return transactionsResponses with status PENDING for transactions waiting multi-signatures', async () => {
 					const { transactionsResponses } = await verifyTransactions(
 						pendingTransactions
 					);
@@ -173,24 +173,24 @@ describe('processTransactions', () => {
 					expect(stateStore).to.exist;
 				});
 
-				it('should return transactionResponses with status OK for verified transactions', async () => {
-					const { transactionResponses } = await undoTransactions(
+				it('should return transactionsResponses with status OK for verified transactions', async () => {
+					const { transactionsResponses } = await undoTransactions(
 						appliableTransactions
 					);
 
-					transactionResponses.forEach(transactionResponse => {
+					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.OK);
 					});
 				});
 
-				it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
+				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
 					const forge = util.promisify(localCommon.forge);
 					await forge(library);
 
 					const sender = random.account();
 					const recipient = random.account();
 
-					const { transactionResponses } = await undoTransactions([
+					const { transactionsResponses } = await undoTransactions([
 						initTransaction(
 							liskTransactions.transfer({
 								amount: (NORMALIZER * 1000).toString(),
@@ -200,7 +200,7 @@ describe('processTransactions', () => {
 						),
 					]);
 
-					transactionResponses.forEach(transactionResponse => {
+					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
 					});
 				});
@@ -228,7 +228,7 @@ describe('processTransactions', () => {
 					});
 				});
 
-				it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
+				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
 					const { transactionsResponses } = await applyTransactions(
 						nonVerifiableTransactions
 					);
@@ -237,7 +237,7 @@ describe('processTransactions', () => {
 					});
 				});
 
-				it('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
+				it('should return transactionsResponses with status PENDING for transactions waiting multi-signatures', async () => {
 					const { transactionsResponses } = await applyTransactions(
 						pendingTransactions
 					);
