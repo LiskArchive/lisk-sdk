@@ -14,7 +14,7 @@
 
 'use strict';
 
-const ApiError = require('../../../../../../src/modules/http_api/api_error.js');
+const ApiError = require('../../../../../src/modules/http_api/api_error');
 
 describe('helpers/apiError', () => {
 	let apiError;

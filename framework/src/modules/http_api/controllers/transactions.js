@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
 const ApiError = require('../api_error');
-const apiCodes = require('../api_codes.js');
+const apiCodes = require('../api_codes');
 const transactionTypes = require('../helpers/transaction_types');
 
 // Private Fields
