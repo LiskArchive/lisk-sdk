@@ -737,7 +737,7 @@ Transactions.prototype.shared = {
 	 *
 	 * @param {string} type Type of transaction retrieved from transaction pool
 	 * @param {object} filters
-	 * @param {*} cb
+	 * @param {function} cb
 	 */
 	getTransactionsFromPool(type, filters, cb) {
 		const typeMap = {
