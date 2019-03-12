@@ -15,7 +15,7 @@
 
 import { EventEmitter } from 'events';
 import * as querystring from 'querystring';
-import { RPCResponseError } from './errors';
+import { FetchPeerStatusError, RPCResponseError } from './errors';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -713,6 +713,11 @@ export const connectAndFetchPeerInfo = async (
 
 		return { peerInfo, socket };
 	} catch (error) {
-		throw error;
+		throw new FetchPeerStatusError(
+			`Error occurred while fetching information from ${
+				basicPeerInfo.ipAddress
+			}:${basicPeerInfo.wsPort}`,
+			error,
+		);
 	}
 };

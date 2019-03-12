@@ -58,6 +58,13 @@ export class RPCResponseError extends VError {
 	}
 }
 
+export class FetchPeerStatusError extends VError {
+	public constructor(message: string, cause: Error) {
+		super(cause, message);
+		this.name = 'FetchPeerStatusError';
+	}
+}
+
 export class InvalidRPCResponseError extends VError {
 	public constructor(message: string) {
 		super(message);
