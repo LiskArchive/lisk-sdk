@@ -19,6 +19,11 @@ class ChildProcessChannel extends BaseChannel {
 	constructor(moduleAlias, events, actions, options = {}) {
 		super(moduleAlias, events, actions, options);
 		this.localBus = new EventEmitter2();
+
+		process.once('SIGTERM', () => this.cleanup(1));
+		process.once('SIGINT', () => this.cleanup(1));
+		process.once('cleanup', (error, code) => this.cleanup(code, error));
+		process.once('exit', (error, code) => this.cleanup(code, error));
 	}
 
 	async registerBus(socketsPath) {
@@ -43,7 +48,6 @@ class ChildProcessChannel extends BaseChannel {
 				.catch(error => setImmediate(cb, error));
 		});
 
-		this.rpcServer.expose('cleanup', this.cleanup);
 		this.rpcSocket.bind(this.rpcSocketPath);
 
 		return new Promise((resolve, reject) => {

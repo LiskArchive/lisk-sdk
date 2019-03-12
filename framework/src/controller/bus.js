@@ -116,6 +116,7 @@ class Bus extends EventEmitter2 {
 			rpcSocket.connect(options.rpcSocketPath);
 			channel = new RPCClient(rpcSocket);
 		}
+
 		this.channels[moduleAlias] = {
 			channel,
 			actions,
@@ -214,13 +215,6 @@ class Bus extends EventEmitter2 {
 		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
 			this.rpcSocket.close();
 		}
-
-		Object.values(this.channels).forEach(channel => {
-			if (channel.type === 'ipcSocket') {
-				// FIXME: this is not working
-				channel.channel.call('cleanup');
-			}
-		});
 	}
 }
 
