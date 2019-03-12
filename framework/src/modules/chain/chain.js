@@ -219,21 +219,10 @@ module.exports = class Chain {
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),
 			getForgersKeyPairs: async () =>
 				this.scope.modules.delegates.getForgersKeyPairs(),
-			getUnProcessedTransactions: async action =>
-				this.scope.modules.transactions.shared.getUnProcessedTransactions(
-					action.params[0],
-					action.params[1]
-				),
-			getUnconfirmedTransactions: async action =>
-				this.scope.modules.transactions.shared.getUnconfirmedTransactions(
-					action.params[0],
-					action.params[1]
-				),
-			getMultisignatureTransactions: async action =>
-				this.scope.modules.transactions.shared.getMultisignatureTransactions(
-					action.params[0],
-					action.params[1]
-				),
+			getTransactionsFromPool: async action =>
+				promisify(
+					this.scope.modules.transactions.shared.getTransactionsFromPool
+				)(action.params[0], action.params[1]),
 			getLastCommit: async () => this.scope.lastCommit,
 			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
