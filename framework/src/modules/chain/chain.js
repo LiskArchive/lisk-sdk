@@ -190,20 +190,10 @@ module.exports = class Chain {
 				this.blockReward.calcMilestone(action.params[0]),
 			calculateReward: action => this.blockReward.calcReward(action.params[0]),
 			generateDelegateList: action =>
-				new Promise((resolve, reject) => {
-					this.scope.modules.delegates.generateDelegateList(
-						action.params[0],
-						action.params[1],
-						(err, data) => {
-							if (err) {
-								reject(err);
-							}
-
-							resolve(data);
-						},
-						action.params[2]
-					);
-				}),
+				promisify(this.scope.modules.delegates.generateDelegateList)(
+					action.params[0],
+					action.params[1]
+				),
 			getNetworkHeight: async action =>
 				promisify(this.scope.modules.peers.networkHeight)(action.params[0]),
 			getAllTransactionsCount: async () =>
@@ -217,43 +207,27 @@ module.exports = class Chain {
 					action.params[2]
 				),
 			getPeers: async action =>
-				this.scope.modules.peers.shared.getPeers(
-					action.params[0],
-					action.params[1]
-				),
+				promisify(this.scope.modules.peers.shared.getPeers)(action.params[0]),
 			getPeersCountByFilter: async action =>
 				this.scope.modules.peers.shared.getPeersCountByFilter(action.params[0]),
 			postSignature: async action =>
-				this.scope.modules.signatures.shared.postSignature(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.signatures.shared.postSignature)(
+					action.params[0]
 				),
 			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
 			loaderLoaded: async () => this.scope.modules.loader.loaded(),
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),
 			getForgersKeyPairs: async () =>
 				this.scope.modules.delegates.getForgersKeyPairs(),
-			getUnProcessedTransactions: async action =>
-				this.scope.modules.transactions.shared.getUnProcessedTransactions(
-					action.params[0],
-					action.params[1]
-				),
-			getUnconfirmedTransactions: async action =>
-				this.scope.modules.transactions.shared.getUnconfirmedTransactions(
-					action.params[0],
-					action.params[1]
-				),
-			getMultisignatureTransactions: async action =>
-				this.scope.modules.transactions.shared.getMultisignatureTransactions(
-					action.params[0],
-					action.params[1]
-				),
+			getTransactionsFromPool: async action =>
+				promisify(
+					this.scope.modules.transactions.shared.getTransactionsFromPool
+				)(action.params[0], action.params[1]),
 			getLastCommit: async () => this.scope.lastCommit,
 			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
-				this.scope.modules.transactions.shared.postTransaction(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.transactions.shared.postTransaction)(
+					action.params[0]
 				),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
