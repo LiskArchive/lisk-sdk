@@ -280,7 +280,9 @@ export class PeerPool extends EventEmitter {
 					);
 
 					return seedFetchStatusResponse.peerInfo;
-				} catch (err) {
+				} catch (error) {
+					this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+
 					return undefined;
 				}
 			}),
