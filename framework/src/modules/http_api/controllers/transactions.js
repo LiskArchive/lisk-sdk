@@ -18,6 +18,7 @@ const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
 // TODO Reference http_module for api_error.js and remove it from chain module
 const ApiError = require('../../../../src/modules/http_api/helpers/api_error');
+const transactionTypes = require('../helpers/transaction_types');
 
 // Private Fields
 let storage;
@@ -45,8 +46,12 @@ function transactionFormatter(transaction) {
 	result.senderId = result.senderId || '';
 	result.recipientId = result.recipientId || '';
 	result.recipientPublicKey = result.recipientPublicKey || '';
-	result.signSignature = result.signSignature || '';
+	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
+	if (transaction.type === transactionTypes.DELEGATE) {
+		result.asset.delegate.publicKey = result.senderPublicKey;
+		result.asset.delegate.address = result.senderId;
+	}
 
 	return result;
 }
@@ -75,7 +80,7 @@ TransactionsController.getTransactions = async function(context, next) {
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
-		height: params.height.value,
+		blockHeight: params.height.value,
 		timestamp_gte: params.fromTimestamp.value,
 		timestamp_lte: params.toTimestamp.value,
 		amount_gte: params.minAmount.value,

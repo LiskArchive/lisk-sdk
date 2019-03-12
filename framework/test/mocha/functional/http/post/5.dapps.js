@@ -17,7 +17,7 @@
 require('../../functional.js');
 const Promise = require('bluebird');
 const randomstring = require('randomstring');
-const lisk = require('lisk-elements').default;
+const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -39,14 +39,20 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 	const accountNoFunds = randomUtil.account();
 	const accountMinimalFunds = randomUtil.account();
 
+	const specialChar = '❤';
+	const nullChar1 = '\0';
+	const nullChar2 = '\x00';
+	const nullChar3 = '\u0000';
+	const nullChar4 = '\\U00000000';
+
 	// Crediting accounts
 	before(() => {
-		const transaction1 = lisk.transaction.transfer({
-			amount: 1000 * NORMALIZER,
+		const transaction1 = transfer({
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		const transaction2 = lisk.transaction.transfer({
+		const transaction2 = transfer({
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
@@ -68,7 +74,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(() => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.guestbookDapp,
 				});
@@ -92,7 +98,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		describe('category', () => {
 			it('without should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -110,7 +116,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with string should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -128,7 +134,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer less than minimum should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -144,7 +150,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer greater than maximum should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -162,7 +168,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with correct integer should be ok', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -179,7 +185,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				delete application.description;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -191,7 +197,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -212,7 +218,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.description = '';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -228,7 +234,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.description = randomstring.generate({
 					length: 161,
 				});
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -243,6 +249,101 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					badTransactions.push(transaction);
 				});
 			});
+
+			it('with unicode special symbol should be ok', () => {
+				const application = randomUtil.application();
+				application.description = `Lorem ${specialChar} ipsum`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(transaction).then(res => {
+					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+					goodTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar1 should fail', () => {
+				const application = randomUtil.application();
+				application.description = `lorem${nullChar1} ipsum`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application description has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar2 should fail', () => {
+				const application = randomUtil.application();
+				application.description = `lorem${nullChar2} ipsum`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application description has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar3 should fail', () => {
+				const application = randomUtil.application();
+				application.description = `lorem${nullChar3} ipsum`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application description has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar4 should fail', () => {
+				const application = randomUtil.application();
+				application.description = `lorem${nullChar4}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application description has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
 		});
 
 		describe('icon', () => {
@@ -250,7 +351,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				delete application.icon;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -262,7 +363,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -283,7 +384,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.icon = 'invalidUrl';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -301,7 +402,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.icon += '.invalid';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -323,7 +424,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.link = '';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -338,7 +439,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -359,7 +460,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.link += '.invalid';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -376,7 +477,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		describe('name', () => {
 			it('without should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -392,7 +493,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -410,7 +511,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with empty string should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -432,7 +533,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.name = randomstring.generate({
 					length: 33,
 				});
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -447,6 +548,102 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					badTransactions.push(transaction);
 				});
 			});
+
+			it('with unicode special symbol should be ok', () => {
+				const application = randomUtil.application();
+				// Add special charactr insuring the name is unique and isn't longer than maximun length
+				application.name = specialChar + application.name.substring(2);
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(transaction).then(res => {
+					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+					goodTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar1 should fail', () => {
+				const application = randomUtil.application();
+				application.name = `lorem${nullChar1}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application name has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar2 should fail', () => {
+				const application = randomUtil.application();
+				application.name = `lorem${nullChar2}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application name has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar3 should fail', () => {
+				const application = randomUtil.application();
+				application.name = `lorem${nullChar3}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application name has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar4 should fail', () => {
+				const application = randomUtil.application();
+				application.name = `lorem${nullChar4}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application name has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
 		});
 
 		describe('tags', () => {
@@ -454,7 +651,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				delete application.tags;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -466,7 +663,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -487,7 +684,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags = '';
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -503,7 +700,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.tags = randomstring.generate({
 					length: 161,
 				});
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -523,7 +720,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				const application = randomUtil.application();
 				application.tags += `,${randomUtil.applicationName()}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -534,12 +731,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				});
 			});
 
-			it('with duplicate tag should be ok', async () => {
+			it('with duplicate tag should fail', () => {
 				const application = randomUtil.application();
 				const tag = application.tags;
 				application.tags += `,${tag}`;
 
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -554,11 +751,106 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					badTransactions.push(transaction);
 				});
 			});
+
+			it('with unicode special symbol should be ok', () => {
+				const application = randomUtil.application();
+				application.tags += `,${specialChar}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(transaction).then(res => {
+					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+					goodTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar1 should fail', () => {
+				const application = randomUtil.application();
+				application.tags += `,lorem${nullChar1}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application tags has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar2 should fail', () => {
+				const application = randomUtil.application();
+				application.tags += `,lorem${nullChar2}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application tags has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar3 should fail', () => {
+				const application = randomUtil.application();
+				application.tags += `,lorem${nullChar3}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application tags has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
+
+			it('with nullChar4 should fail', () => {
+				const application = randomUtil.application();
+				application.tags += `,lorem${nullChar4}`;
+
+				transaction = createDapp({
+					passphrase: account.passphrase,
+					options: application,
+				});
+
+				return sendTransactionPromise(
+					transaction,
+					errorCodes.PROCESSING_ERROR
+				).then(res => {
+					expect(res.body.message).to.equal(
+						'Application tags has invalid character. Null character is not allowed.'
+					);
+					badTransactions.push(transaction);
+				});
+			});
 		});
 
 		describe('type', () => {
 			it('without should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -574,7 +866,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with negative integer should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -590,7 +882,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer smaller than minimum should fail', async () => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
@@ -608,7 +900,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			it('with integer greater than maximum should fail', async () => {
 				const application = randomUtil.application();
 				application.type = 2;
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: application,
 				});
@@ -628,7 +920,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		it('using registered name should fail', async () => {
 			const dapp = randomUtil.application();
 			dapp.name = randomUtil.guestbookDapp.name;
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: account.passphrase,
 				options: dapp,
 			});
@@ -647,7 +939,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		it('using registered link should fail', async () => {
 			const dapp = randomUtil.application();
 			dapp.link = randomUtil.guestbookDapp.link;
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: account.passphrase,
 				options: dapp,
 			});
@@ -664,7 +956,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		it('with no funds should fail', async () => {
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: accountNoFunds.passphrase,
 				options: randomUtil.application(),
 			});
@@ -683,7 +975,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		it('with minimal funds should be ok', async () => {
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: accountMinimalFunds.passphrase,
 				options: randomUtil.application(),
 			});
@@ -695,7 +987,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		it('with valid params should be ok', async () => {
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: account.passphrase,
 				options: randomUtil.application(),
 			});

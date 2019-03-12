@@ -31,12 +31,12 @@ module.exports = {
 				format: 'amount',
 			},
 			totalFee: {
-				type: 'number',
-				format: 'numAmount',
+				type: 'string',
+				format: 'amount',
 			},
 			reward: {
-				type: 'number',
-				format: 'numAmount',
+				type: 'string',
+				format: 'amount',
 			},
 			payloadHash: {
 				type: 'string',
@@ -103,8 +103,8 @@ module.exports = {
 				format: 'amount',
 			},
 			fee: {
-				type: 'number',
-				format: 'numAmount',
+				type: 'string',
+				format: 'amount',
 			},
 			timestamp: {
 				type: 'integer',

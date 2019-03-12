@@ -68,7 +68,6 @@ module.exports = class ChainModule extends BaseModule {
 			getPeersCountByFilter: async action =>
 				this.chain.actions.getPeersCountByFilter(action),
 			postSignature: async action => this.chain.actions.postSignature(action),
-			storageRead: async action => this.chain.actions.storageRead(action),
 			getLastConsensus: async () => this.chain.actions.getLastConsensus(),
 			loaderLoaded: async () => this.chain.actions.loaderLoaded(),
 			loaderSyncing: async () => this.chain.actions.loaderSyncing(),

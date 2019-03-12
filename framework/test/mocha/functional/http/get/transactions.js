@@ -16,7 +16,10 @@
 
 require('../../functional.js');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types');
 const randomUtil = require('../../../common/utils/random');
@@ -36,31 +39,38 @@ describe('GET /api/transactions', () => {
 	const account = randomUtil.account();
 	const account2 = randomUtil.account();
 	const account3 = accountFixtures.existingDelegate;
+	const accountSecondPass = randomUtil.account();
 	const minAmount = 20 * NORMALIZER; // 20 LSK
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
-	const transaction1 = lisk.transaction.transfer({
-		amount: maxAmount,
+	const transaction1 = transfer({
+		amount: maxAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 		data: 'transaction1',
 	});
-	const transaction2 = lisk.transaction.transfer({
-		amount: minAmount,
+	const transaction2 = transfer({
+		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 		data: 'transaction2 ฿',
 	});
-	const transaction3 = lisk.transaction.transfer({
-		amount: 20 * NORMALIZER, // 20 LSK
+	const transaction3 = transfer({
+		amount: (20 * NORMALIZER).toString(), // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
-		data: '\u0000 hey :)',
+		data: 'hey :)',
 	});
-	const transaction4 = lisk.transaction.transfer({
-		amount: maxAmount,
+	const transaction4 = transfer({
+		amount: maxAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account3.address,
 		data: 'Tx4',
+	});
+	const transaction5 = transfer({
+		amount: minAmount.toString(),
+		passphrase: accountFixtures.genesis.passphrase,
+		recipientId: accountSecondPass.address,
+		data: 'tx 5',
 	});
 	const transactionType5 = {
 		amount: '0',
@@ -126,10 +136,12 @@ describe('GET /api/transactions', () => {
 		const promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
+		promises.push(apiHelpers.sendTransactionPromise(transaction5));
 
 		return Promise.all(promises).then(() => {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
+			transactionList.push(transaction5);
 
 			return waitFor
 				.confirmations(_.map(transactionList, 'id'))
@@ -572,14 +584,22 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using one height should return transactions', async () => {
-				return transactionsEndpoint
-					.makeRequest({ height: 1 }, 200)
-					.then(res => {
-						res.body.data.map(transaction => {
-							return expect(transaction.height).to.be.equal(1);
-						});
-					});
+			it('should filter transactions for a given height', async () => {
+				const { body: { data: [tx] } } = await transactionsEndpoint.makeRequest(
+					{ id: transaction1.id },
+					200
+				);
+				const {
+					body: { data: transactions },
+				} = await transactionsEndpoint.makeRequest({ height: tx.height }, 200);
+
+				const haveSameHeight = transactions.reduce(
+					(acc, curr) => acc && curr.height === tx.height,
+					true
+				);
+
+				expect(transactions).to.not.be.empty;
+				expect(haveSameHeight).to.be.true;
 			});
 		});
 
@@ -675,7 +695,7 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using unicode null characters should return transactions', async () => {
+			it('using unicode null characters should return no transaction', () => {
 				// This case works in Javascripts but not in CURL or POSTMAN
 				const dataFilter = '\u0000 hey :)';
 				return transactionsEndpoint
@@ -686,10 +706,7 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						expect(res.body.data.length).to.greaterThan(0);
-						_.map(res.body.data, transaction => {
-							return expect(transaction.asset.data).to.include(dataFilter);
-						});
+						expect(res.body.data.length).to.eql(0);
 					});
 			});
 
@@ -1017,13 +1034,79 @@ describe('GET /api/transactions', () => {
 			});
 		});
 
+		describe('asset', () => {
+			it('assets for type 2 transactions should contain key username, publicKey and address', () => {
+				return transactionsEndpoint
+					.makeRequest({ type: transactionTypes.DELEGATE, limit: 1 }, 200)
+					.then(res => {
+						expect(res.body.data).to.not.empty;
+						res.body.data.map(transaction => {
+							expect(transaction.asset).to.have.key('delegate');
+							return expect(transaction.asset.delegate).to.have.all.keys(
+								'username',
+								'publicKey',
+								'address'
+							);
+						});
+					});
+			});
+		});
+
+		describe('signature', () => {
+			it('should not show signSignature when empty upon registering second passphrase', async () => {
+				// Prepare
+				const transaction = registerSecondPassphrase({
+					passphrase: accountSecondPass.passphrase,
+					secondPassphrase: accountSecondPass.secondPassphrase,
+				});
+
+				await apiHelpers.sendTransactionPromise(transaction, 200);
+				await waitFor.confirmations([transaction.id]);
+
+				// Act
+				const {
+					body: { data: transactions },
+				} = await transactionsEndpoint.makeRequest(
+					{
+						type: transactionTypes.SIGNATURE,
+						limit: 1,
+						senderPublicKey: accountSecondPass.senderId,
+						sort: 'timestamp:desc',
+					},
+					200
+				);
+				// Assert
+				expect(transactions[0]).to.not.have.property('signSignature');
+			});
+
+			it('should show signSignature whem signing a transfer transaction with second passphrase', async () => {
+				// Prepare
+				const transaction = transfer({
+					amount: '1',
+					passphrase: accountSecondPass.passphrase,
+					secondPassphrase: accountSecondPass.secondPassphrase,
+					recipientId: accountFixtures.existingDelegate.address,
+				});
+
+				await sendTransactionPromise(transaction, 200);
+				await waitFor.confirmations([transaction.id]);
+
+				// Act
+				const {
+					body: { data: transactions },
+				} = await transactionsEndpoint.makeRequest({ id: transaction.id }, 200);
+				// Assert
+				expect(transactions[0].signSignature).to.not.be.empty;
+			});
+		});
+
 		/**
 		 * This tests will fail because type 6 and type 7 transactions got disabled in Lisk Core v1.0
 		 * You can make it pass locally, by changing the value for disableDappTransfer
 		 * in config/default/exceptions to a value bigger than 0
 		 * */
 		/* eslint-disable mocha/no-skipped-tests */
-		describe.skip('assets', () => {
+		describe.skip('dapp', () => {
 			before(() => {
 				return sendTransactionPromise(transaction4) // send type 0 transaction
 					.then(result => {

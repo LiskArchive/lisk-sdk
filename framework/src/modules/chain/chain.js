@@ -240,8 +240,6 @@ module.exports = class Chain {
 					action.params[0],
 					action.params[1]
 				),
-			storageRead: async action =>
-				this.scope.logic.block.storageRead(action.params[0]),
 			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
 			loaderLoaded: async () => this.scope.modules.loader.loaded(),
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),

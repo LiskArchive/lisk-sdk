@@ -20,4 +20,5 @@ module.exports = {
 	Migration: require('./migration'),
 	Peer: require('./peer'),
 	Round: require('./round'),
+	Transaction: require('./transaction'),
 };

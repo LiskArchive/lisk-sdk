@@ -16,7 +16,7 @@
 
 const { NonSupportedFilterTypeError } = require('../errors');
 const filterTypes = require('./filter_types');
-const inputSerializers = require('./inputSerializers');
+const inputSerializers = require('./input_serializers');
 
 function filterGenerator(
 	filterType,
@@ -30,55 +30,85 @@ function filterGenerator(
 	const getValue = filterAlias =>
 		serializer.call(null, null, 'select', filterAlias, fieldName);
 
+	// Allow to use table name as prefix (table.field => "table"."field")
+	const parsedFieldName = fieldName
+		.split('.')
+		.map(value => `"${value}"`)
+		.join('.');
+
 	switch (filterType) {
 		case filterTypes.BOOLEAN:
-			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+			filters[alias] = `${parsedFieldName} = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `${parsedFieldName} = ${getValue(
+				`${alias}_eql`
+			)}`;
+			filters[`${alias}_ne`] = `${parsedFieldName} <> ${getValue(
+				`${alias}_ne`
+			)}`;
 			break;
 
 		case filterTypes.TEXT:
-			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+			filters[alias] = `${parsedFieldName} = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `${parsedFieldName} = ${getValue(
+				`${alias}_eql`
+			)}`;
+			filters[`${alias}_ne`] = `${parsedFieldName} <> ${getValue(
+				`${alias}_ne`
+			)}`;
 
-			filters[`${alias}_in`] = `"${fieldName}" IN ($\{${alias}_in:csv})`;
-			filters[`${alias}_like`] = `"${fieldName}" LIKE ($\{${alias}_like})`;
+			filters[`${alias}_in`] = `${parsedFieldName} IN ($\{${alias}_in:csv})`;
+			filters[`${alias}_like`] = `${parsedFieldName} LIKE ($\{${alias}_like})`;
 			break;
 
 		case filterTypes.BINARY:
-			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+			filters[alias] = `${parsedFieldName} = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `${parsedFieldName} = ${getValue(
+				`${alias}_eql`
+			)}`;
+			filters[`${alias}_ne`] = `${parsedFieldName} <> ${getValue(
+				`${alias}_ne`
+			)}`;
 
 			filters[
 				`${alias}_in`
-			] = `ENCODE("${fieldName}", 'hex') IN ($\{${alias}_in:csv})`;
-			filters[`${alias}_like`] = `"${fieldName}" LIKE ($\{${alias}_like})`;
+			] = `ENCODE(${parsedFieldName}, 'hex') IN ($\{${alias}_in:csv})`;
+			filters[`${alias}_like`] = `${parsedFieldName} LIKE ($\{${alias}_like})`;
 			break;
 
 		case filterTypes.NUMBER:
-			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
+			filters[alias] = `${parsedFieldName} = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `${parsedFieldName} = ${getValue(
+				`${alias}_eql`
+			)}`;
+			filters[`${alias}_ne`] = `${parsedFieldName} <> ${getValue(
+				`${alias}_ne`
+			)}`;
 
-			filters[`${alias}_gt`] = `"${fieldName}" > ${getValue(`${alias}_gt`)}`;
-			filters[`${alias}_gte`] = `"${fieldName}" >= ${getValue(`${alias}_gte`)}`;
-			filters[`${alias}_lt`] = `"${fieldName}" < ${getValue(`${alias}_lt`)}`;
-			filters[`${alias}_lte`] = `"${fieldName}" <= ${getValue(`${alias}_lte`)}`;
-			filters[`${alias}_in`] = `"${fieldName}" IN ($\{${alias}_in:csv})`;
+			filters[`${alias}_gt`] = `${parsedFieldName} > ${getValue(
+				`${alias}_gt`
+			)}`;
+			filters[`${alias}_gte`] = `${parsedFieldName} >= ${getValue(
+				`${alias}_gte`
+			)}`;
+			filters[`${alias}_lt`] = `${parsedFieldName} < ${getValue(
+				`${alias}_lt`
+			)}`;
+			filters[`${alias}_lte`] = `${parsedFieldName} <= ${getValue(
+				`${alias}_lte`
+			)}`;
+			filters[`${alias}_in`] = `${parsedFieldName} IN ($\{${alias}_in:csv})`;
 			break;
 
 		case filterTypes.CUSTOM:
 			if (condition) {
 				filters[alias] = condition;
 			} else {
-				filters[alias] = `"${fieldName}" = ${serializer.call(
+				filters[alias] = `${parsedFieldName} = ${serializer.call(
 					null,
 					null,
 					'select',
 					alias,
-					fieldName
+					parsedFieldName
 				)}`;
 			}
 			break;
