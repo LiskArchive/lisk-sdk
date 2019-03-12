@@ -17,7 +17,6 @@
 const pool = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 
-let modules;
 const {
 	EXPIRY_INTERVAL,
 	MAX_TRANSACTIONS_PER_BLOCK,
@@ -52,6 +51,31 @@ const pendingQueue = 'pending';
 const verifiedQueue = 'verified';
 const readyQueue = 'ready';
 
+const composeProcessTransactionSteps = (step1, step2) => async transactions => {
+	const step1Response = await step1(transactions);
+	const step1FailedTransactionsResponses = step1Response.transactionsResponses.filter(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
+
+	const step1PassedTransactionIds = step1Response.transactionsResponses
+		.filter(
+			transactionResponse => transactionResponse.status === TransactionStatus.OK
+		)
+		.map(transactionResponse => transactionResponse.id);
+	const step1PassedTransactions = transactions.filter(transaction =>
+		step1PassedTransactionIds.includes(transaction.id)
+	);
+
+	const step2Response = await step2(step1PassedTransactions);
+	return {
+		...step2Response,
+		transactionsResponses: [
+			...step2Response.transactionsResponses,
+			...step1FailedTransactionsResponses,
+		],
+	};
+};
+
 /**
  * Transaction pool logic. Initializes variables,
  *
@@ -81,9 +105,15 @@ class TransactionPool {
 	 * @param {Transactions} processTransactions - Transactions processing module instance
 	 */
 	bind(processTransactions) {
-		modules = {
-			processTransactions,
-		};
+		this.validateTransactions = processTransactions.validateTransactions;
+		this.verifyTransactions = composeProcessTransactionSteps(
+			processTransactions.checkPersistedTransactions,
+			processTransactions.verifyTransactions
+		);
+		this.processTransactions = composeProcessTransactionSteps(
+			processTransactions.checkPersistedTransactions,
+			processTransactions.applyTransactions
+		);
 
 		const poolConfig = {
 			expireTransactionsInterval: this.expiryInterval,
@@ -98,10 +128,9 @@ class TransactionPool {
 		};
 
 		const poolDependencies = {
-			validateTransactions: processTransactions.validateTransactions,
-			verifyTransactions: processTransactions.verifyTransactions,
-			processTransactions: transactions =>
-				processTransactions.applyTransactions(transactions),
+			validateTransactions: this.validateTransactions,
+			verifyTransactions: this.verifyTransactions,
+			processTransactions: this.processTransactions,
 		};
 
 		this.pool = new pool.TransactionPool({
@@ -244,7 +273,7 @@ class TransactionPool {
 
 	addMultisignatureTransaction(transaction, cb) {
 		return wrapAddTransactionResponseInCb(
-			this.pool.addMultisignatureTransaction(transaction),
+			this.pool.addPendingTransaction(transaction),
 			cb,
 			transaction
 		);
@@ -257,9 +286,8 @@ class TransactionPool {
 				`Transaction is already processed: ${transaction.id}`
 			);
 		}
-		return modules.processTransactions
-			.verifyTransactions([transaction])
-			.then(({ transactionsResponses }) => {
+		return this.verifyTransactions([transaction]).then(
+			({ transactionsResponses }) => {
 				if (transactionsResponses[0].status === TransactionStatus.OK) {
 					return this.addVerifiedTransaction(transaction, cb);
 				}
@@ -267,7 +295,8 @@ class TransactionPool {
 					return this.addMultisignatureTransaction(transaction, cb);
 				}
 				return cb(transactionsResponses[0].errors);
-			});
+			}
+		);
 	}
 
 	onConfirmedTransactions(transactions) {
