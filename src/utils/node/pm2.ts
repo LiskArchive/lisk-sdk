@@ -1,6 +1,7 @@
 import * as path from 'path';
 import {
 	connect,
+	delete as del,
 	describe,
 	disconnect,
 	list,
@@ -9,6 +10,10 @@ import {
 	start,
 	stop,
 } from 'pm2';
+
+export interface Pm2Env {
+	readonly pm_cwd: string;
+}
 
 const connectPM2 = async (): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
@@ -62,7 +67,7 @@ const startPM2 = async (
 const restartPM2 = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		restart(process, err => {
-			if (err) {
+			if (err && err.message !== 'process name not found') {
 				reject();
 
 				return;
@@ -74,7 +79,7 @@ const restartPM2 = async (process: string | number): Promise<void> =>
 const stopPM2 = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		stop(process, err => {
-			if (err) {
+			if (err && err.message !== 'process name not found') {
 				reject();
 
 				return;
@@ -88,7 +93,7 @@ const describePM2 = async (
 ): Promise<ProcessDescription> =>
 	new Promise<ProcessDescription>((resolve, reject) => {
 		describe(process, (err, descs) => {
-			if (err) {
+			if (err && err.message !== 'process name not found') {
 				reject(err);
 
 				return;
@@ -115,6 +120,20 @@ const listPM2 = async (): Promise<ReadonlyArray<ProcessDescription>> =>
 		});
 	});
 
+const deleteProcess = async (process: string | number): Promise<void> =>
+	new Promise<void>((resolve, reject) => {
+		del(process, err => {
+			if (err) {
+				reject(err);
+
+				return;
+			}
+			resolve();
+
+			return;
+		});
+	});
+
 export const registerApplication = async (
 	installPath: string,
 	network: string,
@@ -123,6 +142,12 @@ export const registerApplication = async (
 	await connectPM2();
 	await startPM2(installPath, network, name);
 	await stopPM2(name);
+	disconnect();
+};
+
+export const unRegisterApplication = async (name: string): Promise<void> => {
+	await connectPM2();
+	await deleteProcess(name);
 	disconnect();
 };
 

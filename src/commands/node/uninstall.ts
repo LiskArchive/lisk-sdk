@@ -14,20 +14,29 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
-import BaseCommand from '../../../base';
-import { NETWORK } from '../../../utils/constants';
-import { flags as commonFlags } from '../../../utils/flags';
-import { restartApplication } from '../../../utils/node/pm2';
-import CacheCommand, { Flags } from './cache';
-import DatabaseCommand from './database';
+import BaseCommand from '../../base';
+import { NETWORK } from '../../utils/constants';
+import { flags as commonFlags } from '../../utils/flags';
+import {
+	describeApplication,
+	Pm2Env,
+	unRegisterApplication,
+} from '../../utils/node/pm2';
+import StopCommand from './stop';
 
-export default class StartCommand extends BaseCommand {
-	static description = 'Start Lisk Core';
+interface Flags {
+	readonly name: string;
+	readonly network: NETWORK;
+}
+
+export default class UnInstallCommand extends BaseCommand {
+	static description = 'UnInstall Lisk Core';
 
 	static examples = [
-		'node:start --name=mainnet_1.6',
-		'node:start --network=testnet --name=testnet_1.6',
+		'node:uninstall --name=mainnet_1.6',
+		'node:uninstall --network=testnet --name=testnet_1.6',
 	];
 
 	static flags = {
@@ -44,33 +53,32 @@ export default class StartCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(StartCommand);
+		const { flags } = this.parse(UnInstallCommand);
 		const { network, name } = flags as Flags;
+		const { pm2_env } = await describeApplication(name);
+		const { pm_cwd: installDir } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Core',
+				title: `UnInstall Lisk Core ${network} Installed as ${name}`,
 				task: () =>
 					new Listr([
 						{
-							title: 'Cache',
+							title: 'Stop Services',
 							task: async () =>
-								CacheCommand.run(['--network', network, '--name', name]),
+								StopCommand.run(['--network', network, '--name', name]),
 						},
 						{
-							title: 'Database',
-							task: async () =>
-								DatabaseCommand.run(['--network', network, '--name', name]),
-						},
-						{
-							title: 'Lisk Core',
+							title: 'Remove Process and Directory',
 							task: async () => {
-								await restartApplication(name);
+								await unRegisterApplication(name);
+								fsExtra.removeSync(installDir);
 							},
 						},
 					]),
 			},
 		]);
+
 		await tasks.run();
 	}
 }

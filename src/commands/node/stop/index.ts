@@ -18,7 +18,6 @@ import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
-import { defaultInstallationPath } from '../../../utils/node/config';
 import { stopApplication } from '../../../utils/node/pm2';
 import CacheCommand, { Flags } from './cache';
 import DatabaseCommand from './database';
@@ -27,9 +26,8 @@ export default class StopCommand extends BaseCommand {
 	static description = 'Stop Lisk Core';
 
 	static examples = [
-		'node:stop',
-		'node:stop --network=testnet',
-		'node:stop --installation-path=/opt/lisk/lisk-testnet --network=testnet',
+		'node:stop --name=mainnet_1.6',
+		'node:stop --network=testnet --name=testnet_1.6',
 	];
 
 	static flags = {
@@ -39,10 +37,6 @@ export default class StopCommand extends BaseCommand {
 			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
-		installationPath: flagParser.string({
-			...commonFlags.installationPath,
-			default: defaultInstallationPath,
-		}),
 		name: flagParser.string({
 			...commonFlags.name,
 			default: NETWORK.MAINNET,
@@ -51,7 +45,7 @@ export default class StopCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(StopCommand);
-		const { network, installationPath, name } = flags as Flags;
+		const { network, name } = flags as Flags;
 
 		const tasks = new Listr([
 			{
@@ -61,26 +55,12 @@ export default class StopCommand extends BaseCommand {
 						{
 							title: 'Cache',
 							task: async () =>
-								CacheCommand.run([
-									'--network',
-									network,
-									'--installationPath',
-									installationPath,
-									'--name',
-									name,
-								]),
+								CacheCommand.run(['--network', network, '--name', name]),
 						},
 						{
 							title: 'Database',
 							task: async () =>
-								DatabaseCommand.run([
-									'--network',
-									network,
-									'--installationPath',
-									installationPath,
-									'--name',
-									name,
-								]),
+								DatabaseCommand.run(['--network', network, '--name', name]),
 						},
 						{
 							title: 'Lisk Core',

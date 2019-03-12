@@ -18,12 +18,10 @@ import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
-import { installDirectory } from '../../../utils/node/commons';
-import { defaultInstallationPath } from '../../../utils/node/config';
 import { startDatabase } from '../../../utils/node/database';
+import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
 
 export interface Flags {
-	readonly installationPath: string;
 	readonly name: string;
 	readonly network: NETWORK;
 	readonly 'no-snapshot': boolean;
@@ -33,10 +31,8 @@ export default class DatabaseCommand extends BaseCommand {
 	static description = 'Start Lisk Core Database';
 
 	static examples = [
-		'node:start:database',
-		'node:start:database --no-snapshot',
-		'node:start:database --network=testnet',
-		'node:start:database --installation-path=/opt/lisk/lisk-testnet --network=testnet',
+		'node:start:database --name=mainnet_1.6',
+		'node:start:database --network=testnet --name=testnet_1.6',
 	];
 
 	static flags = {
@@ -45,10 +41,6 @@ export default class DatabaseCommand extends BaseCommand {
 			...commonFlags.network,
 			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
-		}),
-		installationPath: flagParser.string({
-			...commonFlags.installationPath,
-			default: defaultInstallationPath,
 		}),
 		name: flagParser.string({
 			...commonFlags.name,
@@ -63,8 +55,9 @@ export default class DatabaseCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(DatabaseCommand);
-		const { installationPath, name } = flags as Flags;
-		const installDir = installDirectory(installationPath, name);
+		const { name } = flags as Flags;
+		const { pm2_env } = await describeApplication(name);
+		const { pm_cwd: installDir } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{

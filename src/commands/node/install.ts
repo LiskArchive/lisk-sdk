@@ -103,9 +103,9 @@ export default class InstallCommand extends BaseCommand {
 	static description = 'Install Lisk Core';
 
 	static examples = [
-		'node:install',
-		'node:install --installation-path=/opt/lisk/lisk-testnet --network=testnet',
-		'node:install --no-snapshot',
+		'node:install --name=mainnet-1.6',
+		'node:install --network=testnet --name=testnet-1.6',
+		'node:install --network=betanet --name=betanet-2.0 --no-snapshot',
 	];
 
 	static flags = {

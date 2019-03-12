@@ -19,14 +19,10 @@ import BaseCommand from '../../../base';
 import { NETWORK } from '../../../utils/constants';
 import { flags as commonFlags } from '../../../utils/flags';
 import { isCacheRunning, stopCache } from '../../../utils/node/cache';
-import { installDirectory } from '../../../utils/node/commons';
-import {
-	defaultInstallationPath,
-	isCacheEnabled,
-} from '../../../utils/node/config';
+import { isCacheEnabled } from '../../../utils/node/config';
+import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
 
 export interface Flags {
-	readonly installationPath: string;
 	readonly name: string;
 	readonly network: NETWORK;
 }
@@ -35,9 +31,8 @@ export default class CacheCommand extends BaseCommand {
 	static description = 'Stop Lisk Core Cache';
 
 	static examples = [
-		'node:stop:cache',
-		'node:stop:cache --network=testnet',
-		'node:stop:cache --installation-path=/opt/lisk/lisk-testnet --network=testnet',
+		'node:stop:cache --name=mainnet_1.6',
+		'node:stop:cache --network=testnet --name=testnet_1.6',
 	];
 
 	static flags = {
@@ -47,10 +42,6 @@ export default class CacheCommand extends BaseCommand {
 			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
-		installationPath: flagParser.string({
-			...commonFlags.installationPath,
-			default: defaultInstallationPath,
-		}),
 		name: flagParser.string({
 			...commonFlags.name,
 			default: NETWORK.MAINNET,
@@ -59,8 +50,9 @@ export default class CacheCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(CacheCommand);
-		const { network, installationPath, name } = flags as Flags;
-		const installDir = installDirectory(installationPath, name);
+		const { network, name } = flags as Flags;
+		const { pm2_env } = await describeApplication(name);
+		const { pm_cwd: installDir } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{
