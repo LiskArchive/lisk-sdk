@@ -62,6 +62,34 @@ describe('Application', () => {
 			expect(global.constants).toBe(params.constants);
 		});
 
+		it('should load applicationSchema', () => {
+			// Act
+			// eslint-disable-next-line no-unused-vars
+			const app = new Application(
+				params.label,
+				params.genesisBlock,
+				params.constants,
+				params.config
+			);
+
+			// Assert
+			expect(validator.loadSchema).toHaveBeenCalledWith(applicationSchema);
+		});
+
+		it('should load constantsSchema', () => {
+			// Act
+			// eslint-disable-next-line no-unused-vars
+			const app = new Application(
+				params.label,
+				params.genesisBlock,
+				params.constants,
+				params.config
+			);
+
+			// Assert
+			expect(validator.loadSchema).toHaveBeenCalledWith(constantsSchema);
+		});
+
 		it('should validate constructor arguments', () => {
 			// Act
 			// eslint-disable-next-line no-unused-vars
