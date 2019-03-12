@@ -224,8 +224,9 @@ export class DelegateTransaction extends BaseTransaction {
 		}
 		const updatedSender = {
 			...sender,
-			isDelegate: true,
 			username: this.asset.delegate.username,
+			vote: 0,
+			isDelegate: 1,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -235,7 +236,14 @@ export class DelegateTransaction extends BaseTransaction {
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const sender = store.account.get(this.senderId);
 		const { username, ...strippedSender } = sender;
-		store.account.set(strippedSender.address, strippedSender);
+		const resetSender = {
+			...sender,
+			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
+			username: null,
+			vote: 0,
+			isDelegate: 0,
+		};
+		store.account.set(strippedSender.address, resetSender);
 
 		return [];
 	}
