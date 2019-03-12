@@ -393,7 +393,12 @@ describe('Multisignature transaction class', () => {
 			);
 			expect(storeAccountSetStub).to.be.calledWithExactly(
 				multisignatureSender.address,
-				nonMultisignatureSender,
+				{
+					...nonMultisignatureAccount,
+					membersPublicKeys: [],
+					multiLifetime: 0,
+					multiMin: 0,
+				},
 			);
 		});
 

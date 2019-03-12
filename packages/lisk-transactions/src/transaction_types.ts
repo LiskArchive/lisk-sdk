@@ -24,9 +24,10 @@ export interface Account {
 	readonly membersPublicKeys?: ReadonlyArray<string>;
 	readonly multiMin?: number;
 	readonly multiLifetime?: number;
-	readonly username?: string;
+	readonly username?: string | null;
 	readonly votedDelegatesPublicKeys?: ReadonlyArray<string>;
-	readonly isDelegate?: boolean;
+	readonly isDelegate?: number;
+	readonly vote?: number;
 }
 
 export interface Delegate {

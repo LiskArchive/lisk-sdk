@@ -320,14 +320,14 @@ export class MultisignatureTransaction extends BaseTransaction {
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const sender = store.account.get(this.senderId);
 
-		const {
-			membersPublicKeys,
-			multiMin,
-			multiLifetime,
-			...strippedSender
-		} = sender;
+		const resetSender = {
+			...sender,
+			membersPublicKeys: [],
+			multiMin: 0,
+			multiLifetime: 0,
+		};
 
-		store.account.set(strippedSender.address, strippedSender);
+		store.account.set(resetSender.address, resetSender);
 
 		return [];
 	}
