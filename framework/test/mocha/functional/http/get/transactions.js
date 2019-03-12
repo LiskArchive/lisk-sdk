@@ -357,6 +357,23 @@ describe('GET /api/transactions', () => {
 						});
 					});
 			});
+
+			describe('asset field', () => {
+				it('using type 0 should return asset field', async () => {
+					return transactionsEndpoint
+						.makeRequest({ type: transactionTypes.SEND }, 200)
+						.then(res => {
+							expect(res.body.data).to.not.empty;
+
+							res.body.data.map(transaction => {
+								expect(transaction).to.have.property('asset');
+								return expect(
+									Object.keys(transaction.asset).length
+								).to.be.below(2);
+							});
+						});
+				});
+			});
 		});
 
 		describe('senderId', () => {
