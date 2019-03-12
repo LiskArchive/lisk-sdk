@@ -13,12 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Listr from 'listr';
 import BaseCommand from '../../base';
 import { listApplication, Pm2Env } from '../../utils/node/pm2';
 
 export default class ListCommand extends BaseCommand {
-	static description = 'List Lisk Core';
+	static description = 'List Installed Lisk Core Instances';
 
 	static examples = ['node:list'];
 
@@ -27,34 +26,19 @@ export default class ListCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		this.parse(ListCommand);
+		const apps = await listApplication();
+		this.print(
+			apps.map(app => {
+				const { name, pm2_env } = app;
+				const { status, pm_uptime, unstable_restarts } = pm2_env as Pm2Env;
 
-		const tasks = new Listr([
-			{
-				title: 'Lisk Core Instances',
-				task: async () => {
-					const apps = await listApplication();
-					this.print(
-						apps.map(app => {
-							const { name, pm2_env } = app;
-							const {
-								status,
-								pm_uptime,
-								unstable_restarts,
-							} = pm2_env as Pm2Env;
-
-							return {
-								name,
-								status,
-								uptime: new Date(pm_uptime).toISOString(),
-								restart_count: unstable_restarts,
-							};
-						}),
-					);
-				},
-			},
-		]);
-
-		await tasks.run();
+				return {
+					name,
+					status,
+					uptime: new Date(pm_uptime).toISOString(),
+					restart_count: unstable_restarts,
+				};
+			}),
+		);
 	}
 }

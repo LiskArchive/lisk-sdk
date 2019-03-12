@@ -14,7 +14,6 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import Listr from 'listr';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
 import { flags as commonFlags } from '../../utils/flags';
@@ -25,7 +24,7 @@ interface Flags {
 }
 
 export default class StatusCommand extends BaseCommand {
-	static description = 'Lisk Core Instance Status';
+	static description = 'Status of Lisk Core Instance';
 
 	static examples = ['node:status --name=testnet-1.6'];
 
@@ -41,26 +40,13 @@ export default class StatusCommand extends BaseCommand {
 		const { flags } = this.parse(StatusCommand);
 		const { name } = flags as Flags;
 
-		const tasks = new Listr([
-			{
-				title: 'Lisk Core Instance Status',
-				task: async () => {
-					const appInfo = await describeApplication(name);
-					const {
-						status,
-						pm_uptime,
-						unstable_restarts,
-					} = appInfo.pm2_env as Pm2Env;
+		const appInfo = await describeApplication(name);
+		const { status, pm_uptime, unstable_restarts } = appInfo.pm2_env as Pm2Env;
 
-					this.print({
-						status,
-						uptime: new Date(pm_uptime).toISOString(),
-						restart_count: unstable_restarts,
-					});
-				},
-			},
-		]);
-
-		await tasks.run();
+		this.print({
+			status,
+			uptime: new Date(pm_uptime).toISOString(),
+			restart_count: unstable_restarts,
+		});
 	}
 }
