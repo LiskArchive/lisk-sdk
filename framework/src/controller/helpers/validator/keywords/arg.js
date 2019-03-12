@@ -1,6 +1,4 @@
 const debug = require('debug')('lisk:validator:arg');
-const commandLineArguments = require('yargs').argv;
-const _ = require('lodash');
 const formatters = require('./formatters');
 
 const metaSchema = {
@@ -28,22 +26,6 @@ const metaSchema = {
 	],
 };
 
-const extractArgsNames = arg => {
-	const args = arg.split(',');
-	if (args.length === 1) {
-		const option = _.camelCase(args[0]);
-		return [option];
-	}
-
-	if (args.length === 2) {
-		const option = _.camelCase(args[0]);
-		const alias = _.camelCase(args[1]);
-		return [option, alias];
-	}
-
-	return [];
-};
-
 const compile = (schema, parentSchema) => {
 	debug('compile: schema: %j', schema);
 	debug('compile: parent schema: %j', parentSchema);
@@ -51,16 +33,19 @@ const compile = (schema, parentSchema) => {
 	let argsFormatter;
 
 	if (typeof schema === 'string') {
-		argNames = extractArgsNames(schema);
+		argNames = schema.split(',');
 		argsFormatter = null;
 	} else if (Array.isArray(schema)) {
-		argNames = extractArgsNames(schema[0]);
+		argNames = schema[0].split(',');
 		argsFormatter = formatters[schema[1]] || null;
 	}
+
+	argNames = argNames || [];
 
 	return function(data, dataPath, object, key) {
 		let argValue;
 
+		const commandLineArguments = _reduceProcessArgvArray();
 		argNames.forEach(argName => {
 			if (!argValue) {
 				argValue = commandLineArguments[argName] || undefined;
@@ -72,6 +57,23 @@ const compile = (schema, parentSchema) => {
 		}
 	};
 };
+
+/**
+ * First two argv elements are always the same and we can skip them:
+ * 0 - Node interpreter path
+ * 1 - application entry file
+ * The following arguments match into aggregated map.
+ * For instance array ["-n", "testnet", "-c", "config.json"]
+ * is converted into {"-n": "testnet", "-c", "config.json"}
+ * @private
+ */
+const _reduceProcessArgvArray = () =>
+	process.argv.slice(2).reduce((argvAsMap, argvElement, index, argvArray) => {
+		if (index % 2 === 1) {
+			argvAsMap[argvArray[index - 1]] = argvElement;
+		}
+		return argvAsMap;
+	}, {});
 
 const envKeyword = {
 	compile,
