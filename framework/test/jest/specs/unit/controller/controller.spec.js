@@ -74,9 +74,6 @@ describe('Controller Class', () => {
 			expect(spies._loadModules)
 				.toHaveBeenCalledAfter(spies._setupBus)
 				.toHaveBeenCalledWith(modules);
-
-			// Clean up
-			Object.keys(spies).forEach(key => spies[key].mockRestore());
 		});
 
 		// #region TODO channel.publish('lisk:ready')
@@ -108,9 +105,6 @@ describe('Controller Class', () => {
 
 				// Assert
 				expect(spies.channelPublish).toHaveBeenCalledWith('lisk:ready');
-
-				// Clean up
-				Object.keys(spies).forEach(key => spies[key].mockRestore());
 			}
 		*/
 		);
@@ -220,9 +214,6 @@ describe('Controller Class', () => {
 					modules[alias].options
 				);
 			});
-
-			// Clean up
-			Object.keys(spies).forEach(key => spies[key].mockRestore());
 		});
 	});
 
