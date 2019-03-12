@@ -283,7 +283,7 @@ describe('loader', () => {
 				swagger: { definitions: null },
 			};
 			RewiredLoader = rewire(
-				'../../../../../../src/modules/chain/modules/loader.js'
+				'../../../../../../src/modules/chain/submodules/loader.js'
 			);
 			__privateVar = RewiredLoader.__get__('__private');
 			RewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());

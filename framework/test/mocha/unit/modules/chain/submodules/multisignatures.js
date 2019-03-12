@@ -22,7 +22,7 @@ const ApiError = require('../../../../../../src/modules/chain/helpers/api_error'
 const errorCodes = require('../../../../../../src/modules/chain/helpers/api_codes');
 
 const RewiredMultisignatures = rewire(
-	'../../../../../../src/modules/chain/modules/multisignatures.js'
+	'../../../../../../src/modules/chain/submodules/multisignatures.js'
 );
 
 const validAccount = new accountsFixtures.Account();

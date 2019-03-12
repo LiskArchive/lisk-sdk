@@ -21,7 +21,9 @@ const random = require('../../../../common/utils/random.js');
 const accountFixtures = require('../../../../fixtures/accounts');
 
 // Instantiate test subject
-const Rounds = rewire('../../../../../../src/modules/chain/modules/rounds.js');
+const Rounds = rewire(
+	'../../../../../../src/modules/chain/submodules/rounds.js'
+);
 const Round = rewire('../../../../../../src/modules/chain/logic/round.js'); // eslint-disable-line no-unused-vars
 const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
