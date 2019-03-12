@@ -128,16 +128,16 @@ function parseBlockFromDatabase(raw) {
 		height: parseInt(raw.height),
 		previousBlock: raw.previousBlockId,
 		numberOfTransactions: parseInt(raw.numberOfTransactions),
-		totalAmount: new Bignumber(raw.totalAmount).toString(),
-		totalFee: new Bignumber(raw.totalFee).toString(),
-		reward: new Bignumber(raw.reward).toString(),
+		totalAmount: new Bignumber(raw.totalAmount).toFixed(),
+		totalFee: new Bignumber(raw.totalFee).toFixed(),
+		reward: new Bignumber(raw.reward).toFixed(),
 		payloadLength: parseInt(raw.payloadLength),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
 		generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
 		confirmations: parseInt(raw.confirmations),
-		totalForged: new Bignumber(raw.totalFee).plus(raw.reward).toString(),
+		totalForged: new Bignumber(raw.totalFee).plus(raw.reward).toFixed(),
 	};
 
 	if (raw.transactions) {

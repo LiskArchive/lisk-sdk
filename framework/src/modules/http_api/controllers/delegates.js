@@ -271,16 +271,16 @@ async function _getForgingStatistics(filters) {
 		return {
 			rewards: account.rewards,
 			fees: account.fees,
-			count: new Bignumber(account.producedBlocks).toString(),
+			count: new Bignumber(account.producedBlocks).toFixed(),
 			forged: new Bignumber(account.rewards)
 				.plus(new Bignumber(account.fees))
-				.toString(),
+				.toFixed(),
 		};
 	}
 	const reward = await _aggregateBlocksReward(filters);
 	reward.forged = new Bignumber(reward.fees)
 		.plus(new Bignumber(reward.rewards))
-		.toString();
+		.toFixed();
 
 	return reward;
 }
