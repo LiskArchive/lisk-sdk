@@ -41,7 +41,6 @@ __private.assetTypes = {};
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires helpers/sort_by
  * @requires helpers/transaction_types
  * @requires logic/dapp
  * @requires helpers/in_transfer

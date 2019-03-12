@@ -294,6 +294,7 @@ describe('transactions', () => {
 							result.delegateModule,
 							result.accountsModule
 						);
+
 						done();
 					}
 				);
@@ -310,6 +311,106 @@ describe('transactions', () => {
 	afterEach(() => sinonSandbox.restore());
 
 	describe('Transaction', () => {
+		describe('SortBy', () => {
+			const validSortFieldsArray = [
+				'address',
+				'balance',
+				'username',
+				'publicKey',
+			];
+
+			describe('when given as string', () => {
+				it('should return empty object when sort is empty string', async () =>
+					expect(transactionsModule.sortBy('')).to.eql({
+						sortField: '',
+						sortMethod: '',
+					}));
+
+				it('should return ASC as default sort type if only key is provided', async () =>
+					expect(transactionsModule.sortBy('address')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+
+				it('should return ASC as default sort type if sort type is missing', async () =>
+					expect(transactionsModule.sortBy('address:')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+
+				it('should return error if sort key not present in options.sortFields', async () =>
+					expect(
+						transactionsModule.sortBy('unknownField', {
+							sortFields: validSortFieldsArray,
+						})
+					).to.eql({ error: 'Invalid sort field' }));
+
+				it('should return valid sort object if provided with sort:asc', async () =>
+					expect(transactionsModule.sortBy('address:asc')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+
+				it('should return valid sort object if provided with sort:desc', async () =>
+					expect(transactionsModule.sortBy('address:desc')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'DESC',
+					}));
+
+				it('should return valid sort object with default sort type provided with sort:unknown', async () =>
+					expect(transactionsModule.sortBy('address:unknown')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+			});
+
+			describe('when given as object', () => {
+				it('should return object with empty values when sort is empty object', async () =>
+					expect(transactionsModule.sortBy({})).to.eql({
+						sortField: '',
+						sortMethod: '',
+					}));
+
+				it('should return valid sort object if a valid object given', async () =>
+					expect(transactionsModule.sortBy({ address: 1 })).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+
+				it('should return error when keys are not present in options.sortFields', async () =>
+					expect(
+						transactionsModule.sortBy(
+							{ unkown: 1 },
+							{ sortFields: validSortFieldsArray }
+						)
+					).to.eql({ error: 'Invalid sort field' }));
+
+				it('should return object with string values if single key object is given', async () => {
+					const result = transactionsModule.sortBy({ address: 1 });
+
+					expect(result).to.eql({ sortField: '"address"', sortMethod: 'ASC' });
+
+					expect(result.sortField).to.a('String');
+					return expect(result.sortMethod).to.a('String');
+				});
+
+				it('should return object with array values if multiple keys object is given', async () => {
+					const result = transactionsModule.sortBy({
+						address: 1,
+						publicKey: -1,
+					});
+
+					expect(result).to.eql({
+						sortField: ['"address"', '"publicKey"'],
+						sortMethod: ['ASC', 'DESC'],
+					});
+
+					expect(result.sortField).to.a('Array');
+					return expect(result.sortMethod).to.a('Array');
+				});
+			});
+		});
+
 		describe('getTransaction', () => {
 			function getTransactionsById(id, done) {
 				transactionsModule.getTransactions({ id }, done);

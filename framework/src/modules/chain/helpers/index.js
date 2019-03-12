@@ -6,6 +6,5 @@
  * @property {module:helpers/git} Git
  * @property {module:helpers/jobs_queue} Jobs_queue
  * @property {module:helpers/slots} Slots
- * @property {module:helpers/sort_by} Sort_by
  * @property {module:helpers/z_schema} Z_schema
  */
