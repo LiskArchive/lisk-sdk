@@ -1443,6 +1443,7 @@ describe('transaction', () => {
 					schema: modulesLoader.scope.schema,
 					logic: {
 						account: accountLogic,
+						transaction: transactionLogic,
 					},
 				})
 			);
@@ -1548,5 +1549,10 @@ describe('transaction', () => {
 
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.attachAssetType).to.throw());
+	});
+
+	describe('reverse', () => {
+		// eslint-disable-next-line mocha/no-pending-tests
+		it('should reverse');
 	});
 });

@@ -1299,6 +1299,23 @@ class Transaction {
 		return transaction;
 	}
 	/* eslint-enable class-methods-use-this */
+
+	/**
+	 * Changes operation sign.
+	 *
+	 * @param {Array} diff
+	 * @returns {Array} Reverse sign
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	reverse(diff) {
+		const copyDiff = diff.slice();
+		for (let i = 0; i < copyDiff.length; i++) {
+			const math = copyDiff[i][0] === '-' ? '+' : '-';
+			copyDiff[i] = math + copyDiff[i].slice(1);
+		}
+		return copyDiff;
+	}
 }
 
 // TODO: The below functions should be converted into static functions,

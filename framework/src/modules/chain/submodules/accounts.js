@@ -72,6 +72,7 @@ class Accounts {
 				schema: library.schema,
 				logic: {
 					account: library.logic.account,
+					transaction: library.logic.transaction,
 				},
 			})
 		);
