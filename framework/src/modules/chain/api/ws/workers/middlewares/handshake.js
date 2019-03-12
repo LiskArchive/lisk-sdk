@@ -17,11 +17,11 @@
 const url = require('url');
 const _ = require('lodash');
 const failureCodes = require('../../rpc/failure_codes.js');
-const ZSchema = require('../../../../helpers/z_schema');
+const { Z_schema } = require('../../../../../../controller/helpers/validator');
 const definitions = require('../../../../schema/definitions');
 const Peer = require('../../../../logic/peer.js');
 
-const validator = new ZSchema();
+const validator = new Z_schema();
 
 /**
  * Description of the module.

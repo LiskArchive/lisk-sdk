@@ -5,7 +5,7 @@ const git = require('./helpers/git.js');
 const Sequence = require('./helpers/sequence.js');
 const ed = require('./helpers/ed.js');
 // eslint-disable-next-line import/order
-const ZSchema = require('./helpers/z_schema');
+const { Z_schema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -130,7 +130,7 @@ module.exports = class Chain {
 				build: versionBuild,
 				config: self.options.config,
 				genesisBlock: { block: self.options.config.genesisBlock },
-				schema: new ZSchema(),
+				schema: new Z_schema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);

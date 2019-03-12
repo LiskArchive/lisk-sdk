@@ -17,14 +17,14 @@
 const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
-const Sequence = require('../../../src/modules/chain/helpers/sequence.js');
+const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
 const { createSystemComponent } = require('../../../src/components/system');
-const Z_schema = require('../../../src/modules/chain/helpers/z_schema.js');
+const { Z_schema } = require('../../../src/controller/helpers/validator');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const Transaction = require('../../../src/modules/chain/logic/transaction.js');
-const Account = require('../../../src/modules/chain/logic/account.js');
+const Transaction = require('../../../src/modules/chain/logic/transaction');
+const Account = require('../../../src/modules/chain/logic/account');
 
 const modulesLoader = new function() {
 	this.storage = null;
