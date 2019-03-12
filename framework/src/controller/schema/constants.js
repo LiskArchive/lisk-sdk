@@ -285,35 +285,35 @@ module.exports = {
 		properties: {
 			SEND: {
 				type: 'integer',
-				min: 0,
+				enum: [0],
 			},
 			SIGNATURE: {
 				type: 'integer',
-				min: 1,
+				enum: [1],
 			},
 			DELEGATE: {
 				type: 'integer',
-				min: 2,
+				enum: [2],
 			},
 			VOTE: {
 				type: 'integer',
-				min: 3,
+				enum: [3],
 			},
 			MULTI: {
 				type: 'integer',
-				min: 4,
+				enum: [4],
 			},
 			DAPP: {
 				type: 'integer',
-				min: 5,
+				enum: [5],
 			},
 			IN_TRANSFER: {
 				type: 'integer',
-				min: 6,
+				menum: [6],
 			},
 			OUT_TRANSFER: {
 				type: 'integer',
-				min: 7,
+				enum: [7],
 			},
 		},
 		additionalProperties: false,
