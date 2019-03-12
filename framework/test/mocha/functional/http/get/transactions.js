@@ -467,14 +467,10 @@ describe('GET /api/transactions', () => {
 								expect(transaction.asset).to.have.property('dapp');
 								expect(Object.keys(transaction.asset).length).to.equal(1);
 								expect(transaction.asset.dapp).to.have.keys(
-									'icon',
-									'link',
 									'name',
-									'tags',
 									'category',
-									'description',
 									'type'
-								);
+								); // Required properties
 								expect(transaction.asset.dapp.type).to.be.within(0, 2);
 								return expect(transaction.asset.dapp.category).to.be.within(
 									0,
