@@ -203,12 +203,7 @@ class TransactionPool {
 
 	getTransactionsList(queueName, reverse, limit) {
 		const transactions = this.pool.queues[queueName].transactions;
-		let transactionList = [];
-
-		for (let i = 0; i < transactions.length; i++) {
-			const transaction = transactions[i];
-			transactionList.push(transaction);
-		}
+		let transactionList = [...transactions];
 
 		transactionList = reverse ? transactionList.reverse() : transactionList;
 
