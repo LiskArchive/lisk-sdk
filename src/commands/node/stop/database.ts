@@ -31,9 +31,8 @@ export default class DatabaseCommand extends BaseCommand {
 	static description = 'Stop Lisk Core Database';
 
 	static examples = [
-		'node:stop:database',
-		'node:stop:database --no-snapshot',
-		'node:stop:database --network=testnet',
+		'node:stop:database --name=mainnet_1.6',
+		'node:stop:database --network=testnet --name=testnet_1.6',
 	];
 
 	static flags = {

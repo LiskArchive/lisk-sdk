@@ -26,9 +26,8 @@ export default class StartCommand extends BaseCommand {
 	static description = 'Start Lisk Core';
 
 	static examples = [
-		'node:start',
-		'node:start --no-snapshot',
-		'node:start --network=testnet',
+		'node:start --name=mainnet_1.6',
+		'node:start --network=testnet --name=testnet_1.6',
 	];
 
 	static flags = {

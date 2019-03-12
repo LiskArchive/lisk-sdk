@@ -37,9 +37,8 @@ export default class UnInstallCommand extends BaseCommand {
 	static description = 'UnInstall Lisk Core';
 
 	static examples = [
-		'node:uninstall',
-		'node:uninstall --network=testnet --name=testnet_1.5',
-		'node:uninstall --installation-path=/opt/lisk/lisk-testnet --network=testnet',
+		'node:uninstall --name=mainnet_1.6',
+		'node:uninstall --network=testnet --name=testnet_1.6',
 	];
 
 	static flags = {

@@ -25,7 +25,10 @@ import DatabaseCommand from './database';
 export default class StopCommand extends BaseCommand {
 	static description = 'Stop Lisk Core';
 
-	static examples = ['node:stop', 'node:stop --network=testnet'];
+	static examples = [
+		'node:stop --name=mainnet_1.6',
+		'node:stop --network=testnet --name=testnet_1.6',
+	];
 
 	static flags = {
 		...BaseCommand.flags,

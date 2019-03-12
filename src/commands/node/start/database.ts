@@ -31,9 +31,8 @@ export default class DatabaseCommand extends BaseCommand {
 	static description = 'Start Lisk Core Database';
 
 	static examples = [
-		'node:start:database',
-		'node:start:database --no-snapshot',
-		'node:start:database --network=testnet',
+		'node:start:database --name=mainnet_1.6',
+		'node:start:database --network=testnet --name=testnet_1.6',
 	];
 
 	static flags = {

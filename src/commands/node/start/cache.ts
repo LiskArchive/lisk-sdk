@@ -30,7 +30,10 @@ export interface Flags {
 export default class CacheCommand extends BaseCommand {
 	static description = 'Start Lisk Core Cache';
 
-	static examples = ['node:start:cache', 'node:start:cache --network=testnet'];
+	static examples = [
+		'node:start:cache --name=mainnet_1.6',
+		'node:start:cache --network=testnet --name=testnet_1.6',
+	];
 
 	static flags = {
 		...BaseCommand.flags,
