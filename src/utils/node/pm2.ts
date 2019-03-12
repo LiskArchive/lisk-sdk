@@ -11,8 +11,19 @@ import {
 	stop,
 } from 'pm2';
 
+export type ProcessStatus =
+	| 'online'
+	| 'stopping'
+	| 'stopped'
+	| 'launching'
+	| 'errored'
+	| 'one-launch-status';
+
 export interface Pm2Env {
 	readonly pm_cwd: string;
+	readonly pm_uptime: number;
+	readonly status: ProcessStatus;
+	readonly unstable_restarts: number;
 }
 
 const connectPM2 = async (): Promise<void> =>
