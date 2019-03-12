@@ -66,8 +66,8 @@ Object {
         ],
       },
       "reward": Object {
-        "format": "numAmount",
-        "type": "number",
+        "format": "amount",
+        "type": "string",
       },
       "timestamp": Object {
         "min": 0,
@@ -78,8 +78,8 @@ Object {
         "type": "string",
       },
       "totalFee": Object {
-        "format": "numAmount",
-        "type": "number",
+        "format": "amount",
+        "type": "string",
       },
       "transactions": Object {
         "items": Object {
@@ -152,8 +152,8 @@ Object {
         "type": "object",
       },
       "fee": Object {
-        "format": "numAmount",
-        "type": "number",
+        "format": "amount",
+        "type": "string",
       },
       "id": Object {
         "format": "id",
