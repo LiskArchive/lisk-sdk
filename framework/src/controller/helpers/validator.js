@@ -1,7 +1,7 @@
 const Ajv = require('ajv');
 const ip = require('ip');
 const _ = require('lodash');
-const Z_schema = require('z-schema');
+const ZSchema = require('z-schema');
 const BigNumber = require('bignumber.js');
 const FormatValidators = require('z-schema/src/FormatValidators');
 const { SchemaValidationError } = require('../../errors');
@@ -379,13 +379,13 @@ const liskFormats = {
 
 // Register the formats
 Object.keys(liskFormats).forEach(formatName => {
-	Z_schema.registerFormat(formatName, liskFormats[formatName]);
+	ZSchema.registerFormat(formatName, liskFormats[formatName]);
 });
-Z_schema.formatsCache = liskFormats;
+ZSchema.formatsCache = liskFormats;
 
 const validator = new Ajv({ allErrors: true, schemaId: 'auto' });
-Object.keys(Z_schema.formatsCache).forEach(zSchemaType => {
-	validator.addFormat(zSchemaType, Z_schema.formatsCache[zSchemaType]);
+Object.keys(ZSchema.formatsCache).forEach(zSchemaType => {
+	validator.addFormat(zSchemaType, ZSchema.formatsCache[zSchemaType]);
 });
 
 /**
@@ -394,7 +394,7 @@ Object.keys(Z_schema.formatsCache).forEach(zSchemaType => {
  * @type {{loadSchema: module.exports.loadSchema, validate: (function(*=, *=): boolean)}}
  */
 module.exports = {
-	Z_schema,
+	ZSchema,
 	/**
 	 * Load schema objects to cache and able to resolve the $ref
 	 *

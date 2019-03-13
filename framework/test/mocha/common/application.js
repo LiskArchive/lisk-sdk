@@ -24,7 +24,7 @@ const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { createSystemComponent } = require('../../../src/components/system');
 const { StorageSandbox } = require('./storage_sandbox');
-const { Z_schema } = require('../../../src/controller/helpers/validator');
+const { ZSchema } = require('../../../src/controller/helpers/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
 
 const promisifyParallel = util.promisify(async.parallel);
@@ -132,7 +132,7 @@ async function __init(sandbox, initScope) {
 				build: '',
 				config: __testContext.config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
-				schema: new Z_schema(),
+				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						logger.warn('Main queue', current);

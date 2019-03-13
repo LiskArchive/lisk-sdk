@@ -20,7 +20,7 @@ const jsonRefs = require('json-refs');
 const _ = require('lodash');
 const YAML = require('js-yaml');
 const SwayHelpers = require('sway/lib/helpers');
-const { Z_schema } = require('../../../controller/helpers/validator');
+const { ZSchema } = require('../../../controller/helpers/validator');
 
 // Used as private member to cache the spec resolution process
 let resolvedSwaggerSpec = null;
@@ -49,11 +49,11 @@ function getValidator() {
 	const validator = SwayHelpers.getJSONSchemaValidator();
 
 	// Register lisk formats with swagger
-	Object.keys(Z_schema.formatsCache).forEach(formatName => {
+	Object.keys(ZSchema.formatsCache).forEach(formatName => {
 		// Extend swagger validator with our formats
 		validator.constructor.registerFormat(
 			formatName,
-			Z_schema.formatsCache[formatName]
+			ZSchema.formatsCache[formatName]
 		);
 	});
 

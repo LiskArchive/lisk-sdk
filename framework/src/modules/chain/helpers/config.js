@@ -20,9 +20,9 @@ const program = require('commander');
 const _ = require('lodash');
 const randomstring = require('randomstring');
 const configSchema = require('../schema/config.js');
-const { Z_schema } = require('../../../controller/helpers/validator');
+const { ZSchema } = require('../../../controller/helpers/validator');
 
-const validator = new Z_schema();
+const validator = new ZSchema();
 const rootPath = path.dirname(path.resolve(__filename, '..'));
 
 const deepFreeze = function(o) {
@@ -183,7 +183,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	const valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {
-		console.error('Failed to validate config data', Z_schema.getLastErrors());
+		console.error('Failed to validate config data', ZSchema.getLastErrors());
 		process.exit(1);
 	} else {
 		appConfig.genesisBlock = genesisBlock;

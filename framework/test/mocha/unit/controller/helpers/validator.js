@@ -15,9 +15,9 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const { Z_schema } = require('../../../../../src/controller/helpers/validator');
+const { ZSchema } = require('../../../../../src/controller/helpers/validator');
 
-const validator = new Z_schema();
+const validator = new ZSchema();
 
 const { ADDITIONAL_DATA } = __testContext.config.constants;
 
