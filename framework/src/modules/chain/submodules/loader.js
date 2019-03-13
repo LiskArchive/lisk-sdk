@@ -18,13 +18,12 @@ const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const slots = require('../helpers/slots.js');
-
+const definitions = require('../schema/definitions');
 require('colors');
 
 // Private fields
 let components;
 let modules;
-let definitions;
 let library;
 let self;
 const { ACTIVE_DELEGATES, MAX_PEERS } = global.constants;
@@ -1163,8 +1162,6 @@ Loader.prototype.onBind = function(scope) {
 		transport: scope.modules.transport,
 		multisignatures: scope.modules.multisignatures,
 	};
-
-	definitions = scope.swagger.definitions;
 
 	__private.loadBlockChain();
 };

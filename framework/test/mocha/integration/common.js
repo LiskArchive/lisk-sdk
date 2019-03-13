@@ -263,7 +263,8 @@ function getTransactionFromModule(library, filter, cb) {
 }
 
 function getUnconfirmedTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.shared.getUnconfirmedTransactions(
+	library.modules.transactions.shared.getTransactionsFromPool(
+		'unconfirmed',
 		filter,
 		(err, res) => {
 			cb(err, res);
@@ -272,7 +273,8 @@ function getUnconfirmedTransactionFromModule(library, filter, cb) {
 }
 
 function getMultisignatureTransactions(library, filter, cb) {
-	library.modules.transactions.shared.getMultisignatureTransactions(
+	library.modules.transactions.shared.getTransactionsFromPool(
+		'unsigned',
 		filter,
 		(err, res) => {
 			cb(err, res);

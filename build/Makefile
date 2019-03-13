@@ -21,7 +21,7 @@ LN ?= ln
 release/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz.SHA256: release/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz
 	cd release/ && sha256sum lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz |tee lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz.SHA256
 
-release/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz: check ../REVISION ../npm-shrinkwrap.json src/jq src/node-v$(NODEJS_VERSION)-$(NODEJS_ARCH) src/lisk-$(LISK_VERSION).tgz src/redis-$(REDIS_VERSION)/finished src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries
+release/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz: check ../REVISION ../npm-shrinkwrap.json src/jq src/node-v$(NODEJS_VERSION)-$(NODEJS_ARCH) src/lisk-$(LISK_VERSION).tgz src/redis-$(REDIS_VERSION)/finished src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)
 	LISK_NETWORK=$(LISK_NETWORK) LISK_VERSION=$(LISK_VERSION) \
 	NODE_DIR=node-v$(NODEJS_VERSION)-$(NODEJS_ARCH) \
 	POSTGRESQL_FILE=postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries.$(POSTGRES_EXT) \
@@ -93,7 +93,7 @@ src/redis-$(REDIS_VERSION).tar.gz:
 src/redis-$(REDIS_VERSION).tar.gz.sha256sum:
 	echo "$(REDIS_SHA256SUM)  redis-$(REDIS_VERSION).tar.gz" |tee $@
 
-src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries: src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries.$(POSTGRES_EXT) src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries.$(POSTGRES_EXT).sha256sum
+src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH): src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries.$(POSTGRES_EXT) src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries.$(POSTGRES_EXT).sha256sum
 	cd src/ && sha256sum --check postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries.$(POSTGRES_EXT).sha256sum
 	tar xfm src/postgresql-$(POSTGRES_VERSION)-$(POSTGRES_ARCH)-binaries.$(POSTGRES_EXT) --directory=src
 

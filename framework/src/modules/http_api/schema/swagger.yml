@@ -2444,6 +2444,9 @@ definitions:
         description: Error message containing details of the error
         type: string
         minLength: 1
+      code:
+        description: Error code containing details on status
+        type: integer
 
   NotFoundError:
     type: object

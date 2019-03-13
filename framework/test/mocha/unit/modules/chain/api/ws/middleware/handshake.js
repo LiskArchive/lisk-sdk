@@ -208,7 +208,7 @@ describe('Handshake', () => {
 					}`, eachDone => {
 						handshake(type.input, err => {
 							expect(err.description).to.equal(
-								`Expected type object but found type ${type.expectation}`
+								`#/: Expected type object but found type ${type.expectation}`
 							);
 							eachDone();
 						});
@@ -241,7 +241,7 @@ describe('Handshake', () => {
 							headers.nonce = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
-									`nonce: Expected type string but found type ${
+									`#/nonce: Expected type string but found type ${
 										type.expectation
 									}`
 								);
@@ -292,7 +292,7 @@ describe('Handshake', () => {
 							headers.height = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
-									`height: Expected type integer but found type ${
+									`#/height: Expected type integer but found type ${
 										type.expectation
 									}`
 								);
@@ -337,7 +337,7 @@ describe('Handshake', () => {
 							headers.nethash = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
-									`nethash: Expected type string but found type ${
+									`#/nethash: Expected type string but found type ${
 										type.expectation
 									}`
 								);
@@ -372,7 +372,7 @@ describe('Handshake', () => {
 							headers.version = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
-									`version: Expected type string but found type ${
+									`#/version: Expected type string but found type ${
 										type.expectation
 									}`
 								);
@@ -407,7 +407,7 @@ describe('Handshake', () => {
 							headers.protocolVersion = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
-									`protocolVersion: Expected type string but found type ${
+									`#/protocolVersion: Expected type string but found type ${
 										type.expectation
 									}`
 								);
@@ -434,7 +434,7 @@ describe('Handshake', () => {
 						headers[property] = undefined;
 						handshake(headers, err => {
 							expect(err.description).to.equal(
-								`Missing required property: ${property}`
+								`#/: Missing required property: ${property}`
 							);
 							itDone();
 						});

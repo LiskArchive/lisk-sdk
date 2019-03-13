@@ -18,12 +18,12 @@ const _ = require('lodash');
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots.js');
+const definitions = require('../../schema/definitions');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
 const __private = {};
 let modules;
-let definitions;
 let library;
 let self;
 
@@ -700,8 +700,6 @@ Process.prototype.onBind = function(scope) {
 		transport: scope.modules.transport,
 		processTransactions: scope.modules.processTransactions,
 	};
-
-	definitions = scope.swagger.definitions;
 
 	// Set module as loaded
 	__private.loaded = true;
