@@ -196,7 +196,8 @@ describe('Delegate registration transaction class', () => {
 			expect(storeAccountFindStub).to.be.calledOnce;
 			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
 				...sender,
-				isDelegate: true,
+				isDelegate: 1,
+				vote: 0,
 				username: validTestTransaction.asset.delegate.username,
 			});
 		});
@@ -226,15 +227,16 @@ describe('Delegate registration transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			const { isDelegate, username, ...strippedSender } = sender;
 			(validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).to.be.calledWithExactly(
 				validTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).to.be.calledWithExactly(
-				sender.address,
-				strippedSender,
-			);
+			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
+				...sender,
+				isDelegate: 0,
+				vote: 0,
+				username: null,
+			});
 		});
 
 		it('should return no errors', async () => {
