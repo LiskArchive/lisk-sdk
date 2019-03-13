@@ -68,10 +68,10 @@ const sqlFiles = {
 	createDependentRecords: 'accounts/create_dependent_records.sql',
 	deleteDependentRecord: 'accounts/delete_dependent_record.sql',
 	deleteDependentRecords: 'accounts/delete_dependent_records.sql',
+	deleteAllDependentRecords: 'accounts/delete_all_dependent_records.sql',
 	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
 	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
 	insertFork: 'accounts/insert_fork.sql',
-	deleteVotes: 'accounts/delete_votes.sql',
 };
 
 class ChainAccount extends AccountEntity {
@@ -186,8 +186,24 @@ class ChainAccount extends AccountEntity {
 			data.votedDelegatesPublicKeys.length === 0
 		) {
 			await this.adapter.executeFile(
-				this.SQLs.deleteVotes,
-				{ accountId: filters.address },
+				this.SQLs.deleteAllDependentRecords,
+				{
+					accountId: filters.address,
+					tableName: dependentFieldsTableMap.votedDelegatesPublicKeys,
+				},
+				{},
+				tx
+			);
+		}
+
+		// Account remove all multisignatures
+		if (data.membersPublicKeys && data.membersPublicKeys.length === 0) {
+			await this.adapter.executeFile(
+				this.SQLs.deleteAllDependentRecords,
+				{
+					accountId: filters.address,
+					tableName: dependentFieldsTableMap.membersPublicKeys,
+				},
 				{},
 				tx
 			);
