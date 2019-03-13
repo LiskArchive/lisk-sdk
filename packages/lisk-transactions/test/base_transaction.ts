@@ -17,6 +17,7 @@ import { SinonStub } from 'sinon';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
+import { SignatureObject } from '../src/create_signature_object';
 import { TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
 import {
@@ -34,10 +35,12 @@ import {
 	validAccount as defaultSenderAccount,
 	validMultisignatureAccount as defaultMultisignatureAccount,
 	validMultisignatureTransaction,
+	validMultisignatureRegistrationTransactionNoSigs,
 	validTransaction,
 	validSecondSignatureTransaction,
 } from '../fixtures';
 import * as utils from '../src/utils';
+import { MultisignatureTransaction } from '../src';
 
 describe('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(validTransaction);
@@ -624,6 +627,68 @@ describe('Base transaction class', () => {
 				expect(error)
 					.to.be.instanceof(TransactionError)
 					.and.to.have.property('message', 'Failed to add signature.'),
+			);
+		});
+	});
+
+	describe('#addMultisignature', () => {
+		let members: Array<{ publicKey: string; signature: string }>;
+		let multisigTrs: MultisignatureTransaction;
+
+		beforeEach(() => {
+			members = [
+				{
+					publicKey:
+						'142d1f24e17d3c90b0f2abdf49c2b14b02782e49b2ecfe85462ed12f654d60df',
+					signature:
+						'd1b78f5eb35b4e1de7f740d2f62f0e2acab24c5b446719cc70601319f4a3666fbcda7980e5d9c6ff3bfa8b54ee383eed5531723e0f1748d0c84b7a229759b000',
+				},
+				{
+					publicKey:
+						'bb7ef62be03d5c195a132efe82796420abae04638cd3f6321532a5d33031b30c',
+					signature:
+						'aa956854dae10792ba9006e4dddd0d7e370af4645df8708d1b10f088304320f0e7f2427d883755a997c07b53978c4d8cf56b95e0f740d8d50ed8c1f2dc85180f',
+				},
+			];
+
+			multisigTrs = new MultisignatureTransaction(
+				validMultisignatureRegistrationTransactionNoSigs,
+			);
+		});
+
+		it('should return a successful transaction response if signature not present and is added', async () => {
+			const firstMemberSignature: SignatureObject = {
+				publicKey: members[0].publicKey,
+				signature: members[0].signature,
+				transactionId: multisigTrs.id,
+			};
+
+			const { status, errors } = multisigTrs.addMultisignature(
+				store,
+				firstMemberSignature,
+			);
+
+			expect(status).to.eql(Status.OK);
+			expect(errors).to.be.empty;
+		});
+
+		it('should fail with valid signature not part of the group', async () => {
+			const firstMemberSignature: SignatureObject = {
+				transactionId: '14644504552633286790',
+				publicKey:
+					'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b',
+				signature:
+					'35d9bca853353906fbc44b86918b64bc0d21daf3ca16e230aa59352976624bc4ce69ac339f08b45c5e926d60cfa81276778e5858ff2bd2290e40d9da59cc5f0b',
+			};
+
+			const { status, errors } = multisigTrs.addMultisignature(
+				store,
+				firstMemberSignature,
+			);
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0].message).to.be.eql(
+				"Public Key 'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b' is not a member for account '18278674964748191682L'.",
 			);
 		});
 	});
