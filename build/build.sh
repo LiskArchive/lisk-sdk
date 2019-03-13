@@ -33,17 +33,6 @@ echo "Cleaning build."
 rm -rf "$BUILD_NAME"
 
 echo
-echo "Installing lisk-scripts..."
-echo "--------------------------------------------------------------------------"
-[[ -f "$LISK_SCRIPTS_FILE" ]] || wget -nv "$LISK_SCRIPTS_URL" --output-document="$LISK_SCRIPTS_FILE"
-echo "$LISK_SCRIPTS_SHA256SUM  $LISK_SCRIPTS_FILE" |sha256sum -c
-if [ ! -f "$LISK_SCRIPTS_DIR/finished" ]; then
-	rm -rf "$LISK_SCRIPTS_DIR"
-	tar xf "$LISK_SCRIPTS_FILE"
-	touch "$LISK_SCRIPTS_DIR/finished"
-fi
-
-echo
 echo "Building lisk..."
 echo "--------------------------------------------------------------------------"
 if [ ! -f "$BUILD_NAME/finished" ]; then
@@ -69,7 +58,7 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	chmod +x "$BUILD_NAME/bin/jq"
 
 	# copy lisk "packaged" scripts
-	cp -vrf "$LISK_SCRIPTS_DIR/packaged/"* "$BUILD_NAME"
+	cp -vrf ../target/* "$BUILD_NAME"
 
 	# extract nodejs
 	tar xf "$NODE_DIR.tar.xz" --strip-components=1 --directory="$BUILD_NAME" --exclude=README.md
