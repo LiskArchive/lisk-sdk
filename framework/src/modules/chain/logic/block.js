@@ -90,10 +90,10 @@ class Block {
 				return 1;
 			}
 			// Place depending on amount (lower first)
-			if (a.amount.isLessThan(b.amount)) {
+			if (a.amount.lt(b.amount)) {
 				return -1;
 			}
-			if (a.amount.isGreaterThan(b.amount)) {
+			if (a.amount.gt(b.amount)) {
 				return 1;
 			}
 			return 0;
@@ -242,10 +242,10 @@ class Block {
 				.join(', ')}`;
 		}
 		try {
-			const transactionResponses = modules.processTransactions.validateTransactions(
-				block.transactions
-			);
-			const invalidTransactionResponse = transactionResponses.find(
+			const {
+				transactionsResponses,
+			} = modules.processTransactions.validateTransactions(block.transactions);
+			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK
 			);

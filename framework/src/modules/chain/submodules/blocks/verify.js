@@ -98,19 +98,16 @@ __private.checkTransactions = async (transactions, checkExists) => {
 		);
 
 		if (persistedTransactions.length > 0) {
-			// Only returning the error of the first transaction to keep the same interface and functionality
-			modules.transactions.removeUnconfirmedTransaction(
-				persistedTransactions[0].id
-			);
+			modules.transactions.onConfirmedTransactions([persistedTransactions[0]]);
 			throw `Transaction is already confirmed: ${persistedTransactions[0].id}`;
 		}
 	}
 
-	const transactionResponses = await modules.processTransactions.verifyTransactions(
-		transactions
-	);
+	const {
+		transactionsResponses,
+	} = await modules.processTransactions.verifyTransactions(transactions);
 
-	const unverifiableTransactionResponse = transactionResponses.find(
+	const unverifiableTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 

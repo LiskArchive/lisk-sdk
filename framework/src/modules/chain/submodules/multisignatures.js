@@ -170,6 +170,8 @@ __private.validateSignature = (
 	transaction.signatures.push(signature.signature);
 	// Check if transaction is ready to be processed
 	transaction.ready = library.logic.multisignature.ready(transaction, sender);
+	// TODO: To remove later on when multisignatures are processed via @lisk/lisk-transactions
+	transaction._multisignatureStatus = transaction.ready ? 3 : transaction._multisignatureStatus;
 
 	// Emit events
 	library.channel.publish(

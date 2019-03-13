@@ -17,6 +17,7 @@
 const util = require('util');
 
 const liskTransactions = require('@liskhq/lisk-transactions');
+const initTransaction = require('../../../src/modules/chain/helpers/init_transaction.js');
 const accountFixtures = require('../fixtures/accounts');
 const application = require('../common/application');
 const random = require('../common/utils/random');
@@ -26,70 +27,20 @@ const genesisBlock = __testContext.config.genesisBlock;
 const { NORMALIZER } = global.constants;
 const transactionStatus = liskTransactions.Status;
 
-describe('blocks/verifyTransactions', () => {
+describe('processTransactions', () => {
 	let library;
-	const account = random.account();
-
-	const verifiableTransactions = [
-		liskTransactions.transfer({
-			amount: (NORMALIZER * 1000).toString(),
-			recipientId: account.address,
-			passphrase: accountFixtures.genesis.passphrase,
-		}),
-		liskTransactions.registerDelegate({
-			passphrase: accountFixtures.genesis.passphrase,
-			username: account.username,
-		}),
-		liskTransactions.registerSecondPassphrase({
-			passphrase: accountFixtures.genesis.passphrase,
-			secondPassphrase: account.secondPassphrase,
-		}),
-		liskTransactions.castVotes({
-			passphrase: accountFixtures.genesis.passphrase,
-			votes: [`${accountFixtures.existingDelegate.publicKey}`],
-		}),
-		liskTransactions.createDapp({
-			passphrase: accountFixtures.genesis.passphrase,
-			options: random.application(),
-		}),
-	].map(transaction => ({
-		...transaction,
-		senderId: accountFixtures.genesis.address,
-	}));
-
-	// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
-	// Therefore removing it from the appliable transactions
-	const appliableTransactions = verifiableTransactions.filter(
-		transaction => transaction.type !== 1
-	);
-
-	const nonVerifiableTransactions = [
-		liskTransactions.transfer({
-			amount: (NORMALIZER * 1000).toString(),
-			recipientId: accountFixtures.genesis.address,
-			passphrase: account.passphrase,
-		}),
-	].map(transaction => ({ ...transaction, senderId: account.address }));
-
-	const keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
-
-	const pendingTransactions = [
-		liskTransactions.registerMultisignature({
-			passphrase: accountFixtures.genesis.passphrase,
-			keysgroup,
-			lifetime: 10,
-			minimum: 2,
-		}),
-	].map(transaction => ({
-		...transaction,
-		senderId: accountFixtures.genesis.address,
-	}));
+	let account;
+	let verifiableTransactions;
+	let appliableTransactions;
+	let pendingTransactions;
+	let keysgroup;
+	let nonVerifiableTransactions;
 
 	before(done => {
 		application.init(
 			{
 				sandbox: {
-					name: 'lisk_test_blocks_verify_transactions',
+					name: 'lisk_test_blocks_process_transactions',
 				},
 			},
 			(err, scope) => {
@@ -100,126 +51,202 @@ describe('blocks/verifyTransactions', () => {
 		);
 	});
 
-	describe('verifyTransactions', () => {
-		let verifyTransactions;
-
-		beforeEach(async () => {
-			verifyTransactions =
-				library.modules.processTransactions.verifyTransactions;
-		});
-
-		it('should return transactionResponses with status OK for verified transactions', async () => {
-			const transactionResponses = await verifyTransactions(
-				verifiableTransactions
-			);
-			transactionResponses.forEach(transactionResponse => {
-				expect(transactionResponse.status).to.equal(transactionStatus.OK);
+	describe('credit account', () => {
+		beforeEach(done => {
+			account = random.account();
+			const transaction = liskTransactions.transfer({
+				amount: (NORMALIZER * 1000000).toString(),
+				recipientId: account.address,
+				passphrase: accountFixtures.genesis.passphrase,
 			});
+
+			localCommon.addTransactionsAndForge(library, [transaction], 0, done);
 		});
 
-		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
-			const transactionResponses = await verifyTransactions(
-				nonVerifiableTransactions
-			);
-			transactionResponses.forEach(transactionResponse => {
-				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+		describe('process transactions', () => {
+			beforeEach(async () => {
+				verifiableTransactions = [
+					liskTransactions.transfer({
+						amount: (NORMALIZER * 1000).toString(),
+						recipientId: account.address,
+						passphrase: account.passphrase,
+					}),
+					liskTransactions.registerDelegate({
+						passphrase: account.passphrase,
+						username: account.username,
+					}),
+					liskTransactions.registerSecondPassphrase({
+						passphrase: account.passphrase,
+						secondPassphrase: account.secondPassphrase,
+					}),
+					liskTransactions.castVotes({
+						passphrase: account.passphrase,
+						votes: [`${accountFixtures.existingDelegate.publicKey}`],
+					}),
+					liskTransactions.createDapp({
+						passphrase: account.passphrase,
+						options: random.application(),
+					}),
+				].map(initTransaction);
+
+				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
+				// Therefore removing it from the appliable transactions
+				appliableTransactions = verifiableTransactions.filter(
+					transaction => transaction.type !== 1
+				);
+
+				nonVerifiableTransactions = [
+					liskTransactions.transfer({
+						amount: (NORMALIZER * 1000).toString(),
+						recipientId: accountFixtures.genesis.address,
+						passphrase: random.account().passphrase,
+					}),
+				].map(initTransaction);
+
+				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
+
+				pendingTransactions = [
+					liskTransactions.registerMultisignature({
+						passphrase: account.passphrase,
+						keysgroup,
+						lifetime: 10,
+						minimum: 2,
+					}),
+				].map(initTransaction);
 			});
-		});
 
-		it('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
-			const transactionResponses = await verifyTransactions(
-				pendingTransactions
-			);
-			transactionResponses.forEach(transactionResponse => {
-				expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
+			describe('verifyTransactions', () => {
+				let verifyTransactions;
+
+				beforeEach(async () => {
+					verifyTransactions =
+						library.modules.processTransactions.verifyTransactions;
+				});
+
+				it('should return transactionsResponses with status OK for verified transactions', async () => {
+					const { transactionsResponses } = await verifyTransactions(
+						verifiableTransactions
+					);
+					transactionsResponses.forEach(transactionResponse => {
+						expect(transactionResponse.status).to.equal(transactionStatus.OK);
+					});
+				});
+
+				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
+					const { transactionsResponses } = await verifyTransactions(
+						nonVerifiableTransactions
+					);
+					transactionsResponses.forEach(transactionResponse => {
+						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+					});
+				});
+
+				it('should return transactionsResponses with status PENDING for transactions waiting multi-signatures', async () => {
+					const { transactionsResponses } = await verifyTransactions(
+						pendingTransactions
+					);
+					transactionsResponses.forEach(transactionResponse => {
+						expect(transactionResponse.status).to.equal(
+							transactionStatus.PENDING
+						);
+					});
+				});
 			});
-		});
-	});
 
-	describe('applyTransactions', () => {
-		let applyTransactions;
-		beforeEach(async () => {
-			applyTransactions = library.modules.processTransactions.applyTransactions;
-		});
+			describe('undoTransactions', () => {
+				let undoTransactions;
+				beforeEach(done => {
+					undoTransactions =
+						library.modules.processTransactions.undoTransactions;
+					localCommon.addTransactionsAndForge(
+						library,
+						appliableTransactions.map(appliableTransaction =>
+							appliableTransaction.toJSON()
+						),
+						0,
+						done
+					);
+				});
 
-		it('should return stateStore', async () => {
-			const { stateStore } = await applyTransactions(appliableTransactions);
+				it('should return stateStore', async () => {
+					const { stateStore } = await undoTransactions(appliableTransactions);
+					expect(stateStore).to.exist;
+				});
 
-			expect(stateStore).to.exist;
-		});
+				it('should return transactionsResponses with status OK for verified transactions', async () => {
+					const { transactionsResponses } = await undoTransactions(
+						appliableTransactions
+					);
 
-		it('should return transactionResponses with status OK for verified transactions', async () => {
-			const { transactionResponses } = await applyTransactions(
-				appliableTransactions
-			);
-			transactionResponses.forEach(transactionResponse => {
-				expect(transactionResponse.status).to.equal(transactionStatus.OK);
+					transactionsResponses.forEach(transactionResponse => {
+						expect(transactionResponse.status).to.equal(transactionStatus.OK);
+					});
+				});
+
+				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
+					const forge = util.promisify(localCommon.forge);
+					await forge(library);
+
+					const sender = random.account();
+					const recipient = random.account();
+
+					const { transactionsResponses } = await undoTransactions([
+						initTransaction(
+							liskTransactions.transfer({
+								amount: (NORMALIZER * 1000).toString(),
+								recipientId: recipient.address,
+								passphrase: sender.passphrase,
+							})
+						),
+					]);
+
+					transactionsResponses.forEach(transactionResponse => {
+						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+					});
+				});
 			});
-		});
 
-		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
-			const { transactionResponses } = await applyTransactions(
-				nonVerifiableTransactions
-			);
-			transactionResponses.forEach(transactionResponse => {
-				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
-			});
-		});
+			describe('applyTransactions', () => {
+				let applyTransactions;
+				beforeEach(async () => {
+					applyTransactions =
+						library.modules.processTransactions.applyTransactions;
+				});
 
-		it('should return transactionResponse with status PENDING for transactions waiting multi-signatures', async () => {
-			const { transactionResponses } = await applyTransactions(
-				pendingTransactions
-			);
-			transactionResponses.forEach(transactionResponse => {
-				expect(transactionResponse.status).to.equal(transactionStatus.PENDING);
-			});
-		});
-	});
+				it('should return stateStore', async () => {
+					const { stateStore } = await applyTransactions(appliableTransactions);
 
-	describe('undoTransactions', () => {
-		let undoTransactions;
-		before(done => {
-			undoTransactions = library.modules.processTransactions.undoTransactions;
-			localCommon.addTransactionsAndForge(
-				library,
-				appliableTransactions,
-				0,
-				() => done()
-			);
-		});
+					expect(stateStore).to.exist;
+				});
 
-		it('should return stateStore', async () => {
-			const { stateStore } = await undoTransactions(appliableTransactions);
-			expect(stateStore).to.exist;
-		});
+				it('should return transactionsResponses with status OK for verified transactions', async () => {
+					const { transactionsResponses } = await applyTransactions(
+						appliableTransactions
+					);
+					transactionsResponses.forEach(transactionResponse => {
+						expect(transactionResponse.status).to.equal(transactionStatus.OK);
+					});
+				});
 
-		it('should return transactionResponses with status OK for verified transactions', async () => {
-			const { transactionResponses } = await undoTransactions(
-				appliableTransactions
-			);
+				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
+					const { transactionsResponses } = await applyTransactions(
+						nonVerifiableTransactions
+					);
+					transactionsResponses.forEach(transactionResponse => {
+						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+					});
+				});
 
-			transactionResponses.forEach(transactionResponse => {
-				expect(transactionResponse.status).to.equal(transactionStatus.OK);
-			});
-		});
-
-		it('should return transactionResponse with status FAIL for unverifiable transaction', async () => {
-			const forge = util.promisify(localCommon.forge);
-			await forge(library);
-
-			const sender = random.account();
-			const recipient = random.account();
-
-			const { transactionResponses } = await undoTransactions([
-				liskTransactions.transfer({
-					amount: (NORMALIZER * 1000).toString(),
-					recipientId: recipient.address,
-					passphrase: sender.passphrase,
-				}),
-			]);
-
-			transactionResponses.forEach(transactionResponse => {
-				expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
+				it('should return transactionsResponses with status PENDING for transactions waiting multi-signatures', async () => {
+					const { transactionsResponses } = await applyTransactions(
+						pendingTransactions
+					);
+					transactionsResponses.forEach(transactionResponse => {
+						expect(transactionResponse.status).to.equal(
+							transactionStatus.PENDING
+						);
+					});
+				});
 			});
 		});
 	});

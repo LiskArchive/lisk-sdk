@@ -216,15 +216,16 @@ __private.receiveTransactions = function(
  * @todo Add description for the params
  */
 __private.receiveTransaction = function(
-	transaction,
+	transactionJSON,
 	nonce,
 	extraLogMessage,
 	cb
 ) {
-	const id = transaction ? transaction.id : 'null';
+	const id = transactionJSON ? transactionJSON.id : 'null';
+	let transaction;
 	try {
-		const tx = initTransaction(transaction);
-		const { errors } = tx.validate();
+		transaction = initTransaction(transactionJSON);
+		const { errors } = transaction.validate();
 		if (errors.length > 0) {
 			throw errors;
 		}

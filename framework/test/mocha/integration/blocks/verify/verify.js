@@ -26,6 +26,7 @@ const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
 const slots = require('../../../../../src/modules/chain/helpers/slots.js');
+const initTransaction = require('../../../../../src/modules/chain/helpers/init_transaction.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
@@ -135,13 +136,13 @@ function createBlock(
 	transactions,
 	previousBlockArgs
 ) {
-	random.convertToBignum(transactions);
 	const keypair = blockLogic.scope.ed.makeKeypair(
 		crypto
 			.createHash('sha256')
 			.update(passphrase, 'utf8')
 			.digest()
 	);
+	transactions = transactions.map(initTransaction);
 	blocksModule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
 		keypair,
@@ -239,7 +240,6 @@ describe('blocks/verify', () => {
 				library.components.logger,
 				library.logic.block,
 				library.logic.transaction,
-				library.logic.stateManager,
 				library.components.storage,
 				library.config
 			);
@@ -1096,9 +1096,13 @@ describe('blocks/verify', () => {
 							expect(auxBlock.totalAmount.isEqualTo('10000000000000000')).to.be
 								.true;
 							expect(auxBlock.payloadLength).to.equal(117);
-							expect(auxBlock.transactions).to.deep.equal([
-								genesisBlock.transactions[0],
-							]);
+							expect(
+								auxBlock.transactions.map(transaction => transaction.id)
+							).to.deep.equal(
+								[genesisBlock.transactions[0]].map(
+									transaction => transaction.id
+								)
+							);
 							expect(auxBlock.previousBlock).to.equal(genesisBlock.id);
 							done();
 						})

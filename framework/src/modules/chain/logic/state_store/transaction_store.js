@@ -10,7 +10,11 @@ class TransactionStore {
 	}
 
 	async cache(filter) {
-		const result = await this.transaction.get(filter, {}, this.tx);
+		const result = await this.transaction.get(
+			filter,
+			{ extended: true },
+			this.tx
+		);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
 		return result;
 	}

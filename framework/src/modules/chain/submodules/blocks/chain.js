@@ -19,6 +19,7 @@ const async = require('async');
 const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionTypes = require('../../helpers/transaction_types.js');
+const initTransaction = require('../../helpers/init_transaction.js');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -96,9 +97,13 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 			// If there is no block with genesis ID - save to database
 			// WARNING: DB_WRITE
 			// FIXME: This will fail if we already have genesis block in database, but with different ID
-			return self.saveBlock(library.genesisBlock.block, err =>
-				setImmediate(cb, err)
-			);
+			const block = {
+				...library.genesisBlock.block,
+				transactions: library.genesisBlock.block.transactions.map(
+					initTransaction
+				),
+			};
+			return self.saveBlock(block, err => setImmediate(cb, err));
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -142,7 +147,7 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 		if (parsedBlock.transactions.length) {
 			promises.push(
 				library.storage.entities.Transaction.create(
-					parsedBlock.transactions,
+					parsedBlock.transactions.map(transaction => transaction.toJSON()),
 					{},
 					saveBlockBatchTx
 				)
@@ -320,25 +325,6 @@ __private.applyTransactions = function(transactions, cb) {
 };
 
 /**
- * Calls undoUnconfirmedList from modules transactions
- *
- * @private
- * @param  {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object}   cb.err - Error if occurred
- */
-__private.undoUnconfirmedListStep = function(cb) {
-	return modules.transactions.undoUnconfirmedList(err => {
-		if (err) {
-			// Fatal error, memory tables will be inconsistent
-			library.logger.error('Failed to undo unconfirmed list', err);
-			return setImmediate(cb, 'Failed to undo unconfirmed list');
-		}
-		return setImmediate(cb);
-	});
-};
-
-/**
  * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
@@ -353,13 +339,13 @@ __private.applyConfirmedStep = async function(block, tx) {
 
 	const {
 		stateStore,
-		transactionResponses,
+		transactionsResponses,
 	} = await modules.processTransactions.applyTransactions(
 		block.transactions,
 		tx
 	);
 
-	const unappliedTransactionResponse = transactionResponses.find(
+	const unappliedTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
@@ -445,41 +431,33 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
  * @todo Add description for the function
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	__private.undoUnconfirmedListStep(err => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
-			modules.blocks.isActive.set(true);
+	return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
+		modules.blocks.isActive.set(true);
 
-			return __private
-				.applyConfirmedStep(block, tx)
-				.then(() => __private.saveBlockStep(block, saveBlock, tx));
+		return __private
+			.applyConfirmedStep(block, tx)
+			.then(() => __private.saveBlockStep(block, saveBlock, tx));
+	})
+		.then(() => {
+			modules.transactions.onConfirmedTransactions(block.transactions);
+			modules.blocks.isActive.set(false);
+			block = null;
+
+			return setImmediate(cb, null);
 		})
-			.then(() => {
-				// Remove block transactions from transaction pool
-				block.transactions.forEach(transaction => {
-					modules.transactions.removeUnconfirmedTransaction(transaction.id);
-				});
-				modules.blocks.isActive.set(false);
-				block = null;
+		.catch(reason => {
+			modules.blocks.isActive.set(false);
+			block = null;
 
-				return setImmediate(cb, null);
-			})
-			.catch(reason => {
-				modules.blocks.isActive.set(false);
-				block = null;
+			// Finish here if snapshotting.
+			// FIXME: Not the best place to do that
+			if (reason.name === 'Snapshot finished') {
+				library.logger.info(reason);
+				process.emit('SIGTERM');
+			}
 
-				// Finish here if snapshotting.
-				// FIXME: Not the best place to do that
-				if (reason.name === 'Snapshot finished') {
-					library.logger.info(reason);
-					process.emit('SIGTERM');
-				}
-
-				return setImmediate(cb, reason);
-			});
-	});
+			return setImmediate(cb, reason);
+		});
 };
 
 /**
@@ -527,13 +505,13 @@ __private.undoConfirmedStep = async function(block, tx) {
 
 	const {
 		stateStore,
-		transactionResponses,
+		transactionsResponses,
 	} = await modules.processTransactions.undoTransactions(
 		block.transactions,
 		tx
 	);
 
-	const unappliedTransactionResponse = transactionResponses.find(
+	const unappliedTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
@@ -613,10 +591,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 			.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
 			.then(res => {
 				secondLastBlock = res;
-				return Promise.mapSeries(
-					oldLastBlock.transactions.reverse(),
-					__private.undoConfirmedStep(oldLastBlock, tx)
-				);
+				return __private.undoConfirmedStep(oldLastBlock, tx);
 			})
 			.then(() => __private.backwardTickStep(oldLastBlock, secondLastBlock, tx))
 			.then(() => __private.deleteBlockStep(oldLastBlock, tx))
@@ -674,19 +649,10 @@ Chain.prototype.deleteLastBlock = function(cb) {
 				// Notify all remote peers about our new headers
 				modules.transport.broadcastHeaders(seriesCb);
 			},
-			receiveTransactions(seriesCb) {
+			addDeletedTransactions(seriesCb) {
 				// Put transactions back into transaction pool
-				modules.transactions.receiveTransactions(
-					deletedBlockTransactions,
-					false,
-					err => {
-						if (err) {
-							library.logger.error('Error adding transactions', err);
-						}
-						deletedBlockTransactions = null;
-						return seriesCb();
-					}
-				);
+				modules.transactions.onDeletedTransactions(deletedBlockTransactions);
+				seriesCb();
 			},
 		},
 		err => setImmediate(cb, err, lastBlock)

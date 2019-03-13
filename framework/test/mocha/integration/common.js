@@ -28,16 +28,9 @@ const slots = require('../../../src/modules/chain/helpers/slots');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const Bignum = require('../../../src/modules/chain/helpers/bignum.js');
+const initTransaction = require('../../../src/modules/chain/helpers/init_transaction.js');
 
 const { ACTIVE_DELEGATES } = global.constants;
-
-const convertToBigNum = transactions => {
-	return transactions.forEach(transaction => {
-		transaction.amount = new Bignum(transaction.amount);
-		transaction.fee = new Bignum(transaction.fee);
-	});
-};
 
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
@@ -50,7 +43,7 @@ function getDelegateForSlot(library, slot, cb) {
 }
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
-	convertToBigNum(transactions);
+	transactions = transactions.map(initTransaction);
 	const block = library.logic.block.create({
 		keypair,
 		timestamp,
@@ -67,7 +60,6 @@ function createValidBlock(library, transactions, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.delegates.getForgersKeyPairs();
-	convertToBigNum(transactions);
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		const block = createBlock(
 			library,
@@ -166,8 +158,7 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	convertToBigNum([transaction]);
-	transaction = library.logic.transaction.objectNormalize(transaction);
+	transaction = initTransaction(transaction);
 	library.balancesSequence.add(sequenceCb => {
 		library.modules.transactions.processUnconfirmedTransaction(
 			transaction,
@@ -185,7 +176,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	convertToBigNum([transaction]);
+	transaction = initTransaction(transaction);
 	library.modules.transactions.processUnconfirmedTransaction(
 		transaction,
 		true,
@@ -206,7 +197,6 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 		cb = forgeDelay;
 		forgeDelay = 800;
 	}
-	convertToBigNum(transactions);
 
 	async.waterfall(
 		[

@@ -14,13 +14,14 @@
 
 'use strict';
 
-const initTransaction = require('../helpers/init_transaction.js');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 
 let library;
 
 class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
+			storage: scope.components.storage,
 			logic: {
 				stateManager: scope.logic.stateManager,
 			},
@@ -31,14 +32,46 @@ class ProcessTransactions {
 
 	// eslint-disable-next-line class-methods-use-this
 	validateTransactions(transactions) {
-		return transactions
-			.map(transaction => ({
-				...transaction,
-				fee: transaction.fee.toString(),
-				amount: transaction.amount.toString(),
-			}))
-			.map(initTransaction)
-			.map(transactionInstance => transactionInstance.validate());
+		return {
+			transactionsResponses: transactions.map(transaction =>
+				transaction.validate()
+			),
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	async checkPersistedTransactions(transactions) {
+		const confirmedTransactions = await library.storage.entities.Transaction.get(
+			{
+				id_in: transactions.map(transaction => transaction.id),
+			}
+		);
+
+		const persistedTransactionIds = confirmedTransactions.map(
+			transaction => transaction.id
+		);
+		const persistedTransactions = transactions.filter(transaction =>
+			persistedTransactionIds.includes(transaction.id)
+		);
+		const unpersistedTransactions = transactions.filter(
+			transaction => !persistedTransactionIds.includes(transaction.id)
+		);
+		const transactionsResponses = [
+			...unpersistedTransactions.map(transaction => ({
+				id: transaction.id,
+				status: TransactionStatus.OK,
+				errors: [],
+			})),
+			...persistedTransactions.map(transaction => ({
+				id: transaction.id,
+				status: TransactionStatus.FAIL,
+				errors: `Transaction is already confirmed: ${transaction.id}`,
+			})),
+		];
+
+		return {
+			transactionsResponses,
+		};
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -49,25 +82,16 @@ class ProcessTransactions {
 			tx,
 		});
 
-		const transactionInstances = transactions
-			.map(transaction => ({
-				...transaction,
-				fee: transaction.fee.toString(),
-				amount: transaction.amount.toString(),
-				recipientId: transaction.recipientId || '',
-			}))
-			.map(initTransaction);
+		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
-		await Promise.all(transactionInstances.map(t => t.prepare(stateStore)));
-
-		const transactionResponses = transactionInstances.map(transaction => {
+		const transactionsResponses = transactions.map(transaction => {
 			const transactionResponse = transaction.apply(stateStore);
 			stateStore.transaction.add(transaction);
 			return transactionResponse;
 		});
 
 		return {
-			transactionResponses,
+			transactionsResponses,
 			stateStore,
 		};
 	}
@@ -80,24 +104,15 @@ class ProcessTransactions {
 			tx,
 		});
 
-		const transactionInstances = transactions
-			.map(transaction => ({
-				...transaction,
-				fee: transaction.fee.toString(),
-				amount: transaction.amount.toString(),
-				recipientId: transaction.recipientId || '',
-			}))
-			.map(initTransaction);
+		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
-		await Promise.all(transactionInstances.map(t => t.prepare(stateStore)));
-
-		const transactionResponses = transactionInstances.map(transaction => {
+		const transactionsResponses = transactions.map(transaction => {
 			const transactionResponse = transaction.undo(stateStore);
 			return transactionResponse;
 		});
 
 		return {
-			transactionResponses,
+			transactionsResponses,
 			stateStore,
 		};
 	}
@@ -109,23 +124,18 @@ class ProcessTransactions {
 			mutate: false,
 		});
 
-		const transactionInstances = transactions
-			.map(transaction => ({
-				...transaction,
-				fee: transaction.fee.toString(),
-				amount: transaction.amount.toString(),
-				recipientId: transaction.recipientId || '',
-			}))
-			.map(initTransaction);
+		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
-		await Promise.all(transactionInstances.map(t => t.prepare(stateStore)));
-
-		return transactionInstances.map(transaction => {
+		const transactionsResponses = transactions.map(transaction => {
 			library.logic.stateManager.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
 			library.logic.stateManager.restoreSnapshot();
 			return transactionResponse;
 		});
+
+		return {
+			transactionsResponses,
+		};
 	}
 }
 

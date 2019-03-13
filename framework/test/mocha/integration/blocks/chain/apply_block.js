@@ -16,11 +16,7 @@
 
 const async = require('async');
 const expect = require('chai').expect;
-const {
-	transfer,
-	registerSecondPassphrase,
-	registerDelegate,
-} = require('@liskhq/lisk-transactions');
+const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -130,78 +126,6 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					done(err);
 				}
 			);
-		});
-
-		describe('undoUnconfirmedList', () => {
-			let transaction3;
-			let transaction4;
-
-			beforeEach('with transactions in unconfirmed queue', done => {
-				transaction3 = registerSecondPassphrase({
-					passphrase: poolAccount3.passphrase,
-					secondPassphrase: poolAccount3.secondPassphrase,
-				});
-
-				transaction4 = registerSecondPassphrase({
-					passphrase: poolAccount4.passphrase,
-					secondPassphrase: poolAccount4.secondPassphrase,
-				});
-
-				transaction3.senderId = poolAccount3.address;
-				transaction4.senderId = poolAccount4.address;
-				transaction3.recipientId = '';
-				transaction4.recipientId = '';
-
-				async.map(
-					[transaction3, transaction4],
-					(transaction, eachCb) => {
-						localCommon.addTransaction(library, transaction, err => {
-							expect(err).to.not.exist;
-							eachCb();
-						});
-					},
-					err => {
-						expect(err).to.not.exist;
-						localCommon.fillPool(library, done);
-					}
-				);
-			});
-
-			it('should have transactions from pool in unconfirmed state', done => {
-				async.forEach(
-					[poolAccount3, poolAccount4],
-					(account, eachCb) => {
-						localCommon
-							.getAccountFromDb(library, account.address)
-							.then(accountRow => {
-								expect(1).to.equal(accountRow.mem_accounts.u_secondSignature);
-								eachCb();
-							});
-					},
-					done
-				);
-			});
-
-			describe('after applying a new block', () => {
-				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
-				});
-
-				it('should undo unconfirmed transactions', done => {
-					async.forEach(
-						[poolAccount3, poolAccount4],
-						(account, eachCb) => {
-							localCommon
-								.getAccountFromDb(library, account.address)
-								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
-									eachCb();
-								});
-						},
-						done
-					);
-				});
-			});
 		});
 
 		describe('applyConfirmedStep', () => {

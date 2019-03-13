@@ -69,10 +69,7 @@ class Transactions {
 		__private.transactionPool = new TransactionPool(
 			scope.config.broadcasts.broadcastInterval,
 			scope.config.broadcasts.releaseLimit,
-			scope.logic.transaction,
-			scope.bus,
 			scope.components.logger,
-			scope.balancesSequence,
 			scope.config
 		);
 
@@ -250,6 +247,17 @@ Transactions.prototype.transactionInPool = function(id) {
 };
 
 /**
+ * Fills pool.
+ *
+ * @param {function} cb - Callback function
+ * @returns {function} Calls transactionPool.fillPool
+ * @todo Add description for the params
+ */
+Transactions.prototype.fillPool = function(cb) {
+	return __private.transactionPool.fillPool(cb);
+};
+
+/**
  * Gets unconfirmed transaction from pool.
  *
  * @param {string} id - Transaction id
@@ -381,14 +389,19 @@ Transactions.prototype.getTransactions = function(filters, cb) {
 };
 
 /**
- * Removes transaction from unconfirmed, queued and multisignature queues.
- *
- * @param {string} id - Transaction id
- * @returns {function} Calls transactionPool.removeUnconfirmedTransaction
- * @todo Add description for the params
+ * Adds the transactions in the transaction pool which were part of the blockchain but the block got deleted
+ * @param {transactions} transactions
  */
-Transactions.prototype.removeUnconfirmedTransaction = function(id) {
-	return __private.transactionPool.removeUnconfirmedTransaction(id);
+Transactions.prototype.onDeletedTransactions = function(transactions) {
+	__private.transactionPool.onDeletedTransactions(transactions);
+};
+
+/**
+ * Removes the transactions from the transaction pool which were included in block
+ * @param {transactions} transactions
+ */
+Transactions.prototype.onConfirmedTransactions = function(transactions) {
+	__private.transactionPool.onConfirmedTransactions(transactions);
 };
 
 /**
@@ -410,16 +423,6 @@ Transactions.prototype.processUnconfirmedTransaction = function(
 		broadcast,
 		cb
 	);
-};
-
-/**
- * Undoes unconfirmed list from queue.
- *
- * @param {function} cb - Callback function
- * @returns {function} Calls transactionPool.undoUnconfirmedList
- */
-Transactions.prototype.undoUnconfirmedList = function(cb, tx) {
-	return __private.transactionPool.undoUnconfirmedList(cb, tx);
 };
 
 /**
@@ -563,17 +566,6 @@ Transactions.prototype.receiveTransactions = function(
 };
 
 /**
- * Fills pool.
- *
- * @param {function} cb - Callback function
- * @returns {function} Calls transactionPool.fillPool
- * @todo Add description for the params
- */
-Transactions.prototype.fillPool = function(cb) {
-	return __private.transactionPool.fillPool(cb);
-};
-
-/**
  * Checks if `modules` is loaded.
  *
  * @returns {boolean} True if `modules` is loaded
@@ -599,8 +591,7 @@ Transactions.prototype.onBind = function(scope) {
 	};
 
 	__private.transactionPool.bind(
-		scope.modules.accounts,
-		scope.modules.transactions,
+		scope.modules.processTransactions,
 		scope.modules.loader
 	);
 
@@ -677,14 +668,9 @@ Transactions.prototype.shared = {
 				function getAllCount(confirmedTransactionCount, waterCb) {
 					setImmediate(waterCb, null, {
 						confirmed: confirmedTransactionCount,
-						unconfirmed: Object.keys(
-							__private.transactionPool.unconfirmed.index
-						).length,
-						unprocessed: Object.keys(__private.transactionPool.queued.index)
-							.length,
-						unsigned: Object.keys(
-							__private.transactionPool.multisignature.index
-						).length,
+						unconfirmed: __private.transactionPool.getCountByQueue('ready'),
+						unprocessed: __private.transactionPool.getCountByQueue('verified'),
+						unsigned: __private.transactionPool.getCountByQueue('pending'),
 					});
 				},
 			],

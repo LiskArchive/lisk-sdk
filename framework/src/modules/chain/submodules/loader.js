@@ -288,10 +288,12 @@ __private.loadTransactions = function(cb) {
 			},
 			function(peer, transactions, waterCb) {
 				try {
-					const transactionResponses = library.modules.processTransactions.validateTransactions(
+					const {
+						transactionsResponses,
+					} = library.modules.processTransactions.validateTransactions(
 						transactions
 					);
-					const invalidTransactionResponse = transactionResponses.find(
+					const invalidTransactionResponse = transactionsResponses.find(
 						transactionResponse =>
 							transactionResponse.status !== TransactionStatus.OK
 					);
