@@ -31,13 +31,13 @@ class BaseChannel {
 		this.moduleAlias = moduleAlias;
 		this.options = options;
 
-		if (options.skipInternalEvents !== true) {
-			events = events.concat(INTERNAL_EVENTS);
-		}
+		const eventList = options.skipInternalEvents
+			? events
+			: [...events, ...INTERNAL_EVENTS];
 
 		_eventsList.set(
 			this,
-			events.map(eventName => new Event(`${this.moduleAlias}:${eventName}`))
+			eventList.map(eventName => new Event(`${this.moduleAlias}:${eventName}`))
 		);
 
 		_actionsList.set(
