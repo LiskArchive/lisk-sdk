@@ -119,7 +119,8 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		},
 		redis: {
 			host: program.redis || getenv(process.env.LISK_REDIS_HOST),
-			port: parseInt(getenv(process.env.LISK_REDIS_PORT)) || null,
+			port:
+				+program.port || parseInt(getenv(process.env.LISK_REDIS_PORT)) || null,
 			database: getenv(process.env.LISK_REDIS_DB_NAME),
 			password: getenv(process.env.LISK_REDIS_DB_PASSWORD),
 		},
