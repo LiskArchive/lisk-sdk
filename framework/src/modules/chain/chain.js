@@ -188,34 +188,42 @@ module.exports = class Chain {
 
 	get actions() {
 		return {
-			calculateSupply: action => this.blockReward.calcSupply(action.params[0]),
+			calculateSupply: action =>
+				this.blockReward.calcSupply(action.params.height),
 			calculateMilestone: action =>
-				this.blockReward.calcMilestone(action.params[0]),
-			calculateReward: action => this.blockReward.calcReward(action.params[0]),
-			generateDelegateList: action =>
+				this.blockReward.calcMilestone(action.params.height),
+			calculateReward: action =>
+				this.blockReward.calcReward(action.params.height),
+			generateDelegateList: async action =>
 				promisify(this.scope.modules.delegates.generateDelegateList)(
-					action.params[0],
-					action.params[1]
+					action.params.round,
+					action.params.source
 				),
 			getNetworkHeight: async action =>
-				promisify(this.scope.modules.peers.networkHeight)(action.params[0]),
+				promisify(this.scope.modules.peers.networkHeight)(
+					action.params.options
+				),
 			getAllTransactionsCount: async () =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
 			updateForgingStatus: async action =>
 				promisify(this.scope.modules.delegates.updateForgingStatus)(
-					action.params[0],
-					action.params[1],
-					action.params[2]
+					action.params.publicKey,
+					action.params.password,
+					action.params.forging
 				),
 			getPeers: async action =>
-				promisify(this.scope.modules.peers.shared.getPeers)(action.params[0]),
+				promisify(this.scope.modules.peers.shared.getPeers)(
+					action.params.parameters
+				),
 			getPeersCountByFilter: async action =>
-				this.scope.modules.peers.shared.getPeersCountByFilter(action.params[0]),
+				this.scope.modules.peers.shared.getPeersCountByFilter(
+					action.params.parameters
+				),
 			postSignature: async action =>
 				promisify(this.scope.modules.signatures.shared.postSignature)(
-					action.params[0]
+					action.params.signature
 				),
 			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
 			loaderLoaded: async () => this.scope.modules.loader.loaded(),
@@ -225,17 +233,17 @@ module.exports = class Chain {
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
-				)(action.params[0], action.params[1]),
+				)(action.params.type, action.params.filters),
 			getLastCommit: async () => this.scope.lastCommit,
 			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
 				promisify(this.scope.modules.transactions.shared.postTransaction)(
-					action.params[0]
+					action.params.transaction
 				),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
-					action.params[0],
-					action.params[1]
+					action.params.filters,
+					action.params.tx
 				),
 			getSlotsHelper: async () => this.slots,
 		};
