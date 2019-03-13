@@ -23,7 +23,7 @@ import {
 	valid as isValidVersion,
 	validRange as isValidRangeVersion,
 } from 'semver';
-import { isIP as isValidIP, isNumeric, isPort as isValidPort } from 'validator';
+import * as validator from 'validator';
 import {
 	MAX_EIGHT_BYTE_NUMBER,
 	MAX_INT64,
@@ -64,7 +64,13 @@ export const isGreaterThanMaxTransactionAmount = (amount: BigNum): boolean =>
 export const isGreaterThanMaxTransactionId = (id: BigNum): boolean =>
 	id.cmp(MAX_EIGHT_BYTE_NUMBER) > 0;
 
-export const isNumberString = isNumeric;
+export const isNumberString = (num: string): boolean => {
+	if (typeof num !== 'string') {
+		return false;
+	}
+
+	return validator.isInt(num);
+};
 
 export const isValidInteger = (num: unknown): boolean =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
@@ -124,13 +130,15 @@ export const isProtocolString = (data: string) =>
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
 
-export const isIPV4 = (data: string): boolean => isValidIP(data, IPV4_NUMBER);
+export const isIPV4 = (data: string): boolean =>
+	validator.isIP(data, IPV4_NUMBER);
 
-export const isIPV6 = (data: string): boolean => isValidIP(data, IPV6_NUMBER);
+export const isIPV6 = (data: string): boolean =>
+	validator.isIP(data, IPV6_NUMBER);
 
 export const isIP = (data: string): boolean => isIPV4(data) || isIPV6(data);
 
-export const isPort = isValidPort;
+export const isPort = (port: string) => validator.isPort(port);
 
 export const validatePublicKeysForDuplicates = (
 	publicKeys: ReadonlyArray<string>,
