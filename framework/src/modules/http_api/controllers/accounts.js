@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const swaggerHelper = require('../helpers/swagger');
-const { calculateApproval } = require('../helpers/http_api');
+const { calculateApproval } = require('../helpers/utils');
 
 // Private Fields
 let storage;

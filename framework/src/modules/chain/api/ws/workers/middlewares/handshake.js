@@ -17,8 +17,11 @@
 const url = require('url');
 const _ = require('lodash');
 const failureCodes = require('../../rpc/failure_codes.js');
-const swaggerHelper = require('../../../../helpers/swagger');
+const ZSchema = require('../../../../helpers/z_schema');
+const definitions = require('../../../../schema/definitions');
 const Peer = require('../../../../logic/peer.js');
+
+const validator = new ZSchema();
 
 /**
  * Description of the module.
@@ -28,16 +31,11 @@ const Peer = require('../../../../logic/peer.js');
  * @requires lodash
  * @requires url
  * @requires api/ws/rpc/failure_codes
- * @requires helpers/swagger
  * @requires logic/peer
  * @property {Object} middleware
  * @property {function} extractHeaders
  * @todo Add description for the module and the properties
  */
-
-const definitions = swaggerHelper.getSwaggerSpec().definitions;
-
-const z_schema = swaggerHelper.getValidator();
 
 /**
  * Middleware functions to add cors, log errors and conections, send status
@@ -70,7 +68,7 @@ const middleware = {
 		 * @todo Add @returns tag
 		 */
 		return function(headers, cb) {
-			z_schema.validate(headers, definitions.WSPeerHeaders, error => {
+			validator.validate(headers, definitions.WSPeerHeaders, error => {
 				if (error) {
 					let errorDescription = error[0].message;
 					if (error[0].path && error[0].path.length) {

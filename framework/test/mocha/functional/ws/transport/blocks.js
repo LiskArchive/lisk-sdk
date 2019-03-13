@@ -158,7 +158,7 @@ describe('WS transport blocks', () => {
 					JSON.stringify(res)
 				);
 				expect(res).to.be.undefined;
-				expect(err).to.equal('Missing required property: ids: ');
+				expect(err).to.equal('Missing required property: ids: #/');
 				done();
 			});
 		});

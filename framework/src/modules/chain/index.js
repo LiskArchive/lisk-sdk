@@ -69,12 +69,8 @@ module.exports = class ChainModule extends BaseModule {
 			loaderLoaded: async () => this.chain.actions.loaderLoaded(),
 			loaderSyncing: async () => this.chain.actions.loaderSyncing(),
 			getForgersKeyPairs: async () => this.chain.actions.getForgersKeyPairs(),
-			getUnProcessedTransactions: async action =>
-				this.chain.actions.getUnProcessedTransactions(action),
-			getUnconfirmedTransactions: async action =>
-				this.chain.actions.getUnconfirmedTransactions(action),
-			getMultisignatureTransactions: async action =>
-				this.chain.actions.getMultisignatureTransactions(action),
+			getTransactionsFromPool: async action =>
+				this.chain.actions.getTransactionsFromPool(action),
 			getLastCommit: async () => this.chain.actions.getLastCommit(),
 			getBuild: async () => this.chain.actions.getBuild(),
 			postTransaction: async action =>

@@ -19,7 +19,7 @@ const supertest = require('supertest');
 const Promise = require('bluebird');
 const swaggerHelper = require('../../../src/modules/http_api/helpers/swagger');
 
-let apiSpec = swaggerHelper.getSwaggerSpec();
+let apiSpec = swaggerHelper.getSchema();
 let refsResolved = false;
 const validator = swaggerHelper.getValidator();
 
@@ -103,7 +103,7 @@ function SwaggerTestSpec(method, apiPath, responseCode) {
 			return Promise.resolve();
 		}
 
-		return swaggerHelper.getResolvedSwaggerSpec().then(results => {
+		return swaggerHelper.getSchemaAsJSON().then(results => {
 			apiSpec = results;
 			refsResolved = true;
 

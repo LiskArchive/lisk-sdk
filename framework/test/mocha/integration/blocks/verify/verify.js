@@ -234,7 +234,7 @@ describe('blocks/verify', () => {
 
 		before(done => {
 			RewiredVerify = rewire(
-				'../../../../../src/modules/chain/modules/blocks/verify.js'
+				'../../../../../src/modules/chain/submodules/blocks/verify.js'
 			);
 			const verify = new RewiredVerify(
 				library.components.logger,
