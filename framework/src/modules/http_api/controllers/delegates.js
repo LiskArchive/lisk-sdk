@@ -184,13 +184,15 @@ async function _getForgers(filters) {
 		{},
 		{ sort: 'height:desc', limit: 1 }
 	);
-
-	const slots = await channel.invoke('chain:getSlotsHelper');
-
-	const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
-	const currentSlot = slots.getSlotNumber();
+	const lastBlockSlot = await channel.invoke('chain:getSlotNumber', [
+		lastBlock.timestamp,
+	]);
+	const currentSlot = await channel.invoke('chain:getSlotNumber');
 	const forgerKeys = [];
-	const round = slots.calcRound(lastBlock.height + 1);
+
+	const round = await channel.invoke('chain:calcSlotRound', [
+		lastBlock.height + 1,
+	]);
 
 	const activeDelegates = await channel.invoke('chain:generateDelegateList', [
 		round,
