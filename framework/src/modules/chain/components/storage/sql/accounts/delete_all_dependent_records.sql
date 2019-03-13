@@ -20,4 +20,4 @@
   PARAMETERS: accountId
 */
 
-DELETE FROM mem_accounts2delegates WHERE "accountId" = ${accountId};
+DELETE FROM ${tableName:name} WHERE "accountId" = ${accountId};
