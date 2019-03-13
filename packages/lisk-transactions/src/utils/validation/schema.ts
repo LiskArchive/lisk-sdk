@@ -103,7 +103,7 @@ export const baseTransaction = {
 		},
 		timestamp: {
 			type: 'integer',
-			minimum: 0,
+			minimum: -2147483648,
 			maximum: 2147483647,
 		},
 		senderId: {
@@ -122,7 +122,7 @@ export const baseTransaction = {
 			type: 'string',
 		},
 		recipientPublicKey: {
-			type: ['string'],
+			type: 'string',
 			format: 'emptyOrPublicKey',
 		},
 		signature: {
