@@ -10,20 +10,14 @@ const {
 describe('Event Class', () => {
 	describe('#constructor', () => {
 		it('should throw error when no name argument was provided.', () => {
-			expect(() => {
-				// eslint-disable-next-line no-unused-vars
-				const event = new Event();
-			}).toThrow(
+			expect(() => new Event()).toThrow(
 				'Event name "undefined" must be a valid name with module name.'
 			);
 		});
 
 		it('should throw error when invalid name argument was provided.', () => {
 			// Act & Assert
-			expect(() => {
-				// eslint-disable-next-line no-unused-vars
-				const event = new Event(INVALID_EVENT_NAME_ARG);
-			}).toThrow(
+			expect(() => new Event(INVALID_EVENT_NAME_ARG)).toThrow(
 				`Event name "${INVALID_EVENT_NAME_ARG}" must be a valid name with module name.`
 			);
 		});

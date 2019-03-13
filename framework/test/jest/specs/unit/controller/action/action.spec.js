@@ -12,34 +12,23 @@ const {
 describe('Action class', () => {
 	describe('#constructor', () => {
 		// Act & Assert
-		it('should throw error when name argument was not provided.', () => {
-			expect(() => {
-				// eslint-disable-next-line no-unused-vars
-				const action = new Action();
-			}).toThrow(
+		it('should throw an error when name argument was not provided.', () => {
+			expect(() => new Action()).toThrow(
 				'Action name "undefined" must be a valid name with module name.'
 			);
 		});
-		it('should throw error when invalid name was provided.', () => {
+		it('should throw an error when invalid name was provided.', () => {
 			// Act & Assert
-			expect(() => {
-				// eslint-disable-next-line no-unused-vars
-				const action = new Action(INVALID_ACTION_NAME_ARG);
-			}).toThrow(
+			expect(() => new Action(INVALID_ACTION_NAME_ARG)).toThrow(
 				`Action name "${INVALID_ACTION_NAME_ARG}" must be a valid name with module name.`
 			);
 		});
 
-		it('should throw error when invalid source was provided.', () => {
+		it('should throw an error when invalid source was provided.', () => {
 			// Act & Assert
-			expect(() => {
-				// eslint-disable-next-line no-unused-vars
-				const action = new Action(
-					VALID_ACTION_NAME_ARG,
-					null,
-					INVALID_ACTION_SOURCE_ARG
-				);
-			}).toThrow(
+			expect(
+				() => new Action(VALID_ACTION_NAME_ARG, null, INVALID_ACTION_SOURCE_ARG)
+			).toThrow(
 				`Source name "${INVALID_ACTION_SOURCE_ARG}" must be a valid module name.`
 			);
 		});
@@ -71,7 +60,7 @@ describe('Action class', () => {
 	describe('methods', () => {
 		let action;
 		beforeEach(() => {
-			// Act
+			// Arrange
 			action = new Action(
 				VALID_ACTION_NAME_ARG,
 				PARAMS,
