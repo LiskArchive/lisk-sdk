@@ -690,7 +690,7 @@ describe('GET /delegates', () => {
 				});
 			});
 
-			describe('?', () => {
+			describe('timestamp filters', () => {
 				describe('fromTimestamp', () => {
 					it('using invalid fromTimestamp should fail', async () => {
 						return forgedEndpoint

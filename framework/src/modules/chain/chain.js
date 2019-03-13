@@ -191,7 +191,7 @@ module.exports = class Chain {
 				this.blockReward.calcMilestone(action.params.height),
 			calculateReward: action =>
 				this.blockReward.calcReward(action.params.height),
-			generateDelegateList: action =>
+			generateDelegateList: async action =>
 				promisify(this.scope.modules.delegates.generateDelegateList)(
 					action.params.round,
 					action.params.source
@@ -240,7 +240,7 @@ module.exports = class Chain {
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
 					action.params.filters,
-					action.params.transaction
+					action.params.tx
 				),
 		};
 	}

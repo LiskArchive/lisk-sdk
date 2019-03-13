@@ -329,7 +329,7 @@ async function _aggregateBlocksReward(filter) {
 	try {
 		delegateBlocksRewards = await channel.invoke(
 			'chain:getDelegateBlocksRewards',
-			[params]
+			{ filters: params }
 		);
 	} catch (err) {
 		logger.error(err.stack);
