@@ -20,6 +20,7 @@ const {
 	transfer,
 	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const phases = require('../../../common/phases');
@@ -27,7 +28,6 @@ const sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
 const randomUtil = require('../../../common/utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 

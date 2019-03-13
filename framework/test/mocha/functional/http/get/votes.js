@@ -21,12 +21,12 @@ const {
 	registerDelegate,
 	castVotes,
 } = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { FEES, MAX_VOTES_PER_ACCOUNT } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;

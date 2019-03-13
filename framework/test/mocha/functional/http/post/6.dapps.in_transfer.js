@@ -16,10 +16,10 @@
 
 require('../../functional.js');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const Promise = require('bluebird');
 const phases = require('../../../common/phases');
 const accountFixtures = require('../../../fixtures/accounts');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');

@@ -56,6 +56,7 @@ module.exports = class Chain {
 		this.logger = null;
 		this.scope = null;
 		this.blockReward = null;
+		this.slots = null;
 	}
 
 	async bootstrap() {
@@ -105,6 +106,8 @@ module.exports = class Chain {
 
 		const BlockReward = require('./logic/block_reward');
 		this.blockReward = new BlockReward();
+		// Needs to be loaded here as its using constants that need to be initialized first
+		this.slots = require('./helpers/slots');
 
 		try {
 			// Cache
@@ -234,6 +237,7 @@ module.exports = class Chain {
 					action.params[0],
 					action.params[1]
 				),
+			getSlotsHelper: async () => this.slots,
 		};
 	}
 

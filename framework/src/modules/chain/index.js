@@ -77,6 +77,7 @@ module.exports = class ChainModule extends BaseModule {
 				this.chain.actions.postTransaction(action),
 			getDelegateBlocksRewards: async action =>
 				this.chain.actions.getDelegateBlocksRewards(action),
+			getSlotsHelper: async action => this.chain.actions.getSlotsHelper(action),
 		};
 	}
 
