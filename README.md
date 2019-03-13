@@ -341,7 +341,7 @@ More information about options can be found at [Command Line Options](#command-l
 There are plenty of options available that you can use to override configuration on runtime while starting the lisk.
 
 ```
-npm start [options]
+npm start -- [options]
 ```
 
 Each of that option can be appended on command line. There are also few `ENV` variables that can be utilized for this purpose.
