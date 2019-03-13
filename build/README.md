@@ -36,6 +36,8 @@ brew install coreutils gpg2 jq moreutils
 make LISK_NETWORK=<mainnet|testnet>
 ```
 
+`make clean` to remove build artifacts; `make mrproper` will additionally delete downloaded dependencies.
+
 #### Examples
 
 ```
