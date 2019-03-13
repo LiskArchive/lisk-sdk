@@ -21,6 +21,7 @@ const {
 	registerSecondPassphrase,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../fixtures/accounts');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
@@ -28,7 +29,6 @@ const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 Promise.promisify(waitFor.newRound);
 const { FEES } = global.constants;

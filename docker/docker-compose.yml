@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
     restart: on-failure
-    entrypoint: ["/home/lisk/wait-for-it.sh", "db:5432", "--", "node", "/home/lisk/lisk/app.js"]
+    entrypoint: ["/home/lisk/wait-for-it.sh", "db:5432", "--", "npm", "start"]
     command: ["-n", "${ENV_LISK_NETWORK}"]
     environment:
       - LISK_DB_HOST=db
