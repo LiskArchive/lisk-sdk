@@ -209,14 +209,14 @@ export class SecondSignatureTransaction extends BaseTransaction {
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const sender = store.account.get(this.senderId);
-		const strippedSender = {
+		const resetSender = {
 			...sender,
 			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
 			secondPublicKey: null,
 			secondSignature: 0,
 		};
 
-		store.account.set(strippedSender.address, strippedSender);
+		store.account.set(resetSender.address, resetSender);
 
 		return [];
 	}
