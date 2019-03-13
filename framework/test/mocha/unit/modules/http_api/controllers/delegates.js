@@ -163,7 +163,7 @@ describe('delegates/api', () => {
 		it('should call channel.invoke with chain:calculateSupply action if lastBlock.height is not 0', async () => {
 			expect(channelStub.invoke).to.be.calledWithExactly(
 				'chain:calculateSupply',
-				[dummyBlock.height]
+				{ height: dummyBlock.height }
 			);
 		});
 

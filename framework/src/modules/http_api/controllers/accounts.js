@@ -113,7 +113,9 @@ AccountsController.getAccounts = async function(context, next) {
 			accountFormatter.bind(
 				null,
 				lastBlock.height
-					? await channel.invoke('chain:calculateSupply', [lastBlock.height])
+					? await channel.invoke('chain:calculateSupply', {
+							height: lastBlock.height,
+						})
 					: 0
 			)
 		);
