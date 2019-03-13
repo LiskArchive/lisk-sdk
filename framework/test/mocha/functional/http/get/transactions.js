@@ -365,12 +365,9 @@ describe('GET /api/transactions', () => {
 						.then(res => {
 							expect(res.body.data).to.not.empty;
 
-							res.body.data.map(transaction => {
-								expect(transaction).to.have.property('asset');
-								return expect(
-									Object.keys(transaction.asset).length
-								).to.be.below(2);
-							});
+							res.body.data.map(transaction =>
+								expect(Object.keys(transaction.asset).length).to.be.below(2)
+							);
 						});
 				});
 
@@ -381,7 +378,6 @@ describe('GET /api/transactions', () => {
 							expect(res.body.data).to.not.empty;
 
 							res.body.data.map(transaction => {
-								expect(transaction).to.have.property('asset');
 								expect(transaction.asset).to.have.property('signature');
 								expect(transaction.asset.signature).to.have.property(
 									'publicKey'
@@ -400,8 +396,6 @@ describe('GET /api/transactions', () => {
 							expect(res.body.data).to.not.empty;
 
 							res.body.data.map(transaction => {
-								expect(transaction).to.have.property('asset');
-								expect(transaction.asset).to.have.property('delegate');
 								expect(transaction.asset.delegate).to.have.property(
 									'publicKey'
 								);
@@ -420,8 +414,6 @@ describe('GET /api/transactions', () => {
 							expect(res.body.data).to.not.empty;
 
 							res.body.data.map(transaction => {
-								expect(transaction).to.have.property('asset');
-								expect(transaction.asset).to.have.property('votes');
 								expect(Object.keys(transaction.asset).length).to.equal(1);
 								return expect(transaction.asset.votes).to.be.an('array');
 							});
@@ -435,17 +427,12 @@ describe('GET /api/transactions', () => {
 							expect(res.body.data).to.not.empty;
 
 							res.body.data.map(transaction => {
-								expect(transaction).to.have.property('asset');
-								expect(transaction.asset).to.have.property('multisignature');
 								expect(Object.keys(transaction.asset).length).to.equal(1);
 								expect(transaction.asset.multisignature).to.have.property(
 									'min'
 								);
 								expect(transaction.asset.multisignature).to.have.property(
 									'lifetime'
-								);
-								expect(transaction.asset.multisignature).to.have.property(
-									'keysgroup'
 								);
 								expect(transaction.asset.multisignature.keysgroup).to.be.an(
 									'array'
@@ -463,14 +450,9 @@ describe('GET /api/transactions', () => {
 							expect(res.body.data).to.not.empty;
 
 							res.body.data.map(transaction => {
-								expect(transaction).to.have.property('asset');
-								expect(transaction.asset).to.have.property('dapp');
 								expect(Object.keys(transaction.asset).length).to.equal(1);
-								expect(transaction.asset.dapp).to.have.keys(
-									'name',
-									'category',
-									'type'
-								); // Required properties
+								// Required properties: name, category, type
+								expect(transaction.asset.dapp).to.have.property('name');
 								expect(transaction.asset.dapp.type).to.be.within(0, 2);
 								return expect(transaction.asset.dapp.category).to.be.within(
 									0,
