@@ -130,6 +130,7 @@ class Controller {
 			['ready'],
 			{
 				getComponentConfig: action => this.config.components[action.params],
+				getApplicationState: () => this.applicationState,
 			},
 			{ skipInternalEvents: true }
 		);

@@ -79,6 +79,11 @@ module.exports = class Chain {
 			'system'
 		);
 
+		const applicationState = await this.channel.invoke(
+			'lisk:getApplicationState',
+			'applicationState'
+		);
+
 		this.logger = createLoggerComponent(loggerConfig);
 		const dbLogger =
 			storageConfig.logFileName &&
@@ -128,6 +133,7 @@ module.exports = class Chain {
 
 			const self = this;
 			const scope = {
+				applicationState,
 				lastCommit,
 				ed,
 				build: versionBuild,
