@@ -841,10 +841,10 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 						sort: 'height:desc',
 					}
 				)
-					.then(blocks => {
+					.then(blocks =>
 						// Update our application state: broadhash and height
-						applicationState.update(blocks);
-					})
+						applicationState.update(blocks)
+					)
 					.then(() => seriesCb())
 					.catch(seriesCb);
 			},

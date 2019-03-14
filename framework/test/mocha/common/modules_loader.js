@@ -24,6 +24,7 @@ const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Transaction = require('../../../src/modules/chain/logic/transaction');
 const Account = require('../../../src/modules/chain/logic/account');
+const ApplicationState = require('../../../src/controller/applicationState');
 
 const modulesLoader = new function() {
 	this.storage = null;
@@ -32,14 +33,28 @@ const modulesLoader = new function() {
 		errorLevel: __testContext.config.fileLogLevel,
 		filename: __testContext.config.logFileName,
 	});
+
+	const applicationState = new ApplicationState(
+		{
+			nethash: __testContext.nethash,
+			version: __testContext.version,
+			wsPort: __testContext.wsPort,
+			httpPort: __testContext.httpPort,
+			minVersion: __testContext.minVersion,
+			protocolVersion: __testContext.protocolVersion,
+			nonce: __testContext.nonce,
+		},
+		this.logger
+	);
+
 	this.scope = {
+		applicationState,
 		lastCommit: '',
 		build: '',
 		config: __testContext.config,
 		genesisBlock: { block: __testContext.config.genesisBlock },
 		components: {
 			logger: this.logger,
-			system: this.system,
 		},
 		network: {
 			expressApp: express(),
@@ -150,7 +165,7 @@ const modulesLoader = new function() {
 				new Logic(
 					scope.components.logger,
 					scope.config,
-					scope.components.system,
+					scope.applicationState,
 					cb
 				);
 				break;

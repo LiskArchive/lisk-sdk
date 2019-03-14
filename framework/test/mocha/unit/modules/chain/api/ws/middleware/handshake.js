@@ -24,7 +24,6 @@ const WSServerMaster = require('../../../../../../common/ws/server_master');
 const config = __testContext.config;
 
 describe('Handshake', () => {
-	let system;
 	let handshake;
 	const minVersion = '1.0.0';
 	const protocolVersion = '1.0';
@@ -46,7 +45,7 @@ describe('Handshake', () => {
 	let validHeaders;
 
 	before(async () => {
-		handshake = new Handshake.middleware.Handshake(system, validConfig.config);
+		handshake = new Handshake.middleware.Handshake(validConfig.config);
 	});
 
 	afterEach(async () => {
@@ -54,10 +53,7 @@ describe('Handshake', () => {
 	});
 
 	describe('compatibility', () => {
-		let versionCompatibleStub;
 		beforeEach(done => {
-			versionCompatibleStub = sinonSandbox.stub(system, 'versionCompatible');
-
 			validHeaders = WSServerMaster.generatePeerHeaders({
 				version: minVersion,
 				protocolVersion,
@@ -143,9 +139,9 @@ describe('Handshake', () => {
 			delete validHeaders.protocolVersion;
 
 			// Act
-			handshake(validHeaders, async () => {
+			handshake(validHeaders, err => {
 				// Assert
-				expect(versionCompatibleStub).to.be.called;
+				expect(err).to.be.null;
 				done();
 			});
 		});

@@ -25,6 +25,7 @@ const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
 const { ZSchema } = require('../../../src/controller/helpers/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
+const ApplicationState = require('../../../src/controller/applicationState');
 
 const promisifyParallel = util.promisify(async.parallel);
 let currentAppScope;
@@ -123,9 +124,23 @@ async function __init(sandbox, initScope) {
 			error: sinonSandbox.spy(),
 		};
 
+		const applicationState = new ApplicationState(
+			{
+				nethash: __testContext.nethash,
+				version: __testContext.version,
+				wsPort: __testContext.wsPort,
+				httpPort: __testContext.httpPort,
+				minVersion: __testContext.minVersion,
+				protocolVersion: __testContext.protocolVersion,
+				nonce: __testContext.nonce,
+			},
+			logger
+		);
+
 		const scope = Object.assign(
 			{},
 			{
+				applicationState,
 				lastCommit: '',
 				ed,
 				build: '',

@@ -37,7 +37,7 @@ describe('peers', () => {
 	let __private;
 
 	let peersLogicMock;
-	let systemComponentMock;
+	let applicationStateMock;
 	let transportModuleMock;
 	let scope;
 
@@ -65,17 +65,14 @@ describe('peers', () => {
 			upsert: sinonSandbox.stub(),
 			remove: sinonSandbox.stub(),
 		};
-		systemComponentMock = {
-			headers: {},
+		applicationStateMock = {
+			getState: sinonSandbox.stub().returns({}),
 		};
 		transportModuleMock = {};
 		bindings = {
+			applicationState: applicationStateMock,
 			modules: {
 				transport: transportModuleMock,
-			},
-
-			components: {
-				system: systemComponentMock,
 			},
 		};
 
@@ -121,7 +118,6 @@ describe('peers', () => {
 
 		describe('when logic.peers.list returns no records', () => {
 			before(done => {
-				systemComponentMock.getBroadhash = sinonSandbox.stub().returns();
 				peersLogicMock.list = sinonSandbox.stub().returns([]);
 				done();
 			});
@@ -550,7 +546,9 @@ describe('peers', () => {
 					const connectedPeer = _.assign({}, prefixedPeer);
 					connectedPeer.state = Peer.STATE.CONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
-					systemComponentMock.headers.broadhash = connectedPeer.broadhash;
+					applicationStateMock.getState.returns({
+						broadhash: connectedPeer.broadhash,
+					});
 					done();
 				});
 
@@ -563,7 +561,9 @@ describe('peers', () => {
 					const bannedPeer = _.assign({}, prefixedPeer);
 					bannedPeer.state = Peer.STATE.BANNED;
 					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
-					systemComponentMock.headers.broadhash = bannedPeer.broadhash;
+					applicationStateMock.getState.returns({
+						broadhash: bannedPeer.broadhash,
+					});
 					done();
 				});
 
@@ -576,7 +576,9 @@ describe('peers', () => {
 					const disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					systemComponentMock.headers.broadhash = disconnectedPeer.broadhash;
+					applicationStateMock.getState.returns({
+						broadhash: disconnectedPeer.broadhash,
+					});
 					done();
 				});
 
@@ -594,7 +596,9 @@ describe('peers', () => {
 					generateRandomActivePeer()
 				);
 				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-				systemComponentMock.headers.broadhash = broadhashes.matchedBroadhash;
+				applicationStateMock.getState.returns({
+					broadhash: broadhashes.matchedBroadhash,
+				});
 				validActive = oneHundredActivePeers;
 				done();
 			});
@@ -714,7 +718,7 @@ describe('peers', () => {
 
 	describe('acceptable', () => {
 		before(done => {
-			systemComponentMock.headers.nonce = NONCE;
+			applicationStateMock.getState.returns({ nonce: NONCE });
 			process.env.NODE_ENV = 'DEV';
 			done();
 		});
@@ -922,8 +926,8 @@ describe('peers', () => {
 					string: 'aPeerString',
 				};
 
-				bindings.components.system.versionCompatible = sinonSandbox.stub();
-				bindings.components.system.protocolVersionCompatible = sinonSandbox.stub();
+				bindings.applicationState.versionCompatible = sinonSandbox.stub();
+				bindings.applicationState.protocolVersionCompatible = sinonSandbox.stub();
 				__private.updatePeerStatus(undefined, status, peer);
 				done();
 			});
@@ -935,7 +939,7 @@ describe('peers', () => {
 					delete status.protocolVersion;
 					__private.updatePeerStatus(undefined, status, peer);
 					return expect(
-						bindings.components.system.versionCompatible
+						bindings.applicationState.versionCompatible
 					).to.be.calledWith(status.version);
 				});
 			});
@@ -944,14 +948,14 @@ describe('peers', () => {
 				it('should call protocolVersionCompatible() with status.protocolVersion', async () => {
 					__private.updatePeerStatus(undefined, status, peer);
 					return expect(
-						bindings.components.system.protocolVersionCompatible
+						bindings.applicationState.protocolVersionCompatible
 					).to.be.calledWith(status.protocolVersion);
 				});
 			});
 
 			describe('when the peer is compatible', () => {
 				beforeEach(() => {
-					bindings.components.system.protocolVersionCompatible = sinonSandbox
+					bindings.applicationState.protocolVersionCompatible = sinonSandbox
 						.stub()
 						.returns(true);
 					return __private.updatePeerStatus(undefined, status, peer);
@@ -992,13 +996,13 @@ describe('peers', () => {
 
 			it('should call library.logic.peers.upsert() with required args regardless if its compatible or not', done => {
 				// When it's compatible
-				bindings.components.system.protocolVersionCompatible = sinonSandbox
+				bindings.applicationState.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(true);
 				__private.updatePeerStatus(undefined, status, peer);
 				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
 				// When it's not compatible
-				bindings.components.system.protocolVersionCompatible = sinonSandbox
+				bindings.applicationState.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(false);
 				__private.updatePeerStatus(undefined, status, peer);

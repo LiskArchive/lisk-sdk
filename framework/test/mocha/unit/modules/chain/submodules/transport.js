@@ -46,7 +46,7 @@ describe('transport', () => {
 	let transportInstance;
 	let library;
 	let __private;
-	let components;
+	let applicationState;
 	let modules;
 	let defaultScope;
 	let restoreRewiredTopDeps;
@@ -200,6 +200,10 @@ describe('transport', () => {
 		definitions = TransportModule.__get__('definitions');
 
 		defaultScope = {
+			applicationState: {
+				update: sinonSandbox.stub(),
+				getState: sinonSandbox.stub(),
+			},
 			logic: {
 				block: blockStub,
 				transaction: transactionStub,
@@ -208,7 +212,6 @@ describe('transport', () => {
 			components: {
 				storage: storageStub,
 				logger: loggerStub,
-				system: {},
 			},
 			bus: busStub,
 			schema: schemaStub,
@@ -340,14 +343,14 @@ describe('transport', () => {
 					},
 				};
 
-				components = {
-					system: {
-						update: sinonSandbox.stub().callsArg(0),
-						headers: {
+				applicationState = {
+					update: sinonSandbox.stub().callsArg(0),
+					getState: sinonSandbox
+						.stub()
+						.returns({
 							broadhash:
 								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						},
-					},
+						}),
 				};
 
 				wsRPC = {
@@ -357,7 +360,7 @@ describe('transport', () => {
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
 					modules,
-					components,
+					applicationState,
 					definitions,
 					wsRPC,
 				});
@@ -1056,14 +1059,14 @@ describe('transport', () => {
 					},
 				};
 
-				components = {
-					system: {
-						update: sinonSandbox.stub().callsArg(0),
-						headers: {
+				applicationState = {
+					update: sinonSandbox.stub().callsArg(0),
+					getState: sinonSandbox
+						.stub()
+						.returns({
 							broadhash:
 								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						},
-					},
+						}),
 				};
 
 				__private = {
@@ -1075,7 +1078,7 @@ describe('transport', () => {
 				restoreRewiredTransportDeps = TransportModule.__set__({
 					library,
 					modules,
-					components,
+					applicationState,
 					__private,
 				});
 
@@ -1171,16 +1174,16 @@ describe('transport', () => {
 				});
 			});
 
-			describe('components', () => {
-				let componentsObject;
+			describe('applicationState', () => {
+				let applicationStateOject;
 
 				beforeEach(done => {
-					componentsObject = TransportModule.__get__('components');
+					applicationStateOject = TransportModule.__get__('applicationState');
 					done();
 				});
 
-				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', async () => {
-					return expect(componentsObject).to.have.property('system');
+				it('should assign applicationState properties', async () => {
+					return expect(applicationStateOject).to.have.property('getState');
 				});
 			});
 
@@ -1860,7 +1863,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					currentHeight = 12345;
 					req = {};
-					components.system.headers.height = currentHeight;
+					applicationState.getState.returns({ height: currentHeight });
 					transportInstance.shared.height(req, (err, res) => {
 						error = err;
 						result = res;
@@ -1882,16 +1885,17 @@ describe('transport', () => {
 			});
 
 			describe('status', () => {
+				const state = {
+					height: 123,
+					broadhash:
+						'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
+					nonce: 'sYHEDBKcScaAAAYg',
+					version: 'v0.8.0',
+					os: 'debian',
+					httpPort: 8000,
+				};
 				beforeEach(done => {
-					components.system.headers = {
-						height: 123,
-						broadhash:
-							'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
-						nonce: 'sYHEDBKcScaAAAYg',
-						version: 'v0.8.0',
-						os: 'debian',
-						httpPort: 8000,
-					};
+					applicationState.getState.returns(state);
 					req = {};
 					transportInstance.shared.status(req, (err, res) => {
 						error = err;
@@ -1911,27 +1915,27 @@ describe('transport', () => {
 				it('should call callback with a result containing height = 123', async () =>
 					expect(result)
 						.to.have.property('height')
-						.which.equals(components.system.headers.height));
+						.which.equals(state.height));
 
 				it('should call callback with a result containing broadhash = "258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea"', async () =>
 					expect(result)
 						.to.have.property('broadhash')
-						.which.equals(components.system.headers.broadhash));
+						.which.equals(state.broadhash));
 
 				it('should call callback with a result containing httpPort = 8000', async () =>
 					expect(result)
 						.to.have.property('httpPort')
-						.which.equals(defaultScope.config.httpPort));
+						.which.equals(state.httpPort));
 
 				it('should call callback with a result containing version = "v0.8.0"', async () =>
 					expect(result)
 						.to.have.property('version')
-						.which.equals(components.system.headers.version));
+						.which.equals(state.version));
 
 				it('should call callback with a result containing os = "debian"', async () =>
 					expect(result)
 						.to.have.property('os')
-						.which.equals(components.system.headers.os));
+						.which.equals(state.os));
 			});
 
 			describe('postSignature', () => {

@@ -142,10 +142,10 @@ describe('HttpApi', () => {
 				'cache'
 			);
 		});
-		it('should invoke lisk:getComponentConfig to get "system" configuration', async () => {
+		it('should invoke lisk:getApplicationState to get "applicationState"', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getComponentConfig',
-				'system'
+				'lisk:getApplicationState',
+				'applicationState'
 			);
 		});
 		it('should create logger component with loggerConfig and assign to object instance', async () => {

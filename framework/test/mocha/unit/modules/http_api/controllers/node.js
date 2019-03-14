@@ -34,10 +34,10 @@ describe('node/api', () => {
 				);
 			});
 
-			it('should assign system', () => {
-				return expect(privateLibrary).to.have.nested.property(
-					'components.system',
-					library.components.system
+			it('should assign applicationState', () => {
+				return expect(privateLibrary).to.have.property(
+					'applicationState',
+					library.applicationState
 				);
 			});
 
