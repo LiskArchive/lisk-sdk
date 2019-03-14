@@ -35,8 +35,6 @@ import {
 	P2PPeerSelectionForSendRequest,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	ProtocolPeerInfo,
-	ProtocolPeerInfoList,
 } from './p2p_types';
 import {
 	connectAndFetchPeerInfo,
@@ -53,7 +51,6 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	Peer,
 	PeerConfig,
-	REMOTE_RPC_GET_ALL_PEERS_LIST,
 } from './peer';
 import { discoverPeers } from './peer_discovery';
 
@@ -118,12 +115,6 @@ export class PeerPool extends EventEmitter {
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
-			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
-				// The PeerPool has the necessary information to handle this request on its own.
-				// This request doesn't need to propagate to its parent class.
-				this._handleGetAllPeersRequest(request);
-			}
-
 			// Re-emit the request to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
@@ -497,57 +488,6 @@ export class PeerPool extends EventEmitter {
 				this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 			}
 		})();
-	}
-
-	private _pickRandomDiscoveredPeers(count: number): ReadonlyArray<Peer> {
-		const discoveredPeerList: ReadonlyArray<Peer> = [...this._peerMap.values()]; // Peers whose values has been updated atleast once.
-
-		return selectRandomPeerSample(discoveredPeerList, count);
-	}
-
-	private _handleGetAllPeersRequest(request: P2PRequest): void {
-		// TODO later: Remove fields that are specific to the current Lisk protocol.
-		const protocolPeerInfoList: ProtocolPeerInfoList = {
-			success: true,
-			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
-				.map(
-					(peer: Peer): ProtocolPeerInfo | undefined => {
-						const peerDiscoveredInfo = peer.peerInfo;
-
-						if (!peerDiscoveredInfo) {
-							return undefined;
-						}
-
-						// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
-						return {
-							broadhash: peerDiscoveredInfo.broadhash
-								? (peerDiscoveredInfo.broadhash as string)
-								: '',
-							height: peerDiscoveredInfo.height,
-							ip: peerDiscoveredInfo.ipAddress,
-							nonce: peerDiscoveredInfo.nonce
-								? (peerDiscoveredInfo.nonce as string)
-								: '',
-							os: peerDiscoveredInfo.os ? peerDiscoveredInfo.os : '',
-							version: peerDiscoveredInfo.version,
-							httpPort: peerDiscoveredInfo.httpPort
-								? (peerDiscoveredInfo.httpPort as number)
-								: undefined,
-							wsPort: peerDiscoveredInfo.wsPort,
-						};
-					},
-				)
-				.filter(
-					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
-						!!peerDetailedInfo,
-				)
-				.map(
-					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
-						peerDetailedInfo as ProtocolPeerInfo,
-				),
-		};
-
-		request.end(protocolPeerInfoList);
 	}
 
 	private _bindHandlersToPeer(peer: Peer): void {
