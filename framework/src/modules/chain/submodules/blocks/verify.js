@@ -21,7 +21,7 @@ const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
 const Bignum = require('../../helpers/bignum');
 
-let components;
+let applicationState;
 let modules;
 let library;
 let self;
@@ -832,11 +832,11 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			},
 			// Perform next two steps only when 'broadcast' flag is set, it can be:
 			// 'true' if block comes from generation or receiving process
-			// 'false' if block comes from chain synchronisation process
-			updateSystemHeaders(seriesCb) {
+			// 'false' if block comes from chain synchronization process
+			updateApplicationState(seriesCb) {
 				// Update our own headers: broadhash and height
 				if (!library.config.loading.snapshotRound) {
-					return components.system
+					return applicationState
 						.update()
 						.then(() => seriesCb())
 						.catch(seriesCb);
@@ -853,15 +853,14 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 };
 
 /**
- * Handle modules initialization & components
+ * It assigns applicationState & modules to private constants.
  *
- * @param {Object} scope - Exposed modules
+ * @param {applicationState, modules} scope - Exposed applicationState & modules
  */
 Verify.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
-	components = {
-		system: scope.components.system,
-	};
+
+	applicationState = scope.applicationState;
 
 	modules = {
 		accounts: scope.modules.accounts,

@@ -37,10 +37,6 @@ const modulesToInstrument = {
 			'removeByPattern',
 		],
 	},
-	'./componentes/system.js': {
-		identifier: 'componentes.system',
-		callbackMethods: ['update'],
-	},
 	'./helpers/sequence.js': {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],

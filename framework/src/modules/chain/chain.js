@@ -9,7 +9,6 @@ const { ZSchema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { createSystemComponent } = require('../../components/system');
 const {
 	lookupPeerIPs,
 	createBus,
@@ -74,11 +73,6 @@ module.exports = class Chain {
 			'cache'
 		);
 
-		const systemConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
-			'system'
-		);
-
 		const applicationState = await this.channel.invoke(
 			'lisk:getApplicationState',
 			'applicationState'
@@ -123,10 +117,6 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			// System
-			this.logger.debug('Initiating system...');
-			const system = createSystemComponent(systemConfig, this.logger, storage);
-
 			if (!this.options.config) {
 				throw Error('Failed to assign nethash from genesis block');
 			}
@@ -154,7 +144,6 @@ module.exports = class Chain {
 					storage,
 					cache,
 					logger: self.logger,
-					system,
 				},
 				channel: this.channel,
 			};

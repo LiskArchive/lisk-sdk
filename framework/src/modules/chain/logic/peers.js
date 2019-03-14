@@ -36,18 +36,20 @@ let modules;
  * @requires logic/peer
  * @requires helpers/peers_manager
  * @param {Object} logger
+ * @param {Object} config
+ * @param {Object} applicationState
  * @param {function} cb - Callback function
  * @returns {SetImmediate} null, this
  * @todo Add description for the params
  */
 class Peers {
-	constructor(logger, config, system, cb) {
+	constructor(logger, config, applicationState, cb) {
 		library = {
 			logger,
 		};
 		self = this;
-		this.system = system;
-		this.peersManager = new PeersManager(logger, system);
+		this.applicationState = applicationState;
+		this.peersManager = new PeersManager(logger, applicationState);
 		this.banManager = new BanManager(logger, config);
 
 		return setImmediate(cb, null, this);
@@ -57,12 +59,13 @@ class Peers {
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
 /**
- * Returns current peer state and system headers.
+ * Returns current peer status and application state.
  *
- * @returns {Object} system headers and peer status
+ * @returns {Object} Application state and peer status
  */
 Peers.prototype.me = function() {
-	return Object.assign({}, this.system.headers, {
+	const state = this.applicationState.getState();
+	return Object.assign({}, state, {
 		state: Peer.STATE.CONNECTED,
 	});
 };

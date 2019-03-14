@@ -23,7 +23,7 @@ const Peer = require('../logic/peer');
 const definitions = require('../schema/definitions');
 
 // Private fields
-let components;
+let applicationState;
 let library;
 let self;
 const { MAX_PEERS } = global.constants;
@@ -274,7 +274,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 		let compatible = false;
 		// Check needed for compatibility with older nodes
 		if (!status.protocolVersion) {
-			if (!components.system.versionCompatible(status.version)) {
+			if (!applicationState.versionCompatible(status.version)) {
 				library.logger.debug(
 					`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
 						peer.string
@@ -284,7 +284,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 				compatible = true;
 			}
 		} else if (
-			!components.system.protocolVersionCompatible(status.protocolVersion)
+			!applicationState.protocolVersionCompatible(status.protocolVersion)
 		) {
 			library.logger.debug(
 				`Peers->updatePeerStatus Incompatible protocol version, rejecting peer: ${
@@ -479,7 +479,7 @@ Peers.prototype.getLastConsensus = function() {
  * Calculates consensus for as a ratio active to matched peers.
  *
  * @param {Array<Peer>}[active=peers list] active - Active peers (with connected state)
- * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as system broadhash
+ * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as application broadhash
  * @returns {number} Consensus or undefined if config.forging.force = true
  */
 Peers.prototype.calculateConsensus = function(active, matched) {
@@ -488,7 +488,7 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 		library.logic.peers
 			.list(true)
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	const broadhash = components.system.headers.broadhash;
+	const { broadhash } = applicationState.getState();
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
@@ -648,6 +648,7 @@ Peers.prototype.discover = function(cb) {
  * @todo Add description for the params
  */
 Peers.prototype.acceptable = function(peers) {
+	const { nonce } = applicationState.getState();
 	return _(peers)
 		.uniqWith(
 			(a, b) =>
@@ -657,11 +658,9 @@ Peers.prototype.acceptable = function(peers) {
 		.filter(peer => {
 			// Removing peers with private address or nonce equal to itself
 			if ((process.env.NODE_ENV || '').toUpperCase() === 'TEST') {
-				return peer.nonce !== components.system.headers.nonce;
+				return peer.nonce !== nonce;
 			}
-			return (
-				!ip.isPrivate(peer.ip) && peer.nonce !== components.system.headers.nonce
-			);
+			return !ip.isPrivate(peer.ip) && peer.nonce !== nonce;
 		})
 		.value();
 };
@@ -682,7 +681,7 @@ Peers.prototype.acceptable = function(peers) {
  */
 Peers.prototype.list = function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const broadhash = options.broadhash || components.system.headers.broadhash;
+	const broadhash = options.broadhash || applicationState.getState().broadhash;
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
 		options.attempt === 0 || options.attempt === 1 ? [options.attempt] : [1, 0];
@@ -786,15 +785,13 @@ Peers.prototype.networkHeight = function(options, cb) {
 
 // Events
 /**
- * Assigns scope to components constant.
+ * It assigns applicationState from scope.
  *
- * @param {components} scope
+ * @param {applicationState} scope
  * @todo Add description for the params
  */
 Peers.prototype.onBind = function(scope) {
-	components = {
-		system: scope.components.system,
-	};
+	applicationState = scope.applicationState;
 };
 
 /**
@@ -932,12 +929,12 @@ Peers.prototype.cleanup = function(cb) {
 };
 
 /**
- * Checks if `components` is loaded.
+ * Checks if `applicationState` is loaded.
  *
- * @returns {boolean} True if `components` is loaded
+ * @returns {boolean} True if `applicationState` is loaded
  */
 Peers.prototype.isLoaded = function() {
-	return !!components;
+	return !!applicationState;
 };
 
 /**

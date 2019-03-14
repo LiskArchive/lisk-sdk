@@ -31,7 +31,7 @@ const {
 	MAX_SHARED_TRANSACTIONS,
 } = global.constants;
 // Private fields
-let components;
+let applicationState;
 let modules;
 let library;
 let self;
@@ -297,14 +297,12 @@ Transport.prototype.poorConsensus = function() {
 
 // Events
 /**
- * Bounds scope to private broadcaster amd initialize headers.
+ * Bounds scope to private broadcaster amd initialize applicationState & modules.
  *
- * @param {modules, components} scope - Loaded modules and components
+ * @param {applicationState, modules} scope - Exposed applicationState & modules
  */
 Transport.prototype.onBind = function(scope) {
-	components = {
-		system: scope.components.system,
-	};
+	applicationState = scope.applicationState;
 
 	modules = {
 		blocks: scope.modules.blocks,
@@ -449,10 +447,13 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	if (block.reward) {
 		block.reward = block.reward.toNumber();
 	}
+
+	const { broadhash } = applicationState.getState();
+
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
 		{
-			broadhash: components.system.headers.broadhash,
+			broadhash,
 		},
 		{ api: 'postBlock', data: { block }, immediate: true }
 	);
@@ -471,13 +472,13 @@ Transport.prototype.cleanup = function(cb) {
 };
 
 /**
- * Returns true if modules are loaded and private variable loaded is true.
+ * Returns true if applicationState and modules are loaded and private variable loaded is true.
  *
  * @returns {boolean}
  * @todo Add description for the return value
  */
 Transport.prototype.isLoaded = function() {
-	return components && modules && __private.loaded;
+	return applicationState && modules && __private.loaded;
 };
 
 // Internal API
@@ -675,9 +676,10 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	height(req, cb) {
+		const { height } = applicationState.getState();
 		return setImmediate(cb, null, {
 			success: true,
-			height: components.system.headers.height,
+			height,
 		});
 	},
 
@@ -689,16 +691,16 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	status(req, cb) {
-		const headers = components.system.headers;
+		const state = applicationState.getState();
 		return setImmediate(cb, null, {
 			success: true,
-			height: headers.height,
-			broadhash: headers.broadhash,
-			nonce: headers.nonce,
-			httpPort: headers.httpPort,
-			version: headers.version,
-			protocolVersion: headers.protocolVersion,
-			os: headers.os,
+			height: state.height,
+			broadhash: state.broadhash,
+			nonce: state.nonce,
+			httpPort: state.httpPort,
+			version: state.version,
+			protocolVersion: state.protocolVersion,
+			os: state.os,
 		});
 	},
 

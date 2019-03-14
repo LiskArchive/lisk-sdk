@@ -25,6 +25,7 @@ const {
 
 const { TRANSACTION_TYPES } = global.constants;
 
+let applicationState;
 let components;
 let modules;
 let library;
@@ -834,9 +835,9 @@ Chain.prototype.deleteLastBlock = function(cb) {
 					return seriesCb(err);
 				});
 			},
-			updateSystemHeaders(seriesCb) {
+			updateApplicationState(seriesCb) {
 				// Update our own headers: broadhash and height
-				return components.system
+				return applicationState
 					.update()
 					.then(() => seriesCb())
 					.catch(seriesCb);
@@ -885,15 +886,15 @@ Chain.prototype.recoverChain = function(cb) {
 };
 
 /**
- * Handle modules & components initialization
+ * It assigns applicationState, modules & components to private constants
  *
- * @param {modules} scope - Exposed modules
+ * @param {applicationState, modules, components} scope - Exposed applicationState, modules & components
  */
 Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
+	applicationState = scope.applicationState;
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
-		system: scope.components.system,
 	};
 
 	modules = {

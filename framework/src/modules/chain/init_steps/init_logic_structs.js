@@ -1,9 +1,10 @@
 module.exports = async ({
+	applicationState,
 	config,
 	ed,
 	schema,
 	genesisBlock,
-	components: { storage, logger, system },
+	components: { storage, logger },
 }) => {
 	const Transaction = require('../logic/transaction');
 	const Block = require('../logic/block');
@@ -37,7 +38,7 @@ module.exports = async ({
 	});
 
 	const peersLogic = await new Promise((resolve, reject) => {
-		new Peers(logger, config, system, (err, object) => {
+		new Peers(logger, config, applicationState, (err, object) => {
 			err ? reject(err) : resolve(object);
 		});
 	});
