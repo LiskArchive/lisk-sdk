@@ -19,8 +19,11 @@ import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
-import { TransactionError, TransactionPendingError } from '../src/errors';
-import * as BigNum from 'browserify-bignum';
+import {
+	TransactionError,
+	TransactionPendingError,
+} from '../src/errors';
+import * as BigNum from '@liskhq/bignum';
 import {
 	addTransactionFields,
 	MockStateStore as store,

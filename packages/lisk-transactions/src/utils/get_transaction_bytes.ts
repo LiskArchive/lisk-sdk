@@ -229,9 +229,7 @@ export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	if (amountBigNum.lt(0)) {
 		throw new Error('Transaction amount must not be negative.');
 	}
-	// BUG in browserify-bignum prevents us using `.gt` directly.
-	// See https://github.com/bored-engineer/browserify-bignum/pull/2
-	if (amountBigNum.gte(new BigNum(MAX_TRANSACTION_AMOUNT).add(1))) {
+	if (amountBigNum.gte(new BigNum(MAX_TRANSACTION_AMOUNT))) {
 		throw new Error('Transaction amount is too large.');
 	}
 	const transactionAmount = amountBigNum.toBuffer({
