@@ -26,10 +26,6 @@ const promisifyChild = child => {
 };
 
 const getIstanbulOptions = (testFile, mochaCliOptions) => {
-	if (mochaCliOptions.length) {
-		mochaCliOptions.unshift('--');
-	}
-
 	return [
 		'cover',
 		'--dir',

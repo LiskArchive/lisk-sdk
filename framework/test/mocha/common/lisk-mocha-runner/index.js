@@ -87,7 +87,7 @@ const processNext = () => {
 	);
 };
 
-const executeTests = (testType, testPathPattern, mochaCliOptions) => {
+const executeTests = async (testType, testPathPattern, mochaCliOptions) => {
 	const allTestFiles = getTestFiles(testType, testPathPattern);
 	state.numberOfTestFiles = allTestFiles.length;
 	state.mochaCliOptions = mochaCliOptions;
@@ -119,9 +119,9 @@ if (testPathPattern && testPathPattern.indexOf('-') === 0) {
 	testPathPattern = null;
 }
 
+mochaCliOptions.unshift('--', '--opts', 'framework/test/mocha/mocha.opts');
+
 // Execute lisk mocha runner
-(() => {
-	executeTests(testType, testPathPattern, mochaCliOptions).catch(error =>
-		console.error(error.message)
-	);
-})();
+executeTests(testType, testPathPattern, mochaCliOptions).catch(error =>
+	console.error(error.message)
+);
