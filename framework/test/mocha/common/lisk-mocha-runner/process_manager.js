@@ -5,33 +5,7 @@ const ISTANBUL_PATH = process.env.MOCHA_PATH || 'node_modules/.bin/istanbul';
 
 const children = {};
 
-const spawn = (testFile, mochaOptions) => {
-	const istanbulOptions = [
-		'cover',
-		'--dir',
-		'framework/test/mocha/.coverage-unit',
-		'--include-pid',
-		'--print',
-		'none',
-		MOCHA_PATH,
-		testFile,
-		'--',
-		...mochaOptions,
-	];
-
-	const child = child_process.spawn(ISTANBUL_PATH, istanbulOptions, {
-		cwd: `${__dirname}/../../../../..`,
-		detached: true,
-		stdio: 'inherit',
-	});
-
-	children[child.pid] = child;
-	console.info(
-		`(${child.pid}) ${ISTANBUL_PATH} ${istanbulOptions
-			.map(v => `"${v}"`)
-			.join(' ')}`
-	);
-
+const promisifyChild = child => {
 	let error = null;
 	child.once('error', err => {
 		error = err;
@@ -43,12 +17,46 @@ const spawn = (testFile, mochaOptions) => {
 			// We need to delete the child process from the queue once it exists.
 			delete children[child.pid];
 			if (code === 0) {
-				return resolve(testFile);
+				return resolve();
 			}
 
 			return reject(code, error);
 		});
 	});
+};
+
+const getIstanbulOptions = (testFile, mochaOptions) => {
+	if (mochaOptions.length) {
+		mochaOptions.unshift('--');
+	}
+
+	return [
+		'cover',
+		'--dir',
+		'framework/test/mocha/.coverage-unit',
+		'--include-pid',
+		'--print',
+		'none',
+		MOCHA_PATH,
+		testFile,
+		...mochaOptions,
+	];
+};
+
+const spawn = (testFile, mochaOptions) => {
+	const istanbulOptions = getIstanbulOptions(testFile, mochaOptions);
+
+	const child = child_process.spawn(ISTANBUL_PATH, istanbulOptions, {
+		cwd: `${__dirname}/../../../../..`,
+		detached: true,
+		stdio: 'inherit',
+	});
+
+	children[child.pid] = child;
+	const istanbulOptionsStr = istanbulOptions.map(v => `"${v}"`).join(' ');
+	console.info(`(${child.pid}) ${ISTANBUL_PATH} ${istanbulOptionsStr}`);
+
+	return promisifyChild(child);
 };
 
 const killAll = () =>

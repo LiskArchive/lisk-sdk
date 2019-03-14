@@ -119,6 +119,9 @@ if (testPathPattern && testPathPattern.indexOf('-') === 0) {
 	testPathPattern = null;
 }
 
-(async () => {
-	await executeTests(testType, testPathPattern, mochaOptions);
-})().catch(error => console.error(error.message));
+// Execute lisk mocha runner
+(() => {
+	executeTests(testType, testPathPattern, mochaOptions).catch(error =>
+		console.error(error.message)
+	);
+})();
