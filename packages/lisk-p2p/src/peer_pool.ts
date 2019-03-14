@@ -362,7 +362,7 @@ export class PeerPool extends EventEmitter {
 		};
 		const peer = new Peer(peerInfo, peerConfig, { inbound: inboundSocket });
 
-		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to itentify and debug.
+		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peer.id)) {
 			throw new Error(`Peer ${peer.id} was already in the peer pool`);
 		}
@@ -447,7 +447,6 @@ export class PeerPool extends EventEmitter {
 		};
 		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
 
-		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to itentify and debug.
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
