@@ -245,7 +245,15 @@ module.exports = class Chain {
 					action.params.filters,
 					action.params.tx
 				),
-			getSlotsHelper: async () => this.slots,
+			getSlotTime: async action =>
+				action.params
+					? this.slots.getTime(action.params.time)
+					: this.slots.getTime(),
+			getSlotNumber: async action =>
+				action.params
+					? this.slots.getSlotNumber(action.params.epochTime)
+					: this.slots.getSlotNumber(),
+			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 		};
 	}
 
