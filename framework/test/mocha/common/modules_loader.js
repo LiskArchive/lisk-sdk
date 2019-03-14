@@ -278,7 +278,7 @@ const modulesLoader = new function() {
 				},
 				{ account: require('../../../src/modules/chain/logic/account') },
 				{ block: require('../../../src/modules/chain/logic/block') },
-				{ peers: require('../../../src/modules/chain/logic/peers.js') },
+				{ peers: require('../../../src/modules/chain/logic/peers') },
 			],
 			scope || {},
 			cb

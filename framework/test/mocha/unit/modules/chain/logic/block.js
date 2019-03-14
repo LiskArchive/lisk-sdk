@@ -17,12 +17,12 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const modulesLoader = require('../../../../common/modules_loader');
 
 const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 
-const Block = rewire('../../../../../../src/modules/chain/logic/block.js');
+const Block = rewire('../../../../../../src/modules/chain/logic/block');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';

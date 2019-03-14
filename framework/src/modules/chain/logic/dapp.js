@@ -16,8 +16,8 @@
 
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
-const Bignum = require('../helpers/bignum.js');
-const regexpTester = require('../helpers/regexp_tester.js');
+const Bignum = require('../helpers/bignum');
+const regexpTester = require('../helpers/regexp_tester');
 
 const { FEES, TRANSACTION_TYPES } = global.constants;
 

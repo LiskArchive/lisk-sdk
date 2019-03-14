@@ -16,9 +16,9 @@
 
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
-const Bignum = require('../helpers/bignum.js');
-const blockVersion = require('./block_version.js');
-const BlockReward = require('./block_reward.js');
+const Bignum = require('../helpers/bignum');
+const blockVersion = require('./block_version');
+const BlockReward = require('./block_reward');
 
 const { MAX_PAYLOAD_LENGTH, FEES, TRANSACTION_TYPES } = global.constants;
 const __private = {};

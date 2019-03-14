@@ -21,23 +21,23 @@ const {
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../../src/components/cache');
 const modulesLoader = require('../../../../common/modules_loader');
-const AccountLogic = require('../../../../../../src/modules/chain/logic/account.js');
-const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction.js');
-const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates.js');
-const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts.js');
-const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader.js');
-const VoteLogic = require('../../../../../../src/modules/chain/logic/vote.js');
-const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer.js');
-const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate.js');
-const SignatureLogic = require('../../../../../../src/modules/chain/logic/signature.js');
-const MultisignatureLogic = require('../../../../../../src/modules/chain/logic/multisignature.js');
-const DappLogic = require('../../../../../../src/modules/chain/logic/dapp.js');
-const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_transfer.js');
-const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer.js');
+const AccountLogic = require('../../../../../../src/modules/chain/logic/account');
+const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction');
+const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates');
+const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts');
+const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader');
+const VoteLogic = require('../../../../../../src/modules/chain/logic/vote');
+const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer');
+const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate');
+const SignatureLogic = require('../../../../../../src/modules/chain/logic/signature');
+const MultisignatureLogic = require('../../../../../../src/modules/chain/logic/multisignature');
+const DappLogic = require('../../../../../../src/modules/chain/logic/dapp');
+const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_transfer');
+const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer');
 
 const { TRANSACTION_TYPES } = global.constants;
 const TransactionModule = rewire(
-	'../../../../../../src/modules/chain/submodules/transactions.js'
+	'../../../../../../src/modules/chain/submodules/transactions'
 );
 
 describe('transactions', () => {

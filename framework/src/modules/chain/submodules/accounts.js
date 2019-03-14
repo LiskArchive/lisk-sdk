@@ -16,9 +16,9 @@
 
 const crypto = require('crypto');
 const async = require('async');
-const Bignum = require('../helpers/bignum.js');
-const BlockReward = require('../logic/block_reward.js');
-const Vote = require('../logic/vote.js');
+const Bignum = require('../helpers/bignum');
+const BlockReward = require('../logic/block_reward');
+const Vote = require('../logic/vote');
 
 const { TRANSACTION_TYPES } = global.constants;
 

@@ -23,7 +23,7 @@ const application = require('../../../../common/application');
 const randomUtil = require('../../../../common/utils/random');
 const modulesLoader = require('../../../../common/modules_loader');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
 
 const Vote = rewire('../../../../../../src/modules/chain/logic/vote');

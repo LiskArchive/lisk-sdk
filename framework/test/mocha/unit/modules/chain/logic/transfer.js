@@ -21,7 +21,7 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const modulesLoader = require('../../../../common/modules_loader');
 const application = require('../../../../common/application');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const Transfer = rewire('../../../../../../src/modules/chain/logic/transfer');
 

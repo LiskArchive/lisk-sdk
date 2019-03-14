@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const crypto = require('crypto');
 const {
 	transfer,

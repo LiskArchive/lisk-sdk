@@ -15,7 +15,7 @@
 'use strict';
 
 const Promise = require('bluebird');
-const Bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum');
 
 const exceptions = global.exceptions;
 const { ACTIVE_DELEGATES } = global.constants;

@@ -16,10 +16,10 @@
 
 const url = require('url');
 const _ = require('lodash');
-const failureCodes = require('../../rpc/failure_codes.js');
+const failureCodes = require('../../rpc/failure_codes');
 const { ZSchema } = require('../../../../../../controller/helpers/validator');
 const definitions = require('../../../../schema/definitions');
-const Peer = require('../../../../logic/peer.js');
+const Peer = require('../../../../logic/peer');
 
 const validator = new ZSchema();
 

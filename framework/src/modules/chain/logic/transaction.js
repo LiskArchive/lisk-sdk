@@ -17,8 +17,8 @@
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
-const Bignum = require('../helpers/bignum.js');
-const slots = require('../helpers/slots.js');
+const Bignum = require('../helpers/bignum');
+const slots = require('../helpers/slots');
 
 const { TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;

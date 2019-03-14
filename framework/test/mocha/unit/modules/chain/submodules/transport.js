@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const WSServer = require('../../../../common/ws/server_master');
 const generateRandomActivePeer = require('../../../../fixtures/peers')
 	.generateRandomActivePeer;
@@ -25,7 +25,7 @@ const Block = require('../../../../fixtures/blocks').Block;
 const Rules = require('../../../../../../src/modules/chain/api/ws/workers/rules');
 
 const TransportModule = rewire(
-	'../../../../../../src/modules/chain/submodules/transport.js'
+	'../../../../../../src/modules/chain/submodules/transport'
 );
 
 const { MAX_PEERS, MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;

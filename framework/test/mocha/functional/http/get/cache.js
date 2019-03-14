@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const Promise = require('bluebird');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');

@@ -16,8 +16,8 @@
 
 const _ = require('lodash');
 const async = require('async');
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
 const exceptions = global.exceptions;
 const { FEES, MAX_VOTES_PER_TRANSACTION } = global.constants;

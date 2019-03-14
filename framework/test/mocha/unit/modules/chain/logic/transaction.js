@@ -23,7 +23,7 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const modulesLoader = require('../../../../common/modules_loader');
 const application = require('../../../../common/application');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const slots = require('../../../../../../src/modules/chain/helpers/slots');
 const Vote = require('../../../../../../src/modules/chain/logic/vote');
 const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
@@ -33,7 +33,7 @@ const Multisignature = require('../../../../../../src/modules/chain/logic/multis
 const Dapp = require('../../../../../../src/modules/chain/logic/dapp');
 const InTransfer = require('../../../../../../src/modules/chain/logic/in_transfer');
 const OutTransfer = require('../../../../../../src/modules/chain/logic/out_transfer');
-const MultisignatureMocks = require('./test_data/multisignature.js');
+const MultisignatureMocks = require('./test_data/multisignature');
 
 const { TOTAL_AMOUNT, TRANSACTION_TYPES } = __testContext.config.constants;
 const exceptions = global.exceptions;

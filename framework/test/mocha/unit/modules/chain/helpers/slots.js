@@ -14,7 +14,7 @@
 
 'use strict';
 
-const slots = require('../../../../../../src/modules/chain/helpers/slots.js');
+const slots = require('../../../../../../src/modules/chain/helpers/slots');
 
 describe('helpers/slots', () => {
 	describe('calc', () => {

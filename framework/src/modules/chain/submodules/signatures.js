@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Signature = require('../logic/signature.js');
+const Signature = require('../logic/signature');
 
 const { TRANSACTION_TYPES } = global.constants;
 

@@ -15,8 +15,8 @@
 'use strict';
 
 const async = require('async');
-const jobsQueue = require('../helpers/jobs_queue.js');
-const slots = require('../helpers/slots.js');
+const jobsQueue = require('../helpers/jobs_queue');
+const slots = require('../helpers/slots');
 const definitions = require('../schema/definitions');
 require('colors');
 
