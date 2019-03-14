@@ -36,6 +36,18 @@
 			"jest --config=./framework/test/jest/config/integration/jest.config.js",
 		"jest:functional":
 			"jest --config=./framework/test/jest/config/functional/jest.config.js",
+		"mocha:unit":
+			"node framework/test/mocha/common/lisk-mocha-runner/index.js unit",
+		"mocha:integration":
+			"node framework/test/mocha/common/lisk-mocha-runner/index.js unit",
+		"mocha:functional:ws":
+			"node framework/test/mocha/common/lisk-mocha-runner/index.js functional:ws",
+		"mocha:functional:get":
+			"node framework/test/mocha/common/lisk-mocha-runner/index.js functional:get",
+		"mocha:functional:post":
+			"node framework/test/mocha/common/lisk-mocha-runner/index.js functional:post",
+		"mocha:network":
+			"node framework/test/mocha/common/lisk-mocha-runner/index.js network",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "http-server docs/jsdoc/",
 		"check:dependencies": "snyk protect",
