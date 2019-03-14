@@ -90,16 +90,6 @@ const executeTests = (testType, testPathPattern, mochaOptions) => {
 	);
 };
 
-const [
-	// eslint-disable-next-line no-unused-vars
-	nodePath,
-	// eslint-disable-next-line no-unused-vars
-	runnerPath,
-	testType,
-	testPathPattern,
-	...mochaOptions
-] = process.argv;
-
 process.on('SIGINT', () => {
 	console.log('Test runner terminated!');
 	state.terminated = true;
@@ -110,6 +100,17 @@ process.on('SIGINT', () => {
 process.on('exit', () => {
 	summary();
 });
+
+// argv[2] is TestType
+// argv[3] can be testPathPattern or mochaOptions
+// rest is mochaOptions
+const [, , testType, , ...mochaOptions] = process.argv;
+let [, , , testPathPattern] = process.argv;
+
+if (testPathPattern.indexOf('-') === 0) {
+	mochaOptions.unshift(testPathPattern);
+	testPathPattern = null;
+}
 
 (async () => {
 	await executeTests(testType, testPathPattern, mochaOptions);
