@@ -27,7 +27,7 @@
 		"lint:fix": "eslint --fix .",
 		"format":
 			"prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test,framework}{,/**}/*.{js,json,md}\"",
-		"test": "grunt",
+		"test": "node framework/test/mocha/common/lisk-mocha-runner/index.js",
 		"grunt": "grunt",
 		"mocha": "mocha",
 		"jest:unit":
