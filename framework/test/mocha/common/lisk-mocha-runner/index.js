@@ -30,17 +30,23 @@ const summary = () => {
 	console.info(`Total Test Files: ${numberOfTestFiles}`);
 	console.info(`Processed Test Files: ${processedCount}`);
 	console.log('\n\n');
-	console.info(`Passed: ${Object.keys(passed).length}/${processedCount}`);
-	console.info(`Failed: ${Object.keys(failed).length}/${processedCount}`);
-	console.info(`Killed: ${Object.keys(killed).length}/${processedCount}`);
-	console.log('\n\n');
+	if (Object.keys(passed).length) {
+		console.info(`Passed: ${Object.keys(passed).length}/${processedCount}`);
+	}
+	if (Object.keys(killed).length) {
+		console.info(`Killed: ${Object.keys(killed).length}/${processedCount}`);
+	}
 	if (Object.keys(failed).length) {
+		console.info(`Failed: ${Object.keys(failed).length}/${processedCount}`);
+		console.log('\n\n');
 		console.log('(Error Code):\tFailed test\n');
 		console.log('=============\t===========\n');
 		Object.keys(failed).forEach(file =>
 			console.warn(`(${failed[file]}):\t${file}`)
 		);
 	}
+
+	console.log('\n\n');
 };
 
 const processNext = () => {
