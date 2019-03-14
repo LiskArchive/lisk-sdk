@@ -30,6 +30,18 @@ import {
 	isNumberString,
 	isValidInteger,
 	isNullCharacterIncluded,
+	isIPV6,
+	isIPV4,
+	isIP,
+	isPort,
+	isStringEndsWith,
+	isProtocolString,
+	isRangedSemVer,
+	isEncryptedPassphrase,
+	isHexString,
+	isStringBufferLessThan,
+	isUnique,
+	isUsername,
 } from '../src/validation';
 
 describe('validation', () => {
@@ -368,6 +380,180 @@ describe('validation', () => {
 
 		it('should return true when negative integer was provided', () => {
 			return expect(isValidInteger(-6)).to.be.true;
+		});
+	});
+
+	describe('#isUsername', () => {
+		it('should return true when valid username is provided', () => {
+			return expect(isUsername('4miners.net')).to.be.true;
+		});
+
+		it('should return false when username includes capirtal', () => {
+			return expect(isUsername('4miners.Net')).to.be.false;
+		});
+
+		it('should return false when username is like address', () => {
+			return expect(isUsername('17670127987160191762l')).to.be.false;
+		});
+
+		it('should return false when username includes forbidden character', () => {
+			return expect(isUsername('4miners^net')).to.be.false;
+		});
+
+		it('should return false when username includes forbidden character', () => {
+			return expect(isUsername('4miners\0net')).to.be.false;
+		});
+	});
+
+	describe('#isUnique', () => {
+		it('should return true when string array is unique', () => {
+			return expect(isUnique(['1234', '4567'])).to.be.true;
+		});
+
+		it('should return false when array contains duplicate', () => {
+			return expect(isUnique(['1234', 'a', '1234'])).to.be.false;
+		});
+	});
+
+	describe('#isStringBufferLessThan', () => {
+		it('should return true when 32 character is provided with max 64', () => {
+			return expect(
+				isStringBufferLessThan('abcdefghijklmnopqrstuwxyzabcdefg', 32),
+			).to.be.true;
+		});
+
+		it('should return false when 33 character is provided with max 64', () => {
+			return expect(
+				isStringBufferLessThan('abcdefghijklmnopqrstuwxyzabcdefgh', 32),
+			).to.be.false;
+		});
+
+		it('should return false when number was provided', () => {
+			return expect(isStringBufferLessThan(123, 3)).to.be.false;
+		});
+	});
+
+	describe('#isHexString', () => {
+		it('should return true when valid hex was provided', () => {
+			return expect(
+				isHexString(
+					'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
+				),
+			).to.be.true;
+		});
+
+		it('should return false when number was provided', () => {
+			return expect(isHexString(123.4)).to.be.false;
+		});
+
+		it('should return false when non hex string was provided', () => {
+			return expect(
+				isHexString(
+					'zzzzzzza32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
+				),
+			).to.be.false;
+		});
+	});
+
+	describe('#isEncryptedPassphrase', () => {
+		it('should return true when value is valid encrypted passphrase', () => {
+			return expect(
+				isEncryptedPassphrase(
+					'iterations=1&salt=d3e4c10d1f889d45fc1f23dd1a55a4ed&cipherText=c030aae98cb41b3cadf6cf8b71d8dc1304c709696880e09c6c5f41361666ced2ce804407ac99c05799f06ea513be9cb80bbb824db6e0e69fa252f3ce2fe654d34d4f7344fcaeafe143d3b1&iv=03414e5d5e79f22c04f20a57&tag=5025de28a5134e2cf6c4cc3a3212723b&version=1',
+				),
+			).to.be.true;
+		});
+
+		it('should return false when value includes invalud query', () => {
+			return expect(
+				isEncryptedPassphrase(
+					'cipherText=abcd1234&&iterations=10000&iv=ef012345',
+				),
+			).to.be.false;
+		});
+
+		it('should return false when value is empty', () => {
+			return expect(isEncryptedPassphrase('')).to.be.false;
+		});
+	});
+
+	describe('#isRangedSemVer', () => {
+		it('should return true when it is valid ranged semver', () => {
+			return expect(isRangedSemVer('>=10.0')).to.be.true;
+		});
+
+		it('should return false when value is not valid ranged semver', () => {
+			return expect(isRangedSemVer('>>10.0')).to.be.false;
+		});
+	});
+
+	describe('#isProtocolString', () => {
+		it('should return true when it is protocol version', () => {
+			return expect(isProtocolString('10.0')).to.be.true;
+		});
+
+		it('should return false when value is semver', () => {
+			return expect(isProtocolString('1.0.2')).to.be.false;
+		});
+	});
+
+	describe('#isIPV4', () => {
+		it('should return true when the value is IPV4', () => {
+			return expect(isIPV4('127.0.0.0')).to.be.true;
+		});
+
+		it('should return false when the value is not IPV4', () => {
+			return expect(isIPV4('FE80:0000:0000:0000:0202:B3FF:FE1E:8329')).to.be
+				.false;
+		});
+	});
+
+	describe('#isIPV6', () => {
+		it('should return true when the value is IPV6', () => {
+			return expect(isIPV6('FE80:0000:0000:0000:0202:B3FF:FE1E:8329')).to.be
+				.true;
+		});
+
+		it('should return false when the value is not IPV6', () => {
+			return expect(isIPV6('127.0.0.0')).to.be.false;
+		});
+	});
+
+	describe('#isIP', () => {
+		it('should return true when the value is IPV6', () => {
+			return expect(isIP('FE80:0000:0000:0000:0202:B3FF:FE1E:8329')).to.be.true;
+		});
+
+		it('should return true when the value is IPV4', () => {
+			return expect(isIP('127.0.0.0')).to.be.true;
+		});
+
+		it('should return false when the value is not ip', () => {
+			return expect(isIP('0.0.0.0.0.0')).to.be.false;
+		});
+	});
+
+	describe('#isPort', () => {
+		it('should return true when the value is port', () => {
+			return expect(isPort('3000')).to.be.true;
+		});
+
+		it('should return true when the value is invalid port number', () => {
+			return expect(isPort('999999')).to.be.false;
+		});
+
+		it('should return false when the value is not number', () => {
+			return expect(isPort('abc')).to.be.false;
+		});
+	});
+
+	describe('#isStringEndsWith', () => {
+		it('should return true when the value ends with suffix', () => {
+			return expect(isStringEndsWith('sample', ['le', 'e'])).to.be.true;
+		});
+
+		it('should return false when the suffix does not match', () => {
+			return expect(isStringEndsWith('samp', ['le', 'e'])).to.be.false;
 		});
 	});
 
