@@ -415,7 +415,10 @@ describe('GET /api/transactions', () => {
 
 							res.body.data.map(transaction => {
 								expect(Object.keys(transaction.asset).length).to.equal(1);
-								return expect(transaction.asset.votes).to.be.an('array');
+								return expect(transaction.asset.votes.length).to.be.within(
+									1,
+									33
+								);
 							});
 						});
 				});
@@ -428,11 +431,13 @@ describe('GET /api/transactions', () => {
 
 							res.body.data.map(transaction => {
 								expect(Object.keys(transaction.asset).length).to.equal(1);
-								expect(transaction.asset.multisignature).to.have.property(
-									'min'
+								expect(transaction.asset.multisignature.min).to.be.within(
+									2,
+									15
 								);
-								expect(transaction.asset.multisignature).to.have.property(
-									'lifetime'
+								expect(transaction.asset.multisignature.lifetime).to.be.within(
+									1,
+									72
 								);
 								expect(transaction.asset.multisignature.keysgroup).to.be.an(
 									'array'
