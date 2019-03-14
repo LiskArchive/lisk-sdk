@@ -19,7 +19,7 @@ const path = require('path');
 const program = require('commander');
 const _ = require('lodash');
 const randomstring = require('randomstring');
-const configSchema = require('../schema/config.js');
+const configSchema = require('../schema/config');
 const { ZSchema } = require('../../../controller/helpers/validator');
 
 const validator = new ZSchema();
@@ -91,10 +91,10 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		`../../../../config/${network}/genesis_block.json`
 	);
 
-	const defaultConstants = require('../../../../../config/default/constants.js');
+	const defaultConstants = require('../../../../../config/default/constants');
 	const networkConstants = require(`../../../../../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultExceptions = require('../../../../../config/default/exceptions.js');
+	const defaultExceptions = require('../../../../../config/default/exceptions');
 	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
 
 	const defaultConfig = loadJSONFile('../../../../config/default/config.json');

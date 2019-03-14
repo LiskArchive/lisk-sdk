@@ -17,13 +17,13 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const randomstring = require('randomstring');
-const modulesLoader = require('../../../../common/modules_loader.js');
+const modulesLoader = require('../../../../common/modules_loader');
 const randomUtil = require('../../../../common/utils/random');
-const typeRepresentatives = require('../../../../fixtures/types_representatives.js');
-const testData = require('./test_data/dapp.js');
+const typeRepresentatives = require('../../../../fixtures/types_representatives');
+const testData = require('./test_data/dapp');
 
 const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
-const Dapp = rewire('../../../../../../src/modules/chain/logic/dapp.js');
+const Dapp = rewire('../../../../../../src/modules/chain/logic/dapp');
 const validKeypair = testData.validKeypair;
 const validSender = testData.validSender;
 const validTransaction = testData.validTransaction;

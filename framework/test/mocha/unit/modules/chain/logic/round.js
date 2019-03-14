@@ -16,10 +16,10 @@
 
 const rewire = require('rewire');
 const Promise = require('bluebird');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 
-const Round = rewire('../../../../../../src/modules/chain/logic/round.js');
+const Round = rewire('../../../../../../src/modules/chain/logic/round');
 const genesisBlock = __testContext.config.genesisBlock;
 
 const { ACTIVE_DELEGATES } = global.constants;

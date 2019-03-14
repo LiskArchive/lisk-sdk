@@ -1,9 +1,9 @@
 const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs');
-const git = require('./helpers/git.js');
-const Sequence = require('./helpers/sequence.js');
-const ed = require('./helpers/ed.js');
+const git = require('./helpers/git');
+const Sequence = require('./helpers/sequence');
+const ed = require('./helpers/ed');
 // eslint-disable-next-line import/order
 const { ZSchema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');

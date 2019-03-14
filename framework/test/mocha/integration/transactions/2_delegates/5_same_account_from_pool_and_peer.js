@@ -17,9 +17,9 @@
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
-const localCommon = require('../../common.js');
+const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
 const { NORMALIZER } = global.constants;
 

@@ -17,7 +17,7 @@
 const Promise = require('bluebird');
 const async = require('async');
 const _ = require('lodash');
-const Bignum = require('../../helpers/bignum.js');
+const Bignum = require('../../helpers/bignum');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,

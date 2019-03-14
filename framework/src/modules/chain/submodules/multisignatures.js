@@ -15,7 +15,7 @@
 'use strict';
 
 const async = require('async');
-const Multisignature = require('../logic/multisignature.js');
+const Multisignature = require('../logic/multisignature');
 
 const { TRANSACTION_TYPES } = global.constants;
 

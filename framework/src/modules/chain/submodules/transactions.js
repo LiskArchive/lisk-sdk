@@ -19,8 +19,8 @@ const async = require('async');
 const {
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../framework/src/components/cache');
-const TransactionPool = require('../logic/transaction_pool.js');
-const Transfer = require('../logic/transfer.js');
+const TransactionPool = require('../logic/transaction_pool');
+const Transfer = require('../logic/transfer');
 
 const { TRANSACTION_TYPES } = global.constants;
 

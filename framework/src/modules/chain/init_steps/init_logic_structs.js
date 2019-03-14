@@ -5,10 +5,10 @@ module.exports = async ({
 	genesisBlock,
 	components: { storage, logger, system },
 }) => {
-	const Transaction = require('../logic/transaction.js');
-	const Block = require('../logic/block.js');
-	const Account = require('../logic/account.js');
-	const Peers = require('../logic/peers.js');
+	const Transaction = require('../logic/transaction');
+	const Block = require('../logic/block');
+	const Account = require('../logic/account');
+	const Peers = require('../logic/peers');
 
 	const accountLogic = await new Promise((resolve, reject) => {
 		new Account(storage, schema, logger, (err, object) => {

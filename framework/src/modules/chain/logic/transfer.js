@@ -14,9 +14,9 @@
 
 'use strict';
 
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
-const regexpTester = require('../helpers/regexp_tester.js');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
+const regexpTester = require('../helpers/regexp_tester');
 
 const exceptions = global.exceptions;
 

@@ -14,9 +14,9 @@
 
 'use strict';
 
-const DApp = require('../logic/dapp.js');
-const InTransfer = require('../logic/in_transfer.js');
-const OutTransfer = require('../logic/out_transfer.js');
+const DApp = require('../logic/dapp');
+const InTransfer = require('../logic/in_transfer');
+const OutTransfer = require('../logic/out_transfer');
 
 const { TRANSACTION_TYPES } = global.constants;
 

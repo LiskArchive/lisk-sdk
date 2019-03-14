@@ -16,9 +16,9 @@
 
 const async = require('async');
 const ByteBuffer = require('bytebuffer');
-const ed = require('../helpers/ed.js');
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
+const ed = require('../helpers/ed');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
 const exceptions = global.exceptions;
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;

@@ -15,9 +15,9 @@
 'use strict';
 
 const _ = require('lodash');
-const ed = require('../helpers/ed.js');
-const Bignum = require('../helpers/bignum.js');
-const BlockReward = require('./block_reward.js');
+const ed = require('../helpers/ed');
+const Bignum = require('../helpers/bignum');
+const BlockReward = require('./block_reward');
 
 const { ACTIVE_DELEGATES, MULTISIG_CONSTRAINTS } = global.constants;
 

@@ -19,7 +19,7 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
 describe('system test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;

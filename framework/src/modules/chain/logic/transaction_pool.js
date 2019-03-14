@@ -16,7 +16,7 @@
 
 const async = require('async');
 // eslint-disable-next-line  prefer-const
-let jobsQueue = require('../helpers/jobs_queue.js');
+let jobsQueue = require('../helpers/jobs_queue');
 
 let modules;
 let library;

@@ -14,8 +14,8 @@
 
 'use strict';
 
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
 const { FEES, TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;

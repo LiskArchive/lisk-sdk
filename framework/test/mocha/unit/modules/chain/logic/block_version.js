@@ -14,7 +14,7 @@
 
 'use strict';
 
-const blockVersion = require('../../../../../../src/modules/chain/logic/block_version.js');
+const blockVersion = require('../../../../../../src/modules/chain/logic/block_version');
 
 const exceptions = global.exceptions;
 

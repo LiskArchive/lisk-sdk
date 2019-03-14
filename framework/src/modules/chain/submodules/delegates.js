@@ -21,10 +21,10 @@ const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const BlockReward = require('../logic/block_reward.js');
-const jobsQueue = require('../helpers/jobs_queue.js');
-const Delegate = require('../logic/delegate.js');
-const slots = require('../helpers/slots.js');
+const BlockReward = require('../logic/block_reward');
+const jobsQueue = require('../helpers/jobs_queue');
+const Delegate = require('../logic/delegate');
+const slots = require('../helpers/slots');
 
 // Private fields
 let modules;

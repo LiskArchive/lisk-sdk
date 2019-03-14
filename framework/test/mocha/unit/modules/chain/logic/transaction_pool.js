@@ -18,16 +18,16 @@ const _ = require('lodash');
 const rewire = require('rewire');
 const expect = require('chai').expect;
 // Load config file - global (one from test directory)
-const Sequence = require('../../../../../../src/modules/chain/helpers/sequence.js');
+const Sequence = require('../../../../../../src/modules/chain/helpers/sequence');
 
 // Instantiate test subject
 const TransactionPool = rewire(
-	'../../../../../../src/modules/chain/logic/transaction_pool.js'
+	'../../../../../../src/modules/chain/logic/transaction_pool'
 );
 
 // Create fresh instance of jobsQueue
 const jobsQueue = rewire(
-	'../../../../../../src/modules/chain/helpers/jobs_queue.js'
+	'../../../../../../src/modules/chain/helpers/jobs_queue'
 );
 const { TRANSACTION_TYPES, UNCONFIRMED_TRANSACTION_TIMEOUT } = global.constants;
 const config = __testContext.config;
