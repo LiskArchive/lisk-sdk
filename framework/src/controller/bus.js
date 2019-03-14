@@ -65,60 +65,17 @@ class Bus extends EventEmitter2 {
 
 		let timeout;
 
-		const waitForAllToSucceed = () =>
-			Promise.all([
-				new Promise(resolve => {
-					// Please note that .sock is used here and below to be able to listen to its own events
-					this.subSocket.sock.on('bind', () => {
-						resolve();
-					});
-				}),
-				new Promise(resolve => {
-					this.pubSocket.sock.on('bind', () => {
-						resolve();
-					});
-				}),
-				new Promise(resolve => {
-					this.rpcSocket.once('bind', () => {
-						resolve();
-					});
-				}),
-			]);
-
-		const rejectIfAtLeastOneFails = () =>
-			Promise.race([
-				new Promise((resolve, reject) => {
-					this.subSocket.sock.on('error', () => {
-						reject();
-					});
-				}),
-				new Promise((resolve, reject) => {
-					this.pubSocket.sock.on('error', () => {
-						reject();
-					});
-				}),
-				new Promise((resolve, reject) => {
-					this.rpcSocket.once('error', () => {
-						reject();
-					});
-				}),
-			]);
-
-		const rejectAfterTimeout = timeInMillis => {
+		return Promise.race([
+			this._waitForAllToSucceed(),
+			this._rejectIfAtLeastOneFails(),
+			// Timeout is needed here in case "bind" events never arrive
 			new Promise((resolve, reject) => {
 				timeout = setTimeout(async () => {
 					await this.cleanup();
 					// TODO: Review if logger.error might be useful.
 					reject(new Error('Bus setup timeout'));
-				}, timeInMillis);
-			});
-		};
-
-		return Promise.race([
-			waitForAllToSucceed(),
-			rejectIfAtLeastOneFails(),
-			// Timeout is needed here in case "bind" events never arrive
-			rejectAfterTimeout(2000), // TODO: Get value from config constant
+				}, 2000); // TODO: Get value from config constant
+			}),
 		]).finally(() => {
 			clearTimeout(timeout);
 		});
@@ -269,6 +226,47 @@ class Bus extends EventEmitter2 {
 		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
 			this.rpcSocket.close();
 		}
+	}
+
+	async _waitForAllToSucceed() {
+		return Promise.all([
+			new Promise(resolve => {
+				// Please note that .sock is used here and below to be able to listen to its own events
+				this.subSocket.sock.on('bind', () => {
+					resolve();
+				});
+			}),
+			new Promise(resolve => {
+				this.pubSocket.sock.on('bind', () => {
+					resolve();
+				});
+			}),
+			new Promise(resolve => {
+				this.rpcSocket.once('bind', () => {
+					resolve();
+				});
+			}),
+		]);
+	}
+
+	async _rejectIfAtLeastOneFails() {
+		return Promise.race([
+			new Promise((resolve, reject) => {
+				this.subSocket.sock.on('error', () => {
+					reject();
+				});
+			}),
+			new Promise((resolve, reject) => {
+				this.pubSocket.sock.on('error', () => {
+					reject();
+				});
+			}),
+			new Promise((resolve, reject) => {
+				this.rpcSocket.once('error', () => {
+					reject();
+				});
+			}),
+		]);
 	}
 }
 
