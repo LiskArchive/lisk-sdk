@@ -113,7 +113,7 @@ process.on('exit', () => {
 const [, , testType, , ...mochaOptions] = process.argv;
 let [, , , testPathPattern] = process.argv;
 
-if (testPathPattern.indexOf('-') === 0) {
+if (testPathPattern && testPathPattern.indexOf('-') === 0) {
 	mochaOptions.unshift(testPathPattern);
 	testPathPattern = null;
 }
