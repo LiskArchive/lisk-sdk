@@ -28,7 +28,7 @@ import {
 } from './errors';
 import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
-import { validateMultisignatures, validator } from './utils';
+import { validateMultisignatures, validateSignature, validator } from './utils';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
 
@@ -334,52 +334,47 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public addMultisignature(
-		store: StateStore,
+		_: StateStore,
 		signatureObject: SignatureObject,
 	): TransactionResponse {
-		// Get the account
-		const account = store.account.get(this.senderId);
-		// Check if signature is not already there
-		if (this.signatures.includes(signatureObject.signature)) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Signature '${
-						signatureObject.signature
-					}' already present in transaction.`,
-					this.id,
-				),
-			]);
-		}
-
 		// Validate signature key belongs to pending multisig registration transaction
-		// tslint:disable-next-line
-		const keysgroup = (this as any).asset.multisignature.keysgroup.map(
-			(aKey: string) => aKey.slice(1),
+		const keysgroup = this.asset.multisignature.keysgroup.map((aKey: string) =>
+			aKey.slice(1),
 		);
 
 		if (!keysgroup.includes(signatureObject.publicKey)) {
 			return createResponse(this.id, [
 				new TransactionError(
-					`Public Key '${
-						signatureObject.publicKey
-					}' is not a member for account '${account.address}'.`,
+					`Public Key '${signatureObject.publicKey}' is not a member.`,
 					this.id,
 				),
 			]);
 		}
 
-		// Validate the signature using the signature sender and transaction details
-		const trsSignature = validateMultisignatures(
-			[signatureObject.publicKey],
-			[signatureObject.signature],
-			1,
+		// Check if signature is already present
+		if (this.signatures.includes(signatureObject.signature)) {
+			return createResponse(this.id, [
+				new TransactionError(
+					'Encountered duplicate signature in transaction',
+					this.id,
+				),
+			]);
+		}
+
+		// Check if signature is valid at all
+		const trsSignature = validateSignature(
+			signatureObject.publicKey,
+			signatureObject.signature,
 			this.getBasicBytes(),
+			this.id,
 		);
-		// If the signature is valid for the sender push it to the signatures array
+
 		if (trsSignature.valid) {
 			this.signatures.push(signatureObject.signature);
-			this.processMultisignatures(store);
+
+			return this.processMultisignatures(_);
 		}
+
 		// Else pupulate errors
 		const errors = trsSignature.valid
 			? []

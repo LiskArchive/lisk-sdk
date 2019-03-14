@@ -410,7 +410,7 @@ describe('Multisignature transaction class', () => {
 		});
 	});
 
-	describe.only('#addMultisignature', () => {
+	describe('#addMultisignature', () => {
 		let membersSignatures: Array<SignatureObject>;
 		let multisigTrs: MultisignatureTransaction;
 
@@ -438,13 +438,12 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should add signature to transaction', async () => {
-			const { status, errors } = multisigTrs.addMultisignature(
+			const { status } = multisigTrs.addMultisignature(
 				store,
 				membersSignatures[0],
 			);
 
-			expect(status).to.eql(Status.OK);
-			expect(errors).to.be.empty;
+			expect(status).to.eql(Status.PENDING);
 			expect(multisigTrs.signatures).to.include(membersSignatures[0].signature);
 		});
 
@@ -454,15 +453,13 @@ describe('Multisignature transaction class', () => {
 				membersSignatures[0],
 			);
 
-			expect(arrangeStatus).to.eql(Status.OK);
-
 			const { status, errors } = multisigTrs.addMultisignature(
 				store,
 				membersSignatures[0],
 			);
-			const expectedError =
-				"Signature 'd1b78f5eb35b4e1de7f740d2f62f0e2acab24c5b446719cc70601319f4a3666fbcda7980e5d9c6ff3bfa8b54ee383eed5531723e0f1748d0c84b7a229759b000' already present in transaction.";
+			const expectedError = 'Encountered duplicate signature in transaction';
 
+			expect(arrangeStatus).to.eql(Status.PENDING);
 			expect(status).to.eql(Status.FAIL);
 			expect(errors[0].message).to.be.eql(expectedError);
 			expect(multisigTrs.signatures).to.include(membersSignatures[0].signature);
@@ -495,7 +492,7 @@ describe('Multisignature transaction class', () => {
 			};
 
 			const expectedError =
-				"Public Key 'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b' is not a member for account '9999142599245349337L'.";
+				"Public Key 'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b' is not a member.";
 
 			const { status, errors } = multisigTrs.addMultisignature(
 				store,

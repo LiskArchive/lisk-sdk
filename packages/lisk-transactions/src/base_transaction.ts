@@ -40,7 +40,6 @@ import { createResponse, Status } from './response';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
-	validateMultisignatures,
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	validateTransactionId,
@@ -313,18 +312,6 @@ export abstract class BaseTransaction {
 	): TransactionResponse {
 		// Get the account
 		const account = store.account.get(this.senderId);
-		// Check if signature is not already there
-		if (this.signatures.includes(signatureObject.signature)) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Signature '${
-						signatureObject.signature
-					}' already present in transaction.`,
-					this.id,
-				),
-			]);
-		}
-
 		// Validate signature key belongs to account's multisignature group
 		if (
 			account.membersPublicKeys &&
@@ -340,12 +327,24 @@ export abstract class BaseTransaction {
 			]);
 		}
 
+		// Check if signature is not already there
+		if (this.signatures.includes(signatureObject.signature)) {
+			return createResponse(this.id, [
+				new TransactionError(
+					`Signature '${
+						signatureObject.signature
+					}' already present in transaction.`,
+					this.id,
+				),
+			]);
+		}
+
 		// Validate the signature using the signature sender and transaction details
-		const trsSignature = validateMultisignatures(
-			[signatureObject.publicKey],
-			[signatureObject.signature],
-			1,
+		const trsSignature = validateSignature(
+			signatureObject.publicKey,
+			signatureObject.signature,
 			this.getBasicBytes(),
+			this.id,
 		);
 		// If the signature is valid for the sender push it to the signatures array
 		if (trsSignature.valid) {
