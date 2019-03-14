@@ -18,9 +18,9 @@ const ip = require('ip');
 const _ = require('lodash');
 const z_schema = require('z-schema');
 const FormatValidators = require('z-schema/src/FormatValidators');
-const Bignum = require('./bignum');
+const Bignumber = require('bignumber.js');
 // new BigNumber(2).pow(64).minus(1)
-const UINT64_MAX = new Bignum('18446744073709551615');
+const UINT64_MAX = new Bignumber('18446744073709551615');
 
 /**
  * Uses JSON Schema validator z_schema to register custom formats.
@@ -107,7 +107,7 @@ const liskFormats = {
 		}
 
 		// Address can not exceed the max limit
-		if (new Bignum(str.slice(0, -1)).isGreaterThan(UINT64_MAX)) {
+		if (new Bignumber(str.slice(0, -1)).isGreaterThan(UINT64_MAX)) {
 			return false;
 		}
 
@@ -325,7 +325,7 @@ const liskFormats = {
 		 * global.constants will be defined in test/setup.js.
 		 */
 		const { TOTAL_AMOUNT } = global.constants;
-		if (value instanceof Bignum) {
+		if (value instanceof Bignumber) {
 			return (
 				value.isGreaterThanOrEqualTo(0) &&
 				value.isLessThanOrEqualTo(TOTAL_AMOUNT)
@@ -333,7 +333,7 @@ const liskFormats = {
 		}
 
 		if (typeof value === 'string' && /^[0-9]+$/.test(value)) {
-			const num = new Bignum(value);
+			const num = new Bignumber(value);
 			return (
 				num.isGreaterThanOrEqualTo(0) && num.isLessThanOrEqualTo(TOTAL_AMOUNT)
 			);

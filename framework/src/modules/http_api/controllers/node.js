@@ -18,7 +18,6 @@ const _ = require('lodash');
 const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
-const slots = require('../helpers/slots');
 
 const { EPOCH_TIME, FEES } = global.constants;
 
@@ -65,15 +64,15 @@ NodeController.getConstants = async (context, next) => {
 		);
 		const { height } = lastBlock;
 
-		const milestone = await library.channel.invoke('chain:calculateMilestone', [
+		const milestone = await library.channel.invoke('chain:calculateMilestone', {
 			height,
-		]);
-		const reward = await library.channel.invoke('chain:calculateReward', [
+		});
+		const reward = await library.channel.invoke('chain:calculateReward', {
 			height,
-		]);
-		const supply = await library.channel.invoke('chain:calculateSupply', [
+		});
+		const supply = await library.channel.invoke('chain:calculateSupply', {
 			height,
-		]);
+		});
 
 		const build = await library.channel.invoke('chain:getBuild');
 		const commit = await library.channel.invoke('chain:getLastCommit');
@@ -116,11 +115,11 @@ NodeController.getStatus = async (context, next) => {
 	try {
 		const networkHeight = await library.channel.invoke(
 			'chain:getNetworkHeight',
-			[
-				{
+			{
+				options: {
 					normalized: false,
 				},
-			]
+			}
 		);
 
 		const [lastBlock] = await library.components.storage.entities.Block.get(
@@ -136,6 +135,8 @@ NodeController.getStatus = async (context, next) => {
 		const transactions = await library.channel.invoke(
 			'chain:getAllTransactionsCount'
 		);
+
+		const slots = await library.channel.invoke('chain:getSlotsHelper');
 
 		const data = {
 			broadhash: library.components.system.headers.broadhash,
@@ -199,11 +200,11 @@ NodeController.updateForgingStatus = async (context, next) => {
 	const forging = context.request.swagger.params.data.value.forging;
 
 	try {
-		const data = await library.channel.invoke('chain:updateForgingStatus', [
+		const data = await library.channel.invoke('chain:updateForgingStatus', {
 			publicKey,
 			password,
 			forging,
-		]);
+		});
 		return next(null, [data]);
 	} catch (err) {
 		context.statusCode = apiCodes.NOT_FOUND;
@@ -245,10 +246,10 @@ NodeController.getPooledTransactions = async function(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await library.channel.invoke('chain:getTransactionsFromPool', [
-			state,
-			_.clone(filters),
-		]);
+		const data = await library.channel.invoke('chain:getTransactionsFromPool', {
+			type: state,
+			filters: _.clone(filters),
+		});
 
 		const transactions = _.map(_.cloneDeep(data.transactions), transaction => {
 			transaction.senderId = transaction.senderId || '';

@@ -91,7 +91,7 @@ class Transactions {
 
 // Private methods
 /**
- * Counts totals and gets transaction list from `trs_list` view.
+ * Counts totals and gets transaction list from storage component.
  *
  * @private
  * @param {Object} params

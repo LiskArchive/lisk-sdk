@@ -15,11 +15,11 @@
 'use strict';
 
 require('../../functional.js');
+const Bignum = require('bignumber.js');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const accountFixtures = require('../../../fixtures/accounts');
 const phases = require('../../../common/phases');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const elements = require('../../../common/utils/elements');

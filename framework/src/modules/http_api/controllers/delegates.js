@@ -15,12 +15,11 @@
 'use strict';
 
 const _ = require('lodash');
-const Bignum = require('../helpers/bignum');
+const Bignumber = require('bignumber.js');
 const swaggerHelper = require('../helpers/swagger');
 const apiCodes = require('../api_codes');
 const ApiError = require('../api_error');
 const { calculateApproval } = require('../helpers/utils');
-const slots = require('../helpers/slots');
 // Private Fields
 let storage;
 let logger;
@@ -165,7 +164,9 @@ async function _getDelegates(filters, options) {
 	);
 
 	const supply = lastBlock.height
-		? await channel.invoke('chain:calculateSupply', [lastBlock.height])
+		? await channel.invoke('chain:calculateSupply', {
+				height: lastBlock.height,
+			})
 		: 0;
 
 	return delegates.map(delegate => delegateFormatter(supply, delegate));
@@ -186,14 +187,16 @@ async function _getForgers(filters) {
 		{ sort: 'height:desc', limit: 1 }
 	);
 
+	const slots = await channel.invoke('chain:getSlotsHelper');
+
 	const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 	const currentSlot = slots.getSlotNumber();
 	const forgerKeys = [];
 	const round = slots.calcRound(lastBlock.height + 1);
 
-	const activeDelegates = await channel.invoke('chain:generateDelegateList', [
+	const activeDelegates = await channel.invoke('chain:generateDelegateList', {
 		round,
-	]);
+	});
 
 	for (
 		let i = filters.offset + 1;
@@ -268,16 +271,16 @@ async function _getForgingStatistics(filters) {
 		return {
 			rewards: account.rewards,
 			fees: account.fees,
-			count: new Bignum(account.producedBlocks).toString(),
-			forged: new Bignum(account.rewards)
-				.plus(new Bignum(account.fees))
-				.toString(),
+			count: new Bignumber(account.producedBlocks).toFixed(),
+			forged: new Bignumber(account.rewards)
+				.plus(new Bignumber(account.fees))
+				.toFixed(),
 		};
 	}
 	const reward = await _aggregateBlocksReward(filters);
-	reward.forged = new Bignum(reward.fees)
-		.plus(new Bignum(reward.rewards))
-		.toString();
+	reward.forged = new Bignumber(reward.fees)
+		.plus(new Bignumber(reward.rewards))
+		.toFixed();
 
 	return reward;
 }
@@ -327,7 +330,7 @@ async function _aggregateBlocksReward(filter) {
 	try {
 		delegateBlocksRewards = await channel.invoke(
 			'chain:getDelegateBlocksRewards',
-			[params]
+			{ filters: params }
 		);
 	} catch (err) {
 		logger.error(err.stack);
