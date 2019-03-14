@@ -24,15 +24,15 @@ try {
 				enabled: config.cacheEnabled,
 			},
 			storage: config.db,
-			system: {
-				nethash: config.nethash,
-				version: config.version,
-				wsPort: config.wsPort,
-				httpPort: config.httpPort,
-				minVersion: config.minVersion,
-				protocolVersion: config.protocolVersion,
-				nonce: config.nonce,
-			},
+		},
+		initialState: {
+			nethash: config.nethash,
+			version: config.version,
+			wsPort: config.wsPort,
+			httpPort: config.httpPort,
+			minVersion: config.minVersion,
+			protocolVersion: config.protocolVersion,
+			nonce: config.nonce,
 		},
 	});
 
