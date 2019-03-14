@@ -97,6 +97,9 @@ class ApplicationState {
 	 * @returns {Promise.<boolean, Error>}
 	 */
 	async update(blocks) {
+		if (!blocks) {
+			throw new TypeError('Argument blocks should be an array.');
+		}
 		try {
 			if (blocks.length <= 1) {
 				__private.state.broadhash = __private.state.nethash;
