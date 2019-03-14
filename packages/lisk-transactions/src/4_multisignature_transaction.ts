@@ -20,6 +20,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { MULTISIGNATURE_FEE } from './constants';
+import { SignatureObject } from './create_signature_object';
 import {
 	TransactionError,
 	TransactionMultiError,
@@ -330,5 +331,66 @@ export class MultisignatureTransaction extends BaseTransaction {
 		store.account.set(resetSender.address, resetSender);
 
 		return [];
+	}
+
+	public addMultisignature(
+		store: StateStore,
+		signatureObject: SignatureObject,
+	): TransactionResponse {
+		// Get the account
+		const account = store.account.get(this.senderId);
+		// Check if signature is not already there
+		if (this.signatures.includes(signatureObject.signature)) {
+			return createResponse(this.id, [
+				new TransactionError(
+					`Signature '${
+						signatureObject.signature
+					}' already present in transaction.`,
+					this.id,
+				),
+			]);
+		}
+
+		// Validate signature key belongs to pending multisig registration transaction
+		// tslint:disable-next-line
+		const keysgroup = (this as any).asset.multisignature.keysgroup.map(
+			(aKey: string) => aKey.slice(1),
+		);
+
+		if (!keysgroup.includes(signatureObject.publicKey)) {
+			return createResponse(this.id, [
+				new TransactionError(
+					`Public Key '${
+						signatureObject.publicKey
+					}' is not a member for account '${account.address}'.`,
+					this.id,
+				),
+			]);
+		}
+
+		// Validate the signature using the signature sender and transaction details
+		const trsSignature = validateMultisignatures(
+			[signatureObject.publicKey],
+			[signatureObject.signature],
+			1,
+			this.getBasicBytes(),
+		);
+		// If the signature is valid for the sender push it to the signatures array
+		if (trsSignature.valid) {
+			this.signatures.push(signatureObject.signature);
+			this.processMultisignatures(store);
+		}
+		// Else pupulate errors
+		const errors = trsSignature.valid
+			? []
+			: [
+					new TransactionError(
+						`Failed to add signature ${signatureObject.signature}.`,
+						this.id,
+						'.signatures',
+					),
+			  ];
+
+		return createResponse(this.id, errors);
 	}
 }

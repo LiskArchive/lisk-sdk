@@ -40,6 +40,7 @@ import { createResponse, Status } from './response';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
+	validateMultisignatures,
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	validateTransactionId,
@@ -310,7 +311,6 @@ export abstract class BaseTransaction {
 		store: StateStore,
 		signatureObject: SignatureObject,
 	): TransactionResponse {
-		const registerMultisigType = 4;
 		// Get the account
 		const account = store.account.get(this.senderId);
 		// Check if signature is not already there
@@ -324,9 +324,9 @@ export abstract class BaseTransaction {
 				),
 			]);
 		}
-		// Validate signature PK is part of the multisig account (do not check for registration type=4)
+
+		// Validate signature key belongs to account's multisignature group
 		if (
-			this.type !== registerMultisigType &&
 			account.membersPublicKeys &&
 			!account.membersPublicKeys.includes(signatureObject.publicKey)
 		) {
@@ -340,30 +340,13 @@ export abstract class BaseTransaction {
 			]);
 		}
 
-		// Validate signature key belongs to pending transaction
-		// tslint:disable-next-line
-		const keysgroup = (this as any).asset.multisignature.keysgroup.map(
-			(aKey: string) => aKey.slice(1),
-		);
-		if (!keysgroup.includes(signatureObject.publicKey)) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Public Key '${
-						signatureObject.publicKey
-					}' is not a member for account '${account.address}'.`,
-					this.id,
-				),
-			]);
-		}
-
 		// Validate the signature using the signature sender and transaction details
-		const trsSignature = validateSignature(
-			signatureObject.publicKey,
-			signatureObject.signature,
+		const trsSignature = validateMultisignatures(
+			[signatureObject.publicKey],
+			[signatureObject.signature],
+			1,
 			this.getBasicBytes(),
-			this.id,
 		);
-
 		// If the signature is valid for the sender push it to the signatures array
 		if (trsSignature.valid) {
 			this.signatures.push(signatureObject.signature);

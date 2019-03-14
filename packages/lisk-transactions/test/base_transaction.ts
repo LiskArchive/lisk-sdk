@@ -673,7 +673,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should fail with valid signature not part of the group', async () => {
-			const firstMemberSignature: SignatureObject = {
+			const nonMemberSignature: SignatureObject = {
 				transactionId: '14644504552633286790',
 				publicKey:
 					'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b',
@@ -683,7 +683,7 @@ describe('Base transaction class', () => {
 
 			const { status, errors } = multisigTrs.addMultisignature(
 				store,
-				firstMemberSignature,
+				nonMemberSignature,
 			);
 
 			expect(status).to.eql(Status.FAIL);
