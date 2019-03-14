@@ -160,7 +160,6 @@ export const flags: FlagMap = {
 		description: noSnapshotDescription,
 	},
 	version: {
-		char: 'v',
 		description: versionDescription,
 	},
 };

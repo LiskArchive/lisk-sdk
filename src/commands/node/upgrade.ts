@@ -20,9 +20,9 @@ import Listr from 'listr';
 import semver from 'semver';
 import BaseCommand from '../../base';
 import { NETWORK, RELEASE_URL } from '../../utils/constants';
-import { download, extract, validateChecksum } from '../../utils/download';
+import { downloadLiskAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
-import { liskTar, liskTarSHA256 } from '../../utils/node/commons';
+import { liskTar } from '../../utils/node/commons';
 import { defaultBackupPath, getConfig } from '../../utils/node/config';
 import {
 	describeApplication,
@@ -83,21 +83,6 @@ const validateVersion = async (
 		}
 		throw new Error(error.message);
 	}
-};
-
-const downloadLisk = async (
-	cacheDir: string,
-	version: string,
-	upgradeVersionURL: string,
-) => {
-	const LISK_RELEASE_PATH = `${cacheDir}/${liskTar(version)}`;
-	const LISK_RELEASE_SHA256_PATH = `${cacheDir}/${liskTarSHA256(version)}`;
-	const liskTarUrl = `${upgradeVersionURL}/${liskTar(version)}`;
-	const liskTarSHA256Url = `${upgradeVersionURL}/${liskTarSHA256(version)}`;
-
-	await download(liskTarUrl, LISK_RELEASE_PATH);
-	await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
-	await validateChecksum(cacheDir, liskTarSHA256(version));
 };
 
 const backupLisk = async (installDir: string): Promise<void> => {
@@ -162,8 +147,8 @@ export default class UpgradeCommand extends BaseCommand {
 			`${installDir}/package.json`,
 		) as PackageJson;
 		const upgradeVersion: string = await getVersionToUpgrade(version, network);
-		const upgradeVersionURL = `${RELEASE_URL}/${network}/${upgradeVersion}`;
-		const cacheDir = this.config.cacheDir;
+		const releaseUrl = `${RELEASE_URL}/${network}/${upgradeVersion}`;
+		const { cacheDir } = this.config;
 
 		const tasks = new Listr([
 			{
@@ -193,7 +178,7 @@ export default class UpgradeCommand extends BaseCommand {
 						{
 							title: `Download Lisk Core: ${upgradeVersion} Release`,
 							task: async () =>
-								downloadLisk(cacheDir, upgradeVersion, upgradeVersionURL),
+								downloadLiskAndValidate(cacheDir, releaseUrl, upgradeVersion),
 						},
 						{
 							title: `Backup Lisk Core: ${currentVersion} installed as ${name}`,
