@@ -410,28 +410,58 @@ Starting from version `1.6.0`, Lisk Core will be using [Jest](https://jestjs.io)
 Tests are run using the following command:
 
 ```
-npm test -- mocha:<tag>:<suite>:[section]
+npm run mocha:<testType> -- [testPathPattern] [mochaCliOptions]
 ```
 
-* Where **tag** can be one of `default | unstable | slow | extensive` (required)
-* Where **suite** can be one of `unit | integration | functional | network` (required)
-* Where **section** depending of the chosen suite can be:
-  * when `functional` --> `get | post | ws` (optional)
+* Where **testType** can be one of `unit`, `integration`, `functional:ws`, `functional:get`, `functional:post`, `functional`, `network` (required).
+* Where **testPathPattern** is a regexp pattern string that is matched against all tests paths before executing the test (optional).
+* Where **mochaCliOptions** can be any of mocha's [`command line options`](https://mochajs.org/#command-line-usage) (optional).
 
 Examples:
 
 ```
-npm test -- mocha:slow:unit
-npm test -- mocha:extensive:integration
-npm test -- mocha:default:functional
-npm test -- mocha:unstable:functional:get
-npm test -- mocha:untagged:network
+# Running network tests
+npm run mocha:network
+npm run mocha:network -- --grep @p2p
+npm run mocha:network -- --grep @propagation
+
+# Running unit tests
+npm run mocha:unit
+npm run mocha:unit -- --grep @slow
+npm run mocha:unit -- --grep @unstable
+npm run mocha:unit -- --grep @sequential
+### extensive
+npm run mocha:unit -- --grep="@unstable|@sequential" --invert
+
+# Running Integration tests
+npm run mocha:integration -- --grep @slow
+npm run mocha:integration -- --grep @unstable
+npm run mocha:integration -- --grep @sequential
+# extensive
+npm run mocha:integration -- --grep="@unstable|@sequential" --invert
+
+# Running functional tests
+npm run mocha:functional:ws
+npm run mocha:functional:get
+npm run mocha:functional:post
 ```
 
-Individual test files can be run using the following command:
+Individual test files can be run using the following commands:
 
+````bash
+npm run mocha:unit -- <testPathPattern> [mochaCliOptions]
 ```
-npm run mocha -- path/to/test.js
+
+or
+
+```bash
+npm run mocha <filepath> [mochaCliOptions]
+````
+
+or
+
+```bash
+npx mocha <filepath> [mochaCliOptions]
 ```
 
 #### Running Jest Tests
@@ -445,7 +475,7 @@ npm run jest:<testType>
 ##### Executing the tests per file:
 
 ```
-npm run jest:<testType> -- [filepath] [jest-options]
+npm run jest:<testType> -- [testPathPattern] [jestCliOptions]
 ```
 
 ## Utility scripts
