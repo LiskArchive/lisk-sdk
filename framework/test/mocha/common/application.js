@@ -24,7 +24,7 @@ const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { createSystemComponent } = require('../../../src/components/system');
 const { StorageSandbox } = require('./storage_sandbox');
-const ZSchema = require('../../../src/modules/chain/helpers/z_schema.js');
+const { ZSchema } = require('../../../src/controller/helpers/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
 
 const promisifyParallel = util.promisify(async.parallel);

@@ -47,29 +47,59 @@ describe('ws_rpc', () => {
 	});
 
 	describe('wsRPC', () => {
-		describe('get/set server', () => {
-			describe('setServer', () => {
-				let wsServerInternal;
+		describe('setServer', () => {
+			before(() => wsRPC.setServer(null));
 
-				beforeEach(async () => {
-					wsRPC.setServer(serverMock);
-					wsServerInternal = ws_rpc.__get__('wsServer');
-				});
+			after(() => wsRPC.setServer(null));
 
-				it('should set the wsServer internally to the correct object', async () =>
-					expect(wsServerInternal).to.equal(serverMock));
+			it('should return server instance after setting it', async () => {
+				wsRPC.setServer({ name: 'my ws server' });
+				const wsRPCServer = wsRPC.getServer();
+				return expect(wsRPCServer)
+					.to.be.an('object')
+					.eql({ name: 'my ws server' });
 			});
 
-			describe('getServer', () => {
-				beforeEach(async () => {
-					ws_rpc.__set__({
-						wsServer: serverMock,
-					});
-					result = wsRPC.getServer(serverMock);
+			describe('getter', () => {
+				it('should throw an error when setting server to null', async () => {
+					wsRPC.setServer(null);
+					return expect(wsRPC.getServer).to.throw(
+						'WS server has not been initialized!'
+					);
 				});
 
-				it('should return the internal wsServer', async () =>
-					expect(result).to.equal(serverMock));
+				it('should throw an error when setting server to 0', async () => {
+					wsRPC.setServer(0);
+					return expect(wsRPC.getServer).to.throw(
+						'WS server has not been initialized!'
+					);
+				});
+
+				it('should throw an error when setting server to undefined', async () => {
+					wsRPC.setServer(undefined);
+					return expect(wsRPC.getServer).to.throw(
+						'WS server has not been initialized!'
+					);
+				});
+			});
+		});
+
+		describe('getServer', () => {
+			before(() => wsRPC.setServer(null));
+
+			after(() => wsRPC.setServer(null));
+
+			it('should throw an error when WS server has not been initialized', async () =>
+				expect(wsRPC.getServer).to.throw(
+					'WS server has not been initialized!'
+				));
+
+			it('should return WS server if set before', async () => {
+				wsRPC.setServer({ name: 'my ws server' });
+				expect(wsRPC.getServer).not.to.throw;
+				return expect(wsRPC.getServer())
+					.to.a('object')
+					.eql({ name: 'my ws server' });
 			});
 		});
 

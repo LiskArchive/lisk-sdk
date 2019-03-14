@@ -5,7 +5,7 @@ const git = require('./helpers/git.js');
 const Sequence = require('./helpers/sequence.js');
 const ed = require('./helpers/ed.js');
 // eslint-disable-next-line import/order
-const ZSchema = require('./helpers/z_schema');
+const { ZSchema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');

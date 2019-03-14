@@ -20,10 +20,25 @@ const program = require('commander');
 const _ = require('lodash');
 const randomstring = require('randomstring');
 const configSchema = require('../schema/config.js');
-const Z_schema = require('./z_schema.js');
-const deepFreeze = require('./deep_freeze_object.js');
+const { ZSchema } = require('../../../controller/helpers/validator');
 
+const validator = new ZSchema();
 const rootPath = path.dirname(path.resolve(__filename, '..'));
+
+const deepFreeze = function(o) {
+	Object.freeze(o);
+	Object.getOwnPropertyNames(o).forEach(prop => {
+		if (
+			o[prop] !== null &&
+			typeof o[prop] === 'object' &&
+			!Object.isFrozen(o[prop])
+		) {
+			deepFreeze(o[prop]);
+		}
+	});
+
+	return o;
+};
 
 /**
  * Description of the module.
@@ -165,11 +180,10 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		}
 	);
 
-	const validator = new Z_schema();
 	const valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {
-		console.error('Failed to validate config data', validator.getLastErrors());
+		console.error('Failed to validate config data', ZSchema.getLastErrors());
 		process.exit(1);
 	} else {
 		appConfig.genesisBlock = genesisBlock;

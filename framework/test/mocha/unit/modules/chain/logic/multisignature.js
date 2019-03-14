@@ -22,7 +22,6 @@ const modulesLoader = require('../../../../common/modules_loader');
 const randomUtil = require('../../../../common/utils/random');
 const accountFixtures = require('../../../../fixtures/accounts');
 const slots = require('../../../../../../src/modules/chain/helpers/slots');
-const Diff = require('../../../../../../src/modules/chain/helpers/diff');
 const testData = require('./test_data/multisignature');
 const {
 	createInvalidRegisterMultisignatureTransaction,
@@ -32,6 +31,7 @@ const { FEES, MULTISIG_CONSTRAINTS } = __testContext.config.constants;
 const Multisignature = rewire(
 	'../../../../../../src/modules/chain/logic/multisignature'
 );
+
 const validKeypair = testData.validKeypair;
 const validSender = testData.validSender;
 const validTransaction = testData.validTransaction;
@@ -55,6 +55,7 @@ describe('multisignature', () => {
 	beforeEach(() => {
 		transactionMock = {
 			verifySignature: sinonSandbox.stub().returns(1),
+			reverse: sinonSandbox.stub().returns(),
 		};
 		accountMock = {
 			merge: sinonSandbox.mock().callsArg(2),
@@ -75,7 +76,6 @@ describe('multisignature', () => {
 			id: '9314232245035524467',
 			height: 1,
 		};
-
 		multisignature = new Multisignature({
 			components: {
 				logger: modulesLoader.logger,
@@ -689,7 +689,7 @@ describe('multisignature', () => {
 
 		it('should call __scope.logic.account.merge with expected params', async () => {
 			const expectedParams = {
-				membersPublicKeys: Diff.reverse(
+				membersPublicKeys: transactionMock.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
 				multiMin: -transaction.asset.multisignature.min,
@@ -852,7 +852,7 @@ describe('multisignature', () => {
 
 		it('should call __scope.logic.account.merge with expected params', async () => {
 			const expectedParams = {
-				u_membersPublicKeys: Diff.reverse(
+				u_membersPublicKeys: transactionMock.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
 				u_multiMin: -transaction.asset.multisignature.min,
