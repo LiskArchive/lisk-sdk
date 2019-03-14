@@ -632,44 +632,61 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#addMultisignature', () => {
-		let members: Array<{ publicKey: string; signature: string }>;
+		let membersSignatures: Array<SignatureObject>;
 		let multisigTrs: MultisignatureTransaction;
 
 		beforeEach(() => {
-			members = [
+			multisigTrs = new MultisignatureTransaction(
+				validMultisignatureRegistrationTransactionNoSigs,
+			);
+
+			membersSignatures = [
 				{
 					publicKey:
 						'142d1f24e17d3c90b0f2abdf49c2b14b02782e49b2ecfe85462ed12f654d60df',
 					signature:
 						'd1b78f5eb35b4e1de7f740d2f62f0e2acab24c5b446719cc70601319f4a3666fbcda7980e5d9c6ff3bfa8b54ee383eed5531723e0f1748d0c84b7a229759b000',
+					transactionId: multisigTrs.id,
 				},
 				{
 					publicKey:
 						'bb7ef62be03d5c195a132efe82796420abae04638cd3f6321532a5d33031b30c',
 					signature:
 						'aa956854dae10792ba9006e4dddd0d7e370af4645df8708d1b10f088304320f0e7f2427d883755a997c07b53978c4d8cf56b95e0f740d8d50ed8c1f2dc85180f',
+					transactionId: multisigTrs.id,
 				},
 			];
-
-			multisigTrs = new MultisignatureTransaction(
-				validMultisignatureRegistrationTransactionNoSigs,
-			);
 		});
 
 		it('should return a successful transaction response if signature not present and is added', async () => {
-			const firstMemberSignature: SignatureObject = {
-				publicKey: members[0].publicKey,
-				signature: members[0].signature,
-				transactionId: multisigTrs.id,
-			};
-
 			const { status, errors } = multisigTrs.addMultisignature(
 				store,
-				firstMemberSignature,
+				membersSignatures[0],
 			);
 
 			expect(status).to.eql(Status.OK);
 			expect(errors).to.be.empty;
+			expect(multisigTrs.signatures).to.include(membersSignatures[0].signature);
+		});
+
+		it('should fail when valid signature already present and sent again', async () => {
+			const { status: arrangeStatus } = multisigTrs.addMultisignature(
+				store,
+				membersSignatures[0],
+			);
+
+			expect(arrangeStatus).to.eql(Status.OK);
+
+			const { status, errors } = multisigTrs.addMultisignature(
+				store,
+				membersSignatures[0],
+			);
+			const expectedError =
+				"Signature 'd1b78f5eb35b4e1de7f740d2f62f0e2acab24c5b446719cc70601319f4a3666fbcda7980e5d9c6ff3bfa8b54ee383eed5531723e0f1748d0c84b7a229759b000' already present in transaction.";
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0].message).to.be.eql(expectedError);
+			expect(multisigTrs.signatures).to.include(membersSignatures[0].signature);
 		});
 
 		it('should fail with valid signature not part of the group', async () => {
@@ -681,15 +698,17 @@ describe('Base transaction class', () => {
 					'35d9bca853353906fbc44b86918b64bc0d21daf3ca16e230aa59352976624bc4ce69ac339f08b45c5e926d60cfa81276778e5858ff2bd2290e40d9da59cc5f0b',
 			};
 
+			const expectedError =
+				"Public Key 'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b' is not a member for account '18278674964748191682L'.";
+
 			const { status, errors } = multisigTrs.addMultisignature(
 				store,
 				nonMemberSignature,
 			);
 
 			expect(status).to.eql(Status.FAIL);
-			expect(errors[0].message).to.be.eql(
-				"Public Key 'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b' is not a member for account '18278674964748191682L'.",
-			);
+			expect(errors[0].message).to.be.eql(expectedError);
+			expect(multisigTrs.signatures).to.be.empty;
 		});
 	});
 
