@@ -30,6 +30,7 @@ class Controller {
 	 * @param {string} appLabel - Application label
 	 * @param {Object} config - Controller configurations
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
+	 * @param {applicationState} applicationState - General application state
 	 */
 	constructor(appLabel, config, logger) {
 		this.logger = logger;

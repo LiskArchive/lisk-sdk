@@ -1,4 +1,5 @@
 const assert = require('assert');
+const ApplicationState = require('./applicationState');
 const Controller = require('./controller');
 const defaults = require('./defaults');
 const version = require('../version');
@@ -6,6 +7,7 @@ const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
 const constantsSchema = require('./schema/constants');
 const { createLoggerComponent } = require('../components/logger');
+const { createStorageComponent } = require('../components/storage');
 
 const ChainModule = require('../modules/chain');
 const HttpAPIModule = require('../modules/http_api');
@@ -57,6 +59,7 @@ const registerProcessHooks = app => {
  * @requires helpers/validator
  * @requires schema/application
  * @requires components/logger
+ * @requires components/storage
  */
 class Application {
 	/**
@@ -73,6 +76,9 @@ class Application {
 	 * @param {Object} [config] - Main configuration object
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
+	 * @param {Object} [config.components.cache] - Configuration for cache component
+	 * @param {Object} [config.components.storage] - Configuration for storage component
+	 * @param {Object} [config.initialState] - Configuration for applicationState
 	 * @param {Object} [config.modules] - Configurations for modules
 	 * @param {string} [config.version] - Version of the application
 	 * @param {string} [config.minVersion] - Minimum compatible version on the network
@@ -115,6 +121,10 @@ class Application {
 		this.controller = null;
 
 		this.logger = createLoggerComponent(this.config.components.logger);
+		this.storage = createStorageComponent(
+			this.config.components.storage,
+			this.logger
+		);
 
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
@@ -123,6 +133,12 @@ class Application {
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
 			: ['httpApi'];
+
+		this.applicationState = new ApplicationState(
+			this.config.initialState,
+			this.logger,
+			this.storage
+		);
 
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
