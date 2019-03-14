@@ -412,8 +412,11 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ type: transactionTypes.VOTE }, 200)
 						.then(res => {
 							expect(res.body.data).to.not.empty;
-
-							res.body.data.map(transaction => {
+							const transactionsType3 = res.body.data.filter(
+								transaction =>
+									transaction.recipientId !== '16313739661670634666L'
+							);
+							transactionsType3.map(transaction => {
 								expect(Object.keys(transaction.asset).length).to.equal(1);
 								return expect(transaction.asset.votes.length).to.be.within(
 									1,
