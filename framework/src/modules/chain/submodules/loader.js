@@ -942,9 +942,17 @@ __private.sync = function(cb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
 			updateApplicationState(seriesCb) {
-				// Update our own headers: broadhash and height
-				return applicationState
-					.update()
+				return library.storage.entities.Block.get(
+					{},
+					{
+						limit: 5,
+						sort: 'height:desc',
+					}
+				)
+					.then(blocks => {
+						// Update our application state: broadhash and height
+						applicationState.update(blocks);
+					})
 					.then(() => seriesCb())
 					.catch(seriesCb);
 			},

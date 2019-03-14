@@ -42,9 +42,8 @@ const __private = {};
  * @param {Object} logger
  */
 class ApplicationState {
-	constructor(config, logger, storage) {
+	constructor(config, logger) {
 		__private.logger = logger;
-		__private.storage = storage;
 		__private.state = {
 			os: os.platform() + os.release(),
 			version: config.version,
@@ -97,15 +96,8 @@ class ApplicationState {
 	 *
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	async update() {
+	async update(blocks) {
 		try {
-			const blocks = await __private.storage.entities.Block.get(
-				{},
-				{
-					limit: 5,
-					sort: 'height:desc',
-				}
-			);
 			if (blocks.length <= 1) {
 				__private.state.broadhash = __private.state.nethash;
 				return true;

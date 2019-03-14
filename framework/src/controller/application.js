@@ -7,7 +7,6 @@ const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
 const constantsSchema = require('./schema/constants');
 const { createLoggerComponent } = require('../components/logger');
-const { createStorageComponent } = require('../components/storage');
 
 const ChainModule = require('../modules/chain');
 const HttpAPIModule = require('../modules/http_api');
@@ -121,10 +120,6 @@ class Application {
 		this.controller = null;
 
 		this.logger = createLoggerComponent(this.config.components.logger);
-		this.storage = createStorageComponent(
-			this.config.components.storage,
-			this.logger
-		);
 
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
@@ -136,8 +131,7 @@ class Application {
 
 		this.applicationState = new ApplicationState(
 			this.config.initialState,
-			this.logger,
-			this.storage
+			this.logger
 		);
 
 		this.registerModule(ChainModule, {

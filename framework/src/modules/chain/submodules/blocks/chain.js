@@ -836,9 +836,17 @@ Chain.prototype.deleteLastBlock = function(cb) {
 				});
 			},
 			updateApplicationState(seriesCb) {
-				// Update our own headers: broadhash and height
-				return applicationState
-					.update()
+				return library.storage.entities.Block.get(
+					{},
+					{
+						limit: 5,
+						sort: 'height:desc',
+					}
+				)
+					.then(blocks => {
+						// Update our application state: broadhash and height
+						applicationState.update(blocks);
+					})
 					.then(() => seriesCb())
 					.catch(seriesCb);
 			},

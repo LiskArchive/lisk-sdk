@@ -834,14 +834,19 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'true' if block comes from generation or receiving process
 			// 'false' if block comes from chain synchronization process
 			updateApplicationState(seriesCb) {
-				// Update our own headers: broadhash and height
-				if (!library.config.loading.snapshotRound) {
-					return applicationState
-						.update()
-						.then(() => seriesCb())
-						.catch(seriesCb);
-				}
-				return seriesCb();
+				return library.storage.entities.Block.get(
+					{},
+					{
+						limit: 5,
+						sort: 'height:desc',
+					}
+				)
+					.then(blocks => {
+						// Update our application state: broadhash and height
+						applicationState.update(blocks);
+					})
+					.then(() => seriesCb())
+					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
