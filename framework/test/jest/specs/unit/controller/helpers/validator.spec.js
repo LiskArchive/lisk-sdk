@@ -3,9 +3,9 @@ const {
 	validator,
 	loadSchema,
 	validate,
+	ZSchema,
 } = require('../../../../../../src/controller/helpers/validator');
 const { SchemaValidationError } = require('../../../../../../src/errors');
-const zSchema = require('../../../../../../src/modules/chain/helpers/z_schema');
 
 jest.mock('ajv');
 
@@ -19,10 +19,10 @@ describe('helpers/validator.js', () => {
 
 		it('should load lisk validation formats after initialized .', () => {
 			// Assert
-			Object.keys(zSchema.formatsCache).forEach(zSchemaType => {
+			Object.keys(ZSchema.formatsCache).forEach(zSchemaType => {
 				expect(validator.addFormat).toHaveBeenCalledWith(
 					zSchemaType,
-					zSchema.formatsCache[zSchemaType]
+					ZSchema.formatsCache[zSchemaType]
 				);
 			});
 		});
