@@ -40,8 +40,8 @@ let library;
  */
 function NodeController(scope) {
 	library = {
+		applicationState: scope.applicationState,
 		components: {
-			system: scope.components.system,
 			storage: scope.components.storage,
 		},
 		config: scope.config,
@@ -64,11 +64,7 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const [lastBlock] = await library.components.storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
-		const { height } = lastBlock;
+		const { height } = library.applicationState.getState();
 
 		const milestone = await library.channel.invoke('chain:calculateMilestone', {
 			height,
@@ -128,12 +124,8 @@ NodeController.getStatus = async (context, next) => {
 			}
 		);
 
-		const [lastBlock] = await library.components.storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
+		const { height, broadhash } = library.applicationState.getState();
 
-		const { height } = lastBlock;
 		const consensus =
 			(await library.channel.invoke('chain:getLastConsensus')) || 0;
 		const loaded = await library.channel.invoke('chain:loaderLoaded');
@@ -144,7 +136,7 @@ NodeController.getStatus = async (context, next) => {
 		const slotTime = await library.channel.invoke('chain:getSlotTime');
 
 		const data = {
-			broadhash: library.components.system.headers.broadhash,
+			broadhash,
 			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch: slotTime,
