@@ -50,20 +50,20 @@ class ChildProcessChannel extends BaseChannel {
 
 		this.rpcSocket.bind(this.rpcSocketPath);
 
-		return new Promise((resolve, reject) => {
-			this.rpcSocket.once('bind', () => {
-				this.busRpcClient.call(
-					'registerChannel',
-					this.moduleAlias,
-					this.eventsList.map(event => event.name),
-					this.actionsList.map(action => action.name),
-					{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
-					(err, result) => {
-						if (err) return reject(err);
-						return resolve(result);
-					}
-				);
-			});
+		let timeout;
+
+		return Promise.race([
+			this._waitForAllToFinnish(),
+			this._rejectIfAtLeastOneFails(),
+			new Promise((resolve, reject) => {
+				timeout = setTimeout(async () => {
+					await this.cleanup();
+					// TODO: Review if logger.error might be useful.
+					reject(new Error('ChildProcessChannel setup timeout'));
+				}, 2000); // TODO: Get from constants
+			}),
+		]).finally(() => {
+			clearTimeout(timeout);
 		});
 	}
 
@@ -133,6 +133,61 @@ class ChildProcessChannel extends BaseChannel {
 		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
 			this.rpcSocket.close();
 		}
+	}
+
+	async _waitForAllToFinnish() {
+		return Promise.all([
+			new Promise(resolve => {
+				this.pubSocket.sock.on('connect', () => {
+					resolve();
+				});
+			}),
+			new Promise(resolve => {
+				this.subSocket.sock.on('connect', () => {
+					resolve();
+				});
+			}),
+			new Promise(resolve => {
+				this.rpcSocket.once('bind', () => {
+					resolve();
+				});
+			}),
+			new Promise((resolve, reject) => {
+				this.busRpcSocket.once('connect', () => {
+					this.busRpcClient.call(
+						'registerChannel',
+						this.moduleAlias,
+						this.eventsList.map(event => event.name),
+						this.actionsList.map(action => action.name),
+						{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
+						(err, result) => {
+							if (err) reject(err);
+							resolve(result);
+						}
+					);
+				});
+			}),
+		]);
+	}
+
+	async _rejectIfAtLeastOneFails() {
+		return Promise.race([
+			new Promise((resolve, reject) => {
+				this.pubSocket.sock.on('error', () => {
+					reject();
+				});
+			}),
+			new Promise((resolve, reject) => {
+				this.subSocket.sock.on('error', () => {
+					reject();
+				});
+			}),
+			new Promise((resolve, reject) => {
+				this.rpcSocket.once('error', () => {
+					reject();
+				});
+			}),
+		]);
 	}
 }
 
