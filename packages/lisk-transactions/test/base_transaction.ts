@@ -54,7 +54,6 @@ describe('Base transaction class', () => {
 	let storeAccountGetStub: sinon.SinonStub;
 	let storeAccountGetOrDefaultStub: sinon.SinonStub;
 
-
 	beforeEach(async () => {
 		validTestTransaction = new TestTransaction(defaultTransaction);
 		validSecondSignatureTestTransaction = new TestTransaction(
@@ -63,8 +62,12 @@ describe('Base transaction class', () => {
 		validMultisignatureTestTransaction = new TestTransaction(
 			defaultMultisignatureTransaction,
 		);
-		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(defaultSenderAccount);
-		storeAccountGetOrDefaultStub = sandbox.stub(store.account, 'getOrDefault').returns(defaultSenderAccount);
+		storeAccountGetStub = sandbox
+			.stub(store.account, 'get')
+			.returns(defaultSenderAccount);
+		storeAccountGetOrDefaultStub = sandbox
+			.stub(store.account, 'getOrDefault')
+			.returns(defaultSenderAccount);
 	});
 
 	describe('#constructor', () => {
@@ -148,8 +151,8 @@ describe('Base transaction class', () => {
 
 		it('should have receivedAt Date', async () => {
 			expect(validTestTransaction)
-				.to.have.property('type')
-				.and.be.a('number');
+				.to.have.property('receivedAt')
+				.and.be.instanceOf(Date);
 		});
 
 		it('should have _multisignatureStatus number', async () => {
@@ -682,11 +685,11 @@ describe('Base transaction class', () => {
 		beforeEach(async () => {
 			const unexpiredTransaction = {
 				...defaultTransaction,
-				receivedAt: new Date(),
+				receivedAt: new Date().toISOString(),
 			};
 			const expiredTransaction = {
 				...defaultTransaction,
-				receivedAt: new Date(+new Date() - 1300 * 60000),
+				receivedAt: new Date(+new Date() - 1300 * 60000).toISOString(),
 			};
 			unexpiredTestTransaction = new TestTransaction(unexpiredTransaction);
 			expiredTestTransaction = new TestTransaction(expiredTransaction);
