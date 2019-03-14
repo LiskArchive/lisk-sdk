@@ -120,4 +120,4 @@ if (testPathPattern && testPathPattern.indexOf('-') === 0) {
 
 (async () => {
 	await executeTests(testType, testPathPattern, mochaOptions);
-})();
+})().catch(error => console.error(error.message));

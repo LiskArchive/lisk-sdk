@@ -21,7 +21,11 @@ const scanFiles = testType => {
 		return find.fileSync(/^((?!common)[\s\S])*.js$/, folder);
 	}
 
-	return [];
+	throw new Error(
+		`Please specify a valid test type! Available Options: ${Object.keys(
+			testTypesMap
+		).join(', ')}`
+	);
 };
 
 const getTestFiles = (testType, testPathPattern) => {
