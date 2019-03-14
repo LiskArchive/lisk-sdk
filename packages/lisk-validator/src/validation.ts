@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable-next-line no-reference
-/// <reference path="../types/browserify-bignum/index.d.ts" />
+import * as BigNum from '@liskhq/bignum';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
 import {
 	gte as isVersionGte,
 	gtr as isGreaterThanVersionInRange,
@@ -75,7 +73,7 @@ export const isNumberString = (num: string): boolean => {
 export const isValidInteger = (num: unknown): boolean =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
 
-export const isUnique = (values: ReadonlyArray<string>): boolean => {
+export const hasNoDuplicate = (values: ReadonlyArray<string>): boolean => {
 	const unique = [...new Set(values)];
 
 	return unique.length === values.length;

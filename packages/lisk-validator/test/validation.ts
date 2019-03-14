@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { expect } from 'chai';
-import * as BigNum from 'browserify-bignum';
 import {
 	validatePublicKeysForDuplicates,
 	validatePublicKey,
@@ -40,7 +40,7 @@ import {
 	isEncryptedPassphrase,
 	isHexString,
 	isStringBufferLessThan,
-	isUnique,
+	hasNoDuplicate,
 	isUsername,
 } from '../src/validation';
 
@@ -405,13 +405,13 @@ describe('validation', () => {
 		});
 	});
 
-	describe('#isUnique', () => {
+	describe('#hasNoDuplicate', () => {
 		it('should return true when string array is unique', () => {
-			return expect(isUnique(['1234', '4567'])).to.be.true;
+			return expect(hasNoDuplicate(['1234', '4567'])).to.be.true;
 		});
 
 		it('should return false when array contains duplicate', () => {
-			return expect(isUnique(['1234', 'a', '1234'])).to.be.false;
+			return expect(hasNoDuplicate(['1234', 'a', '1234'])).to.be.false;
 		});
 	});
 
