@@ -357,7 +357,7 @@ export abstract class BaseTransaction {
 			? []
 			: [
 					new TransactionError(
-						`Failed to add signature ${signatureObject.signature}.`,
+						`Failed to add signature '${signatureObject.signature}'.`,
 						this.id,
 						'.signatures',
 					),
