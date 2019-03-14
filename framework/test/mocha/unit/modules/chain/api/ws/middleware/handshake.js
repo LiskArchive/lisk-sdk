@@ -20,9 +20,6 @@ const typeRepresentatives = require('../../../../../../fixtures/types_representa
 const Handshake = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/handshake');
 const failureCodes = require('../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
 const WSServerMaster = require('../../../../../../common/ws/server_master');
-const {
-	createSystemComponent,
-} = require('../../../../../../../../src/components/system');
 
 const config = __testContext.config;
 
@@ -48,18 +45,7 @@ describe('Handshake', () => {
 	};
 	let validHeaders;
 
-	const loggerStub = {
-		trace: sinonSandbox.spy(),
-		info: sinonSandbox.spy(),
-		error: sinonSandbox.spy(),
-		warn: sinonSandbox.spy(),
-		debug: sinonSandbox.spy(),
-	};
-
-	const storageStub = sinonSandbox.stub();
-
 	before(async () => {
-		system = createSystemComponent(validConfig.config, loggerStub, storageStub);
 		handshake = new Handshake.middleware.Handshake(system, validConfig.config);
 	});
 
