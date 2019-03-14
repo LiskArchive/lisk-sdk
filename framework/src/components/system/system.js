@@ -93,8 +93,8 @@ class System {
 		if (!protocolVersion) {
 			return false;
 		}
-		const peerHard = parseInt(protocolVersion[0]);
-		const myHard = parseInt(this.headers.protocolVersion[0]);
+		const peerHard = parseInt(protocolVersion.split('.')[0]);
+		const myHard = parseInt(this.headers.protocolVersion.split('.')[0]);
 		return myHard === peerHard && peerHard >= 1;
 	}
 
