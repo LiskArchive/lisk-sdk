@@ -15,7 +15,7 @@
 
 import { EventEmitter } from 'events';
 import * as querystring from 'querystring';
-import { RPCResponseError } from './errors';
+import { FetchPeerStatusError, RPCResponseError } from './errors';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -103,16 +103,39 @@ export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 // Format the node info so that it will be valid from the perspective of both new and legacy nodes.
 const convertNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
-): ProtocolNodeInfo => ({
-	...nodeInfo,
-	httpPort: nodeInfo ? (nodeInfo.httpPort as number) : 0,
-	broadhash: nodeInfo ? (nodeInfo.broadhash as string) : '',
-	nonce: nodeInfo ? (nodeInfo.nonce as string) : '',
-});
+): ProtocolNodeInfo => {
+	const {
+		height,
+		nethash,
+		version,
+		os,
+		wsPort,
+		httpPort,
+		nonce,
+		broadhash,
+		...options
+	} = nodeInfo;
+
+	return {
+		height,
+		nethash,
+		version,
+		os,
+		wsPort,
+		broadhash: broadhash ? (broadhash as string) : '',
+		httpPort: httpPort ? (httpPort as number) : 0,
+		nonce: nonce ? (nonce as string) : '',
+		options,
+	};
+};
 
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+}
+export interface PeerSockets {
+	readonly outbound?: SCClientSocket;
+	readonly inbound?: SCServerSocket;
 }
 
 export class Peer extends EventEmitter {
@@ -142,7 +165,7 @@ export class Peer extends EventEmitter {
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
 		peerConfig?: PeerConfig,
-		inboundSocket?: SCServerSocket,
+		peerSockets?: PeerSockets,
 	) {
 		super();
 		this._peerInfo = peerInfo;
@@ -225,9 +248,13 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
-		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
+		this._inboundSocket = peerSockets ? peerSockets.inbound : undefined;
 		if (this._inboundSocket) {
 			this._bindHandlersToInboundSocket(this._inboundSocket);
+		}
+		this._outboundSocket = peerSockets ? peerSockets.outbound : undefined;
+		if (this._outboundSocket) {
+			this._bindHandlersToOutboundSocket(this._outboundSocket);
 		}
 	}
 
@@ -572,3 +599,125 @@ export class Peer extends EventEmitter {
 		request.end(legacyNodeInfo);
 	}
 }
+
+export interface ConnectAndFetchResponse {
+	readonly responsePacket: P2PResponsePacket;
+	readonly socket: SCClientSocket;
+}
+
+export interface PeerInfoAndOutboundConnection {
+	readonly peerInfo: P2PDiscoveredPeerInfo;
+	readonly socket: SCClientSocket;
+}
+
+export const connectAndRequest = async (
+	basicPeerInfo: P2PPeerInfo,
+	procedure: string,
+	nodeInfo?: P2PNodeInfo,
+	peerConfig?: PeerConfig,
+): Promise<ConnectAndFetchResponse> =>
+	new Promise<ConnectAndFetchResponse>(
+		(resolve, reject): void => {
+			const legacyNodeInfo = nodeInfo
+				? convertNodeInfoToLegacyFormat(nodeInfo)
+				: undefined;
+			// Add a new field discovery to tell the receiving side that the connection will be short lived
+			const requestPacket = {
+				procedure,
+			};
+			const clientOptions: ClientOptionsUpdated = {
+				hostname: basicPeerInfo.ipAddress,
+				port: basicPeerInfo.wsPort,
+				query: querystring.stringify({
+					...legacyNodeInfo,
+					options:
+						legacyNodeInfo && legacyNodeInfo.options
+							? JSON.stringify(legacyNodeInfo.options)
+							: undefined,
+				}),
+				connectTimeout: peerConfig
+					? peerConfig.connectTimeout
+						? peerConfig.connectTimeout
+						: DEFAULT_CONNECT_TIMEOUT
+					: DEFAULT_CONNECT_TIMEOUT,
+				ackTimeout: peerConfig
+					? peerConfig.connectTimeout
+						? peerConfig.connectTimeout
+						: DEFAULT_CONNECT_TIMEOUT
+					: DEFAULT_ACK_TIMEOUT,
+				multiplex: false,
+				autoConnect: false,
+				autoReconnect: false,
+				pingTimeoutDisabled: true,
+			};
+
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			// Attaching handlers for various events that could be used future for logging or any other application
+			outboundSocket.emit(
+				REMOTE_EVENT_RPC_REQUEST,
+				{
+					type: '/RPCRequest',
+					procedure: requestPacket.procedure,
+				},
+				(err: Error | undefined, responseData: unknown) => {
+					if (err) {
+						reject(err);
+
+						return;
+					}
+					if (responseData) {
+						const responsePacket = responseData as P2PResponsePacket;
+						resolve({
+							responsePacket,
+							socket: outboundSocket,
+						});
+
+						return;
+					}
+
+					reject(
+						new RPCResponseError(
+							`Failed to handle response for procedure ${
+								requestPacket.procedure
+							}`,
+							new Error('RPC response format was invalid'),
+							basicPeerInfo.ipAddress,
+							basicPeerInfo.wsPort,
+						),
+					);
+				},
+			);
+		},
+	);
+
+export const connectAndFetchPeerInfo = async (
+	basicPeerInfo: P2PPeerInfo,
+	nodeInfo?: P2PNodeInfo,
+	peerConfig?: PeerConfig,
+): Promise<PeerInfoAndOutboundConnection> => {
+	try {
+		const { responsePacket, socket } = await connectAndRequest(
+			basicPeerInfo,
+			REMOTE_RPC_GET_NODE_INFO,
+			nodeInfo,
+			peerConfig,
+		);
+
+		const protocolPeerInfo = responsePacket.data;
+		const rawPeerInfo = {
+			...protocolPeerInfo,
+			ip: basicPeerInfo.ipAddress,
+			wsPort: basicPeerInfo.wsPort,
+		};
+		const peerInfo = validatePeerInfo(rawPeerInfo);
+
+		return { peerInfo, socket };
+	} catch (error) {
+		throw new FetchPeerStatusError(
+			`Error occurred while fetching information from ${
+				basicPeerInfo.ipAddress
+			}:${basicPeerInfo.wsPort}`,
+			error,
+		);
+	}
+};
