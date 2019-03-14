@@ -4,20 +4,19 @@ const Bus = require('../../../../../../src/controller/bus');
 
 jest.mock('../../../../../../src/controller/bus');
 
-// Arrange
-const params = {
-	moduleAlias: 'moduleAlias',
-	events: ['event1', 'event2'],
-	actions: {
-		action1: jest.fn(),
-		action2: jest.fn(),
-		action3: jest.fn(),
-	},
-	bus: new Bus(),
-	options: {},
-};
-
 describe('EventEmitterChannel Channel', () => {
+	// Arrange
+	const params = {
+		moduleAlias: 'moduleAlias',
+		events: ['event1', 'event2'],
+		actions: {
+			action1: jest.fn(),
+			action2: jest.fn(),
+			action3: jest.fn(),
+		},
+		bus: new Bus(),
+		options: {},
+	};
 	let eventEmitterChannel = null;
 
 	beforeEach(() => {

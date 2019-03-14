@@ -7,25 +7,25 @@ jest.mock('fs-extra');
 jest.mock('../../../../../src/controller/bus');
 jest.mock('../../../../../src/controller/channels/event_emitter');
 
-// Arrange
-const appLabel = '#LABEL';
-const logger = {
-	info: jest.fn(),
-	error: jest.fn(),
-};
-const componentConfig = '#CONFIG';
-const rootDir = process.cwd();
-const systemDirs = {
-	dirs: {
-		root: rootDir,
-		temp: `${rootDir}/tmp/${appLabel}/`,
-		sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-		pids: `${rootDir}/tmp/${appLabel}/pids`,
-	},
-};
-let controller = null;
-
 describe('Controller Class', () => {
+	// Arrange
+	const appLabel = '#LABEL';
+	const logger = {
+		info: jest.fn(),
+		error: jest.fn(),
+	};
+	const componentConfig = '#CONFIG';
+	const rootDir = process.cwd();
+	const systemDirs = {
+		dirs: {
+			root: rootDir,
+			temp: `${rootDir}/tmp/${appLabel}/`,
+			sockets: `${rootDir}/tmp/${appLabel}/sockets`,
+			pids: `${rootDir}/tmp/${appLabel}/pids`,
+		},
+	};
+	let controller = null;
+
 	beforeEach(() => {
 		// Act
 		controller = new Controller(appLabel, componentConfig, logger);

@@ -6,10 +6,10 @@ const Controller = require('../../../../../src/controller/controller');
 jest.mock('../../../../../src/controller/controller');
 jest.mock('eventemitter2');
 
-const controller = new Controller();
-const options = {};
-
 describe('Bus', () => {
+	const controller = new Controller();
+	const options = {};
+
 	let bus = null;
 	beforeEach(() => {
 		bus = new Bus(controller, options);

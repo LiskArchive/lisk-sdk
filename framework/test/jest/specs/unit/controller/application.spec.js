@@ -6,15 +6,15 @@ const version = require('../../../../../src/version');
 
 jest.mock('../../../../../src/controller/helpers/validator');
 
-// Arrange
-const params = {
-	label: '#LABEL',
-	genesisBlock: {},
-	constants: {},
-	config: { components: { logger: null } },
-};
-
 describe('Application', () => {
+	// Arrange
+	const params = {
+		label: '#LABEL',
+		genesisBlock: {},
+		constants: {},
+		config: { components: { logger: null } },
+	};
+
 	describe('#constructor', () => {
 		it('should accept function as label argument', () => {
 			// Arrange

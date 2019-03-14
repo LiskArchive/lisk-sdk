@@ -8,19 +8,18 @@ const Event = require('../../../../../../src/controller/event');
 jest.mock('../../../../../../src/controller/action');
 jest.mock('../../../../../../src/controller/event');
 
-// Arrange
-const params = {
-	moduleAlias: 'alias',
-	events: ['event1', 'event2'],
-	actions: {
-		action1: jest.fn(),
-		action2: jest.fn(),
-		action3: jest.fn(),
-	},
-	options: {},
-};
-
 describe('Base Channel', () => {
+	// Arrange
+	const params = {
+		moduleAlias: 'alias',
+		events: ['event1', 'event2'],
+		actions: {
+			action1: jest.fn(),
+			action2: jest.fn(),
+			action3: jest.fn(),
+		},
+		options: {},
+	};
 	let baseChannel = null;
 
 	beforeEach(() => {
