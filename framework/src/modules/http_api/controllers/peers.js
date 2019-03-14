@@ -61,7 +61,9 @@ PeersController.getPeers = async function(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await channel.invoke('chain:getPeers', [filters]);
+		const data = await channel.invoke('chain:getPeers', {
+			parameters: filters,
+		});
 
 		const clonedData = _.cloneDeep(data);
 		const filteredData = clonedData.map(peer => {
@@ -69,9 +71,9 @@ PeersController.getPeers = async function(context, next) {
 			return filtered;
 		});
 
-		const peersCount = await channel.invoke('chain:getPeersCountByFilter', [
-			_.cloneDeep(filters),
-		]);
+		const peersCount = await channel.invoke('chain:getPeersCountByFilter', {
+			parameters: _.cloneDeep(filters),
+		});
 
 		return next(null, {
 			data: filteredData,
