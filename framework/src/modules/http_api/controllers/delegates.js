@@ -164,7 +164,9 @@ async function _getDelegates(filters, options) {
 	);
 
 	const supply = lastBlock.height
-		? await channel.invoke('chain:calculateSupply', [lastBlock.height])
+		? await channel.invoke('chain:calculateSupply', {
+				height: lastBlock.height,
+			})
 		: 0;
 
 	return delegates.map(delegate => delegateFormatter(supply, delegate));
@@ -184,17 +186,19 @@ async function _getForgers(filters) {
 		{},
 		{ sort: 'height:desc', limit: 1 }
 	);
-
-	const slots = await channel.invoke('chain:getSlotsHelper');
-
-	const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
-	const currentSlot = slots.getSlotNumber();
+	const lastBlockSlot = await channel.invoke('chain:getSlotNumber', {
+		epochTime: lastBlock.timestamp,
+	});
+	const currentSlot = await channel.invoke('chain:getSlotNumber');
 	const forgerKeys = [];
-	const round = slots.calcRound(lastBlock.height + 1);
 
-	const activeDelegates = await channel.invoke('chain:generateDelegateList', [
+	const round = await channel.invoke('chain:calcSlotRound', {
+		height: lastBlock.height + 1,
+	});
+
+	const activeDelegates = await channel.invoke('chain:generateDelegateList', {
 		round,
-	]);
+	});
 
 	for (
 		let i = filters.offset + 1;
@@ -328,7 +332,7 @@ async function _aggregateBlocksReward(filter) {
 	try {
 		delegateBlocksRewards = await channel.invoke(
 			'chain:getDelegateBlocksRewards',
-			[params]
+			{ filters: params }
 		);
 	} catch (err) {
 		logger.error(err.stack);
