@@ -15,6 +15,8 @@
 
 import { EventEmitter } from 'events';
 import * as http from 'http';
+// tslint:disable-next-line no-require-imports
+import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 
@@ -22,7 +24,11 @@ interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
 
-import { constructPeerId, constructPeerIdFromPeerInfo } from './peer';
+import {
+	constructPeerId,
+	constructPeerIdFromPeerInfo,
+	REMOTE_RPC_GET_ALL_PEERS_LIST,
+} from './peer';
 
 import {
 	INCOMPATIBLE_NETWORK_CODE,
@@ -46,6 +52,8 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolPeerInfo,
+	ProtocolPeerInfoList,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -65,6 +73,7 @@ import {
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
+	MAX_PEER_LIST_BATCH_SIZE,
 	PeerPool,
 } from './peer_pool';
 
@@ -91,6 +100,11 @@ export const NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 
 const BASE_10_RADIX = 10;
+
+const selectRandomPeerSample = (
+	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+	count: number,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => shuffle(peerList).slice(0, count);
 
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
@@ -138,6 +152,11 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
+			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
+				// The PeerPool has the necessary information to handle this request on its own.
+				// This request doesn't need to propagate to its parent class.
+				this._handleGetAllPeersRequest(request);
+			}
 			// Re-emit the request for external use.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
@@ -478,6 +497,61 @@ export class P2P extends EventEmitter {
 		);
 
 		return seedPeerUpdatedInfos;
+	}
+
+	private _pickRandomDiscoveredPeers(
+		count: number,
+	): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		const discoveredPeerList: ReadonlyArray<P2PDiscoveredPeerInfo> = [
+			...this._newPeers.values(),
+			...this._triedPeers.values(),
+		]; // Peers whose values has been updated atleast once.
+
+		return selectRandomPeerSample(discoveredPeerList, count);
+	}
+
+	private _handleGetAllPeersRequest(request: P2PRequest): void {
+		// TODO later: Remove fields that are specific to the current Lisk protocol.
+		const protocolPeerInfoList: ProtocolPeerInfoList = {
+			success: true,
+			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
+				.map(
+					(peerInfo: P2PDiscoveredPeerInfo): ProtocolPeerInfo | undefined => {
+						const peerDiscoveredInfo = peerInfo;
+
+						if (!peerDiscoveredInfo) {
+							return undefined;
+						}
+
+						// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
+						return {
+							broadhash: peerDiscoveredInfo.broadhash
+								? (peerDiscoveredInfo.broadhash as string)
+								: '',
+							height: peerDiscoveredInfo.height,
+							ip: peerDiscoveredInfo.ipAddress,
+							nonce: peerDiscoveredInfo.nonce
+								? (peerDiscoveredInfo.nonce as string)
+								: '',
+							os: peerDiscoveredInfo.os ? peerDiscoveredInfo.os : '',
+							version: peerDiscoveredInfo.version,
+							httpPort: peerDiscoveredInfo.httpPort
+								? (peerDiscoveredInfo.httpPort as number)
+								: undefined,
+							wsPort: peerDiscoveredInfo.wsPort,
+						};
+					},
+				)
+				.filter(
+					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
+						!!peerDetailedInfo,
+				)
+				.map(
+					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
+						peerDetailedInfo as ProtocolPeerInfo,
+				),
+		};
+		request.end(protocolPeerInfoList);
 	}
 
 	public async start(): Promise<void> {
