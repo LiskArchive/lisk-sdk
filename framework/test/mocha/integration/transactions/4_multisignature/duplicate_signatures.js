@@ -40,7 +40,7 @@ describe('duplicate_signatures', () => {
 			localCommon.addTransactionsAndForge
 		);
 
-		transactionPool = library.rewiredModules.transactions.__get__(
+		transactionPool = library.rewiredSubmodules.transactions.__get__(
 			'__private.transactionPool'
 		);
 	});
@@ -174,7 +174,7 @@ describe('duplicate_signatures', () => {
 
 		it('should call a callback with error when there are multiple signatures', done => {
 			const requester = null;
-			const lib = library.rewiredModules.transactions.__get__('library');
+			const lib = library.rewiredSubmodules.transactions.__get__('library');
 			lib.logic.transaction.verify(
 				transaction,
 				sender,
@@ -192,7 +192,7 @@ describe('duplicate_signatures', () => {
 
 		it('should call a callback with no error when exception is in place', done => {
 			const requester = null;
-			const lib = library.rewiredModules.transactions.__get__('library');
+			const lib = library.rewiredSubmodules.transactions.__get__('library');
 			exceptions.duplicatedSignatures = {
 				'15181013796707110990': [
 					'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',
@@ -267,13 +267,13 @@ describe('duplicate_signatures', () => {
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[0],
 									parallelCb
 								);
 							},
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[1],
 									parallelCb
 								);
@@ -299,7 +299,7 @@ describe('duplicate_signatures', () => {
 				it('should forge a block', async () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
-						const lastBlock = library.modules.blocks.lastBlock.get();
+						const lastBlock = library.submodules.blocks.lastBlock.get();
 						// Block should contain multisignature registration transaction
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.multisignature.id
@@ -377,13 +377,13 @@ describe('duplicate_signatures', () => {
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[0],
 									parallelCb
 								);
 							},
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[1],
 									parallelCb
 								);
@@ -409,7 +409,7 @@ describe('duplicate_signatures', () => {
 				it('should forge a block', async () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
-						const lastBlock = library.modules.blocks.lastBlock.get();
+						const lastBlock = library.submodules.blocks.lastBlock.get();
 						// Block should contain transaction sent from multisignature account
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.transfer.id
@@ -474,19 +474,19 @@ describe('duplicate_signatures', () => {
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[0],
 									parallelCb
 								);
 							},
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[0],
 									parallelCb
 								);
 							},
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[1],
 									parallelCb
 								);
@@ -515,7 +515,7 @@ describe('duplicate_signatures', () => {
 				it('should forge a block', async () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
-						const lastBlock = library.modules.blocks.lastBlock.get();
+						const lastBlock = library.submodules.blocks.lastBlock.get();
 						// Block should contain multisignature registration transaction
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.multisignature.id
@@ -593,19 +593,19 @@ describe('duplicate_signatures', () => {
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[0],
 									parallelCb
 								);
 							},
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[0],
 									parallelCb
 								);
 							},
 							parallelCb => {
-								library.modules.multisignatures.processSignature(
+								library.submodules.multisignatures.processSignature(
 									signatures[1],
 									parallelCb
 								);
@@ -634,7 +634,7 @@ describe('duplicate_signatures', () => {
 				it('should forge a block', async () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
-						const lastBlock = library.modules.blocks.lastBlock.get();
+						const lastBlock = library.submodules.blocks.lastBlock.get();
 						// Block should contain transaction sent from multisignature account
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.transfer.id

@@ -20,7 +20,7 @@ const Multisignature = require('../logic/multisignature');
 const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
-let modules;
+let submodules;
 let library;
 let self;
 const __private = {};
@@ -32,8 +32,8 @@ __private.assetTypes = {};
  * Calls logic.transaction.attachAssetType().
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires async
  * @requires logic/multisignature
  * @param {function} cb - Callback function
@@ -235,7 +235,7 @@ __private.processSignatureFromMultisignatureAccount = (
 	cb
 ) => {
 	// Get sender account of correscponding transaction
-	modules.accounts.getAccount(
+	submodules.accounts.getAccount(
 		{ address: transaction.senderId },
 		(err, sender) => {
 			if (err || !sender) {
@@ -282,7 +282,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 	// From now perform all the operations via balanceSequence
 	return library.balancesSequence.add(balanceSequenceCb => {
 		// Grab transaction with corresponding ID from transaction pool
-		const transaction = modules.transactions.getMultisignatureTransaction(
+		const transaction = submodules.transactions.getMultisignatureTransaction(
 			signature.transactionId
 		);
 
@@ -368,10 +368,10 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 					const addresses = [];
 
 					memberAccountKeys.forEach(key => {
-						addresses.push(modules.accounts.generateAddressByPublicKey(key));
+						addresses.push(submodules.accounts.generateAddressByPublicKey(key));
 					});
 
-					modules.accounts.getAccounts(
+					submodules.accounts.getAccounts(
 						{ address_in: addresses },
 						['address', 'publicKey', 'secondPublicKey'],
 						(err, accounts) => {
@@ -400,26 +400,26 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 
 // Events
 /**
- * Calls Multisignature.bind() with modules params.
+ * Calls Multisignature.bind() with submodules params.
  *
- * @param {modules} scope - Loaded modules
+ * @param {submodules} scope - Loaded submodules
  */
 Multisignatures.prototype.onBind = function(scope) {
-	modules = {
-		accounts: scope.modules.accounts,
-		transactions: scope.modules.transactions,
+	submodules = {
+		accounts: scope.submodules.accounts,
+		transactions: scope.submodules.transactions,
 	};
 
-	__private.assetTypes[TRANSACTION_TYPES.MULTI].bind(scope.modules.accounts);
+	__private.assetTypes[TRANSACTION_TYPES.MULTI].bind(scope.submodules.accounts);
 };
 
 /**
- * Checks if `modules` is loaded.
+ * Checks if `submodules` is loaded.
  *
- * @returns {boolean} True if `modules` is loaded
+ * @returns {boolean} True if `submodules` is loaded
  */
 Multisignatures.prototype.isLoaded = function() {
-	return !!modules;
+	return !!submodules;
 };
 
 // Export

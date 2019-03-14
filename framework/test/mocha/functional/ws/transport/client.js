@@ -92,8 +92,8 @@ describe('RPC Client', () => {
 		};
 		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 		// Register RPC
-		const transportModuleMock = { internal: {}, shared: {} };
-		transport(transportModuleMock);
+		const transportSubmoduleMock = { internal: {}, shared: {} };
+		transport(transportSubmoduleMock);
 		// Now ClientRPCStub should contain all methods names
 		reconnect();
 		done();

@@ -31,8 +31,8 @@ const __scope = {};
  * @param {Object} scope
  * @param {Object} scope.components
  * @param {logger} scope.components.logger
- * @param {Object} scope.modules
- * @param {Accounts} scope.modules.accounts
+ * @param {Object} scope.submodules
+ * @param {Accounts} scope.submodules.accounts
  * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
@@ -42,21 +42,21 @@ class Signature {
 		__scope.components = {
 			logger,
 		};
-		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
+		// TODO: Add submodules to contructor argument and assign accounts to __scope.submodules.accounts
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
- * Binds input parameters to private variable modules.
+ * Binds input parameters to private variable submodules.
  *
  * @param {Accounts} accounts
  * @todo Add description for the params
  */
-// TODO: Remove this method as modules will be loaded prior to trs logic.
+// TODO: Remove this method as submodules will be loaded prior to trs logic.
 Signature.prototype.bind = function(accounts) {
-	__scope.modules = {
+	__scope.submodules = {
 		accounts,
 	};
 };
@@ -162,7 +162,7 @@ Signature.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__scope.modules.accounts.setAccountAndGet(
+	__scope.submodules.accounts.setAccountAndGet(
 		{
 			address: sender.address,
 			secondSignature: 1,
@@ -189,7 +189,7 @@ Signature.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	__scope.modules.accounts.setAccountAndGet(
+	__scope.submodules.accounts.setAccountAndGet(
 		{
 			address: sender.address,
 			secondSignature: 0,
@@ -215,7 +215,7 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Second signature already enabled');
 	}
 
-	return __scope.modules.accounts.setAccountAndGet(
+	return __scope.submodules.accounts.setAccountAndGet(
 		{ address: sender.address, u_secondSignature: 1 },
 		cb,
 		tx
@@ -232,7 +232,7 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @todo Add description for the params
  */
 Signature.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
-	__scope.modules.accounts.setAccountAndGet(
+	__scope.submodules.accounts.setAccountAndGet(
 		{ address: sender.address, u_secondSignature: 0 },
 		cb,
 		tx

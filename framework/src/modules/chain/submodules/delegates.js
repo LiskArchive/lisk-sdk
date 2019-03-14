@@ -27,7 +27,7 @@ const Delegate = require('../logic/delegate');
 const slots = require('../helpers/slots');
 
 // Private fields
-let modules;
+let submodules;
 let library;
 let self;
 
@@ -47,8 +47,8 @@ __private.delegatesListCache = {};
  * Calls logic.transaction.attachAssetType().
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires async
  * @requires crypto
  * @requires lodash
@@ -142,7 +142,7 @@ Delegates.prototype.clearDelegateListCache = function() {
  * @todo Add description for the return value
  */
 __private.getKeysSortByVote = function(cb, tx) {
-	modules.accounts.getAccounts(
+	submodules.accounts.getAccounts(
 		{
 			isDelegate: true,
 			sort: ['vote:desc', 'publicKey:asc'],
@@ -261,16 +261,16 @@ __private.forge = function(cb) {
 	// Do not try to forge new blocks as client is not ready
 	if (
 		!__private.loaded ||
-		modules.loader.syncing() ||
-		!modules.rounds.loaded() ||
-		modules.rounds.ticking()
+		submodules.loader.syncing() ||
+		!submodules.rounds.loaded() ||
+		submodules.rounds.ticking()
 	) {
 		library.logger.debug('Client not ready to forge');
 		return setImmediate(cb);
 	}
 
 	const currentSlot = slots.getSlotNumber();
-	const lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = submodules.blocks.lastBlock.get();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
 		library.logger.debug('Block already forged for the current slot');
@@ -299,8 +299,8 @@ __private.forge = function(cb) {
 				return setImmediate(cb);
 			}
 
-			if (modules.transport.poorConsensus()) {
-				const consensusErr = `Inadequate broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`;
+			if (submodules.transport.poorConsensus()) {
+				const consensusErr = `Inadequate broadhash consensus before forging a block: ${submodules.peers.getLastConsensus()} %`;
 				library.logger.error(
 					'Failed to generate block within delegate slot',
 					consensusErr
@@ -309,10 +309,10 @@ __private.forge = function(cb) {
 			}
 
 			library.logger.info(
-				`Broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`
+				`Broadhash consensus before forging a block: ${submodules.peers.getLastConsensus()} %`
 			);
 
-			return modules.blocks.process.generateBlock(
+			return submodules.blocks.process.generateBlock(
 				delegateKeypair,
 				slots.getSlotTime(currentSlot),
 				blockGenerationErr => {
@@ -325,8 +325,8 @@ __private.forge = function(cb) {
 						return setImmediate(cb);
 					}
 
-					const forgedBlock = modules.blocks.lastBlock.get();
-					modules.blocks.lastReceipt.update();
+					const forgedBlock = submodules.blocks.lastBlock.get();
+					submodules.blocks.lastReceipt.update();
 
 					library.logger.info(
 						`Forged new block id: ${forgedBlock.id} height: ${
@@ -364,7 +364,7 @@ __private.decryptPassphrase = function(encryptedPassphrase, password) {
 
 /**
  * Checks each vote integrity and controls total votes don't exceed active delegates.
- * Calls modules.accounts.getAccount() to validate delegate account and votes accounts.
+ * Calls submodules.accounts.getAccount() to validate delegate account and votes accounts.
  *
  * @private
  * @param {publicKey} publicKey
@@ -405,7 +405,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 		[
 			// get all  public keys of delegates sender has voted for. Confirmed or unconfirmed based on state parameter.
 			function getExistingVotedPublicKeys(waterfallCb) {
-				modules.accounts.getAccount(
+				submodules.accounts.getAccount(
 					{ publicKey: senderPublicKey },
 					(err, account) => {
 						if (err) {
@@ -431,7 +431,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 			},
 			// Validate votes in the transaction by checking that sender is not voting for an account already, and also that sender is not unvoting an account it did not vote before.
 			function validateVotes(existingVotedPublicKeys, waterfallCb) {
-				modules.accounts.getAccounts(
+				submodules.accounts.getAccounts(
 					{
 						publicKey_in: votesWithAction.map(({ publicKey }) => publicKey),
 						isDelegate: true,
@@ -587,7 +587,7 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			return modules.accounts.getAccount(
+			return submodules.accounts.getAccount(
 				{
 					publicKey: keypair.publicKey.toString('hex'),
 				},
@@ -674,7 +674,7 @@ Delegates.prototype.updateForgingStatus = function(
 		return setImmediate(cb, 'Invalid password and public key combination');
 	}
 
-	return modules.accounts.getAccount(
+	return submodules.accounts.getAccount(
 		{ publicKey: keypair.publicKey.toString('hex') },
 		(err, account) => {
 			if (err) {
@@ -803,7 +803,7 @@ Delegates.prototype.getDelegates = function(query, cb) {
 		delete query.search;
 	}
 	query.isDelegate = true;
-	modules.accounts.getAccounts(
+	submodules.accounts.getAccounts(
 		query,
 		[
 			'username',
@@ -904,21 +904,23 @@ Delegates.prototype.getForgersKeyPairs = function() {
 /**
  * Calls Delegate.bind() with scope.
  *
- * @param {modules} scope - Loaded modules
+ * @param {submodules} scope - Loaded submodules
  */
 Delegates.prototype.onBind = function(scope) {
-	modules = {
-		accounts: scope.modules.accounts,
-		blocks: scope.modules.blocks,
-		delegates: scope.modules.delegates,
-		loader: scope.modules.loader,
-		peers: scope.modules.peers,
-		rounds: scope.modules.rounds,
-		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
+	submodules = {
+		accounts: scope.submodules.accounts,
+		blocks: scope.submodules.blocks,
+		delegates: scope.submodules.delegates,
+		loader: scope.submodules.loader,
+		peers: scope.submodules.peers,
+		rounds: scope.submodules.rounds,
+		transactions: scope.submodules.transactions,
+		transport: scope.submodules.transport,
 	};
 
-	__private.assetTypes[TRANSACTION_TYPES.DELEGATE].bind(scope.modules.accounts);
+	__private.assetTypes[TRANSACTION_TYPES.DELEGATE].bind(
+		scope.submodules.accounts
+	);
 };
 
 /**
@@ -929,7 +931,7 @@ Delegates.prototype.onBind = function(scope) {
  * @param {function} cb - Callback function
  */
 __private.nextForge = function(cb) {
-	async.series([modules.transactions.fillPool, __private.forge], cb);
+	async.series([submodules.transactions.fillPool, __private.forge], cb);
 };
 
 /**
@@ -967,12 +969,12 @@ Delegates.prototype.cleanup = function(cb) {
 };
 
 /**
- * Checks if `modules` is loaded.
+ * Checks if `submodules` is loaded.
  *
- * @returns {boolean} True if `modules` is loaded
+ * @returns {boolean} True if `submodules` is loaded
  */
 Delegates.prototype.isLoaded = function() {
-	return !!modules;
+	return !!submodules;
 };
 
 // Export

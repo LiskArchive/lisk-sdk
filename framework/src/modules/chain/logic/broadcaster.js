@@ -20,7 +20,7 @@ const jobsQueue = require('../helpers/jobs_queue');
 
 const { MAX_PEERS } = global.constants;
 
-let modules;
+let submodules;
 let library;
 let self;
 const __private = {};
@@ -147,7 +147,7 @@ class Broadcaster {
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
  * Adds new object {params, options} to queue array.
  *
@@ -182,7 +182,7 @@ Broadcaster.prototype.maxRelays = function(object) {
 };
 
 /**
- * Binds input parameters to private variables modules.
+ * Binds input parameters to private variables submodules.
  *
  * @param {Peers} peers
  * @param {Transport} transport
@@ -190,7 +190,7 @@ Broadcaster.prototype.maxRelays = function(object) {
  * @todo Add description for the params
  */
 Broadcaster.prototype.bind = function(peers, transport, transactions) {
-	modules = {
+	submodules = {
 		peers,
 		transport,
 		transactions,
@@ -237,7 +237,7 @@ __private.filterQueue = function(cb) {
 					return setImmediate(filterCb, null, false);
 				}
 				// Broadcast if transaction is in transaction pool
-				if (modules.transactions.transactionInPool(transactionId)) {
+				if (submodules.transactions.transactionInPool(transactionId)) {
 					return setImmediate(filterCb, null, true);
 				}
 				// Don't broadcast if transaction is already confirmed

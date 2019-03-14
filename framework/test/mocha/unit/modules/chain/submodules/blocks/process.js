@@ -25,7 +25,7 @@ const BlocksProcess = rewire(
 describe('blocks/process', () => {
 	let __private;
 	let library;
-	let modules;
+	let submodules;
 	let blocksProcessModule;
 	let storageStub;
 	let loggerStub;
@@ -212,7 +212,7 @@ describe('blocks/process', () => {
 		};
 
 		bindingsStub = {
-			modules: {
+			submodules: {
 				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
@@ -225,7 +225,7 @@ describe('blocks/process', () => {
 		};
 
 		blocksProcessModule.onBind(bindingsStub);
-		modules = BlocksProcess.__get__('modules');
+		submodules = BlocksProcess.__get__('submodules');
 		done();
 	});
 
@@ -264,7 +264,7 @@ describe('blocks/process', () => {
 
 	describe('__private.receiveBlock', () => {
 		beforeEach(() =>
-			modules.blocks.verify.processBlock.callsArgWith(3, null, true)
+			submodules.blocks.verify.processBlock.callsArgWith(3, null, true)
 		);
 
 		it('should update lastReceipt and call processBlock', done => {
@@ -273,13 +273,13 @@ describe('blocks/process', () => {
 				expect(loggerStub.info.args[0]).to.contains(
 					'Received new block id: 4 height: 4 round: 1 slot: 4128723 reward: 100'
 				);
-				expect(modules.blocks.lastReceipt.update.calledOnce).to.be.true;
-				expect(modules.blocks.verify.processBlock.calledOnce).to.be.true;
-				expect(modules.blocks.verify.processBlock.args[0][0]).to.deep.equal(
+				expect(submodules.blocks.lastReceipt.update.calledOnce).to.be.true;
+				expect(submodules.blocks.verify.processBlock.calledOnce).to.be.true;
+				expect(submodules.blocks.verify.processBlock.args[0][0]).to.deep.equal(
 					dummyBlock
 				);
-				expect(modules.blocks.verify.processBlock.args[0][1]).to.be.true;
-				expect(modules.blocks.verify.processBlock.args[0][2]).to.be.true;
+				expect(submodules.blocks.verify.processBlock.args[0][1]).to.be.true;
+				expect(submodules.blocks.verify.processBlock.args[0][2]).to.be.true;
 				done();
 			});
 		});
@@ -300,7 +300,10 @@ describe('blocks/process', () => {
 		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
-					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
+					submodules.delegates.fork.calledWithExactly(
+						sinonSandbox.match.object,
+						1
+					)
 				).to.be.true;
 				return expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
@@ -333,7 +336,7 @@ describe('blocks/process', () => {
 			afterEach(
 				async () =>
 					expect(
-						modules.delegates.fork.calledWithExactly(
+						submodules.delegates.fork.calledWithExactly(
 							sinonSandbox.match.object,
 							1
 						)
@@ -394,7 +397,7 @@ describe('blocks/process', () => {
 						});
 
 						describe('when succeeds', () => {
-							describe('modules.blocks.verify.verifyReceipt', () => {
+							describe('submodules.blocks.verify.verifyReceipt', () => {
 								describe('when fails', () => {
 									beforeEach(() => {
 										library.logic.block.objectNormalize.returns({
@@ -402,7 +405,7 @@ describe('blocks/process', () => {
 											id: 2,
 										});
 										__private.validateBlockSlot.callsArgWith(2, null, true);
-										return modules.blocks.verify.verifyReceipt.returns({
+										return submodules.blocks.verify.verifyReceipt.returns({
 											verified: false,
 											errors: ['verifyReceipt-ERR', 'ERR2'],
 										});
@@ -431,7 +434,7 @@ describe('blocks/process', () => {
 								});
 
 								describe('when succeeds', () => {
-									describe('modules.blocks.chain.deleteLastBlock (first call)', () => {
+									describe('submodules.blocks.chain.deleteLastBlock (first call)', () => {
 										afterEach(() =>
 											expect(loggerStub.info.args[0][0]).to.equal(
 												'Last block and parent loses due to fork 1'
@@ -444,10 +447,10 @@ describe('blocks/process', () => {
 													id: 2,
 												});
 												__private.validateBlockSlot.callsArgWith(2, null, true);
-												modules.blocks.verify.verifyReceipt.returns({
+												submodules.blocks.verify.verifyReceipt.returns({
 													verified: true,
 												});
-												return modules.blocks.chain.deleteLastBlock
+												return submodules.blocks.chain.deleteLastBlock
 													.onCall(0)
 													.callsArgWith(0, 'deleteLastBlock-ERR-call-1', null)
 													.onCall(1)
@@ -471,7 +474,7 @@ describe('blocks/process', () => {
 										});
 
 										describe('when succeeds', () => {
-											describe('modules.blocks.chain.deleteLastBlock (second call)', () => {
+											describe('submodules.blocks.chain.deleteLastBlock (second call)', () => {
 												describe('when fails', () => {
 													beforeEach(() => {
 														library.logic.block.objectNormalize.returns({
@@ -483,10 +486,10 @@ describe('blocks/process', () => {
 															null,
 															true
 														);
-														modules.blocks.verify.verifyReceipt.returns({
+														submodules.blocks.verify.verifyReceipt.returns({
 															verified: true,
 														});
-														return modules.blocks.chain.deleteLastBlock
+														return submodules.blocks.chain.deleteLastBlock
 															.onCall(0)
 															.callsArgWith(0, null, 'delete block 1 ok')
 															.onCall(1)
@@ -526,10 +529,10 @@ describe('blocks/process', () => {
 															null,
 															true
 														);
-														modules.blocks.verify.verifyReceipt.returns({
+														submodules.blocks.verify.verifyReceipt.returns({
 															verified: true,
 														});
-														return modules.blocks.chain.deleteLastBlock
+														return submodules.blocks.chain.deleteLastBlock
 															.onCall(0)
 															.callsArgWith(0, null, 'delete block 1 ok')
 															.onCall(1)
@@ -601,7 +604,10 @@ describe('blocks/process', () => {
 		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
-					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
+					submodules.delegates.fork.calledWithExactly(
+						sinonSandbox.match.object,
+						5
+					)
 				).to.be.true;
 				return expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
@@ -635,7 +641,7 @@ describe('blocks/process', () => {
 			afterEach(
 				async () =>
 					expect(
-						modules.delegates.fork.calledWithExactly(
+						submodules.delegates.fork.calledWithExactly(
 							sinonSandbox.match.object,
 							5
 						)
@@ -703,10 +709,10 @@ describe('blocks/process', () => {
 								__private.validateBlockSlot.callsArgWith(2, null, true)
 							);
 
-							describe('modules.blocks.verify.verifyReceipt', () => {
+							describe('submodules.blocks.verify.verifyReceipt', () => {
 								describe('when fails', () => {
 									beforeEach(() =>
-										modules.blocks.verify.verifyReceipt.returns({
+										submodules.blocks.verify.verifyReceipt.returns({
 											verified: false,
 											errors: ['verifyReceipt-ERR', 'ERR2'],
 										})
@@ -736,7 +742,7 @@ describe('blocks/process', () => {
 
 								describe('when succeeds', () => {
 									beforeEach(() =>
-										modules.blocks.verify.verifyReceipt.returns({
+										submodules.blocks.verify.verifyReceipt.returns({
 											verified: true,
 										})
 									);
@@ -747,10 +753,10 @@ describe('blocks/process', () => {
 										)
 									);
 
-									describe('modules.blocks.chain.deleteLastBlock', () => {
+									describe('submodules.blocks.chain.deleteLastBlock', () => {
 										describe('when fails', () => {
 											beforeEach(() =>
-												modules.blocks.chain.deleteLastBlock.callsArgWith(
+												submodules.blocks.chain.deleteLastBlock.callsArgWith(
 													0,
 													'deleteLastBlock-ERR',
 													null
@@ -775,7 +781,7 @@ describe('blocks/process', () => {
 
 										describe('when succeeds', () => {
 											beforeEach(() =>
-												modules.blocks.chain.deleteLastBlock.callsArgWith(
+												submodules.blocks.chain.deleteLastBlock.callsArgWith(
 													0,
 													null,
 													'delete block ok'
@@ -839,10 +845,10 @@ describe('blocks/process', () => {
 	});
 
 	describe('getCommonBlock', () => {
-		describe('modules.blocks.utils.getIdSequence', () => {
+		describe('submodules.blocks.utils.getIdSequence', () => {
 			describe('when fails', () => {
 				beforeEach(() =>
-					modules.blocks.utils.getIdSequence.callsArgWith(
+					submodules.blocks.utils.getIdSequence.callsArgWith(
 						1,
 						'getIdSequence-ERR',
 						undefined
@@ -866,7 +872,7 @@ describe('blocks/process', () => {
 				describe('peer.rpc.blocksCommon', () => {
 					describe('when fails', () => {
 						beforeEach(() =>
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+							submodules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'ERR',
 							})
 						);
@@ -888,7 +894,7 @@ describe('blocks/process', () => {
 								{ ip: 1, wsPort: 2 },
 								10,
 								async () => {
-									expect(modules.peers.remove).to.have.been.calledOnce;
+									expect(submodules.peers.remove).to.have.been.calledOnce;
 									done();
 								}
 							);
@@ -897,10 +903,10 @@ describe('blocks/process', () => {
 
 					describe('when comparison failed because of receiving genesis block', () => {
 						beforeEach(() => {
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+							submodules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'rpc.blocksCommon-Genesis',
 							});
-							return modules.blocks.chain.recoverChain.callsArgWith(
+							return submodules.blocks.chain.recoverChain.callsArgWith(
 								0,
 								null,
 								true
@@ -908,7 +914,9 @@ describe('blocks/process', () => {
 						});
 
 						describe('when consensus is low', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(true));
+							beforeEach(() =>
+								submodules.transport.poorConsensus.returns(true)
+							);
 
 							it('should perform chain recovery', done => {
 								blocksProcessModule.getCommonBlock(
@@ -919,8 +927,8 @@ describe('blocks/process', () => {
 											.false;
 										expect(err).to.be.null;
 										expect(block).to.be.true;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.true;
+										expect(submodules.blocks.chain.recoverChain.calledOnce).to
+											.be.true;
 										done();
 									}
 								);
@@ -928,7 +936,9 @@ describe('blocks/process', () => {
 						});
 
 						describe('when consensus is high', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(false));
+							beforeEach(() =>
+								submodules.transport.poorConsensus.returns(false)
+							);
 
 							it('should call a callback with error ', done => {
 								blocksProcessModule.getCommonBlock(
@@ -941,8 +951,8 @@ describe('blocks/process', () => {
 											'Comparison failed - received genesis as common block'
 										);
 										expect(block).to.be.undefined;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.false;
+										expect(submodules.blocks.chain.recoverChain.calledOnce).to
+											.be.false;
 										done();
 									}
 								);
@@ -952,10 +962,10 @@ describe('blocks/process', () => {
 
 					describe('when comparison failed', () => {
 						beforeEach(() => {
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+							submodules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'rpc.blocksCommon-Empty',
 							});
-							return modules.blocks.chain.recoverChain.callsArgWith(
+							return submodules.blocks.chain.recoverChain.callsArgWith(
 								0,
 								null,
 								true
@@ -963,7 +973,9 @@ describe('blocks/process', () => {
 						});
 
 						describe('when consensus is low', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(true));
+							beforeEach(() =>
+								submodules.transport.poorConsensus.returns(true)
+							);
 
 							it('should perform chain recovery', done => {
 								blocksProcessModule.getCommonBlock(
@@ -974,8 +986,8 @@ describe('blocks/process', () => {
 											.false;
 										expect(err).to.be.null;
 										expect(block).to.be.true;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.true;
+										expect(submodules.blocks.chain.recoverChain.calledOnce).to
+											.be.true;
 										done();
 									}
 								);
@@ -983,7 +995,9 @@ describe('blocks/process', () => {
 						});
 
 						describe('when consensus is high', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(false));
+							beforeEach(() =>
+								submodules.transport.poorConsensus.returns(false)
+							);
 
 							it('should call a callback with error ', done => {
 								blocksProcessModule.getCommonBlock(
@@ -996,8 +1010,8 @@ describe('blocks/process', () => {
 											'Chain comparison failed with peer: ip:wsPort using ids: rpc.blocksCommon-Empty'
 										);
 										expect(block).to.be.undefined;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.false;
+										expect(submodules.blocks.chain.recoverChain.calledOnce).to
+											.be.false;
 										done();
 									}
 								);
@@ -1007,7 +1021,7 @@ describe('blocks/process', () => {
 
 					describe('when succeeds', () => {
 						beforeEach(() =>
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+							submodules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'OK',
 							})
 						);
@@ -1072,7 +1086,7 @@ describe('blocks/process', () => {
 											library.storage.entities.Block.isPersisted.resolves(
 												false
 											);
-											return modules.blocks.chain.recoverChain.callsArgWith(
+											return submodules.blocks.chain.recoverChain.callsArgWith(
 												0,
 												null,
 												true
@@ -1081,7 +1095,7 @@ describe('blocks/process', () => {
 
 										describe('when consensus is low', () => {
 											beforeEach(() =>
-												modules.transport.poorConsensus.returns(true)
+												submodules.transport.poorConsensus.returns(true)
 											);
 
 											it('should perform chain recovery', done => {
@@ -1091,8 +1105,9 @@ describe('blocks/process', () => {
 													(err, block) => {
 														expect(err).to.be.null;
 														expect(block).to.be.true;
-														expect(modules.blocks.chain.recoverChain.calledOnce)
-															.to.be.true;
+														expect(
+															submodules.blocks.chain.recoverChain.calledOnce
+														).to.be.true;
 														done();
 													}
 												);
@@ -1101,7 +1116,7 @@ describe('blocks/process', () => {
 
 										describe('when consensus is high', () => {
 											beforeEach(() =>
-												modules.transport.poorConsensus.returns(false)
+												submodules.transport.poorConsensus.returns(false)
 											);
 
 											it('should call a callback with error ', done => {
@@ -1179,13 +1194,15 @@ describe('blocks/process', () => {
 				describe('when query returns empty array', () => {
 					beforeEach(() => {
 						library.storage.entities.Block.get.resolves([]);
-						return modules.blocks.utils.readStorageRows.returns([]);
+						return submodules.blocks.utils.readStorageRows.returns([]);
 					});
 
 					afterEach(() => {
-						expect(modules.blocks.utils.readStorageRows.calledOnce).to.be.true;
-						expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
-						return expect(modules.blocks.isCleaning.get.calledOnce).to.be.false;
+						expect(submodules.blocks.utils.readStorageRows.calledOnce).to.be
+							.true;
+						expect(submodules.blocks.lastBlock.get.calledOnce).to.be.true;
+						return expect(submodules.blocks.isCleaning.get.calledOnce).to.be
+							.false;
 					});
 
 					it('should return without process', done => {
@@ -1207,12 +1224,12 @@ describe('blocks/process', () => {
 
 					afterEach(
 						async () =>
-							expect(modules.blocks.lastBlock.get.calledOnce).to.be.true
+							expect(submodules.blocks.lastBlock.get.calledOnce).to.be.true
 					);
 
-					describe('modules.blocks.isCleaning.get', () => {
+					describe('submodules.blocks.isCleaning.get', () => {
 						describe('when returns true, node shutdown is requested', () => {
-							beforeEach(() => modules.blocks.isCleaning.get.returns(true));
+							beforeEach(() => submodules.blocks.isCleaning.get.returns(true));
 							afterEach(() =>
 								expect(loggerStub.debug.args[0][1]).to.deep.equal({
 									limit: 100,
@@ -1238,11 +1255,11 @@ describe('blocks/process', () => {
 						});
 
 						describe('when returns false', () => {
-							beforeEach(() => modules.blocks.isCleaning.get.returns(false));
+							beforeEach(() => submodules.blocks.isCleaning.get.returns(false));
 
 							describe('when block id is genesis block', () => {
 								beforeEach(() =>
-									modules.blocks.utils.readStorageRows.returns([
+									submodules.blocks.utils.readStorageRows.returns([
 										{
 											id: '6524861224470851795',
 											height: 1,
@@ -1258,10 +1275,10 @@ describe('blocks/process', () => {
 									})
 								);
 
-								describe('modules.blocks.chain.applyGenesisBlock', () => {
+								describe('submodules.blocks.chain.applyGenesisBlock', () => {
 									describe('when fails', () => {
 										beforeEach(() =>
-											modules.blocks.chain.applyGenesisBlock.callsArgWith(
+											submodules.blocks.chain.applyGenesisBlock.callsArgWith(
 												1,
 												'chain.applyGenesisBlock-ERR',
 												null
@@ -1278,8 +1295,8 @@ describe('blocks/process', () => {
 														id: '2',
 														height: 2,
 													});
-													expect(modules.blocks.lastBlock.get.calledOnce).to.be
-														.true;
+													expect(submodules.blocks.lastBlock.get.calledOnce).to
+														.be.true;
 													done();
 												}
 											);
@@ -1288,12 +1305,14 @@ describe('blocks/process', () => {
 
 									describe('when succeeds', () => {
 										beforeEach(() => {
-											modules.blocks.chain.applyGenesisBlock.callsArgWith(
+											submodules.blocks.chain.applyGenesisBlock.callsArgWith(
 												1,
 												null,
 												'chain.applyGenesisBlock-OK'
 											);
-											return modules.blocks.lastBlock.get.returns(dummyBlock);
+											return submodules.blocks.lastBlock.get.returns(
+												dummyBlock
+											);
 										});
 
 										it('should return lastBlock and no errors', done => {
@@ -1313,7 +1332,7 @@ describe('blocks/process', () => {
 
 							describe('when block id is not genesis block', () => {
 								beforeEach(() =>
-									modules.blocks.utils.readStorageRows.returns([dummyBlock])
+									submodules.blocks.utils.readStorageRows.returns([dummyBlock])
 								);
 
 								afterEach(() => {
@@ -1327,10 +1346,10 @@ describe('blocks/process', () => {
 									});
 								});
 
-								describe('modules.blocks.verify.processBlock', () => {
+								describe('submodules.blocks.verify.processBlock', () => {
 									describe('when fails', () => {
 										beforeEach(() =>
-											modules.blocks.verify.processBlock.callsArgWith(
+											submodules.blocks.verify.processBlock.callsArgWith(
 												3,
 												'verify.processBlock-ERR',
 												null
@@ -1339,7 +1358,7 @@ describe('blocks/process', () => {
 
 										it('should call a callback with error', done => {
 											blocksProcessModule.loadBlocksOffset(100, 0, err => {
-												expect(modules.blocks.verify.processBlock).to.be
+												expect(submodules.blocks.verify.processBlock).to.be
 													.calledOnce;
 												expect(err).to.equal('verify.processBlock-ERR');
 												expect(loggerStub.debug).to.be.calledWithExactly(
@@ -1358,12 +1377,14 @@ describe('blocks/process', () => {
 
 									describe('when succeeds', () => {
 										beforeEach(() => {
-											modules.blocks.verify.processBlock.callsArgWith(
+											submodules.blocks.verify.processBlock.callsArgWith(
 												3,
 												null,
 												'verify.processBlock-OK'
 											);
-											return modules.blocks.lastBlock.get.returns(dummyBlock);
+											return submodules.blocks.lastBlock.get.returns(
+												dummyBlock
+											);
 										});
 
 										it('should return lastBlock and no errors', done => {
@@ -1389,7 +1410,7 @@ describe('blocks/process', () => {
 
 	describe('loadBlocksFromPeer', () => {
 		afterEach(() => {
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(submodules.blocks.lastBlock.get.calledOnce).to.be.true;
 			return expect(loggerStub.info.args[0][0]).to.equal(
 				'Loading blocks from: ip:wsPort'
 			);
@@ -1400,7 +1421,7 @@ describe('blocks/process', () => {
 				describe('when blocks.lastBlock.get fails', () => {
 					describe('err parameter', () => {
 						beforeEach(() =>
-							modules.blocks.lastBlock.get.returns({
+							submodules.blocks.lastBlock.get.returns({
 								id: 'ERR',
 								peer: 'me',
 							})
@@ -1417,11 +1438,11 @@ describe('blocks/process', () => {
 							);
 						});
 
-						it('should call modules.peers.remove', done => {
+						it('should call submodules.peers.remove', done => {
 							blocksProcessModule.loadBlocksFromPeer(
 								{ id: 1, string: 'test' },
 								async () => {
-									expect(modules.peers.remove).to.have.been.calledOnce;
+									expect(submodules.peers.remove).to.have.been.calledOnce;
 									done();
 								}
 							);
@@ -1430,7 +1451,7 @@ describe('blocks/process', () => {
 
 					describe('cb parameter', () => {
 						beforeEach(() =>
-							modules.blocks.lastBlock.get.returns({
+							submodules.blocks.lastBlock.get.returns({
 								id: 'cb-ERR',
 								peer: 'me',
 							})
@@ -1453,7 +1474,7 @@ describe('blocks/process', () => {
 
 				describe('when succeeds', () => {
 					beforeEach(() =>
-						modules.blocks.lastBlock.get.returns({
+						submodules.blocks.lastBlock.get.returns({
 							id: '3',
 							peer: 'me',
 						})
@@ -1484,7 +1505,7 @@ describe('blocks/process', () => {
 								describe('processBlocks', () => {
 									describe('when receives no block', () => {
 										beforeEach(() =>
-											modules.blocks.lastBlock.get.returns({
+											submodules.blocks.lastBlock.get.returns({
 												id: 'empty',
 												peer: 'me',
 											})
@@ -1506,10 +1527,10 @@ describe('blocks/process', () => {
 									});
 
 									describe('when receives blocks', () => {
-										describe('modules.blocks.utils.readDbRows', () => {
+										describe('submodules.blocks.utils.readDbRows', () => {
 											describe('when fails', () => {
 												beforeEach(() =>
-													modules.blocks.utils.readDbRows.returns(
+													submodules.blocks.utils.readDbRows.returns(
 														new Error('readDbRows err')
 													)
 												);
@@ -1523,8 +1544,9 @@ describe('blocks/process', () => {
 																id: '3',
 																peer: 'me',
 															});
-															expect(modules.blocks.isCleaning.get.calledOnce)
-																.to.be.false;
+															expect(
+																submodules.blocks.isCleaning.get.calledOnce
+															).to.be.false;
 															done();
 														}
 													);
@@ -1533,19 +1555,22 @@ describe('blocks/process', () => {
 
 											describe('when succeeds', () => {
 												beforeEach(() =>
-													modules.blocks.utils.readDbRows.returns([dummyBlock])
+													submodules.blocks.utils.readDbRows.returns([
+														dummyBlock,
+													])
 												);
 
-												describe('modules.blocks.isCleaning.get', () => {
+												describe('submodules.blocks.isCleaning.get', () => {
 													afterEach(
 														async () =>
-															expect(modules.blocks.isCleaning.get.calledOnce)
-																.to.be.true
+															expect(
+																submodules.blocks.isCleaning.get.calledOnce
+															).to.be.true
 													);
 
 													describe('when returns true, node shutdown is requested', () => {
 														beforeEach(() =>
-															modules.blocks.isCleaning.get.returns(true)
+															submodules.blocks.isCleaning.get.returns(true)
 														);
 
 														it('should return immediate', done => {
@@ -1565,14 +1590,14 @@ describe('blocks/process', () => {
 
 													describe('when returns false', () => {
 														beforeEach(() =>
-															modules.blocks.isCleaning.get.returns(false)
+															submodules.blocks.isCleaning.get.returns(false)
 														);
 
 														describe('processBlock', () => {
-															describe('modules.blocks.verify.processBlock', () => {
+															describe('submodules.blocks.verify.processBlock', () => {
 																describe('when fails', () => {
 																	beforeEach(() =>
-																		modules.blocks.verify.processBlock.callsArgWith(
+																		submodules.blocks.verify.processBlock.callsArgWith(
 																			3,
 																			'verify.processBlock-ERR',
 																			null
@@ -1609,7 +1634,7 @@ describe('blocks/process', () => {
 
 																describe('when succeeds', () => {
 																	beforeEach(() =>
-																		modules.blocks.verify.processBlock.callsArgWith(
+																		submodules.blocks.verify.processBlock.callsArgWith(
 																			3,
 																			null,
 																			true
@@ -1654,14 +1679,14 @@ describe('blocks/process', () => {
 	});
 
 	describe('generateBlock', () => {
-		describe('modules.transactions.getUnconfirmedTransactionList', () => {
+		describe('submodules.transactions.getUnconfirmedTransactionList', () => {
 			describe('when query returns empty array', () => {
 				beforeEach(() => {
-					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					submodules.transactions.getUnconfirmedTransactionList.returns([]);
+					return submodules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
-						modules.blocks.verify.processBlock.args
+						submodules.blocks.verify.processBlock.args
 					);
 				});
 
@@ -1673,7 +1698,7 @@ describe('blocks/process', () => {
 							expect(err).to.be.null;
 							expect(library.logic.transaction.verify.calledOnce).to.be.false;
 							expect(
-								modules.blocks.verify.processBlock.args[0][0].transactions
+								submodules.blocks.verify.processBlock.args[0][0].transactions
 									.length
 							).to.equal(0);
 							done();
@@ -1684,11 +1709,13 @@ describe('blocks/process', () => {
 
 			describe('when query returns undefined', () => {
 				beforeEach(() => {
-					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					submodules.transactions.getUnconfirmedTransactionList.returns(
+						undefined
+					);
+					return submodules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
-						modules.blocks.verify.processBlock.args
+						submodules.blocks.verify.processBlock.args
 					);
 				});
 
@@ -1700,7 +1727,7 @@ describe('blocks/process', () => {
 							expect(err).to.be.null;
 							expect(library.logic.transaction.verify.calledOnce).to.be.false;
 							expect(
-								modules.blocks.verify.processBlock.args[0][0].transactions
+								submodules.blocks.verify.processBlock.args[0][0].transactions
 									.length
 							).to.equal(0);
 							done();
@@ -1711,21 +1738,21 @@ describe('blocks/process', () => {
 
 			describe('when query returns transactions', () => {
 				beforeEach(() => {
-					modules.transactions.getUnconfirmedTransactionList.returns([
+					submodules.transactions.getUnconfirmedTransactionList.returns([
 						{ id: 1, type: 0 },
 						{ id: 2, type: 1 },
 					]);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					return submodules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
-						modules.blocks.verify.processBlock.args
+						submodules.blocks.verify.processBlock.args
 					);
 				});
 
-				describe('modules.accounts.getAccount', () => {
+				describe('submodules.accounts.getAccount', () => {
 					describe('when fails', () => {
 						beforeEach(() =>
-							modules.accounts.getAccount.callsArgWith(
+							submodules.accounts.getAccount.callsArgWith(
 								1,
 								'accounts.getAccount-ERR',
 								null
@@ -1746,11 +1773,12 @@ describe('blocks/process', () => {
 
 					describe('when succeeds', () => {
 						beforeEach(() =>
-							modules.accounts.getAccount.callsArgWith(1, null, true)
+							submodules.accounts.getAccount.callsArgWith(1, null, true)
 						);
 						afterEach(
 							async () =>
-								expect(modules.blocks.verify.processBlock.calledOnce).to.be.true
+								expect(submodules.blocks.verify.processBlock.calledOnce).to.be
+									.true
 						);
 
 						describe('library.logic.transaction.ready', () => {
@@ -1768,7 +1796,7 @@ describe('blocks/process', () => {
 											expect(library.logic.transaction.verify.calledOnce).to.be
 												.false;
 											expect(
-												modules.blocks.verify.processBlock.args[0][0]
+												submodules.blocks.verify.processBlock.args[0][0]
 													.transactions.length
 											).to.equal(0);
 											done();
@@ -1797,7 +1825,7 @@ describe('blocks/process', () => {
 												err => {
 													expect(err).to.be.null;
 													expect(
-														modules.blocks.verify.processBlock.args[0][0]
+														submodules.blocks.verify.processBlock.args[0][0]
 															.transactions.length
 													).to.equal(0);
 													done();
@@ -1822,7 +1850,7 @@ describe('blocks/process', () => {
 												err => {
 													expect(err).to.be.null;
 													expect(
-														modules.blocks.verify.processBlock.args[0][0]
+														submodules.blocks.verify.processBlock.args[0][0]
 															.transactions.length
 													).to.equal(2);
 													done();
@@ -1838,7 +1866,7 @@ describe('blocks/process', () => {
 
 				describe('library.logic.block.create', () => {
 					beforeEach(() => {
-						modules.accounts.getAccount.callsArgWith(1, null, true);
+						submodules.accounts.getAccount.callsArgWith(1, null, true);
 						library.logic.transaction.ready.returns(true);
 						return library.logic.transaction.verify.callsArgWith(4, null, true);
 					});
@@ -1866,10 +1894,10 @@ describe('blocks/process', () => {
 					});
 
 					describe('when succeeds', () => {
-						describe('modules.blocks.verify.processBlock', () => {
+						describe('submodules.blocks.verify.processBlock', () => {
 							describe('when fails', () => {
 								beforeEach(() =>
-									modules.blocks.verify.processBlock.callsArgWith(
+									submodules.blocks.verify.processBlock.callsArgWith(
 										3,
 										'verify.processBlock-ERR',
 										null
@@ -1889,16 +1917,16 @@ describe('blocks/process', () => {
 							});
 
 							describe('when succeeds', () => {
-								it('should call modules.blocks.verify.processBlock with proper args', done => {
+								it('should call submodules.blocks.verify.processBlock with proper args', done => {
 									blocksProcessModule.generateBlock(
 										{ publicKey: '123abc', privateKey: 'aaa' },
 										41287231,
 										err => {
 											expect(err).to.be.null;
-											expect(modules.blocks.verify.processBlock.calledOnce).to
-												.be.true;
+											expect(submodules.blocks.verify.processBlock.calledOnce)
+												.to.be.true;
 											expect(
-												modules.blocks.verify.processBlock.args[0][0]
+												submodules.blocks.verify.processBlock.args[0][0]
 													.transactions.length
 											).to.equal(2);
 											done();
@@ -1918,7 +1946,7 @@ describe('blocks/process', () => {
 			describe('validateBlockSlotAgainstPreviousRound', () => {
 				describe('when fails', () => {
 					beforeEach(() =>
-						modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
+						submodules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
 							1,
 							'round-ERR',
 							null
@@ -1932,7 +1960,7 @@ describe('blocks/process', () => {
 							err => {
 								expect(err).to.equal('round-ERR');
 								expect(
-									modules.delegates.validateBlockSlotAgainstPreviousRound
+									submodules.delegates.validateBlockSlotAgainstPreviousRound
 										.calledOnce
 								).to.be.true;
 								done();
@@ -1943,7 +1971,7 @@ describe('blocks/process', () => {
 
 				describe('when succeeds', () => {
 					beforeEach(() =>
-						modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
+						submodules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
 							1,
 							null,
 							true
@@ -1957,7 +1985,7 @@ describe('blocks/process', () => {
 							err => {
 								expect(err).to.be.null;
 								expect(
-									modules.delegates.validateBlockSlotAgainstPreviousRound
+									submodules.delegates.validateBlockSlotAgainstPreviousRound
 										.calledOnce
 								).to.be.true;
 								done();
@@ -1973,7 +2001,7 @@ describe('blocks/process', () => {
 				describe('validateBlockSlotAgainstPreviousRound', () => {
 					describe('when fails', () => {
 						beforeEach(() =>
-							modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
+							submodules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
 								1,
 								'round-ERR',
 								null
@@ -1987,7 +2015,7 @@ describe('blocks/process', () => {
 								err => {
 									expect(err).to.equal('round-ERR');
 									expect(
-										modules.delegates.validateBlockSlotAgainstPreviousRound
+										submodules.delegates.validateBlockSlotAgainstPreviousRound
 											.calledOnce
 									).to.be.true;
 									done();
@@ -1998,7 +2026,7 @@ describe('blocks/process', () => {
 
 					describe('when succeeds', () => {
 						beforeEach(() =>
-							modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
+							submodules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
 								1,
 								null,
 								true
@@ -2012,7 +2040,7 @@ describe('blocks/process', () => {
 								err => {
 									expect(err).to.be.null;
 									expect(
-										modules.delegates.validateBlockSlotAgainstPreviousRound
+										submodules.delegates.validateBlockSlotAgainstPreviousRound
 											.calledOnce
 									).to.be.true;
 									done();
@@ -2027,7 +2055,7 @@ describe('blocks/process', () => {
 				describe('validateBlockSlot', () => {
 					describe('when fails', () => {
 						beforeEach(() =>
-							modules.delegates.validateBlockSlot.callsArgWith(
+							submodules.delegates.validateBlockSlot.callsArgWith(
 								1,
 								'round-ERR',
 								null
@@ -2040,8 +2068,8 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err).to.equal('round-ERR');
-									expect(modules.delegates.validateBlockSlot.calledOnce).to.be
-										.true;
+									expect(submodules.delegates.validateBlockSlot.calledOnce).to
+										.be.true;
 									done();
 								}
 							);
@@ -2050,7 +2078,7 @@ describe('blocks/process', () => {
 
 					describe('when succeeds', () => {
 						beforeEach(() =>
-							modules.delegates.validateBlockSlot.callsArgWith(1, null, true)
+							submodules.delegates.validateBlockSlot.callsArgWith(1, null, true)
 						);
 
 						it('should call a callback with no error', done => {
@@ -2059,8 +2087,8 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err).to.be.null;
-									expect(modules.delegates.validateBlockSlot.calledOnce).to.be
-										.true;
+									expect(submodules.delegates.validateBlockSlot.calledOnce).to
+										.be.true;
 									done();
 								}
 							);
@@ -2109,14 +2137,14 @@ describe('blocks/process', () => {
 						'Client is not ready to receive block'
 					);
 					expect(loggerStub.debug.args[0][1]).to.equal(5);
-					return expect(modules.blocks.lastBlock.get.calledOnce).to.be.false;
+					return expect(submodules.blocks.lastBlock.get.calledOnce).to.be.false;
 				});
 			});
 
-			describe('when modules.loader.syncing is true', () => {
-				beforeEach(() => modules.loader.syncing.returns(true));
+			describe('when submodules.loader.syncing is true', () => {
+				beforeEach(() => submodules.loader.syncing.returns(true));
 
-				afterEach(() => modules.loader.syncing.returns(false));
+				afterEach(() => submodules.loader.syncing.returns(false));
 
 				it('should return without process block', async () => {
 					blocksProcessModule.onReceiveBlock({ id: 5 });
@@ -2125,14 +2153,15 @@ describe('blocks/process', () => {
 						"Client is syncing. Can't receive block at the moment."
 					);
 					expect(loggerStub.debug.args[0][1]).to.equal(5);
-					return expect(modules.blocks.lastBlock.get.calledOnce).to.be.false;
+					return expect(submodules.blocks.lastBlock.get.calledOnce).to.be.false;
 				});
 			});
 		});
 
 		describe('client ready to receive block', () => {
 			afterEach(
-				async () => expect(modules.blocks.lastBlock.get.calledOnce).to.be.true
+				async () =>
+					expect(submodules.blocks.lastBlock.get.calledOnce).to.be.true
 			);
 
 			describe('when block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height', () => {
@@ -2206,7 +2235,7 @@ describe('blocks/process', () => {
 					__private.receiveForkFive = sinonSandbox
 						.stub()
 						.callsArgWith(2, null, true);
-					return modules.blocks.lastBlock.get.returns({
+					return submodules.blocks.lastBlock.get.returns({
 						id: '2',
 						height: 2,
 						previousBlock: '1',
@@ -2303,19 +2332,21 @@ describe('blocks/process', () => {
 			done();
 		});
 
-		it('should call library.logger.trace with "Blocks->Process: Shared modules bind."', async () =>
+		it('should call library.logger.trace with "Blocks->Process: Shared submodules bind."', async () =>
 			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Process: Shared modules bind.'
+				'Blocks->Process: Shared submodules bind.'
 			));
 
-		it('should assign params to modules', done => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
-			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
-			expect(modules.loader).to.equal(bindingsStub.modules.loader);
-			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
-			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
+		it('should assign params to submodules', done => {
+			expect(submodules.accounts).to.equal(bindingsStub.submodules.accounts);
+			expect(submodules.blocks).to.equal(bindingsStub.submodules.blocks);
+			expect(submodules.delegates).to.equal(bindingsStub.submodules.delegates);
+			expect(submodules.loader).to.equal(bindingsStub.submodules.loader);
+			expect(submodules.rounds).to.equal(bindingsStub.submodules.rounds);
+			expect(submodules.transactions).to.equal(
+				bindingsStub.submodules.transactions
+			);
+			expect(submodules.transport).to.equal(bindingsStub.submodules.transport);
 			done();
 		});
 

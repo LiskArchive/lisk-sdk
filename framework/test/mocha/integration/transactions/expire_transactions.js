@@ -48,7 +48,7 @@ describe('expire transactions', () => {
 
 	const getSenderAddress = transaction =>
 		transaction.senderId ||
-		library.modules.accounts.generateAddressByPublicKey(
+		library.submodules.accounts.generateAddressByPublicKey(
 			transaction.senderPublicKey
 		);
 
@@ -96,7 +96,7 @@ describe('expire transactions', () => {
 
 	localCommon.beforeBlock('lisk_functional_expire_transactions', lib => {
 		library = lib;
-		const transactionPool = library.rewiredModules.transactions.__get__(
+		const transactionPool = library.rewiredSubmodules.transactions.__get__(
 			'__private.transactionPool'
 		);
 

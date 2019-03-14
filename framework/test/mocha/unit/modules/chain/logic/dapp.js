@@ -17,7 +17,7 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const randomstring = require('randomstring');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const randomUtil = require('../../../../common/utils/random');
 const typeRepresentatives = require('../../../../fixtures/types_representatives');
 const testData = require('./test_data/dapp');
@@ -55,10 +55,10 @@ describe('dapp', () => {
 		dapp = new Dapp({
 			components: {
 				storage: storageStub,
-				logger: modulesLoader.scope.components.logger,
+				logger: submodulesLoader.scope.components.logger,
 			},
 			channel: channelStub,
-			schema: modulesLoader.scope.schema,
+			schema: submodulesLoader.scope.schema,
 		});
 		done();
 	});
@@ -83,10 +83,10 @@ describe('dapp', () => {
 					new Dapp({
 						components: {
 							storage: storageStub,
-							logger: modulesLoader.scope.components.logger,
+							logger: submodulesLoader.scope.components.logger,
 						},
 						channel: channelStub,
-						schema: modulesLoader.scope.schema,
+						schema: submodulesLoader.scope.schema,
 					});
 					__scope = Dapp.__get__('__scope');
 					done();
@@ -95,12 +95,12 @@ describe('dapp', () => {
 				it('should be updated with storage stub object', async () =>
 					expect(__scope.components.storage).to.eql(storageStub));
 
-				it('should be loaded schema from modulesLoader', async () =>
-					expect(__scope.schema).to.eql(modulesLoader.scope.schema));
+				it('should be loaded schema from submodulesLoader', async () =>
+					expect(__scope.schema).to.eql(submodulesLoader.scope.schema));
 
-				it('should be loaded logger from modulesLoader', async () =>
+				it('should be loaded logger from submodulesLoader', async () =>
 					expect(__scope.components.logger).to.eql(
-						modulesLoader.scope.components.logger
+						submodulesLoader.scope.components.logger
 					));
 
 				it('should be loaded channel stub object', async () =>

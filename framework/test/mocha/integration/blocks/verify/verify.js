@@ -23,7 +23,7 @@ const Promise = require('bluebird');
 const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
-const modulesLoader = require('../../../common/modules_loader');
+const submodulesLoader = require('../../../common/submodules_loader');
 const random = require('../../../common/utils/random');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -128,7 +128,7 @@ let block1;
 let block2;
 
 function createBlock(
-	blocksModule,
+	blocksSubmodule,
 	blockLogic,
 	passphrase,
 	timestamp,
@@ -142,11 +142,11 @@ function createBlock(
 			.update(passphrase, 'utf8')
 			.digest()
 	);
-	blocksModule.lastBlock.set(previousBlockArgs);
+	blocksSubmodule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
 		keypair,
 		timestamp,
-		previousBlock: blocksModule.lastBlock.get(),
+		previousBlock: blocksSubmodule.lastBlock.get(),
 		transactions,
 	});
 
@@ -156,7 +156,7 @@ function createBlock(
 
 function getValidKeypairForSlot(library, slot) {
 	const generateDelegateListPromisified = Promise.promisify(
-		library.modules.delegates.generateDelegateList
+		library.submodules.delegates.generateDelegateList
 	);
 	const lastBlock = genesisBlock;
 	const round = slots.calcRound(lastBlock.height);
@@ -192,18 +192,18 @@ describe('blocks/verify', () => {
 				},
 			},
 			(err, scope) => {
-				accounts = scope.modules.accounts;
-				blocksVerify = scope.modules.blocks.verify;
+				accounts = scope.submodules.accounts;
+				blocksVerify = scope.submodules.blocks.verify;
 				blockLogic = scope.logic.block;
-				blocks = scope.modules.blocks;
-				delegates = scope.modules.delegates;
+				blocks = scope.submodules.blocks;
+				delegates = scope.submodules.delegates;
 				storage = scope.components.storage;
 
 				// Set current block version to 0
 				blockVersion.currentBlockVersion = 0;
 
 				library = scope;
-				library.modules.blocks.lastBlock.set(genesisBlock);
+				library.submodules.blocks.lastBlock.set(genesisBlock);
 				// Bus gets overwritten - waiting for mem_accounts has to be done manually
 				setTimeout(done, 5000);
 			}
@@ -211,7 +211,7 @@ describe('blocks/verify', () => {
 	});
 
 	afterEach(() => {
-		library.modules.blocks.lastBlock.set(genesisBlock);
+		library.submodules.blocks.lastBlock.set(genesisBlock);
 		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
 	});
 
@@ -244,7 +244,7 @@ describe('blocks/verify', () => {
 			);
 			verify.onBind({
 				components: library.components,
-				modules: library.modules,
+				submodules: library.submodules,
 			});
 			privateFunctions = RewiredVerify.__get__('__private');
 			done();
@@ -885,7 +885,7 @@ describe('blocks/verify', () => {
 				(table, seriesCb) => {
 					clearDatabaseTable(
 						storage,
-						modulesLoader.scope.components.logger,
+						submodulesLoader.scope.components.logger,
 						table
 					)
 						.then(res => {

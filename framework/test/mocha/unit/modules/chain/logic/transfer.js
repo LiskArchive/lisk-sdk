@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const rewire = require('rewire');
 const randomstring = require('randomstring');
 const accountFixtures = require('../../../../fixtures/accounts');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const application = require('../../../../common/application');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
@@ -136,13 +136,13 @@ describe('transfer', () => {
 		application.init(
 			{ sandbox: { name: 'lisk_test_logic_transfer' } },
 			(_err, scope) => {
-				accountModule = scope.modules.accounts;
+				accountModule = scope.submodules.accounts;
 
 				transfer = new Transfer({
 					components: {
-						logger: modulesLoader.scope.components.logger,
+						logger: submodulesLoader.scope.components.logger,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				});
 				transferBindings = {
 					account: accountModule,
@@ -169,12 +169,12 @@ describe('transfer', () => {
 
 		it('should assign logger to __scope.components', () => {
 			return expect(__scope.components.logger).to.equal(
-				modulesLoader.scope.components.logger
+				submodulesLoader.scope.components.logger
 			);
 		});
 
 		it('should assign schema to __scope', () => {
-			return expect(__scope.schema).to.equal(modulesLoader.scope.schema);
+			return expect(__scope.schema).to.equal(submodulesLoader.scope.schema);
 		});
 	});
 

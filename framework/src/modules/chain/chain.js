@@ -17,7 +17,7 @@ const {
 	bootstrapCache,
 	createSocketCluster,
 	initLogicStructure,
-	initModules,
+	initSubmodules,
 } = require('./init_steps');
 const defaults = require('./defaults');
 
@@ -164,12 +164,12 @@ module.exports = class Chain {
 
 			scope.bus = await createBus();
 			scope.logic = await initLogicStructure(scope);
-			scope.modules = await initModules(scope);
+			scope.submodules = await initSubmodules(scope);
 			scope.webSocket = await createSocketCluster(scope);
 			// Ready to bind modules
-			scope.logic.peers.bindModules(scope.modules);
+			scope.logic.peers.bindSubmodules(scope.submodules);
 
-			// Fire onBind event in every module
+			// Fire onBind event in every submodule
 			scope.bus.message('bind', scope);
 
 			// Listen to websockets
@@ -195,49 +195,50 @@ module.exports = class Chain {
 			calculateReward: action =>
 				this.blockReward.calcReward(action.params.height),
 			generateDelegateList: async action =>
-				promisify(this.scope.modules.delegates.generateDelegateList)(
+				promisify(this.scope.submodules.delegates.generateDelegateList)(
 					action.params.round,
 					action.params.source
 				),
 			getNetworkHeight: async action =>
-				promisify(this.scope.modules.peers.networkHeight)(
+				promisify(this.scope.submodules.peers.networkHeight)(
 					action.params.options
 				),
 			getAllTransactionsCount: async () =>
 				promisify(
-					this.scope.modules.transactions.shared.getTransactionsCount
+					this.scope.submodules.transactions.shared.getTransactionsCount
 				)(),
 			updateForgingStatus: async action =>
-				promisify(this.scope.modules.delegates.updateForgingStatus)(
+				promisify(this.scope.submodules.delegates.updateForgingStatus)(
 					action.params.publicKey,
 					action.params.password,
 					action.params.forging
 				),
 			getPeers: async action =>
-				promisify(this.scope.modules.peers.shared.getPeers)(
+				promisify(this.scope.submodules.peers.shared.getPeers)(
 					action.params.parameters
 				),
 			getPeersCountByFilter: async action =>
-				this.scope.modules.peers.shared.getPeersCountByFilter(
+				this.scope.submodules.peers.shared.getPeersCountByFilter(
 					action.params.parameters
 				),
 			postSignature: async action =>
-				promisify(this.scope.modules.signatures.shared.postSignature)(
+				promisify(this.scope.submodules.signatures.shared.postSignature)(
 					action.params.signature
 				),
-			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
-			loaderLoaded: async () => this.scope.modules.loader.loaded(),
-			loaderSyncing: async () => this.scope.modules.loader.syncing(),
+			getLastConsensus: async () =>
+				this.scope.submodules.peers.getLastConsensus(),
+			loaderLoaded: async () => this.scope.submodules.loader.loaded(),
+			loaderSyncing: async () => this.scope.submodules.loader.syncing(),
 			getForgersKeyPairs: async () =>
-				this.scope.modules.delegates.getForgersKeyPairs(),
+				this.scope.submodules.delegates.getForgersKeyPairs(),
 			getTransactionsFromPool: async action =>
 				promisify(
-					this.scope.modules.transactions.shared.getTransactionsFromPool
+					this.scope.submodules.transactions.shared.getTransactionsFromPool
 				)(action.params.type, action.params.filters),
 			getLastCommit: async () => this.scope.lastCommit,
 			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
-				promisify(this.scope.modules.transactions.shared.postTransaction)(
+				promisify(this.scope.submodules.transactions.shared.postTransaction)(
 					action.params.transaction
 				),
 			getDelegateBlocksRewards: async action =>
@@ -258,7 +259,7 @@ module.exports = class Chain {
 	}
 
 	async cleanup(code, error) {
-		const { webSocket, modules, components } = this.scope;
+		const { webSocket, submodules, components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());
 			if (code === undefined) {
@@ -278,17 +279,17 @@ module.exports = class Chain {
 			components.map(component => component.cleanup());
 		}
 
-		// Run cleanup operation on each module before shutting down the node;
+		// Run cleanup operation on each submodule before shutting down the node;
 		// this includes operations like snapshotting database tables.
 		await Promise.all(
-			modules.map(module => {
-				if (typeof module.cleanup === 'function') {
-					return promisify(module.cleanup)();
+			submodules.map(submodule => {
+				if (typeof submodule.cleanup === 'function') {
+					return promisify(submodule.cleanup)();
 				}
 				return true;
 			})
-		).catch(moduleCleanupError => {
-			this.logger.error(moduleCleanupError);
+		).catch(submoduleCleanupError => {
+			this.logger.error(submoduleCleanupError);
 		});
 
 		this.logger.info('Cleaned up successfully');

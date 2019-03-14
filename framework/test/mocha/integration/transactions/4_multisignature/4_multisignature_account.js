@@ -204,8 +204,8 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 		describe('after deleting block', () => {
 			before('delete last block', done => {
-				library.modules.blocks.lastBlock.get();
-				library.modules.blocks.chain.deleteLastBlock(done);
+				library.submodules.blocks.lastBlock.get();
+				library.submodules.blocks.chain.deleteLastBlock(done);
 			});
 
 			describe('sender db rows', () => {

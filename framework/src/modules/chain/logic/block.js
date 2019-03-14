@@ -278,7 +278,7 @@ __private.getAddressByPublicKey = function(publicKey) {
 };
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
  * @typedef {Object} block
  * @property {string} id - Between 1 and 20 chars

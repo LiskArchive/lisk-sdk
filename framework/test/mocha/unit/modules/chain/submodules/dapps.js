@@ -127,7 +127,7 @@ describe('dapps', () => {
 	});
 
 	describe('onBind', () => {
-		describe('modules', () => {
+		describe('submodules', () => {
 			it('should assign transactions');
 
 			it('should assign accounts');
@@ -145,9 +145,9 @@ describe('dapps', () => {
 	});
 
 	describe('isLoaded', () => {
-		it('should return true if modules exists');
+		it('should return true if submodules exists');
 
-		it('should return true if modules does not exist');
+		it('should return true if submodules does not exist');
 	});
 
 	describe('shared', () => {

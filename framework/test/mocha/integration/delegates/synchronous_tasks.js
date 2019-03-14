@@ -43,34 +43,34 @@ describe('system test (delegates) - synchronous tasks', () => {
 			durationMs = intervalMs + 1;
 
 			before(done => {
-				library.modules.delegates.onBlockchainReady =
-					library.rewiredModules.delegates.prototype.onBlockchainReady;
-				library.rewiredModules.delegates.__set__(
+				library.submodules.delegates.onBlockchainReady =
+					library.rewiredSubmodules.delegates.prototype.onBlockchainReady;
+				library.rewiredSubmodules.delegates.__set__(
 					'__private.forgeInterval',
 					intervalMs
 				);
-				library.rewiredModules.delegates.__set__(
+				library.rewiredSubmodules.delegates.__set__(
 					'__private.nextForge',
 					synchronousTaskMock.bind(null, attemptToForgeRunningSubject)
 				);
-				library.modules.delegates.onBlockchainReady();
+				library.submodules.delegates.onBlockchainReady();
 				done();
 			});
 
 			describe('when "blockchain synchronization" synchronous task runs every 100 ms and takes 101 ms', () => {
 				before(done => {
-					library.rewiredModules.loader.__set__(
+					library.rewiredSubmodules.loader.__set__(
 						'__private.syncInterval',
 						intervalMs
 					);
-					library.rewiredModules.loader.__set__(
+					library.rewiredSubmodules.loader.__set__(
 						'__private.sync',
 						synchronousTaskMock.bind(null, synchronizeBlockchainRunningSubject)
 					);
 					const originalLoaderSyncTimerJob = jobsQueue.jobs.loaderSyncTimer;
 					clearTimeout(originalLoaderSyncTimerJob); // Terminate original job
 					delete jobsQueue.jobs.loaderSyncTimer; // Remove original job
-					library.modules.loader.onPeersReady(); // Execute the mocked blockchain synchronization process
+					library.submodules.loader.onPeersReady(); // Execute the mocked blockchain synchronization process
 					done();
 				});
 

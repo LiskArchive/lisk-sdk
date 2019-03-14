@@ -25,7 +25,7 @@ const slots = require('../helpers/slots');
 
 // Private fields
 let components;
-let modules;
+let submodules;
 let library;
 let self;
 const { ACTIVE_DELEGATES } = global.constants;
@@ -38,8 +38,8 @@ __private.ticking = false;
  * Main rounds methods. Initializes library with scope.
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires async
  * @requires helpers/slots
  * @requires logic/round
@@ -95,7 +95,7 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 
 	const scope = {
 		library,
-		modules,
+		submodules,
 		block,
 		round,
 		backwards: true,
@@ -167,7 +167,7 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			 * delegate list.
 			 * */
 			if (scope.finishRound) {
-				modules.delegates.clearDelegateListCache();
+				submodules.delegates.clearDelegateListCache();
 			}
 
 			return done();
@@ -189,7 +189,7 @@ Rounds.prototype.tick = function(block, done, tx) {
 
 	const scope = {
 		library,
-		modules,
+		submodules,
 		block,
 		round,
 		backwards: false,
@@ -357,19 +357,19 @@ Rounds.prototype.createRoundInformationWithDelegate = function(
 
 // Events
 /**
- * Assigns modules to private constant `modules`.
+ * Assigns submodules to private constant `submodules`.
  *
- * @param {modules} scope - Loaded modules
+ * @param {submodules} scope - Loaded submodules
  */
 Rounds.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 	};
 
-	modules = {
-		blocks: scope.modules.blocks,
-		accounts: scope.modules.accounts,
-		delegates: scope.modules.delegates,
+	submodules = {
+		blocks: scope.submodules.blocks,
+		accounts: scope.submodules.accounts,
+		delegates: scope.submodules.delegates,
 	};
 };
 
@@ -450,7 +450,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
 	}
-	return modules.delegates.generateDelegateList(
+	return submodules.delegates.generateDelegateList(
 		scope.round,
 		null,
 		(err, roundDelegates) => {
@@ -462,7 +462,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 				(delegate, eachCb) => {
 					if (scope.roundDelegates.indexOf(delegate) === -1) {
 						scope.roundOutsiders.push(
-							modules.accounts.generateAddressByPublicKey(delegate)
+							submodules.accounts.generateAddressByPublicKey(delegate)
 						);
 					}
 					return setImmediate(eachCb);

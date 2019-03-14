@@ -8,7 +8,7 @@ const workersControllerPath = path.join(__dirname, '../workers_controller');
 
 module.exports = async ({
 	config,
-	modules: { transport },
+	submodules: { transport },
 	components: { logger },
 }) => {
 	if (!config.peers.enabled) {

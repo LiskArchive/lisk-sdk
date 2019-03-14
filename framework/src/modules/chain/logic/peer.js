@@ -148,7 +148,7 @@ class Peer {
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
  * @typedef {Object} peer
  * @property {string} ip

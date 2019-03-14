@@ -27,7 +27,7 @@ const { TRANSACTION_TYPES } = global.constants;
 // Private fields
 const __private = {};
 let components;
-let modules;
+let submodules;
 let library;
 let self;
 
@@ -38,8 +38,8 @@ __private.assetTypes = {};
  * and a TransactionPool instance. Calls logic.transaction.attachAssetType().
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires bluebird
  * @requires lodash
  * @requires logic/transaction_pool
@@ -175,7 +175,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 	let toSend = [];
 
 	if (filters.recipientPublicKey) {
-		filters.recipientId = modules.accounts.generateAddressByPublicKey(
+		filters.recipientId = submodules.accounts.generateAddressByPublicKey(
 			filters.recipientPublicKey
 		);
 		delete filters.recipientPublicKey;
@@ -602,7 +602,7 @@ Transactions.prototype.applyUnconfirmed = function(
 		return setImmediate(cb, 'Invalid block id');
 	}
 	if (transaction.requesterPublicKey) {
-		return modules.accounts.getAccount(
+		return submodules.accounts.getAccount(
 			{ publicKey: transaction.requesterPublicKey },
 			(err, requester) => {
 				if (err) {
@@ -643,7 +643,7 @@ Transactions.prototype.applyUnconfirmed = function(
 Transactions.prototype.undoUnconfirmed = function(transaction, cb, tx) {
 	library.logger.debug('Undoing unconfirmed transaction', transaction.id);
 
-	modules.accounts.getAccount(
+	submodules.accounts.getAccount(
 		{ publicKey: transaction.senderPublicKey },
 		(err, sender) => {
 			if (err) {
@@ -693,37 +693,37 @@ Transactions.prototype.fillPool = function(cb) {
 };
 
 /**
- * Checks if `modules` is loaded.
+ * Checks if `submodules` is loaded.
  *
- * @returns {boolean} True if `modules` is loaded
+ * @returns {boolean} True if `submodules` is loaded
  */
 Transactions.prototype.isLoaded = function() {
-	return !!modules;
+	return !!submodules;
 };
 
 // Events
 /**
- * Bounds scope to private transactionPool and modules to private Transfer instance.
+ * Bounds scope to private transactionPool and submodules to private Transfer instance.
  *
- * @param {scope} scope - Loaded modules
+ * @param {scope} scope - Loaded submodules
  */
 Transactions.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 	};
 
-	modules = {
-		accounts: scope.modules.accounts,
-		transport: scope.modules.transport,
+	submodules = {
+		accounts: scope.submodules.accounts,
+		transport: scope.submodules.transport,
 	};
 
 	__private.transactionPool.bind(
-		scope.modules.accounts,
-		scope.modules.transactions,
-		scope.modules.loader
+		scope.submodules.accounts,
+		scope.submodules.transactions,
+		scope.submodules.loader
 	);
 
-	__private.assetTypes[TRANSACTION_TYPES.SEND].bind(scope.modules.accounts);
+	__private.assetTypes[TRANSACTION_TYPES.SEND].bind(scope.submodules.accounts);
 };
 
 // Shared API
@@ -849,7 +849,7 @@ Transactions.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postTransaction(transaction, cb) {
-		return modules.transport.shared.postTransaction(
+		return submodules.transport.shared.postTransaction(
 			{ transaction },
 			(err, res) => setImmediate(cb, err, res)
 		);
@@ -863,7 +863,7 @@ Transactions.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postTransactions(transactions, cb) {
-		return modules.transport.shared.postTransactions(
+		return submodules.transport.shared.postTransactions(
 			{ transactions },
 			(err, res) => setImmediate(cb, err, res)
 		);

@@ -46,11 +46,11 @@ describe('Chain', () => {
 		it('should create bus object and assign to scope.bus');
 		it('should create httpServer object and assign to scope.network');
 		it('should init logic structure object and assign to scope.logic');
-		it('should init modules object and assign to scope.modules');
+		it('should init submodules object and assign to scope.submodules');
 		it('should create socket cluster object and assign to scope.webSocket');
 		it('should attach swagger to http server and assign to scope.swagger');
-		it('should assign scope.swagger as a module scope.modules.swagger');
-		it('should bind modules with scope.logic.peers');
+		it('should assign scope.swagger as a module scope.submodules.swagger');
+		it('should bind submodules with scope.logic.peers');
 		it('should send bind message on the bus');
 		it('should start listening on socket cluster');
 		it('should start listening on network');
@@ -67,8 +67,8 @@ describe('Chain', () => {
 		it('should be an async function');
 		it('should log "Cleaning chain..."');
 		it('should call cleanup on all components');
-		it('should call cleanup on all modules');
-		it('should log error if occurred during module cleanup');
+		it('should call cleanup on all submodules');
+		it('should log error if occurred during submodule cleanup');
 		it('should log "Cleaned up successfully"');
 	});
 });

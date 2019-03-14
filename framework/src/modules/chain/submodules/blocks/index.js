@@ -1,5 +1,5 @@
 /**
  * @namespace blocks
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  */

@@ -70,7 +70,7 @@ module.exports = function create(fittingDef) {
 
 		// If cache component is not loaded or cache server not ready move forward without any processing
 		if (typeof cache === 'undefined' || !cache.isReady()) {
-			debug('Cache module not ready');
+			debug('Cache component not ready');
 			return next(null, context.input);
 		}
 

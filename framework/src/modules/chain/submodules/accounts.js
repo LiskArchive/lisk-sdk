@@ -23,7 +23,7 @@ const Vote = require('../logic/vote');
 const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
-let modules;
+let submodules;
 let library;
 let self;
 const __private = {};
@@ -35,8 +35,8 @@ __private.assetTypes = {};
  * Calls logic.transaction.attachAssetType().
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires crypto
  * @requires helpers/bignum
  * @requires logic/block_reward
@@ -264,26 +264,26 @@ Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 /**
  * Calls Vote.bind() with scope.
  *
- * @param {modules} scopedModules - Loaded modules
+ * @param {submodules} scopedModules - Loaded submodules
  */
 Accounts.prototype.onBind = function(scope) {
-	modules = {
-		transactions: scope.modules.transactions,
-		blocks: scope.modules.blocks,
-		rounds: scope.modules.rounds,
+	submodules = {
+		transactions: scope.submodules.transactions,
+		blocks: scope.submodules.blocks,
+		rounds: scope.submodules.rounds,
 	};
 
-	__private.assetTypes[TRANSACTION_TYPES.VOTE].bind(scope.modules.delegates);
+	__private.assetTypes[TRANSACTION_TYPES.VOTE].bind(scope.submodules.delegates);
 
-	library.logic.account.bind(modules);
+	library.logic.account.bind(submodules);
 };
 /**
- * Checks if modules is loaded.
+ * Checks if submodules is loaded.
  *
- * @returns {boolean} True if modules is loaded
+ * @returns {boolean} True if submodules is loaded
  */
 Accounts.prototype.isLoaded = function() {
-	return !!modules;
+	return !!submodules;
 };
 
 // Export

@@ -53,7 +53,7 @@ describe('round', () => {
 
 	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
 
-	const modules = {
+	const submodules = {
 		accounts: {
 			generateAddressByPublicKey: sinonSandbox.stub(),
 			mergeAccountAndGet: sinonSandbox.stub(),
@@ -78,7 +78,7 @@ describe('round', () => {
 				error: sinonSandbox.spy(),
 			},
 		},
-		modules,
+		submodules,
 		block: {
 			generatorPublicKey: genesisBlock.generatorPublicKey,
 			id: genesisBlock.id,
@@ -229,13 +229,17 @@ describe('round', () => {
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
-				scope.modules.accounts.mergeAccountAndGet.callsArgWith(1, null, args);
+				scope.submodules.accounts.mergeAccountAndGet.callsArgWith(
+					1,
+					null,
+					args
+				);
 				return round.mergeBlockGenerator();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with proper params', async () =>
+			it('should call submodules.accounts.mergeAccountAndGet with proper params', async () =>
 				expect(
-					round.scope.modules.accounts.mergeAccountAndGet
+					round.scope.submodules.accounts.mergeAccountAndGet
 				).to.be.calledWith(args));
 		});
 
@@ -250,13 +254,17 @@ describe('round', () => {
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
-				scope.modules.accounts.mergeAccountAndGet.callsArgWith(1, null, args);
+				scope.submodules.accounts.mergeAccountAndGet.callsArgWith(
+					1,
+					null,
+					args
+				);
 				return round.mergeBlockGenerator();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with proper params', async () =>
+			it('should call submodules.accounts.mergeAccountAndGet with proper params', async () =>
 				expect(
-					round.scope.modules.accounts.mergeAccountAndGet
+					round.scope.submodules.accounts.mergeAccountAndGet
 				).to.be.calledWith(args));
 		});
 	});
@@ -348,7 +356,7 @@ describe('round', () => {
 					address: '16010222169256538112L',
 				};
 
-				scope.modules.accounts.generateAddressByPublicKey = function() {
+				scope.submodules.accounts.generateAddressByPublicKey = function() {
 					return delegate.address;
 				};
 
@@ -402,7 +410,7 @@ describe('round', () => {
 					address: '16010222169256538112L',
 				};
 
-				scope.modules.accounts.generateAddressByPublicKey = function() {
+				scope.submodules.accounts.generateAddressByPublicKey = function() {
 					return delegate.address;
 				};
 
@@ -681,11 +689,11 @@ describe('round', () => {
 			insertRoundRewards_stub = storageStubs.Round.createRoundRewards.resolves(
 				'insertRoundRewards'
 			);
-			modules.accounts.mergeAccountAndGet.yields(null, 'mergeAccountAndGet');
+			submodules.accounts.mergeAccountAndGet.yields(null, 'mergeAccountAndGet');
 		});
 
 		afterEach(async () => {
-			modules.accounts.mergeAccountAndGet.reset();
+			submodules.accounts.mergeAccountAndGet.reset();
 			insertRoundRewards_stub.reset();
 		});
 
@@ -740,7 +748,9 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.be.eql(args);
@@ -748,7 +758,7 @@ describe('round', () => {
 
 					it('should not call mergeAccountAndGet another time (for apply remaining fees)', async () =>
 						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
+							round.scope.submodules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
 					it('should call insertRoundRewards with proper args', async () =>
@@ -804,7 +814,9 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -812,7 +824,7 @@ describe('round', () => {
 
 					it('should not call mergeAccountAndGet another time (for apply remaining fees)', async () =>
 						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
+							round.scope.submodules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
 					it('should not call insertRoundRewards', async () =>
@@ -903,7 +915,9 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -928,7 +942,9 @@ describe('round', () => {
 							fees: remainingFees,
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -936,7 +952,7 @@ describe('round', () => {
 
 					it('should not call mergeAccountAndGet another time (completed)', async () =>
 						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
+							round.scope.submodules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
 					it('should call insertRoundRewards with proper args', async () =>
@@ -994,7 +1010,9 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1019,7 +1037,9 @@ describe('round', () => {
 							fees: -remainingFees,
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1027,7 +1047,7 @@ describe('round', () => {
 
 					it('should not call mergeAccountAndGet another time (completed)', async () =>
 						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
+							round.scope.submodules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
 					it('should not call insertRoundRewards', async () =>
@@ -1128,7 +1148,9 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1160,7 +1182,9 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1192,7 +1216,9 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1200,7 +1226,7 @@ describe('round', () => {
 
 					it('should not call mergeAccountAndGet another time (for applying remaining fees)', async () =>
 						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
+							round.scope.submodules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
 					it('should call insertRoundRewards with proper args', async () => {
@@ -1281,7 +1307,9 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1313,7 +1341,9 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1345,7 +1375,9 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1353,7 +1385,7 @@ describe('round', () => {
 
 					it('should not call mergeAccountAndGet another time (for applying remaining fees)', async () =>
 						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
+							round.scope.submodules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
 					it('should not call insertRoundRewards', async () =>
@@ -1453,7 +1485,9 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1485,7 +1519,9 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1517,7 +1553,9 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1542,7 +1580,9 @@ describe('round', () => {
 							fees: remainingFees,
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1550,7 +1590,7 @@ describe('round', () => {
 
 					it('should not call mergeAccountAndGet another time (completed)', async () =>
 						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
+							round.scope.submodules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
 					it('should call insertRoundRewards with proper args', async () => {
@@ -1634,7 +1674,9 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1666,7 +1708,9 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1698,7 +1742,9 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1723,7 +1769,9 @@ describe('round', () => {
 							fees: -remainingFees,
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.submodules.accounts.mergeAccountAndGet.args[
+								called
+							][0];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1731,7 +1779,7 @@ describe('round', () => {
 
 					it('should not call mergeAccountAndGet another time (completed)', async () =>
 						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
+							round.scope.submodules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called));
 
 					it('should not call insertRoundRewards', async () =>
@@ -1789,7 +1837,7 @@ describe('round', () => {
 			scope.roundRewards = [1, 2, 3];
 			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
 
-			scope.modules.accounts.generateAddressByPublicKey = function() {
+			scope.submodules.accounts.generateAddressByPublicKey = function() {
 				return delegate.address;
 			};
 
@@ -1812,7 +1860,7 @@ describe('round', () => {
 				'syncDelegatesRanks'
 			);
 			flush_stub = storageStubs.Round.delete;
-			scope.modules.accounts.mergeAccountAndGet.yields(
+			scope.submodules.accounts.mergeAccountAndGet.yields(
 				null,
 				'mergeAccountAndGet'
 			);
@@ -1841,10 +1889,10 @@ describe('round', () => {
 		it('query updateDelegatesRanks should be called once', async () =>
 			expect(syncDelegatesRanks_stub.callCount).to.equal(1));
 
-		it('modules.accounts.mergeAccountAndGet should be called 4 times', async () =>
+		it('submodules.accounts.mergeAccountAndGet should be called 4 times', async () =>
 			// 3x delegates + 1x remaining fees
 			expect(
-				round.scope.modules.accounts.mergeAccountAndGet.callCount
+				round.scope.submodules.accounts.mergeAccountAndGet.callCount
 			).to.equal(4));
 	});
 
@@ -1871,7 +1919,7 @@ describe('round', () => {
 			scope.roundRewards = [1, 2, 3];
 			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
 
-			scope.modules.accounts.generateAddressByPublicKey = function() {
+			scope.submodules.accounts.generateAddressByPublicKey = function() {
 				return delegate.address;
 			};
 
@@ -1895,7 +1943,7 @@ describe('round', () => {
 			restoreRoundSnapshot_stub = storageStubs.Round.restoreRoundSnapshot.resolves();
 			restoreVotesSnapshot_stub = storageStubs.Round.restoreVotesSnapshot.resolves();
 			deleteRoundRewards_stub = storageStubs.Round.deleteRoundRewards.resolves();
-			scope.modules.accounts.mergeAccountAndGet.yields(
+			scope.submodules.accounts.mergeAccountAndGet.yields(
 				null,
 				'mergeAccountAndGet'
 			);
@@ -1922,10 +1970,10 @@ describe('round', () => {
 		it('query flushRound should be called once', async () =>
 			expect(flush_stub.callCount).to.equal(1));
 
-		it('modules.accounts.mergeAccountAndGet should be called 4 times', async () =>
+		it('submodules.accounts.mergeAccountAndGet should be called 4 times', async () =>
 			// 3x delegates + 1x remaining fees
 			expect(
-				round.scope.modules.accounts.mergeAccountAndGet.callCount
+				round.scope.submodules.accounts.mergeAccountAndGet.callCount
 			).to.equal(4));
 
 		it('query checkSnapshotAvailability should be called once', async () =>

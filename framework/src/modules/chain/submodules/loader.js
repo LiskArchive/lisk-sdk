@@ -22,7 +22,7 @@ require('colors');
 
 // Private fields
 let components;
-let modules;
+let submodules;
 let library;
 let self;
 const { ACTIVE_DELEGATES, MAX_PEERS } = global.constants;
@@ -43,8 +43,8 @@ __private.retries = 5;
  * Calls private function initialize.
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires async
  * @requires helpers/jobs_queue
  * @requires helpers/slots
@@ -125,7 +125,7 @@ __private.syncTrigger = function(turnOn) {
 			library.logger.trace('Sync trigger');
 			library.channel.publish('chain:loader:sync', {
 				blocks: __private.blocksToSync,
-				height: modules.blocks.lastBlock.get().height,
+				height: submodules.blocks.lastBlock.get().height,
 			});
 			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
 		});
@@ -152,13 +152,13 @@ __private.syncTimer = function() {
 		library.logger.trace('Sync timer trigger', {
 			loaded: __private.loaded,
 			syncing: self.syncing(),
-			last_receipt: modules.blocks.lastReceipt.get(),
+			last_receipt: submodules.blocks.lastReceipt.get(),
 		});
 
 		if (
 			__private.loaded &&
 			!self.syncing() &&
-			modules.blocks.lastReceipt.isStale()
+			submodules.blocks.lastReceipt.isStale()
 		) {
 			return library.sequence.add(
 				sequenceCb => {
@@ -206,7 +206,7 @@ __private.loadSignatures = function(cb) {
 				library.logger.info(`Loading signatures from: ${peer.string}`);
 				peer.rpc.getSignatures((err, res) => {
 					if (err) {
-						modules.peers.remove(peer);
+						submodules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
 					return library.schema.validate(
@@ -224,7 +224,7 @@ __private.loadSignatures = function(cb) {
 							async.eachSeries(
 								signature.signatures,
 								(s, secondEachSeriesCb) => {
-									modules.multisignatures.processSignature(
+									submodules.multisignatures.processSignature(
 										{
 											signature: s,
 											transactionId: signature.transactionId,
@@ -270,7 +270,7 @@ __private.loadTransactions = function(cb) {
 				library.logger.info(`Loading transactions from: ${peer.string}`);
 				peer.rpc.getTransactions((err, res) => {
 					if (err) {
-						modules.peers.remove(peer);
+						submodules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
 					return library.schema.validate(
@@ -307,7 +307,7 @@ __private.loadTransactions = function(cb) {
 								`Transaction ${id} is not valid, peer removed`,
 								peer.string
 							);
-							modules.peers.remove(peer);
+							submodules.peers.remove(peer);
 
 							return setImmediate(eachSeriesCb, e);
 						}
@@ -324,7 +324,7 @@ __private.loadTransactions = function(cb) {
 						library.balancesSequence.add(
 							addSequenceCb => {
 								transaction.bundled = true;
-								modules.transactions.processUnconfirmedTransaction(
+								submodules.transactions.processUnconfirmedTransaction(
 									transaction,
 									false,
 									addSequenceCb
@@ -399,7 +399,7 @@ __private.loadBlockChain = function() {
 									`Rebuilding blockchain, current block height: ${offset + 1}`
 								);
 							}
-							modules.blocks.process.loadBlocksOffset(
+							submodules.blocks.process.loadBlocksOffset(
 								limit,
 								offset,
 								(err, lastBlock) => {
@@ -423,7 +423,7 @@ __private.loadBlockChain = function() {
 					library.logger.error(err);
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
-						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
+						submodules.blocks.chain.deleteFromBlockId(err.block.id, () => {
 							library.logger.error('Blockchain clipped');
 							library.bus.message('blockchainReady');
 						});
@@ -529,7 +529,7 @@ __private.loadBlockChain = function() {
 				return reload(blocksCount, 'No delegates found');
 			}
 
-			return modules.blocks.utils.loadLastBlock((err, block) => {
+			return submodules.blocks.utils.loadLastBlock((err, block) => {
 				if (err) {
 					return reload(blocksCount, err || 'Failed to load last block');
 				}
@@ -567,9 +567,9 @@ __private.validateBlock = (blockToVerify, cb) => {
 	);
 	library.logger.debug(JSON.stringify(blockToVerify));
 
-	const lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = submodules.blocks.lastBlock.get();
 
-	modules.blocks.utils.loadBlockByHeight(
+	submodules.blocks.utils.loadBlockByHeight(
 		blockToVerify.height - 1,
 		(secondLastBlockError, secondLastBlockToVerify) => {
 			if (secondLastBlockError) {
@@ -577,16 +577,16 @@ __private.validateBlock = (blockToVerify, cb) => {
 			}
 
 			// Set the block temporarily for block verification
-			modules.blocks.lastBlock.set(secondLastBlockToVerify);
+			submodules.blocks.lastBlock.set(secondLastBlockToVerify);
 			library.logger.debug(
 				`Loader->validateBlock Setting temporarily last block to height ${
 					secondLastBlockToVerify.height
 				}.`
 			);
-			const result = modules.blocks.verify.verifyBlock(blockToVerify);
+			const result = submodules.blocks.verify.verifyBlock(blockToVerify);
 
 			// Revert last block changes
-			modules.blocks.lastBlock.set(lastBlock);
+			submodules.blocks.lastBlock.set(lastBlock);
 			library.logger.debug(
 				`Loader->validateBlock Reverting last block to height ${
 					lastBlock.height
@@ -621,7 +621,7 @@ __private.validateBlock = (blockToVerify, cb) => {
  */
 __private.validateOwnChain = cb => {
 	// Validation should be done backward starting from higher height to the lower height
-	const currentBlock = modules.blocks.lastBlock.get();
+	const currentBlock = submodules.blocks.lastBlock.get();
 	const currentHeight = currentBlock.height;
 	const currentRound = slots.calcRound(currentHeight);
 	const secondLastRound = currentRound - 2;
@@ -647,7 +647,7 @@ __private.validateOwnChain = cb => {
 			if (!validateBlockErr) {
 				library.logger.info(
 					`Finished validating the chain. You are at height ${
-						modules.blocks.lastBlock.get().height
+						submodules.blocks.lastBlock.get().height
 					}.`
 				);
 			}
@@ -660,7 +660,7 @@ __private.validateOwnChain = cb => {
 			`Validating last block of second last round with height ${validateTillHeight}`
 		);
 
-		modules.blocks.utils.loadBlockByHeight(
+		submodules.blocks.utils.loadBlockByHeight(
 			validateTillHeight,
 			(_lastBlockError, startBlock) => {
 				__private.validateBlock(startBlock, validateBlockErr => {
@@ -687,12 +687,12 @@ __private.validateOwnChain = cb => {
 		async.doDuring(
 			// Iterator
 			doDuringCb => {
-				modules.blocks.chain.deleteLastBlock(doDuringCb);
+				submodules.blocks.chain.deleteLastBlock(doDuringCb);
 			},
 			// Test condition
 			(_deleteLastBlockStatus, testCb) => {
 				__private.validateBlock(
-					modules.blocks.lastBlock.get(),
+					submodules.blocks.lastBlock.get(),
 					validateError => setImmediate(testCb, null, !!validateError) // Continue deleting if there is an error
 				);
 			},
@@ -712,7 +712,7 @@ __private.validateOwnChain = cb => {
 
 				library.logger.info(
 					`Finished validating the chain. You are at height ${
-						modules.blocks.lastBlock.get().height
+						submodules.blocks.lastBlock.get().height
 					}.`
 				);
 				return setImmediate(deleteInvalidBlocksCb, null);
@@ -780,7 +780,7 @@ __private.createSnapshot = height => {
 								currentHeight
 							)}, height: ${currentHeight}`
 						);
-						modules.blocks.process.loadBlocksOffset(
+						submodules.blocks.process.loadBlocksOffset(
 							ACTIVE_DELEGATES,
 							currentHeight,
 							loadBlocksOffsetErr => {
@@ -844,7 +844,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 									return waterCb('Failed to get random peer from network');
 								}
 								__private.blocksToSync = peer.height;
-								const lastBlock = modules.blocks.lastBlock.get();
+								const lastBlock = submodules.blocks.lastBlock.get();
 								return waterCb(null, peer, lastBlock);
 							}
 						);
@@ -858,7 +858,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 						library.logger.info(
 							`Looking for common block with: ${peer.string}`
 						);
-						return modules.blocks.process.getCommonBlock(
+						return submodules.blocks.process.getCommonBlock(
 							peer,
 							lastBlock.height,
 							(getCommonBlockErr, commonBlock) => {
@@ -878,7 +878,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 						);
 					},
 					function loadBlocksFromPeer(peer, lastBlock, waterCb) {
-						modules.blocks.process.loadBlocksFromPeer(
+						submodules.blocks.process.loadBlocksFromPeer(
 							peer,
 							(loadBlocksFromPeerErr, lastValidBlock) => {
 								if (loadBlocksFromPeerErr) {
@@ -933,7 +933,7 @@ __private.sync = function(cb) {
 		{
 			calculateConsensusBefore(seriesCb) {
 				library.logger.debug(
-					`Establishing broadhash consensus before sync: ${modules.peers.calculateConsensus()} %`
+					`Establishing broadhash consensus before sync: ${submodules.peers.calculateConsensus()} %`
 				);
 				return seriesCb();
 			},
@@ -949,11 +949,11 @@ __private.sync = function(cb) {
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
-				modules.transport.broadcastHeaders(seriesCb);
+				submodules.transport.broadcastHeaders(seriesCb);
 			},
 			calculateConsensusAfter(seriesCb) {
 				library.logger.debug(
-					`Establishing broadhash consensus after sync: ${modules.peers.calculateConsensus()} %`
+					`Establishing broadhash consensus after sync: ${submodules.peers.calculateConsensus()} %`
 				);
 				return seriesCb();
 			},
@@ -981,7 +981,7 @@ __private.sync = function(cb) {
  * @todo Add description for the params
  */
 Loader.prototype.findGoodPeers = function(peers) {
-	const lastBlockHeight = modules.blocks.lastBlock.get().height;
+	const lastBlockHeight = submodules.blocks.lastBlock.get().height;
 	library.logger.trace('Good peers - received', { count: peers.length });
 
 	peers = peers.filter(
@@ -1067,12 +1067,12 @@ Loader.prototype.syncing = function() {
 };
 
 /**
- * Checks if `modules` is loaded.
+ * Checks if `submodules` is loaded.
  *
- * @returns {boolean} True if `modules` is loaded
+ * @returns {boolean} True if `submodules` is loaded
  */
 Loader.prototype.isLoaded = function() {
-	return !!modules;
+	return !!submodules;
 };
 
 /**
@@ -1091,7 +1091,7 @@ Loader.prototype.loaded = function() {
  * @returns {function} Calling __private.syncTimer()
  */
 Loader.prototype.onPeersReady = function() {
-	library.logger.trace('Peers ready', { module: 'loader' });
+	library.logger.trace('Peers ready', { submodule: 'loader' });
 	// Enforce sync early
 	if (library.config.syncing.active) {
 		__private.syncTimer();
@@ -1141,9 +1141,9 @@ Loader.prototype.onPeersReady = function() {
 };
 
 /**
- * Assigns needed modules and components from scope to private constants.
+ * Assigns needed submodules and components from scope to private constants.
  *
- * @param {modules} scope
+ * @param {submodules} scope
  * @returns {function} Calling __private.loadBlockChain
  * @todo Add description for the params
  */
@@ -1153,13 +1153,13 @@ Loader.prototype.onBind = function(scope) {
 		system: scope.components.system,
 	};
 
-	modules = {
-		transactions: scope.modules.transactions,
-		blocks: scope.modules.blocks,
-		peers: scope.modules.peers,
-		rounds: scope.modules.rounds,
-		transport: scope.modules.transport,
-		multisignatures: scope.modules.multisignatures,
+	submodules = {
+		transactions: scope.submodules.transactions,
+		blocks: scope.submodules.blocks,
+		peers: scope.submodules.peers,
+		rounds: scope.submodules.rounds,
+		transport: scope.submodules.transport,
+		multisignatures: scope.submodules.multisignatures,
 	};
 
 	__private.loadBlockChain();

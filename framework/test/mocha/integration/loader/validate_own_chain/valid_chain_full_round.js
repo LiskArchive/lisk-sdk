@@ -50,7 +50,7 @@ describe('validateOwnChain', () => {
 		});
 
 		it('blockchain should be at height 202', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.submodules.blocks.lastBlock.get();
 			return expect(lastBlock.height).to.eql(202);
 		});
 
@@ -68,7 +68,7 @@ describe('validateOwnChain', () => {
 			let validateOwnChainError = null;
 
 			before(done => {
-				const __private = library.rewiredModules.loader.__get__('__private');
+				const __private = library.rewiredSubmodules.loader.__get__('__private');
 
 				// Set current block version to 1
 				blockVersion.currentBlockVersion = 1;
@@ -92,7 +92,7 @@ describe('validateOwnChain', () => {
 			});
 
 			it('blockchain should be at height 202', async () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
+				const lastBlock = library.submodules.blocks.lastBlock.get();
 				return expect(lastBlock.height).to.eql(202);
 			});
 
@@ -112,7 +112,7 @@ describe('validateOwnChain', () => {
 				});
 
 				it('blockchain should be at height 207', async () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
+					const lastBlock = library.submodules.blocks.lastBlock.get();
 					return expect(lastBlock.height).to.eql(207);
 				});
 

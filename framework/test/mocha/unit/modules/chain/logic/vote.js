@@ -21,7 +21,7 @@ const { getKeys } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../../fixtures/accounts');
 const application = require('../../../../common/application');
 const randomUtil = require('../../../../common/utils/random');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
@@ -142,14 +142,14 @@ describe('vote', () => {
 		application.init(
 			{ sandbox: { name: 'lisk_test_logic_vote' } },
 			(err, scope) => {
-				accountsModule = scope.modules.accounts;
-				delegatesModule = scope.modules.delegates;
+				accountsModule = scope.submodules.accounts;
+				delegatesModule = scope.submodules.delegates;
 
 				vote = new Vote({
 					components: {
-						logger: modulesLoader.scope.components.logger,
+						logger: submodulesLoader.scope.components.logger,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 					logic: {
 						account: scope.logic.account,
 						transaction: scope.logic.transaction,
@@ -162,7 +162,7 @@ describe('vote', () => {
 				};
 				vote.bind(delegatesModule);
 				delegatesModule.onBind({
-					modules: {
+					submodules: {
 						accounts: accountsModule,
 					},
 				});
@@ -182,9 +182,9 @@ describe('vote', () => {
 		// create new account for testing;
 		const transfer = new Transfer({
 			components: {
-				logger: modulesLoader.logger,
+				logger: submodulesLoader.logger,
 			},
-			schema: modulesLoader.scope.schema,
+			schema: submodulesLoader.scope.schema,
 		});
 		transfer.bind(voteBindings.account);
 		transactionLogic.attachAssetType(TRANSACTION_TYPES.SEND, transfer);
@@ -238,12 +238,12 @@ describe('vote', () => {
 
 		it('should assign logger to __scope.components', () => {
 			return expect(__scope.components.logger).to.equal(
-				modulesLoader.scope.components.logger
+				submodulesLoader.scope.components.logger
 			);
 		});
 
 		it('should assign schema to __scope', () => {
-			return expect(__scope.schema).to.equal(modulesLoader.scope.schema);
+			return expect(__scope.schema).to.equal(submodulesLoader.scope.schema);
 		});
 
 		it('should assign account to __scope.logic', () => {

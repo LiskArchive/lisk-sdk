@@ -35,8 +35,8 @@ const peerDiscoveryFrequency = 30000;
  * Main peers methods. Initializes library with scope content.
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires async
  * @requires lodash
  * @requires ip
@@ -449,7 +449,7 @@ __private.dbSave = function(cb) {
 	}
 
 	// Wrap sql queries in transaction and execute
-	return library.storage.entities.Peer.begin('modules:peers:dbSave', t =>
+	return library.storage.entities.Peer.begin('submodules:peers:dbSave', t =>
 		library.storage.entities.Peer.delete({}, {}, t).then(() =>
 			library.storage.entities.Peer.create(peers, {}, t)
 		)

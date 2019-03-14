@@ -27,7 +27,7 @@ newrelicLisk.instrumentBackgroundJobs();
 
 // TOFIX: fix callbackMethods converted to async in #2579
 // callBackMethods array only support one level of nesting
-const modulesToInstrument = {
+const submodulesToInstrument = {
 	'./componentes/cache/cache': {
 		identifier: 'components.cache',
 		callbackMethods: [
@@ -37,44 +37,44 @@ const modulesToInstrument = {
 			'removeByPattern',
 		],
 	},
-	'./componentes/system.js': {
+	'./componentes/system': {
 		identifier: 'componentes.system',
 		callbackMethods: ['update'],
 	},
-	'./helpers/sequence.js': {
+	'./helpers/sequence': {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
 	},
-	'./submodules/blocks.js': {
-		identifier: 'modules.blocks',
+	'./submodules/blocks': {
+		identifier: 'submodules.blocks',
 		callbackMethods: ['shared.getBlocks'],
 	},
-	'./submodules/dapps.js': {
-		identifier: 'modules.dapps',
+	'./submodules/dapps': {
+		identifier: 'submodules.dapps',
 		callbackMethods: ['getDapps'],
 	},
-	'./submodules/delegates.js': {
-		identifier: 'modules.delegates',
+	'./submodules/delegates': {
+		identifier: 'submodules.delegates',
 		callbackMethods: ['getForgers', 'getDelegates'],
 	},
-	'./submodules/loader.js': {
-		identifier: 'modules.loader',
+	'./submodules/loader': {
+		identifier: 'submodules.loader',
 		callbackMethods: ['getNetwork'],
 	},
-	'./submodules/peers.js': {
-		identifier: 'modules.peers',
+	'./submodules/peers': {
+		identifier: 'submodules.peers',
 		callbackMethods: ['shared.getPeers'],
 	},
-	'./submodules/rounds.js': {
-		identifier: 'modules.rounds',
+	'./submodules/rounds': {
+		identifier: 'submodules.rounds',
 		callbackMethods: ['flush'],
 	},
-	'./submodules/signatures.js': {
-		identifier: 'modules.signatures',
+	'./submodules/signatures': {
+		identifier: 'submodules.signatures',
 		callbackMethods: ['shared.postSignature', 'shared.postSignatures'],
 	},
-	'./submodules/transactions.js': {
-		identifier: 'modules.transactions',
+	'./submodules/transactions': {
+		identifier: 'submodules.transactions',
 		callbackMethods: [
 			'shared.getTransactionsCount',
 			'shared.getTransactionsFromPool',
@@ -82,8 +82,8 @@ const modulesToInstrument = {
 			'shared.postTransactions',
 		],
 	},
-	'./submodules/transport.js': {
-		identifier: 'modules.transport',
+	'./submodules/transport': {
+		identifier: 'submodules.transport',
 		callbackMethods: [
 			'broadcastHeaders',
 			'shared.blocksCommon',
@@ -100,10 +100,10 @@ const modulesToInstrument = {
 	},
 };
 
-Object.keys(modulesToInstrument).forEach(modulePath => {
+Object.keys(submodulesToInstrument).forEach(submodulePath => {
 	newrelicLisk.instrumentCallbackMethods(
-		modulePath,
-		modulesToInstrument[modulePath].identifier,
-		modulesToInstrument[modulePath].callbackMethods
+		submodulePath,
+		submodulesToInstrument[submodulePath].identifier,
+		submodulesToInstrument[submodulePath].callbackMethods
 	);
 });

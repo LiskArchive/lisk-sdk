@@ -19,7 +19,7 @@ const rewire = require('rewire');
 const accounts = require('../../../../fixtures/accounts');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const random = require('../../../../common/utils/random');
 const SchemaDynamicTest = require('../common/schema_dynamic_test');
 
@@ -111,7 +111,7 @@ describe('delegate', () => {
 		};
 
 		delegate = new Delegate({
-			schema: modulesLoader.scope.schema,
+			schema: submodulesLoader.scope.schema,
 		});
 
 		return delegate.bind(accountsMock);
@@ -128,25 +128,25 @@ describe('delegate', () => {
 		it('should attach schema to __scope', async () => {
 			return expect(__scope)
 				.to.have.property('schema')
-				.equal(modulesLoader.scope.schema);
+				.equal(submodulesLoader.scope.schema);
 		});
 	});
 
 	describe('bind', () => {
-		it('should attach empty object to __scope.modules.accounts', async () => {
+		it('should attach empty object to __scope.submodules.accounts', async () => {
 			delegate.bind({});
-			const modules = Delegate.__get__('__scope.modules');
+			const submodules = Delegate.__get__('__scope.submodules');
 
-			return expect(modules).to.eql({
+			return expect(submodules).to.eql({
 				accounts: {},
 			});
 		});
 
-		it('should bind __scope.modules with accounts object', async () => {
+		it('should bind __scope.submodules with accounts object', async () => {
 			delegate.bind(accountsMock);
-			const modules = Delegate.__get__('__scope.modules');
+			const submodules = Delegate.__get__('__scope.submodules');
 
-			return expect(modules).to.eql({
+			return expect(submodules).to.eql({
 				accounts: accountsMock,
 			});
 		});
@@ -540,10 +540,10 @@ describe('delegate', () => {
 			);
 		});
 
-		it('should call modules.accounts.getAccount twice', async () =>
+		it('should call submodules.accounts.getAccount twice', async () =>
 			expect(accountsMock.getAccount.calledTwice).to.be.true);
 
-		it('should call modules.accounts.getAccount with checking delegate registration params', async () =>
+		it('should call submodules.accounts.getAccount with checking delegate registration params', async () =>
 			expect(
 				accountsMock.getAccount.calledWith({
 					publicKey: accounts.existingDelegate.publicKey,
@@ -551,7 +551,7 @@ describe('delegate', () => {
 				})
 			).to.be.true);
 
-		it('should call modules.accounts.getAccount with checking username params', async () =>
+		it('should call submodules.accounts.getAccount with checking username params', async () =>
 			expect(
 				accountsMock.getAccount.calledWith({
 					u_username: accounts.existingDelegate.delegateName,
@@ -779,7 +779,7 @@ describe('delegate', () => {
 
 			afterEach(() => checkConfirmedStub.restore());
 
-			it('should call accounts.setAccountAndGet module with correct parameter', done => {
+			it('should call accounts.setAccountAndGet with correct parameter', done => {
 				delegate.applyConfirmed(
 					validTransaction,
 					dummyBlock,
@@ -852,7 +852,7 @@ describe('delegate', () => {
 
 			afterEach(() => checkUnconfirmedStub.restore());
 
-			it('should call accounts.setAccountAndGet module with correct parameter', done => {
+			it('should call accounts.setAccountAndGet with correct parameter', done => {
 				delegate.applyUnconfirmed(validTransaction, validSender, async () => {
 					expect(
 						accountsMock.setAccountAndGet.calledWith(validUnconfirmedAccount)
@@ -889,7 +889,7 @@ describe('delegate', () => {
 	});
 
 	describe('undoConfirmed', () => {
-		it('should call accounts.setAccountAndGet module with correct parameters', done => {
+		it('should call accounts.setAccountAndGet with correct parameters', done => {
 			delegate.undoConfirmed(transaction, dummyBlock, sender, async () => {
 				expect(
 					accountsMock.setAccountAndGet.calledWith({
@@ -922,7 +922,7 @@ describe('delegate', () => {
 	});
 
 	describe('undoUnconfirmed', () => {
-		it('should call accounts.setAccountAndGet module with correct parameters', done => {
+		it('should call accounts.setAccountAndGet with correct parameters', done => {
 			delegate.undoUnconfirmed(transaction, sender, async () => {
 				expect(
 					accountsMock.setAccountAndGet.calledWith({

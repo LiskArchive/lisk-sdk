@@ -20,12 +20,12 @@ const {
 	createCacheComponent,
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../../src/components/cache');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const AccountLogic = require('../../../../../../src/modules/chain/logic/account');
 const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction');
-const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates');
-const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts');
-const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader');
+const DelegateSubmodule = require('../../../../../../src/modules/chain/submodules/delegates');
+const AccountSubmodule = require('../../../../../../src/modules/chain/submodules/accounts');
+const LoaderSubmodule = require('../../../../../../src/modules/chain/submodules/loader');
 const VoteLogic = require('../../../../../../src/modules/chain/logic/vote');
 const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer');
 const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate');
@@ -36,75 +36,75 @@ const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_t
 const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer');
 
 const { TRANSACTION_TYPES } = global.constants;
-const TransactionModule = rewire(
+const TransactionSubmodule = rewire(
 	'../../../../../../src/modules/chain/submodules/transactions'
 );
 
 describe('transactions', () => {
-	let transactionsModule;
+	let transactionsSubmodule;
 	let cache;
 	let storageStub;
 
 	function attachAllAssets(
 		transactionLogic,
 		accountLogic,
-		delegatesModule,
-		accountsModule
+		delegatesSubmodule,
+		accountsSubmodule
 	) {
 		const sendLogic = transactionLogic.attachAssetType(
 			TRANSACTION_TYPES.SEND,
 			new TransferLogic({
 				components: {
-					logger: modulesLoader.logger,
+					logger: submodulesLoader.logger,
 				},
-				schema: modulesLoader.scope.schema,
+				schema: submodulesLoader.scope.schema,
 			})
 		);
-		sendLogic.bind(accountsModule);
+		sendLogic.bind(accountsSubmodule);
 		expect(sendLogic).to.be.an.instanceof(TransferLogic);
 
 		const voteLogic = transactionLogic.attachAssetType(
 			TRANSACTION_TYPES.VOTE,
 			new VoteLogic({
 				components: {
-					logger: modulesLoader.logger,
+					logger: submodulesLoader.logger,
 				},
 				logic: {},
-				schema: modulesLoader.scope.schema,
+				schema: submodulesLoader.scope.schema,
 			})
 		);
-		voteLogic.bind(delegatesModule);
+		voteLogic.bind(delegatesSubmodule);
 		expect(voteLogic).to.be.an.instanceof(VoteLogic);
 
 		const delegateLogic = transactionLogic.attachAssetType(
 			TRANSACTION_TYPES.DELEGATE,
 			new DelegateLogic({
-				schema: modulesLoader.scope.schema,
+				schema: submodulesLoader.scope.schema,
 			})
 		);
-		delegateLogic.bind(accountsModule);
+		delegateLogic.bind(accountsSubmodule);
 		expect(delegateLogic).to.be.an.instanceof(DelegateLogic);
 
 		const signatureLogic = transactionLogic.attachAssetType(
 			TRANSACTION_TYPES.SIGNATURE,
 			new SignatureLogic({
 				components: {
-					logger: modulesLoader,
+					logger: submodulesLoader,
 				},
-				schema: modulesLoader.scope.schema,
+				schema: submodulesLoader.scope.schema,
 			})
 		);
-		signatureLogic.bind(accountsModule);
+		signatureLogic.bind(accountsSubmodule);
 		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
 		const multiLogic = transactionLogic.attachAssetType(
 			TRANSACTION_TYPES.MULTI,
 			new MultisignatureLogic({
 				components: {
-					logger: modulesLoader.logger,
+					logger: submodulesLoader.logger,
 				},
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
+				schema: submodulesLoader.scope.schema,
+				network: submodulesLoader.scope.network,
 				logic: {
 					account: accountLogic,
 					transaction: transactionLogic,
@@ -112,18 +112,18 @@ describe('transactions', () => {
 			})
 		);
 
-		multiLogic.bind(accountsModule);
+		multiLogic.bind(accountsSubmodule);
 		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
 		const dappLogic = transactionLogic.attachAssetType(
 			TRANSACTION_TYPES.DAPP,
 			new DappLogic({
 				components: {
-					storage: modulesLoader.storage,
-					logger: modulesLoader.logger,
+					storage: submodulesLoader.storage,
+					logger: submodulesLoader.logger,
 				},
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
+				schema: submodulesLoader.scope.schema,
+				network: submodulesLoader.scope.network,
 			})
 		);
 		expect(dappLogic).to.be.an.instanceof(DappLogic);
@@ -132,25 +132,25 @@ describe('transactions', () => {
 			TRANSACTION_TYPES.IN_TRANSFER,
 			new InTransferLogic({
 				components: {
-					storage: modulesLoader.storage,
+					storage: submodulesLoader.storage,
 				},
-				schema: modulesLoader.scope.schema,
+				schema: submodulesLoader.scope.schema,
 			})
 		);
-		inTransferLogic.bind(accountsModule, /* sharedApi */ null);
+		inTransferLogic.bind(accountsSubmodule, /* sharedApi */ null);
 		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
 
 		const outTransfer = transactionLogic.attachAssetType(
 			TRANSACTION_TYPES.OUT_TRANSFER,
 			new OutTransferLogic({
 				components: {
-					storage: modulesLoader.storage,
-					logger: modulesLoader.logger,
+					storage: submodulesLoader.storage,
+					logger: submodulesLoader.logger,
 				},
-				schema: modulesLoader.scope.schema,
+				schema: submodulesLoader.scope.schema,
 			})
 		);
-		outTransfer.bind(accountsModule, /* sharedApi */ null);
+		outTransfer.bind(accountsSubmodule, /* sharedApi */ null);
 		expect(outTransfer).to.be.an.instanceof(OutTransferLogic);
 		return transactionLogic;
 	}
@@ -168,12 +168,12 @@ describe('transactions', () => {
 		async.auto(
 			{
 				accountLogic(cb) {
-					modulesLoader.initLogic(AccountLogic, {}, cb);
+					submodulesLoader.initLogic(AccountLogic, {}, cb);
 				},
 				cacheComponent(cb) {
 					cache = createCacheComponent(
 						__testContext.config.redis,
-						modulesLoader.logger
+						submodulesLoader.logger
 					);
 					return cache.bootstrap().then(err => {
 						expect(err).to.not.exist;
@@ -184,7 +184,7 @@ describe('transactions', () => {
 				transactionLogic: [
 					'accountLogic',
 					function(result, cb) {
-						modulesLoader.initLogic(
+						submodulesLoader.initLogic(
 							TransactionLogic,
 							{
 								account: result.accountLogic,
@@ -193,12 +193,12 @@ describe('transactions', () => {
 						);
 					},
 				],
-				loaderModule: [
+				loaderSubmodule: [
 					'transactionLogic',
 					'accountLogic',
 					function(result, cb) {
-						modulesLoader.initModule(
-							LoaderModule,
+						submodulesLoader.initSubmodule(
+							LoaderSubmodule,
 							{
 								logic: {
 									transaction: result.transactionLogic,
@@ -218,11 +218,11 @@ describe('transactions', () => {
 						);
 					},
 				],
-				delegateModule: [
+				delegateSubmodule: [
 					'transactionLogic',
 					function(result, cb) {
-						modulesLoader.initModule(
-							DelegateModule,
+						submodulesLoader.initSubmodule(
+							DelegateSubmodule,
 							{
 								logic: {
 									transaction: result.transactionLogic,
@@ -232,12 +232,12 @@ describe('transactions', () => {
 						);
 					},
 				],
-				accountsModule: [
+				accountsSubmodule: [
 					'accountLogic',
 					'transactionLogic',
 					function(result, cb) {
-						modulesLoader.initModule(
-							AccountModule,
+						submodulesLoader.initSubmodule(
+							AccountSubmodule,
 							{
 								logic: {
 									account: result.accountLogic,
@@ -252,47 +252,47 @@ describe('transactions', () => {
 			(err, result) => {
 				expect(err).to.not.exist;
 
-				modulesLoader.initModule(
-					TransactionModule,
+				submodulesLoader.initSubmodule(
+					TransactionSubmodule,
 					{
 						components: { storage: storageStub },
 						logic: { transaction: result.transactionLogic },
 					},
-					(initModuleErr, __transactionModule) => {
-						expect(initModuleErr).to.not.exist;
+					(initSubmoduleErr, __transactionSubmodule) => {
+						expect(initSubmoduleErr).to.not.exist;
 
-						transactionsModule = __transactionModule;
+						transactionsSubmodule = __transactionSubmodule;
 
-						result.accountsModule.onBind({
-							modules: {
-								delegates: result.delegateModule,
-								accounts: result.accountsModule,
-								transactions: transactionsModule,
+						result.accountsSubmodule.onBind({
+							submodules: {
+								delegates: result.delegateSubmodule,
+								accounts: result.accountsSubmodule,
+								transactions: transactionsSubmodule,
 							},
 						});
 
-						result.delegateModule.onBind({
-							modules: {
-								accounts: result.accountsModule,
-								transactions: transactionsModule,
+						result.delegateSubmodule.onBind({
+							submodules: {
+								accounts: result.accountsSubmodule,
+								transactions: transactionsSubmodule,
 							},
 						});
 
-						__transactionModule.onBind({
+						__transactionSubmodule.onBind({
 							components: {
 								cache,
 							},
-							modules: {
-								accounts: result.accountsModule,
-								loader: result.loaderModule,
+							submodules: {
+								accounts: result.accountsSubmodule,
+								loader: result.loaderSubmodule,
 							},
 						});
 
 						attachAllAssets(
 							result.transactionLogic,
 							result.accountLogic,
-							result.delegateModule,
-							result.accountsModule
+							result.delegateSubmodule,
+							result.accountsSubmodule
 						);
 
 						done();
@@ -321,44 +321,44 @@ describe('transactions', () => {
 
 			describe('when given as string', () => {
 				it('should return empty object when sort is empty string', async () =>
-					expect(transactionsModule.sortBy('')).to.eql({
+					expect(transactionsSubmodule.sortBy('')).to.eql({
 						sortField: '',
 						sortMethod: '',
 					}));
 
 				it('should return ASC as default sort type if only key is provided', async () =>
-					expect(transactionsModule.sortBy('address')).to.eql({
+					expect(transactionsSubmodule.sortBy('address')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					}));
 
 				it('should return ASC as default sort type if sort type is missing', async () =>
-					expect(transactionsModule.sortBy('address:')).to.eql({
+					expect(transactionsSubmodule.sortBy('address:')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					}));
 
 				it('should return error if sort key not present in options.sortFields', async () =>
 					expect(
-						transactionsModule.sortBy('unknownField', {
+						transactionsSubmodule.sortBy('unknownField', {
 							sortFields: validSortFieldsArray,
 						})
 					).to.eql({ error: 'Invalid sort field' }));
 
 				it('should return valid sort object if provided with sort:asc', async () =>
-					expect(transactionsModule.sortBy('address:asc')).to.eql({
+					expect(transactionsSubmodule.sortBy('address:asc')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					}));
 
 				it('should return valid sort object if provided with sort:desc', async () =>
-					expect(transactionsModule.sortBy('address:desc')).to.eql({
+					expect(transactionsSubmodule.sortBy('address:desc')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'DESC',
 					}));
 
 				it('should return valid sort object with default sort type provided with sort:unknown', async () =>
-					expect(transactionsModule.sortBy('address:unknown')).to.eql({
+					expect(transactionsSubmodule.sortBy('address:unknown')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					}));
@@ -366,27 +366,27 @@ describe('transactions', () => {
 
 			describe('when given as object', () => {
 				it('should return object with empty values when sort is empty object', async () =>
-					expect(transactionsModule.sortBy({})).to.eql({
+					expect(transactionsSubmodule.sortBy({})).to.eql({
 						sortField: '',
 						sortMethod: '',
 					}));
 
 				it('should return valid sort object if a valid object given', async () =>
-					expect(transactionsModule.sortBy({ address: 1 })).to.eql({
+					expect(transactionsSubmodule.sortBy({ address: 1 })).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					}));
 
 				it('should return error when keys are not present in options.sortFields', async () =>
 					expect(
-						transactionsModule.sortBy(
+						transactionsSubmodule.sortBy(
 							{ unkown: 1 },
 							{ sortFields: validSortFieldsArray }
 						)
 					).to.eql({ error: 'Invalid sort field' }));
 
 				it('should return object with string values if single key object is given', async () => {
-					const result = transactionsModule.sortBy({ address: 1 });
+					const result = transactionsSubmodule.sortBy({ address: 1 });
 
 					expect(result).to.eql({ sortField: '"address"', sortMethod: 'ASC' });
 
@@ -395,7 +395,7 @@ describe('transactions', () => {
 				});
 
 				it('should return object with array values if multiple keys object is given', async () => {
-					const result = transactionsModule.sortBy({
+					const result = transactionsSubmodule.sortBy({
 						address: 1,
 						publicKey: -1,
 					});
@@ -413,7 +413,7 @@ describe('transactions', () => {
 
 		describe('getTransaction', () => {
 			function getTransactionsById(id, done) {
-				transactionsModule.getTransactions({ id }, done);
+				transactionsSubmodule.getTransactions({ id }, done);
 			}
 
 			const transactionsByType = {
@@ -756,7 +756,7 @@ describe('transactions', () => {
 				};
 
 				it('should return transaction count in correct format', done => {
-					transactionsModule.shared.getTransactionsCount((err, data) => {
+					transactionsSubmodule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
 						expectValidCountResponse(data);
 
@@ -767,7 +767,7 @@ describe('transactions', () => {
 				it('should try to get transaction count from cache first', done => {
 					sinonSandbox.spy(cache, 'getJsonForKey');
 
-					transactionsModule.shared.getTransactionsCount((err, data) => {
+					transactionsSubmodule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
 						expectValidCountResponse(data);
 
@@ -786,7 +786,7 @@ describe('transactions', () => {
 						confirmed: 999,
 					});
 
-					transactionsModule.shared.getTransactionsCount((err, data) => {
+					transactionsSubmodule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
 						expectValidCountResponse(data);
 
@@ -808,7 +808,7 @@ describe('transactions', () => {
 						.stub(cache, 'getJsonForKey')
 						.rejects(new Error('Cache error'));
 
-					transactionsModule.shared.getTransactionsCount((err, data) => {
+					transactionsSubmodule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
 						expectValidCountResponse(data);
 
@@ -827,7 +827,7 @@ describe('transactions', () => {
 				it('should get transaction count from db if no cache exists', done => {
 					sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
 
-					transactionsModule.shared.getTransactionsCount((err, data) => {
+					transactionsSubmodule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
 						expectValidCountResponse(data);
 
@@ -846,7 +846,7 @@ describe('transactions', () => {
 					sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
 					sinonSandbox.spy(cache, 'setJsonForKey');
 
-					transactionsModule.shared.getTransactionsCount((err, data) => {
+					transactionsSubmodule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
 						expectValidCountResponse(data);
 
@@ -876,7 +876,7 @@ describe('transactions', () => {
 					});
 					sinonSandbox.spy(cache, 'setJsonForKey');
 
-					transactionsModule.shared.getTransactionsCount((err, data) => {
+					transactionsSubmodule.shared.getTransactionsCount((err, data) => {
 						expect(err).to.be.null;
 						expectValidCountResponse(data);
 

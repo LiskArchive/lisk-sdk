@@ -71,7 +71,7 @@ describe('rounds', () => {
 				removeByPattern: sinon.stub(),
 			},
 		},
-		modules: {
+		submodules: {
 			delegates: {
 				generateDelegateList: sinon.stub(),
 				clearDelegateListCache: sinon.stub(),
@@ -101,12 +101,12 @@ describe('rounds', () => {
 	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
 
-		bindings.modules.delegates.generateDelegateList.yields(null, [
+		bindings.submodules.delegates.generateDelegateList.yields(null, [
 			'delegate1',
 			'delegate2',
 			'delegate3',
 		]);
-		bindings.modules.accounts.generateAddressByPublicKey.returnsArg(0);
+		bindings.submodules.accounts.generateAddressByPublicKey.returnsArg(0);
 
 		new Rounds((err, __instance) => {
 			rounds = __instance;
@@ -167,18 +167,18 @@ describe('rounds', () => {
 	});
 
 	describe('onBind', () => {
-		it('should set modules', async () => {
-			const variable = 'modules';
+		it('should set submodules', async () => {
+			const variable = 'submodules';
 			const backup = get(variable);
 			const roundBindings = {
-				modules: {
+				submodules: {
 					blocks: 'blocks',
 					accounts: 'accounts',
 					delegates: 'delegates',
 				},
 			};
 			rounds.onBind(roundBindings);
-			expect(get(variable)).to.deep.equal(roundBindings.modules);
+			expect(get(variable)).to.deep.equal(roundBindings.submodules);
 			return set(variable, backup);
 		});
 
@@ -339,7 +339,7 @@ describe('rounds', () => {
 			describe('when generateDelegateList fails', () => {
 				beforeEach(async () => {
 					scope.block.height = 2;
-					bindings.modules.delegates.generateDelegateList.yields('error');
+					bindings.submodules.delegates.generateDelegateList.yields('error');
 				});
 
 				it('should call a callback with error', done => {

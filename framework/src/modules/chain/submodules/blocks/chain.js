@@ -26,7 +26,7 @@ const {
 const { TRANSACTION_TYPES } = global.constants;
 
 let components;
-let modules;
+let submodules;
 let library;
 let self;
 const __private = {};
@@ -35,8 +35,8 @@ const __private = {};
  * Main chain logic. Allows set information. Initializes library.
  *
  * @class
- * @memberof modules.blocks
- * @see Parent: {@link modules.blocks}
+ * @memberof submodules.blocks
+ * @see Parent: {@link submodules.blocks}
  * @requires async
  * @requires bluebird
  * @param {Object} logger
@@ -283,7 +283,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		return 0;
 	});
 	// Initialize block progress tracker
-	const tracker = modules.blocks.utils.getBlockProgressLogger(
+	const tracker = submodules.blocks.utils.getBlockProgressLogger(
 		block.transactions.length,
 		block.transactions.length / 100,
 		'Genesis block loading'
@@ -298,7 +298,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 
-			modules.accounts.setAccountAndGet(
+			submodules.accounts.setAccountAndGet(
 				{ publicKey: transaction.senderPublicKey },
 				(err, sender) => {
 					if (err) {
@@ -323,10 +323,10 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 				return setImmediate(cb, err);
 			}
 			// Set genesis block as last block
-			modules.blocks.lastBlock.set(block);
+			submodules.blocks.lastBlock.set(block);
 			// Tick round
 			// WARNING: DB_WRITE
-			return modules.rounds.tick(block, cb);
+			return submodules.rounds.tick(block, cb);
 		}
 	);
 };
@@ -344,7 +344,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
  */
 __private.applyTransaction = function(block, transaction, sender, cb) {
 	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'applyConfirmed' can be ok
-	modules.transactions.applyUnconfirmed(transaction, sender, err => {
+	submodules.transactions.applyUnconfirmed(transaction, sender, err => {
 		if (err) {
 			return setImmediate(cb, {
 				message: err,
@@ -353,7 +353,7 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 			});
 		}
 
-		return modules.transactions.applyConfirmed(
+		return submodules.transactions.applyConfirmed(
 			transaction,
 			block,
 			sender,
@@ -374,7 +374,7 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 };
 
 /**
- * Calls undoUnconfirmedList from modules transactions
+ * Calls undoUnconfirmedList from submodules transactions
  *
  * @private
  * @param  {function} cb - Callback function
@@ -382,7 +382,7 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
  * @returns {Object}   cb.err - Error if occurred
  */
 __private.undoUnconfirmedListStep = function(cb) {
-	return modules.transactions.undoUnconfirmedList(err => {
+	return submodules.transactions.undoUnconfirmedList(err => {
 		if (err) {
 			// Fatal error, memory tables will be inconsistent
 			library.logger.error('Failed to undo unconfirmed list', err);
@@ -393,7 +393,7 @@ __private.undoUnconfirmedListStep = function(cb) {
 };
 
 /**
- * Calls applyUnconfirmed from modules.transactions for each transaction in block
+ * Calls applyUnconfirmed from submodules.transactions for each transaction in block
  *
  * @private
  * @param {Object} block - Block object
@@ -406,7 +406,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 		block.transactions,
 		transaction =>
 			new Promise((resolve, reject) => {
-				modules.accounts.setAccountAndGet(
+				submodules.accounts.setAccountAndGet(
 					{ publicKey: transaction.senderPublicKey },
 					(accountErr, sender) => {
 						if (accountErr) {
@@ -418,7 +418,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 							return setImmediate(reject, new Error(err));
 						}
 						// DATABASE: write
-						return modules.transactions.applyUnconfirmed(
+						return submodules.transactions.applyUnconfirmed(
 							transaction,
 							sender,
 							err => {
@@ -443,7 +443,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 };
 
 /**
- * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls applyConfirmed from submodules.transactions for each transaction in block after get serder with submodules.accounts.getAccount
  *
  * @private
  * @param {Object} block - Block object
@@ -455,7 +455,7 @@ __private.applyConfirmedStep = function(block, tx) {
 		block.transactions,
 		transaction =>
 			new Promise((resolve, reject) => {
-				modules.accounts.getAccount(
+				submodules.accounts.getAccount(
 					{ publicKey: transaction.senderPublicKey },
 					(accountErr, sender) => {
 						if (accountErr) {
@@ -467,7 +467,7 @@ __private.applyConfirmedStep = function(block, tx) {
 							return setImmediate(reject, new Error(err));
 						}
 						// DATABASE: write
-						return modules.transactions.applyConfirmed(
+						return submodules.transactions.applyConfirmed(
 							transaction,
 							block,
 							sender,
@@ -494,7 +494,7 @@ __private.applyConfirmedStep = function(block, tx) {
 };
 
 /**
- * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls applyConfirmed from submodules.transactions for each transaction in block after get serder with submodules.accounts.getAccount
  *
  * @private
  * @param {Object} block - Block object
@@ -523,7 +523,7 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 					);
 
 					// DATABASE write. Update delegates accounts
-					return modules.rounds.tick(
+					return submodules.rounds.tick(
 						block,
 						tickErr => {
 							if (tickErr) {
@@ -531,7 +531,7 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 							}
 
 							library.bus.message('newBlock', block);
-							modules.blocks.lastBlock.set(block);
+							submodules.blocks.lastBlock.set(block);
 							return setImmediate(resolve);
 						},
 						tx
@@ -541,7 +541,7 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 			);
 		} else {
 			// DATABASE write. Update delegates accounts
-			modules.rounds.tick(
+			submodules.rounds.tick(
 				block,
 				err => {
 					if (err) {
@@ -549,7 +549,7 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 					}
 
 					library.bus.message('newBlock', block);
-					modules.blocks.lastBlock.set(block);
+					submodules.blocks.lastBlock.set(block);
 					return setImmediate(resolve);
 				},
 				tx
@@ -573,7 +573,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 			return setImmediate(cb, err);
 		}
 		return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
-			modules.blocks.isActive.set(true);
+			submodules.blocks.isActive.set(true);
 
 			return __private
 				.applyUnconfirmedStep(block, tx)
@@ -583,15 +583,15 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 			.then(() => {
 				// Remove block transactions from transaction pool
 				block.transactions.forEach(transaction => {
-					modules.transactions.removeUnconfirmedTransaction(transaction.id);
+					submodules.transactions.removeUnconfirmedTransaction(transaction.id);
 				});
-				modules.blocks.isActive.set(false);
+				submodules.blocks.isActive.set(false);
 				block = null;
 
 				return setImmediate(cb, null);
 			})
 			.catch(reason => {
-				modules.blocks.isActive.set(false);
+				submodules.blocks.isActive.set(false);
 				block = null;
 
 				// Finish here if snapshotting.
@@ -625,7 +625,7 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 	return new Promise((resolve, reject) => {
 		// Load previous block from full_blocks_list table
 		// TODO: Can be inefficient, need performnce tests
-		modules.blocks.utils.loadBlocksPart(
+		submodules.blocks.utils.loadBlocksPart(
 			{ id: secondLastBlockId },
 			(err, blocks) => {
 				if (err || !blocks.length) {
@@ -648,7 +648,7 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 __private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
 	return new Promise((resolve, reject) => {
 		// Retrieve sender by public key
-		modules.accounts.getAccount(
+		submodules.accounts.getAccount(
 			{ publicKey: transaction.senderPublicKey },
 			(accountErr, sender) => {
 				if (accountErr) {
@@ -661,7 +661,7 @@ __private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
 				}
 				// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
 				// WARNING: DB_WRITE
-				return modules.transactions.undoConfirmed(
+				return submodules.transactions.undoConfirmed(
 					transaction,
 					oldLastBlock,
 					sender,
@@ -694,7 +694,7 @@ __private.undoUnconfirmStep = function(transaction, tx) {
 	return new Promise((resolve, reject) => {
 		// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
 		// WARNING: DB_WRITE
-		modules.transactions.undoUnconfirmed(
+		submodules.transactions.undoUnconfirmed(
 			transaction,
 			undoUnconfirmedErr => {
 				if (undoUnconfirmedErr) {
@@ -722,7 +722,7 @@ __private.backwardTickStep = function(oldLastBlock, previousBlock, tx) {
 	return new Promise((resolve, reject) => {
 		// Perform backward tick on rounds
 		// WARNING: DB_WRITE
-		modules.rounds.backwardTick(
+		submodules.rounds.backwardTick(
 			oldLastBlock,
 			previousBlock,
 			backwardTickErr => {
@@ -808,7 +808,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
  * @returns {Object} cb.obj - New last block
  */
 Chain.prototype.deleteLastBlock = function(cb) {
-	let lastBlock = modules.blocks.lastBlock.get();
+	let lastBlock = submodules.blocks.lastBlock.get();
 	library.logger.warn('Deleting last block', lastBlock);
 
 	if (lastBlock.height === 1) {
@@ -829,7 +829,7 @@ Chain.prototype.deleteLastBlock = function(cb) {
 						deletedBlockTransactions = lastBlock.transactions.reverse();
 
 						// Set previous block as our new last block
-						lastBlock = modules.blocks.lastBlock.set(previousBlock);
+						lastBlock = submodules.blocks.lastBlock.set(previousBlock);
 					}
 					return seriesCb(err);
 				});
@@ -843,11 +843,11 @@ Chain.prototype.deleteLastBlock = function(cb) {
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
-				modules.transport.broadcastHeaders(seriesCb);
+				submodules.transport.broadcastHeaders(seriesCb);
 			},
 			receiveTransactions(seriesCb) {
 				// Put transactions back into transaction pool
-				modules.transactions.receiveTransactions(
+				submodules.transactions.receiveTransactions(
 					deletedBlockTransactions,
 					false,
 					err => {
@@ -885,26 +885,26 @@ Chain.prototype.recoverChain = function(cb) {
 };
 
 /**
- * Handle modules & components initialization
+ * Handle submodules & components initialization
  *
- * @param {modules} scope - Exposed modules
+ * @param {submodules} scope - Exposed submodules
  */
 Chain.prototype.onBind = function(scope) {
-	library.logger.trace('Blocks->Chain: Shared modules bind.');
+	library.logger.trace('Blocks->Chain: Shared submodules bind.');
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 		system: scope.components.system,
 	};
 
-	modules = {
-		accounts: scope.modules.accounts,
-		blocks: scope.modules.blocks,
-		rounds: scope.modules.rounds,
-		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
+	submodules = {
+		accounts: scope.submodules.accounts,
+		blocks: scope.submodules.blocks,
+		rounds: scope.submodules.rounds,
+		transactions: scope.submodules.transactions,
+		transport: scope.submodules.transport,
 	};
 
-	// Set module as loaded
+	// Set submodule as loaded
 	__private.loaded = true;
 };
 

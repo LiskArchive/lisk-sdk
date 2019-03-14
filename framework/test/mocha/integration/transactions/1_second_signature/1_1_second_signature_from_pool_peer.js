@@ -42,7 +42,9 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		}).then(() => {
-			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+			library.submodules.blocks.lastBlock.set(
+				__testContext.config.genesisBlock
+			);
 			done();
 		});
 	});
@@ -87,7 +89,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 						(err, block) => {
 							expect(err).to.not.exist;
 
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.submodules.blocks.process.onReceiveBlock(block);
 							done();
 						}
 					);
@@ -145,7 +147,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 						[signatureTransaction2],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.submodules.blocks.process.onReceiveBlock(block);
 							done();
 						}
 					);
@@ -209,7 +211,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 							(err, block) => {
 								blockId = block.id;
 								expect(err).to.not.exist;
-								library.modules.blocks.process.onReceiveBlock(block);
+								library.submodules.blocks.process.onReceiveBlock(block);
 								done();
 							}
 						);

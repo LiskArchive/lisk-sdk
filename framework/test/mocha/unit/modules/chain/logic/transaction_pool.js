@@ -115,12 +115,12 @@ describe('transactionPool', () => {
 		);
 		dummyApplyUnconfirmed = sinonSandbox.spy((transaction, sender, cb) => cb());
 		TransactionPool.__set__(
-			'modules.transactions.applyUnconfirmed',
+			'submodules.transactions.applyUnconfirmed',
 			dummyApplyUnconfirmed
 		);
 		dummyUndoUnconfirmed = sinonSandbox.spy((transaction, cb) => cb());
 		TransactionPool.__set__(
-			'modules.transactions.undoUnconfirmed',
+			'submodules.transactions.undoUnconfirmed',
 			dummyUndoUnconfirmed
 		);
 
@@ -146,7 +146,7 @@ describe('transactionPool', () => {
 			config
 		);
 
-		// Bind fake modules
+		// Bind fake submodules
 		transactionPool.bind(
 			accountsStub, // accounts
 			transactionsStub, // transactions
@@ -218,10 +218,10 @@ describe('transactionPool', () => {
 	});
 
 	describe('bind', () => {
-		describe('modules', () => {
+		describe('submodules', () => {
 			it('should assign accounts, transactions, loader', async () => {
-				const modules = TransactionPool.__get__('modules');
-				return expect(modules).to.eql({
+				const submodules = TransactionPool.__get__('submodules');
+				return expect(submodules).to.eql({
 					accounts: accountsStub,
 					transactions: transactionsStub,
 					loader: loaderStub,
@@ -1094,7 +1094,7 @@ describe('transactionPool', () => {
 					return expect(lastIds.length).to.equal(0);
 				});
 
-				describe('modules.transactions.undoUnconfirmed', () => {
+				describe('submodules.transactions.undoUnconfirmed', () => {
 					it('should not be called', async () =>
 						expect(dummyUndoUnconfirmed.called).to.be.false);
 				});
@@ -1134,7 +1134,7 @@ describe('transactionPool', () => {
 						);
 					});
 
-					describe('modules.transactions.undoUnconfirmed', () => {
+					describe('submodules.transactions.undoUnconfirmed', () => {
 						it('should be called onece', async () =>
 							expect(dummyUndoUnconfirmed.calledOnce).to.be.true);
 
@@ -1179,7 +1179,7 @@ describe('transactionPool', () => {
 					after(resetStates);
 				});
 
-				describe('that results with error on modules.transactions.undoUnconfirmed', () => {
+				describe('that results with error on submodules.transactions.undoUnconfirmed', () => {
 					const badTransaction = { id: 'badTx' };
 					const transactions = [badTransaction];
 					const error = 'undo error';
@@ -1189,7 +1189,7 @@ describe('transactionPool', () => {
 							cb(error)
 						);
 						TransactionPool.__set__(
-							'modules.transactions.undoUnconfirmed',
+							'submodules.transactions.undoUnconfirmed',
 							dummyUndoUnconfirmed
 						);
 
@@ -1223,7 +1223,7 @@ describe('transactionPool', () => {
 						return expect(logger.error.args[0][1]).to.equal(error);
 					});
 
-					describe('modules.transactions.undoUnconfirmed', () => {
+					describe('submodules.transactions.undoUnconfirmed', () => {
 						it('should be called onece', async () =>
 							expect(dummyUndoUnconfirmed.calledOnce).to.be.true);
 
@@ -1352,7 +1352,7 @@ describe('transactionPool', () => {
 							expect(dummyProcessVerifyTransaction.called).to.be.false);
 					});
 
-					describe('modules.transactions.applyUnconfirmed', () => {
+					describe('submodules.transactions.applyUnconfirmed', () => {
 						it('should not be called', async () =>
 							expect(dummyApplyUnconfirmed.called).to.be.false);
 					});
@@ -1387,7 +1387,7 @@ describe('transactionPool', () => {
 								));
 						});
 
-						describe('modules.transactions.applyUnconfirmed', () => {
+						describe('submodules.transactions.applyUnconfirmed', () => {
 							it('should be called once', async () =>
 								expect(dummyApplyUnconfirmed.calledOnce).to.be.true);
 
@@ -1474,7 +1474,7 @@ describe('transactionPool', () => {
 								));
 						});
 
-						describe('modules.transactions.applyUnconfirmed', () => {
+						describe('submodules.transactions.applyUnconfirmed', () => {
 							it('should not be called', async () =>
 								expect(dummyApplyUnconfirmed.called).to.be.false);
 						});
@@ -1533,7 +1533,7 @@ describe('transactionPool', () => {
 								(transaction, sender, cb) => cb(error)
 							);
 							TransactionPool.__set__(
-								'modules.transactions.applyUnconfirmed',
+								'submodules.transactions.applyUnconfirmed',
 								dummyApplyUnconfirmed
 							);
 
@@ -1564,7 +1564,7 @@ describe('transactionPool', () => {
 								));
 						});
 
-						describe('modules.transactions.applyUnconfirmed', () => {
+						describe('submodules.transactions.applyUnconfirmed', () => {
 							it('should be called once', async () =>
 								expect(dummyApplyUnconfirmed.calledOnce).to.be.true);
 

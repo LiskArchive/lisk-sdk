@@ -61,7 +61,7 @@ describe('loader', () => {
 	});
 
 	describe('findGoodPeers', () => {
-		it('should call modules.blocks.lastBlock.get');
+		it('should call submodules.blocks.lastBlock.get');
 
 		it('should call library.logger.trace');
 
@@ -87,13 +87,13 @@ describe('loader', () => {
 			it('should return result = {height: 0, peers: []}');
 		});
 
-		describe('when peers have height < modules.blocks.lastBlock.get().height', () => {
+		describe('when peers have height < submodules.blocks.lastBlock.get().height', () => {
 			it('should call library.logger.trace second time with {count: 0}');
 
 			it('should return result = {height: 0, peers: []}');
 		});
 
-		describe('when peers have height >= modules.blocks.lastBlock.get().height', () => {
+		describe('when peers have height >= submodules.blocks.lastBlock.get().height', () => {
 			it(
 				'should call library.logger.trace second time with {count: peers.length}'
 			);
@@ -141,9 +141,9 @@ describe('loader', () => {
 	});
 
 	describe('isLoaded', () => {
-		it('should return true if modules exists');
+		it('should return true if submodules exists');
 
-		it('should return false if modules does not exist');
+		it('should return false if submodules does not exist');
 	});
 
 	describe('onPeersReady', () => {
@@ -201,7 +201,7 @@ describe('loader', () => {
 	});
 
 	describe('onBind', () => {
-		describe('modules', () => {
+		describe('submodules', () => {
 			it('should assign transactions');
 
 			it('should assign blocks');

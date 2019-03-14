@@ -53,7 +53,7 @@ application.init(
 		originalEval = replServer.eval;
 		replServer.eval = replEvalPromise;
 		replServer.context.config = scope.config;
-		replServer.context.modules = scope.modules;
+		replServer.context.submodules = scope.submodules;
 		replServer.context.logic = scope.logic;
 		replServer.context.storage = scope.storage;
 		const helpers = {};

@@ -34,8 +34,8 @@ const __scope = {};
  * @param {Object} scope
  * @param {Object} scope.components
  * @param {logger} scope.components.logger
- * @param {Object} scope.modules
- * @param {Accounts} scope.modules.accounts
+ * @param {Object} scope.submodules
+ * @param {Accounts} scope.submodules.accounts
  * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
@@ -45,21 +45,21 @@ class Transfer {
 		__scope.components = {
 			logger,
 		};
-		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
+		// TODO: Add submodules to contructor argument and assign accounts to __scope.submodules.accounts
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
- * Binds input parameters to private variable modules.
+ * Binds input parameters to private variable submodules.
  *
  * @param {Accounts} accounts
  * @todo Add description for the params
  */
-// TODO: Remove this method as modules will be loaded prior to trs logic.
+// TODO: Remove this method as submodules will be loaded prior to trs logic.
 Transfer.prototype.bind = function(accounts) {
-	__scope.modules = {
+	__scope.submodules = {
 		accounts,
 	};
 };
@@ -164,14 +164,14 @@ Transfer.prototype.applyConfirmed = function(
 	cb,
 	tx
 ) {
-	__scope.modules.accounts.setAccountAndGet(
+	__scope.submodules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return __scope.modules.accounts.mergeAccountAndGet(
+			return __scope.submodules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: transaction.amount,
@@ -204,14 +204,14 @@ Transfer.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	__scope.modules.accounts.setAccountAndGet(
+	__scope.submodules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
 			if (setAccountAndGetErr) {
 				return setImmediate(cb, setAccountAndGetErr);
 			}
 
-			return __scope.modules.accounts.mergeAccountAndGet(
+			return __scope.submodules.accounts.mergeAccountAndGet(
 				{
 					address: transaction.recipientId,
 					balance: -transaction.amount,

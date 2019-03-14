@@ -37,24 +37,27 @@ describe('signatures', () => {
 
 		afterEach(() => revert());
 
-		it('should return true if modules exists', async () => {
+		it('should return true if submodules exists', async () => {
 			// Arrange
-			revert = library.rewiredModules.signatures.__set__('modules', {
-				accounts: library.modules.accounts,
-				transactions: library.modules.transactions,
-				transport: library.modules.transport,
+			revert = library.rewiredSubmodules.signatures.__set__('submodules', {
+				accounts: library.submodules.accounts,
+				transactions: library.submodules.transactions,
+				transport: library.submodules.transport,
 			});
 
 			// Act & assert
-			return expect(library.modules.signatures.isLoaded()).to.be.true;
+			return expect(library.submodules.signatures.isLoaded()).to.be.true;
 		});
 
-		it('should return true if modules does not exist', async () => {
+		it('should return true if submodules does not exist', async () => {
 			// Arrange
-			revert = library.rewiredModules.signatures.__set__('modules', undefined);
+			revert = library.rewiredSubmodules.signatures.__set__(
+				'submodules',
+				undefined
+			);
 
 			// Act & assert
-			return expect(library.modules.signatures.isLoaded()).to.be.false;
+			return expect(library.submodules.signatures.isLoaded()).to.be.false;
 		});
 	});
 
@@ -62,29 +65,31 @@ describe('signatures', () => {
 		let privateModules;
 
 		beforeEach(() => {
-			privateModules = library.rewiredModules.signatures.__get__('modules');
-			return library.modules.signatures.onBind({
-				modules: library.modules,
+			privateModules = library.rewiredSubmodules.signatures.__get__(
+				'submodules'
+			);
+			return library.submodules.signatures.onBind({
+				submodules: library.submodules,
 			});
 		});
 
-		describe('modules', () => {
+		describe('submodules', () => {
 			it('should assign accounts', async () =>
 				expect(privateModules).to.have.property(
 					'accounts',
-					library.modules.accounts
+					library.submodules.accounts
 				));
 
 			it('should assign transactions', async () =>
 				expect(privateModules).to.have.property(
 					'transactions',
-					library.modules.transactions
+					library.submodules.transactions
 				));
 
 			it('should assign transport', async () =>
 				expect(privateModules).to.have.property(
 					'transport',
-					library.modules.transport
+					library.submodules.transport
 				));
 		});
 
@@ -93,7 +98,7 @@ describe('signatures', () => {
 
 			before(done => {
 				signatureLogicSpy = sinonSandbox.spy(
-					library.rewiredModules.signatures.__get__('__private').assetTypes[
+					library.rewiredSubmodules.signatures.__get__('__private').assetTypes[
 						TRANSACTION_TYPES.SIGNATURE
 					],
 					'bind'
@@ -104,7 +109,9 @@ describe('signatures', () => {
 			after(() => signatureLogicSpy.restore());
 
 			it('should call bind on signature logic with scope.accounts', async () =>
-				expect(signatureLogicSpy).to.be.calledWith(library.modules.accounts));
+				expect(signatureLogicSpy).to.be.calledWith(
+					library.submodules.accounts
+				));
 		});
 	});
 
@@ -121,23 +128,23 @@ describe('signatures', () => {
 
 		beforeEach(done => {
 			postSignatureStub = sinonSandbox.stub(
-				library.modules.transport.shared,
+				library.submodules.transport.shared,
 				'postSignature'
 			);
-			library.modules.signatures.shared.postSignature(req.body, null);
+			library.submodules.signatures.shared.postSignature(req.body, null);
 			done();
 		});
 
 		afterEach(() => sinonSandbox.restore());
 
-		it('should call modules.transport.shared.postSignature with req.body', async () =>
+		it('should call submodules.transport.shared.postSignature with req.body', async () =>
 			expect(postSignatureStub).to.be.calledWith({
 				signature: req.body,
 			}));
 
-		describe('when modules.transport.shared.postSignature fails with result', () => {
+		describe('when submodules.transport.shared.postSignature fails with result', () => {
 			it('should call callback with ApiError containing code = 400', done => {
-				// Force library.modules.transport.shared.postSignature to fail with custom message
+				// Force library.submodules.transport.shared.postSignature to fail with custom message
 				// Arrange
 				const expectedData = {
 					success: false,
@@ -146,7 +153,7 @@ describe('signatures', () => {
 
 				postSignatureStub.yields(null, expectedData);
 				// Act
-				library.modules.signatures.shared.postSignature(
+				library.submodules.signatures.shared.postSignature(
 					req.body,
 					(error, data) => {
 						expect(data).to.deep.equal(expectedData);
@@ -156,17 +163,17 @@ describe('signatures', () => {
 			});
 		});
 
-		describe('when modules.transport.shared.postSignature succeeds with result', () => {
+		describe('when submodules.transport.shared.postSignature succeeds with result', () => {
 			let postSignatureError;
 			let postSignatureResult;
 
 			beforeEach(done => {
-				// Force library.modules.transport.shared.postSignature to succeed
+				// Force library.submodules.transport.shared.postSignature to succeed
 				postSignatureStub.yields(null, {
 					success: true,
 				});
 
-				library.modules.signatures.shared.postSignature(
+				library.submodules.signatures.shared.postSignature(
 					req.body,
 					(error, result) => {
 						postSignatureError = error;

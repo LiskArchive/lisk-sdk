@@ -23,7 +23,7 @@ const { ACTIVE_DELEGATES, MULTISIG_CONSTRAINTS } = global.constants;
 
 // Private fields
 let library;
-let modules;
+let submodules;
 
 const __private = {};
 
@@ -106,13 +106,13 @@ class Account {
 
 	// Public methods
 	/**
-	 * Binds input parameters to private variables modules.
+	 * Binds input parameters to private variables submodules.
 	 *
 	 * @param {Blocks} blocks
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	bind({ blocks, rounds }) {
-		modules = {
+		submodules = {
 			blocks,
 			rounds,
 		};
@@ -285,7 +285,7 @@ class Account {
 
 		this.scope.storage.entities.Account.get(filters, options, tx)
 			.then(accounts => {
-				const lastBlock = modules.blocks.lastBlock.get();
+				const lastBlock = submodules.blocks.lastBlock.get();
 				// If the last block height is undefined, it means it's a genesis block with height = 1
 				// look for a constant for total supply
 				const totalSupply = lastBlock.height
@@ -447,7 +447,7 @@ class Account {
 
 						if (updatedField === 'balance') {
 							promises.push(
-								modules.rounds.createRoundInformationWithAmount(
+								submodules.rounds.createRoundInformationWithAmount(
 									address,
 									diff.round,
 									value.toString(),
@@ -495,7 +495,7 @@ class Account {
 
 								if (updatedField === 'votedDelegatesPublicKeys') {
 									promises.push(
-										modules.rounds.createRoundInformationWithDelegate(
+										submodules.rounds.createRoundInformationWithDelegate(
 											address,
 											diff.round,
 											dependentId,

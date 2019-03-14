@@ -30,7 +30,7 @@ describe('lisk_cors', () => {
 		};
 		swaggerModuleRegistry.bind({
 			config: __testContext.config,
-			modules: {
+			submodules: {
 				cache: null,
 			},
 			components: {

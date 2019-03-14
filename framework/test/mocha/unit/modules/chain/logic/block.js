@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const rewire = require('rewire');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 
 const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 
@@ -322,8 +322,8 @@ describe('block', () => {
 		};
 
 		block = new Block(
-			modulesLoader.scope.ed,
-			modulesLoader.scope.schema,
+			submodulesLoader.scope.ed,
+			submodulesLoader.scope.schema,
 			transactionStub
 		);
 		done();

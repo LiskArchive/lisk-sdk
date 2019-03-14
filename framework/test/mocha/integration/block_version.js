@@ -47,7 +47,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 101', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.submodules.blocks.lastBlock.get();
 			return expect(lastBlock.height).to.eql(101);
 		});
 
@@ -75,7 +75,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 202', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.submodules.blocks.lastBlock.get();
 			return expect(lastBlock.height).to.eql(202);
 		});
 
@@ -103,7 +103,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 303', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.submodules.blocks.lastBlock.get();
 			return expect(lastBlock.height).to.eql(303);
 		});
 
@@ -121,9 +121,9 @@ describe('block_version', () => {
 
 	describe('when there are no exceptions for blocks versions', () => {
 		it('snapshotting should fail', done => {
-			const __private = library.rewiredModules.loader.__get__('__private');
+			const __private = library.rewiredSubmodules.loader.__get__('__private');
 
-			library.rewiredModules.loader.__set__(
+			library.rewiredSubmodules.loader.__set__(
 				'library.config.loading.snapshotRound',
 				3
 			);
@@ -149,9 +149,9 @@ describe('block_version', () => {
 				2: { start: 203, end: 303 },
 			};
 
-			const __private = library.rewiredModules.loader.__get__('__private');
+			const __private = library.rewiredSubmodules.loader.__get__('__private');
 
-			library.rewiredModules.loader.__set__(
+			library.rewiredSubmodules.loader.__set__(
 				'library.config.loading.snapshotRound',
 				3
 			);

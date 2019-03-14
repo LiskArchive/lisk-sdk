@@ -45,8 +45,8 @@ class Round {
 				logger: scope.library.logger,
 				storage: scope.library.storage,
 			},
-			modules: {
-				accounts: scope.modules.accounts,
+			submodules: {
+				accounts: scope.submodules.accounts,
 			},
 			block: {
 				generatorPublicKey: scope.block.generatorPublicKey,
@@ -60,7 +60,7 @@ class Round {
 		// List of required scope properties
 		let requiredProperties = [
 			'library',
-			'modules',
+			'submodules',
 			'block',
 			'round',
 			'backwards',
@@ -94,7 +94,7 @@ class Round {
 		const self = this;
 
 		return new Promise((resolve, reject) => {
-			self.scope.modules.accounts.mergeAccountAndGet(
+			self.scope.submodules.accounts.mergeAccountAndGet(
 				{
 					publicKey: self.scope.block.generatorPublicKey,
 					producedBlocks: self.scope.backwards ? -1 : 1,
@@ -170,7 +170,7 @@ class Round {
 			const queries = votes.map(vote =>
 				self.scope.library.storage.entities.Account.increaseFieldBy(
 					{
-						address: self.scope.modules.accounts.generateAddressByPublicKey(
+						address: self.scope.submodules.accounts.generateAddressByPublicKey(
 							vote.delegate
 						),
 					},
@@ -383,7 +383,7 @@ class Round {
 			};
 
 			p = new Promise((resolve, reject) => {
-				self.scope.modules.accounts.mergeAccountAndGet(
+				self.scope.submodules.accounts.mergeAccountAndGet(
 					accountData,
 					(err, account) => {
 						if (err) {
@@ -430,7 +430,7 @@ class Round {
 			});
 
 			p = new Promise((resolve, reject) => {
-				self.scope.modules.accounts.mergeAccountAndGet(
+				self.scope.submodules.accounts.mergeAccountAndGet(
 					{
 						publicKey: remainderDelegate,
 						balance: feesRemaining,

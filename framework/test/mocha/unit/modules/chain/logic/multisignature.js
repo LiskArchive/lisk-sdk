@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const rewire = require('rewire');
 const { registerMultisignature } = require('@liskhq/lisk-transactions');
 const { getKeys } = require('@liskhq/lisk-cryptography');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const randomUtil = require('../../../../common/utils/random');
 const accountFixtures = require('../../../../fixtures/accounts');
 const slots = require('../../../../../../src/modules/chain/helpers/slots');
@@ -41,7 +41,7 @@ const multiSigAccount2 = testData.multiSigAccount2;
 
 describe('multisignature', () => {
 	let transactionMock;
-	// logic is singular, modules are plural
+	// logic is singular, submodules are plural
 	let accountMock;
 	let accountsMock;
 
@@ -78,9 +78,9 @@ describe('multisignature', () => {
 		};
 		multisignature = new Multisignature({
 			components: {
-				logger: modulesLoader.logger,
+				logger: submodulesLoader.logger,
 			},
-			schema: modulesLoader.scope.schema,
+			schema: submodulesLoader.scope.schema,
 			channel: channelStub,
 			logic: {
 				transaction: transactionMock,
@@ -103,9 +103,9 @@ describe('multisignature', () => {
 		beforeEach(done => {
 			new Multisignature({
 				components: {
-					logger: modulesLoader.logger,
+					logger: submodulesLoader.logger,
 				},
-				schema: modulesLoader.scope.schema,
+				schema: submodulesLoader.scope.schema,
 				channel: channelStub,
 				logic: {
 					transaction: transactionMock,
@@ -117,13 +117,13 @@ describe('multisignature', () => {
 		});
 
 		it('should attach schema to __scope', async () =>
-			expect(__scope.schema).to.eql(modulesLoader.scope.schema));
+			expect(__scope.schema).to.eql(submodulesLoader.scope.schema));
 
 		it('should attach channel to __scope', async () =>
 			expect(__scope.channel).to.eql(channelStub));
 
 		it('should attach logger to __scope.components', async () =>
-			expect(__scope.components.logger).to.eql(modulesLoader.logger));
+			expect(__scope.components.logger).to.eql(submodulesLoader.logger));
 
 		it('should attach logic.transaction to __scope.logic', async () =>
 			expect(__scope.logic.transaction).to.eql(transactionMock));
@@ -150,12 +150,12 @@ describe('multisignature', () => {
 	});
 
 	describe('bind', () => {
-		describe('modules', () => {
+		describe('submodules', () => {
 			it('should assign accounts', async () => {
 				multisignature.bind(accountsMock);
-				const modules = Multisignature.__get__('__scope.modules');
+				const submodules = Multisignature.__get__('__scope.submodules');
 
-				return expect(modules).to.eql({
+				return expect(submodules).to.eql({
 					accounts: accountsMock,
 				});
 			});
@@ -577,12 +577,12 @@ describe('multisignature', () => {
 		describe('when __scope.logic.account.merge succeeds', () => {
 			describe('for every keysgroup member', () => {
 				validTransaction.asset.multisignature.keysgroup.forEach(member => {
-					it('should call modules.accounts.generateAddressByPublicKey', async () =>
+					it('should call submodules.accounts.generateAddressByPublicKey', async () =>
 						expect(accountsMock.generateAddressByPublicKey.callCount).to.equal(
 							validTransaction.asset.multisignature.keysgroup.length
 						));
 
-					it('should call __scope.modules.accounts.generateAddressByPublicKey with member.substring(1)', async () =>
+					it('should call __scope.submodules.accounts.generateAddressByPublicKey with member.substring(1)', async () =>
 						expect(
 							accountsMock.generateAddressByPublicKey.calledWith(
 								member.substring(1)
@@ -618,7 +618,7 @@ describe('multisignature', () => {
 								)
 							).to.be.true);
 
-						describe('when __scope.modules.accounts.setAccountAndGet fails', () => {
+						describe('when __scope.submodules.accounts.setAccountAndGet fails', () => {
 							beforeEach(done => {
 								accountsMock.setAccountAndGet = sinonSandbox
 									.stub()
@@ -637,7 +637,7 @@ describe('multisignature', () => {
 								));
 						});
 
-						describe('when __scope.modules.accounts.mergeAccountAndGet succeeds', () => {
+						describe('when __scope.submodules.accounts.mergeAccountAndGet succeeds', () => {
 							it('should call callback with error = null', async () =>
 								multisignature.applyConfirmed(
 									transaction,

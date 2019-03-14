@@ -20,7 +20,7 @@ const {
 	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../fixtures/accounts');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const application = require('../../../../common/application');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
@@ -173,16 +173,16 @@ describe('transaction', () => {
 	before(done => {
 		const transferTransaction = new Transfer({
 			components: {
-				logger: modulesLoader.scope.components.logger,
+				logger: submodulesLoader.scope.components.logger,
 			},
-			schema: modulesLoader.scope.schema,
+			schema: submodulesLoader.scope.schema,
 		});
 		application.init(
 			{ sandbox: { name: 'lisk_test_logic_transactions' } },
 			(_err, scope) => {
 				transactionLogic = scope.logic.transaction;
 				accountLogic = scope.logic.account;
-				accountModule = scope.modules.accounts;
+				accountModule = scope.submodules.accounts;
 				transferTransaction.bind(accountModule);
 				transactionLogic.attachAssetType(
 					TRANSACTION_TYPES.SEND,
@@ -1438,9 +1438,9 @@ describe('transaction', () => {
 				TRANSACTION_TYPES.VOTE,
 				new Vote({
 					components: {
-						logger: modulesLoader.logger,
+						logger: submodulesLoader.logger,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 					logic: {
 						account: accountLogic,
 						transaction: transactionLogic,
@@ -1455,9 +1455,9 @@ describe('transaction', () => {
 				TRANSACTION_TYPES.SEND,
 				new Transfer({
 					components: {
-						logger: modulesLoader.scope.components.logger,
+						logger: submodulesLoader.scope.components.logger,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Transfer);
@@ -1467,7 +1467,7 @@ describe('transaction', () => {
 			appliedLogic = transactionLogic.attachAssetType(
 				TRANSACTION_TYPES.DELEGATE,
 				new Delegate({
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Delegate);
@@ -1478,9 +1478,9 @@ describe('transaction', () => {
 				TRANSACTION_TYPES.SIGNATURE,
 				new Signature({
 					components: {
-						logger: modulesLoader.logger,
+						logger: submodulesLoader.logger,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Signature);
@@ -1491,10 +1491,10 @@ describe('transaction', () => {
 				TRANSACTION_TYPES.MULTI,
 				new Multisignature({
 					components: {
-						logger: modulesLoader.logger,
+						logger: submodulesLoader.logger,
 					},
 					logic: {},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Multisignature);
@@ -1505,10 +1505,10 @@ describe('transaction', () => {
 				TRANSACTION_TYPES.DAPP,
 				new Dapp({
 					components: {
-						storage: modulesLoader.storage,
-						logger: modulesLoader.logger,
+						storage: submodulesLoader.storage,
+						logger: submodulesLoader.logger,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(Dapp);
@@ -1519,9 +1519,9 @@ describe('transaction', () => {
 				TRANSACTION_TYPES.IN_TRANSFER,
 				new InTransfer({
 					components: {
-						storage: modulesLoader.storage,
+						storage: submodulesLoader.storage,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(InTransfer);
@@ -1532,10 +1532,10 @@ describe('transaction', () => {
 				TRANSACTION_TYPES.OUT_TRANSFER,
 				new OutTransfer({
 					components: {
-						storage: modulesLoader.storage,
-						logger: modulesLoader.logger,
+						storage: submodulesLoader.storage,
+						logger: submodulesLoader.logger,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				})
 			);
 			return expect(appliedLogic).to.be.an.instanceof(OutTransfer);

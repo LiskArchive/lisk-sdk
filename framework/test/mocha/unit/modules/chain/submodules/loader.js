@@ -30,9 +30,9 @@ describe('loader', () => {
 			{ sandbox: { name: 'lisk_test_unit_module_loader' } },
 			(err, scope) => {
 				library = scope;
-				loader_module = library.modules.loader;
-				__private = library.rewiredModules.loader.__get__('__private');
-				blocks_module = library.modules.blocks;
+				loader_module = library.submodules.loader;
+				__private = library.rewiredSubmodules.loader.__get__('__private');
+				blocks_module = library.submodules.blocks;
 				done(err);
 			}
 		);
@@ -52,7 +52,7 @@ describe('loader', () => {
 
 		beforeEach(done => {
 			getLastBlockStub = sinonSandbox
-				.stub(library.modules.blocks.lastBlock, 'get')
+				.stub(library.submodules.blocks.lastBlock, 'get')
 				.returns({ height: HEIGHT_TWO });
 			done();
 		});
@@ -132,11 +132,11 @@ describe('loader', () => {
 			channelStub = {
 				publish: sinonSandbox.stub(),
 			};
-			restoreLogger = library.rewiredModules.loader.__set__(
+			restoreLogger = library.rewiredSubmodules.loader.__set__(
 				'library.logger',
 				loggerStub
 			);
-			restoreChannel = library.rewiredModules.loader.__set__(
+			restoreChannel = library.rewiredSubmodules.loader.__set__(
 				'library.channel',
 				channelStub
 			);
@@ -154,7 +154,7 @@ describe('loader', () => {
 
 			beforeEach(async () => {
 				turnOn = false;
-				restoreSyncIntervalId = library.rewiredModules.loader.__set__(
+				restoreSyncIntervalId = library.rewiredSubmodules.loader.__set__(
 					'__private.syncIntervalId',
 					originalSyncIntervalId
 				);
@@ -181,12 +181,12 @@ describe('loader', () => {
 
 			beforeEach(async () => {
 				turnOn = true;
-				restoreSyncIntervalId = library.rewiredModules.loader.__set__(
+				restoreSyncIntervalId = library.rewiredSubmodules.loader.__set__(
 					'__private.syncIntervalId',
 					null
 				);
 				lastBlockGetStub = sinonSandbox
-					.stub(library.modules.blocks.lastBlock, 'get')
+					.stub(library.submodules.blocks.lastBlock, 'get')
 					.returns({ height: expectedBlockHeight });
 				__private.syncTrigger(turnOn);
 			});
@@ -271,7 +271,7 @@ describe('loader', () => {
 				components: {
 					cache: sinonSandbox.stub(),
 				},
-				modules: {
+				submodules: {
 					transactions: sinonSandbox.stub(),
 					blocks: { process: { loadBlocksOffset: loadBlocksOffsetStub } },
 					peers: sinonSandbox.stub(),
@@ -468,7 +468,7 @@ describe('loader', () => {
 				'getRandomPeerFromNetwork'
 			);
 			getLastBlockStub = sinonSandbox.stub(
-				library.modules.blocks.lastBlock,
+				library.submodules.blocks.lastBlock,
 				'get'
 			);
 			getCommonBlockStub = sinonSandbox.stub(

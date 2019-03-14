@@ -22,7 +22,7 @@ const definitions = require('../../schema/definitions');
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
 const __private = {};
-let modules;
+let submodules;
 let library;
 let self;
 
@@ -30,8 +30,8 @@ let self;
  * Main process logic. Allows process blocks. Initializes library.
  *
  * @class
- * @memberof modules.blocks
- * @see Parent: {@link modules.blocks}
+ * @memberof submodules.blocks
+ * @see Parent: {@link submodules.blocks}
  * @requires async
  * @requires lodash
  * @requires helpers/slots
@@ -94,9 +94,9 @@ __private.receiveBlock = function(block, cb) {
 	);
 
 	// Update last receipt
-	modules.blocks.lastReceipt.update();
+	submodules.blocks.lastReceipt.update();
 	// Start block processing - broadcast: true, saveBlock: true
-	modules.blocks.verify.processBlock(block, true, true, cb);
+	submodules.blocks.verify.processBlock(block, true, true, cb);
 };
 
 /**
@@ -111,7 +111,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 	let tmp_block = _.clone(block);
 
 	// Fork: Consecutive height but different previous block id
-	modules.delegates.fork(block, 1);
+	submodules.delegates.fork(block, 1);
 
 	// Keep the oldest block, or if both have same age, keep block with lower id
 	if (
@@ -137,7 +137,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 			},
 			// Check received block before any deletion
 			function(seriesCb) {
-				const check = modules.blocks.verify.verifyReceipt(tmp_block);
+				const check = submodules.blocks.verify.verifyReceipt(tmp_block);
 
 				if (!check.verified) {
 					library.logger.error(
@@ -151,8 +151,8 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 				return setImmediate(seriesCb);
 			},
 			// Delete last 2 blocks
-			modules.blocks.chain.deleteLastBlock,
-			modules.blocks.chain.deleteLastBlock,
+			submodules.blocks.chain.deleteLastBlock,
+			submodules.blocks.chain.deleteLastBlock,
 		],
 		err => {
 			if (err) {
@@ -175,7 +175,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
 
 	// Fork: Same height and previous block id, but different block id
-	modules.delegates.fork(block, 5);
+	submodules.delegates.fork(block, 5);
 
 	// Check if delegate forged on more than one node
 	if (block.generatorPublicKey === lastBlock.generatorPublicKey) {
@@ -209,7 +209,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 			},
 			// Check received block before any deletion
 			function(seriesCb) {
-				const check = modules.blocks.verify.verifyReceipt(tmpBlock);
+				const check = submodules.blocks.verify.verifyReceipt(tmpBlock);
 
 				if (!check.verified) {
 					library.logger.error(
@@ -224,7 +224,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 			// Delete last block
 			function(seriesCb) {
 				library.logger.info('Last block loses due to fork 5');
-				modules.blocks.chain.deleteLastBlock(seriesCb);
+				submodules.blocks.chain.deleteLastBlock(seriesCb);
 			},
 			// Process received block
 			function(seriesCb) {
@@ -258,7 +258,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 		[
 			function(waterCb) {
 				// Get IDs sequence (comma separated list)
-				modules.blocks.utils.getIdSequence(height, (err, res) =>
+				submodules.blocks.utils.getIdSequence(height, (err, res) =>
 					setImmediate(waterCb, err, res)
 				);
 			},
@@ -268,7 +268,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				peer = library.logic.peers.create(peer);
 				peer.rpc.blocksCommon({ ids }, (err, blocksCommonRes) => {
 					if (err) {
-						modules.peers.remove(peer);
+						submodules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
 
@@ -334,8 +334,8 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 		],
 		(err, res) => {
 			// If comparison failed and current consensus is low - perform chain recovery
-			if (comparisonFailed && modules.transport.poorConsensus()) {
-				return modules.blocks.chain.recoverChain(cb);
+			if (comparisonFailed && submodules.transport.poorConsensus()) {
+				return submodules.blocks.chain.recoverChain(cb);
 			}
 			return setImmediate(cb, err, res);
 		}
@@ -381,13 +381,13 @@ Process.prototype.loadBlocksOffset = function(
 	library.storage.entities.Block.get(filters, options)
 		.then(rows => {
 			// Normalize blocks
-			const blocks = modules.blocks.utils.readStorageRows(rows);
+			const blocks = submodules.blocks.utils.readStorageRows(rows);
 
 			async.eachSeries(
 				blocks,
 				(block, eachBlockSeriesCb) => {
 					// Stop processing if node shutdown was requested
-					if (modules.blocks.isCleaning.get()) {
+					if (submodules.blocks.isCleaning.get()) {
 						return setImmediate(eachBlockSeriesCb);
 					}
 
@@ -395,13 +395,13 @@ Process.prototype.loadBlocksOffset = function(
 
 					if (block.id === library.genesisBlock.block.id) {
 						// Apply block - saveBlock: false
-						return modules.blocks.chain.applyGenesisBlock(block, err =>
+						return submodules.blocks.chain.applyGenesisBlock(block, err =>
 							setImmediate(eachBlockSeriesCb, err)
 						);
 					}
 
 					// Process block - broadcast: false, saveBlock: false
-					return modules.blocks.verify.processBlock(
+					return submodules.blocks.verify.processBlock(
 						block,
 						false,
 						false,
@@ -418,7 +418,7 @@ Process.prototype.loadBlocksOffset = function(
 						}
 					);
 				},
-				err => setImmediate(cb, err, modules.blocks.lastBlock.get())
+				err => setImmediate(cb, err, submodules.blocks.lastBlock.get())
 			);
 		})
 		.catch(err => {
@@ -437,7 +437,7 @@ Process.prototype.loadBlocksOffset = function(
  * @returns {Object} cb.lastValidBlock - Normalized new last block
  */
 Process.prototype.loadBlocksFromPeer = function(peer, cb) {
-	let lastValidBlock = modules.blocks.lastBlock.get();
+	let lastValidBlock = submodules.blocks.lastBlock.get();
 
 	peer = library.logic.peers.create(peer);
 	library.logger.info(`Loading blocks from: ${peer.string}`);
@@ -448,7 +448,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 			(err, res) => {
 				err = err || res.error;
 				if (err) {
-					modules.peers.remove(peer);
+					submodules.peers.remove(peer);
 					return setImmediate(seriesCb, err);
 				}
 				return setImmediate(seriesCb, null, res.blocks);
@@ -472,9 +472,9 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 		}
 		// Iterate over received blocks, normalize block first...
 		return async.eachSeries(
-			modules.blocks.utils.readDbRows(blocks),
+			submodules.blocks.utils.readDbRows(blocks),
 			(block, eachSeriesCb) => {
-				if (modules.blocks.isCleaning.get()) {
+				if (submodules.blocks.isCleaning.get()) {
 					// Cancel processing if node shutdown was requested
 					return setImmediate(eachSeriesCb);
 				}
@@ -494,7 +494,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 	// Process single block
 	function processBlock(block, seriesCb) {
 		// Start block processing - broadcast: false, saveBlock: true
-		modules.blocks.verify.processBlock(block, false, true, err => {
+		submodules.blocks.verify.processBlock(block, false, true, err => {
 			if (!err) {
 				// Update last valid block
 				lastValidBlock = block;
@@ -539,7 +539,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
  */
 Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
-	const transactions = modules.transactions.getUnconfirmedTransactionList(
+	const transactions = submodules.transactions.getUnconfirmedTransactionList(
 		false,
 		MAX_TRANSACTIONS_PER_BLOCK
 	);
@@ -548,7 +548,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	async.eachSeries(
 		transactions,
 		(transaction, eachSeriesCb) => {
-			modules.accounts.getAccount(
+			submodules.accounts.getAccount(
 				{ publicKey: transaction.senderPublicKey },
 				(err, sender) => {
 					if (err || !sender) {
@@ -587,7 +587,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 				block = library.logic.block.create({
 					keypair,
 					timestamp,
-					previousBlock: modules.blocks.lastBlock.get(),
+					previousBlock: submodules.blocks.lastBlock.get(),
 					transactions: ready,
 				});
 			} catch (e) {
@@ -596,7 +596,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 			}
 
 			// Start block processing - broadcast: true, saveBlock: true
-			return modules.blocks.verify.processBlock(block, true, true, cb);
+			return submodules.blocks.verify.processBlock(block, true, true, cb);
 		}
 	);
 };
@@ -620,13 +620,13 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
 	) {
 		// Check if block was generated by the right active delagate from previous round.
 		// DATABASE: Read only to mem_accounts to extract active delegate list
-		modules.delegates.validateBlockSlotAgainstPreviousRound(block, err =>
+		submodules.delegates.validateBlockSlotAgainstPreviousRound(block, err =>
 			setImmediate(cb, err)
 		);
 	} else {
 		// Check if block was generated by the right active delagate.
 		// DATABASE: Read only to mem_accounts to extract active delegate list
-		modules.delegates.validateBlockSlot(block, err => setImmediate(cb, err));
+		submodules.delegates.validateBlockSlot(block, err => setImmediate(cb, err));
 	}
 };
 
@@ -647,7 +647,7 @@ Process.prototype.onReceiveBlock = function(block) {
 		);
 	}
 
-	if (modules.loader.syncing()) {
+	if (submodules.loader.syncing()) {
 		return library.logger.debug(
 			"Client is syncing. Can't receive block at the moment.",
 			block.id
@@ -657,7 +657,7 @@ Process.prototype.onReceiveBlock = function(block) {
 	// Execute in sequence via sequence
 	return library.sequence.add(cb => {
 		// Get the last block
-		const lastBlock = modules.blocks.lastBlock.get();
+		const lastBlock = submodules.blocks.lastBlock.get();
 
 		// Detect sane block
 		if (
@@ -705,7 +705,7 @@ Process.prototype.onReceiveBlock = function(block) {
 };
 
 /**
- * Handle modules initialization
+ * Handle submodules initialization
  * - accounts
  * - blocks
  * - delegates
@@ -714,22 +714,22 @@ Process.prototype.onReceiveBlock = function(block) {
  * - transactions
  * - transport
  *
- * @param {modules} scope - Exposed modules
+ * @param {submodules} scope - Exposed submodules
  */
 Process.prototype.onBind = function(scope) {
-	library.logger.trace('Blocks->Process: Shared modules bind.');
-	modules = {
-		accounts: scope.modules.accounts,
-		blocks: scope.modules.blocks,
-		delegates: scope.modules.delegates,
-		loader: scope.modules.loader,
-		peers: scope.modules.peers,
-		rounds: scope.modules.rounds,
-		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
+	library.logger.trace('Blocks->Process: Shared submodules bind.');
+	submodules = {
+		accounts: scope.submodules.accounts,
+		blocks: scope.submodules.blocks,
+		delegates: scope.submodules.delegates,
+		loader: scope.submodules.loader,
+		peers: scope.submodules.peers,
+		rounds: scope.submodules.rounds,
+		transactions: scope.submodules.transactions,
+		transport: scope.submodules.transport,
 	};
 
-	// Set module as loaded
+	// Set submodule as loaded
 	__private.loaded = true;
 };
 

@@ -24,7 +24,7 @@ const generateRandomActivePeer = require('../../../../fixtures/peers')
 const jobsQueue = require('../../../../../../src/modules/chain/helpers/jobs_queue');
 const generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers')
 	.generateMatchedAndUnmatchedBroadhashes;
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const random = require('../../../../common/utils/random');
 
 const { MAX_PEERS } = __testContext.config.constants;
@@ -38,7 +38,7 @@ describe('peers', () => {
 
 	let peersLogicMock;
 	let systemComponentMock;
-	let transportModuleMock;
+	let transportSubmoduleMock;
 	let scope;
 
 	const NONCE = randomstring.generate(16);
@@ -68,10 +68,10 @@ describe('peers', () => {
 		systemComponentMock = {
 			headers: {},
 		};
-		transportModuleMock = {};
+		transportSubmoduleMock = {};
 		bindings = {
-			modules: {
-				transport: transportModuleMock,
+			submodules: {
+				transport: transportSubmoduleMock,
 			},
 
 			components: {
@@ -85,7 +85,7 @@ describe('peers', () => {
 				logic: { peers: peersLogicMock },
 				components: { storage: storageMock },
 			},
-			modulesLoader.scope
+			submodulesLoader.scope
 		);
 
 		new PeersRewired((err, peersModule) => {

@@ -168,12 +168,12 @@ describe('helpers/jobsQueue', () => {
 				}).to.throw('Synchronous job job4 already registered');
 			});
 
-			it('should use same instance when required in different module (because of modules cache)', async () => {
+			it('should use same instance when required in different submodule (because of cache)', async () => {
 				const jobsQueuePeers = peers.__get__('jobsQueue');
 				// Instances should be the same
 				expect(jobsQueuePeers).to.equal(jobsQueue);
 
-				// Register new job in peers module
+				// Register new job in peers submodule
 				const name = 'job5';
 				const spy = sinonSandbox.spy(dummyFunction);
 				const job = jobsQueuePeers.register(name, spy, recallInterval);

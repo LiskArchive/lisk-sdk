@@ -34,10 +34,10 @@ describe('delegates', () => {
 			{ sandbox: { name: 'lisk_test_modules_delegates' } },
 			(err, scope) => {
 				library = scope;
-				// Set delegates module as loaded to allow manual forging
-				library.rewiredModules.delegates.__set__('__private.loaded', true);
+				// Set delegates submodule as loaded to allow manual forging
+				library.rewiredSubmodules.delegates.__set__('__private.loaded', true);
 				// Load forging delegates
-				library.rewiredModules.delegates.__get__('__private');
+				library.rewiredSubmodules.delegates.__get__('__private');
 				defaultPassword = library.config.forging.defaultPassword;
 				done(err);
 			}
@@ -66,7 +66,7 @@ describe('delegates', () => {
 				.stub(library.components.storage.entities.Account, 'insertFork')
 				.resolves();
 			sinonSandbox.stub(library.channel, 'publish').resolves();
-			library.modules.delegates.fork(dummyBlock, cause);
+			library.submodules.delegates.fork(dummyBlock, cause);
 		});
 
 		it('should call library.channel.publish with "chain:delegates:fork"', async () => {
@@ -78,7 +78,7 @@ describe('delegates', () => {
 				previousBlockId: dummyBlock.previousBlock,
 				cause,
 			};
-			const channel = library.rewiredModules.delegates.__get__(
+			const channel = library.rewiredSubmodules.delegates.__get__(
 				'library.channel'
 			);
 			expect(channel.publish).to.be.calledWithExactly(
@@ -92,11 +92,11 @@ describe('delegates', () => {
 		let __private;
 
 		beforeEach(async () => {
-			__private = library.rewiredModules.delegates.__get__('__private');
+			__private = library.rewiredSubmodules.delegates.__get__('__private');
 		});
 
 		it('should return error with invalid password', done => {
-			library.modules.delegates.updateForgingStatus(
+			library.submodules.delegates.updateForgingStatus(
 				testDelegate.publicKey,
 				'Invalid password',
 				true,
@@ -111,7 +111,7 @@ describe('delegates', () => {
 			const invalidPublicKey =
 				'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 
-			library.modules.delegates.updateForgingStatus(
+			library.submodules.delegates.updateForgingStatus(
 				invalidPublicKey,
 				defaultPassword,
 				true,
@@ -125,7 +125,7 @@ describe('delegates', () => {
 		});
 
 		it('should return error with non delegate account', done => {
-			library.modules.delegates.updateForgingStatus(
+			library.submodules.delegates.updateForgingStatus(
 				accountFixtures.genesis.publicKey,
 				accountFixtures.genesis.password,
 				true,
@@ -139,7 +139,7 @@ describe('delegates', () => {
 		});
 
 		it('should update forging from enabled to disabled', done => {
-			library.modules.accounts.getAccount(
+			library.submodules.accounts.getAccount(
 				{ publicKey: testDelegate.publicKey },
 				(err, account) => {
 					expect(err).to.be.null;
@@ -147,7 +147,7 @@ describe('delegates', () => {
 						.undefined;
 					expect(account.publicKey).to.equal(testDelegate.publicKey);
 
-					library.modules.delegates.updateForgingStatus(
+					library.submodules.delegates.updateForgingStatus(
 						testDelegate.publicKey,
 						testDelegate.password,
 						false,
@@ -164,14 +164,14 @@ describe('delegates', () => {
 		});
 
 		it('should update forging from disabled to enabled', done => {
-			library.modules.accounts.getAccount(
+			library.submodules.accounts.getAccount(
 				{ publicKey: testDelegate.publicKey },
 				(err, account) => {
 					expect(err).to.be.null;
 					expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
 					expect(account.publicKey).to.equal(testDelegate.publicKey);
 
-					library.modules.delegates.updateForgingStatus(
+					library.submodules.delegates.updateForgingStatus(
 						testDelegate.publicKey,
 						testDelegate.password,
 						true,
@@ -194,7 +194,7 @@ describe('delegates', () => {
 		let originalExceptions;
 		const dummyDelegateList = ['x', 'y', 'z'];
 		beforeEach(done => {
-			__private = library.rewiredModules.delegates.__get__('__private');
+			__private = library.rewiredSubmodules.delegates.__get__('__private');
 			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
 			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
 			done();
@@ -213,7 +213,7 @@ describe('delegates', () => {
 			__private.delegatesListCache = { ...initialSate };
 
 			// Act
-			library.modules.delegates.generateDelegateList(
+			library.submodules.delegates.generateDelegateList(
 				1,
 				sourceStub,
 				(err, delegateList) => {
@@ -233,7 +233,7 @@ describe('delegates', () => {
 			__private.delegatesListCache = { ...initialSate };
 
 			// Act
-			library.modules.delegates.generateDelegateList(
+			library.submodules.delegates.generateDelegateList(
 				2,
 				sourceStub,
 				(err, delegateList) => {
@@ -254,7 +254,7 @@ describe('delegates', () => {
 			const shuffledDummyDelegateList = ['y', 'z', 'x'];
 
 			// Act
-			library.modules.delegates.generateDelegateList(
+			library.submodules.delegates.generateDelegateList(
 				2,
 				sourceStub,
 				(err, delegateList) => {
@@ -277,7 +277,7 @@ describe('delegates', () => {
 			exceptions.ignoreDelegateListCacheForRounds.push(666);
 
 			// Act
-			library.modules.delegates.generateDelegateList(
+			library.submodules.delegates.generateDelegateList(
 				666,
 				sourceStub,
 				(err, delegateList) => {
@@ -319,11 +319,11 @@ describe('delegates', () => {
 			];
 
 			before(done => {
-				loadDelegates = library.rewiredModules.delegates.__get__(
+				loadDelegates = library.rewiredSubmodules.delegates.__get__(
 					'__private.loadDelegates'
 				);
-				config = library.rewiredModules.delegates.__get__('library.config');
-				__private = library.rewiredModules.delegates.__get__('__private');
+				config = library.rewiredSubmodules.delegates.__get__('library.config');
+				__private = library.rewiredSubmodules.delegates.__get__('__private');
 				done();
 			});
 
@@ -764,8 +764,8 @@ describe('delegates', () => {
 			let genesis3Keypair;
 
 			before(done => {
-				delegates = library.rewiredModules.delegates.__get__('self');
-				__private = library.rewiredModules.delegates.__get__('__private');
+				delegates = library.rewiredSubmodules.delegates.__get__('self');
+				__private = library.rewiredSubmodules.delegates.__get__('__private');
 
 				genesis1Keypair = getPrivateAndPublicKeyFromPassphrase(
 					genesis1.passphrase
@@ -911,7 +911,7 @@ describe('delegates', () => {
 		describe('__private.delegatesListCache operations', () => {
 			let __private;
 			beforeEach(done => {
-				__private = library.rewiredModules.delegates.__get__('__private');
+				__private = library.rewiredSubmodules.delegates.__get__('__private');
 				done();
 			});
 
@@ -1013,7 +1013,7 @@ describe('delegates', () => {
 					__private.delegatesListCache = { ...initialSate };
 
 					// Act
-					library.modules.delegates.clearDelegateListCache();
+					library.submodules.delegates.clearDelegateListCache();
 
 					// Assert
 					return expect(__private.delegatesListCache).to.deep.equal({});
@@ -1024,7 +1024,7 @@ describe('delegates', () => {
 					__private.delegatesListCache = {};
 
 					// Act
-					library.modules.delegates.clearDelegateListCache();
+					library.submodules.delegates.clearDelegateListCache();
 
 					// Assert
 					return expect(__private.delegatesListCache).to.deep.equal({});

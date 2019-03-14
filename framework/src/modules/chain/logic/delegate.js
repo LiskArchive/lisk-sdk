@@ -31,8 +31,8 @@ const __scope = {};
  * @see Parent: {@link logic}
  * @requires async
  * @param {Object} scope
- * @param {Object} scope.modules
- * @param {Accounts} scope.modules.accounts
+ * @param {Object} scope.submodules
+ * @param {Accounts} scope.submodules.accounts
  * @param {ZSchema} scope.schema
  * @todo Add description for the params
  */
@@ -40,21 +40,21 @@ class Delegate {
 	constructor({ schema }) {
 		self = this;
 		__scope.schema = schema;
-		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
+		// TODO: Add submodules to contructor argument and assign accounts to __scope.submodules.accounts
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
- * Binds input parameters to private variables modules.
+ * Binds input parameters to private variables submodules.
  *
  * @param {Accounts} accounts
  * @todo Add description for the params
  */
-// TODO: Remove this method as modules will be loaded prior to trs logic.
+// TODO: Remove this method as submodules will be loaded prior to trs logic.
 Delegate.prototype.bind = function(accounts) {
-	__scope.modules = {
+	__scope.submodules = {
 		accounts,
 	};
 };
@@ -70,7 +70,7 @@ Delegate.prototype.calculateFee = function() {
 };
 
 /**
- * Verifies fields from transaction and sender, calls modules.accounts.getAccount().
+ * Verifies fields from transaction and sender, calls submodules.accounts.getAccount().
  *
  * @param {transaction} transaction
  * @param {account} sender
@@ -203,7 +203,7 @@ Delegate.prototype.checkDuplicates = function(
 				const query = {};
 				query[isDelegate] = true;
 				query.publicKey = transaction.senderPublicKey;
-				return __scope.modules.accounts.getAccount(
+				return __scope.submodules.accounts.getAccount(
 					query,
 					[username],
 					eachCb,
@@ -213,7 +213,7 @@ Delegate.prototype.checkDuplicates = function(
 			duplicatedUsername(eachCb) {
 				const query = {};
 				query[username] = transaction.asset.delegate.username;
-				return __scope.modules.accounts.getAccount(
+				return __scope.submodules.accounts.getAccount(
 					query,
 					[username],
 					eachCb,
@@ -274,7 +274,7 @@ Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with username.
+ * Checks transaction delegate and calls submodules.accounts.setAccountAndGet() with username.
  *
  * @param {transaction} transaction
  * @param {block} block
@@ -304,7 +304,7 @@ Delegate.prototype.applyConfirmed = function(
 				self.checkConfirmed(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				__scope.modules.accounts.setAccountAndGet(data, seriesCb, tx);
+				__scope.submodules.accounts.setAccountAndGet(data, seriesCb, tx);
 			},
 		],
 		cb
@@ -312,7 +312,7 @@ Delegate.prototype.applyConfirmed = function(
 };
 
 /**
- * Checks transaction delegate and no nameexist and calls modules.accounts.setAccountAndGet() with u_username.
+ * Checks transaction delegate and no nameexist and calls submodules.accounts.setAccountAndGet() with u_username.
  *
  * @param {transaction} transaction
  * @param {block} block
@@ -335,11 +335,11 @@ Delegate.prototype.undoConfirmed = function(
 		username: null,
 	};
 
-	__scope.modules.accounts.setAccountAndGet(data, cb, tx);
+	__scope.submodules.accounts.setAccountAndGet(data, cb, tx);
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with u_username.
+ * Checks transaction delegate and calls submodules.accounts.setAccountAndGet() with u_username.
  *
  * @param {transaction} transaction
  * @param {account} sender
@@ -360,7 +360,7 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 				self.checkUnconfirmed(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				__scope.modules.accounts.setAccountAndGet(data, seriesCb, tx);
+				__scope.submodules.accounts.setAccountAndGet(data, seriesCb, tx);
 			},
 		],
 		cb
@@ -368,7 +368,7 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 };
 
 /**
- * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with username and u_username both null.
+ * Checks transaction delegate and calls submodules.accounts.setAccountAndGet() with username and u_username both null.
  *
  * @param {transaction} transaction
  * @param {account} sender
@@ -382,7 +382,7 @@ Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 		u_username: null,
 	};
 
-	__scope.modules.accounts.setAccountAndGet(data, cb, tx);
+	__scope.submodules.accounts.setAccountAndGet(data, cb, tx);
 };
 
 Delegate.prototype.schema = {

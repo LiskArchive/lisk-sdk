@@ -1,3 +1,3 @@
 /**
- * @namespace modules
+ * @namespace submodules
  */

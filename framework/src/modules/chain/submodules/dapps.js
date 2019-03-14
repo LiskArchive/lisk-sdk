@@ -21,7 +21,7 @@ const OutTransfer = require('../logic/out_transfer');
 const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
-let modules;
+let submodules;
 let library;
 let self;
 const __private = {};
@@ -40,8 +40,8 @@ __private.assetTypes = {};
  * Listens for an `exit` signal.
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires logic/dapp
  * @requires helpers/in_transfer
  * @requires helpers/out_transfer
@@ -122,37 +122,37 @@ class DApps {
 
 // Events
 /**
- * Bounds used scope modules to private modules constant and sets params
+ * Bounds used scope submodules to private submodules constant and sets params
  * to private Dapp, InTransfer and OutTransfer instances.
  *
- * @param {Object} scope - Loaded modules
+ * @param {Object} scope - Loaded submodules
  */
 DApps.prototype.onBind = function(scope) {
-	modules = {
-		transactions: scope.modules.transactions,
-		accounts: scope.modules.accounts,
-		peers: scope.modules.peers,
-		sql: scope.modules.sql,
+	submodules = {
+		transactions: scope.submodules.transactions,
+		accounts: scope.submodules.accounts,
+		peers: scope.submodules.peers,
+		sql: scope.submodules.sql,
 	};
 
 	__private.assetTypes[TRANSACTION_TYPES.IN_TRANSFER].bind(
-		scope.modules.accounts,
+		scope.submodules.accounts,
 		shared
 	);
 
 	__private.assetTypes[TRANSACTION_TYPES.OUT_TRANSFER].bind(
-		scope.modules.accounts,
-		scope.modules.dapps
+		scope.submodules.accounts,
+		scope.submodules.dapps
 	);
 };
 
 /**
- * Checks if `modules` is loaded.
+ * Checks if `submodules` is loaded.
  *
- * @returns {boolean} True if `modules` is loaded.
+ * @returns {boolean} True if `submodules` is loaded.
  */
 DApps.prototype.isLoaded = function() {
-	return !!modules;
+	return !!submodules;
 };
 
 // Shared API

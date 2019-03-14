@@ -33,7 +33,7 @@ describe('blocks/verify', () => {
 	let configMock;
 	let blocksVerifyModule;
 	let bindingsStub;
-	let modules;
+	let submodules;
 	let components;
 
 	beforeEach(done => {
@@ -123,7 +123,7 @@ describe('blocks/verify', () => {
 		};
 
 		bindingsStub = {
-			modules: {
+			submodules: {
 				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
@@ -137,7 +137,7 @@ describe('blocks/verify', () => {
 		};
 
 		blocksVerifyModule.onBind(bindingsStub);
-		modules = BlocksVerify.__get__('modules');
+		submodules = BlocksVerify.__get__('submodules');
 		components = BlocksVerify.__get__('components');
 		done();
 	});
@@ -194,9 +194,9 @@ describe('blocks/verify', () => {
 		describe('when library.logic.transaction.getId succeeds', () => {
 			beforeEach(() => library.logic.transaction.getId.returns('4'));
 
-			describe('when modules.accounts.getAccount fails', () => {
+			describe('when submodules.accounts.getAccount fails', () => {
 				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
+					submodules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
 				);
 
 				it('should call a callback with error', done => {
@@ -212,9 +212,9 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('when modules.accounts.getAccount succeeds', () => {
+			describe('when submodules.accounts.getAccount succeeds', () => {
 				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, null, true)
+					submodules.accounts.getAccount.callsArgWith(1, null, true)
 				);
 
 				describe('when library.logic.transaction.verify succeeds', () => {
@@ -259,9 +259,12 @@ describe('blocks/verify', () => {
 								'Transaction is already confirmed',
 								null
 							);
-							modules.delegates.fork.returns();
-							modules.transactions.removeUnconfirmedTransaction.returns();
-							return modules.transactions.undoUnconfirmed.callsArgWith(1, null);
+							submodules.delegates.fork.returns();
+							submodules.transactions.removeUnconfirmedTransaction.returns();
+							return submodules.transactions.undoUnconfirmed.callsArgWith(
+								1,
+								null
+							);
 						});
 
 						it('should log the fork 2 entry', done => {
@@ -271,8 +274,8 @@ describe('blocks/verify', () => {
 								true,
 								err => {
 									expect(err).to.equal('Transaction is already confirmed');
-									expect(modules.delegates.fork).to.be.calledOnce;
-									expect(modules.delegates.fork).to.be.calledWithExactly(
+									expect(submodules.delegates.fork).to.be.calledOnce;
+									expect(submodules.delegates.fork).to.be.calledWithExactly(
 										dummyBlock,
 										2
 									);
@@ -288,14 +291,15 @@ describe('blocks/verify', () => {
 								true,
 								err => {
 									expect(err).to.equal('Transaction is already confirmed');
-									expect(modules.transactions.undoUnconfirmed).to.be.calledOnce;
+									expect(submodules.transactions.undoUnconfirmed).to.be
+										.calledOnce;
 									expect(
-										modules.transactions.undoUnconfirmed.firstCall.args[0]
+										submodules.transactions.undoUnconfirmed.firstCall.args[0]
 									).to.be.eql(dummyTransaction);
-									expect(modules.transactions.removeUnconfirmedTransaction).to
-										.be.calledOnce;
+									expect(submodules.transactions.removeUnconfirmedTransaction)
+										.to.be.calledOnce;
 									expect(
-										modules.transactions.removeUnconfirmedTransaction
+										submodules.transactions.removeUnconfirmedTransaction
 									).to.be.calledWithExactly(dummyTransaction.id);
 									done();
 								}
@@ -900,9 +904,9 @@ describe('blocks/verify', () => {
 		describe('when __private.verifyForkOne fails', () => {
 			describe('when block.previousBlock && block.previousBlock != lastBlock.id', () => {
 				afterEach(() => {
-					expect(modules.delegates.fork.calledOnce).to.be.true;
-					expect(modules.delegates.fork.args[0][0]).to.deep.equal(block);
-					return expect(modules.delegates.fork.args[0][1]).to.equal(1);
+					expect(submodules.delegates.fork.calledOnce).to.be.true;
+					expect(submodules.delegates.fork.args[0][0]).to.deep.equal(block);
+					return expect(submodules.delegates.fork.args[0][1]).to.equal(1);
 				});
 
 				it('should return error', async () => {
@@ -921,7 +925,7 @@ describe('blocks/verify', () => {
 		describe('when __private.verifyForkOne succeeds', () => {
 			describe('when block.previousBlock = undefined', () => {
 				afterEach(
-					async () => expect(modules.delegates.fork.calledOnce).to.be.false
+					async () => expect(submodules.delegates.fork.calledOnce).to.be.false
 				);
 
 				it('should return no error', async () => {
@@ -936,7 +940,7 @@ describe('blocks/verify', () => {
 
 			describe('when block.previousBlock = lastBlock.id', () => {
 				afterEach(
-					async () => expect(modules.delegates.fork.calledOnce).to.be.false
+					async () => expect(submodules.delegates.fork.calledOnce).to.be.false
 				);
 
 				it('should return no error', async () => {
@@ -1097,12 +1101,12 @@ describe('blocks/verify', () => {
 			__private.verifyPayload = sinonSandbox
 				.stub()
 				.returns({ verified: false, errors: [] });
-			modules.blocks.lastBlock.get.returns(dummylastBlock);
+			submodules.blocks.lastBlock.get.returns(dummylastBlock);
 			done();
 		});
 
 		afterEach(done => {
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(submodules.blocks.lastBlock.get.calledOnce).to.be.true;
 			expect(__private.setHeight).to.have.been.calledWith(
 				dummyBlock,
 				dummylastBlock
@@ -1228,7 +1232,7 @@ describe('blocks/verify', () => {
 		const dummylastBlock = { id: 4 };
 
 		beforeEach(done => {
-			modules.blocks.lastBlock.get.returns(dummylastBlock);
+			submodules.blocks.lastBlock.get.returns(dummylastBlock);
 			privateTemp = __private;
 			__private.setHeight = sinonSandbox.stub().returns(dummyBlock);
 			__private.verifySignature = sinonSandbox
@@ -1259,7 +1263,7 @@ describe('blocks/verify', () => {
 		});
 
 		afterEach(done => {
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(submodules.blocks.lastBlock.get.calledOnce).to.be.true;
 			expect(__private.setHeight).to.have.been.calledWith(
 				dummyBlock,
 				dummylastBlock
@@ -1763,8 +1767,8 @@ describe('blocks/verify', () => {
 
 				afterEach(
 					async () =>
-						expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
-							.false
+						expect(submodules.blocks.chain.broadcastReducedBlock.calledOnce).to
+							.be.false
 				);
 
 				it('should call a callback with error', done => {
@@ -1781,10 +1785,10 @@ describe('blocks/verify', () => {
 				);
 
 				afterEach(() => {
-					expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
+					expect(submodules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
 						.true;
 					return expect(
-						modules.blocks.chain.broadcastReducedBlock
+						submodules.blocks.chain.broadcastReducedBlock
 					).to.have.been.calledWith(dummyBlockReduced, true);
 				});
 
@@ -1800,8 +1804,8 @@ describe('blocks/verify', () => {
 		describe('when broadcast = false', () => {
 			afterEach(() => {
 				expect(blocksVerifyModule.deleteBlockProperties.calledOnce).to.be.false;
-				return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to
-					.be.false;
+				return expect(submodules.blocks.chain.broadcastReducedBlock.calledOnce)
+					.to.be.false;
 			});
 
 			it('should call a callback with no error', done => {
@@ -1865,9 +1869,9 @@ describe('blocks/verify', () => {
 	describe('__private.validateBlockSlot', () => {
 		const dummyBlock = { id: 1 };
 
-		describe('when modules.delegates.validateBlockSlot fails', () => {
+		describe('when submodules.delegates.validateBlockSlot fails', () => {
 			beforeEach(() =>
-				modules.delegates.validateBlockSlot.callsArgWith(
+				submodules.delegates.validateBlockSlot.callsArgWith(
 					1,
 					'validateBlockSlot-ERR',
 					null
@@ -1875,8 +1879,8 @@ describe('blocks/verify', () => {
 			);
 
 			afterEach(() => {
-				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
-				return expect(modules.delegates.fork).calledWith(dummyBlock, 3);
+				expect(submodules.delegates.validateBlockSlot).calledWith(dummyBlock);
+				return expect(submodules.delegates.fork).calledWith(dummyBlock, 3);
 			});
 
 			it('should call a callback with error', done => {
@@ -1887,14 +1891,14 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when modules.delegates.validateBlockSlot succeeds', () => {
+		describe('when submodules.delegates.validateBlockSlot succeeds', () => {
 			beforeEach(() =>
-				modules.delegates.validateBlockSlot.callsArgWith(1, null, true)
+				submodules.delegates.validateBlockSlot.callsArgWith(1, null, true)
 			);
 
 			afterEach(() => {
-				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
-				return expect(modules.delegates.fork.calledOnce).to.be.false;
+				expect(submodules.delegates.validateBlockSlot).calledWith(dummyBlock);
+				return expect(submodules.delegates.fork.calledOnce).to.be.false;
 			});
 
 			it('should call a callback with no error', done => {
@@ -1996,17 +2000,17 @@ describe('blocks/verify', () => {
 			__private.checkTransactions = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, true);
-			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
+			submodules.blocks.chain.applyBlock.callsArgWith(2, null, true);
 			__private.broadcastBlock = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, true);
 			components.system.update.resolves();
-			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
+			submodules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
 		afterEach(done => {
-			expect(modules.blocks.isCleaning.get.calledOnce).to.be.true;
+			expect(submodules.blocks.isCleaning.get.calledOnce).to.be.true;
 			expect(__private.addBlockProperties).to.have.been.calledWith(
 				dummyBlock,
 				broadcast
@@ -2019,7 +2023,7 @@ describe('blocks/verify', () => {
 			);
 			expect(__private.validateBlockSlot).to.have.been.calledWith(dummyBlock);
 			expect(__private.checkTransactions).to.have.been.calledWith(dummyBlock);
-			expect(modules.blocks.chain.applyBlock).to.have.been.calledWith(
+			expect(submodules.blocks.chain.applyBlock).to.have.been.calledWith(
 				dummyBlock,
 				saveBlock
 			);
@@ -2076,7 +2080,8 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
+							expect(submodules.transport.broadcastHeaders.calledOnce).to.be
+								.true;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
 						}
@@ -2094,7 +2099,8 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
+							expect(submodules.transport.broadcastHeaders.calledOnce).to.be
+								.true;
 							expect(__private.checkExists).to.not.called;
 							done();
 						}
@@ -2114,7 +2120,8 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
+							expect(submodules.transport.broadcastHeaders.calledOnce).to.be
+								.false;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
 						}
@@ -2132,7 +2139,8 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
+							expect(submodules.transport.broadcastHeaders.calledOnce).to.be
+								.false;
 							expect(__private.checkExists).to.not.called;
 							done();
 						}
@@ -2159,9 +2167,9 @@ describe('blocks/verify', () => {
 								__private.checkExists,
 								__private.validateBlockSlot,
 								__private.checkTransactions,
-								modules.blocks.chain.applyBlock,
+								submodules.blocks.chain.applyBlock,
 								components.system.update,
-								modules.transport.broadcastHeaders
+								submodules.transport.broadcastHeaders
 							);
 
 							done();
@@ -2180,18 +2188,20 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		it('should call library.logger.trace with "Blocks->Verify: Shared modules bind."', async () =>
+		it('should call library.logger.trace with "Blocks->Verify: Shared submodules bind."', async () =>
 			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Verify: Shared modules bind.'
+				'Blocks->Verify: Shared submodules bind.'
 			));
 
-		it('should assign params to modules', done => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
-			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
-			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
+		it('should assign params to submodules', done => {
+			expect(submodules.accounts).to.equal(bindingsStub.submodules.accounts);
+			expect(submodules.blocks).to.equal(bindingsStub.submodules.blocks);
+			expect(submodules.delegates).to.equal(bindingsStub.submodules.delegates);
+			expect(submodules.transactions).to.equal(
+				bindingsStub.submodules.transactions
+			);
 			expect(components.system).to.equal(bindingsStub.components.system);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
+			expect(submodules.transport).to.equal(bindingsStub.submodules.transport);
 			done();
 		});
 

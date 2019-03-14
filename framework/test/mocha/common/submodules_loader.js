@@ -26,7 +26,7 @@ const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Transaction = require('../../../src/modules/chain/logic/transaction');
 const Account = require('../../../src/modules/chain/logic/account');
 
-const modulesLoader = new function() {
+const submodulesLoader = new function() {
 	this.storage = null;
 	this.logger = createLoggerComponent({
 		echo: null,
@@ -166,27 +166,27 @@ const modulesLoader = new function() {
 	};
 
 	/**
-	 * Initializes Module class with params
+	 * Initializes submodule class with params
 	 *
-	 * @param {function} Module
+	 * @param {function} Submodule
 	 * @param {Object} scope
 	 * @param {function} cb
 	 */
-	this.initModule = function(Module, scope, cb) {
+	this.initSubmodule = function(Submodule, scope, cb) {
 		jobsQueue.jobs = {};
 		scope = _.defaultsDeep(scope, this.scope);
-		return new Module(cb, scope);
+		return new Submodule(cb, scope);
 	};
 
 	/**
-	 * Initializes multiple Modules
+	 * Initializes multiple submodules
 	 *
-	 * @param {Array<{name: Module}>} modules
+	 * @param {Array<{name: Submodule}>} submodules
 	 * @param {Array<{name: Logic}>} logic
 	 * @param {Object>} scope
 	 * @param {function} cb
 	 */
-	this.initModules = function(modules, logics, scope, cb) {
+	this.initSubmodules = function(submodules, logics, scope, cb) {
 		scope = _.defaultsDeep(scope, this.scope);
 		async.waterfall(
 			[
@@ -213,29 +213,33 @@ const modulesLoader = new function() {
 						logic,
 					});
 					async.reduce(
-						modules,
+						submodules,
 						{},
-						(memo, moduleObj, mapCb) => {
-							const name = _.keys(moduleObj)[0];
-							return this.initModule(moduleObj[name], scope, (err, module) => {
-								memo[name] = module;
-								return mapCb(err, memo);
-							});
+						(memo, submoduleObj, mapCb) => {
+							const name = _.keys(submoduleObj)[0];
+							return this.initSubmodule(
+								submoduleObj[name],
+								scope,
+								(err, submodule) => {
+									memo[name] = submodule;
+									return mapCb(err, memo);
+								}
+							);
 						},
 						waterCb
 					);
 				}.bind(this),
 
-				function(modules1, waterCb) {
+				function(submodules1, waterCb) {
 					_.each(scope.logic, logic => {
 						if (typeof logics.bind === 'function') {
-							logic.bind({ modules });
+							logic.bind({ submodules });
 						}
-						if (typeof logic.bindModules === 'function') {
-							logic.bindModules(modules);
+						if (typeof logic.bindSubmodules === 'function') {
+							logic.bindSubmodules(submodules);
 						}
 					});
-					waterCb(null, modules1);
+					waterCb(null, submodules1);
 				},
 			],
 			cb
@@ -243,13 +247,13 @@ const modulesLoader = new function() {
 	};
 
 	/**
-	 * Initializes all created Modules in directory
+	 * Initializes all created Submodules in directory
 	 *
 	 * @param {function} cb
 	 * @param {Object} [scope={}] scope
 	 */
-	this.initAllModules = function(cb, scope) {
-		this.initModules(
+	this.initAllSubmodules = function(cb, scope) {
+		this.initSubmodules(
 			[
 				{ accounts: require('../../../src/modules/chain/submodules/accounts') },
 				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
@@ -286,4 +290,4 @@ const modulesLoader = new function() {
 	};
 }();
 
-module.exports = modulesLoader;
+module.exports = submodulesLoader;

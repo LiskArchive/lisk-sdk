@@ -66,11 +66,11 @@ class DApp {
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
- * Binds scope.modules to private variable modules.
+ * Binds scope.submodules to private variable submodules.
  */
-// TODO: Remove this method as modules will be loaded prior to trs logic.
+// TODO: Remove this method as submodules will be loaded prior to trs logic.
 DApp.prototype.bind = function() {};
 
 /**

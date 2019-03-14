@@ -23,7 +23,7 @@ const TransportWSApi = rewire(
 	'../../../../../../../src/modules/chain/api/ws/transport'
 );
 
-let transportModuleMock;
+let transportSubmoduleMock;
 let registerRPCEndpointsStub;
 let registerEventEndpointsStub;
 let wsRPCMock;
@@ -31,7 +31,7 @@ let slaveRPCStubStub;
 
 describe('TransportWSApi', () => {
 	beforeEach(async () => {
-		transportModuleMock = {
+		transportSubmoduleMock = {
 			internal: {
 				updatePeer: sinonSandbox.stub(),
 			},
@@ -61,7 +61,7 @@ describe('TransportWSApi', () => {
 			wsRPC: wsRPCMock,
 			slaveRPCStub: slaveRPCStubStub,
 		});
-		new TransportWSApi(transportModuleMock);
+		new TransportWSApi(transportSubmoduleMock);
 	});
 
 	afterEach(async () => {
@@ -73,21 +73,21 @@ describe('TransportWSApi', () => {
 
 	it('should call registerRPCEndpoints() on wsServer with object that has available RPC functions', async () =>
 		expect(registerRPCEndpointsStub).to.be.calledWith({
-			updatePeer: transportModuleMock.internal.updatePeer,
-			blocksCommon: transportModuleMock.shared.blocksCommon,
-			blocks: transportModuleMock.shared.blocks,
-			list: transportModuleMock.shared.list,
-			height: transportModuleMock.shared.height,
-			getTransactions: transportModuleMock.shared.getTransactions,
-			getSignatures: transportModuleMock.shared.getSignatures,
-			status: transportModuleMock.shared.status,
+			updatePeer: transportSubmoduleMock.internal.updatePeer,
+			blocksCommon: transportSubmoduleMock.shared.blocksCommon,
+			blocks: transportSubmoduleMock.shared.blocks,
+			list: transportSubmoduleMock.shared.list,
+			height: transportSubmoduleMock.shared.height,
+			getTransactions: transportSubmoduleMock.shared.getTransactions,
+			getSignatures: transportSubmoduleMock.shared.getSignatures,
+			status: transportSubmoduleMock.shared.status,
 		}));
 
 	it('should call registerEventEndpoints() on wsServer', async () =>
 		expect(registerEventEndpointsStub).to.be.calledWith({
-			postBlock: transportModuleMock.shared.postBlock,
-			postSignatures: transportModuleMock.shared.postSignatures,
-			postTransactions: transportModuleMock.shared.postTransactions,
+			postBlock: transportSubmoduleMock.shared.postBlock,
+			postSignatures: transportSubmoduleMock.shared.postSignatures,
+			postTransactions: transportSubmoduleMock.shared.postTransactions,
 		}));
 
 	it('should call registerRPCEndpoints() on wsServer with slaveRPCStub', async () =>

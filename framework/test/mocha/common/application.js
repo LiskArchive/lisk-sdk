@@ -30,7 +30,7 @@ const initSteps = require('../../../src/modules/chain/init_steps');
 const promisifyParallel = util.promisify(async.parallel);
 let currentAppScope;
 
-const modulesInit = {
+const submodulesInit = {
 	accounts: '../../../src/modules/chain/submodules/accounts',
 	blocks: '../../../src/modules/chain/submodules/blocks',
 	dapps: '../../../src/modules/chain/submodules/dapps',
@@ -172,12 +172,12 @@ async function __init(sandbox, initScope) {
 		scope.bus = await initSteps.createBus();
 		scope.webSocket = await initStepsForTest.createSocketCluster(scope);
 		scope.logic = await initSteps.initLogicStructure(scope);
-		scope.modules = await initStepsForTest.initModules(scope);
+		scope.submodules = await initStepsForTest.initSubmodules(scope);
 
-		// Ready to bind modules
-		scope.logic.peers.bindModules(scope.modules);
+		// Ready to bind submodules
+		scope.logic.peers.bindSubmodules(scope.submodules);
 
-		// Fire onBind event in every module
+		// Fire onBind event in every submodule
 		scope.bus.message('bind', scope);
 
 		// Listen to websockets
@@ -187,28 +187,28 @@ async function __init(sandbox, initScope) {
 		// logger.info('Modules ready and launched');
 
 		currentAppScope = scope;
-		__testContext.debug('initApplication: Rewired modules available');
+		__testContext.debug('initApplication: Rewired submodules available');
 
 		// Overwrite syncing function to prevent interfere with tests
-		scope.modules.loader.syncing = function() {
+		scope.submodules.loader.syncing = function() {
 			return false;
 		};
 
 		// If bus is overridden, then we just return the scope, without waiting for genesisBlock
 		if (!initScope.waitForGenesisBlock || initScope.bus) {
-			scope.modules.delegates.onBlockchainReady = function() {};
+			scope.submodules.delegates.onBlockchainReady = function() {};
 			return scope;
 		}
 
 		// Overwrite onBlockchainReady function to prevent automatic forging
 		return new Promise((resolve, reject) => {
-			scope.modules.delegates.onBlockchainReady = function() {
+			scope.submodules.delegates.onBlockchainReady = function() {
 				__testContext.debug(
 					'initApplication: Fake onBlockchainReady event called'
 				);
 				__testContext.debug('initApplication: Loading delegates...');
 
-				const loadDelegates = scope.rewiredModules.delegates.__get__(
+				const loadDelegates = scope.rewiredSubmodules.delegates.__get__(
 					'__private.loadDelegates'
 				);
 
@@ -217,7 +217,7 @@ async function __init(sandbox, initScope) {
 						reject(loadDelegatesErr);
 					}
 
-					const keypairs = scope.rewiredModules.delegates.__get__(
+					const keypairs = scope.rewiredSubmodules.delegates.__get__(
 						'__private.keypairs'
 					);
 
@@ -250,10 +250,10 @@ function cleanup(done) {
 		currentAppScope.components.cache.cleanup();
 	}
 	async.eachSeries(
-		currentAppScope.modules,
-		(module, cb) => {
-			if (typeof module.cleanup === 'function') {
-				return module.cleanup(cb);
+		currentAppScope.submodules,
+		(submodule, cb) => {
+			if (typeof submodule.cleanup === 'function') {
+				return submodule.cleanup(cb);
 			}
 			return cb();
 		},
@@ -287,17 +287,17 @@ const initStepsForTest = {
 		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 
 		// Register RPC
-		const transportModuleMock = { internal: {}, shared: {} };
-		transport(transportModuleMock);
+		const transportSubmoduleMock = { internal: {}, shared: {} };
+		transport(transportSubmoduleMock);
 		return wsRPC;
 	},
-	initModules: async scope => {
+	initSubmodules: async scope => {
 		const tasks = {};
-		scope.rewiredModules = {};
-		Object.keys(modulesInit).forEach(name => {
+		scope.rewiredSubmodules = {};
+		Object.keys(submodulesInit).forEach(name => {
 			tasks[name] = function(tasksCb) {
-				const Instance = rewire(modulesInit[name]);
-				scope.rewiredModules[name] = Instance;
+				const Instance = rewire(submodulesInit[name]);
+				scope.rewiredSubmodules[name] = Instance;
 				return new Instance(tasksCb, scope);
 			};
 		});

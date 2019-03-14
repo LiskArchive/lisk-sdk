@@ -298,12 +298,12 @@ describe('app', () => {
 		});
 	});
 
-	describe('modules.delegates', () => {
+	describe('submodules.delegates', () => {
 		let generateDelegateListPromise;
 
 		before(done => {
 			generateDelegateListPromise = Promise.promisify(
-				library.modules.delegates.generateDelegateList
+				library.submodules.delegates.generateDelegateList
 			);
 			done();
 		});
@@ -345,11 +345,11 @@ describe('app', () => {
 
 		describe('__private.loadDelegates', () => {
 			before(done => {
-				const loadDelegates = library.rewiredModules.delegates.__get__(
+				const loadDelegates = library.rewiredSubmodules.delegates.__get__(
 					'__private.loadDelegates'
 				);
 				loadDelegates(err => {
-					keypairs = library.modules.delegates.getForgersKeyPairs();
+					keypairs = library.submodules.delegates.getForgersKeyPairs();
 					done(err);
 				});
 			});

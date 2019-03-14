@@ -40,13 +40,17 @@ const convertToBigNum = transactions => {
 };
 
 function getDelegateForSlot(library, slot, cb) {
-	const lastBlock = library.modules.blocks.lastBlock.get();
+	const lastBlock = library.submodules.blocks.lastBlock.get();
 	const round = slots.calcRound(lastBlock.height + 1);
 
-	library.modules.delegates.generateDelegateList(round, null, (err, list) => {
-		const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
-		return cb(err, delegatePublicKey);
-	});
+	library.submodules.delegates.generateDelegateList(
+		round,
+		null,
+		(err, list) => {
+			const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
+			return cb(err, delegatePublicKey);
+		}
+	);
 }
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
@@ -64,9 +68,9 @@ function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 }
 
 function createValidBlock(library, transactions, cb) {
-	const lastBlock = library.modules.blocks.lastBlock.get();
+	const lastBlock = library.submodules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.submodules.delegates.getForgersKeyPairs();
 	convertToBigNum(transactions);
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		const block = createBlock(
@@ -98,13 +102,13 @@ function getBlocks(library, cb) {
 function getNextForger(library, offset, cb) {
 	offset = !offset ? 1 : offset;
 
-	const lastBlock = library.modules.blocks.lastBlock.get();
+	const lastBlock = library.submodules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber(lastBlock.timestamp);
 	getDelegateForSlot(library, slot + offset, cb);
 }
 
 function forge(library, cb) {
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.submodules.delegates.getForgersKeyPairs();
 
 	async.waterfall(
 		[
@@ -115,7 +119,7 @@ function forge(library, cb) {
 				getNextForger(library, null, seriesCb);
 			},
 			function(delegate, seriesCb) {
-				let last_block = library.modules.blocks.lastBlock.get();
+				let last_block = library.submodules.blocks.lastBlock.get();
 				const slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				const keypair = keypairs[delegate];
 				__testContext.debug(
@@ -127,14 +131,14 @@ function forge(library, cb) {
 						slot
 					)}`
 				);
-				library.modules.blocks.process.generateBlock(
+				library.submodules.blocks.process.generateBlock(
 					keypair,
 					slots.getSlotTime(slot),
 					err => {
 						if (err) {
 							return seriesCb(err);
 						}
-						last_block = library.modules.blocks.lastBlock.get();
+						last_block = library.submodules.blocks.lastBlock.get();
 						__testContext.debug(
 							`		New last block height: ${last_block.height} New last block ID: ${
 								last_block.id
@@ -152,25 +156,25 @@ function forge(library, cb) {
 }
 
 function deleteLastBlock(library, cb) {
-	library.modules.blocks.chain.deleteLastBlock(cb);
+	library.submodules.blocks.chain.deleteLastBlock(cb);
 }
 
 function fillPool(library, cb) {
-	const transactionPool = library.rewiredModules.transactions.__get__(
+	const transactionPool = library.rewiredSubmodules.transactions.__get__(
 		'__private.transactionPool'
 	);
 	transactionPool.fillPool(cb);
 }
 
 function addTransaction(library, transaction, cb) {
-	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
-	// See: modules.transport.__private.receiveTransaction
+	// Add transaction to transactions pool - we use shortcut here to bypass transport submodule, but logic is the same
+	// See: submodules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
 	convertToBigNum([transaction]);
 
 	transaction = library.logic.transaction.objectNormalize(transaction);
 	library.balancesSequence.add(sequenceCb => {
-		library.modules.transactions.processUnconfirmedTransaction(
+		library.submodules.transactions.processUnconfirmedTransaction(
 			transaction,
 			true,
 			err => {
@@ -184,17 +188,17 @@ function addTransaction(library, transaction, cb) {
 }
 
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
-	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
-	// See: modules.transport.__private.receiveTransaction
+	// Add transaction to transactions pool - we use shortcut here to bypass transport submodule, but logic is the same
+	// See: submodules.transport.__private.receiveTransaction
 	convertToBigNum([transaction]);
-	library.modules.transactions.processUnconfirmedTransaction(
+	library.submodules.transactions.processUnconfirmedTransaction(
 		transaction,
 		true,
 		err => {
 			if (err) {
 				return setImmediate(cb, err.toString());
 			}
-			const transactionPool = library.rewiredModules.transactions.__get__(
+			const transactionPool = library.rewiredSubmodules.transactions.__get__(
 				'__private.transactionPool'
 			);
 			return transactionPool.fillPool(cb);
@@ -258,13 +262,13 @@ function getAccountFromDb(library, address) {
 }
 
 function getTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.getTransactions(filter, (err, res) => {
+	library.submodules.transactions.getTransactions(filter, (err, res) => {
 		cb(err, res);
 	});
 }
 
 function getUnconfirmedTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.shared.getTransactionsFromPool(
+	library.submodules.transactions.shared.getTransactionsFromPool(
 		'unconfirmed',
 		filter,
 		(err, res) => {
@@ -274,7 +278,7 @@ function getUnconfirmedTransactionFromModule(library, filter, cb) {
 }
 
 function getMultisignatureTransactions(library, filter, cb) {
-	library.modules.transactions.shared.getTransactionsFromPool(
+	library.submodules.transactions.shared.getTransactionsFromPool(
 		'unsigned',
 		filter,
 		(err, res) => {
@@ -364,7 +368,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 }
 
 function transactionInPool(library, transactionId) {
-	const transactionPool = library.rewiredModules.transactions.__get__(
+	const transactionPool = library.rewiredSubmodules.transactions.__get__(
 		'__private.transactionPool'
 	);
 	return transactionPool.transactionInPool(transactionId);

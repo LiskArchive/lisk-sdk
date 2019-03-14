@@ -92,12 +92,12 @@ describe('snapshotting', () => {
 		});
 
 		it('mem_accounts states after snapshotting should match copy taken after round 2', done => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.submodules.blocks.lastBlock.get();
 			expect(lastBlock.height).to.eql(303);
 
-			const __private = library.rewiredModules.loader.__get__('__private');
+			const __private = library.rewiredSubmodules.loader.__get__('__private');
 
-			library.rewiredModules.loader.__set__(
+			library.rewiredSubmodules.loader.__set__(
 				'library.config.loading.snapshotRound',
 				2
 			);

@@ -47,7 +47,7 @@ describe('transport', () => {
 	let library;
 	let __private;
 	let components;
-	let modules;
+	let submodules;
 	let defaultScope;
 	let restoreRewiredTopDeps;
 	let peerMock;
@@ -228,7 +228,7 @@ describe('transport', () => {
 				},
 				httpPort: 8000,
 			},
-			modules: {},
+			submodules: {},
 		};
 
 		peerMock = {
@@ -310,7 +310,7 @@ describe('transport', () => {
 				// Backup the __private variable so that properties can be overridden
 				// by individual test cases and then we will restore them after each test case has run.
 				// This is neccessary because different test cases may want to stub out different parts of the
-				// __private modules while testing other parts.
+				// __private submodules while testing other parts.
 				__private = TransportModule.__get__('__private');
 
 				Object.keys(__private).forEach(field => {
@@ -331,7 +331,7 @@ describe('transport', () => {
 					},
 				};
 
-				modules = {
+				submodules = {
 					peers: {
 						remove: sinonSandbox.stub().returns(true),
 					},
@@ -356,7 +356,7 @@ describe('transport', () => {
 
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
-					modules,
+					submodules,
 					components,
 					definitions,
 					wsRPC,
@@ -403,7 +403,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					removeSpy = sinonSandbox.spy();
 
-					modules.peers = {
+					submodules.peers = {
 						remove: removeSpy,
 					};
 
@@ -429,7 +429,7 @@ describe('transport', () => {
 				it('should call library.logger.debug', async () =>
 					expect(library.logger.debug.called).to.be.true);
 
-				it('should call modules.peers.remove with options.peer', async () =>
+				it('should call submodules.peers.remove with options.peer', async () =>
 					expect(removeSpy.calledWith(peerMock)).to.be.true);
 			});
 		});
@@ -498,7 +498,7 @@ describe('transport', () => {
 					validate: sinonSandbox.stub().callsArg(2),
 				};
 
-				modules.multisignatures = {
+				submodules.multisignatures = {
 					processSignature: sinonSandbox.stub().callsArg(1),
 				};
 
@@ -506,9 +506,9 @@ describe('transport', () => {
 			});
 
 			describe('when library.schema.validate succeeds', () => {
-				describe('when modules.multisignatures.processSignature succeeds', () => {
+				describe('when submodules.multisignatures.processSignature succeeds', () => {
 					beforeEach(done => {
-						modules.multisignatures.processSignature = sinonSandbox
+						submodules.multisignatures.processSignature = sinonSandbox
 							.stub()
 							.callsArg(1);
 
@@ -526,10 +526,10 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call modules.multisignatures.processSignature with signature', async () => {
+					it('should call submodules.multisignatures.processSignature with signature', async () => {
 						expect(error).to.equal(undefined);
 						return expect(
-							modules.multisignatures.processSignature.calledWith(
+							submodules.multisignatures.processSignature.calledWith(
 								SAMPLE_SIGNATURE_1
 							)
 						).to.be.true;
@@ -539,12 +539,12 @@ describe('transport', () => {
 						expect(error).to.equal(undefined));
 				});
 
-				describe('when modules.multisignatures.processSignature fails', () => {
+				describe('when submodules.multisignatures.processSignature fails', () => {
 					let processSignatureError;
 
 					beforeEach(done => {
 						processSignatureError = new Error('Transaction not found');
-						modules.multisignatures.processSignature = sinonSandbox
+						submodules.multisignatures.processSignature = sinonSandbox
 							.stub()
 							.callsArgWith(1, processSignatureError);
 
@@ -592,7 +592,7 @@ describe('transport', () => {
 				library.logger = {
 					debug: sinonSandbox.spy(),
 				};
-				modules.peers = {
+				submodules.peers = {
 					remove: sinonSandbox.stub().returns(true),
 				};
 
@@ -699,8 +699,8 @@ describe('transport', () => {
 				};
 				library.balancesSequence = balancesSequenceStub;
 
-				modules.peers.remove = sinonSandbox.stub().returns(true);
-				modules.transactions.processUnconfirmedTransaction = sinonSandbox
+				submodules.peers.remove = sinonSandbox.stub().returns(true);
+				submodules.transactions.processUnconfirmedTransaction = sinonSandbox
 					.stub()
 					.callsArg(2);
 				done();
@@ -726,9 +726,9 @@ describe('transport', () => {
 				it('should call library.balancesSequence.add', async () =>
 					expect(library.balancesSequence.add.called).to.be.true);
 
-				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', async () =>
+				it('should call submodules.transactions.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
-						modules.transactions.processUnconfirmedTransaction.calledWith(
+						submodules.transactions.processUnconfirmedTransaction.calledWith(
 							transaction,
 							true
 						)
@@ -834,14 +834,14 @@ describe('transport', () => {
 					).to.be.true);
 			});
 
-			describe('when modules.transactions.processUnconfirmedTransaction fails', () => {
+			describe('when submodules.transactions.processUnconfirmedTransaction fails', () => {
 				let processUnconfirmedTransactionError;
 
 				beforeEach(done => {
 					processUnconfirmedTransactionError = `Transaction is already processed: ${
 						transaction.id
 					}`;
-					modules.transactions.processUnconfirmedTransaction = sinonSandbox
+					submodules.transactions.processUnconfirmedTransaction = sinonSandbox
 						.stub()
 						.callsArgWith(2, processUnconfirmedTransactionError);
 
@@ -874,7 +874,7 @@ describe('transport', () => {
 					expect(error).to.equal(processUnconfirmedTransactionError));
 			});
 
-			describe('when modules.transactions.processUnconfirmedTransaction succeeds', () => {
+			describe('when submodules.transactions.processUnconfirmedTransaction succeeds', () => {
 				let result;
 
 				beforeEach(done => {
@@ -1026,7 +1026,7 @@ describe('transport', () => {
 					},
 				};
 
-				modules = {
+				submodules = {
 					peers: {
 						calculateConsensus: sinonSandbox.stub().returns(100),
 						list: sinonSandbox.stub().callsArgWith(1, null, peersList),
@@ -1074,7 +1074,7 @@ describe('transport', () => {
 
 				restoreRewiredTransportDeps = TransportModule.__set__({
 					library,
-					modules,
+					submodules,
 					components,
 					__private,
 				});
@@ -1108,9 +1108,11 @@ describe('transport', () => {
 					done();
 				});
 
-				describe('when modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS', () => {
+				describe('when submodules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(done => {
-						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
+						submodules.peers.calculateConsensus = sinonSandbox
+							.stub()
+							.returns(50);
 						isPoorConsensusResult = transportInstance.poorConsensus();
 						done();
 					});
@@ -1119,9 +1121,11 @@ describe('transport', () => {
 						expect(isPoorConsensusResult).to.be.true);
 				});
 
-				describe('when modules.peers.calculateConsensus() >= MIN_BROADHASH_CONSENSUS', () => {
+				describe('when submodules.peers.calculateConsensus() >= MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(done => {
-						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
+						submodules.peers.calculateConsensus = sinonSandbox
+							.stub()
+							.returns(51);
 						isPoorConsensusResult = transportInstance.poorConsensus();
 						done();
 					});
@@ -1153,11 +1157,11 @@ describe('transport', () => {
 					)
 				).to.be.true);
 
-			describe('modules', () => {
+			describe('submodules', () => {
 				let modulesObject;
 
 				beforeEach(done => {
-					modulesObject = TransportModule.__get__('modules');
+					modulesObject = TransportModule.__get__('submodules');
 					done();
 				});
 
@@ -1375,7 +1379,7 @@ describe('transport', () => {
 						peerMock.rpc = {
 							updateMyself: sinonSandbox.stub().callsArg(1),
 						};
-						modules.peers.list = sinonSandbox
+						submodules.peers.list = sinonSandbox
 							.stub()
 							.callsArgWith(1, null, [peerMock]);
 						__private.removePeer = sinonSandbox.stub();
@@ -1456,9 +1460,9 @@ describe('transport', () => {
 						).to.be.true);
 				});
 
-				describe('when modules.loader.syncing = true', () => {
+				describe('when submodules.loader.syncing = true', () => {
 					beforeEach(done => {
-						modules.loader.syncing = sinonSandbox.stub().returns(true);
+						submodules.loader.syncing = sinonSandbox.stub().returns(true);
 						transportInstance.onBroadcastBlock(block, true);
 						done();
 					});
@@ -1582,7 +1586,7 @@ describe('transport', () => {
 					beforeEach(done => {
 						query = undefined;
 
-						modules.blocks.utils.loadBlocksData = sinonSandbox
+						submodules.blocks.utils.loadBlocksData = sinonSandbox
 							.stub()
 							.callsArgWith(1, null, []);
 
@@ -1614,20 +1618,20 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () =>
+					it('should call submodules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () =>
 						expect(
-							modules.blocks.utils.loadBlocksData.calledWith({
+							submodules.blocks.utils.loadBlocksData.calledWith({
 								limit: 34,
 								lastId: query.lastBlockId,
 							})
 						).to.be.true);
 
-					describe('when modules.blocks.utils.loadBlocksData fails', () => {
+					describe('when submodules.blocks.utils.loadBlocksData fails', () => {
 						let loadBlockFailed;
 
 						beforeEach(done => {
 							loadBlockFailed = new Error('Failed to load blocks...');
-							modules.blocks.utils.loadBlocksData = sinonSandbox
+							submodules.blocks.utils.loadBlocksData = sinonSandbox
 								.stub()
 								.callsArgWith(1, loadBlockFailed);
 
@@ -1698,7 +1702,7 @@ describe('transport', () => {
 							done();
 						});
 
-						it('should call library.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () =>
+						it('should call library.logger.debug with "Block normalization failed" and {err: error, submodule: "transport", block: query.block }', async () =>
 							expect(
 								library.logger.debug.calledWith('Block normalization failed', {
 									err: blockValidationError.toString(),
@@ -1726,9 +1730,9 @@ describe('transport', () => {
 						});
 
 						describe('when query.block is defined', () => {
-							it('should call modules.blocks.verify.addBlockProperties with query.block', async () =>
+							it('should call submodules.blocks.verify.addBlockProperties with query.block', async () =>
 								expect(
-									modules.blocks.verify.addBlockProperties.calledWith(
+									submodules.blocks.verify.addBlockProperties.calledWith(
 										postBlockQuery.block
 									)
 								).to.be.true);
@@ -1749,7 +1753,9 @@ describe('transport', () => {
 				describe('when req is undefined', () => {
 					beforeEach(done => {
 						req = undefined;
-						modules.peers.list = sinonSandbox.stub().callsArgWith(1, null, []);
+						submodules.peers.list = sinonSandbox
+							.stub()
+							.callsArgWith(1, null, []);
 						transportInstance.shared.list(req, (err, res) => {
 							error = err;
 							result = res;
@@ -1758,8 +1764,8 @@ describe('transport', () => {
 					});
 
 					it('should invoke callback with empty result', async () => {
-						expect(modules.peers.list.calledOnce).to.be.true;
-						expect(modules.peers.list.calledWith({ limit: MAX_PEERS })).to.be
+						expect(submodules.peers.list.calledOnce).to.be.true;
+						expect(submodules.peers.list.calledWith({ limit: MAX_PEERS })).to.be
 							.true;
 						expect(error).to.equal(null);
 						expect(result)
@@ -1778,10 +1784,10 @@ describe('transport', () => {
 								limit: peersList.length,
 							},
 						};
-						modules.peers.shared = {
+						submodules.peers.shared = {
 							getPeers: sinonSandbox.stub().callsArgWith(1, null, peersList),
 						};
-						modules.peers.list = sinonSandbox
+						submodules.peers.list = sinonSandbox
 							.stub()
 							.callsArgWith(1, null, peersList);
 						transportInstance.shared.list(req, (err, res) => {
@@ -1794,11 +1800,11 @@ describe('transport', () => {
 					it('should call the correct peersFinder function with the sanitized query as argument', async () => {
 						expect(error).to.equal(null);
 						expect(
-							modules.peers.shared.getPeers.calledWith({
+							submodules.peers.shared.getPeers.calledWith({
 								limit: peersList.length,
 							})
 						).to.be.true;
-						return expect(modules.peers.list.called).to.be.false;
+						return expect(submodules.peers.list.called).to.be.false;
 					});
 
 					describe('when peersFinder fails', () => {
@@ -1810,12 +1816,12 @@ describe('transport', () => {
 									limit: peersList.length,
 								},
 							};
-							modules.peers.shared = {
+							submodules.peers.shared = {
 								getPeers: sinonSandbox
 									.stub()
 									.callsArgWith(1, failedToFindPeerError),
 							};
-							modules.peers.list = sinonSandbox
+							submodules.peers.list = sinonSandbox
 								.stub()
 								.callsArgWith(1, failedToFindPeerError);
 							transportInstance.shared.list(req, (err, res) => {
@@ -1834,11 +1840,11 @@ describe('transport', () => {
 								.to.have.property('success')
 								.which.is.equal(false);
 							expect(
-								modules.peers.shared.getPeers.calledWith({
+								submodules.peers.shared.getPeers.calledWith({
 									limit: peersList.length,
 								})
 							).to.be.true;
-							return expect(modules.peers.list.called).to.be.false;
+							return expect(submodules.peers.list.called).to.be.false;
 						});
 					});
 
@@ -2056,7 +2062,7 @@ describe('transport', () => {
 
 				beforeEach(done => {
 					getSignaturesReq = {};
-					modules.transactions.getMultisignatureTransactionList = sinonSandbox
+					submodules.transactions.getMultisignatureTransactionList = sinonSandbox
 						.stub()
 						.returns(multisignatureTransactionsList);
 					transportInstance.shared.getSignatures(
@@ -2069,15 +2075,15 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
+				it('should call submodules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
 					expect(
-						modules.transactions.getMultisignatureTransactionList.calledWith(
+						submodules.transactions.getMultisignatureTransactionList.calledWith(
 							true,
 							MAX_SHARED_TRANSACTIONS
 						)
 					).to.be.true);
 
-				describe('when all transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature transactions', () => {
+				describe('when all transactions returned by submodules.transactions.getMultisignatureTransactionList are multisignature transactions', () => {
 					it('should call callback with error = null', async () =>
 						expect(error).to.equal(null));
 
@@ -2093,7 +2099,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions', () => {
+				describe('when some transactions returned by submodules.transactions.getMultisignatureTransactionList are multisignature registration transactions', () => {
 					beforeEach(done => {
 						getSignaturesReq = {};
 						// Make it so that the first transaction in the list is a multisignature registration transaction.
@@ -2111,7 +2117,7 @@ describe('transport', () => {
 								'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 						};
 
-						modules.transactions.getMultisignatureTransactionList = sinonSandbox
+						submodules.transactions.getMultisignatureTransactionList = sinonSandbox
 							.stub()
 							.returns(multisignatureTransactionsList);
 						transportInstance.shared.getSignatures(
@@ -2150,9 +2156,9 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
+				it('should call submodules.transactions.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
 					expect(
-						modules.transactions.getMergedTransactionList.calledWith(
+						submodules.transactions.getMergedTransactionList.calledWith(
 							true,
 							MAX_SHARED_TRANSACTIONS
 						)
@@ -2349,8 +2355,9 @@ describe('transport', () => {
 				describe('when __private.checkInternalAccess succeeds', () => {
 					describe('updateResult', () => {
 						describe('when query.updateType = 0 (insert)', () => {
-							it('should call modules.peers.update with query.peer', async () =>
-								expect(modules.peers.update.calledWith(query.peer)).to.be.true);
+							it('should call submodules.peers.update with query.peer', async () =>
+								expect(submodules.peers.update.calledWith(query.peer)).to.be
+									.true);
 						});
 
 						describe('when query.updateType = 1 (remove)', () => {
@@ -2359,7 +2366,7 @@ describe('transport', () => {
 									updateType: Rules.UPDATES.REMOVE,
 									peer: peerMock,
 								};
-								// modules.peers.remove = sinonSandbox.stub().returns(true);
+								// submodules.peers.remove = sinonSandbox.stub().returns(true);
 								__private.checkInternalAccess = sinonSandbox.stub().callsArg(1);
 								transportInstance.internal.updatePeer(query, err => {
 									error = err;
@@ -2367,8 +2374,9 @@ describe('transport', () => {
 								});
 							});
 
-							it('should call modules.peers.remove with query.peer', async () =>
-								expect(modules.peers.remove.calledWith(query.peer)).to.be.true);
+							it('should call submodules.peers.remove with query.peer', async () =>
+								expect(submodules.peers.remove.calledWith(query.peer)).to.be
+									.true);
 						});
 					});
 
@@ -2379,7 +2387,7 @@ describe('transport', () => {
 								updateType: Rules.UPDATES.REMOVE,
 								peer: peerMock,
 							};
-							modules.peers.remove = sinonSandbox.stub().returns(errorCode);
+							submodules.peers.remove = sinonSandbox.stub().returns(errorCode);
 							__private.checkInternalAccess = sinonSandbox.stub().callsArg(1);
 							transportInstance.internal.updatePeer(query, err => {
 								error = err;

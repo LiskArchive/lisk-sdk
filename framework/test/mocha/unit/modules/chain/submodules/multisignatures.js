@@ -104,13 +104,13 @@ describe('multisignatures', () => {
 		};
 
 		stubs.bindings = {
-			modules: {
+			submodules: {
 				accounts: sinonSandbox.stub(),
 				transactions: sinonSandbox.stub(),
 			},
 		};
 
-		// Create instance of multisignatures module
+		// Create instance of multisignatures submodule
 		multisignaturesInstance = new RewiredMultisignatures(
 			(err, __multisignatures) => {
 				self = __multisignatures;
@@ -169,8 +169,8 @@ describe('multisignatures', () => {
 	});
 
 	describe('onBind', () => {
-		it('should set modules', async () =>
-			expect(get('modules')).to.deep.equal(stubs.bindings.modules));
+		it('should set submodules', async () =>
+			expect(get('submodules')).to.deep.equal(stubs.bindings.submodules));
 	});
 
 	describe('__private.isValidSignature', () => {
@@ -715,11 +715,11 @@ describe('multisignatures', () => {
 			set('__private.validateSignature', stubs.validateSignature);
 
 			stubs.getAccount = sinonSandbox.stub();
-			stubs.bindings.modules.accounts.getAccount = stubs.getAccount;
+			stubs.bindings.submodules.accounts.getAccount = stubs.getAccount;
 			done();
 		});
 
-		describe('when modules.accounts.getAccount returns an error', () => {
+		describe('when submodules.accounts.getAccount returns an error', () => {
 			it('should call a callback with Error instance', done => {
 				stubs.getAccount.callsArgWith(1, 'getAccount#ERR');
 
@@ -749,7 +749,7 @@ describe('multisignatures', () => {
 			});
 		});
 
-		describe('when modules.accounts.getAccount returns no error but sender = undefined', () => {
+		describe('when submodules.accounts.getAccount returns no error but sender = undefined', () => {
 			it('should call a callback with Error instance', done => {
 				const sender = undefined;
 				stubs.getAccount.callsArgWith(1, null, sender);
@@ -780,7 +780,7 @@ describe('multisignatures', () => {
 			});
 		});
 
-		describe('when modules.accounts.getAccount returns no error', () => {
+		describe('when submodules.accounts.getAccount returns no error', () => {
 			describe('when calling __private.validateSignature', () => {
 				it('should be called with proper data', done => {
 					stubs.getAccount.callsArgWith(1, null, data.sender);
@@ -833,7 +833,7 @@ describe('multisignatures', () => {
 
 			stubs.getMultisignatureTransaction = sinonSandbox.stub();
 			stubs.getMultisignatureTransaction.returns(data.transaction);
-			stubs.bindings.modules.transactions.getMultisignatureTransaction =
+			stubs.bindings.submodules.transactions.getMultisignatureTransaction =
 				stubs.getMultisignatureTransaction;
 
 			stubs.processSignatureForMultisignatureAccountCreation = sinonSandbox
@@ -866,7 +866,7 @@ describe('multisignatures', () => {
 			});
 		});
 
-		describe('when modules.transactions.getMultisignatureTransaction returns no transaction', () => {
+		describe('when submodules.transactions.getMultisignatureTransaction returns no transaction', () => {
 			it('should call a callback with Error instance', done => {
 				stubs.getMultisignatureTransaction.returns(undefined);
 				self.processSignature(data.signature, err => {
@@ -948,16 +948,16 @@ describe('multisignatures', () => {
 				.stub()
 				.callsFake(() => Promise.resolve([]));
 
-			stubs.bindings.modules.accounts.getAccounts = sinonSandbox
+			stubs.bindings.submodules.accounts.getAccounts = sinonSandbox
 				.stub()
 				.callsFake((param1, param2, cb) => cb(null, []));
 
-			stubs.bindings.modules.accounts.generateAddressByPublicKey = sinonSandbox.stub();
+			stubs.bindings.submodules.accounts.generateAddressByPublicKey = sinonSandbox.stub();
 
-			stubs.bindings.modules.accounts.generateAddressByPublicKey
+			stubs.bindings.submodules.accounts.generateAddressByPublicKey
 				.withArgs('key1')
 				.returns('address1');
-			stubs.bindings.modules.accounts.generateAddressByPublicKey
+			stubs.bindings.submodules.accounts.generateAddressByPublicKey
 				.withArgs('key2')
 				.returns('address2');
 
@@ -966,10 +966,10 @@ describe('multisignatures', () => {
 			library.storage.entities.Account.getOne = sinonSandbox
 				.stub()
 				.resolves(validAccount);
-			get('modules').accounts.getAccounts =
-				stubs.bindings.modules.accounts.getAccounts;
-			get('modules').accounts.generateAddressByPublicKey =
-				stubs.bindings.modules.accounts.generateAddressByPublicKey;
+			get('submodules').accounts.getAccounts =
+				stubs.bindings.submodules.accounts.getAccounts;
+			get('submodules').accounts.generateAddressByPublicKey =
+				stubs.bindings.submodules.accounts.generateAddressByPublicKey;
 			done();
 		});
 
@@ -1049,13 +1049,13 @@ describe('multisignatures', () => {
 				secondPublicKey: 'secondPublicKey2',
 			};
 
-			stubs.bindings.modules.accounts.getAccounts = sinonSandbox
+			stubs.bindings.submodules.accounts.getAccounts = sinonSandbox
 				.stub()
 				.callsFake((param1, param2, cb) => cb(null, [member1, member2]));
 
 			self.getGroup(validAccount.address, (err, scopeGroup) => {
 				expect(err).to.not.exist;
-				expect(get('modules').accounts.getAccounts).to.be.calledWith({
+				expect(get('submodules').accounts.getAccounts).to.be.calledWith({
 					address_in: ['address1', 'address2'],
 				});
 				expect(scopeGroup.members)
@@ -1068,11 +1068,11 @@ describe('multisignatures', () => {
 	});
 
 	describe('isLoaded', () => {
-		it('should return true if modules exists', async () =>
+		it('should return true if submodules exists', async () =>
 			expect(self.isLoaded()).to.equal(true));
 
-		it('should return false if modules does not exist', async () => {
-			set('modules', null);
+		it('should return false if submodules does not exist', async () => {
+			set('submodules', null);
 			return expect(self.isLoaded()).to.equal(false);
 		});
 	});

@@ -23,7 +23,7 @@ const BanManager = require('../api/ws/ban_manager');
 // Private fields
 let self;
 let library;
-let modules;
+let submodules;
 
 /**
  * Main peers logic. Initializes library.
@@ -55,7 +55,7 @@ class Peers {
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
  * Returns current peer state and system headers.
  *
@@ -232,7 +232,7 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 			return failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE;
 		}
 	} else {
-		if (_.isEmpty(modules.peers.acceptable([peer]))) {
+		if (_.isEmpty(submodules.peers.acceptable([peer]))) {
 			library.logger.debug('Rejecting unacceptable peer', peer.string);
 			return failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED;
 		}
@@ -335,13 +335,13 @@ Peers.prototype.listRandomConnected = function(options) {
 };
 
 /**
- * Modules are not required in this file.
+ * submodules are not required in this file.
  *
- * @param {Object} __modules - Peers module
+ * @param {Object} __submodules - Peers submodule
  */
-Peers.prototype.bindModules = function(__modules) {
-	modules = {
-		peers: __modules.peers,
+Peers.prototype.bindSubmodules = function(__submodules) {
+	submodules = {
+		peers: __submodules.peers,
 	};
 };
 

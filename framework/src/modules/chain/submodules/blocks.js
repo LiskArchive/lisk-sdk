@@ -43,8 +43,8 @@ __private.isActive = false;
  * Calls submodules.chain.saveGenesisBlock.
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires submodules/blocks/verify
  * @requires submodules/blocks/process
  * @requires submodules/blocks/utils
@@ -226,12 +226,12 @@ Blocks.prototype.isCleaning = {
  * Components are not required in this file.
  */
 Blocks.prototype.onBind = function(scope) {
-	// TODO: move here blocks submodules modules load from app.js.
+	// TODO: move here blocks submodule load from app.js.
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 	};
 
-	// Set module as loaded
+	// Set submodule as loaded
 	__private.loaded = true;
 };
 
@@ -280,10 +280,10 @@ Blocks.prototype.cleanup = function(cb) {
 	__private.cleanup = true;
 
 	if (!__private.isActive) {
-		// Module ready for shutdown
+		// Submodule ready for shutdown
 		return setImmediate(cb);
 	}
-	// Module is not ready, repeat
+	// Submodule is not ready, repeat
 	return setImmediate(function nextWatch() {
 		if (__private.isActive) {
 			library.logger.info('Waiting for block processing to finish...');
@@ -294,12 +294,12 @@ Blocks.prototype.cleanup = function(cb) {
 };
 
 /**
- * Get module loading status
+ * Get Submodule loading status
  *
- * @returns {boolean} status - Module loading status
+ * @returns {boolean} status - Submodule loading status
  */
 Blocks.prototype.isLoaded = function() {
-	// Return 'true' if 'modules' are present
+	// Return 'true' if 'submodules' are present
 	return __private.loaded;
 };
 

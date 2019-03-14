@@ -15,7 +15,7 @@
 'use strict';
 
 const failureCodes = require('../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
 const RandomPeer = require('../../../../fixtures/peers').Peer;
 const Peers = require('../../../../../../src/modules/chain/logic/peers');
@@ -29,21 +29,25 @@ const validRPCProcedureName = 'rpcProcedureA';
 const validEventProcedureName = 'eventProcedureB';
 
 describe('peers', () => {
-	let peersModuleMock;
+	let peersSubmoduleMock;
 	let peers;
 	let validPeer;
 	let validNodeNonce;
 
 	before(done => {
-		peersModuleMock = {
+		peersSubmoduleMock = {
 			acceptable: sinonSandbox.stub().returnsArg(0),
 		};
 
-		modulesLoader.initLogic(Peers, modulesLoader.scope, (err, __peers) => {
-			peers = __peers;
-			peers.bindModules({ peers: peersModuleMock });
-			done();
-		});
+		submodulesLoader.initLogic(
+			Peers,
+			submodulesLoader.scope,
+			(err, __peers) => {
+				peers = __peers;
+				peers.bindSubmodules({ peers: peersSubmoduleMock });
+				done();
+			}
+		);
 
 		masterWAMPServerMock = {
 			upgradeToWAMP: sinonSandbox.stub(),
@@ -60,7 +64,7 @@ describe('peers', () => {
 	});
 
 	beforeEach(done => {
-		peersModuleMock.acceptable = sinonSandbox.stub().returnsArg(0);
+		peersSubmoduleMock.acceptable = sinonSandbox.stub().returnsArg(0);
 		validPeer = _.assign({}, prefixedPeer);
 		done();
 	});
@@ -279,7 +283,7 @@ describe('peers', () => {
 				));
 
 			it('NOT_ACCEPTED when called with the same as node nonce', async () => {
-				peersModuleMock.acceptable = sinonSandbox.stub().returns([]);
+				peersSubmoduleMock.acceptable = sinonSandbox.stub().returns([]);
 				validPeer.nonce = validNodeNonce;
 				return expect(peers.upsert(validPeer)).to.equal(
 					failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED

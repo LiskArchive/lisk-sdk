@@ -53,7 +53,9 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			]);
 		})
 			.then(() => {
-				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+				library.submodules.blocks.lastBlock.set(
+					__testContext.config.genesisBlock
+				);
 				done();
 			})
 			.catch(err => {
@@ -76,17 +78,17 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function forge(forgingSlot, cb) {
-		let last_block = library.modules.blocks.lastBlock.get();
+		let last_block = library.submodules.blocks.lastBlock.get();
 		const slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
 		let delegate;
 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
-			const keys = library.rewiredModules.delegates.__get__(
+			const keys = library.rewiredSubmodules.delegates.__get__(
 				'__private.getKeysSortByVote'
 			);
 			const round = slots.calcRound(last_block.height + 1);
-			library.modules.delegates.generateDelegateList(
+			library.submodules.delegates.generateDelegateList(
 				round,
 				keys,
 				(err, delegateList) => {
@@ -96,7 +98,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			);
 		}
 
-		const transactionPool = library.rewiredModules.transactions.__get__(
+		const transactionPool = library.rewiredSubmodules.transactions.__get__(
 			'__private.transactionPool'
 		);
 
@@ -123,14 +125,14 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						Next block timestamp: ${slots.getSlotTime(slot)}`
 					);
 
-					library.modules.blocks.process.generateBlock(
+					library.submodules.blocks.process.generateBlock(
 						keypair,
 						slots.getSlotTime(slot) + 5,
 						err => {
 							if (err) {
 								return waterFallCb(err);
 							}
-							last_block = library.modules.blocks.lastBlock.get();
+							last_block = library.submodules.blocks.lastBlock.get();
 							__testContext.debug(
 								`New last block height: ${
 									last_block.height
@@ -180,9 +182,9 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 	function getValidKeypairForSlot(slot) {
 		const generateDelegateListPromisified = Promise.promisify(
-			library.modules.delegates.generateDelegateList
+			library.submodules.delegates.generateDelegateList
 		);
-		const lastBlock = library.modules.blocks.lastBlock.get();
+		const lastBlock = library.submodules.blocks.lastBlock.get();
 		const round = slots.calcRound(lastBlock.height);
 
 		return generateDelegateListPromisified(round, null)
@@ -238,7 +240,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			let block;
 
 			before(() => {
-				lastBlock = library.modules.blocks.lastBlock.get();
+				lastBlock = library.submodules.blocks.lastBlock.get();
 				const slot = slots.getSlotNumber();
 				return getValidKeypairForSlot(slot).then(keypair => {
 					block = createBlock([], slots.getSlotTime(slot), keypair, lastBlock);
@@ -246,7 +248,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			});
 
 			it('should add block to blockchain', done => {
-				library.modules.blocks.process.onReceiveBlock(block);
+				library.submodules.blocks.process.onReceiveBlock(block);
 				getBlocks((err, blockIds) => {
 					expect(err).to.not.exist;
 					expect(blockIds).to.have.length(2);
@@ -263,7 +265,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					let block;
 
 					beforeEach(done => {
-						lastBlock = library.modules.blocks.lastBlock.get();
+						lastBlock = library.submodules.blocks.lastBlock.get();
 						const slot = slots.getSlotNumber();
 						const nonDelegateKeypair = getKeypair(
 							accountFixtures.genesis.passphrase
@@ -278,7 +280,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 
 					it('should not add block to blockchain', done => {
-						library.modules.blocks.process.onReceiveBlock(block);
+						library.submodules.blocks.process.onReceiveBlock(block);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(1);
@@ -293,7 +295,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					let block;
 
 					beforeEach(() => {
-						lastBlock = library.modules.blocks.lastBlock.get();
+						lastBlock = library.submodules.blocks.lastBlock.get();
 						// Using last block's slot
 						const slot = slots.getSlotNumber() - 1;
 						return getValidKeypairForSlot(slot - 1).then(keypair => {
@@ -302,7 +304,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 
 					it('should not add block to blockchain', done => {
-						library.modules.blocks.process.onReceiveBlock(block);
+						library.submodules.blocks.process.onReceiveBlock(block);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(1);
@@ -351,7 +353,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 							keypair,
 							dummyBlock
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.submodules.blocks.process.onReceiveBlock(
 							blockWithGreaterTimestamp
 						);
 					});
@@ -390,7 +392,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 							keypair,
 							dummyBlock
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.submodules.blocks.process.onReceiveBlock(
 							blockWithLowerTimestamp
 						);
 					});
@@ -424,7 +426,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						blockFromPreviousRound =
 							forgedBlocks[forgedBlocks.length - ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.submodules.blocks.process.onReceiveBlock(
 							blockFromPreviousRound
 						);
 					});
@@ -450,7 +452,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						inSlotsWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW - 1)];
 						inSlotsWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.submodules.blocks.process.onReceiveBlock(
 							inSlotsWindowBlock
 						);
 					});
@@ -475,7 +477,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						outOfSlotWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW + 2)];
 						outOfSlotWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.submodules.blocks.process.onReceiveBlock(
 							outOfSlotWindowBlock
 						);
 					});
@@ -509,7 +511,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 								keypair,
 								dummyBlock
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.submodules.blocks.process.onReceiveBlock(
 								blockFromFutureSlot
 							);
 						});
@@ -567,7 +569,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 							keypair,
 							secondLastBlock
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.submodules.blocks.process.onReceiveBlock(
 							blockWithGreaterTimestamp
 						);
 						getBlocks((err, blockIds) => {
@@ -599,7 +601,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 								keypair,
 								secondLastBlock
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.submodules.blocks.process.onReceiveBlock(
 								blockWithGreaterTimestamp
 							);
 							getBlocks((err, blockIds) => {
@@ -640,7 +642,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 								keypair,
 								secondLastBlock
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.submodules.blocks.process.onReceiveBlock(
 								blockWithInvalidSlot
 							);
 							getBlocks((err, blockIds) => {
@@ -664,7 +666,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 								keypair,
 								secondLastBlock
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.submodules.blocks.process.onReceiveBlock(
 								blockWithLowerTimestamp
 							);
 							getBlocks((err, blockIds) => {
@@ -703,7 +705,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 									keypair,
 									secondLastBlock
 								);
-								library.modules.blocks.process.onReceiveBlock(
+								library.submodules.blocks.process.onReceiveBlock(
 									blockWithDifferentKeyAndTimestamp
 								);
 								getBlocks((err, blockIds) => {
@@ -741,7 +743,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 									keypair,
 									secondLastBlock
 								);
-								library.modules.blocks.process.onReceiveBlock(
+								library.submodules.blocks.process.onReceiveBlock(
 									blockWithDifferentKeyAndTimestamp
 								);
 								getBlocks((err, blockIds) => {
@@ -783,7 +785,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 							);
 
 							function sendSkippedSlotBlock() {
-								library.modules.blocks.process.onReceiveBlock(nextSlotBlock);
+								library.submodules.blocks.process.onReceiveBlock(nextSlotBlock);
 								done();
 							}
 
@@ -808,7 +810,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 							keypair,
 							lastBlock
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.submodules.blocks.process.onReceiveBlock(
 							blockWithUnskippedSlot
 						);
 						getBlocks((err, blockIds) => {
@@ -860,7 +862,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 
 					it('should delete last block and save received block (from previous round)', done => {
-						library.modules.blocks.process.onReceiveBlock(
+						library.submodules.blocks.process.onReceiveBlock(
 							blockFromPreviousRound
 						);
 						getBlocks((err, blockIds) => {
@@ -884,7 +886,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				let block;
 
 				beforeEach(done => {
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.submodules.blocks.lastBlock.get();
 					forge(null, (err, forgedBlock) => {
 						block = forgedBlock;
 						done();
@@ -892,7 +894,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				it('should reject received block', done => {
-					library.modules.blocks.process.onReceiveBlock(block);
+					library.submodules.blocks.process.onReceiveBlock(block);
 					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(2);
@@ -922,7 +924,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				it('should reject received block', done => {
-					library.modules.blocks.process.onReceiveBlock(differentChainBlock);
+					library.submodules.blocks.process.onReceiveBlock(differentChainBlock);
 					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(1);

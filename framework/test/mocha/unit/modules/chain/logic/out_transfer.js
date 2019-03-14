@@ -16,7 +16,7 @@
 
 const crypto = require('crypto');
 const rewire = require('rewire');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const typesRepresentatives = require('../../../../fixtures/types_representatives'); // eslint-disable-line no-unused-vars
 const slots = require('../../../../../../src/modules/chain/helpers/slots');
 const testData = require('./test_data/out_transfer');
@@ -72,9 +72,9 @@ describe('outTransfer', () => {
 		outTransfer = new OutTransfer({
 			components: {
 				storage: storageStub,
-				logger: modulesLoader.logger,
+				logger: submodulesLoader.logger,
 			},
-			schema: modulesLoader.scope.schema,
+			schema: submodulesLoader.scope.schema,
 		});
 
 		return outTransfer.bind(accountsStub);
@@ -88,9 +88,9 @@ describe('outTransfer', () => {
 				new OutTransfer({
 					components: {
 						storage: storageStub,
-						logger: modulesLoader.logger,
+						logger: submodulesLoader.logger,
 					},
-					schema: modulesLoader.scope.schema,
+					schema: submodulesLoader.scope.schema,
 				});
 				__scope = OutTransfer.__get__('__scope');
 				done();
@@ -104,22 +104,22 @@ describe('outTransfer', () => {
 			it('should assign schema', async () =>
 				expect(__scope)
 					.to.have.property('schema')
-					.eql(modulesLoader.scope.schema));
+					.eql(submodulesLoader.scope.schema));
 		});
 	});
 
 	describe('bind', () => {
-		let modules;
+		let submodules;
 
 		beforeEach(done => {
 			outTransfer.bind(accountsStub);
-			modules = OutTransfer.__get__('__scope.modules');
+			submodules = OutTransfer.__get__('__scope.submodules');
 			done();
 		});
 
-		describe('modules', () => {
+		describe('submodules', () => {
 			it('should assign accounts', async () =>
-				expect(modules)
+				expect(submodules)
 					.to.have.property('accounts')
 					.eql(accountsStub));
 		});
@@ -510,17 +510,17 @@ describe('outTransfer', () => {
 				.equal(false);
 		});
 
-		it('should call __scope.modules.accounts.setAccountAndGet', async () =>
+		it('should call __scope.submodules.accounts.setAccountAndGet', async () =>
 			expect(accountsStub.setAccountAndGet.calledOnce).to.be.true);
 
-		it('should call __scope.modules.accounts.setAccountAndGet with {address: transaction.recipientId}', async () =>
+		it('should call __scope.submodules.accounts.setAccountAndGet with {address: transaction.recipientId}', async () =>
 			expect(
 				accountsStub.setAccountAndGet.calledWith({
 					address: transaction.recipientId,
 				})
 			).to.be.true);
 
-		describe('when __scope.modules.accounts.setAccountAndGet fails', () => {
+		describe('when __scope.submodules.accounts.setAccountAndGet fails', () => {
 			beforeEach(done => {
 				accountsStub.setAccountAndGet = sinonSandbox
 					.stub()
@@ -534,44 +534,44 @@ describe('outTransfer', () => {
 				}));
 		});
 
-		describe('when __scope.modules.accounts.setAccountAndGet succeeds', () => {
+		describe('when __scope.submodules.accounts.setAccountAndGet succeeds', () => {
 			beforeEach(done => {
 				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArg(1);
 				done();
 			});
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet', async () =>
 				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true);
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet with address = transaction.recipientId', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet with address = transaction.recipientId', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ address: transaction.recipientId })
 					)
 				).to.be.true);
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet with balance = transaction.amount', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet with balance = transaction.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ balance: transaction.amount })
 					)
 				).to.be.true);
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet with u_balance = transaction.amount', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet with u_balance = transaction.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: transaction.amount })
 					)
 				).to.be.true);
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ round: slots.calcRound(dummyBlock.height) })
 					)
 				).to.be.true);
 
-			describe('when __scope.modules.accounts.mergeAccountAndGet fails', () => {
+			describe('when __scope.submodules.accounts.mergeAccountAndGet fails', () => {
 				beforeEach(done => {
 					accountsStub.mergeAccountAndGet = sinonSandbox
 						.stub()
@@ -585,7 +585,7 @@ describe('outTransfer', () => {
 					}));
 			});
 
-			describe('when __scope.modules.accounts.mergeAccountAndGet succeeds', () => {
+			describe('when __scope.submodules.accounts.mergeAccountAndGet succeeds', () => {
 				it('should call callback with error = undefined', async () =>
 					outTransfer.applyConfirmed(transaction, dummyBlock, sender, err => {
 						expect(err).to.be.undefined;
@@ -618,17 +618,17 @@ describe('outTransfer', () => {
 				.equal(true);
 		});
 
-		it('should call __scope.modules.accounts.setAccountAndGet', async () =>
+		it('should call __scope.submodules.accounts.setAccountAndGet', async () =>
 			expect(accountsStub.setAccountAndGet.calledOnce).to.be.true);
 
-		it('should call __scope.modules.accounts.setAccountAndGet with {address: transaction.recipientId}', async () =>
+		it('should call __scope.submodules.accounts.setAccountAndGet with {address: transaction.recipientId}', async () =>
 			expect(
 				accountsStub.setAccountAndGet.calledWith({
 					address: transaction.recipientId,
 				})
 			).to.be.true);
 
-		describe('when __scope.modules.accounts.setAccountAndGet fails', () => {
+		describe('when __scope.submodules.accounts.setAccountAndGet fails', () => {
 			beforeEach(done => {
 				accountsStub.setAccountAndGet = sinonSandbox
 					.stub()
@@ -642,37 +642,37 @@ describe('outTransfer', () => {
 				}));
 		});
 
-		describe('when __scope.modules.accounts.setAccountAndGet succeeds', () => {
+		describe('when __scope.submodules.accounts.setAccountAndGet succeeds', () => {
 			beforeEach(done => {
 				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArg(1);
 				done();
 			});
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet', async () =>
 				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true);
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet with address = transaction.recipientId', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet with address = transaction.recipientId', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ address: transaction.recipientId })
 					)
 				).to.be.true);
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet with balance = -transaction.amount', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet with balance = -transaction.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ balance: -transaction.amount })
 					)
 				).to.be.true);
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet with u_balance = -transaction.amount', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet with u_balance = -transaction.amount', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: -transaction.amount })
 					)
 				).to.be.true);
 
-			it('should call __scope.modules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
+			it('should call __scope.submodules.accounts.mergeAccountAndGet with round = slots.calcRound result', async () =>
 				expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ round: slots.calcRound(dummyBlock.height) })
@@ -680,7 +680,7 @@ describe('outTransfer', () => {
 				).to.be.true);
 		});
 
-		describe('when __scope.modules.accounts.mergeAccountAndGet fails', () => {
+		describe('when __scope.submodules.accounts.mergeAccountAndGet fails', () => {
 			beforeEach(done => {
 				accountsStub.mergeAccountAndGet = sinonSandbox
 					.stub()
@@ -694,7 +694,7 @@ describe('outTransfer', () => {
 				}));
 		});
 
-		describe('when __scope.modules.accounts.mergeAccountAndGet succeeds', () => {
+		describe('when __scope.submodules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', async () =>
 				outTransfer.undoConfirmed(transaction, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;

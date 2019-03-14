@@ -39,7 +39,9 @@ describe('delegate', () => {
 				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		}).then(() => {
-			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+			library.submodules.blocks.lastBlock.set(
+				__testContext.config.genesisBlock
+			);
 			done();
 		});
 	});
@@ -84,7 +86,7 @@ describe('delegate', () => {
 						[delegateTransaction],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.submodules.blocks.process.onReceiveBlock(block);
 							done();
 						}
 					);
@@ -141,7 +143,7 @@ describe('delegate', () => {
 						[delegateTransaction2],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.submodules.blocks.process.onReceiveBlock(block);
 							done();
 						}
 					);

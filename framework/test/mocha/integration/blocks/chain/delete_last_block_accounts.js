@@ -41,7 +41,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 	describe('deleteLastBlock', () => {
 		describe('errors', () => {
 			it('should fail when trying to delete genesis block', done => {
-				library.modules.blocks.chain.deleteLastBlock((err, res) => {
+				library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 					expect(err).to.equal('Cannot delete genesis block');
 					expect(res).to.not.exist;
 					done();
@@ -124,7 +124,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
+					library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
@@ -247,7 +247,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
+					library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
@@ -371,7 +371,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
+					library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
@@ -488,7 +488,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
+					library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
@@ -616,7 +616,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
+					library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
@@ -719,7 +719,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
+						library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.be.an('object');
 							done();
@@ -801,7 +801,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
+						library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.be.an('object');
 							done();
@@ -887,7 +887,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
+						library.submodules.blocks.chain.deleteLastBlock((err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.be.an('object');
 							done();

@@ -18,7 +18,7 @@ const async = require('async');
 // eslint-disable-next-line  prefer-const
 let jobsQueue = require('../helpers/jobs_queue');
 
-let modules;
+let submodules;
 let library;
 let self;
 const {
@@ -112,16 +112,16 @@ function nextExpiry(cb) {
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
- * Bounds input parameters to private variable modules.
+ * Bounds input parameters to private variable submodules.
  *
- * @param {Accounts} accounts - Accounts module instance
- * @param {Transactions} transactions - Transactions module instance
- * @param {Loader} loader - Loader module instance
+ * @param {Accounts} accounts - Accounts submodule instance
+ * @param {Transactions} transactions - Transactions submodule instance
+ * @param {Loader} loader - Loader submodule instance
  */
 TransactionPool.prototype.bind = function(accounts, transactions, loader) {
-	modules = {
+	submodules = {
 		accounts,
 		transactions,
 		loader,
@@ -510,7 +510,7 @@ TransactionPool.prototype.reindexQueues = function() {
  * @todo Compare / standardize the returns-description
  */
 TransactionPool.prototype.processBundled = function(cb) {
-	if (modules.loader.syncing()) {
+	if (submodules.loader.syncing()) {
 		// There is no need to process bundled transacions if node is syncing
 		return setImmediate(cb);
 	}
@@ -667,7 +667,7 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 				(transaction, eachSeriesCb) => {
 					if (transaction) {
 						ids.push(transaction.id);
-						return modules.transactions.undoUnconfirmed(
+						return submodules.transactions.undoUnconfirmed(
 							transaction,
 							undoUnconfirmErr => {
 								// Remove transaction from unconfirmed, queued and multisignature lists
@@ -845,7 +845,7 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 	return async.waterfall(
 		[
 			function setAccountAndGet(waterCb) {
-				modules.accounts.setAccountAndGet(
+				submodules.accounts.setAccountAndGet(
 					{ publicKey: transaction.senderPublicKey },
 					waterCb,
 					tx
@@ -861,7 +861,7 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 				}
 
 				if (sender && transaction.requesterPublicKey && multisignatures) {
-					return modules.accounts.getAccount(
+					return submodules.accounts.getAccount(
 						{ publicKey: transaction.requesterPublicKey },
 						(err, requester) => {
 							if (!requester) {
@@ -954,7 +954,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 								self.removeMultisignatureTransaction(transaction.id);
 								return setImmediate(eachSeriesCb);
 							}
-							return modules.transactions.applyUnconfirmed(
+							return submodules.transactions.applyUnconfirmed(
 								transaction,
 								sender,
 								applyUnconfirmErr => {
@@ -1070,7 +1070,7 @@ __private.expireAndUndoUnconfirmedTransactions = (transactions, cb) => {
 			if (!__private.isExpired(transaction)) {
 				return setImmediate(eachSeriesCb);
 			}
-			return modules.transactions.undoUnconfirmed(
+			return submodules.transactions.undoUnconfirmed(
 				transaction,
 				undoUnconfirmErr => {
 					if (undoUnconfirmErr) {

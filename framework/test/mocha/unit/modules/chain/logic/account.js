@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const application = require('../../../../common/application');
-const modulesLoader = require('../../../../common/modules_loader');
+const submodulesLoader = require('../../../../common/submodules_loader');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const Account = rewire('../../../../../../src/modules/chain/logic/account');
@@ -89,8 +89,8 @@ describe('account', () => {
 
 			new Account(
 				storageStub,
-				modulesLoader.scope.schema,
-				modulesLoader.scope.components.logger,
+				submodulesLoader.scope.schema,
+				submodulesLoader.scope.components.logger,
 				(err, lgAccount) => {
 					accountLogic = lgAccount;
 					library = Account.__get__('library');
@@ -100,13 +100,13 @@ describe('account', () => {
 		});
 
 		it('should attach schema to scope variable', async () =>
-			expect(accountLogic.scope.schema).to.eql(modulesLoader.scope.schema));
+			expect(accountLogic.scope.schema).to.eql(submodulesLoader.scope.schema));
 
 		it('should attach storage to scope variable', async () =>
 			expect(accountLogic.scope.storage).to.eql(storageStub));
 
 		it('should attach logger to library variable', async () =>
-			expect(library.logger).to.eql(modulesLoader.scope.components.logger));
+			expect(library.logger).to.eql(submodulesLoader.scope.components.logger));
 	});
 
 	describe('objectNormalize', () => {

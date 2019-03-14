@@ -17,7 +17,7 @@
 const async = require('async');
 const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
 const application = require('../../../common/application');
-const modulesLoader = require('../../../common/modules_loader');
+const submodulesLoader = require('../../../common/submodules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
@@ -43,8 +43,8 @@ describe('system test (blocks) - process', () => {
 		application.init(
 			{ sandbox: { name: 'system_blocks_process' } },
 			(err, scopeInit) => {
-				blocksProcess = scopeInit.modules.blocks.process;
-				blocks = scopeInit.modules.blocks;
+				blocksProcess = scopeInit.submodules.blocks.process;
+				blocks = scopeInit.submodules.blocks;
 				storage = scopeInit.components.storage;
 				scope = scopeInit;
 				done(err);
@@ -71,7 +71,7 @@ describe('system test (blocks) - process', () => {
 						(table, everyCb) => {
 							clearDatabaseTable(
 								storage,
-								modulesLoader.scope.components.logger,
+								submodulesLoader.scope.components.logger,
 								table
 							)
 								.then(res => {

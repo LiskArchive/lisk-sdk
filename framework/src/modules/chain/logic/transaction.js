@@ -1319,7 +1319,7 @@ class Transaction {
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
  * Sets private type based on type id after instance object validation.
  *

@@ -23,7 +23,7 @@ const BlocksChain = rewire(
 describe('blocks/chain', () => {
 	let __private;
 	let library;
-	let modules;
+	let submodules;
 	let components;
 	let blocksChainModule;
 	let storageStub;
@@ -133,12 +133,12 @@ describe('blocks/chain', () => {
 			applyNext: sinonSandbox.stub(),
 		};
 
-		const modulesAccountsStub = {
+		const submodulesAccountsStub = {
 			getAccount: sinonSandbox.stub(),
 			setAccountAndGet: sinonSandbox.stub(),
 		};
 
-		const modulesBlocksStub = {
+		const submodulesBlocksStub = {
 			lastBlock: {
 				get: sinonSandbox.stub(),
 				set: sinonSandbox.stub(),
@@ -152,16 +152,16 @@ describe('blocks/chain', () => {
 			},
 		};
 
-		const modulesRoundsStub = {
+		const submodulesRoundsStub = {
 			backwardTick: sinonSandbox.stub(),
 			tick: sinonSandbox.stub(),
 		};
 
-		const modulesTransportStub = {
+		const submodulesTransportStub = {
 			broadcastHeaders: sinonSandbox.stub(),
 		};
 
-		const modulesTransactionsStub = {
+		const submodulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			applyConfirmed: sinonSandbox.stub(),
 			receiveTransactions: sinonSandbox.stub(),
@@ -180,12 +180,12 @@ describe('blocks/chain', () => {
 				system: componentsSystemStub,
 			},
 
-			modules: {
-				accounts: modulesAccountsStub,
-				blocks: modulesBlocksStub,
-				rounds: modulesRoundsStub,
-				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
+			submodules: {
+				accounts: submodulesAccountsStub,
+				blocks: submodulesBlocksStub,
+				rounds: submodulesRoundsStub,
+				transactions: submodulesTransactionsStub,
+				transport: submodulesTransportStub,
 			},
 		};
 
@@ -193,7 +193,7 @@ describe('blocks/chain', () => {
 
 		blocksChainModule.onBind(bindingsStub);
 		components = BlocksChain.__get__('components');
-		modules = BlocksChain.__get__('modules');
+		submodules = BlocksChain.__get__('submodules');
 		done();
 	});
 
@@ -513,7 +513,7 @@ describe('blocks/chain', () => {
 		let applyTransactionTemp;
 
 		beforeEach(done => {
-			modules.rounds.tick.callsArgWith(1, null, true);
+			submodules.rounds.tick.callsArgWith(1, null, true);
 			applyTransactionTemp = __private.applyTransaction;
 			__private.applyTransaction = sinonSandbox.stub();
 			done();
@@ -525,17 +525,17 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when block.transactions is empty', () => {
-			it('modules.rouds.tick should call a callback', done => {
+			it('submodules.rouds.tick should call a callback', done => {
 				blocksChainModule.applyGenesisBlock(
 					blockWithEmptyTransactions,
 					async () => {
-						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
-							.true;
-						expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-						expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
+						expect(submodules.blocks.utils.getBlockProgressLogger.calledOnce).to
+							.be.true;
+						expect(submodules.blocks.lastBlock.set.calledOnce).to.be.true;
+						expect(submodules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
 							blockWithEmptyTransactions
 						);
-						expect(modules.rounds.tick.args[0][0]).to.deep.equal(
+						expect(submodules.rounds.tick.args[0][0]).to.deep.equal(
 							blockWithEmptyTransactions
 						);
 						done();
@@ -545,10 +545,10 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when block.transactions is not empty', () => {
-			describe('when modules.accounts.setAccountAndGet fails', () => {
+			describe('when submodules.accounts.setAccountAndGet fails', () => {
 				beforeEach(() => {
 					process.emit = sinonSandbox.stub();
-					return modules.accounts.setAccountAndGet.callsArgWith(
+					return submodules.accounts.setAccountAndGet.callsArgWith(
 						1,
 						'setAccountAndGet-ERR',
 						true
@@ -557,8 +557,8 @@ describe('blocks/chain', () => {
 
 				it('should call process.exit with 0', done => {
 					blocksChainModule.applyGenesisBlock(blockWithTransactions, result => {
-						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
-							.true;
+						expect(submodules.blocks.utils.getBlockProgressLogger.calledOnce).to
+							.be.true;
 						expect(process.emit).to.have.been.calledOnce;
 						expect(process.emit).to.have.been.calledWith(
 							'cleanup',
@@ -570,9 +570,9 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('when modules.accounts.setAccountAndGet succeeds', () => {
+			describe('when submodules.accounts.setAccountAndGet succeeds', () => {
 				beforeEach(() =>
-					modules.accounts.setAccountAndGet.callsArgWith(1, null, true)
+					submodules.accounts.setAccountAndGet.callsArgWith(1, null, true)
 				);
 
 				describe('when __private.applyTransaction fails', () => {
@@ -589,7 +589,7 @@ describe('blocks/chain', () => {
 							blockWithTransactions,
 							result => {
 								expect(
-									modules.blocks.utils.getBlockProgressLogger.callCount
+									submodules.blocks.utils.getBlockProgressLogger.callCount
 								).to.equal(1);
 								expect(result).to.equal('applyTransaction-ERR');
 								done();
@@ -603,18 +603,19 @@ describe('blocks/chain', () => {
 						__private.applyTransaction.callsArgWith(3, null, true)
 					);
 
-					it('modules.rouds.tick should call a callback', done => {
+					it('submodules.rouds.tick should call a callback', done => {
 						blocksChainModule.applyGenesisBlock(
 							blockWithTransactions,
 							async () => {
-								expect(modules.blocks.utils.getBlockProgressLogger.calledOnce)
-									.to.be.true;
+								expect(
+									submodules.blocks.utils.getBlockProgressLogger.calledOnce
+								).to.be.true;
 								expect(__private.applyTransaction.callCount).to.equal(3);
-								expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-								expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
-									blockWithTransactions
-								);
-								expect(modules.rounds.tick.args[0][0]).to.deep.equal(
+								expect(submodules.blocks.lastBlock.set.calledOnce).to.be.true;
+								expect(
+									submodules.blocks.lastBlock.set.args[0][0]
+								).to.deep.equal(blockWithTransactions);
+								expect(submodules.rounds.tick.args[0][0]).to.deep.equal(
 									blockWithTransactions
 								);
 								done();
@@ -627,9 +628,9 @@ describe('blocks/chain', () => {
 	});
 
 	describe('__private.applyTransaction', () => {
-		describe('when modules.transactions.applyUnconfirmed fails', () => {
+		describe('when submodules.transactions.applyUnconfirmed fails', () => {
 			beforeEach(() =>
-				modules.transactions.applyUnconfirmed.callsArgWith(
+				submodules.transactions.applyUnconfirmed.callsArgWith(
 					2,
 					'applyUnconfirmed-ERR',
 					null
@@ -651,14 +652,18 @@ describe('blocks/chain', () => {
 			});
 		});
 
-		describe('when modules.transactions.applyUnconfirmed succeeds', () => {
+		describe('when submodules.transactions.applyUnconfirmed succeeds', () => {
 			beforeEach(() =>
-				modules.transactions.applyUnconfirmed.callsArgWith(2, null, true)
+				submodules.transactions.applyUnconfirmed.callsArgWith(2, null, true)
 			);
 
-			describe('when modules.transactions.applyConfirmed fails', () => {
+			describe('when submodules.transactions.applyConfirmed fails', () => {
 				beforeEach(() =>
-					modules.transactions.applyConfirmed.callsArgWith(3, 'apply-ERR', null)
+					submodules.transactions.applyConfirmed.callsArgWith(
+						3,
+						'apply-ERR',
+						null
+					)
 				);
 
 				it('should call a callback with error', done => {
@@ -678,9 +683,9 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('when modules.transactions.applyConfirmed succeeds', () => {
+			describe('when submodules.transactions.applyConfirmed succeeds', () => {
 				beforeEach(() =>
-					modules.transactions.applyConfirmed.callsArgWith(3, null, true)
+					submodules.transactions.applyConfirmed.callsArgWith(3, null, true)
 				);
 
 				it('should call a callback with no error', done => {
@@ -689,9 +694,10 @@ describe('blocks/chain', () => {
 						{ id: 1, type: 1 },
 						'a1',
 						async () => {
-							expect(modules.transactions.applyUnconfirmed.calledOnce).to.be
+							expect(submodules.transactions.applyUnconfirmed.calledOnce).to.be
 								.true;
-							expect(modules.transactions.applyConfirmed.calledOnce).to.be.true;
+							expect(submodules.transactions.applyConfirmed.calledOnce).to.be
+								.true;
 							done();
 						}
 					);
@@ -701,9 +707,9 @@ describe('blocks/chain', () => {
 	});
 
 	describe('__private.undoUnconfirmedListStep', () => {
-		describe('when modules.transactions.undoUnconfirmedList fails', () => {
+		describe('when submodules.transactions.undoUnconfirmedList fails', () => {
 			beforeEach(() =>
-				modules.transactions.undoUnconfirmedList.callsArgWith(
+				submodules.transactions.undoUnconfirmedList.callsArgWith(
 					0,
 					'undoUnconfirmedList-ERR',
 					null
@@ -724,9 +730,9 @@ describe('blocks/chain', () => {
 			});
 		});
 
-		describe('when modules.transactions.undoUnconfirmedList succeeds', () => {
+		describe('when submodules.transactions.undoUnconfirmedList succeeds', () => {
 			beforeEach(() =>
-				modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true)
+				submodules.transactions.undoUnconfirmedList.callsArgWith(0, null, true)
 			);
 			it('should call a callback with no error', done => {
 				__private.undoUnconfirmedListStep(err => {
@@ -770,9 +776,9 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when block.transactions is not empty', () => {
-			describe('when modules.accounts.setAccountAndGet fails', () => {
+			describe('when submodules.accounts.setAccountAndGet fails', () => {
 				beforeEach(() =>
-					modules.accounts.setAccountAndGet.callsArgWith(
+					submodules.accounts.setAccountAndGet.callsArgWith(
 						1,
 						'setAccountAndGet-ERR',
 						null
@@ -801,14 +807,14 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('when modules.accounts.setAccountAndGet succeeds', () => {
+			describe('when submodules.accounts.setAccountAndGet succeeds', () => {
 				beforeEach(() =>
-					modules.accounts.setAccountAndGet.callsArgWith(1, null, 'sender1')
+					submodules.accounts.setAccountAndGet.callsArgWith(1, null, 'sender1')
 				);
 
-				describe('when modules.transactions.applyUnconfirmed fails', () => {
+				describe('when submodules.transactions.applyUnconfirmed fails', () => {
 					beforeEach(() =>
-						modules.transactions.applyUnconfirmed.callsArgWith(
+						submodules.transactions.applyUnconfirmed.callsArgWith(
 							2,
 							'applyUnconfirmed-ERR',
 							null
@@ -837,9 +843,9 @@ describe('blocks/chain', () => {
 					});
 				});
 
-				describe('when modules.transactions.applyUnconfirmed succeeds', () => {
+				describe('when submodules.transactions.applyUnconfirmed succeeds', () => {
 					beforeEach(() =>
-						modules.transactions.applyUnconfirmed.callsArgWith(2, null, true)
+						submodules.transactions.applyUnconfirmed.callsArgWith(2, null, true)
 					);
 
 					it('should return resolved promise with no error', done => {
@@ -854,9 +860,11 @@ describe('blocks/chain', () => {
 									undefined,
 									undefined,
 								]);
-								expect(modules.accounts.setAccountAndGet.callCount).to.equal(3);
+								expect(submodules.accounts.setAccountAndGet.callCount).to.equal(
+									3
+								);
 								expect(
-									modules.transactions.applyUnconfirmed.callCount
+									submodules.transactions.applyUnconfirmed.callCount
 								).to.equal(3);
 								done();
 							});
@@ -899,9 +907,9 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when block.transaction is not empty', () => {
-			describe('when modules.accounts.getAccount fails', () => {
+			describe('when submodules.accounts.getAccount fails', () => {
 				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
+					submodules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
 				);
 
 				it('should return rejected promise with error', done => {
@@ -915,8 +923,10 @@ describe('blocks/chain', () => {
 							expect(err.message).to.equal(
 								'Failed to get account for applying transaction to confirmed state: 6 - getAccount-ERR'
 							);
-							expect(modules.accounts.getAccount.callCount).to.equal(1);
-							expect(modules.transactions.applyConfirmed.callCount).to.equal(0);
+							expect(submodules.accounts.getAccount.callCount).to.equal(1);
+							expect(submodules.transactions.applyConfirmed.callCount).to.equal(
+								0
+							);
 							expect(loggerStub.error.args[0][0]).to.equal(
 								'Failed to get account for applying transaction to confirmed state: 6 - getAccount-ERR'
 							);
@@ -929,14 +939,14 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('when modules.accounts.getAccount succeeds', () => {
+			describe('when submodules.accounts.getAccount succeeds', () => {
 				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, null, 'sender1')
+					submodules.accounts.getAccount.callsArgWith(1, null, 'sender1')
 				);
 
 				describe('when library.logic.transaction.apply fails', () => {
 					beforeEach(() =>
-						modules.transactions.applyConfirmed.callsArgWith(
+						submodules.transactions.applyConfirmed.callsArgWith(
 							3,
 							'apply-ERR',
 							null
@@ -954,10 +964,10 @@ describe('blocks/chain', () => {
 								expect(err.message).to.equal(
 									'Failed to apply transaction: 6 to confirmed state of account - apply-ERR'
 								);
-								expect(modules.accounts.getAccount.callCount).to.equal(1);
-								expect(modules.transactions.applyConfirmed.callCount).to.equal(
-									1
-								);
+								expect(submodules.accounts.getAccount.callCount).to.equal(1);
+								expect(
+									submodules.transactions.applyConfirmed.callCount
+								).to.equal(1);
 								expect(loggerStub.error.args[0][0]).to.equal(
 									'Failed to apply transaction: 6 to confirmed state of account - apply-ERR'
 								);
@@ -972,7 +982,7 @@ describe('blocks/chain', () => {
 
 				describe('when library.logic.transaction.applyConfirmed succeeds', () => {
 					beforeEach(() =>
-						modules.transactions.applyConfirmed.callsArgWith(3, null, true)
+						submodules.transactions.applyConfirmed.callsArgWith(3, null, true)
 					);
 					it('should return resolved promise with no error', done => {
 						__private
@@ -1002,7 +1012,7 @@ describe('blocks/chain', () => {
 			blocksChainModule.saveBlock = sinonSandbox
 				.stub()
 				.callsArgWith(1, null, true);
-			modules.rounds.tick.callsArgWith(1, null, true);
+			submodules.rounds.tick.callsArgWith(1, null, true);
 			process.emit = sinonSandbox.stub();
 			storageStub.entities.Block.begin = (desc, tx) => tx();
 			done();
@@ -1040,7 +1050,7 @@ describe('blocks/chain', () => {
 							expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal(
 								blockWithTransactions
 							);
-							expect(modules.blocks.lastBlock.set.calledOnce).to.be.false;
+							expect(submodules.blocks.lastBlock.set.calledOnce).to.be.false;
 							done();
 						});
 				});
@@ -1060,9 +1070,9 @@ describe('blocks/chain', () => {
 					);
 				});
 
-				describe('when modules.rounds.tick fails', () => {
+				describe('when submodules.rounds.tick fails', () => {
 					beforeEach(() =>
-						modules.rounds.tick.callsArgWith(1, 'tick-ERR', null)
+						submodules.rounds.tick.callsArgWith(1, 'tick-ERR', null)
 					);
 
 					it('should call a callback with error', done => {
@@ -1080,8 +1090,8 @@ describe('blocks/chain', () => {
 					});
 				});
 
-				describe('when modules.rounds.tick succeeds', () => {
-					beforeEach(() => modules.rounds.tick.callsArgWith(1, null, true));
+				describe('when submodules.rounds.tick succeeds', () => {
+					beforeEach(() => submodules.rounds.tick.callsArgWith(1, null, true));
 
 					it('should call a callback with no error', done => {
 						__private
@@ -1107,8 +1117,10 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when saveBlock is false', () => {
-			describe('when modules.rounds.tick fails', () => {
-				beforeEach(() => modules.rounds.tick.callsArgWith(1, 'tick-ERR', null));
+			describe('when submodules.rounds.tick fails', () => {
+				beforeEach(() =>
+					submodules.rounds.tick.callsArgWith(1, 'tick-ERR', null)
+				);
 
 				it('should call a callback with error', done => {
 					__private
@@ -1125,8 +1137,8 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('when modules.rounds.tick succeeds', () => {
-				beforeEach(() => modules.rounds.tick.callsArgWith(1, null, true));
+			describe('when submodules.rounds.tick succeeds', () => {
+				beforeEach(() => submodules.rounds.tick.callsArgWith(1, null, true));
 
 				it('should call a callback with no error', done => {
 					__private
@@ -1157,7 +1169,7 @@ describe('blocks/chain', () => {
 			txTemp = storageStub.entities.Block.begin;
 			privateTemp = __private;
 			process.emit = sinonSandbox.stub();
-			modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
+			submodules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
 			__private.applyUnconfirmedStep = sinonSandbox
 				.stub()
 				.resolves(blockWithTransactions);
@@ -1184,7 +1196,7 @@ describe('blocks/chain', () => {
 				true,
 				txTemp
 			);
-			expect(modules.blocks.isActive.set.calledTwice).to.be.true;
+			expect(submodules.blocks.isActive.set.calledTwice).to.be.true;
 			__private = privateTemp;
 			storageStub.entities.Block.begin = txTemp;
 			done();
@@ -1192,8 +1204,8 @@ describe('blocks/chain', () => {
 
 		describe('when storageStub.entities.Block.begin fails', () => {
 			afterEach(() => {
-				expect(modules.blocks.isActive.set.args[0][0]).to.be.true;
-				return expect(modules.blocks.isActive.set.args[1][0]).to.be.false;
+				expect(submodules.blocks.isActive.set.args[0][0]).to.be.true;
+				return expect(submodules.blocks.isActive.set.args[1][0]).to.be.false;
 			});
 
 			describe('when reason === Snapshot finished', () => {
@@ -1235,16 +1247,16 @@ describe('blocks/chain', () => {
 		describe('when storageStub.entities.Block.begin succeeds', () => {
 			beforeEach(done => {
 				storageStub.entities.Block.begin = (desc, tx) => tx(txTemp.resolves());
-				modules.transactions.removeUnconfirmedTransaction.returns(true);
+				submodules.transactions.removeUnconfirmedTransaction.returns(true);
 				done();
 			});
 			it('should call a callback with no error', done => {
 				blocksChainModule.applyBlock(blockWithTransactions, true, err => {
 					expect(err).to.be.null;
 					expect(
-						modules.transactions.removeUnconfirmedTransaction.callCount
+						submodules.transactions.removeUnconfirmedTransaction.callCount
 					).to.equal(3);
-					expect(modules.blocks.isActive.set.callCount).to.equal(2);
+					expect(submodules.blocks.isActive.set.callCount).to.equal(2);
 					done();
 				});
 			});
@@ -1265,14 +1277,14 @@ describe('blocks/chain', () => {
 		let tx;
 		beforeEach(() => {
 			tx = sinonSandbox.stub();
-			return modules.blocks.utils.loadBlocksPart.callsArgWith(
+			return submodules.blocks.utils.loadBlocksPart.callsArgWith(
 				1,
 				'loadBlocksPart-ERR',
 				null
 			);
 		});
 
-		describe('when modules.blocks.utils.loadBlocksPart fails', () => {
+		describe('when submodules.blocks.utils.loadBlocksPart fails', () => {
 			describe('if returns error', () => {
 				it('should call a callback with returned error', done => {
 					__private.loadSecondLastBlockStep(blockReduced.id, tx).catch(err => {
@@ -1284,7 +1296,7 @@ describe('blocks/chain', () => {
 
 			describe('if returns empty', () => {
 				beforeEach(() =>
-					modules.blocks.utils.loadBlocksPart.callsArgWith(1, null, [])
+					submodules.blocks.utils.loadBlocksPart.callsArgWith(1, null, [])
 				);
 
 				it('should call a callback with error "previousBlock is null"', done => {
@@ -1296,9 +1308,9 @@ describe('blocks/chain', () => {
 			});
 		});
 
-		describe('when modules.blocks.utils.loadBlocksPart succeeds', () => {
+		describe('when submodules.blocks.utils.loadBlocksPart succeeds', () => {
 			beforeEach(() =>
-				modules.blocks.utils.loadBlocksPart.callsArgWith(1, null, [
+				submodules.blocks.utils.loadBlocksPart.callsArgWith(1, null, [
 					{ id: 2, height: 2 },
 				])
 			);
@@ -1308,9 +1320,9 @@ describe('blocks/chain', () => {
 	describe('__private.undoConfirmedStep', () => {
 		let tx;
 		describe('when oldLastBlock.transactions is not empty', () => {
-			describe('when modules.accounts.getAccount fails', () => {
+			describe('when submodules.accounts.getAccount fails', () => {
 				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
+					submodules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
 				);
 
 				it('should reject promise with "getAccount-ERR"', done => {
@@ -1327,14 +1339,14 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('when modules.accounts.getAccount succeeds', () => {
+			describe('when submodules.accounts.getAccount succeeds', () => {
 				beforeEach(done => {
-					modules.accounts.getAccount.callsArgWith(1, null, '12ab');
-					modules.transactions.undoConfirmed.callsArgWith(3, null, true);
+					submodules.accounts.getAccount.callsArgWith(1, null, '12ab');
+					submodules.transactions.undoConfirmed.callsArgWith(3, null, true);
 					done();
 				});
 
-				it('should call modules.accounts.getAccount', done => {
+				it('should call submodules.accounts.getAccount', done => {
 					__private
 						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
@@ -1342,12 +1354,12 @@ describe('blocks/chain', () => {
 							tx
 						)
 						.then(() => {
-							expect(modules.accounts.getAccount.callCount).to.equal(1);
+							expect(submodules.accounts.getAccount.callCount).to.equal(1);
 							done();
 						});
 				});
 
-				it('should call modules.transactions.undoConfirmed', done => {
+				it('should call submodules.transactions.undoConfirmed', done => {
 					__private
 						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
@@ -1355,7 +1367,9 @@ describe('blocks/chain', () => {
 							tx
 						)
 						.then(() => {
-							expect(modules.transactions.undoConfirmed.callCount).to.equal(1);
+							expect(submodules.transactions.undoConfirmed.callCount).to.equal(
+								1
+							);
 							done();
 						});
 				});
@@ -1379,9 +1393,9 @@ describe('blocks/chain', () => {
 	describe('__private.undoUnconfirmStep', () => {
 		let tx;
 		describe('when oldLastBlock.transactions is not empty', () => {
-			describe('when modules.transactions.undoUnconfirmed fails', () => {
+			describe('when submodules.transactions.undoUnconfirmed fails', () => {
 				beforeEach(done => {
-					modules.transactions.undoUnconfirmed.callsArgWith(
+					submodules.transactions.undoUnconfirmed.callsArgWith(
 						1,
 						'undoUnconfirmed-ERR',
 						null
@@ -1403,13 +1417,13 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('when modules.transactions.undoUnconfirmed succeeds', () => {
+			describe('when submodules.transactions.undoUnconfirmed succeeds', () => {
 				beforeEach(done => {
-					modules.transactions.undoUnconfirmed.callsArgWith(1, null, true);
+					submodules.transactions.undoUnconfirmed.callsArgWith(1, null, true);
 					done();
 				});
 
-				it('should call modules.transactions.undoUnconfirmed', done => {
+				it('should call submodules.transactions.undoUnconfirmed', done => {
 					__private
 						.undoUnconfirmStep(
 							blockWithTransactions.transactions[0],
@@ -1417,9 +1431,9 @@ describe('blocks/chain', () => {
 							tx
 						)
 						.then(() => {
-							expect(modules.transactions.undoUnconfirmed.callCount).to.equal(
-								1
-							);
+							expect(
+								submodules.transactions.undoUnconfirmed.callCount
+							).to.equal(1);
 							done();
 						});
 				});
@@ -1442,9 +1456,9 @@ describe('blocks/chain', () => {
 
 	describe('__private.backwardTickStep', () => {
 		let tx;
-		describe('when modules.rounds.backwardTick fails', () => {
+		describe('when submodules.rounds.backwardTick fails', () => {
 			beforeEach(() =>
-				modules.rounds.backwardTick.callsArgWith(2, 'backwardTick-ERR', null)
+				submodules.rounds.backwardTick.callsArgWith(2, 'backwardTick-ERR', null)
 			);
 
 			it('should reject the promise with "backwardTick-ERR"', done => {
@@ -1461,9 +1475,9 @@ describe('blocks/chain', () => {
 			});
 		});
 
-		describe('when modules.rounds.backwardTick succeeds', () => {
+		describe('when submodules.rounds.backwardTick succeeds', () => {
 			beforeEach(done => {
-				modules.rounds.backwardTick.callsArgWith(2, null);
+				submodules.rounds.backwardTick.callsArgWith(2, null);
 				done();
 			});
 
@@ -1551,20 +1565,20 @@ describe('blocks/chain', () => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
 			components.system.update.resolves();
-			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
+			submodules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
 		afterEach(done => {
 			__private.popLastBlock = popLastBlockTemp;
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(submodules.blocks.lastBlock.get.calledOnce).to.be.true;
 			expect(loggerStub.warn.args[0][0]).to.equal('Deleting last block');
 			done();
 		});
 
 		describe('when lastBlock.height = 1', () => {
 			beforeEach(() =>
-				modules.blocks.lastBlock.get.returns(genesisBlockWithTransactions)
+				submodules.blocks.lastBlock.get.returns(genesisBlockWithTransactions)
 			);
 
 			it('should call a callback with error "Cannot delete genesis block', done => {
@@ -1580,8 +1594,8 @@ describe('blocks/chain', () => {
 
 		describe('when lastBlock.height != 1', () => {
 			beforeEach(() => {
-				modules.blocks.lastBlock.set.returns(blockWithTransactions);
-				return modules.blocks.lastBlock.get.returns(blockWithTransactions);
+				submodules.blocks.lastBlock.set.returns(blockWithTransactions);
+				return submodules.blocks.lastBlock.get.returns(blockWithTransactions);
 			});
 
 			describe('when __private.popLastBlock fails', () => {
@@ -1608,9 +1622,9 @@ describe('blocks/chain', () => {
 					__private.popLastBlock.callsArgWith(1, null, blockWithTransactions)
 				);
 
-				describe('when modules.transactions.receiveTransactions fails', () => {
+				describe('when submodules.transactions.receiveTransactions fails', () => {
 					beforeEach(() =>
-						modules.transactions.receiveTransactions.callsArgWith(
+						submodules.transactions.receiveTransactions.callsArgWith(
 							2,
 							'receiveTransactions-ERR',
 							true
@@ -1627,26 +1641,32 @@ describe('blocks/chain', () => {
 							expect(loggerStub.error.args[0][1]).to.deep.equal(
 								'receiveTransactions-ERR'
 							);
-							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(submodules.blocks.lastBlock.set.calledOnce).to.be.true;
 							expect(components.system.update.calledOnce).to.be.true;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
+							expect(submodules.transport.broadcastHeaders.calledOnce).to.be
+								.true;
 							done();
 						});
 					});
 				});
 
-				describe('when modules.transactions.receiveTransactions succeeds', () => {
+				describe('when submodules.transactions.receiveTransactions succeeds', () => {
 					beforeEach(() =>
-						modules.transactions.receiveTransactions.callsArgWith(2, null, true)
+						submodules.transactions.receiveTransactions.callsArgWith(
+							2,
+							null,
+							true
+						)
 					);
 
 					it('should call a callback with no error', done => {
 						blocksChainModule.deleteLastBlock((err, newLastBlock) => {
 							expect(err).to.be.null;
 							expect(newLastBlock).to.deep.equal(blockWithTransactions);
-							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(submodules.blocks.lastBlock.set.calledOnce).to.be.true;
 							expect(components.system.update.calledOnce).to.be.true;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
+							expect(submodules.transport.broadcastHeaders.calledOnce).to.be
+								.true;
 							done();
 						});
 					});
@@ -1717,19 +1737,19 @@ describe('blocks/chain', () => {
 			done();
 		});
 
-		it('should call library.logger.trace with "Blocks->Chain: Shared modules bind."', async () =>
+		it('should call library.logger.trace with "Blocks->Chain: Shared submodules bind."', async () =>
 			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Chain: Shared modules bind.'
+				'Blocks->Chain: Shared submodules bind.'
 			));
 
-		it('should assign params to modules', async () => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
-			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
+		it('should assign params to submodules', async () => {
+			expect(submodules.accounts).to.equal(bindingsStub.submodules.accounts);
+			expect(submodules.blocks).to.equal(bindingsStub.submodules.blocks);
+			expect(submodules.rounds).to.equal(bindingsStub.submodules.rounds);
 			expect(components.system).to.equal(bindingsStub.components.system);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
-			return expect(modules.transactions).to.equal(
-				bindingsStub.modules.transactions
+			expect(submodules.transport).to.equal(bindingsStub.submodules.transport);
+			return expect(submodules.transactions).to.equal(
+				bindingsStub.submodules.transactions
 			);
 		});
 

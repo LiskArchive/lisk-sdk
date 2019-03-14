@@ -19,7 +19,7 @@ const Signature = require('../logic/signature');
 const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
-let modules;
+let submodules;
 let library;
 let self;
 const __private = {};
@@ -31,8 +31,8 @@ __private.assetTypes = {};
  * Calls logic.transaction.attachAssetType().
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires logic/signature
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
@@ -68,29 +68,29 @@ class Signatures {
 
 // Public methods
 /**
- * Checks if `modules` is loaded.
+ * Checks if `submodules` is loaded.
  *
- * @returns {boolean} True if `modules` is loaded
+ * @returns {boolean} True if `submodules` is loaded
  */
 Signatures.prototype.isLoaded = function() {
-	return !!modules;
+	return !!submodules;
 };
 
 // Events
 /**
- * Calls Signature.bind() with modules params.
+ * Calls Signature.bind() with submodules params.
  *
- * @param {modules} scope - Loaded modules
+ * @param {submodules} scope - Loaded submodules
  */
 Signatures.prototype.onBind = function(scope) {
-	modules = {
-		accounts: scope.modules.accounts,
-		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
+	submodules = {
+		accounts: scope.submodules.accounts,
+		transactions: scope.submodules.transactions,
+		transport: scope.submodules.transport,
 	};
 
 	__private.assetTypes[TRANSACTION_TYPES.SIGNATURE].bind(
-		scope.modules.accounts
+		scope.submodules.accounts
 	);
 };
 
@@ -110,8 +110,9 @@ Signatures.prototype.shared = {
 	 * @returns {setImmediateCallback} cb
 	 */
 	postSignature(signature, cb) {
-		return modules.transport.shared.postSignature({ signature }, (err, res) =>
-			setImmediate(cb, err, res)
+		return submodules.transport.shared.postSignature(
+			{ signature },
+			(err, res) => setImmediate(cb, err, res)
 		);
 	},
 
@@ -123,8 +124,9 @@ Signatures.prototype.shared = {
 	 * @returns {setImmediateCallback} cb
 	 */
 	postSignatures(signatures, cb) {
-		return modules.transport.shared.postSignatures({ signatures }, (err, res) =>
-			setImmediate(cb, err, res)
+		return submodules.transport.shared.postSignatures(
+			{ signatures },
+			(err, res) => setImmediate(cb, err, res)
 		);
 	},
 };

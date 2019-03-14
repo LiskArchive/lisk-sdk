@@ -32,7 +32,7 @@ const {
 } = global.constants;
 // Private fields
 let components;
-let modules;
+let submodules;
 let library;
 let self;
 // eslint-disable-next-line prefer-const
@@ -45,8 +45,8 @@ __private.messages = {};
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
  *
  * @class
- * @memberof modules
- * @see Parent: {@link modules}
+ * @memberof submodules
+ * @see Parent: {@link submodules}
  * @requires async
  * @requires api/ws/rpc/failure_codes
  * @requires api/ws/rpc/failure_codes
@@ -123,7 +123,7 @@ __private.removePeer = function(options, extraMessage) {
 	library.logger.debug(
 		`${options.code} Removing peer ${peer.ip}:${peer.wsPort} ${extraMessage}`
 	);
-	return modules.peers.remove(peer);
+	return submodules.peers.remove(peer);
 };
 
 /**
@@ -159,7 +159,7 @@ __private.receiveSignature = function(query, cb) {
 			return setImmediate(cb, `Invalid signature body ${err[0].message}`);
 		}
 
-		return modules.multisignatures.processSignature(
+		return submodules.multisignatures.processSignature(
 			query,
 			processSignatureErr => {
 				if (processSignatureErr) {
@@ -255,7 +255,7 @@ __private.receiveTransaction = function(
 				} from peer ${library.logic.peers.peersManager.getAddress(nonce)}`
 			);
 		}
-		modules.transactions.processUnconfirmedTransaction(
+		submodules.transactions.processUnconfirmedTransaction(
 			transaction,
 			true,
 			processUnconfirmErr => {
@@ -292,33 +292,33 @@ Transport.prototype.poorConsensus = function() {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS;
+	return submodules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS;
 };
 
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.
  *
- * @param {modules, components} scope - Loaded modules and components
+ * @param {submodules, components} scope - Loaded submodules and components
  */
 Transport.prototype.onBind = function(scope) {
 	components = {
 		system: scope.components.system,
 	};
 
-	modules = {
-		blocks: scope.modules.blocks,
-		dapps: scope.modules.dapps,
-		loader: scope.modules.loader,
-		multisignatures: scope.modules.multisignatures,
-		peers: scope.modules.peers,
-		transactions: scope.modules.transactions,
+	submodules = {
+		blocks: scope.submodules.blocks,
+		dapps: scope.submodules.dapps,
+		loader: scope.submodules.loader,
+		multisignatures: scope.submodules.multisignatures,
+		peers: scope.submodules.peers,
+		transactions: scope.submodules.transactions,
 	};
 
 	__private.broadcaster.bind(
-		scope.modules.peers,
-		scope.modules.transport,
-		scope.modules.transactions
+		scope.submodules.peers,
+		scope.submodules.transport,
+		scope.submodules.transactions
 	);
 };
 
@@ -431,7 +431,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 		);
 		return;
 	}
-	if (modules.loader.syncing()) {
+	if (submodules.loader.syncing()) {
 		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 		);
@@ -471,13 +471,13 @@ Transport.prototype.cleanup = function(cb) {
 };
 
 /**
- * Returns true if modules are loaded and private variable loaded is true.
+ * Returns true if submodules are loaded and private variable loaded is true.
  *
  * @returns {boolean}
  * @todo Add description for the return value
  */
 Transport.prototype.isLoaded = function() {
-	return components && modules && __private.loaded;
+	return components && submodules && __private.loaded;
 };
 
 // Internal API
@@ -573,7 +573,7 @@ Transport.prototype.shared = {
 		// Discounting maxium compression setting used in middleware
 		// Maximum transport payload = 2000000 bytes
 		query = query || {};
-		modules.blocks.utils.loadBlocksData(
+		submodules.blocks.utils.loadBlocksData(
 			{
 				limit: 34, // 1977100 bytes
 				lastId: query.lastBlockId,
@@ -630,7 +630,7 @@ Transport.prototype.shared = {
 				}
 				let block;
 				try {
-					block = modules.blocks.verify.addBlockProperties(query.block);
+					block = submodules.blocks.verify.addBlockProperties(query.block);
 					block = library.logic.block.objectNormalize(block);
 				} catch (e) {
 					library.logger.debug('Block normalization failed', {
@@ -656,8 +656,8 @@ Transport.prototype.shared = {
 	list(req, cb) {
 		req = req || {};
 		const peersFinder = !req.query
-			? modules.peers.list
-			: modules.peers.shared.getPeers;
+			? submodules.peers.list
+			: submodules.peers.shared.getPeers;
 		peersFinder(
 			Object.assign({}, { limit: MAX_PEERS }, req.query),
 			(err, peers) => {
@@ -747,7 +747,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	getSignatures(req, cb) {
-		const transactions = modules.transactions.getMultisignatureTransactionList(
+		const transactions = submodules.transactions.getMultisignatureTransactionList(
 			true,
 			MAX_SHARED_TRANSACTIONS
 		);
@@ -776,7 +776,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	getTransactions(query, cb) {
-		const transactions = modules.transactions.getMergedTransactionList(
+		const transactions = submodules.transactions.getMergedTransactionList(
 			true,
 			MAX_SHARED_TRANSACTIONS
 		);
@@ -884,8 +884,8 @@ Transport.prototype.internal = {
 				return setImmediate(cb, err);
 			}
 			const updates = {};
-			updates[Rules.UPDATES.INSERT] = modules.peers.update;
-			updates[Rules.UPDATES.REMOVE] = modules.peers.remove;
+			updates[Rules.UPDATES.INSERT] = submodules.peers.update;
+			updates[Rules.UPDATES.REMOVE] = submodules.peers.remove;
 			const updateResult = updates[query.updateType](query.peer);
 			return setImmediate(
 				cb,

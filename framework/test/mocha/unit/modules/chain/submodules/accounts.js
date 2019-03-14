@@ -56,9 +56,9 @@ describe('accounts', () => {
 		application.init(
 			{ sandbox: { name: 'lisk_test_accounts' } },
 			(err, scope) => {
-				// For correctly initializing setting blocks module
-				scope.modules.blocks.lastBlock.set({ height: 10 });
-				accounts = scope.modules.accounts;
+				// For correctly initializing setting blocks submodule
+				scope.submodules.blocks.lastBlock.set({ height: 10 });
+				accounts = scope.submodules.accounts;
 				accountLogic = scope.logic.account;
 				storage = scope.components.storage;
 				done(err);
@@ -241,7 +241,7 @@ describe('accounts', () => {
 	});
 
 	describe('isLoaded', () => {
-		it('should return true when modules are loaded', async () =>
+		it('should return true when submodules are loaded', async () =>
 			expect(accounts.isLoaded).to.be.ok);
 	});
 });

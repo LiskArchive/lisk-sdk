@@ -43,7 +43,9 @@ describe('system test (blocks) - chain/applyBlock', () => {
 			]);
 		})
 			.then(() => {
-				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+				library.submodules.blocks.lastBlock.set(
+					__testContext.config.genesisBlock
+				);
 				done();
 			})
 			.catch(err => {
@@ -178,7 +180,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 			describe('after applying a new block', () => {
 				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
+					library.submodules.blocks.chain.applyBlock(block, true, done);
 				});
 
 				it('should undo unconfirmed transactions', done => {
@@ -204,7 +206,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					// Making block invalid
 					block.transactions[0].asset.delegate.username =
 						block.transactions[1].asset.delegate.username;
-					library.modules.blocks.chain.applyBlock(block, true, async () =>
+					library.submodules.blocks.chain.applyBlock(block, true, async () =>
 						done()
 					);
 				});
@@ -243,7 +245,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 			describe('after applying new block passes', () => {
 				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
+					library.submodules.blocks.chain.applyBlock(block, true, done);
 				});
 
 				it('should applyUnconfirmedStep for block transactions', done => {
@@ -280,8 +282,10 @@ describe('system test (blocks) - chain/applyBlock', () => {
 						},
 						err => {
 							expect(err).to.not.exist;
-							library.modules.blocks.chain.applyBlock(block, true, async () =>
-								done()
+							library.submodules.blocks.chain.applyBlock(
+								block,
+								true,
+								async () => done()
 							);
 						}
 					);
@@ -334,7 +338,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 			describe('after applying a new block', () => {
 				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
+					library.submodules.blocks.chain.applyBlock(block, true, done);
 				});
 
 				it('should applyConfirmedStep', done => {
@@ -394,7 +398,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 				};
 
 				it('should call a callback with proper error', done => {
-					library.modules.blocks.chain.saveBlock(auxBlock, err => {
+					library.submodules.blocks.chain.saveBlock(auxBlock, err => {
 						expect(err).to.eql('Blocks#saveBlock error');
 						done();
 					});
@@ -423,7 +427,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 				};
 
 				it('should call a callback with proper error', done => {
-					library.modules.blocks.chain.saveBlock(auxBlock, err => {
+					library.submodules.blocks.chain.saveBlock(auxBlock, err => {
 						expect(err).to.eql('Blocks#saveBlock error');
 						done();
 					});
@@ -438,7 +442,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					blockId = block.id;
 					// Make block invalid
 					block.id = null;
-					library.modules.blocks.chain.applyBlock(block, true, async () =>
+					library.submodules.blocks.chain.applyBlock(block, true, async () =>
 						done()
 					);
 				});
@@ -492,7 +496,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 			describe('after applying a new block', () => {
 				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
+					library.submodules.blocks.chain.applyBlock(block, true, done);
 				});
 
 				it('should save block in the blocks table', done => {

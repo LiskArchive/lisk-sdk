@@ -15,7 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
-const modulesLoader = require('../../../../../common/modules_loader');
+const submodulesLoader = require('../../../../../common/submodules_loader');
 
 const BlocksUtils = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/utils'
@@ -295,7 +295,7 @@ describe('blocks/utils', () => {
 	let bindingsStub;
 	let __private;
 	let library;
-	let modules;
+	let submodules;
 
 	beforeEach(done => {
 		storageStub = {
@@ -349,11 +349,11 @@ describe('blocks/utils', () => {
 			blockMock,
 			transactionMock,
 			storageStub,
-			modulesLoader.scope.genesisBlock
+			submodulesLoader.scope.genesisBlock
 		);
 
 		bindingsStub = {
-			modules: {
+			submodules: {
 				blocks: {
 					lastBlock: {
 						get: sinonSandbox
@@ -377,7 +377,7 @@ describe('blocks/utils', () => {
 		__private.loaded = false;
 
 		library = BlocksUtils.__get__('library');
-		modules = BlocksUtils.__get__('modules');
+		submodules = BlocksUtils.__get__('submodules');
 		done();
 	});
 
@@ -564,17 +564,19 @@ describe('blocks/utils', () => {
 		});
 
 		describe('sorting the block.transactions array', () => {
-			it('should call modules.blocks.lastBlock.set with block', done => {
+			it('should call submodules.blocks.lastBlock.set with block', done => {
 				library.storage.entities.Block.get = sinonSandbox
 					.stub()
 					.resolves(storageBlocksListRows);
 
-				modules.blocks.lastBlock.set = sinonSandbox.spy();
+				submodules.blocks.lastBlock.set = sinonSandbox.spy();
 
 				blocksUtilsModule.loadLastBlock((err, block) => {
 					expect(block).to.be.an('object');
 					expect(block.id).to.equal('13068833527549895884');
-					expect(modules.blocks.lastBlock.set).to.have.been.calledWith(block);
+					expect(submodules.blocks.lastBlock.set).to.have.been.calledWith(
+						block
+					);
 					done();
 				});
 			});
@@ -698,7 +700,7 @@ describe('blocks/utils', () => {
 				.stub()
 				.resolves([{ id: '6524861224470851795', height: 1 }]);
 
-			modules.blocks.lastBlock.get = sinonSandbox.stub(undefined);
+			submodules.blocks.lastBlock.get = sinonSandbox.stub(undefined);
 
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(err).to.be.null;
@@ -851,13 +853,13 @@ describe('blocks/utils', () => {
 			return blocksUtilsModule.onBind(bindingsStub);
 		});
 
-		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', async () =>
+		it('should call library.logger.trace with "Blocks->Utils: Shared submodules bind."', async () =>
 			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Utils: Shared modules bind.'
+				'Blocks->Utils: Shared submodules bind.'
 			));
 
-		it('should create a modules object { blocks: scope.blocks }', async () =>
-			expect(modules.blocks).to.equal(bindingsStub.modules.blocks));
+		it('should create a submodules object { blocks: scope.blocks }', async () =>
+			expect(submodules.blocks).to.equal(bindingsStub.submodules.blocks));
 
 		it('should set __private.loaded to true', async () =>
 			expect(__private.loaded).to.be.true);

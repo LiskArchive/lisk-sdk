@@ -39,8 +39,8 @@ let self;
  * @param {Object} scope
  * @param {Object} scope.components
  * @param {logger} scope.components.logger
- * @param {Object} scope.modules
- * @param {Delegates} scope.modules.delegates
+ * @param {Object} scope.submodules
+ * @param {Delegates} scope.submodules.delegates
  * @param {Object} scope.logic
  * @param {Account} scope.logic.account
  * @param {ZSchema} scope.schema
@@ -61,7 +61,7 @@ class Vote {
 			transaction,
 		};
 		__scope.schema = schema;
-		// TODO: Add modules to contructor argument and assign delegates module to __scope.modules.delegates
+		// TODO: Add submodules to contructor argument and assign delegates submodule to __scope.submodules.delegates
 	}
 
 	/**
@@ -129,16 +129,16 @@ class Vote {
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
- * Binds module content to private object modules.
+ * Binds submodule content to private object submodules.
  *
  * @param {Delegates} delegates
  * @todo Add description for the params
  */
-// TODO: Remove this method as modules will be loaded prior to trs logic.
+// TODO: Remove this method as submodules will be loaded prior to trs logic.
 Vote.prototype.bind = function(delegates) {
-	__scope.modules = {
+	__scope.submodules = {
 		delegates,
 	};
 };
@@ -279,7 +279,7 @@ Vote.prototype.verifyVote = function(vote, cb) {
  * @todo Add description for the params
  */
 Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
-	__scope.modules.delegates.checkConfirmedDelegates(
+	__scope.submodules.delegates.checkConfirmedDelegates(
 		transaction.senderPublicKey,
 		transaction.asset.votes,
 		err => {
@@ -304,7 +304,7 @@ Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
  * @todo Add description for the params
  */
 Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
-	__scope.modules.delegates.checkUnconfirmedDelegates(
+	__scope.submodules.delegates.checkUnconfirmedDelegates(
 		transaction.senderPublicKey,
 		transaction.asset.votes,
 		err => {

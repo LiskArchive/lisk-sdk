@@ -33,8 +33,8 @@ const __scope = {};
  * @param {Object} scope
  * @param {Object} scope.components
  * @param {Storage} scope.components.storage
- * @param {Object} scope.modules
- * @param {Accounts} scope.modules.accounts
+ * @param {Object} scope.submodules
+ * @param {Accounts} scope.submodules.accounts
  * @param {ZSchema} scope.schema
  * @param {Object} scope.shared
  * @todo Add description for the params
@@ -45,22 +45,22 @@ class InTransfer {
 			storage,
 		};
 		__scope.schema = schema;
-		// TODO: Add modules to contructor argument and assign accounts to __scope.modules.accounts
+		// TODO: Add submodules to contructor argument and assign accounts to __scope.submodules.accounts
 	}
 }
 
 // TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
+// however, this will lead to incompatibility with submodules and tests implementation.
 /**
- * Binds input parameters to private variables modules and shared.
+ * Binds input parameters to private variables submodules and shared.
  *
  * @param {Accounts} accounts
  * @param {Object} sharedApi
  * @todo Add description for the params
  */
-// TODO: Remove this method as modules will be loaded prior to trs logic.
+// TODO: Remove this method as submodules will be loaded prior to trs logic.
 InTransfer.prototype.bind = function(accounts, sharedApi) {
-	__scope.modules = {
+	__scope.submodules = {
 		accounts,
 	};
 	__scope.shared = sharedApi;
@@ -189,7 +189,7 @@ InTransfer.prototype.applyConfirmed = function(
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			return __scope.modules.accounts.mergeAccountAndGet(
+			return __scope.submodules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: transaction.amount,
@@ -229,7 +229,7 @@ InTransfer.prototype.undoConfirmed = function(
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			return __scope.modules.accounts.mergeAccountAndGet(
+			return __scope.submodules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: -transaction.amount,

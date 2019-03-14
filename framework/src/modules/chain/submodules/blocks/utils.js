@@ -18,7 +18,7 @@ const _ = require('lodash');
 
 const { ACTIVE_DELEGATES, EPOCH_TIME } = global.constants;
 const __private = {};
-let modules;
+let submodules;
 let library;
 let self;
 
@@ -26,8 +26,8 @@ let self;
  * Main utils logic. Allows utils functions for blocks. Initializes library.
  *
  * @class
- * @memberof modules.blocks
- * @see Parent: {@link modules.blocks}
+ * @memberof submodules.blocks
+ * @see Parent: {@link submodules.blocks}
  * @requires lodash
  * @param {Object} logger
  * @param {Account} account
@@ -189,10 +189,10 @@ Utils.prototype.loadLastBlock = function(cb) {
 	)
 		.then(rows => {
 			// Normalize block
-			const block = modules.blocks.utils.readStorageRows(rows)[0];
+			const block = submodules.blocks.utils.readStorageRows(rows)[0];
 
 			// Update last block
-			modules.blocks.lastBlock.set(block);
+			submodules.blocks.lastBlock.set(block);
 			return setImmediate(cb, null, block);
 		})
 		.catch(err => {
@@ -213,7 +213,7 @@ Utils.prototype.loadLastBlock = function(cb) {
  * @returns {string} cb.res.ids - Comma separated list of blocks IDs
  */
 Utils.prototype.getIdSequence = function(height, cb) {
-	const lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = submodules.blocks.lastBlock.get();
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	library.storage.entities.Block.getFirstBlockIdOfLastRounds({
@@ -293,7 +293,7 @@ Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
 };
 
 /**
- * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
+ * Generates a list of full blocks for another node upon sync request from that node, see: submodules.transport.internal.blocks.
  *
  * @param {Object} filter - Filter options
  * @param {Object} filter.limit - Limit blocks to amount
@@ -583,18 +583,18 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 };
 
 /**
- * Handle modules initialization:
+ * Handle submodules initialization:
  * - blocks
  *
- * @param {modules} scope - Exposed modules
+ * @param {submodules} scope - Exposed submodules
  */
 Utils.prototype.onBind = function(scope) {
-	library.logger.trace('Blocks->Utils: Shared modules bind.');
-	modules = {
-		blocks: scope.modules.blocks,
+	library.logger.trace('Blocks->Utils: Shared submodules bind.');
+	submodules = {
+		blocks: scope.submodules.blocks,
 	};
 
-	// Set module as loaded
+	// Set submodule as loaded
 	__private.loaded = true;
 };
 
