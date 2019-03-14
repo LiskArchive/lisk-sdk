@@ -110,7 +110,7 @@ class ApplicationState {
 				__private.state.broadhash = __private.state.nethash;
 				return true;
 			}
-			__private.headers.height = blocks[0].height;
+			__private.state.height = blocks[0].height;
 			const seed = blocks.map(row => row.id).join('');
 			const newBroadhash = crypto
 				.createHash('sha256')
@@ -118,7 +118,7 @@ class ApplicationState {
 				.digest()
 				.toString('hex');
 			__private.state.broadhash = newBroadhash;
-			__private.logger.debug('System headers', __private.state);
+			__private.logger.debug('Application state', __private.state);
 			return true;
 		} catch (err) {
 			__private.logger.error(err.stack);
