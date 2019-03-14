@@ -49,8 +49,7 @@
 					"test/**",
 					"framework/src/modules/chain/tasks/**",
 					"framework/src/modules/chain/scripts/**",
-					"webpack.config.js",
-					"Gruntfile.js"
+					"webpack.config.js"
 				]
 			}
 		],
