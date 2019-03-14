@@ -256,7 +256,7 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
-	public async fetchStatusAndCreatePeer(
+	public async fetchStatusAndCreatePeers(
 		seedPeers: ReadonlyArray<P2PPeerInfo>,
 		nodeInfo: P2PNodeInfo,
 		peerConfig: PeerConfig,
