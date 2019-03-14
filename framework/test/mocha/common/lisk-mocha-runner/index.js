@@ -9,7 +9,7 @@ const timeStart = process.hrtime();
 
 const state = {
 	terminated: false,
-	mochaOptions: [],
+	mochaCliOptions: [],
 	numberOfTestFiles: 0,
 	processedCount: 0,
 	queue: [],
@@ -64,7 +64,7 @@ const processNext = () => {
 	state.queue = state.queue.slice(1);
 	return (
 		processManager
-			.spawn(file, state.mochaOptions)
+			.spawn(file, state.mochaCliOptions)
 			// eslint-disable-next-line no-loop-func
 			.then(() => {
 				state.tests.passed[file] = true;
@@ -87,10 +87,10 @@ const processNext = () => {
 	);
 };
 
-const executeTests = (testType, testPathPattern, mochaOptions) => {
+const executeTests = (testType, testPathPattern, mochaCliOptions) => {
 	const allTestFiles = getTestFiles(testType, testPathPattern);
 	state.numberOfTestFiles = allTestFiles.length;
-	state.mochaOptions = mochaOptions;
+	state.mochaCliOptions = mochaCliOptions;
 	state.queue = [...allTestFiles];
 	return Promise.all(
 		allTestFiles.slice(0, MAX_TASK_LIMIT).map(() => processNext())
@@ -109,19 +109,19 @@ process.on('exit', () => {
 });
 
 // argv[2] is TestType
-// argv[3] can be testPathPattern or mochaOptions
-// rest is mochaOptions
-const [, , testType, , ...mochaOptions] = process.argv;
+// argv[3] can be testPathPattern or mochaCliOptions
+// rest is mochaCliOptions
+const [, , testType, , ...mochaCliOptions] = process.argv;
 let [, , , testPathPattern] = process.argv;
 
 if (testPathPattern && testPathPattern.indexOf('-') === 0) {
-	mochaOptions.unshift(testPathPattern);
+	mochaCliOptions.unshift(testPathPattern);
 	testPathPattern = null;
 }
 
 // Execute lisk mocha runner
 (() => {
-	executeTests(testType, testPathPattern, mochaOptions).catch(error =>
+	executeTests(testType, testPathPattern, mochaCliOptions).catch(error =>
 		console.error(error.message)
 	);
 })();

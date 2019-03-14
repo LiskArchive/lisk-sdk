@@ -25,9 +25,9 @@ const promisifyChild = child => {
 	});
 };
 
-const getIstanbulOptions = (testFile, mochaOptions) => {
-	if (mochaOptions.length) {
-		mochaOptions.unshift('--');
+const getIstanbulOptions = (testFile, mochaCliOptions) => {
+	if (mochaCliOptions.length) {
+		mochaCliOptions.unshift('--');
 	}
 
 	return [
@@ -39,12 +39,12 @@ const getIstanbulOptions = (testFile, mochaOptions) => {
 		'none',
 		MOCHA_PATH,
 		testFile,
-		...mochaOptions,
+		...mochaCliOptions,
 	];
 };
 
-const spawn = (testFile, mochaOptions) => {
-	const istanbulOptions = getIstanbulOptions(testFile, mochaOptions);
+const spawn = (testFile, mochaCliOptions) => {
+	const istanbulOptions = getIstanbulOptions(testFile, mochaCliOptions);
 
 	const child = child_process.spawn(ISTANBUL_PATH, istanbulOptions, {
 		cwd: `${__dirname}/../../../../..`,
