@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
 import { TransferAsset } from '../0_transfer_transaction';
 import { SecondSignatureAsset } from '../1_second_signature_transaction';
 import { DelegateAsset } from '../2_delegate_transaction';

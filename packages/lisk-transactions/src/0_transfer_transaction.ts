@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
 	StateStore,

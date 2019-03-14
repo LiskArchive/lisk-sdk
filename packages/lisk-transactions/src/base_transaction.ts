@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable-next-line no-reference
-/// <reference path="../types/browserify-bignum/index.d.ts" />
-
+import * as BigNum from '@liskhq/bignum';
 import {
 	bigNumberToBuffer,
 	getAddressFromPublicKey,
@@ -22,7 +20,6 @@ import {
 	hexToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
 import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
