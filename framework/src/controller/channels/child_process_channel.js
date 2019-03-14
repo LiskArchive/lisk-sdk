@@ -51,17 +51,19 @@ class ChildProcessChannel extends BaseChannel {
 		this.rpcSocket.bind(this.rpcSocketPath);
 
 		return new Promise((resolve, reject) => {
-			this.busRpcClient.call(
-				'registerChannel',
-				this.moduleAlias,
-				this.eventsList.map(event => event.name),
-				this.actionsList.map(action => action.name),
-				{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
-				(err, result) => {
-					if (err) return reject(err);
-					return resolve(result);
-				}
-			);
+			this.rpcSocket.once('bind', () => {
+				this.busRpcClient.call(
+					'registerChannel',
+					this.moduleAlias,
+					this.eventsList.map(event => event.name),
+					this.actionsList.map(action => action.name),
+					{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
+					(err, result) => {
+						if (err) return reject(err);
+						return resolve(result);
+					}
+				);
+			});
 		});
 	}
 

@@ -275,15 +275,19 @@ module.exports = class Chain {
 		}
 
 		if (components !== undefined) {
-			components.map(component => component.cleanup());
+			Object.keys(components).forEach(async key => {
+				if (components[key].cleanup) {
+					await components[key].cleanup();
+				}
+			});
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
 		// this includes operations like snapshotting database tables.
 		await Promise.all(
-			modules.map(module => {
-				if (typeof module.cleanup === 'function') {
-					return promisify(module.cleanup)();
+			Object.keys(modules).map(key => {
+				if (typeof modules[key].cleanup === 'function') {
+					return promisify(modules[key].cleanup);
 				}
 				return true;
 			})

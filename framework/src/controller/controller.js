@@ -239,7 +239,7 @@ class Controller {
 		this.logger.info('Cleanup controller...');
 
 		if (reason) {
-			this.logger.error(reason);
+			this.logger.error(`Reason: ${reason}`);
 		}
 
 		try {

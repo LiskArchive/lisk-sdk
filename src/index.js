@@ -42,6 +42,7 @@ try {
 		.run()
 		.then(() => app.logger.log('App started...'))
 		.catch(err => {
+			// TODO: Error objects are not being logged correctly.
 			app.logger.error('App stopped with error', err);
 			process.exit();
 		});

@@ -46,6 +46,7 @@ class Bus extends EventEmitter2 {
 
 		this.rpcSocket = axon.socket('rep');
 		this.rpcServer = new RPCServer(this.rpcSocket);
+		this.rpcSocket.bind(socketsPath.rpc);
 
 		this.rpcServer.expose(
 			'registerChannel',
@@ -62,11 +63,64 @@ class Bus extends EventEmitter2 {
 				.catch(error => setImmediate(cb, error));
 		});
 
-		return new Promise((resolve, reject) => {
-			// TODO: wait for all sockets to be created
-			this.rpcSocket.once('bind', resolve);
-			this.rpcSocket.once('error', reject);
-			this.rpcSocket.bind(socketsPath.rpc);
+		let timeout;
+
+		const waitForAllToSucceed = () =>
+			Promise.all([
+				new Promise(resolve => {
+					// Please note that .sock is used here and below to be able to listen to its own events
+					this.subSocket.sock.on('bind', () => {
+						resolve();
+					});
+				}),
+				new Promise(resolve => {
+					this.pubSocket.sock.on('bind', () => {
+						resolve();
+					});
+				}),
+				new Promise(resolve => {
+					this.rpcSocket.once('bind', () => {
+						resolve();
+					});
+				}),
+			]);
+
+		const rejectIfAtLeastOneFails = () =>
+			Promise.race([
+				new Promise((resolve, reject) => {
+					this.subSocket.sock.on('error', () => {
+						reject();
+					});
+				}),
+				new Promise((resolve, reject) => {
+					this.pubSocket.sock.on('error', () => {
+						reject();
+					});
+				}),
+				new Promise((resolve, reject) => {
+					this.rpcSocket.once('error', () => {
+						reject();
+					});
+				}),
+			]);
+
+		const rejectAfterTimeout = timeInMillis => {
+			new Promise((resolve, reject) => {
+				timeout = setTimeout(async () => {
+					await this.cleanup();
+					// TODO: Review if logger.error might be useful.
+					reject(new Error('Bus setup timeout'));
+				}, timeInMillis);
+			});
+		};
+
+		return Promise.race([
+			waitForAllToSucceed(),
+			rejectIfAtLeastOneFails(),
+			// Timeout is needed here in case "bind" events never arrive
+			rejectAfterTimeout(2000), // TODO: Get value from config constant
+		]).finally(() => {
+			clearTimeout(timeout);
 		});
 	}
 
