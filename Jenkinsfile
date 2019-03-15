@@ -73,7 +73,7 @@ def teardown_mocha(test_name) {
 			"""
 		}
 	} catch(err) {
-		println "Could gather coverage statistics:\n${err}"
+		println "Could gather coverage statistics from mocha:\n${err}"
 	}
 	stash name: "coverage_mocha_${test_name}", includes: "coverage_mocha_${test_name}/"
 	timeout(1) {
@@ -89,7 +89,29 @@ def teardown_mocha(test_name) {
 }
 
 def teardown_jest(test_name) {
-
+	// teardown_mocha() gets called in post actions and so we don't want it to fail
+	try {
+		nvm(getNodejsVersion()) {
+			sh """
+			rm -rf coverage_jest_${test_name}; mkdir -p coverage_jest_${test_name}
+			cp .coverage/${test_name}/lcov.info coverage_jest_${test_name}/ || true
+			cp .coverage/${test_name}/cobertura-coverage.xml coverage_jest_${test_name}/ || true
+			"""
+		}
+	} catch(err) {
+		println "Could gather coverage statistics from jest:\n${err}"
+	}
+	stash name: "coverage_jest_${test_name}", includes: "coverage_jest_${test_name}/"
+	timeout(1) {
+		sh 'killall --verbose --wait node || true'
+	}
+	sh """
+	mv .app.log lisk_${test_name}.stdout.txt || true
+	mv logs/devnet/lisk.log lisk_${test_name}.log || true
+	"""
+	archiveArtifacts artifacts: 'lisk_*.log', allowEmptyArchive: true
+	archiveArtifacts artifacts: 'lisk_*.stdout.txt', allowEmptyArchive: true
+	cleanWs()
 }
 
 properties([
