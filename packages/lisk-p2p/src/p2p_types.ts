@@ -78,6 +78,7 @@ export interface P2PConfig {
 	readonly discoveryInterval?: number;
 	readonly peerSelectionForSendRequest?: P2PPeerSelectionForSendRequest;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
+	readonly peerhandShakeChecks?: P2PPeerCheckCompatibility;
 }
 
 // Network info exposed by the P2P library.
@@ -114,9 +115,9 @@ export type P2PPeerSelectionForConnection = (
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PPeerCheckCompatibility {
-	readonly networkCompatible: P2PPeerNetworkCompatibility;
-	readonly protocolVersionCompatible: P2PPeerProtocolVersionCompatibility;
-	readonly versionCompatible: P2PPeerVersionCompatibility;
+	readonly networkCompatible?: P2PPeerNetworkCompatibility;
+	readonly protocolVersionCompatible?: P2PPeerProtocolVersionCompatibility;
+	readonly versionCompatible?: P2PPeerVersionCompatibility;
 }
 
 export type P2PPeerNetworkCompatibility = (nethash: string) => boolean;
