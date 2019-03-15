@@ -396,6 +396,9 @@ class Account extends BaseEntity {
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		this.validateFilters(filters);
+		this.validateOptions(options);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(

@@ -375,6 +375,8 @@ class Transaction extends BaseEntity {
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
 		filters = Transaction._sanitizeFilters(filters);
+		this.validateFilters(filters);
+		this.validateOptions(options);
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
