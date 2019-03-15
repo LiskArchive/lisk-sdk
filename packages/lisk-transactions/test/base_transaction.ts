@@ -630,7 +630,7 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe.only('#addMultisignature', () => {
+	describe('#addMultisignature', () => {
 		let transferFromMultiSigAccountTrs: TransferTransaction;
 		let multisigMember: SignatureObject;
 		beforeEach(() => {
