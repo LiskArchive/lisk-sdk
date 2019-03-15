@@ -148,6 +148,18 @@ pipeline {
 						}
 					}
 				}
+				stage('Functional HTTP PUT tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test('functional:put')
+					}
+					post {
+						cleanup {
+							teardown('put')
+						}
+					}
+				}
 				stage ('Functional WS tests') {
 					agent { node { label 'lisk-core' } }
 					steps {

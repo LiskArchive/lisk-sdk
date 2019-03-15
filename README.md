@@ -418,7 +418,7 @@ Tests are run using the following command:
 npm run mocha:<testType> -- [testPathPattern] [mochaCliOptions]
 ```
 
-* Where **testType** can be one of `unit`, `integration`, `functional:ws`, `functional:get`, `functional:post`, `functional`, `network` (required).
+* Where **testType** can be one of `unit`, `integration`, `functional:ws`, `functional:get`, `functional:post`, `functional:put`, `functional`, `network` (required).
 * Where **testPathPattern** is a regexp pattern string that is matched against all tests paths before executing the test (optional).
 * Where **mochaCliOptions** can be any of mocha's [`command line options`](https://mochajs.org/#command-line-usage) (optional).
 
@@ -447,6 +447,7 @@ npm run mocha:integration -- --grep="@unstable" --invert
 npm run mocha:functional:ws
 npm run mocha:functional:get
 npm run mocha:functional:post
+npm run mocha:functional:put
 ```
 
 Individual test files can be run using the following commands:

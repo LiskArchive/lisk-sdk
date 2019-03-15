@@ -46,6 +46,8 @@
 			"node framework/test/mocha/common/lisk-mocha-runner functional:get",
 		"mocha:functional:post":
 			"node framework/test/mocha/common/lisk-mocha-runner functional:post",
+		"mocha:functional:put":
+			"node framework/test/mocha/common/lisk-mocha-runner functional:put",
 		"mocha:network":
 			"node framework/test/mocha/common/lisk-mocha-runner network",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
