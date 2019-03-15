@@ -61,6 +61,7 @@ describe('Transaction', () => {
 	let validFilters;
 	let SQLs;
 	let validOptions;
+	let invalidOptions;
 	let validSimpleObjectFields;
 	let validExtendedObjectFields;
 
@@ -200,6 +201,10 @@ describe('Transaction', () => {
 			offset: 0,
 		};
 
+		invalidOptions = {
+			foo: true,
+		};
+
 		adapter = storage.adapter;
 	});
 
@@ -265,6 +270,7 @@ describe('Transaction', () => {
 		beforeEach(() => {
 			return sinonSandbox.restore();
 		});
+
 		it('should accept only valid filters', async () => {
 			// Arrange
 			const transaction = new Transaction(adapter);
@@ -282,9 +288,31 @@ describe('Transaction', () => {
 				transaction.get(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
-		it('should throw error for invalid filters');
-		it('should accept only valid options');
-		it('should throw error for invalid options');
+
+		it('should throw error for invalid filters', async () => {
+			const transaction = new Transaction(adapter);
+			try {
+				transaction.get({ invalid_filter: true });
+			} catch (err) {
+				expect(err.message).to.equal('One or more filters are not supported.');
+			}
+		});
+
+		it('should accept only valid options', async () => {
+			const transaction = new Transaction(adapter);
+			return expect(transaction.get({}, validOptions)).to.not.be.rejectedWith(
+				NonSupportedOptionError
+			);
+		});
+
+		it('should throw error for invalid options', async () => {
+			const transaction = new Transaction(adapter);
+			try {
+				transaction.get({}, invalidOptions);
+			} catch (err) {
+				expect(err.message).to.equal('One or more options are not supported.');
+			}
+		});
 
 		it('should call adapter.executeFile with proper param for extended=false', async () => {
 			// Arrange
@@ -515,9 +543,7 @@ describe('Transaction', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		// The implementation of the test is ready but should work implementation in code in different PR
-		// eslint-disable-next-line mocha/no-skipped-tests
-		it.skip('should throw error for invalid filters', async () => {
+		it('should throw error for invalid filters', async () => {
 			// Arrange
 			const aTransaction = new transactionsFixtures.Transaction({
 				blockId: seeder.getLastBlock().id,
@@ -534,9 +560,7 @@ describe('Transaction', () => {
 			}).to.throw(NonSupportedFilterTypeError);
 		});
 
-		// The implementation of the test is ready but should work implementation in code in different PR
-		// eslint-disable-next-line mocha/no-skipped-tests
-		it.skip('should accept only valid options', async () => {
+		it('should accept only valid options', async () => {
 			// Arrange
 			const transaction = new Transaction(adapter);
 			// Act & Assert
@@ -545,18 +569,13 @@ describe('Transaction', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		// The implementation of the test is ready but should work implementation in code in different PR
-		// eslint-disable-next-line mocha/no-skipped-tests
-		it.skip('should throw error for invalid options', async () => {
+		it('should throw error for invalid options', async () => {
 			// Arrange
 			const aTransaction = new transactionsFixtures.Transaction({
 				blockId: seeder.getLastBlock().id,
 			});
 			const transaction = new Transaction(adapter);
 			await storage.entities.Transaction.create(aTransaction);
-			const invalidOptions = {
-				foo: 'bar',
-			};
 			// Act & Assert
 			expect(() => {
 				transaction.getOne({}, invalidOptions);

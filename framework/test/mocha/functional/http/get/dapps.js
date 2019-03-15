@@ -319,20 +319,20 @@ describe('GET /dapps', () => {
 		});
 
 		describe('unknown=', () => {
-			it('using empty string should return all results', async () => {
-				return dappsEndpoint.makeRequest({ unknown: '' }, 200).then(res => {
-					expect(res.body.data).to.have.length.at.least(registeredDappsAmount);
-				});
+			it('using empty string should return UNKNOWN_PARAM error', async () => {
+				return dappsEndpoint
+					.makeRequest({ unknown: '' }, 400)
+					.then(res =>
+						expect(res.body.errors[0].code).to.equal('UNKNOWN_PARAM')
+					);
 			});
 
-			it('using "unknown" should return all results', async () => {
+			it('using "unknown" should return UNKNOWN_PARAM error', async () => {
 				return dappsEndpoint
-					.makeRequest({ unknown: 'unknown' }, 200)
-					.then(res => {
-						expect(res.body.data).to.have.length.at.least(
-							registeredDappsAmount
-						);
-					});
+					.makeRequest({ unknown: 'unknown' }, 400)
+					.then(res =>
+						expect(res.body.errors[0].code).to.equal('UNKNOWN_PARAM')
+					);
 			});
 		});
 	});

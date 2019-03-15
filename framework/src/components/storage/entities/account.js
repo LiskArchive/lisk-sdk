@@ -276,6 +276,7 @@ class Account extends BaseEntity {
 
 		const defaultSort = { sort: 'balance:asc' };
 		this.extendDefaultOptions(defaultSort);
+		this.sortingFields.push('productivity');
 
 		this.SQLs = this.loadSQLFiles('account', sqlFiles);
 	}

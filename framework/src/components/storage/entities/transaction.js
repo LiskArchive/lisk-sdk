@@ -144,6 +144,10 @@ class Transaction extends BaseEntity {
 			fieldName: 'trs.rowId',
 		});
 
+		this.addField('dapp_name', 'string', {
+			fieldName: "asset->'dapp'->>'name'",
+		});
+
 		this.addField('transferData', 'string', {
 			fieldName: 'trs.transferData',
 		});
@@ -239,9 +243,6 @@ class Transaction extends BaseEntity {
 			condition:
 				'asset @> \'{ "dapp": { "link": "${dapp_link:value}" } }\'::jsonb',
 		});
-
-		const defaultSort = { sort: 'id:desc' };
-		this.extendDefaultOptions(defaultSort);
 
 		this.SQLs = this.loadSQLFiles('transaction', sqlFiles);
 	}

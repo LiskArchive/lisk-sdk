@@ -40,8 +40,10 @@ class BaseEntity {
 		this.defaultOptions = {
 			limit: 10,
 			offset: 0,
+			sort: false,
 			extended: false,
 		};
+		this.sortingFields = [];
 	}
 
 	/**
@@ -329,7 +331,11 @@ class BaseEntity {
 			);
 		}
 
-		if (!isSortOptionValid(options.sort, Object.keys(this.fields))) {
+		const validSortOptions = [
+			...this.sortingFields,
+			...Object.keys(this.fields),
+		];
+		if (!isSortOptionValid(options.sort, validSortOptions)) {
 			throw new NonSupportedOptionError('Invalid sort option.', options.sort);
 		}
 
