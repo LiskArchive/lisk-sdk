@@ -52,15 +52,15 @@ class Bus extends EventEmitter2 {
 			'registerChannel',
 			(moduleAlias, events, actions, options, cb) => {
 				this.registerChannel(moduleAlias, events, actions, options)
-					.then(() => setImmediate(cb, null))
-					.catch(error => setImmediate(cb, error));
+					.then(() => cb(null))
+					.catch(error => cb(error));
 			}
 		);
 
 		this.rpcServer.expose('invoke', (action, cb) => {
 			this.invoke(action)
-				.then(data => setImmediate(cb, null, data))
-				.catch(error => setImmediate(cb, error));
+				.then(data => cb(null, data))
+				.catch(error => cb(error));
 		});
 
 		return Promise.race([
@@ -154,9 +154,9 @@ class Bus extends EventEmitter2 {
 				action.serialize(),
 				(err, data) => {
 					if (err) {
-						return setImmediate(reject, err);
+						return reject(err);
 					}
-					return setImmediate(resolve, data);
+					return resolve(data);
 				}
 			);
 		});

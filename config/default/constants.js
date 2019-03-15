@@ -57,6 +57,7 @@
  * @property {number} REWARDS.OFFSET - Start rewards at block (n).
  * @property {number} REWARDS.DISTANCE - Distance between each milestone.
  * @property {number} TOTAL_AMOUNT - Total amount of LSK available in network before rewards milestone started.
+ * @property {number} TRANSACTION_TYPES - Integers assigned to the different transaction types
  * @property {number} UNCONFIRMED_TRANSACTION_TIMEOUT - Expiration time for unconfirmed transaction/signatures in transaction pool.
  * @property {number} EXPIRY_INTERVAL - Transaction pool expiry timer in milliseconds
  * @todo Add description for the namespace and the properties.
@@ -121,6 +122,16 @@ module.exports = {
 	},
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	TOTAL_AMOUNT: '10000000000000000',
+	TRANSACTION_TYPES: {
+		SEND: 0,
+		SIGNATURE: 1,
+		DELEGATE: 2,
+		VOTE: 3,
+		MULTI: 4,
+		DAPP: 5,
+		IN_TRANSFER: 6,
+		OUT_TRANSFER: 7,
+	},
 	UNCONFIRMED_TRANSACTION_TIMEOUT: 10800, // 1080 blocks
 	EXPIRY_INTERVAL: 30000,
 };

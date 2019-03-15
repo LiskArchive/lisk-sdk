@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const { transfer } = require('@liskhq/lisk-transactions');
 const SwaggerSpec = require('../../../common/swagger_spec');
 const randomUtil = require('../../../common/utils/random');

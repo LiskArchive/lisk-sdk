@@ -16,7 +16,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const typeRepresentatives = require('../../../../../../fixtures/types_representatives.js');
+const typeRepresentatives = require('../../../../../../fixtures/types_representatives');
 const Handshake = require('../../../../../../../../src/modules/chain/api/ws/workers/middlewares/handshake');
 const failureCodes = require('../../../../../../../../src/modules/chain/api/ws/rpc/failure_codes');
 const WSServerMaster = require('../../../../../../common/ws/server_master');

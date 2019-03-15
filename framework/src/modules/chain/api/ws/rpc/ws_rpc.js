@@ -26,7 +26,6 @@ let wsServer = null;
  * @requires wamp-socket-cluster/WAMPClient
  * @requires wamp-socket-cluster/MasterWAMPServe
  * @requires api/ws/rpc/failureCodes
- * @requires helpers/promiseDefer
  * @todo Add description for the module
  */
 

@@ -14,8 +14,8 @@
 
 'use strict';
 
-const connect = require('../api/ws/rpc/connect');
-const disconnect = require('../api/ws/rpc/disconnect');
+const connect = require('./rpc/connect');
+const disconnect = require('./rpc/disconnect');
 
 /**
  * Description of the class.

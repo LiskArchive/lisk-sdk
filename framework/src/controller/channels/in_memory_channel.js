@@ -32,7 +32,7 @@ class InMemoryChannel extends BaseChannel {
 	 *
 	 * @async
 	 */
-	async registerBus(bus) {
+	async registerToBus(bus) {
 		this.bus = bus;
 		await this.bus.registerChannel(
 			this.moduleAlias,

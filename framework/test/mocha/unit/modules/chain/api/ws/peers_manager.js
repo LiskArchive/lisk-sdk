@@ -14,10 +14,11 @@
 
 'use strict';
 
-const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
-const Peer = require('../../../../../../src/modules/chain/logic/peer');
-const PeersManager = require('../../../../../../src/modules/chain/helpers/peers_manager');
-const wsRPC = require('../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
+const prefixedPeer = require('../../../../../fixtures/peers')
+	.randomNormalizedPeer;
+const Peer = require('../../../../../../../src/modules/chain/logic/peer');
+const PeersManager = require('../../../../../../../src/modules/chain/api/ws/peers_manager');
+const wsRPC = require('../../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
 	.wsRPC;
 
 let peersManagerInstance;

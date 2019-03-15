@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const { transfer } = require('@liskhq/lisk-transactions');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const phases = require('../../../common/phases');
