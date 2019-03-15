@@ -81,7 +81,7 @@ def teardown(test_name) {
 
 properties([
 	parameters([
-		string(name: 'LISK_MOCHA_RUNNER_OPTIONS', defaultValue: '-- --grep "@slow|@unstable" --invert', description: 'Please check readme to see available test tags. Example: `-- --grep=something`', ),
+		string(name: 'LISK_MOCHA_RUNNER_OPTIONS', defaultValue: '-- --grep @slow|@unstable --invert', description: 'Please check readme to see available test tags. Example: `-- --grep=something`', ),
 		// read by the application
 		string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
 		string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', ),
