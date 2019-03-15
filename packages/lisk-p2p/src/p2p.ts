@@ -519,23 +519,18 @@ export class P2P extends EventEmitter {
 						if (!peerDiscoveredInfo) {
 							return undefined;
 						}
+						const { ipAddress, ...peerInfoWithoutIp } = peerDiscoveredInfo;
 
 						// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
 						return {
-							broadhash: peerDiscoveredInfo.broadhash
-								? (peerDiscoveredInfo.broadhash as string)
+							...peerInfoWithoutIp,
+							ip: ipAddress,
+							broadhash: peerInfoWithoutIp.broadhash
+								? (peerInfoWithoutIp.broadhash as string)
 								: '',
-							height: peerDiscoveredInfo.height,
-							ip: peerDiscoveredInfo.ipAddress,
-							nonce: peerDiscoveredInfo.nonce
-								? (peerDiscoveredInfo.nonce as string)
+							nonce: peerInfoWithoutIp.nonce
+								? (peerInfoWithoutIp.nonce as string)
 								: '',
-							os: peerDiscoveredInfo.os ? peerDiscoveredInfo.os : '',
-							version: peerDiscoveredInfo.version,
-							httpPort: peerDiscoveredInfo.httpPort
-								? (peerDiscoveredInfo.httpPort as number)
-								: undefined,
-							wsPort: peerDiscoveredInfo.wsPort,
 						};
 					},
 				)
