@@ -2,8 +2,8 @@
 
 const expect = require('chai').expect;
 const Rx = require('rx');
-const localCommon = require('../common.js');
-const jobsQueue = require('../../../../src/modules/chain/helpers/jobs_queue.js');
+const localCommon = require('../common');
+const jobsQueue = require('../../../../src/modules/chain/helpers/jobs_queue');
 
 describe('system test (delegates) - synchronous tasks', () => {
 	let library;

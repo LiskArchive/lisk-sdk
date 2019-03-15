@@ -28,7 +28,7 @@ const slots = require('../../../src/modules/chain/helpers/slots');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const Bignum = require('../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../src/modules/chain/helpers/bignum');
 
 const { ACTIVE_DELEGATES } = global.constants;
 

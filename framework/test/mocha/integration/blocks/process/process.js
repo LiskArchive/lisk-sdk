@@ -15,7 +15,7 @@
 'use strict';
 
 const async = require('async');
-const blockVersion = require('../../../../../src/modules/chain/logic/block_version.js');
+const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
 const application = require('../../../common/application');
 const modulesLoader = require('../../../common/modules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')

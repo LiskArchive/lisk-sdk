@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 const connect = require('../../../../../src/modules/chain/api/ws/rpc/connect');
 const wsRPC = require('../../../../../src/modules/chain/api/ws/rpc/ws_rpc')

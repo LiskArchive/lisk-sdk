@@ -20,8 +20,8 @@ const async = require('async');
 const {
 	CACHE_KEYS_DELEGATES,
 } = require('../../../../../framework/src/components/cache');
-const Round = require('../logic/round.js');
-const slots = require('../helpers/slots.js');
+const Round = require('../logic/round');
+const slots = require('../helpers/slots');
 
 // Private fields
 let components;

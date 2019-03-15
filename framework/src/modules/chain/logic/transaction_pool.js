@@ -16,8 +16,7 @@
 
 const async = require('async');
 // eslint-disable-next-line  prefer-const
-let jobsQueue = require('../helpers/jobs_queue.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+let jobsQueue = require('../helpers/jobs_queue');
 
 let modules;
 let library;
@@ -27,6 +26,7 @@ const {
 	MAX_TRANSACTIONS_PER_BLOCK,
 	MAX_SHARED_TRANSACTIONS,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
+	TRANSACTION_TYPES,
 } = global.constants;
 const __private = {};
 
@@ -39,7 +39,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires async
  * @requires helpers/jobs_queue
- * @requires helpers/transaction_types
  * @param {number} broadcastInterval - Broadcast interval in seconds, used for bundling
  * @param {number} releaseLimit - Release limit for transactions broadcasts, used for bundling
  * @param {Transaction} transaction - Transaction logic instance
@@ -315,7 +314,7 @@ TransactionPool.prototype.addUnconfirmedTransaction = function(
 	sender
 ) {
 	const isMultisignature =
-		transaction.type === transactionTypes.MULTI ||
+		transaction.type === TRANSACTION_TYPES.MULTI ||
 		(sender &&
 			Array.isArray(sender.membersPublicKeys) &&
 			sender.membersPublicKeys.length);
@@ -630,7 +629,7 @@ TransactionPool.prototype.queueTransaction = function(transaction, sender, cb) {
 		return setImmediate(cb);
 	}
 	const isMultisignature =
-		transaction.type === transactionTypes.MULTI ||
+		transaction.type === TRANSACTION_TYPES.MULTI ||
 		(sender &&
 			Array.isArray(sender.membersPublicKeys) &&
 			sender.membersPublicKeys.length);
@@ -995,7 +994,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
  * @returns {number} Timeout in seconds for expiry
  */
 __private.transactionTimeOut = function(transaction) {
-	if (transaction.type === transactionTypes.MULTI) {
+	if (transaction.type === TRANSACTION_TYPES.MULTI) {
 		return transaction.asset.multisignature.lifetime * self.hourInSeconds;
 	}
 	if (Array.isArray(transaction.signatures)) {

@@ -21,17 +21,17 @@ const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const BlockReward = require('../logic/block_reward.js');
-const jobsQueue = require('../helpers/jobs_queue.js');
-const Delegate = require('../logic/delegate.js');
-const slots = require('../helpers/slots.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const BlockReward = require('../logic/block_reward');
+const jobsQueue = require('../helpers/jobs_queue');
+const Delegate = require('../logic/delegate');
+const slots = require('../helpers/slots');
 
 // Private fields
 let modules;
 let library;
 let self;
-const { ACTIVE_DELEGATES } = global.constants;
+
+const { ACTIVE_DELEGATES, TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
 const __private = {};
 
@@ -88,9 +88,9 @@ class Delegates {
 		self = this;
 		__private.blockReward = new BlockReward();
 		__private.assetTypes[
-			transactionTypes.DELEGATE
+			TRANSACTION_TYPES.DELEGATE
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.DELEGATE,
+			TRANSACTION_TYPES.DELEGATE,
 			new Delegate({
 				schema: scope.schema,
 			})
@@ -918,7 +918,7 @@ Delegates.prototype.onBind = function(scope) {
 		transport: scope.modules.transport,
 	};
 
-	__private.assetTypes[transactionTypes.DELEGATE].bind(scope.modules.accounts);
+	__private.assetTypes[TRANSACTION_TYPES.DELEGATE].bind(scope.modules.accounts);
 };
 
 /**

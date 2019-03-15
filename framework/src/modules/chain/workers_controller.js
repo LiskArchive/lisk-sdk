@@ -35,7 +35,7 @@ const failureCodes = require('./api/ws/rpc/failure_codes');
 const {
 	createLoggerComponent,
 } = require('../../../../framework/src/components/logger');
-const AppConfig = require('./helpers/config.js');
+const AppConfig = require('./helpers/config');
 const config = new AppConfig(require('../../../../package.json'), false);
 
 /**

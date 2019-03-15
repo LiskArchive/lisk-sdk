@@ -17,9 +17,9 @@
 const _ = require('lodash');
 const async = require('async');
 const ip = require('ip');
-const failureCodes = require('../api/ws/rpc/failure_codes.js');
-const jobsQueue = require('../helpers/jobs_queue.js');
-const Peer = require('../logic/peer.js');
+const failureCodes = require('../api/ws/rpc/failure_codes');
+const jobsQueue = require('../helpers/jobs_queue');
+const Peer = require('../logic/peer');
 const definitions = require('../schema/definitions');
 
 // Private fields
