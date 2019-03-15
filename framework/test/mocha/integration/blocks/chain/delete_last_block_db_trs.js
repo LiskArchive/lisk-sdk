@@ -19,7 +19,6 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 describe('system test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
@@ -60,9 +59,6 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});
-		fundTrsForAccount1.amount = new Bignum(fundTrsForAccount1.amount);
-		fundTrsForAccount1.fee = new Bignum(fundTrsForAccount1.fee);
-		fundTrsForAccount1.senderId = accountFixtures.genesis.address;
 
 		localCommon.createValidBlock(library, [fundTrsForAccount1], (err, b) => {
 			expect(err).to.not.exist;

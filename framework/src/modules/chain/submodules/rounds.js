@@ -70,16 +70,18 @@ __private.updateSendersRoundInformationWithAmountForTransactions = function(
 	forwardTick,
 	tx
 ) {
-	return transactions.map(transaction => {
-		const value = new Bignumber(transaction.amount).plus(transaction.fee);
-		const valueToUpdate = forwardTick ? `-${value}` : `${value}`;
-		return self.createRoundInformationWithAmount(
-			transaction.senderId,
-			round,
-			valueToUpdate,
-			tx
-		);
-	});
+	return Promise.all(
+		transactions.map(transaction => {
+			const value = new Bignumber(transaction.amount).plus(transaction.fee);
+			const valueToUpdate = forwardTick ? `-${value}` : `${value}`;
+			return self.createRoundInformationWithAmount(
+				transaction.senderId,
+				round,
+				valueToUpdate,
+				tx
+			);
+		})
+	);
 };
 
 __private.updateRecipientsRoundInformationWithAmountForTransactions = function(
@@ -133,25 +135,29 @@ __private.updateRoundInformationWithDelegatesForTransactions = function(
 	forwardTick,
 	tx
 ) {
-	return transactions
-		.filter(transaction => transaction.type === transactionTypes.VOTE)
-		.map(transaction =>
-			(forwardTick
-				? transaction.asset.votes
-				: Diff.reverse(transaction.asset.votes)
-			).map(vote => {
-				// Fetch first character
-				const mode = vote[0];
-				const dependentId = vote.slice(1);
-				return self.createRoundInformationWithDelegate(
-					transaction.senderId,
-					round,
-					dependentId,
-					mode,
-					tx
-				);
-			})
-		);
+	return Promise.all(
+		transactions
+			.filter(transaction => transaction.type === transactionTypes.VOTE)
+			.map(transaction =>
+				Promise.all(
+					(forwardTick
+						? transaction.asset.votes
+						: Diff.reverse(transaction.asset.votes)
+					).map(vote => {
+						// Fetch first character
+						const mode = vote[0];
+						const dependentId = vote.slice(1);
+						return self.createRoundInformationWithDelegate(
+							transaction.senderId,
+							round,
+							dependentId,
+							mode,
+							tx
+						);
+					})
+				)
+			)
+	);
 };
 
 __private.updateRoundInformationForTransactions = function(
@@ -180,7 +186,7 @@ __private.updateRoundInformationForTransactions = function(
 			forwardTick,
 			tx
 		),
-	].reduce((accPromises, currPromises) => accPromises.concat(currPromises), []);
+	];
 	return Promise.all(promises)
 		.then(() => setImmediate(cb))
 		.catch(err => setImmediate(cb, err));
