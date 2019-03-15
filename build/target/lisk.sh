@@ -201,31 +201,27 @@ coldstart_lisk() {
 }
 
 start_postgresql() {
-	if pgrep -x "postgres" > /dev/null 2>&1; then
+	if pg_ctl --pgdata="$DB_DATA" status >> "$SH_LOG_FILE" 2>&1; then
 		echo "[+] Postgresql is running."
 	else
-		if ! pg_ctl -w -D "$DB_DATA" -l "$DB_LOG_FILE" start >> "$SH_LOG_FILE" 2>&1; then
+		if pg_ctl --wait --pgdata="$DB_DATA" --log="$DB_LOG_FILE" start >> "$SH_LOG_FILE" 2>&1; then
+			echo "[+] Postgresql started successfully."
+		else
 			echo "[-] Failed to start Postgresql."
 			exit 1
-		else
-			echo "[+] Postgresql started successfully."
 		fi
 	fi
 }
 
 stop_postgresql() {
-	if ! pgrep -x "postgres" > /dev/null 2>&1; then
-		echo "[+] Postgresql is not running."
-	else
-		if pg_ctl -D "$DB_DATA" -l "$DB_LOG_FILE" stop >> "$SH_LOG_FILE" 2>&1; then
+	if pg_ctl --pgdata="$DB_DATA" status >> "$SH_LOG_FILE" 2>&1; then
+		if pg_ctl --wait --pgdata="$DB_DATA" --log="$DB_LOG_FILE" stop >> "$SH_LOG_FILE" 2>&1; then
 			echo "[+] Postgresql stopped successfully."
-			else
+		else
 			echo "[-] Postgresql failed to stop."
 		fi
-		if pgrep -x "postgres" >> "$SH_LOG_FILE" 2>&1; then
-			pkill -x postgres -9 >> "$SH_LOG_FILE" 2>&1;
-			echo "[+] Postgresql Killed."
-		fi
+	else
+		echo "[+] Postgresql is not running."
 	fi
 }
 
