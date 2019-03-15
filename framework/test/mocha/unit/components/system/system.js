@@ -160,7 +160,7 @@ describe('components: system', () => {
 	});
 
 	describe('protocolVersionCompatible', () => {
-		describe('when the hard for part has one digit', () => {
+		describe('when the hard fork part has one digit', () => {
 			beforeEach(async () => {
 				systemComponent.headers.protocolVersion = '1.0';
 			});
@@ -169,7 +169,7 @@ describe('components: system', () => {
 				it('should return true', async () =>
 					expect(systemComponent.protocolVersionCompatible('1.0')).to.be.true);
 			});
-			describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', () => {
+			describe('when the hard part of the peer protocol is not exactly equal to the system protocol version', () => {
 				it("should return false if it's greater or lesser", async () =>
 					expect(systemComponent.protocolVersionCompatible('2.0')).to.be.false);
 				it("should return false if it's lesser", async () =>
@@ -199,7 +199,7 @@ describe('components: system', () => {
 			});
 		});
 
-		describe('when the hard for part has more than one digit', () => {
+		describe('when the hard fork part has more than one digit', () => {
 			beforeEach(async () => {
 				systemComponent.headers.protocolVersion = '10.0';
 			});
@@ -208,7 +208,7 @@ describe('components: system', () => {
 				it('should return true', async () =>
 					expect(systemComponent.protocolVersionCompatible('10.0')).to.be.true);
 			});
-			describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', () => {
+			describe('when the hard part of the peer protocol is not exactly equal to the system protocol version', () => {
 				it("should return false if it's greater or lesser", async () =>
 					expect(systemComponent.protocolVersionCompatible('11.0')).to.be
 						.false);
