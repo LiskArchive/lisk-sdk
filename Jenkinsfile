@@ -42,17 +42,17 @@ def run_mocha(test_name) {
 	ansiColor('xterm') {
 		timestamps {
 			nvm(getNodejsVersion()) {
-				sh 'npm run mocha:'+ "${test_name}" +' ${LISK_MOCHA_RUNNER_OPTIONS}'
+				sh 'npm run mocha:'+ "${test_name}" + ' ${LISK_MOCHA_RUNNER_OPTIONS}'
 			}
 		}
 	}
 }
 
-def run_test_jest(test_name) {
+def run_jest(test_name) {
 	ansiColor('xterm') {
 		timestamps {
 			nvm(getNodejsVersion()) {
-				sh 'npm run jest:' + "${test_name}"
+				sh 'npm run jest:' + "${test_name}" + ' ${JEST_OPTIONS}'
 			}
 		}
 	}
@@ -88,10 +88,14 @@ def teardown_mocha(test_name) {
 	cleanWs()
 }
 
+def teardown_jest(test_name) {
+
+}
 
 properties([
 	parameters([
 		string(name: 'LISK_MOCHA_RUNNER_OPTIONS', defaultValue: '-- --grep @slow|@unstable --invert', description: 'Please check readme to see available test tags. Example: `-- --grep something`', ),
+		string(name: 'JEST_OPTIONS', defaultValue: '', description: 'Additional jest options that you want to provide to test runner. Example: `-- --config=<path>`'),
 		// read by the application
 		string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
 		string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', ),
@@ -100,7 +104,6 @@ properties([
 		string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
 	 ])
 ])
-
 
 pipeline {
 	agent { node { label 'lisk-core' } }
@@ -200,21 +203,36 @@ pipeline {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
-						run_test_jest('functional')
+						run_jest('functional')
+					}
+					post {
+						cleanup {
+							teardown_jest('functional')
+						}
 					}
 				}
 				stage('Jest Unit tests') {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
-						run_test_jest('unit')
+						run_jest('unit')
+					}
+					post {
+						cleanup {
+							teardown_jest('unit')
+						}
 					}
 				}
 				stage('Jest Integration tests') {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
-						run_test_jest('integration')
+						run_jest('integration')
+					}
+					post {
+						cleanup {
+							teardown_jest('integration')
+						}
 					}
 				}
 			}
