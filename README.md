@@ -446,7 +446,7 @@ npm run mocha:functional:post
 
 Individual test files can be run using the following commands:
 
-````bash
+```bash
 npm run mocha:unit -- <testPathPattern> [mochaCliOptions]
 ```
 
@@ -454,7 +454,7 @@ or
 
 ```bash
 npm run mocha <filepath> [mochaCliOptions]
-````
+```
 
 or
 
