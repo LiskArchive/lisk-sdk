@@ -44,8 +44,8 @@ class ChildProcessChannel extends BaseChannel {
 
 		this.rpcServer.expose('invoke', (action, cb) => {
 			this.invoke(action)
-				.then(data => setImmediate(cb, null, data))
-				.catch(error => setImmediate(cb, error));
+				.then(data => cb(null, data))
+				.catch(error => cb(error));
 		});
 
 		this.rpcSocket.bind(this.rpcSocketPath);
@@ -72,7 +72,7 @@ class ChildProcessChannel extends BaseChannel {
 			this.localBus.on(eventName, cb);
 		} else {
 			this.subSocket.on(eventName, data => {
-				setImmediate(cb, data);
+				cb(data);
 			});
 		}
 	}
@@ -85,7 +85,7 @@ class ChildProcessChannel extends BaseChannel {
 		} else {
 			// TODO: make it `once` instead of `on`
 			this.subSocket.on(eventName, data => {
-				setImmediate(cb, data);
+				cb(data);
 			});
 		}
 	}
@@ -119,10 +119,10 @@ class ChildProcessChannel extends BaseChannel {
 		return new Promise((resolve, reject) => {
 			this.busRpcClient.call('invoke', action.serialize(), (err, data) => {
 				if (err) {
-					return setImmediate(reject, err);
+					return reject(err);
 				}
 
-				return setImmediate(resolve, data);
+				return resolve(data);
 			});
 		});
 	}
