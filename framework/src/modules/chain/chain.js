@@ -208,7 +208,7 @@ module.exports = class Chain {
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
 			updateForgingStatus: async action =>
-				promisify(this.scope.modules.delegates.updateForgingStatus)(
+				this.scope.modules.delegates.updateForgingStatus(
 					action.params.publicKey,
 					action.params.password,
 					action.params.forging

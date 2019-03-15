@@ -17,6 +17,7 @@
 const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
+const { promisify } = require('util');
 const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
@@ -636,11 +637,10 @@ __private.loadDelegates = function(cb) {
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-Delegates.prototype.updateForgingStatus = function(
+Delegates.prototype.updateForgingStatus = async function(
 	publicKey,
 	password,
-	forging,
-	cb
+	forging
 ) {
 	const encryptedList = library.config.forging.delegates;
 	const encryptedItem = encryptedList.find(
@@ -657,7 +657,7 @@ Delegates.prototype.updateForgingStatus = function(
 				password
 			);
 		} catch (e) {
-			return setImmediate(cb, 'Invalid password and public key combination');
+			throw 'Invalid password and public key combination';
 		}
 
 		keypair = library.ed.makeKeypair(
@@ -667,39 +667,32 @@ Delegates.prototype.updateForgingStatus = function(
 				.digest()
 		);
 	} else {
-		return setImmediate(cb, `Delegate with publicKey: ${publicKey} not found`);
+		throw `Delegate with publicKey: ${publicKey} not found`;
 	}
 
 	if (keypair.publicKey.toString('hex') !== publicKey) {
-		return setImmediate(cb, 'Invalid password and public key combination');
+		throw 'Invalid password and public key combination';
 	}
 
-	return modules.accounts.getAccount(
-		{ publicKey: keypair.publicKey.toString('hex') },
-		(err, account) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
+	const account = await promisify(modules.accounts.getAccount)({
+		publicKey: keypair.publicKey.toString('hex'),
+	});
 
-			if (account && account.isDelegate) {
-				if (forging) {
-					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					library.logger.info(`Forging enabled on account: ${account.address}`);
-				} else {
-					delete __private.keypairs[keypair.publicKey.toString('hex')];
-					library.logger.info(
-						`Forging disabled on account: ${account.address}`
-					);
-				}
-
-				return setImmediate(cb, null, {
-					publicKey,
-					forging,
-				});
-			}
-			return setImmediate(cb, 'Delegate not found');
+	if (account && account.isDelegate) {
+		if (forging) {
+			__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+			library.logger.info(`Forging enabled on account: ${account.address}`);
+		} else {
+			delete __private.keypairs[keypair.publicKey.toString('hex')];
+			library.logger.info(`Forging disabled on account: ${account.address}`);
 		}
-	);
+
+		return {
+			publicKey,
+			forging,
+		};
+	}
+	throw 'Delegate not found';
 };
 
 /**
