@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
@@ -39,7 +38,7 @@ class Bus extends EventEmitter2 {
 	// eslint-disable-next-line class-methods-use-this
 	async setup() {
 		// Place holder for RPC server connection
-		return Promise.resolve();
+		return 'will be implemented';
 	}
 
 	/**
