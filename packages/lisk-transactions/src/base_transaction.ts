@@ -349,9 +349,10 @@ export abstract class BaseTransaction {
 		// If the signature is valid for the sender push it to the signatures array
 		if (trsSignature.valid) {
 			this.signatures.push(signatureObject.signature);
-			this.processMultisignatures(store);
+
+			return this.processMultisignatures(store);
 		}
-		// Else pupulate errors
+		// Else populate errors
 		const errors = trsSignature.valid
 			? []
 			: [

@@ -655,8 +655,8 @@ describe('Base transaction class', () => {
 				multisigMember,
 			);
 
-			expect(status).to.eql(Status.OK);
-			expect(errors).to.be.empty;
+			expect(status).to.eql(Status.PENDING);
+			expect(errors[0]).to.be.instanceof(TransactionPendingError);
 			expect(transferFromMultiSigAccountTrs.signatures).to.include(
 				multisigMember.signature,
 			);
@@ -670,7 +670,7 @@ describe('Base transaction class', () => {
 				multisigMember,
 			);
 
-			expect(arrangeStatus).to.eql(Status.OK);
+			expect(arrangeStatus).to.eql(Status.PENDING);
 
 			const {
 				status,

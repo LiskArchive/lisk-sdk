@@ -334,7 +334,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public addMultisignature(
-		_: StateStore,
+		store: StateStore,
 		signatureObject: SignatureObject,
 	): TransactionResponse {
 		// Validate signature key belongs to pending multisig registration transaction
@@ -372,10 +372,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 		if (trsSignature.valid) {
 			this.signatures.push(signatureObject.signature);
 
-			return this.processMultisignatures(_);
+			return this.processMultisignatures(store);
 		}
 
-		// Else pupulate errors
+		// Else populate errors
 		const errors = trsSignature.valid
 			? []
 			: [
