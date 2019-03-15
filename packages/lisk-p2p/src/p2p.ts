@@ -347,6 +347,10 @@ export class P2P extends EventEmitter {
 
 				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 				const peerId = constructPeerId(socket.remoteAddress, wsPort);
+				const queryOptions =
+					typeof queryObject.options === 'string'
+						? JSON.parse(queryObject.options)
+						: undefined;
 
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
 					...queryOptions,
