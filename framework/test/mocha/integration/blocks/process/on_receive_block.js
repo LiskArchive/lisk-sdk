@@ -96,13 +96,9 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			);
 		}
 
-		const transactionPool = library.rewiredModules.transactions.__get__(
-			'__private.transactionPool'
-		);
-
 		async.waterfall(
 			[
-				transactionPool.fillPool,
+				library.modules.transactions.fillPool,
 				function(waterFallCb) {
 					getNextForger(null, delegatePublicKey => {
 						waterFallCb(null, delegatePublicKey);

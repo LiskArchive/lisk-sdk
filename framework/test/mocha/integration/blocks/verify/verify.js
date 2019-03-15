@@ -999,12 +999,19 @@ describe('blocks/verify', () => {
 
 		describe('normalizeBlock validations', () => {
 			beforeEach(done => {
+				const account = random.account();
+				const transaction = transfer({
+					amount: new Bignum(NORMALIZER).multipliedBy(1000).toString(),
+					recipientId: accountFixtures.genesis.address,
+					passphrase: account.passphrase,
+				});
+
 				block2 = createBlock(
 					blocks,
 					blockLogic,
 					random.password(),
 					33772882,
-					[genesisBlock.transactions[0]],
+					[transaction],
 					genesisBlock
 				);
 				done();
@@ -1077,6 +1084,13 @@ describe('blocks/verify', () => {
 					const slot = slots.getSlotNumber();
 					const time = slots.getSlotTime(slots.getSlotNumber());
 
+					const account = random.account();
+					const transferTransaction = transfer({
+						amount: new Bignum(NORMALIZER).multipliedBy(1000).toString(),
+						recipientId: accountFixtures.genesis.address,
+						passphrase: account.passphrase,
+					});
+
 					getValidKeypairForSlot(library, slot)
 						.then(passphrase => {
 							auxBlock = createBlock(
@@ -1084,7 +1098,7 @@ describe('blocks/verify', () => {
 								blockLogic,
 								passphrase,
 								time,
-								[genesisBlock.transactions[0]],
+								[transferTransaction],
 								genesisBlock
 							);
 
@@ -1092,16 +1106,13 @@ describe('blocks/verify', () => {
 							expect(auxBlock.timestamp).to.equal(time);
 							expect(auxBlock.numberOfTransactions).to.equal(1);
 							expect(auxBlock.reward.isEqualTo('0')).to.be.true;
-							expect(auxBlock.totalFee.isEqualTo('0')).to.be.true;
-							expect(auxBlock.totalAmount.isEqualTo('10000000000000000')).to.be
-								.true;
+							expect(auxBlock.totalFee.isEqualTo('10000000')).to.be.true;
+							expect(auxBlock.totalAmount.isEqualTo('100000000000')).to.be.true;
 							expect(auxBlock.payloadLength).to.equal(117);
 							expect(
 								auxBlock.transactions.map(transaction => transaction.id)
 							).to.deep.equal(
-								[genesisBlock.transactions[0]].map(
-									transaction => transaction.id
-								)
+								[transferTransaction].map(transaction => transaction.id)
 							);
 							expect(auxBlock.previousBlock).to.equal(genesisBlock.id);
 							done();
@@ -1114,7 +1125,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is invalid', done => {
 					const account = random.account();
 					const transaction = transfer({
-						amount: new Bignum(NORMALIZER).multipliedBy(1000),
+						amount: new Bignum(NORMALIZER).multipliedBy(1000).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});

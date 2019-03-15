@@ -17,6 +17,7 @@
 const async = require('async');
 const expect = require('chai').expect;
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
+const initTransaction = require('../../../../../src/modules/chain/helpers/init_transaction.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -112,11 +113,6 @@ describe('system test (blocks) - chain/applyBlock', () => {
 				passphrase: blockAccount2.passphrase,
 				username: blockAccount2.username,
 			});
-			blockTransaction1.senderId = blockAccount1.address;
-			blockTransaction2.senderId = blockAccount2.address;
-
-			blockTransaction1.recipientId = blockAccount1.address;
-			blockTransaction2.recipientId = blockAccount2.address;
 
 			localCommon.createValidBlock(
 				library,
@@ -250,7 +246,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 								'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 							id: '1465651642158264048',
 						},
-					],
+					].map(initTransaction),
 					version: 0,
 					id: '884740302254229983',
 				};

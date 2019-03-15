@@ -288,7 +288,7 @@ class TransactionPool {
 				if (transactionsResponses[0].status === TransactionStatus.PENDING) {
 					return this.addMultisignatureTransaction(transaction, cb);
 				}
-				return cb(transactionsResponses[0].errors);
+				return cb(transactionsResponses[0].errors[0]);
 			}
 		);
 	}
