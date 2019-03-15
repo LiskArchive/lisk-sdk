@@ -19,7 +19,7 @@ def setup() {
 	unstash 'build'
 	nvm(getNodejsVersion()) {
 		sh '''
-		# teardown() should have killed all node processes but we want to be sure
+		# teardown_mocha() should have killed all node processes but we want to be sure
 		# this shouldn't hurt assuming the 'lisk-core' jenkins nodes have 1 executor
 		killall --verbose --wait node || true
 		dropdb --if-exists lisk_dev
@@ -38,7 +38,7 @@ def setup() {
 	}
 }
 
-def run_test(test_name) {
+def run_mocha(test_name) {
 	ansiColor('xterm') {
 		timestamps {
 			nvm(getNodejsVersion()) {
@@ -58,8 +58,8 @@ def run_test_jest(test_name) {
 	}
 }
 
-def teardown(test_name) {
-	// teardown() gets called in post actions and so we don't want it to fail
+def teardown_mocha(test_name) {
+	// teardown_mocha() gets called in post actions and so we don't want it to fail
 	try {
 		nvm(getNodejsVersion()) {
 			sh """
@@ -138,11 +138,11 @@ pipeline {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
-						run_test('functional:get')
+						run_mocha('functional:get')
 					}
 					post {
 						cleanup {
-							teardown('get')
+							teardown_mocha('get')
 						}
 					}
 				}
@@ -150,11 +150,11 @@ pipeline {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
-						run_test('functional:post')
+						run_mocha('functional:post')
 					}
 					post {
 						cleanup {
-							teardown('post')
+							teardown_mocha('post')
 						}
 					}
 				}
@@ -162,11 +162,11 @@ pipeline {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
-						run_test('functional:ws')
+						run_mocha('functional:ws')
 					}
 					post {
 						cleanup {
-							teardown('ws')
+							teardown_mocha('ws')
 						}
 					}
 				}
@@ -174,11 +174,11 @@ pipeline {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
-						run_test('unit')
+						run_mocha('unit')
 					}
 					post {
 						cleanup {
-							teardown('unit')
+							teardown_mocha('unit')
 						}
 					}
 				}
@@ -187,12 +187,12 @@ pipeline {
 					steps {
 						setup()
 						timeout(10) {
-							run_test('integration')
+							run_mocha('integration')
 						}
 					}
 					post {
 						cleanup {
-							teardown('integration')
+							teardown_mocha('integration')
 						}
 					}
 				}
@@ -222,7 +222,7 @@ pipeline {
 	}
 	post {
 		always {
-			// teardown() should have run cleanWs()
+			// teardown_mocha() should have run cleanWs()
 			// but it can't hurt to make sure no old coverage files remain
 			sh 'rm -rf coverage; mkdir -p coverage'
 			script {
