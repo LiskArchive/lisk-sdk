@@ -1,5 +1,4 @@
 const assert = require('assert');
-const ApplicationState = require('./applicationState');
 const Controller = require('./controller');
 const defaults = require('./defaults');
 const version = require('../version');
@@ -128,11 +127,6 @@ class Application {
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
 			: ['httpApi'];
-
-		this.applicationState = new ApplicationState(
-			this.config.initialState,
-			this.logger
-		);
 
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
