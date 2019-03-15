@@ -537,11 +537,7 @@ export class P2P extends EventEmitter {
 				.filter(
 					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
 						!!peerDetailedInfo,
-				)
-				.map(
-					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
-						peerDetailedInfo as ProtocolPeerInfo,
-				),
+				) as ReadonlyArray<ProtocolPeerInfo>,
 		};
 		request.end(protocolPeerInfoList);
 	}
