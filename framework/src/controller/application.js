@@ -124,7 +124,10 @@ class Application {
 			constants: this.constants,
 		});
 
-		this.registerModule(HttpAPIModule);
+		this.registerModule(HttpAPIModule, {
+			constants: this.constants,
+			useSocketChannel: true,
+		});
 	}
 
 	/**
