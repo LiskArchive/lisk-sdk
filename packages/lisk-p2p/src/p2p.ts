@@ -153,8 +153,6 @@ export class P2P extends EventEmitter {
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
 			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
-				// The PeerPool has the necessary information to handle this request on its own.
-				// This request doesn't need to propagate to its parent class.
 				this._handleGetAllPeersRequest(request);
 			}
 			// Re-emit the request for external use.
