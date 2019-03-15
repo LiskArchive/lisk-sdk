@@ -38,7 +38,7 @@
 		"mocha:unit":
 			"node framework/test/mocha/common/lisk-mocha-runner/index.js unit",
 		"mocha:integration":
-			"node framework/test/mocha/common/lisk-mocha-runner/index.js unit",
+			"node framework/test/mocha/common/lisk-mocha-runner/index.js integration",
 		"mocha:functional:ws":
 			"node framework/test/mocha/common/lisk-mocha-runner/index.js functional:ws",
 		"mocha:functional:get":
