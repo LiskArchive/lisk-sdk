@@ -18,6 +18,7 @@ import { constructPeerIdFromPeerInfo, Peer } from './peer';
 export interface FilterPeerOptions {
 	readonly blacklist: ReadonlyArray<string>;
 }
+
 // TODO later: Implement LIPS to handle fixed and white list
 export const discoverPeers = async (
 	knownPeers: ReadonlyArray<Peer>,

@@ -180,6 +180,9 @@ export class P2P extends EventEmitter {
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
 			if (!this._triedPeers.has(peerId)) {
+				if (this._newPeers.has(peerId)) {
+					this._newPeers.delete(peerId);
+				}
 				this._triedPeers.set(peerId, detailedPeerInfo);
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -350,11 +353,12 @@ export class P2P extends EventEmitter {
 						: undefined;
 
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
+					...queryOptions,
+					...queryObject,
 					ipAddress: socket.remoteAddress,
 					wsPort,
 					height: queryObject.height ? +queryObject.height : 0,
 					version: queryObject.version,
-					...queryOptions,
 				};
 
 				const isNewPeer = this._peerPool.addInboundPeer(
@@ -366,12 +370,14 @@ export class P2P extends EventEmitter {
 				if (isNewPeer) {
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
-					if (!this._newPeers.has(peerId)) {
-						this._newPeers.set(peerId, incomingPeerInfo);
-					}
+				}
+
+				if (!this._newPeers.has(peerId) && !this._triedPeers.has(peerId)) {
+					this._newPeers.set(peerId, incomingPeerInfo);
 				}
 			},
 		);
+
 		this._httpServer.listen(this._nodeInfo.wsPort, NODE_HOST_IP);
 		if (this._scServer.isReady) {
 			this._isActive = true;
@@ -412,17 +418,13 @@ export class P2P extends EventEmitter {
 	private async _discoverPeers(
 		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
 	): Promise<void> {
-		const allKnownPeers: ReadonlyArray<
-			P2PDiscoveredPeerInfo
-		> = knownPeers.concat([...this._triedPeers.values()]);
-
 		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
 		if (!this._isActive) {
 			return;
 		}
 
 		const discoveredPeers = await this._peerPool.runDiscovery(
-			allKnownPeers,
+			knownPeers,
 			this._config.blacklistedPeers,
 		);
 
@@ -462,15 +464,40 @@ export class P2P extends EventEmitter {
 		clearInterval(this._discoveryIntervalId);
 	}
 
+	private async _fetchSeedPeerStatus(
+		seedPeers: ReadonlyArray<P2PPeerInfo>,
+	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+		const peerConfig = {
+			ackTimeout: this._config.ackTimeout,
+			connectTimeout: this._config.connectTimeout,
+		};
+		const seedPeerUpdatedInfos = await this._peerPool.fetchStatusAndCreatePeers(
+			seedPeers,
+			this._nodeInfo,
+			peerConfig,
+		);
+
+		return seedPeerUpdatedInfos;
+	}
+
 	public async start(): Promise<void> {
 		if (this._isActive) {
 			throw new Error('Cannot start the node because it is already active');
 		}
 		await this._startPeerServer();
-		// TODO: Once we will a new peer discovery then we can remove this typecasting to P2PDiscoveredPeerInfo
-		await this._startDiscovery(this._config.seedPeers as ReadonlyArray<
-			P2PDiscoveredPeerInfo
-		>);
+		// Fetch status of all the seed peers and then start the discovery
+		const seedPeerInfos = await this._fetchSeedPeerStatus(
+			this._config.seedPeers,
+		);
+		// Add seed's peerinfos in tried peer as we already tried them to fetch status
+		seedPeerInfos.forEach(seedInfo => {
+			const peerId = constructPeerIdFromPeerInfo(seedInfo);
+			if (!this._triedPeers.has(peerId)) {
+				this._triedPeers.set(peerId, seedInfo);
+			}
+		});
+
+		await this._startDiscovery(seedPeerInfos);
 	}
 
 	public async stop(): Promise<void> {
