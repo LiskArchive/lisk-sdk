@@ -50,21 +50,12 @@ class ChildProcessChannel extends BaseChannel {
 
 		this.rpcSocket.bind(this.rpcSocketPath);
 
-		let timeout;
-
 		return Promise.race([
-			this._waitForAllToFinnish(),
-			this._rejectIfAtLeastOneFails(),
-			new Promise((resolve, reject) => {
-				timeout = setTimeout(async () => {
-					await this.cleanup();
-					// TODO: Review if logger.error might be useful.
-					reject(new Error('ChildProcessChannel setup timeout'));
-				}, 2000); // TODO: Get from constants
-			}),
-		]).finally(() => {
-			clearTimeout(timeout);
-		});
+			this._resolveWhenAllSucceed(),
+			this._rejectWhenFirstFails(),
+			// Timeout is needed here in case "bind" or "connect" events never arrive
+			this._rejectWhenTimeout(2000), // TODO: Get value from config constant
+		]);
 	}
 
 	subscribe(eventName, cb) {
@@ -128,21 +119,38 @@ class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
+	/**
+	 * Close all sockets and perform cleanup operations
+	 *
+	 * @returns {Promise<void>}
+	 */
 	async cleanup() {
 		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
 			this.rpcSocket.close();
 		}
 	}
 
-	async _waitForAllToFinnish() {
+	/**
+	 * Wait for all sockets to bind and then resolve the main promise.
+	 *
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _resolveWhenAllSucceed() {
 		return Promise.all([
 			new Promise(resolve => {
-				this.pubSocket.sock.on('connect', () => {
+				/*
+				Here, the reason of calling .sock.once instead of pubSocket.once
+				is that pubSocket interface by Axon doesn't expose the once method.
+				However the actual socket does, by inheriting it from EventEmitter
+				prototype
+				 */
+				this.pubSocket.sock.once('connect', () => {
 					resolve();
 				});
 			}),
 			new Promise(resolve => {
-				this.subSocket.sock.on('connect', () => {
+				this.subSocket.sock.once('connect', () => {
 					resolve();
 				});
 			}),
@@ -169,24 +177,47 @@ class ChildProcessChannel extends BaseChannel {
 		]);
 	}
 
-	async _rejectIfAtLeastOneFails() {
+	/**
+	 * Reject if any of the sockets fails to bind
+	 *
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _rejectWhenFirstFails() {
 		return Promise.race([
-			new Promise((resolve, reject) => {
-				this.pubSocket.sock.on('error', () => {
+			new Promise((_, reject) => {
+				this.pubSocket.sock.once('error', () => {
 					reject();
 				});
 			}),
-			new Promise((resolve, reject) => {
-				this.subSocket.sock.on('error', () => {
+			new Promise((_, reject) => {
+				this.subSocket.sock.once('error', () => {
 					reject();
 				});
 			}),
-			new Promise((resolve, reject) => {
+			new Promise((_, reject) => {
 				this.rpcSocket.once('error', () => {
 					reject();
 				});
 			}),
 		]);
+	}
+
+	/**
+	 * Reject if time out
+	 *
+	 * @param {number} timeInMillis
+	 * @returns {Promise}
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async _rejectWhenTimeout(timeInMillis) {
+		return new Promise((_, reject) => {
+			setTimeout(async () => {
+				// TODO: Review if logger.error might be useful.
+				reject(new Error('ChildProcessChannel sockets setup timeout'));
+			}, timeInMillis);
+		});
 	}
 }
 

@@ -63,22 +63,12 @@ class Bus extends EventEmitter2 {
 				.catch(error => setImmediate(cb, error));
 		});
 
-		let timeout;
-
 		return Promise.race([
-			this._waitForAllToSucceed(),
-			this._rejectIfAtLeastOneFails(),
+			this._resolveWhenAllSucceed(),
+			this._rejectWhenFirstFails(),
 			// Timeout is needed here in case "bind" events never arrive
-			new Promise((resolve, reject) => {
-				timeout = setTimeout(async () => {
-					await this.cleanup();
-					// TODO: Review if logger.error might be useful.
-					reject(new Error('Bus setup timeout'));
-				}, 2000); // TODO: Get value from config constant
-			}),
-		]).finally(() => {
-			clearTimeout(timeout);
-		});
+			this._rejectWhenTimeout(2000), // TODO: Get value from config constant
+		]);
 	}
 
 	/**
@@ -216,6 +206,11 @@ class Bus extends EventEmitter2 {
 		return Object.keys(this.events);
 	}
 
+	/**
+	 * Close all sockets and perform cleanup operations
+	 *
+	 * @returns {Promise<void>}
+	 */
 	async cleanup() {
 		if (this.pubSocket && typeof this.pubSocket.close === 'function') {
 			this.pubSocket.close();
@@ -228,16 +223,27 @@ class Bus extends EventEmitter2 {
 		}
 	}
 
-	async _waitForAllToSucceed() {
+	/**
+	 * Wait for all sockets to bind and then resolve the main promise.
+	 *
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _resolveWhenAllSucceed() {
 		return Promise.all([
 			new Promise(resolve => {
-				// Please note that .sock is used here and below to be able to listen to its own events
-				this.subSocket.sock.on('bind', () => {
+				/*
+				Here, the reason of calling .sock.once instead of pubSocket.once
+				is that pubSocket interface by Axon doesn't expose the once method.
+				However the actual socket does, by inheriting it from EventEmitter
+				prototype
+				 */
+				this.subSocket.sock.once('bind', () => {
 					resolve();
 				});
 			}),
 			new Promise(resolve => {
-				this.pubSocket.sock.on('bind', () => {
+				this.pubSocket.sock.once('bind', () => {
 					resolve();
 				});
 			}),
@@ -249,24 +255,47 @@ class Bus extends EventEmitter2 {
 		]);
 	}
 
-	async _rejectIfAtLeastOneFails() {
+	/**
+	 * Reject if any of the sockets fails to bind
+	 *
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _rejectWhenFirstFails() {
 		return Promise.race([
-			new Promise((resolve, reject) => {
-				this.subSocket.sock.on('error', () => {
+			new Promise((_, reject) => {
+				this.subSocket.sock.once('error', () => {
 					reject();
 				});
 			}),
-			new Promise((resolve, reject) => {
-				this.pubSocket.sock.on('error', () => {
+			new Promise((_, reject) => {
+				this.pubSocket.sock.once('error', () => {
 					reject();
 				});
 			}),
-			new Promise((resolve, reject) => {
+			new Promise((_, reject) => {
 				this.rpcSocket.once('error', () => {
 					reject();
 				});
 			}),
 		]);
+	}
+
+	/**
+	 * Reject if time out
+	 *
+	 * @param {number} timeInMillis
+	 * @returns {Promise}
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async _rejectWhenTimeout(timeInMillis) {
+		return new Promise((_, reject) => {
+			setTimeout(async () => {
+				// TODO: Review if logger.error might be useful.
+				reject(new Error('Bus sockets setup timeout'));
+			}, timeInMillis);
+		});
 	}
 }
 
