@@ -19,8 +19,7 @@
  */
 
 import { EventEmitter } from 'events';
-// tslint:disable-next-line no-require-imports
-import shuffle = require('lodash.shuffle');
+import { shuffle } from 'lodash';
 import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { RequestFailError } from './errors';
