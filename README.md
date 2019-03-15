@@ -429,16 +429,14 @@ npm run mocha:network -- --grep @propagation
 npm run mocha:unit
 npm run mocha:unit -- --grep @slow
 npm run mocha:unit -- --grep @unstable
-npm run mocha:unit -- --grep @sequential
 ### extensive
-npm run mocha:unit -- --grep="@unstable|@sequential" --invert
+npm run mocha:unit -- --grep="@unstable" --invert
 
 # Running Integration tests
 npm run mocha:integration -- --grep @slow
 npm run mocha:integration -- --grep @unstable
-npm run mocha:integration -- --grep @sequential
 # extensive
-npm run mocha:integration -- --grep="@unstable|@sequential" --invert
+npm run mocha:integration -- --grep="@unstable" --invert
 
 # Running functional tests
 npm run mocha:functional:ws
