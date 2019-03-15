@@ -503,5 +503,25 @@ describe('Multisignature transaction class', () => {
 			expect(errors[0].message).to.be.eql(expectedError);
 			expect(multisigTrs.signatures).to.be.empty;
 		});
+
+		it('status should remain pending when invalid signature sent', async () => {
+			const { status: arrangeStatus } = multisigTrs.addMultisignature(
+				store,
+				membersSignatures[0],
+			);
+
+			const nonMemberSignature: SignatureObject = {
+				transactionId: multisigTrs.id,
+				publicKey:
+					'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b',
+				signature:
+					'35d9bca853353906fbc44b86918b64bc0d21daf3ca16e230aa59352976624bc4ce69ac339f08b45c5e926d60cfa81276778e5858ff2bd2290e40d9da59cc5f0b',
+			};
+
+			multisigTrs.addMultisignature(store, nonMemberSignature);
+
+			expect(arrangeStatus).to.eql(Status.PENDING);
+			expect(multisigTrs['_multisignatureStatus']).to.eql(Status.PENDING);
+		});
 	});
 });
