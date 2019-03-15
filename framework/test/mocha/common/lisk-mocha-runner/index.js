@@ -20,7 +20,7 @@ const { cpus } = require('os');
 const { getTestFiles } = require('./file_manager');
 const processManager = require('./process_manager');
 
-const MAX_TASK_LIMIT = process.env.MAX_TASK_LIMIT || cpus().length;
+const MAX_TASK_LIMIT = parseInt(process.env.MAX_TASK_LIMIT) || cpus().length;
 const timeStart = process.hrtime();
 
 const state = {
