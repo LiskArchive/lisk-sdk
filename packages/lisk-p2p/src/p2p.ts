@@ -488,7 +488,7 @@ export class P2P extends EventEmitter {
 			ackTimeout: this._config.ackTimeout,
 			connectTimeout: this._config.connectTimeout,
 		};
-		const seedPeerUpdatedInfos = await this._peerPool.fetchStatusAndCreatePeer(
+		const seedPeerUpdatedInfos = await this._peerPool.fetchStatusAndCreatePeers(
 			seedPeers,
 			this._nodeInfo,
 			peerConfig,
