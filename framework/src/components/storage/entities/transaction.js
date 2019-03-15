@@ -240,6 +240,9 @@ class Transaction extends BaseEntity {
 				'asset @> \'{ "dapp": { "link": "${dapp_link:value}" } }\'::jsonb',
 		});
 
+		const defaultSort = { sort: 'id:desc' };
+		this.extendDefaultOptions(defaultSort);
+
 		this.SQLs = this.loadSQLFiles('transaction', sqlFiles);
 	}
 
