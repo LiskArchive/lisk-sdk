@@ -1,6 +1,46 @@
-## Modules
+# Modules
 
-Modules are individual building blocks for the lisk. The implementation of each module is up-to user but it must inherit from base module and implement the methods.
+## Description
+
+Modules are individual building blocks for Lisk Core.
+
+### Core Modules
+
+Core Modules are shipped along with the Lisk Core distribution itself. These modules constitute the minimum requirements to run a functional Lisk Core instance.
+
+#### List of Core Modules
+
+* **Chain Module:** The Chain Module takes care of all events and actions, that are related to the blockchain itself.
+* **HTTP API Module:** The HTTP API Module provides API endpoints, that enable users and other programms to comunicate with the Lisk blockchain through the API.
+
+### Custom Modules
+
+> The implementation of each module is up-to user but it must inherit from base module and implement the methods.
+
+Custom Modules can be plugged into Lisk Core and can be removed/disabled at any time.
+They extend the existing instance with a specific (and circumscribed) set of features.
+They can be distributed separately as [npm](https://www.npmjs.com/) packages.
+In order to be able to communicate with Lisk Core in the intended way, it is needed to
+To finally integrate the Module into Lisk Core, create a PR that incorporates the following:
+
+1. Add the npm package which contains the module logic to the `dependencies` in `package.json`
+2. Create a file `framework/src/modules/<MyModule>/index.js`, which exports a class of the module. The class must inherit from `BaseModule` parent class.
+3. In `framework/src/modules/application` register your Module to the application: `this.registerModule(MyModule, options);`
+
+> To view a list of already existing custom modules for Lisk Core, see xyz
+
+### Base Module
+
+The Base Module is the parent class for all modules of Lisk Core.
+
+| Method                         | Description                                                                   |
+| ------------------------------ | ----------------------------------------------------------------------------- |
+| **alias()** _(required)_       | Returns the module name.                                                      |
+| **info()** _(required)_        | Returns meta information about the module.                                    |
+| **load(channel)** _(required)_ | This method which will be invoked by a controller to load the module.         |
+| **defaults()**                 | Supported configurations for the module with default values.                  |
+| **events()**                   | List of valid events which this module wants to register with the controller. |
+| **unload()**                   | Method to be invoked by controller to perform the cleanup.                    |
 
 ```js
 // Exported as main file to javascript package
@@ -69,7 +109,7 @@ export default class MyModule extends BaseModule {
 	 * @param {Channel} channel - An interface to channel
 	 * @return {Promise<void>}
 	 */
-	async load(channel){ },
+	async load(channel) {},
 
 	/**
 	 * Method to be invoked by controller to perform the cleanup
@@ -79,6 +119,18 @@ export default class MyModule extends BaseModule {
 	async unload() {},
 };
 ```
+
+## Managing Modules
+
+### Enable module
+
+### Disable module
+
+### Add module
+
+### Remove module
+
+### Create module
 
 ### Module Life Cycle
 
