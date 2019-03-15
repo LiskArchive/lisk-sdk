@@ -96,8 +96,8 @@ pipeline {
 	agent { node { label 'lisk-core' } }
 
 	environment {
-        MAX_TASK_LIMIT = '20'
-    }
+		MAX_TASK_LIMIT = '20'
+	}
 
 	stages {
 		stage('Build') {
