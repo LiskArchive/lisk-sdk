@@ -63,19 +63,19 @@ def teardown_mocha(test_name) {
 	try {
 		nvm(getNodejsVersion()) {
 			sh """
-			rm -rf coverage_${test_name}; mkdir -p coverage_${test_name}
+			rm -rf coverage_mocha_${test_name}; mkdir -p coverage_mocha_${test_name}
 			npx istanbul report --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
-			cp framework/test/mocha/.coverage-unit/lcov.info coverage_${test_name}/ || true
+			cp framework/test/mocha/.coverage-unit/lcov.info coverage_mocha_${test_name}/ || true
 			npx istanbul report cobertura --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
-			cp framework/test/mocha/.coverage-unit/cobertura-coverage.xml coverage_${test_name}/ || true
+			cp framework/test/mocha/.coverage-unit/cobertura-coverage.xml coverage_mocha_${test_name}/ || true
 			curl --silent http://localhost:4000/coverage/download --output functional-coverage.zip
-			unzip functional-coverage.zip lcov.info -d coverage_${test_name}/functional/
+			unzip functional-coverage.zip lcov.info -d coverage_mocha_${test_name}/functional/
 			"""
 		}
 	} catch(err) {
 		println "Could gather coverage statistics:\n${err}"
 	}
-	stash name: "coverage_${test_name}", includes: "coverage_${test_name}/"
+	stash name: "coverage_mocha_${test_name}", includes: "coverage_mocha_${test_name}/"
 	timeout(1) {
 		sh 'killall --verbose --wait node || true'
 	}
@@ -248,9 +248,18 @@ pipeline {
 					['get', 'post', 'ws', 'unit', 'integration'].each {
 						// some test stages might have failed and have no coverage data
 						try {
-							unstash "coverage_${it}"
+							unstash "coverage_mocha_${it}"
 						} catch(err) {
-							println "Could not unstash ${it}. Continuing."
+							println "Could not unstash mocha_${it}. Continuing."
+						}
+					}
+
+					['functional', 'unit', 'integration'].each {
+						// some test stages might have failed and have no coverage data
+						try {
+							unstash "coverage_jest_${it}"
+						} catch(err) {
+							println "Could not unstash jest_${it}. Continuing."
 						}
 					}
 				}
