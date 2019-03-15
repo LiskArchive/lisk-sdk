@@ -15,7 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
-const jobsQueue = require('../../../../../../src/modules/chain/helpers/jobs_queue.js');
+const jobsQueue = require('../../../../../../src/modules/chain/helpers/jobs_queue');
 
 const peers = rewire('../../../../../../src/modules/chain/submodules/peers');
 

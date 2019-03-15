@@ -24,7 +24,8 @@ const {
 const storageSandbox = require('../../../../../../common/storage_sandbox');
 const seeder = require('../../../../../../common/storage_seed');
 const transactionsFixtures = require('../../../../../../fixtures').transactions;
-const transactionTypes = require('../../../../../../../../src/modules/chain/helpers/transaction_types');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 const numSeedRecords = 5;
 
@@ -169,7 +170,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: transactionTypes.SEND,
+						type: TRANSACTION_TYPES.SEND,
 					})
 				);
 			}
@@ -195,7 +196,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: transactionTypes.SIGNATURE,
+						type: TRANSACTION_TYPES.SIGNATURE,
 					})
 				);
 			}
@@ -221,7 +222,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: transactionTypes.DELEGATE,
+						type: TRANSACTION_TYPES.DELEGATE,
 					})
 				);
 			}
@@ -247,7 +248,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: transactionTypes.VOTE,
+						type: TRANSACTION_TYPES.VOTE,
 					})
 				);
 			}
@@ -273,7 +274,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: transactionTypes.MULTI,
+						type: TRANSACTION_TYPES.MULTI,
 					})
 				);
 			}
@@ -299,7 +300,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: transactionTypes.DAPP,
+						type: TRANSACTION_TYPES.DAPP,
 					})
 				);
 			}
@@ -325,7 +326,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: transactionTypes.IN_TRANSFER,
+						type: TRANSACTION_TYPES.IN_TRANSFER,
 					})
 				);
 			}
@@ -354,7 +355,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: transactionTypes.OUT_TRANSFER,
+						type: TRANSACTION_TYPES.OUT_TRANSFER,
 					})
 				);
 			}

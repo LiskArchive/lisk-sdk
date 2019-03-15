@@ -14,11 +14,10 @@
 
 'use strict';
 
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
-const { FEES } = global.constants;
+const { FEES, TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
 
 const __scope = {};
@@ -114,7 +113,7 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 		return __scope.components.storage.entities.Transaction.isPersisted(
 			{
 				id: transaction.asset.inTransfer.dappId,
-				type: transactionTypes.DAPP,
+				type: TRANSACTION_TYPES.DAPP,
 			},
 			{},
 			tx

@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const apiHelpers = require('../../../common/helpers/api');
 
 describe('GET /unknown_endpoint', () => {

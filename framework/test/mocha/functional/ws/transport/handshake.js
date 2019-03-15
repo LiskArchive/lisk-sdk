@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const randomstring = require('randomstring');
 const scClient = require('socketcluster-client');

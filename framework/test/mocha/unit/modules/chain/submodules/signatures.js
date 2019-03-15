@@ -15,7 +15,8 @@
 'use strict';
 
 const application = require('../../../../common/application');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 /* eslint-disable mocha/no-pending-tests */
 describe('signatures', () => {
@@ -93,7 +94,7 @@ describe('signatures', () => {
 			before(done => {
 				signatureLogicSpy = sinonSandbox.spy(
 					library.rewiredModules.signatures.__get__('__private').assetTypes[
-						transactionTypes.SIGNATURE
+						TRANSACTION_TYPES.SIGNATURE
 					],
 					'bind'
 				);
