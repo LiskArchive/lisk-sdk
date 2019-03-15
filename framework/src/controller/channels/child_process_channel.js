@@ -26,7 +26,7 @@ class ChildProcessChannel extends BaseChannel {
 		process.once('exit', (error, code) => this.cleanup(code, error));
 	}
 
-	async registerBus(socketsPath) {
+	async registerToBus(socketsPath) {
 		this.rpcSocketPath = `${socketsPath.root}/${this.moduleAlias}_rpc.sock`;
 
 		this.pubSocket = axon.socket('pub-emitter');

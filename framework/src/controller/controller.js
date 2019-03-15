@@ -136,7 +136,7 @@ class Controller {
 			{ skipInternalEvents: true }
 		);
 
-		await this.channel.registerBus(this.bus);
+		await this.channel.registerToBus(this.bus);
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
@@ -181,7 +181,7 @@ class Controller {
 			module.actions
 		);
 
-		await channel.registerBus(this.bus);
+		await channel.registerToBus(this.bus);
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
 		channel.publish(`${moduleAlias}:loading:started`);
@@ -211,7 +211,7 @@ class Controller {
 			module.actions
 		);
 
-		await channel.registerBus(this.socketsPath);
+		await channel.registerToBus(this.socketsPath);
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
 		channel.publish(`${moduleAlias}:loading:started`);
