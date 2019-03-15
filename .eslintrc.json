@@ -48,8 +48,7 @@
 					"framework/test/**",
 					"test/**",
 					"framework/src/modules/chain/tasks/**",
-					"framework/src/modules/chain/scripts/**",
-					"webpack.config.js"
+					"framework/src/modules/chain/scripts/**"
 				]
 			}
 		],
