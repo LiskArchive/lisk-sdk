@@ -73,7 +73,7 @@ class ChildProcessChannel extends BaseChannel {
 		if (event.module === this.moduleAlias) {
 			this.localBus.on(eventName, cb);
 		} else {
-			this.subSocket.on(eventName, data => {
+			this.subSocket.once(eventName, data => {
 				setImmediate(cb, data);
 			});
 		}
@@ -85,8 +85,7 @@ class ChildProcessChannel extends BaseChannel {
 		if (event.module === this.moduleAlias) {
 			this.localBus.once(eventName, cb);
 		} else {
-			// TODO: make it `once` instead of `on`
-			this.subSocket.on(eventName, data => {
+			this.subSocket.sock.once(eventName, data => {
 				setImmediate(cb, data);
 			});
 		}
