@@ -137,44 +137,46 @@ describe('transaction pool events', () => {
 
 			it('should move affected transactions in verified, pending and ready queue to the validated queue', async () => {
 				transactionsToMoveToValidatedQueue.forEach(affectedTransaction => {
-					expect(transactionPool.queues.validated.exists(affectedTransaction))
-						.to.be.true;
+					expect(
+						transactionPool.queues.validated.exists(affectedTransaction.id),
+					).to.be.true;
 				});
 			});
 
 			it('should move affected transactions in the validated queue to the received queue', async () => {
 				transactionsToMoveToReceivedQueue.forEach(affectedTransaction => {
-					expect(transactionPool.queues.received.exists(affectedTransaction)).to
-						.be.true;
+					expect(transactionPool.queues.received.exists(affectedTransaction.id))
+						.to.be.true;
 				});
 			});
 
 			it('should keep the unaffected transactions in their queues', async () => {
 				unaffectedTransactionsInReadyQueue.forEach(
 					transaction =>
-						expect(transactionPool.queues.ready.exists(transaction)).to.be.true,
+						expect(transactionPool.queues.ready.exists(transaction.id)).to.be
+							.true,
 				);
 				unaffectedTransactionsInVerifiedQueue.forEach(
 					transaction =>
-						expect(transactionPool.queues.verified.exists(transaction)).to.be
+						expect(transactionPool.queues.verified.exists(transaction.id)).to.be
 							.true,
 				);
 				unaffectedTransactionsInPendingQueue.forEach(
 					transaction =>
-						expect(transactionPool.queues.pending.exists(transaction)).to.be
+						expect(transactionPool.queues.pending.exists(transaction.id)).to.be
 							.true,
 				);
 				unaffectedTransactionsInValidatedQueue.forEach(
 					transaction =>
-						expect(transactionPool.queues.validated.exists(transaction)).to.be
-							.true,
+						expect(transactionPool.queues.validated.exists(transaction.id)).to
+							.be.true,
 				);
 			});
 
 			it('should add transactions to the verified queue', async () => {
 				transactionsToAffectedReceipients.forEach(
 					transaction =>
-						expect(transactionPool.queues.verified.exists(transaction)).to.be
+						expect(transactionPool.queues.verified.exists(transaction.id)).to.be
 							.true,
 				);
 			});
@@ -254,21 +256,21 @@ describe('transaction pool events', () => {
 
 			it('should remove confirmed transactions from the transaction pool', async () => {
 				confirmedTransactions.forEach(transaction => {
-					expect(transactionPool.existsInTransactionPool(transaction)).to.be
+					expect(transactionPool.existsInTransactionPool(transaction.id)).to.be
 						.false;
 				});
 			});
 
 			it('should move affected transactions in the verified, ready and pending queue to the validated queue', async () => {
 				transactionsToMoveToValidatedQueue.forEach(transaction => {
-					expect(transactionPool.queues.validated.exists(transaction)).to.be
+					expect(transactionPool.queues.validated.exists(transaction.id)).to.be
 						.true;
 				});
 			});
 
 			it('should move affected transactions in the validated queue to the received queue', async () => {
 				transactionsToMoveToReceivedQueue.forEach(transaction => {
-					expect(transactionPool.queues.received.exists(transaction)).to.be
+					expect(transactionPool.queues.received.exists(transaction.id)).to.be
 						.true;
 				});
 			});
@@ -303,14 +305,14 @@ describe('transaction pool events', () => {
 
 			it('should move affected transactions in the validated queue to the received queue', async () => {
 				transactionsToMoveToReceivedQueue.forEach(transaction => {
-					expect(transactionPool.queues.received.exists(transaction)).to.be
+					expect(transactionPool.queues.received.exists(transaction.id)).to.be
 						.true;
 				});
 			});
 
 			it('should move affected transactions in the verified, ready and pending queue to the validated queue', async () => {
 				transactionsToMoveToValidatedQueue.forEach(transaction => {
-					expect(transactionPool.queues.validated.exists(transaction)).to.be
+					expect(transactionPool.queues.validated.exists(transaction.id)).to.be
 						.true;
 				});
 			});
