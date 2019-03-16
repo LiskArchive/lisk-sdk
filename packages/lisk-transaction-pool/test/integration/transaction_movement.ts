@@ -86,7 +86,7 @@ describe('transaction movement between queues', () => {
 		it('should remove transactions from the received queue', async () => {
 			await wrapExpectationInNextTick(() => {
 				transactionsToValidate.forEach(transaction => {
-					expect(transactionPool.queues.received.exists(transaction)).to.be
+					expect(transactionPool.queues.received.exists(transaction.id)).to.be
 						.false;
 				});
 			});
@@ -95,7 +95,7 @@ describe('transaction movement between queues', () => {
 		it('should move valid transactions to the validated queue', async () => {
 			await wrapExpectationInNextTick(() => {
 				validTransactions.forEach(transaction => {
-					expect(transactionPool.queues.validated.exists(transaction)).to.be
+					expect(transactionPool.queues.validated.exists(transaction.id)).to.be
 						.true;
 				});
 				expect(transactionPool.queues.validated.size()).to.equal(
@@ -107,7 +107,7 @@ describe('transaction movement between queues', () => {
 		it('should remove invalid transactions from the transaction pool', async () => {
 			await wrapExpectationInNextTick(() => {
 				invalidTransactions.forEach(transaction => {
-					expect(transactionPool.existsInTransactionPool(transaction)).to.be
+					expect(transactionPool.existsInTransactionPool(transaction.id)).to.be
 						.false;
 				});
 			});
@@ -133,8 +133,8 @@ describe('transaction movement between queues', () => {
 			it('should remove transactions from the validated queue', async () => {
 				await wrapExpectationInNextTick(() => {
 					transactionsToVerify.forEach(transaction => {
-						expect(transactionPool.queues.validated.exists(transaction)).to.be
-							.false;
+						expect(transactionPool.queues.validated.exists(transaction.id)).to
+							.be.false;
 					});
 				});
 			});
@@ -142,7 +142,7 @@ describe('transaction movement between queues', () => {
 			it('should move verified transactions to the verified queue', async () => {
 				await wrapExpectationInNextTick(() => {
 					verifiableTransactions.forEach(transaction => {
-						expect(transactionPool.queues.verified.exists(transaction)).to.be
+						expect(transactionPool.queues.verified.exists(transaction.id)).to.be
 							.true;
 					});
 					expect(transactionPool.queues.verified.size()).to.equal(
@@ -154,8 +154,8 @@ describe('transaction movement between queues', () => {
 			it('should remove verified transactions from the transaction pool', async () => {
 				await wrapExpectationInNextTick(() => {
 					unverifiableTransactions.forEach(transaction => {
-						expect(transactionPool.existsInTransactionPool(transaction)).to.be
-							.false;
+						expect(transactionPool.existsInTransactionPool(transaction.id)).to
+							.be.false;
 					});
 				});
 			});
@@ -180,8 +180,8 @@ describe('transaction movement between queues', () => {
 				it('should remove transactions from the verified queue', async () => {
 					await wrapExpectationInNextTick(() => {
 						transactionsToProcess.forEach(transaction => {
-							expect(transactionPool.queues.verified.exists(transaction)).to.be
-								.false;
+							expect(transactionPool.queues.verified.exists(transaction.id)).to
+								.be.false;
 						});
 					});
 				});
@@ -189,7 +189,7 @@ describe('transaction movement between queues', () => {
 				it('should move processable transactions to the ready queue', async () => {
 					await wrapExpectationInNextTick(() => {
 						processableTransactions.forEach(transaction => {
-							expect(transactionPool.queues.ready.exists(transaction)).to.be
+							expect(transactionPool.queues.ready.exists(transaction.id)).to.be
 								.true;
 						});
 						expect(transactionPool.queues.ready.size()).to.equal(
@@ -201,8 +201,8 @@ describe('transaction movement between queues', () => {
 				it('should remove unverfied transactions from the transaction pool', async () => {
 					await wrapExpectationInNextTick(() => {
 						unprocessableTransactions.forEach(transaction => {
-							expect(transactionPool.existsInTransactionPool(transaction)).to.be
-								.false;
+							expect(transactionPool.existsInTransactionPool(transaction.id)).to
+								.be.false;
 						});
 					});
 				});
@@ -217,7 +217,7 @@ describe('transaction movement between queues', () => {
 
 					await wrapExpectationInNextTick(() => {
 						transactionsInReadyQueue.forEach(transaction => {
-							expect(transactionPool.queues.ready.exists(transaction)).to.be
+							expect(transactionPool.queues.ready.exists(transaction.id)).to.be
 								.true;
 						});
 					});
