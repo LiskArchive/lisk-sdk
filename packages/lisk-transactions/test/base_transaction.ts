@@ -633,7 +633,7 @@ describe('Base transaction class', () => {
 	describe('#addMultisignature', () => {
 		let transferFromMultiSigAccountTrs: TransferTransaction;
 		let multisigMember: SignatureObject;
-		beforeEach(() => {
+		beforeEach( async () => {
 			storeAccountGetStub.returns(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction;
 			transferFromMultiSigAccountTrs = new TransferTransaction(rawTrs);
@@ -646,7 +646,7 @@ describe('Base transaction class', () => {
 			};
 		});
 
-		it('should add signature to transaction from multisig account', () => {
+		it('should add signature to transaction from multisig account', async () => {
 			const {
 				status,
 				errors,
