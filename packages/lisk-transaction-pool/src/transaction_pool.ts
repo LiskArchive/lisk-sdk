@@ -294,10 +294,10 @@ export class TransactionPool extends EventEmitter {
 		};
 	}
 
-	public existsInTransactionPool(transaction: Transaction): boolean {
+	public existsInTransactionPool(id: string): boolean {
 		return Object.keys(this._queues).reduce(
 			(previousValue, queueName) =>
-				previousValue || this._queues[queueName].exists(transaction),
+				previousValue || this._queues[queueName].exists(id),
 			false,
 		);
 	}
@@ -429,7 +429,7 @@ export class TransactionPool extends EventEmitter {
 		queueName: QueueNames,
 		transaction: Transaction,
 	): AddTransactionResult {
-		if (this.existsInTransactionPool(transaction)) {
+		if (this.existsInTransactionPool(transaction.id)) {
 			return {
 				isFull: false,
 				alreadyExists: true,
