@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const express = require('express');
 
 module.exports = ({ components: { logger }, config }) => {
@@ -10,7 +11,9 @@ module.exports = ({ components: { logger }, config }) => {
 		logger.debug(
 			'Hook loader for coverage - Do not use in production environment!'
 		);
-		im.hookLoader(__dirname);
+		/** @TODO hookLoader path must be updated
+		 * to be able to dynamically find the root folder */
+		im.hookLoader(path.join(__dirname, '../../../'));
 		expressApp.use('/coverage', im.createHandler());
 	}
 
