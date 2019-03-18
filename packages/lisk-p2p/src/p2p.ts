@@ -379,7 +379,19 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				if (!this._peerNetworkCompatibility(queryObject, this._nodeInfo)) {
+				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+				const peerId = constructPeerId(socket.remoteAddress, wsPort);
+				const queryOptions =
+					typeof queryObject.options === 'string'
+						? JSON.parse(queryObject.options)
+						: undefined;
+
+				if (
+					!this._peerNetworkCompatibility(
+						{ ...queryObject, ...queryOptions },
+						this._nodeInfo,
+					)
+				) {
 					socket.disconnect(
 						INCOMPATIBLE_NETWORK_CODE,
 						INCOMPATIBLE_NETWORK_REASON,
@@ -397,7 +409,12 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				if (!this._peerVersionCompatibility(queryObject, this._nodeInfo)) {
+				if (
+					!this._peerVersionCompatibility(
+						{ ...queryObject, ...queryOptions },
+						this._nodeInfo,
+					)
+				) {
 					socket.disconnect(
 						INCOMPATIBLE_VERSION_CODE,
 						INCOMPATIBLE_VERSION_REASON,
@@ -416,7 +433,10 @@ export class P2P extends EventEmitter {
 				}
 
 				if (
-					!this._peerProtocolVersionCompatibility(queryObject, this._nodeInfo)
+					!this._peerProtocolVersionCompatibility(
+						{ ...queryObject, ...queryOptions },
+						this._nodeInfo,
+					)
 				) {
 					socket.disconnect(
 						INCOMPATIBLE_PROTOCOL_VERSION_CODE,
@@ -434,14 +454,6 @@ export class P2P extends EventEmitter {
 
 					return;
 				}
-
-				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-				const peerId = constructPeerId(socket.remoteAddress, wsPort);
-				const queryOptions =
-					typeof queryObject.options === 'string'
-						? JSON.parse(queryObject.options)
-						: undefined;
-
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
 					...queryOptions,
 					...queryObject,

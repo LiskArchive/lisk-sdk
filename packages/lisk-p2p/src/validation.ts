@@ -21,9 +21,9 @@ import {
 	InvalidRPCResponseError,
 } from './errors';
 
-import { ParsedUrlQuery } from 'querystring';
 import {
 	P2PDiscoveredPeerInfo,
+	P2PInfoOptions,
 	P2PNodeInfo,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
@@ -141,29 +141,29 @@ export const validateProtocolMessage = (
 };
 
 export const checkNetworkCompatibility = (
-	header: ParsedUrlQuery,
+	headers: P2PInfoOptions,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
-	if (!header.nethash) {
+	if (!headers.nethash) {
 		return false;
 	}
 
-	return header.nethash === nodeInfo.nethash;
+	return headers.nethash === nodeInfo.nethash;
 };
 
 export const checkVersionCompatibility = (
-	header: ParsedUrlQuery,
+	headers: P2PInfoOptions,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
-	if (!header.version) {
+	if (!headers.version) {
 		return false;
 	}
 
-	return gte(header.version as string, nodeInfo.minVersion as string);
+	return gte(headers.version as string, nodeInfo.minVersion as string);
 };
 
 export const checkProtocolVersionCompatibility = (
-	headers: ParsedUrlQuery,
+	headers: P2PInfoOptions,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
 	if (!headers.protocolVersion) {

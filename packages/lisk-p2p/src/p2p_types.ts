@@ -1,5 +1,3 @@
-import { ParsedUrlQuery } from 'querystring';
-
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -123,15 +121,15 @@ export interface P2PPeerCheckCompatibility {
 }
 
 export type P2PPeerNetworkCompatibility = (
-	headers: ParsedUrlQuery,
+	headers: P2PInfoOptions,
 	nodeInfo: P2PNodeInfo,
 ) => boolean;
 export type P2PPeerProtocolVersionCompatibility = (
-	headers: ParsedUrlQuery,
+	headers: P2PInfoOptions,
 	nodeInfo: P2PNodeInfo,
 ) => boolean;
 export type P2PPeerVersionCompatibility = (
-	headers: ParsedUrlQuery,
+	headers: P2PInfoOptions,
 	nodeInfo: P2PNodeInfo,
 ) => boolean;
 
