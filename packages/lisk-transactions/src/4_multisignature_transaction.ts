@@ -362,21 +362,21 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check if signature is valid at all
-		const trsSignature = validateSignature(
+		const { valid } = validateSignature(
 			signatureObject.publicKey,
 			signatureObject.signature,
 			this.getBasicBytes(),
 			this.id,
 		);
 
-		if (trsSignature.valid) {
+		if (valid) {
 			this.signatures.push(signatureObject.signature);
 
 			return this.processMultisignatures(store);
 		}
 
 		// Else populate errors
-		const errors = trsSignature.valid
+		const errors = valid
 			? []
 			: [
 					new TransactionError(

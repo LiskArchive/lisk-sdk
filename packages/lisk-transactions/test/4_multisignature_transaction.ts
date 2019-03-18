@@ -522,6 +522,7 @@ describe('Multisignature transaction class', () => {
 
 			expect(arrangeStatus).to.eql(Status.PENDING);
 			expect((multisigTrs as any)._multisignatureStatus).to.eql(Status.PENDING);
+			expect(multisigTrs.signatures.length).to.eql(1);
 		});
 	});
 });

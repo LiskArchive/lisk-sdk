@@ -340,20 +340,20 @@ export abstract class BaseTransaction {
 		}
 
 		// Validate the signature using the signature sender and transaction details
-		const trsSignature = validateSignature(
+		const { valid } = validateSignature(
 			signatureObject.publicKey,
 			signatureObject.signature,
 			this.getBasicBytes(),
 			this.id,
 		);
 		// If the signature is valid for the sender push it to the signatures array
-		if (trsSignature.valid) {
+		if (valid) {
 			this.signatures.push(signatureObject.signature);
 
 			return this.processMultisignatures(store);
 		}
 		// Else populate errors
-		const errors = trsSignature.valid
+		const errors = valid
 			? []
 			: [
 					new TransactionError(
