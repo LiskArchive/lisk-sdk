@@ -292,7 +292,6 @@ class Bus extends EventEmitter2 {
 	async _rejectWhenTimeout(timeInMillis) {
 		return new Promise((_, reject) => {
 			setTimeout(async () => {
-				// TODO: Review if logger.error might be useful.
 				reject(new Error('Bus sockets setup timeout'));
 			}, timeInMillis);
 		});

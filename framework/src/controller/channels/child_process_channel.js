@@ -76,6 +76,7 @@ class ChildProcessChannel extends BaseChannel {
 		if (event.module === this.moduleAlias) {
 			this.localBus.once(eventName, cb);
 		} else {
+			// TODO: make it `once` instead of `on`
 			this.subSocket.on(eventName, data => {
 				cb(data);
 			});
