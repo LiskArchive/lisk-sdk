@@ -215,7 +215,8 @@ class Controller {
 		const child = child_process.fork(program, parameters);
 
 		child.on('exit', () => {
-			this.logger.info(`Module ${moduleAlias}(${name}:${version}) exited`);
+			this.logger.error(`Module ${moduleAlias}(${name}:${version}) exited`);
+			process.exit(1);
 		});
 
 		this.logger.info(
