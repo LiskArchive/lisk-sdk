@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { valid as isValidVersion } from 'semver';
+import { gte, valid as isValidVersion } from 'semver';
 import { isIP, isNumeric, isPort } from 'validator';
 import {
 	InvalidPeerError,
@@ -21,8 +21,10 @@ import {
 	InvalidRPCResponseError,
 } from './errors';
 
+import { ParsedUrlQuery } from 'querystring';
 import {
 	P2PDiscoveredPeerInfo,
+	P2PNodeInfo,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
@@ -136,4 +138,40 @@ export const validateProtocolMessage = (
 	}
 
 	return protocolMessage;
+};
+
+export const checkNetworkCompatibility = (
+	header: ParsedUrlQuery,
+	nodeInfo: P2PNodeInfo,
+): boolean => {
+	if (!header.nethash) {
+		return false;
+	}
+
+	return header.nethash === nodeInfo.nethash;
+};
+
+export const checkVersionCompatibility = (
+	header: ParsedUrlQuery,
+	nodeInfo: P2PNodeInfo,
+): boolean => {
+	if (!header.version) {
+		return false;
+	}
+
+	return gte(header.version as string, nodeInfo.minVersion as string);
+};
+
+export const checkProtocolVersionCompatibility = (
+	headers: ParsedUrlQuery,
+	nodeInfo: P2PNodeInfo,
+): boolean => {
+	if (!headers.protocolVersion) {
+		return false;
+	}
+
+	const peerHardForks = +(headers.protocolVersion as string).split('.')[0];
+	const systemHardForks = +(nodeInfo.protocolVersion as string).split('.')[0];
+
+	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };
