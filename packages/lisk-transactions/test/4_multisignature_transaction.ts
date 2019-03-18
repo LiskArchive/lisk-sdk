@@ -521,7 +521,7 @@ describe('Multisignature transaction class', () => {
 			multisigTrs.addMultisignature(store, nonMemberSignature);
 
 			expect(arrangeStatus).to.eql(Status.PENDING);
-			expect(multisigTrs['_multisignatureStatus']).to.eql(Status.PENDING);
+			expect((multisigTrs as any)._multisignatureStatus).to.eql(Status.PENDING);
 		});
 	});
 });
