@@ -19,8 +19,6 @@ const os = require('os');
 const crypto = require('crypto');
 const semver = require('semver');
 
-const __private = {};
-
 /**
  * Initial state of the entire application.
  * - os
@@ -38,28 +36,29 @@ const __private = {};
  * @requires crypto
  * @requires os
  * @requires semver
- * @param {Object} options - System options
+ * @param {Object} initialState - Initial state of the application
  * @param {Object} logger
  */
 class ApplicationState {
-	constructor(config, logger) {
-		__private.logger = logger;
-		__private.state = {
+	constructor(initialState, logger, channel) {
+		this.logger = logger;
+		this.state = {
 			os: os.platform() + os.release(),
-			version: config.version,
-			wsPort: config.wsPort,
-			httpPort: config.httpPort,
-			minVersion: config.minVersion,
-			protocolVersion: config.protocolVersion,
+			version: initialState.version,
+			wsPort: initialState.wsPort,
+			httpPort: initialState.httpPort,
+			minVersion: initialState.minVersion,
+			protocolVersion: initialState.protocolVersion,
 			height: 1,
-			nethash: config.nethash,
-			broadhash: config.nethash,
-			nonce: config.nonce,
+			nethash: initialState.nethash,
+			broadhash: initialState.nethash,
+			nonce: initialState.nonce,
 		};
+		this.channel = channel;
 	}
 
 	getState() {
-		return __private.state;
+		return this.state;
 	}
 
 	/**
@@ -72,7 +71,7 @@ class ApplicationState {
 		if (!version) {
 			return false;
 		}
-		return semver.gte(version, __private.state.minVersion);
+		return semver.gte(version, this.state.minVersion);
 	}
 
 	/**
@@ -87,7 +86,7 @@ class ApplicationState {
 			return false;
 		}
 		const peerHard = parseInt(protocolVersion[0]);
-		const myHard = parseInt(__private.state.protocolVersion[0]);
+		const myHard = parseInt(this.state.protocolVersion[0]);
 		return myHard === peerHard && peerHard >= 1;
 	}
 
@@ -102,21 +101,21 @@ class ApplicationState {
 		}
 		try {
 			if (blocks.length <= 1) {
-				__private.state.broadhash = __private.state.nethash;
+				this.state.broadhash = this.state.nethash;
 				return true;
 			}
-			__private.state.height = blocks[0].height;
+			this.state.height = blocks[0].height;
 			const seed = blocks.map(row => row.id).join('');
 			const newBroadhash = crypto
 				.createHash('sha256')
 				.update(seed, 'utf8')
 				.digest()
 				.toString('hex');
-			__private.state.broadhash = newBroadhash;
-			__private.logger.debug('Application state', __private.state);
+			this.state.broadhash = newBroadhash;
+			this.logger.debug('Application state', this.state);
 			return true;
 		} catch (err) {
-			__private.logger.error(err.stack);
+			this.logger.error(err.stack);
 			throw err;
 		}
 	}
