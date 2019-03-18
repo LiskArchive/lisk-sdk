@@ -1,3 +1,5 @@
+import { ParsedUrlQuery } from 'querystring';
+
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -120,11 +122,18 @@ export interface P2PPeerCheckCompatibility {
 	readonly versionCompatible?: P2PPeerVersionCompatibility;
 }
 
-export type P2PPeerNetworkCompatibility = (nethash: string) => boolean;
-export type P2PPeerProtocolVersionCompatibility = (
-	protocolVersion: string,
+export type P2PPeerNetworkCompatibility = (
+	headers: ParsedUrlQuery,
+	nodeInfo: P2PNodeInfo,
 ) => boolean;
-export type P2PPeerVersionCompatibility = (version: string) => boolean;
+export type P2PPeerProtocolVersionCompatibility = (
+	headers: ParsedUrlQuery,
+	nodeInfo: P2PNodeInfo,
+) => boolean;
+export type P2PPeerVersionCompatibility = (
+	headers: ParsedUrlQuery,
+	nodeInfo: P2PNodeInfo,
+) => boolean;
 
 // This is a representation of the inbound peer object according to the current protocol.
 // TODO later: Switch to LIP protocol format.

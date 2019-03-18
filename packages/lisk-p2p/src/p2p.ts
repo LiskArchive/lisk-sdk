@@ -46,8 +46,10 @@ import {
 	P2PMessagePacket,
 	P2PNetworkStatus,
 	P2PNodeInfo,
-	P2PPeerCheckCompatibility,
 	P2PPeerInfo,
+	P2PPeerNetworkCompatibility,
+	P2PPeerProtocolVersionCompatibility,
+	P2PPeerVersionCompatibility,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -72,6 +74,11 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	PeerPool,
 } from './peer_pool';
+import {
+	checkNetworkCompatibility,
+	checkProtocolVersionCompatibility,
+	checkVersionCompatibility,
+} from './validation';
 
 export {
 	EVENT_CLOSE_OUTBOUND,
@@ -130,7 +137,9 @@ export class P2P extends EventEmitter {
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
-	private readonly _peerHandShakeChecks?: P2PPeerCheckCompatibility;
+	private readonly _peerNetworkCompatibility: P2PPeerNetworkCompatibility;
+	private readonly _peerVersionCompatibility: P2PPeerVersionCompatibility;
+	private readonly _peerProtocolVersionCompatibility: P2PPeerProtocolVersionCompatibility;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -235,7 +244,24 @@ export class P2P extends EventEmitter {
 			? config.discoveryInterval
 			: DEFAULT_DISCOVERY_INTERVAL;
 
-		this._peerHandShakeChecks = config.peerhandShakeChecks;
+		this._peerNetworkCompatibility = checkNetworkCompatibility;
+		this._peerVersionCompatibility = checkProtocolVersionCompatibility;
+		this._peerProtocolVersionCompatibility = checkVersionCompatibility;
+
+		if (config.peerhandShakeChecks) {
+			this._peerNetworkCompatibility = config.peerhandShakeChecks
+				.networkCompatible
+				? config.peerhandShakeChecks.networkCompatible
+				: checkNetworkCompatibility;
+			this._peerVersionCompatibility = config.peerhandShakeChecks
+				.protocolVersionCompatible
+				? config.peerhandShakeChecks.protocolVersionCompatible
+				: checkProtocolVersionCompatibility;
+			this._peerProtocolVersionCompatibility = config.peerhandShakeChecks
+				.versionCompatible
+				? config.peerhandShakeChecks.versionCompatible
+				: checkVersionCompatibility;
+		}
 	}
 
 	public get config(): P2PConfig {
@@ -353,71 +379,60 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				if (this._peerHandShakeChecks) {
-					if (
-						this._peerHandShakeChecks.networkCompatible &&
-						!this._peerHandShakeChecks.networkCompatible(queryObject.nethash)
-					) {
-						socket.disconnect(
-							INCOMPATIBLE_NETWORK_CODE,
+				if (!this._peerNetworkCompatibility(queryObject, this._nodeInfo)) {
+					socket.disconnect(
+						INCOMPATIBLE_NETWORK_CODE,
+						INCOMPATIBLE_NETWORK_REASON,
+					);
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
+						new PeerInboundHandshakeError(
 							INCOMPATIBLE_NETWORK_REASON,
-						);
-						this.emit(
-							EVENT_FAILED_TO_ADD_INBOUND_PEER,
-							new PeerInboundHandshakeError(
-								INCOMPATIBLE_NETWORK_REASON,
-								INCOMPATIBLE_NETWORK_CODE,
-								socket.remoteAddress,
-								socket.request.url,
-							),
-						);
+							INCOMPATIBLE_NETWORK_CODE,
+							socket.remoteAddress,
+							socket.request.url,
+						),
+					);
 
-						return;
-					}
+					return;
+				}
 
-					if (
-						this._peerHandShakeChecks.versionCompatible &&
-						!this._peerHandShakeChecks.versionCompatible(queryObject.version)
-					) {
-						socket.disconnect(
-							INCOMPATIBLE_VERSION_CODE,
+				if (!this._peerVersionCompatibility(queryObject, this._nodeInfo)) {
+					socket.disconnect(
+						INCOMPATIBLE_VERSION_CODE,
+						INCOMPATIBLE_VERSION_REASON,
+					);
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
+						new PeerInboundHandshakeError(
 							INCOMPATIBLE_VERSION_REASON,
-						);
-						this.emit(
-							EVENT_FAILED_TO_ADD_INBOUND_PEER,
-							new PeerInboundHandshakeError(
-								INCOMPATIBLE_VERSION_REASON,
-								INCOMPATIBLE_VERSION_CODE,
-								socket.remoteAddress,
-								socket.request.url,
-							),
-						);
+							INCOMPATIBLE_VERSION_CODE,
+							socket.remoteAddress,
+							socket.request.url,
+						),
+					);
 
-						return;
-					}
+					return;
+				}
 
-					if (
-						this._peerHandShakeChecks.protocolVersionCompatible &&
-						!this._peerHandShakeChecks.protocolVersionCompatible(
-							String(queryObject.protocolVersion),
-						)
-					) {
-						socket.disconnect(
-							INCOMPATIBLE_PROTOCOL_VERSION_CODE,
+				if (
+					!this._peerProtocolVersionCompatibility(queryObject, this._nodeInfo)
+				) {
+					socket.disconnect(
+						INCOMPATIBLE_PROTOCOL_VERSION_CODE,
+						INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+					);
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
+						new PeerInboundHandshakeError(
 							INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-						);
-						this.emit(
-							EVENT_FAILED_TO_ADD_INBOUND_PEER,
-							new PeerInboundHandshakeError(
-								INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-								INCOMPATIBLE_PROTOCOL_VERSION_CODE,
-								socket.remoteAddress,
-								socket.request.url,
-							),
-						);
+							INCOMPATIBLE_PROTOCOL_VERSION_CODE,
+							socket.remoteAddress,
+							socket.request.url,
+						),
+					);
 
-						return;
-					}
+					return;
 				}
 
 				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
