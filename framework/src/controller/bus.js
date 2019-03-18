@@ -291,7 +291,7 @@ class Bus extends EventEmitter2 {
 	// eslint-disable-next-line class-methods-use-this
 	async _rejectWhenTimeout(timeInMillis) {
 		return new Promise((_, reject) => {
-			setTimeout(async () => {
+			setTimeout(() => {
 				reject(new Error('Bus sockets setup timeout'));
 			}, timeInMillis);
 		});
