@@ -354,72 +354,69 @@ export class P2P extends EventEmitter {
 				}
 
 				if (this._peerHandShakeChecks) {
-					if (this._peerHandShakeChecks.networkCompatible) {
-						if (
-							!this._peerHandShakeChecks.networkCompatible(queryObject.nethash)
-						) {
-							socket.disconnect(
-								INCOMPATIBLE_NETWORK_CODE,
+					if (
+						this._peerHandShakeChecks.networkCompatible &&
+						!this._peerHandShakeChecks.networkCompatible(queryObject.nethash)
+					) {
+						socket.disconnect(
+							INCOMPATIBLE_NETWORK_CODE,
+							INCOMPATIBLE_NETWORK_REASON,
+						);
+						this.emit(
+							EVENT_FAILED_TO_ADD_INBOUND_PEER,
+							new PeerInboundHandshakeError(
 								INCOMPATIBLE_NETWORK_REASON,
-							);
-							this.emit(
-								EVENT_FAILED_TO_ADD_INBOUND_PEER,
-								new PeerInboundHandshakeError(
-									INCOMPATIBLE_NETWORK_REASON,
-									INCOMPATIBLE_NETWORK_CODE,
-									socket.remoteAddress,
-									socket.request.url,
-								),
-							);
+								INCOMPATIBLE_NETWORK_CODE,
+								socket.remoteAddress,
+								socket.request.url,
+							),
+						);
 
-							return;
-						}
+						return;
 					}
 
-					if (this._peerHandShakeChecks.versionCompatible) {
-						if (
-							!this._peerHandShakeChecks.versionCompatible(queryObject.version)
-						) {
-							socket.disconnect(
-								INCOMPATIBLE_VERSION_CODE,
+					if (
+						this._peerHandShakeChecks.versionCompatible &&
+						!this._peerHandShakeChecks.versionCompatible(queryObject.version)
+					) {
+						socket.disconnect(
+							INCOMPATIBLE_VERSION_CODE,
+							INCOMPATIBLE_VERSION_REASON,
+						);
+						this.emit(
+							EVENT_FAILED_TO_ADD_INBOUND_PEER,
+							new PeerInboundHandshakeError(
 								INCOMPATIBLE_VERSION_REASON,
-							);
-							this.emit(
-								EVENT_FAILED_TO_ADD_INBOUND_PEER,
-								new PeerInboundHandshakeError(
-									INCOMPATIBLE_VERSION_REASON,
-									INCOMPATIBLE_VERSION_CODE,
-									socket.remoteAddress,
-									socket.request.url,
-								),
-							);
+								INCOMPATIBLE_VERSION_CODE,
+								socket.remoteAddress,
+								socket.request.url,
+							),
+						);
 
-							return;
-						}
+						return;
 					}
 
-					if (this._peerHandShakeChecks.protocolVersionCompatible) {
-						if (
-							!this._peerHandShakeChecks.protocolVersionCompatible(
-								String(queryObject.protocolVersion),
-							)
-						) {
-							socket.disconnect(
-								INCOMPATIBLE_PROTOCOL_VERSION_CODE,
+					if (
+						this._peerHandShakeChecks.protocolVersionCompatible &&
+						!this._peerHandShakeChecks.protocolVersionCompatible(
+							String(queryObject.protocolVersion),
+						)
+					) {
+						socket.disconnect(
+							INCOMPATIBLE_PROTOCOL_VERSION_CODE,
+							INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+						);
+						this.emit(
+							EVENT_FAILED_TO_ADD_INBOUND_PEER,
+							new PeerInboundHandshakeError(
 								INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-							);
-							this.emit(
-								EVENT_FAILED_TO_ADD_INBOUND_PEER,
-								new PeerInboundHandshakeError(
-									INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-									INCOMPATIBLE_PROTOCOL_VERSION_CODE,
-									socket.remoteAddress,
-									socket.request.url,
-								),
-							);
+								INCOMPATIBLE_PROTOCOL_VERSION_CODE,
+								socket.remoteAddress,
+								socket.request.url,
+							),
+						);
 
-							return;
-						}
+						return;
 					}
 				}
 
