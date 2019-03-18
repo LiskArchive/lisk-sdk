@@ -79,6 +79,10 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
+		it('should set _multisignatureStatus to PENDING', async () => {
+			expect(validTestTransaction).to.have.property('_multisignatureStatus', 2);
+		});
+
 		it('should throw TransactionMultiError when asset min is not a number', async () => {
 			const invalidMultisignatureTransactionData = {
 				...validMultisignatureTransaction,
