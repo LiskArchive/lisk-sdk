@@ -67,6 +67,7 @@ class Controller {
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._setupBus();
+		await this._initState();
 		await this._loadModules(modules);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -146,6 +147,19 @@ class Controller {
 				);
 			});
 		}
+	}
+
+	/**
+	 * Initiate application state
+	 *
+	 * @async
+	 */
+	async _initState() {
+		this.applicationState = new ApplicationState(
+			this.initialState,
+			this.logger,
+			this.channel
+		);
 	}
 
 	async _loadModules(modules) {
