@@ -58,9 +58,13 @@ const summary = () => {
 		console.log('\n\n');
 		console.log('(Error Code):\tFailed test\n');
 		console.log('=============\t===========\n');
-		Object.keys(failed).forEach(file =>
-			console.warn(`(${failed[file]}):\t${file}`)
-		);
+		Object.keys(failed).forEach(file => {
+			const { code, error } = failed[file];
+			console.warn(`(${code}):\t${file}`);
+			if (error) {
+				console.warn(`\t${error}`);
+			}
+		});
 	}
 
 	console.log('\n\n');
