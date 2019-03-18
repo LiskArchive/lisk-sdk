@@ -126,7 +126,7 @@ class Application {
 
 		this.registerModule(HttpAPIModule, {
 			constants: this.constants,
-			useSocketChannel: true,
+			loadAsChildProcess: true,
 		});
 	}
 
