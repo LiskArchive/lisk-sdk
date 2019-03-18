@@ -40,7 +40,6 @@ let library;
  */
 function NodeController(scope) {
 	library = {
-		applicationState: scope.applicationState,
 		components: {
 			storage: scope.components.storage,
 		},
@@ -64,7 +63,10 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const { height } = library.applicationState.getState();
+		const { height } = await this.channel.invoke(
+			'lisk:getApplicationState',
+			'applicationState'
+		);
 
 		const milestone = await library.channel.invoke('chain:calculateMilestone', {
 			height,
@@ -124,7 +126,10 @@ NodeController.getStatus = async (context, next) => {
 			}
 		);
 
-		const { height, broadhash } = library.applicationState.getState();
+		const { height, broadhash } = await this.channel.invoke(
+			'lisk:getApplicationState',
+			'applicationState'
+		);
 
 		const consensus =
 			(await library.channel.invoke('chain:getLastConsensus')) || 0;

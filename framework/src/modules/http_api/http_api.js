@@ -54,14 +54,8 @@ module.exports = class HttpApi {
 					);
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
-		const applicationState = await this.channel.invoke(
-			'lisk:getApplicationState',
-			'applicationState'
-		);
-
 		// Setup scope
 		this.scope = {
-			applicationState,
 			components: {
 				cache,
 				logger: this.logger,
