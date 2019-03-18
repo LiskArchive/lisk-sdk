@@ -22,8 +22,9 @@ class Bus extends EventEmitter2 {
 	 * @param {Object} options - EventEmitter2 native options object
 	 * @see {@link https://github.com/EventEmitter2/EventEmitter2/blob/master/eventemitter2.d.ts|String}
 	 */
-	constructor(options) {
+	constructor(options, logger) {
 		super(options);
+		this.logger = logger;
 
 		// Hash map used instead of arrays for performance.
 		this.actions = {};
@@ -180,10 +181,24 @@ class Bus extends EventEmitter2 {
 
 	subscribe(eventName, cb) {
 		if (!this.getEvents().includes(eventName)) {
-			throw new Error(`Event ${eventName} is not registered to bus.`);
+			this.logger.info(
+				`Event ${eventName} was subscribed but not registered to the bus yet.`
+			);
 		}
 
 		super.on(eventName, cb); // Communicate throw event emitter
+		this.subSocket.on(eventName, cb); // Communicate throw unix socket
+	}
+
+	once(eventName, cb) {
+		if (!this.getEvents().includes(eventName)) {
+			this.logger.info(
+				`Event ${eventName} was subscribed but not registered to the bus yet.`
+			);
+		}
+
+		super.once(eventName, cb); // Communicate throw event emitter
+		// TODO: make it `once` instead of `on`
 		this.subSocket.on(eventName, cb); // Communicate throw unix socket
 	}
 

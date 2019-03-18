@@ -1,4 +1,4 @@
-// passed as parameters of `child_process.fork(program, parameters)`
+// Parameters passed by `child_process.fork(_, parameters)`
 const modulePath = process.argv[2];
 const moduleOptions = JSON.parse(process.argv[3]);
 

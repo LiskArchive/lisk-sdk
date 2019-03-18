@@ -107,11 +107,14 @@ class Controller {
 	 * @async
 	 */
 	async _setupBus() {
-		this.bus = new Bus({
-			wildcard: true,
-			delimiter: ':',
-			maxListeners: 1000,
-		});
+		this.bus = new Bus(
+			{
+				wildcard: true,
+				delimiter: ':',
+				maxListeners: 1000,
+			},
+			this.logger
+		);
 
 		await this.bus.setup(this.socketsPath);
 
@@ -219,9 +222,14 @@ class Controller {
 			`Module ready with alias: ${moduleAlias}(${name}:${version})`
 		);
 
-		return new Promise(resolve => {
-			setTimeout(resolve, 1000);
-		});
+		return Promise.race([
+			new Promise(resolve => {
+				this.channel.once(`${moduleAlias}:loading:finished`, resolve);
+			}),
+			new Promise((_, reject) => {
+				setTimeout(reject, 2000);
+			}),
+		]);
 	}
 
 	async unloadModules(modules = Object.keys(this.modules)) {
