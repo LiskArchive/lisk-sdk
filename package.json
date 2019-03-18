@@ -27,7 +27,7 @@
 		"lint:fix": "eslint --fix .",
 		"format":
 			"prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test,framework}{,/**}/*.{js,json,md}\"",
-		"test": "node framework/test/mocha/common/lisk-mocha-runner/index.js",
+		"test": "node framework/test/mocha/common/lisk-mocha-runner",
 		"mocha": "mocha",
 		"jest:unit":
 			"jest --config=./framework/test/jest/config/unit/jest.config.js",
@@ -35,20 +35,19 @@
 			"jest --config=./framework/test/jest/config/integration/jest.config.js",
 		"jest:functional":
 			"jest --config=./framework/test/jest/config/functional/jest.config.js",
-		"mocha:unit":
-			"node framework/test/mocha/common/lisk-mocha-runner/index.js unit",
+		"mocha:unit": "node framework/test/mocha/common/lisk-mocha-runner unit",
 		"mocha:integration":
-			"node framework/test/mocha/common/lisk-mocha-runner/index.js integration",
+			"node framework/test/mocha/common/lisk-mocha-runner integration",
 		"mocha:functional":
-			"node framework/test/mocha/common/lisk-mocha-runner/index.js functional",
+			"node framework/test/mocha/common/lisk-mocha-runner functional",
 		"mocha:functional:ws":
-			"node framework/test/mocha/common/lisk-mocha-runner/index.js functional:ws",
+			"node framework/test/mocha/common/lisk-mocha-runner functional:ws",
 		"mocha:functional:get":
-			"node framework/test/mocha/common/lisk-mocha-runner/index.js functional:get",
+			"node framework/test/mocha/common/lisk-mocha-runner functional:get",
 		"mocha:functional:post":
-			"node framework/test/mocha/common/lisk-mocha-runner/index.js functional:post",
+			"node framework/test/mocha/common/lisk-mocha-runner functional:post",
 		"mocha:network":
-			"node framework/test/mocha/common/lisk-mocha-runner/index.js network",
+			"node framework/test/mocha/common/lisk-mocha-runner network",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "http-server docs/jsdoc/",
 		"check:dependencies": "snyk protect",
