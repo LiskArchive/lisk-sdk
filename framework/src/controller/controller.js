@@ -66,8 +66,8 @@ class Controller {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
-		await this._setupBus();
 		await this._initState();
+		await this._setupBus();
 		await this._loadModules(modules);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -109,6 +109,18 @@ class Controller {
 	}
 
 	/**
+	 * Initiate application state
+	 *
+	 * @async
+	 */
+	async _initState() {
+		this.applicationState = new ApplicationState(
+			this.config.initialState,
+			this.logger
+		);
+	}
+
+	/**
 	 * Initialize bus
 	 *
 	 * @async
@@ -128,15 +140,19 @@ class Controller {
 
 		this.channel = new InMemoryChannel(
 			'lisk',
-			['ready'],
+			['ready', 'applicationStateUpdated'],
 			{
 				getComponentConfig: action => this.config.components[action.params],
-				getApplicationState: () => this.applicationState,
+				getApplicationState: () => this.applicationState.getState(),
+				updateApplicationState: action =>
+					this.applicationState.update(action.params),
 			},
 			{ skipInternalEvents: true }
 		);
 
 		await this.channel.registerToBus(this.bus);
+
+		await this.applicationState.setChannel(this.channel);
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
@@ -147,19 +163,6 @@ class Controller {
 				);
 			});
 		}
-	}
-
-	/**
-	 * Initiate application state
-	 *
-	 * @async
-	 */
-	async _initState() {
-		this.applicationState = new ApplicationState(
-			this.initialState,
-			this.logger,
-			this.channel
-		);
 	}
 
 	async _loadModules(modules) {

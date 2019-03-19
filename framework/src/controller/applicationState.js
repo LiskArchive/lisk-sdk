@@ -40,7 +40,7 @@ const semver = require('semver');
  * @param {Object} logger
  */
 class ApplicationState {
-	constructor(initialState, logger, channel) {
+	constructor(initialState, logger) {
 		this.logger = logger;
 		this.state = {
 			os: os.platform() + os.release(),
@@ -54,11 +54,14 @@ class ApplicationState {
 			broadhash: initialState.nethash,
 			nonce: initialState.nonce,
 		};
-		this.channel = channel;
 	}
 
 	getState() {
 		return this.state;
+	}
+
+	setChannel(channel) {
+		this.channel = channel;
 	}
 
 	/**
