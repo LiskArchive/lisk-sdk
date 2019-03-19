@@ -160,37 +160,83 @@ describe('components: system', () => {
 	});
 
 	describe('protocolVersionCompatible', () => {
-		describe('when protocol version is exactly equal to system protocol version', () => {
-			it('should return true', async () =>
-				expect(systemComponent.protocolVersionCompatible('1.0')).to.be.true);
-		});
-		describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', () => {
-			it("should return false if it's greater or lesser", async () =>
-				expect(systemComponent.protocolVersionCompatible('2.0')).to.be.false);
-			it("should return false if it's lesser", async () =>
-				expect(systemComponent.protocolVersionCompatible('0.0')).to.be.false);
-		});
-		describe('when the hard part of protocol is equal to  the one of the system protocol version', () => {
-			it('should return true', async () =>
-				expect(systemComponent.protocolVersionCompatible('1.5')).to.be.true);
-		});
-		describe('when the hard part of the protocol version is already compatible', () => {
-			beforeEach(done => {
-				systemComponent.headers.protocolVersion = '1.1'; // So we can test smaller values for the soft part
-				done();
-			});
-
-			afterEach(done => {
+		describe('when the hard fork part has one digit', () => {
+			beforeEach(async () => {
 				systemComponent.headers.protocolVersion = '1.0';
-				done();
 			});
 
-			it('should return true if the soft part is lesser, equal or greater than the soft part of the system protocol version', async () =>
-				['1.0', '1.1', '1.2'].forEach(
-					protocolVersion =>
-						expect(systemComponent.protocolVersionCompatible(protocolVersion))
-							.to.be.true
-				));
+			describe('when protocol version is exactly equal to system protocol version', () => {
+				it('should return true', async () =>
+					expect(systemComponent.protocolVersionCompatible('1.0')).to.be.true);
+			});
+			describe('when the hard part of the peer protocol is not exactly equal to the system protocol version', () => {
+				it("should return false if it's greater or lesser", async () =>
+					expect(systemComponent.protocolVersionCompatible('2.0')).to.be.false);
+				it("should return false if it's lesser", async () =>
+					expect(systemComponent.protocolVersionCompatible('0.0')).to.be.false);
+			});
+			describe('when the hard part of protocol is equal to  the one of the system protocol version', () => {
+				it('should return true', async () =>
+					expect(systemComponent.protocolVersionCompatible('1.5')).to.be.true);
+			});
+			describe('when the hard part of the protocol version is already compatible', () => {
+				beforeEach(done => {
+					systemComponent.headers.protocolVersion = '1.1'; // So we can test smaller values for the soft part
+					done();
+				});
+
+				afterEach(done => {
+					systemComponent.headers.protocolVersion = '1.0';
+					done();
+				});
+
+				it('should return true if the soft part is lesser, equal or greater than the soft part of the system protocol version', async () =>
+					['1.0', '1.1', '1.2'].forEach(
+						protocolVersion =>
+							expect(systemComponent.protocolVersionCompatible(protocolVersion))
+								.to.be.true
+					));
+			});
+		});
+
+		describe('when the hard fork part has more than one digit', () => {
+			beforeEach(async () => {
+				systemComponent.headers.protocolVersion = '10.0';
+			});
+
+			describe('when protocol version is exactly equal to system protocol version', () => {
+				it('should return true', async () =>
+					expect(systemComponent.protocolVersionCompatible('10.0')).to.be.true);
+			});
+			describe('when the hard part of the peer protocol is not exactly equal to the system protocol version', () => {
+				it("should return false if it's greater or lesser", async () =>
+					expect(systemComponent.protocolVersionCompatible('11.0')).to.be
+						.false);
+				it("should return false if it's lesser", async () =>
+					expect(systemComponent.protocolVersionCompatible('9.0')).to.be.false);
+			});
+			describe('when the hard part of protocol is equal to  the one of the system protocol version', () => {
+				it('should return true', async () =>
+					expect(systemComponent.protocolVersionCompatible('10.5')).to.be.true);
+			});
+			describe('when the hard part of the protocol version is already compatible', () => {
+				beforeEach(done => {
+					systemComponent.headers.protocolVersion = '10.1'; // So we can test smaller values for the soft part
+					done();
+				});
+
+				afterEach(done => {
+					systemComponent.headers.protocolVersion = '10.0';
+					done();
+				});
+
+				it('should return true if the soft part is lesser, equal or greater than the soft part of the system protocol version', async () =>
+					['10.0', '10.1', '10.2'].forEach(
+						protocolVersion =>
+							expect(systemComponent.protocolVersionCompatible(protocolVersion))
+								.to.be.true
+					));
+			});
 		});
 	});
 
