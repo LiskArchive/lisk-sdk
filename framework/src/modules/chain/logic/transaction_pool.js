@@ -139,6 +139,31 @@ class TransactionPool {
 		});
 	}
 
+	resetPool() {
+		const poolConfig = {
+			expireTransactionsInterval: this.expiryInterval,
+			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
+			receivedTransactionsLimitPerProcessing: this.bundleLimit,
+			receivedTransactionsProcessingInterval: this.bundledInterval,
+			validatedTransactionsLimitPerProcessing: this.bundleLimit,
+			validatedTransactionsProcessingInterval: this.bundledInterval,
+			verifiedTransactionsLimitPerProcessing: this.MAX_TRANSACTIONS_PER_BLOCK,
+			verifiedTransactionsProcessingInterval: this.bundledInterval,
+			pendingTransactionsProcessingLimit: this.MAX_TRANSACTIONS_PER_BLOCK,
+		};
+
+		const poolDependencies = {
+			validateTransactions: this.validateTransactions,
+			verifyTransactions: this.verifyTransactions,
+			processTransactions: this.processTransactions,
+		};
+
+		this.pool = new pool.TransactionPool({
+			...poolConfig,
+			...poolDependencies,
+		});
+	}
+
 	transactionInPool(id) {
 		return this.pool.existsInTransactionPool(id);
 	}
