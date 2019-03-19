@@ -24,7 +24,6 @@ const Peer = require('../logic/peer');
 const definitions = require('../schema/definitions');
 
 // Private fields
-let applicationState;
 let library;
 let self;
 const { MAX_PEERS } = global.constants;
@@ -67,6 +66,7 @@ class Peers {
 				peers: scope.config.peers,
 				version: scope.config.version,
 			},
+			channel: scope.channel,
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
@@ -511,13 +511,15 @@ Peers.prototype.getLastConsensus = function() {
  * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as application broadhash
  * @returns {number} Consensus or undefined if config.forging.force = true
  */
-Peers.prototype.calculateConsensus = function(active, matched) {
+Peers.prototype.calculateConsensus = async function(active, matched) {
 	active =
 		active ||
 		library.logic.peers
 			.list(true)
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	const { broadhash } = applicationState.getState();
+	const { broadhash } = await library.channel.invoke(
+		'lisk:getApplicationState'
+	);
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
@@ -676,8 +678,8 @@ Peers.prototype.discover = function(cb) {
  * @returns {peer[]} Filtered list of peers
  * @todo Add description for the params
  */
-Peers.prototype.acceptable = function(peers) {
-	const { nonce } = applicationState.getState();
+Peers.prototype.acceptable = async function(peers) {
+	const { nonce } = await library.channel.invoke('lisk:getApplicationState');
 	return _(peers)
 		.uniqWith(
 			(a, b) =>
@@ -708,9 +710,10 @@ Peers.prototype.acceptable = function(peers) {
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, peers
  */
-Peers.prototype.list = function(options, cb) {
+Peers.prototype.list = async function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const broadhash = options.broadhash || applicationState.getState().broadhash;
+	const state = await library.channel.invoke('lisk:getApplicationState');
+	const broadhash = options.broadhash || state.broadhash;
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
 		options.attempt === 0 || options.attempt === 1 ? [options.attempt] : [1, 0];
@@ -813,16 +816,6 @@ Peers.prototype.networkHeight = function(options, cb) {
 };
 
 // Events
-/**
- * It assigns applicationState from scope.
- *
- * @param {applicationState} scope
- * @todo Add description for the params
- */
-Peers.prototype.onBind = function(scope) {
-	applicationState = scope.applicationState;
-};
-
 /**
  * Triggers onPeersReady after:
  * - Ping to every member of peers list.
@@ -929,9 +922,10 @@ Peers.prototype.onPeersReady = function() {
 	}
 
 	function calculateConsensus(cb) {
-		self.calculateConsensus();
-		library.logger.debug(`Broadhash consensus: ${self.getLastConsensus()} %`);
-		return setImmediate(cb);
+		return self.calculateConsensus().then(consensus => {
+			library.logger.debug(`Broadhash consensus: ${consensus} %`);
+			return setImmediate(cb);
+		});
 	}
 	// Loop in 30 sec intervals for less new insertion after removal
 	jobsQueue.register(
@@ -955,15 +949,6 @@ Peers.prototype.onPeersReady = function() {
 Peers.prototype.cleanup = function(cb) {
 	// Save peers on exit
 	__private.dbSave(() => setImmediate(cb));
-};
-
-/**
- * Checks if `applicationState` is loaded.
- *
- * @returns {boolean} True if `applicationState` is loaded
- */
-Peers.prototype.isLoaded = function() {
-	return !!applicationState;
 };
 
 /**
