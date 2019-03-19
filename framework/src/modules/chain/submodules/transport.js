@@ -291,7 +291,7 @@ Transport.prototype.poorConsensus = function() {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS;
+	return modules.peers.getLastConsensus() < MIN_BROADHASH_CONSENSUS;
 };
 
 // Events
