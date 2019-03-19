@@ -127,7 +127,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
-	private readonly _peerHandshakeChecks: P2PCheckPeerCompatibility;
+	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -232,8 +232,8 @@ export class P2P extends EventEmitter {
 			? config.discoveryInterval
 			: DEFAULT_DISCOVERY_INTERVAL;
 
-		this._peerHandshakeChecks = config.peerhandShakeChecks
-			? config.peerhandShakeChecks
+		this._peerHandshakeCheck = config.peerHandshakeCheck
+			? config.peerHandshakeCheck
 			: checkPeerCompatibility;
 	}
 
@@ -350,7 +350,7 @@ export class P2P extends EventEmitter {
 					version: queryObject.version,
 				};
 
-				const { success, errors } = this._peerHandshakeChecks(
+				const { success, errors } = this._peerHandshakeCheck(
 					incomingPeerInfo,
 					this._nodeInfo,
 				);

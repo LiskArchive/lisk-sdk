@@ -78,7 +78,7 @@ export interface P2PConfig {
 	readonly discoveryInterval?: number;
 	readonly peerSelectionForSendRequest?: P2PPeerSelectionForSendRequest;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
-	readonly peerhandShakeChecks?: P2PCheckPeerCompatibility;
+	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
 }
 
 // Network info exposed by the P2P library.
