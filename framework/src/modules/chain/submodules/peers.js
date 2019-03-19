@@ -17,6 +17,7 @@
 const _ = require('lodash');
 const async = require('async');
 const ip = require('ip');
+const semver = require('semver');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const jobsQueue = require('../helpers/jobs_queue');
 const Peer = require('../logic/peer');
@@ -41,6 +42,7 @@ const peerDiscoveryFrequency = 30000;
  * @requires lodash
  * @requires ip
  * @requires pg-promise
+ * @requires semver
  * @requires api/ws/rpc/failure_codes
  * @requires helpers/jobs_queue
  * @requires logic/peer
@@ -274,7 +276,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 		let compatible = false;
 		// Check needed for compatibility with older nodes
 		if (!status.protocolVersion) {
-			if (!applicationState.versionCompatible(status.version)) {
+			if (!__private.versionCompatible(status.version)) {
 				library.logger.debug(
 					`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
 						peer.string
@@ -283,9 +285,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 			} else {
 				compatible = true;
 			}
-		} else if (
-			!applicationState.protocolVersionCompatible(status.protocolVersion)
-		) {
+		} else if (!__private.protocolVersionCompatible(status.protocolVersion)) {
 			library.logger.debug(
 				`Peers->updatePeerStatus Incompatible protocol version, rejecting peer: ${
 					peer.string
@@ -464,6 +464,35 @@ __private.dbSave = function(cb) {
 			});
 			return setImmediate(cb);
 		});
+};
+
+/**
+ * Checks version compatibility from input param against private values.
+ *
+ * @param {string} version
+ * @returns {boolean}
+ */
+__private.versionCompatible = function(version) {
+	if (!version) {
+		return false;
+	}
+	return semver.gte(version, this.state.minVersion);
+};
+
+/**
+ * Checks protocol version compatibility from input param against
+ * private values.
+ *
+ * @param protocolVersion
+ * @returns {boolean}
+ */
+__private.protocolVersionCompatible = function(protocolVersion) {
+	if (!protocolVersion) {
+		return false;
+	}
+	const peerHard = parseInt(protocolVersion[0]);
+	const myHard = parseInt(this.state.protocolVersion[0]);
+	return myHard === peerHard && peerHard >= 1;
 };
 
 /**

@@ -49,63 +49,6 @@ describe('components: system', () => {
 		applicationState = new ApplicationState(dummyConfig, loggerStub);
 	});
 
-	describe('versionCompatible', () => {
-		describe('when there is no version', () => {
-			it('should return false', async () =>
-				expect(applicationState.versionCompatible()).to.be.false);
-		});
-		describe('when version is null', () => {
-			it('should return false', async () =>
-				expect(applicationState.versionCompatible(null)).to.be.false);
-		});
-		describe('when version is undefined', () => {
-			it('should return false', async () =>
-				expect(applicationState.versionCompatible(undefined)).to.be.false);
-		});
-		describe('when version is empty string', () => {
-			it('should return false', async () =>
-				expect(applicationState.versionCompatible('')).to.be.false);
-		});
-		describe('when version is equal to system version', () => {
-			it('should return true', async () =>
-				expect(applicationState.versionCompatible('1.0.0-beta.0')).to.be.true);
-		});
-		describe('when version is greather than system version', () => {
-			it('should return true', async () =>
-				expect(applicationState.versionCompatible('1.0.0-rc.0')).to.be.true);
-		});
-		describe('when version is less than system version', () => {
-			it('should return false', async () =>
-				expect(applicationState.versionCompatible('1.0.0-alpha.10')).to.be
-					.false);
-		});
-	});
-
-	describe('protocolVersionCompatible', () => {
-		describe('when protocol version is exactly equal to system protocol version', () => {
-			it('should return true', async () =>
-				expect(applicationState.protocolVersionCompatible('1.0')).to.be.true);
-		});
-		describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', () => {
-			it("should return false if it's greater or lesser", async () =>
-				expect(applicationState.protocolVersionCompatible('2.0')).to.be.false);
-			it("should return false if it's lesser", async () =>
-				expect(applicationState.protocolVersionCompatible('0.0')).to.be.false);
-		});
-		describe('when the hard part of protocol is equal to  the one of the system protocol version', () => {
-			it('should return true', async () =>
-				expect(applicationState.protocolVersionCompatible('1.5')).to.be.true);
-		});
-		describe('when the hard part of the protocol version is already compatible', () => {
-			it('should return true if the soft part is lesser, equal or greater than the soft part of the system protocol version', async () =>
-				['1.0', '1.1', '1.2'].forEach(
-					protocolVersion =>
-						expect(applicationState.protocolVersionCompatible(protocolVersion))
-							.to.be.true
-				));
-		});
-	});
-
 	describe('update', () => {
 		describe('when bad argument blocks is passed', () => {
 			it('should throw TypeError', async () => {

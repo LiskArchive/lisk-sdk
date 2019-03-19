@@ -17,7 +17,6 @@
 
 const os = require('os');
 const crypto = require('crypto');
-const semver = require('semver');
 const _ = require('lodash');
 
 /**
@@ -36,7 +35,6 @@ const _ = require('lodash');
  * @class
  * @requires crypto
  * @requires os
- * @requires semver
  * @param {Object} initialState - Initial state of the application
  * @param {Object} logger
  */
@@ -64,35 +62,6 @@ class ApplicationState {
 
 	setChannel(channel) {
 		this.channel = channel;
-	}
-
-	/**
-	 * Checks version compatibility from input param against private values.
-	 *
-	 * @param {string} version
-	 * @returns {boolean}
-	 */
-	versionCompatible(version) {
-		if (!version) {
-			return false;
-		}
-		return semver.gte(version, this.state.minVersion);
-	}
-
-	/**
-	 * Checks protocol version compatibility from input param against
-	 * private values.
-	 *
-	 * @param protocolVersion
-	 * @returns {boolean}
-	 */
-	protocolVersionCompatible(protocolVersion) {
-		if (!protocolVersion) {
-			return false;
-		}
-		const peerHard = parseInt(protocolVersion[0]);
-		const myHard = parseInt(this.state.protocolVersion[0]);
-		return myHard === peerHard && peerHard >= 1;
 	}
 
 	/**
