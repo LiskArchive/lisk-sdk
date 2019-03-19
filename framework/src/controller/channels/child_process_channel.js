@@ -51,8 +51,8 @@ class ChildProcessChannel extends BaseChannel {
 		this.rpcSocket.bind(this.rpcSocketPath);
 
 		return Promise.race([
-			this._resolveWhenAllSucceed(),
-			this._rejectWhenFirstFails(),
+			this._resolveWhenAllSocketsBound(),
+			this._rejectWhenAnySocketFailsToBind(),
 			// Timeout is needed here in case "bind" or "connect" events never arrive
 			this._rejectWhenTimeout(2000), // TODO: Get value from config constant
 		]);
@@ -137,7 +137,7 @@ class ChildProcessChannel extends BaseChannel {
 	 * @returns {Promise}
 	 * @private
 	 */
-	async _resolveWhenAllSucceed() {
+	async _resolveWhenAllSocketsBound() {
 		return Promise.all([
 			new Promise(resolve => {
 				/*
@@ -184,7 +184,7 @@ class ChildProcessChannel extends BaseChannel {
 	 * @returns {Promise}
 	 * @private
 	 */
-	async _rejectWhenFirstFails() {
+	async _rejectWhenAnySocketFailsToBind() {
 		return Promise.race([
 			new Promise((_, reject) => {
 				this.pubSocket.sock.once('error', () => {

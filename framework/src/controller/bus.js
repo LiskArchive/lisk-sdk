@@ -64,8 +64,8 @@ class Bus extends EventEmitter2 {
 		});
 
 		return Promise.race([
-			this._resolveWhenAllSucceed(),
-			this._rejectWhenFirstFails(),
+			this._resolveWhenAllSocketsBound(),
+			this._rejectWhenAnySocketFailsToBind(),
 			// Timeout is needed here in case "bind" events never arrive
 			this._rejectWhenTimeout(2000), // TODO: Get value from config constant
 		]);
@@ -229,7 +229,7 @@ class Bus extends EventEmitter2 {
 	 * @returns {Promise}
 	 * @private
 	 */
-	async _resolveWhenAllSucceed() {
+	async _resolveWhenAllSocketsBound() {
 		return Promise.all([
 			new Promise(resolve => {
 				/*
@@ -261,7 +261,7 @@ class Bus extends EventEmitter2 {
 	 * @returns {Promise}
 	 * @private
 	 */
-	async _rejectWhenFirstFails() {
+	async _rejectWhenAnySocketFailsToBind() {
 		return Promise.race([
 			new Promise((_, reject) => {
 				this.subSocket.sock.once('error', () => {
