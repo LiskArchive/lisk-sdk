@@ -193,7 +193,6 @@ InTransfer.prototype.applyConfirmed = function(
 				{
 					address: res.authorId,
 					balance: transaction.amount,
-					u_balance: transaction.amount,
 					round: slots.calcRound(block.height),
 				},
 				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
@@ -233,7 +232,6 @@ InTransfer.prototype.undoConfirmed = function(
 				{
 					address: res.authorId,
 					balance: -transaction.amount,
-					u_balance: -transaction.amount,
 					round: slots.calcRound(block.height),
 				},
 				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),

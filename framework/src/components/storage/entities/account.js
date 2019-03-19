@@ -46,13 +46,6 @@ const sqlFiles = {
  * @property {string} fees
  * @property {string} rewards
  * @property {string} vote
- * @property {string} u_username
- * @property {Boolean} u_isDelegate
- * @property {Boolean} u_secondSignature
- * @property {Boolean} u_nameExist
- * @property {number} u_multiMin
- * @property {number} u_multiLifetime
- * @property {string} u_balance
  * @property {number} productivity
  */
 
@@ -60,9 +53,7 @@ const sqlFiles = {
  * Extended Account
  * @typedef {BasicAccount} ExtendedAccount
  * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
- * @property {Array.<string>} u_membersPublicKeys - Public keys of all members including unconfirmed if its a multi-signature account
  * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
- * @property {Array.<string>} u_votedDelegatesPublicKeys - Public keys of all delegates including unconfirmed for which this account voted for
  */
 
 /**
@@ -192,15 +183,8 @@ class Account extends BaseEntity {
 			stringToByte
 		);
 		this.addField('username', 'string', { filter: ft.TEXT });
-		this.addField('u_username', 'string', { filter: ft.TEXT });
 		this.addField(
 			'isDelegate',
-			'boolean',
-			{ filter: ft.BOOLEAN },
-			booleanToInt
-		);
-		this.addField(
-			'u_isDelegate',
 			'boolean',
 			{ filter: ft.BOOLEAN },
 			booleanToInt
@@ -211,27 +195,14 @@ class Account extends BaseEntity {
 			{ filter: ft.BOOLEAN },
 			booleanToInt
 		);
-		this.addField(
-			'u_secondSignature',
-			'boolean',
-			{ filter: ft.BOOLEAN },
-			booleanToInt
-		);
 		this.addField('balance', 'string', { filter: ft.NUMBER });
-		this.addField('u_balance', 'string');
 		this.addField('multiMin', 'number', {
 			filter: ft.NUMBER,
 			fieldName: 'multimin',
 		});
-		this.addField('u_multiMin', 'number', {
-			fieldName: 'u_multimin',
-		});
 		this.addField('multiLifetime', 'number', {
 			filter: ft.NUMBER,
 			fieldName: 'multilifetime',
-		});
-		this.addField('u_multiLifetime', 'number', {
-			fieldName: 'u_multilifetime',
 		});
 		this.addField(
 			'nameExist',
@@ -239,14 +210,6 @@ class Account extends BaseEntity {
 			{
 				filter: ft.BOOLEAN,
 				fieldName: 'nameexist',
-			},
-			booleanToInt
-		);
-		this.addField(
-			'u_nameExist',
-			'boolean',
-			{
-				fieldName: 'u_nameexist',
 			},
 			booleanToInt
 		);
@@ -261,19 +224,10 @@ class Account extends BaseEntity {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
 		});
-		this.addFilter('u_votedDelegatesPublicKeys_in', ft.CUSTOM, {
-			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_delegates WHERE "dependentId" IN (${u_votedDelegatesPublicKeys_in:csv}))',
-		});
 		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${membersPublicKeys_in:csv}))',
 		});
-		this.addFilter('u_membersPublicKeys_in', ft.CUSTOM, {
-			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2u_multisignatures WHERE "dependentId" IN (${u_membersPublicKeys_in:csv}))',
-		});
-
 		const defaultSort = { sort: 'balance:asc' };
 		this.extendDefaultOptions(defaultSort);
 

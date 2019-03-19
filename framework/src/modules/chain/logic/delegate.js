@@ -185,8 +185,8 @@ Delegate.prototype.getBytes = function(transaction) {
  * Calls cb with error when account already exists.
  *
  * @param {transaction} transaction
- * @param {string} username - Key to check transaction with (username / u_username)
- * @param {string} isDelegate - Key to check transaction with (isDelegate / u_isDelegate)
+ * @param {string} username - Key to check transaction with (username)
+ * @param {string} isDelegate - Key to check transaction with (isDelegate)
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */

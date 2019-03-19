@@ -122,9 +122,7 @@ class Account {
 	 * Deletes the contents of these tables:
 	 * - mem_round
 	 * - mem_accounts2delegates
-	 * - mem_accounts2u_delegates
 	 * - mem_accounts2multisignatures
-	 * - mem_accounts2u_multisignatures
 	 * - rounds_rewards
 	 *
 	 * @param {function} cb - Callback function
@@ -415,7 +413,7 @@ class Account {
 						);
 						break;
 
-					// [u_]balance, [u_]multimin, [u_]multilifetime, fees, rewards, votes, producedBlocks, missedBlocks
+					// fees, rewards, votes, producedBlocks, missedBlocks
 					// eslint-disable-next-line no-case-declarations
 					case Number:
 						if (value.isNaN() || !value.isFinite()) {
@@ -457,8 +455,6 @@ class Account {
 						}
 
 						break;
-
-					// [u_]delegates, [u_]multisignatures
 					case Array:
 						// If we received update as array of strings
 						if (_.isString(updatedValue[0])) {
@@ -546,27 +542,18 @@ class Account {
  * @typedef {Object} account
  * @property {string} username - Lowercase, between 1 and 20 chars
  * @property {boolean} isDelegate
- * @property {boolean} u_isDelegate
  * @property {boolean} secondSignature
- * @property {boolean} u_secondSignature
- * @property {string} u_username
  * @property {address} address - Uppercase, between 1 and 22 chars
  * @property {publicKey} publicKey
  * @property {publicKey} secondPublicKey
  * @property {number} balance - Between 0 and totalAmount from constants
- * @property {number} u_balance - Between 0 and totalAmount from constants
  * @property {number} vote
  * @property {number} rank
  * @property {String[]} delegates - From mem_account2delegates table, filtered by address
- * @property {String[]} u_delegates - From mem_account2u_delegates table, filtered by address
  * @property {String[]} multisignatures - From mem_account2multisignatures table, filtered by address
- * @property {String[]} u_multisignatures - From mem_account2u_multisignatures table, filtered by address
  * @property {number} multimin - Between 0 and 17
- * @property {number} u_multimin - Between 0 and 17
  * @property {number} multilifetime - Between 1 and 72
- * @property {number} u_multilifetime - Between 1 and 72
  * @property {boolean} nameexist
- * @property {boolean} u_nameexist
  * @property {number} producedBlocks
  * @property {number} missedBlocks
  * @property {number} fees
@@ -588,25 +575,9 @@ Account.prototype.model = [
 		conv: Boolean,
 	},
 	{
-		name: 'u_isDelegate',
-		type: 'SmallInt',
-		conv: Boolean,
-	},
-	{
 		name: 'secondSignature',
 		type: 'SmallInt',
 		conv: Boolean,
-	},
-	{
-		name: 'u_secondSignature',
-		type: 'SmallInt',
-		conv: Boolean,
-	},
-	{
-		name: 'u_username',
-		type: 'String',
-		conv: String,
-		immutable: true,
 	},
 	{
 		name: 'address',
@@ -632,11 +603,6 @@ Account.prototype.model = [
 		conv: Number,
 	},
 	{
-		name: 'u_balance',
-		type: 'BigInt',
-		conv: Number,
-	},
-	{
 		name: 'rank',
 		type: 'BigInt',
 		conv: String,
@@ -647,17 +613,7 @@ Account.prototype.model = [
 		conv: Array,
 	},
 	{
-		name: 'u_votedDelegatesPublicKeys',
-		type: 'Text',
-		conv: Array,
-	},
-	{
 		name: 'membersPublicKeys',
-		type: 'Text',
-		conv: Array,
-	},
-	{
-		name: 'u_membersPublicKeys',
 		type: 'Text',
 		conv: Array,
 	},
@@ -667,27 +623,12 @@ Account.prototype.model = [
 		conv: Number,
 	},
 	{
-		name: 'u_multiMin',
-		type: 'SmallInt',
-		conv: Number,
-	},
-	{
 		name: 'multiLifetime',
 		type: 'SmallInt',
 		conv: Number,
 	},
 	{
-		name: 'u_multiLifetime',
-		type: 'SmallInt',
-		conv: Number,
-	},
-	{
 		name: 'nameExist',
-		type: 'SmallInt',
-		conv: Boolean,
-	},
-	{
-		name: 'u_nameExist',
 		type: 'SmallInt',
 		conv: Boolean,
 	},
@@ -743,28 +684,9 @@ Account.prototype.schema = {
 			type: 'integer',
 			maximum: 32767,
 		},
-		u_isDelegate: {
-			type: 'integer',
-			maximum: 32767,
-		},
 		secondSignature: {
 			type: 'integer',
 			maximum: 32767,
-		},
-		u_secondSignature: {
-			type: 'integer',
-			maximum: 32767,
-		},
-		u_username: {
-			anyOf: [
-				{
-					type: 'string',
-					format: 'username',
-				},
-				{
-					type: 'null',
-				},
-			],
 		},
 		address: {
 			type: 'string',
@@ -791,22 +713,7 @@ Account.prototype.schema = {
 			type: 'object',
 			format: 'amount',
 		},
-		u_balance: {
-			type: 'object',
-			format: 'amount',
-		},
 		delegates: {
-			anyOf: [
-				{
-					type: 'array',
-					uniqueItems: true,
-				},
-				{
-					type: 'null',
-				},
-			],
-		},
-		u_delegates: {
 			anyOf: [
 				{
 					type: 'array',
@@ -829,24 +736,7 @@ Account.prototype.schema = {
 				},
 			],
 		},
-		u_membersPublicKeys: {
-			anyOf: [
-				{
-					type: 'array',
-					minItems: MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS,
-					maxItems: MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS,
-				},
-				{
-					type: 'null',
-				},
-			],
-		},
 		multiMin: {
-			type: 'integer',
-			minimum: 0,
-			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
-		},
-		u_multiMin: {
 			type: 'integer',
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
@@ -856,16 +746,7 @@ Account.prototype.schema = {
 			minimum: 0,
 			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
-		u_multiLifetime: {
-			type: 'integer',
-			minimum: 0,
-			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
-		},
 		nameExist: {
-			type: 'integer',
-			maximum: 32767,
-		},
-		u_nameExist: {
 			type: 'integer',
 			maximum: 32767,
 		},
@@ -896,7 +777,7 @@ Account.prototype.schema = {
 			type: 'integer',
 		},
 	},
-	required: ['address', 'balance', 'u_balance'],
+	required: ['address', 'balance'],
 };
 
 // Export

@@ -234,7 +234,6 @@ OutTransfer.prototype.applyConfirmed = function(
 				{
 					address: transaction.recipientId,
 					balance: transaction.amount,
-					u_balance: transaction.amount,
 					round: slots.calcRound(block.height),
 				},
 				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
@@ -278,7 +277,6 @@ OutTransfer.prototype.undoConfirmed = function(
 				{
 					address: transaction.recipientId,
 					balance: -transaction.amount,
-					u_balance: -transaction.amount,
 					round: slots.calcRound(block.height),
 				},
 				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
