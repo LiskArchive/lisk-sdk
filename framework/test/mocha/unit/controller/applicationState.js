@@ -16,7 +16,7 @@
 
 const crypto = require('crypto');
 
-const ApplicationState = require('../../../../src/controller/applicationState');
+const ApplicationState = require('../../../../src/controller/application_state');
 
 describe('components: system', () => {
 	let applicationState;

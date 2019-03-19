@@ -24,7 +24,7 @@ const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Transaction = require('../../../src/modules/chain/logic/transaction');
 const Account = require('../../../src/modules/chain/logic/account');
-const ApplicationState = require('../../../src/controller/applicationState');
+const ApplicationState = require('../../../src/controller/application_state');
 
 const modulesLoader = new function() {
 	this.storage = null;

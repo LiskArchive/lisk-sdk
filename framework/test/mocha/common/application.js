@@ -25,7 +25,7 @@ const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
 const { ZSchema } = require('../../../src/controller/helpers/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
-const ApplicationState = require('../../../src/controller/applicationState');
+const ApplicationState = require('../../../src/controller/application_state');
 
 const promisifyParallel = util.promisify(async.parallel);
 let currentAppScope;

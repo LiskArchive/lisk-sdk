@@ -7,7 +7,7 @@ const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('./helpers/validator');
-const ApplicationState = require('./applicationState');
+const ApplicationState = require('./application_state');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
