@@ -114,24 +114,15 @@ export type P2PPeerSelectionForConnection = (
 	nodeInfo?: P2PNodeInfo,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
-export interface P2PPeerCheckCompatibility {
-	readonly networkCompatible?: P2PPeerNetworkCompatibility;
-	readonly protocolVersionCompatible?: P2PPeerProtocolVersionCompatibility;
-	readonly versionCompatible?: P2PPeerVersionCompatibility;
+export interface P2PCompatibilityCheckReturnType {
+	readonly success: boolean;
+	readonly errors?: string[];
 }
 
-export type P2PPeerNetworkCompatibility = (
+export type P2PCheckPeerCompatibility = (
 	headers: P2PInfoOptions,
 	nodeInfo: P2PNodeInfo,
-) => boolean;
-export type P2PPeerProtocolVersionCompatibility = (
-	headers: P2PInfoOptions,
-	nodeInfo: P2PNodeInfo,
-) => boolean;
-export type P2PPeerVersionCompatibility = (
-	headers: P2PInfoOptions,
-	nodeInfo: P2PNodeInfo,
-) => boolean;
+) => P2PCompatibilityCheckReturnType;
 
 // This is a representation of the inbound peer object according to the current protocol.
 // TODO later: Switch to LIP protocol format.

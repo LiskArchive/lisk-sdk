@@ -25,12 +25,8 @@ interface SCServerUpdated extends SCServer {
 import { constructPeerId, constructPeerIdFromPeerInfo } from './peer';
 
 import {
-	INCOMPATIBLE_NETWORK_CODE,
-	INCOMPATIBLE_NETWORK_REASON,
-	INCOMPATIBLE_PROTOCOL_VERSION_CODE,
-	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-	INCOMPATIBLE_VERSION_CODE,
-	INCOMPATIBLE_VERSION_REASON,
+	INCOMPATIBLE_PEER_CODE,
+	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
 	INVALID_CONNECTION_QUERY_REASON,
 	INVALID_CONNECTION_URL_CODE,
@@ -40,6 +36,7 @@ import {
 import { PeerInboundHandshakeError } from './errors';
 
 import {
+	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
@@ -47,9 +44,6 @@ import {
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
-	P2PPeerNetworkCompatibility,
-	P2PPeerProtocolVersionCompatibility,
-	P2PPeerVersionCompatibility,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -74,11 +68,7 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	PeerPool,
 } from './peer_pool';
-import {
-	checkNetworkCompatibility,
-	checkProtocolVersionCompatibility,
-	checkVersionCompatibility,
-} from './validation';
+import { checkPeerCompatibility } from './validation';
 
 export {
 	EVENT_CLOSE_OUTBOUND,
@@ -137,9 +127,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
-	private readonly _peerNetworkCompatibility: P2PPeerNetworkCompatibility;
-	private readonly _peerVersionCompatibility: P2PPeerVersionCompatibility;
-	private readonly _peerProtocolVersionCompatibility: P2PPeerProtocolVersionCompatibility;
+	private readonly _peerHandshakeChecks: P2PCheckPeerCompatibility;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -244,24 +232,9 @@ export class P2P extends EventEmitter {
 			? config.discoveryInterval
 			: DEFAULT_DISCOVERY_INTERVAL;
 
-		this._peerNetworkCompatibility = checkNetworkCompatibility;
-		this._peerVersionCompatibility = checkProtocolVersionCompatibility;
-		this._peerProtocolVersionCompatibility = checkVersionCompatibility;
-
-		if (config.peerhandShakeChecks) {
-			this._peerNetworkCompatibility = config.peerhandShakeChecks
-				.networkCompatible
-				? config.peerhandShakeChecks.networkCompatible
-				: checkNetworkCompatibility;
-			this._peerVersionCompatibility = config.peerhandShakeChecks
-				.protocolVersionCompatible
-				? config.peerhandShakeChecks.protocolVersionCompatible
-				: checkProtocolVersionCompatibility;
-			this._peerProtocolVersionCompatibility = config.peerhandShakeChecks
-				.versionCompatible
-				? config.peerhandShakeChecks.versionCompatible
-				: checkVersionCompatibility;
-		}
+		this._peerHandshakeChecks = config.peerhandShakeChecks
+			? config.peerhandShakeChecks
+			: checkPeerCompatibility;
 	}
 
 	public get config(): P2PConfig {
@@ -361,24 +334,6 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				if (queryObject.nethash !== this._nodeInfo.nethash) {
-					socket.disconnect(
-						INCOMPATIBLE_NETWORK_CODE,
-						INCOMPATIBLE_NETWORK_REASON,
-					);
-					this.emit(
-						EVENT_FAILED_TO_ADD_INBOUND_PEER,
-						new PeerInboundHandshakeError(
-							INCOMPATIBLE_NETWORK_REASON,
-							INCOMPATIBLE_NETWORK_CODE,
-							socket.remoteAddress,
-							socket.request.url,
-						),
-					);
-
-					return;
-				}
-
 				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 				const peerId = constructPeerId(socket.remoteAddress, wsPort);
 				const queryOptions =
@@ -386,74 +341,6 @@ export class P2P extends EventEmitter {
 						? JSON.parse(queryObject.options)
 						: undefined;
 
-				if (
-					!this._peerNetworkCompatibility(
-						{ ...queryObject, ...queryOptions },
-						this._nodeInfo,
-					)
-				) {
-					socket.disconnect(
-						INCOMPATIBLE_NETWORK_CODE,
-						INCOMPATIBLE_NETWORK_REASON,
-					);
-					this.emit(
-						EVENT_FAILED_TO_ADD_INBOUND_PEER,
-						new PeerInboundHandshakeError(
-							INCOMPATIBLE_NETWORK_REASON,
-							INCOMPATIBLE_NETWORK_CODE,
-							socket.remoteAddress,
-							socket.request.url,
-						),
-					);
-
-					return;
-				}
-
-				if (
-					!this._peerVersionCompatibility(
-						{ ...queryObject, ...queryOptions },
-						this._nodeInfo,
-					)
-				) {
-					socket.disconnect(
-						INCOMPATIBLE_VERSION_CODE,
-						INCOMPATIBLE_VERSION_REASON,
-					);
-					this.emit(
-						EVENT_FAILED_TO_ADD_INBOUND_PEER,
-						new PeerInboundHandshakeError(
-							INCOMPATIBLE_VERSION_REASON,
-							INCOMPATIBLE_VERSION_CODE,
-							socket.remoteAddress,
-							socket.request.url,
-						),
-					);
-
-					return;
-				}
-
-				if (
-					!this._peerProtocolVersionCompatibility(
-						{ ...queryObject, ...queryOptions },
-						this._nodeInfo,
-					)
-				) {
-					socket.disconnect(
-						INCOMPATIBLE_PROTOCOL_VERSION_CODE,
-						INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-					);
-					this.emit(
-						EVENT_FAILED_TO_ADD_INBOUND_PEER,
-						new PeerInboundHandshakeError(
-							INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-							INCOMPATIBLE_PROTOCOL_VERSION_CODE,
-							socket.remoteAddress,
-							socket.request.url,
-						),
-					);
-
-					return;
-				}
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
 					...queryOptions,
 					...queryObject,
@@ -462,6 +349,31 @@ export class P2P extends EventEmitter {
 					height: queryObject.height ? +queryObject.height : 0,
 					version: queryObject.version,
 				};
+
+				const { success, errors } = this._peerHandshakeChecks(
+					incomingPeerInfo,
+					this._nodeInfo,
+				);
+
+				if (!success) {
+					const incompatibilityReason =
+						errors && Array.isArray(errors)
+							? errors.join(',')
+							: INCOMPATIBLE_PEER_UNKNOWN_REASON;
+
+					socket.disconnect(INCOMPATIBLE_PEER_CODE, incompatibilityReason);
+					this.emit(
+						EVENT_FAILED_TO_ADD_INBOUND_PEER,
+						new PeerInboundHandshakeError(
+							incompatibilityReason,
+							INCOMPATIBLE_PEER_CODE,
+							socket.remoteAddress,
+							socket.request.url,
+						),
+					);
+
+					return;
+				}
 
 				const isNewPeer = this._peerPool.addInboundPeer(
 					peerId,

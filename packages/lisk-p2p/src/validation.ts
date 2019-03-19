@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { gte, valid as isValidVersion } from 'semver';
+import { valid as isValidVersion } from 'semver';
 import { isIP, isNumeric, isPort } from 'validator';
 import {
 	InvalidPeerError,
@@ -22,8 +22,12 @@ import {
 } from './errors';
 
 import {
+	INCOMPATIBLE_NETWORK_REASON,
+	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+} from './disconnect_status_codes';
+import {
+	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,
-	P2PInfoOptions,
 	P2PNodeInfo,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
@@ -141,37 +145,49 @@ export const validateProtocolMessage = (
 };
 
 export const checkNetworkCompatibility = (
-	headers: P2PInfoOptions,
+	peerInfo: P2PDiscoveredPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
-	if (!headers.nethash) {
+	if (!peerInfo.nethash) {
 		return false;
 	}
 
-	return headers.nethash === nodeInfo.nethash;
-};
-
-export const checkVersionCompatibility = (
-	headers: P2PInfoOptions,
-	nodeInfo: P2PNodeInfo,
-): boolean => {
-	if (!headers.version) {
-		return false;
-	}
-
-	return gte(headers.version as string, nodeInfo.minVersion as string);
+	return peerInfo.nethash === nodeInfo.nethash;
 };
 
 export const checkProtocolVersionCompatibility = (
-	headers: P2PInfoOptions,
+	peerInfo: P2PDiscoveredPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
-	if (!headers.protocolVersion) {
+	if (!peerInfo.protocolVersion) {
 		return false;
 	}
 
-	const peerHardForks = +(headers.protocolVersion as string).split('.')[0];
+	const peerHardForks = +(peerInfo.protocolVersion as string).split('.')[0];
 	const systemHardForks = +(nodeInfo.protocolVersion as string).split('.')[0];
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
+};
+
+export const checkPeerCompatibility = (
+	peerInfo: P2PDiscoveredPeerInfo,
+	nodeInfo: P2PNodeInfo,
+): P2PCompatibilityCheckReturnType => {
+	if (!checkNetworkCompatibility(peerInfo, nodeInfo)) {
+		return {
+			success: false,
+			errors: [INCOMPATIBLE_NETWORK_REASON],
+		};
+	}
+
+	if (!checkProtocolVersionCompatibility(peerInfo, nodeInfo)) {
+		return {
+			success: false,
+			errors: [INCOMPATIBLE_PROTOCOL_VERSION_REASON],
+		};
+	}
+
+	return {
+		success: true,
+	};
 };
