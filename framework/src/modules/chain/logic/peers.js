@@ -15,10 +15,10 @@
 'use strict';
 
 const _ = require('lodash');
-const failureCodes = require('../api/ws/rpc/failure_codes.js');
-const Peer = require('../logic/peer.js');
-const PeersManager = require('../helpers/peers_manager.js');
-const BanManager = require('../helpers/ban_manager.js');
+const failureCodes = require('../api/ws/rpc/failure_codes');
+const Peer = require('../logic/peer');
+const PeersManager = require('../api/ws/peers_manager');
+const BanManager = require('../api/ws/ban_manager');
 
 // Private fields
 let self;

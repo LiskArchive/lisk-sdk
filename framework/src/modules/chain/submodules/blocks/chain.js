@@ -18,12 +18,13 @@ const Promise = require('bluebird');
 const async = require('async');
 const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionTypes = require('../../helpers/transaction_types.js');
 const initTransaction = require('../../helpers/init_transaction.js');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../../framework/src/components/cache');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 let components;
 let modules;
@@ -39,7 +40,6 @@ const __private = {};
  * @see Parent: {@link modules.blocks}
  * @requires async
  * @requires bluebird
- * @requires helpers/transaction_types
  * @param {Object} logger
  * @param {Block} block
  * @param {Transaction} transaction
@@ -195,7 +195,7 @@ __private.afterSave = async function(block, cb) {
 		);
 		const delegateTransaction = block.transactions.find(
 			transaction =>
-				!!transaction && transaction.type === transactionTypes.DELEGATE
+				!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
 		);
 		if (delegateTransaction) {
 			try {
@@ -282,7 +282,7 @@ Chain.prototype.deleteFromBlockId = async function(blockId, cb) {
 Chain.prototype.applyGenesisBlock = function(block, cb) {
 	// Sort transactions included in block
 	block.transactions = block.transactions.sort(a => {
-		if (a.type === transactionTypes.VOTE) {
+		if (a.type === TRANSACTION_TYPES.VOTE) {
 			return 1;
 		}
 		return 0;

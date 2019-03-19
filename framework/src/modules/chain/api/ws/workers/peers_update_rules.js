@@ -17,7 +17,7 @@
 const Peer = require('../../../logic/peer');
 const failureCodes = require('../rpc/failure_codes');
 const PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
-const ZSchema = require('../../../helpers/z_schema');
+const { ZSchema } = require('../../../../../controller/helpers/validator');
 const definitions = require('../../../schema/definitions');
 const connectionsTable = require('./connections_table');
 const SlaveToMasterSender = require('./slave_to_master_sender');
@@ -37,7 +37,6 @@ let self;
  * @requires api/ws/workers/connectionsTable
  * @requires api/ws/workers/rules
  * @requires api/ws/workers/slaveToMaster
- * @requires helpers/z_schema
  * @requires logic/peer
  * @param {Object} slaveWAMPServer - Used to send verified update requests to master process
  */

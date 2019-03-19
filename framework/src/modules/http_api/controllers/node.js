@@ -135,14 +135,13 @@ NodeController.getStatus = async (context, next) => {
 		const transactions = await library.channel.invoke(
 			'chain:getAllTransactionsCount'
 		);
-
-		const slots = await library.channel.invoke('chain:getSlotsHelper');
+		const slotTime = await library.channel.invoke('chain:getSlotTime');
 
 		const data = {
 			broadhash: library.components.system.headers.broadhash,
 			consensus: consensus || 0,
 			currentTime: Date.now(),
-			secondsSinceEpoch: slots.getTime(),
+			secondsSinceEpoch: slotTime,
 			height,
 			loaded,
 			networkHeight: networkHeight || 0,

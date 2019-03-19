@@ -17,8 +17,9 @@
 const { createDapp } = require('@liskhq/lisk-transactions');
 const randomUtil = require('../../../common/utils/random');
 const Scenarios = require('../../../common/scenarios');
-const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
 const localCommon = require('../../common');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
 	let library;
@@ -66,7 +67,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	});
 
 	describe('adding to pool other transactions from same account', () => {
-		Object.keys(transactionTypes).forEach((key, index) => {
+		Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
 			if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 				return true;
 			}

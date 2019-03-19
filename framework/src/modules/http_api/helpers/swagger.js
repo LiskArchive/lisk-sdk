@@ -20,7 +20,7 @@ const jsonRefs = require('json-refs');
 const _ = require('lodash');
 const YAML = require('js-yaml');
 const SwayHelpers = require('sway/lib/helpers');
-const ZSchema = require('./z_schema');
+const { ZSchema } = require('../../../controller/helpers/validator');
 
 // Used as private member to cache the spec resolution process
 let resolvedSwaggerSpec = null;
@@ -36,7 +36,6 @@ let resolvedSwaggerSpec = null;
  * @requires lodash
  * @requires path
  * @requires sway/lib/helpers
- * @requires helpers/z_schema
  * @see Parent: {@link helpers}
  */
 

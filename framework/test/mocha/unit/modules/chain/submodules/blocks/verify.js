@@ -16,10 +16,10 @@
 
 const rewire = require('rewire');
 const transactionStatus = require('@liskhq/lisk-transactions').Status;
-const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
 
 const BlocksVerify = rewire(
-	'../../../../../../../src/modules/chain/submodules/blocks/verify.js'
+	'../../../../../../../src/modules/chain/submodules/blocks/verify'
 );
 
 const exceptions = global.exceptions;

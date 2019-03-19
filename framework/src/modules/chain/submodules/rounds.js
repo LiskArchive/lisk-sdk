@@ -20,17 +20,15 @@ const async = require('async');
 const {
 	CACHE_KEYS_DELEGATES,
 } = require('../../../../../framework/src/components/cache');
-const Round = require('../logic/round.js');
-const slots = require('../helpers/slots.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-const Diff = require('../helpers/diff.js');
+const Round = require('../logic/round');
+const slots = require('../helpers/slots');
 
 // Private fields
 let components;
 let modules;
 let library;
 let self;
-const { ACTIVE_DELEGATES } = global.constants;
+const { ACTIVE_DELEGATES, TRANSACTION_TYPES } = global.constants;
 const __private = {};
 
 __private.loaded = false;
@@ -93,7 +91,7 @@ __private.updateRecipientsRoundInformationWithAmountForTransactions = function(
 	// For IN_TRANSFER TRANSACTION, we first need to get the authorId to get the recipient
 	return Promise.all(
 		transactions
-			.filter(transaction => transaction.type === transactionTypes.IN_TRANSFER)
+			.filter(transaction => transaction.type === TRANSACTION_TYPES.IN_TRANSFER)
 			.map(transaction =>
 				// Check the owner of the dapp for recipient account
 				library.storage.entities.Transaction.getOne(
@@ -112,8 +110,8 @@ __private.updateRecipientsRoundInformationWithAmountForTransactions = function(
 		[
 			...transactions.filter(
 				transaction =>
-					transaction.type === transactionTypes.SEND ||
-					transaction.type === transactionTypes.OUT_TRANSFER
+					transaction.type === TRANSACTION_TYPES.SEND ||
+					transaction.type === TRANSACTION_TYPES.OUT_TRANSFER
 			),
 			...inTransferTransactionsWithRecipientId,
 		].map(transaction => {
@@ -137,12 +135,12 @@ __private.updateRoundInformationWithDelegatesForTransactions = function(
 ) {
 	return Promise.all(
 		transactions
-			.filter(transaction => transaction.type === transactionTypes.VOTE)
+			.filter(transaction => transaction.type === TRANSACTION_TYPES.VOTE)
 			.map(transaction =>
 				Promise.all(
 					(forwardTick
 						? transaction.asset.votes
-						: Diff.reverse(transaction.asset.votes)
+						: __private.reverse(transaction.asset.votes)
 					).map(vote => {
 						// Fetch first character
 						const mode = vote[0];
@@ -158,6 +156,15 @@ __private.updateRoundInformationWithDelegatesForTransactions = function(
 				)
 			)
 	);
+};
+// TODO: low priority, refactor out
+__private.reverse = function(diff) {
+	const copyDiff = diff.slice();
+	for (let i = 0; i < copyDiff.length; i++) {
+		const math = copyDiff[i][0] === '-' ? '+' : '-';
+		copyDiff[i] = math + copyDiff[i].slice(1);
+	}
+	return copyDiff;
 };
 
 __private.updateRoundInformationForTransactions = function(

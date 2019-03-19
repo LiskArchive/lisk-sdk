@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const Bignum = require('bignumber.js');
 const Promise = require('bluebird');
