@@ -18,6 +18,7 @@ endif
 DATE ?= date
 DOWNLOAD ?= wget --no-verbose
 GNUPG ?= gpg2
+INSTALL ?= install
 LN ?= ln
 
 .PHONY: all
@@ -109,17 +110,17 @@ src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/config.json: | src/lisk-$(LISK_
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/env.sh: | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image
 	( cat target/env.sh; echo "export LISK_NETWORK=$(LISK_NETWORK)" ) |tee $@
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/shared.sh: | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image
-	install --mode=0644 target/$(@F) $@
+	$(INSTALL) --mode=0644 target/$(@F) $@
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/%.sh: | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image
-	install --mode=0755 target/$(@F) $@
+	$(INSTALL) --mode=0755 target/$(@F) $@
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/etc/%: | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/etc
-	install --mode=0644 target/etc/$(@F) $@
+	$(INSTALL) --mode=0644 target/etc/$(@F) $@
 
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/node_modules: | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image
 	cd $(@D)/ && PATH="${PWD}/src/node-v$(NODEJS_VERSION)-$(NODEJS_ARCH)/bin:${PATH}" npm ci --production
 
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/bin/jq: src/jq | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/bin
-	install --mode=0755 --strip src/jq --target-directory=$(@D)
+	$(INSTALL) --mode=0755 --strip src/jq --target-directory=$(@D)
 
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/bin/lisk: | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/node_modules src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/bin
 	$(LN) --symbolic ../node_modules/lisk-commander/bin/run $@
@@ -131,7 +132,7 @@ src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/bin/pm2: | src/lisk-$(LISK_VERS
 	$(LN) --symbolic ../node_modules/pm2/bin/pm2 $@
 
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/bin/redis-%: src/redis-$(REDIS_VERSION)/src/redis-% | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/bin
-	install --mode=0755 --strip src/redis-$(REDIS_VERSION)/src/$(@F) --target-directory=$(@D)
+	$(INSTALL) --mode=0755 --strip src/redis-$(REDIS_VERSION)/src/$(@F) --target-directory=$(@D)
 
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/var/db/blockchain.db.gz: | src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/var/db
 	touch $@
