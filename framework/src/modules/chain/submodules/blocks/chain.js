@@ -25,7 +25,6 @@ const {
 
 const { TRANSACTION_TYPES } = global.constants;
 
-let applicationState;
 let components;
 let modules;
 let library;
@@ -57,7 +56,8 @@ class Chain {
 		storage,
 		genesisBlock,
 		bus,
-		balancesSequence
+		balancesSequence,
+		channel
 	) {
 		library = {
 			logger,
@@ -69,6 +69,7 @@ class Chain {
 				block,
 				transaction,
 			},
+			channel,
 		};
 		self = this;
 
@@ -843,10 +844,11 @@ Chain.prototype.deleteLastBlock = function(cb) {
 						sort: 'height:desc',
 					}
 				)
-					.then(blocks => {
+					.then(blocks =>
+						// Emit event updates
 						// Update our application state: broadhash and height
-						applicationState.update(blocks);
-					})
+						library.channel.invoke('lisk:updateApplicationState', blocks)
+					)
 					.then(() => seriesCb())
 					.catch(seriesCb);
 			},
@@ -894,13 +896,12 @@ Chain.prototype.recoverChain = function(cb) {
 };
 
 /**
- * It assigns applicationState, modules & components to private constants
+ * It assigns modules & components to private constants
  *
- * @param {applicationState, modules, components} scope - Exposed applicationState, modules & components
+ * @param {modules, components} scope - Exposed modules & components
  */
 Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
-	applicationState = scope.applicationState;
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 	};

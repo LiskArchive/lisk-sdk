@@ -95,7 +95,8 @@ class Blocks {
 				scope.components.storage,
 				scope.genesisBlock,
 				scope.bus,
-				scope.balancesSequence
+				scope.balancesSequence,
+				scope.channel
 			),
 		};
 

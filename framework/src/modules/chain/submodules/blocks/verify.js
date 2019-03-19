@@ -21,7 +21,6 @@ const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
 const Bignum = require('../../helpers/bignum');
 
-let applicationState;
 let modules;
 let library;
 let self;
@@ -843,7 +842,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				)
 					.then(blocks =>
 						// Update our application state: broadhash and height
-						applicationState.update(blocks)
+						library.channel.invoke('lisk:updateApplicationState', blocks)
 					)
 					.then(() => seriesCb())
 					.catch(seriesCb);
@@ -858,14 +857,12 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 };
 
 /**
- * It assigns applicationState & modules to private constants.
+ * It assigns modules to private constants.
  *
- * @param {applicationState, modules} scope - Exposed applicationState & modules
+ * @param {modules} scope - Exposed modules
  */
 Verify.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
-
-	applicationState = scope.applicationState;
 
 	modules = {
 		accounts: scope.modules.accounts,

@@ -21,7 +21,6 @@ const definitions = require('../schema/definitions');
 require('colors');
 
 // Private fields
-let applicationState;
 let components;
 let modules;
 let library;
@@ -949,10 +948,10 @@ __private.sync = function(cb) {
 						sort: 'height:desc',
 					}
 				)
-					.then(blocks => {
+					.then(blocks =>
 						// Update our application state: broadhash and height
-						applicationState.update(blocks);
-					})
+						library.channel.invoke('lisk:updateApplicationState', blocks)
+					)
 					.then(() => seriesCb())
 					.catch(seriesCb);
 			},
@@ -1150,15 +1149,13 @@ Loader.prototype.onPeersReady = function() {
 };
 
 /**
- * It assigns applicationState, components & modules from scope to private constants.
+ * It assigns components & modules from scope to private constants.
  *
- * @param {applicationState, components, modules} scope applicationState, modules & components
+ * @param {components, modules} scope modules & components
  * @returns {function} Calling __private.loadBlockChain
  * @todo Add description for the params
  */
 Loader.prototype.onBind = function(scope) {
-	applicationState = scope.applicationState;
-
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 	};
