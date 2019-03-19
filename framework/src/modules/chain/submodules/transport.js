@@ -31,7 +31,6 @@ const {
 	MAX_SHARED_TRANSACTIONS,
 } = global.constants;
 // Private fields
-let applicationState;
 let modules;
 let library;
 let self;
@@ -297,13 +296,11 @@ Transport.prototype.poorConsensus = function() {
 
 // Events
 /**
- * Bounds scope to private broadcaster amd initialize applicationState & modules.
+ * Bounds scope to private broadcaster amd initialize modules.
  *
- * @param {applicationState, modules} scope - Exposed applicationState & modules
+ * @param {modules} scope - Exposed modules
  */
 Transport.prototype.onBind = function(scope) {
-	applicationState = scope.applicationState;
-
 	modules = {
 		blocks: scope.modules.blocks,
 		dapps: scope.modules.dapps,
@@ -418,7 +415,7 @@ Transport.prototype.broadcastHeaders = cb => {
  * @param {boolean} broadcast - Signal flag for broadcast
  * @emits blocks/change
  */
-Transport.prototype.onBroadcastBlock = function(block, broadcast) {
+Transport.prototype.onBroadcastBlock = async function(block, broadcast) {
 	// Exit immediately when 'broadcast' flag is not set
 	if (!broadcast) return;
 
@@ -448,7 +445,9 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 		block.reward = block.reward.toNumber();
 	}
 
-	const { broadhash } = applicationState.getState();
+	const { broadhash } = await library.channel.invoke(
+		'lisk:getApplicationState'
+	);
 
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
@@ -472,13 +471,13 @@ Transport.prototype.cleanup = function(cb) {
 };
 
 /**
- * Returns true if applicationState and modules are loaded and private variable loaded is true.
+ * Returns true if modules are loaded and private variable loaded is true.
  *
  * @returns {boolean}
  * @todo Add description for the return value
  */
 Transport.prototype.isLoaded = function() {
-	return applicationState && modules && __private.loaded;
+	return modules && __private.loaded;
 };
 
 // Internal API
@@ -676,11 +675,12 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	height(req, cb) {
-		const { height } = applicationState.getState();
-		return setImmediate(cb, null, {
-			success: true,
-			height,
-		});
+		return library.channel.invoke('lisk:getApplicationState').then(state =>
+			setImmediate(cb, null, {
+				success: true,
+				height: state.height,
+			})
+		);
 	},
 
 	/**
@@ -691,17 +691,18 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	status(req, cb) {
-		const state = applicationState.getState();
-		return setImmediate(cb, null, {
-			success: true,
-			height: state.height,
-			broadhash: state.broadhash,
-			nonce: state.nonce,
-			httpPort: state.httpPort,
-			version: state.version,
-			protocolVersion: state.protocolVersion,
-			os: state.os,
-		});
+		return library.channel.invoke('lisk:getApplicationState').then(state =>
+			setImmediate(cb, null, {
+				success: true,
+				height: state.height,
+				broadhash: state.broadhash,
+				nonce: state.nonce,
+				httpPort: state.httpPort,
+				version: state.version,
+				protocolVersion: state.protocolVersion,
+				os: state.os,
+			})
+		);
 	},
 
 	/**
