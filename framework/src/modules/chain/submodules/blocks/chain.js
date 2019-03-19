@@ -626,7 +626,7 @@ Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
 __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 	return new Promise((resolve, reject) => {
 		// Load previous block from full_blocks_list table
-		// TODO: Can be inefficient, need performnce tests
+		// TODO: Can be inefficient, need performance tests
 		modules.blocks.utils.loadBlocksPart(
 			{ id: secondLastBlockId },
 			(err, blocks) => {
