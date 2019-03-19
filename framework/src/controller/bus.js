@@ -68,7 +68,9 @@ class Bus extends EventEmitter2 {
 			this._rejectWhenAnySocketFailsToBind(),
 			// Timeout is needed here in case "bind" events never arrive
 			this._rejectWhenTimeout(2000), // TODO: Get value from config constant
-		]);
+		]).finally(() => {
+			this._removeAllListeners();
+		});
 	}
 
 	/**
@@ -295,6 +297,15 @@ class Bus extends EventEmitter2 {
 				reject(new Error('Bus sockets setup timeout'));
 			}, timeInMillis);
 		});
+	}
+
+	_removeAllListeners() {
+		this.subSocket.sock.removeAllListeners('bind');
+		this.subSocket.sock.removeAllListeners('error');
+		this.pubSocket.sock.removeAllListeners('bind');
+		this.pubSocket.sock.removeAllListeners('error');
+		this.rpcSocket.removeAllListeners('bind');
+		this.rpcSocket.removeAllListeners('error');
 	}
 }
 

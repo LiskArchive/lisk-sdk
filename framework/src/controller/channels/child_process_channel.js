@@ -55,7 +55,9 @@ class ChildProcessChannel extends BaseChannel {
 			this._rejectWhenAnySocketFailsToBind(),
 			// Timeout is needed here in case "bind" or "connect" events never arrive
 			this._rejectWhenTimeout(2000), // TODO: Get value from config constant
-		]);
+		]).finally(() => {
+			this._removeAllListeners();
+		});
 	}
 
 	subscribe(eventName, cb) {
@@ -219,6 +221,17 @@ class ChildProcessChannel extends BaseChannel {
 				reject(new Error('ChildProcessChannel sockets setup timeout'));
 			}, timeInMillis);
 		});
+	}
+
+	_removeAllListeners() {
+		this.subSocket.sock.removeAllListeners('connect');
+		this.subSocket.sock.removeAllListeners('error');
+		this.pubSocket.sock.removeAllListeners('connect');
+		this.pubSocket.sock.removeAllListeners('error');
+		this.busRpcSocket.removeAllListeners('connect');
+		this.busRpcSocket.removeAllListeners('error');
+		this.rpcSocket.removeAllListeners('bind');
+		this.rpcSocket.removeAllListeners('error');
 	}
 }
 
