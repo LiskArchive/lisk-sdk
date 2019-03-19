@@ -49,7 +49,7 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, transaction, storage, config) {
+	constructor(logger, block, transaction, storage, config, channel) {
 		library = {
 			logger,
 			storage,
@@ -62,6 +62,7 @@ class Verify {
 					snapshotRound: config.loading.snapshotRound,
 				},
 			},
+			channel,
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
