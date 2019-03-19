@@ -78,6 +78,7 @@ export interface P2PConfig {
 	readonly discoveryInterval?: number;
 	readonly peerSelectionForSendRequest?: P2PPeerSelectionForSendRequest;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
+	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
 }
 
 // Network info exposed by the P2P library.
@@ -112,6 +113,16 @@ export type P2PPeerSelectionForConnection = (
 	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+export interface P2PCompatibilityCheckReturnType {
+	readonly success: boolean;
+	readonly errors?: string[];
+}
+
+export type P2PCheckPeerCompatibility = (
+	headers: P2PDiscoveredPeerInfo,
+	nodeInfo: P2PNodeInfo,
+) => P2PCompatibilityCheckReturnType;
 
 // This is a representation of the inbound peer object according to the current protocol.
 // TODO later: Switch to LIP protocol format.
