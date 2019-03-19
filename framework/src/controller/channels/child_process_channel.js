@@ -80,6 +80,7 @@ class ChildProcessChannel extends BaseChannel {
 		} else {
 			// TODO: make it `once` instead of `on`
 			this.subSocket.on(eventName, data => {
+				this.subSocket.off(eventName);
 				cb(data);
 			});
 		}
