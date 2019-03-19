@@ -833,19 +833,22 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'true' if block comes from generation or receiving process
 			// 'false' if block comes from chain synchronization process
 			updateApplicationState(seriesCb) {
-				return library.storage.entities.Block.get(
-					{},
-					{
-						limit: 5,
-						sort: 'height:desc',
-					}
-				)
-					.then(blocks =>
-						// Update our application state: broadhash and height
-						library.channel.invoke('lisk:updateApplicationState', blocks)
+				if (!library.config.loading.snapshotRound) {
+					return library.storage.entities.Block.get(
+						{},
+						{
+							limit: 5,
+							sort: 'height:desc',
+						}
 					)
-					.then(() => seriesCb())
-					.catch(seriesCb);
+						.then(blocks =>
+							// Update our application state: broadhash and height
+							library.channel.invoke('lisk:updateApplicationState', blocks)
+						)
+						.then(() => seriesCb())
+						.catch(seriesCb);
+				}
+				return seriesCb();
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers

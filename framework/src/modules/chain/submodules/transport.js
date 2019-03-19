@@ -291,7 +291,7 @@ Transport.prototype.poorConsensus = function() {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return modules.peers.getLastConsensus() < MIN_BROADHASH_CONSENSUS;
+	return modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS;
 };
 
 // Events
@@ -415,7 +415,7 @@ Transport.prototype.broadcastHeaders = cb => {
  * @param {boolean} broadcast - Signal flag for broadcast
  * @emits blocks/change
  */
-Transport.prototype.onBroadcastBlock = async function(block, broadcast) {
+Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	// Exit immediately when 'broadcast' flag is not set
 	if (!broadcast) return;
 
@@ -445,9 +445,7 @@ Transport.prototype.onBroadcastBlock = async function(block, broadcast) {
 		block.reward = block.reward.toNumber();
 	}
 
-	const { broadhash } = await library.channel.invoke(
-		'lisk:getApplicationState'
-	);
+	const { broadhash } = library.channel.invoke('lisk:getApplicationState');
 
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
@@ -675,12 +673,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	height(req, cb) {
-		return library.channel.invoke('lisk:getApplicationState').then(state =>
-			setImmediate(cb, null, {
-				success: true,
-				height: state.height,
-			})
-		);
+		const { height } = library.channel.invoke('lisk:getApplicationState');
+		return setImmediate(cb, null, {
+			success: true,
+			height,
+		});
 	},
 
 	/**
@@ -691,18 +688,25 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	status(req, cb) {
-		return library.channel.invoke('lisk:getApplicationState').then(state =>
-			setImmediate(cb, null, {
-				success: true,
-				height: state.height,
-				broadhash: state.broadhash,
-				nonce: state.nonce,
-				httpPort: state.httpPort,
-				version: state.version,
-				protocolVersion: state.protocolVersion,
-				os: state.os,
-			})
-		);
+		const {
+			height,
+			broadhash,
+			nonce,
+			httpPort,
+			version,
+			protocolVersion,
+			os,
+		} = library.channel.invoke('lisk:getApplicationState');
+		return setImmediate(cb, null, {
+			success: true,
+			height,
+			broadhash,
+			nonce,
+			httpPort,
+			version,
+			protocolVersion,
+			os,
+		});
 	},
 
 	/**
