@@ -20,6 +20,7 @@ const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionTypes = require('../../helpers/transaction_types.js');
 const initTransaction = require('../../helpers/init_transaction.js');
+const slots = require('../../helpers/slots.js');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -316,10 +317,15 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 __private.applyTransactions = function(transactions, cb) {
 	modules.processTransactions
 		.applyTransactions(transactions)
-		.then(({ stateStore }) =>
+		.then(({ stateStore }) => {
 			// TODO: Need to add logic for handling exceptions for genesis block transactions
-			stateStore.account.finalize()
-		)
+			stateStore.account.finalize();
+			return stateStore;
+		})
+		.then(stateStore => {
+			stateStore.round.setRoundForData(slots.calcRound(1));
+			return stateStore.round.finalize();
+		})
 		.then(() => cb())
 		.catch(cb);
 };
@@ -354,6 +360,8 @@ __private.applyConfirmedStep = async function(block, tx) {
 	}
 
 	await stateStore.account.finalize();
+	stateStore.round.setRoundForData(slots.calcRound(block.height));
+	await stateStore.round.finalize();
 };
 
 /**
@@ -520,6 +528,8 @@ __private.undoConfirmedStep = async function(block, tx) {
 	}
 
 	await stateStore.account.finalize();
+	stateStore.round.setRoundForData(slots.calcRound(block.height));
+	await stateStore.round.finalize();
 };
 
 /**
