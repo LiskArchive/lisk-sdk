@@ -25,12 +25,12 @@ const disconnect = require('./rpc/disconnect');
  * @see Parent: {@link helpers}
  * @todo Add description for the class
  */
-function PeersManager(logger, applicationState) {
+function PeersManager(logger, channel) {
 	this.peers = {};
 	this.addressToNonceMap = {};
 	this.nonceToAddressMap = {};
 	this.logger = logger;
-	this.applicationState = applicationState;
+	this.channel = channel;
 }
 
 /**
@@ -40,7 +40,7 @@ function PeersManager(logger, applicationState) {
  * @todo Add description for the params
  * @todo Add @returns tag
  */
-PeersManager.prototype.add = function(peer) {
+PeersManager.prototype.add = async function(peer) {
 	// 1. do not add peers without address
 	// 2. prevent changing address by the peer with same nonce
 	if (
@@ -64,7 +64,7 @@ PeersManager.prototype.add = function(peer) {
 		// If it's already open then peer.socket.connect() will do nothing.
 		peer.socket.connect();
 	} else {
-		const state = this.applicationState.getState();
+		const state = await this.channel.invoke('lisk:getApplicationState');
 		// Create client WS connection to peer
 		connect(peer, this.logger, state);
 	}
