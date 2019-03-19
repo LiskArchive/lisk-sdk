@@ -78,7 +78,7 @@ export interface P2PConfig {
 	readonly discoveryInterval?: number;
 	readonly peerSelectionForSendRequest?: P2PPeerSelectionForSendRequest;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
-	readonly peerhandShakeChecks?: P2PPeerCheckCompatibility;
+	readonly peerhandShakeChecks?: P2PCheckPeerCompatibility;
 }
 
 // Network info exposed by the P2P library.
@@ -120,7 +120,7 @@ export interface P2PCompatibilityCheckReturnType {
 }
 
 export type P2PCheckPeerCompatibility = (
-	headers: P2PInfoOptions,
+	headers: P2PDiscoveredPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ) => P2PCompatibilityCheckReturnType;
 
