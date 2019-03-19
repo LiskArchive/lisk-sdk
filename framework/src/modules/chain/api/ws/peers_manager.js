@@ -40,7 +40,7 @@ function PeersManager(logger, channel) {
  * @todo Add description for the params
  * @todo Add @returns tag
  */
-PeersManager.prototype.add = async function(peer) {
+PeersManager.prototype.add = function(peer) {
 	// 1. do not add peers without address
 	// 2. prevent changing address by the peer with same nonce
 	if (
@@ -64,7 +64,8 @@ PeersManager.prototype.add = async function(peer) {
 		// If it's already open then peer.socket.connect() will do nothing.
 		peer.socket.connect();
 	} else {
-		const state = await this.channel.invoke('lisk:getApplicationState');
+		const state = this.channel.invoke('lisk:getApplicationState');
+
 		// Create client WS connection to peer
 		connect(peer, this.logger, state);
 	}

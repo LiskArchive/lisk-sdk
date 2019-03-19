@@ -63,8 +63,8 @@ class Peers {
  *
  * @returns {Object} Application state and peer status
  */
-Peers.prototype.me = async function() {
-	const state = await library.channel.invoke('lisk:getApplicationState');
+Peers.prototype.me = function() {
+	const state = library.channel.invoke('lisk:getApplicationState');
 	return Object.assign({}, state, {
 		state: Peer.STATE.CONNECTED,
 	});

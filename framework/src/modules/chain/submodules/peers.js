@@ -476,7 +476,8 @@ __private.versionCompatible = function(version) {
 	if (!version) {
 		return false;
 	}
-	return semver.gte(version, this.state.minVersion);
+	const { minVersion } = library.channel.invoke('lisk:getApplicationState');
+	return semver.gte(version, minVersion);
 };
 
 /**
@@ -486,12 +487,15 @@ __private.versionCompatible = function(version) {
  * @param protocolVersion
  * @returns {boolean}
  */
-__private.protocolVersionCompatible = function(protocolVersion) {
-	if (!protocolVersion) {
+__private.protocolVersionCompatible = function(protocolVersionCandidate) {
+	if (!protocolVersionCandidate) {
 		return false;
 	}
-	const peerHard = parseInt(protocolVersion[0]);
-	const myHard = parseInt(this.state.protocolVersion[0]);
+	const peerHard = parseInt(protocolVersionCandidate[0]);
+	const { protocolVersion } = library.channel.invoke(
+		'lisk:getApplicationState'
+	);
+	const myHard = parseInt(protocolVersion[0]);
 	return myHard === peerHard && peerHard >= 1;
 };
 
@@ -507,20 +511,16 @@ Peers.prototype.getLastConsensus = function() {
 /**
  * Calculates consensus for as a ratio active to matched peers.
  *
- * @param {Array<Peer>}[active=peers list] active - Active peers (with connected state)
- * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as application broadhash
  * @returns {number} Consensus or undefined if config.forging.force = true
  */
-Peers.prototype.calculateConsensus = async function(active, matched) {
-	active =
-		active ||
-		library.logic.peers
-			.list(true)
-			.filter(peer => peer.state === Peer.STATE.CONNECTED);
+Peers.prototype.calculateConsensus = async function() {
+	const active = library.logic.peers
+		.list(true)
+		.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	const { broadhash } = await library.channel.invoke(
 		'lisk:getApplicationState'
 	);
-	matched = matched || active.filter(peer => peer.broadhash === broadhash);
+	const matched = active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
 	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
@@ -678,8 +678,8 @@ Peers.prototype.discover = function(cb) {
  * @returns {peer[]} Filtered list of peers
  * @todo Add description for the params
  */
-Peers.prototype.acceptable = async function(peers) {
-	const { nonce } = await library.channel.invoke('lisk:getApplicationState');
+Peers.prototype.acceptable = function(peers) {
+	const { nonce } = library.channel.invoke('lisk:getApplicationState');
 	return _(peers)
 		.uniqWith(
 			(a, b) =>
@@ -710,9 +710,9 @@ Peers.prototype.acceptable = async function(peers) {
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, peers
  */
-Peers.prototype.list = async function(options, cb) {
+Peers.prototype.list = function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const state = await library.channel.invoke('lisk:getApplicationState');
+	const state = library.channel.invoke('lisk:getApplicationState');
 	const broadhash = options.broadhash || state.broadhash;
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =

@@ -92,7 +92,7 @@ class InMemoryChannel extends BaseChannel {
 	 * @param {array} params - Params associated with the action
 	 * @return {Promise<string>} Data returned by bus.
 	 */
-	async invoke(actionName, params) {
+	invoke(actionName, params) {
 		let action = null;
 
 		// Invoked by user module
