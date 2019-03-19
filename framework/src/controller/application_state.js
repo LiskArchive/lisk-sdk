@@ -18,6 +18,7 @@
 const os = require('os');
 const crypto = require('crypto');
 const semver = require('semver');
+const _ = require('lodash');
 
 /**
  * Initial state of the entire application.
@@ -57,7 +58,8 @@ class ApplicationState {
 	}
 
 	getState() {
-		return this.state;
+		const state = _.cloneDeep(this.state);
+		return state;
 	}
 
 	setChannel(channel) {
