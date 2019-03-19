@@ -11,7 +11,7 @@ Assuming a Ubuntu Linux 16.04 LTS base installation, the following packages
 must be installed:
 
 ```
-sudo apt-get install autoconf build-essential git jq libtool moreutils python2.7 tcl8.5 wget zlib1g-dev
+sudo apt-get install autoconf build-essential git gnupg2 jq libtool moreutils python2.7 tcl8.5 wget zlib1g-dev
 ```
 
 ## MacOS
