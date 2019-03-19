@@ -15,7 +15,8 @@
 
 import { EventEmitter } from 'events';
 import * as http from 'http';
-import { shuffle } from 'lodash';
+// tslint:disable-next-line no-require-imports
+import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 
