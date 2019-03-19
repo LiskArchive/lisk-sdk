@@ -112,11 +112,7 @@ describe('GET /api/voters', () => {
 							200
 						)
 						.then(res => {
-							expect(res.body.errors).to.have.length(4);
-							expectSwaggerParamError(res, 'username');
-							expectSwaggerParamError(res, 'address');
-							expectSwaggerParamError(res, 'publicKey');
-							expectSwaggerParamError(res, 'secondPublicKey');
+							expectValidVotedDelegateResponse(res);
 						});
 				});
 			});
@@ -132,11 +128,7 @@ describe('GET /api/voters', () => {
 						400
 					)
 					.then(res => {
-						expect(res.body.errors).to.have.length(4);
-						expectSwaggerParamError(res, 'username');
-						expectSwaggerParamError(res, 'address');
-						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
+						expectSwaggerParamError(res, 'whatever');
 					});
 			});
 

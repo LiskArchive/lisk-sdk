@@ -128,9 +128,9 @@ describe('GET /dapps', () => {
 						400
 					)
 					.then(res => {
+						expectSwaggerParamError(res, 'name');
 						expectSwaggerParamError(res, 'limit');
 						expectSwaggerParamError(res, 'offset');
-						expectSwaggerParamError(res, 'sort');
 					});
 			});
 
