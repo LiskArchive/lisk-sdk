@@ -18,8 +18,6 @@ const crypto = require('crypto');
 const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('../logic/block_reward.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-const Vote = require('../logic/vote.js');
 
 // Private fields
 let modules;
@@ -31,7 +29,6 @@ __private.assetTypes = {};
 
 /**
  * Main accounts methods. Initializes library with scope content and generates a Vote instance.
- * Calls logic.transaction.attachAssetType().
  *
  * @class
  * @memberof modules
@@ -39,8 +36,6 @@ __private.assetTypes = {};
  * @requires crypto
  * @requires helpers/bignum
  * @requires logic/block_reward
- * @requires logic/transaction_types
- * @requires logic/vote
  * @param {scope} scope - App instance
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, null, self
@@ -56,25 +51,10 @@ class Accounts {
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				account: scope.logic.account,
-				transaction: scope.logic.transaction,
 			},
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
-		__private.assetTypes[
-			transactionTypes.VOTE
-		] = library.logic.transaction.attachAssetType(
-			transactionTypes.VOTE,
-			new Vote({
-				components: {
-					logger: scope.logger,
-				},
-				schema: library.schema,
-				logic: {
-					account: library.logic.account,
-				},
-			})
-		);
 
 		setImmediate(cb, null, self);
 	}
@@ -271,8 +251,6 @@ Accounts.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		rounds: scope.modules.rounds,
 	};
-
-	__private.assetTypes[transactionTypes.VOTE].bind(scope.modules.delegates);
 
 	library.logic.account.bind(modules);
 };

@@ -51,13 +51,12 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, transaction, storage, config) {
+	constructor(logger, block, storage, config) {
 		library = {
 			logger,
 			storage,
 			logic: {
 				block,
-				transaction,
 			},
 			config: {
 				loading: {
@@ -297,7 +296,7 @@ __private.verifyPayload = function(block, result) {
 		let bytes;
 
 		try {
-			bytes = library.logic.transaction.getBytes(transaction);
+			bytes = transaction.getBytes();
 		} catch (e) {
 			result.errors.push(e.toString());
 		}

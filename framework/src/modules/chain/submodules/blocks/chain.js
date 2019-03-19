@@ -19,7 +19,6 @@ const async = require('async');
 const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionTypes = require('../../helpers/transaction_types.js');
-const initTransaction = require('../../helpers/init_transaction.js');
 const slots = require('../../helpers/slots.js');
 const {
 	CACHE_KEYS_DELEGATES,
@@ -43,7 +42,6 @@ const __private = {};
  * @requires helpers/transaction_types
  * @param {Object} logger
  * @param {Block} block
- * @param {Transaction} transaction
  * @param {Storage} storage
  * @param {Object} genesisBlock
  * @param {bus} bus
@@ -54,7 +52,7 @@ class Chain {
 	constructor(
 		logger,
 		block,
-		transaction,
+		initTransaction,
 		storage,
 		genesisBlock,
 		bus,
@@ -68,7 +66,7 @@ class Chain {
 			balancesSequence,
 			logic: {
 				block,
-				transaction,
+				initTransaction,
 			},
 		};
 		self = this;
@@ -100,8 +98,8 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 			// FIXME: This will fail if we already have genesis block in database, but with different ID
 			const block = {
 				...library.genesisBlock.block,
-				transactions: library.genesisBlock.block.transactions.map(
-					initTransaction
+				transactions: library.genesisBlock.block.transactions.map(transaction =>
+					library.logic.initTransaction.jsonRead(transaction)
 				),
 			};
 			return self.saveBlock(block, err => setImmediate(cb, err));
@@ -222,12 +220,8 @@ __private.afterSave = async function(block, cb) {
 		}
 	}
 
-	async.eachSeries(
-		block.transactions,
-		(transaction, eachSeriesCb) =>
-			library.logic.transaction.afterSave(transaction, eachSeriesCb),
-		err => setImmediate(cb, err)
-	);
+	// TODO: create functions for afterSave for each transaction type
+	cb();
 };
 
 /**

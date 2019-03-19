@@ -40,7 +40,6 @@ let self;
  * @param {Object} logger
  * @param {Block} block
  * @param {Peers} peers
- * @param {Transaction} transaction
  * @param {ZSchema} schema
  * @param {Storage} storage
  * @param {Sequence} sequence
@@ -48,16 +47,7 @@ let self;
  * @todo Add description for the params
  */
 class Process {
-	constructor(
-		logger,
-		block,
-		peers,
-		transaction,
-		schema,
-		storage,
-		sequence,
-		genesisBlock
-	) {
+	constructor(logger, block, peers, schema, storage, sequence, genesisBlock) {
 		library = {
 			logger,
 			schema,
@@ -67,7 +57,6 @@ class Process {
 			logic: {
 				block,
 				peers,
-				transaction,
 			},
 		};
 		self = this;

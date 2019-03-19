@@ -21,8 +21,6 @@ const {
 } = require('../../../../../framework/src/components/cache');
 const sortBy = require('../helpers/sort_by.js').sortBy;
 const TransactionPool = require('../logic/transaction_pool.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-const Transfer = require('../logic/transfer.js');
 
 // Private fields
 const __private = {};
@@ -35,7 +33,6 @@ __private.assetTypes = {};
 
 /**
  * Main transactions methods. Initializes library with scope content and generates a Transfer instance
- * and a TransactionPool instance. Calls logic.transaction.attachAssetType().
  *
  * @class
  * @memberof modules
@@ -45,7 +42,6 @@ __private.assetTypes = {};
  * @requires helpers/sort_by
  * @requires helpers/transaction_types
  * @requires logic/transaction_pool
- * @requires logic/transfer
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
@@ -59,7 +55,7 @@ class Transactions {
 			ed: scope.ed,
 			balancesSequence: scope.balancesSequence,
 			logic: {
-				transaction: scope.logic.transaction,
+				initTransaction: scope.logic.initTransaction,
 			},
 			genesisBlock: scope.genesisBlock,
 		};
@@ -71,18 +67,6 @@ class Transactions {
 			scope.config.broadcasts.releaseLimit,
 			scope.components.logger,
 			scope.config
-		);
-
-		__private.assetTypes[
-			transactionTypes.SEND
-		] = library.logic.transaction.attachAssetType(
-			transactionTypes.SEND,
-			new Transfer({
-				components: {
-					logger: library.logger,
-				},
-				schema: library.schema,
-			})
 		);
 
 		setImmediate(cb, null, self);
@@ -594,8 +578,6 @@ Transactions.prototype.onBind = function(scope) {
 		scope.modules.processTransactions,
 		scope.modules.loader
 	);
-
-	__private.assetTypes[transactionTypes.SEND].bind(scope.modules.accounts);
 };
 
 // Shared API

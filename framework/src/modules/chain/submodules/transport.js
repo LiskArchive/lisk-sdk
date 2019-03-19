@@ -24,13 +24,15 @@ const Rules = require('../api/ws/workers/rules');
 const definitions = require('../schema/definitions');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
-const initTransaction = require('../helpers/init_transaction.js');
+const InitTransaction = require('../logic/init_transaction.js');
 
 const {
 	MIN_BROADHASH_CONSENSUS,
 	MAX_PEERS,
 	MAX_SHARED_TRANSACTIONS,
 } = global.constants;
+
+const initTransaction = new InitTransaction();
 // Private fields
 let components;
 let modules;
@@ -69,7 +71,7 @@ class Transport {
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				block: scope.logic.block,
-				transaction: scope.logic.transaction,
+				initTransaction: scope.logic.initTransaction,
 				peers: scope.logic.peers,
 			},
 			config: {
@@ -92,8 +94,9 @@ class Transport {
 			scope.config.broadcasts,
 			scope.config.forging.force,
 			scope.logic.peers,
-			scope.logic.transaction,
-			scope.components.logger
+			scope.logic.initTransaction,
+			scope.components.logger,
+			scope.components.storage
 		);
 
 		setImmediate(cb, null, self);
@@ -224,7 +227,7 @@ __private.receiveTransaction = function(
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = initTransaction(transactionJSON);
+		transaction = initTransaction.jsonRead(transactionJSON);
 		const { errors } = transaction.validate();
 		if (errors.length > 0) {
 			throw errors;

@@ -14,11 +14,6 @@
 
 'use strict';
 
-const DApp = require('../logic/dapp.js');
-const InTransfer = require('../logic/in_transfer.js');
-const OutTransfer = require('../logic/out_transfer.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-
 // Private fields
 let modules;
 let library;
@@ -29,13 +24,7 @@ const shared = {};
 __private.assetTypes = {};
 
 /**
- * Main dapps methods. Initializes library with scope content and generates instances for:
- * - DApp
- * - InTransfer
- * - OutTransfer
- *
- * Calls logic.transaction.attachAssetType().
- *
+ * Main dapps methods. Initializes library
  * Listens for an `exit` signal.
  *
  * @class
@@ -45,8 +34,6 @@ __private.assetTypes = {};
  * @requires helpers/sort_by
  * @requires helpers/transaction_types
  * @requires logic/dapp
- * @requires helpers/in_transfer
- * @requires helpers/out_transfer
  * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
  * @returns {setImmediateCallback} cb, null, self
@@ -62,54 +49,11 @@ class DApps {
 			schema: scope.schema,
 			ed: scope.ed,
 			balancesSequence: scope.balancesSequence,
-			logic: {
-				transaction: scope.logic.transaction,
-			},
 			config: {
 				dapp: scope.config.dapp,
 			},
 		};
 		self = this;
-
-		__private.assetTypes[
-			transactionTypes.DAPP
-		] = library.logic.transaction.attachAssetType(
-			transactionTypes.DAPP,
-			new DApp({
-				components: {
-					storage: scope.components.storage,
-					logger: scope.components.logger,
-				},
-				schema: scope.schema,
-				channel: scope.channel,
-			})
-		);
-
-		__private.assetTypes[
-			transactionTypes.IN_TRANSFER
-		] = library.logic.transaction.attachAssetType(
-			transactionTypes.IN_TRANSFER,
-			new InTransfer({
-				components: {
-					storage: scope.components.storage,
-				},
-				schema: scope.schema,
-			})
-		);
-
-		__private.assetTypes[
-			transactionTypes.OUT_TRANSFER
-		] = library.logic.transaction.attachAssetType(
-			transactionTypes.OUT_TRANSFER,
-
-			new OutTransfer({
-				components: {
-					storage: scope.components.storage,
-					logger: scope.components.logger,
-				},
-				schema: scope.schema,
-			})
-		);
 
 		/**
 		 * Receives an 'exit' signal and calls stopDApp for each launched application.
@@ -136,16 +80,6 @@ DApps.prototype.onBind = function(scope) {
 		peers: scope.modules.peers,
 		sql: scope.modules.sql,
 	};
-
-	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
-		scope.modules.accounts,
-		shared
-	);
-
-	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
-		scope.modules.accounts,
-		scope.modules.dapps
-	);
 };
 
 /**

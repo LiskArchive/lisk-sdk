@@ -176,7 +176,7 @@ class Transaction {
 			transactionJSON.asset = Object.assign(transactionJSON.asset, asset);
 		}
 
-		return this.initTransaction(_.omitBy(transactionJSON, _.isNull));
+		return this.jsonRead(_.omitBy(transactionJSON, _.isNull));
 	}
 
 	storageRead(raw) {
@@ -186,10 +186,10 @@ class Transaction {
 
 		const rawData = _.omitBy(raw, _.isNull);
 
-		return this.initTransaction(rawData);
+		return this.jsonRead(rawData);
 	}
 
-	initTransaction(rawTx) {
+	jsonRead(rawTx) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
 
 		if (!TransactionClass) {

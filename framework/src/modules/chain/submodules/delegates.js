@@ -23,9 +23,7 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const BlockReward = require('../logic/block_reward.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
-const Delegate = require('../logic/delegate.js');
 const slots = require('../helpers/slots.js');
-const transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
 let modules;
@@ -35,7 +33,6 @@ const { ACTIVE_DELEGATES } = global.constants;
 const exceptions = global.exceptions;
 const __private = {};
 
-__private.assetTypes = {};
 __private.loaded = false;
 __private.keypairs = {};
 __private.tmpKeypairs = {};
@@ -44,7 +41,6 @@ __private.delegatesListCache = {};
 
 /**
  * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
- * Calls logic.transaction.attachAssetType().
  *
  * @class
  * @memberof modules
@@ -71,9 +67,6 @@ class Delegates {
 			network: scope.network,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
-			logic: {
-				transaction: scope.logic.transaction,
-			},
 			config: {
 				forging: {
 					delegates: scope.config.forging.delegates,
@@ -87,14 +80,6 @@ class Delegates {
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
-		__private.assetTypes[
-			transactionTypes.DELEGATE
-		] = library.logic.transaction.attachAssetType(
-			transactionTypes.DELEGATE,
-			new Delegate({
-				schema: scope.schema,
-			})
-		);
 
 		setImmediate(cb, null, self);
 	}
@@ -917,8 +902,6 @@ Delegates.prototype.onBind = function(scope) {
 		transactions: scope.modules.transactions,
 		transport: scope.modules.transport,
 	};
-
-	__private.assetTypes[transactionTypes.DELEGATE].bind(scope.modules.accounts);
 };
 
 /**

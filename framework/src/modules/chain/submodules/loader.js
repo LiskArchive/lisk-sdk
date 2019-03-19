@@ -67,7 +67,6 @@ class Loader {
 			genesisBlock: scope.genesisBlock,
 			balancesSequence: scope.balancesSequence,
 			logic: {
-				transaction: scope.logic.transaction,
 				account: scope.logic.account,
 				peers: scope.logic.peers,
 			},

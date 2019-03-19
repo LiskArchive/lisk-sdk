@@ -39,18 +39,17 @@ let self;
  * @todo Add description for the params
  */
 class Utils {
-	constructor(logger, account, block, transaction, storage, genesisBlock) {
+	constructor(logger, account, block, initTransaction, storage, genesisBlock) {
 		library = {
 			logger,
 			account,
 			block,
-			transaction,
 			storage,
 			genesisBlock,
 			logic: {
 				account,
 				block,
-				transaction,
+				initTransaction,
 			},
 		};
 		self = this;
@@ -89,7 +88,7 @@ Utils.prototype.readDbRows = function(rows) {
 			}
 
 			// Normalize transaction
-			const transaction = library.logic.transaction.dbRead(rows[i]);
+			const transaction = library.logic.initTransaction.dbRead(rows[i]);
 			// Set empty object if there are no transactions in block
 			blocks[block.id].transactions = blocks[block.id].transactions || {};
 
@@ -133,8 +132,8 @@ Utils.prototype.readStorageRows = function(rows) {
 
 			// Normalize transaction
 			if (block.transactions) {
-				block.transactions = block.transactions.map(
-					library.logic.transaction.storageRead
+				block.transactions = block.transactions.map(transaction =>
+					library.logic.initTransaction.storageRead(transaction)
 				);
 			}
 		}
