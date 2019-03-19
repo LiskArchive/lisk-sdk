@@ -90,8 +90,75 @@ describe('GET /dapps', () => {
 	});
 
 	describe('?', () => {
+		describe('with wrong input', () => {
+			it('using invalid field name should fail', async () => {
+				return dappsEndpoint
+					.makeRequest(
+						{
+							whatever: accountFixtures.genesis.address,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'whatever');
+					});
+			});
+
+			it('using empty parameter should fail', async () => {
+				return dappsEndpoint
+					.makeRequest(
+						{
+							sort: '',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'sort');
+					});
+			});
+
+			it('using completely invalid fields should fail', async () => {
+				return dappsEndpoint
+					.makeRequest(
+						{
+							name: 'invalid',
+							limit: 'invalid',
+							offset: 'invalid',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+						expectSwaggerParamError(res, 'sort');
+					});
+			});
+
+			it('using partially invalid fields should fail', async () => {
+				return dappsEndpoint
+					.makeRequest(
+						{
+							limit: 'invalid',
+							offset: 'invalid',
+							name: dapp1.name,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+					});
+			});
+		});
+
+		it('using no params should be ok', async () => {
+			return dappsEndpoint.makeRequest({}, 200).then(res => {
+				expect(res.body.data).to.not.empty;
+			});
+		});
+
 		describe('transactionId=', () => {
-			it('using empty string should return all results', async () => {
+			it('using empty string should fail', async () => {
 				return dappsEndpoint
 					.makeRequest({ transactionId: '' }, 400)
 					.then(res => {
