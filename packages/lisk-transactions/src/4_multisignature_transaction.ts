@@ -100,6 +100,9 @@ export interface MultiSignatureAsset {
 
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
+	protected _multisignatureStatus: MultisignatureStatus =
+		MultisignatureStatus.PENDING;
+
 	public constructor(tx: TransactionJSON) {
 		super(tx);
 		const typeValid = validator.validate(
