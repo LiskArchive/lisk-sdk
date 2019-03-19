@@ -63,11 +63,7 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const { height } = await this.channel.invoke(
-			'lisk:getApplicationState',
-			'applicationState'
-		);
-
+		const { height } = await library.channel.invoke('lisk:getApplicationState');
 		const milestone = await library.channel.invoke('chain:calculateMilestone', {
 			height,
 		});
@@ -126,9 +122,8 @@ NodeController.getStatus = async (context, next) => {
 			}
 		);
 
-		const { height, broadhash } = await this.channel.invoke(
-			'lisk:getApplicationState',
-			'applicationState'
+		const { height, broadhash } = await library.channel.invoke(
+			'lisk:getApplicationState'
 		);
 
 		const consensus =
