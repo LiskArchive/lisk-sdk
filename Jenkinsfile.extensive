@@ -17,7 +17,7 @@ pipeline {
 	stages {
 		stage('Build extensive test suite') {
 			steps {
-				build job: "lisk-core/${env.BRANCH_NAME}", parameters: [string(name: 'JENKINS_PROFILE', value: 'extensive')]
+				build job: "lisk-core/${env.BRANCH_NAME}", parameters: [string(name: 'LISK_MOCHA_RUNNER_OPTIONS', value: '-- --grep @unstable --invert')]
 				build job: "lisk-core-network/${env.BRANCH_NAME}"
 			}
 		}

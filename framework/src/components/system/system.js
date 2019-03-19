@@ -93,9 +93,11 @@ class System {
 		if (!protocolVersion) {
 			return false;
 		}
-		const peerHard = parseInt(protocolVersion[0]);
-		const myHard = parseInt(this.headers.protocolVersion[0]);
-		return myHard === peerHard && peerHard >= 1;
+		const peerHardForks = parseInt(protocolVersion.split('.')[0]);
+		const systemHardForks = parseInt(
+			this.headers.protocolVersion.split('.')[0]
+		);
+		return systemHardForks === peerHardForks && peerHardForks >= 1;
 	}
 
 	/**

@@ -165,7 +165,7 @@ describe('expire transactions', () => {
 			});
 		});
 
-		it('once transaction is expired the mem account u_balance should be restored @sequential', done => {
+		it('once transaction is expired the mem account u_balance should be restored', done => {
 			// Expiry interval is set to 1 second
 			// and unconfirmed transaction timeout is set to 0
 			// so waiting 5 seconds to ensure the transaction is expired and
@@ -218,7 +218,7 @@ describe('expire transactions', () => {
 			});
 		});
 
-		it('account should be transfer and updated with balance and u_balance @sequential', done => {
+		it('account should be transfer and updated with balance and u_balance', done => {
 			queries
 				.getAccount(address)
 				.then(memAccountAfter => {
