@@ -753,7 +753,8 @@ describe('Integration tests for P2P library', () => {
 						wsPort: NETWORK_START_PORT + index,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.0',
+						version: '1.0.1',
+						protocolVersion: '1.0.1',
 						os: platform(),
 						height: 1000 + index,
 						broadhash:
