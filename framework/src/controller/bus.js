@@ -4,6 +4,7 @@ const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
 const CONTROLLER_IDENTIFIER = 'lisk';
+const SOCKET_TIMEOUT_TIME = 2000;
 
 /**
  * Bus responsible to maintain communication between modules
@@ -67,7 +68,7 @@ class Bus extends EventEmitter2 {
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
 			// Timeout is needed here in case "bind" events never arrive
-			this._rejectWhenTimeout(2000), // TODO: Get value from config constant
+			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME), // TODO: Get value from config constant
 		]).finally(() => {
 			this._removeAllListeners();
 		});

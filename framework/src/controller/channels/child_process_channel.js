@@ -5,6 +5,8 @@ const Action = require('../action');
 const Event = require('../event');
 const BaseChannel = require('./base_channel');
 
+const SOCKET_TIMEOUT_TIME = 2000;
+
 /**
  * Channel responsible to communicate with bus for modules running in child process
  *
@@ -54,7 +56,7 @@ class ChildProcessChannel extends BaseChannel {
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
 			// Timeout is needed here in case "bind" or "connect" events never arrive
-			this._rejectWhenTimeout(2000), // TODO: Get value from config constant
+			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
 		]).finally(() => {
 			this._removeAllListeners();
 		});
