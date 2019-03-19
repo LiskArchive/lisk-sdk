@@ -31,7 +31,7 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const tempy = require('tempy');
 const { observableDiff, applyChange } = require('deep-diff');
-const JSONHistory = require('../helpers/json_history');
+const JSONHistory = require('./json_history');
 const AppConfig = require('../helpers/config');
 const packageJSON = require('../../../../../package.json');
 

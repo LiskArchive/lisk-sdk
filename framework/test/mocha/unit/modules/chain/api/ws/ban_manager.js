@@ -14,9 +14,10 @@
 
 'use strict';
 
-const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
-const Peer = require('../../../../../../src/modules/chain/logic/peer');
-const BanManager = require('../../../../../../src/modules/chain/helpers/ban_manager');
+const prefixedPeer = require('../../../../../fixtures/peers')
+	.randomNormalizedPeer;
+const Peer = require('../../../../../../../src/modules/chain/logic/peer');
+const BanManager = require('../../../../../../../src/modules/chain/api/ws/ban_manager');
 
 let configWithBlackListStub;
 let loggerStub;

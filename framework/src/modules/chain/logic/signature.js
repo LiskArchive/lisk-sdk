@@ -15,8 +15,8 @@
 'use strict';
 
 const ByteBuffer = require('bytebuffer');
-const Bignum = require('../helpers/bignum.js');
-const ed = require('../helpers/ed.js');
+const Bignum = require('../helpers/bignum');
+const ed = require('../helpers/ed');
 
 const { FEES } = global.constants;
 

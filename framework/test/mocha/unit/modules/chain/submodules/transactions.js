@@ -20,24 +20,24 @@ const {
 	createCacheComponent,
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../../src/components/cache');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 const modulesLoader = require('../../../../common/modules_loader');
-const AccountLogic = require('../../../../../../src/modules/chain/logic/account.js');
-const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction.js');
-const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates.js');
-const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts.js');
-const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader.js');
-const VoteLogic = require('../../../../../../src/modules/chain/logic/vote.js');
-const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer.js');
-const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate.js');
-const SignatureLogic = require('../../../../../../src/modules/chain/logic/signature.js');
-const MultisignatureLogic = require('../../../../../../src/modules/chain/logic/multisignature.js');
-const DappLogic = require('../../../../../../src/modules/chain/logic/dapp.js');
-const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_transfer.js');
-const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer.js');
+const AccountLogic = require('../../../../../../src/modules/chain/logic/account');
+const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction');
+const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates');
+const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts');
+const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader');
+const VoteLogic = require('../../../../../../src/modules/chain/logic/vote');
+const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer');
+const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate');
+const SignatureLogic = require('../../../../../../src/modules/chain/logic/signature');
+const MultisignatureLogic = require('../../../../../../src/modules/chain/logic/multisignature');
+const DappLogic = require('../../../../../../src/modules/chain/logic/dapp');
+const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_transfer');
+const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer');
 
+const { TRANSACTION_TYPES } = global.constants;
 const TransactionModule = rewire(
-	'../../../../../../src/modules/chain/submodules/transactions.js'
+	'../../../../../../src/modules/chain/submodules/transactions'
 );
 
 describe('transactions', () => {
@@ -52,7 +52,7 @@ describe('transactions', () => {
 		accountsModule
 	) {
 		const sendLogic = transactionLogic.attachAssetType(
-			transactionTypes.SEND,
+			TRANSACTION_TYPES.SEND,
 			new TransferLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -64,7 +64,7 @@ describe('transactions', () => {
 		expect(sendLogic).to.be.an.instanceof(TransferLogic);
 
 		const voteLogic = transactionLogic.attachAssetType(
-			transactionTypes.VOTE,
+			TRANSACTION_TYPES.VOTE,
 			new VoteLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -77,7 +77,7 @@ describe('transactions', () => {
 		expect(voteLogic).to.be.an.instanceof(VoteLogic);
 
 		const delegateLogic = transactionLogic.attachAssetType(
-			transactionTypes.DELEGATE,
+			TRANSACTION_TYPES.DELEGATE,
 			new DelegateLogic({
 				schema: modulesLoader.scope.schema,
 			})
@@ -86,7 +86,7 @@ describe('transactions', () => {
 		expect(delegateLogic).to.be.an.instanceof(DelegateLogic);
 
 		const signatureLogic = transactionLogic.attachAssetType(
-			transactionTypes.SIGNATURE,
+			TRANSACTION_TYPES.SIGNATURE,
 			new SignatureLogic({
 				components: {
 					logger: modulesLoader,
@@ -98,7 +98,7 @@ describe('transactions', () => {
 		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
 		const multiLogic = transactionLogic.attachAssetType(
-			transactionTypes.MULTI,
+			TRANSACTION_TYPES.MULTI,
 			new MultisignatureLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -116,7 +116,7 @@ describe('transactions', () => {
 		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
 		const dappLogic = transactionLogic.attachAssetType(
-			transactionTypes.DAPP,
+			TRANSACTION_TYPES.DAPP,
 			new DappLogic({
 				components: {
 					storage: modulesLoader.storage,
@@ -129,7 +129,7 @@ describe('transactions', () => {
 		expect(dappLogic).to.be.an.instanceof(DappLogic);
 
 		const inTransferLogic = transactionLogic.attachAssetType(
-			transactionTypes.IN_TRANSFER,
+			TRANSACTION_TYPES.IN_TRANSFER,
 			new InTransferLogic({
 				components: {
 					storage: modulesLoader.storage,
@@ -141,7 +141,7 @@ describe('transactions', () => {
 		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
 
 		const outTransfer = transactionLogic.attachAssetType(
-			transactionTypes.OUT_TRANSFER,
+			TRANSACTION_TYPES.OUT_TRANSFER,
 			new OutTransferLogic({
 				components: {
 					storage: modulesLoader.storage,
@@ -294,6 +294,7 @@ describe('transactions', () => {
 							result.delegateModule,
 							result.accountsModule
 						);
+
 						done();
 					}
 				);
@@ -310,6 +311,106 @@ describe('transactions', () => {
 	afterEach(() => sinonSandbox.restore());
 
 	describe('Transaction', () => {
+		describe('SortBy', () => {
+			const validSortFieldsArray = [
+				'address',
+				'balance',
+				'username',
+				'publicKey',
+			];
+
+			describe('when given as string', () => {
+				it('should return empty object when sort is empty string', async () =>
+					expect(transactionsModule.sortBy('')).to.eql({
+						sortField: '',
+						sortMethod: '',
+					}));
+
+				it('should return ASC as default sort type if only key is provided', async () =>
+					expect(transactionsModule.sortBy('address')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+
+				it('should return ASC as default sort type if sort type is missing', async () =>
+					expect(transactionsModule.sortBy('address:')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+
+				it('should return error if sort key not present in options.sortFields', async () =>
+					expect(
+						transactionsModule.sortBy('unknownField', {
+							sortFields: validSortFieldsArray,
+						})
+					).to.eql({ error: 'Invalid sort field' }));
+
+				it('should return valid sort object if provided with sort:asc', async () =>
+					expect(transactionsModule.sortBy('address:asc')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+
+				it('should return valid sort object if provided with sort:desc', async () =>
+					expect(transactionsModule.sortBy('address:desc')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'DESC',
+					}));
+
+				it('should return valid sort object with default sort type provided with sort:unknown', async () =>
+					expect(transactionsModule.sortBy('address:unknown')).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+			});
+
+			describe('when given as object', () => {
+				it('should return object with empty values when sort is empty object', async () =>
+					expect(transactionsModule.sortBy({})).to.eql({
+						sortField: '',
+						sortMethod: '',
+					}));
+
+				it('should return valid sort object if a valid object given', async () =>
+					expect(transactionsModule.sortBy({ address: 1 })).to.eql({
+						sortField: '"address"',
+						sortMethod: 'ASC',
+					}));
+
+				it('should return error when keys are not present in options.sortFields', async () =>
+					expect(
+						transactionsModule.sortBy(
+							{ unkown: 1 },
+							{ sortFields: validSortFieldsArray }
+						)
+					).to.eql({ error: 'Invalid sort field' }));
+
+				it('should return object with string values if single key object is given', async () => {
+					const result = transactionsModule.sortBy({ address: 1 });
+
+					expect(result).to.eql({ sortField: '"address"', sortMethod: 'ASC' });
+
+					expect(result.sortField).to.a('String');
+					return expect(result.sortMethod).to.a('String');
+				});
+
+				it('should return object with array values if multiple keys object is given', async () => {
+					const result = transactionsModule.sortBy({
+						address: 1,
+						publicKey: -1,
+					});
+
+					expect(result).to.eql({
+						sortField: ['"address"', '"publicKey"'],
+						sortMethod: ['ASC', 'DESC'],
+					});
+
+					expect(result.sortField).to.a('Array');
+					return expect(result.sortMethod).to.a('Array');
+				});
+			});
+		});
+
 		describe('getTransaction', () => {
 			function getTransactionsById(id, done) {
 				transactionsModule.getTransactions({ id }, done);
@@ -502,9 +603,9 @@ describe('transactions', () => {
 
 			it('should get transaction for send transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.SEND].transactionId;
+					transactionsByType[TRANSACTION_TYPES.SEND].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.SEND].transaction;
+					transactionsByType[TRANSACTION_TYPES.SEND].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -518,9 +619,9 @@ describe('transactions', () => {
 
 			it('should get transaction with singature asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.SIGNATURE].transactionId;
+					transactionsByType[TRANSACTION_TYPES.SIGNATURE].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.SIGNATURE].transaction;
+					transactionsByType[TRANSACTION_TYPES.SIGNATURE].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -534,9 +635,9 @@ describe('transactions', () => {
 
 			it('should get transaction with delegate asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.DELEGATE].transactionId;
+					transactionsByType[TRANSACTION_TYPES.DELEGATE].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.DELEGATE].transaction;
+					transactionsByType[TRANSACTION_TYPES.DELEGATE].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -550,9 +651,9 @@ describe('transactions', () => {
 
 			it('should get transaction with vote asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.VOTE].transactionId;
+					transactionsByType[TRANSACTION_TYPES.VOTE].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.VOTE].transaction;
+					transactionsByType[TRANSACTION_TYPES.VOTE].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -566,9 +667,9 @@ describe('transactions', () => {
 
 			it('should get transaction with MULTI asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.MULTI].transactionId;
+					transactionsByType[TRANSACTION_TYPES.MULTI].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.MULTI].transaction;
+					transactionsByType[TRANSACTION_TYPES.MULTI].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -582,9 +683,9 @@ describe('transactions', () => {
 
 			it('should get transaction with DAPP asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.DAPP].transactionId;
+					transactionsByType[TRANSACTION_TYPES.DAPP].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.DAPP].transaction;
+					transactionsByType[TRANSACTION_TYPES.DAPP].transaction;
 
 				storageStub.entities.Transaction.count.onCall(0).resolves(1);
 				storageStub.entities.Transaction.get.onCall(0).resolves([transaction]);
@@ -599,9 +700,9 @@ describe('transactions', () => {
 			/* eslint-disable mocha/no-skipped-tests */
 			it.skip('should get transaction with intransfer asset for transaction id', done => {
 				const transactionId =
-					transactionsByType[transactionTypes.IN_TRANSFER].transactionId;
+					transactionsByType[TRANSACTION_TYPES.IN_TRANSFER].transactionId;
 				const transaction =
-					transactionsByType[transactionTypes.IN_TRANSFER].transaction;
+					transactionsByType[TRANSACTION_TYPES.IN_TRANSFER].transaction;
 
 				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
@@ -617,7 +718,7 @@ describe('transactions', () => {
 						transaction.asset.inTransfer.dappId
 					);
 					expect(res.transactions[0].type).to.equal(
-						transactionTypes.IN_TRANSFER
+						TRANSACTION_TYPES.IN_TRANSFER
 					);
 					done();
 				});

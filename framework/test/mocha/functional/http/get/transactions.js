@@ -14,21 +14,20 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const Promise = require('bluebird');
 const {
 	transfer,
 	registerSecondPassphrase,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
-const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -319,7 +318,7 @@ describe('GET /api/transactions', () => {
 						const transaction = res.body.data[0];
 
 						expect(transaction.id).to.be.equal(transactionInCheck.id);
-						expect(transaction.type).to.be.equal(transactionTypes.VOTE);
+						expect(transaction.type).to.be.equal(TRANSACTION_TYPES.VOTE);
 						expect(transaction.type).to.be.equal(transactionInCheck.type);
 						expect(transaction.amount).to.be.equal(
 							transactionInCheck.amount.toString()
@@ -347,12 +346,12 @@ describe('GET /api/transactions', () => {
 
 			it('using type should be ok', async () => {
 				return transactionsEndpoint
-					.makeRequest({ type: transactionTypes.SEND }, 200)
+					.makeRequest({ type: TRANSACTION_TYPES.SEND }, 200)
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
 							return expect(transaction.type).to.be.equal(
-								transactionTypes.SEND
+								TRANSACTION_TYPES.SEND
 							);
 						});
 					});
@@ -1037,7 +1036,7 @@ describe('GET /api/transactions', () => {
 		describe('asset', () => {
 			it('assets for type 2 transactions should contain key username, publicKey and address', () => {
 				return transactionsEndpoint
-					.makeRequest({ type: transactionTypes.DELEGATE, limit: 1 }, 200)
+					.makeRequest({ type: TRANSACTION_TYPES.DELEGATE, limit: 1 }, 200)
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
@@ -1068,7 +1067,7 @@ describe('GET /api/transactions', () => {
 					body: { data: transactions },
 				} = await transactionsEndpoint.makeRequest(
 					{
-						type: transactionTypes.SIGNATURE,
+						type: TRANSACTION_TYPES.SIGNATURE,
 						limit: 1,
 						senderPublicKey: accountSecondPass.senderId,
 						sort: 'timestamp:desc',
@@ -1145,7 +1144,7 @@ describe('GET /api/transactions', () => {
 			});
 			it('assets for type 6 transactions should contain key dappId', async () => {
 				return transactionsEndpoint
-					.makeRequest({ type: transactionTypes.IN_TRANSFER }, 200)
+					.makeRequest({ type: TRANSACTION_TYPES.IN_TRANSFER }, 200)
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
@@ -1156,7 +1155,7 @@ describe('GET /api/transactions', () => {
 			});
 			it('assets for type 7 transactions should contain key dappId and transactionId', async () => {
 				return transactionsEndpoint
-					.makeRequest({ type: transactionTypes.OUT_TRANSFER }, 200)
+					.makeRequest({ type: TRANSACTION_TYPES.OUT_TRANSFER }, 200)
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {

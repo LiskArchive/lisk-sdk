@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const slots = require('../../helpers/slots.js');
+const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;

@@ -20,13 +20,16 @@ const randomstring = require('randomstring');
 const accountFixtures = require('../../../../fixtures/accounts');
 const modulesLoader = require('../../../../common/modules_loader');
 const application = require('../../../../common/application');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const Transfer = rewire('../../../../../../src/modules/chain/logic/transfer');
 
-const { FEES, ADDITIONAL_DATA } = __testContext.config.constants;
+const {
+	FEES,
+	ADDITIONAL_DATA,
+	TRANSACTION_TYPES,
+} = __testContext.config.constants;
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 const validKeypair = ed.makeKeypair(
@@ -146,7 +149,7 @@ describe('transfer', () => {
 				};
 				transfer.bind(accountModule);
 				transactionLogic = scope.logic.transaction;
-				transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
+				transactionLogic.attachAssetType(TRANSACTION_TYPES.SEND, transfer);
 				done();
 			}
 		);
