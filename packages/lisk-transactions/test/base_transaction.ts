@@ -38,6 +38,8 @@ import {
 	validSecondSignatureTransaction,
 } from '../fixtures';
 import * as utils from '../src/utils';
+import { TransferTransaction } from '../src';
+import { SignatureObject } from '../src/create_signature_object';
 
 describe('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(validTransaction);
@@ -625,6 +627,122 @@ describe('Base transaction class', () => {
 					.to.be.instanceof(TransactionError)
 					.and.to.have.property('message', 'Failed to add signature.'),
 			);
+		});
+	});
+
+	describe('#addMultisignature', () => {
+		let transferFromMultiSigAccountTrs: TransferTransaction;
+		let multisigMember: SignatureObject;
+		beforeEach( async () => {
+			storeAccountGetStub.returns(defaultMultisignatureAccount);
+			const { signatures, ...rawTrs } = validMultisignatureTransaction;
+			transferFromMultiSigAccountTrs = new TransferTransaction(rawTrs);
+			multisigMember = {
+				transactionId: transferFromMultiSigAccountTrs.id,
+				publicKey:
+					'542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+				signature:
+					'f223799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
+			};
+		});
+
+		it('should add signature to transaction from multisig account', async () => {
+			const {
+				status,
+				errors,
+			} = transferFromMultiSigAccountTrs.addMultisignature(
+				store,
+				multisigMember,
+			);
+
+			expect(status).to.eql(Status.PENDING);
+			expect(errors[0]).to.be.instanceof(TransactionPendingError);
+			expect(transferFromMultiSigAccountTrs.signatures).to.include(
+				multisigMember.signature,
+			);
+		});
+
+		it('should fail when valid signature already present and sent again', async () => {
+			const {
+				status: arrangeStatus,
+			} = transferFromMultiSigAccountTrs.addMultisignature(
+				store,
+				multisigMember,
+			);
+
+			expect(arrangeStatus).to.eql(Status.PENDING);
+
+			const {
+				status,
+				errors,
+			} = transferFromMultiSigAccountTrs.addMultisignature(
+				store,
+				multisigMember,
+			);
+			const expectedError =
+				"Signature 'f223799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c' already present in transaction.";
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0].message).to.be.eql(expectedError);
+			expect(transferFromMultiSigAccountTrs.signatures).to.include(
+				multisigMember.signature,
+			);
+		});
+
+		it('should fail to add invalid signature to transaction from multisig account', () => {
+			storeAccountGetStub.returns(defaultMultisignatureAccount);
+			const { signatures, ...rawTrs } = validMultisignatureTransaction;
+			const transferFromMultiSigAccountTrs = new TransferTransaction(rawTrs);
+			const multisigMember = {
+				transactionId: transferFromMultiSigAccountTrs.id,
+				publicKey:
+					'542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+				signature:
+					'eeee799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
+			};
+
+			const {
+				status,
+				errors,
+			} = transferFromMultiSigAccountTrs.addMultisignature(
+				store,
+				multisigMember,
+			);
+
+			const expectedError =
+				"Failed to add signature 'eeee799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c'.";
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0].message).to.be.eql(expectedError);
+			expect(transferFromMultiSigAccountTrs.signatures).to.be.empty;
+		});
+
+		it('should fail with signature not part of the group', () => {
+			storeAccountGetStub.returns(defaultMultisignatureAccount);
+			const { signatures, ...rawTrs } = validMultisignatureTransaction;
+			const transferFromMultiSigAccountTrs = new TransferTransaction(rawTrs);
+			const multisigMember = {
+				transactionId: transferFromMultiSigAccountTrs.id,
+				publicKey:
+					'542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33c2',
+				signature:
+					'eeee799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
+			};
+
+			const {
+				status,
+				errors,
+			} = transferFromMultiSigAccountTrs.addMultisignature(
+				store,
+				multisigMember,
+			);
+
+			const expectedError =
+				"Public Key '542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33c2' is not a member for account '9999142599245349337L'.";
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0].message).to.be.eql(expectedError);
+			expect(transferFromMultiSigAccountTrs.signatures).to.be.empty;
 		});
 	});
 

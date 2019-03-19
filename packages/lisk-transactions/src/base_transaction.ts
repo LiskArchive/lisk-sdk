@@ -29,6 +29,7 @@ import {
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
+import { SignatureObject } from './create_signature_object';
 import {
 	convertToTransactionError,
 	TransactionError,
@@ -301,6 +302,66 @@ export abstract class BaseTransaction {
 		store.account.set(updatedAccount.address, updatedAccount);
 		const assetErrors = this.undoAsset(store);
 		errors.push(...assetErrors);
+
+		return createResponse(this.id, errors);
+	}
+
+	public addMultisignature(
+		store: StateStore,
+		signatureObject: SignatureObject,
+	): TransactionResponse {
+		// Get the account
+		const account = store.account.get(this.senderId);
+		// Validate signature key belongs to account's multisignature group
+		if (
+			account.membersPublicKeys &&
+			!account.membersPublicKeys.includes(signatureObject.publicKey)
+		) {
+			return createResponse(this.id, [
+				new TransactionError(
+					`Public Key '${
+						signatureObject.publicKey
+					}' is not a member for account '${account.address}'.`,
+					this.id,
+				),
+			]);
+		}
+
+		// Check if signature is not already there
+		if (this.signatures.includes(signatureObject.signature)) {
+			return createResponse(this.id, [
+				new TransactionError(
+					`Signature '${
+						signatureObject.signature
+					}' already present in transaction.`,
+					this.id,
+				),
+			]);
+		}
+
+		// Validate the signature using the signature sender and transaction details
+		const { valid } = validateSignature(
+			signatureObject.publicKey,
+			signatureObject.signature,
+			this.getBasicBytes(),
+			this.id,
+		);
+		// If the signature is valid for the sender push it to the signatures array
+		if (valid) {
+			this.signatures.push(signatureObject.signature);
+
+			return this.processMultisignatures(store);
+		}
+		// Else populate errors
+		const errors = valid
+			? []
+			: [
+					new TransactionError(
+						`Failed to add signature '${signatureObject.signature}'.`,
+						this.id,
+						'.signatures',
+					),
+			  ];
 
 		return createResponse(this.id, errors);
 	}
