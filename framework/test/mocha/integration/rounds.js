@@ -135,9 +135,9 @@ describe('rounds', () => {
 				// Apply register delegate transaction
 				if (transaction.type === 2) {
 					accounts[address].username = transaction.asset.delegate.username;
-					accounts[address].u_username = accounts[address].username;
+					accounts[address].u_username = null;
 					accounts[address].isDelegate = 1;
-					accounts[address].u_isDelegate = 1;
+					accounts[address].u_isDelegate = 0;
 				}
 			}
 
@@ -774,12 +774,8 @@ describe('rounds', () => {
 					expect(transactionPool.transactionInPool(transaction.id)).to.equal(
 						true
 					);
-					// Transaction should be present in queued list
-					expect(transactionPool.queued.index[transaction.id]).to.be.a(
-						'number'
-					);
 					// Remove transaction from pool
-					transactionPool.removeUnconfirmedTransaction(transaction.id);
+					transactionPool.onConfirmedTransactions([transaction]);
 				});
 				done();
 			});
@@ -880,12 +876,8 @@ describe('rounds', () => {
 					expect(transactionPool.transactionInPool(transaction.id)).to.equal(
 						true
 					);
-					// Transaction should be present in queued list
-					expect(transactionPool.queued.index[transaction.id]).to.be.a(
-						'number'
-					);
 					// Remove transaction from pool
-					transactionPool.removeUnconfirmedTransaction(transaction.id);
+					transactionPool.onConfirmedTransactions([transaction]);
 				});
 				done();
 			});
@@ -1014,18 +1006,14 @@ describe('rounds', () => {
 						.then(() => {
 							_.each(lastBlock.transactions, eachTransaction => {
 								// Remove transaction from pool
-								transactionPool.removeUnconfirmedTransaction(
-									eachTransaction.id
-								);
+								transactionPool.onConfirmedTransactions([eachTransaction]);
 							});
 							lastBlock = library.modules.blocks.lastBlock.get();
 							deleteLastBlockPromise()
 								.then(() => {
 									_.each(lastBlock.transactions, eachTransaction => {
 										// Remove transaction from pool
-										transactionPool.removeUnconfirmedTransaction(
-											eachTransaction.id
-										);
+										transactionPool.onConfirmedTransactions([eachTransaction]);
 									});
 									done();
 								})
@@ -1152,7 +1140,7 @@ describe('rounds', () => {
 					const transactionPool = library.rewiredModules.transactions.__get__(
 						'__private.transactionPool'
 					);
-					transactionPool.queued.transactions = [];
+					transactionPool.resetPool();
 
 					// Set expected reward per block
 					expectedRewardsPerBlock = 0;
@@ -1208,7 +1196,7 @@ describe('rounds', () => {
 					const transactionPool = library.rewiredModules.transactions.__get__(
 						'__private.transactionPool'
 					);
-					transactionPool.queued.transactions = [];
+					transactionPool.resetPool();
 
 					// Set expected reward per block as first milestone
 					expectedRewardsPerBlock = REWARDS.MILESTONES[0];
