@@ -160,10 +160,7 @@ export class TransferTransaction extends BaseTransaction {
 			);
 		}
 
-		if (
-			this.recipientPublicKey &&
-			this.recipientId !== getAddressFromPublicKey(this.recipientPublicKey)
-		) {
+		if (this.recipientPublicKey) {
 			const calculatedAddress = getAddressFromPublicKey(
 				this.recipientPublicKey,
 			);

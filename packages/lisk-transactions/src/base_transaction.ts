@@ -138,8 +138,18 @@ export abstract class BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this.amount = new BigNum(tx.amount || '0');
-		this.fee = new BigNum(tx.fee || '0');
+		this.amount = new BigNum(
+			(typeof tx.amount === 'string' && tx.amount !== '') ||
+			typeof tx.amount === 'number'
+				? tx.amount
+				: '0',
+		);
+		this.fee = new BigNum(
+			(typeof tx.fee === 'string' && tx.fee !== '') ||
+			typeof tx.fee === 'number'
+				? tx.fee
+				: '0',
+		);
 		this._id = tx.id;
 		this.recipientId = tx.recipientId || '';
 		this.recipientPublicKey = tx.recipientPublicKey || undefined;
