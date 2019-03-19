@@ -52,21 +52,17 @@ describe('GET /api/votes', () => {
 		);
 	}
 
-	function expectInvalidParamsResponse(res) {
-		expect(res.body.errors).to.have.length(4);
-		expectSwaggerParamError(res, 'username');
-		expectSwaggerParamError(res, 'address');
-		expectSwaggerParamError(res, 'publicKey');
-		expectSwaggerParamError(res, 'secondPublicKey');
-	}
-
 	describe('?', () => {
 		describe('required fields', () => {
 			describe('when params are not defined', () => {
 				it('should fail with error message requiring any of param', async () => {
-					return votesEndpoint
-						.makeRequest({}, 400)
-						.then(res => expectInvalidParamsResponse(res));
+					return votesEndpoint.makeRequest({}, 400).then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
 				});
 			});
 
@@ -74,15 +70,25 @@ describe('GET /api/votes', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votesEndpoint
 						.makeRequest({ sort: 'username:asc' }, 400)
-						.then(res => expectInvalidParamsResponse(res));
+						.then(res => {
+							expect(res.body.errors).to.have.length(4);
+							expectSwaggerParamError(res, 'username');
+							expectSwaggerParamError(res, 'address');
+							expectSwaggerParamError(res, 'publicKey');
+							expectSwaggerParamError(res, 'secondPublicKey');
+						});
 				});
 			});
 
 			describe('when only offset param provided', () => {
 				it('should fail with error message requiring any of param', async () => {
-					return votesEndpoint
-						.makeRequest({ offset: 1 }, 400)
-						.then(res => expectInvalidParamsResponse(res));
+					return votesEndpoint.makeRequest({ offset: 1 }, 400).then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
 				});
 			});
 
@@ -90,7 +96,13 @@ describe('GET /api/votes', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votesEndpoint
 						.makeRequest({ sort: 'username:asc' }, 400)
-						.then(res => expectInvalidParamsResponse(res));
+						.then(res => {
+							expect(res.body.errors).to.have.length(4);
+							expectSwaggerParamError(res, 'username');
+							expectSwaggerParamError(res, 'address');
+							expectSwaggerParamError(res, 'publicKey');
+							expectSwaggerParamError(res, 'secondPublicKey');
+						});
 				});
 			});
 
@@ -121,7 +133,13 @@ describe('GET /api/votes', () => {
 						},
 						400
 					)
-					.then(res => expectInvalidParamsResponse(res));
+					.then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
 			});
 
 			it('using empty valid parameter should fail', async () => {
@@ -132,7 +150,13 @@ describe('GET /api/votes', () => {
 						},
 						400
 					)
-					.then(res => expectInvalidParamsResponse(res));
+					.then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
 			});
 
 			it('using partially invalid fields should fail', async () => {

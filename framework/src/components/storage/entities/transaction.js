@@ -144,10 +144,6 @@ class Transaction extends BaseEntity {
 			fieldName: 'trs.rowId',
 		});
 
-		this.addField('dapp_name', 'string', {
-			fieldName: "asset->'dapp'->>'name'",
-		});
-
 		this.addField('transferData', 'string', {
 			fieldName: 'trs.transferData',
 		});
@@ -234,8 +230,10 @@ class Transaction extends BaseEntity {
 			condition: '"transferData" LIKE ${data_like}',
 		});
 
-		this.addFilter('dapp_name', filterTypes.CUSTOM, {
-			condition:
+		this.addField('dapp_name', 'string', {
+			fieldName: "asset->'dapp'->>'name'",
+			filter: filterTypes.CUSTOM,
+			filterCondition:
 				'asset @> \'{ "dapp": { "name": "${dapp_name:value}" } }\'::jsonb',
 		});
 
