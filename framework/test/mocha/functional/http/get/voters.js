@@ -390,7 +390,9 @@ describe('GET /api/voters', () => {
 									validVotedDelegate.delegateName
 								);
 								expect(
-									_.map(res.body.data.voters, 'balance').sort()
+									_.map(res.body.data.voters, 'balance').sort((a, b) =>
+										new Bignum(a).minus(b).toNumber()
+									)
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
 					});
@@ -409,9 +411,10 @@ describe('GET /api/voters', () => {
 								expect(res.body.data.username).to.equal(
 									validVotedDelegate.delegateName
 								);
+
 								expect(
 									_.map(res.body.data.voters, 'balance')
-										.sort()
+										.sort((a, b) => new Bignum(a).minus(b).toNumber())
 										.reverse()
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
