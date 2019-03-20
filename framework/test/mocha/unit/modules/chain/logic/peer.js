@@ -16,7 +16,7 @@
 
 const ip = require('ip');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
-const Peer = require('../../../../../../src/modules/chain/logic/peer.js');
+const Peer = require('../../../../../../src/modules/chain/logic/peer');
 
 describe('peer', () => {
 	let peer;

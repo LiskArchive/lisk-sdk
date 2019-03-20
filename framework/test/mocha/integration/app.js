@@ -15,9 +15,9 @@
 'use strict';
 
 const Promise = require('bluebird');
-const Bignum = require('../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../src/modules/chain/helpers/bignum');
 const application = require('../common/application');
-const QueriesHelper = require('../common/integration/sql/queries_helper.js');
+const QueriesHelper = require('../common/integration/sql/queries_helper');
 const accountsFixtures = require('../fixtures/accounts');
 const roundsFixtures = require('../fixtures/rounds').rounds;
 

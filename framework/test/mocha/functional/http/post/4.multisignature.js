@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const { registerMultisignature } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');

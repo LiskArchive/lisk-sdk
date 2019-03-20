@@ -24,7 +24,7 @@ const {
 	getKeys,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
-const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../src/modules/chain/helpers/bignum');
 const accountFixtures = require('../../fixtures/accounts');
 
 const random = {};

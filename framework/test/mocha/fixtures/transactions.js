@@ -17,8 +17,9 @@
 const randomstring = require('randomstring');
 const faker = require('faker');
 const stampit = require('stampit');
-const transactionTypes = require('../../../src/modules/chain/helpers/transaction_types');
 const Dapps = require('./dapps');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 const Transaction = stampit({
 	props: {
@@ -55,11 +56,11 @@ const Transaction = stampit({
 		this.type = type || 0;
 
 		switch (this.type) {
-			case transactionTypes.SEND:
+			case TRANSACTION_TYPES.SEND:
 				this.asset.data = randomstring.generate({ length: 64 });
 				break;
 
-			case transactionTypes.SIGNATURE:
+			case TRANSACTION_TYPES.SIGNATURE:
 				this.asset.signature = {
 					publicKey: randomstring.generate({
 						charset: 'hex',
@@ -69,7 +70,7 @@ const Transaction = stampit({
 				};
 				break;
 
-			case transactionTypes.DELEGATE:
+			case TRANSACTION_TYPES.DELEGATE:
 				this.asset.delegate = {
 					username:
 						delegateName ||
@@ -77,7 +78,7 @@ const Transaction = stampit({
 				};
 				break;
 
-			case transactionTypes.VOTE:
+			case TRANSACTION_TYPES.VOTE:
 				this.asset.votes = votes || [
 					randomstring.generate({
 						charset: 'hex',
@@ -92,7 +93,7 @@ const Transaction = stampit({
 				];
 				break;
 
-			case transactionTypes.MULTI:
+			case TRANSACTION_TYPES.MULTI:
 				this.asset.multisignature = {
 					min: faker.random.number({ min: 2 }),
 					lifetime: +(new Date() / 1000).toFixed(),
@@ -111,11 +112,11 @@ const Transaction = stampit({
 				};
 				break;
 
-			case transactionTypes.DAPP:
+			case TRANSACTION_TYPES.DAPP:
 				this.asset.dapp = new Dapps.Dapp({ transactionId: this.id });
 				break;
 
-			case transactionTypes.IN_TRANSFER:
+			case TRANSACTION_TYPES.IN_TRANSFER:
 				this.asset.inTransfer = new Dapps.OutTransfer({
 					dappId: dapp
 						? dapp.id
@@ -124,7 +125,7 @@ const Transaction = stampit({
 				});
 				break;
 
-			case transactionTypes.OUT_TRANSFER:
+			case TRANSACTION_TYPES.OUT_TRANSFER:
 				this.asset.outTransfer = new Dapps.OutTransfer({
 					dappId: dapp
 						? dapp.id

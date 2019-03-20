@@ -84,7 +84,6 @@ const composeProcessTransactionSteps = (step1, step2) => async transactions => {
  * @see Parent: {@link logic}
  * @requires async
  * @requires helpers/jobs_queue
- * @requires helpers/transaction_types
  * @param {number} broadcastInterval - Broadcast interval in seconds, used for bundling
  * @param {number} releaseLimit - Release limit for transactions broadcasts, used for bundling
  * @param {Object} logger - Logger instance

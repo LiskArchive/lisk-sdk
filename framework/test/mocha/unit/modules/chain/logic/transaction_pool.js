@@ -17,7 +17,7 @@
 const pool = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
-const TransactionPool = require('../../../../../../src/modules/chain/logic/transaction_pool.js');
+const TransactionPool = require('../../../../../../src/modules/chain/logic/transaction_pool');
 
 const config = __testContext.config;
 

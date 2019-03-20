@@ -15,11 +15,11 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const Z_schema = require('../../../../../../src/modules/chain/helpers/z_schema.js');
+const { ZSchema } = require('../../../../../src/controller/helpers/validator');
+
+const validator = new ZSchema();
 
 const { ADDITIONAL_DATA } = __testContext.config.constants;
-
-const validator = new Z_schema();
 
 const shouldReturnFalseForEmptyNonStringValues = function() {
 	const composedSchema = {

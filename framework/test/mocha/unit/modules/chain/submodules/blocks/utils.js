@@ -18,7 +18,7 @@ const rewire = require('rewire');
 const modulesLoader = require('../../../../../common/modules_loader');
 
 const BlocksUtils = rewire(
-	'../../../../../../../src/modules/chain/submodules/blocks/utils.js'
+	'../../../../../../../src/modules/chain/submodules/blocks/utils'
 );
 
 const fullBlocksListRows = [

@@ -20,15 +20,15 @@ const async = require('async');
 const {
 	CACHE_KEYS_DELEGATES,
 } = require('../../../../../framework/src/components/cache');
-const Round = require('../logic/round.js');
-const slots = require('../helpers/slots.js');
+const Round = require('../logic/round');
+const slots = require('../helpers/slots');
 
 // Private fields
 let components;
 let modules;
 let library;
 let self;
-const { ACTIVE_DELEGATES } = global.constants;
+const { ACTIVE_DELEGATES, TRANSACTION_TYPES } = global.constants;
 const __private = {};
 
 __private.loaded = false;

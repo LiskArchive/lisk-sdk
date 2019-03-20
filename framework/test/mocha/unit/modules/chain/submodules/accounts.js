@@ -14,7 +14,7 @@
 
 'use strict';
 
-const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts.js');
+const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts');
 const accountFixtures = require('../../../../fixtures').accounts;
 const application = require('../../../../common/application');
 

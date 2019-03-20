@@ -28,7 +28,7 @@ const slots = require('../../../src/modules/chain/helpers/slots');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const initTransaction = require('../../../src/modules/chain/helpers/init_transaction.js');
+const initTransaction = require('../../../src/modules/chain/helpers/init_transaction');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
