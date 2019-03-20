@@ -7,32 +7,36 @@ const updateRoundInformationWithDelegatesForTransaction = function(
 	transaction,
 	forwardTick
 ) {
-	if (transaction.type === transactionTypes.VOTE) {
-		(forwardTick
-			? transaction.asset.votes
-			: Diff.reverse(transaction.asset.votes)
-		)
-			.map(vote => {
-				// Fetch first character
-				const mode = vote[0];
-				const dependentId = vote.slice(1);
-				const balanceFactor = mode === '-' ? -1 : 1;
-				const account = stateStore.account.get(transaction.senderId);
-
-				const balance = new Bignumber(account.balance)
-					.multipliedBy(balanceFactor)
-					.toString();
-
-				const roundData = {
-					address: transaction.senderId,
-					delegatePublicKey: dependentId,
-					amount: balance,
-				};
-
-				return roundData;
-			})
-			.map(data => stateStore.round.add(data));
+	if (transaction.type !== transactionTypes.VOTE) {
+		return;
 	}
+
+	(forwardTick
+		? transaction.asset.votes
+		: Diff.reverse(transaction.asset.votes)
+	)
+		.map(vote => {
+			// Fetch first character
+			const mode = vote[0];
+			const dependentId = vote.slice(1);
+			const balanceFactor = mode === '-' ? -1 : 1;
+			const account = stateStore.account.get(transaction.senderId);
+
+			// TODO: Core uses bignumber.js library and lisk-elements uses browserify-bignum. Their interface for multiplication are different
+			// therefore we should pick one library and use it in both of the projects.
+			const balance = new Bignumber(account.balance)
+				.multipliedBy(balanceFactor)
+				.toString();
+
+			const roundData = {
+				address: transaction.senderId,
+				delegatePublicKey: dependentId,
+				amount: balance,
+			};
+
+			return roundData;
+		})
+		.map(data => stateStore.round.add(data));
 };
 
 const updateSenderRoundInformationWithAmountForTransaction = function(
@@ -40,10 +44,10 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 	transaction,
 	forwardTick
 ) {
-	const value = new Bignumber(transaction.fee).plus(transaction.amount);
-	const valueToUpdate = forwardTick
-		? value.multipliedBy(-1).toString()
-		: value.toString();
+	const amount = transaction.fee.plus(transaction.amount);
+	const amountToUpdate = forwardTick
+		? amount.mul(-1).toString()
+		: amount.toString();
 	const account = stateStore.account.get(transaction.senderId);
 	let dependentPublicKeysToAdd = account.votedDelegatesPublicKeys || [];
 
@@ -57,20 +61,23 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 		const upvotes = newVotes
 			.filter(vote => vote[0] === '+')
 			.map(vote => vote.slice(1));
-		dependentPublicKeysToAdd = dependentPublicKeysToAdd.filter(
+
+		const dependentPublicKeysWithoutUpvotes = dependentPublicKeysToAdd.filter(
 			vote => !upvotes.find(v => v === vote)
 		);
-		dependentPublicKeysToAdd = dependentPublicKeysToAdd.concat(downvotes);
+		dependentPublicKeysToAdd = dependentPublicKeysWithoutUpvotes.concat(
+			downvotes
+		);
 	}
 
 	if (dependentPublicKeysToAdd.length > 0) {
 		dependentPublicKeysToAdd
 			.map(delegatePublicKey => ({
 				address: transaction.senderId,
-				amount: valueToUpdate,
+				amount: amountToUpdate,
 				delegatePublicKey,
 			}))
-			.map(data => stateStore.round.add(data));
+			.forEach(data => stateStore.round.add(data));
 	}
 };
 
@@ -93,21 +100,24 @@ const updateRecipientRoundInformationWithAmountForTransaction = function(
 		address = transaction.recipientId;
 	}
 
-	if (address) {
-		const account = stateStore.account.get(address);
-		const value = new Bignumber(transaction.amount);
-		const valueToUpdate = forwardTick
-			? value.toString()
-			: value.multipliedBy(-1).toString();
-		if (account.votedDelegatesPublicKeys) {
-			account.votedDelegatesPublicKeys
-				.map(delegatePublicKey => ({
-					address,
-					amount: valueToUpdate,
-					delegatePublicKey,
-				}))
-				.map(data => stateStore.round.add(data));
-		}
+	if (!address) {
+		return;
+	}
+
+	const account = stateStore.account.get(address);
+	const amount = transaction.amount;
+	const amountToUpdate = forwardTick
+		? amount.toString()
+		: amount.mul(-1).toString();
+
+	if (account.votedDelegatesPublicKeys) {
+		account.votedDelegatesPublicKeys
+			.map(delegatePublicKey => ({
+				address,
+				amount: amountToUpdate,
+				delegatePublicKey,
+			}))
+			.forEach(data => stateStore.round.add(data));
 	}
 };
 
