@@ -170,8 +170,8 @@ describe('Queue', () => {
 
 			const peekedTransactions = queue.peekUntil(condition);
 			expect(peekedTransactions).to.deep.equal([
-				secondToLastTransaciton,
 				lastTransaction,
+				secondToLastTransaciton,
 			]);
 		});
 	});
@@ -202,8 +202,8 @@ describe('Queue', () => {
 
 			const dequeuedTransactions = queue.dequeueUntil(condition);
 			expect(dequeuedTransactions).to.deep.equal([
-				secondToLastTransaciton,
 				lastTransaction,
+				secondToLastTransaciton,
 			]);
 		});
 
