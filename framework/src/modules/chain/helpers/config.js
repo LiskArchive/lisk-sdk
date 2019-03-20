@@ -104,7 +104,12 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 	let customConfig = {};
 	if (program.config || process.env.LISK_CONFIG_FILE) {
-		customConfig = loadJSONFile(program.config || process.env.LISK_CONFIG_FILE);
+		const customConfigPath = path.join(
+			__dirname,
+			'../../../../../',
+			program.config || process.env.LISK_CONFIG_FILE
+		);
+		customConfig = loadJSONFile(customConfigPath);
 	}
 
 	const runtimeConfig = {
