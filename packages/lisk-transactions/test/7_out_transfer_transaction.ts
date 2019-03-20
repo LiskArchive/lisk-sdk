@@ -70,7 +70,7 @@ describe('outTransfer transaction class', () => {
 			);
 		});
 
-		it('should throw TransactionMultiError when asset.dappId is not string', async () => {
+		it('should not throw TransactionMultiError when asset.dappId is not string', async () => {
 			const invalidOutTransferTransactionData = {
 				...defaultTransaction,
 				asset: {
@@ -82,10 +82,10 @@ describe('outTransfer transaction class', () => {
 			};
 			expect(
 				() => new OutTransferTransaction(invalidOutTransferTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 
-		it('should throw TransactionMultiError when asset.transactionId is not string', async () => {
+		it('should not throw TransactionMultiError when asset.transactionId is not string', async () => {
 			const invalidOutTransferTransactionData = {
 				...defaultTransaction,
 				asset: {
@@ -97,7 +97,7 @@ describe('outTransfer transaction class', () => {
 			};
 			expect(
 				() => new OutTransferTransaction(invalidOutTransferTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 

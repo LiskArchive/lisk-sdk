@@ -54,30 +54,25 @@ export const validateSignature = (
 	};
 };
 
-export const validateMultisignatures = (
-	publicKeys: ReadonlyArray<string>,
+export const signaturesAreUnique = (
 	signatures: ReadonlyArray<string>,
-	minimumValidations: number,
-	transactionBytes: Buffer,
-	id?: string,
-): IsValidResponse => {
-	const checkedPublicKeys = new Set();
-	const validSignatures = new Set();
-	// Check that signatures are unique
+): boolean => {
 	const uniqueSignatures: ReadonlyArray<string> = [...new Set(signatures)];
 	if (uniqueSignatures.length !== signatures.length) {
-		return {
-			valid: false,
-			errors: [
-				new TransactionError(
-					'Encountered duplicate signature in transaction',
-					id,
-					'.signatures',
-				),
-			],
-		};
+		return false;
 	}
 
+	return true;
+};
+
+export const checkPublicKeySignatureUniqueness = (
+	publicKeys: ReadonlyArray<string>,
+	signatures: ReadonlyArray<string>,
+	transactionBytes: Buffer,
+	id?: string,
+): Set<string> => {
+	const checkedPublicKeys = new Set();
+	const validSignatures = new Set();
 	publicKeys.forEach(publicKey => {
 		signatures.forEach((signature: string) => {
 			// Avoid single key from verifying more than one signature.
@@ -99,6 +94,38 @@ export const validateMultisignatures = (
 			}
 		});
 	});
+
+	return validSignatures;
+};
+
+export const validateMultisignatures = (
+	publicKeys: ReadonlyArray<string>,
+	signatures: ReadonlyArray<string>,
+	minimumValidations: number,
+	transactionBytes: Buffer,
+	id?: string,
+): IsValidResponse => {
+	// Check that signatures are unique
+	if (!signaturesAreUnique(signatures)) {
+		return {
+			valid: false,
+			errors: [
+				new TransactionError(
+					'Encountered duplicate signature in transaction',
+					id,
+					'.signatures',
+				),
+			],
+		};
+	}
+
+	// Check that each PK signed only once
+	const validSignatures = checkPublicKeySignatureUniqueness(
+		publicKeys,
+		signatures,
+		transactionBytes,
+		id,
+	);
 
 	const invalidTransactionSignatures = signatures.filter(
 		signature => !validSignatures.has(signature),

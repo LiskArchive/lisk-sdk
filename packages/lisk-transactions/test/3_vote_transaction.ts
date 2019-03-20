@@ -68,16 +68,16 @@ describe('Vote transaction class', () => {
 			expect(validTestTransaction.asset.votes).to.be.an('array');
 		});
 
-		it('should throw TransactionMultiError when asset is not string array', async () => {
+		it('should not throw TransactionMultiError when asset is not string array', async () => {
 			const invalidVoteTransactionData = {
 				...validVoteTransactions[1],
 				asset: {
 					votes: [1, 2, 3],
 				},
 			};
-			expect(() => new VoteTransaction(invalidVoteTransactionData)).to.throw(
-				'Invalid field types',
-			);
+			expect(
+				() => new VoteTransaction(invalidVoteTransactionData),
+			).not.to.throw();
 		});
 	});
 

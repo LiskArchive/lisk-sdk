@@ -36,32 +36,6 @@ export class TransactionError extends VError {
 	}
 }
 
-export class TransactionMultiError extends TransactionError {
-	public id: string;
-	public errors: ReadonlyArray<TransactionError>;
-	public constructor(
-		message: string = '',
-		id: string = '',
-		errors: ReadonlyArray<TransactionError> = [],
-	) {
-		super(message);
-		this.name = 'TransactionMultiError';
-		this.id = id;
-		this.errors = errors;
-	}
-
-	public toString(): string {
-		const errMessages = this.errors.reduce(
-			(prev, current) => `${prev}, ${current.toString()}`,
-			'',
-		);
-
-		return `Transaction: ${this.id} failed: ${
-			this.message
-		} with errors ${errMessages}`;
-	}
-}
-
 export class TransactionPendingError extends TransactionError {
 	public id: string;
 	public dataPath: string;

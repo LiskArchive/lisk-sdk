@@ -20,41 +20,17 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { MULTISIGNATURE_FEE } from './constants';
+import { SignatureObject } from './create_signature_object';
 import {
+	convertToTransactionError,
 	TransactionError,
-	TransactionMultiError,
 	TransactionPendingError,
 } from './errors';
 import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
-import { validateMultisignatures, validator } from './utils';
+import { validateMultisignatures, validateSignature, validator } from './utils';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
-
-export const multisignatureAssetTypeSchema = {
-	type: 'object',
-	required: ['multisignature'],
-	properties: {
-		multisignature: {
-			type: 'object',
-			required: ['min', 'lifetime', 'keysgroup'],
-			properties: {
-				min: {
-					type: 'integer',
-				},
-				lifetime: {
-					type: 'integer',
-				},
-				keysgroup: {
-					type: 'array',
-					items: {
-						type: 'string',
-					},
-				},
-			},
-		},
-	},
-};
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
@@ -101,28 +77,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
-
-	public constructor(tx: TransactionJSON) {
-		super(tx);
-		const typeValid = validator.validate(
-			multisignatureAssetTypeSchema,
-			tx.asset,
-		);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							tx.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-
-		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, errors);
-		}
-		this.asset = tx.asset as MultiSignatureAsset;
+	public constructor(rawTransaction: unknown) {
+		super(rawTransaction);
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
+		this.asset = (tx.asset || { multisignature: {} }) as MultiSignatureAsset;
 	}
 
 	protected assetToBytes(): Buffer {
@@ -176,19 +136,21 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(multisignatureAssetFormatSchema, this.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+		const errors = convertToTransactionError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_MULTISIGNATURE_TYPE) {
-			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+			errors.push(
+				new TransactionError(
+					'Invalid type',
+					this.id,
+					'.type',
+					this.type,
+					TRANSACTION_MULTISIGNATURE_TYPE,
+				),
+			);
 		}
 
 		if (!this.amount.eq(0)) {
@@ -196,7 +158,9 @@ export class MultisignatureTransaction extends BaseTransaction {
 				new TransactionError(
 					'Amount must be zero for multisignature registration transaction',
 					this.id,
-					'.asset',
+					'.amount',
+					this.amount.toString(),
+					'0',
 				),
 			);
 		}
@@ -209,6 +173,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 					`Fee must be equal to ${expectedFee.toString()}`,
 					this.id,
 					'.fee',
+					this.fee.toString(),
+					expectedFee.toString(),
 				),
 			);
 		}
@@ -221,22 +187,29 @@ export class MultisignatureTransaction extends BaseTransaction {
 					'Invalid multisignature min. Must be less than or equal to keysgroup size',
 					this.id,
 					'.asset.multisignature.min',
+					this.asset.multisignature.min,
 				),
 			);
 		}
 
 		if (this.recipientId) {
 			errors.push(
-				new TransactionError('Invalid recipient', this.id, '.recipientId'),
+				new TransactionError(
+					'RecipientId is expected to be undefined',
+					this.id,
+					'.recipientId',
+					this.recipientId,
+				),
 			);
 		}
 
 		if (this.recipientPublicKey) {
 			errors.push(
 				new TransactionError(
-					'Invalid recipientPublicKey',
+					'RecipientPublicKey is expected to be undefined',
 					this.id,
 					'.recipientPublicKey',
+					this.recipientPublicKey,
 				),
 			);
 		}
@@ -333,5 +306,61 @@ export class MultisignatureTransaction extends BaseTransaction {
 		store.account.set(resetSender.address, resetSender);
 
 		return [];
+	}
+
+	public addMultisignature(
+		store: StateStore,
+		signatureObject: SignatureObject,
+	): TransactionResponse {
+		// Validate signature key belongs to pending multisig registration transaction
+		const keysgroup = this.asset.multisignature.keysgroup.map((aKey: string) =>
+			aKey.slice(1),
+		);
+
+		if (!keysgroup.includes(signatureObject.publicKey)) {
+			return createResponse(this.id, [
+				new TransactionError(
+					`Public Key '${signatureObject.publicKey}' is not a member.`,
+					this.id,
+				),
+			]);
+		}
+
+		// Check if signature is already present
+		if (this.signatures.includes(signatureObject.signature)) {
+			return createResponse(this.id, [
+				new TransactionError(
+					'Encountered duplicate signature in transaction',
+					this.id,
+				),
+			]);
+		}
+
+		// Check if signature is valid at all
+		const { valid } = validateSignature(
+			signatureObject.publicKey,
+			signatureObject.signature,
+			this.getBasicBytes(),
+			this.id,
+		);
+
+		if (valid) {
+			this.signatures.push(signatureObject.signature);
+
+			return this.processMultisignatures(store);
+		}
+
+		// Else populate errors
+		const errors = valid
+			? []
+			: [
+					new TransactionError(
+						`Failed to add signature ${signatureObject.signature}.`,
+						this.id,
+						'.signatures',
+					),
+			  ];
+
+		return createResponse(this.id, errors);
 	}
 }
