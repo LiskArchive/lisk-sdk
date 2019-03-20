@@ -43,10 +43,10 @@ class Cache {
 		// but cache server is not available.
 		const self = this;
 		return new Promise((resolve, reject) => {
-			self.client = redis.createClient(this.options);
+			self.client = redis.createClient(self.options);
 			self.client.on('error', err => {
 				// Called if the "error" event occured before "ready" event
-				this.logger.warn('App was unable to connect to Cache server', err);
+				self.logger.warn('App was unable to connect to Cache server', err);
 				return reject(err);
 			});
 			self.client.once('ready', () => {
