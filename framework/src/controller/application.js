@@ -25,7 +25,7 @@ const registerProcessHooks = app => {
 			message: err.message,
 			stack: err.stack,
 		});
-		app.shutdown(1);
+		app.shutdown(1, err.message);
 	});
 
 	process.on('unhandledRejection', err => {
@@ -34,7 +34,7 @@ const registerProcessHooks = app => {
 			message: err.message,
 			stack: err.stack,
 		});
-		app.shutdown(1);
+		app.shutdown(1, err.message);
 	});
 
 	process.once('SIGTERM', () => app.shutdown(1));
@@ -270,9 +270,9 @@ class Application {
 	 */
 	async shutdown(errorCode = 0, message = '') {
 		if (this.controller) {
-			await this.controller.cleanup();
+			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.log(`Shutting down with error code ${errorCode} ${message}`);
+		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
 	}
 }
