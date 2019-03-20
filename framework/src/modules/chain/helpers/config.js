@@ -95,7 +95,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	const defaultExceptions = require('../../../../../config/default/exceptions');
 	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultConfig = loadJSONFile('config/gaa/config.json');
+	const defaultConfig = loadJSONFile('config/default/config.json');
 	const networkConfig = loadJSONFile(`config/${network}/config.json`);
 
 	let customConfig = {};
