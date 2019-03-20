@@ -20,13 +20,14 @@ const {
 	createCacheComponent,
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../../src/components/cache');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 const modulesLoader = require('../../../../common/modules_loader');
 const AccountLogic = require('../../../../../../src/modules/chain/logic/account.js');
 const TransactionLogic = require('../../../../../../src/modules/chain/logic/init_transaction.js');
 const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates.js');
 const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts.js');
 const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader.js');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 const TransactionModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transactions'
@@ -44,7 +45,7 @@ describe('transactions', () => {
 		accountsModule
 	) {
 		const sendLogic = transactionLogic.attachAssetType(
-			transactionTypes.SEND,
+			TRANSACTION_TYPES.SEND,
 			new TransferLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -56,7 +57,7 @@ describe('transactions', () => {
 		expect(sendLogic).to.be.an.instanceof(TransferLogic);
 
 		const voteLogic = transactionLogic.attachAssetType(
-			transactionTypes.VOTE,
+			TRANSACTION_TYPES.VOTE,
 			new VoteLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -69,7 +70,7 @@ describe('transactions', () => {
 		expect(voteLogic).to.be.an.instanceof(VoteLogic);
 
 		const delegateLogic = transactionLogic.attachAssetType(
-			transactionTypes.DELEGATE,
+			TRANSACTION_TYPES.DELEGATE,
 			new DelegateLogic({
 				schema: modulesLoader.scope.schema,
 			})
@@ -78,7 +79,7 @@ describe('transactions', () => {
 		expect(delegateLogic).to.be.an.instanceof(DelegateLogic);
 
 		const signatureLogic = transactionLogic.attachAssetType(
-			transactionTypes.SIGNATURE,
+			TRANSACTION_TYPES.SIGNATURE,
 			new SignatureLogic({
 				components: {
 					logger: modulesLoader,
@@ -90,7 +91,7 @@ describe('transactions', () => {
 		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
 		const multiLogic = transactionLogic.attachAssetType(
-			transactionTypes.MULTI,
+			TRANSACTION_TYPES.MULTI,
 			new MultisignatureLogic({
 				components: {
 					logger: modulesLoader.logger,
@@ -108,7 +109,7 @@ describe('transactions', () => {
 		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
 		const dappLogic = transactionLogic.attachAssetType(
-			transactionTypes.DAPP,
+			TRANSACTION_TYPES.DAPP,
 			new DappLogic({
 				components: {
 					storage: modulesLoader.storage,

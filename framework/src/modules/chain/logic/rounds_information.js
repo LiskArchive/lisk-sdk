@@ -1,16 +1,16 @@
 const Bignumber = require('bignumber.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-const Diff = require('../helpers/diff.js');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 const updateRoundInformationWithDelegatesForTransaction = function(
 	stateStore,
 	transaction,
 	forwardTick
 ) {
-	if (transaction.type === transactionTypes.VOTE) {
+	if (transaction.type === TRANSACTION_TYPES.VOTE) {
 		(forwardTick
 			? transaction.asset.votes
-			: Diff.reverse(transaction.asset.votes)
+			: reverse(transaction.asset.votes)
 		)
 			.map(vote => {
 				// Fetch first character
@@ -47,10 +47,10 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 	const account = stateStore.account.get(transaction.senderId);
 	let dependentPublicKeysToAdd = account.votedDelegatesPublicKeys || [];
 
-	if (transaction.type === transactionTypes.VOTE) {
+	if (transaction.type === TRANSACTION_TYPES.VOTE) {
 		const newVotes = forwardTick
 			? transaction.asset.votes
-			: Diff.reverse(transaction.asset.votes);
+			: reverse(transaction.asset.votes);
 		const downvotes = newVotes
 			.filter(vote => vote[0] === '-')
 			.map(vote => vote.slice(1));
@@ -80,15 +80,15 @@ const updateRecipientRoundInformationWithAmountForTransaction = function(
 	forwardTick
 ) {
 	let address;
-	if (transaction.type === transactionTypes.IN_TRANSFER) {
+	if (transaction.type === TRANSACTION_TYPES.IN_TRANSFER) {
 		const dappTransaction = stateStore.transaction.get(
 			transaction.asset.inTrasfer.dappId
 		);
 		address = dappTransaction.senderId;
 	}
 	if (
-		transaction.type === transactionTypes.SEND ||
-		transaction.type === transactionTypes.OUT_TRANSFER
+		transaction.type === TRANSACTION_TYPES.SEND ||
+		transaction.type === TRANSACTION_TYPES.OUT_TRANSFER
 	) {
 		address = transaction.recipientId;
 	}
@@ -109,6 +109,15 @@ const updateRecipientRoundInformationWithAmountForTransaction = function(
 				.map(data => stateStore.round.add(data));
 		}
 	}
+};
+
+const reverse = function(diff) {
+	const copyDiff = diff.slice();
+	for (let i = 0; i < copyDiff.length; i++) {
+		const math = copyDiff[i][0] === '-' ? '+' : '-';
+		copyDiff[i] = math + copyDiff[i].slice(1);
+	}
+	return copyDiff;
 };
 
 module.exports = {
