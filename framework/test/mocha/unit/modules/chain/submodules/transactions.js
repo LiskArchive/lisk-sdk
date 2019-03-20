@@ -23,18 +23,10 @@ const {
 const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 const modulesLoader = require('../../../../common/modules_loader');
 const AccountLogic = require('../../../../../../src/modules/chain/logic/account.js');
-const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction.js');
+const TransactionLogic = require('../../../../../../src/modules/chain/logic/init_transaction.js');
 const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates.js');
 const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts.js');
 const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader.js');
-const VoteLogic = require('../../../../../../src/modules/chain/logic/vote.js');
-const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer.js');
-const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate.js');
-const SignatureLogic = require('../../../../../../src/modules/chain/logic/signature.js');
-const MultisignatureLogic = require('../../../../../../src/modules/chain/logic/multisignature.js');
-const DappLogic = require('../../../../../../src/modules/chain/logic/dapp.js');
-const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_transfer.js');
-const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer.js');
 
 const TransactionModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transactions.js'

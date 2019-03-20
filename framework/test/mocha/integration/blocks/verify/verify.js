@@ -26,7 +26,9 @@ const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
 const slots = require('../../../../../src/modules/chain/helpers/slots.js');
-const initTransaction = require('../../../../../src/modules/chain/helpers/init_transaction.js');
+const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction.js');
+
+
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
@@ -34,6 +36,7 @@ const blockVersion = require('../../../../../src/modules/chain/logic/block_versi
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
+const initTransaction = new InitTransaction();
 
 const previousBlock = {
 	blockSignature:
@@ -142,7 +145,7 @@ function createBlock(
 			.update(passphrase, 'utf8')
 			.digest()
 	);
-	transactions = transactions.map(initTransaction);
+	transactions = transactions.map(initTransaction.dbRead);
 	blocksModule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
 		keypair,
