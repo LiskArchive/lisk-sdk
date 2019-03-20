@@ -253,11 +253,7 @@ class Application {
 
 		registerProcessHooks(this);
 
-		this.controller = new Controller(
-			this.label,
-			this.config.components,
-			this.logger
-		);
+		this.controller = new Controller(this.label, this.config, this.logger);
 		return this.controller.load(this.getModules());
 	}
 

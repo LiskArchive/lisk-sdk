@@ -28,25 +28,32 @@ class Controller {
 	 * Controller responsible to run the application
 	 *
 	 * @param {string} appLabel - Application label
-	 * @param {Object} componentConfig - Configurations for components
+	 * @param {Object} config - Controller configurations
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
 	 */
-	constructor(appLabel, componentConfig, logger) {
+	constructor(appLabel, config, logger) {
 		this.logger = logger;
 		this.appLabel = appLabel;
 		this.logger.info('Initializing controller');
 
-		this.componentConfig = componentConfig;
+		const { components, ...rest } = config;
+		this.componentConfig = components;
+
+		const dirs = systemDirs(this.appLabel);
+		this.config = {
+			dirs,
+			socketsPath: {
+				root: `unix://${dirs.sockets}`,
+				pub: `unix://${dirs.sockets}/lisk_pub.sock`,
+				sub: `unix://${dirs.sockets}/lisk_sub.sock`,
+				rpc: `unix://${dirs.sockets}/lisk_rpc.sock`,
+			},
+			...rest,
+		};
+
 		this.modules = {};
 		this.channel = null; // Channel for controller
 		this.bus = null;
-		this.config = { dirs: systemDirs(this.appLabel) };
-		this.socketsPath = {
-			root: `unix://${this.config.dirs.sockets}`,
-			pub: `unix://${this.config.dirs.sockets}/bus_pub.sock`,
-			sub: `unix://${this.config.dirs.sockets}/bus_sub.sock`,
-			rpc: `unix://${this.config.dirs.sockets}/bus_rpc.sock`,
-		};
 	}
 
 	/**
@@ -113,10 +120,11 @@ class Controller {
 				delimiter: ':',
 				maxListeners: 1000,
 			},
-			this.logger
+			this.logger,
+			this.config
 		);
 
-		await this.bus.setup(this.socketsPath);
+		await this.bus.setup();
 
 		this.channel = new InMemoryChannel(
 			'lisk',
@@ -145,9 +153,18 @@ class Controller {
 		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of Object.keys(modules)) {
 			const { klass, options } = modules[alias];
+
 			if (options.loadAsChildProcess) {
-				// eslint-disable-next-line no-await-in-loop
-				await this._loadChildProcessModule(alias, klass, options);
+				if (this.config.ipc.enabled) {
+					// eslint-disable-next-line no-await-in-loop
+					await this._loadChildProcessModule(alias, klass, options);
+				} else {
+					this.logger.warn(
+						`IPC is disabled. ${alias} will be loaded in-memory.`
+					);
+					// eslint-disable-next-line no-await-in-loop
+					await this._loadInMemoryModule(alias, klass, options);
+				}
 			} else {
 				// eslint-disable-next-line no-await-in-loop
 				await this._loadInMemoryModule(alias, klass, options);
@@ -209,7 +226,7 @@ class Controller {
 
 		const parameters = [
 			modulePath,
-			JSON.stringify({ ...options, socketsPath: this.socketsPath }),
+			JSON.stringify({ config: this.config, moduleOptions: options }),
 		];
 
 		const child = child_process.fork(program, parameters);

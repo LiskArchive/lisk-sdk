@@ -12,6 +12,7 @@ try {
 	// To run multiple applications for same network for integration tests
 	// TODO: Refactored the way to find unique name for the app
 	const app = new Application(appName, config.genesisBlock, config.constants, {
+		ipc: config.ipc,
 		components: {
 			logger: {
 				filename: config.logFileName,

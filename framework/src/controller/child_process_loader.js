@@ -1,13 +1,13 @@
 // Parameters passed by `child_process.fork(_, parameters)`
 const modulePath = process.argv[2];
-const moduleOptions = JSON.parse(process.argv[3]);
+const { moduleOptions, config } = JSON.parse(process.argv[3]);
 
 // eslint-disable-next-line import/no-dynamic-require
 const Klass = require(modulePath);
 const { ChildProcessChannel } = require('./channels');
 
-const loadModule = async options => {
-	const module = new Klass(options);
+const loadModule = async () => {
+	const module = new Klass(moduleOptions);
 	const moduleAlias = module.constructor.alias;
 
 	const channel = new ChildProcessChannel(
@@ -16,7 +16,7 @@ const loadModule = async options => {
 		module.actions
 	);
 
-	await channel.registerToBus(options.socketsPath);
+	await channel.registerToBus(config.socketsPath);
 
 	channel.publish(`${moduleAlias}:registeredToBus`);
 	channel.publish(`${moduleAlias}:loading:started`);
@@ -26,4 +26,4 @@ const loadModule = async options => {
 	channel.publish(`${moduleAlias}:loading:finished`);
 };
 
-loadModule(moduleOptions);
+loadModule();

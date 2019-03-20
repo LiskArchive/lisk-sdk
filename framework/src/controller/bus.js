@@ -22,9 +22,10 @@ class Bus extends EventEmitter2 {
 	 * @param {Object} options - EventEmitter2 native options object
 	 * @see {@link https://github.com/EventEmitter2/EventEmitter2/blob/master/eventemitter2.d.ts|String}
 	 */
-	constructor(options, logger) {
+	constructor(options, logger, config) {
 		super(options);
 		this.logger = logger;
+		this.config = config;
 
 		// Hash map used instead of arrays for performance.
 		this.actions = {};
@@ -38,37 +39,41 @@ class Bus extends EventEmitter2 {
 	 * @async
 	 * @return {Promise.<void>}
 	 */
-	async setup(socketsPath) {
-		this.pubSocket = axon.socket('pub-emitter');
-		this.pubSocket.bind(socketsPath.pub);
+	async setup() {
+		if (this.config.ipc.enabled) {
+			this.pubSocket = axon.socket('pub-emitter');
+			this.pubSocket.bind(this.config.socketsPath.pub);
 
-		this.subSocket = axon.socket('sub-emitter');
-		this.subSocket.bind(socketsPath.sub);
+			this.subSocket = axon.socket('sub-emitter');
+			this.subSocket.bind(this.config.socketsPath.sub);
 
-		this.rpcSocket = axon.socket('rep');
-		this.rpcServer = new RPCServer(this.rpcSocket);
+			this.rpcSocket = axon.socket('rep');
+			this.rpcServer = new RPCServer(this.rpcSocket);
 
-		this.rpcServer.expose(
-			'registerChannel',
-			(moduleAlias, events, actions, options, cb) => {
-				this.registerChannel(moduleAlias, events, actions, options)
-					.then(() => cb(null))
+			this.rpcServer.expose(
+				'registerChannel',
+				(moduleAlias, events, actions, options, cb) => {
+					this.registerChannel(moduleAlias, events, actions, options)
+						.then(() => cb(null))
+						.catch(error => cb(error));
+				}
+			);
+
+			this.rpcServer.expose('invoke', (action, cb) => {
+				this.invoke(action)
+					.then(data => cb(null, data))
 					.catch(error => cb(error));
-			}
-		);
+			});
 
-		this.rpcServer.expose('invoke', (action, cb) => {
-			this.invoke(action)
-				.then(data => cb(null, data))
-				.catch(error => cb(error));
-		});
+			return new Promise((resolve, reject) => {
+				// TODO: wait for all sockets to be created
+				this.rpcSocket.once('bind', resolve);
+				this.rpcSocket.once('error', reject);
+				this.rpcSocket.bind(this.config.socketsPath.rpc);
+			});
+		}
 
-		return new Promise((resolve, reject) => {
-			// TODO: wait for all sockets to be created
-			this.rpcSocket.once('bind', resolve);
-			this.rpcSocket.once('error', reject);
-			this.rpcSocket.bind(socketsPath.rpc);
-		});
+		return true;
 	}
 
 	/**
@@ -175,8 +180,13 @@ class Bus extends EventEmitter2 {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
 
-		super.emit(eventName, eventValue); // Communicate throw event emitter
-		this.pubSocket.emit(eventName, eventValue); // Communicate throw unix socket
+		// Communicate throw event emitter
+		super.emit(eventName, eventValue);
+
+		// Communicate throw unix socket
+		if (this.config.ipc.enabled) {
+			this.pubSocket.emit(eventName, eventValue);
+		}
 	}
 
 	subscribe(eventName, cb) {
@@ -186,8 +196,13 @@ class Bus extends EventEmitter2 {
 			);
 		}
 
-		super.on(eventName, cb); // Communicate throw event emitter
-		this.subSocket.on(eventName, cb); // Communicate throw unix socket
+		// Communicate throw event emitter
+		super.on(eventName, cb);
+
+		// Communicate throw unix socket
+		if (this.config.ipc.enabled) {
+			this.subSocket.on(eventName, cb);
+		}
 	}
 
 	once(eventName, cb) {
@@ -197,9 +212,14 @@ class Bus extends EventEmitter2 {
 			);
 		}
 
-		super.once(eventName, cb); // Communicate throw event emitter
+		// Communicate throw event emitter
+		super.once(eventName, cb);
+
 		// TODO: make it `once` instead of `on`
-		this.subSocket.on(eventName, cb); // Communicate throw unix socket
+		// Communicate throw unix socket
+		if (this.config.ipc.enabled) {
+			this.subSocket.on(eventName, cb);
+		}
 	}
 
 	/**
