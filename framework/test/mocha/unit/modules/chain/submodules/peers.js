@@ -578,13 +578,9 @@ describe('peers', () => {
 	});
 
 	describe('calculateConsensus', () => {
-		let validActive;
-		let validMatched;
 		let calculateConsensusResult;
 
 		before(done => {
-			validActive = null;
-			validMatched = null;
 			calculateConsensusResult = null;
 			peersLogicMock.list = sinonSandbox.stub().returns([]);
 			done();
@@ -601,10 +597,7 @@ describe('peers', () => {
 				protocolVersion: '1.0',
 			};
 			channelMock.invoke.returns(status);
-			calculateConsensusResult = peers.calculateConsensus(
-				validActive,
-				validMatched
-			);
+			calculateConsensusResult = peers.calculateConsensus();
 			done();
 		});
 
@@ -665,131 +658,6 @@ describe('peers', () => {
 
 				it('should return consensus = 0', async () =>
 					expect(calculateConsensusResult).to.equal(0));
-			});
-		});
-
-		describe('when matched peers not passed and there are 100 active peers', () => {
-			let oneHundredActivePeers;
-			let broadhashes;
-
-			before(done => {
-				oneHundredActivePeers = _.range(100).map(() =>
-					generateRandomActivePeer()
-				);
-				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-				validActive = oneHundredActivePeers;
-				done();
-			});
-
-			afterEach(() => peersLogicMock.list.resetHistory());
-
-			after(done => {
-				validActive = null;
-				done();
-			});
-
-			describe('when non of active peers matches broadhash', () => {
-				before(() =>
-					oneHundredActivePeers.forEach((peer, index) => {
-						peer.broadhash = broadhashes.unmatchedBroadhashes[index];
-					})
-				);
-
-				it('should return consensus = 0', async () =>
-					expect(calculateConsensusResult).to.equal(0));
-			});
-
-			describe('when all of active peers matches broadhash', () => {
-				before(() =>
-					oneHundredActivePeers.forEach(peer => {
-						peer.broadhash = broadhashes.matchedBroadhash;
-					})
-				);
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when half of active peers matches broadhash', () => {
-				before(() =>
-					oneHundredActivePeers.forEach((peer, i) => {
-						peer.broadhash =
-							i < 50
-								? broadhashes.matchedBroadhash
-								: broadhashes.unmatchedBroadhashes[i];
-					})
-				);
-
-				it('should return consensus = 50', async () =>
-					expect(calculateConsensusResult).equal(50));
-			});
-		});
-
-		describe('when called with active and matched arguments', () => {
-			describe('when there are 10 active and 10 matched peers', () => {
-				before(done => {
-					validActive = _.range(10).map(generateRandomActivePeer);
-					validMatched = _.range(10).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are [MAX_PEERS] active and [MAX_PEERS] matched peers', () => {
-				before(done => {
-					validActive = _.range(MAX_PEERS).map(generateRandomActivePeer);
-					validMatched = _.range(MAX_PEERS).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are [MAX_PEERS] x 10 active and [MAX_PEERS] matched peers', () => {
-				before(done => {
-					validActive = _.range(10 * MAX_PEERS).map(generateRandomActivePeer);
-					validMatched = _.range(MAX_PEERS).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are [MAX_PEERS] active and [MAX_PEERS] x 10 matched peers', () => {
-				before(done => {
-					validActive = _.range(MAX_PEERS).map(generateRandomActivePeer);
-					validMatched = _.range(10 * MAX_PEERS).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are 50 active and 100 matched peers', () => {
-				before(done => {
-					validActive = _.range(50).map(generateRandomActivePeer);
-					validMatched = _.range(100).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are 100 active and 50 matched peers', () => {
-				before(done => {
-					validActive = _.range(100).map(generateRandomActivePeer);
-					validMatched = _.range(50).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 50', async () =>
-					expect(calculateConsensusResult).equal(50));
 			});
 		});
 	});

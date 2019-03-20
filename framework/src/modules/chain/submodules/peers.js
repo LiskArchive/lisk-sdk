@@ -511,18 +511,14 @@ Peers.prototype.getLastConsensus = function() {
 /**
  * Calculates consensus for as a ratio active to matched peers.
  *
- * @param {Array<Peer>}[active=peers list] active - Active peers (with connected state)
- * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as application broadhash
  * @returns {number} Consensus or undefined if config.forging.force = true
  */
-Peers.prototype.calculateConsensus = function(active, matched) {
-	active =
-		active ||
-		library.logic.peers
-			.list(true)
-			.filter(peer => peer.state === Peer.STATE.CONNECTED);
+Peers.prototype.calculateConsensus = function() {
+	const active = library.logic.peers
+		.list(true)
+		.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	const { broadhash } = library.channel.invoke('lisk:getApplicationState');
-	matched = matched || active.filter(peer => peer.broadhash === broadhash);
+	const matched = active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
 	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
