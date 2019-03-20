@@ -153,7 +153,7 @@ export class P2P extends EventEmitter {
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
 			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
-				this._handleGetAllPeersRequest(request);
+				this._handleGetPeersRequest(request);
 			}
 			// Re-emit the request for external use.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
@@ -508,38 +508,30 @@ export class P2P extends EventEmitter {
 		return selectRandomPeerSample(discoveredPeerList, count);
 	}
 
-	private _handleGetAllPeersRequest(request: P2PRequest): void {
+	private _handleGetPeersRequest(request: P2PRequest): void {
 		// TODO later: Remove fields that are specific to the current Lisk protocol.
+		const peers = this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE).map(
+			(peerInfo: P2PDiscoveredPeerInfo): ProtocolPeerInfo => {
+				const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
+
+				// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
+				return {
+					...peerInfoWithoutIp,
+					ip: ipAddress,
+					broadhash: peerInfoWithoutIp.broadhash
+						? (peerInfoWithoutIp.broadhash as string)
+						: '',
+					nonce: peerInfoWithoutIp.nonce
+						? (peerInfoWithoutIp.nonce as string)
+						: '',
+				};
+			},
+		);
 		const protocolPeerInfoList: ProtocolPeerInfoList = {
 			success: true,
-			peers: this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE)
-				.map(
-					(peerInfo: P2PDiscoveredPeerInfo): ProtocolPeerInfo | undefined => {
-						const peerDiscoveredInfo = peerInfo;
-
-						if (!peerDiscoveredInfo) {
-							return undefined;
-						}
-						const { ipAddress, ...peerInfoWithoutIp } = peerDiscoveredInfo;
-
-						// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
-						return {
-							...peerInfoWithoutIp,
-							ip: ipAddress,
-							broadhash: peerInfoWithoutIp.broadhash
-								? (peerInfoWithoutIp.broadhash as string)
-								: '',
-							nonce: peerInfoWithoutIp.nonce
-								? (peerInfoWithoutIp.nonce as string)
-								: '',
-						};
-					},
-				)
-				.filter(
-					(peerDetailedInfo: ProtocolPeerInfo | undefined) =>
-						!!peerDetailedInfo,
-				) as ReadonlyArray<ProtocolPeerInfo>,
+			peers,
 		};
+
 		request.end(protocolPeerInfoList);
 	}
 
