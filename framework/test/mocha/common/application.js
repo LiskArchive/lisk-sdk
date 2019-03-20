@@ -113,7 +113,6 @@ async function __init(sandbox, initScope) {
 				.then(async status => {
 					if (status) {
 						await storage.entities.Migration.applyAll();
-						await storage.entities.Migration.applyRunTime();
 					}
 				});
 

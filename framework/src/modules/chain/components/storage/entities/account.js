@@ -51,7 +51,6 @@ const sqlFiles = {
 	update: 'accounts/update.sql',
 	updateOne: 'accounts/update_one.sql',
 	delete: 'accounts/delete.sql',
-	resetUnconfirmedState: 'accounts/reset_unconfirmed_state.sql',
 	resetMemTables: 'accounts/reset_mem_tables.sql',
 	increaseFieldBy: 'accounts/increase_field_by.sql',
 	decreaseFieldBy: 'accounts/decrease_field_by.sql',
@@ -341,21 +340,6 @@ class ChainAccount extends AccountEntity {
 		return this.adapter.executeFile(
 			this.SQLs.delegateBlocksRewards,
 			parseFilters,
-			{},
-			tx
-		);
-	}
-
-	/**
-	 * Reset all unconfirmed states of accounts to confirmed states
-	 *
-	 * @param [tx] - Database transaction object
-	 * @returns {Promise.<*, Error>}
-	 */
-	resetUnconfirmedState(tx) {
-		return this.adapter.executeFile(
-			this.SQLs.resetUnconfirmedState,
-			{},
 			{},
 			tx
 		);

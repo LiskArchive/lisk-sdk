@@ -586,7 +586,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 				// This test will only start working after we remove the fillPool mechanism from the application
 				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('[feature/improve_transactions_processing_efficiency]should validate account data from sender after forging a block with transaction pool', done => {
+				it.skip('[UNCONFIRMED STATE REMOVAL] should validate account data from sender after forging a block with transaction pool', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,

@@ -147,8 +147,8 @@ describe('system test (blocks) - chain/applyBlock', () => {
 						}
 					);
 				});
-
-				it('should have pooled transactions in queued state', done => {
+				// eslint-disable-next-line
+				it.skip('[UNCONFIRMED STATE REMOVAL] should have pooled transactions in queued state', done => {
 					async.forEach(
 						[poolAccount3, poolAccount4],
 						(account, eachCb) => {
@@ -182,9 +182,6 @@ describe('system test (blocks) - chain/applyBlock', () => {
 										expect(accountRow.mem_accounts.username).to.eql(null);
 										expect(accountRow.mem_accounts.isDelegate).to.equal(0);
 									}
-
-									expect(accountRow.mem_accounts.u_username).to.equal(null);
-									expect(accountRow.mem_accounts.u_isDelegate).to.equal(0);
 									eachCb();
 								});
 						},
@@ -304,7 +301,8 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					);
 				});
 
-				it('should have pooled transactions in queued state', done => {
+				// eslint-disable-next-line
+				it.skip('UNCONFIRMED STATE REMOVAL] should have pooled transactions in queued state', done => {
 					async.forEach(
 						[poolAccount3, poolAccount4],
 						(account, eachCb) => {
