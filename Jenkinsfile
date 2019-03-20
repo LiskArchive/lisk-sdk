@@ -187,11 +187,11 @@ pipeline {
 					agent { node { label 'lisk-core' } }
 					steps {
 						setup()
-						run_test('functional:put')
+						run_mocha('functional:put')
 					}
 					post {
 						cleanup {
-							teardown('put')
+							teardown_mocha('put')
 						}
 					}
 				}
