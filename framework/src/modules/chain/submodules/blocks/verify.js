@@ -16,10 +16,10 @@
 
 const crypto = require('crypto');
 const async = require('async');
-const BlockReward = require('../../logic/block_reward.js');
-const slots = require('../../helpers/slots.js');
-const blockVersion = require('../../logic/block_version.js');
-const Bignum = require('../../helpers/bignum.js');
+const BlockReward = require('../../logic/block_reward');
+const slots = require('../../helpers/slots');
+const blockVersion = require('../../logic/block_version');
+const Bignum = require('../../helpers/bignum');
 
 let components;
 let modules;

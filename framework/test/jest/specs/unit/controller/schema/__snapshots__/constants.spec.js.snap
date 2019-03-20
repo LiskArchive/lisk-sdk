@@ -1,0 +1,354 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema/constants.js constants schema must match to the snapshot. 1`] = `
+Object {
+  "constants": Object {
+    "additionalProperties": false,
+    "id": "constants",
+    "properties": Object {
+      "ACTIVE_DELEGATES": Object {
+        "format": "oddInteger",
+        "min": 1,
+        "type": "number",
+      },
+      "ADDITIONAL_DATA": Object {
+        "properties": Object {
+          "MAX_LENGTH": Object {
+            "min": 1,
+            "type": "integer",
+          },
+          "MIN_LENGTH": Object {
+            "min": 1,
+            "type": "integer",
+          },
+        },
+        "required": Array [
+          "MIN_LENGTH",
+          "MAX_LENGTH",
+        ],
+        "type": "object",
+      },
+      "BLOCK_RECEIPT_TIMEOUT": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "BLOCK_SLOT_WINDOW": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "EPOCH_TIME": Object {
+        "format": "date-time",
+        "type": "string",
+      },
+      "EXPIRY_INTERVAL": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "FEES": Object {
+        "$ref": "fees",
+      },
+      "MAX_PAYLOAD_LENGTH": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MAX_PEERS": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MAX_SHARED_TRANSACTIONS": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MAX_TRANSACTIONS_PER_BLOCK": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MAX_VOTES_PER_ACCOUNT": Object {
+        "format": "maxVotesAccount",
+        "min": 1,
+        "type": "number",
+      },
+      "MAX_VOTES_PER_TRANSACTION": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MIN_BROADHASH_CONSENSUS": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MULTISIG_CONSTRAINTS": Object {
+        "$ref": "multisig",
+      },
+      "NETHASHES": Object {
+        "items": Object {
+          "format": "hex",
+          "type": "string",
+        },
+        "type": "array",
+      },
+      "NORMALIZER": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "REWARDS": Object {
+        "$ref": "rewards",
+      },
+      "TOTAL_AMOUNT": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "TRANSACTION_TYPES": Object {
+        "$ref": "transactionTypes",
+      },
+      "UNCONFIRMED_TRANSACTION_TIMEOUT": Object {
+        "min": 1,
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "ACTIVE_DELEGATES",
+      "BLOCK_SLOT_WINDOW",
+      "ADDITIONAL_DATA",
+      "BLOCK_RECEIPT_TIMEOUT",
+      "EPOCH_TIME",
+      "FEES",
+      "MAX_PAYLOAD_LENGTH",
+      "MAX_PEERS",
+      "MAX_SHARED_TRANSACTIONS",
+      "MAX_TRANSACTIONS_PER_BLOCK",
+      "MAX_VOTES_PER_TRANSACTION",
+      "MAX_VOTES_PER_ACCOUNT",
+      "MIN_BROADHASH_CONSENSUS",
+      "MULTISIG_CONSTRAINTS",
+      "NETHASHES",
+      "NORMALIZER",
+      "REWARDS",
+      "TOTAL_AMOUNT",
+      "TRANSACTION_TYPES",
+      "UNCONFIRMED_TRANSACTION_TIMEOUT",
+      "EXPIRY_INTERVAL",
+    ],
+    "type": "object",
+  },
+  "fees": Object {
+    "additionalProperties": false,
+    "id": "fees",
+    "properties": Object {
+      "DAPP_DEPOSIT": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "DAPP_REGISTRATION": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "DAPP_WITHDRAWAL": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "DELEGATE": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "MULTISIGNATURE": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "SECOND_SIGNATURE": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "SEND": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "VOTE": Object {
+        "format": "amount",
+        "type": "string",
+      },
+    },
+    "required": Array [
+      "SEND",
+      "VOTE",
+      "SECOND_SIGNATURE",
+      "DELEGATE",
+      "MULTISIGNATURE",
+      "DAPP_REGISTRATION",
+      "DAPP_WITHDRAWAL",
+      "DAPP_DEPOSIT",
+    ],
+    "type": "object",
+  },
+  "keysgroupConstraints": Object {
+    "additionalProperties": false,
+    "id": "keysgroup",
+    "properties": Object {
+      "MAX_ITEMS": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MIN_ITEMS": Object {
+        "min": 1,
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "MIN_ITEMS",
+      "MAX_ITEMS",
+    ],
+    "type": "object",
+  },
+  "lifetimeConstraints": Object {
+    "additionalProperties": false,
+    "id": "lifetime",
+    "properties": Object {
+      "MAXIMUM": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MINIMUM": Object {
+        "min": 1,
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "MINIMUM",
+      "MAXIMUM",
+    ],
+    "type": "object",
+  },
+  "minConstraints": Object {
+    "additionalProperties": false,
+    "id": "min",
+    "properties": Object {
+      "MAXIMUM": Object {
+        "format": "keysgroupLimit",
+        "min": 1,
+        "type": "number",
+      },
+      "MINIMUM": Object {
+        "min": 1,
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "MINIMUM",
+      "MAXIMUM",
+    ],
+    "type": "object",
+  },
+  "multisig": Object {
+    "additionalProperties": false,
+    "id": "multisig",
+    "properties": Object {
+      "KEYSGROUP": Object {
+        "$ref": "keysgroup",
+      },
+      "LIFETIME": Object {
+        "$ref": "lifetime",
+      },
+      "MIN": Object {
+        "$ref": "min",
+      },
+    },
+    "required": Array [
+      "MIN",
+      "LIFETIME",
+      "KEYSGROUP",
+    ],
+    "type": "object",
+  },
+  "rewards": Object {
+    "additionalProperties": false,
+    "id": "rewards",
+    "properties": Object {
+      "DISTANCE": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "MILESTONES": Object {
+        "items": Object {
+          "format": "amount",
+          "type": "string",
+        },
+        "type": "array",
+      },
+      "OFFSET": Object {
+        "min": 1,
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "MILESTONES",
+      "OFFSET",
+      "DISTANCE",
+    ],
+    "type": "object",
+  },
+  "transactionTypes": Object {
+    "additionalProperties": false,
+    "id": "transactionTypes",
+    "properties": Object {
+      "DAPP": Object {
+        "enum": Array [
+          5,
+        ],
+        "type": "integer",
+      },
+      "DELEGATE": Object {
+        "enum": Array [
+          2,
+        ],
+        "type": "integer",
+      },
+      "IN_TRANSFER": Object {
+        "menum": Array [
+          6,
+        ],
+        "type": "integer",
+      },
+      "MULTI": Object {
+        "enum": Array [
+          4,
+        ],
+        "type": "integer",
+      },
+      "OUT_TRANSFER": Object {
+        "enum": Array [
+          7,
+        ],
+        "type": "integer",
+      },
+      "SEND": Object {
+        "enum": Array [
+          0,
+        ],
+        "type": "integer",
+      },
+      "SIGNATURE": Object {
+        "enum": Array [
+          1,
+        ],
+        "type": "integer",
+      },
+      "VOTE": Object {
+        "enum": Array [
+          3,
+        ],
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "SEND",
+      "SIGNATURE",
+      "DELEGATE",
+      "VOTE",
+      "MULTI",
+      "DAPP",
+      "IN_TRANSFER",
+      "OUT_TRANSFER",
+    ],
+    "type": "object",
+  },
+}
+`;

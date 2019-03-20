@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const Promise = require('bluebird');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -54,143 +54,141 @@ describe('cached endpoints', () => {
 		return cache.quit();
 	});
 
-	describe('@sequential tests', () => {
-		describe('GET /transactions', () => {
-			const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
+	describe('GET /transactions', () => {
+		const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 
-			it('cache transactions by the url and parameters when response is a success', async () => {
-				const params = {
-					senderId: accountFixtures.genesis.address,
-				};
+		it('cache transactions by the url and parameters when response is a success', async () => {
+			const params = {
+				senderId: accountFixtures.genesis.address,
+			};
 
-				return transactionsEndpoint.makeRequest(params, 200).then(res => {
-					return Promise.all(
-						[0, 10, 100].map(async delay => {
-							await Promise.delay(delay);
-							return cache.getJsonForKey(res.req.path);
-						})
-					).then(responses => {
-						expect(responses).to.deep.include(res.body);
-					});
-				});
-			});
-
-			it('should not cache if response is not a success', async () => {
-				const params = {
-					whateversenderId: accountFixtures.genesis.address,
-				};
-
-				return transactionsEndpoint.makeRequest(params, 400).then(res => {
-					expect(res)
-						.to.have.property('status')
-						.to.equal(400);
-					expect(res).to.have.nested.property('body.message');
-
-					return cache.getJsonForKey(res.req.path).then(response => {
-						expect(response).to.eql(null);
-					});
-				});
-			});
-		});
-
-		describe('GET /blocks', () => {
-			const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
-
-			it('cache blocks by the url and parameters when response is a success', async () => {
-				const params = {
-					height: '1',
-				};
-				let initialResponse = null;
-
-				return blocksEndpoint
-					.makeRequest(params, 200)
-					.then(res => {
-						initialResponse = res;
-						return Promise.all(
-							[0, 10, 100].map(delay => {
-								return Promise.delay(delay).then(() => {
-									return cache.getJsonForKey(res.req.path);
-								});
-							})
-						);
-					})
-					.then(responses => {
-						expect(responses).to.deep.include(initialResponse.body);
-					});
-			});
-
-			it('should not cache if response is not a success', async () => {
-				return blocksEndpoint
-					.makeRequest({ height: -100 }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'height');
+			return transactionsEndpoint.makeRequest(params, 200).then(res => {
+				return Promise.all(
+					[0, 10, 100].map(async delay => {
+						await Promise.delay(delay);
 						return cache.getJsonForKey(res.req.path);
 					})
-					.then(response => {
-						expect(response).to.eql(null);
-					});
-			});
-
-			it('should remove entry from cache on new block', async () => {
-				const params = {
-					height: 1,
-				};
-
-				let initialResponse = null;
-
-				return blocksEndpoint
-					.makeRequest(params, 200)
-					.then(res => {
-						initialResponse = res;
-						return Promise.all(
-							[0, 10, 100].map(delay => {
-								return Promise.delay(delay).then(() => {
-									return cache.getJsonForKey(res.req.path);
-								});
-							})
-						);
-					})
-					.then(responses => {
-						expect(responses).to.deep.include(initialResponse.body);
-					})
-					.then(() => {
-						return waitForBlocksPromise(1, null);
-					})
-					.then(() => {
-						return cache.getJsonForKey(initialResponse.req.path);
-					})
-					.then(result => {
-						expect(result).to.eql(null);
-					});
+				).then(responses => {
+					expect(responses).to.deep.include(res.body);
+				});
 			});
 		});
 
-		describe('GET /delegates', () => {
-			const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
+		it('should not cache if response is not a success', async () => {
+			const params = {
+				whateversenderId: accountFixtures.genesis.address,
+			};
 
-			it('should cache delegates when response is successful', async () => {
-				return delegatesEndpoint.makeRequest({}, 200).then(res => {
+			return transactionsEndpoint.makeRequest(params, 400).then(res => {
+				expect(res)
+					.to.have.property('status')
+					.to.equal(400);
+				expect(res).to.have.nested.property('body.message');
+
+				return cache.getJsonForKey(res.req.path).then(response => {
+					expect(response).to.eql(null);
+				});
+			});
+		});
+	});
+
+	describe('GET /blocks', () => {
+		const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
+
+		it('cache blocks by the url and parameters when response is a success', async () => {
+			const params = {
+				height: '1',
+			};
+			let initialResponse = null;
+
+			return blocksEndpoint
+				.makeRequest(params, 200)
+				.then(res => {
+					initialResponse = res;
 					return Promise.all(
 						[0, 10, 100].map(delay => {
 							return Promise.delay(delay).then(() => {
 								return cache.getJsonForKey(res.req.path);
 							});
 						})
-					).then(responses => {
-						expect(responses).to.deep.include(res.body);
-					});
+					);
+				})
+				.then(responses => {
+					expect(responses).to.deep.include(initialResponse.body);
+				});
+		});
+
+		it('should not cache if response is not a success', async () => {
+			return blocksEndpoint
+				.makeRequest({ height: -100 }, 400)
+				.then(res => {
+					expectSwaggerParamError(res, 'height');
+					return cache.getJsonForKey(res.req.path);
+				})
+				.then(response => {
+					expect(response).to.eql(null);
+				});
+		});
+
+		it('should remove entry from cache on new block', async () => {
+			const params = {
+				height: 1,
+			};
+
+			let initialResponse = null;
+
+			return blocksEndpoint
+				.makeRequest(params, 200)
+				.then(res => {
+					initialResponse = res;
+					return Promise.all(
+						[0, 10, 100].map(delay => {
+							return Promise.delay(delay).then(() => {
+								return cache.getJsonForKey(res.req.path);
+							});
+						})
+					);
+				})
+				.then(responses => {
+					expect(responses).to.deep.include(initialResponse.body);
+				})
+				.then(() => {
+					return waitForBlocksPromise(1, null);
+				})
+				.then(() => {
+					return cache.getJsonForKey(initialResponse.req.path);
+				})
+				.then(result => {
+					expect(result).to.eql(null);
+				});
+		});
+	});
+
+	describe('GET /delegates', () => {
+		const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
+
+		it('should cache delegates when response is successful', async () => {
+			return delegatesEndpoint.makeRequest({}, 200).then(res => {
+				return Promise.all(
+					[0, 10, 100].map(delay => {
+						return Promise.delay(delay).then(() => {
+							return cache.getJsonForKey(res.req.path);
+						});
+					})
+				).then(responses => {
+					expect(responses).to.deep.include(res.body);
 				});
 			});
+		});
 
-			it('should not cache delegates when response is unsuccessful', async () => {
-				const params = {
-					sort: 'invalidValue',
-				};
+		it('should not cache delegates when response is unsuccessful', async () => {
+			const params = {
+				sort: 'invalidValue',
+			};
 
-				return delegatesEndpoint.makeRequest(params, 400).then(res => {
-					return cache.getJsonForKey(res.req.path).then(response => {
-						expect(response).to.not.exist;
-					});
+			return delegatesEndpoint.makeRequest(params, 400).then(res => {
+				return cache.getJsonForKey(res.req.path).then(response => {
+					expect(response).to.not.exist;
 				});
 			});
 		});

@@ -23,14 +23,16 @@ const application = require('../../../../common/application');
 const randomUtil = require('../../../../common/utils/random');
 const modulesLoader = require('../../../../common/modules_loader');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const diff = require('../../../../../../src/modules/chain/helpers/diff');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
 
 const Vote = rewire('../../../../../../src/modules/chain/logic/vote');
 
-const { FEES, MAX_VOTES_PER_TRANSACTION } = __testContext.config.constants;
+const {
+	FEES,
+	MAX_VOTES_PER_TRANSACTION,
+	TRANSACTION_TYPES,
+} = __testContext.config.constants;
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 const validKeypair = ed.makeKeypair(
@@ -111,7 +113,7 @@ describe('vote', () => {
 	}
 
 	function checkAccountVotes(senderPublicKey, state, votes, action, done) {
-		votes = action === 'apply' ? votes : diff.reverse(votes);
+		votes = action === 'apply' ? votes : transactionLogic.reverse(votes);
 		accountsModule.getAccount(
 			{ publicKey: senderPublicKey },
 			(err, account) => {
@@ -150,6 +152,7 @@ describe('vote', () => {
 					schema: modulesLoader.scope.schema,
 					logic: {
 						account: scope.logic.account,
+						transaction: scope.logic.transaction,
 					},
 				});
 
@@ -165,7 +168,7 @@ describe('vote', () => {
 				});
 				transactionLogic = scope.logic.transaction;
 				accountLogic = scope.logic.account;
-				transactionLogic.attachAssetType(transactionTypes.VOTE, vote);
+				transactionLogic.attachAssetType(TRANSACTION_TYPES.VOTE, vote);
 				done();
 			}
 		);
@@ -184,7 +187,7 @@ describe('vote', () => {
 			schema: modulesLoader.scope.schema,
 		});
 		transfer.bind(voteBindings.account);
-		transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
+		transactionLogic.attachAssetType(TRANSACTION_TYPES.SEND, transfer);
 
 		const sendTransaction = {
 			type: 0,

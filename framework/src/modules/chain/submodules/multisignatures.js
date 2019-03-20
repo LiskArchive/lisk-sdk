@@ -15,8 +15,9 @@
 'use strict';
 
 const async = require('async');
-const Multisignature = require('../logic/multisignature.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const Multisignature = require('../logic/multisignature');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
 let modules;
@@ -34,7 +35,6 @@ __private.assetTypes = {};
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires helpers/transaction_types
  * @requires logic/multisignature
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
@@ -67,9 +67,9 @@ function Multisignatures(cb, scope) {
 	self = this;
 
 	__private.assetTypes[
-		transactionTypes.MULTI
+		TRANSACTION_TYPES.MULTI
 	] = library.logic.transaction.attachAssetType(
-		transactionTypes.MULTI,
+		TRANSACTION_TYPES.MULTI,
 		library.logic.multisignature
 	);
 
@@ -304,7 +304,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 		}
 
 		// Process signature for multisignature account creation transaction
-		if (transaction.type === transactionTypes.MULTI) {
+		if (transaction.type === TRANSACTION_TYPES.MULTI) {
 			return __private.processSignatureForMultisignatureAccountCreation(
 				signature,
 				transaction,
@@ -410,7 +410,7 @@ Multisignatures.prototype.onBind = function(scope) {
 		transactions: scope.modules.transactions,
 	};
 
-	__private.assetTypes[transactionTypes.MULTI].bind(scope.modules.accounts);
+	__private.assetTypes[TRANSACTION_TYPES.MULTI].bind(scope.modules.accounts);
 };
 
 /**

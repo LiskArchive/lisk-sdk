@@ -17,10 +17,10 @@
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
-const Bignum = require('../helpers/bignum.js');
-const slots = require('../helpers/slots.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const Bignum = require('../helpers/bignum');
+const slots = require('../helpers/slots');
 
+const { TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
 const POSTGRESQL_BIGINT_MAX_VALUE = '9223372036854775807';
 const __private = {};
@@ -428,7 +428,7 @@ class Transaction {
 		// Check if sender account has second signature enabled.
 		// Abort if registering again.
 		if (
-			transaction.type === transactionTypes.SIGNATURE &&
+			transaction.type === TRANSACTION_TYPES.SIGNATURE &&
 			sender.secondSignature
 		) {
 			return setImmediate(cb, 'Sender already has second signature enabled');
@@ -1299,6 +1299,23 @@ class Transaction {
 		return transaction;
 	}
 	/* eslint-enable class-methods-use-this */
+
+	/**
+	 * Changes operation sign.
+	 *
+	 * @param {Array} diff
+	 * @returns {Array} Reverse sign
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	reverse(diff) {
+		const copyDiff = diff.slice();
+		for (let i = 0; i < copyDiff.length; i++) {
+			const math = copyDiff[i][0] === '-' ? '+' : '-';
+			copyDiff[i] = math + copyDiff[i].slice(1);
+		}
+		return copyDiff;
+	}
 }
 
 // TODO: The below functions should be converted into static functions,

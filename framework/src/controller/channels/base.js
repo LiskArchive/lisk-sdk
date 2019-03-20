@@ -1,15 +1,10 @@
 const Event = require('../event');
 const Action = require('../action');
+const { INTERNAL_EVENTS } = require('./base/constants');
 
 const _eventsList = new WeakMap();
 const _actionsList = new WeakMap();
 const _actions = new WeakMap();
-
-const internalEvents = [
-	'registeredToBus',
-	'loading:started',
-	'loading:finished',
-];
 
 /**
  * BaseChannel class which used as reference to implement others channels for bus to module communication
@@ -36,11 +31,13 @@ class BaseChannel {
 		this.moduleAlias = moduleAlias;
 		this.options = options;
 
+		const eventList = options.skipInternalEvents
+			? events
+			: [...events, ...INTERNAL_EVENTS];
+
 		_eventsList.set(
 			this,
-			(options.skipInternalEvents ? events : internalEvents.concat(events)).map(
-				eventName => new Event(`${this.moduleAlias}:${eventName}`)
-			)
+			eventList.map(eventName => new Event(`${this.moduleAlias}:${eventName}`))
 		);
 
 		_actionsList.set(

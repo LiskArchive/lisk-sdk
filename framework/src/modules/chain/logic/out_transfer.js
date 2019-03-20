@@ -14,11 +14,10 @@
 
 'use strict';
 
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
-const { FEES } = global.constants;
+const { FEES, TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
 
 const __scope = {};
@@ -131,7 +130,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 	__scope.components.storage.entities.Transaction.isPersisted(
 		{
 			id: transaction.asset.outTransfer.dappId,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		},
 		{}
 	)
@@ -158,7 +157,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 
 			return __scope.components.storage.entities.Transaction.isPersisted({
 				id: transaction.asset.outTransfer.transactionId,
-				type: transactionTypes.OUT_TRANSFER,
+				type: TRANSACTION_TYPES.OUT_TRANSFER,
 			})
 				.then(isOutTransferPersisted => {
 					if (isOutTransferPersisted) {

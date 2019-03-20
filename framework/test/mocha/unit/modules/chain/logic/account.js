@@ -15,12 +15,12 @@
 'use strict';
 
 const rewire = require('rewire');
-const ed = require('../../../../../../src/modules/chain/helpers/ed.js');
-const application = require('../../../../common/application.js');
+const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const application = require('../../../../common/application');
 const modulesLoader = require('../../../../common/modules_loader');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
-const Account = rewire('../../../../../../src/modules/chain/logic/account.js');
+const Account = rewire('../../../../../../src/modules/chain/logic/account');
 
 const { ACTIVE_DELEGATES } = global.constants;
 

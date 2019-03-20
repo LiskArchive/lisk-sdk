@@ -6,8 +6,6 @@ const EventEmitterChannel = require('./channels/event_emitter');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 
-/* eslint-disable no-underscore-dangle */
-
 const validateModuleSpec = moduleSpec => {
 	assert(moduleSpec.constructor.alias, 'Module alias is required.');
 	assert(moduleSpec.constructor.info.name, 'Module name is required.');
@@ -75,7 +73,7 @@ class Controller {
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
 
-		this.channel.publish('lisk:ready', {});
+		this.channel.publish('lisk:ready');
 	}
 
 	/**
@@ -174,8 +172,7 @@ class Controller {
 			moduleAlias,
 			module.events,
 			module.actions,
-			this.bus,
-			{}
+			this.bus
 		);
 
 		this.modulesChannels[moduleAlias] = channel;
@@ -193,11 +190,11 @@ class Controller {
 		);
 	}
 
-	async unloadModules(modules = undefined) {
+	async unloadModules(modules = Object.keys(this.modules)) {
 		// To perform operations in sequence and not using bluebird
 
 		// eslint-disable-next-line no-restricted-syntax
-		for (const alias of modules || Object.keys(this.modules)) {
+		for (const alias of modules) {
 			// eslint-disable-next-line no-await-in-loop
 			await this.modules[alias].unload();
 			delete this.modules[alias];
