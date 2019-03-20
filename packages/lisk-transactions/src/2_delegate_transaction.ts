@@ -18,9 +18,9 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { DELEGATE_FEE } from './constants';
-import { TransactionError, TransactionMultiError } from './errors';
+import { convertToTransactionError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
-import { CreateBaseTransactionInput, validator } from './utils';
+import { validator } from './utils';
 
 const TRANSACTION_DELEGATE_TYPE = 2;
 
@@ -29,22 +29,6 @@ export interface DelegateAsset {
 		readonly username: string;
 	};
 }
-
-export const delegateAssetTypeSchema = {
-	type: 'object',
-	required: ['delegate'],
-	properties: {
-		delegate: {
-			type: 'object',
-			required: ['username'],
-			properties: {
-				username: {
-					type: 'string',
-				},
-			},
-		},
-	},
-};
 
 export const delegateAssetFormatSchema = {
 	type: 'object',
@@ -65,36 +49,16 @@ export const delegateAssetFormatSchema = {
 	},
 };
 
-export interface CreateDelegateRegistrationInput {
-	readonly username: string;
-}
-
-export type RegisterDelegateInput = CreateBaseTransactionInput &
-	CreateDelegateRegistrationInput;
-
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
 	public readonly containsUniqueData: boolean;
 
-	public constructor(tx: TransactionJSON) {
-		super(tx);
-		const typeValid = validator.validate(delegateAssetTypeSchema, tx.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							tx.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, [
-				...errors,
-			]);
-		}
-		this.asset = tx.asset as DelegateAsset;
+	public constructor(rawTransaction: unknown) {
+		super(rawTransaction);
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
+		this.asset = (tx.asset || { delegate: {} }) as DelegateAsset;
 		this.containsUniqueData = true;
 	}
 
@@ -143,19 +107,21 @@ export class DelegateTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(delegateAssetFormatSchema, this.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+		const errors = convertToTransactionError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_DELEGATE_TYPE) {
-			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+			errors.push(
+				new TransactionError(
+					'Invalid type',
+					this.id,
+					'.type',
+					this.type,
+					TRANSACTION_DELEGATE_TYPE,
+				),
+			);
 		}
 
 		if (!this.amount.eq(0)) {
@@ -164,6 +130,8 @@ export class DelegateTransaction extends BaseTransaction {
 					'Amount must be zero for delegate registration transaction',
 					this.id,
 					'.amount',
+					this.amount.toString(),
+					'0',
 				),
 			);
 		}
@@ -174,13 +142,20 @@ export class DelegateTransaction extends BaseTransaction {
 					`Fee must be equal to ${DELEGATE_FEE}`,
 					this.id,
 					'.fee',
+					this.fee.toString(),
+					DELEGATE_FEE,
 				),
 			);
 		}
 
 		if (this.recipientId) {
 			errors.push(
-				new TransactionError('Invalid recipient', this.id, '.recipientId'),
+				new TransactionError(
+					'RecipientId is expected to be undefined',
+					this.id,
+					'.recipientId',
+					this.recipientId,
+				),
 			);
 		}
 

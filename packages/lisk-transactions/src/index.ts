@@ -29,7 +29,7 @@ import { OutTransferTransaction } from './7_out_transfer_transaction';
 import { BaseTransaction } from './base_transaction';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
-import { TransactionError, TransactionMultiError } from './errors';
+import { TransactionError } from './errors';
 import { Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import {
@@ -101,7 +101,6 @@ export {
 	TransactionResponse,
 	TransactionJSON,
 	TransactionError,
-	TransactionMultiError,
 	constants,
 	exposedUtils as utils,
 };

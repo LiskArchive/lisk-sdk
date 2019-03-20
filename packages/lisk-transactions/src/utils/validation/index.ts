@@ -28,6 +28,7 @@ export {
 	isNumberString,
 	stringEndsWith,
 	isUnique,
+	isValidNumber,
 } from './validation';
 export { validateTransaction } from './validate_transaction';
 export { validator } from './validator';

@@ -49,7 +49,7 @@ describe('Delegate registration transaction class', () => {
 			expect(validTestTransaction.asset.delegate.username).to.eql('0x0');
 		});
 
-		it('should throw TransactionMultiError when asset is not valid string', async () => {
+		it('should not throw when asset is not valid string', async () => {
 			const invalidDelegateTransactionData = {
 				...validDelegateTransaction,
 				asset: {
@@ -60,7 +60,7 @@ describe('Delegate registration transaction class', () => {
 			};
 			expect(
 				() => new DelegateTransaction(invalidDelegateTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 

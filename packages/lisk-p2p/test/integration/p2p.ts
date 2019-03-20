@@ -2,12 +2,18 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
+import {
+	P2PPeerSelectionForSendRequest,
+	P2PNodeInfo,
+	P2PDiscoveredPeerInfo,
+	P2PPeerSelectionForConnection,
+} from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
-		...Array(NETWORK_PEER_COUNT).keys(),
+		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
 	const NO_PEERS_FOUND_ERROR = `Request failed due to no peers found in peer selection`;
 
@@ -25,7 +31,9 @@ describe('Integration tests for P2P library', () => {
 						wsPort: nodePort,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.0',
+						version: '1.0.1',
+						protocolVersion: '1.0.1',
+						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
 						broadhash:
@@ -72,7 +80,7 @@ describe('Integration tests for P2P library', () => {
 		const DISCOVERY_INTERVAL = 200;
 
 		beforeEach(async () => {
-			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
 				const seedPeers = [
 					{
@@ -94,7 +102,9 @@ describe('Integration tests for P2P library', () => {
 						wsPort: NETWORK_START_PORT + index,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.0',
+						minVersion: '1.0.1',
+						version: '1.0.1',
+						protocolVersion: '1.0.1',
 						os: platform(),
 						height: 0,
 						broadhash:
@@ -304,7 +314,7 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Fully connected network: Nodes are started gradually, one at a time. The seedPeers list of each node contains the previously launched node', () => {
 		beforeEach(async () => {
-			p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
 				const seedPeers =
 					index === 0
@@ -326,7 +336,9 @@ describe('Integration tests for P2P library', () => {
 						wsPort: NETWORK_START_PORT + index,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.0',
+						version: '1.0.1',
+						protocolVersion: '1.0.1',
+						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
 						broadhash:
@@ -669,6 +681,210 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
+	describe('Connected network: User custom selection algorithm is passed to each node', () => {
+		const DISCOVERY_INTERVAL = 200;
+		// Custom selection function that finds peers having common values for modules field for example.
+		const peerSelectionForSendRequest: P2PPeerSelectionForSendRequest = (
+			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+			nodeInfo?: P2PNodeInfo,
+			_numOfPeer?: number,
+		) => {
+			const filteredPeers = peersList.filter(peer => {
+				if (nodeInfo && nodeInfo.height <= peer.height) {
+					const nodesModules = nodeInfo.modules
+						? (nodeInfo.modules as ReadonlyArray<string>)
+						: undefined;
+					const peerModules = peer.modules
+						? (peer.modules as ReadonlyArray<string>)
+						: undefined;
+
+					if (
+						nodesModules &&
+						peerModules &&
+						nodesModules.filter(value => peerModules.includes(value)).length > 0
+					) {
+						return true;
+					}
+				}
+
+				return false;
+			});
+
+			// In case there are no peers with same modules or less than 30% of the peers are selected then use only height to select peers
+			if (
+				filteredPeers.length === 0 ||
+				(filteredPeers.length / peersList.length) * 100 < 30
+			) {
+				return peersList.filter(
+					peer => peer.height >= (nodeInfo ? nodeInfo.height : 0),
+				);
+			}
+
+			return filteredPeers;
+		};
+		// Custom Peer selection for connection that returns all the peers
+		const peerSelectionForConnection: P2PPeerSelectionForConnection = (
+			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+		) => peersList;
+
+		beforeEach(async () => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+				// Each node will have the previous node in the sequence as a seed peer except the first node.
+				const seedPeers =
+					index === 0
+						? []
+						: [
+								{
+									ipAddress: '127.0.0.1',
+									wsPort:
+										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
+								},
+						  ];
+
+				return new P2P({
+					blacklistedPeers: [],
+					connectTimeout: 5000,
+					peerSelectionForSendRequest,
+					peerSelectionForConnection,
+					discoveryInterval: DISCOVERY_INTERVAL,
+					seedPeers,
+					wsEngine: 'ws',
+					nodeInfo: {
+						wsPort: NETWORK_START_PORT + index,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.1',
+						protocolVersion: '1.0.1',
+						os: platform(),
+						height: 1000 + index,
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: 'O2wTkjqplHII5wPv',
+						modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
+					},
+				});
+			});
+
+			// Launch nodes one at a time with a delay between each launch.
+			for (const p2p of p2pNodeList) {
+				await p2p.start();
+				await wait(100);
+			}
+			await wait(100);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+		});
+
+		it('should start all the nodes with custom selection functions without fail', async () => {
+			p2pNodeList.forEach(p2p =>
+				expect(p2p).to.have.property('isActive', true),
+			);
+		});
+
+		describe('Peer Discovery', () => {
+			it('should run peer discovery successfully', async () => {
+				p2pNodeList.forEach(p2p => {
+					const connectedPeers = p2p.getNetworkStatus().connectedPeers;
+
+					expect(p2p.isActive).to.be.true;
+					expect(connectedPeers.length).to.gt(1);
+				});
+			});
+		});
+
+		describe('P2P.request', () => {
+			beforeEach(async () => {
+				p2pNodeList.forEach(async p2p => {
+					// Collect port numbers to check which peer handled which request.
+					p2p.on('requestReceived', request => {
+						request.end({
+							nodePort: p2p.nodeInfo.wsPort,
+							requestProcedure: request.procedure,
+							requestData: request.data,
+						});
+					});
+				});
+			});
+
+			it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const response = await firstP2PNode.request({
+					procedure: 'foo',
+					data: 'bar',
+				});
+
+				expect(response).to.have.property('data');
+				expect(response.data)
+					.to.have.property('nodePort')
+					.which.is.a('number');
+				expect(response.data)
+					.to.have.property('requestProcedure')
+					.which.is.a('string');
+				expect(response.data)
+					.to.have.property('requestData')
+					.which.is.equal('bar');
+			});
+		});
+		describe('P2P.send', () => {
+			let collectedMessages: Array<any> = [];
+
+			beforeEach(async () => {
+				collectedMessages = [];
+				p2pNodeList.forEach(async p2p => {
+					p2p.on('messageReceived', message => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							message,
+						});
+					});
+				});
+			});
+
+			it('should send a message to a subset of peers within the network; should reach multiple peers with even distribution', async () => {
+				const TOTAL_SENDS = 100;
+				const firstP2PNode = p2pNodeList[0];
+				const nodePortToMessagesMap: any = {};
+
+				const expectedAverageMessagesPerNode = TOTAL_SENDS;
+				const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
+				const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
+
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					firstP2PNode.send({ event: 'bar', data: i });
+				}
+
+				await wait(100);
+
+				collectedMessages.forEach((receivedMessageData: any) => {
+					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+					}
+					nodePortToMessagesMap[receivedMessageData.nodePort].push(
+						receivedMessageData,
+					);
+				});
+
+				Object.values(nodePortToMessagesMap).forEach(
+					(receivedMessages: any) => {
+						expect(receivedMessages).to.be.an('array');
+						expect(receivedMessages.length).to.be.greaterThan(
+							expectedMessagesLowerBound,
+						);
+						expect(receivedMessages.length).to.be.lessThan(
+							expectedMessagesUpperBound,
+						);
+					},
+				);
+			});
+		});
+	});
+
 	describe('Partially connected network of 4 nodes: All nodes launch at the same time. The custom fields that are passed in nodeinfo is captured by other nodes.', () => {
 		const DISCOVERY_INTERVAL = 200;
 
@@ -695,7 +911,9 @@ describe('Integration tests for P2P library', () => {
 						wsPort: NETWORK_START_PORT + index,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.0',
+						version: '1.0.1',
+						protocolVersion: '1.0.1',
+						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
 						broadhash:

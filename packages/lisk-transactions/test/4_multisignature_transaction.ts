@@ -14,6 +14,7 @@
  */
 import { expect } from 'chai';
 import { MULTISIGNATURE_FEE } from '../src/constants';
+import { SignatureObject } from '../src/create_signature_object';
 import { MultisignatureTransaction } from '../src/4_multisignature_transaction';
 import { Account, TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
@@ -21,6 +22,7 @@ import { addTransactionFields, MockStateStore as store } from './helpers';
 import {
 	validMultisignatureAccount,
 	validMultisignatureRegistrationTransaction,
+	validMultisignatureRegistrationTransactionNoSigs,
 	validTransaction,
 } from '../fixtures';
 
@@ -79,6 +81,10 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
+		it('should set _multisignatureStatus to PENDING', async () => {
+			expect(validTestTransaction).to.have.property('_multisignatureStatus', 2);
+		});
+
 		it('should throw TransactionMultiError when asset min is not a number', async () => {
 			const invalidMultisignatureTransactionData = {
 				...validMultisignatureTransaction,
@@ -92,10 +98,10 @@ describe('Multisignature transaction class', () => {
 			expect(
 				() =>
 					new MultisignatureTransaction(invalidMultisignatureTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 
-		it('should throw TransactionMultiError when asset lifetime is not a number', async () => {
+		it('should not throw TransactionMultiError when asset lifetime is not a number', async () => {
 			const invalidMultisignatureTransactionData = {
 				...validMultisignatureTransaction,
 				asset: {
@@ -108,7 +114,7 @@ describe('Multisignature transaction class', () => {
 			expect(
 				() =>
 					new MultisignatureTransaction(invalidMultisignatureTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 
@@ -405,6 +411,122 @@ describe('Multisignature transaction class', () => {
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).undoAsset(store);
 			expect(errors).to.be.empty;
+		});
+	});
+
+	describe('#addMultisignature', () => {
+		let membersSignatures: Array<SignatureObject>;
+		let multisigTrs: MultisignatureTransaction;
+
+		beforeEach(() => {
+			multisigTrs = new MultisignatureTransaction(
+				validMultisignatureRegistrationTransactionNoSigs,
+			);
+
+			membersSignatures = [
+				{
+					publicKey:
+						'142d1f24e17d3c90b0f2abdf49c2b14b02782e49b2ecfe85462ed12f654d60df',
+					signature:
+						'd1b78f5eb35b4e1de7f740d2f62f0e2acab24c5b446719cc70601319f4a3666fbcda7980e5d9c6ff3bfa8b54ee383eed5531723e0f1748d0c84b7a229759b000',
+					transactionId: multisigTrs.id,
+				},
+				{
+					publicKey:
+						'bb7ef62be03d5c195a132efe82796420abae04638cd3f6321532a5d33031b30c',
+					signature:
+						'aa956854dae10792ba9006e4dddd0d7e370af4645df8708d1b10f088304320f0e7f2427d883755a997c07b53978c4d8cf56b95e0f740d8d50ed8c1f2dc85180f',
+					transactionId: multisigTrs.id,
+				},
+			];
+		});
+
+		it('should add signature to transaction', async () => {
+			const { status } = multisigTrs.addMultisignature(
+				store,
+				membersSignatures[0],
+			);
+
+			expect(status).to.eql(Status.PENDING);
+			expect(multisigTrs.signatures).to.include(membersSignatures[0].signature);
+		});
+
+		it('should fail when valid signature already present and sent again', async () => {
+			const { status: arrangeStatus } = multisigTrs.addMultisignature(
+				store,
+				membersSignatures[0],
+			);
+
+			const { status, errors } = multisigTrs.addMultisignature(
+				store,
+				membersSignatures[0],
+			);
+			const expectedError = 'Encountered duplicate signature in transaction';
+
+			expect(arrangeStatus).to.eql(Status.PENDING);
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0].message).to.be.eql(expectedError);
+			expect(multisigTrs.signatures).to.include(membersSignatures[0].signature);
+		});
+
+		it('should fail to add invalid signature to transaction', async () => {
+			const { status, errors } = multisigTrs.addMultisignature(store, {
+				transactionId: multisigTrs.id,
+				publicKey:
+					'bb7ef62be03d5c195a132efe82796420abae04638cd3f6321532a5d33031b30c',
+				signature:
+					'eeee799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
+			});
+
+			const expectedError =
+				'Failed to add signature eeee799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c.';
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0].message).to.be.eql(expectedError);
+			expect(multisigTrs.signatures).to.be.empty;
+		});
+
+		it('should fail with valid signature not part of the group', async () => {
+			const nonMemberSignature: SignatureObject = {
+				transactionId: multisigTrs.id,
+				publicKey:
+					'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b',
+				signature:
+					'35d9bca853353906fbc44b86918b64bc0d21daf3ca16e230aa59352976624bc4ce69ac339f08b45c5e926d60cfa81276778e5858ff2bd2290e40d9da59cc5f0b',
+			};
+
+			const expectedError =
+				"Public Key 'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b' is not a member.";
+
+			const { status, errors } = multisigTrs.addMultisignature(
+				store,
+				nonMemberSignature,
+			);
+
+			expect(status).to.eql(Status.FAIL);
+			expect(errors[0].message).to.be.eql(expectedError);
+			expect(multisigTrs.signatures).to.be.empty;
+		});
+
+		it('status should remain pending when invalid signature sent', async () => {
+			const { status: arrangeStatus } = multisigTrs.addMultisignature(
+				store,
+				membersSignatures[0],
+			);
+
+			const nonMemberSignature: SignatureObject = {
+				transactionId: multisigTrs.id,
+				publicKey:
+					'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b',
+				signature:
+					'35d9bca853353906fbc44b86918b64bc0d21daf3ca16e230aa59352976624bc4ce69ac339f08b45c5e926d60cfa81276778e5858ff2bd2290e40d9da59cc5f0b',
+			};
+
+			multisigTrs.addMultisignature(store, nonMemberSignature);
+
+			expect(arrangeStatus).to.eql(Status.PENDING);
+			expect((multisigTrs as any)._multisignatureStatus).to.eql(Status.PENDING);
+			expect(multisigTrs.signatures.length).to.eql(1);
 		});
 	});
 });

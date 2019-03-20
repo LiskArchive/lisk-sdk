@@ -84,8 +84,8 @@ export class Queue {
 		this._index[transaction.id] = transaction;
 	}
 
-	public exists(transaction: Transaction): boolean {
-		return !!this._index[transaction.id];
+	public exists(id: string): boolean {
+		return !!this._index[id];
 	}
 
 	public filter(
