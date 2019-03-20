@@ -36,11 +36,9 @@ class Controller {
 		this.appLabel = appLabel;
 		this.logger.info('Initializing controller');
 
-		const { components, ...rest } = config;
-		this.componentConfig = components;
-
 		const dirs = systemDirs(this.appLabel);
 		this.config = {
+			...config,
 			dirs,
 			socketsPath: {
 				root: `unix://${dirs.sockets}`,
@@ -48,7 +46,6 @@ class Controller {
 				sub: `unix://${dirs.sockets}/lisk_sub.sock`,
 				rpc: `unix://${dirs.sockets}/lisk_rpc.sock`,
 			},
-			...rest,
 		};
 
 		this.modules = {};
@@ -130,7 +127,7 @@ class Controller {
 			'lisk',
 			['ready'],
 			{
-				getComponentConfig: action => this.componentConfig[action.params],
+				getComponentConfig: action => this.config.components[action.params],
 			},
 			{ skipInternalEvents: true }
 		);
