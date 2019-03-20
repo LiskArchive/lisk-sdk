@@ -231,18 +231,21 @@ class Controller {
 
 		const child = child_process.fork(program, parameters);
 
-		child.on('exit', () => {
-			this.logger.error(`Module ${moduleAlias}(${name}:${version}) exited`);
+		child.on('exit', (code, signal) => {
+			this.logger.error(
+				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
+			);
 			process.exit(1);
 		});
 
-		this.logger.info(
-			`Module ready with alias: ${moduleAlias}(${name}:${version})`
-		);
-
 		return Promise.race([
 			new Promise(resolve => {
-				this.channel.once(`${moduleAlias}:loading:finished`, resolve);
+				this.channel.once(`${moduleAlias}:loading:finished`, () => {
+					this.logger.info(
+						`Module ready with alias: ${moduleAlias}(${name}:${version})`
+					);
+					resolve();
+				});
 			}),
 			new Promise((_, reject) => {
 				setTimeout(reject, 2000);
