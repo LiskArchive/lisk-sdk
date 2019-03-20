@@ -148,6 +148,18 @@ pipeline {
 						}
 					}
 				}
+				stage('Functional HTTP PUT tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test('functional:put')
+					}
+					post {
+						cleanup {
+							teardown('put')
+						}
+					}
+				}
 				stage ('Functional WS tests') {
 					agent { node { label 'lisk-core' } }
 					steps {
@@ -196,7 +208,7 @@ pipeline {
 			sh 'rm -rf coverage; mkdir -p coverage'
 			script {
 				dir('coverage') {
-					['get', 'post', 'ws', 'unit', 'integration'].each {
+					['get', 'post', 'put', 'ws', 'unit', 'integration'].each {
 						// some test stages might have failed and have no coverage data
 						try {
 							unstash "coverage_${it}"
