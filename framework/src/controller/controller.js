@@ -232,6 +232,7 @@ class Controller {
 			this.logger.error(
 				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
 			);
+			// TODO: Reload child instead of exiting the parent process
 			process.exit(1);
 		});
 
