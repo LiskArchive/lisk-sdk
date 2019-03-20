@@ -33,13 +33,11 @@ describe('peers', () => {
 	let storageMock;
 	let peers;
 	let PeersRewired;
-	let bindings;
 	let __private;
 
 	let peersLogicMock;
-	let applicationStateMock;
-	let transportModuleMock;
 	let scope;
+	let channelMock;
 
 	const NONCE = randomstring.generate(16);
 
@@ -50,6 +48,10 @@ describe('peers', () => {
 					get: sinonSandbox.stub().resolves(),
 				},
 			},
+		};
+
+		channelMock = {
+			invoke: sinonSandbox.stub(),
 		};
 
 		PeersRewired = rewire(
@@ -65,84 +67,101 @@ describe('peers', () => {
 			upsert: sinonSandbox.stub(),
 			remove: sinonSandbox.stub(),
 		};
-		applicationStateMock = {
-			getState: sinonSandbox.stub().returns({}),
-		};
-		transportModuleMock = {};
-		bindings = {
-			applicationState: applicationStateMock,
-			modules: {
-				transport: transportModuleMock,
-			},
-		};
 
 		scope = _.defaultsDeep(
 			{
 				nonce: NONCE,
 				logic: { peers: peersLogicMock },
 				components: { storage: storageMock },
+				channel: channelMock,
 			},
 			modulesLoader.scope
 		);
 
 		new PeersRewired((err, peersModule) => {
 			peers = peersModule;
-			peers.onBind(bindings);
 			done();
 		}, scope);
 	});
 
 	describe('versionCompatible', () => {
+		beforeEach(() => {
+			const status = {
+				broadhash: 'aBroadhash',
+				height: 'aHeight',
+				httpPort: 'anHttpHeight',
+				nonce: 'aNonce',
+				os: 'anOs',
+				version: '1.0.0',
+				minVersion: '1.0.0-beta.0',
+				protocolVersion: '1.0',
+			};
+			return channelMock.invoke.returns(status);
+		});
 		describe('when there is no version', () => {
 			it('should return false', async () =>
-				expect(peers.versionCompatible()).to.be.false);
+				expect(__private.versionCompatible()).to.be.false);
 		});
 		describe('when version is null', () => {
 			it('should return false', async () =>
-				expect(peers.versionCompatible(null)).to.be.false);
+				expect(__private.versionCompatible(null)).to.be.false);
 		});
 		describe('when version is undefined', () => {
 			it('should return false', async () =>
-				expect(peers.versionCompatible(undefined)).to.be.false);
+				expect(__private.versionCompatible(undefined)).to.be.false);
 		});
 		describe('when version is empty string', () => {
 			it('should return false', async () =>
-				expect(peers.versionCompatible('')).to.be.false);
+				expect(__private.versionCompatible('')).to.be.false);
 		});
-		describe('when version is equal to system version', () => {
+		describe('when version is equal to application version', () => {
 			it('should return true', async () =>
-				expect(peers.versionCompatible('1.0.0-beta.0')).to.be.true);
+				expect(__private.versionCompatible('1.0.0-beta.0')).to.be.true);
 		});
-		describe('when version is greather than system version', () => {
+		describe('when version is greather than application version', () => {
 			it('should return true', async () =>
-				expect(peers.versionCompatible('1.0.0-rc.0')).to.be.true);
+				expect(__private.versionCompatible('1.0.0-rc.0')).to.be.true);
 		});
-		describe('when version is less than system version', () => {
+		describe('when version is less than application version', () => {
 			it('should return false', async () =>
-				expect(peers.versionCompatible('1.0.0-alpha.10')).to.be.false);
+				expect(__private.versionCompatible('1.0.0-alpha.10')).to.be.false);
 		});
 	});
 
 	describe('protocolVersionCompatible', () => {
-		describe('when protocol version is exactly equal to system protocol version', () => {
-			it('should return true', async () =>
-				expect(peers.protocolVersionCompatible('1.0')).to.be.true);
+		beforeEach(() => {
+			const status = {
+				broadhash: 'aBroadhash',
+				height: 'aHeight',
+				httpPort: 'anHttpHeight',
+				nonce: 'aNonce',
+				os: 'anOs',
+				version: '1.0.0',
+				minVersion: '1.0.0-beta.0',
+				protocolVersion: '1.0',
+			};
+			return channelMock.invoke.returns(status);
 		});
-		describe('when the hard part of protocol is not exactly equal than the one of the system protocol version', () => {
+		describe('when protocol version is exactly equal to application protocol version', () => {
+			it('should return true', async () =>
+				expect(__private.protocolVersionCompatible('1.0')).to.be.true);
+		});
+		describe('when the hard part of protocol is not exactly equal than the one of the application protocol version', () => {
 			it("should return false if it's greater or lesser", async () =>
-				expect(peers.protocolVersionCompatible('2.0')).to.be.false);
+				expect(__private.protocolVersionCompatible('2.0')).to.be.false);
 			it("should return false if it's lesser", async () =>
-				expect(peers.protocolVersionCompatible('0.0')).to.be.false);
+				expect(__private.protocolVersionCompatible('0.0')).to.be.false);
 		});
-		describe('when the hard part of protocol is equal to  the one of the system protocol version', () => {
+		describe('when the hard part of protocol is equal to  the one of the application protocol version', () => {
 			it('should return true', async () =>
-				expect(peers.protocolVersionCompatible('1.5')).to.be.true);
+				expect(__private.protocolVersionCompatible('1.5')).to.be.true);
 		});
 		describe('when the hard part of the protocol version is already compatible', () => {
-			it('should return true if the soft part is lesser, equal or greater than the soft part of the system protocol version', async () =>
+			it('should return true if the soft part is lesser, equal or greater than the soft part of the application protocol version', async () =>
 				['1.0', '1.1', '1.2'].forEach(
 					protocolVersion =>
-						expect(peers.protocolVersionCompatible(protocolVersion)).to.be.true
+						expect(__private.protocolVersionCompatible(protocolVersion)).to.be
+							.true
 				));
 		});
 	});
@@ -570,16 +589,29 @@ describe('peers', () => {
 			peersLogicMock.list = sinonSandbox.stub().returns([]);
 			done();
 		});
-
-		beforeEach(async () => {
-			calculateConsensusResult = await peers.calculateConsensus(
+		beforeEach(done => {
+			const status = {
+				broadhash: prefixedPeer.broadhash,
+				height: prefixedPeer.height,
+				httpPort: 'anHttpHeight',
+				nonce: 'aNonce',
+				os: 'anOs',
+				version: '1.0.0',
+				minVersion: '1.0.0-beta.0',
+				protocolVersion: '1.0',
+			};
+			channelMock.invoke.returns(status);
+			calculateConsensusResult = peers.calculateConsensus(
 				validActive,
 				validMatched
 			);
-			return null;
+			done();
 		});
 
-		afterEach(() => peersLogicMock.list.resetHistory());
+		afterEach(() => {
+			peersLogicMock.list.resetHistory();
+			return channelMock.invoke.resetHistory();
+		});
 
 		it('should set self.consensus value', async () =>
 			expect(PeersRewired.__get__('self.consensus')).to.equal(
@@ -601,9 +633,6 @@ describe('peers', () => {
 					const connectedPeer = _.assign({}, prefixedPeer);
 					connectedPeer.state = Peer.STATE.CONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
-					applicationStateMock.getState.returns({
-						broadhash: connectedPeer.broadhash,
-					});
 					done();
 				});
 
@@ -616,9 +645,6 @@ describe('peers', () => {
 					const bannedPeer = _.assign({}, prefixedPeer);
 					bannedPeer.state = Peer.STATE.BANNED;
 					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
-					applicationStateMock.getState.returns({
-						broadhash: bannedPeer.broadhash,
-					});
 					done();
 				});
 
@@ -631,7 +657,7 @@ describe('peers', () => {
 					const disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					applicationStateMock.getState.returns({
+					channelMock.invoke.returns({
 						broadhash: disconnectedPeer.broadhash,
 					});
 					done();
@@ -651,9 +677,6 @@ describe('peers', () => {
 					generateRandomActivePeer()
 				);
 				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-				applicationStateMock.getState.returns({
-					broadhash: broadhashes.matchedBroadhash,
-				});
 				validActive = oneHundredActivePeers;
 				done();
 			});
@@ -773,7 +796,7 @@ describe('peers', () => {
 
 	describe('acceptable', () => {
 		before(done => {
-			applicationStateMock.getState.returns({ nonce: NONCE });
+			channelMock.invoke.returns({ nonce: NONCE });
 			process.env.NODE_ENV = 'DEV';
 			done();
 		});
@@ -981,8 +1004,8 @@ describe('peers', () => {
 					string: 'aPeerString',
 				};
 
-				bindings.applicationState.versionCompatible = sinonSandbox.stub();
-				bindings.applicationState.protocolVersionCompatible = sinonSandbox.stub();
+				__private.versionCompatible = sinonSandbox.stub();
+				__private.protocolVersionCompatible = sinonSandbox.stub();
 				__private.updatePeerStatus(undefined, status, peer);
 				done();
 			});
@@ -993,24 +1016,24 @@ describe('peers', () => {
 				it('should call versionCompatible() with status.version', async () => {
 					delete status.protocolVersion;
 					__private.updatePeerStatus(undefined, status, peer);
-					return expect(
-						bindings.applicationState.versionCompatible
-					).to.be.calledWith(status.version);
+					return expect(__private.versionCompatible).to.be.calledWith(
+						status.version
+					);
 				});
 			});
 
 			describe('when protocol version is present', () => {
 				it('should call protocolVersionCompatible() with status.protocolVersion', async () => {
 					__private.updatePeerStatus(undefined, status, peer);
-					return expect(
-						bindings.applicationState.protocolVersionCompatible
-					).to.be.calledWith(status.protocolVersion);
+					return expect(__private.protocolVersionCompatible).to.be.calledWith(
+						status.protocolVersion
+					);
 				});
 			});
 
 			describe('when the peer is compatible', () => {
 				beforeEach(() => {
-					bindings.applicationState.protocolVersionCompatible = sinonSandbox
+					__private.protocolVersionCompatible = sinonSandbox
 						.stub()
 						.returns(true);
 					return __private.updatePeerStatus(undefined, status, peer);
@@ -1051,13 +1074,11 @@ describe('peers', () => {
 
 			it('should call library.logic.peers.upsert() with required args regardless if its compatible or not', done => {
 				// When it's compatible
-				bindings.applicationState.protocolVersionCompatible = sinonSandbox
-					.stub()
-					.returns(true);
+				__private.protocolVersionCompatible = sinonSandbox.stub().returns(true);
 				__private.updatePeerStatus(undefined, status, peer);
 				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
 				// When it's not compatible
-				bindings.applicationState.protocolVersionCompatible = sinonSandbox
+				__private.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(false);
 				__private.updatePeerStatus(undefined, status, peer);
