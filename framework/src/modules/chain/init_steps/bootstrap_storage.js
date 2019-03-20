@@ -45,7 +45,6 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 			limit: accountLimit,
 		});
 		await storage.entities.Migration.applyAll();
-		await storage.entities.Migration.applyRunTime();
 	} catch (err) {
 		logger.error(err);
 		throw err;

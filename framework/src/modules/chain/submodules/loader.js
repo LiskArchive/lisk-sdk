@@ -521,7 +521,6 @@ __private.loadBlockChain = function() {
 				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
 			}
 
-			await library.storage.entities.Account.resetUnconfirmedState();
 			const delegatesPublicKeys = await library.storage.entities.Account.get(
 				{ isDelegate: true },
 				{ limit: null }
