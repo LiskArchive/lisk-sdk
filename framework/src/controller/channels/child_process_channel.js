@@ -5,6 +5,8 @@ const Action = require('../action');
 const Event = require('../event');
 const BaseChannel = require('./base_channel');
 
+const SOCKET_TIMEOUT_TIME = 2000;
+
 /**
  * Channel responsible to communicate with bus for modules running in child process
  *
@@ -50,18 +52,12 @@ class ChildProcessChannel extends BaseChannel {
 
 		this.rpcSocket.bind(this.rpcSocketPath);
 
-		return new Promise((resolve, reject) => {
-			this.busRpcClient.call(
-				'registerChannel',
-				this.moduleAlias,
-				this.eventsList.map(event => event.name),
-				this.actionsList.map(action => action.name),
-				{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
-				(err, result) => {
-					if (err) return reject(err);
-					return resolve(result);
-				}
-			);
+		return Promise.race([
+			this._resolveWhenAllSocketsBound(),
+			this._rejectWhenAnySocketFailsToBind(),
+			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
+		]).finally(() => {
+			this._removeAllListeners();
 		});
 	}
 
@@ -127,10 +123,116 @@ class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
+	/**
+	 * Close all sockets and perform cleanup operations
+	 *
+	 * @returns {Promise<void>}
+	 */
 	async cleanup() {
 		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
 			this.rpcSocket.close();
 		}
+	}
+
+	/**
+	 * Wait for all sockets to bind and then resolve the main promise.
+	 *
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _resolveWhenAllSocketsBound() {
+		return Promise.all([
+			new Promise(resolve => {
+				/*
+				Here, the reason of calling .sock.once instead of pubSocket.once
+				is that pubSocket interface by Axon doesn't expose the once method.
+				However the actual socket does, by inheriting it from EventEmitter
+				prototype
+				 */
+				this.pubSocket.sock.once('connect', () => {
+					resolve();
+				});
+			}),
+			new Promise(resolve => {
+				this.subSocket.sock.once('connect', () => {
+					resolve();
+				});
+			}),
+			new Promise(resolve => {
+				this.rpcSocket.once('bind', () => {
+					resolve();
+				});
+			}),
+			new Promise((resolve, reject) => {
+				this.busRpcSocket.once('connect', () => {
+					this.busRpcClient.call(
+						'registerChannel',
+						this.moduleAlias,
+						this.eventsList.map(event => event.name),
+						this.actionsList.map(action => action.name),
+						{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
+						(err, result) => {
+							if (err) reject(err);
+							resolve(result);
+						}
+					);
+				});
+			}),
+		]);
+	}
+
+	/**
+	 * Reject if any of the sockets fails to bind
+	 *
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _rejectWhenAnySocketFailsToBind() {
+		return Promise.race([
+			new Promise((_, reject) => {
+				this.pubSocket.sock.once('error', () => {
+					reject();
+				});
+			}),
+			new Promise((_, reject) => {
+				this.subSocket.sock.once('error', () => {
+					reject();
+				});
+			}),
+			new Promise((_, reject) => {
+				this.rpcSocket.once('error', () => {
+					reject();
+				});
+			}),
+		]);
+	}
+
+	/**
+	 * Reject if time out
+	 *
+	 * @param {number} timeInMillis
+	 * @returns {Promise}
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async _rejectWhenTimeout(timeInMillis) {
+		return new Promise((_, reject) => {
+			setTimeout(async () => {
+				// TODO: Review if logger.error might be useful.
+				reject(new Error('ChildProcessChannel sockets setup timeout'));
+			}, timeInMillis);
+		});
+	}
+
+	_removeAllListeners() {
+		this.subSocket.sock.removeAllListeners('connect');
+		this.subSocket.sock.removeAllListeners('error');
+		this.pubSocket.sock.removeAllListeners('connect');
+		this.pubSocket.sock.removeAllListeners('error');
+		this.busRpcSocket.removeAllListeners('connect');
+		this.busRpcSocket.removeAllListeners('error');
+		this.rpcSocket.removeAllListeners('bind');
+		this.rpcSocket.removeAllListeners('error');
 	}
 }
 

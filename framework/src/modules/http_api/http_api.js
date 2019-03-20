@@ -92,4 +92,30 @@ module.exports = class HttpApi {
 		// Subsribe to channel events
 		subscribeToEvents(this.scope, { wsServer, wssServer });
 	}
+
+	async cleanup(code, error) {
+		const { components } = this.scope;
+		if (error) {
+			this.logger.fatal(error.toString());
+			if (code === undefined) {
+				code = 1;
+			}
+		} else if (code === undefined || code === null) {
+			code = 0;
+		}
+		this.logger.info('Cleaning HTTP API...');
+
+		try {
+			if (components !== undefined) {
+				Object.keys(components).forEach(async key => {
+					if (components[key].cleanup) {
+						await components[key].cleanup();
+					}
+				});
+			}
+		} catch (componentCleanupError) {
+			this.logger.error(componentCleanupError);
+		}
+		this.logger.info('Cleaned up successfully');
+	}
 };

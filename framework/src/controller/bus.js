@@ -4,6 +4,7 @@ const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
 const CONTROLLER_IDENTIFIER = 'lisk';
+const SOCKET_TIMEOUT_TIME = 2000;
 
 /**
  * Bus responsible to maintain communication between modules
@@ -49,6 +50,7 @@ class Bus extends EventEmitter2 {
 
 			this.rpcSocket = axon.socket('rep');
 			this.rpcServer = new RPCServer(this.rpcSocket);
+			this.rpcSocket.bind(this.config.socketsPath.rpc);
 
 			this.rpcServer.expose(
 				'registerChannel',
@@ -65,11 +67,12 @@ class Bus extends EventEmitter2 {
 					.catch(error => cb(error));
 			});
 
-			return new Promise((resolve, reject) => {
-				// TODO: wait for all sockets to be created
-				this.rpcSocket.once('bind', resolve);
-				this.rpcSocket.once('error', reject);
-				this.rpcSocket.bind(this.config.socketsPath.rpc);
+			return Promise.race([
+				this._resolveWhenAllSocketsBound(),
+				this._rejectWhenAnySocketFailsToBind(),
+				this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
+			]).finally(() => {
+				this._removeAllListeners();
 			});
 		}
 
@@ -180,10 +183,10 @@ class Bus extends EventEmitter2 {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
 
-		// Communicate throw event emitter
+		// Communicate through event emitter
 		super.emit(eventName, eventValue);
 
-		// Communicate throw unix socket
+		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
 			this.pubSocket.emit(eventName, eventValue);
 		}
@@ -196,10 +199,10 @@ class Bus extends EventEmitter2 {
 			);
 		}
 
-		// Communicate throw event emitter
+		// Communicate through event emitter
 		super.on(eventName, cb);
 
-		// Communicate throw unix socket
+		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
 			this.subSocket.on(eventName, cb);
 		}
@@ -212,11 +215,11 @@ class Bus extends EventEmitter2 {
 			);
 		}
 
-		// Communicate throw event emitter
+		// Communicate through event emitter
 		super.once(eventName, cb);
 
 		// TODO: make it `once` instead of `on`
-		// Communicate throw unix socket
+		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
 			this.subSocket.on(eventName, cb);
 		}
@@ -240,6 +243,11 @@ class Bus extends EventEmitter2 {
 		return Object.keys(this.events);
 	}
 
+	/**
+	 * Close all sockets and perform cleanup operations
+	 *
+	 * @returns {Promise<void>}
+	 */
 	async cleanup() {
 		if (this.pubSocket && typeof this.pubSocket.close === 'function') {
 			this.pubSocket.close();
@@ -250,6 +258,89 @@ class Bus extends EventEmitter2 {
 		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
 			this.rpcSocket.close();
 		}
+	}
+
+	/**
+	 * Wait for all sockets to bind and then resolve the main promise.
+	 *
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _resolveWhenAllSocketsBound() {
+		return Promise.all([
+			new Promise(resolve => {
+				/*
+				Here, the reason of calling .sock.once instead of pubSocket.once
+				is that pubSocket interface by Axon doesn't expose the once method.
+				However the actual socket does, by inheriting it from EventEmitter
+				prototype
+				 */
+				this.subSocket.sock.once('bind', () => {
+					resolve();
+				});
+			}),
+			new Promise(resolve => {
+				this.pubSocket.sock.once('bind', () => {
+					resolve();
+				});
+			}),
+			new Promise(resolve => {
+				this.rpcSocket.once('bind', () => {
+					resolve();
+				});
+			}),
+		]);
+	}
+
+	/**
+	 * Reject if any of the sockets fails to bind
+	 *
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _rejectWhenAnySocketFailsToBind() {
+		return Promise.race([
+			new Promise((_, reject) => {
+				this.subSocket.sock.once('error', () => {
+					reject();
+				});
+			}),
+			new Promise((_, reject) => {
+				this.pubSocket.sock.once('error', () => {
+					reject();
+				});
+			}),
+			new Promise((_, reject) => {
+				this.rpcSocket.once('error', () => {
+					reject();
+				});
+			}),
+		]);
+	}
+
+	/**
+	 * Reject if time out
+	 *
+	 * @param {number} timeInMillis
+	 * @returns {Promise}
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async _rejectWhenTimeout(timeInMillis) {
+		return new Promise((_, reject) => {
+			setTimeout(() => {
+				reject(new Error('Bus sockets setup timeout'));
+			}, timeInMillis);
+		});
+	}
+
+	_removeAllListeners() {
+		this.subSocket.sock.removeAllListeners('bind');
+		this.subSocket.sock.removeAllListeners('error');
+		this.pubSocket.sock.removeAllListeners('bind');
+		this.pubSocket.sock.removeAllListeners('error');
+		this.rpcSocket.removeAllListeners('bind');
+		this.rpcSocket.removeAllListeners('error');
 	}
 }
 
