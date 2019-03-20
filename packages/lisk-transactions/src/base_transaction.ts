@@ -39,6 +39,7 @@ import { createResponse, Status } from './response';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
+	isValidNumber,
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	validateTransactionId,
@@ -139,17 +140,12 @@ export abstract class BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		this.amount = new BigNum(
-			(typeof tx.amount === 'string' && tx.amount !== '') ||
-			typeof tx.amount === 'number'
-				? tx.amount
-				: '0',
+			isValidNumber(tx.amount) ? (tx.amount as string | number) : '0',
 		);
 		this.fee = new BigNum(
-			(typeof tx.fee === 'string' && tx.fee !== '') ||
-			typeof tx.fee === 'number'
-				? tx.fee
-				: '0',
+			isValidNumber(tx.fee) ? (tx.fee as string | number) : '0',
 		);
+
 		this._id = tx.id;
 		this.recipientId = tx.recipientId || '';
 		this.recipientPublicKey = tx.recipientPublicKey || undefined;

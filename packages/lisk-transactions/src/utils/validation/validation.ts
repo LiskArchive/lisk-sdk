@@ -175,3 +175,14 @@ export const isUnique = (values: ReadonlyArray<string>): boolean => {
 
 	return unique.length === values.length;
 };
+
+export const isValidNumber = (num: unknown): boolean => {
+	if (typeof num === 'number') {
+		return true;
+	}
+	if (typeof num === 'string') {
+		return isNumberString(num);
+	}
+
+	return false;
+};
