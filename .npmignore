@@ -12,7 +12,6 @@ scripts/**/*
 !scripts/generate_config.js
 tasks/
 test/
-Grunt*
 Jenkins*
 *.sh
 *.tgz
