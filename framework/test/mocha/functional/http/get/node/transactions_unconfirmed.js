@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../../functional.js');
+require('../../../functional');
 const Promise = require('bluebird');
 const { transfer } = require('@liskhq/lisk-transactions');
 const apiHelpers = require('../../../../common/helpers/api');

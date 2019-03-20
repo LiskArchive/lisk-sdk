@@ -28,7 +28,6 @@ let self;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires helpers/transaction_types
  * @requires logic/multisignature
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance

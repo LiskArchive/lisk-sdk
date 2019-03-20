@@ -28,7 +28,7 @@ const slots = require('../../../src/modules/chain/helpers/slots');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const InitTransaction = require('../../../src/modules/chain/logic/init_transaction.js');
+const InitTransaction = require('../../../src/modules/chain/logic/init_transaction');
 
 const initTransaction = new InitTransaction();
 

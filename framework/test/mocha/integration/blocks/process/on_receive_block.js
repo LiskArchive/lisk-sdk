@@ -24,7 +24,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const application = require('../../../common/application.js');
+const application = require('../../../common/application');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 

@@ -29,6 +29,7 @@ const slots = require('../helpers/slots.js');
 let modules;
 let library;
 let self;
+
 const { ACTIVE_DELEGATES } = global.constants;
 const exceptions = global.exceptions;
 const __private = {};

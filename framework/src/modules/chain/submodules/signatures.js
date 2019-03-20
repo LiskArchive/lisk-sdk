@@ -24,7 +24,6 @@ let self;
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires helpers/transaction_types
  * @requires logic/signature
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance

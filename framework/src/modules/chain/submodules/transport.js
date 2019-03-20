@@ -17,7 +17,7 @@
 const async = require('async');
 const _ = require('lodash');
 // eslint-disable-next-line prefer-const
-let Broadcaster = require('../logic/broadcaster.js');
+let Broadcaster = require('../logic/broadcaster');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');

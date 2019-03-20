@@ -20,19 +20,17 @@ const _ = require('lodash');
 const rewire = require('rewire');
 const async = require('async');
 const Promise = require('bluebird');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
-const slots = require('../../../../../src/modules/chain/helpers/slots.js');
-const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction.js');
-
-
+const slots = require('../../../../../src/modules/chain/helpers/slots');
+const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const blockVersion = require('../../../../../src/modules/chain/logic/block_version.js');
+const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
@@ -145,7 +143,7 @@ function createBlock(
 			.update(passphrase, 'utf8')
 			.digest()
 	);
-	transactions = transactions.map(initTransaction.dbRead);
+	transactions = transactions.map(initTransaction.jsonRead);
 	blocksModule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
 		keypair,
@@ -237,7 +235,7 @@ describe('blocks/verify', () => {
 
 		before(done => {
 			RewiredVerify = rewire(
-				'../../../../../src/modules/chain/submodules/blocks/verify.js'
+				'../../../../../src/modules/chain/submodules/blocks/verify'
 			);
 			const verify = new RewiredVerify(
 				library.components.logger,
