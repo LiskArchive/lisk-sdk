@@ -282,7 +282,7 @@ NodeController.getPooledTransactions = async function(context, next) {
  * @private
  */
 async function _getForgingStatus(publicKey) {
-	const keyPairs = await library.channel.invoke('chain:getForgersKeyPairs');
+	const keyPairs = await library.channel.invoke('chain:getForgersPublicKeys');
 	const forgingDelegates = library.config.forging.delegates;
 	const forgersPublicKeys = {};
 
