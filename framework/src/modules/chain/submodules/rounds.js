@@ -28,7 +28,7 @@ let components;
 let modules;
 let library;
 let self;
-const { ACTIVE_DELEGATES, TRANSACTION_TYPES } = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
 __private.loaded = false;

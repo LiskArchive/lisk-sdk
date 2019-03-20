@@ -1,6 +1,15 @@
 const Bignumber = require('bignumber.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-const Diff = require('../helpers/diff.js');
+
+const transactionTypes = global.constants.TRANSACTION_TYPES;
+
+const reverseVotes = function(diff) {
+	const copyDiff = diff.slice();
+	for (let i = 0; i < copyDiff.length; i++) {
+		const math = copyDiff[i][0] === '-' ? '+' : '-';
+		copyDiff[i] = math + copyDiff[i].slice(1);
+	}
+	return copyDiff;
+};
 
 const updateRoundInformationWithDelegatesForTransaction = function(
 	stateStore,
@@ -13,7 +22,7 @@ const updateRoundInformationWithDelegatesForTransaction = function(
 
 	(forwardTick
 		? transaction.asset.votes
-		: Diff.reverse(transaction.asset.votes)
+		: reverseVotes(transaction.asset.votes)
 	)
 		.map(vote => {
 			// Fetch first character
@@ -54,7 +63,7 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 	if (transaction.type === transactionTypes.VOTE) {
 		const newVotes = forwardTick
 			? transaction.asset.votes
-			: Diff.reverse(transaction.asset.votes);
+			: reverseVotes(transaction.asset.votes);
 		const downvotes = newVotes
 			.filter(vote => vote[0] === '-')
 			.map(vote => vote.slice(1));
