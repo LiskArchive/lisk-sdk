@@ -76,7 +76,7 @@ describe('InTransfer transaction class', () => {
 			);
 		});
 
-		it('should throw TransactionMultiError when asset is not string', async () => {
+		it('should not throw TransactionMultiError when asset is not string', async () => {
 			const invalidInTransferTransactionData = {
 				...defaultTransaction,
 				asset: {
@@ -87,7 +87,7 @@ describe('InTransfer transaction class', () => {
 			};
 			expect(
 				() => new InTransferTransaction(invalidInTransferTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 
