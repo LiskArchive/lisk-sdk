@@ -7,12 +7,12 @@
 <a href="https://david-dm.org/LiskHQ/lisk"><img src="https://david-dm.org/LiskHQ/lisk.svg" alt="Dependency Status"></a>
 <a href="https://david-dm.org/LiskHQ/lisk/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk/dev-status.svg" alt="devDependency Status"></a>
 
-Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found in https://lisk.io/documentation.
+Lisk is a next-generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found in https://lisk.io/documentation.
 
-[Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
+[Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up to run a node that allows for participation in the network.
 
 This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
-If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](#installation).
+If you have satisfied the requirements from the Pre-Installation section, you can jump directly to the next section [Installation Steps](#installation).
 
 ## Index
 
@@ -97,7 +97,7 @@ brew install git
 
 Node.js serves as the underlying engine for code execution.
 
-Install System wide via package manager:
+Install System-wide via package manager:
 
 * Ubuntu:
 
@@ -114,7 +114,7 @@ brew install node@10.14.1
 
 #### Check correct version
 
-Especially when installing on Ubuntu, check if you have a compatible node version runnging:
+Especially when installing on Ubuntu, check if you have a compatible node version running:
 
 ```
 node -v
@@ -139,7 +139,7 @@ su - lisk
 nvm install 10.14.1
 ```
 
-For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
+For the following steps, log out from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
 
 ### PostgreSQL:
 
@@ -156,7 +156,7 @@ sudo apt update
 sudo apt install postgresql-10
 ```
 
-After installation, you should see the postgres database cluster, by running
+After installation, you should see the Postgres database cluster, by running
 
 ```
   pg_lsclusters
@@ -175,7 +175,7 @@ Create a new database user called `lisk` and grant it rights to create databases
   sudo -u postgres createuser --createdb lisk
 ```
 
-Create the databases for Testnet and Mainnet:
+Create databases for Testnet and Mainnet:
 
 ```
   createdb -O lisk lisk_test
@@ -213,13 +213,13 @@ It is recommended to install Redis to improve the performance of API responses.
 sudo apt-get install redis-server
 ```
 
-Start redis:
+Start Redis:
 
 ```
 service redis start
 ```
 
-Stop redis:
+Stop Redis:
 
 ```
 service redis stop
@@ -231,23 +231,23 @@ service redis stop
 brew install redis
 ```
 
-Start redis:
+Start Redis:
 
 ```
 brew services start redis
 ```
 
-Stop redis:
+Stop Redis:
 
 ```
 brew services stop redis
 ```
 
-**NOTE:** Lisk does not run on the Redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
+**NOTE:** Lisk does not run on the Redis default port of 6379. Instead, it is configured to run on port: 6380. Because of this, for Lisk to run, you have one of two options:
 
 1. **Change the Redis launch configuration**
 
-Update the launch configuration file on your system. Note that there are a number of ways to do this.
+Update the launch configuration file on your system. Note that there are many ways to do this.
 
 The following is one example:
 
@@ -257,7 +257,7 @@ The following is one example:
    * MacOS: `/usr/local/etc/redis.conf`
 3. Start redis-server
 
-Now confirm that redis is running on `port 6380`:
+Now confirm that Redis is running on `port 6380`:
 
 ```bash
 redis-cli -p 6380
@@ -269,7 +269,7 @@ To exit the `redis-cli`, type `exit`.
 
 2. **Change the Lisk configuration**
 
-To update the redis port in the Lisk configuration, check the section [Configuring Lisk](#configuring-lisk)
+To update the Redis port in the Lisk configuration, check the section [Configuring Lisk](#configuring-lisk)
 
 ## Installation
 
@@ -324,14 +324,14 @@ More information about options can be found at [Command Line Options](#command-l
 
 1. The Lisk configuration is managed under different folder structures.
 2. Root folder for all configuration is `./config/`.
-3. Default configuration file that used as base is `config/default/config.json`
+3. The default configuration file that used as a base is `config/default/config.json`
 4. You can find network specific configurations under `config/<network>/config.json`
-5. Don't override any value in above mentioned files if you need custom configuration.
+5. Don't override any value in files mentioned above if you need custom configuration.
 6. Create your own `json` file and pass it as command line options `-c` or `LISK_CONFIG_FILE`
-7. Configurations will be loaded in following order, lowest in the list have highest priority:
+7. Configurations will be loaded in the following order, lowest in the list has the highest priority:
    * Default configuration file
    * Network specific configuration file
-   * Custom configuration file (if specified by user)
+   * Custom configuration file (if specified by the user)
    * Command line configurations, specified as command `flags` or `env` variables
 8. Any config option of array type gets completely overridden. If you specify one peer at `peers.list` in your custom config file, it will replace every default peer for the network.
 9. For development use `devnet` as the network option.
@@ -344,7 +344,7 @@ There are plenty of options available that you can use to override configuration
 npm start -- [options]
 ```
 
-Each of that option can be appended on command line. There are also few `ENV` variables that can be utilized for this purpose.
+Each of that option can be appended on the command-line. There are also a few `ENV` variables that can be utilized for this purpose.
 
 | Option                               | ENV Variable           | Config Option            | Description                                                                                                                                                                       |
 | ------------------------------------ | ---------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -375,9 +375,9 @@ Each of that option can be appended on command line. There are also few `ENV` va
 #### Note
 
 * All `ENV` variables restricted with operating system constraint of `ENV` variable maximum length.
-* Comma separated lists will replace the original config values. e.g. If you specify `LISK_PEERS`, original `peers.list` specific to network will be replaced completely.
+* Comma-separated lists will replace the original config values. e.g. If you specify `LISK_PEERS`, original `peers.list` specific to the network will be replaced completely.
 
-For more detail understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)
+For a more detailed understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)
 
 ### Examples
 
@@ -389,7 +389,7 @@ Update the `redis.port` configuration attribute in `config/devnet/config.json` o
 
 ### Preparing Node
 
-1. Recreate the database in order to run the tests against a new blockchain:
+1. Recreate the database to run the tests against a new blockchain:
 
 ```
 dropdb lisk_dev
@@ -484,11 +484,11 @@ npm run jest:<testType> -- [testPathPattern] [jestCliOptions]
 
 ## Utility Scripts
 
-There are couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are located under `./framework/src/modules/chain/scripts/` directory and can be executed directly by `node framework/src/modules/chain/scripts/<file_name>`.
+There are a couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are located under `./framework/src/modules/chain/scripts/` directory and can be executed directly by `node framework/src/modules/chain/scripts/<file_name>`.
 
 #### Generate Config
 
-This script will help you to generate unified version of configuration file for any network. Here is the usage of the script:
+This script will help you to generate a unified version of the configuration file for any network. Here is the usage of the script:
 
 ```
 Usage: generate_config [options]
@@ -505,7 +505,7 @@ Argument `network` is required and can by `devnet`, `testnet`, `mainnet` or any 
 
 #### Update Config
 
-This script keep track of all changes introduced in Lisk over time in different versions. If you have one config file in any of specific version and you want to make it compatible with other version of the Lisk, this scripts will do it for you.
+This script keeps track of all changes introduced in Lisk over time in different versions. If you have one config file in any of specific version and you want to make it compatible with other versions of the Lisk, this scripts will do it for you.
 
 ```
 Usage: update_config [options] <input_file> <from_version> [to_version]
@@ -522,7 +522,7 @@ As you can see from the usage guide, `input_file` and `from_version` are require
 
 #### Console (Unmaintained)
 
-This script is really useful in development. It will initialize the components of Lisk and load these into Node.js REPL.
+This script is useful in development. It will initialize the components of Lisk and load these into Node.js REPL.
 
 ```bash
 node framework/src/modules/chain/scripts/console.js
@@ -541,11 +541,11 @@ Once you get the prompt, you can use `modules`, `helpers`, `logic`, `storage` an
 
 ## Performance Monitoring
 
-We used [newrelic](http://newrelic.com/) to monitor the activities inside application. It enables to have detail insight
-of the system and keep track of performance of each activity. e.g. An HTTP API call or a background job from queue.
+We used [newrelic](http://newrelic.com/) to monitor the activities inside the application. It enables to have detail insight
+into the system and keeps track of the performance of each activity. e.g. An HTTP API call or a background job from a queue.
 
 To enable the performance monitoring on your node make sure you have an environment variable `NEW_RELIC_LICENSE_KEY`
-available and set and then start the node normally. The monitoring data will be visible to your newrelic account with the
+available and set and then start the node normally. The monitoring data will be visible to your newRelic account with the
 name of the network you started. e.g. `lisk-mainnet`, `lisk-testnet`.
 
 ## Contributors

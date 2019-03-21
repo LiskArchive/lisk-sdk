@@ -12,20 +12,20 @@ The controller defines a set of events, that each component can subscribe to:
 
 ### Default Events & Actions
 
-The following events and actions are available for all enabled modules, and are at the same time accessible by all enabled modules.
+The following events and actions are available for all enabled modules and are at the same time accessible by all enabled modules.
 
 #### Events
 
-| Event                       | Description                                                                                                                                                                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| _module_:registeredToBus    | Triggered when the module has completed registering its events and actions with the controller. So when this event is triggered, the subscriber of event can be sure that the controller has whitelisted its requested events and actions. |
-| _module_:loading:started    | Triggered just before the controller calls the module’s `load` method.                                                                                                                                                                     |
-| _module_:loading:error      | Triggered if any error occurred during call of the module's `load` method.                                                                                                                                                                 |
-| _module_:loading:finished   | Triggered just after the module’s `load` method has completed execution.                                                                                                                                                                   |
-| _module_:unloading:started  | Triggered just before the controller calls the module’s `unload` method.                                                                                                                                                                   |
-| _module_:unloading:error    | Triggered if any error occurred during call of module’s `unload` method.                                                                                                                                                                   |
-| _module_:unloading:finished | Triggered just after the module’s `unload` method has completed execution.                                                                                                                                                                 |
-| lisk:ready                  | Triggered when the controller has finished initialising the modules and each module has been successfully loaded.                                                                                                                          |
+| Event                       | Description                                                                                                                                                                                                                                    |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _module_:registeredToBus    | Triggered when the module has completed registering its events and actions with the controller. So when this event is triggered, the subscriber of the event can be sure that the controller has whitelisted its requested events and actions. |
+| _module_:loading:started    | Triggered just before the controller calls the module’s `load` method.                                                                                                                                                                         |
+| _module_:loading:error      | Triggered if any error occurred during the call of the module's `load` method.                                                                                                                                                                 |
+| _module_:loading:finished   | Triggered just after the module’s `load` method has completed execution.                                                                                                                                                                       |
+| _module_:unloading:started  | Triggered just before the controller calls the module’s `unload` method.                                                                                                                                                                       |
+| _module_:unloading:error    | Triggered if any error occurred during the call of module’s `unload` method.                                                                                                                                                                   |
+| _module_:unloading:finished | Triggered just after the module’s `unload` method has completed execution.                                                                                                                                                                     |
+| lisk:ready                  | Triggered when the controller has finished initializing the modules and each module has been successfully loaded.                                                                                                                              |
 
 #### Actions
 
