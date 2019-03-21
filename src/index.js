@@ -15,8 +15,8 @@ try {
 		components: {
 			logger: {
 				filename: config.logFileName,
-				consoleLogLevel: 'debug',
-				fileLogLevel: 'debug',
+				consoleLogLevel: config.consoleLogLevel || 'debug',
+				fileLogLevel: config.fileLogLevel || 'debug',
 			},
 			cache: {
 				...config.redis,

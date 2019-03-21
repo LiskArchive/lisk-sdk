@@ -217,6 +217,8 @@ function loadJSONFile(filePath) {
 		filePath = path.join(rootPath, filePath);
 		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 	} catch (err) {
+		console.error(`Failed to load file: ${filePath}`);
+		console.error(err.message);
 		return process.exit(1);
 	}
 }
