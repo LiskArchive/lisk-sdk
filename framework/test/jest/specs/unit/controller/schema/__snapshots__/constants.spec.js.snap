@@ -97,6 +97,9 @@ Object {
         "format": "amount",
         "type": "string",
       },
+      "TRANSACTION_TYPES": Object {
+        "$ref": "transactionTypes",
+      },
       "UNCONFIRMED_TRANSACTION_TIMEOUT": Object {
         "min": 1,
         "type": "integer",
@@ -121,6 +124,7 @@ Object {
       "NORMALIZER",
       "REWARDS",
       "TOTAL_AMOUNT",
+      "TRANSACTION_TYPES",
       "UNCONFIRMED_TRANSACTION_TIMEOUT",
       "EXPIRY_INTERVAL",
     ],
@@ -278,6 +282,71 @@ Object {
       "MILESTONES",
       "OFFSET",
       "DISTANCE",
+    ],
+    "type": "object",
+  },
+  "transactionTypes": Object {
+    "additionalProperties": false,
+    "id": "transactionTypes",
+    "properties": Object {
+      "DAPP": Object {
+        "enum": Array [
+          5,
+        ],
+        "type": "integer",
+      },
+      "DELEGATE": Object {
+        "enum": Array [
+          2,
+        ],
+        "type": "integer",
+      },
+      "IN_TRANSFER": Object {
+        "menum": Array [
+          6,
+        ],
+        "type": "integer",
+      },
+      "MULTI": Object {
+        "enum": Array [
+          4,
+        ],
+        "type": "integer",
+      },
+      "OUT_TRANSFER": Object {
+        "enum": Array [
+          7,
+        ],
+        "type": "integer",
+      },
+      "SEND": Object {
+        "enum": Array [
+          0,
+        ],
+        "type": "integer",
+      },
+      "SIGNATURE": Object {
+        "enum": Array [
+          1,
+        ],
+        "type": "integer",
+      },
+      "VOTE": Object {
+        "enum": Array [
+          3,
+        ],
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "SEND",
+      "SIGNATURE",
+      "DELEGATE",
+      "VOTE",
+      "MULTI",
+      "DAPP",
+      "IN_TRANSFER",
+      "OUT_TRANSFER",
     ],
     "type": "object",
   },

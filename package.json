@@ -32,9 +32,9 @@
 		"jest:unit":
 			"jest --config=./framework/test/jest/config/unit/jest.config.js",
 		"jest:integration":
-			"jest --config=./framework/test/jest/config/integration/jest.config.js",
+			"jest --config=./framework/test/jest/config/integration/jest.config.js --passWithNoTests",
 		"jest:functional":
-			"jest --config=./framework/test/jest/config/functional/jest.config.js",
+			"jest --config=./framework/test/jest/config/functional/jest.config.js --passWithNoTests",
 		"mocha:unit": "node framework/test/mocha/common/lisk-mocha-runner unit",
 		"mocha:integration":
 			"node framework/test/mocha/common/lisk-mocha-runner integration",
@@ -46,6 +46,8 @@
 			"node framework/test/mocha/common/lisk-mocha-runner functional:get",
 		"mocha:functional:post":
 			"node framework/test/mocha/common/lisk-mocha-runner functional:post",
+		"mocha:functional:put":
+			"node framework/test/mocha/common/lisk-mocha-runner functional:put",
 		"mocha:network":
 			"node framework/test/mocha/common/lisk-mocha-runner network",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
