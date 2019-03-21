@@ -647,13 +647,11 @@ describe('round', () => {
 			forward.forEach(response => {
 				if (results[response.publicKey]) {
 					results[response.publicKey].balance += response.balance || 0;
-					results[response.publicKey].u_balance += response.u_balance || 0;
 					results[response.publicKey].rewards += response.rewards || 0;
 					results[response.publicKey].fees += response.fees || 0;
 				} else {
 					results[response.publicKey] = {
 						balance: response.balance || 0,
-						u_balance: response.u_balance || 0,
 						rewards: response.rewards || 0,
 						fees: response.fees || 0,
 					};
@@ -662,13 +660,11 @@ describe('round', () => {
 			backwards.forEach(response => {
 				if (results[response.publicKey]) {
 					results[response.publicKey].balance += response.balance || 0;
-					results[response.publicKey].u_balance += response.u_balance || 0;
 					results[response.publicKey].rewards += response.rewards || 0;
 					results[response.publicKey].fees += response.fees || 0;
 				} else {
 					results[response.publicKey] = {
 						balance: response.balance || 0,
-						u_balance: response.u_balance || 0,
 						rewards: response.rewards || 0,
 						fees: response.fees || 0,
 					};
@@ -734,7 +730,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -798,7 +793,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -830,11 +824,6 @@ describe('round', () => {
 					it('balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
-						}));
-
-					it('u_balance should sum to 0', async () =>
-						_.each(result, response => {
-							expect(response.u_balance).to.equal(0);
 						}));
 
 					it('fees should sum to 0', async () =>
@@ -897,7 +886,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -923,7 +911,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
-							u_balance: remainingFees,
 							round: scope.round,
 							fees: remainingFees,
 						};
@@ -988,7 +975,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1014,7 +1000,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
-							u_balance: -remainingFees,
 							round: scope.round,
 							fees: -remainingFees,
 						};
@@ -1045,11 +1030,6 @@ describe('round', () => {
 					it('balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
-						}));
-
-					it('u_balance should sum to 0', async () =>
-						_.each(result, response => {
-							expect(response.u_balance).to.equal(0);
 						}));
 
 					it('fees should sum to 0', async () =>
@@ -1122,7 +1102,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1154,7 +1133,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1186,7 +1164,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1275,7 +1252,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1307,7 +1283,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1339,7 +1314,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1371,11 +1345,6 @@ describe('round', () => {
 					it('balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
-						}));
-
-					it('u_balance should sum to 0', async () =>
-						_.each(result, response => {
-							expect(response.u_balance).to.equal(0);
 						}));
 
 					it('fees should sum to 0', async () =>
@@ -1447,7 +1416,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1479,7 +1447,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1511,7 +1478,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1537,7 +1503,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
-							u_balance: remainingFees,
 							round: scope.round,
 							fees: remainingFees,
 						};
@@ -1628,7 +1593,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1660,7 +1624,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1692,7 +1655,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1718,7 +1680,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
-							u_balance: -remainingFees,
 							round: scope.round,
 							fees: -remainingFees,
 						};
@@ -1749,11 +1710,6 @@ describe('round', () => {
 					it('balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
-						}));
-
-					it('u_balance should sum to 0', async () =>
-						_.each(result, response => {
-							expect(response.u_balance).to.equal(0);
 						}));
 
 					it('fees should sum to 0', async () =>
