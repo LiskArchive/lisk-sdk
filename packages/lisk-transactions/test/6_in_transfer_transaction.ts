@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
 import { InTransferTransaction } from '../src/6_in_transfer_transaction';

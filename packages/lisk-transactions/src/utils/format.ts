@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { FIXED_POINT } from '../constants';
 import { isGreaterThanMaxTransactionAmount } from './validation';
 

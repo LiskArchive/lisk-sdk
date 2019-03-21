@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import { expect } from 'chai';
-import * as BigNum from 'browserify-bignum';
 import {
 	getTransactionBytes,
 	getAssetDataForTransferTransaction,
