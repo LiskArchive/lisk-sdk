@@ -15,8 +15,10 @@
 'use strict';
 
 const _ = require('lodash');
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
+const Bignumber = require('bignumber.js');
+const ApiError = require('../api_error');
+const apiCodes = require('../api_codes');
 
 let library;
 let sortFields;
@@ -109,6 +111,43 @@ BlocksController.getBlocks = function(context, next) {
 };
 
 /**
+ * Parse raw block data from database into expected API response type for blocks
+ *
+ * @param {Object} raw Raw block data from database
+ * @return {block} Block formatted according to API specification
+ */
+function parseBlockFromDatabase(raw) {
+	if (!raw.id) {
+		return null;
+	}
+
+	const block = {
+		id: raw.id,
+		version: parseInt(raw.version),
+		timestamp: parseInt(raw.timestamp),
+		height: parseInt(raw.height),
+		previousBlock: raw.previousBlockId,
+		numberOfTransactions: parseInt(raw.numberOfTransactions),
+		totalAmount: new Bignumber(raw.totalAmount).toFixed(),
+		totalFee: new Bignumber(raw.totalFee).toFixed(),
+		reward: new Bignumber(raw.reward).toFixed(),
+		payloadLength: parseInt(raw.payloadLength),
+		payloadHash: raw.payloadHash,
+		generatorPublicKey: raw.generatorPublicKey,
+		generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
+		blockSignature: raw.blockSignature,
+		confirmations: parseInt(raw.confirmations),
+		totalForged: new Bignumber(raw.totalFee).plus(raw.reward).toFixed(),
+	};
+
+	if (raw.transactions) {
+		block.transactions = raw.transactions;
+	}
+
+	return block;
+}
+
+/**
  * Get filtered list of blocks (without transactions - BasicBlock).
  *
  * @private
@@ -180,13 +219,7 @@ function _list(params, cb) {
 		library.storage.entities.Block.get(filters, options)
 			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 			.then(async rows =>
-				setImmediate(
-					cb,
-					null,
-					await Promise.all(
-						rows.map(row => library.channel.invoke('chain:storageRead', [row]))
-					)
-				)
+				setImmediate(cb, null, rows.map(parseBlockFromDatabase))
 			)
 			.catch(err => {
 				library.logger.error(err.stack);

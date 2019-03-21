@@ -45,46 +45,44 @@ const modulesToInstrument = {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
 	},
-	'./modules/blocks.js': {
+	'./submodules/blocks.js': {
 		identifier: 'modules.blocks',
 		callbackMethods: ['shared.getBlocks'],
 	},
-	'./modules/dapps.js': {
+	'./submodules/dapps.js': {
 		identifier: 'modules.dapps',
 		callbackMethods: ['getDapps'],
 	},
-	'./modules/delegates.js': {
+	'./submodules/delegates.js': {
 		identifier: 'modules.delegates',
 		callbackMethods: ['getForgers', 'getDelegates'],
 	},
-	'./modules/loader.js': {
+	'./submodules/loader.js': {
 		identifier: 'modules.loader',
 		callbackMethods: ['getNetwork'],
 	},
-	'./modules/peers.js': {
+	'./submodules/peers.js': {
 		identifier: 'modules.peers',
 		callbackMethods: ['shared.getPeers'],
 	},
-	'./modules/rounds.js': {
+	'./submodules/rounds.js': {
 		identifier: 'modules.rounds',
 		callbackMethods: ['flush'],
 	},
-	'./modules/signatures.js': {
+	'./submodules/signatures.js': {
 		identifier: 'modules.signatures',
 		callbackMethods: ['shared.postSignature', 'shared.postSignatures'],
 	},
-	'./modules/transactions.js': {
+	'./submodules/transactions.js': {
 		identifier: 'modules.transactions',
 		callbackMethods: [
 			'shared.getTransactionsCount',
-			'shared.getUnProcessedTransactions',
-			'shared.getMultisignatureTransactions',
-			'shared.getUnconfirmedTransactions',
+			'shared.getTransactionsFromPool',
 			'shared.postTransaction',
 			'shared.postTransactions',
 		],
 	},
-	'./modules/transport.js': {
+	'./submodules/transport.js': {
 		identifier: 'modules.transport',
 		callbackMethods: [
 			'broadcastHeaders',

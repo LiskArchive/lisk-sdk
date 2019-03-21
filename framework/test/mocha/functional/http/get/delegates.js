@@ -14,9 +14,14 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	registerDelegate,
+} = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../fixtures/accounts');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
@@ -24,7 +29,6 @@ const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 Promise.promisify(waitFor.newRound);
 const { FEES } = global.constants;
@@ -103,16 +107,18 @@ describe('GET /delegates', () => {
 		describe('secondPublicKey', () => {
 			const secondPassphraseAccount = randomUtil.account();
 
-			const creditTransaction = lisk.transaction.transfer({
-				amount: new Bignum(FEES.SECOND_SIGNATURE).plus(FEES.DELEGATE),
+			const creditTransaction = transfer({
+				amount: new Bignum(FEES.SECOND_SIGNATURE)
+					.plus(FEES.DELEGATE)
+					.toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPassphraseAccount.address,
 			});
-			const signatureTransaction = lisk.transaction.registerSecondPassphrase({
+			const signatureTransaction = registerSecondPassphrase({
 				passphrase: secondPassphraseAccount.passphrase,
 				secondPassphrase: secondPassphraseAccount.secondPassphrase,
 			});
-			const delegateTransaction = lisk.transaction.registerDelegate({
+			const delegateTransaction = registerDelegate({
 				passphrase: secondPassphraseAccount.passphrase,
 				username: secondPassphraseAccount.username,
 			});
@@ -684,7 +690,7 @@ describe('GET /delegates', () => {
 				});
 			});
 
-			describe('?', () => {
+			describe('timestamp filters', () => {
 				describe('fromTimestamp', () => {
 					it('using invalid fromTimestamp should fail', async () => {
 						return forgedEndpoint

@@ -14,15 +14,19 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const randomstring = require('randomstring');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	castVotes,
+	registerDelegate,
+} = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -269,25 +273,24 @@ describe('GET /api/voters', () => {
 			before(() => {
 				const amount = new Bignum(FEES.DELEGATE)
 					.plus(FEES.VOTE)
-					.plus(FEES.SECOND_SIGNATURE);
-				const enrichExtraDelegateVoterTransaction = lisk.transaction.transfer({
+					.plus(FEES.SECOND_SIGNATURE)
+					.toString();
+				const enrichExtraDelegateVoterTransaction = transfer({
 					amount,
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: validExtraDelegateVoter.address,
 				});
 
-				const registerExtraVoterAsADelegateTransaction = lisk.transaction.registerDelegate(
-					{
-						passphrase: validExtraDelegateVoter.passphrase,
-						username: randomstring.generate({
-							length: 10,
-							charset: 'alphabetic',
-							capitalization: 'lowercase',
-						}),
-					}
-				);
+				const registerExtraVoterAsADelegateTransaction = registerDelegate({
+					passphrase: validExtraDelegateVoter.passphrase,
+					username: randomstring.generate({
+						length: 10,
+						charset: 'alphabetic',
+						capitalization: 'lowercase',
+					}),
+				});
 
-				const voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes({
+				const voteByExtraDelegateVoterTransaction = castVotes({
 					passphrase: validExtraDelegateVoter.passphrase,
 					votes: [`${validVotedDelegate.publicKey}`],
 				});
@@ -387,7 +390,9 @@ describe('GET /api/voters', () => {
 									validVotedDelegate.delegateName
 								);
 								expect(
-									_.map(res.body.data.voters, 'balance').sort()
+									_.map(res.body.data.voters, 'balance').sort((a, b) =>
+										new Bignum(a).minus(b).toNumber()
+									)
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
 					});
@@ -408,7 +413,7 @@ describe('GET /api/voters', () => {
 								);
 								expect(
 									_.map(res.body.data.voters, 'balance')
-										.sort()
+										.sort((a, b) => new Bignum(a).minus(b).toNumber())
 										.reverse()
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});

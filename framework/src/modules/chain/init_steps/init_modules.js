@@ -1,17 +1,17 @@
 const domain = require('domain');
 
 const modulesList = {
-	accounts: '../modules/accounts.js',
-	blocks: '../modules/blocks.js',
-	dapps: '../modules/dapps.js',
-	delegates: '../modules/delegates.js',
-	rounds: '../modules/rounds.js',
-	loader: '../modules/loader.js',
-	multisignatures: '../modules/multisignatures.js',
-	peers: '../modules/peers.js',
-	signatures: '../modules/signatures.js',
-	transactions: '../modules/transactions.js',
-	transport: '../modules/transport.js',
+	accounts: '../submodules/accounts',
+	blocks: '../submodules/blocks',
+	dapps: '../submodules/dapps',
+	delegates: '../submodules/delegates',
+	rounds: '../submodules/rounds',
+	loader: '../submodules/loader',
+	multisignatures: '../submodules/multisignatures',
+	peers: '../submodules/peers',
+	signatures: '../submodules/signatures',
+	transactions: '../submodules/transactions',
+	transport: '../submodules/transport',
 };
 
 module.exports = async scope => {

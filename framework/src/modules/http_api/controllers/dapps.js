@@ -15,7 +15,8 @@
 'use strict';
 
 const _ = require('lodash');
-const transactionTypes = require('../helpers/transaction_types.js');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private Fields
 let storage;
@@ -61,19 +62,19 @@ DappsController.getDapps = async function(context, next) {
 	if (params.transactionId.value) {
 		filters.push({
 			id: params.transactionId.value,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		});
 	}
 
 	if (params.name.value) {
 		filters.push({
 			dapp_name: params.name.value,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		});
 	}
 
 	if (filters.length === 0) {
-		filters.push({ type: transactionTypes.DAPP });
+		filters.push({ type: TRANSACTION_TYPES.DAPP });
 	}
 
 	try {

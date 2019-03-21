@@ -15,13 +15,15 @@
 'use strict';
 
 const crypto = require('crypto');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../fixtures/accounts');
 const modulesLoader = require('../../../../common/modules_loader');
 const application = require('../../../../common/application');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const slots = require('../../../../../../src/modules/chain/helpers/slots');
 const Vote = require('../../../../../../src/modules/chain/logic/vote');
 const Transfer = require('../../../../../../src/modules/chain/logic/transfer');
@@ -31,9 +33,9 @@ const Multisignature = require('../../../../../../src/modules/chain/logic/multis
 const Dapp = require('../../../../../../src/modules/chain/logic/dapp');
 const InTransfer = require('../../../../../../src/modules/chain/logic/in_transfer');
 const OutTransfer = require('../../../../../../src/modules/chain/logic/out_transfer');
-const MultisignatureMocks = require('./test_data/multisignature.js');
+const MultisignatureMocks = require('./test_data/multisignature');
 
-const { TOTAL_AMOUNT } = __testContext.config.constants;
+const { TOTAL_AMOUNT, TRANSACTION_TYPES } = __testContext.config.constants;
 const exceptions = global.exceptions;
 
 const validPassphrase =
@@ -169,7 +171,7 @@ describe('transaction', () => {
 	let accountModule;
 
 	before(done => {
-		const transfer = new Transfer({
+		const transferTransaction = new Transfer({
 			components: {
 				logger: modulesLoader.scope.components.logger,
 			},
@@ -181,8 +183,11 @@ describe('transaction', () => {
 				transactionLogic = scope.logic.transaction;
 				accountLogic = scope.logic.account;
 				accountModule = scope.modules.accounts;
-				transfer.bind(accountModule);
-				transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
+				transferTransaction.bind(accountModule);
+				transactionLogic.attachAssetType(
+					TRANSACTION_TYPES.SEND,
+					transferTransaction
+				);
 				done();
 			}
 		);
@@ -298,7 +303,7 @@ describe('transaction', () => {
 			const transactionBytesFromLogic = transactionLogic.getBytes(
 				validTransaction
 			);
-			const transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(
+			const transactionBytesFromLiskJs = transactionUtils.getTransactionBytes(
 				validTransaction
 			);
 
@@ -415,8 +420,8 @@ describe('transaction', () => {
 		});
 
 		it('should not return error when transaction is not confirmed', done => {
-			const transaction = lisk.transaction.transfer({
-				amount: transactionData.amount,
+			const transaction = transfer({
+				amount: transactionData.amount.toString(),
 				passphrase: transactionData.passphrase,
 				recipientId: transactionData.recipientId,
 			});
@@ -536,12 +541,12 @@ describe('transaction', () => {
 	describe('verify', () => {
 		function createAndProcess(transactionDataArg, senderArg, cb) {
 			const transferObject = {
-				amount: transactionDataArg.amount,
+				amount: transactionDataArg.amount.toString(),
 				passphrase: transactionDataArg.passphrase,
 				secondPassphrase: transactionDataArg.secondPassphrase,
 				recipientId: transactionDataArg.recipientId,
 			};
-			const transaction = lisk.transaction.transfer(transferObject);
+			const transaction = transfer(transferObject);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.process(
@@ -1430,7 +1435,7 @@ describe('transaction', () => {
 		let appliedLogic;
 		it('should attach VOTE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.VOTE,
+				TRANSACTION_TYPES.VOTE,
 				new Vote({
 					components: {
 						logger: modulesLoader.logger,
@@ -1438,6 +1443,7 @@ describe('transaction', () => {
 					schema: modulesLoader.scope.schema,
 					logic: {
 						account: accountLogic,
+						transaction: transactionLogic,
 					},
 				})
 			);
@@ -1446,7 +1452,7 @@ describe('transaction', () => {
 
 		it('should attach SEND transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.SEND,
+				TRANSACTION_TYPES.SEND,
 				new Transfer({
 					components: {
 						logger: modulesLoader.scope.components.logger,
@@ -1459,7 +1465,7 @@ describe('transaction', () => {
 
 		it('should attach DELEGATE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.DELEGATE,
+				TRANSACTION_TYPES.DELEGATE,
 				new Delegate({
 					schema: modulesLoader.scope.schema,
 				})
@@ -1469,7 +1475,7 @@ describe('transaction', () => {
 
 		it('should attach SIGNATURE transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.SIGNATURE,
+				TRANSACTION_TYPES.SIGNATURE,
 				new Signature({
 					components: {
 						logger: modulesLoader.logger,
@@ -1482,7 +1488,7 @@ describe('transaction', () => {
 
 		it('should attach MULTI transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.MULTI,
+				TRANSACTION_TYPES.MULTI,
 				new Multisignature({
 					components: {
 						logger: modulesLoader.logger,
@@ -1496,7 +1502,7 @@ describe('transaction', () => {
 
 		it('should attach DAPP transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.DAPP,
+				TRANSACTION_TYPES.DAPP,
 				new Dapp({
 					components: {
 						storage: modulesLoader.storage,
@@ -1510,7 +1516,7 @@ describe('transaction', () => {
 
 		it('should attach IN_TRANSFER transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.IN_TRANSFER,
+				TRANSACTION_TYPES.IN_TRANSFER,
 				new InTransfer({
 					components: {
 						storage: modulesLoader.storage,
@@ -1523,7 +1529,7 @@ describe('transaction', () => {
 
 		it('should attach OUT_TRANSFER transaction types', async () => {
 			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.OUT_TRANSFER,
+				TRANSACTION_TYPES.OUT_TRANSFER,
 				new OutTransfer({
 					components: {
 						storage: modulesLoader.storage,
@@ -1543,5 +1549,10 @@ describe('transaction', () => {
 
 		it('should throw an error with no param', async () =>
 			expect(transactionLogic.attachAssetType).to.throw());
+	});
+
+	describe('reverse', () => {
+		// eslint-disable-next-line mocha/no-pending-tests
+		it('should reverse');
 	});
 });

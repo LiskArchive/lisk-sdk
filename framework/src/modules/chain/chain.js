@@ -1,11 +1,11 @@
 const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs');
-const git = require('./helpers/git.js');
-const Sequence = require('./helpers/sequence.js');
-const ed = require('./helpers/ed.js');
+const git = require('./helpers/git');
+const Sequence = require('./helpers/sequence');
+const ed = require('./helpers/ed');
 // eslint-disable-next-line import/order
-const swaggerHelper = require('./helpers/swagger');
+const { ZSchema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -18,7 +18,6 @@ const {
 	createSocketCluster,
 	initLogicStructure,
 	initModules,
-	attachSwagger,
 } = require('./init_steps');
 const defaults = require('./defaults');
 
@@ -57,6 +56,7 @@ module.exports = class Chain {
 		this.logger = null;
 		this.scope = null;
 		this.blockReward = null;
+		this.slots = null;
 	}
 
 	async bootstrap() {
@@ -106,6 +106,8 @@ module.exports = class Chain {
 
 		const BlockReward = require('./logic/block_reward');
 		this.blockReward = new BlockReward();
+		// Needs to be loaded here as its using constants that need to be initialized first
+		this.slots = require('./helpers/slots');
 
 		try {
 			// Cache
@@ -131,7 +133,7 @@ module.exports = class Chain {
 				build: versionBuild,
 				config: self.options.config,
 				genesisBlock: { block: self.options.config.genesisBlock },
-				schema: swaggerHelper.getValidator(),
+				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
@@ -164,10 +166,6 @@ module.exports = class Chain {
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
 			scope.webSocket = await createSocketCluster(scope);
-			scope.swagger = await attachSwagger(scope);
-
-			// TODO: Identify why its used
-			scope.modules.swagger = scope.swagger;
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 
@@ -190,83 +188,72 @@ module.exports = class Chain {
 
 	get actions() {
 		return {
-			calculateSupply: action => this.blockReward.calcSupply(action.params[0]),
+			calculateSupply: action =>
+				this.blockReward.calcSupply(action.params.height),
 			calculateMilestone: action =>
-				this.blockReward.calcMilestone(action.params[0]),
-			calculateReward: action => this.blockReward.calcReward(action.params[0]),
-			generateDelegateList: action =>
-				new Promise((resolve, reject) => {
-					this.scope.modules.delegates.generateDelegateList(
-						action.params[0],
-						action.params[1],
-						(err, data) => {
-							if (err) {
-								reject(err);
-							}
-
-							resolve(data);
-						},
-						action.params[2]
-					);
-				}),
+				this.blockReward.calcMilestone(action.params.height),
+			calculateReward: action =>
+				this.blockReward.calcReward(action.params.height),
+			generateDelegateList: async action =>
+				promisify(this.scope.modules.delegates.generateDelegateList)(
+					action.params.round,
+					action.params.source
+				),
 			getNetworkHeight: async action =>
-				promisify(this.scope.modules.peers.networkHeight)(action.params[0]),
+				promisify(this.scope.modules.peers.networkHeight)(
+					action.params.options
+				),
 			getAllTransactionsCount: async () =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
 			updateForgingStatus: async action =>
 				promisify(this.scope.modules.delegates.updateForgingStatus)(
-					action.params[0],
-					action.params[1],
-					action.params[2]
+					action.params.publicKey,
+					action.params.password,
+					action.params.forging
 				),
 			getPeers: async action =>
-				this.scope.modules.peers.shared.getPeers(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.peers.shared.getPeers)(
+					action.params.parameters
 				),
 			getPeersCountByFilter: async action =>
-				this.scope.modules.peers.shared.getPeersCountByFilter(action.params[0]),
-			postSignature: async action =>
-				this.scope.modules.signatures.shared.postSignature(
-					action.params[0],
-					action.params[1]
+				this.scope.modules.peers.shared.getPeersCountByFilter(
+					action.params.parameters
 				),
-			storageRead: async action =>
-				this.scope.logic.block.storageRead(action.params[0]),
+			postSignature: async action =>
+				promisify(this.scope.modules.signatures.shared.postSignature)(
+					action.params.signature
+				),
 			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
 			loaderLoaded: async () => this.scope.modules.loader.loaded(),
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),
 			getForgersKeyPairs: async () =>
 				this.scope.modules.delegates.getForgersKeyPairs(),
-			getUnProcessedTransactions: async action =>
-				this.scope.modules.transactions.shared.getUnProcessedTransactions(
-					action.params[0],
-					action.params[1]
-				),
-			getUnconfirmedTransactions: async action =>
-				this.scope.modules.transactions.shared.getUnconfirmedTransactions(
-					action.params[0],
-					action.params[1]
-				),
-			getMultisignatureTransactions: async action =>
-				this.scope.modules.transactions.shared.getMultisignatureTransactions(
-					action.params[0],
-					action.params[1]
-				),
+			getTransactionsFromPool: async action =>
+				promisify(
+					this.scope.modules.transactions.shared.getTransactionsFromPool
+				)(action.params.type, action.params.filters),
 			getLastCommit: async () => this.scope.lastCommit,
 			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
-				this.scope.modules.transactions.shared.postTransaction(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.transactions.shared.postTransaction)(
+					action.params.transaction
 				),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
-					action.params[0],
-					action.params[1]
+					action.params.filters,
+					action.params.tx
 				),
+			getSlotTime: async action =>
+				action.params
+					? this.slots.getTime(action.params.time)
+					: this.slots.getTime(),
+			getSlotNumber: async action =>
+				action.params
+					? this.slots.getSlotNumber(action.params.epochTime)
+					: this.slots.getSlotNumber(),
+			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 		};
 	}
 

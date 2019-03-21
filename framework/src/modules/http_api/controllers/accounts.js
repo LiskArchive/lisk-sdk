@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const swaggerHelper = require('../helpers/swagger');
-const { calculateApproval } = require('../helpers/http_api');
+const { calculateApproval } = require('../helpers/utils');
 
 // Private Fields
 let storage;
@@ -113,7 +113,9 @@ AccountsController.getAccounts = async function(context, next) {
 			accountFormatter.bind(
 				null,
 				lastBlock.height
-					? await channel.invoke('chain:calculateSupply', [lastBlock.height])
+					? await channel.invoke('chain:calculateSupply', {
+							height: lastBlock.height,
+						})
 					: 0
 			)
 		);

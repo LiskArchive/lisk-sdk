@@ -16,43 +16,19 @@
 'use strict';
 
 const {
-	BaseEntity,
-	Transaction,
-} = require('../../../../../../src/components/storage/entities');
+	entities: { BaseEntity, Transaction },
+	errors: {
+		NonSupportedFilterTypeError,
+		NonSupportedOperationError,
+		NonSupportedOptionError,
+	},
+} = require('../../../../../../src/components/storage');
 const storageSandbox = require('../../../../common/storage_sandbox');
 const seeder = require('../../../../common/storage_seed');
 const transactionsFixtures = require('../../../../fixtures').transactions;
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
-const {
-	NonSupportedFilterTypeError,
-	NonSupportedOperationError,
-	NonSupportedOptionError,
-} = require('../../../../../../src/components/storage/errors');
 
 const numSeedRecords = 5;
 const NON_EXISTENT_ID = '1234';
-
-const expectValidTransactionRow = (row, transaction) => {
-	expect(row.id).to.be.eql(transaction.id);
-	expect(row.blockId).to.be.eql(transaction.blockId);
-	expect(row.type).to.be.eql(transaction.type);
-	expect(row.timestamp).to.be.eql(transaction.timestamp);
-	expect(row.senderPublicKey).to.be.eql(
-		Buffer.from(transaction.senderPublicKey, 'hex')
-	);
-	expect(row.requesterPublicKey).to.be.eql(
-		Buffer.from(transaction.requesterPublicKey, 'hex')
-	);
-	expect(row.senderId).to.be.eql(transaction.senderId);
-	expect(row.recipientId).to.be.eql(transaction.recipientId);
-	expect(row.amount).to.be.eql(transaction.amount);
-	expect(row.fee).to.be.eql(transaction.fee);
-	expect(row.signature).to.be.eql(Buffer.from(transaction.signature, 'hex'));
-	expect(row.signSignature).to.be.eql(
-		Buffer.from(transaction.signSignature, 'hex')
-	);
-	expect(row.signatures).to.be.eql(transaction.signatures.join());
-};
 
 const expectValidTransaction = (result, transaction, extended = true) => {
 	expect(result.id).to.be.eql(transaction.id);
@@ -83,10 +59,10 @@ describe('Transaction', () => {
 	let validTransactionSQLs;
 	let addFieldSpy;
 	let validFilters;
+	let SQLs;
 	let validOptions;
 	let validSimpleObjectFields;
 	let validExtendedObjectFields;
-	let SQLs;
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
@@ -97,13 +73,7 @@ describe('Transaction', () => {
 
 		SQLs = storage.entities.Transaction.SQLs;
 
-		validTransactionSQLs = [
-			'select',
-			'selectExtended',
-			'create',
-			'isPersisted',
-			'count',
-		];
+		validTransactionSQLs = ['select', 'selectExtended', 'isPersisted', 'count'];
 
 		validFilters = [
 			'id',
@@ -291,118 +261,10 @@ describe('Transaction', () => {
 		});
 	});
 
-	describe('getOne()', () => {
-		it('should accept only valid filters', async () => {
-			// Arrange
-			const aTransaction = new transactionsFixtures.Transaction({
-				blockId: seeder.getLastBlock().id,
-			});
-			const transaction = new Transaction(adapter);
-			await transaction.create(aTransaction);
-			const validFilter = {
-				senderId: aTransaction.senderId,
-			};
-
-			// Act & Assert
-			expect(() => {
-				transaction.getOne(validFilter);
-			}).not.to.throw(NonSupportedFilterTypeError);
-		});
-
-		// The implementation of the test is ready but should work implementation in code in different PR
-		// eslint-disable-next-line mocha/no-skipped-tests
-		it.skip('should throw error for invalid filters', async () => {
-			// Arrange
-			const aTransaction = new transactionsFixtures.Transaction({
-				blockId: seeder.getLastBlock().id,
-			});
-			const transaction = new Transaction(adapter);
-			await transaction.create(aTransaction);
-			const invalidFilter = {
-				nonExistentField: aTransaction.senderId,
-			};
-
-			// Act & Assert
-			expect(() => {
-				transaction.getOne(invalidFilter);
-			}).to.throw(NonSupportedFilterTypeError);
-		});
-
-		// The implementation of the test is ready but should work implementation in code in different PR
-		// eslint-disable-next-line mocha/no-skipped-tests
-		it.skip('should accept only valid options', async () => {
-			// Arrange
-			const transaction = new Transaction(adapter);
-			// Act & Assert
-			expect(() => {
-				transaction.getOne({}, validOptions);
-			}).not.to.throw(NonSupportedOptionError);
-		});
-
-		// The implementation of the test is ready but should work implementation in code in different PR
-		// eslint-disable-next-line mocha/no-skipped-tests
-		it.skip('should throw error for invalid options', async () => {
-			// Arrange
-			const aTransaction = new transactionsFixtures.Transaction({
-				blockId: seeder.getLastBlock().id,
-			});
-			const transaction = new Transaction(adapter);
-			await transaction.create(aTransaction);
-			const invalidOptions = { foo: 'bar' };
-			// Act & Assert
-			expect(() => {
-				transaction.getOne({}, invalidOptions);
-			}).to.throw(NonSupportedOptionError);
-		});
-
-		it('should resolve with one object matching specification of type definition of simple object', async () => {
-			// Arrange
-			const aTransaction = new transactionsFixtures.Transaction({
-				blockId: seeder.getLastBlock().id,
-			});
-			const transaction = new Transaction(adapter);
-			await transaction.create(aTransaction);
-			// Act
-			const results = await transaction.getOne(
-				{ id: aTransaction.id },
-				{ extended: false }
-			);
-			expect(results).to.have.all.keys(validSimpleObjectFields);
-		});
-
-		it('should reject with error if matched with multiple records for provided filters', async () => {
-			// Arrange
-			const transaction = new Transaction(adapter);
-			const transactions = [
-				new transactionsFixtures.Transaction({
-					blockId: seeder.getLastBlock().id,
-				}),
-				new transactionsFixtures.Transaction({
-					blockId: seeder.getLastBlock().id,
-				}),
-			];
-			await transaction.create(transactions);
-			// Act
-			expect(transaction.getOne({ blockId: transactions[0].blockId })).to.be
-				.rejected;
-			// Assert
-		});
-
-		describe('filters', () => {
-			// To make add/remove filters we add their tests.
-			it('should have only specific filters', async () => {
-				// Arrange
-				const transaction = new Transaction(adapter);
-				// Act & Assert
-				expect(transaction.getFilters()).to.eql(validFilters);
-			});
-			// For each filter type
-			it('should return matching result for provided filter');
-		});
-	});
-
 	describe('get()', () => {
-		beforeEach(() => sinonSandbox.restore());
+		beforeEach(() => {
+			return sinonSandbox.restore();
+		});
 		it('should accept only valid filters', async () => {
 			// Arrange
 			const transaction = new Transaction(adapter);
@@ -411,7 +273,7 @@ describe('Transaction', () => {
 					blockId: seeder.getLastBlock().id,
 				}),
 			];
-			await transaction.create(transactions);
+			await storage.entities.Transaction.create(transactions);
 			const validFilter = {
 				id: transactions[0].id,
 			};
@@ -454,7 +316,7 @@ describe('Transaction', () => {
 					blockId: seeder.getLastBlock().id,
 				}),
 			];
-			await transaction.create(transactions);
+			await storage.entities.Transaction.create(transactions);
 			const validFilter = {
 				id: transactions[0].id,
 			};
@@ -476,7 +338,7 @@ describe('Transaction', () => {
 					blockId: seeder.getLastBlock().id,
 				}),
 			];
-			await transaction.create(transactions);
+			await storage.entities.Transaction.create(transactions);
 			const validFilter = {
 				id: transactions[0].id,
 			};
@@ -494,7 +356,7 @@ describe('Transaction', () => {
 					blockId: seeder.getLastBlock().id,
 				}),
 			];
-			await transaction.create(transactions);
+			await storage.entities.Transaction.create(transactions);
 			const validFilter = {
 				id: transactions[0].id,
 			};
@@ -632,6 +494,145 @@ describe('Transaction', () => {
 			});
 			// For each filter type
 			it('should return matching result for provided filter');
+		});
+	});
+
+	describe('getOne()', () => {
+		it('should accept only valid filters', async () => {
+			// Arrange
+			const aTransaction = new transactionsFixtures.Transaction({
+				blockId: seeder.getLastBlock().id,
+			});
+			const transaction = new Transaction(adapter);
+			await storage.entities.Transaction.create(aTransaction);
+			const validFilter = {
+				senderId: aTransaction.senderId,
+			};
+
+			// Act & Assert
+			expect(() => {
+				transaction.getOne(validFilter);
+			}).not.to.throw(NonSupportedFilterTypeError);
+		});
+
+		// The implementation of the test is ready but should work implementation in code in different PR
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('should throw error for invalid filters', async () => {
+			// Arrange
+			const aTransaction = new transactionsFixtures.Transaction({
+				blockId: seeder.getLastBlock().id,
+			});
+			const transaction = new Transaction(adapter);
+			await storage.entities.Transaction.create(aTransaction);
+			const invalidFilter = {
+				nonExistentField: aTransaction.senderId,
+			};
+
+			// Act & Assert
+			expect(() => {
+				transaction.getOne(invalidFilter);
+			}).to.throw(NonSupportedFilterTypeError);
+		});
+
+		// The implementation of the test is ready but should work implementation in code in different PR
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('should accept only valid options', async () => {
+			// Arrange
+			const transaction = new Transaction(adapter);
+			// Act & Assert
+			expect(() => {
+				transaction.getOne({}, validOptions);
+			}).not.to.throw(NonSupportedOptionError);
+		});
+
+		// The implementation of the test is ready but should work implementation in code in different PR
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('should throw error for invalid options', async () => {
+			// Arrange
+			const aTransaction = new transactionsFixtures.Transaction({
+				blockId: seeder.getLastBlock().id,
+			});
+			const transaction = new Transaction(adapter);
+			await storage.entities.Transaction.create(aTransaction);
+			const invalidOptions = {
+				foo: 'bar',
+			};
+			// Act & Assert
+			expect(() => {
+				transaction.getOne({}, invalidOptions);
+			}).to.throw(NonSupportedOptionError);
+		});
+
+		it('should resolve with one object matching specification of type definition of simple object', async () => {
+			// Arrange
+			const aTransaction = new transactionsFixtures.Transaction({
+				blockId: seeder.getLastBlock().id,
+			});
+			const transaction = new Transaction(adapter);
+			await storage.entities.Transaction.create(aTransaction);
+			// Act
+			const results = await transaction.getOne(
+				{
+					id: aTransaction.id,
+				},
+				{
+					extended: false,
+				}
+			);
+			expect(results).to.have.all.keys(validSimpleObjectFields);
+		});
+
+		it('should reject with error if matched with multiple records for provided filters', async () => {
+			// Arrange
+			const transaction = new Transaction(adapter);
+			const transactions = [
+				new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				}),
+				new transactionsFixtures.Transaction({
+					blockId: seeder.getLastBlock().id,
+				}),
+			];
+			await storage.entities.Transaction.create(transactions);
+			// Act
+			expect(
+				transaction.getOne({
+					blockId: transactions[0].blockId,
+				})
+			).to.be.rejected;
+			// Assert
+		});
+
+		describe('filters', () => {
+			// To make add/remove filters we add their tests.
+			it('should have only specific filters', async () => {
+				// Arrange
+				const transaction = new Transaction(adapter);
+				// Act & Assert
+				expect(transaction.getFilters()).to.eql(validFilters);
+			});
+			// For each filter type
+			it('should return matching result for provided filter');
+		});
+	});
+
+	describe('create()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Transaction.prototype.delete).to.throw(NonSupportedOperationError);
+		});
+	});
+
+	describe('update()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Transaction.prototype.update).to.throw(NonSupportedOperationError);
+		});
+	});
+
+	describe('updateOne()', () => {
+		it('should always throw NonSupportedOperationError', async () => {
+			expect(Transaction.prototype.updateOne).to.throw(
+				NonSupportedOperationError
+			);
 		});
 	});
 
@@ -862,269 +863,6 @@ describe('Transaction', () => {
 
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile).to.be.calledWith(SQLs.count_all);
-		});
-	});
-
-	describe('create()', () => {
-		it('should save single transaction', async () => {
-			const block = seeder.getLastBlock();
-			const transaction = new transactionsFixtures.Transaction({
-				blockId: block.id,
-			});
-			let result = await storage.entities.Transaction.create(transaction);
-
-			result = await storage.adapter.execute('SELECT * from trs');
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(1);
-			expectValidTransactionRow(result[0], transaction);
-		});
-
-		it('should save multiple transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transaction1 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-			});
-			const transaction2 = new transactionsFixtures.Transaction({
-				blockId: block.id,
-			});
-			let result = await storage.entities.Transaction.create([
-				transaction1,
-				transaction2,
-			]);
-
-			result = await storage.adapter.execute('SELECT * from trs');
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(2);
-			expectValidTransactionRow(result[0], transaction1);
-			expectValidTransactionRow(result[1], transaction2);
-		});
-
-		it('should throw error if serialization to any attribute failed', async () => {
-			const block = seeder.getLastBlock();
-			const transaction = new transactionsFixtures.Transaction({
-				blockId: block.id,
-			});
-			transaction.senderPublicKey = 'ABFGH';
-
-			return expect(
-				storage.entities.Transaction.create(transaction)
-			).to.be.rejectedWith('invalid hexadecimal digit: "G"');
-		});
-
-		it('should populate asset field with "transfer" json for type 0 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes.SEND,
-					})
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true }
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.data)).to.be.eql(
-				transactions.map(t => t.asset.data)
-			);
-		});
-
-		it('should populate asset field with "signatures" json for type 1 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes.SIGNATURE,
-					})
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true }
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.signature)).to.be.eql(
-				transactions.map(t => t.asset.signature)
-			);
-		});
-
-		it('should populate asset field with "delegates" json for type 2 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes.DELEGATE,
-					})
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true }
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.delegate)).to.be.eql(
-				transactions.map(t => t.asset.delegate)
-			);
-		});
-
-		it('should populate asset field with "votes" json for type 3 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes.VOTE,
-					})
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true }
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.votes)).to.be.eql(
-				transactions.map(t => t.asset.votes)
-			);
-		});
-
-		it('should populate asset field with "multisignatures" json for type 4 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes.MULTI,
-					})
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true }
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.multisignature)).to.be.eql(
-				transactions.map(t => t.asset.multisignature)
-			);
-		});
-
-		it('should populate asset field with "dapps" json for type 5 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes.DAPP,
-					})
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true }
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(t => t.asset.dapp)).to.be.eql(
-				transactions.map(t => t.asset.dapp)
-			);
-		});
-
-		it('should populate asset field with "intransfer" json for type 6 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes.IN_TRANSFER,
-					})
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true }
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.inTransfer.transactionId)).to.be.eql(
-				transactions.map(t => t.asset.inTransfer.transactionId)
-			);
-			expect(result.map(r => r.asset.inTransfer.dappId)).to.be.eql(
-				transactions.map(t => t.asset.inTransfer.dappId)
-			);
-		});
-
-		it('should populate asset field with "outtransfer" json for type 7 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: transactionTypes.OUT_TRANSFER,
-					})
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true }
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.outTransfer.transactionId)).to.be.eql(
-				transactions.map(t => t.asset.outTransfer.transactionId)
-			);
-			expect(result.map(r => r.asset.outTransfer.dappId)).to.be.eql(
-				transactions.map(t => t.asset.outTransfer.dappId)
-			);
 		});
 	});
 });

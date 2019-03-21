@@ -18,10 +18,10 @@ const path = require('path');
 const fs = require('fs-extra');
 const { defaults, pick } = require('lodash');
 const {
-	NonSupportedOperationError,
-} = require('../../../../../components/storage/errors');
-const filterType = require('../../../../../components/storage/utils/filter_types');
-const BaseEntity = require('../../../../../components/storage/entities/base_entity');
+	entities: { BaseEntity },
+	errors: { NonSupportedOperationError },
+	utils: { filterTypes: { TEXT } },
+} = require('../../../../../components/storage');
 
 const defaultCreateValues = {};
 
@@ -63,8 +63,8 @@ class Migration extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
-		this.addField('id', 'string', { filter: filterType.TEXT });
-		this.addField('name', 'string', { filter: filterType.TEXT });
+		this.addField('id', 'string', { filter: TEXT });
+		this.addField('name', 'string', { filter: TEXT });
 
 		const defaultSort = { sort: 'id:asc' };
 		this.extendDefaultOptions(defaultSort);

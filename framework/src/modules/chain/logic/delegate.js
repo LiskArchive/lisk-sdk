@@ -15,8 +15,8 @@
 'use strict';
 
 const async = require('async');
-const Bignum = require('../helpers/bignum.js');
-const regexpTester = require('../helpers/regexp_tester.js');
+const Bignum = require('../helpers/bignum');
+const regexpTester = require('../helpers/regexp_tester');
 
 const { FEES } = global.constants;
 let self;

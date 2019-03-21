@@ -14,13 +14,16 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerMultisignature,
+} = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
-const QueriesHelper = require('../../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../../common/integration/sql/queries_helper');
 const localCommon = require('../common');
-const Bignum = require('../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../src/modules/chain/helpers/bignum');
 
 const addTransactionsAndForgePromise = Promise.promisify(
 	localCommon.addTransactionsAndForge
@@ -50,9 +53,9 @@ describe('expire transactions', () => {
 		);
 
 	const createTransaction = (amount, recipientId) => {
-		return lisk.transaction.transfer({
+		return transfer({
 			recipientId,
-			amount,
+			amount: amount.toString(),
 			passphrase: accountsFixtures.genesis.passphrase,
 		});
 	};
@@ -162,7 +165,7 @@ describe('expire transactions', () => {
 			});
 		});
 
-		it('once transaction is expired the mem account u_balance should be restored @sequential', done => {
+		it('once transaction is expired the mem account u_balance should be restored', done => {
 			// Expiry interval is set to 1 second
 			// and unconfirmed transaction timeout is set to 0
 			// so waiting 5 seconds to ensure the transaction is expired and
@@ -215,7 +218,7 @@ describe('expire transactions', () => {
 			});
 		});
 
-		it('account should be transfer and updated with balance and u_balance @sequential', done => {
+		it('account should be transfer and updated with balance and u_balance', done => {
 			queries
 				.getAccount(address)
 				.then(memAccountAfter => {
@@ -240,7 +243,7 @@ describe('expire transactions', () => {
 		it('should be able to add multi-signature transaction to unconfirmed queue', done => {
 			const keysgroup = [signer1.publicKey, signer2.publicKey];
 
-			multiSigTransaction = lisk.transaction.registerMultisignature({
+			multiSigTransaction = registerMultisignature({
 				passphrase: account.passphrase,
 				keysgroup,
 				lifetime,

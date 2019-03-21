@@ -65,23 +65,21 @@ module.exports = class ChainModule extends BaseModule {
 			getPeersCountByFilter: async action =>
 				this.chain.actions.getPeersCountByFilter(action),
 			postSignature: async action => this.chain.actions.postSignature(action),
-			storageRead: async action => this.chain.actions.storageRead(action),
 			getLastConsensus: async () => this.chain.actions.getLastConsensus(),
 			loaderLoaded: async () => this.chain.actions.loaderLoaded(),
 			loaderSyncing: async () => this.chain.actions.loaderSyncing(),
 			getForgersKeyPairs: async () => this.chain.actions.getForgersKeyPairs(),
-			getUnProcessedTransactions: async action =>
-				this.chain.actions.getUnProcessedTransactions(action),
-			getUnconfirmedTransactions: async action =>
-				this.chain.actions.getUnconfirmedTransactions(action),
-			getMultisignatureTransactions: async action =>
-				this.chain.actions.getMultisignatureTransactions(action),
+			getTransactionsFromPool: async action =>
+				this.chain.actions.getTransactionsFromPool(action),
 			getLastCommit: async () => this.chain.actions.getLastCommit(),
 			getBuild: async () => this.chain.actions.getBuild(),
 			postTransaction: async action =>
 				this.chain.actions.postTransaction(action),
 			getDelegateBlocksRewards: async action =>
 				this.chain.actions.getDelegateBlocksRewards(action),
+			getSlotTime: async action => this.chain.actions.getSlotTime(action),
+			getSlotNumber: async action => this.chain.actions.getSlotNumber(action),
+			calcSlotRound: async action => this.chain.actions.calcSlotRound(action),
 		};
 	}
 
