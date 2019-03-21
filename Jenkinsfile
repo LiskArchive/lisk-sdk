@@ -42,7 +42,7 @@ def run_mocha(test_name) {
 	ansiColor('xterm') {
 		timestamps {
 			nvm(getNodejsVersion()) {
-				sh 'npm run mocha:'+ "${test_name}" + ' ${LISK_MOCHA_RUNNER_OPTIONS}'
+				sh 'npm run mocha:' + "${test_name}" + ' ${MOCHA_OPTIONS:-$DEFAULT_MOCHA_OPTIONS}'
 			}
 		}
 	}
@@ -116,7 +116,7 @@ def teardown_jest(test_name) {
 
 properties([
 	parameters([
-		string(name: 'LISK_MOCHA_RUNNER_OPTIONS', defaultValue: '-- --grep @slow|@unstable --invert', description: 'Please check readme to see available test tags. Example: `-- --grep something`', ),
+		string(name: 'MOCHA_OPTIONS', defaultValue: '-- --grep @slow|@unstable --invert', description: 'Please check readme to see available test tags. Example: `-- --grep something`', ),
 		string(name: 'JEST_OPTIONS', defaultValue: '', description: 'Additional jest options that you want to provide to test runner. Example: `-- --config=<path>`'),
 		// read by the application
 		string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
@@ -132,6 +132,7 @@ pipeline {
 
 	environment {
 		MAX_TASK_LIMIT = '20'
+		DEFAULT_MOCHA_OPTIONS = "-- --grep @slow|@unstable --invert"
 	}
 
 	stages {
