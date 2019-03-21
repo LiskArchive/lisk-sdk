@@ -54,7 +54,7 @@ export class Queue {
 				delete this._index[transaction.id];
 
 				return {
-					affected: [transaction, ...affected],
+					affected: [...affected, transaction],
 					unaffected,
 					conditionFailedOnce: false,
 				};
@@ -112,7 +112,7 @@ export class Queue {
 				}
 
 				return {
-					affected: [transaction, ...affected],
+					affected: [...affected, transaction],
 					unaffected,
 					conditionFailedOnce: false,
 				};
