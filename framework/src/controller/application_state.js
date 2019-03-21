@@ -87,6 +87,7 @@ class ApplicationState {
 				.toString('hex');
 			this.state.broadhash = newBroadhash;
 			this.logger.debug('Application state', this.state);
+			this.channel.publish('lisk:applicationStateUpdated', this.state);
 			return true;
 		} catch (err) {
 			this.logger.error(err.stack);

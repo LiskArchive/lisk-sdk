@@ -22,6 +22,7 @@ describe('components: system', () => {
 	let applicationState;
 	let loggerStub;
 	let dummyConfig;
+	let channelMock;
 
 	beforeEach(async () => {
 		// Library
@@ -46,7 +47,12 @@ describe('components: system', () => {
 
 		dummyConfig.broadhash = dummyConfig.nethash;
 
+		channelMock = {
+			publish: sinonSandbox.stub(),
+		};
+
 		applicationState = new ApplicationState(dummyConfig, loggerStub);
+		applicationState.setChannel(channelMock);
 	});
 
 	describe('update', () => {
@@ -105,6 +111,10 @@ describe('components: system', () => {
 					height: 1,
 				},
 			];
+
+			beforeEach(async () => {
+				channelMock.publish.returns();
+			});
 
 			it('should return true', async () => {
 				const result = await applicationState.update(blocks);
