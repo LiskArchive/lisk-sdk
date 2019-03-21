@@ -27,8 +27,9 @@ const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
+const Scenarios = require('../../../common/scenarios');
 
-const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
+const { NORMALIZER, TRANSACTION_TYPES, FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -75,6 +76,15 @@ describe('GET /api/transactions', () => {
 	const transactionType3 = castVotes({
 		passphrase: account2.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
+	});
+	const transactionType4 = new Scenarios.Multisig({
+		amount: FEES.MULTISIGNATURE * 3,
+	});
+	const transactionType4Transfer = transfer({
+		amount: minAmount.toString(),
+		passphrase: accountFixtures.genesis.passphrase,
+		recipientId: transactionType4.multiSigTransaction.senderId,
+		data: 'fund acc for multisig',
 	});
 	const transactionType5 = {
 		amount: '0',
@@ -142,20 +152,25 @@ describe('GET /api/transactions', () => {
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
 		promises.push(apiHelpers.sendTransactionPromise(transaction5));
+		promises.push(apiHelpers.sendTransactionPromise(transactionType4Transfer));
 
 		return Promise.all(promises).then(() => {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
 			transactionList.push(transaction5);
+			transactionList.push(transactionType4Transfer);
 
 			return waitFor
 				.confirmations(_.map(transactionList, 'id'))
-				.then(() => {
-					return Promise.all([
+				.then(() =>
+					Promise.all([
 						apiHelpers.sendTransactionPromise(transaction3),
 						apiHelpers.sendTransactionPromise(transactionType3),
-					]);
-				})
+						apiHelpers.sendTransactionPromise(
+							transactionType4.multiSigTransaction
+						),
+					])
+				)
 				.then(() => {
 					transactionList.push(transaction3);
 					transactionList.push(transactionType3);
