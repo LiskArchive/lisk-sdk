@@ -143,7 +143,7 @@ Modules running in different processes communicate with each other over IPC chan
 
 ### InMemory Channel
 
-Communicates with modules which reside in the same process as the Controller.
+Communicates with modules which reside in the same process as the [controller](../controller/README.md).
 
 If not specified differently, modules will load in the same process as the controller.
 

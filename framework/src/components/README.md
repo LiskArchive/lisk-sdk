@@ -2,8 +2,8 @@
 
 ## Description
 
-Components are shared objects within the Controller layer which any module can utilize.
-Components can use channels if required for implementation behavior.
+Components are shared objects within the [controller](../controller/README.md) layer which any [module](../modules/README.md) can utilize.
+Components can use [channels](../modules/README.md#module-communication) if required for implementation behavior.
 The following components are proposed currently.
 
 ### Cache
