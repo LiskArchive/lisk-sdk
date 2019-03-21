@@ -121,14 +121,14 @@ describe('GET /dapps', () => {
 				return dappsEndpoint
 					.makeRequest(
 						{
-							name: 'invalid',
+							transactionId: 'invalid',
 							limit: 'invalid',
 							offset: 'invalid',
 						},
 						400
 					)
 					.then(res => {
-						expectSwaggerParamError(res, 'name');
+						expectSwaggerParamError(res, 'transactionId');
 						expectSwaggerParamError(res, 'limit');
 						expectSwaggerParamError(res, 'offset');
 					});
