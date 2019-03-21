@@ -229,7 +229,7 @@ export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	if (amountBigNum.lt(0)) {
 		throw new Error('Transaction amount must not be negative.');
 	}
-	if (amountBigNum.gte(new BigNum(MAX_TRANSACTION_AMOUNT))) {
+	if (amountBigNum.gt(new BigNum(MAX_TRANSACTION_AMOUNT))) {
 		throw new Error('Transaction amount is too large.');
 	}
 	const transactionAmount = amountBigNum.toBuffer({
