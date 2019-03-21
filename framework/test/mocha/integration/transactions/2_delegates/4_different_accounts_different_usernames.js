@@ -140,19 +140,11 @@ describe('system test (type 2) - double delegate registrations', () => {
 							timeOffset: -10000,
 						});
 						localCommon.addTransaction(library, transaction3, err => {
-							expect(err).to.equal('Account is already a delegate');
-							done();
-						});
-					});
-
-					it('adding to pool delegate registration from same account should fail', done => {
-						const transaction4 = registerDelegate({
-							passphrase: account2.passphrase,
-							username: account2.username,
-							timeOffset: -10000,
-						});
-						localCommon.addTransaction(library, transaction4, err => {
-							expect(err).to.equal('Account is already a delegate');
+							expect(err).to.equal(
+								`Transaction: ${
+									transaction3.id
+								} failed at .asset.delegate.username: Username is not unique.`
+							);
 							done();
 						});
 					});

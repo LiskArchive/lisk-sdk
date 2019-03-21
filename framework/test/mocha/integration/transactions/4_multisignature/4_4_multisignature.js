@@ -71,9 +71,9 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	it('adding to pool multisig registration should be ok', done => {
 		localCommon.addTransaction(
 			library,
-			transactionToBeNotConfirmed,
+			scenarios.regular.multiSigTransaction,
 			(err, res) => {
-				expect(res).to.equal(transactionToBeNotConfirmed.id);
+				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 				done();
 			}
 		);
@@ -82,9 +82,9 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	it('adding to pool same transaction with different timestamp should be ok', done => {
 		localCommon.addTransaction(
 			library,
-			scenarios.regular.multiSigTransaction,
+			transactionToBeNotConfirmed,
 			(err, res) => {
-				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
+				expect(res).to.equal(transactionToBeNotConfirmed.id);
 				done();
 			}
 		);
@@ -97,21 +97,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 			});
 		});
 
-		it('first transaction to arrive should not be included', done => {
-			const filter = {
-				id: transactionToBeNotConfirmed.id,
-			};
-			localCommon.getTransactionFromModule(library, filter, (err, res) => {
-				expect(err).to.be.null;
-				expect(res)
-					.to.have.property('transactions')
-					.which.is.an('Array');
-				expect(res.transactions.length).to.equal(0);
-				done();
-			});
-		});
-
-		it('last transaction to arrive should be included', done => {
+		it('first transaction to arrive should be included', done => {
 			const filter = {
 				id: scenarios.regular.multiSigTransaction.id,
 			};
@@ -128,6 +114,20 @@ describe('system test (type 4) - double multisignature registrations', () => {
 			});
 		});
 
+		it('last transaction to arrive should not be included', done => {
+			const filter = {
+				id: transactionToBeNotConfirmed.id,
+			};
+			localCommon.getTransactionFromModule(library, filter, (err, res) => {
+				expect(err).to.be.null;
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
+				expect(res.transactions.length).to.equal(0);
+				done();
+			});
+		});
+
 		it('adding to pool multisignature registration for same account should fail', done => {
 			const multiSignatureToSameAccount = registerMultisignature({
 				passphrase: scenarios.regular.account.passphrase,
@@ -137,7 +137,11 @@ describe('system test (type 4) - double multisignature registrations', () => {
 				timeOffset: -10000,
 			});
 			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
-				expect(err).to.equal('Account already has multisignatures enabled');
+				expect(err).to.equal(
+					`Transaction: ${
+						multiSignatureToSameAccount.id
+					} failed at .signatures: Missing signatures `
+				);
 				done();
 			});
 		});

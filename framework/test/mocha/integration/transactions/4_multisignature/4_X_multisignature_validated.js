@@ -114,7 +114,11 @@ describe('system test (type 4) - checking registered multisignature transaction 
 				timeOffset: -10000,
 			});
 			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
-				expect(err).to.equal('Account already has multisignatures enabled');
+				expect(err).to.equal(
+					`Transaction: ${
+						multiSignatureToSameAccount.id
+					} failed at .signatures: Missing signatures `
+				);
 				done();
 			});
 		});
