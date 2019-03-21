@@ -118,12 +118,12 @@ class Bus extends EventEmitter2 {
 		});
 
 		let channel;
-		if (options.type === 'inMemory') {
-			channel = options.channel;
-		} else {
+		if (options.rpcSocketPath) {
 			const rpcSocket = axon.socket('req');
 			rpcSocket.connect(options.rpcSocketPath);
 			channel = new RPCClient(rpcSocket);
+		} else {
+			channel = options.channel;
 		}
 
 		this.channels[moduleAlias] = {
