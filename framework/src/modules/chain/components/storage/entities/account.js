@@ -121,11 +121,42 @@ class ChainAccount extends AccountEntity {
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
-		return this.adapter.executeFile(
+		const accountCreatePromise = this.adapter.executeFile(
 			this.SQLs.create,
 			{ createSet, fields },
 			{ expectedResultCount: 0 },
 			tx
+		);
+
+		const dependentRecordsPromsies = [];
+
+		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
+			dependentRecordsPromsies.push(
+				this.updateDependentRecords(
+					'membersPublicKeys',
+					data.address,
+					data.membersPublicKeys,
+					tx
+				)
+			);
+		}
+
+		if (
+			data.votedDelegatesPublicKeys &&
+			data.votedDelegatesPublicKeys.length > 0
+		) {
+			dependentRecordsPromsies.push(
+				this.updateDependentRecords(
+					'votedDelegatesPublicKeys',
+					data.address,
+					data.votedDelegatesPublicKeys,
+					tx
+				)
+			);
+		}
+
+		return accountCreatePromise.then(() =>
+			Promise.all(dependentRecordsPromsies)
 		);
 	}
 

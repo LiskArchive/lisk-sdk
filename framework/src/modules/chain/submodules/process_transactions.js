@@ -15,6 +15,7 @@
 'use strict';
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const roundInformation = require('../logic/rounds_information');
 
 let library;
 
@@ -26,7 +27,6 @@ class ProcessTransactions {
 				stateManager: scope.logic.stateManager,
 			},
 		};
-
 		setImmediate(cb, null, this);
 	}
 
@@ -86,6 +86,7 @@ class ProcessTransactions {
 
 		const transactionsResponses = transactions.map(transaction => {
 			const transactionResponse = transaction.apply(stateStore);
+			roundInformation.apply(stateStore, transaction);
 			stateStore.transaction.add(transaction);
 			return transactionResponse;
 		});
@@ -108,6 +109,7 @@ class ProcessTransactions {
 
 		const transactionsResponses = transactions.map(transaction => {
 			const transactionResponse = transaction.undo(stateStore);
+			roundInformation.undo(stateStore, transaction);
 			return transactionResponse;
 		});
 

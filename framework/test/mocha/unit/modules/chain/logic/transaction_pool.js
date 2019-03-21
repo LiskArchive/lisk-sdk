@@ -432,7 +432,7 @@ describe('transactionPool', () => {
 				transactionsResponses: transactionsResponses2,
 			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
-				expect(err).to.eql(transactionsResponses2[0].errors);
+				expect(err).to.eql(transactionsResponses2[0].errors[0]);
 				done();
 			});
 		});

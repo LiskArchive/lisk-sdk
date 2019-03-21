@@ -1224,7 +1224,7 @@ class Transaction {
 			return null;
 		}
 
-		const transaction = {
+		const transactionJSON = {
 			id: raw.t_id,
 			height: raw.b_height,
 			blockId: raw.b_id || raw.t_blockId,
@@ -1235,8 +1235,8 @@ class Transaction {
 			senderId: raw.t_senderId,
 			recipientId: raw.t_recipientId,
 			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: new Bignum(raw.t_amount),
-			fee: new Bignum(raw.t_fee),
+			amount: raw.t_amount,
+			fee: raw.t_fee,
 			signature: raw.t_signature,
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
@@ -1244,17 +1244,17 @@ class Transaction {
 			asset: {},
 		};
 
-		if (!__private.types[transaction.type]) {
-			throw `Unknown transaction type ${transaction.type}`;
+		if (!__private.types[transactionJSON.type]) {
+			throw `Unknown transaction type ${transactionJSON.type}`;
 		}
 
-		const asset = __private.types[transaction.type].dbRead(raw);
+		const asset = __private.types[transactionJSON.type].dbRead(raw);
 
 		if (asset) {
-			transaction.asset = Object.assign(transaction.asset, asset);
+			transactionJSON.asset = Object.assign(transactionJSON.asset, asset);
 		}
 
-		return transaction;
+		return initTransaction(_.omitBy(transactionJSON, _.isNull));
 	}
 
 	/**
