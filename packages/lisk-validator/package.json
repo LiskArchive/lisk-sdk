@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-validator",
-	"version": "0.1.0",
+	"version": "0.1.0-alpha.0",
 	"description": "Validation library according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
