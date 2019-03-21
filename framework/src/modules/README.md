@@ -5,7 +5,6 @@
 * [Description](#description)
   * [Core Modules](#core-modules)
   * [Custom Modules](#custom-modules)
-  * [Base Module](#base-module)
 * [Module Communication](#module-communication)
   * [InMemory Channel](#inmemory-channel)
   * [ChildProcess Channel](#childprocess-channel)
