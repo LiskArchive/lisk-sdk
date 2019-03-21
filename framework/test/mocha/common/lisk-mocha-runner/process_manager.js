@@ -21,7 +21,7 @@ const ISTANBUL_PATH = process.env.MOCHA_PATH || 'node_modules/.bin/istanbul';
 
 const children = {};
 
-const promisifyChild = child => {
+const promisifyChildExit = child => {
 	let error = null;
 	child.once('error', err => {
 		error = err;
@@ -68,7 +68,7 @@ const spawn = (testFile, mochaCliOptions) => {
 	const istanbulOptionsStr = istanbulOptions.map(v => `"${v}"`).join(' ');
 	console.info(`(${child.pid}) ${ISTANBUL_PATH} ${istanbulOptionsStr}`);
 
-	return promisifyChild(child);
+	return promisifyChildExit(child);
 };
 
 const killAll = () =>
