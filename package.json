@@ -16,7 +16,7 @@
 		"url": "https://github.com/LiskHQ/lisk/issues"
 	},
 	"engines": {
-		"node": "10.14.1",
+		"node": "10.15.3",
 		"npm": "6.4.1"
 	},
 	"main": "src/index.js",
@@ -81,7 +81,7 @@
 		"lisk-commander": "2.0.0",
 		"@liskhq/lisk-transactions": "2.0.0",
 		"@liskhq/lisk-cryptography": "2.0.0",
-		"lisk-newrelic": "LiskHQ/lisk-newrelic#d1ca762",
+		"lisk-newrelic": "LiskHQ/lisk-newrelic#fa23caa",
 		"lodash": "4.17.11",
 		"method-override": "3.0.0",
 		"newrelic": "5.0.0",

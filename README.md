@@ -109,7 +109,7 @@ sudo apt-get install -y nodejs
 * MacOS 10.12-10.14 (Sierra/High Sierra/Mojave)::
 
 ```
-brew install node@10.14.1
+brew install node@10.15.3
 ```
 
 #### Check correct version
@@ -136,7 +136,7 @@ su - lisk
 3. Install the correct version of Node.js using nvm:
 
 ```
-nvm install 10.14.1
+nvm install 10.15.3
 ```
 
 For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
