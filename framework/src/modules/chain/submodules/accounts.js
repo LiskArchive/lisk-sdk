@@ -36,13 +36,6 @@ __private.assetTypes = {};
  * @requires crypto
  * @requires helpers/bignum
  * @requires logic/block_reward
-<<<<<<< HEAD
-||||||| merged common ancestors
- * @requires logic/transaction_types
- * @requires logic/vote
-=======
- * @requires logic/vote
->>>>>>> feature/improve_transactions_processing_efficiency
  * @param {scope} scope - App instance
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, null, self

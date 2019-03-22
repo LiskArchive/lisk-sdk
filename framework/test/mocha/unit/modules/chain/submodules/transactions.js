@@ -44,108 +44,40 @@ describe('transactions', () => {
 		delegatesModule,
 		accountsModule
 	) {
-		const sendLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.SEND,
-			new TransferLogic({
-				components: {
-					logger: modulesLoader.logger,
-				},
-				schema: modulesLoader.scope.schema,
-			})
-		);
+		const sendLogic = transactionLogic.attachAssetType(TRANSACTION_TYPES.SEND);
 		sendLogic.bind(accountsModule);
-		expect(sendLogic).to.be.an.instanceof(TransferLogic);
 
-		const voteLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.VOTE,
-			new VoteLogic({
-				components: {
-					logger: modulesLoader.logger,
-				},
-				logic: {},
-				schema: modulesLoader.scope.schema,
-			})
-		);
+		const voteLogic = transactionLogic.attachAssetType(TRANSACTION_TYPES.VOTE);
 		voteLogic.bind(delegatesModule);
-		expect(voteLogic).to.be.an.instanceof(VoteLogic);
 
 		const delegateLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.DELEGATE,
-			new DelegateLogic({
-				schema: modulesLoader.scope.schema,
-			})
+			TRANSACTION_TYPES.DELEGATE
 		);
 		delegateLogic.bind(accountsModule);
-		expect(delegateLogic).to.be.an.instanceof(DelegateLogic);
 
 		const signatureLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.SIGNATURE,
-			new SignatureLogic({
-				components: {
-					logger: modulesLoader,
-				},
-				schema: modulesLoader.scope.schema,
-			})
+			TRANSACTION_TYPES.SIGNATURE
 		);
 		signatureLogic.bind(accountsModule);
-		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
 		const multiLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.MULTI,
-			new MultisignatureLogic({
-				components: {
-					logger: modulesLoader.logger,
-				},
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
-				logic: {
-					account: accountLogic,
-					transaction: transactionLogic,
-				},
-			})
+			TRANSACTION_TYPES.MULTI
 		);
 
 		multiLogic.bind(accountsModule);
-		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
-		const dappLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.DAPP,
-			new DappLogic({
-				components: {
-					storage: modulesLoader.storage,
-					logger: modulesLoader.logger,
-				},
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
-			})
-		);
-		signatureLogic.bind(accountsModule);
-		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
+		const dappLogic = transactionLogic.attachAssetType(TRANSACTION_TYPES.DAPP);
+		dappLogic.bind(accountsModule);
 
 		const inTransferLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.IN_TRANSFER,
-			new InTransferLogic({
-				components: {
-					storage: modulesLoader.storage,
-				},
-				schema: modulesLoader.scope.schema,
-			})
+			TRANSACTION_TYPES.IN_TRANSFER
 		);
 		inTransferLogic.bind(accountsModule, /* sharedApi */ null);
-		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
 
 		const outTransfer = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.OUT_TRANSFER,
-			new OutTransferLogic({
-				components: {
-					storage: modulesLoader.storage,
-					logger: modulesLoader.logger,
-				},
-				schema: modulesLoader.scope.schema,
-			})
+			TRANSACTION_TYPES.OUT_TRANSFER
 		);
 		outTransfer.bind(accountsModule, /* sharedApi */ null);
-		expect(outTransfer).to.be.an.instanceof(OutTransferLogic);
 		return transactionLogic;
 	}
 
@@ -419,16 +351,16 @@ describe('transactions', () => {
 						type: 0,
 						timestamp: 40080841,
 						senderPublicKey:
-						'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
+							'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
 						requesterPublicKey: undefined,
 						senderId: '2525786814299543383L',
 						recipientId: '16313739661670634666L',
 						recipientPublicKey:
-						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+							'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 						amount: '112340000',
 						fee: '20000000',
 						signature:
-						'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
+							'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
 						signSignature: undefined,
 						signatures: [],
 						confirmations: 12,
@@ -446,21 +378,21 @@ describe('transactions', () => {
 						type: 1,
 						timestamp: 40080841,
 						senderPublicKey:
-						'f6b8bd8e0643921d90d935cbcf0eae7cd2271e77aceac35e75c9ed9d4e222237',
+							'f6b8bd8e0643921d90d935cbcf0eae7cd2271e77aceac35e75c9ed9d4e222237',
 						senderId: '10313008732729972965L',
 						recipientId: null,
 						recipientPublicKey: null,
 						amount: '0',
 						fee: '500000000',
 						signature:
-						'b281931b24514c0b150a3b6daf362822c98207148c8967b2469233c5118f7874520e4067595f20c359136385fc8c0ba9391b408df139f58ba86a279b9d96b305',
+							'b281931b24514c0b150a3b6daf362822c98207148c8967b2469233c5118f7874520e4067595f20c359136385fc8c0ba9391b408df139f58ba86a279b9d96b305',
 						signatures: [],
 						confirmations: 59,
 						asset: {
 							signature: {
 								transactionId: '11286126025791281057',
 								publicKey:
-								'e26ede27ed390a9da260b5f5b76db5908a164044d3d1f9d2b24116dd5b25dc72',
+									'e26ede27ed390a9da260b5f5b76db5908a164044d3d1f9d2b24116dd5b25dc72',
 							},
 						},
 					},
@@ -474,7 +406,7 @@ describe('transactions', () => {
 						type: 2,
 						timestamp: 40081792,
 						senderPublicKey:
-						'81fc017321367f5ebfd75c9b115c321ca8dbbaaf6c794feeefa0bd70f364f98d',
+							'81fc017321367f5ebfd75c9b115c321ca8dbbaaf6c794feeefa0bd70f364f98d',
 						requesterPublicKey: undefined,
 						senderId: '13683056641259213857L',
 						recipientId: null,
@@ -482,7 +414,7 @@ describe('transactions', () => {
 						amount: '0',
 						fee: '2500000000',
 						signature:
-						'00732b1bc95d8b459bde261cbdd27c7e06bb023483446f350101f42bdd2f5d807be0115ea5ef9f3e15246659a8d3d14cbae5afe5ad2862a3416ddee29870b009',
+							'00732b1bc95d8b459bde261cbdd27c7e06bb023483446f350101f42bdd2f5d807be0115ea5ef9f3e15246659a8d3d14cbae5afe5ad2862a3416ddee29870b009',
 						signSignature: undefined,
 						signatures: [],
 						confirmations: 13,
@@ -490,7 +422,7 @@ describe('transactions', () => {
 							delegate: {
 								username: '&im',
 								publicKey:
-								'81fc017321367f5ebfd75c9b115c321ca8dbbaaf6c794feeefa0bd70f364f98d',
+									'81fc017321367f5ebfd75c9b115c321ca8dbbaaf6c794feeefa0bd70f364f98d',
 								address: '13683056641259213857L',
 							},
 						},
@@ -505,16 +437,16 @@ describe('transactions', () => {
 						type: 3,
 						timestamp: 40081792,
 						senderPublicKey:
-						'31ab15b507bbdbb8f53b0dfbca65e78aafc3efe73e793b5f7db94dae53f94aba',
+							'31ab15b507bbdbb8f53b0dfbca65e78aafc3efe73e793b5f7db94dae53f94aba',
 						requesterPublicKey: undefined,
 						senderId: '8643584619166983815L',
 						recipientId: '8643584619166983815L',
 						recipientPublicKey:
-						'31ab15b507bbdbb8f53b0dfbca65e78aafc3efe73e793b5f7db94dae53f94aba',
+							'31ab15b507bbdbb8f53b0dfbca65e78aafc3efe73e793b5f7db94dae53f94aba',
 						amount: '0',
 						fee: '100000000',
 						signature:
-						'02dacc2888e1c4608e812d7099a2657e6f57f1446af6489811a942621f5619292873429621c097078276047a5905bb8e11af5ad5a96a389b767e6c7c019f6c0b',
+							'02dacc2888e1c4608e812d7099a2657e6f57f1446af6489811a942621f5619292873429621c097078276047a5905bb8e11af5ad5a96a389b767e6c7c019f6c0b',
 						signSignature: undefined,
 						signatures: [],
 						confirmations: 40,
@@ -535,14 +467,14 @@ describe('transactions', () => {
 						type: 4,
 						timestamp: 40081792,
 						senderPublicKey:
-						'aae5e1ccc5f30e1983aaf38867ce6f33acbee116a396ae5249ea6495fdc9bcf7',
+							'aae5e1ccc5f30e1983aaf38867ce6f33acbee116a396ae5249ea6495fdc9bcf7',
 						senderId: '10952279861355607751L',
 						recipientId: null,
 						recipientPublicKey: null,
 						amount: '0',
 						fee: '1500000000',
 						signature:
-						'c05e4fe662f64c14529331d37611ccfc66f41901f92faa6c7c010f7a2f6fcda9c594aa67c5634f46b795d9dc0cb75943c6a20f757e56f86e88205876ae17b103',
+							'c05e4fe662f64c14529331d37611ccfc66f41901f92faa6c7c010f7a2f6fcda9c594aa67c5634f46b795d9dc0cb75943c6a20f757e56f86e88205876ae17b103',
 						signatures: [
 							'fa67d933ca29f6c476b02e5f0057fe8ecdae4a15d06acd6df515389c7e1d989f20e931c51483632059d4173fc69e472ef889e06e05a73ec48b7cea887ae4da0f',
 							'83946b53e06e89eeb76a667c8607bcb93cee2c63932040eb49f78a1eb7480071f5c9e89e3bbf96f63cd31b664baa489c2765b81376c793daace7573566611900',
@@ -569,14 +501,14 @@ describe('transactions', () => {
 						type: 5,
 						timestamp: 40081792,
 						senderPublicKey:
-						'644485a01cb11e06a1f4ffef90a7ba251e56d54eb06a0cb2ecb5693a8cc163a2',
+							'644485a01cb11e06a1f4ffef90a7ba251e56d54eb06a0cb2ecb5693a8cc163a2',
 						senderId: '5519106118231224961L',
 						recipientId: null,
 						recipientPublicKey: null,
 						amount: '0',
 						fee: '2500000000',
 						signature:
-						'b024f90f73e53c9fee943f3c3ef7a9e3da99bab2f9fa3cbfd5ad05ed79cdbbe21130eb7b27698692bf491a1cf573a518dfa63607dc88bc0c01925fda18304905',
+							'b024f90f73e53c9fee943f3c3ef7a9e3da99bab2f9fa3cbfd5ad05ed79cdbbe21130eb7b27698692bf491a1cf573a518dfa63607dc88bc0c01925fda18304905',
 						signatures: [],
 						confirmations: 97,
 						asset: {
@@ -690,16 +622,6 @@ describe('transactions', () => {
 					done();
 				});
 			});
-			expectValidCountResponse(data);
-
-			expect(async.waterfall).to.be.calledOnce;
-			expect(cache.getJsonForKey).to.be.calledOnce;
-			expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-				CACHE_KEYS_TRANSACTION_COUNT
-			);
-			expect(storageStub.entities.Transaction.count).to.be.calledOnce;
-			expect(data.confirmed).to.be.eql(10);
-			done();
 		});
 	});
 
@@ -709,7 +631,6 @@ describe('transactions', () => {
 
 		transactionsModule.shared.getTransactionsCount((err, data) => {
 			expect(err).to.be.null;
-			expectValidCountResponse(data);
 
 			expect(async.waterfall).to.be.calledOnce;
 			expect(cache.getJsonForKey).to.be.calledOnce;
@@ -739,7 +660,6 @@ describe('transactions', () => {
 
 		transactionsModule.shared.getTransactionsCount((err, data) => {
 			expect(err).to.be.null;
-			expectValidCountResponse(data);
 
 			expect(async.waterfall).to.be.calledOnce;
 			expect(cache.getJsonForKey).to.be.calledOnce;
