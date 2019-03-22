@@ -85,9 +85,9 @@ Full documentation can be found on the [Lisk documentation site][].
 | [@liskhq/lisk-constants](/packages/lisk-constants)       |  [![](https://img.shields.io/badge/npm-v1.2.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
 | [@liskhq/lisk-cryptography](/packages/lisk-cryptography) | [![](https://img.shields.io/badge/npm-v2.1.0_alpha.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
 | [@liskhq/lisk-passphrase](/packages/lisk-passphrase)     |  [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
-| [@liskhq/lisk-transactions](/packages/lisk-transactions) | [![](https://img.shields.io/badge/npm-v2.1.0_alpha.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
-| [@liskhq/lisk-transaction-pool](/packages/lisk-transaction-pool) | [![](https://img.shields.io/badge/npm-v0.1.0_alpha.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transaction-pool) | Transaction pool implementation for the Lisk network  |
-| [@liskhq/lisk-p2p](/packages/lisk-p2p) | [![](https://img.shields.io/badge/npm-v0.1.0_alpha.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-p2p) | _unstructured_ P2P library for the Lisk protocol  |
+| [@liskhq/lisk-transactions](/packages/lisk-transactions) | [![](https://img.shields.io/badge/npm-v2.1.0_alpha.3-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
+| [@liskhq/lisk-transaction-pool](/packages/lisk-transaction-pool) | [![](https://img.shields.io/badge/npm-v0.1.0_alpha.1-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transaction-pool) | Transaction pool implementation for the Lisk network  |
+| [@liskhq/lisk-p2p](/packages/lisk-p2p) | [![](https://img.shields.io/badge/npm-v0.1.0_alpha.3-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-p2p) | _unstructured_ P2P library for the Lisk protocol  |
 
 ## Tests
 

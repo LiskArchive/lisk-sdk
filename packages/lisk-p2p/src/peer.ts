@@ -15,7 +15,7 @@
 
 import { EventEmitter } from 'events';
 import * as querystring from 'querystring';
-import { RPCResponseError } from './errors';
+import { FetchPeerStatusError, RPCResponseError } from './errors';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -103,16 +103,39 @@ export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 // Format the node info so that it will be valid from the perspective of both new and legacy nodes.
 const convertNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
-): ProtocolNodeInfo => ({
-	...nodeInfo,
-	httpPort: nodeInfo.options ? (nodeInfo.options.httpPort as number) : 0,
-	broadhash: nodeInfo.options ? (nodeInfo.options.broadhash as string) : '',
-	nonce: nodeInfo.options ? (nodeInfo.options.nonce as string) : '',
-});
+): ProtocolNodeInfo => {
+	const {
+		height,
+		nethash,
+		version,
+		os,
+		wsPort,
+		httpPort,
+		nonce,
+		broadhash,
+		...options
+	} = nodeInfo;
+
+	return {
+		height,
+		nethash,
+		version,
+		os,
+		wsPort,
+		broadhash: broadhash ? (broadhash as string) : '',
+		httpPort: httpPort ? (httpPort as number) : 0,
+		nonce: nonce ? (nonce as string) : '',
+		options,
+	};
+};
 
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+}
+export interface PeerSockets {
+	readonly outbound?: SCClientSocket;
+	readonly inbound?: SCServerSocket;
 }
 
 export class Peer extends EventEmitter {
@@ -120,9 +143,8 @@ export class Peer extends EventEmitter {
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
-	private _peerInfo: P2PPeerInfo;
+	private _peerInfo: P2PDiscoveredPeerInfo;
 	private readonly _peerConfig: PeerConfig;
-	private _peerDetailedInfo: P2PDiscoveredPeerInfo | undefined;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private _inboundSocket: SCServerSocketUpdated | undefined;
 	private _outboundSocket: SCClientSocket | undefined;
@@ -140,7 +162,11 @@ export class Peer extends EventEmitter {
 	) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 
-	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig, inboundSocket?: SCServerSocket) {
+	public constructor(
+		peerInfo: P2PDiscoveredPeerInfo,
+		peerConfig?: PeerConfig,
+		peerSockets?: PeerSockets,
+	) {
 		super();
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig ? peerConfig : {};
@@ -222,9 +248,13 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
-		this._inboundSocket = inboundSocket as SCServerSocketUpdated;
+		this._inboundSocket = peerSockets ? peerSockets.inbound : undefined;
 		if (this._inboundSocket) {
 			this._bindHandlersToInboundSocket(this._inboundSocket);
+		}
+		this._outboundSocket = peerSockets ? peerSockets.outbound : undefined;
+		if (this._outboundSocket) {
+			this._bindHandlersToOutboundSocket(this._outboundSocket);
 		}
 	}
 
@@ -255,27 +285,14 @@ export class Peer extends EventEmitter {
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
-			height: newPeerInfo.height,
-			ipAddress: this._peerInfo.ipAddress,
-			wsPort: this._peerInfo.wsPort,
-			isDiscoveredPeer: true,
-		};
-
-		this._peerDetailedInfo = {
-			...this._peerInfo,
-			os: newPeerInfo.os,
-			version: newPeerInfo.version,
-			options: newPeerInfo.options,
-			isDiscoveredPeer: true
+			...newPeerInfo,
+			ipAddress: this._ipAddress,
+			wsPort: this._wsPort,
 		};
 	}
 
-	public get peerInfo(): P2PPeerInfo {
+	public get peerInfo(): P2PDiscoveredPeerInfo {
 		return this._peerInfo;
-	}
-
-	public get detailedPeerInfo(): P2PDiscoveredPeerInfo | undefined {
-		return this._peerDetailedInfo;
 	}
 
 	public get state(): PeerConnectionState {
@@ -397,8 +414,8 @@ export class Peer extends EventEmitter {
 								`Failed to handle response for procedure ${packet.procedure}`,
 								new Error('RPC response format was invalid'),
 								this.ipAddress,
-								this.wsPort
-							)
+								this.wsPort,
+							),
 						);
 					},
 				);
@@ -441,10 +458,10 @@ export class Peer extends EventEmitter {
 			);
 		}
 
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerDetailedInfo);
-		
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+
 		// Return the updated detailed peer info.
-		return this._peerDetailedInfo as P2PDiscoveredPeerInfo;
+		return this._peerInfo;
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
@@ -452,10 +469,12 @@ export class Peer extends EventEmitter {
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
 
-		const connectTimeout = this._peerConfig.connectTimeout ?
-			this._peerConfig.connectTimeout : DEFAULT_CONNECT_TIMEOUT;
-		const ackTimeout = this._peerConfig.ackTimeout ?
-			this._peerConfig.ackTimeout : DEFAULT_ACK_TIMEOUT;
+		const connectTimeout = this._peerConfig.connectTimeout
+			? this._peerConfig.connectTimeout
+			: DEFAULT_CONNECT_TIMEOUT;
+		const ackTimeout = this._peerConfig.ackTimeout
+			? this._peerConfig.ackTimeout
+			: DEFAULT_ACK_TIMEOUT;
 
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
@@ -569,12 +588,136 @@ export class Peer extends EventEmitter {
 			return;
 		}
 
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerDetailedInfo);
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 		request.end();
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
-		const legacyNodeInfo = this._nodeInfo ? convertNodeInfoToLegacyFormat(this._nodeInfo) : {};
+		const legacyNodeInfo = this._nodeInfo
+			? convertNodeInfoToLegacyFormat(this._nodeInfo)
+			: {};
 		request.end(legacyNodeInfo);
 	}
 }
+
+export interface ConnectAndFetchResponse {
+	readonly responsePacket: P2PResponsePacket;
+	readonly socket: SCClientSocket;
+}
+
+export interface PeerInfoAndOutboundConnection {
+	readonly peerInfo: P2PDiscoveredPeerInfo;
+	readonly socket: SCClientSocket;
+}
+
+export const connectAndRequest = async (
+	basicPeerInfo: P2PPeerInfo,
+	procedure: string,
+	nodeInfo?: P2PNodeInfo,
+	peerConfig?: PeerConfig,
+): Promise<ConnectAndFetchResponse> =>
+	new Promise<ConnectAndFetchResponse>(
+		(resolve, reject): void => {
+			const legacyNodeInfo = nodeInfo
+				? convertNodeInfoToLegacyFormat(nodeInfo)
+				: undefined;
+			// Add a new field discovery to tell the receiving side that the connection will be short lived
+			const requestPacket = {
+				procedure,
+			};
+			const clientOptions: ClientOptionsUpdated = {
+				hostname: basicPeerInfo.ipAddress,
+				port: basicPeerInfo.wsPort,
+				query: querystring.stringify({
+					...legacyNodeInfo,
+					options:
+						legacyNodeInfo && legacyNodeInfo.options
+							? JSON.stringify(legacyNodeInfo.options)
+							: undefined,
+				}),
+				connectTimeout: peerConfig
+					? peerConfig.connectTimeout
+						? peerConfig.connectTimeout
+						: DEFAULT_CONNECT_TIMEOUT
+					: DEFAULT_CONNECT_TIMEOUT,
+				ackTimeout: peerConfig
+					? peerConfig.connectTimeout
+						? peerConfig.connectTimeout
+						: DEFAULT_CONNECT_TIMEOUT
+					: DEFAULT_ACK_TIMEOUT,
+				multiplex: false,
+				autoConnect: false,
+				autoReconnect: false,
+				pingTimeoutDisabled: true,
+			};
+
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			// Attaching handlers for various events that could be used future for logging or any other application
+			outboundSocket.emit(
+				REMOTE_EVENT_RPC_REQUEST,
+				{
+					type: '/RPCRequest',
+					procedure: requestPacket.procedure,
+				},
+				(err: Error | undefined, responseData: unknown) => {
+					if (err) {
+						reject(err);
+
+						return;
+					}
+					if (responseData) {
+						const responsePacket = responseData as P2PResponsePacket;
+						resolve({
+							responsePacket,
+							socket: outboundSocket,
+						});
+
+						return;
+					}
+
+					reject(
+						new RPCResponseError(
+							`Failed to handle response for procedure ${
+								requestPacket.procedure
+							}`,
+							new Error('RPC response format was invalid'),
+							basicPeerInfo.ipAddress,
+							basicPeerInfo.wsPort,
+						),
+					);
+				},
+			);
+		},
+	);
+
+export const connectAndFetchPeerInfo = async (
+	basicPeerInfo: P2PPeerInfo,
+	nodeInfo?: P2PNodeInfo,
+	peerConfig?: PeerConfig,
+): Promise<PeerInfoAndOutboundConnection> => {
+	try {
+		const { responsePacket, socket } = await connectAndRequest(
+			basicPeerInfo,
+			REMOTE_RPC_GET_NODE_INFO,
+			nodeInfo,
+			peerConfig,
+		);
+
+		const protocolPeerInfo = responsePacket.data;
+		const rawPeerInfo = {
+			...protocolPeerInfo,
+			ip: basicPeerInfo.ipAddress,
+			wsPort: basicPeerInfo.wsPort,
+		};
+		const peerInfo = validatePeerInfo(rawPeerInfo);
+
+		return { peerInfo, socket };
+	} catch (error) {
+		throw new FetchPeerStatusError(
+			`Error occurred while fetching information from ${
+				basicPeerInfo.ipAddress
+			}:${basicPeerInfo.wsPort}`,
+			error,
+		);
+	}
+};

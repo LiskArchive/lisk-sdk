@@ -20,6 +20,9 @@ export const transaction = {
 		id: {
 			type: 'string',
 		},
+		blockId: {
+			type: 'string',
+		},
 		amount: {
 			type: ['string', 'integer'],
 		},
@@ -39,7 +42,7 @@ export const transaction = {
 			type: 'string',
 		},
 		recipientId: {
-			type: 'string',
+			type: ['string', 'null'],
 		},
 		recipientPublicKey: {
 			type: ['string', 'null'],
@@ -57,7 +60,7 @@ export const transaction = {
 			type: 'object',
 		},
 		receivedAt: {
-			type: 'object',
+			type: 'string',
 		},
 	},
 };
@@ -81,6 +84,10 @@ export const baseTransaction = {
 			type: 'string',
 			format: 'id',
 		},
+		blockId: {
+			type: 'string',
+			format: 'id',
+		},
 		amount: {
 			type: 'string',
 			format: 'amount',
@@ -96,7 +103,7 @@ export const baseTransaction = {
 		},
 		timestamp: {
 			type: 'integer',
-			minimum: 0,
+			minimum: -2147483648,
 			maximum: 2147483647,
 		},
 		senderId: {
@@ -115,7 +122,7 @@ export const baseTransaction = {
 			type: 'string',
 		},
 		recipientPublicKey: {
-			type: ['string'],
+			type: 'string',
 			format: 'emptyOrPublicKey',
 		},
 		signature: {
@@ -140,8 +147,8 @@ export const baseTransaction = {
 			type: 'object',
 		},
 		receivedAt: {
-			type: 'object',
-			format: 'receivedAt',
+			type: 'string',
+			format: 'date-time',
 		},
 	},
 };

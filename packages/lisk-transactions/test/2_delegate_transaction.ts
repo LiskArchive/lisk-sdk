@@ -46,10 +46,10 @@ describe('Delegate registration transaction class', () => {
 
 		it('should set the delegate asset', async () => {
 			expect(validTestTransaction.asset.delegate).to.be.an('object');
-			expect(validTestTransaction.asset.delegate.username).to.eql('genesis_10');
+			expect(validTestTransaction.asset.delegate.username).to.eql('0x0');
 		});
 
-		it('should throw TransactionMultiError when asset is not valid string', async () => {
+		it('should not throw when asset is not valid string', async () => {
 			const invalidDelegateTransactionData = {
 				...validDelegateTransaction,
 				asset: {
@@ -60,7 +60,7 @@ describe('Delegate registration transaction class', () => {
 			};
 			expect(
 				() => new DelegateTransaction(invalidDelegateTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 
@@ -196,7 +196,8 @@ describe('Delegate registration transaction class', () => {
 			expect(storeAccountFindStub).to.be.calledOnce;
 			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
 				...sender,
-				isDelegate: true,
+				isDelegate: 1,
+				vote: 0,
 				username: validTestTransaction.asset.delegate.username,
 			});
 		});
@@ -226,15 +227,16 @@ describe('Delegate registration transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			const { isDelegate, username, ...strippedSender } = sender;
 			(validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).to.be.calledWithExactly(
 				validTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).to.be.calledWithExactly(
-				sender.address,
-				strippedSender,
-			);
+			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
+				...sender,
+				isDelegate: 0,
+				vote: 0,
+				username: null,
+			});
 		});
 
 		it('should return no errors', async () => {

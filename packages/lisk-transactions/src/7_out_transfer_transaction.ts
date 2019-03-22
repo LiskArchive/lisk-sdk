@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, OUT_TRANSFER_FEE } from './constants';
-import { TransactionError, TransactionMultiError } from './errors';
+import { convertToTransactionError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
@@ -32,25 +32,6 @@ export interface OutTransferAsset {
 		readonly transactionId: string;
 	};
 }
-
-export const outTransferAssetTypeSchema = {
-	type: 'object',
-	required: ['outTransfer'],
-	properties: {
-		outTransfer: {
-			type: 'object',
-			required: ['dappId', 'transactionId'],
-			properties: {
-				dappId: {
-					type: 'string',
-				},
-				transactionId: {
-					type: 'string',
-				},
-			},
-		},
-	},
-};
 
 export const outTransferAssetFormatSchema = {
 	type: 'object',
@@ -77,24 +58,13 @@ export class OutTransferTransaction extends BaseTransaction {
 	public readonly asset: OutTransferAsset;
 	public readonly containsUniqueData: boolean;
 
-	public constructor(tx: TransactionJSON) {
-		super(tx);
-		const typeValid = validator.validate(outTransferAssetTypeSchema, tx.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							tx.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, errors);
-		}
-		this.asset = tx.asset as OutTransferAsset;
-		this._fee = new BigNum(OUT_TRANSFER_FEE);
+	public constructor(rawTransaction: unknown) {
+		super(rawTransaction);
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
+
+		this.asset = (tx.asset || { outTransfer: {} }) as OutTransferAsset;
 		this.containsUniqueData = true;
 	}
 
@@ -152,19 +122,21 @@ export class OutTransferTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(outTransferAssetFormatSchema, this.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+		const errors = convertToTransactionError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_OUTTRANSFER_TYPE) {
-			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+			errors.push(
+				new TransactionError(
+					'Invalid type',
+					this.id,
+					'.type',
+					this.type,
+					TRANSACTION_OUTTRANSFER_TYPE,
+				),
+			);
 		}
 
 		// Amount has to be greater than 0
@@ -174,6 +146,7 @@ export class OutTransferTransaction extends BaseTransaction {
 					'Amount must be greater than zero for outTransfer transaction',
 					this.id,
 					'.amount',
+					this.amount.toString(),
 				),
 			);
 		}
@@ -181,9 +154,11 @@ export class OutTransferTransaction extends BaseTransaction {
 		if (!this.fee.eq(OUT_TRANSFER_FEE)) {
 			errors.push(
 				new TransactionError(
-					'Amount must be set fee for outTransfer transaction',
+					`Fee must be equal to ${OUT_TRANSFER_FEE}`,
 					this.id,
 					'.fee',
+					this.fee.toString(),
+					OUT_TRANSFER_FEE,
 				),
 			);
 		}
@@ -194,21 +169,10 @@ export class OutTransferTransaction extends BaseTransaction {
 					'RecipientId must be set for outTransfer transaction',
 					this.id,
 					'.recipientId',
+					this.recipientId,
 				),
 			);
 		}
-
-		const assetErrors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		errors.push(...assetErrors);
 
 		return errors;
 	}
@@ -246,11 +210,16 @@ export class OutTransferTransaction extends BaseTransaction {
 
 		const sender = store.account.get(this.senderId);
 
-		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
-		if(balanceError) {
+		const balanceError = verifyAmountBalance(
+			this.id,
+			sender,
+			this.amount,
+			this.fee,
+		);
+		if (balanceError) {
 			errors.push(balanceError);
 		}
-		
+
 		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
 
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
@@ -282,7 +251,14 @@ export class OutTransferTransaction extends BaseTransaction {
 		const updatedBalance = new BigNum(sender.balance).add(this.amount);
 
 		if (updatedBalance.gt(MAX_TRANSACTION_AMOUNT)) {
-			errors.push(new TransactionError('Invalid amount', this.id, '.amount'));
+			errors.push(
+				new TransactionError(
+					'Invalid amount',
+					this.id,
+					'.amount',
+					this.amount.toString(),
+				),
+			);
 		}
 
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
@@ -301,6 +277,7 @@ export class OutTransferTransaction extends BaseTransaction {
 						recipient.balance
 					}`,
 					this.id,
+					updatedRecipientBalance.toString(),
 				),
 			);
 		}

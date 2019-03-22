@@ -15,10 +15,11 @@
 export const addTransactionFields = (transaction: any) => {
 	return {
 		...transaction,
+		blockId: undefined,
 		signSignature: transaction.signSignature
 			? transaction.signSignature
 			: undefined,
-		receivedAt: new Date(),
+		receivedAt: new Date().toISOString(),
 		signatures: [...transaction.signatures],
 	};
 };

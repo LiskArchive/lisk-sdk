@@ -35,7 +35,6 @@ describe('#createSignatureObject', () => {
 		signature:
 			'b84b95087c381ad25b5701096e2d9366ffd04037dcc941cd0747bfb0cf93111834a6c662f149018be4587e6fc4c9f5ba47aa5bbbd3dd836988f153aa8258e604',
 		id: '3694188453012384790',
-		receivedAt: new Date(),
 	};
 	const account = {
 		passphrase:

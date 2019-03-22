@@ -33,10 +33,10 @@ export const validateTransactionId = (
 	id: string,
 	bytes: Buffer,
 ): TransactionError | undefined => {
-	const acutalId = getId(bytes);
+	const expectedId = getId(bytes);
 
-	return id !== acutalId
-		? new TransactionError(`Invalid transaction id`, id, '.id', acutalId, id)
+	return id !== expectedId
+		? new TransactionError(`Invalid transaction id`, id, '.id', id, expectedId)
 		: undefined;
 };
 

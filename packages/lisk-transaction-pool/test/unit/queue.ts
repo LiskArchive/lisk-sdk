@@ -62,12 +62,12 @@ describe('Queue', () => {
 		it('should return true if transaction exists in queue', async () => {
 			const transaction = transactions[0];
 			queue.enqueueOne(transaction);
-			expect(queue.exists(transaction)).to.be.true;
+			expect(queue.exists(transaction.id)).to.be.true;
 		});
 
 		it('should return false if transaction does not exist in queue', async () => {
 			const transaction = transactions[0];
-			expect(queue.exists(transaction)).to.be.false;
+			expect(queue.exists(transaction.id)).to.be.false;
 		});
 	});
 
@@ -170,8 +170,8 @@ describe('Queue', () => {
 
 			const peekedTransactions = queue.peekUntil(condition);
 			expect(peekedTransactions).to.deep.equal([
-				secondToLastTransaciton,
 				lastTransaction,
+				secondToLastTransaciton,
 			]);
 		});
 	});
@@ -202,8 +202,8 @@ describe('Queue', () => {
 
 			const dequeuedTransactions = queue.dequeueUntil(condition);
 			expect(dequeuedTransactions).to.deep.equal([
-				secondToLastTransaciton,
 				lastTransaction,
+				secondToLastTransaciton,
 			]);
 		});
 

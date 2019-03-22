@@ -13,14 +13,13 @@
  *
  */
 import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
 import { SIGNATURE_FEE } from './constants';
-import { TransactionError, TransactionMultiError } from './errors';
+import { convertToTransactionError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { getId, validator } from './utils';
 
@@ -31,22 +30,6 @@ export interface SecondSignatureAsset {
 		readonly publicKey: string;
 	};
 }
-
-export const secondSignatureAssetTypeSchema = {
-	type: 'object',
-	required: ['signature'],
-	properties: {
-		signature: {
-			type: 'object',
-			required: ['publicKey'],
-			properties: {
-				publicKey: {
-					type: 'string',
-				},
-			},
-		},
-	},
-};
 
 export const secondSignatureAssetFormatSchema = {
 	type: 'object',
@@ -67,27 +50,13 @@ export const secondSignatureAssetFormatSchema = {
 
 export class SecondSignatureTransaction extends BaseTransaction {
 	public readonly asset: SecondSignatureAsset;
-	public constructor(tx: TransactionJSON) {
-		super(tx);
-		const typeValid = validator.validate(
-			secondSignatureAssetTypeSchema,
-			tx.asset,
-		);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							tx.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, errors);
-		}
-		this.asset = tx.asset as SecondSignatureAsset;
-		this._fee = new BigNum(SIGNATURE_FEE);
+	public constructor(rawTransaction: unknown) {
+		super(rawTransaction);
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
+		// tslint:disable-next-line no-object-literal-type-assertion
+		this.asset = (tx.asset || { signature: {} }) as SecondSignatureAsset;
 	}
 
 	protected assetToBytes(): Buffer {
@@ -132,19 +101,21 @@ export class SecondSignatureTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(secondSignatureAssetFormatSchema, this.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+		const errors = convertToTransactionError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_SIGNATURE_TYPE) {
-			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+			errors.push(
+				new TransactionError(
+					'Invalid type',
+					this.id,
+					'.type',
+					this.type,
+					TRANSACTION_SIGNATURE_TYPE,
+				),
+			);
 		}
 
 		if (!this.amount.eq(0)) {
@@ -153,6 +124,8 @@ export class SecondSignatureTransaction extends BaseTransaction {
 					'Amount must be zero for second signature registration transaction',
 					this.id,
 					'.amount',
+					this.amount.toString(),
+					'0',
 				),
 			);
 		}
@@ -163,22 +136,32 @@ export class SecondSignatureTransaction extends BaseTransaction {
 					`Fee must be equal to ${SIGNATURE_FEE}`,
 					this.id,
 					'.fee',
+					this.fee.toString(),
+					SIGNATURE_FEE,
 				),
 			);
 		}
 
 		if (this.recipientId) {
 			errors.push(
-				new TransactionError('Invalid recipient', this.id, '.recipientId'),
+				new TransactionError(
+					'RecipientId is expected to be undefined.',
+					this.id,
+					'.recipientId',
+					this.recipientId,
+					'',
+				),
 			);
 		}
 
 		if (this.recipientPublicKey) {
 			errors.push(
 				new TransactionError(
-					'Invalid recipientPublicKey',
+					'RecipientPublicKey is expected to be undefined.',
 					this.id,
 					'.recipientPublicKey',
+					this.recipientPublicKey,
+					'',
 				),
 			);
 		}
@@ -202,6 +185,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		const updatedSender = {
 			...sender,
 			secondPublicKey: this.asset.signature.publicKey,
+			secondSignature: 1,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -210,8 +194,14 @@ export class SecondSignatureTransaction extends BaseTransaction {
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const sender = store.account.get(this.senderId);
-		const { secondPublicKey, ...strippedSender } = sender;
-		store.account.set(strippedSender.address, strippedSender);
+		const resetSender = {
+			...sender,
+			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
+			secondPublicKey: null,
+			secondSignature: 0,
+		};
+
+		store.account.set(resetSender.address, resetSender);
 
 		return [];
 	}

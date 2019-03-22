@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import * as Ajv from 'ajv';
 // tslint:disable-next-line no-require-imports
 import addKeywords = require('ajv-merge-patch');
-import * as BigNum from 'browserify-bignum';
 import * as schemas from './schema';
 import {
 	isGreaterThanMaxTransactionId,
@@ -112,12 +112,6 @@ validator.addFormat('additionPublicKey', data => {
 		return false;
 	}
 });
-
-validator.addFormat(
-	'receivedAt',
-	(data: unknown) =>
-		data instanceof Date && !isNaN((data as unknown) as number),
-);
 
 validator.addFormat('username', validateUsername);
 

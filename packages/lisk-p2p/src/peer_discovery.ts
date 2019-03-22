@@ -18,6 +18,7 @@ import { constructPeerIdFromPeerInfo, Peer } from './peer';
 export interface FilterPeerOptions {
 	readonly blacklist: ReadonlyArray<string>;
 }
+
 // TODO later: Implement LIPS to handle fixed and white list
 export const discoverPeers = async (
 	knownPeers: ReadonlyArray<Peer>,
@@ -26,15 +27,13 @@ export const discoverPeers = async (
 	const peersOfPeer: ReadonlyArray<
 		ReadonlyArray<P2PDiscoveredPeerInfo>
 	> = await Promise.all(
-		knownPeers.map(
-			async peer => {
-				try {
-					return await peer.fetchPeers();
-				} catch (error) {
-					return [];
-				}
+		knownPeers.map(async peer => {
+			try {
+				return await peer.fetchPeers();
+			} catch (error) {
+				return [];
 			}
-		)
+		}),
 	);
 
 	const peersOfPeerFlat = peersOfPeer.reduce(
@@ -47,9 +46,14 @@ export const discoverPeers = async (
 
 	// Remove duplicates
 	const discoveredPeers = peersOfPeerFlat.reduce(
-		(uniquePeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>, peer: P2PDiscoveredPeerInfo) => {
+		(
+			uniquePeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>,
+			peer: P2PDiscoveredPeerInfo,
+		) => {
 			const found = uniquePeersArray.find(
-				findPeer => constructPeerIdFromPeerInfo(findPeer) === constructPeerIdFromPeerInfo(peer),
+				findPeer =>
+					constructPeerIdFromPeerInfo(findPeer) ===
+					constructPeerIdFromPeerInfo(peer),
 			);
 
 			return found ? uniquePeersArray : [...uniquePeersArray, peer];

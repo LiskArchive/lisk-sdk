@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
 import { IN_TRANSFER_FEE } from './constants';
-import { TransactionError, TransactionMultiError } from './errors';
+import { convertToTransactionError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { convertBeddowsToLSK, verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
@@ -32,22 +32,6 @@ export interface InTransferAsset {
 		readonly dappId: string;
 	};
 }
-
-export const inTransferAssetTypeSchema = {
-	type: 'object',
-	required: ['inTransfer'],
-	properties: {
-		inTransfer: {
-			type: 'object',
-			required: ['dappId'],
-			properties: {
-				dappId: {
-					type: 'string',
-				},
-			},
-		},
-	},
-};
 
 export const inTransferAssetFormatSchema = {
 	type: 'object',
@@ -69,24 +53,13 @@ export const inTransferAssetFormatSchema = {
 export class InTransferTransaction extends BaseTransaction {
 	public readonly asset: InTransferAsset;
 
-	public constructor(tx: TransactionJSON) {
-		super(tx);
-		const typeValid = validator.validate(inTransferAssetTypeSchema, tx.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							tx.id,
-							error.dataPath,
-						),
-			  )
-			: [];
-		if (!typeValid) {
-			throw new TransactionMultiError('Invalid field types', tx.id, errors);
-		}
-		this.asset = tx.asset as InTransferAsset;
-		this._fee = new BigNum(IN_TRANSFER_FEE);
+	public constructor(rawTransaction: unknown) {
+		super(rawTransaction);
+		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
+			? rawTransaction
+			: {}) as Partial<TransactionJSON>;
+
+		this.asset = (tx.asset || { inTransfer: {} }) as InTransferAsset;
 	}
 
 	protected assetToBytes(): Buffer {
@@ -102,11 +75,14 @@ export class InTransferTransaction extends BaseTransaction {
 			},
 		]);
 
-		const dappTransaction = transactions && transactions.length > 0 ? transactions.find(
-			tx =>
-				tx.type === TRANSACTION_DAPP_TYPE &&
-				tx.id === this.asset.inTransfer.dappId,
-		) : undefined;
+		const dappTransaction =
+			transactions && transactions.length > 0
+				? transactions.find(
+						tx =>
+							tx.type === TRANSACTION_DAPP_TYPE &&
+							tx.id === this.asset.inTransfer.dappId,
+				  )
+				: undefined;
 
 		if (dappTransaction) {
 			await store.account.cache([{ id: dappTransaction.senderId as string }]);
@@ -128,28 +104,31 @@ export class InTransferTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(inTransferAssetFormatSchema, this.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+		const errors = convertToTransactionError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_INTRANSFER_TYPE) {
-			errors.push(new TransactionError('Invalid type', this.id, '.type'));
+			errors.push(
+				new TransactionError(
+					'Invalid type',
+					this.id,
+					'.type',
+					this.type,
+					TRANSACTION_INTRANSFER_TYPE,
+				),
+			);
 		}
 
 		// Per current protocol, this recipientId and recipientPublicKey must be empty
 		if (this.recipientId) {
 			errors.push(
 				new TransactionError(
-					'Recipient id must be empty',
+					'RecipientId is expected to be undefined.',
 					this.id,
 					'.recipientId',
+					this.recipientId,
 				),
 			);
 		}
@@ -157,9 +136,10 @@ export class InTransferTransaction extends BaseTransaction {
 		if (this.recipientPublicKey) {
 			errors.push(
 				new TransactionError(
-					'Recipient public key must be empty',
+					'RecipientPublicKey is expected to be undefined.',
 					this.id,
 					'.recipientPublicKey',
+					this.recipientPublicKey,
 				),
 			);
 		}
@@ -170,6 +150,8 @@ export class InTransferTransaction extends BaseTransaction {
 					'Amount must be greater than 0',
 					this.id,
 					'.amount',
+					this.amount.toString(),
+					'0',
 				),
 			);
 		}
@@ -180,6 +162,8 @@ export class InTransferTransaction extends BaseTransaction {
 					`Fee must be equal to ${IN_TRANSFER_FEE}`,
 					this.id,
 					'.fee',
+					this.fee.toString(),
+					IN_TRANSFER_FEE,
 				),
 			);
 		}
@@ -200,18 +184,24 @@ export class InTransferTransaction extends BaseTransaction {
 				new TransactionError(
 					`Application not found: ${this.asset.inTransfer.dappId}`,
 					this.id,
+					this.asset.inTransfer.dappId,
 				),
 			);
 		}
 		const sender = store.account.get(this.senderId);
 
-		const balanceError = verifyAmountBalance(this.id, sender, this.amount, this.fee);
-		if(balanceError) {
+		const balanceError = verifyAmountBalance(
+			this.id,
+			sender,
+			this.amount,
+			this.fee,
+		);
+		if (balanceError) {
 			errors.push(balanceError);
 		}
 
 		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
-		
+
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 
 		store.account.set(updatedSender.address, updatedSender);

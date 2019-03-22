@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
 import { OutTransferTransaction } from '../src/7_out_transfer_transaction';
@@ -70,7 +70,7 @@ describe('outTransfer transaction class', () => {
 			);
 		});
 
-		it('should throw TransactionMultiError when asset.dappId is not string', async () => {
+		it('should not throw TransactionMultiError when asset.dappId is not string', async () => {
 			const invalidOutTransferTransactionData = {
 				...defaultTransaction,
 				asset: {
@@ -82,10 +82,10 @@ describe('outTransfer transaction class', () => {
 			};
 			expect(
 				() => new OutTransferTransaction(invalidOutTransferTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 
-		it('should throw TransactionMultiError when asset.transactionId is not string', async () => {
+		it('should not throw TransactionMultiError when asset.transactionId is not string', async () => {
 			const invalidOutTransferTransactionData = {
 				...defaultTransaction,
 				asset: {
@@ -97,7 +97,7 @@ describe('outTransfer transaction class', () => {
 			};
 			expect(
 				() => new OutTransferTransaction(invalidOutTransferTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 

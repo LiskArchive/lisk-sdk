@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
 import { TransferAsset } from '../0_transfer_transaction';
 import { SecondSignatureAsset } from '../1_second_signature_transaction';
 import { DelegateAsset } from '../2_delegate_transaction';
@@ -229,9 +229,7 @@ export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	if (amountBigNum.lt(0)) {
 		throw new Error('Transaction amount must not be negative.');
 	}
-	// BUG in browserify-bignum prevents us using `.gt` directly.
-	// See https://github.com/bored-engineer/browserify-bignum/pull/2
-	if (amountBigNum.gte(new BigNum(MAX_TRANSACTION_AMOUNT).add(1))) {
+	if (amountBigNum.gt(new BigNum(MAX_TRANSACTION_AMOUNT))) {
 		throw new Error('Transaction amount is too large.');
 	}
 	const transactionAmount = amountBigNum.toBuffer({

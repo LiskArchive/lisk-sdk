@@ -15,6 +15,8 @@
 
 import { EventEmitter } from 'events';
 import * as http from 'http';
+// tslint:disable-next-line no-require-imports
+import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 
@@ -22,11 +24,15 @@ interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
 
-import { constructPeerId, constructPeerIdFromPeerInfo } from './peer';
+import {
+	constructPeerId,
+	constructPeerIdFromPeerInfo,
+	REMOTE_RPC_GET_ALL_PEERS_LIST,
+} from './peer';
 
 import {
-	INCOMPATIBLE_NETWORK_CODE,
-	INCOMPATIBLE_NETWORK_REASON,
+	INCOMPATIBLE_PEER_CODE,
+	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
 	INVALID_CONNECTION_QUERY_REASON,
 	INVALID_CONNECTION_URL_CODE,
@@ -36,6 +42,7 @@ import {
 import { PeerInboundHandshakeError } from './errors';
 
 import {
+	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
@@ -46,6 +53,8 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolPeerInfo,
+	ProtocolPeerInfoList,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -65,8 +74,10 @@ import {
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
+	MAX_PEER_LIST_BATCH_SIZE,
 	PeerPool,
 } from './peer_pool';
+import { checkPeerCompatibility } from './validation';
 
 export {
 	EVENT_CLOSE_OUTBOUND,
@@ -92,11 +103,16 @@ export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 
 const BASE_10_RADIX = 10;
 
+const selectRandomPeerSample = (
+	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+	count: number,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => shuffle(peerList).slice(0, count);
+
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
-	private readonly _newPeers: Map<string, P2PPeerInfo>;
+	private readonly _newPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _discoveryInterval: number;
 	private _discoveryIntervalId: NodeJS.Timer | undefined;
@@ -112,8 +128,12 @@ export class P2P extends EventEmitter {
 	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
-	private readonly _handlePeerConnect: (peerInfo: P2PPeerInfo) => void;
-	private readonly _handlePeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerConnect: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
+	private readonly _handlePeerConnectAbort: (
+		peerInfo: P2PDiscoveredPeerInfo,
+	) => void;
 	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
@@ -121,6 +141,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
+	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -134,6 +155,9 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
+			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
+				this._handleGetPeersRequest(request);
+			}
 			// Re-emit the request for external use.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
@@ -176,6 +200,9 @@ export class P2P extends EventEmitter {
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
 			if (!this._triedPeers.has(peerId)) {
+				if (this._newPeers.has(peerId)) {
+					this._newPeers.delete(peerId);
+				}
 				this._triedPeers.set(peerId, detailedPeerInfo);
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -221,6 +248,10 @@ export class P2P extends EventEmitter {
 		this._discoveryInterval = config.discoveryInterval
 			? config.discoveryInterval
 			: DEFAULT_DISCOVERY_INTERVAL;
+
+		this._peerHandshakeCheck = config.peerHandshakeCheck
+			? config.peerHandshakeCheck
+			: checkPeerCompatibility;
 	}
 
 	public get config(): P2PConfig {
@@ -320,16 +351,39 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				if (queryObject.nethash !== this._nodeInfo.nethash) {
-					socket.disconnect(
-						INCOMPATIBLE_NETWORK_CODE,
-						INCOMPATIBLE_NETWORK_REASON,
-					);
+				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+				const peerId = constructPeerId(socket.remoteAddress, wsPort);
+				const queryOptions =
+					typeof queryObject.options === 'string'
+						? JSON.parse(queryObject.options)
+						: undefined;
+
+				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
+					...queryOptions,
+					...queryObject,
+					ipAddress: socket.remoteAddress,
+					wsPort,
+					height: queryObject.height ? +queryObject.height : 0,
+					version: queryObject.version,
+				};
+
+				const { success, errors } = this._peerHandshakeCheck(
+					incomingPeerInfo,
+					this._nodeInfo,
+				);
+
+				if (!success) {
+					const incompatibilityReason =
+						errors && Array.isArray(errors)
+							? errors.join(',')
+							: INCOMPATIBLE_PEER_UNKNOWN_REASON;
+
+					socket.disconnect(INCOMPATIBLE_PEER_CODE, incompatibilityReason);
 					this.emit(
 						EVENT_FAILED_TO_ADD_INBOUND_PEER,
 						new PeerInboundHandshakeError(
-							INCOMPATIBLE_NETWORK_REASON,
-							INCOMPATIBLE_NETWORK_CODE,
+							incompatibilityReason,
+							INCOMPATIBLE_PEER_CODE,
 							socket.remoteAddress,
 							socket.request.url,
 						),
@@ -337,21 +391,6 @@ export class P2P extends EventEmitter {
 
 					return;
 				}
-
-				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-				const peerId = constructPeerId(socket.remoteAddress, wsPort);
-
-				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
-					ipAddress: socket.remoteAddress,
-					wsPort,
-					height: queryObject.height ? +queryObject.height : 0,
-					isDiscoveredPeer: true,
-					version: queryObject.version,
-					options:
-						typeof queryObject.options === 'string'
-							? JSON.parse(queryObject.options)
-							: undefined,
-				};
 
 				const isNewPeer = this._peerPool.addInboundPeer(
 					peerId,
@@ -362,12 +401,14 @@ export class P2P extends EventEmitter {
 				if (isNewPeer) {
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
-					if (!this._newPeers.has(peerId)) {
-						this._newPeers.set(peerId, incomingPeerInfo);
-					}
+				}
+
+				if (!this._newPeers.has(peerId) && !this._triedPeers.has(peerId)) {
+					this._newPeers.set(peerId, incomingPeerInfo);
 				}
 			},
 		);
+
 		this._httpServer.listen(this._nodeInfo.wsPort, NODE_HOST_IP);
 		if (this._scServer.isReady) {
 			this._isActive = true;
@@ -406,19 +447,15 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _discoverPeers(
-		knownPeers: ReadonlyArray<P2PPeerInfo> = [],
+		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
 	): Promise<void> {
-		const allKnownPeers: ReadonlyArray<P2PPeerInfo> = knownPeers.concat([
-			...this._triedPeers.values(),
-		]);
-
 		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
 		if (!this._isActive) {
 			return;
 		}
 
 		const discoveredPeers = await this._peerPool.runDiscovery(
-			allKnownPeers,
+			knownPeers,
 			this._config.blacklistedPeers,
 		);
 
@@ -428,7 +465,7 @@ export class P2P extends EventEmitter {
 			return;
 		}
 
-		discoveredPeers.forEach((peerInfo: P2PPeerInfo) => {
+		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
 				this._newPeers.set(peerId, peerInfo);
@@ -439,7 +476,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _startDiscovery(
-		knownPeers: ReadonlyArray<P2PPeerInfo> = [],
+		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
 	): Promise<void> {
 		if (this._discoveryIntervalId) {
 			throw new Error('Discovery is already running');
@@ -458,12 +495,78 @@ export class P2P extends EventEmitter {
 		clearInterval(this._discoveryIntervalId);
 	}
 
+	private async _fetchSeedPeerStatus(
+		seedPeers: ReadonlyArray<P2PPeerInfo>,
+	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+		const peerConfig = {
+			ackTimeout: this._config.ackTimeout,
+			connectTimeout: this._config.connectTimeout,
+		};
+		const seedPeerUpdatedInfos = await this._peerPool.fetchStatusAndCreatePeers(
+			seedPeers,
+			this._nodeInfo,
+			peerConfig,
+		);
+
+		return seedPeerUpdatedInfos;
+	}
+
+	private _pickRandomDiscoveredPeers(
+		count: number,
+	): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		const discoveredPeerList: ReadonlyArray<P2PDiscoveredPeerInfo> = [
+			...this._newPeers.values(),
+			...this._triedPeers.values(),
+		]; // Peers whose values has been updated atleast once.
+
+		return selectRandomPeerSample(discoveredPeerList, count);
+	}
+
+	private _handleGetPeersRequest(request: P2PRequest): void {
+		// TODO later: Remove fields that are specific to the current Lisk protocol.
+		const peers = this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE).map(
+			(peerInfo: P2PDiscoveredPeerInfo): ProtocolPeerInfo => {
+				const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
+
+				// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
+				return {
+					...peerInfoWithoutIp,
+					ip: ipAddress,
+					broadhash: peerInfoWithoutIp.broadhash
+						? (peerInfoWithoutIp.broadhash as string)
+						: '',
+					nonce: peerInfoWithoutIp.nonce
+						? (peerInfoWithoutIp.nonce as string)
+						: '',
+				};
+			},
+		);
+		const protocolPeerInfoList: ProtocolPeerInfoList = {
+			success: true,
+			peers,
+		};
+
+		request.end(protocolPeerInfoList);
+	}
+
 	public async start(): Promise<void> {
 		if (this._isActive) {
 			throw new Error('Cannot start the node because it is already active');
 		}
 		await this._startPeerServer();
-		await this._startDiscovery(this._config.seedPeers);
+		// Fetch status of all the seed peers and then start the discovery
+		const seedPeerInfos = await this._fetchSeedPeerStatus(
+			this._config.seedPeers,
+		);
+		// Add seed's peerinfos in tried peer as we already tried them to fetch status
+		seedPeerInfos.forEach(seedInfo => {
+			const peerId = constructPeerIdFromPeerInfo(seedInfo);
+			if (!this._triedPeers.has(peerId)) {
+				this._triedPeers.set(peerId, seedInfo);
+			}
+		});
+
+		await this._startDiscovery(seedPeerInfos);
 	}
 
 	public async stop(): Promise<void> {

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
@@ -32,8 +32,8 @@ export const verifySenderPublicKey = (
 				'Invalid sender publicKey',
 				id,
 				'.senderPublicKey',
-				sender.publicKey,
 				publicKey,
+				sender.publicKey,
 		  )
 		: undefined;
 
@@ -47,8 +47,8 @@ export const verifySenderId = (
 				'Invalid sender address',
 				id,
 				'.senderId',
-				sender.address.toUpperCase(),
 				address.toUpperCase(),
+				sender.address.toUpperCase(),
 		  )
 		: undefined;
 
@@ -64,6 +64,8 @@ export const verifyBalance = (
 				}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
 				id,
 				'.balance',
+				account.balance,
+				convertBeddowsToLSK(account.balance.toString()),
 		  )
 		: undefined;
 

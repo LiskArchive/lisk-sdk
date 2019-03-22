@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-p2p",
-	"version": "0.1.0-alpha.2",
+	"version": "0.1.0-alpha.3",
 	"description": "Unstructured P2P library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -45,7 +45,6 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@types/lodash.shuffle": "4.2.4",
 		"lodash.shuffle": "4.2.0",
 		"semver": "5.6.0",
 		"socketcluster-client": "14.2.1",
@@ -60,6 +59,7 @@
 		"@types/expect": "1.20.3",
 		"@types/jquery": "3.3.29",
 		"@types/jsonwebtoken": "8.3.0",
+		"@types/lodash.shuffle": "4.2.6",
 		"@types/mocha": "5.2.5",
 		"@types/node": "10.12.21",
 		"@types/semver": "5.5.0",

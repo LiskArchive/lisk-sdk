@@ -22,7 +22,13 @@ import {
 } from './errors';
 
 import {
+	INCOMPATIBLE_NETWORK_REASON,
+	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+} from './disconnect_status_codes';
+import {
+	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,
+	P2PNodeInfo,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
@@ -74,23 +80,21 @@ export const validatePeerInfo = (
 		protocolPeer.height && isNumeric(protocolPeer.height.toString())
 			? +protocolPeer.height
 			: 0;
+	const { options, ...protocolPeerWithoutOptions } = protocolPeer;
 
 	const peerInfo: P2PDiscoveredPeerInfo = {
-		ipAddress: protocolPeer.ip,
+		...(options as object),
+		...protocolPeerWithoutOptions,
+		ipAddress: protocolPeerWithoutOptions.ip,
 		wsPort,
 		height,
 		os,
 		version,
-		options: {
-			httpPort: protocolPeer.httpPort,
-			broadhash: protocolPeer.broadhash,
-			nonce: protocolPeer.nonce,
-			...protocolPeer.options
-		},
-		isDiscoveredPeer: true,
 	};
 
-	return peerInfo;
+	const { ip, ...peerInfoUpdated } = peerInfo;
+
+	return peerInfoUpdated;
 };
 
 export const validatePeerInfoList = (
@@ -138,4 +142,52 @@ export const validateProtocolMessage = (
 	}
 
 	return protocolMessage;
+};
+
+export const checkNetworkCompatibility = (
+	peerInfo: P2PDiscoveredPeerInfo,
+	nodeInfo: P2PNodeInfo,
+): boolean => {
+	if (!peerInfo.nethash) {
+		return false;
+	}
+
+	return peerInfo.nethash === nodeInfo.nethash;
+};
+
+export const checkProtocolVersionCompatibility = (
+	peerInfo: P2PDiscoveredPeerInfo,
+	nodeInfo: P2PNodeInfo,
+): boolean => {
+	if (!peerInfo.protocolVersion) {
+		return false;
+	}
+
+	const peerHardForks = +(peerInfo.protocolVersion as string).split('.')[0];
+	const systemHardForks = +(nodeInfo.protocolVersion as string).split('.')[0];
+
+	return systemHardForks === peerHardForks && peerHardForks >= 1;
+};
+
+export const checkPeerCompatibility = (
+	peerInfo: P2PDiscoveredPeerInfo,
+	nodeInfo: P2PNodeInfo,
+): P2PCompatibilityCheckReturnType => {
+	if (!checkNetworkCompatibility(peerInfo, nodeInfo)) {
+		return {
+			success: false,
+			errors: [INCOMPATIBLE_NETWORK_REASON],
+		};
+	}
+
+	if (!checkProtocolVersionCompatibility(peerInfo, nodeInfo)) {
+		return {
+			success: false,
+			errors: [INCOMPATIBLE_PROTOCOL_VERSION_REASON],
+		};
+	}
+
+	return {
+		success: true,
+	};
 };

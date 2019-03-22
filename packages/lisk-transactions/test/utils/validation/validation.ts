@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { expect } from 'chai';
-import * as BigNum from 'browserify-bignum';
 import {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
@@ -382,7 +382,7 @@ describe('validation', () => {
 			'❤',
 		];
 
-		 const invalidStrings = [
+		const invalidStrings = [
 			'\0',
 			'\0lorem',
 			'ipsum\0',

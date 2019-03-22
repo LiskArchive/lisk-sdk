@@ -67,6 +67,7 @@ export interface TransactionPoolConfiguration {
 export interface AddTransactionResult {
 	readonly alreadyExists: boolean;
 	readonly isFull: boolean;
+	readonly queueName: QueueNames;
 }
 
 interface TransactionPoolDependencies {
@@ -226,6 +227,12 @@ export class TransactionPool extends EventEmitter {
 		return this.addTransactionToQueue(receivedQueue, transaction);
 	}
 
+	public addPendingTransaction(transaction: Transaction): AddTransactionResult {
+		const pendingQueue: QueueNames = 'pending';
+
+		return this.addTransactionToQueue(pendingQueue, transaction);
+	}
+
 	public addVerifiedTransaction(
 		transaction: Transaction,
 	): AddTransactionResult {
@@ -287,10 +294,10 @@ export class TransactionPool extends EventEmitter {
 		};
 	}
 
-	public existsInTransactionPool(transaction: Transaction): boolean {
+	public existsInTransactionPool(id: string): boolean {
 		return Object.keys(this._queues).reduce(
 			(previousValue, queueName) =>
-				previousValue || this._queues[queueName].exists(transaction),
+				previousValue || this._queues[queueName].exists(id),
 			false,
 		);
 	}
@@ -422,10 +429,11 @@ export class TransactionPool extends EventEmitter {
 		queueName: QueueNames,
 		transaction: Transaction,
 	): AddTransactionResult {
-		if (this.existsInTransactionPool(transaction)) {
+		if (this.existsInTransactionPool(transaction.id)) {
 			return {
 				isFull: false,
 				alreadyExists: true,
+				queueName,
 			};
 		}
 
@@ -433,6 +441,7 @@ export class TransactionPool extends EventEmitter {
 			return {
 				isFull: true,
 				alreadyExists: false,
+				queueName,
 			};
 		}
 		// Add receivedAt property for the transaction
@@ -449,6 +458,7 @@ export class TransactionPool extends EventEmitter {
 		return {
 			isFull: false,
 			alreadyExists: false,
+			queueName,
 		};
 	}
 

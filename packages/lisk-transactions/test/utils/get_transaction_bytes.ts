@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import { expect } from 'chai';
-import * as BigNum from 'browserify-bignum';
 import {
 	getTransactionBytes,
 	getAssetDataForTransferTransaction,
@@ -72,7 +72,6 @@ describe('getTransactionBytes module', () => {
 					signature: defaultSignature,
 					signatures: [],
 					id: defaultTransactionId,
-					receivedAt: new Date(),
 				};
 				return Promise.resolve();
 			});
@@ -247,7 +246,6 @@ describe('getTransactionBytes module', () => {
 				signature: defaultSignature,
 				signatures: [],
 				id: defaultTransactionId,
-				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 1 (register second signature) transaction', () => {
@@ -275,7 +273,6 @@ describe('getTransactionBytes module', () => {
 				signature: defaultSignature,
 				signatures: [],
 				id: defaultTransactionId,
-				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 2 (register delegate) transaction', () => {
@@ -310,7 +307,6 @@ describe('getTransactionBytes module', () => {
 				signature: defaultSignature,
 				signatures: [],
 				id: defaultTransactionId,
-				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 3 (vote) transaction', () => {
@@ -347,7 +343,6 @@ describe('getTransactionBytes module', () => {
 				signature: defaultSignature,
 				signatures: [],
 				id: defaultTransactionId,
-				receivedAt: new Date(),
 			};
 
 			it('should return Buffer from type 4 (register multisignature) transaction', () => {
@@ -388,7 +383,6 @@ describe('getTransactionBytes module', () => {
 				signature: defaultSignature,
 				signatures: [],
 				id: defaultTransactionId,
-				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 5 (register dapp) transaction', () => {
@@ -416,7 +410,6 @@ describe('getTransactionBytes module', () => {
 				signature: defaultSignature,
 				signatures: [],
 				id: defaultTransactionId,
-				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 6 (dapp inTransfer) transaction', () => {
@@ -449,7 +442,6 @@ describe('getTransactionBytes module', () => {
 				signature: defaultSignature,
 				signatures: [],
 				id: defaultTransactionId,
-				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 7 (dapp outTransfer) transaction', () => {
@@ -796,7 +788,6 @@ describe('getTransactionBytes module', () => {
 					signature: defaultSignature,
 					signatures: [],
 					id: defaultTransactionId,
-					receivedAt: new Date(),
 				};
 				return Promise.resolve();
 			});

@@ -19,13 +19,15 @@ export interface Account {
 	readonly balance: string;
 	readonly delegate?: Delegate;
 	readonly publicKey?: string;
-	readonly secondPublicKey?: string;
+	readonly secondPublicKey?: string | null;
+	readonly secondSignature?: number;
 	readonly membersPublicKeys?: ReadonlyArray<string>;
 	readonly multiMin?: number;
 	readonly multiLifetime?: number;
-	readonly username?: string;
+	readonly username?: string | null;
 	readonly votedDelegatesPublicKeys?: ReadonlyArray<string>;
-	readonly isDelegate?: boolean;
+	readonly isDelegate?: number;
+	readonly vote?: number;
 }
 
 export interface Delegate {
@@ -37,7 +39,8 @@ export interface TransactionJSON {
 	readonly asset: object;
 	readonly fee: string | number;
 	readonly id?: string;
-	readonly recipientId: string;
+	readonly blockId?: string;
+	readonly recipientId: string | null;
 	readonly recipientPublicKey?: string;
 	readonly senderId?: string;
 	readonly senderPublicKey: string;
@@ -46,7 +49,7 @@ export interface TransactionJSON {
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
-	readonly receivedAt?: Date;
+	readonly receivedAt?: string;
 }
 
 export interface IsValidResponse {

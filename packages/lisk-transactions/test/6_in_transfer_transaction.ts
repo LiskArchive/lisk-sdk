@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
 import { InTransferTransaction } from '../src/6_in_transfer_transaction';
@@ -76,7 +76,7 @@ describe('InTransfer transaction class', () => {
 			);
 		});
 
-		it('should throw TransactionMultiError when asset is not string', async () => {
+		it('should not throw TransactionMultiError when asset is not string', async () => {
 			const invalidInTransferTransactionData = {
 				...defaultTransaction,
 				asset: {
@@ -87,7 +87,7 @@ describe('InTransfer transaction class', () => {
 			};
 			expect(
 				() => new InTransferTransaction(invalidInTransferTransactionData),
-			).to.throw('Invalid field types');
+			).not.to.throw();
 		});
 	});
 

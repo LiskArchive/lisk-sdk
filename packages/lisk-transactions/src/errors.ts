@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 // tslint:disable max-classes-per-file
 import { VError } from 'verror';
 
@@ -33,32 +47,6 @@ export class TransactionError extends VError {
 			: withActual;
 
 		return withExpected;
-	}
-}
-
-export class TransactionMultiError extends TransactionError {
-	public id: string;
-	public errors: ReadonlyArray<TransactionError>;
-	public constructor(
-		message: string = '',
-		id: string = '',
-		errors: ReadonlyArray<TransactionError> = [],
-	) {
-		super(message);
-		this.name = 'TransactionMultiError';
-		this.id = id;
-		this.errors = errors;
-	}
-
-	public toString(): string {
-		const errMessages = this.errors.reduce(
-			(prev, current) => `${prev}, ${current.toString()}`,
-			'',
-		);
-
-		return `Transaction: ${this.id} failed: ${
-			this.message
-		} with errors ${errMessages}`;
 	}
 }
 
