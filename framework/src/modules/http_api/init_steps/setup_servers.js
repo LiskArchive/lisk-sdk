@@ -4,13 +4,13 @@ const express = require('express');
 const http = require('http');
 const https = require('https');
 const socketIO = require('socket.io');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const im = require('istanbul-middleware');
 
 module.exports = ({ components: { logger }, config }) => {
 	const expressApp = express();
 
 	if (config.coverage) {
-		// eslint-disable-next-line import/no-extraneous-dependencies
 		logger.debug(
 			'Hook loader for coverage - Do not use in production environment!'
 		);
