@@ -32,9 +32,9 @@
 		"jest:unit":
 			"jest --config=./framework/test/jest/config/unit/jest.config.js",
 		"jest:integration":
-			"jest --config=./framework/test/jest/config/integration/jest.config.js",
+			"jest --config=./framework/test/jest/config/integration/jest.config.js --passWithNoTests",
 		"jest:functional":
-			"jest --config=./framework/test/jest/config/functional/jest.config.js",
+			"jest --config=./framework/test/jest/config/functional/jest.config.js --passWithNoTests",
 		"mocha:unit": "node framework/test/mocha/common/lisk-mocha-runner unit",
 		"mocha:integration":
 			"node framework/test/mocha/common/lisk-mocha-runner integration",
@@ -46,6 +46,8 @@
 			"node framework/test/mocha/common/lisk-mocha-runner functional:get",
 		"mocha:functional:post":
 			"node framework/test/mocha/common/lisk-mocha-runner functional:post",
+		"mocha:functional:put":
+			"node framework/test/mocha/common/lisk-mocha-runner functional:put",
 		"mocha:network":
 			"node framework/test/mocha/common/lisk-mocha-runner network",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
@@ -54,8 +56,8 @@
 		"prepublishOnly": "npm run check:dependencies"
 	},
 	"dependencies": {
-		"@liskhq/lisk-transaction-pool": "0.1.0-alpha.0",
-		"@liskhq/lisk-transactions": "2.1.0-alpha.2",
+		"@liskhq/lisk-transaction-pool": "0.1.0-alpha.1",
+		"@liskhq/lisk-transactions": "2.1.0-alpha.3",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
 		"bignumber.js": "8.0.2",

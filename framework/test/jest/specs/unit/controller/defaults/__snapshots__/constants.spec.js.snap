@@ -59,6 +59,16 @@ Object {
     "OFFSET": 2160,
   },
   "TOTAL_AMOUNT": "10000000000000000",
+  "TRANSACTION_TYPES": Object {
+    "DAPP": 5,
+    "DELEGATE": 2,
+    "IN_TRANSFER": 6,
+    "MULTI": 4,
+    "OUT_TRANSFER": 7,
+    "SEND": 0,
+    "SIGNATURE": 1,
+    "VOTE": 3,
+  },
   "UNCONFIRMED_TRANSACTION_TIMEOUT": 10800,
 }
 `;
