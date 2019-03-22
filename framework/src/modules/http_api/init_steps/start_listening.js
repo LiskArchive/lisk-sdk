@@ -2,12 +2,6 @@ module.exports = async (
 	{ components: { logger }, config },
 	{ httpServer, httpsServer }
 ) => {
-	// There is an issue with promisify server.listen so used constructor
-	const startServer = async (server, port, host) =>
-		new Promise((resolve, reject) => {
-			server.listen({ host, port }, err => (err ? reject(err) : resolve()));
-		});
-
 	httpServer.headersTimeout = config.api.options.limits.headersTimeout;
 	// Disconnect idle clients
 	httpServer.setTimeout(config.api.options.limits.serverSetTimeout);
@@ -26,7 +20,7 @@ module.exports = async (
 	if (config.api.ssl.enabled) {
 		// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 		httpsServer.headersTimeout = config.api.options.limits.headersTimeout;
-		httpsServer.setTimeout(config.api.options.limits.serverTimeout);
+		httpsServer.setTimeout(config.api.options.limits.serverSetTimeout);
 		httpsServer.on('timeout', socket => {
 			logger.info(
 				`Disconnecting idle socket: ${socket.remoteAddress}:${
@@ -49,3 +43,9 @@ module.exports = async (
 		);
 	}
 };
+
+// There is an issue with promisify server.listen so used constructor
+const startServer = async (server, port, host) =>
+	new Promise((resolve, reject) => {
+		server.listen({ host, port }, err => (err ? reject(err) : resolve()));
+	});
