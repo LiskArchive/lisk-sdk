@@ -73,7 +73,8 @@ describe('InMemoryChannel Channel', () => {
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(inMemoryChannel.bus).toBe(undefined);
+			expect(inMemoryChannel).toHaveProperty('moduleAlias');
+			expect(inMemoryChannel).toHaveProperty('options');
 		});
 	});
 
@@ -83,6 +84,7 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.registerToBus(params.bus);
 
 			// Assert
+			expect(inMemoryChannel.bus).toBe(params.bus);
 			expect(inMemoryChannel.bus.registerChannel).toHaveBeenCalledWith(
 				inMemoryChannel.moduleAlias,
 				inMemoryChannel.eventsList.map(event => event.name),
