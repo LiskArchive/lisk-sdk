@@ -90,7 +90,6 @@ class Bus extends EventEmitter2 {
 	 *
 	 * @throws {Error} If event name is already registered.
 	 */
-	// eslint-disable-next-line no-unused-vars
 	async registerChannel(
 		moduleAlias,
 		events,
@@ -131,6 +130,32 @@ class Bus extends EventEmitter2 {
 			events,
 			type: options.type,
 		};
+	}
+
+	/**
+	 * Unregister channel from bus.
+	 *
+	 * @async
+	 * @param {string} moduleAlias - Alias for module used during registration
+	 *
+	 * @throws {Error} If channel not registered.
+	 */
+	async unregisterChannel(moduleAlias) {
+		Object.keys(this.events).forEach(eventName => {
+			const [moduleName] = eventName.split(':');
+			if (moduleName === moduleAlias) {
+				delete this.events[eventName];
+			}
+		});
+
+		Object.keys(this.actions).forEach(actionName => {
+			const [moduleName] = actionName.split(':');
+			if (moduleName === moduleAlias) {
+				delete this.actions[actionName];
+			}
+		});
+
+		delete this.channels[moduleAlias];
 	}
 
 	/**

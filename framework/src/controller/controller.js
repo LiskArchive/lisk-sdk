@@ -48,6 +48,7 @@ class Controller {
 			},
 		};
 
+		this.liskReady = false;
 		this.modules = {};
 		this.channel = null; // Channel for controller
 		this.bus = null;
@@ -70,6 +71,7 @@ class Controller {
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
 
+		this.liskReady = true;
 		this.channel.publish('lisk:ready');
 	}
 
@@ -127,6 +129,7 @@ class Controller {
 			'lisk',
 			['ready'],
 			{
+				isLiskReady: () => this.liskReady,
 				getComponentConfig: action => this.config.components[action.params],
 			},
 			{ skipInternalEvents: true }
@@ -228,10 +231,15 @@ class Controller {
 
 		const child = child_process.fork(program, parameters);
 
-		child.on('exit', (code, signal) => {
+		child.on('exit', async (code, signal) => {
 			this.logger.error(
 				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
 			);
+
+			await this.bus.unregisterChannel(moduleAlias);
+
+			// Reload the module
+			this._loadChildProcessModule(alias, Klass, options);
 		});
 
 		return Promise.race([
