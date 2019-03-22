@@ -1,15 +1,24 @@
-const rewire = require('rewire');
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 
-const startListening = rewire(
-	'../../../../../../src/modules/http_api/init_steps/start_listening'
-);
+'use strict';
+
+const startListening = require('../../../../../../src/modules/http_api/init_steps/start_listening');
 
 describe('init_steps/start_listening', () => {
 	let stub;
 	let timeoutStub;
-
-	const startServerStub = sinonSandbox.stub().resolves();
-	startListening.__set__('startServer', startServerStub);
 
 	beforeEach(async () => {
 		timeoutStub = {
@@ -49,14 +58,17 @@ describe('init_steps/start_listening', () => {
 				httpServer: {
 					setTimeout: sinonSandbox.stub(),
 					on: sinonSandbox.stub().yields(timeoutStub),
+					listen: sinonSandbox.stub().yields(),
 				},
 				httpsServer: {
 					setTimeout: sinonSandbox.stub(),
 					on: sinonSandbox.stub(),
+					listen: sinonSandbox.stub().yields(),
 				},
 			},
 		};
-		await startListening(stub.arg1, stub.arg2);
+
+		await startListening.listen(stub.arg1, stub.arg2);
 	});
 
 	afterEach(async () => {
@@ -64,64 +76,59 @@ describe('init_steps/start_listening', () => {
 	});
 
 	it('should be an async function', async () =>
-		expect(startListening.constructor.name).to.equal('AsyncFunction'));
+		expect(startListening.listen.constructor.name).to.equal('AsyncFunction'));
 
 	it('should set server timeout value from config to http server', async () =>
-		expect(stub.arg2.httpServer.setTimeout.getCall(0).args[0]).to.equal(2000));
+		expect(stub.arg2.httpServer.setTimeout).to.be.calledWithExactly(2000));
 
 	it('should start listening http server with proper data', async () => {
-		expect(typeof startServerStub.getCall(0).args[0]).to.equal('object');
-		expect(startServerStub.getCall(0).args[1]).to.equal(
-			stub.arg1.config.httpPort
-		);
-		expect(startServerStub.getCall(0).args[2]).to.equal(
-			stub.arg1.config.address
-		);
+		expect(stub.arg2.httpServer.listen.getCall(0).args[0]).to.deep.equal({
+			host: stub.arg1.config.address,
+			port: stub.arg1.config.httpPort,
+		});
 	});
 
 	it('should destroy socket on http server timeout event', async () =>
 		expect(timeoutStub.destroy.calledOnce).to.equal(true));
 
 	it('should call logger.info with proper data on http server timeout', async () =>
-		expect(stub.arg1.components.logger.info.getCall(0).args[0]).to.equal(
+		expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
 			`Disconnecting idle socket: ${timeoutStub.remoteAddress}:${
 				timeoutStub.remotePort
 			}`
 		));
 
 	it('should call logger.info with proper data if http server started listening correctly', async () =>
-		expect(stub.arg1.components.logger.info.getCall(1).args[0]).to.equal(
+		expect(stub.arg1.components.logger.info).calledWithExactly(
 			`Lisk started: ${stub.arg1.config.address}:${stub.arg1.config.httpPort}`
 		));
 
 	describe('when SSL is enabled', () => {
 		it('should set timeout value from config to https server', async () =>
-			expect(stub.arg2.httpsServer.setTimeout.getCall(0).args[0]).to.equal(
-				2000
+			expect(stub.arg2.httpsServer.setTimeout).calledWithExactly(
+				stub.arg1.config.api.options.limits.serverSetTimeout
 			));
 
 		it('should start listening https server with proper data', async () => {
-			expect(typeof startServerStub.getCall(1).args[0]).to.equal('object');
-			expect(startServerStub.getCall(1).args[1]).to.equal(
-				stub.arg1.config.api.ssl.options.port
-			);
-			expect(startServerStub.getCall(1).args[2]).to.equal(
-				stub.arg1.config.api.ssl.options.address
-			);
+			expect(stub.arg2.httpsServer.listen.getCall(0).args[0]).to.deep.equal({
+				host: stub.arg1.config.api.ssl.options.address,
+				port: stub.arg1.config.api.ssl.options.port,
+			});
 		});
 
-		it('should destroy socket on https server timeout event', async () =>
-			expect(timeoutStub.destroy.calledOnce).to.equal(true));
+		it('should destroy socket on https server timeout event', async () => {
+			expect(timeoutStub.destroy.calledOnce).to.equal(true);
+		});
 
 		it('should call logger.info with proper data on https server timeout', async () =>
-			expect(stub.arg1.components.logger.info.getCall(0).args[0]).to.equal(
+			expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
 				`Disconnecting idle socket: ${timeoutStub.remoteAddress}:${
 					timeoutStub.remotePort
 				}`
 			));
 
 		it('should call logger.info with proper data if http server started listening correctly', async () =>
-			expect(stub.arg1.components.logger.info.getCall(2).args[0]).to.equal(
+			expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
 				`Lisk https started: ${stub.arg1.config.api.ssl.options.address}:${
 					stub.arg1.config.api.ssl.options.port
 				}`
