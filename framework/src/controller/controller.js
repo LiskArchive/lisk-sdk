@@ -50,6 +50,7 @@ class Controller {
 
 		this.liskReady = false;
 		this.modules = {};
+		this.childrenList = [];
 		this.channel = null; // Channel for controller
 		this.bus = null;
 	}
@@ -231,6 +232,8 @@ class Controller {
 
 		const child = child_process.fork(program, parameters);
 
+		this.childrenList.push(child);
+
 		child.on('exit', async (code, signal) => {
 			this.logger.error(
 				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
@@ -274,6 +277,8 @@ class Controller {
 		if (reason) {
 			this.logger.error(`Reason: ${reason}`);
 		}
+
+		this.childrenList.forEach(child => child.kill());
 
 		try {
 			await this.bus.cleanup();
