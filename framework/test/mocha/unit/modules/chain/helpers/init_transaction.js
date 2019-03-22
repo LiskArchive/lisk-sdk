@@ -24,7 +24,9 @@ const {
 	InTransferTransaction,
 	OutTransferTransaction,
 } = require('@liskhq/lisk-transactions');
-const initTransaction = require('../../../../../../src/modules/chain/helpers/init_transaction');
+const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction.js');
+
+const initTransaction = new InitTransaction();
 
 describe('init transaction', () => {
 	it('should initialize a transfer transaction', async () => {
@@ -42,7 +44,7 @@ describe('init transaction', () => {
 			id: '7507990258936015021',
 		};
 
-		expect(initTransaction(transfer)).to.be.instanceof(TransferTransaction);
+		expect(initTransaction.jsonRead(transfer)).to.be.instanceof(TransferTransaction);
 	});
 
 	it('should initialize a second signature transaction', async () => {
@@ -65,7 +67,7 @@ describe('init transaction', () => {
 			id: '6998015087494860094',
 		};
 
-		expect(initTransaction(secondSignature)).to.be.instanceof(
+		expect(initTransaction.jsonRead(secondSignature)).to.be.instanceof(
 			SecondSignatureTransaction
 		);
 	});
@@ -91,7 +93,7 @@ describe('init transaction', () => {
 			id: '5337978774712629501',
 		};
 
-		expect(initTransaction(delegate)).to.be.instanceof(DelegateTransaction);
+		expect(initTransaction.jsonRead(delegate)).to.be.instanceof(DelegateTransaction);
 	});
 
 	it('should initialize a vote transaction', async () => {
@@ -117,7 +119,7 @@ describe('init transaction', () => {
 			id: '9048233810524582722',
 		};
 
-		expect(initTransaction(vote)).to.be.instanceof(VoteTransaction);
+		expect(initTransaction.jsonRead(vote)).to.be.instanceof(VoteTransaction);
 	});
 
 	it('should initialize a multisignature transaction', async () => {
@@ -147,7 +149,7 @@ describe('init transaction', () => {
 			id: '15911083597203956215',
 		};
 
-		expect(initTransaction(multisignature)).to.be.instanceof(
+		expect(initTransaction.jsonRead(multisignature)).to.be.instanceof(
 			MultisignatureTransaction
 		);
 	});
@@ -177,7 +179,7 @@ describe('init transaction', () => {
 			id: '6368378298793859048',
 		};
 
-		expect(initTransaction(dapp)).to.be.instanceof(DappTransaction);
+		expect(initTransaction.jsonRead(dapp)).to.be.instanceof(DappTransaction);
 	});
 
 	it('should initialize an intransfer transaction', async () => {
@@ -202,7 +204,7 @@ describe('init transaction', () => {
 			},
 		};
 
-		expect(initTransaction(intransfer)).to.be.instanceof(InTransferTransaction);
+		expect(initTransaction.jsonRead(intransfer)).to.be.instanceof(InTransferTransaction);
 	});
 
 	it('should initialize an outtransfer transaction', async () => {
@@ -229,7 +231,7 @@ describe('init transaction', () => {
 			},
 		};
 
-		expect(initTransaction(outtransfer)).to.be.instanceof(
+		expect(initTransaction.jsonRead(outtransfer)).to.be.instanceof(
 			OutTransferTransaction
 		);
 	});

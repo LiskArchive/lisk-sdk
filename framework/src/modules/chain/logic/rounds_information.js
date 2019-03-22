@@ -1,6 +1,6 @@
 const Bignumber = require('bignumber.js');
 
-const transactionTypes = global.constants.TRANSACTION_TYPES;
+const { TRANSACTION_TYPES } = global.constants;
 
 const reverseVotes = function(diff) {
 	const copyDiff = diff.slice();
@@ -16,7 +16,7 @@ const updateRoundInformationWithDelegatesForTransaction = function(
 	transaction,
 	forwardTick
 ) {
-	if (transaction.type !== transactionTypes.VOTE) {
+	if (transaction.type !== TRANSACTION_TYPES.VOTE) {
 		return;
 	}
 
@@ -45,7 +45,7 @@ const updateRoundInformationWithDelegatesForTransaction = function(
 
 			return roundData;
 		})
-		.map(data => stateStore.round.add(data));
+		.forEach(data => stateStore.round.add(data));
 };
 
 const updateSenderRoundInformationWithAmountForTransaction = function(
@@ -60,7 +60,7 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 	const account = stateStore.account.get(transaction.senderId);
 	let dependentPublicKeysToAdd = account.votedDelegatesPublicKeys || [];
 
-	if (transaction.type === transactionTypes.VOTE) {
+	if (transaction.type === TRANSACTION_TYPES.VOTE) {
 		const newVotes = forwardTick
 			? transaction.asset.votes
 			: reverseVotes(transaction.asset.votes);
@@ -96,15 +96,15 @@ const updateRecipientRoundInformationWithAmountForTransaction = function(
 	forwardTick
 ) {
 	let address;
-	if (transaction.type === transactionTypes.IN_TRANSFER) {
+	if (transaction.type === TRANSACTION_TYPES.IN_TRANSFER) {
 		const dappTransaction = stateStore.transaction.get(
 			transaction.asset.inTrasfer.dappId
 		);
 		address = dappTransaction.senderId;
 	}
 	if (
-		transaction.type === transactionTypes.SEND ||
-		transaction.type === transactionTypes.OUT_TRANSFER
+		transaction.type === TRANSACTION_TYPES.SEND ||
+		transaction.type === TRANSACTION_TYPES.OUT_TRANSFER
 	) {
 		address = transaction.recipientId;
 	}

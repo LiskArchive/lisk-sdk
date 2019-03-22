@@ -17,12 +17,13 @@
 const util = require('util');
 
 const liskTransactions = require('@liskhq/lisk-transactions');
-const initTransaction = require('../../../src/modules/chain/helpers/init_transaction.js');
 const accountFixtures = require('../fixtures/accounts');
 const application = require('../common/application');
 const random = require('../common/utils/random');
 const localCommon = require('./common');
+const InitTransaction = require('../../../src/modules/chain/logic/init_transaction.js');
 
+const initTransaction = new InitTransaction();
 const genesisBlock = __testContext.config.genesisBlock;
 const { NORMALIZER } = global.constants;
 const transactionStatus = liskTransactions.Status;
@@ -87,7 +88,7 @@ describe('processTransactions', () => {
 						passphrase: account.passphrase,
 						options: random.application(),
 					}),
-				].map(initTransaction);
+				].map(transaction => initTransaction.jsonRead(transaction));
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
 				// Therefore removing it from the appliable transactions
@@ -101,7 +102,7 @@ describe('processTransactions', () => {
 						recipientId: accountFixtures.genesis.address,
 						passphrase: random.account().passphrase,
 					}),
-				].map(initTransaction);
+				].map(transaction => initTransaction.jsonRead(transaction));
 
 				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
 
@@ -112,7 +113,7 @@ describe('processTransactions', () => {
 						lifetime: 10,
 						minimum: 2,
 					}),
-				].map(initTransaction);
+				].map(transaction => initTransaction.jsonRead(transaction));
 			});
 
 			describe('verifyTransactions', () => {
@@ -191,7 +192,7 @@ describe('processTransactions', () => {
 					const recipient = random.account();
 
 					const { transactionsResponses } = await undoTransactions([
-						initTransaction(
+						initTransaction.jsonRead(
 							liskTransactions.transfer({
 								amount: (NORMALIZER * 1000).toString(),
 								recipientId: recipient.address,

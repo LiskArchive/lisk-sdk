@@ -25,13 +25,9 @@ const defaultCreateValues = {
 	publicKey: null,
 	secondPublicKey: null,
 	secondSignature: false,
-	u_secondSignature: false,
 	username: null,
-	u_username: null,
 	isDelegate: false,
-	u_isDelegate: false,
 	balance: '0',
-	u_balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
 	rank: null,
@@ -39,20 +35,15 @@ const defaultCreateValues = {
 	rewards: '0',
 	vote: '0',
 	nameExist: false,
-	u_nameExist: false,
 	multiMin: 0,
-	u_multiMin: 0,
 	multiLifetime: 0,
-	u_multiLifetime: 0,
 };
 
 const readOnlyFields = ['address'];
 
 const dependentFieldsTableMap = {
 	membersPublicKeys: 'mem_accounts2multisignatures',
-	u_membersPublicKeys: 'mem_accounts2u_multisignatures',
 	votedDelegatesPublicKeys: 'mem_accounts2delegates',
-	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
 };
 
 const sqlFiles = {
@@ -60,7 +51,6 @@ const sqlFiles = {
 	update: 'accounts/update.sql',
 	updateOne: 'accounts/update_one.sql',
 	delete: 'accounts/delete.sql',
-	resetUnconfirmedState: 'accounts/reset_unconfirmed_state.sql',
 	resetMemTables: 'accounts/reset_mem_tables.sql',
 	increaseFieldBy: 'accounts/increase_field_by.sql',
 	decreaseFieldBy: 'accounts/decrease_field_by.sql',
@@ -356,29 +346,12 @@ class ChainAccount extends AccountEntity {
 	}
 
 	/**
-	 * Reset all unconfirmed states of accounts to confirmed states
-	 *
-	 * @param [tx] - Database transaction object
-	 * @returns {Promise.<*, Error>}
-	 */
-	resetUnconfirmedState(tx) {
-		return this.adapter.executeFile(
-			this.SQLs.resetUnconfirmedState,
-			{},
-			{},
-			tx
-		);
-	}
-
-	/**
 	 * Clear data in memory tables:
 	 * - mem_accounts
 	 * - rounds_rewards
 	 * - mem_round
 	 * - mem_accounts2delegates
-	 * - mem_accounts2u_delegates
 	 * - mem_accounts2multisignatures
-	 * - mem_accounts2u_multisignatures
 	 *
 	 * @param {Object} tx - DB transaction object
 	 * @returns {Promise}

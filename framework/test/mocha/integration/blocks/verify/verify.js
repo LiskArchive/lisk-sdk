@@ -25,8 +25,8 @@ const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
-const initTransaction = require('../../../../../src/modules/chain/helpers/init_transaction');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
+const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
@@ -34,6 +34,7 @@ const blockVersion = require('../../../../../src/modules/chain/logic/block_versi
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
+const initTransaction = new InitTransaction();
 
 const previousBlock = {
 	blockSignature:
@@ -74,7 +75,7 @@ const validBlock = {
 	transactions: [
 		{
 			type: 0,
-			amount: 10000000000000000,
+			amount: '10000000000000000',
 			fee: 0,
 			timestamp: 0,
 			recipientId: '16313739661670634666L',
@@ -87,7 +88,7 @@ const validBlock = {
 		},
 		{
 			type: 3,
-			amount: 0,
+			amount: '0',
 			fee: 0,
 			timestamp: 0,
 			recipientId: '16313739661670634666L',
@@ -106,7 +107,7 @@ const validBlock = {
 				'9f9446b527e93f81d3fb8840b02fcd1454e2b6276d3c19bd724033a01d3121dd2edb0aff61d48fad29091e222249754e8ec541132032aefaeebc312796f69e08',
 			id: '9314232245035524467',
 		},
-	],
+	].map(transaction => initTransaction.jsonRead(transaction)),
 	version: 0,
 	id: '884740302254229983',
 };
@@ -142,7 +143,9 @@ function createBlock(
 			.update(passphrase, 'utf8')
 			.digest()
 	);
-	transactions = transactions.map(initTransaction);
+	transactions = transactions.map(transaction =>
+		initTransaction.jsonRead(transaction)
+	);
 	blocksModule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
 		keypair,
@@ -239,7 +242,6 @@ describe('blocks/verify', () => {
 			const verify = new RewiredVerify(
 				library.components.logger,
 				library.logic.block,
-				library.logic.transaction,
 				library.components.storage,
 				library.config
 			);
@@ -479,13 +481,7 @@ describe('blocks/verify', () => {
 
 				const result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(2);
-				expect(result.errors[0]).to.equal(
-					`Unknown transaction type ${validBlock.transactions[0].type}`
-				);
-				expect(result.errors[1]).to.equal('Invalid payload hash');
+				expect(result.errors[0]).to.equal('Invalid payload hash');
 
 				validBlock.transactions[0].type = transactionType;
 				done();
@@ -531,9 +527,6 @@ describe('blocks/verify', () => {
 
 				const result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
 				expect(result.errors[0]).to.equal('Invalid total amount');
 
 				validBlock.totalAmount = totalAmount;
@@ -1036,25 +1029,27 @@ describe('blocks/verify', () => {
 
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err).equal('Invalid total amount');
+						expect(err).equal('Invalid total fee');
 						done();
 					}
 				});
 			});
-
-			it('should fail when transaction type property is missing', done => {
+			// eslint-disable-next-line
+			it.skip('[UNCONFIRMED STATE REMOVAL] [ERROR MESSAGE] should fail when transaction type property is missing', done => {
 				const transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err).equal('Unknown transaction type undefined');
+						expect(err.message).equal(
+							"'' should have required property 'type'"
+						);
 						block2.transactions[0].type = transactionType;
 						done();
 					}
 				});
 			});
-
-			it('should fail when transaction timestamp property is missing', done => {
+			// eslint-disable-next-line
+			it.skip('[UNCONFIRMED STATE REMOVAL] [ERROR MESSAGE] should fail when transaction timestamp property is missing', done => {
 				const transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
 				blocksVerify.processBlock(block2, false, true, err => {

@@ -5,9 +5,9 @@ describe('init_steps/init_logic_structs', () => {
 		it('should pass correct arguments to constructor');
 		it('should create logic/account object');
 	});
-	describe('logic/transaction', () => {
+	describe('logic/init_transaction', () => {
 		it('should pass correct arguments to constructor');
-		it('should create logic/transaction object');
+		it('should create logic/init_transaction object');
 	});
 
 	describe('logic/block', () => {

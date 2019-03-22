@@ -17,10 +17,13 @@
 const async = require('async');
 const expect = require('chai').expect;
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
-const initTransaction = require('../../../../../src/modules/chain/helpers/init_transaction.js');
+const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction.js');
+
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+
+const initTransaction = new InitTransaction();
 
 describe('system test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();
@@ -144,8 +147,8 @@ describe('system test (blocks) - chain/applyBlock', () => {
 						}
 					);
 				});
-
-				it('should have pooled transactions in queued state', done => {
+				// eslint-disable-next-line
+				it.skip('[UNCONFIRMED STATE REMOVAL] should have pooled transactions in queued state', done => {
 					async.forEach(
 						[poolAccount3, poolAccount4],
 						(account, eachCb) => {
@@ -179,9 +182,6 @@ describe('system test (blocks) - chain/applyBlock', () => {
 										expect(accountRow.mem_accounts.username).to.eql(null);
 										expect(accountRow.mem_accounts.isDelegate).to.equal(0);
 									}
-
-									expect(accountRow.mem_accounts.u_username).to.equal(null);
-									expect(accountRow.mem_accounts.u_isDelegate).to.equal(0);
 									eachCb();
 								});
 						},
@@ -246,7 +246,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 								'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 							id: '1465651642158264048',
 						},
-					].map(initTransaction),
+					].map(transaction => initTransaction.jsonRead(transaction)),
 					version: 0,
 					id: '884740302254229983',
 				};
@@ -301,7 +301,8 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					);
 				});
 
-				it('should have pooled transactions in queued state', done => {
+				// eslint-disable-next-line
+				it.skip('UNCONFIRMED STATE REMOVAL] should have pooled transactions in queued state', done => {
 					async.forEach(
 						[poolAccount3, poolAccount4],
 						(account, eachCb) => {

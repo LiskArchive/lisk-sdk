@@ -21,21 +21,14 @@ const {
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../../src/components/cache');
 const modulesLoader = require('../../../../common/modules_loader');
-const AccountLogic = require('../../../../../../src/modules/chain/logic/account');
-const TransactionLogic = require('../../../../../../src/modules/chain/logic/transaction');
-const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates');
-const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts');
-const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader');
-const VoteLogic = require('../../../../../../src/modules/chain/logic/vote');
-const TransferLogic = require('../../../../../../src/modules/chain/logic/transfer');
-const DelegateLogic = require('../../../../../../src/modules/chain/logic/delegate');
-const SignatureLogic = require('../../../../../../src/modules/chain/logic/signature');
-const MultisignatureLogic = require('../../../../../../src/modules/chain/logic/multisignature');
-const DappLogic = require('../../../../../../src/modules/chain/logic/dapp');
-const InTransferLogic = require('../../../../../../src/modules/chain//logic/in_transfer');
-const OutTransferLogic = require('../../../../../../src/modules/chain/logic/out_transfer');
+const AccountLogic = require('../../../../../../src/modules/chain/logic/account.js');
+const TransactionLogic = require('../../../../../../src/modules/chain/logic/init_transaction.js');
+const DelegateModule = require('../../../../../../src/modules/chain/submodules/delegates.js');
+const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts.js');
+const LoaderModule = require('../../../../../../src/modules/chain/submodules/loader.js');
 
 const { TRANSACTION_TYPES } = global.constants;
+
 const TransactionModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transactions'
 );
@@ -51,107 +44,40 @@ describe('transactions', () => {
 		delegatesModule,
 		accountsModule
 	) {
-		const sendLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.SEND,
-			new TransferLogic({
-				components: {
-					logger: modulesLoader.logger,
-				},
-				schema: modulesLoader.scope.schema,
-			})
-		);
+		const sendLogic = transactionLogic.attachAssetType(TRANSACTION_TYPES.SEND);
 		sendLogic.bind(accountsModule);
-		expect(sendLogic).to.be.an.instanceof(TransferLogic);
 
-		const voteLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.VOTE,
-			new VoteLogic({
-				components: {
-					logger: modulesLoader.logger,
-				},
-				logic: {},
-				schema: modulesLoader.scope.schema,
-			})
-		);
+		const voteLogic = transactionLogic.attachAssetType(TRANSACTION_TYPES.VOTE);
 		voteLogic.bind(delegatesModule);
-		expect(voteLogic).to.be.an.instanceof(VoteLogic);
 
 		const delegateLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.DELEGATE,
-			new DelegateLogic({
-				schema: modulesLoader.scope.schema,
-			})
+			TRANSACTION_TYPES.DELEGATE
 		);
 		delegateLogic.bind(accountsModule);
-		expect(delegateLogic).to.be.an.instanceof(DelegateLogic);
 
 		const signatureLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.SIGNATURE,
-			new SignatureLogic({
-				components: {
-					logger: modulesLoader,
-				},
-				schema: modulesLoader.scope.schema,
-			})
+			TRANSACTION_TYPES.SIGNATURE
 		);
 		signatureLogic.bind(accountsModule);
-		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
 		const multiLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.MULTI,
-			new MultisignatureLogic({
-				components: {
-					logger: modulesLoader.logger,
-				},
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
-				logic: {
-					account: accountLogic,
-					transaction: transactionLogic,
-				},
-			})
+			TRANSACTION_TYPES.MULTI
 		);
 
 		multiLogic.bind(accountsModule);
-		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
-		const dappLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.DAPP,
-			new DappLogic({
-				components: {
-					storage: modulesLoader.storage,
-					logger: modulesLoader.logger,
-				},
-				schema: modulesLoader.scope.schema,
-				network: modulesLoader.scope.network,
-			})
-		);
-		expect(dappLogic).to.be.an.instanceof(DappLogic);
+		const dappLogic = transactionLogic.attachAssetType(TRANSACTION_TYPES.DAPP);
+		dappLogic.bind(accountsModule);
 
 		const inTransferLogic = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.IN_TRANSFER,
-			new InTransferLogic({
-				components: {
-					storage: modulesLoader.storage,
-				},
-				schema: modulesLoader.scope.schema,
-			})
+			TRANSACTION_TYPES.IN_TRANSFER
 		);
 		inTransferLogic.bind(accountsModule, /* sharedApi */ null);
-		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
 
 		const outTransfer = transactionLogic.attachAssetType(
-			TRANSACTION_TYPES.OUT_TRANSFER,
-			new OutTransferLogic({
-				components: {
-					storage: modulesLoader.storage,
-					logger: modulesLoader.logger,
-				},
-				schema: modulesLoader.scope.schema,
-			})
+			TRANSACTION_TYPES.OUT_TRANSFER
 		);
 		outTransfer.bind(accountsModule, /* sharedApi */ null);
-		expect(outTransfer).to.be.an.instanceof(OutTransferLogic);
 		return transactionLogic;
 	}
 
@@ -696,204 +622,56 @@ describe('transactions', () => {
 					done();
 				});
 			});
-
-			/* eslint-disable mocha/no-skipped-tests */
-			it.skip('should get transaction with intransfer asset for transaction id', done => {
-				const transactionId =
-					transactionsByType[TRANSACTION_TYPES.IN_TRANSFER].transactionId;
-				const transaction =
-					transactionsByType[TRANSACTION_TYPES.IN_TRANSFER].transaction;
-
-				getTransactionsById(transactionId, (err, res) => {
-					expect(err).to.not.exist;
-					expect(res)
-						.to.have.property('transactions')
-						.which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.isEqualTo(transaction.amount)).to.be
-						.true;
-					expect(res.transactions[0].fee.isEqualTo(transaction.fee)).to.be.true;
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].asset.inTransfer.dappId).to.equal(
-						transaction.asset.inTransfer.dappId
-					);
-					expect(res.transactions[0].type).to.equal(
-						TRANSACTION_TYPES.IN_TRANSFER
-					);
-					done();
-				});
-			});
-			/* eslint-enable mocha/no-skipped-tests */
-
-			/* eslint-disable mocha/no-pending-tests */
-			it('should get transaction with outtransfer asset for transaction id');
-			/* eslint-enable mocha/no-pending-tests */
 		});
+	});
 
-		describe('shared', () => {
-			describe('getTransactionsCount', () => {
-				beforeEach(() => {
-					sinonSandbox.spy(async, 'waterfall');
-					return storageStub.entities.Transaction.count.onCall(0).resolves(10);
-				});
+	it('should update the transaction count in cache if not already persisted', done => {
+		sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
+		sinonSandbox.spy(cache, 'setJsonForKey');
 
-				const expectValidCountResponse = data => {
-					expect(data).to.have.keys(
-						'total',
-						'confirmed',
-						'unconfirmed',
-						'unprocessed',
-						'unsigned'
-					);
-					expect(data.total).to.be.a('number');
-					expect(data.confirmed).to.be.a('number');
-					expect(data.unconfirmed).to.be.a('number');
-					expect(data.unprocessed).to.be.a('number');
-					expect(data.unsigned).to.be.a('number');
-					expect(data.total).to.be.eql(
-						data.confirmed + data.unconfirmed + data.unprocessed + data.unsigned
-					);
-				};
+		transactionsModule.shared.getTransactionsCount((err, data) => {
+			expect(err).to.be.null;
 
-				it('should return transaction count in correct format', done => {
-					transactionsModule.shared.getTransactionsCount((err, data) => {
-						expect(err).to.be.null;
-						expectValidCountResponse(data);
+			expect(async.waterfall).to.be.calledOnce;
+			expect(cache.getJsonForKey).to.be.calledOnce;
+			expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
+				CACHE_KEYS_TRANSACTION_COUNT
+			);
+			expect(data.confirmed).to.be.eql(10);
+			expect(storageStub.entities.Transaction.count).to.be.calledOnce;
 
-						done();
-					});
-				});
-
-				it('should try to get transaction count from cache first', done => {
-					sinonSandbox.spy(cache, 'getJsonForKey');
-
-					transactionsModule.shared.getTransactionsCount((err, data) => {
-						expect(err).to.be.null;
-						expectValidCountResponse(data);
-
-						expect(async.waterfall).to.be.calledOnce;
-						expect(cache.getJsonForKey).to.be.calledOnce;
-						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_KEYS_TRANSACTION_COUNT
-						);
-
-						done();
-					});
-				});
-
-				it('should use cached transaction count if found', done => {
-					sinonSandbox.stub(cache, 'getJsonForKey').resolves({
-						confirmed: 999,
-					});
-
-					transactionsModule.shared.getTransactionsCount((err, data) => {
-						expect(err).to.be.null;
-						expectValidCountResponse(data);
-
-						expect(async.waterfall).to.be.calledOnce;
-						expect(cache.getJsonForKey).to.be.calledOnce;
-						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_KEYS_TRANSACTION_COUNT
-						);
-						expect(storageStub.entities.Transaction.count).to.be.not.calledOnce;
-
-						expect(data.confirmed).to.be.eql(999);
-
-						done();
-					});
-				});
-
-				it('should get transaction count from db if cache fails', done => {
-					sinonSandbox
-						.stub(cache, 'getJsonForKey')
-						.rejects(new Error('Cache error'));
-
-					transactionsModule.shared.getTransactionsCount((err, data) => {
-						expect(err).to.be.null;
-						expectValidCountResponse(data);
-
-						expect(async.waterfall).to.be.calledOnce;
-						expect(cache.getJsonForKey).to.be.calledOnce;
-						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_KEYS_TRANSACTION_COUNT
-						);
-						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
-						expect(data.confirmed).to.be.eql(10);
-
-						done();
-					});
-				});
-
-				it('should get transaction count from db if no cache exists', done => {
-					sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
-
-					transactionsModule.shared.getTransactionsCount((err, data) => {
-						expect(err).to.be.null;
-						expectValidCountResponse(data);
-
-						expect(async.waterfall).to.be.calledOnce;
-						expect(cache.getJsonForKey).to.be.calledOnce;
-						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_KEYS_TRANSACTION_COUNT
-						);
-						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
-						expect(data.confirmed).to.be.eql(10);
-						done();
-					});
-				});
-
-				it('should update the transaction count in cache if not already persisted', done => {
-					sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
-					sinonSandbox.spy(cache, 'setJsonForKey');
-
-					transactionsModule.shared.getTransactionsCount((err, data) => {
-						expect(err).to.be.null;
-						expectValidCountResponse(data);
-
-						expect(async.waterfall).to.be.calledOnce;
-						expect(cache.getJsonForKey).to.be.calledOnce;
-						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_KEYS_TRANSACTION_COUNT
-						);
-						expect(data.confirmed).to.be.eql(10);
-						expect(storageStub.entities.Transaction.count).to.be.calledOnce;
-
-						expect(cache.setJsonForKey).to.be.calledOnce;
-						expect(cache.setJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_KEYS_TRANSACTION_COUNT
-						);
-						expect(cache.setJsonForKey.firstCall.args[1]).to.be.eql({
-							confirmed: 10,
-						});
-
-						done();
-					});
-				});
-
-				it('should skip updating transaction count cache if already persisted', done => {
-					sinonSandbox.stub(cache, 'getJsonForKey').resolves({
-						confirmed: 999,
-					});
-					sinonSandbox.spy(cache, 'setJsonForKey');
-
-					transactionsModule.shared.getTransactionsCount((err, data) => {
-						expect(err).to.be.null;
-						expectValidCountResponse(data);
-
-						expect(async.waterfall).to.be.calledOnce;
-						expect(cache.getJsonForKey).to.be.calledOnce;
-						expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
-							CACHE_KEYS_TRANSACTION_COUNT
-						);
-						expect(data.confirmed).to.be.eql(999);
-						expect(storageStub.entities.Transaction.count).to.not.be.called;
-
-						expect(cache.setJsonForKey).to.be.not.called;
-
-						done();
-					});
-				});
+			expect(cache.setJsonForKey).to.be.calledOnce;
+			expect(cache.setJsonForKey.firstCall.args[0]).to.be.eql(
+				CACHE_KEYS_TRANSACTION_COUNT
+			);
+			expect(cache.setJsonForKey.firstCall.args[1]).to.be.eql({
+				confirmed: 10,
 			});
+
+			done();
+		});
+	});
+
+	it('should skip updating transaction count cache if already persisted', done => {
+		sinonSandbox.stub(cache, 'getJsonForKey').resolves({
+			confirmed: 999,
+		});
+		sinonSandbox.spy(cache, 'setJsonForKey');
+
+		transactionsModule.shared.getTransactionsCount((err, data) => {
+			expect(err).to.be.null;
+
+			expect(async.waterfall).to.be.calledOnce;
+			expect(cache.getJsonForKey).to.be.calledOnce;
+			expect(cache.getJsonForKey.firstCall.args[0]).to.be.eql(
+				CACHE_KEYS_TRANSACTION_COUNT
+			);
+			expect(data.confirmed).to.be.eql(999);
+			expect(storageStub.entities.Transaction.count).to.not.be.called;
+
+			expect(cache.setJsonForKey).to.be.not.called;
+
+			done();
 		});
 	});
 });
