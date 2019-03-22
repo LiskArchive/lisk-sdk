@@ -34,7 +34,7 @@ describe('blocks/verify', () => {
 	let blocksVerifyModule;
 	let bindingsStub;
 	let modules;
-	let applicationState;
+	let channelMock;
 
 	beforeEach(done => {
 		// Logic
@@ -74,12 +74,20 @@ describe('blocks/verify', () => {
 			},
 		};
 
+		channelMock = {
+			invoke: sinonSandbox
+				.stub()
+				.withArgs('lisk:updateApplicationState')
+				.returns(true),
+		};
+
 		blocksVerifyModule = new BlocksVerify(
 			loggerStub,
 			logicBlockStub,
 			logicTransactionStub,
 			storageStub,
-			configMock
+			configMock,
+			channelMock
 		);
 
 		library = BlocksVerify.__get__('library');
@@ -118,10 +126,6 @@ describe('blocks/verify', () => {
 			},
 		};
 
-		const applicationStateStub = {
-			update: sinonSandbox.stub(),
-		};
-
 		bindingsStub = {
 			modules: {
 				accounts: modulesAccountsStub,
@@ -130,13 +134,10 @@ describe('blocks/verify', () => {
 				transactions: modulesTransactionsStub,
 				transport: modulesTransportStub,
 			},
-
-			applicationState: applicationStateStub,
 		};
 
 		blocksVerifyModule.onBind(bindingsStub);
 		modules = BlocksVerify.__get__('modules');
-		applicationState = BlocksVerify.__get__('applicationState');
 		done();
 	});
 
@@ -2029,7 +2030,7 @@ describe('blocks/verify', () => {
 				library.storage.entities.Block.get.resolves({ height: 1 })
 			);
 
-			afterEach(() => applicationState.update.resetHistory());
+			afterEach(() => channelMock.invoke.resetHistory());
 
 			it('should be called if snapshotting was not activated', done => {
 				blocksVerifyModule.processBlock(
@@ -2038,7 +2039,7 @@ describe('blocks/verify', () => {
 					saveBlock,
 					err => {
 						expect(err).to.be.null;
-						expect(applicationState.update.calledOnce).to.be.true;
+						expect(channelMock.invoke.calledOnce).to.be.true;
 						done();
 					}
 				);
@@ -2148,7 +2149,7 @@ describe('blocks/verify', () => {
 								__private.validateBlockSlot,
 								__private.checkTransactions,
 								modules.blocks.chain.applyBlock,
-								applicationState.update,
+								channelMock.invoke,
 								modules.transport.broadcastHeaders
 							);
 
@@ -2178,7 +2179,6 @@ describe('blocks/verify', () => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(applicationState).to.equal(bindingsStub.applicationState);
 			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			done();
 		});

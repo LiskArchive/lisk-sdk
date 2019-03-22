@@ -34,13 +34,6 @@ describe('node/api', () => {
 				);
 			});
 
-			it('should assign applicationState', () => {
-				return expect(privateLibrary).to.have.property(
-					'applicationState',
-					library.applicationState
-				);
-			});
-
 			it('should assign config', () => {
 				return expect(privateLibrary).to.have.property(
 					'config',

@@ -24,7 +24,6 @@ describe('blocks/chain', () => {
 	let __private;
 	let library;
 	let modules;
-	let applicationState;
 	let blocksChainModule;
 	let storageStub;
 	let loggerStub;
@@ -64,6 +63,7 @@ describe('blocks/chain', () => {
 		],
 	};
 	const blockReduced = { id: 3, height: 3 };
+	let channelMock;
 
 	beforeEach(done => {
 		// Logic
@@ -116,6 +116,13 @@ describe('blocks/chain', () => {
 			},
 		};
 
+		channelMock = {
+			invoke: sinonSandbox
+				.stub()
+				.withArgs('lisk:updateApplicationState')
+				.returns(true),
+		};
+
 		blocksChainModule = new BlocksChain(
 			loggerStub,
 			blockStub,
@@ -123,7 +130,8 @@ describe('blocks/chain', () => {
 			storageStub,
 			genesisBlockStub,
 			busStub,
-			balancesSequenceStub
+			balancesSequenceStub,
+			channelMock
 		);
 
 		library = BlocksChain.__get__('library');
@@ -172,14 +180,7 @@ describe('blocks/chain', () => {
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
 
-		const applicationStateStub = {
-			update: sinonSandbox.stub(),
-			getState: sinonSandbox.stub(),
-		};
-
 		bindingsStub = {
-			applicationState: applicationStateStub,
-
 			modules: {
 				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
@@ -192,7 +193,6 @@ describe('blocks/chain', () => {
 		process.exit = sinonSandbox.stub().returns(0);
 
 		blocksChainModule.onBind(bindingsStub);
-		applicationState = BlocksChain.__get__('applicationState');
 		modules = BlocksChain.__get__('modules');
 		done();
 	});
@@ -1550,7 +1550,6 @@ describe('blocks/chain', () => {
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
-			applicationState.update.resolves();
 			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
@@ -1629,7 +1628,7 @@ describe('blocks/chain', () => {
 								'receiveTransactions-ERR'
 							);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-							expect(applicationState.update.calledOnce).to.be.true;
+							expect(channelMock.invoke.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						});
@@ -1651,7 +1650,7 @@ describe('blocks/chain', () => {
 							expect(err).to.be.null;
 							expect(newLastBlock).to.deep.equal(blockWithTransactions);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-							expect(applicationState.update.calledOnce).to.be.true;
+							expect(channelMock.invoke.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						});
@@ -1728,7 +1727,6 @@ describe('blocks/chain', () => {
 			));
 
 		it('should assign params to modules', async () => {
-			expect(applicationState).to.equal(bindingsStub.applicationState);
 			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);

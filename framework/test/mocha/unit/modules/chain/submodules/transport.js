@@ -46,7 +46,6 @@ describe('transport', () => {
 	let transportInstance;
 	let library;
 	let __private;
-	let applicationState;
 	let modules;
 	let defaultScope;
 	let restoreRewiredTopDeps;
@@ -176,6 +175,7 @@ describe('transport', () => {
 		busStub = {};
 		schemaStub = {};
 		channelStub = {
+			invoke: sinonSandbox.stub(),
 			publish: sinonSandbox.stub(),
 		};
 		balancesSequenceStub = {
@@ -200,10 +200,6 @@ describe('transport', () => {
 		definitions = TransportModule.__get__('definitions');
 
 		defaultScope = {
-			applicationState: {
-				update: sinonSandbox.stub(),
-				getState: sinonSandbox.stub(),
-			},
 			logic: {
 				block: blockStub,
 				transaction: transactionStub,
@@ -332,6 +328,16 @@ describe('transport', () => {
 							objectNormalize: sinonSandbox.stub(),
 						},
 					},
+					channel: {
+						invoke: sinonSandbox
+							.stub()
+							.withArgs('lisk:getApplicationState')
+							.returns({
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							}),
+						publish: sinonSandbox.stub().resolves(),
+					},
 				};
 
 				modules = {
@@ -343,16 +349,6 @@ describe('transport', () => {
 					},
 				};
 
-				applicationState = {
-					update: sinonSandbox.stub().callsArg(0),
-					getState: sinonSandbox
-						.stub()
-						.returns({
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						}),
-				};
-
 				wsRPC = {
 					getServerAuthKey: sinonSandbox.stub().returns(SAMPLE_AUTH_KEY),
 				};
@@ -360,7 +356,6 @@ describe('transport', () => {
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
 					modules,
-					applicationState,
 					definitions,
 					wsRPC,
 				});
@@ -1010,7 +1005,10 @@ describe('transport', () => {
 						},
 						httpPort: 8000,
 					},
-					channel: channelStub,
+					channel: {
+						invoke: sinonSandbox.stub(),
+						publish: sinonSandbox.stub(),
+					},
 					logic: {
 						peers: {
 							me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
@@ -1059,16 +1057,6 @@ describe('transport', () => {
 					},
 				};
 
-				applicationState = {
-					update: sinonSandbox.stub().callsArg(0),
-					getState: sinonSandbox
-						.stub()
-						.returns({
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						}),
-				};
-
 				__private = {
 					broadcaster: {},
 					removePeer: sinonSandbox.stub(),
@@ -1078,7 +1066,6 @@ describe('transport', () => {
 				restoreRewiredTransportDeps = TransportModule.__set__({
 					library,
 					modules,
-					applicationState,
 					__private,
 				});
 
@@ -1174,19 +1161,6 @@ describe('transport', () => {
 				});
 			});
 
-			describe('applicationState', () => {
-				let applicationStateOject;
-
-				beforeEach(done => {
-					applicationStateOject = TransportModule.__get__('applicationState');
-					done();
-				});
-
-				it('should assign applicationState properties', async () => {
-					return expect(applicationStateOject).to.have.property('getState');
-				});
-			});
-
 			describe('definitions', () => {
 				let definitionsObject;
 
@@ -1279,6 +1253,12 @@ describe('transport', () => {
 							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 						};
+						library.channel.invoke
+							.withArgs('lisk:getApplicationState')
+							.returns({
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							});
 						transportInstance.onUnconfirmedTransaction(transaction, true);
 						done();
 					});
@@ -1416,6 +1396,10 @@ describe('transport', () => {
 						enqueue: sinonSandbox.stub(),
 						broadcast: sinonSandbox.stub(),
 					};
+					library.channel.invoke.withArgs('lisk:getApplicationState').returns({
+						broadhash:
+							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+					});
 					return transportInstance.onBroadcastBlock(block, true);
 				});
 
@@ -1863,7 +1847,9 @@ describe('transport', () => {
 				beforeEach(done => {
 					currentHeight = 12345;
 					req = {};
-					applicationState.getState.returns({ height: currentHeight });
+					library.channel.invoke.withArgs('lisk:getApplicationState').returns({
+						height: currentHeight,
+					});
 					transportInstance.shared.height(req, (err, res) => {
 						error = err;
 						result = res;
@@ -1895,7 +1881,9 @@ describe('transport', () => {
 					httpPort: 8000,
 				};
 				beforeEach(done => {
-					applicationState.getState.returns(state);
+					library.channel.invoke
+						.withArgs('lisk:getApplicationState')
+						.returns(state);
 					req = {};
 					transportInstance.shared.status(req, (err, res) => {
 						error = err;

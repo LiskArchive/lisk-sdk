@@ -96,7 +96,9 @@ describe('peers', () => {
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
 			};
-			return channelMock.invoke.returns(status);
+			return channelMock.invoke
+				.withArgs('lisk:getApplicationState')
+				.returns(status);
 		});
 		describe('when there is no version', () => {
 			it('should return false', async () =>
@@ -140,7 +142,9 @@ describe('peers', () => {
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
 			};
-			return channelMock.invoke.returns(status);
+			return channelMock.invoke
+				.withArgs('lisk:getApplicationState')
+				.returns(status);
 		});
 		describe('when protocol version is exactly equal to application protocol version', () => {
 			it('should return true', async () =>
@@ -596,7 +600,7 @@ describe('peers', () => {
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
 			};
-			channelMock.invoke.returns(status);
+			channelMock.invoke.withArgs('lisk:getApplicationState').returns(status);
 			calculateConsensusResult = peers.calculateConsensus();
 			done();
 		});
@@ -664,7 +668,9 @@ describe('peers', () => {
 
 	describe('acceptable', () => {
 		before(done => {
-			channelMock.invoke.returns({ nonce: NONCE });
+			channelMock.invoke
+				.withArgs('lisk:getApplicationState')
+				.returns({ nonce: NONCE });
 			process.env.NODE_ENV = 'DEV';
 			done();
 		});
