@@ -25,7 +25,6 @@ describe('InMemoryChannel Channel', () => {
 			params.moduleAlias,
 			params.events,
 			params.actions,
-			params.bus,
 			params.options
 		);
 	});
@@ -48,7 +47,7 @@ describe('InMemoryChannel Channel', () => {
 			 */
 			jest.isolateModules(() => {
 				// no need to restore mock since, `restoreMocks` option was set to true in unit test config file.
-				jest.doMock('../../../../../../src/controller/channels/base');
+				jest.doMock('../../../../../../src/controller/channels/base_channel');
 				IsolatedInMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
 				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base_channel');
 			});
@@ -58,7 +57,6 @@ describe('InMemoryChannel Channel', () => {
 				params.moduleAlias,
 				params.events,
 				params.actions,
-				params.bus,
 				params.options
 			);
 
@@ -75,21 +73,23 @@ describe('InMemoryChannel Channel', () => {
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(inMemoryChannel.bus).toBe(params.bus);
+			expect(inMemoryChannel).toHaveProperty('moduleAlias');
+			expect(inMemoryChannel).toHaveProperty('options');
 		});
 	});
 
 	describe('#registerToBus', () => {
 		it('should call `bus.registerChannel` method with given arguments', async () => {
 			// Act
-			await inMemoryChannel.registerToBus();
+			await inMemoryChannel.registerToBus(params.bus);
 
 			// Assert
+			expect(inMemoryChannel.bus).toBe(params.bus);
 			expect(inMemoryChannel.bus.registerChannel).toHaveBeenCalledWith(
 				inMemoryChannel.moduleAlias,
 				inMemoryChannel.eventsList.map(event => event.name),
 				inMemoryChannel.actionsList.map(action => action.name),
-				{}
+				{ type: 'inMemory', channel: inMemoryChannel }
 			);
 		});
 	});

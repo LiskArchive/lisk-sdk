@@ -5,28 +5,34 @@ const Controller = require('../../../../../src/controller/controller');
 
 jest.mock('../../../../../src/controller/controller');
 jest.mock('eventemitter2');
+jest.mock('axon');
+jest.mock('axon-rpc');
 
 describe('Bus', () => {
 	const controller = new Controller();
 	const options = {};
+	const config = {
+		ipc: {
+			enabled: false,
+		},
+	};
 
 	let bus = null;
 	beforeEach(() => {
-		bus = new Bus(controller, options);
+		bus = new Bus(controller, options, config);
 	});
 
 	describe('#constructor', () => {
 		it('should create the Bus istance with given arguments.', () => {
 			// Assert
-			expect(bus.controller).toBe(controller);
 			expect(bus.actions).toEqual({});
 			expect(bus.events).toEqual({});
 		});
 	});
 
 	describe('#setup', () => {
-		it('should resolve with "will be implemented" message.', () => {
-			expect(bus.setup()).resolves.toBe('will be implemented');
+		it('should resolve with true.', () => {
+			expect(bus.setup()).resolves.toBe(true);
 		});
 	});
 
@@ -90,13 +96,12 @@ describe('Bus', () => {
 		it.todo('should throw error if action was not registered.');
 	});
 
-	describe('#emit', () => {
+	describe('#publish', () => {
 		it('should throw Error when unregistered event name was provided.', () => {
-			expect(() => bus.emit('unregisteredEvent')).toThrow();
+			expect(() => bus.publish('unregisteredEvent')).toThrow();
 		});
 
 		it("should call eventemitter2 library's emit method", async () => {
-			// Arrange
 			// Arrange
 			const moduleAlias = 'alias';
 			const events = ['registeredEvent'];
@@ -106,7 +111,7 @@ describe('Bus', () => {
 			await bus.registerChannel(moduleAlias, events, []);
 
 			// Act
-			bus.emit(eventName, eventData);
+			bus.publish(eventName, eventData);
 
 			// Assert
 			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(

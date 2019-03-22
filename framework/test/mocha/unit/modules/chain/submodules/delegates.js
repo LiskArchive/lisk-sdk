@@ -103,7 +103,9 @@ describe('delegates', () => {
 					true
 				);
 			} catch (err) {
-				expect(err).to.equal('Invalid password and public key combination');
+				expect(err.message).to.equal(
+					'Invalid password and public key combination'
+				);
 			}
 		});
 
@@ -118,7 +120,7 @@ describe('delegates', () => {
 					true
 				);
 			} catch (err) {
-				expect(err).to.equal(
+				expect(err.message).to.equal(
 					'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
 				);
 			}
@@ -132,7 +134,7 @@ describe('delegates', () => {
 					true
 				);
 			} catch (err) {
-				expect(err).to.equal(
+				expect(err.message).to.equal(
 					'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
 				);
 			}

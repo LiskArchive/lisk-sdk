@@ -29,11 +29,6 @@ class ChildProcessChannel extends BaseChannel {
 	}
 
 	async registerToBus(socketsPath) {
-		this.rpcSocketPath = `${socketsPath.root}/${this.moduleAlias}_rpc.sock`;
-
-		this.pubSocket = axon.socket('pub-emitter');
-		this.pubSocket.connect(socketsPath.sub);
-
 		this.subSocket = axon.socket('sub-emitter');
 		this.subSocket.connect(socketsPath.pub);
 
@@ -41,21 +36,30 @@ class ChildProcessChannel extends BaseChannel {
 		this.busRpcSocket.connect(socketsPath.rpc);
 		this.busRpcClient = new RPCClient(this.busRpcSocket);
 
-		this.rpcSocket = axon.socket('rep');
-		this.rpcServer = new RPCServer(this.rpcSocket);
+		// Channel Publish Socket is only required if the module has events
+		if (this.eventsList.length > 0) {
+			this.pubSocket = axon.socket('pub-emitter');
+			this.pubSocket.connect(socketsPath.sub);
+		}
 
-		this.rpcServer.expose('invoke', (action, cb) => {
-			this.invoke(action)
-				.then(data => cb(null, data))
-				.catch(error => cb(error));
-		});
+		// Channel RPC Server is only required if the module has actions
+		if (this.actionsList.length > 0) {
+			this.rpcSocketPath = `${socketsPath.root}/${this.moduleAlias}_rpc.sock`;
 
-		this.rpcSocket.bind(this.rpcSocketPath);
+			this.rpcSocket = axon.socket('rep');
+			this.rpcSocket.bind(this.rpcSocketPath);
+			this.rpcServer = new RPCServer(this.rpcSocket);
+
+			this.rpcServer.expose('invoke', (action, cb) => {
+				this.invoke(action)
+					.then(data => cb(null, data))
+					.catch(error => cb(error));
+			});
+		}
 
 		return Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
-			// Timeout is needed here in case "bind" or "connect" events never arrive
 			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
 		]).finally(() => {
 			this._removeAllListeners();
@@ -97,7 +101,10 @@ class ChildProcessChannel extends BaseChannel {
 		}
 
 		this.localBus.emit(event.key(), event.serialize());
-		this.pubSocket.emit(event.key(), event.serialize());
+
+		if (this.pubSocket) {
+			this.pubSocket.emit(event.key(), event.serialize());
+		}
 	}
 
 	async invoke(actionName, params) {
@@ -142,44 +149,61 @@ class ChildProcessChannel extends BaseChannel {
 	 * @private
 	 */
 	async _resolveWhenAllSocketsBound() {
-		return Promise.all([
-			new Promise(resolve => {
-				/*
-				Here, the reason of calling .sock.once instead of pubSocket.once
-				is that pubSocket interface by Axon doesn't expose the once method.
-				However the actual socket does, by inheriting it from EventEmitter
-				prototype
-				 */
-				this.pubSocket.sock.once('connect', () => {
-					resolve();
-				});
-			}),
-			new Promise(resolve => {
-				this.subSocket.sock.once('connect', () => {
-					resolve();
-				});
-			}),
-			new Promise(resolve => {
-				this.rpcSocket.once('bind', () => {
-					resolve();
-				});
-			}),
-			new Promise((resolve, reject) => {
-				this.busRpcSocket.once('connect', () => {
-					this.busRpcClient.call(
-						'registerChannel',
-						this.moduleAlias,
-						this.eventsList.map(event => event.name),
-						this.actionsList.map(action => action.name),
-						{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
-						(err, result) => {
-							if (err) reject(err);
-							resolve(result);
-						}
-					);
-				});
-			}),
-		]);
+		const promises = [];
+
+		if (this.pubSocket) {
+			promises.push(
+				new Promise(resolve => {
+					this.pubSocket.sock.once('connect', () => {
+						resolve();
+					});
+				})
+			);
+		}
+
+		if (this.subSocket) {
+			promises.push(
+				new Promise(resolve => {
+					this.subSocket.sock.once('connect', () => {
+						resolve();
+					});
+				})
+			);
+		}
+
+		if (this.rpcSocket) {
+			promises.push(
+				new Promise(resolve => {
+					this.rpcSocket.once('bind', () => {
+						resolve();
+					});
+				})
+			);
+		}
+
+		if (this.busRpcSocket && this.busRpcClient) {
+			promises.push(
+				new Promise((resolve, reject) => {
+					this.busRpcSocket.once('connect', () => {
+						this.busRpcClient.call(
+							'registerChannel',
+							this.moduleAlias,
+							this.eventsList.map(event => event.name),
+							this.actionsList.map(action => action.name),
+							{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
+							(err, result) => {
+								if (err) {
+									reject(err);
+								}
+								resolve(result);
+							}
+						);
+					});
+				})
+			);
+		}
+
+		return Promise.all(promises);
 	}
 
 	/**
@@ -189,23 +213,39 @@ class ChildProcessChannel extends BaseChannel {
 	 * @private
 	 */
 	async _rejectWhenAnySocketFailsToBind() {
-		return Promise.race([
-			new Promise((_, reject) => {
-				this.pubSocket.sock.once('error', () => {
-					reject();
-				});
-			}),
-			new Promise((_, reject) => {
-				this.subSocket.sock.once('error', () => {
-					reject();
-				});
-			}),
-			new Promise((_, reject) => {
-				this.rpcSocket.once('error', () => {
-					reject();
-				});
-			}),
-		]);
+		const promises = [];
+
+		if (this.pubSocket) {
+			promises.push(
+				new Promise((_, reject) => {
+					this.pubSocket.sock.once('error', () => {
+						reject();
+					});
+				})
+			);
+		}
+
+		if (this.subSocket) {
+			promises.push(
+				new Promise((_, reject) => {
+					this.subSocket.sock.once('error', () => {
+						reject();
+					});
+				})
+			);
+		}
+
+		if (this.rpcSocket) {
+			promises.push(
+				new Promise((_, reject) => {
+					this.rpcSocket.once('error', () => {
+						reject();
+					});
+				})
+			);
+		}
+
+		return Promise.race(promises);
 	}
 
 	/**
@@ -219,21 +259,31 @@ class ChildProcessChannel extends BaseChannel {
 	async _rejectWhenTimeout(timeInMillis) {
 		return new Promise((_, reject) => {
 			setTimeout(async () => {
-				// TODO: Review if logger.error might be useful.
 				reject(new Error('ChildProcessChannel sockets setup timeout'));
 			}, timeInMillis);
 		});
 	}
 
 	_removeAllListeners() {
-		this.subSocket.sock.removeAllListeners('connect');
-		this.subSocket.sock.removeAllListeners('error');
-		this.pubSocket.sock.removeAllListeners('connect');
-		this.pubSocket.sock.removeAllListeners('error');
-		this.busRpcSocket.removeAllListeners('connect');
-		this.busRpcSocket.removeAllListeners('error');
-		this.rpcSocket.removeAllListeners('bind');
-		this.rpcSocket.removeAllListeners('error');
+		if (this.subSocket) {
+			this.subSocket.sock.removeAllListeners('connect');
+			this.subSocket.sock.removeAllListeners('error');
+		}
+
+		if (this.pubSocket) {
+			this.pubSocket.sock.removeAllListeners('connect');
+			this.pubSocket.sock.removeAllListeners('error');
+		}
+
+		if (this.busRpcSocket) {
+			this.busRpcSocket.removeAllListeners('connect');
+			this.busRpcSocket.removeAllListeners('error');
+		}
+
+		if (this.rpcSocket) {
+			this.rpcSocket.removeAllListeners('bind');
+			this.rpcSocket.removeAllListeners('error');
+		}
 	}
 }
 

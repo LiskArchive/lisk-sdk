@@ -23,8 +23,10 @@ class Bus extends EventEmitter2 {
 	 * @param {Object} options - EventEmitter2 native options object
 	 * @see {@link https://github.com/EventEmitter2/EventEmitter2/blob/master/eventemitter2.d.ts|String}
 	 */
-	constructor(options) {
+	constructor(options, logger, config) {
 		super(options);
+		this.logger = logger;
+		this.config = config;
 
 		// Hash map used instead of arrays for performance.
 		this.actions = {};
@@ -38,16 +40,20 @@ class Bus extends EventEmitter2 {
 	 * @async
 	 * @return {Promise.<void>}
 	 */
-	async setup(socketsPath) {
+	async setup() {
+		if (!this.config.ipc.enabled) {
+			return true;
+		}
+
 		this.pubSocket = axon.socket('pub-emitter');
-		this.pubSocket.bind(socketsPath.pub);
+		this.pubSocket.bind(this.config.socketsPath.pub);
 
 		this.subSocket = axon.socket('sub-emitter');
-		this.subSocket.bind(socketsPath.sub);
+		this.subSocket.bind(this.config.socketsPath.sub);
 
 		this.rpcSocket = axon.socket('rep');
 		this.rpcServer = new RPCServer(this.rpcSocket);
-		this.rpcSocket.bind(socketsPath.rpc);
+		this.rpcSocket.bind(this.config.socketsPath.rpc);
 
 		this.rpcServer.expose(
 			'registerChannel',
@@ -67,8 +73,7 @@ class Bus extends EventEmitter2 {
 		return Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
-			// Timeout is needed here in case "bind" events never arrive
-			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME), // TODO: Get value from config constant
+			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
 		]).finally(() => {
 			this._removeAllListeners();
 		});
@@ -112,10 +117,9 @@ class Bus extends EventEmitter2 {
 			this.actions[actionFullName] = true;
 		});
 
-		let channel;
-		if (options.type === 'inMemory') {
-			channel = options.channel;
-		} else {
+		let channel = options.channel;
+
+		if (options.rpcSocketPath) {
 			const rpcSocket = axon.socket('req');
 			rpcSocket.connect(options.rpcSocketPath);
 			channel = new RPCClient(rpcSocket);
@@ -178,17 +182,46 @@ class Bus extends EventEmitter2 {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
 
-		super.emit(eventName, eventValue); // Communicate throw event emitter
-		this.pubSocket.emit(eventName, eventValue); // Communicate throw unix socket
+		// Communicate through event emitter
+		this.emit(eventName, eventValue);
+
+		// Communicate through unix socket
+		if (this.config.ipc.enabled) {
+			this.pubSocket.emit(eventName, eventValue);
+		}
 	}
 
 	subscribe(eventName, cb) {
 		if (!this.getEvents().includes(eventName)) {
-			throw new Error(`Event ${eventName} is not registered to bus.`);
+			this.logger.info(
+				`Event ${eventName} was subscribed but not registered to the bus yet.`
+			);
 		}
 
-		super.on(eventName, cb); // Communicate throw event emitter
-		this.subSocket.on(eventName, cb); // Communicate throw unix socket
+		// Communicate through event emitter
+		this.on(eventName, cb);
+
+		// Communicate through unix socket
+		if (this.config.ipc.enabled) {
+			this.subSocket.on(eventName, cb);
+		}
+	}
+
+	once(eventName, cb) {
+		if (!this.getEvents().includes(eventName)) {
+			this.logger.info(
+				`Event ${eventName} was subscribed but not registered to the bus yet.`
+			);
+		}
+
+		// Communicate through event emitter
+		super.once(eventName, cb);
+
+		// TODO: make it `once` instead of `on`
+		// Communicate through unix socket
+		if (this.config.ipc.enabled) {
+			this.subSocket.on(eventName, cb);
+		}
 	}
 
 	/**

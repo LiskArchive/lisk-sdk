@@ -1,22 +1,12 @@
-const assert = require('assert');
 const fs = require('fs-extra');
+const path = require('path');
+const child_process = require('child_process');
 const psList = require('ps-list');
 const systemDirs = require('./config/dirs');
-const { InMemoryChannel, ChildProcessChannel } = require('./channels');
+const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
-
-const validateModuleSpec = moduleSpec => {
-	assert(moduleSpec.constructor.alias, 'Module alias is required.');
-	assert(moduleSpec.constructor.info.name, 'Module name is required.');
-	assert(moduleSpec.constructor.info.author, 'Module author is required.');
-	assert(moduleSpec.constructor.info.version, 'Module version is required.');
-	assert(moduleSpec.defaults, 'Module default options are required.');
-	assert(moduleSpec.events, 'Module events are required.');
-	assert(moduleSpec.actions, 'Module actions are required.');
-	assert(moduleSpec.load, 'Module load action is required.');
-	assert(moduleSpec.unload, 'Module unload actions is required.');
-};
+const { validateModuleSpec } = require('./helpers/validator');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -38,25 +28,29 @@ class Controller {
 	 * Controller responsible to run the application
 	 *
 	 * @param {string} appLabel - Application label
-	 * @param {Object} componentConfig - Configurations for components
+	 * @param {Object} config - Controller configurations
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
 	 */
-	constructor(appLabel, componentConfig, logger) {
+	constructor(appLabel, config, logger) {
 		this.logger = logger;
 		this.appLabel = appLabel;
 		this.logger.info('Initializing controller');
 
-		this.componentConfig = componentConfig;
+		const dirs = systemDirs(this.appLabel);
+		this.config = {
+			...config,
+			dirs,
+			socketsPath: {
+				root: `unix://${dirs.sockets}`,
+				pub: `unix://${dirs.sockets}/lisk_pub.sock`,
+				sub: `unix://${dirs.sockets}/lisk_sub.sock`,
+				rpc: `unix://${dirs.sockets}/lisk_rpc.sock`,
+			},
+		};
+
 		this.modules = {};
 		this.channel = null; // Channel for controller
 		this.bus = null;
-		this.config = { dirs: systemDirs(this.appLabel) };
-		this.socketsPath = {
-			root: `unix://${this.config.dirs.sockets}`,
-			pub: `unix://${this.config.dirs.sockets}/bus_pub.sock`,
-			sub: `unix://${this.config.dirs.sockets}/bus_sub.sock`,
-			rpc: `unix://${this.config.dirs.sockets}/bus_rpc.sock`,
-		};
 	}
 
 	/**
@@ -117,19 +111,23 @@ class Controller {
 	 * @async
 	 */
 	async _setupBus() {
-		this.bus = new Bus({
-			wildcard: true,
-			delimiter: ':',
-			maxListeners: 1000,
-		});
+		this.bus = new Bus(
+			{
+				wildcard: true,
+				delimiter: ':',
+				maxListeners: 1000,
+			},
+			this.logger,
+			this.config
+		);
 
-		await this.bus.setup(this.socketsPath);
+		await this.bus.setup();
 
 		this.channel = new InMemoryChannel(
 			'lisk',
 			['ready'],
 			{
-				getComponentConfig: action => this.componentConfig[action.params],
+				getComponentConfig: action => this.config.components[action.params],
 			},
 			{ skipInternalEvents: true }
 		);
@@ -152,9 +150,18 @@ class Controller {
 		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of Object.keys(modules)) {
 			const { klass, options } = modules[alias];
-			if (options.useSocketChannel) {
-				// eslint-disable-next-line no-await-in-loop
-				await this._loadModuleWithSocketChannel(alias, klass, options);
+
+			if (options.loadAsChildProcess) {
+				if (this.config.ipc.enabled) {
+					// eslint-disable-next-line no-await-in-loop
+					await this._loadChildProcessModule(alias, klass, options);
+				} else {
+					this.logger.warn(
+						`IPC is disabled. ${alias} will be loaded in-memory.`
+					);
+					// eslint-disable-next-line no-await-in-loop
+					await this._loadInMemoryModule(alias, klass, options);
+				}
 			} else {
 				// eslint-disable-next-line no-await-in-loop
 				await this._loadInMemoryModule(alias, klass, options);
@@ -170,7 +177,7 @@ class Controller {
 		const { name, version } = module.constructor.info;
 
 		this.logger.info(
-			`Loading module with alias: ${moduleAlias}(${name}:${version})`
+			`Loading module ${name}:${version} with alias "${moduleAlias}"`
 		);
 
 		const channel = new InMemoryChannel(
@@ -183,16 +190,19 @@ class Controller {
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
 		channel.publish(`${moduleAlias}:loading:started`);
+
 		await module.load(channel);
+
 		channel.publish(`${moduleAlias}:loading:finished`);
 
 		this.modules[moduleAlias] = module;
+
 		this.logger.info(
 			`Module ready with alias: ${moduleAlias}(${name}:${version})`
 		);
 	}
 
-	async _loadModuleWithSocketChannel(alias, Klass, options) {
+	async _loadChildProcessModule(alias, Klass, options) {
 		const module = new Klass(options);
 		validateModuleSpec(module);
 
@@ -200,26 +210,45 @@ class Controller {
 		const { name, version } = module.constructor.info;
 
 		this.logger.info(
-			`Loading module with alias: ${moduleAlias}(${name}:${version})`
+			`Loading module ${name}:${version} with alias "${moduleAlias}" as child process`
 		);
 
-		const channel = new ChildProcessChannel(
-			moduleAlias,
-			module.events,
-			module.actions
+		const modulePath = path.resolve(
+			__dirname,
+			'../modules',
+			alias.replace(/([A-Z])/g, $1 => `_${$1.toLowerCase()}`)
 		);
 
-		await channel.registerToBus(this.socketsPath);
+		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		channel.publish(`${moduleAlias}:registeredToBus`);
-		channel.publish(`${moduleAlias}:loading:started`);
-		await module.load(channel);
-		channel.publish(`${moduleAlias}:loading:finished`);
+		const parameters = [
+			modulePath,
+			JSON.stringify({ config: this.config, moduleOptions: options }),
+		];
 
-		this.modules[moduleAlias] = module;
-		this.logger.info(
-			`Module ready with alias: ${moduleAlias}(${name}:${version})`
-		);
+		const child = child_process.fork(program, parameters);
+
+		child.on('exit', (code, signal) => {
+			this.logger.error(
+				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
+			);
+			// TODO: Reload child instead of exiting the parent process
+			process.exit(1);
+		});
+
+		return Promise.race([
+			new Promise(resolve => {
+				this.channel.once(`${moduleAlias}:loading:finished`, () => {
+					this.logger.info(
+						`Module ready with alias: ${moduleAlias}(${name}:${version})`
+					);
+					resolve();
+				});
+			}),
+			new Promise((_, reject) => {
+				setTimeout(reject, 2000);
+			}),
+		]);
 	}
 
 	async unloadModules(modules = Object.keys(this.modules)) {
