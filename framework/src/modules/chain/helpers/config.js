@@ -89,11 +89,11 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 	const genesisBlock = loadJSONFile(`config/${network}/genesis_block.json`);
 
-	const defaultConstants = require('../../../../../config/default/constants');
-	const networkConstants = require(`../../../../../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
+	const defaultConstants = require(`${rootPath}/config/default/constants`); // eslint-disable-line import/no-dynamic-require
+	const networkConstants = require(`${rootPath}/config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultExceptions = require('../../../../../config/default/exceptions');
-	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
+	const defaultExceptions = require(`${rootPath}/config/default/exceptions`); // eslint-disable-line import/no-dynamic-require
+	const networkExceptions = require(`${rootPath}/config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
 
 	const defaultConfig = loadJSONFile('config/default/config.json');
 	const networkConfig = loadJSONFile(`config/${network}/config.json`);
@@ -217,6 +217,8 @@ function loadJSONFile(filePath) {
 		filePath = path.join(rootPath, filePath);
 		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 	} catch (err) {
+		console.error(`Failed to load file: ${filePath}`);
+		console.error(err.message);
 		return process.exit(1);
 	}
 }
