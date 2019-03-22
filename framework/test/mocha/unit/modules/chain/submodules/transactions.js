@@ -336,7 +336,7 @@ describe('transactions', () => {
 				});
 			});
 		});
-
+		// eslint-disable-next-line
 		describe.skip('getTransaction', () => {
 			function getTransactionsById(id, done) {
 				transactionsModule.getTransactions({ id }, done);
@@ -624,7 +624,7 @@ describe('transactions', () => {
 			});
 		});
 	});
-
+	// eslint-disable-next-line
 	it.skip('should update the transaction count in cache if not already persisted', done => {
 		sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
 		sinonSandbox.spy(cache, 'setJsonForKey');
@@ -651,7 +651,7 @@ describe('transactions', () => {
 			done();
 		});
 	});
-
+	// eslint-disable-next-line
 	it.skip('should skip updating transaction count cache if already persisted', done => {
 		sinonSandbox.stub(cache, 'getJsonForKey').resolves({
 			confirmed: 999,
