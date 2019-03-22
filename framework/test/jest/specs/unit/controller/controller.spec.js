@@ -14,6 +14,10 @@ describe('Controller Class', () => {
 		info: jest.fn(),
 		error: jest.fn(),
 	};
+	const config = {
+		components: '#CONFIG',
+		initialState: '#CONFIG',
+	};
 	const rootDir = process.cwd();
 	const systemDirs = {
 		root: rootDir,
@@ -21,8 +25,8 @@ describe('Controller Class', () => {
 		sockets: `${rootDir}/tmp/${appLabel}/sockets`,
 		pids: `${rootDir}/tmp/${appLabel}/pids`,
 	};
-	const config = {};
 	const configController = {
+		...config,
 		dirs: systemDirs,
 		socketsPath: {
 			root: `unix://${systemDirs.sockets}`,
