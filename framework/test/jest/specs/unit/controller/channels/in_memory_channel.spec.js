@@ -14,10 +14,10 @@ describe('InMemoryChannel Channel', () => {
 			action2: jest.fn(),
 			action3: jest.fn(),
 		},
-		bus: new Bus(),
 		options: {},
 	};
 	let inMemoryChannel = null;
+	let bus = new Bus();
 
 	beforeEach(() => {
 		// Act
@@ -25,7 +25,6 @@ describe('InMemoryChannel Channel', () => {
 			params.moduleAlias,
 			params.events,
 			params.actions,
-			params.bus,
 			params.options
 		);
 	});
@@ -48,7 +47,7 @@ describe('InMemoryChannel Channel', () => {
 			 */
 			jest.isolateModules(() => {
 				// no need to restore mock since, `restoreMocks` option was set to true in unit test config file.
-				jest.doMock('../../../../../../src/controller/channels/base');
+				jest.doMock('../../../../../../src/controller/channels/base_channel');
 				IsolatedInMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
 				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base_channel');
 			});
@@ -58,7 +57,6 @@ describe('InMemoryChannel Channel', () => {
 				params.moduleAlias,
 				params.events,
 				params.actions,
-				params.bus,
 				params.options
 			);
 

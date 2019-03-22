@@ -151,21 +151,26 @@ class ChildProcessChannel extends BaseChannel {
 				prototype
 				 */
 				this.pubSocket.sock.once('connect', () => {
+					console.log(1);
 					resolve();
 				});
 			}),
 			new Promise(resolve => {
 				this.subSocket.sock.once('connect', () => {
+					console.log(2);
 					resolve();
 				});
 			}),
 			new Promise(resolve => {
 				this.rpcSocket.once('bind', () => {
+					console.log(3);
 					resolve();
 				});
 			}),
 			new Promise((resolve, reject) => {
+				console.log(4);
 				this.busRpcSocket.once('connect', () => {
+					console.log(5);
 					this.busRpcClient.call(
 						'registerChannel',
 						this.moduleAlias,
@@ -173,6 +178,7 @@ class ChildProcessChannel extends BaseChannel {
 						this.actionsList.map(action => action.name),
 						{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
 						(err, result) => {
+							console.log(6);
 							if (err) reject(err);
 							resolve(result);
 						}
@@ -191,17 +197,23 @@ class ChildProcessChannel extends BaseChannel {
 	async _rejectWhenAnySocketFailsToBind() {
 		return Promise.race([
 			new Promise((_, reject) => {
+				console.log('error');
 				this.pubSocket.sock.once('error', () => {
+					console.log('reject');
 					reject();
 				});
 			}),
 			new Promise((_, reject) => {
+				console.log('error1');
 				this.subSocket.sock.once('error', () => {
+					console.log('inside1');
 					reject();
 				});
 			}),
 			new Promise((_, reject) => {
+				console.log('error2');
 				this.rpcSocket.once('error', () => {
+					console.log('inside2');
 					reject();
 				});
 			}),
