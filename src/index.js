@@ -41,8 +41,14 @@ try {
 	app
 		.run()
 		.then(() => app.logger.log('App started...'))
-		.catch(err => {
-			app.logger.error('App stopped with error', err);
+		.catch(error => {
+			if (error instanceof Error) {
+				app.logger.error('App stopped with error', error.message);
+				app.logger.debug(error.stack);
+			} else {
+				app.logger.error('App stopped with error', error);
+			}
+
 			process.exit();
 		});
 } catch (e) {
