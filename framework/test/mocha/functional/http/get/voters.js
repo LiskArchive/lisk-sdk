@@ -411,6 +411,7 @@ describe('GET /api/voters', () => {
 								expect(res.body.data.username).to.equal(
 									validVotedDelegate.delegateName
 								);
+
 								expect(
 									_.map(res.body.data.voters, 'balance')
 										.sort((a, b) => new Bignum(a).minus(b).toNumber())
