@@ -15,6 +15,8 @@
  */
 
 require('jest-extended');
-require('jest-chain');
+
+// jest chain breaks promise handling.
+// require('jest-chain');
 
 process.env.NODE_ENV = 'test';
