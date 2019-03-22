@@ -47,6 +47,7 @@ class ChildProcessChannel extends BaseChannel {
 			this.rpcSocketPath = `${socketsPath.root}/${this.moduleAlias}_rpc.sock`;
 
 			this.rpcSocket = axon.socket('rep');
+			this.rpcSocket.bind(this.rpcSocketPath);
 			this.rpcServer = new RPCServer(this.rpcSocket);
 
 			this.rpcServer.expose('invoke', (action, cb) => {
@@ -54,8 +55,6 @@ class ChildProcessChannel extends BaseChannel {
 					.then(data => cb(null, data))
 					.catch(error => cb(error));
 			});
-
-			this.rpcSocket.bind(this.rpcSocketPath);
 		}
 
 		return Promise.race([
@@ -193,7 +192,9 @@ class ChildProcessChannel extends BaseChannel {
 							this.actionsList.map(action => action.name),
 							{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
 							(err, result) => {
-								if (err) reject(err);
+								if (err) {
+									reject(err);
+								}
 								resolve(result);
 							}
 						);

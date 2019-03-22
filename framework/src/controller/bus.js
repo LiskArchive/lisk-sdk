@@ -41,42 +41,42 @@ class Bus extends EventEmitter2 {
 	 * @return {Promise.<void>}
 	 */
 	async setup() {
-		if (this.config.ipc.enabled) {
-			this.pubSocket = axon.socket('pub-emitter');
-			this.pubSocket.bind(this.config.socketsPath.pub);
-
-			this.subSocket = axon.socket('sub-emitter');
-			this.subSocket.bind(this.config.socketsPath.sub);
-
-			this.rpcSocket = axon.socket('rep');
-			this.rpcServer = new RPCServer(this.rpcSocket);
-			this.rpcSocket.bind(this.config.socketsPath.rpc);
-
-			this.rpcServer.expose(
-				'registerChannel',
-				(moduleAlias, events, actions, options, cb) => {
-					this.registerChannel(moduleAlias, events, actions, options)
-						.then(() => cb(null))
-						.catch(error => cb(error));
-				}
-			);
-
-			this.rpcServer.expose('invoke', (action, cb) => {
-				this.invoke(action)
-					.then(data => cb(null, data))
-					.catch(error => cb(error));
-			});
-
-			return Promise.race([
-				this._resolveWhenAllSocketsBound(),
-				this._rejectWhenAnySocketFailsToBind(),
-				this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
-			]).finally(() => {
-				this._removeAllListeners();
-			});
+		if (!this.config.ipc.enabled) {
+			return true;
 		}
 
-		return true;
+		this.pubSocket = axon.socket('pub-emitter');
+		this.pubSocket.bind(this.config.socketsPath.pub);
+
+		this.subSocket = axon.socket('sub-emitter');
+		this.subSocket.bind(this.config.socketsPath.sub);
+
+		this.rpcSocket = axon.socket('rep');
+		this.rpcServer = new RPCServer(this.rpcSocket);
+		this.rpcSocket.bind(this.config.socketsPath.rpc);
+
+		this.rpcServer.expose(
+			'registerChannel',
+			(moduleAlias, events, actions, options, cb) => {
+				this.registerChannel(moduleAlias, events, actions, options)
+					.then(() => cb(null))
+					.catch(error => cb(error));
+			}
+		);
+
+		this.rpcServer.expose('invoke', (action, cb) => {
+			this.invoke(action)
+				.then(data => cb(null, data))
+				.catch(error => cb(error));
+		});
+
+		return Promise.race([
+			this._resolveWhenAllSocketsBound(),
+			this._rejectWhenAnySocketFailsToBind(),
+			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
+		]).finally(() => {
+			this._removeAllListeners();
+		});
 	}
 
 	/**
@@ -117,13 +117,12 @@ class Bus extends EventEmitter2 {
 			this.actions[actionFullName] = true;
 		});
 
-		let channel;
+		let channel = options.channel;
+
 		if (options.rpcSocketPath) {
 			const rpcSocket = axon.socket('req');
 			rpcSocket.connect(options.rpcSocketPath);
 			channel = new RPCClient(rpcSocket);
-		} else {
-			channel = options.channel;
 		}
 
 		this.channels[moduleAlias] = {
@@ -184,7 +183,7 @@ class Bus extends EventEmitter2 {
 		}
 
 		// Communicate through event emitter
-		super.emit(eventName, eventValue);
+		this.emit(eventName, eventValue);
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
@@ -200,7 +199,7 @@ class Bus extends EventEmitter2 {
 		}
 
 		// Communicate through event emitter
-		super.on(eventName, cb);
+		this.on(eventName, cb);
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {

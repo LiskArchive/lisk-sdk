@@ -2,9 +2,9 @@
 const modulePath = process.argv[2];
 const { moduleOptions, config } = JSON.parse(process.argv[3]);
 
+const { ChildProcessChannel } = require('./channels');
 // eslint-disable-next-line import/no-dynamic-require
 const Klass = require(modulePath);
-const { ChildProcessChannel } = require('./channels');
 
 const loadModule = async () => {
 	const module = new Klass(moduleOptions);
