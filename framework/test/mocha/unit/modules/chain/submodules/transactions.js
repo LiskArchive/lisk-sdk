@@ -405,7 +405,7 @@ describe('transactions', () => {
 			});
 		});
 
-		describe('getTransaction', () => {
+		describe.skip('getTransaction', () => {
 			function getTransactionsById(id, done) {
 				transactionsModule.getTransactions({ id }, done);
 			}
@@ -703,7 +703,7 @@ describe('transactions', () => {
 		});
 	});
 
-	it('should update the transaction count in cache if not already persisted', done => {
+	it.skip('should update the transaction count in cache if not already persisted', done => {
 		sinonSandbox.stub(cache, 'getJsonForKey').resolves(null);
 		sinonSandbox.spy(cache, 'setJsonForKey');
 
@@ -731,7 +731,7 @@ describe('transactions', () => {
 		});
 	});
 
-	it('should skip updating transaction count cache if already persisted', done => {
+	it.skip('should skip updating transaction count cache if already persisted', done => {
 		sinonSandbox.stub(cache, 'getJsonForKey').resolves({
 			confirmed: 999,
 		});
