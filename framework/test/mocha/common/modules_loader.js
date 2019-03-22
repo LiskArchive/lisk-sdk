@@ -24,7 +24,6 @@ const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Transaction = require('../../../src/modules/chain/logic/transaction');
 const Account = require('../../../src/modules/chain/logic/account');
-const ApplicationState = require('../../../src/controller/application_state');
 
 const modulesLoader = new function() {
 	this.storage = null;
@@ -34,21 +33,7 @@ const modulesLoader = new function() {
 		filename: __testContext.config.logFileName,
 	});
 
-	const applicationState = new ApplicationState(
-		{
-			nethash: __testContext.nethash,
-			version: __testContext.version,
-			wsPort: __testContext.wsPort,
-			httpPort: __testContext.httpPort,
-			minVersion: __testContext.minVersion,
-			protocolVersion: __testContext.protocolVersion,
-			nonce: __testContext.nonce,
-		},
-		this.logger
-	);
-
 	this.scope = {
-		applicationState,
 		lastCommit: '',
 		build: '',
 		config: __testContext.config,
@@ -87,7 +72,26 @@ const modulesLoader = new function() {
 				this.logger.warn('Balance queue', current);
 			},
 		}),
+		channel: {
+			invoke: sinonSandbox.stub(),
+			publish: sinonSandbox.stub(),
+			suscribe: sinonSandbox.stub(),
+		},
 	};
+
+	const state = {
+		nethash: __testContext.nethash,
+		version: __testContext.version,
+		wsPort: __testContext.wsPort,
+		httpPort: __testContext.httpPort,
+		minVersion: __testContext.minVersion,
+		protocolVersion: __testContext.protocolVersion,
+		nonce: __testContext.nonce,
+	};
+
+	this.scope.channel.invoke
+		.withArgs('lisk:getApplicationState')
+		.resolves(state);
 
 	/**
 	 * Initializes Logic class with params
@@ -162,12 +166,7 @@ const modulesLoader = new function() {
 				);
 				break;
 			case 'Peers':
-				new Logic(
-					scope.components.logger,
-					scope.config,
-					scope.applicationState,
-					cb
-				);
+				new Logic(scope.components.logger, scope.config, scope.channel, cb);
 				break;
 			default:
 				console.info('no Logic case initLogic');
