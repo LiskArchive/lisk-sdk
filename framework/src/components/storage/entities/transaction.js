@@ -288,6 +288,7 @@ class Transaction extends BaseEntity {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	count(filters, _options = {}, tx) {
+		this.validateFilters(filters);
 		filters = Transaction._sanitizeFilters(filters);
 
 		const mergedFilters = this.mergeFilters(filters);
