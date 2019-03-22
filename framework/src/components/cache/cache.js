@@ -41,20 +41,25 @@ class Cache {
 		// TODO: implement retry_strategy
 		// TOFIX: app crashes with FTL error when launchin app with CACHE_ENABLE=true
 		// but cache server is not available.
-		this.client = redis.createClient(this.options);
-		this.client.on('error', this._onConnectionError.bind(this));
-		this.client.once('ready', this._onReady.bind(this));
-	}
-
-	_onConnectionError(err) {
-		// Called if the "error" event occured before "ready" event
-		this.logger.warn('App was unable to connect to Cache server', err);
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.client = redis.createClient(self.options);
+			self.client.once('error', err => {
+				// Called if the "error" event occured before "ready" event
+				self.logger.warn('App was unable to connect to Cache server', err);
+				return reject(err);
+			});
+			self.client.once('ready', () => {
+				self._onReady();
+				return resolve();
+			});
+		});
 	}
 
 	_onReady() {
 		// Called after "ready" Cache event
 		this.logger.info('App connected to Cache server');
-		this.client.removeListener('error', this._onConnectionError);
+
 		this.getAsync = promisify(this.client.get).bind(this.client);
 		this.setAsync = promisify(this.client.set).bind(this.client);
 		this.delAsync = promisify(this.client.del).bind(this.client);
@@ -197,7 +202,7 @@ class Cache {
 	async flushDb() {
 		this.logger.debug('Cache - Flush database');
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 		return this.flushdbAsync();
 	}
