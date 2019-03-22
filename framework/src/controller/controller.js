@@ -177,7 +177,7 @@ class Controller {
 		const { name, version } = module.constructor.info;
 
 		this.logger.info(
-			`Loading module with alias: ${moduleAlias}(${name}:${version})`
+			`Loading module ${name}:${version} with alias "${moduleAlias}"`
 		);
 
 		const channel = new InMemoryChannel(
@@ -210,7 +210,7 @@ class Controller {
 		const { name, version } = module.constructor.info;
 
 		this.logger.info(
-			`Loading module with alias: ${moduleAlias}(${name}:${version})`
+			`Loading module ${name}:${version} with alias "${moduleAlias}" as child process`
 		);
 
 		const modulePath = path.resolve(
