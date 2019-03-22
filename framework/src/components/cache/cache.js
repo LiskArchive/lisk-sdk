@@ -44,7 +44,7 @@ class Cache {
 		const self = this;
 		return new Promise((resolve, reject) => {
 			self.client = redis.createClient(self.options);
-			self.client.on('error', err => {
+			self.client.once('error', err => {
 				// Called if the "error" event occured before "ready" event
 				self.logger.warn('App was unable to connect to Cache server', err);
 				return reject(err);
@@ -59,6 +59,7 @@ class Cache {
 	_onReady() {
 		// Called after "ready" Cache event
 		this.logger.info('App connected to Cache server');
+
 		this.getAsync = promisify(this.client.get).bind(this.client);
 		this.setAsync = promisify(this.client.set).bind(this.client);
 		this.delAsync = promisify(this.client.del).bind(this.client);
@@ -201,7 +202,7 @@ class Cache {
 	async flushDb() {
 		this.logger.debug('Cache - Flush database');
 		if (!this.isReady()) {
-			return new Error(errorCacheDisabled);
+			throw new Error(errorCacheDisabled);
 		}
 		return this.flushdbAsync();
 	}
