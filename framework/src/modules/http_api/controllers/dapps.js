@@ -15,6 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
+const swaggerHelper = require('../helpers/swagger');
 
 const { TRANSACTION_TYPES } = global.constants;
 
@@ -42,6 +43,12 @@ function DappsController(scope) {
  * @todo Add description for the function and the params
  */
 DappsController.getDapps = async function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let options = {

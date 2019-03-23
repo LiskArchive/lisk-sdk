@@ -67,6 +67,58 @@ describe('GET /delegates', () => {
 				});
 		});
 
+		describe('with wrong input', () => {
+			it('using invalid field name should fail', async () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							whatever: accountFixtures.genesis.address,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'whatever');
+					});
+			});
+
+			it('using completely invalid fields should fail', async () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							publicKey: 'invalid',
+							limit: 'invalid',
+							offset: 'invalid',
+							sort: 'invalid',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+						expectSwaggerParamError(res, 'sort');
+					});
+			});
+
+			it('using partially invalid fields should fail', async () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							publicKey: validDelegate.publicKey,
+							limit: 'invalid',
+							offset: 'invalid',
+							sort: 'invalid',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+						expectSwaggerParamError(res, 'sort');
+					});
+			});
+		});
+
 		describe('publicKey', () => {
 			it('using no publicKey should return an empty array', async () => {
 				return delegatesEndpoint

@@ -214,19 +214,6 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using invalid condition should fail', async () => {
-				return transactionsEndpoint
-					.makeRequest(
-						{
-							'whatever:senderId': accountFixtures.genesis.address,
-						},
-						400
-					)
-					.then(res => {
-						expectSwaggerParamError(res, 'whatever:senderId');
-					});
-			});
-
 			it('using invalid field name (x:z) should fail', async () => {
 				return transactionsEndpoint
 					.makeRequest(

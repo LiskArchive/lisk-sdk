@@ -56,6 +56,7 @@ describe('BaseEntity', () => {
 		defaultOptions = {
 			limit: 10,
 			offset: 0,
+			sort: false,
 			extended: false,
 		};
 	});
