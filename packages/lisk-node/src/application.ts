@@ -50,7 +50,6 @@ export class App {
 				version: '1.4.1',
 				os: os.platform(),
 				height: 1,
-				state: 1,
 				httpPort: 8000,
 				broadhash:
 					'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',

@@ -1,5 +1,5 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { Account } from './account';
 import { BUCKET_ADDRESS_ACCOUNT, BUCKET_BLOCK_HEIGHT_REWARDS } from './repo';
 import { StateStore } from './state_store';

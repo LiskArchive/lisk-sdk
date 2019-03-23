@@ -1,4 +1,4 @@
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import * as crypto from 'crypto';
 import { Transaction, TransactionJSON, TransactionMap } from './types';
 

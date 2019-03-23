@@ -21,7 +21,7 @@ import {
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
 import { TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import {
 	validateAddress,
 	validateTransferAmount,

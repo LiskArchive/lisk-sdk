@@ -1,5 +1,5 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { debug } from 'debug';
 import { Account } from './account';
 import {

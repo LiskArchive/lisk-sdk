@@ -6,7 +6,7 @@ import {
 	hexToBuffer,
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { debug } from 'debug';
 import { calculateRewawrd, RewardsOption } from './reward';
 import { blockSchema } from './schema';

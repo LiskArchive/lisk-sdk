@@ -183,16 +183,6 @@ export class VoteTransaction extends BaseTransaction {
 			);
 		}
 
-		if (!this.recipientPublicKey) {
-			errors.push(
-				new TransactionError(
-					'RecipientPublicKey must be set for vote transaction',
-					this.id,
-					'.recipientPublicKey',
-				),
-			);
-		}
-
 		return errors;
 	}
 

@@ -1,4 +1,4 @@
-import * as BigNum from 'browserify-bignum';
+import * as BigNum from '@liskhq/bignum';
 import { StateStore } from './state_store';
 
 export interface BlockJSON {
