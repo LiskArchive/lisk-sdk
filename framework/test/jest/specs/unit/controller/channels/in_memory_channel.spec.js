@@ -17,7 +17,7 @@ describe('InMemoryChannel Channel', () => {
 		options: {},
 	};
 	let inMemoryChannel = null;
-	let bus = new Bus();
+	const bus = new Bus();
 
 	beforeEach(() => {
 		// Act
@@ -70,24 +70,17 @@ describe('InMemoryChannel Channel', () => {
 		});
 	});
 
-	describe('#constructor', () => {
-		it('should create the instance with given arguments.', () => {
-			// Assert
-			expect(inMemoryChannel.bus).toBe(params.bus);
-		});
-	});
-
 	describe('#registerToBus', () => {
 		it('should call `bus.registerChannel` method with given arguments', async () => {
 			// Act
-			await inMemoryChannel.registerToBus();
+			await inMemoryChannel.registerToBus(bus);
 
 			// Assert
 			expect(inMemoryChannel.bus.registerChannel).toHaveBeenCalledWith(
 				inMemoryChannel.moduleAlias,
 				inMemoryChannel.eventsList.map(event => event.name),
 				inMemoryChannel.actionsList.map(action => action.name),
-				{}
+				{ type: 'inMemory', channel: inMemoryChannel }
 			);
 		});
 	});
