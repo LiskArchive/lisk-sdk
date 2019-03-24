@@ -22,38 +22,30 @@ import BaseCommand from '../../base';
 import { NETWORK, RELEASE_URL } from '../../utils/constants';
 import { downloadLiskAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
-import { liskTar } from '../../utils/node/commons';
-import { defaultBackupPath, getConfig } from '../../utils/node/config';
+import {
+	backupLisk,
+	getVersionToUpgrade,
+	liskTar,
+	upgradeLisk,
+} from '../../utils/node/commons';
+import { getConfig } from '../../utils/node/config';
 import {
 	describeApplication,
 	Pm2Env,
 	registerApplication,
 	unRegisterApplication,
 } from '../../utils/node/pm2';
-import { getLatestVersion } from '../../utils/node/release';
-import { exec, ExecResult } from '../../utils/worker-process';
 import StartCommand from './start';
 import StopCommand from './stop';
 
 interface Flags {
+	readonly 'lisk-version': string;
 	readonly name: string;
-	readonly version: string;
 }
 
 interface PackageJson {
 	readonly version: string;
 }
-
-const getVersionToUpgrade = async (version: string, network: string) => {
-	if (!version) {
-		const url = `${RELEASE_URL}/${network}/latest.txt`;
-		const latestVersion = await getLatestVersion(url);
-
-		return latestVersion;
-	}
-
-	return version;
-};
 
 const validateVersion = async (
 	network: string,
@@ -85,38 +77,6 @@ const validateVersion = async (
 	}
 };
 
-const backupLisk = async (installDir: string): Promise<void> => {
-	fsExtra.emptyDirSync(defaultBackupPath);
-	const { stderr }: ExecResult = await exec(
-		`mv -f ${installDir} ${defaultBackupPath}`,
-	);
-	if (stderr) {
-		throw new Error(stderr);
-	}
-};
-
-const upgradeLisk = async (
-	installDir: string,
-	name: string,
-	network: string,
-	currentVersion: string,
-): Promise<void> => {
-	const LISK_BACKUP = `${defaultBackupPath}/${name}`;
-	const LISK_OLD_PG = `${LISK_BACKUP}/pgsql/data`;
-	const LISK_PG = `${installDir}/pgsql/data/`;
-	const MODE = 0o700;
-
-	fsExtra.mkdirSync(LISK_PG, MODE);
-
-	const { stderr }: ExecResult = await exec(
-		`cp -rf ${LISK_OLD_PG}/ ${LISK_PG}/;
-    ${installDir}/bin/node ${installDir}/scripts/update_config.js --network ${network} --output ${installDir}/config.json ${LISK_BACKUP}/config.json ${currentVersion}`,
-	);
-	if (stderr) {
-		throw new Error(stderr);
-	}
-};
-
 export default class UpgradeCommand extends BaseCommand {
 	static description = 'Upgrade locally installed Lisk Core instance to specified or latest version';
 
@@ -133,20 +93,23 @@ export default class UpgradeCommand extends BaseCommand {
 			...commonFlags.name,
 			default: NETWORK.MAINNET,
 		}),
-		version: flagParser.string({
+		'lisk-version': flagParser.string({
 			...commonFlags.version,
 		}),
 	};
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(UpgradeCommand);
-		const { name, version } = flags as Flags;
+		const { name, 'lisk-version': liskVersion } = flags as Flags;
 		const { pm2_env } = await describeApplication(name);
 		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
 		const { version: currentVersion } = getConfig(
 			`${installDir}/package.json`,
 		) as PackageJson;
-		const upgradeVersion: string = await getVersionToUpgrade(version, network);
+		const upgradeVersion: string = await getVersionToUpgrade(
+			liskVersion,
+			network,
+		);
 		const releaseUrl = `${RELEASE_URL}/${network}/${upgradeVersion}`;
 		const { cacheDir } = this.config;
 

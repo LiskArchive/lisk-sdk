@@ -73,7 +73,7 @@ const releaseUrlDescription =
 	'URL of the repository to download the Lisk Core.';
 const snapshotUrlDescription = 'URL of the Lisk Core blockchain snapshot.';
 const noSnapshotDescription = 'Install Lisk Core without blockchain snapshot';
-const versionDescription =
+const liskVersionDescription =
 	'Upgrade locally installed Lisk Core instance to specified version';
 
 export type AlphabetLowercase =
@@ -159,7 +159,7 @@ export const flags: FlagMap = {
 	noSnapshot: {
 		description: noSnapshotDescription,
 	},
-	version: {
-		description: versionDescription,
+	liskVersion: {
+		description: liskVersionDescription,
 	},
 };
