@@ -657,7 +657,7 @@ Delegates.prototype.updateForgingStatus = async function(
 				password
 			);
 		} catch (e) {
-			throw 'Invalid password and public key combination';
+			throw new Error('Invalid password and public key combination');
 		}
 
 		keypair = library.ed.makeKeypair(
@@ -667,11 +667,11 @@ Delegates.prototype.updateForgingStatus = async function(
 				.digest()
 		);
 	} else {
-		throw `Delegate with publicKey: ${publicKey} not found`;
+		throw new Error(`Delegate with publicKey: ${publicKey} not found`);
 	}
 
 	if (keypair.publicKey.toString('hex') !== publicKey) {
-		throw 'Invalid password and public key combination';
+		throw new Error('Invalid password and public key combination');
 	}
 
 	const account = await promisify(modules.accounts.getAccount)({
@@ -692,7 +692,7 @@ Delegates.prototype.updateForgingStatus = async function(
 			forging,
 		};
 	}
-	throw 'Delegate not found';
+	throw new Error('Delegate not found');
 };
 
 /**

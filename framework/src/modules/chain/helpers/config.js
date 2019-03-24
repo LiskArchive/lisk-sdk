@@ -23,7 +23,7 @@ const configSchema = require('../schema/config');
 const { ZSchema } = require('../../../controller/helpers/validator');
 
 const validator = new ZSchema();
-const rootPath = path.dirname(path.resolve(__filename, '..'));
+const rootPath = path.dirname(path.resolve(__filename, '../../../../..'));
 
 const deepFreeze = function(o) {
 	Object.freeze(o);
@@ -87,9 +87,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 			? process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion
 			: packageJson.lisk.protocolVersion;
 
-	const genesisBlock = loadJSONFile(
-		`../../../../config/${network}/genesis_block.json`
-	);
+	const genesisBlock = loadJSONFile(`config/${network}/genesis_block.json`);
 
 	const defaultConstants = require('../../../../../config/default/constants');
 	const networkConstants = require(`../../../../../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
@@ -97,10 +95,8 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	const defaultExceptions = require('../../../../../config/default/exceptions');
 	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultConfig = loadJSONFile('../../../../config/default/config.json');
-	const networkConfig = loadJSONFile(
-		`../../../../config/${network}/config.json`
-	);
+	const defaultConfig = loadJSONFile('config/default/config.json');
+	const networkConfig = loadJSONFile(`config/${network}/config.json`);
 
 	let customConfig = {};
 	if (program.config || process.env.LISK_CONFIG_FILE) {
@@ -218,11 +214,9 @@ const getenv = (variable, defaultValue = null, isBoolean = false) => {
 
 function loadJSONFile(filePath) {
 	try {
-		filePath = path.resolve(rootPath, filePath);
+		filePath = path.join(rootPath, filePath);
 		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 	} catch (err) {
-		console.error(`Failed to load file: ${filePath}`);
-		console.error(err.message);
 		return process.exit(1);
 	}
 }

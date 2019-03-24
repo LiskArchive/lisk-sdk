@@ -389,7 +389,7 @@ describe('ChildProcessChannel Channel', () => {
 				actionParams
 			);
 			// Assert
-			expect(result).toBe('aResult');
+			expect(result).toBe(expectedResult);
 			expect(
 				isolatedChildProcessChannelInstance.busRpcClient.call
 			).not.toHaveBeenCalled();
@@ -483,7 +483,7 @@ describe('ChildProcessChannel Channel', () => {
 			);
 		});
 
-		it('should call busRpcClient.call with proper arguments whrn busRpcSocket receives a "connect" event', () => {
+		it('should call busRpcClient.call with proper arguments when busRpcSocket receives a "connect" event', () => {
 			// Assert
 			expect(childProcessChannel.busRpcClient.call).toHaveBeenCalledWith(
 				'registerChannel',

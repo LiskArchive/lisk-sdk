@@ -171,6 +171,14 @@ module.exports = {
 		id: '#/app/config',
 		type: 'object',
 		properties: {
+			ipc: {
+				type: 'object',
+				properties: {
+					enabled: {
+						type: 'boolean',
+					},
+				},
+			},
 			components: {
 				type: 'object',
 				properties: {
