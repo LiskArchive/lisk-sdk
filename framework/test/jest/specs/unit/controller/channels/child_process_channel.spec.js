@@ -1,6 +1,7 @@
 const EventEmitter2 = require('eventemitter2');
 const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
+const Event = require('../../../../../../src/controller/event');
 
 jest.mock('../../../../../../src/controller/channels/child_process');
 
@@ -211,43 +212,55 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#publish', () => {
-		const eventHandler = jest.fn();
-		const eventName = 'anEventName';
+		const validEventName = `${params.moduleAlias}:anEventName`;
+		const invalidEventName = 'invalidModule:anEventName';
 
 		beforeEach(async () => {
+			// Arrange
 			await childProcessChannel.registerToBus(socketsPath);
-			return childProcessChannel.publish(eventName, eventHandler);
+		});
+
+		it('should throw new Error when the module is not the same', async () => {
+			expect(() =>
+				childProcessChannel.publish(invalidEventName, () => {})
+			).toThrow(
+				`Event "${invalidEventName}" not registered in "${
+					params.moduleAlias
+				}" module.`
+			);
 		});
 
 		it('should call localBus.emit with proper arguments', async () => {
+			// Arrange
+			const data = '#DATA';
+			const event = new Event(validEventName, data);
+
+			// Act
+			childProcessChannel.publish(validEventName, data);
+
 			// Assert
 			expect(childProcessChannel.localBus.emit).toHaveBeenCalledWith(
-				'aKey',
-				'serialized'
+				event.key(),
+				event.serialize()
 			);
 		});
 
 		it('should call pubSocket.emit with proper arguments', async () => {
+			// Arrange
+			const data = '#DATA';
+			const event = new Event(validEventName, data);
+
+			// Act
+			childProcessChannel.publish(validEventName, data);
+
 			// Assert
 			expect(childProcessChannel.pubSocket.emit).toHaveBeenCalledWith(
-				'aKey',
-				'serialized'
+				event.key(),
+				event.serialize()
 			);
 		});
 
-		it('should throw new Error when the module is not the same', async () => {
-			// Arrange
-			childProcessChannel.moduleAlias = 'differentModule';
-			try {
-				// Act
-				childProcessChannel.publish(eventName, eventHandler);
-			} catch (error) {
-				// Assert
-				expect(error.message).toBe(
-					`Event "${eventName}" not registered in "differentModule" module.`
-				);
-			}
-		});
+		it.todo('should not call pubSocket.emit when eventList is empty');
 	});
 
 	describe('#invoke', () => {
