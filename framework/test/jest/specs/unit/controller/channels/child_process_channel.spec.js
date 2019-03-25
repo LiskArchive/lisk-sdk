@@ -181,29 +181,30 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#once', () => {
-		const eventHandler = jest.fn();
-		const eventName = 'anEvent';
+		const validEventName = `${params.moduleAlias}:anEventName`;
 
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
 		it('should call localBus.once when the module is the same', async () => {
 			// Act
-			childProcessChannel.once(eventName, eventHandler);
+			childProcessChannel.once(validEventName, () => {});
 			// Assert
 			expect(childProcessChannel.localBus.once).toHaveBeenCalledWith(
-				eventName,
+				validEventName,
 				expect.any(Function)
 			);
 		});
 
 		it('should call subSocket.on when the module is not the same', async () => {
 			// Arrange
-			childProcessChannel.moduleAlias = 'differentModule';
+			const invalidEventName = 'invalidModule:anEventName';
+
 			// Act
-			childProcessChannel.once(eventName, eventHandler);
+			childProcessChannel.once(invalidEventName, () => {});
+
 			// Assert
 			expect(childProcessChannel.subSocket.on).toHaveBeenCalledWith(
-				eventName,
+				invalidEventName,
 				expect.any(Function)
 			);
 		});
