@@ -2,11 +2,9 @@ const EventEmitter2 = require('eventemitter2');
 const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
 const Event = require('../../../../../../src/controller/event');
-
-jest.mock('../../../../../../src/controller/channels/child_process');
+const Action = require('../../../../../../src/controller/action');
 
 jest.mock('eventemitter2');
-
 jest.mock('axon-rpc', () => ({
 	Client: jest.fn(() => ({
 		call: jest.fn(),
@@ -15,8 +13,8 @@ jest.mock('axon-rpc', () => ({
 		expose: jest.fn(),
 	})),
 }));
-
 jest.mock('axon');
+jest.mock('../../../../../../src/controller/channels/child_process');
 
 describe('ChildProcessChannel Channel', () => {
 	// Arrange
@@ -39,6 +37,7 @@ describe('ChildProcessChannel Channel', () => {
 
 	let childProcessChannel;
 	let spies;
+
 	beforeEach(() => {
 		childProcessChannel = new ChildProcessChannel(
 			params.moduleAlias,
@@ -130,7 +129,6 @@ describe('ChildProcessChannel Channel', () => {
 				'invoke',
 				expect.any(Function)
 			);
-			// TODO: Test callback
 		});
 
 		it('should bind the rpcSocket to rpcSocketPath', () => {
@@ -146,12 +144,8 @@ describe('ChildProcessChannel Channel', () => {
 		});
 	});
 
-	describe('#setupSockets', () => {
-		it.todo('stuff');
-	});
-
 	describe('#subscribe', () => {
-		const validEventName = `${params.moduleAlias}:anEventName`;
+		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 		beforeEach(async () => {
 			await childProcessChannel.registerToBus(socketsPath);
 		});
@@ -182,7 +176,7 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#once', () => {
-		const validEventName = `${params.moduleAlias}:anEventName`;
+		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
@@ -212,13 +206,13 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#publish', () => {
-		const validEventName = `${params.moduleAlias}:anEventName`;
+		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 		const invalidEventName = 'invalidModule:anEventName';
 
-		beforeEach(async () => {
+		beforeEach(() =>
 			// Arrange
-			await childProcessChannel.registerToBus(socketsPath);
-		});
+			childProcessChannel.registerToBus(socketsPath)
+		);
 
 		it('should throw new Error when the module is not the same', async () => {
 			expect(() =>
@@ -260,103 +254,50 @@ describe('ChildProcessChannel Channel', () => {
 			);
 		});
 
-		it.todo('should not call pubSocket.emit when eventList is empty');
+		it('should not call pubSocket.emit when eventList is empty', async () => {
+			// Arrange
+			const data = '#DATA';
+			const anotherChildProcessChannel = new ChildProcessChannel(
+				params.moduleAlias,
+				[],
+				params.actions,
+				{ skipInternalEvents: true }
+			);
+
+			jest
+				.spyOn(anotherChildProcessChannel, 'setupSockets')
+				.mockResolvedValue();
+
+			// Act
+			await anotherChildProcessChannel.registerToBus(socketsPath);
+			anotherChildProcessChannel.publish(validEventName, data);
+
+			// Assert
+			expect(anotherChildProcessChannel.pubSocket).toBe(undefined);
+		});
 	});
 
 	describe('#invoke', () => {
-		// @TODO rewrite the whole suite.
-		const actionName = 'firstAction';
+		const actionName = 'moduleAlias:action1';
 		const actionParams = ['param1', 'param2'];
-		const actionSerializationResult = 'serialized';
-		const busRpcClientCallResult = 'resultOfCallingBusRpcClient.call()';
 
-		let ActionStub;
-		let IsolatedChildProcessChannel;
-		let isolatedChildProcessChannelInstance;
+		it('should execute the action straight away if the modules are the same and action is a string', async () => {
+			// Act
+			await childProcessChannel.registerToBus(socketsPath);
+			await childProcessChannel.invoke(actionName, actionParams);
 
-		beforeEach(() => {
-			jest.doMock('../../../../../../src/controller/action', () =>
-				jest.fn((anActionName, parameters, moduleAlias) => ({
-					name: anActionName,
-					params: parameters,
-					source: moduleAlias,
-					module: params.moduleAlias,
-					serialize: jest.fn(() => actionSerializationResult),
-				}))
-			);
-			jest.dontMock('../../../../../../src/controller/channels/base_channel');
-
-			IsolatedChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
-			ActionStub = require('../../../../../../src/controller/action');
-			isolatedChildProcessChannelInstance = new IsolatedChildProcessChannel(
-				params.moduleAlias,
-				params.events,
-				params.actions,
-				params.options
-			);
-
-			isolatedChildProcessChannelInstance.busRpcClient = {
-				call: jest.fn((name, serialized, callback) => {
-					callback(null, busRpcClientCallResult);
-				}),
-			};
+			// Assert
+			expect(params.actions.action1).toHaveBeenCalled();
 		});
 
-		it('should instantiate a new Action if actionName parameters is a string', async () => {
+		it('should execute the action straight away if the modules are the same and action is an Action object', async () => {
 			// Act
-			await isolatedChildProcessChannelInstance.invoke(
-				actionName,
-				actionParams
-			);
-			// Assert
-			expect(ActionStub).toHaveBeenCalledWith(
-				actionName,
-				actionParams,
-				isolatedChildProcessChannelInstance.moduleAlias
-			);
-		});
+			await childProcessChannel.registerToBus(socketsPath);
+			const action = new Action(actionName, actionParams);
+			await childProcessChannel.invoke(action, actionParams);
 
-		it('should execute the action straight away if the action module is the same as the ChildProcessChannel module', async () => {
-			// Arrange
-			const expectedResult = 'aResult';
-			isolatedChildProcessChannelInstance.actions[actionName] = () =>
-				expectedResult;
-			isolatedChildProcessChannelInstance.busRpcClient = {
-				call: jest.fn((name, serialized, callback) => {
-					callback(null, true);
-				}),
-			};
-			// Act
-			const result = await isolatedChildProcessChannelInstance.invoke(
-				actionName,
-				actionParams
-			);
 			// Assert
-			expect(result).toBe(expectedResult);
-			expect(
-				isolatedChildProcessChannelInstance.busRpcClient.call
-			).not.toHaveBeenCalled();
-		});
-
-		it('should call busRpcClient.call if the action module and invoker module are different', async () => {
-			// Arrange
-			const expectedResult = busRpcClientCallResult;
-			isolatedChildProcessChannelInstance.moduleAlias = 'anotherModule';
-			// Act
-			const result = await isolatedChildProcessChannelInstance.invoke(
-				actionName,
-				actionParams
-			);
-			isolatedChildProcessChannelInstance.moduleAlias = params.moduleAlias;
-			// Assert
-			expect(result).toBe(expectedResult);
-			expect(
-				isolatedChildProcessChannelInstance.busRpcClient.call
-			).toHaveBeenCalledWith(
-				'invoke',
-				actionSerializationResult,
-				expect.any(Function)
-			);
+			expect(params.actions.action1).toHaveBeenCalledWith(action);
 		});
 	});
 
@@ -427,11 +368,11 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenAnySocketFailsToBind', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject if any of the sockets receive an "error" event', async () => {
-			await expect(
+		it('should reject if any of the sockets receive an "error" event', () =>
+			// Assert
+			expect(
 				childProcessChannel._rejectWhenAnySocketFailsToBind()
-			).rejects.toBe('#MOCKED_ONCE');
-		});
+			).rejects.toBe('#MOCKED_ONCE'));
 
 		it('should call pubSocket.sock.once with proper arguments', async () => {
 			try {
@@ -474,21 +415,13 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#_rejectWhenTimeout', () => {
-		// #TODO improve matchers & comments
-		beforeEach(async () => {
-			await childProcessChannel.registerToBus(socketsPath);
-		});
+		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject with an Error object with proper message', async () => {
-			try {
-				// Act
-				await childProcessChannel._rejectWhenTimeout(1);
-			} catch (error) {
-				// Assert
-				expect(error).toBeInstanceOf(Error);
-				expect(error.message).toBe('ChildProcessChannel sockets setup timeout');
-			}
-		});
+		it('should reject with an Error object with proper message', () =>
+			// Assert
+			expect(childProcessChannel._rejectWhenTimeout(1)).rejects.toThrow(
+				'ChildProcessChannel sockets setup timeout'
+			));
 	});
 
 	describe('#_removeAllListeners', () => {
