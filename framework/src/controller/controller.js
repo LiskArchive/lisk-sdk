@@ -241,6 +241,10 @@ class Controller {
 
 			await this.bus.unregisterChannel(moduleAlias);
 
+			this.childrenList = this.childrenList.filter(
+				({ pid }) => pid !== child.pid
+			);
+
 			// Reload the module
 			await this._loadChildProcessModule(alias, Klass, options);
 		});
