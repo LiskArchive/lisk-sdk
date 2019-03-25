@@ -425,20 +425,12 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#_rejectWhenAnySocketFailsToBind', () => {
-		beforeEach(async () => {
-			await childProcessChannel.registerToBus(socketsPath);
-		});
+		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
 		it('should reject if any of the sockets receive an "error" event', async () => {
-			try {
-				// Act
-				await childProcessChannel._rejectWhenAnySocketFailsToBind();
-			} catch (error) {
-				// Assert
-				return true;
-			}
-			// Assert
-			return false;
+			await expect(
+				childProcessChannel._rejectWhenAnySocketFailsToBind()
+			).rejects.toBe('#MOCKED_ONCE');
 		});
 
 		it('should call pubSocket.sock.once with proper arguments', async () => {
@@ -482,6 +474,7 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#_rejectWhenTimeout', () => {
+		// #TODO improve matchers & comments
 		beforeEach(async () => {
 			await childProcessChannel.registerToBus(socketsPath);
 		});
@@ -500,7 +493,10 @@ describe('ChildProcessChannel Channel', () => {
 
 	describe('#_removeAllListeners', () => {
 		beforeEach(async () => {
+			// Arrange
 			await childProcessChannel.registerToBus(socketsPath);
+
+			// Act
 			childProcessChannel._removeAllListeners();
 		});
 

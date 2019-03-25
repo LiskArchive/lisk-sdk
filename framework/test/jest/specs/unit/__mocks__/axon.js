@@ -12,10 +12,10 @@ axon.socket = jest.fn().mockReturnValue({
 	removeAllListeners: jest.fn(),
 	sock: {
 		once: jest.fn((event, callback) => {
-			callback();
+			callback('#MOCKED_ONCE');
 		}),
 		on: jest.fn((event, callback) => {
-			callback();
+			callback('#MOCKED_ON');
 		}),
 		removeAllListeners: jest.fn(),
 	},
