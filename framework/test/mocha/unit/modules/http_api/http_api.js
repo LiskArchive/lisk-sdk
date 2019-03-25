@@ -26,7 +26,6 @@ describe('HttpApi', () => {
 		logFileName: 'logs.log',
 	};
 	const cacheConfig = 'aCacheConfig';
-	const systemConfig = 'aSystemConfig';
 	const storageConfig = {
 		logFileName: 'logs.log',
 	};
@@ -44,7 +43,6 @@ describe('HttpApi', () => {
 		stubs.logger = {
 			debug: sinonSandbox.stub(),
 		};
-		stubs.system = sinonSandbox.stub();
 		stubs.storage = sinonSandbox.stub();
 		stubs.cache = sinonSandbox.stub();
 		stubs.servers = {
@@ -75,9 +73,6 @@ describe('HttpApi', () => {
 		stubs.channel.invoke
 			.withArgs('lisk:getComponentConfig', 'cache')
 			.resolves(cacheConfig);
-		stubs.channel.invoke
-			.withArgs('lisk:getComponentConfig', 'system')
-			.resolves(systemConfig);
 
 		HttpApi.__set__('createLoggerComponent', stubs.createLoggerComponent);
 		HttpApi.__set__('createSystemComponent', stubs.createSystemComponent);
@@ -142,12 +137,6 @@ describe('HttpApi', () => {
 				'cache'
 			);
 		});
-		it('should invoke lisk:getApplicationState to get "applicationState"', async () => {
-			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getApplicationState',
-				'applicationState'
-			);
-		});
 		it('should create logger component with loggerConfig and assign to object instance', async () => {
 			expect(stubs.createLoggerComponent).to.be.calledWithExactly(loggerConfig);
 			expect(httpApi.logger).to.be.equal(stubs.logger);
@@ -205,7 +194,6 @@ describe('HttpApi', () => {
 					cache: stubs.cache,
 					logger: stubs.logger,
 					storage: stubs.storage,
-					system: stubs.system,
 				},
 				channel: stubs.channel,
 				config: stubs.options.config,
