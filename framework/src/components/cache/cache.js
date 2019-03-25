@@ -41,17 +41,18 @@ class Cache {
 		// TODO: implement retry_strategy
 		// TOFIX: app crashes with FTL error when launchin app with CACHE_ENABLE=true
 		// but cache server is not available.
-		const self = this;
-		return new Promise((resolve, reject) => {
-			self.client = redis.createClient(self.options);
-			self.client.once('error', err => {
+		return new Promise(resolve => {
+			this.client = redis.createClient(this.options);
+			this.client.once('error', err => {
 				// Called if the "error" event occured before "ready" event
-				self.logger.warn('App was unable to connect to Cache server', err);
-				return reject(err);
+				this.logger.warn('App was unable to connect to Cache server', err);
+				// Error handler needs to exist to ignore the error
+				this.client.on('error', () => {});
+				resolve();
 			});
-			self.client.once('ready', () => {
-				self._onReady();
-				return resolve();
+			this.client.once('ready', () => {
+				this._onReady();
+				resolve();
 			});
 		});
 	}
