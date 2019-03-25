@@ -431,14 +431,15 @@ describe('account', () => {
 			});
 		});
 
-		it('should throw error if unrelated filters are provided', done => {
-			account.getAll(
-				{ publicKey: validAccount.publicKey, unrelatedfield: 'random value' },
-				err => {
-					expect(err).to.equal('Account#getAll error');
-					done();
-				}
-			);
+		it('should throw error if unrelated filters are provided', async () => {
+			try {
+				await account.getAll({
+					publicKey: validAccount.publicKey,
+					unrelatedfield: 'random value',
+				});
+			} catch (err) {
+				expect(err.message).to.equal('One or more filters are not supported.');
+			}
 		});
 
 		it('should fetch results with limit of 50', done => {

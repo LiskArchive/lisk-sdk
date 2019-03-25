@@ -276,6 +276,7 @@ class Account extends BaseEntity {
 
 		const defaultSort = { sort: 'balance:asc' };
 		this.extendDefaultOptions(defaultSort);
+		this.sortingFields.push('productivity');
 
 		this.SQLs = this.loadSQLFiles('account', sqlFiles);
 	}
@@ -396,6 +397,9 @@ class Account extends BaseEntity {
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		this.validateFilters(filters);
+		this.validateOptions(options);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
