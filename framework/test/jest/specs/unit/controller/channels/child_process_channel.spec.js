@@ -1,16 +1,6 @@
 const axon = require('axon');
 const axonRpc = require('axon-rpc');
 
-jest.mock('eventemitter2');
-jest.mock('../../../../../../src/controller/event', () =>
-	jest.fn().mockImplementation(name => ({
-		name,
-		module: 'moduleAlias',
-		key: () => 'aKey',
-		serialize: () => 'serialized',
-	}))
-);
-
 axonRpc.Client = function() {
 	return {
 		call: jest.fn(),
@@ -27,6 +17,16 @@ const Event = require('../../../../../../src/controller/event');
 const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
 
+jest.mock('eventemitter2');
+jest.mock('../../../../../../src/controller/event', () =>
+	jest.fn().mockImplementation(name => ({
+		name,
+		module: 'moduleAlias',
+		key: () => 'aKey',
+		serialize: () => 'serialized',
+	}))
+);
+
 describe('ChildProcessChannel Channel', () => {
 	const originalModuleAlias = 'moduleAlias';
 	const params = {
@@ -39,7 +39,6 @@ describe('ChildProcessChannel Channel', () => {
 		},
 		options: {},
 	};
-	let childProcessChannel;
 	const socketsPath = {
 		root: 'root',
 		sub: 'sub',
@@ -47,6 +46,7 @@ describe('ChildProcessChannel Channel', () => {
 		rpc: 'rpc',
 	};
 
+	let childProcessChannel;
 	let resolveWhenAllSocketsBound;
 	let rejectWhenAnySocketFailsToBind;
 	let rejectWhenTimeout;
@@ -197,7 +197,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		beforeEach(async () => {
 			await childProcessChannel.registerToBus(socketsPath);
-			return childProcessChannel.subscribe(eventName, eventHandler);
+			childProcessChannel.subscribe(eventName, eventHandler);
 		});
 
 		afterEach(() => {
@@ -321,15 +321,14 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#invoke', () => {
-		let ActionStub;
 		const actionName = 'firstAction';
 		const actionParams = ['param1', 'param2'];
 		const actionSerializationResult = 'serialized';
+		const busRpcClientCallResult = 'resultOfCallingBusRpcClient.call()';
 
+		let ActionStub;
 		let IsolatedChildProcessChannel;
 		let isolatedChildProcessChannelInstance;
-
-		const busRpcClientCallResult = 'resultOfCallingBusRpcClient.call()';
 
 		beforeEach(() => {
 			jest.doMock('../../../../../../src/controller/action', () =>
@@ -448,7 +447,7 @@ describe('ChildProcessChannel Channel', () => {
 					}
 				);
 
-			return childProcessChannel._resolveWhenAllSocketsBound();
+			childProcessChannel._resolveWhenAllSocketsBound();
 		});
 
 		it('should call pubSocket.sock.once with proper arguments', () => {
