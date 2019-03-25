@@ -24,6 +24,6 @@ Find more details about the storage component in the dedicated [LIP](https://git
 
 ### System
 
-This component provides a central registry of up-to-date system information.
-Especially network height, nonce, broadhash, nethash, and network specific constants.
-This component will use channels and events to make all instances of the component stay in sync in different modules.
+The system component provides per-module system information. Each module is responsible for keeping the information up-to-date. 
+
+It holds the variables and constants critical for the whole application, possibly affecting other modules. For now, those are: "os", "version", "wsPort", "httpPort", "minVersion", "protocolVersion", "height", "nethash", "broadhash" and "nonce".
