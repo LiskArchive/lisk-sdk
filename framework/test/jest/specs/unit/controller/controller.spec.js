@@ -71,9 +71,8 @@ describe('Controller Class', () => {
 				spies._setupDirectories
 			);
 			expect(spies._setupBus).toHaveBeenCalledAfter(spies._validatePidFile);
-			expect(spies._loadModules)
-				.toHaveBeenCalledAfter(spies._setupBus)
-				.toHaveBeenCalledWith(modules);
+			expect(spies._loadModules).toHaveBeenCalledAfter(spies._setupBus);
+			expect(spies._loadModules).toHaveBeenCalledWith(modules);
 		});
 
 		// #region TODO channel.publish('lisk:ready')
