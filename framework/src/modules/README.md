@@ -123,34 +123,26 @@ export default class MyModule extends BaseModule {
 
 ## Module Communication
 
-Modules communicate with each other through channels.
-These channels are event-based. These events can trigger more events across various listeners.
+Modules communicate with each other through event-based channels.
 Modules running in different processes communicate with each other over IPC channels.
 
 ### InMemory Channel
 
 Communicates with modules which reside in the same process as the [controller](../controller/README.md).
 
-If not specified differently, modules will load in the same process as the controller.
+By default, modules will load in the same process as the controller.
 
-```js
-this.registerModule(ChainModule, {
-	genesisBlock: this.genesisBlock,
 	constants: this.constants,
-});
 ```
 
 ### Childprocess Channel
 
 Communicates with modules which do not reside in the same process as the Controller.
 
-To load the module in a child process, specify `useSocketChannel: true` when passing the module options.
+To load the modules as child processes, specify the following environment variable: `LISK_CHILD_PROCESS_MODULES=httpApi,chain`.
 
 ```js
-this.registerModule(HttpAPIModule, {
-	constants: this.constants,
 	useSocketChannel: true,
-});
 ```
 
 ## Module Life Cycle
