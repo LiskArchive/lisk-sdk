@@ -132,24 +132,18 @@ Communicates with modules which reside in the same process as the [controller](.
 
 By default, modules will load in the same process as the controller.
 
-	constants: this.constants,
-```
 
-### Childprocess Channel
+### Child Process Channel
 
 Communicates with modules which do not reside in the same process as the Controller.
 
 To load the modules as child processes, specify the following environment variable: `LISK_CHILD_PROCESS_MODULES=httpApi,chain`.
-
-```js
-	useSocketChannel: true,
-```
+seSocketChannel: true,
 
 ## Module Life Cycle
 
-A modules' life cycle consists of following events in the right order.
-
-> The controller will load/unload each module one after another.
+The controller will load/unload each module one after another.
+A modules' life cycle consists of following events in the right order:
 
 **Loading**
 
