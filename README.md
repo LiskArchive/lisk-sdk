@@ -344,7 +344,7 @@ There are plenty of options available that you can use to override configuration
 npm start -- [options]
 ```
 
-Each of that option can be appended on the command-line. There are also a few `ENV` variables that can be utilized for this purpose.
+Each of that option can be appended to the command-line. There are also a few `ENV` variables that can be utilized for this purpose.
 
 | Option                               | ENV Variable           | Config Option            | Description                                                                                                                                                                       |
 | ------------------------------------ | ---------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -375,7 +375,7 @@ Each of that option can be appended on the command-line. There are also a few `E
 #### Note
 
 * All `ENV` variables restricted with operating system constraint of `ENV` variable maximum length.
-* Comma-separated lists will replace the original config values. e.g. If you specify `LISK_PEERS`, original `peers.list` specific to the network will be replaced completely.
+* Comma-separated lists will replace the original config values. e.g. If you specify `LISK_PEERS`, original `peers.list`, which is specific to the network, will be replaced completely.
 
 For a more detailed understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)
 
