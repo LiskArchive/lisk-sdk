@@ -15,6 +15,7 @@
  */
 import * as axios from 'axios';
 import * as fs from 'fs';
+import { liskTar, liskTarSHA256 } from './node/commons';
 import { exec, ExecResult } from './worker-process';
 
 export const download = async (
@@ -68,4 +69,19 @@ export const extract = async (
 	}
 
 	return stdout;
+};
+
+export const downloadLiskAndValidate = async (
+	destPath: string,
+	releaseUrl: string,
+	version: string,
+) => {
+	const LISK_RELEASE_PATH = `${destPath}/${liskTar(version)}`;
+	const LISK_RELEASE_SHA256_PATH = `${destPath}/${liskTarSHA256(version)}`;
+	const liskTarUrl = `${releaseUrl}/${liskTar(version)}`;
+	const liskTarSHA256Url = `${releaseUrl}/${liskTarSHA256(version)}`;
+
+	await download(liskTarUrl, LISK_RELEASE_PATH);
+	await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
+	await validateChecksum(destPath, liskTarSHA256(version));
 };

@@ -38,6 +38,7 @@ export interface NodeConfig {
 }
 
 export const defaultInstallationPath = path.join(os.homedir(), '.lisk/network');
+export const defaultBackupPath = `${defaultInstallationPath}/backup`;
 
 export const configPath = (network: string = 'default'): string =>
 	`config/${network}/config.json`;

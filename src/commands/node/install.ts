@@ -19,7 +19,11 @@ import Listr from 'listr';
 import * as os from 'os';
 import BaseCommand from '../../base';
 import { NETWORK, RELEASE_URL, SNAPSHOT_URL } from '../../utils/constants';
-import { download, extract, validateChecksum } from '../../utils/download';
+import {
+	download,
+	downloadLiskAndValidate,
+	extract,
+} from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 import {
 	createDirectory,
@@ -29,7 +33,6 @@ import {
 	liskLatestUrl,
 	liskSnapshotUrl,
 	liskTar,
-	liskTarSHA256,
 	validateNetwork,
 	validateNotARootUser,
 	validURL,
@@ -171,19 +174,10 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Download Lisk Core Release',
 							task: async ctx => {
-								const {
-									version,
-									liskTarUrl,
-									liskTarSHA256Url,
-								}: Options = ctx.options;
-								const LISK_RELEASE_PATH = `${cacheDir}/${liskTar(version)}`;
-								const LISK_RELEASE_SHA256_PATH = `${cacheDir}/${liskTarSHA256(
-									version,
-								)}`;
+								const { version }: Options = ctx.options;
+								const releaseUrl = `${RELEASE_URL}/${network}/${version}`;
 
-								await download(liskTarUrl, LISK_RELEASE_PATH);
-								await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
-								await validateChecksum(cacheDir, liskTarSHA256(version));
+								await downloadLiskAndValidate(cacheDir, releaseUrl, version);
 							},
 						},
 						{

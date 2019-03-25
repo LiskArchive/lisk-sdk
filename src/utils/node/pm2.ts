@@ -20,6 +20,7 @@ export type ProcessStatus =
 	| 'one-launch-status';
 
 export interface Pm2Env {
+	readonly LISK_NETWORK: string;
 	readonly pm_cwd: string;
 	readonly pm_uptime: number;
 	readonly status: ProcessStatus;
