@@ -5,8 +5,8 @@ const Controller = require('../../../../../src/controller/controller');
 
 jest.mock('../../../../../src/controller/controller');
 jest.mock('eventemitter2');
-jest.mock('axon');
-jest.mock('axon-rpc');
+jest.mock('pm2-axon');
+jest.mock('pm2-axon-rpc');
 
 describe('Bus', () => {
 	const controller = new Controller();
