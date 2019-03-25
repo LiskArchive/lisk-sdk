@@ -46,6 +46,8 @@ class Cache {
 			this.client.once('error', err => {
 				// Called if the "error" event occured before "ready" event
 				this.logger.warn('App was unable to connect to Cache server', err);
+				// Error handler needs to exist to ignore the error
+				this.client.on('error', () => {});
 				resolve();
 			});
 			this.client.once('ready', () => {
