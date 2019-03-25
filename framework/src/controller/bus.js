@@ -1,5 +1,5 @@
-const axon = require('axon');
-const { Server: RPCServer, Client: RPCClient } = require('axon-rpc');
+const axon = require('pm2-axon');
+const { Server: RPCServer, Client: RPCClient } = require('pm2-axon-rpc');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 

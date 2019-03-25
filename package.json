@@ -58,8 +58,8 @@
 	"dependencies": {
 		"ajv": "6.7.0",
 		"async": "2.6.1",
-		"axon": "2.0.3",
-		"axon-rpc": "0.0.3",
+		"pm2-axon": "3.3.0",
+		"pm2-axon-rpc": "0.5.1",
 		"bignumber.js": "8.0.2",
 		"bluebird": "3.5.3",
 		"body-parser": "1.18.3",
