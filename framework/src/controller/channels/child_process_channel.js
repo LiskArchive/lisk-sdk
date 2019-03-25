@@ -1,6 +1,6 @@
 const { EventEmitter2 } = require('eventemitter2');
-const axon = require('axon');
-const { Server: RPCServer, Client: RPCClient } = require('axon-rpc');
+const axon = require('pm2-axon');
+const { Server: RPCServer, Client: RPCClient } = require('pm2-axon-rpc');
 const Action = require('../action');
 const Event = require('../event');
 const BaseChannel = require('./base_channel');
@@ -44,7 +44,9 @@ class ChildProcessChannel extends BaseChannel {
 
 		// Channel RPC Server is only required if the module has actions
 		if (this.actionsList.length > 0) {
-			this.rpcSocketPath = `${socketsPath.root}/${this.moduleAlias}_rpc.sock`;
+			this.rpcSocketPath = `unix://${socketsPath.root}/${
+				this.moduleAlias
+			}_rpc.sock`;
 
 			this.rpcSocket = axon.socket('rep');
 			this.rpcSocket.bind(this.rpcSocketPath);
@@ -137,8 +139,17 @@ class ChildProcessChannel extends BaseChannel {
 	 * @returns {Promise<void>}
 	 */
 	async cleanup() {
-		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
+		if (this.pubSocket) {
+			this.pubSocket.close();
+		}
+		if (this.subSocket) {
+			this.subSocket.close();
+		}
+		if (this.rpcSocket) {
 			this.rpcSocket.close();
+		}
+		if (this.busRpcSocket) {
+			this.busRpcSocket.close();
 		}
 	}
 

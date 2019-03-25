@@ -48,7 +48,9 @@ class Controller {
 			},
 		};
 
+		this.liskReady = false;
 		this.modules = {};
+		this.childrenList = [];
 		this.channel = null; // Channel for controller
 		this.bus = null;
 	}
@@ -70,6 +72,7 @@ class Controller {
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
 
+		this.liskReady = true;
 		this.channel.publish('lisk:ready');
 	}
 
@@ -127,6 +130,7 @@ class Controller {
 			'lisk',
 			['ready'],
 			{
+				isLiskReady: () => this.liskReady,
 				getComponentConfig: action => this.config.components[action.params],
 			},
 			{ skipInternalEvents: true }
@@ -228,12 +232,21 @@ class Controller {
 
 		const child = child_process.fork(program, parameters);
 
-		child.on('exit', (code, signal) => {
+		this.childrenList.push(child);
+
+		child.on('exit', async (code, signal) => {
 			this.logger.error(
 				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
 			);
-			// TODO: Reload child instead of exiting the parent process
-			process.exit(1);
+
+			await this.bus.unregisterChannel(moduleAlias);
+
+			this.childrenList = this.childrenList.filter(
+				({ pid }) => pid !== child.pid
+			);
+
+			// Reload the module
+			await this._loadChildProcessModule(alias, Klass, options);
 		});
 
 		return Promise.race([
@@ -268,6 +281,8 @@ class Controller {
 		if (reason) {
 			this.logger.error(`Reason: ${reason}`);
 		}
+
+		this.childrenList.forEach(child => child.kill());
 
 		try {
 			await this.bus.cleanup();

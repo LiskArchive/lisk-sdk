@@ -1,5 +1,5 @@
-const axon = require('axon');
-const { Server: RPCServer, Client: RPCClient } = require('axon-rpc');
+const axon = require('pm2-axon');
+const { Server: RPCServer, Client: RPCClient } = require('pm2-axon-rpc');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
@@ -32,6 +32,7 @@ class Bus extends EventEmitter2 {
 		this.actions = {};
 		this.events = {};
 		this.channels = {};
+		this.rpcClients = {};
 	}
 
 	/**
@@ -90,7 +91,6 @@ class Bus extends EventEmitter2 {
 	 *
 	 * @throws {Error} If event name is already registered.
 	 */
-	// eslint-disable-next-line no-unused-vars
 	async registerChannel(
 		moduleAlias,
 		events,
@@ -123,6 +123,7 @@ class Bus extends EventEmitter2 {
 			const rpcSocket = axon.socket('req');
 			rpcSocket.connect(options.rpcSocketPath);
 			channel = new RPCClient(rpcSocket);
+			this.rpcClients[moduleAlias] = rpcSocket;
 		}
 
 		this.channels[moduleAlias] = {
@@ -131,6 +132,37 @@ class Bus extends EventEmitter2 {
 			events,
 			type: options.type,
 		};
+	}
+
+	/**
+	 * Unregister channel from bus.
+	 *
+	 * @async
+	 * @param {string} moduleAlias - Alias for module used during registration
+	 *
+	 * @throws {Error} If channel not registered.
+	 */
+	async unregisterChannel(moduleAlias) {
+		Object.keys(this.events).forEach(eventName => {
+			const [moduleName] = eventName.split(':');
+			if (moduleName === moduleAlias) {
+				delete this.events[eventName];
+			}
+		});
+
+		Object.keys(this.actions).forEach(actionName => {
+			const [moduleName] = actionName.split(':');
+			if (moduleName === moduleAlias) {
+				delete this.actions[actionName];
+			}
+		});
+
+		const rpcSocket = this.rpcClients[moduleAlias];
+		if (rpcSocket) {
+			rpcSocket.close();
+		}
+
+		delete this.channels[moduleAlias];
 	}
 
 	/**
@@ -248,13 +280,13 @@ class Bus extends EventEmitter2 {
 	 * @returns {Promise<void>}
 	 */
 	async cleanup() {
-		if (this.pubSocket && typeof this.pubSocket.close === 'function') {
+		if (this.pubSocket) {
 			this.pubSocket.close();
 		}
-		if (this.subSocket && typeof this.subSocket.close === 'function') {
+		if (this.subSocket) {
 			this.subSocket.close();
 		}
-		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
+		if (this.rpcSocket) {
 			this.rpcSocket.close();
 		}
 	}
