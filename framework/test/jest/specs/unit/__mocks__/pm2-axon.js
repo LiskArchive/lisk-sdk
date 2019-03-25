@@ -1,6 +1,6 @@
-const axon = jest.genMockFromModule('axon');
+const pm2Axon = jest.genMockFromModule('pm2-axon');
 
-axon.socket = jest.fn().mockReturnValue({
+pm2Axon.socket = jest.fn().mockReturnValue({
 	connect: jest.fn(),
 	close: jest.fn(),
 	on: jest.fn(),
@@ -21,4 +21,4 @@ axon.socket = jest.fn().mockReturnValue({
 	},
 });
 
-module.exports = axon;
+module.exports = pm2Axon;

@@ -5,7 +5,7 @@ const Event = require('../../../../../../src/controller/event');
 const Action = require('../../../../../../src/controller/action');
 
 jest.mock('eventemitter2');
-jest.mock('axon-rpc', () => ({
+jest.mock('pm2-axon-rpc', () => ({
 	Client: jest.fn(() => ({
 		call: jest.fn(),
 	})),
@@ -13,7 +13,7 @@ jest.mock('axon-rpc', () => ({
 		expose: jest.fn(),
 	})),
 }));
-jest.mock('axon');
+jest.mock('pm2-axon');
 jest.mock('../../../../../../src/controller/channels/child_process');
 
 describe('ChildProcessChannel Channel', () => {
@@ -98,9 +98,7 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#registerToBus', () => {
-		beforeEach(() => {
-			childProcessChannel.registerToBus(socketsPath);
-		});
+		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
 		it('should connect pubSocket', async () => {
 			// Assert

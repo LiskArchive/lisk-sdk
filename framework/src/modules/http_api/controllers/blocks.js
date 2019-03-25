@@ -19,6 +19,7 @@ const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Bignumber = require('bignumber.js');
 const ApiError = require('../api_error');
 const apiCodes = require('../api_codes');
+const swaggerHelper = require('../helpers/swagger');
 
 let library;
 let sortFields;
@@ -60,6 +61,12 @@ function BlocksController(scope) {
  * @todo Add description for the function and the params
  */
 BlocksController.getBlocks = function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let parsedParams = {

@@ -48,6 +48,12 @@ function VotersController(scope) {
  * @todo Add description for the function and the params
  */
 VotersController.getVoters = async function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let filters = {
