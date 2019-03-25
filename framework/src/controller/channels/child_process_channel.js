@@ -44,7 +44,9 @@ class ChildProcessChannel extends BaseChannel {
 
 		// Channel RPC Server is only required if the module has actions
 		if (this.actionsList.length > 0) {
-			this.rpcSocketPath = `${socketsPath.root}/${this.moduleAlias}_rpc.sock`;
+			this.rpcSocketPath = `unix://${socketsPath.root}/${
+				this.moduleAlias
+			}_rpc.sock`;
 
 			this.rpcSocket = axon.socket('rep');
 			this.rpcSocket.bind(this.rpcSocketPath);
