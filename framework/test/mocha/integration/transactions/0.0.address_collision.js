@@ -25,7 +25,7 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 0) - address collision', () => {
+describe('integration test (type 0) - address collision', () => {
 	let library;
 	localCommon.beforeBlock('system_0_0_address_collision', lib => {
 		library = lib;

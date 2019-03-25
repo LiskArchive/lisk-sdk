@@ -22,7 +22,7 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 5) - dapp registrations with repeated values', () => {
+describe('integration test (type 5) - dapp registrations with repeated values', () => {
 	let library;
 
 	const account = randomUtil.account();

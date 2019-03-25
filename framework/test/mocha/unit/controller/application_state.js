@@ -18,7 +18,7 @@ const crypto = require('crypto');
 
 const ApplicationState = require('../../../../src/controller/application_state');
 
-describe('components: system', () => {
+describe('application state', () => {
 	let applicationState;
 	let loggerStub;
 	let dummyConfig;
@@ -55,7 +55,7 @@ describe('components: system', () => {
 		applicationState.setChannel(channelMock);
 	});
 
-	describe('update', () => {
+	describe('update()', () => {
 		describe('when bad argument blocks is passed', () => {
 			it('should throw TypeError', async () => {
 				try {

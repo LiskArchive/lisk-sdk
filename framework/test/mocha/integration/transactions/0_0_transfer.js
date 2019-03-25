@@ -21,7 +21,7 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 0) - double transfers', () => {
+describe('integration test (type 0) - double transfers', () => {
 	let library;
 	localCommon.beforeBlock('system_0_0_transfer', lib => {
 		library = lib;

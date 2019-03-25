@@ -24,7 +24,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - double second signature registrations', () => {
+describe('integration test (type 1) - double second signature registrations', () => {
 	let library;
 
 	const account = randomUtil.account();

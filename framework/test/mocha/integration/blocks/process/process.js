@@ -25,7 +25,7 @@ const definitions = require('../../../../../src/modules/chain/schema/definitions
 
 const { REWARDS } = global.constants;
 
-describe('system test (blocks) - process', () => {
+describe('integration test (blocks) - process', () => {
 	let blocksProcess;
 	let blocks;
 	let storage;

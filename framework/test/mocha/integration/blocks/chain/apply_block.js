@@ -25,7 +25,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-describe('system test (blocks) - chain/applyBlock', () => {
+describe('integration test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();
 	let library;
 	let storage;

@@ -26,7 +26,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test - multi signature edge cases', () => {
+describe('integration test - multi signature edge cases', () => {
 	let library;
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;

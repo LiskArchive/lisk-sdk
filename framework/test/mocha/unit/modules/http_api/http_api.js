@@ -54,7 +54,6 @@ describe('HttpApi', () => {
 		};
 
 		stubs.createLoggerComponent = sinonSandbox.stub().returns(stubs.logger);
-		stubs.createSystemComponent = sinonSandbox.stub().returns(stubs.system);
 		stubs.createCacheComponent = sinonSandbox.stub().returns(stubs.cache);
 		stubs.createStorageComponent = sinonSandbox.stub().returns(stubs.storage);
 		stubs.bootstrapCache = sinonSandbox.stub();
@@ -75,7 +74,6 @@ describe('HttpApi', () => {
 			.resolves(cacheConfig);
 
 		HttpApi.__set__('createLoggerComponent', stubs.createLoggerComponent);
-		HttpApi.__set__('createSystemComponent', stubs.createSystemComponent);
 		HttpApi.__set__('createCacheComponent', stubs.createCacheComponent);
 		HttpApi.__set__('createStorageComponent', stubs.createStorageComponent);
 		HttpApi.__set__('bootstrapCache', stubs.bootstrapCache);

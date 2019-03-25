@@ -26,7 +26,7 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - second signature transactions from pool and peer', () => {
+describe('integration test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
 	let storage;
 
