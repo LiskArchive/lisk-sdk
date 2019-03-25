@@ -376,21 +376,6 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_resolveWhenAllSocketsBound', () => {
 		beforeEach(async () => {
 			await childProcessChannel.registerToBus(socketsPath);
-			childProcessChannel.busRpcClient.call = jest
-				.fn()
-				.mockImplementation(
-					(
-						name,
-						moduleAlias,
-						eventList,
-						actionsList,
-						socketOptions,
-						callback
-					) => {
-						callback(null, true);
-					}
-				);
-
 			childProcessChannel._resolveWhenAllSocketsBound();
 		});
 
