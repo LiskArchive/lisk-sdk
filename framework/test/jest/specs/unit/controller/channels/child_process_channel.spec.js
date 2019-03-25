@@ -3,6 +3,8 @@ const Event = require('../../../../../../src/controller/event');
 const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
 
+jest.mock('../../../../../../src/controller/channels/child_process');
+
 jest.mock('eventemitter2');
 
 jest.mock('axon-rpc', () => ({
@@ -58,18 +60,6 @@ describe('ChildProcessChannel Channel', () => {
 			params.actions,
 			params.options
 		);
-
-		resolveWhenAllSocketsBound =
-			childProcessChannel._resolveWhenAllSocketsBound;
-		rejectWhenAnySocketFailsToBind =
-			childProcessChannel._rejectWhenAnySocketFailsToBind;
-		rejectWhenTimeout = childProcessChannel._rejectWhenTimeout;
-		removeAllListeners = childProcessChannel._removeAllListeners;
-
-		childProcessChannel._resolveWhenAllSocketsBound = jest.fn();
-		childProcessChannel._rejectWhenAnySocketFailsToBind = jest.fn();
-		childProcessChannel._rejectWhenTimeout = jest.fn();
-		childProcessChannel._removeAllListeners = jest.fn();
 	});
 
 	describe('inheritance', () => {
@@ -117,7 +107,13 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#registerToBus', () => {
-		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
+		const spies = {};
+		beforeEach(() => {
+			spies.setupSockets = jest
+				.spyOn(childProcessChannel, 'setupSockets')
+				.mockResolvedValue();
+			childProcessChannel.registerToBus(socketsPath);
+		});
 
 		it('should connect pubSocket', async () => {
 			// Assert
@@ -156,17 +152,14 @@ describe('ChildProcessChannel Channel', () => {
 			);
 		});
 
-		it('should perform Promise.race with correct arguments', () => {
+		it('should call setupSockets', () => {
 			// Assert
-			expect(
-				childProcessChannel._rejectWhenAnySocketFailsToBind
-			).toHaveBeenCalled();
-			expect(
-				childProcessChannel._resolveWhenAllSocketsBound
-			).toHaveBeenCalled();
-			expect(childProcessChannel._rejectWhenTimeout).toHaveBeenCalled();
-			expect(childProcessChannel._removeAllListeners).toHaveBeenCalled();
+			expect(spies.setupSockets).toHaveBeenCalledTimes(1);
 		});
+	});
+
+	describe('#setupSockets', () => {
+		it.todo('stuff');
 	});
 
 	describe('#subscribe', () => {
