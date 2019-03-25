@@ -32,6 +32,7 @@ class Bus extends EventEmitter2 {
 		this.actions = {};
 		this.events = {};
 		this.channels = {};
+		this.rpcClients = {};
 	}
 
 	/**
@@ -122,6 +123,7 @@ class Bus extends EventEmitter2 {
 			const rpcSocket = axon.socket('req');
 			rpcSocket.connect(options.rpcSocketPath);
 			channel = new RPCClient(rpcSocket);
+			this.rpcClients[moduleAlias] = rpcSocket;
 		}
 
 		this.channels[moduleAlias] = {
@@ -154,6 +156,11 @@ class Bus extends EventEmitter2 {
 				delete this.actions[actionName];
 			}
 		});
+
+		const rpcSocket = this.rpcClients[moduleAlias];
+		if (rpcSocket && typeof rpcSocket.close === 'function') {
+			rpcSocket.close();
+		}
 
 		delete this.channels[moduleAlias];
 	}
