@@ -158,7 +158,7 @@ class Bus extends EventEmitter2 {
 		});
 
 		const rpcSocket = this.rpcClients[moduleAlias];
-		if (rpcSocket && typeof rpcSocket.close === 'function') {
+		if (rpcSocket) {
 			rpcSocket.close();
 		}
 
@@ -280,13 +280,13 @@ class Bus extends EventEmitter2 {
 	 * @returns {Promise<void>}
 	 */
 	async cleanup() {
-		if (this.pubSocket && typeof this.pubSocket.close === 'function') {
+		if (this.pubSocket) {
 			this.pubSocket.close();
 		}
-		if (this.subSocket && typeof this.subSocket.close === 'function') {
+		if (this.subSocket) {
 			this.subSocket.close();
 		}
-		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
+		if (this.rpcSocket) {
 			this.rpcSocket.close();
 		}
 	}

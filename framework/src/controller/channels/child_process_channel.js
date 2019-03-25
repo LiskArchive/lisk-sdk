@@ -139,16 +139,16 @@ class ChildProcessChannel extends BaseChannel {
 	 * @returns {Promise<void>}
 	 */
 	async cleanup() {
-		if (this.pubSocket && typeof this.pubSocket.close === 'function') {
+		if (this.pubSocket) {
 			this.pubSocket.close();
 		}
-		if (this.subSocket && typeof this.subSocket.close === 'function') {
+		if (this.subSocket) {
 			this.subSocket.close();
 		}
-		if (this.rpcSocket && typeof this.rpcSocket.close === 'function') {
+		if (this.rpcSocket) {
 			this.rpcSocket.close();
 		}
-		if (this.busRpcSocket && typeof this.busRpcSocket.close === 'function') {
+		if (this.busRpcSocket) {
 			this.busRpcSocket.close();
 		}
 	}
