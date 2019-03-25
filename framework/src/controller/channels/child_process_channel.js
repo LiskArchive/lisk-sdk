@@ -4,6 +4,7 @@ const { Server: RPCServer, Client: RPCClient } = require('axon-rpc');
 const Action = require('../action');
 const Event = require('../event');
 const BaseChannel = require('./base_channel');
+const { setupProcessHandlers } = require('./child_process');
 
 const SOCKET_TIMEOUT_TIME = 2000;
 
@@ -22,10 +23,7 @@ class ChildProcessChannel extends BaseChannel {
 		super(moduleAlias, events, actions, options);
 		this.localBus = new EventEmitter2();
 
-		process.once('SIGTERM', () => this.cleanup(1));
-		process.once('SIGINT', () => this.cleanup(1));
-		process.once('cleanup', (error, code) => this.cleanup(code, error));
-		process.once('exit', (error, code) => this.cleanup(code, error));
+		setupProcessHandlers(this);
 	}
 
 	async registerToBus(socketsPath) {
@@ -57,6 +55,10 @@ class ChildProcessChannel extends BaseChannel {
 			});
 		}
 
+		return this.setupSockets();
+	}
+
+	setupSockets() {
 		return Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
