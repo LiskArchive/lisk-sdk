@@ -214,8 +214,8 @@ class ChildProcessChannel extends BaseChannel {
 		if (this.pubSocket) {
 			promises.push(
 				new Promise((_, reject) => {
-					this.pubSocket.sock.once('error', () => {
-						reject();
+					this.pubSocket.sock.once('error', err => {
+						reject(err);
 					});
 				})
 			);
@@ -224,8 +224,8 @@ class ChildProcessChannel extends BaseChannel {
 		if (this.subSocket) {
 			promises.push(
 				new Promise((_, reject) => {
-					this.subSocket.sock.once('error', () => {
-						reject();
+					this.subSocket.sock.once('error', err => {
+						reject(err);
 					});
 				})
 			);
@@ -234,8 +234,8 @@ class ChildProcessChannel extends BaseChannel {
 		if (this.rpcSocket) {
 			promises.push(
 				new Promise((_, reject) => {
-					this.rpcSocket.once('error', () => {
-						reject();
+					this.rpcSocket.once('error', err => {
+						reject(err);
 					});
 				})
 			);
