@@ -1,4 +1,5 @@
 const { EventEmitter2 } = require('eventemitter2');
+const util = require('util');
 const axon = require('axon');
 const { Server: RPCServer, Client: RPCClient } = require('axon-rpc');
 const Action = require('../action');
@@ -33,6 +34,7 @@ class ChildProcessChannel extends BaseChannel {
 		this.busRpcSocket = axon.socket('req');
 		this.busRpcSocket.connect(socketsPath.rpc);
 		this.busRpcClient = new RPCClient(this.busRpcSocket);
+		this.busRpcClientCallPromisified = util.promisify(this.busRpcClient.call);
 
 		// Channel Publish Socket is only required if the module has events
 		if (this.eventsList.length > 0) {
@@ -122,15 +124,7 @@ class ChildProcessChannel extends BaseChannel {
 			return this.actions[action.name](action);
 		}
 
-		return new Promise((resolve, reject) => {
-			this.busRpcClient.call('invoke', action.serialize(), (err, data) => {
-				if (err) {
-					return reject(err);
-				}
-
-				return resolve(data);
-			});
-		});
+		return this.busRpcClientCallPromisified('invoke', action.serialize());
 	}
 
 	/**
