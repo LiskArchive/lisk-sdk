@@ -609,23 +609,6 @@ describe('blocks/verify', () => {
 	describe('__private.verifyPayload', () => {
 		let verifyPayload;
 
-		// const dummyBlock = {
-		// 	payloadLength: 2,
-		// 	numberOfTransactions: 2,
-		// 	payloadHash: '',
-		// 	totalAmount: 10,
-		// 	totalFee: 2,
-		// 	transactions: [],
-		// };
-
-		// const transactionOne = initTransaction.jsonRead(new Transaction({ type: 0 }));
-		// const transactionTwo = initTransaction.jsonRead(new Transaction({ type: 0 }));
-		// dummyBlock.transactions.push(transactionOne, transactionTwo);
-
-		// const payloadHash = crypto.createHash('sha256');
-		// dummyBlock.transactions.forEach(transaction => payloadHash.update(transaction.getBytes()));
-		// dummyBlock.payloadHash = payloadHash.digest().toString('hex');
-
 		const payloadHash = crypto.createHash('sha256');
 		const transactionOne = initTransaction.jsonRead(
 			new Transaction({ type: 0 })
