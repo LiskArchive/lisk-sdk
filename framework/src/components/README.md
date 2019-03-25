@@ -12,14 +12,15 @@ This component provides basic caching capabilities, generic enough for any modul
 
 ### Logger
 
-Logger is responsible for all application-level logging activity and logs everything in JSON format.
-This central logger component can be passed to any module, where it can be extended by adding module-specific fields.
+Logger is responsible for all application-level logging activity.
+The logger component can be passed to any module, where it can be extended by adding module-specific behaviour.
 
 ### Storage
 
-This component is responsible for all database activity in the system.
-The database component exposes an interface with specific features for getting or setting particular database entities.
-It will also expose a raw handler to the database object so that any module can extend it for its own use.
+The storage component is responsible for all database activity in the system.
+It exposes an interface with specific features for getting or setting particular database entities and a raw handler to the database object so that any module can extend it for its own use.
+
+Find more details about the storage component in the dedicated [LIP](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0011.md).
 
 ### System
 
