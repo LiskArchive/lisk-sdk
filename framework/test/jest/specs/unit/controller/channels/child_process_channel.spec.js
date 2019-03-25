@@ -1,23 +1,21 @@
-const axon = require('axon');
-const axonRpc = require('axon-rpc');
-
-axonRpc.Client = function() {
-	return {
-		call: jest.fn(),
-	};
-};
-axonRpc.Server = function() {
-	return {
-		expose: jest.fn(),
-	};
-};
-
 const EventEmitter2 = require('eventemitter2');
 const Event = require('../../../../../../src/controller/event');
 const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
 
 jest.mock('eventemitter2');
+
+jest.mock('axon-rpc', () => ({
+	Client: jest.fn(() => ({
+		call: jest.fn(),
+	})),
+	Server: jest.fn(() => ({
+		expose: jest.fn(),
+	})),
+}));
+
+jest.mock('axon');
+
 jest.mock('../../../../../../src/controller/event', () =>
 	jest.fn().mockImplementation(name => ({
 		name,
@@ -28,6 +26,7 @@ jest.mock('../../../../../../src/controller/event', () =>
 );
 
 describe('ChildProcessChannel Channel', () => {
+	// Arrange
 	const originalModuleAlias = 'moduleAlias';
 	const params = {
 		moduleAlias: originalModuleAlias,
@@ -53,27 +52,6 @@ describe('ChildProcessChannel Channel', () => {
 	let removeAllListeners;
 
 	beforeEach(() => {
-		axon.socket = jest.fn().mockReturnValue({
-			connect: jest.fn(),
-			close: jest.fn(),
-			on: jest.fn(),
-			once: jest.fn((event, callback) => {
-				callback();
-			}),
-			bind: jest.fn(),
-			emit: jest.fn(),
-			removeAllListeners: jest.fn(),
-			sock: {
-				once: jest.fn((event, callback) => {
-					callback();
-				}),
-				on: jest.fn((event, callback) => {
-					callback();
-				}),
-				removeAllListeners: jest.fn(),
-			},
-		});
-
 		childProcessChannel = new ChildProcessChannel(
 			params.moduleAlias,
 			params.events,
