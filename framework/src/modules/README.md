@@ -136,8 +136,7 @@ By default, modules will load in the same process as the controller.
 
 Communicates with modules which do not reside in the same process as the Controller.
 
-To load the modules as child processes, specify the following environment variable: `LISK_CHILD_PROCESS_MODULES=httpApi,chain`.
-seSocketChannel: true,
+To load a module in a child process, make sure you have `ipc` enabled in the config file and set the environment variable `LISK_CHILD_PROCESS_MODULES` with the module alias. Multiple modules can be defined by using commas like `LISK_CHILD_PROCESS_MODULES=httpApi,chain`.
 
 ## Module Life Cycle
 
