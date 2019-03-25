@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
+const { getByFilter, getCountByFilter } = require('../helpers/filter_peers');
 
 // Private Fields
 let channel;
@@ -68,22 +69,12 @@ PeersController.getPeers = async function(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await channel.invoke('chain:getPeers', {
-			parameters: filters,
-		});
-
-		const clonedData = _.cloneDeep(data);
-		const filteredData = clonedData.map(peer => {
-			const { updated, ...filtered } = peer;
-			return filtered;
-		});
-
-		const peersCount = await channel.invoke('chain:getPeersCountByFilter', {
-			parameters: _.cloneDeep(filters),
-		});
+		const peerList = await channel.invoke('network:getNetworkStatus', filters);
+		const peersByFilters = getByFilter(peerList, filters);
+		const peersCount = getCountByFilter(peerList, filters);
 
 		return next(null, {
-			data: filteredData,
+			data: peersByFilters,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
