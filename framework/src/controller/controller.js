@@ -242,7 +242,7 @@ class Controller {
 			await this.bus.unregisterChannel(moduleAlias);
 
 			// Reload the module
-			this._loadChildProcessModule(alias, Klass, options);
+			await this._loadChildProcessModule(alias, Klass, options);
 		});
 
 		return Promise.race([

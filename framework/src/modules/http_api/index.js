@@ -44,10 +44,10 @@ class HttpAPIModule extends BaseModule {
 		const isLiskReady = await channel.invoke('lisk:isLiskReady');
 
 		if (isLiskReady) {
-			this.httpApi.bootstrap();
+			await this.httpApi.bootstrap();
 		} else {
-			channel.once('lisk:ready', () => {
-				this.httpApi.bootstrap();
+			channel.once('lisk:ready', async () => {
+				await this.httpApi.bootstrap();
 			});
 		}
 	}
