@@ -124,6 +124,60 @@ describe('GET /api/votes', () => {
 			});
 		});
 
+		describe('with wrong input', () => {
+			it('using invalid field name should fail', async () => {
+				return votesEndpoint
+					.makeRequest(
+						{
+							whatever: accountFixtures.existingDelegate.address,
+						},
+						400
+					)
+					.then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
+			});
+
+			it('using empty valid parameter should fail', async () => {
+				return votesEndpoint
+					.makeRequest(
+						{
+							publicKey: '',
+						},
+						400
+					)
+					.then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
+			});
+
+			it('using partially invalid fields should fail', async () => {
+				return votesEndpoint
+					.makeRequest(
+						{
+							address: accountFixtures.existingDelegate.address,
+							limit: 'invalid',
+							offset: 'invalid',
+							sort: 'invalid',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+						expectSwaggerParamError(res, 'sort');
+					});
+			});
+		});
+
 		describe('publicKey', () => {
 			it('using no publicKey should fail', async () => {
 				return votesEndpoint.makeRequest({ publicKey: '' }, 400).then(res => {

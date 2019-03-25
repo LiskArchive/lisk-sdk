@@ -1,13 +1,29 @@
-module.exports = async (
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
+// There is an issue with promisify server.listen so used constructor
+const startServer = async (server, port, host) =>
+	new Promise((resolve, reject) => {
+		server.listen({ host, port }, err => (err ? reject(err) : resolve()));
+	});
+
+const listen = async (
 	{ components: { logger }, config },
 	{ httpServer, httpsServer }
 ) => {
-	// There is an issue with promisify server.listen so used constructor
-	const startServer = async (server, port, host) =>
-		new Promise((resolve, reject) => {
-			server.listen({ host, port }, err => (err ? reject(err) : resolve()));
-		});
-
 	httpServer.headersTimeout = config.api.options.limits.headersTimeout;
 	// Disconnect idle clients
 	httpServer.setTimeout(config.api.options.limits.serverSetTimeout);
@@ -26,7 +42,7 @@ module.exports = async (
 	if (config.api.ssl.enabled) {
 		// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 		httpsServer.headersTimeout = config.api.options.limits.headersTimeout;
-		httpsServer.setTimeout(config.api.options.limits.serverTimeout);
+		httpsServer.setTimeout(config.api.options.limits.serverSetTimeout);
 		httpsServer.on('timeout', socket => {
 			logger.info(
 				`Disconnecting idle socket: ${socket.remoteAddress}:${
@@ -48,4 +64,8 @@ module.exports = async (
 			}`
 		);
 	}
+};
+
+module.exports = {
+	listen,
 };

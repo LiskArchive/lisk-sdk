@@ -333,10 +333,6 @@ describe('delegates/api', () => {
 
 		beforeEach(() => {
 			channelStub.invoke.resolves(dummyDelegates);
-			channelStub.invoke.withArgs('chain:getSlotsHelper').resolves({
-				getSlotNumber: sinonSandbox.stub().returns(1),
-				calcRound: sinonSandbox.stub().returns(3004),
-			});
 			return __private.getForgers(filters);
 		});
 
