@@ -69,7 +69,7 @@ PeersController.getPeers = async function(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const peerList = await channel.invoke('network:getNetworkStatus', filters);
+		const peerList = await channel.invoke('network:getNetworkStatus');
 		const peersByFilters = getByFilter(peerList, filters);
 		const peersCount = getCountByFilter(peerList, filters);
 
