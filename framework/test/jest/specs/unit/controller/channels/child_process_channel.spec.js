@@ -264,6 +264,7 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#invoke', () => {
+		// @TODO rewrite the whole suite.
 		const actionName = 'firstAction';
 		const actionParams = ['param1', 'param2'];
 		const actionSerializationResult = 'serialized';
@@ -360,12 +361,13 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#cleanup', () => {
-		beforeEach(async () => {
+		it('should close the rpcSocket if rpcSocket is not undefined and it has been correctly initialized', async () => {
+			// Arrange
 			await childProcessChannel.registerToBus(socketsPath);
-			return childProcessChannel.cleanup();
-		});
 
-		it('should close the rpcSocket if rpcSocket is not undefined and it has been correctly initialized', () => {
+			// Act
+			await childProcessChannel.cleanup();
+
 			// Assert
 			expect(childProcessChannel.rpcSocket.close).toHaveBeenCalled();
 		});
