@@ -122,7 +122,7 @@ NodeController.getStatus = async (context, next) => {
 			}
 		);
 
-		const { height, broadhash } = library.channel.invoke(
+		const { height, broadhash } = await library.channel.invoke(
 			'lisk:getApplicationState'
 		);
 

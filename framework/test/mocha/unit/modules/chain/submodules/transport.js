@@ -175,7 +175,7 @@ describe('transport', () => {
 		busStub = {};
 		schemaStub = {};
 		channelStub = {
-			invoke: sinonSandbox.stub(),
+			invokeSync: sinonSandbox.stub(),
 			publish: sinonSandbox.stub(),
 		};
 		balancesSequenceStub = {
@@ -329,7 +329,7 @@ describe('transport', () => {
 						},
 					},
 					channel: {
-						invoke: sinonSandbox
+						invokeSync: sinonSandbox
 							.stub()
 							.withArgs('lisk:getApplicationState')
 							.returns({
@@ -1006,7 +1006,7 @@ describe('transport', () => {
 						httpPort: 8000,
 					},
 					channel: {
-						invoke: sinonSandbox.stub(),
+						invokeSync: sinonSandbox.stub(),
 						publish: sinonSandbox.stub(),
 					},
 					logic: {
@@ -1253,7 +1253,7 @@ describe('transport', () => {
 							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 						};
-						library.channel.invoke
+						library.channel.invokeSync
 							.withArgs('lisk:getApplicationState')
 							.returns({
 								broadhash:
@@ -1396,10 +1396,12 @@ describe('transport', () => {
 						enqueue: sinonSandbox.stub(),
 						broadcast: sinonSandbox.stub(),
 					};
-					library.channel.invoke.withArgs('lisk:getApplicationState').returns({
-						broadhash:
-							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-					});
+					library.channel.invokeSync
+						.withArgs('lisk:getApplicationState')
+						.returns({
+							broadhash:
+								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+						});
 					return transportInstance.onBroadcastBlock(block, true);
 				});
 
@@ -1847,9 +1849,11 @@ describe('transport', () => {
 				beforeEach(done => {
 					currentHeight = 12345;
 					req = {};
-					library.channel.invoke.withArgs('lisk:getApplicationState').returns({
-						height: currentHeight,
-					});
+					library.channel.invokeSync
+						.withArgs('lisk:getApplicationState')
+						.returns({
+							height: currentHeight,
+						});
 					transportInstance.shared.height(req, (err, res) => {
 						error = err;
 						result = res;
@@ -1881,7 +1885,7 @@ describe('transport', () => {
 					httpPort: 8000,
 				};
 				beforeEach(done => {
-					library.channel.invoke
+					library.channel.invokeSync
 						.withArgs('lisk:getApplicationState')
 						.returns(state);
 					req = {};

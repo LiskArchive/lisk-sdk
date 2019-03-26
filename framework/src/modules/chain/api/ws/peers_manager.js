@@ -64,7 +64,7 @@ PeersManager.prototype.add = function(peer) {
 		// If it's already open then peer.socket.connect() will do nothing.
 		peer.socket.connect();
 	} else {
-		const state = this.channel.invoke('lisk:getApplicationState');
+		const state = this.channel.invokeSync('lisk:getApplicationState');
 
 		// Create client WS connection to peer
 		connect(peer, this.logger, state);

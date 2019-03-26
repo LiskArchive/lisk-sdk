@@ -141,7 +141,7 @@ class Bus extends EventEmitter2 {
 	 *
 	 * @throws {Error} If action is not registered to bus.
 	 */
-	invoke(actionData) {
+	async invoke(actionData) {
 		const action = Action.deserialize(actionData);
 
 		if (!this.actions[action.key()]) {
@@ -154,6 +154,36 @@ class Bus extends EventEmitter2 {
 
 		if (this.channels[action.module].type === 'inMemory') {
 			return this.channels[action.module].channel.invoke(action);
+		}
+
+		return new Promise((resolve, reject) => {
+			this.channels[action.module].channel.call(
+				'invoke',
+				action.serialize(),
+				(err, data) => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve(data);
+				}
+			);
+		});
+	}
+
+	// TO REMOVE
+	invokeSync(actionData) {
+		const action = Action.deserialize(actionData);
+
+		if (!this.actions[action.key()]) {
+			throw new Error(`Action ${action.key()} is not registered to bus.`);
+		}
+
+		if (action.module === CONTROLLER_IDENTIFIER) {
+			return this.channels[CONTROLLER_IDENTIFIER].channel.invokeSync(action);
+		}
+
+		if (this.channels[action.module].type === 'inMemory') {
+			return this.channels[action.module].channel.invokeSync(action);
 		}
 
 		return new Promise((resolve, reject) => {

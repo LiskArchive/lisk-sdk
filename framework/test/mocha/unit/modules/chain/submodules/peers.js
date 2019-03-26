@@ -51,7 +51,7 @@ describe('peers', () => {
 		};
 
 		channelMock = {
-			invoke: sinonSandbox.stub(),
+			invokeSync: sinonSandbox.stub(),
 		};
 
 		PeersRewired = rewire(
@@ -96,7 +96,7 @@ describe('peers', () => {
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
 			};
-			return channelMock.invoke
+			return channelMock.invokeSync
 				.withArgs('lisk:getApplicationState')
 				.returns(status);
 		});
@@ -142,7 +142,7 @@ describe('peers', () => {
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
 			};
-			return channelMock.invoke
+			return channelMock.invokeSync
 				.withArgs('lisk:getApplicationState')
 				.returns(status);
 		});
@@ -600,14 +600,16 @@ describe('peers', () => {
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
 			};
-			channelMock.invoke.withArgs('lisk:getApplicationState').returns(status);
+			channelMock.invokeSync
+				.withArgs('lisk:getApplicationState')
+				.returns(status);
 			calculateConsensusResult = peers.calculateConsensus();
 			done();
 		});
 
 		afterEach(() => {
 			peersLogicMock.list.resetHistory();
-			return channelMock.invoke.resetHistory();
+			return channelMock.invokeSync.resetHistory();
 		});
 
 		it('should set self.consensus value', async () =>
@@ -654,7 +656,7 @@ describe('peers', () => {
 					const disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					channelMock.invoke.returns({
+					channelMock.invokeSync.returns({
 						broadhash: disconnectedPeer.broadhash,
 					});
 					done();
@@ -668,7 +670,7 @@ describe('peers', () => {
 
 	describe('acceptable', () => {
 		before(done => {
-			channelMock.invoke
+			channelMock.invokeSync
 				.withArgs('lisk:getApplicationState')
 				.returns({ nonce: NONCE });
 			process.env.NODE_ENV = 'DEV';

@@ -32,7 +32,7 @@ describe('PeersManager', () => {
 
 	beforeEach(done => {
 		channelMock = {
-			invoke: sinonSandbox
+			invokeSync: sinonSandbox
 				.stub()
 				.withArgs('lisk:getApplicationState')
 				.resolves({}),

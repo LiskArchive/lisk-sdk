@@ -92,7 +92,7 @@ class InMemoryChannel extends BaseChannel {
 	 * @param {array} params - Params associated with the action
 	 * @return {Promise<string>} Data returned by bus.
 	 */
-	invoke(actionName, params) {
+	async invoke(actionName, params) {
 		let action = null;
 
 		// Invoked by user module
@@ -112,6 +112,29 @@ class InMemoryChannel extends BaseChannel {
 		}
 
 		return this.bus.invoke(action.serialize());
+	}
+
+	// TO REMOVE
+	invokeSync(actionName, params) {
+		let action = null;
+
+		// Invoked by user module
+		if (typeof actionName === 'string') {
+			action = new Action(actionName, params, this.moduleAlias);
+
+			// Invoked by bus to preserve the source
+		} else if (typeof actionName === 'object') {
+			action = actionName;
+		}
+
+		if (
+			action.module === this.moduleAlias &&
+			typeof this.actions[action.name] === 'function'
+		) {
+			return this.actions[action.name](action);
+		}
+
+		return this.bus.invokeSync(action.serialize());
 	}
 }
 

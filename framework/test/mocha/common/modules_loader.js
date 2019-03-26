@@ -74,6 +74,7 @@ const modulesLoader = new function() {
 		}),
 		channel: {
 			invoke: sinonSandbox.stub(),
+			invokeSync: sinonSandbox.stub(),
 			publish: sinonSandbox.stub(),
 			suscribe: sinonSandbox.stub(),
 		},
@@ -89,9 +90,9 @@ const modulesLoader = new function() {
 		nonce: __testContext.nonce,
 	};
 
-	this.scope.channel.invoke
+	this.scope.channel.invokeSync
 		.withArgs('lisk:getApplicationState')
-		.resolves(state);
+		.returns(state);
 
 	/**
 	 * Initializes Logic class with params

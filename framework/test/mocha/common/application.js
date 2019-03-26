@@ -144,6 +144,7 @@ async function __init(sandbox, initScope) {
 				}),
 				channel: {
 					invoke: sinonSandbox.stub(),
+					invokeSync: sinonSandbox.stub(),
 					publish: sinonSandbox.stub(),
 					suscribe: sinonSandbox.stub(),
 				},
@@ -161,7 +162,9 @@ async function __init(sandbox, initScope) {
 			nonce: __testContext.nonce,
 		};
 
-		scope.channel.invoke.withArgs('lisk:getApplicationState').resolves(state);
+		scope.channel.invokeSync
+			.withArgs('lisk:getApplicationState')
+			.returns(state);
 
 		const cache = createCacheComponent(scope.config.redis, logger);
 

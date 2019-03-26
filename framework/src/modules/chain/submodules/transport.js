@@ -445,7 +445,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 		block.reward = block.reward.toNumber();
 	}
 
-	const { broadhash } = library.channel.invoke('lisk:getApplicationState');
+	const { broadhash } = library.channel.invokeSync('lisk:getApplicationState');
 
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
@@ -673,7 +673,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	height(req, cb) {
-		const { height } = library.channel.invoke('lisk:getApplicationState');
+		const { height } = library.channel.invokeSync('lisk:getApplicationState');
 		return setImmediate(cb, null, {
 			success: true,
 			height,
@@ -696,7 +696,7 @@ Transport.prototype.shared = {
 			version,
 			protocolVersion,
 			os,
-		} = library.channel.invoke('lisk:getApplicationState');
+		} = library.channel.invokeSync('lisk:getApplicationState');
 		return setImmediate(cb, null, {
 			success: true,
 			height,

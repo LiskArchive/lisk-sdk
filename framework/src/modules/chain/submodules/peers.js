@@ -476,7 +476,7 @@ __private.versionCompatible = function(version) {
 	if (!version) {
 		return false;
 	}
-	const { minVersion } = library.channel.invoke('lisk:getApplicationState');
+	const { minVersion } = library.channel.invokeSync('lisk:getApplicationState');
 	return semver.gte(version, minVersion);
 };
 
@@ -492,7 +492,7 @@ __private.protocolVersionCompatible = function(protocolVersionCandidate) {
 		return false;
 	}
 	const peerHard = parseInt(protocolVersionCandidate[0]);
-	const { protocolVersion } = library.channel.invoke(
+	const { protocolVersion } = library.channel.invokeSync(
 		'lisk:getApplicationState'
 	);
 	const myHard = parseInt(protocolVersion[0]);
@@ -517,7 +517,7 @@ Peers.prototype.calculateConsensus = function() {
 	const active = library.logic.peers
 		.list(true)
 		.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	const { broadhash } = library.channel.invoke('lisk:getApplicationState');
+	const { broadhash } = library.channel.invokeSync('lisk:getApplicationState');
 	const matched = active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
@@ -677,7 +677,7 @@ Peers.prototype.discover = function(cb) {
  * @todo Add description for the params
  */
 Peers.prototype.acceptable = function(peers) {
-	const { nonce } = library.channel.invoke('lisk:getApplicationState');
+	const { nonce } = library.channel.invokeSync('lisk:getApplicationState');
 	return _(peers)
 		.uniqWith(
 			(a, b) =>
@@ -710,7 +710,7 @@ Peers.prototype.acceptable = function(peers) {
  */
 Peers.prototype.list = function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const state = library.channel.invoke('lisk:getApplicationState');
+	const state = library.channel.invokeSync('lisk:getApplicationState');
 	const broadhash = options.broadhash || state.broadhash;
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
