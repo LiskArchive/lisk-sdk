@@ -2,9 +2,9 @@ const InMemoryChannel = require('../../../../src/controller/channels/in_memory_c
 const Bus = require('../../../../src/controller/bus');
 const Event = require('../../../../src/controller/event');
 
-const logger = jest.fn(() => ({
+const logger = {
 	info: jest.fn(),
-}));
+};
 
 const config = {
 	ipc: {
@@ -38,10 +38,11 @@ describe('InMemoryChannel', () => {
 	describe('after registering itself to the bus', () => {
 		let inMemoryChannelAlpha;
 		let inMemoryChannelBeta;
+		let bus;
 
 		beforeEach(async () => {
 			// Arrange
-			const bus = new Bus(
+			bus = new Bus(
 				{
 					wildcard: true,
 					delimiter: ':',
@@ -106,19 +107,32 @@ describe('InMemoryChannel', () => {
 				);
 			});
 
-			it('should throw error when trying to subscribe to an invalid event.', () => {
+			it('should be able to subscribe to an unregistered event.', async done => {
 				// Arrange
-				const invalidEventName = 'INVALID_EVENT_NAME';
+				const omegaEventName = 'omegaEventName';
+				const omegaAlias = 'omegaAlias';
+				const dummyData = '#DATA';
+				const inMemoryChannelOmega = new InMemoryChannel(
+					omegaAlias,
+					[omegaEventName],
+					{}
+				);
 
-				// Act && Assert
-				expect(() =>
-					inMemoryChannelAlpha.subscribe(
-						`${beta.moduleAlias}:${invalidEventName}`
-					)
-				).toThrow(
-					`Event name "${
-						beta.moduleAlias
-					}:${invalidEventName}" must be a valid name with module name.`
+				// Act
+				inMemoryChannelAlpha.subscribe(
+					`${omegaAlias}:${omegaEventName}`,
+					data => {
+						// Assert
+						expect(data).toBe(data);
+						done();
+					}
+				);
+
+				await inMemoryChannelOmega.registerToBus(bus);
+
+				inMemoryChannelOmega.publish(
+					`${omegaAlias}:${omegaEventName}`,
+					dummyData
 				);
 			});
 		});
@@ -175,7 +189,7 @@ describe('InMemoryChannel', () => {
 					inMemoryChannelAlpha.invoke(
 						`${beta.moduleAlias}:${invalidActionName}`
 					)
-				).rejects.toBe(
+				).rejects.toThrow(
 					`Action name "${
 						beta.moduleAlias
 					}:${invalidActionName}" must be a valid name with module name.`
