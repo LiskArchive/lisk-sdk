@@ -1,6 +1,6 @@
 const Event = require('../event');
 const Action = require('../action');
-const { INTERNAL_EVENTS } = require('./base/constants');
+const { INTERNAL_EVENTS, eventWithModuleNameReg } = require('./base/constants');
 
 const _eventsList = new WeakMap();
 const _actionsList = new WeakMap();
@@ -91,7 +91,7 @@ class BaseChannel {
 	}
 
 	isValidEventName(name, throwError = true) {
-		const result = /[A-Za-z0-9]+:[A-Za-z0-9]+/.test(name);
+		const result = eventWithModuleNameReg.test(name);
 		if (throwError && !result) {
 			throw new Error(
 				`[${this.moduleAlias.alias}] Invalid event name ${name}.`
@@ -101,7 +101,7 @@ class BaseChannel {
 	}
 
 	isValidActionName(name, throwError = true) {
-		const result = /[A-Za-z0-9]+:[A-Za-z0-9]+/.test(name);
+		const result = eventWithModuleNameReg.test(name);
 		if (throwError && !result) {
 			throw new Error(
 				`[${this.moduleAlias.alias}] Invalid action name ${name}.`

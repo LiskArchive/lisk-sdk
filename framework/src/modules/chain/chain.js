@@ -229,8 +229,14 @@ module.exports = class Chain {
 			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
 			loaderLoaded: async () => this.scope.modules.loader.loaded(),
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),
-			getForgersKeyPairs: async () =>
-				this.scope.modules.delegates.getForgersKeyPairs(),
+			getForgersPublicKeys: async () => {
+				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
+				const publicKeys = {};
+				Object.keys(keypairs).forEach(key => {
+					publicKeys[key] = { publicKey: keypairs[key].publicKey };
+				});
+				return publicKeys;
+			},
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool

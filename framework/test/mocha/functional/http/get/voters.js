@@ -118,6 +118,56 @@ describe('GET /api/voters', () => {
 			});
 		});
 
+		describe('with wrong input', () => {
+			it('using invalid field name should fail', async () => {
+				return votersEndpoint
+					.makeRequest(
+						{
+							whatever: accountFixtures.existingDelegate.address,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'whatever');
+					});
+			});
+
+			it('using empty valid parameter should fail', async () => {
+				return votersEndpoint
+					.makeRequest(
+						{
+							publicKey: '',
+						},
+						400
+					)
+					.then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
+			});
+
+			it('using partially invalid fields should fail', async () => {
+				return votersEndpoint
+					.makeRequest(
+						{
+							address: accountFixtures.existingDelegate.address,
+							limit: 'invalid',
+							offset: 'invalid',
+							sort: 'invalid',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+						expectSwaggerParamError(res, 'sort');
+					});
+			});
+		});
+
 		describe('publicKey', () => {
 			it('using no publicKey should fail', async () => {
 				return votersEndpoint.makeRequest({ publicKey: '' }, 400).then(res => {
@@ -390,7 +440,9 @@ describe('GET /api/voters', () => {
 									validVotedDelegate.delegateName
 								);
 								expect(
-									_.map(res.body.data.voters, 'balance').sort()
+									_.map(res.body.data.voters, 'balance').sort((a, b) =>
+										new Bignum(a).minus(b).toNumber()
+									)
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
 					});
@@ -409,9 +461,10 @@ describe('GET /api/voters', () => {
 								expect(res.body.data.username).to.equal(
 									validVotedDelegate.delegateName
 								);
+
 								expect(
 									_.map(res.body.data.voters, 'balance')
-										.sort()
+										.sort((a, b) => new Bignum(a).minus(b).toNumber())
 										.reverse()
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});

@@ -40,8 +40,10 @@ class BaseEntity {
 		this.defaultOptions = {
 			limit: 10,
 			offset: 0,
+			sort: false,
 			extended: false,
 		};
+		this.sortingFields = [];
 	}
 
 	/**
@@ -156,7 +158,7 @@ class BaseEntity {
 		// TODO: The dynamic generated json-schema should be implemented for validation
 
 		this.fields[name] = new Field(name, type, options, writer);
-
+		this.sortingFields.push(name);
 		this.filters = {
 			...this.filters,
 			...this.fields[name].getFilters(),
@@ -329,7 +331,7 @@ class BaseEntity {
 			);
 		}
 
-		if (!isSortOptionValid(options.sort, Object.keys(this.fields))) {
+		if (!isSortOptionValid(options.sort, this.sortingFields)) {
 			throw new NonSupportedOptionError('Invalid sort option.', options.sort);
 		}
 
