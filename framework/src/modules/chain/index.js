@@ -86,15 +86,10 @@ module.exports = class ChainModule extends BaseModule {
 
 	async load(channel) {
 		this.chain = new Chain(channel, this.options);
-		const isLiskReady = await channel.invoke('lisk:isLiskReady');
 
-		if (isLiskReady) {
+		channel.once('lisk:ready', async () => {
 			await this.chain.bootstrap();
-		} else {
-			channel.once('lisk:ready', async () => {
-				await this.chain.bootstrap();
-			});
-		}
+		});
 	}
 
 	async unload() {
