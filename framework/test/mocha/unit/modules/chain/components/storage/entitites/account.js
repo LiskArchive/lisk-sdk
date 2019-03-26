@@ -31,13 +31,9 @@ const defaultCreateValues = {
 	publicKey: null,
 	secondPublicKey: null,
 	secondSignature: 0,
-	u_secondSignature: 0,
 	username: null,
-	u_username: null,
 	isDelegate: false,
-	u_isDelegate: false,
 	balance: '0',
-	u_balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
 	rank: null,
@@ -45,18 +41,13 @@ const defaultCreateValues = {
 	rewards: '0',
 	vote: '0',
 	nameExist: false,
-	u_nameExist: false,
 	multiMin: 0,
-	u_multiMin: 0,
 	multiLifetime: 0,
-	u_multiLifetime: 0,
 };
 
 const dependentFieldsTableMap = {
 	membersPublicKeys: 'mem_accounts2multisignatures',
-	u_membersPublicKeys: 'mem_accounts2u_multisignatures',
 	votedDelegatesPublicKeys: 'mem_accounts2delegates',
-	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
 };
 
 describe('ChainAccount', () => {
@@ -84,7 +75,6 @@ describe('ChainAccount', () => {
 			'update',
 			'updateOne',
 			'delete',
-			'resetUnconfirmedState',
 			'resetMemTables',
 			'increaseFieldBy',
 			'decreaseFieldBy',
@@ -267,18 +257,9 @@ describe('ChainAccount', () => {
 				fees: '0',
 				rewards: '0',
 				vote: '0',
-				u_username: null,
-				u_isDelegate: false,
-				u_secondSignature: false,
-				u_nameExist: false,
-				u_multiMin: 0,
-				u_multiLifetime: 0,
-				u_balance: '0',
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
-				u_votedDelegatesPublicKeys: null,
 				membersPublicKeys: null,
-				u_membersPublicKeys: null,
 			};
 			expect(accountFromDB).to.be.eql(expectedObject);
 		});
@@ -592,7 +573,6 @@ describe('ChainAccount', () => {
 
 			// Since DB trigger protects from updating username only if it was null before
 			delete account1.username;
-			delete account1.u_username;
 
 			await AccountEntity.create(account1);
 			await AccountEntity.upsert(filters, {
@@ -939,129 +919,6 @@ describe('ChainAccount', () => {
 		);
 	});
 
-	describe('resetUnconfirmedState()', () => {
-		it('should use the correct SQL to fetch the count', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			await AccountEntity.resetUnconfirmedState();
-
-			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.resetUnconfirmedState
-			);
-		});
-
-		it('should pass no params to the SQL file', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			await AccountEntity.resetUnconfirmedState();
-
-			return expect(adapter.executeFile.args[1]).to.eql(undefined);
-		});
-
-		it('should execute only one query', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			await AccountEntity.resetUnconfirmedState();
-
-			expect(adapter.executeFile.calledOnce).to.be.true;
-		});
-
-		it('should throw error if something wrong in the SQL execution', async () => {
-			sinonSandbox.stub(adapter, 'executeFile').rejects();
-
-			expect(AccountEntity.resetUnconfirmedState()).to.be.rejected;
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_isDelegate', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "isDelegate" = 1, "u_isDelegate" = 0'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "isDelegate" <> "u_isDelegate"'
-			);
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_secondSignature', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "secondSignature" = 1, "u_secondSignature" = 0'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "secondSignature" <> "u_secondSignature"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_username', async () => {
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "username" <> "u_username"'
-			);
-
-			return expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_balance', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "balance" = 123, "u_balance" = 124'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "balance" <> "u_balance"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_delegates', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "delegates" = \'Alpha\', "u_delegates" = \'Beta\' '
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "delegates" <> "u_delegates"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_multisignatures', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "multisignatures" = \'Alpha\', "u_multisignatures" = \'Beta\' '
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "multisignatures" <> "u_multisignatures"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_multimin', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "multimin" = 1, "u_multimin" = 0'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "multimin" <> "u_multimin"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all db.accounts which have different unconfirmed state for u_multilifetime', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "multilifetime" = 1, "u_multilifetime" = 0'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "multilifetime" <> "u_multilifetime"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-	});
-
 	describe('resetMemTables()', () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
@@ -1098,26 +955,10 @@ describe('ChainAccount', () => {
 			expect(result[0].count).to.equal(0);
 		});
 
-		it('should empty the table "mem_accounts2u_delegates"', async () => {
-			await AccountEntity.resetMemTables();
-			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts2u_delegates'
-			);
-			expect(result[0].count).to.equal(0);
-		});
-
 		it('should empty the table "mem_accounts2multisignatures"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(
 				'SELECT COUNT(*)::int AS count FROM mem_accounts2multisignatures'
-			);
-			expect(result[0].count).to.equal(0);
-		});
-
-		it('should empty the table "mem_accounts2u_multisignatures"', async () => {
-			await AccountEntity.resetMemTables();
-			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts2u_multisignatures'
 			);
 			expect(result[0].count).to.equal(0);
 		});
@@ -1290,9 +1131,7 @@ describe('ChainAccount', () => {
 
 		[
 			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
 			'membersPublicKeys',
-			'u_membersPublicKeys',
 		].forEach(dependentTable => {
 			describe(`${dependentTable}`, () => {
 				it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
@@ -1360,9 +1199,7 @@ describe('ChainAccount', () => {
 
 		[
 			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
 			'membersPublicKeys',
-			'u_membersPublicKeys',
 		].forEach(dependentTable => {
 			it(`should remove dependent account from ${dependentTable}`, async () => {
 				const accounts = await AccountEntity.get(
