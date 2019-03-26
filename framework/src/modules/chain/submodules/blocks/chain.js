@@ -19,6 +19,7 @@ const async = require('async');
 const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots.js');
+const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -337,7 +338,8 @@ __private.applyConfirmedStep = async function(block, tx) {
 		return;
 	}
 	const nonInertTransactions = block.transactions.filter(
-		transaction => !global.exceptions.inertTransactions.includes(transaction.id)
+		transaction =>
+			!checkTransactionExceptions.checkIfTransactionIsInert(transaction)
 	);
 
 	const {
@@ -348,12 +350,12 @@ __private.applyConfirmedStep = async function(block, tx) {
 		tx
 	);
 
-	const unappliedTransactionResponse = transactionsResponses.find(
+	const unappliableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
-	if (unappliedTransactionResponse) {
-		throw unappliedTransactionResponse.errors;
+	if (unappliableTransactionsResponse.length > 0) {
+		throw unappliableTransactionsResponse[0].errors;
 	}
 
 	await stateStore.account.finalize();
