@@ -437,4 +437,10 @@ const validateModuleSpec = moduleSpec => {
 	return true;
 };
 
-module.exports = { validator, loadSchema, validate, validateModuleSpec, ZSchema };
+module.exports = {
+	validator,
+	loadSchema,
+	validate,
+	validateModuleSpec,
+	ZSchema,
+};

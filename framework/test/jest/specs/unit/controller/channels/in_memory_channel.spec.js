@@ -14,10 +14,10 @@ describe('InMemoryChannel Channel', () => {
 			action2: jest.fn(),
 			action3: jest.fn(),
 		},
-		bus: new Bus(),
 		options: {},
 	};
 	let inMemoryChannel = null;
+	const bus = new Bus();
 
 	beforeEach(() => {
 		// Act
@@ -81,10 +81,10 @@ describe('InMemoryChannel Channel', () => {
 	describe('#registerToBus', () => {
 		it('should call `bus.registerChannel` method with given arguments', async () => {
 			// Act
-			await inMemoryChannel.registerToBus(params.bus);
+			await inMemoryChannel.registerToBus(bus);
 
 			// Assert
-			expect(inMemoryChannel.bus).toBe(params.bus);
+			expect(inMemoryChannel.bus).toBe(bus);
 			expect(inMemoryChannel.bus.registerChannel).toHaveBeenCalledWith(
 				inMemoryChannel.moduleAlias,
 				inMemoryChannel.eventsList.map(event => event.name),
