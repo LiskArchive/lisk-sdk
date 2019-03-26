@@ -123,7 +123,7 @@ describe('InMemoryChannel', () => {
 					`${omegaAlias}:${omegaEventName}`,
 					data => {
 						// Assert
-						expect(data).toBe(dummyData);
+						expect(Event.deserialize(data).data).toBe(dummyData);
 						done();
 					}
 				);
