@@ -131,11 +131,10 @@ const checkDuplicateSignatures = (transactionResponse, transaction) => {
 		return false;
 	}
 
-	if (!transactionResponse.errors.length > 1) {
-		return false;
-	}
-
-	if (transactionResponse.errors[0].dataPath !== '.senderPublicKey') {
+	// in case of signatures, we have more than 1 error
+	if (
+		!transactionResponse.errors.every(error => error.dataPath === '.signatures')
+	) {
 		return false;
 	}
 
