@@ -60,6 +60,22 @@ function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 	return block;
 }
 
+function createValidBlockWithSlotOffset(library, transactions, slotOffset, cb) {
+	const lastBlock = library.modules.blocks.lastBlock.get();
+	const slot = slots.getSlotNumber() - slotOffset;
+	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	getDelegateForSlot(library, slot, (err, delegateKey) => {
+		const block = createBlock(
+			library,
+			transactions,
+			slots.getSlotTime(slot),
+			keypairs[delegateKey],
+			lastBlock
+		);
+		cb(err, block);
+	});
+}
+
 function createValidBlock(library, transactions, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
@@ -367,6 +383,7 @@ module.exports = {
 	addTransaction,
 	addTransactionToUnconfirmedQueue,
 	createValidBlock,
+	createValidBlockWithSlotOffset,
 	addTransactionsAndForge,
 	getBlocks,
 	getAccountFromDb,
