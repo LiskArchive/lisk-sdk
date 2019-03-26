@@ -1,9 +1,11 @@
 const { EventEmitter2 } = require('eventemitter2');
 const axon = require('pm2-axon');
 const { Server: RPCServer, Client: RPCClient } = require('pm2-axon-rpc');
+const util = require('util');
 const Action = require('../action');
 const Event = require('../event');
 const BaseChannel = require('./base_channel');
+const { setupProcessHandlers } = require('./child_process');
 
 const SOCKET_TIMEOUT_TIME = 2000;
 
@@ -22,10 +24,7 @@ class ChildProcessChannel extends BaseChannel {
 		super(moduleAlias, events, actions, options);
 		this.localBus = new EventEmitter2();
 
-		process.once('SIGTERM', () => this.cleanup(1));
-		process.once('SIGINT', () => this.cleanup(1));
-		process.once('cleanup', (error, code) => this.cleanup(code, error));
-		process.once('exit', (error, code) => this.cleanup(code, error));
+		setupProcessHandlers(this);
 	}
 
 	async registerToBus(socketsPath) {
@@ -35,6 +34,7 @@ class ChildProcessChannel extends BaseChannel {
 		this.busRpcSocket = axon.socket('req');
 		this.busRpcSocket.connect(socketsPath.rpc);
 		this.busRpcClient = new RPCClient(this.busRpcSocket);
+		this.busRpcClientCallPromisified = util.promisify(this.busRpcClient.call);
 
 		// Channel Publish Socket is only required if the module has events
 		if (this.eventsList.length > 0) {
@@ -59,6 +59,10 @@ class ChildProcessChannel extends BaseChannel {
 			});
 		}
 
+		return this.setupSockets();
+	}
+
+	setupSockets() {
 		return Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
@@ -229,8 +233,8 @@ class ChildProcessChannel extends BaseChannel {
 		if (this.pubSocket) {
 			promises.push(
 				new Promise((_, reject) => {
-					this.pubSocket.sock.once('error', () => {
-						reject();
+					this.pubSocket.sock.once('error', err => {
+						reject(err);
 					});
 				})
 			);
@@ -239,8 +243,8 @@ class ChildProcessChannel extends BaseChannel {
 		if (this.subSocket) {
 			promises.push(
 				new Promise((_, reject) => {
-					this.subSocket.sock.once('error', () => {
-						reject();
+					this.subSocket.sock.once('error', err => {
+						reject(err);
 					});
 				})
 			);
@@ -249,8 +253,8 @@ class ChildProcessChannel extends BaseChannel {
 		if (this.rpcSocket) {
 			promises.push(
 				new Promise((_, reject) => {
-					this.rpcSocket.once('error', () => {
-						reject();
+					this.rpcSocket.once('error', err => {
+						reject(err);
 					});
 				})
 			);
@@ -275,6 +279,10 @@ class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
+	/**
+	 * Remove all listeners from all sockets
+	 * @private
+	 */
 	_removeAllListeners() {
 		if (this.subSocket) {
 			this.subSocket.sock.removeAllListeners('connect');
