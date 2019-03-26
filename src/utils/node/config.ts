@@ -60,7 +60,10 @@ export const getDefaultConfig = (installDir: string): NodeConfig => {
 	return defaultConfig;
 };
 
-export const getNetworkConfig = (installDir: string, network: string): NodeConfig => {
+export const getNetworkConfig = (
+	installDir: string,
+	network: string,
+): NodeConfig => {
 	const networkConfigPath = `${installDir}/${configPath(network)}`;
 	const networkConfig = getConfig(networkConfigPath) as NodeConfig;
 

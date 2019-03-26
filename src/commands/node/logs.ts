@@ -18,43 +18,63 @@ import * as childProcess from 'child_process';
 import BaseCommand from '../../base';
 import { NETWORK } from '../../utils/constants';
 import { flags as commonFlags } from '../../utils/flags';
-import { getNetworkConfig, NodeConfig } from '../../utils/node/config';
+import { getNetworkConfig } from '../../utils/node/config';
 import { describeApplication, Pm2Env } from '../../utils/node/pm2';
 
 interface Flags {
-  readonly name: string;
+	readonly name: string;
 }
 
 export default class LogsCommand extends BaseCommand {
-  static description = 'Show log of a Lisk Core instance';
+	static description = 'Show log of a Lisk Core instance';
 
-  static examples = ['node:logs --name=testnet-1.6'];
+	static examples = ['node:logs --name=testnet-1.6'];
 
-  static flags = {
-    ...BaseCommand.flags,
-    name: flagParser.string({
-      ...commonFlags.name,
-      default: NETWORK.MAINNET,
-    }),
-  };
+	static flags = {
+		...BaseCommand.flags,
+		name: flagParser.string({
+			...commonFlags.name,
+			default: NETWORK.MAINNET,
+		}),
+	};
 
-  async run(): Promise<void> {
-    const { flags } = this.parse(LogsCommand);
-    const { name } = flags as Flags;
+	async run(): Promise<void> {
+		const { flags } = this.parse(LogsCommand);
+		const { name } = flags as Flags;
 
-    const { pm2_env } = await describeApplication(name);
-    const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
-    const { logFileName }: NodeConfig = getNetworkConfig(installDir, network);
-    const fName = `${installDir}/${logFileName}`;
+		const { pm2_env } = await describeApplication(name);
+		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
+		const { logFileName } = getNetworkConfig(installDir, network);
+		const fName = `${installDir}/${logFileName}`;
 
-    const { stderr, stdout } = childProcess.spawn('tail', ['-f', fName]);
+		const tail = childProcess.spawn('tail', ['-f', fName]);
+		const { stderr, stdout } = tail;
 
-    stdout.on('data', (data) => {
-      this.log(data.toString('utf-8').replace(/\n/, ''));
-    });
+		stdout.on('data', data => {
+			this.log(data.toString('utf-8').replace(/\n/, ''));
+		});
 
-    stderr.on('error', (err) => {
-      this.log(err.message);
-    });
-  }
+		stderr.on('data', data => {
+			this.log(data.message);
+		});
+
+		tail.on('close', code => {
+			this.log(`Child process closing code: ${code}`);
+			tail.removeAllListeners();
+		});
+
+		tail.on('error', code => {
+			this.log(`Child process errored with code: ${code}`);
+			tail.removeAllListeners();
+		});
+
+		tail.on('disconnect', () => {
+			this.log('Child process disconnected');
+			tail.removeAllListeners();
+		});
+
+		process.on('SIGINT', code => {
+			this.log(`Process terminated with code: ${code}`);
+		});
+	}
 }
