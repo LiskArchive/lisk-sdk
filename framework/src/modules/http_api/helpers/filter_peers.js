@@ -11,9 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
 const _ = require('lodash');
 
 /**
@@ -24,53 +21,53 @@ const _ = require('lodash');
  * @todo Add description of the function
  */
 
-const sortPeers = function(field, asc) {
-	return function(a, b) {
-		// Match the default JavaScript sort order.
-		if (a[field] === b[field]) {
-			return 0;
-		}
-		// Ascending
-		if (asc) {
-			// Undefined last
-			if (a[field] === undefined) {
-				return 1;
-			}
-			if (b[field] === undefined) {
-				return -1;
-			}
-			// Null second last
-			if (a[field] === null) {
-				return 1;
-			}
-			if (b[field] === null) {
-				return -1;
-			}
-			if (a[field] < b[field]) {
-				return -1;
-			}
-			return 1;
-		}
-		// Descending
-		// Undefined first
+const sortPeers = (field, asc) => (a, b) => {
+	// Match the default JavaScript sort order.
+	if (a[field] === b[field]) {
+		return 0;
+	}
+	// Ascending
+	if (asc) {
+		// Undefined last
 		if (a[field] === undefined) {
-			return -1;
+			return 1;
 		}
 		if (b[field] === undefined) {
-			return 1;
-		}
-		// Null second
-		if (a[field] === null) {
 			return -1;
 		}
-		if (b[field] === null) {
+		// Null second last
+		if (a[field] === null) {
 			return 1;
+		}
+		if (b[field] === null) {
+			return -1;
 		}
 		if (a[field] < b[field]) {
-			return 1;
+			return -1;
 		}
+
+		return 1;
+	}
+	// Descending
+	// Undefined first
+	if (a[field] === undefined) {
 		return -1;
-	};
+	}
+	if (b[field] === undefined) {
+		return 1;
+	}
+	// Null second
+	if (a[field] === null) {
+		return -1;
+	}
+	if (b[field] === null) {
+		return 1;
+	}
+	if (a[field] < b[field]) {
+		return 1;
+	}
+
+	return -1;
 };
 
 /**
@@ -80,7 +77,7 @@ const sortPeers = function(field, asc) {
  * @returns {int} count
  * @todo Add description for the params
  */
-const getByFilter = function(peers, filter) {
+const getByFilter = (peers, filter) => {
 	const allowedFields = [
 		'ip',
 		'wsPort',
@@ -145,11 +142,10 @@ const getByFilter = function(peers, filter) {
  * @returns {int} count
  * @todo Add description for the params
  */
-const getCountByFilter = function(peers, filter) {
-	filter.normalized = false;
-	delete filter.limit;
-	delete filter.offset;
-	const peersWithoutLimitOffset = getByFilter(peers, filter);
+const getCountByFilter = (peers, filter) => {
+	const { limit, offset, ...filterWithoutLimitOffset } = filter;
+	const peersWithoutLimitOffset = getByFilter(peers, filterWithoutLimitOffset);
+
 	return peersWithoutLimitOffset.length;
 };
 
