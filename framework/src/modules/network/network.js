@@ -1,5 +1,3 @@
-const _ = require('lodash');
-
 const {
 	P2P,
 	EVENT_CLOSE_OUTBOUND,
@@ -191,17 +189,25 @@ module.exports = class Network {
 					newPeers,
 					triedPeers,
 				} = this.p2p.getNetworkStatus();
-				const uniquerPeersList = _.uniqBy(
-					[...connectedPeers, ...newPeers, ...triedPeers],
-					'ipAddress'
-				);
-				const processedPeerList = uniquerPeersList.map(peer => {
-					const { ipAddress, ...peerWithoutIp } = peer;
 
-					return { ip: ipAddress, ...peerWithoutIp };
-				});
+				const uniquerPeersList = [
+					...connectedPeers,
+					...newPeers,
+					...triedPeers,
+				].reduce((uniquePeers, peer) => {
+					const found = uniquePeers.find(
+						findPeer => findPeer.ip === peer.ipAddress
+					);
 
-				return processedPeerList;
+					if (!found) {
+						const { ipAddress, ...peerWithoutIp } = peer;
+
+						return [...uniquePeers, { ip: ipAddress, ...peerWithoutIp }];
+					}
+					return uniquePeers;
+				}, []);
+
+				return uniquerPeersList;
 			},
 			applyPenalty: action => this.p2p.applyPenalty(action.params),
 		};
