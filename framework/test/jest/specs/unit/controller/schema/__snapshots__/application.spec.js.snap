@@ -19,6 +19,14 @@ Object {
         },
         "type": "object",
       },
+      "ipc": Object {
+        "properties": Object {
+          "enabled": Object {
+            "type": "boolean",
+          },
+        },
+        "type": "object",
+      },
     },
     "type": "object",
   },

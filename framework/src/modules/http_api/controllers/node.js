@@ -293,6 +293,12 @@ async function _getForgingStatus(publicKey) {
 	const forgersPublicKeys = {};
 
 	Object.keys(keyPairs).forEach(key => {
+		// Convert publicKey to buffer when received as object (ie.: { type: 'Buffer', data: [] })
+		// TODO: consider always returning as string
+		if (keyPairs[key].publicKey.type === 'Buffer') {
+			keyPairs[key].publicKey = Buffer.from(keyPairs[key].publicKey);
+		}
+
 		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
 	});
 

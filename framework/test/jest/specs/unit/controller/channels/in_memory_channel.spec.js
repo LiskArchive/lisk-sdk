@@ -1,10 +1,10 @@
-const EventEmitterChannel = require('../../../../../../src/controller/channels/event_emitter');
-const BaseChannel = require('../../../../../../src/controller/channels/base');
+const InMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
+const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
 const Bus = require('../../../../../../src/controller/bus');
 
 jest.mock('../../../../../../src/controller/bus');
 
-describe('EventEmitterChannel Channel', () => {
+describe('InMemoryChannel Channel', () => {
 	// Arrange
 	const params = {
 		moduleAlias: 'moduleAlias',
@@ -14,18 +14,17 @@ describe('EventEmitterChannel Channel', () => {
 			action2: jest.fn(),
 			action3: jest.fn(),
 		},
-		bus: new Bus(),
 		options: {},
 	};
-	let eventEmitterChannel = null;
+	let inMemoryChannel = null;
+	const bus = new Bus();
 
 	beforeEach(() => {
 		// Act
-		eventEmitterChannel = new EventEmitterChannel(
+		inMemoryChannel = new InMemoryChannel(
 			params.moduleAlias,
 			params.events,
 			params.actions,
-			params.bus,
 			params.options
 		);
 	});
@@ -33,12 +32,12 @@ describe('EventEmitterChannel Channel', () => {
 	describe('inheritance', () => {
 		it('should be extended from BaseChannel class', () => {
 			// Assert
-			expect(EventEmitterChannel.prototype).toBeInstanceOf(BaseChannel);
+			expect(InMemoryChannel.prototype).toBeInstanceOf(BaseChannel);
 		});
 
 		it('should call BaseChannel class constructor with arguments', () => {
 			// Arrange
-			let IsolatedEventEmitterChannel;
+			let IsolatedInMemoryChannel;
 			let IsolatedBaseChannel;
 
 			/**
@@ -48,17 +47,16 @@ describe('EventEmitterChannel Channel', () => {
 			 */
 			jest.isolateModules(() => {
 				// no need to restore mock since, `restoreMocks` option was set to true in unit test config file.
-				jest.doMock('../../../../../../src/controller/channels/base');
-				IsolatedEventEmitterChannel = require('../../../../../../src/controller/channels/event_emitter');
-				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base');
+				jest.doMock('../../../../../../src/controller/channels/base_channel');
+				IsolatedInMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
+				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base_channel');
 			});
 
 			// Act
-			eventEmitterChannel = new IsolatedEventEmitterChannel(
+			inMemoryChannel = new IsolatedInMemoryChannel(
 				params.moduleAlias,
 				params.events,
 				params.actions,
-				params.bus,
 				params.options
 			);
 
@@ -75,21 +73,23 @@ describe('EventEmitterChannel Channel', () => {
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(eventEmitterChannel.bus).toBe(params.bus);
+			expect(inMemoryChannel).toHaveProperty('moduleAlias');
+			expect(inMemoryChannel).toHaveProperty('options');
 		});
 	});
 
 	describe('#registerToBus', () => {
 		it('should call `bus.registerChannel` method with given arguments', async () => {
 			// Act
-			await eventEmitterChannel.registerToBus();
+			await inMemoryChannel.registerToBus(bus);
 
 			// Assert
-			expect(eventEmitterChannel.bus.registerChannel).toHaveBeenCalledWith(
-				eventEmitterChannel.moduleAlias,
-				eventEmitterChannel.eventsList.map(event => event.name),
-				eventEmitterChannel.actionsList.map(action => action.name),
-				{}
+			expect(inMemoryChannel.bus).toBe(bus);
+			expect(inMemoryChannel.bus.registerChannel).toHaveBeenCalledWith(
+				inMemoryChannel.moduleAlias,
+				inMemoryChannel.eventsList.map(event => event.name),
+				inMemoryChannel.actionsList.map(action => action.name),
+				{ type: 'inMemory', channel: inMemoryChannel }
 			);
 		});
 	});
@@ -97,7 +97,7 @@ describe('EventEmitterChannel Channel', () => {
 	describe('#subscribe', () => {
 		it('should throw TypeError when eventName was not provided', () => {
 			// Assert
-			expect(eventEmitterChannel.subscribe).toThrow(TypeError);
+			expect(inMemoryChannel.subscribe).toThrow(TypeError);
 		});
 
 		it.todo('write integration test to check if event is being listened');
@@ -106,7 +106,7 @@ describe('EventEmitterChannel Channel', () => {
 	describe('#publish', () => {
 		it('should throw TypeError when eventName was not provided', () => {
 			// Assert
-			expect(eventEmitterChannel.publish).toThrow(
+			expect(inMemoryChannel.publish).toThrow(
 				'Event name "undefined" must be a valid name with module name.'
 			);
 		});
@@ -117,7 +117,7 @@ describe('EventEmitterChannel Channel', () => {
 	describe('#invoke', () => {
 		it('should throw TypeError when action name was not provided', () => {
 			// Assert
-			expect(eventEmitterChannel.invoke()).rejects.toBeInstanceOf(TypeError);
+			expect(inMemoryChannel.invoke()).rejects.toBeInstanceOf(TypeError);
 		});
 	});
 });
