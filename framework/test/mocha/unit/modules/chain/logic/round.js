@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -96,6 +96,7 @@ describe('round', () => {
 			round = new Round(scope, task);
 			done();
 		});
+		sinonSandbox.reset();
 	});
 
 	afterEach(async () => {
@@ -233,6 +234,10 @@ describe('round', () => {
 				return round.mergeBlockGenerator();
 			});
 
+			afterEach(async () => {
+				round.scope.modules.accounts.mergeAccountAndGet.reset();
+			});
+
 			it('should call modules.accounts.mergeAccountAndGet with proper params', async () =>
 				expect(
 					round.scope.modules.accounts.mergeAccountAndGet
@@ -321,6 +326,10 @@ describe('round', () => {
 			done();
 		});
 
+		afterEach(async () => {
+			stub.reset();
+		});
+
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
 		it('query should be called with proper args', async () =>
@@ -370,6 +379,11 @@ describe('round', () => {
 				await res;
 			});
 
+			afterEach(async () => {
+				getVotes_stub.reset();
+				updateVotes_stub.reset();
+			});
+
 			it('should return promise', async () =>
 				expect(isPromise(res)).to.be.true);
 
@@ -416,6 +430,11 @@ describe('round', () => {
 				res = round.updateVotes();
 			});
 
+			afterEach(async () => {
+				getVotes_stub.reset();
+				updateVotes_stub.reset();
+			});
+
 			it('should return promise', async () =>
 				expect(isPromise(res)).to.be.true);
 
@@ -435,6 +454,10 @@ describe('round', () => {
 			stub = storageStubs.Round.delete.resolves('success');
 			round = new Round(scope, task);
 			res = round.flushRound();
+		});
+
+		afterEach(async () => {
+			stub.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
@@ -459,6 +482,10 @@ describe('round', () => {
 			done();
 		});
 
+		afterEach(async () => {
+			stub.reset();
+		});
+
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
 		it('query should be called with proper args', async () =>
@@ -477,6 +504,10 @@ describe('round', () => {
 			stub.resolves('success');
 			res = round.restoreRoundSnapshot();
 			done();
+		});
+
+		afterEach(async () => {
+			stub.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
@@ -499,6 +530,10 @@ describe('round', () => {
 			done();
 		});
 
+		afterEach(async () => {
+			stub.reset();
+		});
+
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
 
 		it('query should be called with no args', async () =>
@@ -518,6 +553,11 @@ describe('round', () => {
 				storageStubs.Round.checkSnapshotAvailability;
 			stubs.countRoundSnapshot = storageStubs.Round.countRoundSnapshot;
 			done();
+		});
+
+		afterEach(async () => {
+			stubs.checkSnapshotAvailability.reset();
+			stubs.countRoundSnapshot.reset();
 		});
 
 		it('should return promise', async () => {
@@ -578,6 +618,10 @@ describe('round', () => {
 			round = new Round(scope, task);
 			res = round.deleteRoundRewards();
 			done();
+		});
+
+		afterEach(async () => {
+			stub.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
@@ -647,13 +691,11 @@ describe('round', () => {
 			forward.forEach(response => {
 				if (results[response.publicKey]) {
 					results[response.publicKey].balance += response.balance || 0;
-					results[response.publicKey].u_balance += response.u_balance || 0;
 					results[response.publicKey].rewards += response.rewards || 0;
 					results[response.publicKey].fees += response.fees || 0;
 				} else {
 					results[response.publicKey] = {
 						balance: response.balance || 0,
-						u_balance: response.u_balance || 0,
 						rewards: response.rewards || 0,
 						fees: response.fees || 0,
 					};
@@ -662,13 +704,11 @@ describe('round', () => {
 			backwards.forEach(response => {
 				if (results[response.publicKey]) {
 					results[response.publicKey].balance += response.balance || 0;
-					results[response.publicKey].u_balance += response.u_balance || 0;
 					results[response.publicKey].rewards += response.rewards || 0;
 					results[response.publicKey].fees += response.fees || 0;
 				} else {
 					results[response.publicKey] = {
 						balance: response.balance || 0,
-						u_balance: response.u_balance || 0,
 						rewards: response.rewards || 0,
 						fees: response.fees || 0,
 					};
@@ -734,7 +774,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -798,7 +837,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -830,11 +868,6 @@ describe('round', () => {
 					it('balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
-						}));
-
-					it('u_balance should sum to 0', async () =>
-						_.each(result, response => {
-							expect(response.u_balance).to.equal(0);
 						}));
 
 					it('fees should sum to 0', async () =>
@@ -897,7 +930,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -923,7 +955,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
-							u_balance: remainingFees,
 							round: scope.round,
 							fees: remainingFees,
 						};
@@ -988,7 +1019,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1014,7 +1044,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
-							u_balance: -remainingFees,
 							round: scope.round,
 							fees: -remainingFees,
 						};
@@ -1045,11 +1074,6 @@ describe('round', () => {
 					it('balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
-						}));
-
-					it('u_balance should sum to 0', async () =>
-						_.each(result, response => {
-							expect(response.u_balance).to.equal(0);
 						}));
 
 					it('fees should sum to 0', async () =>
@@ -1122,7 +1146,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1154,7 +1177,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1186,7 +1208,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1275,7 +1296,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1307,7 +1327,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1339,7 +1358,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1371,11 +1389,6 @@ describe('round', () => {
 					it('balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
-						}));
-
-					it('u_balance should sum to 0', async () =>
-						_.each(result, response => {
-							expect(response.u_balance).to.equal(0);
 						}));
 
 					it('fees should sum to 0', async () =>
@@ -1447,7 +1460,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1479,7 +1491,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1511,7 +1522,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
-							u_balance: balancePerDelegate,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1537,7 +1547,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
-							u_balance: remainingFees,
 							round: scope.round,
 							fees: remainingFees,
 						};
@@ -1628,7 +1637,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1660,7 +1668,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1692,7 +1699,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
-							u_balance: -balancePerDelegate,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1718,7 +1724,6 @@ describe('round', () => {
 						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
-							u_balance: -remainingFees,
 							round: scope.round,
 							fees: -remainingFees,
 						};
@@ -1749,11 +1754,6 @@ describe('round', () => {
 					it('balance should sum to 0', async () =>
 						_.each(result, response => {
 							expect(response.balance).to.equal(0);
-						}));
-
-					it('u_balance should sum to 0', async () =>
-						_.each(result, response => {
-							expect(response.u_balance).to.equal(0);
 						}));
 
 					it('fees should sum to 0', async () =>
@@ -1820,6 +1820,15 @@ describe('round', () => {
 			round = new Round(scope, task);
 			res = round.land();
 			await res;
+		});
+
+		afterEach(async () => {
+			flush_stub.reset();
+			increaseFieldBy_stub.reset();
+			decreaseFieldBy_stub.reset();
+			getVotes_stub.reset();
+			syncDelegatesRanks_stub.reset();
+			round.scope.modules.accounts.mergeAccountAndGet.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
@@ -1903,6 +1912,19 @@ describe('round', () => {
 			round = new Round(scope, task);
 			res = round.backwardLand();
 			await res;
+		});
+
+		afterEach(async () => {
+			increaseFieldBy_stub.reset();
+			decreaseFieldBy_stub.reset();
+			getVotes_stub.reset();
+			restoreRoundSnapshot_stub.reset();
+			restoreVotesSnapshot_stub.reset();
+			checkSnapshotAvailability_stub.reset();
+			syncDelegatesRanks_stub.reset();
+			deleteRoundRewards_stub.reset();
+			flush_stub.reset();
+			round.scope.modules.accounts.mergeAccountAndGet.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);

@@ -1,6 +1,5 @@
 const assert = require('assert');
-
-const eventWithModuleNameReg = /^([a-zA-Z][a-zA-Z0-9]*)((?::[a-zA-Z][a-zA-Z0-9]*)+)$/;
+const { eventWithModuleNameReg } = require('./channels/base/constants');
 
 /**
  * An event class which instance will be received by every event listener
@@ -14,7 +13,7 @@ class Event {
 	/**
 	 * Create Event object.
 	 *
-	 * @param {string} name - Can be simple event or be combination of module:event
+	 * @param {string} name - Combination of module:event
 	 * @param {string|Object} [data] - Data associated with the event
 	 */
 	constructor(name, data = null) {
@@ -22,11 +21,10 @@ class Event {
 			eventWithModuleNameReg.test(name),
 			`Event name "${name}" must be a valid name with module name.`
 		);
-
+		this.data = data;
 		[, this.module, this.name] = eventWithModuleNameReg.exec(name);
 		// Remove the first prefixed ':' symbol
 		this.name = this.name.substring(1);
-		this.data = data;
 	}
 
 	/**

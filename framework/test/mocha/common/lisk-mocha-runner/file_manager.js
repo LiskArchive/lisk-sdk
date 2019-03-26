@@ -22,6 +22,7 @@ const testTypesMap = {
 	'functional:ws': 'framework/test/mocha/functional/ws/',
 	'functional:get': 'framework/test/mocha/functional/http/get/',
 	'functional:post': 'framework/test/mocha/functional/http/post/',
+	'functional:put': 'framework/test/mocha/functional/http/put/',
 	functional: 'framework/test/mocha/functional/',
 	network: 'framework/test/mocha/network/',
 };

@@ -32,7 +32,6 @@ describe('blocks/process', () => {
 	let dummyBlock;
 	let dummyCommonBlock;
 	let blockStub;
-	let transactionStub;
 	let peersStub;
 	let schemaStub;
 	let sequenceStub;
@@ -107,11 +106,6 @@ describe('blocks/process', () => {
 			unban: sinonSandbox.stub(),
 		};
 
-		transactionStub = {
-			ready: sinonSandbox.stub(),
-			verify: sinonSandbox.stub(),
-		};
-
 		loggerStub = {
 			trace: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
@@ -132,7 +126,6 @@ describe('blocks/process', () => {
 			loggerStub,
 			blockStub,
 			peersStub,
-			transactionStub,
 			schemaStub,
 			storageStub,
 			sequenceStub,
@@ -248,7 +241,6 @@ describe('blocks/process', () => {
 			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.logic.block).to.eql(blockStub);
 			expect(library.logic.peers).to.eql(peersStub);
-			return expect(library.logic.transaction).to.eql(transactionStub);
 		});
 
 		it('should call library.logger.trace with "Blocks->Process: Submodule initialized."', async () =>
@@ -1750,10 +1742,12 @@ describe('blocks/process', () => {
 
 					describe('when transactions verification fails', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.resolves([
-								{ id: 1, status: 0, errors: [] },
-								{ id: 2, status: 0, errors: [] },
-							])
+							modules.processTransactions.verifyTransactions.resolves({
+								transactionsResponses: [
+									{ id: 1, status: 0, errors: [] },
+									{ id: 2, status: 0, errors: [] },
+								],
+							})
 						);
 
 						it('should generate block without transactions', done => {
@@ -1774,10 +1768,12 @@ describe('blocks/process', () => {
 
 					describe('when transactions verification succeeds', () => {
 						beforeEach(async () => {
-							modules.processTransactions.verifyTransactions.resolves([
-								{ id: 1, status: 1, errors: [] },
-								{ id: 2, status: 1, errors: [] },
-							]);
+							modules.processTransactions.verifyTransactions.resolves({
+								transactionsResponses: [
+									{ id: 1, status: 1, errors: [] },
+									{ id: 2, status: 1, errors: [] },
+								],
+							});
 						});
 
 						it('should generate block with transactions', done => {
@@ -1798,9 +1794,9 @@ describe('blocks/process', () => {
 
 					describe('when transactions pending', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.resolves([
-								{ id: 1, status: 2, errors: [] },
-							])
+							modules.processTransactions.verifyTransactions.resolves({
+								transactionsResponses: [{ id: 1, status: 2, errors: [] }],
+							})
 						);
 
 						it('should generate block without pending transactions', done => {
@@ -1822,10 +1818,12 @@ describe('blocks/process', () => {
 
 				describe('library.logic.block.create', () => {
 					beforeEach(async () => {
-						modules.processTransactions.verifyTransactions.resolves([
-							{ id: 1, status: 1, errors: [] },
-							{ id: 2, status: 1, errors: [] },
-						]);
+						modules.processTransactions.verifyTransactions.resolves({
+							transactionsResponses: [
+								{ id: 1, status: 1, errors: [] },
+								{ id: 2, status: 1, errors: [] },
+							],
+						});
 					});
 
 					describe('when fails', () => {

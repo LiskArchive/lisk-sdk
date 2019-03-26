@@ -230,8 +230,10 @@ class Transaction extends BaseEntity {
 			condition: '"transferData" LIKE ${data_like}',
 		});
 
-		this.addFilter('dapp_name', filterTypes.CUSTOM, {
-			condition:
+		this.addField('dapp_name', 'string', {
+			fieldName: "asset->'dapp'->>'name'",
+			filter: filterTypes.CUSTOM,
+			filterCondition:
 				'asset @> \'{ "dapp": { "name": "${dapp_name:value}" } }\'::jsonb',
 		});
 
@@ -286,6 +288,7 @@ class Transaction extends BaseEntity {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	count(filters, _options = {}, tx) {
+		this.validateFilters(filters);
 		filters = Transaction._sanitizeFilters(filters);
 
 		const mergedFilters = this.mergeFilters(filters);
@@ -375,6 +378,8 @@ class Transaction extends BaseEntity {
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
 		filters = Transaction._sanitizeFilters(filters);
+		this.validateFilters(filters);
+		this.validateOptions(options);
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);

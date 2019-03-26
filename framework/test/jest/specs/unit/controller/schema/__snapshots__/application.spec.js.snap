@@ -19,6 +19,14 @@ Object {
         },
         "type": "object",
       },
+      "ipc": Object {
+        "properties": Object {
+          "enabled": Object {
+            "type": "boolean",
+          },
+        },
+        "type": "object",
+      },
     },
     "type": "object",
   },
@@ -113,9 +121,14 @@ Object {
     "properties": Object {
       "consoleLogLevel": Object {
         "enum": Array [
-          "info",
-          "debug",
           "trace",
+          "debug",
+          "log",
+          "info",
+          "warn",
+          "error",
+          "fatal",
+          "none",
         ],
         "type": "string",
       },
@@ -124,9 +137,14 @@ Object {
       },
       "fileLogLevel": Object {
         "enum": Array [
-          "info",
-          "debug",
           "trace",
+          "debug",
+          "log",
+          "info",
+          "warn",
+          "error",
+          "fatal",
+          "none",
         ],
         "type": "string",
       },

@@ -7,6 +7,10 @@ Object {
     "framework/src/controller/**",
   ],
   "coverageDirectory": ".coverage/unit",
+  "coverageReporters": Array [
+    "lcov",
+    "cobertura",
+  ],
   "resetModules": true,
   "restoreMocks": true,
   "rootDir": "../../../../../",

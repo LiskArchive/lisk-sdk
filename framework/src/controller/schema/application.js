@@ -155,11 +155,29 @@ module.exports = {
 			},
 			fileLogLevel: {
 				type: 'string',
-				enum: ['info', 'debug', 'trace'],
+				enum: [
+					'trace',
+					'debug',
+					'log',
+					'info',
+					'warn',
+					'error',
+					'fatal',
+					'none',
+				],
 			},
 			consoleLogLevel: {
 				type: 'string',
-				enum: ['info', 'debug', 'trace'],
+				enum: [
+					'trace',
+					'debug',
+					'log',
+					'info',
+					'warn',
+					'error',
+					'fatal',
+					'none',
+				],
 			},
 			echo: {
 				type: 'string',
@@ -171,6 +189,14 @@ module.exports = {
 		id: '#/app/config',
 		type: 'object',
 		properties: {
+			ipc: {
+				type: 'object',
+				properties: {
+					enabled: {
+						type: 'boolean',
+					},
+				},
+			},
 			components: {
 				type: 'object',
 				properties: {

@@ -15,10 +15,13 @@
 'use strict';
 
 const rewire = require('rewire');
+const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
+const { Transaction } = require('../../../../../fixtures/transactions');
 
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
 );
+const initTransaction = new InitTransaction();
 
 describe('blocks/chain', () => {
 	let __private;
@@ -29,7 +32,7 @@ describe('blocks/chain', () => {
 	let storageStub;
 	let loggerStub;
 	let blockStub;
-	let transactionStub;
+	let initTransactionStub;
 	let busStub;
 	let balancesSequenceStub;
 	let genesisBlockStub;
@@ -40,28 +43,30 @@ describe('blocks/chain', () => {
 		height: 1,
 		transactions: [],
 	};
-	const blockWithUndefinedTransactions = {
-		id: 1,
-		height: 1,
-		transactions: undefined,
-	};
+
+	const transactionsForBlock = [
+		new Transaction({ type: 3 }),
+		new Transaction({ type: 2 }),
+		new Transaction({ type: 1 }),
+	];
+
 	const blockWithTransactions = {
 		id: 3,
 		height: 3,
-		transactions: [
-			{ id: 5, type: 3, senderPublicKey: 'a', amount: '1000000', fee: '10000' },
-			{ id: 6, type: 2, senderPublicKey: 'b', amount: '1000000', fee: '10000' },
-			{ id: 7, type: 1, senderPublicKey: 'c', amount: '1000000', fee: '10000' },
-		],
+		transactions: transactionsForBlock.map(transaction => initTransaction.jsonRead(transaction)),
 	};
+
+
+	const transactionsForGenesisBlock = [
+		new Transaction({ type: 3 }),
+		new Transaction({ type: 2 }),
+		new Transaction({ type: 1 }),
+	];
+
 	const genesisBlockWithTransactions = {
 		id: 1,
 		height: 1,
-		transactions: [
-			{ id: 5, type: 3, senderPublicKey: 'a', amount: '1000000', fee: '10000' },
-			{ id: 6, type: 2, senderPublicKey: 'b', amount: '1000000', fee: '10000' },
-			{ id: 7, type: 1, senderPublicKey: 'c', amount: '1000000', fee: '10000' },
-		],
+		transactions: transactionsForGenesisBlock.map(transaction => initTransaction.jsonRead(transaction)),
 	};
 	const blockReduced = { id: 3, height: 3 };
 
@@ -97,9 +102,8 @@ describe('blocks/chain', () => {
 			message: sinonSandbox.stub(),
 		};
 
-		transactionStub = {
-			afterSave: sinonSandbox.stub().callsArgWith(1, null, true),
-			undoUnconfirmed: sinonSandbox.stub(),
+		initTransactionStub = {
+			jsonRead: sinonSandbox.stub(),
 		};
 
 		balancesSequenceStub = {
@@ -118,7 +122,7 @@ describe('blocks/chain', () => {
 		blocksChainModule = new BlocksChain(
 			loggerStub,
 			blockStub,
-			transactionStub,
+			initTransactionStub,
 			storageStub,
 			genesisBlockStub,
 			busStub,
@@ -169,6 +173,8 @@ describe('blocks/chain', () => {
 			undoUnconfirmed: sinonSandbox.stub(),
 			undoUnconfirmedList: sinonSandbox.stub(),
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
+			onConfirmedTransactions: sinonSandbox.stub(),
+			onDeletedTransactions: sinonSandbox.stub(),
 		};
 
 		const componentsSystemStub = {
@@ -186,6 +192,20 @@ describe('blocks/chain', () => {
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
 				transport: modulesTransportStub,
+				processTransactions: {
+					applyTransactions: sinonSandbox.stub().resolves(
+						{
+							stateStore: {
+								account: {
+									finalize: sinonSandbox.stub().resolves(),
+								},
+								round: {
+									setRoundForData: sinonSandbox.stub().resolves(),
+									finalize: sinonSandbox.stub().resolves(),
+								},
+							},
+						}),
+				},
 			},
 		};
 
@@ -207,7 +227,7 @@ describe('blocks/chain', () => {
 			expect(library.bus).to.eql(busStub);
 			expect(library.balancesSequence).to.eql(balancesSequenceStub);
 			expect(library.logic.block).to.eql(blockStub);
-			return expect(library.logic.transaction).to.eql(transactionStub);
+			return expect(library.logic.initTransaction).to.eql(initTransactionStub);
 		});
 
 		it('should call library.logger.trace with "Blocks->Chain: Submodule initialized."', async () =>
@@ -271,7 +291,7 @@ describe('blocks/chain', () => {
 
 					it('should call a callback with error', done => {
 						blocksChainModule.saveGenesisBlock(err => {
-							expect(err).to.equal('saveBlock-ERR');
+							expect(err).to.equal('Blocks#saveGenesisBlock error');
 							done();
 						});
 					});
@@ -282,9 +302,9 @@ describe('blocks/chain', () => {
 						blocksChainModule.saveBlock.callsArgWith(1, null, true)
 					);
 
-					it('should call a callback with no error', done => {
+					it('should call a callback with  error', done => {
 						blocksChainModule.saveGenesisBlock(cb => {
-							expect(cb).to.be.null;
+							expect(cb).to.equal('Blocks#saveGenesisBlock error');
 							done();
 						});
 					});
@@ -416,10 +436,10 @@ describe('blocks/chain', () => {
 
 	describe('__private.afterSave', () => {
 		it('should call afterSave for all transactions', done => {
-			__private.afterSave(blockWithTransactions, async () => {
-				expect(library.logic.transaction.afterSave.callCount).to.equal(3);
-				done();
-			});
+			const spy = sinonSandbox.spy();
+			__private.afterSave(blockWithTransactions, spy);
+			expect(spy.calledOnce).to.be.true;
+			done();
 		});
 	});
 
@@ -514,102 +534,28 @@ describe('blocks/chain', () => {
 
 		beforeEach(done => {
 			modules.rounds.tick.callsArgWith(1, null, true);
-			applyTransactionTemp = __private.applyTransaction;
-			__private.applyTransaction = sinonSandbox.stub();
+			applyTransactionTemp = __private.applyTransactions;
+			__private.applyTransactions = sinonSandbox.stub();
 			done();
 		});
 
 		afterEach(done => {
-			__private.applyTransaction = applyTransactionTemp;
+			__private.applyTransactions = applyTransactionTemp;
 			done();
 		});
 
-		describe('when block.transactions is empty', () => {
-			it('modules.rouds.tick should call a callback', done => {
-				blocksChainModule.applyGenesisBlock(
-					blockWithEmptyTransactions,
-					async () => {
-						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
-							.true;
-						expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-						expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
-							blockWithEmptyTransactions
-						);
-						expect(modules.rounds.tick.args[0][0]).to.deep.equal(
-							blockWithEmptyTransactions
-						);
-						done();
-					}
-				);
-			});
-		});
-
 		describe('when block.transactions is not empty', () => {
-			describe('when modules.accounts.setAccountAndGet fails', () => {
-				beforeEach(() => {
-					process.emit = sinonSandbox.stub();
-					return modules.accounts.setAccountAndGet.callsArgWith(
-						1,
-						'setAccountAndGet-ERR',
-						true
-					);
-				});
-
-				it('should call process.exit with 0', done => {
-					blocksChainModule.applyGenesisBlock(blockWithTransactions, result => {
-						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
-							.true;
-						expect(process.emit).to.have.been.calledOnce;
-						expect(process.emit).to.have.been.calledWith(
-							'cleanup',
-							'setAccountAndGet-ERR'
-						);
-						expect(result.message).to.equal('setAccountAndGet-ERR');
-						done();
-					});
-				});
-			});
-
 			describe('when modules.accounts.setAccountAndGet succeeds', () => {
-				beforeEach(() =>
-					modules.accounts.setAccountAndGet.callsArgWith(1, null, true)
-				);
-
-				describe('when __private.applyTransaction fails', () => {
+				describe('when __private.applyTransactions succeeds', () => {
 					beforeEach(() =>
-						__private.applyTransaction.callsArgWith(
-							3,
-							'applyTransaction-ERR',
-							null
-						)
-					);
-
-					it('should call a callback with proper error message', done => {
-						blocksChainModule.applyGenesisBlock(
-							blockWithTransactions,
-							result => {
-								expect(
-									modules.blocks.utils.getBlockProgressLogger.callCount
-								).to.equal(1);
-								expect(result).to.equal('applyTransaction-ERR');
-								done();
-							}
-						);
-					});
-				});
-
-				describe('when __private.applyTransaction succeeds', () => {
-					beforeEach(() =>
-						__private.applyTransaction.callsArgWith(3, null, true)
+						__private.applyTransactions.callsArgWith(1, null, true)
 					);
 
 					it('modules.rouds.tick should call a callback', done => {
 						blocksChainModule.applyGenesisBlock(
 							blockWithTransactions,
 							async () => {
-								expect(modules.blocks.utils.getBlockProgressLogger.calledOnce)
-									.to.be.true;
-								expect(__private.applyTransaction.callCount).to.equal(3);
+								expect(__private.applyTransactions.callCount).to.equal(1);
 								expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
 								expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
 									blockWithTransactions
@@ -626,243 +572,21 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('__private.applyTransaction', () => {
-		describe('when modules.transactions.applyUnconfirmed fails', () => {
-			beforeEach(() =>
-				modules.transactions.applyUnconfirmed.callsArgWith(
-					2,
-					'applyUnconfirmed-ERR',
-					null
-				)
-			);
-
-			it('should call a callback with error', done => {
-				__private.applyTransaction(
-					blockWithTransactions,
-					{ id: 1, type: 1 },
-					'a1',
-					err => {
-						expect(err.message).to.equal('applyUnconfirmed-ERR');
-						expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
-						expect(err.block).to.deep.equal(blockWithTransactions);
-						done();
-					}
-				);
-			});
-		});
-
-		describe('when modules.transactions.applyUnconfirmed succeeds', () => {
-			beforeEach(() =>
-				modules.transactions.applyUnconfirmed.callsArgWith(2, null, true)
-			);
-
-			describe('when modules.transactions.applyConfirmed fails', () => {
-				beforeEach(() =>
-					modules.transactions.applyConfirmed.callsArgWith(3, 'apply-ERR', null)
-				);
-
-				it('should call a callback with error', done => {
-					__private.applyTransaction(
-						blockWithTransactions,
-						{ id: 1, type: 1 },
-						'a1',
-						err => {
-							expect(err.message).to.equal(
-								'Failed to apply transaction: 1 to confirmed state of account:'
-							);
-							expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
-							expect(err.block).to.deep.equal(blockWithTransactions);
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when modules.transactions.applyConfirmed succeeds', () => {
-				beforeEach(() =>
-					modules.transactions.applyConfirmed.callsArgWith(3, null, true)
-				);
-
-				it('should call a callback with no error', done => {
-					__private.applyTransaction(
-						blockWithTransactions,
-						{ id: 1, type: 1 },
-						'a1',
-						async () => {
-							expect(modules.transactions.applyUnconfirmed.calledOnce).to.be
-								.true;
-							expect(modules.transactions.applyConfirmed.calledOnce).to.be.true;
-							done();
-						}
-					);
-				});
-			});
-		});
-	});
-
-	describe('__private.undoUnconfirmedListStep', () => {
-		describe('when modules.transactions.undoUnconfirmedList fails', () => {
-			beforeEach(() =>
-				modules.transactions.undoUnconfirmedList.callsArgWith(
-					0,
-					'undoUnconfirmedList-ERR',
-					null
-				)
-			);
-
-			it('should call a callback with error', done => {
-				__private.undoUnconfirmedListStep(err => {
-					expect(err).to.equal('Failed to undo unconfirmed list');
-					expect(loggerStub.error.args[0][0]).to.be.equal(
-						'Failed to undo unconfirmed list'
-					);
-					expect(loggerStub.error.args[0][1]).to.be.equal(
-						'undoUnconfirmedList-ERR'
-					);
-					done();
-				});
-			});
-		});
-
-		describe('when modules.transactions.undoUnconfirmedList succeeds', () => {
-			beforeEach(() =>
-				modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true)
-			);
-			it('should call a callback with no error', done => {
-				__private.undoUnconfirmedListStep(err => {
-					expect(err).to.be.undefined;
-					done();
-				});
-			});
-		});
-	});
 
 	describe('__private.applyConfirmedStep', () => {
-		describe('when block transaction is undefined', () => {
-			it('should return rejected promise with error', done => {
-				__private
-					.applyConfirmedStep(
-						blockWithUndefinedTransactions,
-						storageStub.entities.Block.begin
-					)
-					.catch(err => {
-						expect(err).instanceOf(Error);
-						expect(err.message).to.equal(
-							'expecting an array or an iterable object but got [object Null]'
-						);
-						done();
-					});
-			});
-		});
+		/* eslint-disable mocha/no-pending-tests */
+		it('should return when block.transactions includes no transactions');
 
-		describe('when block transaction is empty', () => {
-			it('should return resolved promise with no error', done => {
-				__private
-					.applyConfirmedStep(
-						blockWithEmptyTransactions,
-						storageStub.entities.Block.begin
-					)
-					.then(resolved => {
-						expect(resolved).to.be.an('array').that.is.empty;
-						done();
-					});
-			});
-		});
+		it('should call modules.processTransactions.undoTransactions');
 
-		describe('when block.transaction is not empty', () => {
-			describe('when modules.accounts.getAccount fails', () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
-				);
+		it('should throw error when errors exist in unappliedTransactionResponse');
 
-				it('should return rejected promise with error', done => {
-					__private
-						.applyConfirmedStep(
-							blockWithTransactions,
-							storageStub.entities.Block.begin
-						)
-						.catch(err => {
-							expect(err).instanceOf(Error);
-							expect(err.message).to.equal(
-								'Failed to get account for applying transaction to confirmed state: 6 - getAccount-ERR'
-							);
-							expect(modules.accounts.getAccount.callCount).to.equal(1);
-							expect(modules.transactions.applyConfirmed.callCount).to.equal(0);
-							expect(loggerStub.error.args[0][0]).to.equal(
-								'Failed to get account for applying transaction to confirmed state: 6 - getAccount-ERR'
-							);
-							expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-							expect(loggerStub.error.args[1][1]).to.deep.equal(
-								blockWithTransactions.transactions[0]
-							);
-							done();
-						});
-				});
-			});
+		it('should call stateStore.account.finalize');
 
-			describe('when modules.accounts.getAccount succeeds', () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, null, 'sender1')
-				);
+		it('should call stateStore.round.setRoundForData with correct parameters');
 
-				describe('when library.logic.transaction.apply fails', () => {
-					beforeEach(() =>
-						modules.transactions.applyConfirmed.callsArgWith(
-							3,
-							'apply-ERR',
-							null
-						)
-					);
-
-					it('should return rejected promise with error', done => {
-						__private
-							.applyConfirmedStep(
-								blockWithTransactions,
-								storageStub.entities.Block.begin
-							)
-							.catch(err => {
-								expect(err).instanceOf(Error);
-								expect(err.message).to.equal(
-									'Failed to apply transaction: 6 to confirmed state of account - apply-ERR'
-								);
-								expect(modules.accounts.getAccount.callCount).to.equal(1);
-								expect(modules.transactions.applyConfirmed.callCount).to.equal(
-									1
-								);
-								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to apply transaction: 6 to confirmed state of account - apply-ERR'
-								);
-								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-								expect(loggerStub.error.args[1][1]).to.deep.equal(
-									blockWithTransactions.transactions[0]
-								);
-								done();
-							});
-					});
-				});
-
-				describe('when library.logic.transaction.applyConfirmed succeeds', () => {
-					beforeEach(() =>
-						modules.transactions.applyConfirmed.callsArgWith(3, null, true)
-					);
-					it('should return resolved promise with no error', done => {
-						__private
-							.applyConfirmedStep(
-								blockWithTransactions,
-								storageStub.entities.Block.begin
-							)
-							.then(resolve => {
-								expect(resolve).to.be.deep.equal([
-									undefined,
-									undefined,
-									undefined,
-								]);
-								done();
-							});
-					});
-				});
-			});
-		});
+		it('should call tateStore.round.finalize');
+		/* eslint-enable mocha/no-pending-tests */
 	});
 
 	describe('__private.saveBlockStep', () => {
@@ -1099,15 +823,11 @@ describe('blocks/chain', () => {
 		describe('when storageStub.entities.Block.begin succeeds', () => {
 			beforeEach(done => {
 				storageStub.entities.Block.begin = (desc, tx) => tx(txTemp.resolves());
-				modules.transactions.removeUnconfirmedTransaction.returns(true);
 				done();
 			});
 			it('should call a callback with no error', done => {
 				blocksChainModule.applyBlock(blockWithTransactions, true, err => {
 					expect(err).to.be.null;
-					expect(
-						modules.transactions.removeUnconfirmedTransaction.callCount
-					).to.equal(3);
 					expect(modules.blocks.isActive.set.callCount).to.equal(2);
 					done();
 				});
@@ -1169,75 +889,21 @@ describe('blocks/chain', () => {
 		});
 	});
 
+	// TODO: add new tests once improve_transaction_eficiency is done
 	describe('__private.undoConfirmedStep', () => {
-		let tx;
-		describe('when oldLastBlock.transactions is not empty', () => {
-			describe('when modules.accounts.getAccount fails', () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
-				);
+		/* eslint-disable mocha/no-pending-tests */
+		it('should return when block.transactions includes no transactions');
 
-				it('should reject promise with "getAccount-ERR"', done => {
-					__private
-						.undoConfirmedStep(
-							blockWithTransactions.transactions[0],
-							blockWithTransactions,
-							tx
-						)
-						.catch(err => {
-							expect(err).to.equal('getAccount-ERR');
-							done();
-						});
-				});
-			});
+		it('should call modules.processTransactions.undoTransactions');
 
-			describe('when modules.accounts.getAccount succeeds', () => {
-				beforeEach(done => {
-					modules.accounts.getAccount.callsArgWith(1, null, '12ab');
-					modules.transactions.undoConfirmed.callsArgWith(3, null, true);
-					done();
-				});
+		it('should throw error when errors exist in unappliedTransactionResponse');
 
-				it('should call modules.accounts.getAccount', done => {
-					__private
-						.undoConfirmedStep(
-							blockWithTransactions.transactions[0],
-							blockWithTransactions,
-							tx
-						)
-						.then(() => {
-							expect(modules.accounts.getAccount.callCount).to.equal(1);
-							done();
-						});
-				});
+		it('should call stateStore.account.finalize');
 
-				it('should call modules.transactions.undoConfirmed', done => {
-					__private
-						.undoConfirmedStep(
-							blockWithTransactions.transactions[0],
-							blockWithTransactions,
-							tx
-						)
-						.then(() => {
-							expect(modules.transactions.undoConfirmed.callCount).to.equal(1);
-							done();
-						});
-				});
+		it('should call stateStore.round.setRoundForData with correct parameters');
 
-				it('should resolve the promise', done => {
-					__private
-						.undoConfirmedStep(
-							blockWithTransactions.transactions[0],
-							blockWithTransactions,
-							tx
-						)
-						.then(res => {
-							expect(res).to.not.exist;
-							done();
-						});
-				});
-			});
-		});
+		it('should call tateStore.round.finalize');
+		/* eslint-enable mocha/no-pending-tests */
 	});
 
 	describe('__private.backwardTickStep', () => {
@@ -1403,54 +1069,11 @@ describe('blocks/chain', () => {
 				});
 			});
 
+			// TODO: add new tests once improve_transaction_eficiency is done
 			describe('when __private.popLastBlock succeeds', () => {
-				beforeEach(() =>
-					__private.popLastBlock.callsArgWith(1, null, blockWithTransactions)
-				);
-
-				describe('when modules.transactions.receiveTransactions fails', () => {
-					beforeEach(() =>
-						modules.transactions.receiveTransactions.callsArgWith(
-							2,
-							'receiveTransactions-ERR',
-							true
-						)
-					);
-
-					it('should call a callback with no error', done => {
-						blocksChainModule.deleteLastBlock((err, newLastBlock) => {
-							expect(err).to.be.null;
-							expect(newLastBlock).to.deep.equal(blockWithTransactions);
-							expect(loggerStub.error.args[0][0]).to.equal(
-								'Error adding transactions'
-							);
-							expect(loggerStub.error.args[0][1]).to.deep.equal(
-								'receiveTransactions-ERR'
-							);
-							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-							expect(components.system.update.calledOnce).to.be.true;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
-							done();
-						});
-					});
-				});
-
-				describe('when modules.transactions.receiveTransactions succeeds', () => {
-					beforeEach(() =>
-						modules.transactions.receiveTransactions.callsArgWith(2, null, true)
-					);
-
-					it('should call a callback with no error', done => {
-						blocksChainModule.deleteLastBlock((err, newLastBlock) => {
-							expect(err).to.be.null;
-							expect(newLastBlock).to.deep.equal(blockWithTransactions);
-							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-							expect(components.system.update.calledOnce).to.be.true;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
-							done();
-						});
-					});
-				});
+				/* eslint-disable mocha/no-pending-tests */
+				it('should return previousBlock');
+				/* eslint-enable mocha/no-pending-tests */
 			});
 		});
 	});

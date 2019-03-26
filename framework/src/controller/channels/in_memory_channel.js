@@ -1,6 +1,6 @@
 const Event = require('../event');
 const Action = require('../action');
-const BaseChannel = require('./base');
+const BaseChannel = require('./base_channel');
 
 /**
  * Channel responsible to communicate with bus for modules running in same process
@@ -9,10 +9,10 @@ const BaseChannel = require('./base');
  * @memberof framework.controller.channels
  * @requires module.Event
  * @requires module.Action
- * @requires channels/base
- * @type {module.EventEmitterChannel}
+ * @requires channels/base_channel
+ * @type {module.InMemoryChannel}
  */
-class EventEmitterChannel extends BaseChannel {
+class InMemoryChannel extends BaseChannel {
 	/**
 	 * Create new evnt emitter channel for module.
 	 *
@@ -23,9 +23,8 @@ class EventEmitterChannel extends BaseChannel {
 	 * @param {Object} [options] - Options impacting events and actions list
 	 * @param {boolean} [options.skipInternalEvents] - Skip internal events
 	 */
-	constructor(moduleAlias, events, actions, bus, options = {}) {
+	constructor(moduleAlias, events, actions, options = {}) {
 		super(moduleAlias, events, actions, options);
-		this.bus = bus;
 	}
 
 	/**
@@ -33,12 +32,13 @@ class EventEmitterChannel extends BaseChannel {
 	 *
 	 * @async
 	 */
-	async registerToBus() {
+	async registerToBus(bus) {
+		this.bus = bus;
 		await this.bus.registerChannel(
 			this.moduleAlias,
 			this.eventsList.map(event => event.name),
 			this.actionsList.map(action => action.name),
-			{}
+			{ type: 'inMemory', channel: this }
 		);
 	}
 
@@ -49,7 +49,7 @@ class EventEmitterChannel extends BaseChannel {
 	 * @returns {setImmediateCallback} cb, err, self - The callback that handles events
 	 */
 	subscribe(eventName, cb) {
-		this.bus.on(new Event(eventName).key(), data =>
+		this.bus.subscribe(new Event(eventName).key(), data =>
 			setImmediate(cb, Event.deserialize(data))
 		);
 	}
@@ -81,7 +81,7 @@ class EventEmitterChannel extends BaseChannel {
 			);
 		}
 
-		this.bus.emit(event.key(), event.serialize());
+		this.bus.publish(event.key(), event.serialize());
 	}
 
 	/**
@@ -115,4 +115,4 @@ class EventEmitterChannel extends BaseChannel {
 	}
 }
 
-module.exports = EventEmitterChannel;
+module.exports = InMemoryChannel;

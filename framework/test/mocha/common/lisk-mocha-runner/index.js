@@ -144,6 +144,18 @@ if (testPathPattern && testPathPattern.indexOf('-') === 0) {
 mochaCliOptions.unshift('--', '--opts', 'framework/test/mocha/mocha.opts');
 
 // Execute lisk mocha runner
-executeTests(testType, testPathPattern, mochaCliOptions).catch(error =>
-	console.error(error.message)
-);
+executeTests(testType, testPathPattern, mochaCliOptions)
+	.then(() => {
+		if (
+			Object.keys(state.tests.failed).length ||
+			Object.keys(state.tests.killed).length
+		) {
+			console.error('\n\nFAILED: Some tests have failed.');
+			process.exit(1);
+		}
+	})
+	.catch(error => {
+		console.error('\n\nFAILED: Test runner failed with errors!');
+		console.error(error.message);
+		process.exit(1);
+	});
