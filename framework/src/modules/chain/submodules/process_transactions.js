@@ -16,8 +16,37 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const roundInformation = require('../logic/rounds_information');
+const checkTransactionExceptions = require('../logic/check_transaction_against_exceptions.js');
 
 let library;
+
+const updateTransactionResponseForExceptionTransactions = (
+	unprocessableTransactionResponses,
+	transactions
+) => {
+	const unprocessableTransactionAndResponsePairs = unprocessableTransactionResponses.map(
+		unprocessableTransactionResponse => ({
+			transactionResponse: unprocessableTransactionResponse,
+			transaction: transactions.find(
+				transaction => transaction.id === unprocessableTransactionResponse.id
+			),
+		})
+	);
+
+	const exceptionTransactionsAndResponsePairs = unprocessableTransactionAndResponsePairs.filter(
+		({ transactionResponse, transaction }) =>
+			checkTransactionExceptions.checkIfTransactionIsException(
+				transactionResponse,
+				transaction
+			)
+	);
+
+	// Update the transaction response for exception transactions
+	exceptionTransactionsAndResponsePairs.forEach(({ transactionResponse }) => {
+		transactionResponse.status = TransactionStatus.OK;
+		transactionResponse.errors = [];
+	});
+};
 
 class ProcessTransactions {
 	constructor(cb, scope) {
@@ -32,10 +61,20 @@ class ProcessTransactions {
 
 	// eslint-disable-next-line class-methods-use-this
 	validateTransactions(transactions) {
+		const transactionsResponses = transactions.map(transaction =>
+			transaction.validate()
+		);
+
+		const invalidTransactionResponses = transactionsResponses.filter(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		updateTransactionResponseForExceptionTransactions(
+			invalidTransactionResponses,
+			transactions
+		);
+
 		return {
-			transactionsResponses: transactions.map(transaction =>
-				transaction.validate()
-			),
+			transactionsResponses,
 		};
 	}
 
@@ -91,6 +130,15 @@ class ProcessTransactions {
 			return transactionResponse;
 		});
 
+		const unappliableTransactionsResponse = transactionsResponses.filter(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+
+		updateTransactionResponseForExceptionTransactions(
+			unappliableTransactionsResponse,
+			transactions
+		);
+
 		return {
 			transactionsResponses,
 			stateStore,
@@ -113,6 +161,15 @@ class ProcessTransactions {
 			return transactionResponse;
 		});
 
+		const unundoableTransactionsResponse = transactionsResponses.filter(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+
+		updateTransactionResponseForExceptionTransactions(
+			unundoableTransactionsResponse,
+			transactions
+		);
+
 		return {
 			transactionsResponses,
 			stateStore,
@@ -134,6 +191,15 @@ class ProcessTransactions {
 			library.logic.stateManager.restoreSnapshot();
 			return transactionResponse;
 		});
+
+		const unverifiableTransactionsResponse = transactionsResponses.filter(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+
+		updateTransactionResponseForExceptionTransactions(
+			unverifiableTransactionsResponse,
+			transactions
+		);
 
 		return {
 			transactionsResponses,
