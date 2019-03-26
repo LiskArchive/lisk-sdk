@@ -135,37 +135,6 @@ class Bus extends EventEmitter2 {
 	}
 
 	/**
-	 * Unregister channel from bus.
-	 *
-	 * @async
-	 * @param {string} moduleAlias - Alias for module used during registration
-	 *
-	 * @throws {Error} If channel not registered.
-	 */
-	async unregisterChannel(moduleAlias) {
-		Object.keys(this.events).forEach(eventName => {
-			const [moduleName] = eventName.split(':');
-			if (moduleName === moduleAlias) {
-				delete this.events[eventName];
-			}
-		});
-
-		Object.keys(this.actions).forEach(actionName => {
-			const [moduleName] = actionName.split(':');
-			if (moduleName === moduleAlias) {
-				delete this.actions[actionName];
-			}
-		});
-
-		const rpcSocket = this.rpcClients[moduleAlias];
-		if (rpcSocket) {
-			rpcSocket.close();
-		}
-
-		delete this.channels[moduleAlias];
-	}
-
-	/**
 	 * Invoke action on bus.
 	 *
 	 * @param {Object|string} actionData - Object or stringified object containing action data like name, module, souce, and params.
