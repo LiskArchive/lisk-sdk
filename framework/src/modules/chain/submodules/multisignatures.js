@@ -79,7 +79,6 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 						publicKey: account.publicKey,
 						secondPublicKey: account.secondPublicKey || '',
 						balance: account.balance,
-						unconfirmedBalance: account.balance,
 						min: account.multiMin,
 						lifetime: account.multiLifetime,
 						members: [],

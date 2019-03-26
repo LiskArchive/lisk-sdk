@@ -44,10 +44,8 @@ function accountFormatter(totalSupply, account) {
 		'address',
 		'publicKey',
 		'balance',
-		'u_balance',
 		'secondPublicKey',
 	]);
-	object.unconfirmedBalance = object.balance;
 
 	if (account.isDelegate) {
 		object.delegate = _.pick(account, [
@@ -140,7 +138,6 @@ async function multiSigAccountFormatter(account) {
 	]);
 	result.min = account.multiMin;
 	result.lifetime = account.multiLifetime;
-	result.unconfirmedBalance = account.balance;
 
 	if (result.secondPublicKey === null) {
 		result.secondPublicKey = '';
