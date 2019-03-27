@@ -140,7 +140,7 @@ class Controller {
 
 		this.channel = new InMemoryChannel(
 			'lisk',
-			['ready', 'applicationStateUpdated'],
+			['ready', 'state:updated'],
 			{
 				getComponentConfig: action => this.config.components[action.params],
 				getApplicationState: () => this.applicationState.getState(),
