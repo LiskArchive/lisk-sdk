@@ -25,6 +25,7 @@ export interface Pm2Env {
 	readonly pm_uptime: number;
 	readonly status: ProcessStatus;
 	readonly unstable_restarts: number;
+	readonly version: string;
 }
 
 const connectPM2 = async (): Promise<void> =>

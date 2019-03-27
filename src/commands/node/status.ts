@@ -40,13 +40,24 @@ export default class StatusCommand extends BaseCommand {
 		const { flags } = this.parse(StatusCommand);
 		const { name } = flags as Flags;
 
-		const appInfo = await describeApplication(name);
-		const { status, pm_uptime, unstable_restarts } = appInfo.pm2_env as Pm2Env;
+		const { pm2_env, monit } = await describeApplication(name);
+		const {
+			status,
+			pm_uptime,
+			unstable_restarts,
+			pm_cwd: installationPath,
+			LISK_NETWORK: network,
+			version,
+		} = pm2_env as Pm2Env;
 
 		this.print({
 			status,
+			network,
+			version,
+			installationPath,
 			uptime: new Date(pm_uptime).toISOString(),
 			restart_count: unstable_restarts,
+			...monit
 		});
 	}
 }
