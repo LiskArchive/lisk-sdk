@@ -58,23 +58,13 @@ export default class LogsCommand extends BaseCommand {
 			this.log(data.message);
 		});
 
-		tail.on('close', code => {
-			this.log(`Child process closing code: ${code}`);
+		tail.on('close', () => {
 			tail.removeAllListeners();
 		});
 
-		tail.on('error', code => {
-			this.log(`Child process errored with code: ${code}`);
+		tail.on('error', err => {
+			this.log(`Failed to process logs for ${name} with error: ${err.message}`);
 			tail.removeAllListeners();
-		});
-
-		tail.on('disconnect', () => {
-			this.log('Child process disconnected');
-			tail.removeAllListeners();
-		});
-
-		process.on('SIGINT', code => {
-			this.log(`Process terminated with code: ${code}`);
 		});
 	}
 }
