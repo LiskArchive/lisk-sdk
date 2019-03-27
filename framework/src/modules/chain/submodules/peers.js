@@ -66,6 +66,7 @@ class Peers {
 				peers: scope.config.peers,
 				version: scope.config.version,
 			},
+			applicationState: scope.applicationState,
 			channel: scope.channel,
 		};
 		self = this;
@@ -476,7 +477,7 @@ __private.versionCompatible = function(version) {
 	if (!version) {
 		return false;
 	}
-	const { minVersion } = library.channel.invokeSync('lisk:getApplicationState');
+	const { minVersion } = library.applicationState;
 	return semver.gte(version, minVersion);
 };
 
@@ -492,9 +493,7 @@ __private.protocolVersionCompatible = function(protocolVersionCandidate) {
 		return false;
 	}
 	const peerHard = parseInt(protocolVersionCandidate[0]);
-	const { protocolVersion } = library.channel.invokeSync(
-		'lisk:getApplicationState'
-	);
+	const { protocolVersion } = library.applicationState;
 	const myHard = parseInt(protocolVersion[0]);
 	return myHard === peerHard && peerHard >= 1;
 };
@@ -517,7 +516,7 @@ Peers.prototype.calculateConsensus = function() {
 	const active = library.logic.peers
 		.list(true)
 		.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	const { broadhash } = library.channel.invokeSync('lisk:getApplicationState');
+	const { broadhash } = library.applicationState;
 	const matched = active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
@@ -677,7 +676,7 @@ Peers.prototype.discover = function(cb) {
  * @todo Add description for the params
  */
 Peers.prototype.acceptable = function(peers) {
-	const { nonce } = library.channel.invokeSync('lisk:getApplicationState');
+	const { nonce } = library.applicationState;
 	return _(peers)
 		.uniqWith(
 			(a, b) =>
@@ -710,7 +709,7 @@ Peers.prototype.acceptable = function(peers) {
  */
 Peers.prototype.list = function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const state = library.channel.invokeSync('lisk:getApplicationState');
+	const state = library.applicationState;
 	const broadhash = options.broadhash || state.broadhash;
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =

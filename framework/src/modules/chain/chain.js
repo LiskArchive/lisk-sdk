@@ -73,6 +73,10 @@ module.exports = class Chain {
 			'cache'
 		);
 
+		const applicationState = await this.channel.invoke(
+			'lisk:getApplicationState'
+		);
+
 		this.logger = createLoggerComponent(loggerConfig);
 		const dbLogger =
 			storageConfig.logFileName &&
@@ -140,6 +144,7 @@ module.exports = class Chain {
 					logger: self.logger,
 				},
 				channel: this.channel,
+				applicationState,
 			};
 
 			// Lookup for peers ips from dns
@@ -157,6 +162,10 @@ module.exports = class Chain {
 			scope.webSocket = await createSocketCluster(scope);
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
+
+			this.channel.subscribe('lisk:state:updated', event => {
+				Object.assign(scope.applicationState, event.data);
+			});
 
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);

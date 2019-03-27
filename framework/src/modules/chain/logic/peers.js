@@ -37,19 +37,19 @@ let modules;
  * @requires helpers/peers_manager
  * @param {Object} logger
  * @param {Object} config
- * @param {Object} channel
+ * @param {Object} applicationState
  * @param {function} cb - Callback function
  * @returns {SetImmediate} null, this
  * @todo Add description for the params
  */
 class Peers {
-	constructor(logger, config, channel, cb) {
+	constructor(logger, config, applicationState, cb) {
 		library = {
 			logger,
-			channel,
+			applicationState,
 		};
 		self = this;
-		this.peersManager = new PeersManager(logger, channel);
+		this.peersManager = new PeersManager(logger, applicationState);
 		this.banManager = new BanManager(logger, config);
 
 		return setImmediate(cb, null, this);
@@ -64,7 +64,7 @@ class Peers {
  * @returns {Object} Application state and peer status
  */
 Peers.prototype.me = function() {
-	const state = library.channel.invokeSync('lisk:getApplicationState');
+	const state = library.applicationState;
 	return Object.assign({}, state, {
 		state: Peer.STATE.CONNECTED,
 	});

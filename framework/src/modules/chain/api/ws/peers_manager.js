@@ -25,12 +25,12 @@ const disconnect = require('./rpc/disconnect');
  * @see Parent: {@link helpers}
  * @todo Add description for the class
  */
-function PeersManager(logger, channel) {
+function PeersManager(logger, applicationState) {
 	this.peers = {};
 	this.addressToNonceMap = {};
 	this.nonceToAddressMap = {};
 	this.logger = logger;
-	this.channel = channel;
+	this.applicationState = applicationState;
 }
 
 /**
@@ -64,7 +64,7 @@ PeersManager.prototype.add = function(peer) {
 		// If it's already open then peer.socket.connect() will do nothing.
 		peer.socket.connect();
 	} else {
-		const state = this.channel.invokeSync('lisk:getApplicationState');
+		const state = this.applicationState;
 
 		// Create client WS connection to peer
 		connect(peer, this.logger, state);

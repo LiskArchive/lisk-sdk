@@ -83,6 +83,7 @@ class Transport {
 					active: scope.config.broadcasts.active,
 				},
 			},
+			applicationState: scope.applicationState,
 		};
 		self = this;
 
@@ -445,7 +446,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 		block.reward = block.reward.toNumber();
 	}
 
-	const { broadhash } = library.channel.invokeSync('lisk:getApplicationState');
+	const { broadhash } = library.applicationState;
 
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
@@ -673,7 +674,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	height(req, cb) {
-		const { height } = library.channel.invokeSync('lisk:getApplicationState');
+		const { height } = library.applicationState;
 		return setImmediate(cb, null, {
 			success: true,
 			height,
@@ -696,7 +697,7 @@ Transport.prototype.shared = {
 			version,
 			protocolVersion,
 			os,
-		} = library.channel.invokeSync('lisk:getApplicationState');
+		} = library.applicationState;
 		return setImmediate(cb, null, {
 			success: true,
 			height,
