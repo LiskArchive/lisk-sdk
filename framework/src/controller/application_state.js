@@ -39,19 +39,30 @@ const _ = require('lodash');
  * @param {Object} logger
  */
 class ApplicationState {
-	constructor(initialState, logger) {
+	constructor({
+		initialState: {
+			version,
+			wsPort,
+			httpPort,
+			minVersion,
+			protocolVersion,
+			nethash,
+			nonce,
+		},
+		logger,
+	}) {
 		this.logger = logger;
 		this.state = {
 			os: os.platform() + os.release(),
-			version: initialState.version,
-			wsPort: initialState.wsPort,
-			httpPort: initialState.httpPort,
-			minVersion: initialState.minVersion,
-			protocolVersion: initialState.protocolVersion,
+			version,
+			wsPort,
+			httpPort,
+			minVersion,
+			protocolVersion,
 			height: 1,
-			nethash: initialState.nethash,
-			broadhash: initialState.nethash,
-			nonce: initialState.nonce,
+			nethash,
+			broadhash: nethash,
+			nonce,
 		};
 	}
 

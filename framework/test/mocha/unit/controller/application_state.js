@@ -51,7 +51,10 @@ describe('application state', () => {
 			publish: sinonSandbox.stub(),
 		};
 
-		applicationState = new ApplicationState(dummyConfig, loggerStub);
+		applicationState = new ApplicationState({
+			initialState: dummyConfig,
+			logger: loggerStub,
+		});
 		applicationState.setChannel(channelMock);
 	});
 

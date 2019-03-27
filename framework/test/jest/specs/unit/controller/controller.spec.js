@@ -66,6 +66,7 @@ describe('Controller Class', () => {
 			const spies = {
 				_setupDirectories: jest.spyOn(controller, '_setupDirectories'),
 				_validatePidFile: jest.spyOn(controller, '_validatePidFile'),
+				_initState: jest.spyOn(controller, '_initState'),
 				_setupBus: jest.spyOn(controller, '_setupBus'),
 				_loadModules: jest.spyOn(controller, '_loadModules'),
 			};
@@ -80,7 +81,8 @@ describe('Controller Class', () => {
 			expect(spies._validatePidFile).toHaveBeenCalledAfter(
 				spies._setupDirectories
 			);
-			expect(spies._setupBus).toHaveBeenCalledAfter(spies._validatePidFile);
+			expect(spies._initState).toHaveBeenCalledAfter(spies._validatePidFile);
+			expect(spies._setupBus).toHaveBeenCalledAfter(spies._initState);
 			expect(spies._loadModules).toHaveBeenCalledAfter(spies._setupBus);
 			expect(spies._loadModules).toHaveBeenCalledWith(modules);
 		});
@@ -130,6 +132,10 @@ describe('Controller Class', () => {
 			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.sockets);
 			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.pids);
 		});
+	});
+
+	describe('#_initState', () => {
+		it.todo('should create application state');
 	});
 
 	describe('#_validatePidFile', () => {

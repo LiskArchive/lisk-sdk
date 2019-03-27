@@ -114,10 +114,10 @@ class Controller {
 	 * @async
 	 */
 	async _initState() {
-		this.applicationState = new ApplicationState(
-			this.config.initialState,
-			this.logger
-		);
+		this.applicationState = new ApplicationState({
+			initialState: this.config.initialState,
+			logger: this.logger,
+		});
 	}
 
 	/**
