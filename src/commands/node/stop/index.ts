@@ -49,7 +49,7 @@ export default class StopCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Stop Lisk Core',
+				title: 'Stop Lisk Instance',
 				task: () =>
 					new Listr([
 						{
@@ -63,7 +63,7 @@ export default class StopCommand extends BaseCommand {
 								DatabaseCommand.run(['--network', network, '--name', name]),
 						},
 						{
-							title: 'Lisk Core',
+							title: 'Lisk',
 							task: async () => {
 								await stopApplication(name);
 							},

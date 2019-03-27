@@ -61,7 +61,7 @@ export default class DatabaseCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Core Database',
+				title: 'Start Lisk Database',
 				task: async () => startDatabase(installDir),
 			},
 		]);

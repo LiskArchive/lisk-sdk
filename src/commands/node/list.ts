@@ -17,7 +17,7 @@ import BaseCommand from '../../base';
 import { listApplication, Pm2Env } from '../../utils/node/pm2';
 
 export default class ListCommand extends BaseCommand {
-	static description = 'List status of installed Lisk Core instances';
+	static description = 'List status of installed Lisk instances';
 
 	static examples = ['node:list'];
 

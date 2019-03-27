@@ -66,7 +66,7 @@ interface Options {
 
 const validatePrerequisite = (installPath: string): void => {
 	if (!isSupportedOS()) {
-		throw new Error(`Lisk Core installation is not supported on ${os.type()}`);
+		throw new Error(`Lisk installation is not supported on ${os.type()}`);
 	}
 	if (fsExtra.pathExistsSync(installPath)) {
 		throw new Error(`Installation already exists in path ${installPath}`);
@@ -103,7 +103,7 @@ const installOptions = async ({
 };
 
 export default class InstallCommand extends BaseCommand {
-	static description = 'Install Lisk Core';
+	static description = 'Install Lisk';
 
 	static examples = [
 		'node:install --name=mainnet-1.6',
@@ -153,7 +153,7 @@ export default class InstallCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: `Install Lisk Core ${network} as ${name}`,
+				title: `Install Lisk ${network} as ${name}`,
 				task: () =>
 					new Listr([
 						{
@@ -172,7 +172,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download Lisk Core Release',
+							title: 'Download Lisk Release',
 							task: async ctx => {
 								const { version }: Options = ctx.options;
 								const releaseUrl = `${RELEASE_URL}/${network}/${version}`;
@@ -193,7 +193,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Extract Lisk Core',
+							title: 'Extract Lisk',
 							task: async ctx => {
 								const { installDir, version }: Options = ctx.options;
 								createDirectory(installDir);
@@ -213,7 +213,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Register Lisk Core',
+							title: 'Register Lisk',
 							task: async ctx => {
 								const { installDir }: Options = ctx.options;
 								await registerApplication(installDir, network, name);

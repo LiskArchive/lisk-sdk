@@ -49,7 +49,7 @@ export default class StartCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Core',
+				title: 'Start Lisk Instance',
 				task: () =>
 					new Listr([
 						{
@@ -63,7 +63,7 @@ export default class StartCommand extends BaseCommand {
 								DatabaseCommand.run(['--network', network, '--name', name]),
 						},
 						{
-							title: 'Lisk Core',
+							title: 'Lisk',
 							task: async () => {
 								await restartApplication(name);
 							},

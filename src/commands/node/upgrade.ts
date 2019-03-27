@@ -78,7 +78,7 @@ const validateVersion = async (
 };
 
 export default class UpgradeCommand extends BaseCommand {
-	static description = 'Upgrade locally installed Lisk Core instance to specified or latest version';
+	static description = 'Upgrade locally installed Lisk instance to specified or latest version';
 
 	static examples = [
 		'node:upgrade --name=mainnet_1.6',
@@ -120,35 +120,35 @@ export default class UpgradeCommand extends BaseCommand {
 					validateVersion(network, currentVersion, upgradeVersion),
 			},
 			{
-				title: 'Stop and Unregister Lisk Services',
+				title: 'Stop and Unregister Lisk',
 				task: () =>
 					new Listr([
 						{
-							title: 'Stop Lisk Services',
+							title: 'Stop Lisk',
 							task: async () =>
 								StopCommand.run(['--network', network, '--name', name]),
 						},
 						{
-							title: `Unregister Lisk Core: ${name} from PM2`,
+							title: `Unregister Lisk: ${name} from PM2`,
 							task: async () => unRegisterApplication(name),
 						},
 					]),
 			},
 			{
-				title: 'Download, Backup and Install Lisk Core',
+				title: 'Download, Backup and Install Lisk',
 				task: () =>
 					new Listr([
 						{
-							title: `Download Lisk Core: ${upgradeVersion} Release`,
+							title: `Download Lisk: ${upgradeVersion} Release`,
 							task: async () =>
 								downloadLiskAndValidate(cacheDir, releaseUrl, upgradeVersion),
 						},
 						{
-							title: `Backup Lisk Core: ${currentVersion} installed as ${name}`,
+							title: `Backup Lisk: ${currentVersion} installed as ${name}`,
 							task: async () => backupLisk(installDir),
 						},
 						{
-							title: `Install Lisk Core: ${upgradeVersion}`,
+							title: `Install Lisk: ${upgradeVersion}`,
 							task: async () => {
 								fsExtra.ensureDirSync(installDir);
 								await extract(cacheDir, liskTar(upgradeVersion), installDir);
@@ -157,12 +157,12 @@ export default class UpgradeCommand extends BaseCommand {
 					]),
 			},
 			{
-				title: `Upgrade Lisk Core from: ${currentVersion} to: ${upgradeVersion}`,
+				title: `Upgrade Lisk from: ${currentVersion} to: ${upgradeVersion}`,
 				task: async () =>
 					upgradeLisk(installDir, name, network, currentVersion),
 			},
 			{
-				title: `Start Lisk Core: ${upgradeVersion}`,
+				title: `Start Lisk: ${upgradeVersion}`,
 				task: async () => {
 					await registerApplication(installDir, network, name);
 					await StartCommand.run(['--network', network, '--name', name]);

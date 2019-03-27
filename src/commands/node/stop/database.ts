@@ -61,7 +61,7 @@ export default class DatabaseCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Stop Lisk Core Database',
+				title: 'Stop Lisk Database',
 				task: async () => stopDatabase(installDir),
 			},
 		]);

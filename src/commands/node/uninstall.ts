@@ -32,7 +32,7 @@ interface Flags {
 }
 
 export default class UnInstallCommand extends BaseCommand {
-	static description = 'UnInstall Lisk Core';
+	static description = 'UnInstall Lisk';
 
 	static examples = [
 		'node:uninstall --name=mainnet_1.6',
@@ -60,7 +60,7 @@ export default class UnInstallCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: `UnInstall Lisk Core ${network} Installed as ${name}`,
+				title: `UnInstall Lisk ${network} Installed as ${name}`,
 				task: () =>
 					new Listr([
 						{

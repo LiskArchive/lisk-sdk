@@ -56,7 +56,7 @@ export default class CacheCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Stop Lisk Core Cache',
+				title: 'Stop Lisk Cache',
 				skip: () => !isCacheEnabled(installDir, network),
 				task: async () => {
 					const isRunning = await isCacheRunning(installDir, network);
