@@ -170,7 +170,7 @@ class Bus extends EventEmitter2 {
 		});
 	}
 
-	// TO REMOVE
+	// TODO: temporary method to be removed on #3198
 	invokeSync(actionData) {
 		const action = Action.deserialize(actionData);
 

@@ -114,7 +114,7 @@ class InMemoryChannel extends BaseChannel {
 		return this.bus.invoke(action.serialize());
 	}
 
-	// TO REMOVE
+	// TODO: temporary method to be removed on #3198
 	invokeSync(actionName, params) {
 		let action = null;
 
