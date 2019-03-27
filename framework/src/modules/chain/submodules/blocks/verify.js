@@ -102,16 +102,22 @@ __private.checkTransactions = async (transactions, checkExists) => {
 		}
 	}
 
+	const nonInertTransactions = transactions.filter(
+		transaction => !global.exceptions.inertTransactions.includes(transaction.id)
+	);
+
 	const {
 		transactionsResponses,
-	} = await modules.processTransactions.verifyTransactions(transactions);
+	} = await modules.processTransactions.verifyTransactions(
+		nonInertTransactions
+	);
 
-	const unverifiableTransactionResponse = transactionsResponses.find(
+	const unverifiableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
-	if (unverifiableTransactionResponse) {
-		throw unverifiableTransactionResponse.errors;
+	if (unverifiableTransactionsResponse.length > 0) {
+		throw unverifiableTransactionsResponse[0].errors;
 	}
 };
 

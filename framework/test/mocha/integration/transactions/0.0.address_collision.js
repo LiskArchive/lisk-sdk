@@ -75,7 +75,7 @@ describe('system test (type 0) - address collision', () => {
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
-			data: 'addtional data from 2',
+			data: 'credit',
 		});
 
 		localCommon.addTransactionsAndForge(
@@ -173,9 +173,11 @@ describe('system test (type 0) - address collision', () => {
 									expect(res).to.be.undefined;
 									expect(err).to.be.not.null;
 									expect(err).to.equal(
-										`Invalid sender public key: ${publicKeys[1]} expected: ${
+										`Transaction: ${
+											secondTransactionWithData.id
+										} failed at .senderPublicKey: Invalid sender publicKey, actual: ${
 											publicKeys[0]
-										}`
+										}, expected: ${publicKeys[1]}`
 									);
 									seriesCb();
 								}

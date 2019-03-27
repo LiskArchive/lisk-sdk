@@ -86,9 +86,24 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 					});
 				});
 
-				it('first upvoting transaction to arrive should not be included', done => {
+				it('first upvoting transaction to arrive should be included', done => {
 					const filter = {
 						id: transaction1.id,
+					};
+					localCommon.getTransactionFromModule(library, filter, (err, res) => {
+						expect(err).to.be.null;
+						expect(res)
+							.to.have.property('transactions')
+							.which.is.an('Array');
+						expect(res.transactions.length).to.equal(1);
+						expect(res.transactions[0].id).to.equal(transaction1.id);
+						done();
+					});
+				});
+
+				it('last upvoting transaction to arrive should not be included', done => {
+					const filter = {
+						id: transaction2.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
 						expect(err).to.be.null;
@@ -100,27 +115,12 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 					});
 				});
 
-				it('last upvoting transaction to arrive should be included', done => {
-					const filter = {
-						id: transaction2.id,
-					};
-					localCommon.getTransactionFromModule(library, filter, (err, res) => {
-						expect(err).to.be.null;
-						expect(res)
-							.to.have.property('transactions')
-							.which.is.an('Array');
-						expect(res.transactions.length).to.equal(1);
-						expect(res.transactions[0].id).to.equal(transaction2.id);
-						done();
-					});
-				});
-
 				it('adding to pool upvoting transaction to same delegate from same account should fail', done => {
-					localCommon.addTransaction(library, transaction1, err => {
+					localCommon.addTransaction(library, transaction2, err => {
 						expect(err).to.equal(
-							`Failed to add vote, delegate "${
-								accountFixtures.existingDelegate.delegateName
-							}" already voted for`
+							`Transaction: ${transaction2.id} failed at : ${
+								accountFixtures.existingDelegate.publicKey
+							} is already voted.`
 						);
 						done();
 					});
@@ -156,9 +156,28 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 						});
 					});
 
-					it('first downvoting transaction to arrive should not be included', done => {
+					it('first downvoting transaction to arrive should be included', done => {
 						const filter = {
 							id: transaction3.id,
+						};
+						localCommon.getTransactionFromModule(
+							library,
+							filter,
+							(err, res) => {
+								expect(err).to.be.null;
+								expect(res)
+									.to.have.property('transactions')
+									.which.is.an('Array');
+								expect(res.transactions.length).to.equal(1);
+								expect(res.transactions[0].id).to.equal(transaction3.id);
+								done();
+							}
+						);
+					});
+
+					it('last downvoting transaction to arrive should not be included', done => {
+						const filter = {
+							id: transaction4.id,
 						};
 						localCommon.getTransactionFromModule(
 							library,
@@ -174,36 +193,17 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 						);
 					});
 
-					it('last downvoting transaction to arrive should be included', done => {
-						const filter = {
-							id: transaction4.id,
-						};
-						localCommon.getTransactionFromModule(
-							library,
-							filter,
-							(err, res) => {
-								expect(err).to.be.null;
-								expect(res)
-									.to.have.property('transactions')
-									.which.is.an('Array');
-								expect(res.transactions.length).to.equal(1);
-								expect(res.transactions[0].id).to.equal(transaction4.id);
-								done();
-							}
-						);
-					});
-
 					it('adding to pool downvoting transaction to same delegate from same account should fail', done => {
 						const transaction5 = castVotes({
 							passphrase: account.passphrase,
 							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
-							timeOffset: -10000,
+							timeOffset: -10001,
 						});
 						localCommon.addTransaction(library, transaction5, err => {
 							expect(err).to.equal(
-								`Failed to remove vote, delegate "${
-									accountFixtures.existingDelegate.delegateName
-								}" was not voted for`
+								`Transaction: ${transaction5.id} failed at : ${
+									accountFixtures.existingDelegate.publicKey
+								} is not voted.`
 							);
 							done();
 						});

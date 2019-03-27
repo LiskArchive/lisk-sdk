@@ -136,6 +136,8 @@ class TransactionPool {
 			...poolConfig,
 			...poolDependencies,
 		});
+
+		this.subscribeEvents();
 	}
 
 	resetPool() {
@@ -160,6 +162,31 @@ class TransactionPool {
 		this.pool = new pool.TransactionPool({
 			...poolConfig,
 			...poolDependencies,
+		});
+
+		this.subscribeEvents();
+	}
+
+	subscribeEvents() {
+		this.pool.on(pool.EVENT_ADDED_TRANSACTIONS, ({ action, to, payload }) => {
+			if (payload.length > 0) {
+				this.logger.info(
+					`Transaction pool - added transactions ${
+						to ? `to ${to} queue` : ''
+					} on action: ${action} with ID(s): ${payload.map(
+						transaction => transaction.id
+					)}`
+				);
+			}
+		});
+		this.pool.on(pool.EVENT_REMOVED_TRANSACTIONS, ({ action, payload }) => {
+			if (payload.length > 0) {
+				this.logger.info(
+					`Transaction pool - removed transactions on action: ${action} with ID(s): ${payload.map(
+						transaction => transaction.id
+					)}`
+				);
+			}
 		});
 	}
 
@@ -240,7 +267,9 @@ class TransactionPool {
 
 	fillPool(cb) {
 		return this.pool
-			.processVerifiedTransactions()
+			.validateReceivedTransactions()
+			.then(() => this.pool.verifyValidatedTransactions())
+			.then(() => this.pool.processVerifiedTransactions())
 			.then(() => cb())
 			.catch(cb);
 	}
@@ -313,6 +342,7 @@ class TransactionPool {
 				if (transactionsResponses[0].status === TransactionStatus.PENDING) {
 					return this.addMultisignatureTransaction(transaction, cb);
 				}
+
 				return cb(transactionsResponses[0].errors[0]);
 			}
 		);

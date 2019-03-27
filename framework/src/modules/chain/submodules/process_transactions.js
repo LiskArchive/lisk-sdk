@@ -65,7 +65,7 @@ class ProcessTransactions {
 			...persistedTransactions.map(transaction => ({
 				id: transaction.id,
 				status: TransactionStatus.FAIL,
-				errors: `Transaction is already confirmed: ${transaction.id}`,
+				errors: [`Transaction is already confirmed: ${transaction.id}`],
 			})),
 		];
 
