@@ -113,29 +113,6 @@ class InMemoryChannel extends BaseChannel {
 
 		return this.bus.invoke(action.serialize());
 	}
-
-	// TODO: temporary method to be removed on #3198
-	invokeSync(actionName, params) {
-		let action = null;
-
-		// Invoked by user module
-		if (typeof actionName === 'string') {
-			action = new Action(actionName, params, this.moduleAlias);
-
-			// Invoked by bus to preserve the source
-		} else if (typeof actionName === 'object') {
-			action = actionName;
-		}
-
-		if (
-			action.module === this.moduleAlias &&
-			typeof this.actions[action.name] === 'function'
-		) {
-			return this.actions[action.name](action);
-		}
-
-		return this.bus.invokeSync(action.serialize());
-	}
 }
 
 module.exports = InMemoryChannel;

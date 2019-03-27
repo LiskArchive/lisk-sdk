@@ -175,7 +175,6 @@ describe('transport', () => {
 		busStub = {};
 		schemaStub = {};
 		channelStub = {
-			invokeSync: sinonSandbox.stub(),
 			publish: sinonSandbox.stub(),
 		};
 		balancesSequenceStub = {
@@ -212,6 +211,7 @@ describe('transport', () => {
 			bus: busStub,
 			schema: schemaStub,
 			channel: channelStub,
+			applicationState: {},
 			balancesSequence: balancesSequenceStub,
 			config: {
 				peers: {
@@ -329,14 +329,11 @@ describe('transport', () => {
 						},
 					},
 					channel: {
-						invokeSync: sinonSandbox
-							.stub()
-							.withArgs('lisk:getApplicationState')
-							.returns({
-								broadhash:
-									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-							}),
 						publish: sinonSandbox.stub().resolves(),
+					},
+					applicationState: {
+						broadhash:
+							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
 					},
 				};
 
@@ -1396,12 +1393,10 @@ describe('transport', () => {
 						enqueue: sinonSandbox.stub(),
 						broadcast: sinonSandbox.stub(),
 					};
-					library.channel.invokeSync
-						.withArgs('lisk:getApplicationState')
-						.returns({
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						});
+					library.applicationState = {
+						broadhash:
+							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+					};
 					return transportInstance.onBroadcastBlock(block, true);
 				});
 
@@ -1849,11 +1844,9 @@ describe('transport', () => {
 				beforeEach(done => {
 					currentHeight = 12345;
 					req = {};
-					library.channel.invokeSync
-						.withArgs('lisk:getApplicationState')
-						.returns({
-							height: currentHeight,
-						});
+					library.applicationState = {
+						height: currentHeight,
+					};
 					transportInstance.shared.height(req, (err, res) => {
 						error = err;
 						result = res;
@@ -1885,9 +1878,7 @@ describe('transport', () => {
 					httpPort: 8000,
 				};
 				beforeEach(done => {
-					library.channel.invokeSync
-						.withArgs('lisk:getApplicationState')
-						.returns(state);
+					library.applicationState = state;
 					req = {};
 					transportInstance.shared.status(req, (err, res) => {
 						error = err;

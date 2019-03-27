@@ -144,27 +144,21 @@ async function __init(sandbox, initScope) {
 				}),
 				channel: {
 					invoke: sinonSandbox.stub(),
-					invokeSync: sinonSandbox.stub(),
 					publish: sinonSandbox.stub(),
 					suscribe: sinonSandbox.stub(),
+				},
+				applicationState: {
+					nethash: __testContext.nethash,
+					version: __testContext.version,
+					wsPort: __testContext.wsPort,
+					httpPort: __testContext.httpPort,
+					minVersion: __testContext.minVersion,
+					protocolVersion: __testContext.protocolVersion,
+					nonce: __testContext.nonce,
 				},
 			},
 			initScope
 		);
-
-		const state = {
-			nethash: __testContext.nethash,
-			version: __testContext.version,
-			wsPort: __testContext.wsPort,
-			httpPort: __testContext.httpPort,
-			minVersion: __testContext.minVersion,
-			protocolVersion: __testContext.protocolVersion,
-			nonce: __testContext.nonce,
-		};
-
-		scope.channel.invokeSync
-			.withArgs('lisk:getApplicationState')
-			.returns(state);
 
 		const cache = createCacheComponent(scope.config.redis, logger);
 

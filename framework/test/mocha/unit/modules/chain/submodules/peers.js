@@ -50,9 +50,7 @@ describe('peers', () => {
 			},
 		};
 
-		channelMock = {
-			invokeSync: sinonSandbox.stub(),
-		};
+		channelMock = {};
 
 		PeersRewired = rewire(
 			'../../../../../../src/modules/chain/submodules/peers'
@@ -74,6 +72,7 @@ describe('peers', () => {
 				logic: { peers: peersLogicMock },
 				components: { storage: storageMock },
 				channel: channelMock,
+				applicationState: {},
 			},
 			modulesLoader.scope
 		);
@@ -85,8 +84,8 @@ describe('peers', () => {
 	});
 
 	describe('versionCompatible', () => {
-		beforeEach(() => {
-			const status = {
+		beforeEach(async () => {
+			Object.assign(scope.applicationState, {
 				broadhash: 'aBroadhash',
 				height: 'aHeight',
 				httpPort: 'anHttpHeight',
@@ -95,10 +94,7 @@ describe('peers', () => {
 				version: '1.0.0',
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
-			};
-			return channelMock.invokeSync
-				.withArgs('lisk:getApplicationState')
-				.returns(status);
+			});
 		});
 		describe('when there is no version', () => {
 			it('should return false', async () =>
@@ -131,8 +127,8 @@ describe('peers', () => {
 	});
 
 	describe('protocolVersionCompatible', () => {
-		beforeEach(() => {
-			const status = {
+		beforeEach(async () => {
+			Object.assign(scope.applicationState, {
 				broadhash: 'aBroadhash',
 				height: 'aHeight',
 				httpPort: 'anHttpHeight',
@@ -141,10 +137,7 @@ describe('peers', () => {
 				version: '1.0.0',
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
-			};
-			return channelMock.invokeSync
-				.withArgs('lisk:getApplicationState')
-				.returns(status);
+			});
 		});
 		describe('when protocol version is exactly equal to application protocol version', () => {
 			it('should return true', async () =>
@@ -590,7 +583,7 @@ describe('peers', () => {
 			done();
 		});
 		beforeEach(done => {
-			const status = {
+			Object.assign(scope.applicationState, {
 				broadhash: prefixedPeer.broadhash,
 				height: prefixedPeer.height,
 				httpPort: 'anHttpHeight',
@@ -599,17 +592,13 @@ describe('peers', () => {
 				version: '1.0.0',
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
-			};
-			channelMock.invokeSync
-				.withArgs('lisk:getApplicationState')
-				.returns(status);
+			});
 			calculateConsensusResult = peers.calculateConsensus();
 			done();
 		});
 
-		afterEach(() => {
+		afterEach(async () => {
 			peersLogicMock.list.resetHistory();
-			return channelMock.invokeSync.resetHistory();
 		});
 
 		it('should set self.consensus value', async () =>
@@ -656,7 +645,7 @@ describe('peers', () => {
 					const disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					channelMock.invokeSync.returns({
+					Object.assign(scope.applicationState, {
 						broadhash: disconnectedPeer.broadhash,
 					});
 					done();
@@ -670,9 +659,7 @@ describe('peers', () => {
 
 	describe('acceptable', () => {
 		before(done => {
-			channelMock.invokeSync
-				.withArgs('lisk:getApplicationState')
-				.returns({ nonce: NONCE });
+			Object.assign(scope.applicationState, { nonce: NONCE });
 			process.env.NODE_ENV = 'DEV';
 			done();
 		});
