@@ -445,7 +445,10 @@ export abstract class BaseTransaction {
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		const transactionRecipientID = this.recipientId
-			? bigNumberToBuffer(this.recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
+			? bigNumberToBuffer(
+					this.recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+			  ).slice(0, BYTESIZES.RECIPIENT_ID)
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 		const transactionAmount = this.amount.toBuffer({
