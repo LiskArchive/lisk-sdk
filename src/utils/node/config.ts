@@ -34,6 +34,7 @@ export interface DbConfig {
 export interface NodeConfig {
 	readonly cacheEnabled: boolean;
 	readonly db: DbConfig;
+	readonly logFileName: CacheConfig;
 	readonly redis: CacheConfig;
 }
 
@@ -52,14 +53,17 @@ export const getConfig = (filePath: string): object => {
 	return JSON.parse(config);
 };
 
-const getDefaultConfig = (installDir: string): NodeConfig => {
+export const getDefaultConfig = (installDir: string): NodeConfig => {
 	const defaultConfigPath = `${installDir}/${configPath()}`;
 	const defaultConfig = getConfig(defaultConfigPath) as NodeConfig;
 
 	return defaultConfig;
 };
 
-const getNetworkConfig = (installDir: string, network: string): NodeConfig => {
+export const getNetworkConfig = (
+	installDir: string,
+	network: string,
+): NodeConfig => {
 	const networkConfigPath = `${installDir}/${configPath(network)}`;
 	const networkConfig = getConfig(networkConfigPath) as NodeConfig;
 
