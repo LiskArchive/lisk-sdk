@@ -120,7 +120,7 @@ module.exports = class Chain {
 
 			// System
 			this.logger.debug('Initiating system...');
-			const system = createSystemComponent(systemConfig, this.logger, storage);
+			this.system = createSystemComponent(systemConfig, this.logger, storage);
 
 			if (!this.options.config) {
 				throw Error('Failed to assign nethash from genesis block');
@@ -148,7 +148,7 @@ module.exports = class Chain {
 					storage,
 					cache,
 					logger: self.logger,
-					system,
+					system: this.system,
 				},
 				channel: this.channel,
 			};
@@ -260,6 +260,7 @@ module.exports = class Chain {
 					? this.slots.getSlotNumber(action.params.epochTime)
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
+			getSystemHeaders: async () => this.system.headers,
 		};
 	}
 

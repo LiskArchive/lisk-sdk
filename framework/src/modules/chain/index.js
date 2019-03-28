@@ -81,6 +81,7 @@ module.exports = class ChainModule extends BaseModule {
 			getSlotTime: async action => this.chain.actions.getSlotTime(action),
 			getSlotNumber: async action => this.chain.actions.getSlotNumber(action),
 			calcSlotRound: async action => this.chain.actions.calcSlotRound(action),
+			getSystemHeaders: () => this.chain.actions.getSystemHeaders(),
 		};
 	}
 

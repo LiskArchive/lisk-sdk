@@ -41,7 +41,6 @@ let library;
 function NodeController(scope) {
 	library = {
 		components: {
-			system: scope.components.system,
 			storage: scope.components.storage,
 		},
 		config: scope.config,
@@ -142,9 +141,12 @@ NodeController.getStatus = async (context, next) => {
 			'chain:getAllTransactionsCount'
 		);
 		const slotTime = await library.channel.invoke('chain:getSlotTime');
+		const { broadhash } = await library.channel.invoke(
+			'chain:getSystemHeaders'
+		);
 
 		const data = {
-			broadhash: library.components.system.headers.broadhash,
+			broadhash,
 			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch: slotTime,
