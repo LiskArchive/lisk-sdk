@@ -37,9 +37,12 @@ describe('integration test - get unconfirmed transactions', () => {
 	});
 
 	let library;
-	localCommon.beforeBlock('system_get_transactions_unconfirmed', lib => {
-		library = lib;
-	});
+	localCommon.beforeBlock(
+		'lisk_test_integration_get_transactions_unconfirmed',
+		lib => {
+			library = lib;
+		}
+	);
 
 	before(done => {
 		async.waterfall(

@@ -41,7 +41,7 @@ describe('integration test (blocks) - process', () => {
 		blockVersion.currentBlockVersion = 0;
 
 		application.init(
-			{ sandbox: { name: 'system_blocks_process' } },
+			{ sandbox: { name: 'lisk_test_integration_blocks_process' } },
 			(err, scopeInit) => {
 				blocksProcess = scopeInit.modules.blocks.process;
 				blocks = scopeInit.modules.blocks;

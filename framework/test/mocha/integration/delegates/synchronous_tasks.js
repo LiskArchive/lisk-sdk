@@ -8,9 +8,12 @@ const jobsQueue = require('../../../../src/modules/chain/helpers/jobs_queue');
 describe('integration test (delegates) - synchronous tasks', () => {
 	let library;
 
-	localCommon.beforeBlock('system_delegates_synchronous_tasks', lib => {
-		library = lib;
-	});
+	localCommon.beforeBlock(
+		'lisk_test_integration_delegates_synchronous_tasks',
+		lib => {
+			library = lib;
+		}
+	);
 
 	describe('when events are emitted after any of synchronous task starts', () => {
 		let intervalMs;

@@ -188,7 +188,7 @@ describe('blocks/verify', () => {
 		application.init(
 			{
 				sandbox: {
-					name: 'lisk_test_blocks_verify',
+					name: 'lisk_test_integration_blocks_verify',
 				},
 			},
 			(err, scope) => {

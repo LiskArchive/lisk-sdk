@@ -30,10 +30,13 @@ describe('integration test (type 1) - second signature transactions from pool an
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_1_1_second_sign_from_pool_and_peer', lib => {
-		library = lib;
-		storage = lib.components.storage;
-	});
+	localCommon.beforeBlock(
+		'lisk_test_integration_1_1_second_sign_from_pool_and_peer',
+		lib => {
+			library = lib;
+			storage = lib.components.storage;
+		}
+	);
 
 	afterEach(done => {
 		storage.entities.Block.begin(t => {

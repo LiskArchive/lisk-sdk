@@ -40,7 +40,7 @@ describe('integration test (type 4) - effect of multisignature registration on m
 	const signer1 = randomUtil.account();
 	const signer2 = randomUtil.account();
 
-	localCommon.beforeBlock('system_4_multisig_account', lib => {
+	localCommon.beforeBlock('lisk_test_integration_4_multisig_account', lib => {
 		library = lib;
 	});
 

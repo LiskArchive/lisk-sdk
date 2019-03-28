@@ -30,10 +30,13 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_blocks_chain_apply_block', lib => {
-		library = lib;
-		storage = library.components.storage;
-	});
+	localCommon.beforeBlock(
+		'lisk_test_integration_blocks_chain_apply_block',
+		lib => {
+			library = lib;
+			storage = library.components.storage;
+		}
+	);
 
 	afterEach(done => {
 		storage.entities.Block.begin(t => {

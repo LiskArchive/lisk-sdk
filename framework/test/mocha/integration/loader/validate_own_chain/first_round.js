@@ -27,7 +27,7 @@ describe('validateOwnChain', () => {
 	let addTransactionsAndForgePromise;
 
 	localCommon.beforeBlock(
-		'lisk_functional_validate_own_chain_first_round',
+		'lisk_test_integration_validate_own_chain_first_round',
 		lib => {
 			library = lib;
 			Queries = new QueriesHelper(lib, lib.components.storage);

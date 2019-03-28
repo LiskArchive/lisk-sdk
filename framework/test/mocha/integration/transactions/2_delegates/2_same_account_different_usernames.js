@@ -23,7 +23,7 @@ const { NORMALIZER } = global.constants;
 
 describe('integration test (type 2) - double delegate registrations', () => {
 	let library;
-	localCommon.beforeBlock('system_2_2_delegates_2', lib => {
+	localCommon.beforeBlock('lisk_test_integration_2_2_delegates_2', lib => {
 		library = lib;
 	});
 

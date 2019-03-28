@@ -45,9 +45,12 @@ describe('integration test (type 1) - checking validated second signature regist
 	});
 	dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_1_X_second_sign_validated', lib => {
-		library = lib;
-	});
+	localCommon.beforeBlock(
+		'lisk_test_integration_1_X_second_sign_validated',
+		lib => {
+			library = lib;
+		}
+	);
 
 	before(done => {
 		localCommon.addTransactionsAndForge(

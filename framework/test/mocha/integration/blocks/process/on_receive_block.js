@@ -34,7 +34,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 
 	before(done => {
 		application.init(
-			{ sandbox: { name: 'system_blocks_process_on_receive_block' } },
+			{
+				sandbox: {
+					name: 'lisk_test_integration_blocks_process_on_receive_block',
+				},
+			},
 			(err, scope) => {
 				library = scope;
 				storage = scope.components.storage;

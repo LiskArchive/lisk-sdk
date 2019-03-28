@@ -26,7 +26,7 @@ const { NORMALIZER } = global.constants;
 
 describe('integration test (type 0) - votes collision', () => {
 	let library;
-	localCommon.beforeBlock('system_3_votes_collision', lib => {
+	localCommon.beforeBlock('lisk_test_integration_3_votes_collision', lib => {
 		library = lib;
 	});
 
