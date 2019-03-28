@@ -25,9 +25,12 @@ describe('system test - account store', () => {
 	});
 
 	beforeEach(async () => {
-		accountStore = new AccountStore(library.storage.entities.Account, {
-			mutate: true,
-		});
+		accountStore = new AccountStore(
+			library.components.storage.entities.Account,
+			{
+				mutate: true,
+			}
+		);
 	});
 
 	describe('cache', () => {
@@ -129,8 +132,10 @@ describe('system test - account store', () => {
 		});
 
 		it('should save the account state in the database', async () => {
-			await Promise.all(accountStore.finalize());
-			accountStore = new AccountStore(library.storage.entities.Account);
+			await accountStore.finalize();
+			accountStore = new AccountStore(
+				library.components.storage.entities.Account
+			);
 			const newResults = await accountStore.cache({
 				address: updateToAccount.address,
 			});
@@ -139,7 +144,7 @@ describe('system test - account store', () => {
 
 		it('should throw an error if mutate option is set to false', async () => {
 			const accountStoreWithoutMutation = new AccountStore(
-				library.storage.entities.Account,
+				library.components.storage.entities.Account,
 				{ mutate: false }
 			);
 			expect(
