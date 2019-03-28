@@ -55,19 +55,12 @@ module.exports = class ChainModule extends BaseModule {
 			calculateReward: action => this.chain.actions.calculateReward(action),
 			generateDelegateList: action =>
 				this.chain.actions.generateDelegateList(action),
-			getNetworkHeight: async action =>
-				this.chain.actions.getNetworkHeight(action),
-			getAllTransactionsCount: async () =>
-				this.chain.actions.getAllTransactionsCount(),
 			updateForgingStatus: async action =>
 				this.chain.actions.updateForgingStatus(action),
 			getPeers: async action => this.chain.actions.getPeers(action),
 			getPeersCountByFilter: async action =>
 				this.chain.actions.getPeersCountByFilter(action),
 			postSignature: async action => this.chain.actions.postSignature(action),
-			getLastConsensus: async () => this.chain.actions.getLastConsensus(),
-			loaderLoaded: async () => this.chain.actions.loaderLoaded(),
-			loaderSyncing: async () => this.chain.actions.loaderSyncing(),
 			getForgersPublicKeys: async () =>
 				this.chain.actions.getForgersPublicKeys(),
 			getTransactionsFromPool: async action =>
@@ -78,10 +71,9 @@ module.exports = class ChainModule extends BaseModule {
 				this.chain.actions.postTransaction(action),
 			getDelegateBlocksRewards: async action =>
 				this.chain.actions.getDelegateBlocksRewards(action),
-			getSlotTime: async action => this.chain.actions.getSlotTime(action),
 			getSlotNumber: async action => this.chain.actions.getSlotNumber(action),
 			calcSlotRound: async action => this.chain.actions.calcSlotRound(action),
-			getSystemHeaders: () => this.chain.actions.getSystemHeaders(),
+			getNodeStatus: async () => this.chain.actions.getNodeStatus(),
 		};
 	}
 
