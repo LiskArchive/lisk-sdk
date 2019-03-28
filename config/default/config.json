@@ -27,6 +27,9 @@
 		"db": 0,
 		"password": null
 	},
+	"ipc": {
+		"enabled": false
+	},
 	"api": {
 		"enabled": true,
 		"access": {

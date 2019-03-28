@@ -1,11 +1,11 @@
 const fs = require('fs-extra');
 const Controller = require('../../../../../src/controller/controller');
 const Bus = require('../../../../../src/controller/bus');
-const EventEmitterChannel = require('../../../../../src/controller/channels/event_emitter');
+const InMemoryChannel = require('../../../../../src/controller/channels/in_memory_channel');
 
 jest.mock('fs-extra');
 jest.mock('../../../../../src/controller/bus');
-jest.mock('../../../../../src/controller/channels/event_emitter');
+jest.mock('../../../../../src/controller/channels/in_memory_channel');
 
 describe('Controller Class', () => {
 	// Arrange
@@ -14,21 +14,29 @@ describe('Controller Class', () => {
 		info: jest.fn(),
 		error: jest.fn(),
 	};
-	const componentConfig = '#CONFIG';
 	const rootDir = process.cwd();
 	const systemDirs = {
-		dirs: {
-			root: rootDir,
-			temp: `${rootDir}/tmp/${appLabel}/`,
-			sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-			pids: `${rootDir}/tmp/${appLabel}/pids`,
+		root: rootDir,
+		temp: `${rootDir}/tmp/${appLabel}/`,
+		sockets: `${rootDir}/tmp/${appLabel}/sockets`,
+		pids: `${rootDir}/tmp/${appLabel}/pids`,
+	};
+	const config = {};
+	const configController = {
+		dirs: systemDirs,
+		socketsPath: {
+			root: `unix://${systemDirs.sockets}`,
+			pub: `unix://${systemDirs.sockets}/lisk_pub.sock`,
+			sub: `unix://${systemDirs.sockets}/lisk_sub.sock`,
+			rpc: `unix://${systemDirs.sockets}/lisk_rpc.sock`,
 		},
 	};
+
 	let controller = null;
 
 	beforeEach(() => {
 		// Act
-		controller = new Controller(appLabel, componentConfig, logger);
+		controller = new Controller(appLabel, config, logger);
 	});
 
 	afterEach(async () => {
@@ -41,12 +49,10 @@ describe('Controller Class', () => {
 			// Assert
 			expect(controller.logger).toEqual(logger);
 			expect(controller.appLabel).toEqual(appLabel);
-			expect(controller.componentConfig).toBe(componentConfig);
+			expect(controller.config).toEqual(configController);
 			expect(controller.modules).toEqual({});
-			expect(controller.modulesChannels).toEqual({});
 			expect(controller.channel).toBeNull();
 			expect(controller.bus).toBeNull();
-			expect(controller.config).toEqual(systemDirs);
 		});
 	});
 
@@ -71,9 +77,8 @@ describe('Controller Class', () => {
 				spies._setupDirectories
 			);
 			expect(spies._setupBus).toHaveBeenCalledAfter(spies._validatePidFile);
-			expect(spies._loadModules)
-				.toHaveBeenCalledAfter(spies._setupBus)
-				.toHaveBeenCalledWith(modules);
+			expect(spies._loadModules).toHaveBeenCalledAfter(spies._setupBus);
+			expect(spies._loadModules).toHaveBeenCalledWith(modules);
 		});
 
 		// #region TODO channel.publish('lisk:ready')
@@ -117,9 +122,9 @@ describe('Controller Class', () => {
 			await controller._setupDirectories();
 
 			// Assert
-			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.dirs.temp);
-			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.dirs.sockets);
-			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.dirs.pids);
+			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.temp);
+			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.sockets);
+			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.pids);
 		});
 	});
 
@@ -141,23 +146,28 @@ describe('Controller Class', () => {
 
 		it('should set created `Bus` instance to `controller.bus` property.', () => {
 			// Assert
-			expect(Bus).toHaveBeenCalledWith(controller, {
-				wildcard: true,
-				delimiter: ':',
-				maxListeners: 1000,
-			});
+			expect(Bus).toHaveBeenCalledWith(
+				{
+					wildcard: true,
+					delimiter: ':',
+					maxListeners: 1000,
+				},
+				logger,
+				configController
+			);
 			expect(controller.bus).toBeInstanceOf(Bus);
 		});
+
 		it('should call `controller.bus.setup()` method.', () => {
 			// Assert
 			expect(controller.bus.setup).toHaveBeenCalled();
 		});
 
-		it('should set created `EventEmitterChannel` instance to `controller.channel` property.', () => {
+		it('should set created `InMemoryChannel` instance to `controller.channel` property.', () => {
 			// Assert
 			/**
 			 * @todo it is not possible to test the arguments at the moment.
-				expect(EventEmitterChannel).toHaveBeenCalledWith(
+				expect(InMemoryChannel).toHaveBeenCalledWith(
 					'lisk',
 					['ready'],
 					{
@@ -167,7 +177,7 @@ describe('Controller Class', () => {
 					{ skipInternalEvents: true }
 				);
 			*/
-			expect(controller.channel).toBeInstanceOf(EventEmitterChannel);
+			expect(controller.channel).toBeInstanceOf(InMemoryChannel);
 		});
 
 		it('should call `controller.channel.registerToBus()` method.', () => {

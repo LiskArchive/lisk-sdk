@@ -1,3 +1,4 @@
+const assert = require('assert');
 const Ajv = require('ajv');
 const ip = require('ip');
 const _ = require('lodash');
@@ -415,4 +416,31 @@ const validate = (schema, data) => {
 	return true;
 };
 
-module.exports = { validator, loadSchema, validate, ZSchema };
+/**
+ * Validate modules spec.
+ *
+ * @param {Object} moduleSpec - Module Class
+ * @return {boolean}
+ * @throws assert.AssertionError
+ */
+const validateModuleSpec = moduleSpec => {
+	assert(moduleSpec.constructor.alias, 'Module alias is required.');
+	assert(moduleSpec.constructor.info.name, 'Module name is required.');
+	assert(moduleSpec.constructor.info.author, 'Module author is required.');
+	assert(moduleSpec.constructor.info.version, 'Module version is required.');
+	assert(moduleSpec.defaults, 'Module default options are required.');
+	assert(moduleSpec.events, 'Module events are required.');
+	assert(moduleSpec.actions, 'Module actions are required.');
+	assert(moduleSpec.load, 'Module load action is required.');
+	assert(moduleSpec.unload, 'Module unload actions is required.');
+
+	return true;
+};
+
+module.exports = {
+	validator,
+	loadSchema,
+	validate,
+	validateModuleSpec,
+	ZSchema,
+};
