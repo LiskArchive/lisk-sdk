@@ -17,12 +17,18 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
+const { transfer } = require('@liskhq/lisk-transactions');
+
+const accountFixtures = require('../../../../fixtures/accounts');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const WSServer = require('../../../../common/ws/server_master');
 const generateRandomActivePeer = require('../../../../fixtures/peers')
 	.generateRandomActivePeer;
 const Block = require('../../../../fixtures/blocks').Block;
 const Rules = require('../../../../../../src/modules/chain/api/ws/workers/rules');
+const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
+
+const initTransaction = new InitTransaction();
 
 const TransportModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transport'
@@ -87,50 +93,25 @@ describe('transport', () => {
 		// sure that they are fresh every time; that way each test case can modify
 		// stubs without affecting other test cases.
 
-		transaction = {
-			id: '222675625422353767',
-			type: 0,
+		transaction = transfer({
 			amount: '100',
-			fee: '10',
-			senderPublicKey:
-				'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
 			recipientId: '12668885769632475474L',
-			timestamp: 28227090,
-			asset: {},
-			signature:
-				'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-		};
+			passphrase: accountFixtures.genesis.passphrase,
+		});
+		const transactionOne = transfer({
+			amount: '100',
+			recipientId: '12668885769632475474L',
+			passphrase: accountFixtures.genesis.passphrase,
+		});
+		const transactionTwo = transfer({
+			amount: '100',
+			recipientId: '12668885769632475474L',
+			passphrase: accountFixtures.genesis.passphrase,
+		});
 
 		blockMock = new Block();
 
-		transactionsList = [
-			{
-				id: '222675625422353767',
-				type: 0,
-				amount: '100',
-				fee: '10',
-				senderPublicKey:
-					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-				recipientId: '12668885769632475474L',
-				timestamp: 28227090,
-				asset: {},
-				signature:
-					'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-			},
-			{
-				id: '332675625422353892',
-				type: 0,
-				amount: '1000',
-				fee: '10',
-				senderPublicKey:
-					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-				recipientId: '12668885769632475474L',
-				timestamp: 28227090,
-				asset: {},
-				signature:
-					'1231d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c567',
-			},
-		];
+		transactionsList = [transactionOne, transactionTwo];
 
 		multisignatureTransactionsList = [
 			{
@@ -404,6 +385,7 @@ describe('transport', () => {
 						peers: {
 							peersManager: {
 								getByNonce: sinonSandbox.stub().returns(peerMock),
+								getAddress: sinonSandbox.stub(),
 							},
 						},
 					};
@@ -701,6 +683,14 @@ describe('transport', () => {
 
 			describe('when transaction and peer are defined', () => {
 				beforeEach(done => {
+					library.logic = {
+						peers: {
+							peersManager: {
+								getByNonce: sinonSandbox.stub().returns(peerMock),
+								getAddress: sinonSandbox.stub(),
+							},
+						},
+					};
 					__private.receiveTransaction(
 						transaction,
 						validNonce,
@@ -717,7 +707,7 @@ describe('transport', () => {
 				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
 						modules.transactions.processUnconfirmedTransaction.calledWith(
-							transaction,
+							initTransaction.jsonRead(transaction),
 							true
 						)
 					).to.be.true);
@@ -744,9 +734,11 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					expect(errorResult).to.equal(
-						'Transaction: 222675625422353767 failed at .id: Invalid transaction id, actual: 2314501589829262714, expected: 222675625422353767'
-					);
+					const expected = initTransaction
+						.jsonRead(invalidTransaction)
+						.validate();
+					const expectedError = expected.errors[0].toString();
+					expect(errorResult).to.equal(expectedError);
 				});
 			});
 
@@ -772,6 +764,14 @@ describe('transport', () => {
 
 			describe('when nonce is defined', () => {
 				beforeEach(done => {
+					library.logic = {
+						peers: {
+							peersManager: {
+								getByNonce: sinonSandbox.stub().returns(peerMock),
+								getAddress: sinonSandbox.stub().returns(peerAddressString),
+							},
+						},
+					};
 					__private.receiveTransaction(
 						transaction,
 						validNonce,
@@ -829,8 +829,12 @@ describe('transport', () => {
 
 				describe('when transaction is defined', () => {
 					it('should call library.logger.debug with "Transaction" and transaction as arguments', async () =>
-						expect(library.logger.debug.calledWith('Transaction', transaction))
-							.to.be.true);
+						expect(
+							library.logger.debug.calledWith(
+								'Transaction',
+								initTransaction.jsonRead(transaction)
+							)
+						).to.be.true);
 				});
 
 				it('should call callback with err.toString()', async () =>

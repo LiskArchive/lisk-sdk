@@ -16,7 +16,7 @@
 		"url": "https://github.com/LiskHQ/lisk/issues"
 	},
 	"engines": {
-		"node": "10.14.1",
+		"node": "10.15.3",
 		"npm": "6.4.1"
 	},
 	"main": "src/index.js",
@@ -60,6 +60,8 @@
 		"@liskhq/lisk-transactions": "2.1.0-alpha.3",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
+		"pm2-axon": "3.3.0",
+		"pm2-axon-rpc": "0.5.1",
 		"bignumber.js": "8.0.2",
 		"bluebird": "3.5.3",
 		"body-parser": "1.18.3",
@@ -82,7 +84,7 @@
 		"json-refs": "3.0.12",
 		"lisk-commander": "2.0.0",
 		"@liskhq/lisk-cryptography": "2.0.0",
-		"lisk-newrelic": "LiskHQ/lisk-newrelic#d1ca762",
+		"lisk-newrelic": "LiskHQ/lisk-newrelic#fa23caa",
 		"lodash": "4.17.11",
 		"method-override": "3.0.0",
 		"newrelic": "5.0.0",
@@ -127,7 +129,6 @@
 		"istanbul": "1.1.0-alpha.1",
 		"istanbul-middleware": "0.2.2",
 		"jest": "24.1.0",
-		"jest-chain": "1.1.2",
 		"jest-extended": "0.11.1",
 		"jsdoc": "3.5.5",
 		"jsdox": "0.4.10",

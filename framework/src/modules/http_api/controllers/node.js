@@ -57,6 +57,12 @@ function NodeController(scope) {
  * @todo Add description for the function and the params
  */
 NodeController.getConstants = async (context, next) => {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	try {
 		const [lastBlock] = await library.components.storage.entities.Block.get(
 			{},
@@ -282,11 +288,17 @@ NodeController.getPooledTransactions = async function(context, next) {
  * @private
  */
 async function _getForgingStatus(publicKey) {
-	const keyPairs = await library.channel.invoke('chain:getForgersKeyPairs');
+	const keyPairs = await library.channel.invoke('chain:getForgersPublicKeys');
 	const forgingDelegates = library.config.forging.delegates;
 	const forgersPublicKeys = {};
 
 	Object.keys(keyPairs).forEach(key => {
+		// Convert publicKey to buffer when received as object (ie.: { type: 'Buffer', data: [] })
+		// TODO: consider always returning as string
+		if (keyPairs[key].publicKey.type === 'Buffer') {
+			keyPairs[key].publicKey = Buffer.from(keyPairs[key].publicKey);
+		}
+
 		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
 	});
 

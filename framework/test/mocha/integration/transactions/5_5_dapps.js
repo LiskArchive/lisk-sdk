@@ -76,7 +76,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			options: dappDuplicate,
 			timeOffset: -10000,
 		});
-		badTransactions.push(transaction1);
+		goodTransactions.push(transaction1);
 		localCommon.addTransaction(library, transaction1, (err, res) => {
 			expect(res).to.equal(transaction1.id);
 			done();
@@ -89,7 +89,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			options: dappDuplicate,
 			timeOffset: -5000,
 		});
-		goodTransactions.push(transaction2);
+		badTransactions.push(transaction2);
 		localCommon.addTransaction(library, transaction2, (err, res) => {
 			expect(res).to.equal(transaction2.id);
 			done();
@@ -99,10 +99,10 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	it('adding to pool dapp transaction 3 should be ok', done => {
 		transaction3 = createDapp({
 			passphrase: account.passphrase,
-			options: dappDuplicateNameFail,
+			options: dappDuplicateNameSuccess,
 			timeOffset: -10000,
 		});
-		badTransactions.push(transaction3);
+		goodTransactions.push(transaction3);
 		localCommon.addTransaction(library, transaction3, (err, res) => {
 			expect(res).to.equal(transaction3.id);
 			done();
@@ -112,9 +112,9 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	it('adding to pool dapp transaction 4 with same name than 3 should be ok', done => {
 		transaction4 = createDapp({
 			passphrase: account.passphrase,
-			options: dappDuplicateNameSuccess,
+			options: dappDuplicateNameFail,
 		});
-		goodTransactions.push(transaction4);
+		badTransactions.push(transaction4);
 		localCommon.addTransaction(library, transaction4, (err, res) => {
 			expect(res).to.equal(transaction4.id);
 			done();
@@ -124,10 +124,10 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	it('adding to pool dapp transaction 5 should be ok', done => {
 		transaction5 = createDapp({
 			passphrase: account.passphrase,
-			options: dappDuplicateLinkFail,
+			options: dappDuplicateLinkSuccess,
 			timeOffset: -10000,
 		});
-		badTransactions.push(transaction5);
+		goodTransactions.push(transaction5);
 		localCommon.addTransaction(library, transaction5, (err, res) => {
 			expect(res).to.equal(transaction5.id);
 			done();
@@ -137,9 +137,9 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	it('adding to pool dapp transaction 6 with same link than 5 should be ok', done => {
 		transaction6 = createDapp({
 			passphrase: account.passphrase,
-			options: dappDuplicateLinkSuccess,
+			options: dappDuplicateLinkFail,
 		});
-		goodTransactions.push(transaction6);
+		badTransactions.push(transaction6);
 		localCommon.addTransaction(library, transaction6, (err, res) => {
 			expect(res).to.equal(transaction6.id);
 			done();
@@ -153,30 +153,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			});
 		});
 
-		it('first dapp transactions to arrive should not be included', done => {
-			async.every(
-				badTransactions,
-				(everyTransaction, callback) => {
-					const filter = {
-						id: everyTransaction.id,
-					};
-
-					localCommon.getTransactionFromModule(library, filter, (err, res) => {
-						expect(err).to.be.null;
-						expect(res)
-							.to.have.property('transactions')
-							.which.is.an('Array');
-						expect(res.transactions.length).to.equal(0);
-						callback(null, !err);
-					});
-				},
-				async () => {
-					done();
-				}
-			);
-		});
-
-		it('last dapp transactions to arrive should be included', done => {
+		it('first dapp transactions to arrive should be included', done => {
 			async.every(
 				goodTransactions,
 				(everyTransaction, callback) => {
@@ -200,6 +177,29 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			);
 		});
 
+		it('last dapp transactions to arrive should not be included', done => {
+			async.every(
+				badTransactions,
+				(everyTransaction, callback) => {
+					const filter = {
+						id: everyTransaction.id,
+					};
+
+					localCommon.getTransactionFromModule(library, filter, (err, res) => {
+						expect(err).to.be.null;
+						expect(res)
+							.to.have.property('transactions')
+							.which.is.an('Array');
+						expect(res.transactions.length).to.equal(0);
+						callback(null, !err);
+					});
+				},
+				async () => {
+					done();
+				}
+			);
+		});
+
 		it('adding to pool already registered dapp should fail', done => {
 			transaction2 = createDapp({
 				passphrase: account.passphrase,
@@ -207,7 +207,9 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			});
 			localCommon.addTransaction(library, transaction2, err => {
 				expect(err).to.equal(
-					`Application name already exists: ${dappDuplicate.name}`
+					`Transaction: ${
+						transaction2.id
+					} failed at : Application name already exists: ${dappDuplicate.name}`
 				);
 				done();
 			});
@@ -220,7 +222,11 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			});
 			localCommon.addTransaction(library, transaction4, err => {
 				expect(err).to.equal(
-					`Application name already exists: ${dappDuplicateNameFail.name}`
+					`Transaction: ${
+						transaction4.id
+					} failed at : Application name already exists: ${
+						dappDuplicateNameFail.name
+					}`
 				);
 				done();
 			});
@@ -233,7 +239,11 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			});
 			localCommon.addTransaction(library, transaction6, err => {
 				expect(err).to.equal(
-					`Application link already exists: ${dappDuplicateLinkFail.link}`
+					`Transaction: ${
+						transaction6.id
+					} failed at : Application link already exists: ${
+						dappDuplicateLinkFail.link
+					}`
 				);
 				done();
 			});

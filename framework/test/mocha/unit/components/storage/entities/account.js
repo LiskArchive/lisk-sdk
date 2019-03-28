@@ -36,6 +36,7 @@ describe('Account', () => {
 	let validAccountSQLs;
 	let validAccountFields;
 	let validOptions;
+	let invalidOptions;
 	let validFilters;
 	let validExtendedObjectFields;
 	let validSimpleObjectFields;
@@ -59,19 +60,12 @@ describe('Account', () => {
 			'publicKey',
 			'secondPublicKey',
 			'username',
-			'u_username',
 			'isDelegate',
-			'u_isDelegate',
 			'secondSignature',
-			'u_secondSignature',
 			'balance',
-			'u_balance',
 			'multiMin',
-			'u_multiMin',
 			'multiLifetime',
-			'u_multiLifetime',
 			'nameExist',
-			'u_nameExist',
 			'fees',
 			'rewards',
 			'producedBlocks',
@@ -97,18 +91,9 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
-			'u_username',
-			'u_isDelegate',
-			'u_secondSignature',
-			'u_nameExist',
-			'u_multiMin',
-			'u_multiLifetime',
-			'u_balance',
 			'productivity',
 			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
 			'membersPublicKeys',
-			'u_membersPublicKeys',
 		];
 
 		validSimpleObjectFields = [
@@ -128,13 +113,6 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
-			'u_username',
-			'u_isDelegate',
-			'u_secondSignature',
-			'u_nameExist',
-			'u_multiMin',
-			'u_multiLifetime',
-			'u_balance',
 			'productivity',
 		];
 
@@ -159,23 +137,12 @@ describe('Account', () => {
 			'username_ne',
 			'username_in',
 			'username_like',
-			'u_username',
-			'u_username_eql',
-			'u_username_ne',
-			'u_username_in',
-			'u_username_like',
 			'isDelegate',
 			'isDelegate_eql',
 			'isDelegate_ne',
-			'u_isDelegate',
-			'u_isDelegate_eql',
-			'u_isDelegate_ne',
 			'secondSignature',
 			'secondSignature_eql',
 			'secondSignature_ne',
-			'u_secondSignature',
-			'u_secondSignature_eql',
-			'u_secondSignature_ne',
 			'balance',
 			'balance_eql',
 			'balance_ne',
@@ -252,14 +219,16 @@ describe('Account', () => {
 			'vote_lte',
 			'vote_in',
 			'votedDelegatesPublicKeys_in',
-			'u_votedDelegatesPublicKeys_in',
 			'membersPublicKeys_in',
-			'u_membersPublicKeys_in',
 		];
 
 		validOptions = {
 			limit: 100,
 			offset: 0,
+		};
+
+		invalidOptions = {
+			foo: true,
 		};
 	});
 
@@ -488,21 +457,6 @@ describe('Account', () => {
 				);
 			});
 
-			it('should fetch "u_votedDelegatesPublicKeys" with correct query', async () => {
-				const accounts = await AccountEntity.get({}, { extended: true });
-
-				await Promise.all(
-					accounts.map(async account => {
-						const keys = await adapter.execute(
-							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2u_delegates WHERE "accountId" = '${
-								account.address
-							}'`
-						);
-						expect(account.u_votedDelegatesPublicKeys).to.be.eql(keys[0].keys);
-					})
-				);
-			});
-
 			it('should fetch "membersPublicKeys" with correct query', async () => {
 				const accounts = await AccountEntity.get({}, { extended: true });
 
@@ -514,21 +468,6 @@ describe('Account', () => {
 							}'`
 						);
 						expect(account.membersPublicKeys).to.be.eql(keys[0].keys);
-					})
-				);
-			});
-
-			it('should fetch "u_membersPublicKeys" with correct query', async () => {
-				const accounts = await AccountEntity.get({}, { extended: true });
-
-				await Promise.all(
-					accounts.map(async account => {
-						const keys = await adapter.execute(
-							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2u_multisignatures WHERE "accountId" = '${
-								account.address
-							}'`
-						);
-						expect(account.u_membersPublicKeys).to.be.eql(keys[0].keys);
 					})
 				);
 			});
@@ -597,19 +536,9 @@ describe('Account', () => {
 				expect(data[0].isDelegate).to.be.a('boolean');
 			});
 
-			it('should return "u_isDelegate" as "boolean"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].u_isDelegate).to.be.a('boolean');
-			});
-
 			it('should return "secondSignature" as "boolean"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].secondSignature).to.be.a('boolean');
-			});
-
-			it('should return "u_secondSignature" as "boolean"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].u_secondSignature).to.be.a('boolean');
 			});
 
 			it('should return "rank" as null', async () => {
@@ -811,7 +740,14 @@ describe('Account', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should throw error for invalid filters');
+		it('should throw error for invalid filters', async () => {
+			const account = new Account(adapter);
+			try {
+				account.get({ invalid_filter: true });
+			} catch (err) {
+				expect(err.message).to.equal('One or more filters are not supported.');
+			}
+		});
 
 		it('should accept only valid options', async () => {
 			// Act & Assert
@@ -820,7 +756,14 @@ describe('Account', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for invalid options');
+		it('should throw error for invalid options', async () => {
+			const account = new Account(adapter);
+			try {
+				account.get({}, invalidOptions);
+			} catch (err) {
+				expect(err.message).to.equal('One or more options are not supported.');
+			}
+		});
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
 			const executeSpy = sinonSandbox.spy(AccountEntity.adapter, 'executeFile');

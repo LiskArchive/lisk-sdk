@@ -4,6 +4,9 @@ const INTERNAL_EVENTS = Object.freeze([
 	'loading:finished',
 ]);
 
+const eventWithModuleNameReg = /^([^\d][\w]+)((?::[^\d][\w]+)+)$/;
+
 module.exports = {
+	eventWithModuleNameReg,
 	INTERNAL_EVENTS,
 };

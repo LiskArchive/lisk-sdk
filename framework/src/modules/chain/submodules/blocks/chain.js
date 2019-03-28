@@ -336,12 +336,15 @@ __private.applyConfirmedStep = async function(block, tx) {
 	if (block.transactions.length <= 0) {
 		return;
 	}
+	const nonInertTransactions = block.transactions.filter(
+		transaction => !global.exceptions.inertTransactions.includes(transaction.id)
+	);
 
 	const {
 		stateStore,
 		transactionsResponses,
 	} = await modules.processTransactions.applyTransactions(
-		block.transactions,
+		nonInertTransactions,
 		tx
 	);
 
@@ -505,11 +508,15 @@ __private.undoConfirmedStep = async function(block, tx) {
 		return;
 	}
 
+	const nonInertTransactions = block.transactions.filter(
+		transaction => !global.exceptions.inertTransactions.includes(transaction.id)
+	);
+
 	const {
 		stateStore,
 		transactionsResponses,
 	} = await modules.processTransactions.undoTransactions(
-		block.transactions,
+		nonInertTransactions,
 		tx
 	);
 

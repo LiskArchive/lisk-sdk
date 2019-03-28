@@ -68,7 +68,8 @@ module.exports = class ChainModule extends BaseModule {
 			getLastConsensus: async () => this.chain.actions.getLastConsensus(),
 			loaderLoaded: async () => this.chain.actions.loaderLoaded(),
 			loaderSyncing: async () => this.chain.actions.loaderSyncing(),
-			getForgersKeyPairs: async () => this.chain.actions.getForgersKeyPairs(),
+			getForgersPublicKeys: async () =>
+				this.chain.actions.getForgersPublicKeys(),
 			getTransactionsFromPool: async action =>
 				this.chain.actions.getTransactionsFromPool(action),
 			getLastCommit: async () => this.chain.actions.getLastCommit(),
@@ -86,8 +87,8 @@ module.exports = class ChainModule extends BaseModule {
 	async load(channel) {
 		this.chain = new Chain(channel, this.options);
 
-		channel.once('lisk:ready', () => {
-			this.chain.bootstrap();
+		channel.once('lisk:ready', async () => {
+			await this.chain.bootstrap();
 		});
 	}
 

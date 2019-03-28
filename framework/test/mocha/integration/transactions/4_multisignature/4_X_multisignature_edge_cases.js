@@ -128,15 +128,16 @@ describe('system test - multi signature edge cases', () => {
 			});
 		});
 
-		it('invalid transaction should not be confirmed', async () => {
-			/* 	First transaction in the array is the one that gets rejected in this scenario
+		it('invalid transaction should not be confirmed', done => {
+			/* First transaction in the array is the one that gets rejected in this scenario
 				the reason why this is valid is that the transaction pool gets pooled
 				transaction in the reverse order */
-			return localCommon.getTransactionFromModule(
+			localCommon.getTransactionFromModule(
 				library,
-				{ id: transactionIds[0] },
+				{ id: transactionIds[2] },
 				(err, res) => {
-					return expect(res.transactions.lenght > 0).to.be.false;
+					expect(res.transactions).to.be.empty;
+					done();
 				}
 			);
 		});
@@ -144,7 +145,7 @@ describe('system test - multi signature edge cases', () => {
 		it('valid transactions should be confirmed', done => {
 			localCommon.forge(library, async () => {
 				const found = [];
-				const validTransactions = transactionIds.slice(1);
+				const validTransactions = transactionIds.slice(0, 2);
 				async.map(
 					validTransactions,
 					(transactionId, eachCb) => {

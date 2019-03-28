@@ -208,7 +208,7 @@ module.exports = class Chain {
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
 			updateForgingStatus: async action =>
-				promisify(this.scope.modules.delegates.updateForgingStatus)(
+				this.scope.modules.delegates.updateForgingStatus(
 					action.params.publicKey,
 					action.params.password,
 					action.params.forging
@@ -228,8 +228,14 @@ module.exports = class Chain {
 			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
 			loaderLoaded: async () => this.scope.modules.loader.loaded(),
 			loaderSyncing: async () => this.scope.modules.loader.syncing(),
-			getForgersKeyPairs: async () =>
-				this.scope.modules.delegates.getForgersKeyPairs(),
+			getForgersPublicKeys: async () => {
+				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
+				const publicKeys = {};
+				Object.keys(keypairs).forEach(key => {
+					publicKeys[key] = { publicKey: keypairs[key].publicKey };
+				});
+				return publicKeys;
+			},
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
@@ -275,15 +281,19 @@ module.exports = class Chain {
 		}
 
 		if (components !== undefined) {
-			components.map(component => component.cleanup());
+			Object.keys(components).forEach(async key => {
+				if (components[key].cleanup) {
+					await components[key].cleanup();
+				}
+			});
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
 		// this includes operations like snapshotting database tables.
 		await Promise.all(
-			modules.map(module => {
-				if (typeof module.cleanup === 'function') {
-					return promisify(module.cleanup)();
+			Object.keys(modules).map(key => {
+				if (typeof modules[key].cleanup === 'function') {
+					return promisify(modules[key].cleanup);
 				}
 				return true;
 			})
