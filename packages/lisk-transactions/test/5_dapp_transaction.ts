@@ -196,6 +196,23 @@ describe('Dapp transaction class', () => {
 			expect(errors).to.be.an('array').and.empty;
 		});
 
+		it('should not return error when optional field contains null', async () => {
+			const validTransaction = {
+				...defaultValidDappTransaction,
+				asset: {
+					dapp: {
+						...defaultValidDappTransaction.asset.dapp,
+						description: null,
+						icon: null,
+						tags: null,
+					},
+				},
+			};
+			const transaction = new DappTransaction(validTransaction);
+			const errors = (transaction as any).validateAsset();
+			expect(errors).to.be.empty;
+		});
+
 		it('should return error when amount is not zero', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,
