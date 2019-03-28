@@ -34,9 +34,7 @@ export default class CacheCommand extends BaseCommand {
 
 	static description = 'Start Lisk Cache';
 
-	static examples = [
-		'node:start:cache mainnet_1.6',
-	];
+	static examples = ['node:start:cache mainnet_1.6'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(CacheCommand);

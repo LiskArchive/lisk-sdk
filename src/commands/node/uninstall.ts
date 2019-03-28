@@ -38,9 +38,7 @@ export default class UnInstallCommand extends BaseCommand {
 
 	static description = 'UnInstall Lisk';
 
-	static examples = [
-		'node:uninstall mainnet_1.6',
-	];
+	static examples = ['node:uninstall mainnet_1.6'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(UnInstallCommand);
@@ -55,8 +53,7 @@ export default class UnInstallCommand extends BaseCommand {
 					new Listr([
 						{
 							title: 'Stop Services',
-							task: async () =>
-								StopCommand.run(['--network', network, '--name', name]),
+							task: async () => StopCommand.run([name]),
 						},
 						{
 							title: 'Remove Process and Directory',

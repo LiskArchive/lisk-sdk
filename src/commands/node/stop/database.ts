@@ -33,15 +33,13 @@ export default class DatabaseCommand extends BaseCommand {
 
 	static description = 'Stop Lisk Database';
 
-	static examples = [
-		'node:stop:database mainnet_1.6',
-	];
+	static examples = ['node:stop:database mainnet_1.6'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(DatabaseCommand);
 		const { name } = args as Args;
 		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, } = pm2_env as Pm2Env;
+		const { pm_cwd: installDir } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{

@@ -34,9 +34,7 @@ export default class StopCommand extends BaseCommand {
 
 	static description = 'Stop Lisk';
 
-	static examples = [
-		'node:stop mainnet_1.6',
-	];
+	static examples = ['node:stop mainnet_1.6'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(StopCommand);
@@ -49,13 +47,11 @@ export default class StopCommand extends BaseCommand {
 					new Listr([
 						{
 							title: 'Cache',
-							task: async () =>
-								CacheCommand.run([name]),
+							task: async () => CacheCommand.run([name]),
 						},
 						{
 							title: 'Database',
-							task: async () =>
-								DatabaseCommand.run([name]),
+							task: async () => DatabaseCommand.run([name]),
 						},
 						{
 							title: 'Lisk',

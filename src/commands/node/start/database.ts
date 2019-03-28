@@ -33,9 +33,7 @@ export default class DatabaseCommand extends BaseCommand {
 
 	static description = 'Start Lisk Database';
 
-	static examples = [
-		'node:start:database mainnet_1.6',
-	];
+	static examples = ['node:start:database mainnet_1.6'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(DatabaseCommand);

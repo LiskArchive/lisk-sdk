@@ -34,12 +34,10 @@ export default class StartCommand extends BaseCommand {
 
 	static description = 'Start Lisk';
 
-	static examples = [
-		'node:start mainnet_1.6',
-	];
+	static examples = ['node:start mainnet_1.6'];
 
 	async run(): Promise<void> {
-		const { args} = this.parse(StartCommand);
+		const { args } = this.parse(StartCommand);
 		const { name } = args as Args;
 
 		const tasks = new Listr([
@@ -49,13 +47,11 @@ export default class StartCommand extends BaseCommand {
 					new Listr([
 						{
 							title: 'Cache',
-							task: async () =>
-								CacheCommand.run([name]),
+							task: async () => CacheCommand.run([name]),
 						},
 						{
 							title: 'Database',
-							task: async () =>
-								DatabaseCommand.run([name]),
+							task: async () => DatabaseCommand.run([name]),
 						},
 						{
 							title: 'Lisk',

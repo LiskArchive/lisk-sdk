@@ -68,8 +68,7 @@ const noSignatureDescription =
 
 const networkDescription = 'Name of the network to install.';
 const installationPathDescription = 'Path of Lisk to install.';
-const releaseUrlDescription =
-	'URL of the repository to download the Lisk.';
+const releaseUrlDescription = 'URL of the repository to download the Lisk.';
 const snapshotUrlDescription = 'URL of the Lisk blockchain snapshot.';
 const noSnapshotDescription = 'Install Lisk without blockchain snapshot';
 const liskVersionDescription =

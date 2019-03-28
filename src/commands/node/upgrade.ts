@@ -91,9 +91,7 @@ export default class UpgradeCommand extends BaseCommand {
 
 	static description = 'Upgrade locally installed Lisk instance to specified or latest version';
 
-	static examples = [
-		'node:upgrade --lisk-version=2.0.0 mainnet_1.6',
-	];
+	static examples = ['node:upgrade --lisk-version=2.0.0 mainnet_1.6'];
 
 	static flags = {
 		...BaseCommand.flags,
@@ -112,15 +110,15 @@ export default class UpgradeCommand extends BaseCommand {
 			`${installDir}/package.json`,
 		) as PackageJson;
 		const upgradeVersion: string = await getVersionToUpgrade(
-			liskVersion,
 			network,
+			liskVersion,
 		);
 		const releaseUrl = `${RELEASE_URL}/${network}/${upgradeVersion}`;
 		const { cacheDir } = this.config;
 
 		const tasks = new Listr([
 			{
-				title: 'Validate Version',
+				title: 'Validate Version Input',
 				task: async () =>
 					validateVersion(network, currentVersion, upgradeVersion),
 			},
@@ -130,8 +128,7 @@ export default class UpgradeCommand extends BaseCommand {
 					new Listr([
 						{
 							title: 'Stop Lisk',
-							task: async () =>
-								StopCommand.run(['--network', network, '--name', name]),
+							task: async () => StopCommand.run([name]),
 						},
 						{
 							title: `Unregister Lisk: ${name} from PM2`,
@@ -170,7 +167,7 @@ export default class UpgradeCommand extends BaseCommand {
 				title: `Start Lisk: ${upgradeVersion}`,
 				task: async () => {
 					await registerApplication(installDir, network, name);
-					await StartCommand.run(['--network', network, '--name', name]);
+					await StartCommand.run([name]);
 				},
 			},
 		]);
