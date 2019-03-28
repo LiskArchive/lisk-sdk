@@ -163,10 +163,6 @@ describe('transport', () => {
 			add: async () => {},
 		};
 
-		transactionStub = {
-			attachAssetType: sinonSandbox.stub(),
-		};
-
 		blockStub = {};
 		peersStub = {};
 
@@ -478,7 +474,7 @@ describe('transport', () => {
 				};
 
 				modules.multisignatures = {
-					processSignature: sinonSandbox.stub().callsArg(1),
+					getTransactionAndProcessSignature: sinonSandbox.stub().callsArg(1),
 				};
 
 				done();
@@ -487,7 +483,7 @@ describe('transport', () => {
 			describe('when library.schema.validate succeeds', () => {
 				describe('when modules.multisignatures.processSignature succeeds', () => {
 					beforeEach(done => {
-						modules.multisignatures.processSignature = sinonSandbox
+						modules.multisignatures.getTransactionAndProcessSignature = sinonSandbox
 							.stub()
 							.callsArg(1);
 
@@ -508,7 +504,7 @@ describe('transport', () => {
 					it('should call modules.multisignatures.processSignature with signature', async () => {
 						expect(error).to.equal(undefined);
 						return expect(
-							modules.multisignatures.processSignature.calledWith(
+							modules.multisignatures.getTransactionAndProcessSignature.calledWith(
 								SAMPLE_SIGNATURE_1
 							)
 						).to.be.true;
@@ -523,7 +519,7 @@ describe('transport', () => {
 
 					beforeEach(done => {
 						processSignatureError = new Error('Transaction not found');
-						modules.multisignatures.processSignature = sinonSandbox
+						modules.multisignatures.getTransactionAndProcessSignature = sinonSandbox
 							.stub()
 							.callsArgWith(1, processSignatureError);
 

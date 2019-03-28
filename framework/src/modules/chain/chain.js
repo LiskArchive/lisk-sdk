@@ -169,7 +169,6 @@ module.exports = class Chain {
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 			scope.logic.block.bindModules(scope.modules);
-
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
 

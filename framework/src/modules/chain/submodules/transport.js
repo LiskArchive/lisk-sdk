@@ -148,7 +148,7 @@ __private.receiveSignatures = function(signatures = []) {
 };
 
 /**
- * Validates signature with schema and calls processSignature.
+ * Validates signature with schema and calls getTransactionAndProcessSignature.
  *
  * @private
  * @param {Object} query
@@ -157,14 +157,14 @@ __private.receiveSignatures = function(signatures = []) {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.receiveSignature = function(query, cb) {
-	library.schema.validate(query, definitions.Signature, err => {
+__private.receiveSignature = function(signature, cb) {
+	library.schema.validate(signature, definitions.Signature, err => {
 		if (err) {
 			return setImmediate(cb, `Invalid signature body ${err[0].message}`);
 		}
 
-		return modules.multisignatures.processSignature(
-			query,
+		return modules.multisignatures.getTransactionAndProcessSignature(
+			signature,
 			processSignatureErr => {
 				if (processSignatureErr) {
 					return setImmediate(
