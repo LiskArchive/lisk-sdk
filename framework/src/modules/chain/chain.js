@@ -259,6 +259,7 @@ module.exports = class Chain {
 						normalized: false,
 					},
 				}),
+				lastBlock: this.scope.modules.blocks.lastBlock.get(),
 			}),
 		};
 	}

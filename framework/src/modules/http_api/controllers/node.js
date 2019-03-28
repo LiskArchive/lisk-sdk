@@ -118,13 +118,6 @@ NodeController.getConstants = async (context, next) => {
  */
 NodeController.getStatus = async (context, next) => {
 	try {
-		const [lastBlock] = await library.components.storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
-
-		const { height } = lastBlock;
-
 		const {
 			broadhash,
 			consensus,
@@ -133,6 +126,7 @@ NodeController.getStatus = async (context, next) => {
 			networkHeight,
 			syncing,
 			transactions,
+			lastBlock,
 		} = await library.channel.invoke('chain:getNodeStatus');
 
 		const data = {
@@ -140,7 +134,7 @@ NodeController.getStatus = async (context, next) => {
 			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch,
-			height,
+			height: lastBlock.height || 0,
 			loaded,
 			networkHeight: networkHeight || 0,
 			syncing,
