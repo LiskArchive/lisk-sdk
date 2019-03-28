@@ -153,27 +153,35 @@ module.exports = class Chain {
 				channel: this.channel,
 			};
 
-			// Lookup for peers ips from dns
-			scope.config.peers.list = await lookupPeerIPs(
-				scope.config.peers.list,
-				scope.config.peers.enabled
-			);
-
 			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
 			await bootstrapCache(scope);
 
 			scope.bus = await createBus();
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
-			scope.webSocket = await createSocketCluster(scope);
+
+			if (scope.config.peers.enabled) {
+				// Lookup for peers ips from dns
+				scope.config.peers.list = await lookupPeerIPs(
+					scope.config.peers.list,
+					scope.config.peers.enabled
+				);
+
+				// Listen to websockets
+				scope.webSocket = await createSocketCluster(scope);
+				await scope.webSocket.listen();
+			} else {
+				this.logger.info(
+					'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
+				);
+			}
+
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
 
-			// Listen to websockets
-			await scope.webSocket.listen();
 			self.logger.info('Modules ready and launched');
 
 			self.scope = scope;
