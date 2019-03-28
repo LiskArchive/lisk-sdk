@@ -45,9 +45,9 @@ export default class LogsCommand extends BaseCommand {
 		const { pm2_env } = await describeApplication(name);
 		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
 		const { logFileName } = getNetworkConfig(installDir, network);
-		const fName = `${installDir}/${logFileName}`;
+		const fileName = `${installDir}/${logFileName}`;
 
-		const tail = childProcess.spawn('tail', ['-f', fName]);
+		const tail = childProcess.spawn('tail', ['-f', fileName]);
 		const { stderr, stdout } = tail;
 
 		stdout.on('data', data => {
