@@ -19,6 +19,10 @@ const os = require('os');
 const crypto = require('crypto');
 const _ = require('lodash');
 
+const __private = {
+	state: new WeakMap(),
+};
+
 /**
  * Initial state of the entire application.
  * - os
@@ -52,7 +56,7 @@ class ApplicationState {
 		logger,
 	}) {
 		this.logger = logger;
-		this.state = {
+		__private.state.set(this, {
 			os: os.platform() + os.release(),
 			version,
 			wsPort,
@@ -63,12 +67,11 @@ class ApplicationState {
 			nethash,
 			broadhash: nethash,
 			nonce,
-		};
+		});
 	}
 
 	getState() {
-		const state = _.cloneDeep(this.state);
-		return state;
+		return _.cloneDeep(__private.state.get(this));
 	}
 
 	setChannel(channel) {
@@ -85,20 +88,24 @@ class ApplicationState {
 			throw new TypeError('Argument blocks should be an array.');
 		}
 		try {
+			const state = this.getState();
 			if (blocks.length <= 1) {
-				this.state.broadhash = this.state.nethash;
+				state.broadhash = state.nethash;
+				__private.state.set(this, state);
 				return true;
 			}
-			this.state.height = blocks[0].height;
+
+			state.height = blocks[0].height;
 			const seed = blocks.map(row => row.id).join('');
 			const newBroadhash = crypto
 				.createHash('sha256')
 				.update(seed, 'utf8')
 				.digest()
 				.toString('hex');
-			this.state.broadhash = newBroadhash;
-			this.logger.debug('Application state', this.state);
-			this.channel.publish('lisk:state:updated', this.state);
+			state.broadhash = newBroadhash;
+			__private.state.set(this, state);
+			this.logger.debug('Application state', this.getState());
+			this.channel.publish('lisk:state:updated', this.getState());
 			return true;
 		} catch (err) {
 			this.logger.error(err.stack);
