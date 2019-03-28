@@ -143,7 +143,7 @@ class Controller {
 			['ready', 'state:updated'],
 			{
 				getComponentConfig: action => this.config.components[action.params],
-				getApplicationState: () => this.applicationState.getState(),
+				getApplicationState: () => this.applicationState.state,
 				updateApplicationState: action =>
 					this.applicationState.update(action.params),
 			},
@@ -152,7 +152,7 @@ class Controller {
 
 		await this.channel.registerToBus(this.bus);
 
-		await this.applicationState.setChannel(this.channel);
+		this.applicationState.channel = this.channel;
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {

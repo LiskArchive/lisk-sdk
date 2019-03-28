@@ -70,12 +70,12 @@ class ApplicationState {
 		});
 	}
 
-	getState() {
+	get state() {
 		return _.cloneDeep(__private.state.get(this));
 	}
 
-	setChannel(channel) {
-		this.channel = channel;
+	set channel(channel) {
+		this.stateChannel = channel;
 	}
 
 	/**
@@ -88,24 +88,24 @@ class ApplicationState {
 			throw new TypeError('Argument blocks should be an array.');
 		}
 		try {
-			const state = this.getState();
+			const newState = this.state;
 			if (blocks.length <= 1) {
-				state.broadhash = state.nethash;
-				__private.state.set(this, state);
+				newState.broadhash = newState.nethash;
+				__private.state.set(this, newState);
 				return true;
 			}
 
-			state.height = blocks[0].height;
+			newState.height = blocks[0].height;
 			const seed = blocks.map(row => row.id).join('');
 			const newBroadhash = crypto
 				.createHash('sha256')
 				.update(seed, 'utf8')
 				.digest()
 				.toString('hex');
-			state.broadhash = newBroadhash;
-			__private.state.set(this, state);
-			this.logger.debug('Application state', this.getState());
-			this.channel.publish('lisk:state:updated', this.getState());
+			newState.broadhash = newBroadhash;
+			__private.state.set(this, newState);
+			this.logger.debug('Application state', this.state);
+			this.stateChannel.publish('lisk:state:updated', this.state);
 			return true;
 		} catch (err) {
 			this.logger.error(err.stack);

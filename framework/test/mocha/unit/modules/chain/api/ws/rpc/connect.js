@@ -73,7 +73,7 @@ describe('connect', () => {
 		};
 
 		applicationStateMock = {
-			getState: sinonSandbox.stub().returns({}),
+			state: sinonSandbox.stub().returns({}),
 		};
 
 		masterWAMPServerMock = {
@@ -109,7 +109,7 @@ describe('connect', () => {
 				connectResult = connectRewired(
 					validPeer,
 					loggerMock,
-					applicationStateMock.getState()
+					applicationStateMock.state
 				);
 			});
 
@@ -162,7 +162,7 @@ describe('connect', () => {
 			let originalApplicationState;
 
 			beforeEach(async () => {
-				originalApplicationState = applicationStateMock.getState();
+				originalApplicationState = applicationStateMock.state;
 				stateMock = {
 					protocolVersion: 'aProtocolVersion',
 					version: 'aVersion',

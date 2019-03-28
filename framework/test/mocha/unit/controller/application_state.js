@@ -55,7 +55,7 @@ describe('application state', () => {
 			initialState: dummyConfig,
 			logger: loggerStub,
 		});
-		applicationState.setChannel(channelMock);
+		applicationState.channel = channelMock;
 	});
 
 	describe('update()', () => {
@@ -78,7 +78,7 @@ describe('application state', () => {
 
 			it('should update state.broadhash property to state.nethash', async () => {
 				await applicationState.update([]);
-				const state = applicationState.getState();
+				const state = applicationState.state;
 				expect(state.broadhash).to.equal(state.nethash);
 			});
 		});
@@ -98,7 +98,7 @@ describe('application state', () => {
 
 			it('should update state.broadhash property to state.nethash', async () => {
 				await applicationState.update(blocks);
-				const state = applicationState.getState();
+				const state = applicationState.state;
 				expect(state.broadhash).to.equal(state.nethash);
 			});
 		});
@@ -126,7 +126,7 @@ describe('application state', () => {
 
 			it('should update state.broadhash property to the just calculated broadhash', async () => {
 				await applicationState.update(blocks);
-				const state = applicationState.getState();
+				const state = applicationState.state;
 				const seed = blocks.map(row => row.id).join('');
 				const newBroadhash = crypto
 					.createHash('sha256')
@@ -138,13 +138,13 @@ describe('application state', () => {
 
 			it('should update state.height property to the best height', async () => {
 				await applicationState.update(blocks);
-				const state = applicationState.getState();
+				const state = applicationState.state;
 				expect(state.height).to.equal(blocks[0].height);
 			});
 
 			it('should call the logger.debug Application state info', async () => {
 				await applicationState.update(blocks);
-				const state = applicationState.getState();
+				const state = applicationState.state;
 				expect(loggerStub.debug.called).to.be.true;
 				expect(loggerStub.debug.args[0][0]).to.equal('Application state');
 				expect(loggerStub.debug.args[0][1]).to.eql(state);
