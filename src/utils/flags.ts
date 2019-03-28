@@ -67,14 +67,13 @@ const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
 const networkDescription = 'Name of the network to install.';
-const installationPathDescription = 'Path of Lisk Core to install.';
-const nameDescription = 'Lisk Core installation directory name.';
+const installationPathDescription = 'Path of Lisk to install.';
 const releaseUrlDescription =
-	'URL of the repository to download the Lisk Core.';
-const snapshotUrlDescription = 'URL of the Lisk Core blockchain snapshot.';
-const noSnapshotDescription = 'Install Lisk Core without blockchain snapshot';
+	'URL of the repository to download the Lisk.';
+const snapshotUrlDescription = 'URL of the Lisk blockchain snapshot.';
+const noSnapshotDescription = 'Install Lisk without blockchain snapshot';
 const liskVersionDescription =
-	'Upgrade locally installed Lisk Core instance to specified version';
+	'Upgrade locally installed Lisk instance to specified version';
 
 export type AlphabetLowercase =
 	| 'a'
@@ -144,9 +143,6 @@ export const flags: FlagMap = {
 	installationPath: {
 		char: 'p',
 		description: installationPathDescription,
-	},
-	name: {
-		description: nameDescription,
 	},
 	releaseUrl: {
 		char: 'r',

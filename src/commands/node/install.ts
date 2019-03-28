@@ -50,11 +50,14 @@ import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
 	readonly installationPath: string;
-	readonly name: string;
 	readonly network: NETWORK;
 	readonly 'no-snapshot': boolean;
 	readonly releaseUrl: string;
 	readonly snapshotUrl: string;
+}
+
+interface Args {
+	readonly name: string;
 }
 
 interface Options {
@@ -79,12 +82,10 @@ const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
 	validURL(snapshotUrl);
 };
 
-const installOptions = async ({
-	installationPath,
-	name,
-	network,
-	releaseUrl,
-}: Flags): Promise<Options> => {
+const installOptions = async (
+	{ installationPath, network, releaseUrl }: Flags,
+	name: string,
+): Promise<Options> => {
 	const installPath = liskInstall(installationPath);
 	const installDir = `${installPath}/${name}/`;
 	const latestURL = liskLatestUrl(releaseUrl, network);
@@ -103,12 +104,20 @@ const installOptions = async ({
 };
 
 export default class InstallCommand extends BaseCommand {
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
+	];
+
 	static description = 'Install Lisk';
 
 	static examples = [
-		'node:install --name=mainnet-1.6',
-		'node:install --network=testnet --name=testnet-1.6',
-		'node:install --network=betanet --name=betanet-2.0 --no-snapshot',
+		'node:install mainnet-1.6',
+		'node:install --network=testnet testnet-1.6',
+		'node:install --network=betanet --no-snapshot betanet-2.0',
 	];
 
 	static flags = {
@@ -121,10 +130,6 @@ export default class InstallCommand extends BaseCommand {
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
 			default: defaultInstallationPath,
-		}),
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
 		}),
 		releaseUrl: flagParser.string({
 			...commonFlags.releaseUrl,
@@ -142,13 +147,10 @@ export default class InstallCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(InstallCommand);
-		const {
-			name,
-			network,
-			snapshotUrl,
-			'no-snapshot': noSnapshot,
-		} = flags as Flags;
+		const { args, flags } = this.parse(InstallCommand);
+		const { network, snapshotUrl, 'no-snapshot': noSnapshot } = flags as Flags;
+		const { name }: Args = args;
+
 		const cacheDir = this.config.cacheDir;
 
 		const tasks = new Listr([
@@ -159,7 +161,10 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Prepare Install Options',
 							task: async ctx => {
-								const options: Options = await installOptions(flags as Flags);
+								const options: Options = await installOptions(
+									flags as Flags,
+									name,
+								);
 								ctx.options = options;
 							},
 						},

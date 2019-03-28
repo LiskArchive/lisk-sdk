@@ -19,7 +19,7 @@ import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import semver from 'semver';
 import BaseCommand from '../../base';
-import { NETWORK, RELEASE_URL } from '../../utils/constants';
+import { RELEASE_URL } from '../../utils/constants';
 import { downloadLiskAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 import {
@@ -40,6 +40,9 @@ import StopCommand from './stop';
 
 interface Flags {
 	readonly 'lisk-version': string;
+}
+
+interface Args {
 	readonly name: string;
 }
 
@@ -78,29 +81,31 @@ const validateVersion = async (
 };
 
 export default class UpgradeCommand extends BaseCommand {
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
+	];
+
 	static description = 'Upgrade locally installed Lisk instance to specified or latest version';
 
 	static examples = [
-		'node:upgrade --name=mainnet_1.6',
-		'node:upgrade --name=mainnet_1.6 --version=1.7.1',
-		'node:upgrade --network=testnet --name=testnet_1.6',
-		'node:upgrade --network=testnet --name=testnet_1.6 --version=1.6.1',
+		'node:upgrade --lisk-version=2.0.0 mainnet_1.6',
 	];
 
 	static flags = {
 		...BaseCommand.flags,
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
-		}),
 		'lisk-version': flagParser.string({
 			...commonFlags.version,
 		}),
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(UpgradeCommand);
-		const { name, 'lisk-version': liskVersion } = flags as Flags;
+		const { args, flags } = this.parse(UpgradeCommand);
+		const { name }: Args = args;
+		const { 'lisk-version': liskVersion } = flags as Flags;
 		const { pm2_env } = await describeApplication(name);
 		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
 		const { version: currentVersion } = getConfig(

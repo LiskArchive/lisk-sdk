@@ -30,13 +30,12 @@ export default class ListCommand extends BaseCommand {
 		this.print(
 			apps.map(app => {
 				const { name, pm2_env } = app;
-				const { status, pm_uptime, unstable_restarts } = pm2_env as Pm2Env;
+				const { status, LISK_NETWORK: network } = pm2_env as Pm2Env;
 
 				return {
 					name,
+					network,
 					status,
-					uptime: new Date(pm_uptime).toISOString(),
-					restart_count: unstable_restarts,
 				};
 			}),
 		);

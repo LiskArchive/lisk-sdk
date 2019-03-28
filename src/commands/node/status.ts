@@ -13,32 +13,29 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import { NETWORK } from '../../utils/constants';
-import { flags as commonFlags } from '../../utils/flags';
 import { describeApplication, Pm2Env } from '../../utils/node/pm2';
 
-interface Flags {
+interface Args {
 	readonly name: string;
 }
 
 export default class StatusCommand extends BaseCommand {
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
+	];
+
 	static description = 'Show status of a Lisk instance';
 
-	static examples = ['node:status --name=testnet-1.6'];
-
-	static flags = {
-		...BaseCommand.flags,
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
-		}),
-	};
+	static examples = ['node:status testnet-1.6'];
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(StatusCommand);
-		const { name } = flags as Flags;
+		const { args } = this.parse(StatusCommand);
+		const { name } = args as Args;
 
 		const { pm2_env, monit } = await describeApplication(name);
 		const {
@@ -57,7 +54,7 @@ export default class StatusCommand extends BaseCommand {
 			installationPath,
 			uptime: new Date(pm_uptime).toISOString(),
 			restart_count: unstable_restarts,
-			...monit
+			...monit,
 		});
 	}
 }

@@ -13,39 +13,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { NETWORK } from '../../../utils/constants';
-import { flags as commonFlags } from '../../../utils/flags';
 import { stopApplication } from '../../../utils/node/pm2';
-import CacheCommand, { Flags } from './cache';
+import CacheCommand from './cache';
 import DatabaseCommand from './database';
 
-export default class StopCommand extends BaseCommand {
-	static description = 'Stop Lisk Core';
+interface Args {
+	readonly name: string;
+}
 
-	static examples = [
-		'node:stop --name=mainnet_1.6',
-		'node:stop --network=testnet --name=testnet_1.6',
+export default class StopCommand extends BaseCommand {
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
 	];
 
-	static flags = {
-		...BaseCommand.flags,
-		network: flagParser.string({
-			...commonFlags.network,
-			default: NETWORK.MAINNET,
-			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
-		}),
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
-		}),
-	};
+	static description = 'Stop Lisk';
+
+	static examples = [
+		'node:stop mainnet_1.6',
+	];
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(StopCommand);
-		const { network, name } = flags as Flags;
+		const { args } = this.parse(StopCommand);
+		const { name } = args as Args;
 
 		const tasks = new Listr([
 			{
@@ -55,12 +50,12 @@ export default class StopCommand extends BaseCommand {
 						{
 							title: 'Cache',
 							task: async () =>
-								CacheCommand.run(['--network', network, '--name', name]),
+								CacheCommand.run([name]),
 						},
 						{
 							title: 'Database',
 							task: async () =>
-								DatabaseCommand.run(['--network', network, '--name', name]),
+								DatabaseCommand.run([name]),
 						},
 						{
 							title: 'Lisk',
