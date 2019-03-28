@@ -65,7 +65,7 @@ const checkMultisig = (transactionResponse, transaction) => {
 };
 
 const checkVotes = (transactionResponse, transaction) => {
-	if (!exceptions.votes[transaction.id]) {
+	if (!exceptions.votes.includes(transaction.id)) {
 		return false;
 	}
 
@@ -73,7 +73,7 @@ const checkVotes = (transactionResponse, transaction) => {
 		return false;
 	}
 
-	if (transactionResponse.errors[0].dataPath !== '.votes') {
+	if (transactionResponse.errors[0].dataPath !== '.asset.votes') {
 		return false;
 	}
 

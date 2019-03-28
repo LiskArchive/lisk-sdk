@@ -289,9 +289,7 @@ __private.loadTransactions = function(cb) {
 				try {
 					const {
 						transactionsResponses,
-					} = library.modules.processTransactions.validateTransactions(
-						transactions
-					);
+					} = modules.processTransactions.validateTransactions(transactions);
 					const invalidTransactionResponse = transactionsResponses.find(
 						transactionResponse =>
 							transactionResponse.status !== TransactionStatus.OK
