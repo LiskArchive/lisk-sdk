@@ -21,6 +21,7 @@ import BaseCommand from '../../base';
 import { RELEASE_URL } from '../../utils/constants';
 import { downloadLiskAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
+import { isCacheRunning, startCache, stopCache } from '../../utils/node/cache';
 import {
 	backupLisk,
 	getVersionToUpgrade,
@@ -29,14 +30,14 @@ import {
 	validateVersion,
 } from '../../utils/node/commons';
 import { getConfig } from '../../utils/node/config';
+import { startDatabase, stopDatabase } from '../../utils/node/database';
 import {
 	describeApplication,
 	Pm2Env,
 	registerApplication,
+	restartApplication,
 	unRegisterApplication,
 } from '../../utils/node/pm2';
-import StartCommand from './start';
-import StopCommand from './stop';
 
 interface Flags {
 	readonly 'lisk-version': string;
@@ -100,17 +101,14 @@ export default class UpgradeCommand extends BaseCommand {
 			},
 			{
 				title: 'Stop and Unregister Lisk',
-				task: () =>
-					new Listr([
-						{
-							title: 'Stop Lisk',
-							task: async () => StopCommand.run([name]),
-						},
-						{
-							title: `Unregister Lisk: ${name} from PM2`,
-							task: async () => unRegisterApplication(name),
-						},
-					]),
+				task: async () => {
+					const isRunning = await isCacheRunning(installDir, network);
+					if (isRunning) {
+						await stopCache(installDir, network);
+					}
+					await stopDatabase(installDir, network);
+					await unRegisterApplication(name);
+				},
 			},
 			{
 				title: 'Download, Backup and Install Lisk',
@@ -118,12 +116,19 @@ export default class UpgradeCommand extends BaseCommand {
 					new Listr([
 						{
 							title: `Download Lisk: ${upgradeVersion} Release`,
-							task: async () =>
-								downloadLiskAndValidate(cacheDir, releaseUrl, upgradeVersion),
+							task: async () => {
+								await downloadLiskAndValidate(
+									cacheDir,
+									releaseUrl,
+									upgradeVersion,
+								);
+							},
 						},
 						{
 							title: `Backup Lisk: ${currentVersion} installed as ${name}`,
-							task: async () => backupLisk(installDir),
+							task: async () => {
+								await backupLisk(installDir);
+							},
 						},
 						{
 							title: `Install Lisk: ${upgradeVersion}`,
@@ -136,14 +141,20 @@ export default class UpgradeCommand extends BaseCommand {
 			},
 			{
 				title: `Upgrade Lisk from: ${currentVersion} to: ${upgradeVersion}`,
-				task: async () =>
-					upgradeLisk(installDir, name, network, currentVersion),
+				task: async () => {
+					await upgradeLisk(installDir, name, network, currentVersion);
+				},
 			},
 			{
 				title: `Start Lisk: ${upgradeVersion}`,
 				task: async () => {
 					await registerApplication(installDir, network, name);
-					await StartCommand.run([name]);
+					const isRunning = await isCacheRunning(installDir, network);
+					if (!isRunning) {
+						await startCache(installDir, network);
+					}
+					await startDatabase(installDir, network);
+					await restartApplication(name);
 				},
 			},
 		]);

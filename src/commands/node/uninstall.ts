@@ -16,12 +16,13 @@
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import BaseCommand from '../../base';
+import { isCacheRunning, stopCache } from '../../utils/node/cache';
+import { stopDatabase } from '../../utils/node/database';
 import {
 	describeApplication,
 	Pm2Env,
 	unRegisterApplication,
 } from '../../utils/node/pm2';
-import StopCommand from './stop';
 
 interface Args {
 	readonly name: string;
@@ -49,11 +50,26 @@ export default class UnInstallCommand extends BaseCommand {
 		const tasks = new Listr([
 			{
 				title: `UnInstall Lisk ${network} Installed as ${name}`,
-				task: async () => {
-					await StopCommand.run([name]);
-					await unRegisterApplication(name);
-					fsExtra.removeSync(installDir);
-				}
+				task: () =>
+					new Listr([
+						{
+							title: `Stop and UnRegister Lisk from PM2`,
+							task: async () => {
+								const isRunning = await isCacheRunning(installDir, network);
+								if (isRunning) {
+									await stopCache(installDir, network);
+								}
+								await stopDatabase(installDir, network);
+								await unRegisterApplication(name);
+							},
+						},
+						{
+							title: `Remove Lisk ${network}`,
+							task: () => {
+								fsExtra.removeSync(installDir);
+							},
+						},
+					]),
 			},
 		]);
 
