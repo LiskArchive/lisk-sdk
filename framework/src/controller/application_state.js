@@ -16,7 +16,6 @@
 'use strict';
 
 const os = require('os');
-const crypto = require('crypto');
 const _ = require('lodash');
 
 const __private = {
@@ -81,30 +80,15 @@ class ApplicationState {
 	/**
 	 * Updates broadhash and height values.
 	 *
+	 * @param {broadhash, height} parameters - broadhash and height to update
+	 *
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	async update(blocks) {
-		if (!blocks) {
-			throw new TypeError('Argument blocks should be an array.');
-		}
+	async update({ broadhash, height }) {
 		try {
 			const newState = this.state;
-			if (blocks.length <= 1) {
-				newState.broadhash = newState.nethash;
-				__private.state.set(this, newState);
-				this.logger.debug('Application state', this.state);
-				this.stateChannel.publish('lisk:state:updated', this.state);
-				return true;
-			}
-
-			newState.height = blocks[0].height;
-			const seed = blocks.map(row => row.id).join('');
-			const newBroadhash = crypto
-				.createHash('sha256')
-				.update(seed, 'utf8')
-				.digest()
-				.toString('hex');
-			newState.broadhash = newBroadhash;
+			newState.broadhash = broadhash;
+			newState.height = height;
 			__private.state.set(this, newState);
 			this.logger.debug('Application state', this.state);
 			this.stateChannel.publish('lisk:state:updated', this.state);

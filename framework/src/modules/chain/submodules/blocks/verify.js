@@ -835,14 +835,9 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'false' if block comes from chain synchronization process
 			updateApplicationState(seriesCb) {
 				if (!library.config.loading.snapshotRound) {
-					return library.storage.entities.Block.get(
-						{},
-						{
-							limit: 5,
-							sort: 'height:desc',
-						}
-					)
-						.then(blocks => {
+					return modules.blocks
+						.calculateNewBroadhash()
+						.then(newState => {
 							// Listen for the update of step to move to next step
 							library.channel.once('lisk:state:updated', () => {
 								seriesCb();
@@ -851,7 +846,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 							// Update our application state: broadhash and height
 							return library.channel.invoke(
 								'lisk:updateApplicationState',
-								blocks
+								newState
 							);
 						})
 						.catch(seriesCb);
