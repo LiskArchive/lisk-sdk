@@ -211,10 +211,10 @@ export default class InstallCommand extends BaseCommand {
 								const { installDir }: Options = ctx.options;
 
 								await initDB(installDir);
-								await startDatabase(installDir);
+								await startDatabase(installDir, network);
 								await createUser(installDir, network);
 								await createDatabase(installDir, network);
-								await stopDatabase(installDir);
+								await stopDatabase(installDir, network);
 							},
 						},
 						{

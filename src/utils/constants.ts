@@ -67,6 +67,18 @@ export enum NETWORK {
 	BETANET = 'betanet',
 }
 
+export const POSTGRES_PORTS = {
+	mainnet: 5432,
+	testnet: 5433,
+	betanet: 5434,
+};
+
+export const REDIS_PORTS = {
+	mainnet: 6380,
+	testnet: 6381,
+	betanet: 6382,
+};
+
 export enum OS {
 	Darwin = 'MACOS',
 	Linux = 'LINUX',

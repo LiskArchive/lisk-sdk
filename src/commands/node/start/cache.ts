@@ -49,7 +49,7 @@ export default class CacheCommand extends BaseCommand {
 				task: async () => {
 					const isRunning = await isCacheRunning(installDir, network);
 					if (!isRunning) {
-						await startCache(installDir);
+						await startCache(installDir, network);
 					}
 				},
 			},
