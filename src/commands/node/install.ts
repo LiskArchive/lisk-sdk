@@ -35,6 +35,7 @@ import {
 	liskTar,
 	validateNetwork,
 	validateNotARootUser,
+	validateVersion,
 	validURL,
 } from '../../utils/node/commons';
 import { defaultInstallationPath } from '../../utils/node/config';
@@ -50,6 +51,7 @@ import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
 	readonly installationPath: string;
+	readonly 'lisk-version': string;
 	readonly network: NETWORK;
 	readonly 'no-snapshot': boolean;
 	readonly releaseUrl: string;
@@ -115,8 +117,9 @@ export default class InstallCommand extends BaseCommand {
 	static description = 'Install Lisk';
 
 	static examples = [
-		'node:install mainnet-1.6',
-		'node:install --network=testnet testnet-1.6',
+		'node:install mainnet-latest',
+		'node:install --lisk-version=1.5 mainnet-1.5',
+		'node:install --network=testnet --lisk-version=1.5 testnet-1.5',
 		'node:install --network=betanet --no-snapshot betanet-2.0',
 	];
 
@@ -126,6 +129,9 @@ export default class InstallCommand extends BaseCommand {
 			...commonFlags.network,
 			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
+		}),
+		'lisk-version': flagParser.string({
+			...commonFlags.liskVersion,
 		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
@@ -148,7 +154,12 @@ export default class InstallCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(InstallCommand);
-		const { network, snapshotUrl, 'no-snapshot': noSnapshot } = flags as Flags;
+		const {
+			network,
+			snapshotUrl,
+			'no-snapshot': noSnapshot,
+			'lisk-version': liskVersion,
+		} = flags as Flags;
 		const { name }: Args = args;
 
 		const cacheDir = this.config.cacheDir;
@@ -170,10 +181,14 @@ export default class InstallCommand extends BaseCommand {
 						},
 						{
 							title: 'Validate root user, flags, prerequisites',
-							task: ctx => {
+							task: async ctx => {
 								validateNotARootUser();
 								validateFlags(flags as Flags);
 								validatePrerequisite(ctx.options.installDir);
+								if (liskVersion) {
+									await validateVersion(network, liskVersion);
+									ctx.options.version = liskVersion;
+								}
 							},
 						},
 						{

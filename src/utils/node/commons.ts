@@ -13,8 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import Axios from 'axios';
 import * as fsExtra from 'fs-extra';
 import * as os from 'os';
+import semver from 'semver';
 import { NETWORK, OS, RELEASE_URL } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { defaultBackupPath } from './config';
@@ -130,5 +132,28 @@ export const upgradeLisk = async (
 	);
 	if (stderr) {
 		throw new Error(stderr);
+	}
+};
+
+export const validateVersion = async (
+	network: NETWORK,
+	version: string,
+): Promise<void> => {
+	if (!semver.valid(version)) {
+		throw new Error(
+			`Upgrade version: ${version} has invalid format, Please refer version from release url: ${RELEASE_URL}/${network}`,
+		);
+	}
+
+	const url = `${RELEASE_URL}/${network}/${version}`;
+	try {
+		await Axios.get(url);
+	} catch (error) {
+		if (error.message === 'Request failed with status code 404') {
+			throw new Error(
+				`Upgrade version: ${version} doesn't exists in ${RELEASE_URL}/${network}`,
+			);
+		}
+		throw new Error(error.message);
 	}
 };

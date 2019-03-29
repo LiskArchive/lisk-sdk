@@ -40,26 +40,15 @@ export default class StopCommand extends BaseCommand {
 		const { args } = this.parse(StopCommand);
 		const { name } = args as Args;
 
+		await CacheCommand.run([name]);
+		await DatabaseCommand.run([name]);
+
 		const tasks = new Listr([
 			{
 				title: 'Stop Lisk Instance',
-				task: () =>
-					new Listr([
-						{
-							title: 'Cache',
-							task: async () => CacheCommand.run([name]),
-						},
-						{
-							title: 'Database',
-							task: async () => DatabaseCommand.run([name]),
-						},
-						{
-							title: 'Lisk',
-							task: async () => {
-								await stopApplication(name);
-							},
-						},
-					]),
+				task: async () => {
+					await stopApplication(name);
+				},
 			},
 		]);
 

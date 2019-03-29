@@ -14,7 +14,6 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import Axios from 'axios';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import semver from 'semver';
@@ -27,6 +26,7 @@ import {
 	getVersionToUpgrade,
 	liskTar,
 	upgradeLisk,
+	validateVersion,
 } from '../../utils/node/commons';
 import { getConfig } from '../../utils/node/config';
 import {
@@ -50,36 +50,6 @@ interface PackageJson {
 	readonly version: string;
 }
 
-const validateVersion = async (
-	network: string,
-	currentVersion: string,
-	toVersion: string,
-): Promise<void> => {
-	if (!semver.valid(toVersion)) {
-		throw new Error(
-			`Upgrade version: ${toVersion} has invalid format, Please refer version from release url: ${RELEASE_URL}/${network}`,
-		);
-	}
-
-	if (semver.lte(toVersion, currentVersion)) {
-		throw new Error(
-			`Upgrade version:${toVersion} should be greater than current version: ${currentVersion}`,
-		);
-	}
-
-	const url = `${RELEASE_URL}/${network}/${toVersion}`;
-	try {
-		await Axios.get(url);
-	} catch (error) {
-		if (error.message === 'Request failed with status code 404') {
-			throw new Error(
-				`Upgrade version: ${toVersion} doesn't exists in ${RELEASE_URL}/${network}`,
-			);
-		}
-		throw new Error(error.message);
-	}
-};
-
 export default class UpgradeCommand extends BaseCommand {
 	static args = [
 		{
@@ -96,7 +66,7 @@ export default class UpgradeCommand extends BaseCommand {
 	static flags = {
 		...BaseCommand.flags,
 		'lisk-version': flagParser.string({
-			...commonFlags.version,
+			...commonFlags.liskVersion,
 		}),
 	};
 
@@ -119,8 +89,14 @@ export default class UpgradeCommand extends BaseCommand {
 		const tasks = new Listr([
 			{
 				title: 'Validate Version Input',
-				task: async () =>
-					validateVersion(network, currentVersion, upgradeVersion),
+				task: async () => {
+					await validateVersion(network, upgradeVersion);
+					if (semver.lte(upgradeVersion, currentVersion)) {
+						throw new Error(
+							`Upgrade version:${upgradeVersion} should be greater than current version: ${currentVersion}`,
+						);
+					}
+				},
 			},
 			{
 				title: 'Stop and Unregister Lisk',

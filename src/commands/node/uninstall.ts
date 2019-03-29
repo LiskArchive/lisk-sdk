@@ -49,20 +49,11 @@ export default class UnInstallCommand extends BaseCommand {
 		const tasks = new Listr([
 			{
 				title: `UnInstall Lisk ${network} Installed as ${name}`,
-				task: () =>
-					new Listr([
-						{
-							title: 'Stop Services',
-							task: async () => StopCommand.run([name]),
-						},
-						{
-							title: 'Remove Process and Directory',
-							task: async () => {
-								await unRegisterApplication(name);
-								fsExtra.removeSync(installDir);
-							},
-						},
-					]),
+				task: async () => {
+					await StopCommand.run([name]);
+					await unRegisterApplication(name);
+					fsExtra.removeSync(installDir);
+				}
 			},
 		]);
 
