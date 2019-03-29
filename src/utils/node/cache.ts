@@ -48,7 +48,7 @@ export const startCache = async (
 ): Promise<string> => {
 	const redisPort: number = REDIS_PORTS[network];
 	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; ${REDIS_BIN} ${REDIS_CONFIG} -p ${redisPort}`,
+		`cd ${installDir}; ${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`,
 	);
 
 	if (stdout.trim() === '') {

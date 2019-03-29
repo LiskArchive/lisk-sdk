@@ -133,6 +133,8 @@ export const upgradeLisk = async (
 	if (stderr) {
 		throw new Error(stderr);
 	}
+
+	fsExtra.emptyDirSync(defaultBackupPath);
 };
 
 export const validateVersion = async (
