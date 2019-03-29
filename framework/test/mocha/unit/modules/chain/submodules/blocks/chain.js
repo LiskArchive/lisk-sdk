@@ -123,7 +123,7 @@ describe('blocks/chain', () => {
 				.returns(true),
 			once: sinonSandbox
 				.stub()
-				.withArgs('lisk:state:udpated')
+				.withArgs('lisk:state:updated')
 				.callsArg(1),
 		};
 
