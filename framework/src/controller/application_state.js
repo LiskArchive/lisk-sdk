@@ -92,6 +92,8 @@ class ApplicationState {
 			if (blocks.length <= 1) {
 				newState.broadhash = newState.nethash;
 				__private.state.set(this, newState);
+				this.logger.debug('Application state', this.state);
+				this.stateChannel.publish('lisk:state:updated', this.state);
 				return true;
 			}
 

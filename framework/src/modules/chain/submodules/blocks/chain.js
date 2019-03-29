@@ -844,12 +844,18 @@ Chain.prototype.deleteLastBlock = function(cb) {
 						sort: 'height:desc',
 					}
 				)
-					.then(blocks =>
-						// Emit event updates
+					.then(blocks => {
+						// Listen for the update of step to move to next step
+						library.channel.once('lisk:state:updated', () => {
+							seriesCb();
+						});
+
 						// Update our application state: broadhash and height
-						library.channel.invoke('lisk:updateApplicationState', blocks)
-					)
-					.then(() => seriesCb())
+						return library.channel.invoke(
+							'lisk:updateApplicationState',
+							blocks
+						);
+					})
 					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {

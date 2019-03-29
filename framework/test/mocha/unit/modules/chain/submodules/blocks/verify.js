@@ -79,6 +79,10 @@ describe('blocks/verify', () => {
 				.stub()
 				.withArgs('lisk:updateApplicationState')
 				.returns(true),
+			once: sinonSandbox
+				.stub()
+				.withArgs('lisk:state:udpated')
+				.callsArg(1),
 		};
 
 		blocksVerifyModule = new BlocksVerify(
@@ -2149,8 +2153,9 @@ describe('blocks/verify', () => {
 								__private.validateBlockSlot,
 								__private.checkTransactions,
 								modules.blocks.chain.applyBlock,
-								channelMock.invoke,
-								modules.transport.broadcastHeaders
+
+								modules.transport.broadcastHeaders, // Because of the mocked event handler this method is called immediately
+								channelMock.invoke
 							);
 
 							done();

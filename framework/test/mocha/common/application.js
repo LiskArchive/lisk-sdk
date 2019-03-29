@@ -146,6 +146,7 @@ async function __init(sandbox, initScope) {
 					invoke: sinonSandbox.stub(),
 					publish: sinonSandbox.stub(),
 					suscribe: sinonSandbox.stub(),
+					once: sinonSandbox.stub().callsArg(1),
 				},
 				applicationState: {
 					nethash: __testContext.nethash,

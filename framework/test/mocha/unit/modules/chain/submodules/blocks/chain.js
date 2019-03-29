@@ -121,6 +121,10 @@ describe('blocks/chain', () => {
 				.stub()
 				.withArgs('lisk:updateApplicationState')
 				.returns(true),
+			once: sinonSandbox
+				.stub()
+				.withArgs('lisk:state:udpated')
+				.callsArg(1),
 		};
 
 		blocksChainModule = new BlocksChain(
