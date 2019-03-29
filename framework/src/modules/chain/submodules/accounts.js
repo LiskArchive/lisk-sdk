@@ -67,7 +67,7 @@ class Accounts {
 			TRANSACTION_TYPES.VOTE,
 			new Vote({
 				components: {
-					logger: scope.logger,
+					logger: scope.components.logger,
 				},
 				schema: library.schema,
 				logic: {
