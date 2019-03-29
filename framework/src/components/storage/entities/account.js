@@ -172,10 +172,6 @@ class Account extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
-		this.addField('rowId', 'string', {
-			fieldName: 'trs.rowId',
-		});
-
 		this.addField('address', 'string', { format: 'address', filter: ft.TEXT });
 		this.addField(
 			'publicKey',
@@ -414,17 +410,15 @@ class Account extends BaseEntity {
 
 		// To have deterministic pagination add extra sorting
 		if (parsedOptions.sort) {
-			parsedOptions.sort = _.flatten([parsedOptions.sort, 'rowId:asc']).filter(
-				Boolean
-			);
+			parsedOptions.sort = _.flatten([
+				parsedOptions.sort,
+				'address:asc',
+			]).filter(Boolean);
 		} else {
-			parsedOptions.sort = ['rowId:asc'];
+			parsedOptions.sort = ['address:asc'];
 		}
 
-		let parsedSort = this.parseSort(parsedOptions.sort);
-
-		// TODO: improve this logic
-		parsedSort = parsedSort.replace('"rowId"', 'mem_accounts."rowId"');
+		const parsedSort = this.parseSort(parsedOptions.sort);
 
 		const params = {
 			limit: parsedOptions.limit,
