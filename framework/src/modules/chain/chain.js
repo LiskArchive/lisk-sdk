@@ -73,7 +73,7 @@ module.exports = class Chain {
 			'cache'
 		);
 
-		const applicationState = await this.channel.invoke(
+		this.applicationState = await this.channel.invoke(
 			'lisk:getApplicationState'
 		);
 
@@ -144,14 +144,8 @@ module.exports = class Chain {
 					logger: self.logger,
 				},
 				channel: this.channel,
-				applicationState,
+				applicationState: this.applicationState,
 			};
-
-			// Lookup for peers ips from dns
-			scope.config.peers.list = await lookupPeerIPs(
-				scope.config.peers.list,
-				scope.config.peers.enabled
-			);
 
 			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
 			await bootstrapCache(scope);
@@ -159,7 +153,23 @@ module.exports = class Chain {
 			scope.bus = await createBus();
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
-			scope.webSocket = await createSocketCluster(scope);
+
+			if (scope.config.peers.enabled) {
+				// Lookup for peers ips from dns
+				scope.config.peers.list = await lookupPeerIPs(
+					scope.config.peers.list,
+					scope.config.peers.enabled
+				);
+
+				// Listen to websockets
+				scope.webSocket = await createSocketCluster(scope);
+				await scope.webSocket.listen();
+			} else {
+				this.logger.info(
+					'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
+				);
+			}
+
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 
@@ -170,8 +180,6 @@ module.exports = class Chain {
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
 
-			// Listen to websockets
-			await scope.webSocket.listen();
 			self.logger.info('Modules ready and launched');
 
 			self.scope = scope;
@@ -197,14 +205,6 @@ module.exports = class Chain {
 					action.params.round,
 					action.params.source
 				),
-			getNetworkHeight: async action =>
-				promisify(this.scope.modules.peers.networkHeight)(
-					action.params.options
-				),
-			getAllTransactionsCount: async () =>
-				promisify(
-					this.scope.modules.transactions.shared.getTransactionsCount
-				)(),
 			updateForgingStatus: async action =>
 				this.scope.modules.delegates.updateForgingStatus(
 					action.params.publicKey,
@@ -223,9 +223,6 @@ module.exports = class Chain {
 				promisify(this.scope.modules.signatures.shared.postSignature)(
 					action.params.signature
 				),
-			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
-			loaderLoaded: async () => this.scope.modules.loader.loaded(),
-			loaderSyncing: async () => this.scope.modules.loader.syncing(),
 			getForgersPublicKeys: async () => {
 				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
 				const publicKeys = {};
@@ -249,15 +246,26 @@ module.exports = class Chain {
 					action.params.filters,
 					action.params.tx
 				),
-			getSlotTime: async action =>
-				action.params
-					? this.slots.getTime(action.params.time)
-					: this.slots.getTime(),
 			getSlotNumber: async action =>
 				action.params
 					? this.slots.getSlotNumber(action.params.epochTime)
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
+			getNodeStatus: async () => ({
+				consensus: this.scope.modules.peers.getLastConsensus(),
+				loaded: this.scope.modules.loader.loaded(),
+				syncing: this.scope.modules.loader.syncing(),
+				transactions: await promisify(
+					this.scope.modules.transactions.shared.getTransactionsCount
+				)(),
+				secondsSinceEpoch: this.slots.getTime(),
+				networkHeight: await promisify(this.scope.modules.peers.networkHeight)({
+					options: {
+						normalized: false,
+					},
+				}),
+				lastBlock: this.scope.modules.blocks.lastBlock.get(),
+			}),
 		};
 	}
 
