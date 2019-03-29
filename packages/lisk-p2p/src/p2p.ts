@@ -268,12 +268,7 @@ export class P2P extends EventEmitter {
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = {
-			os: this._nodeInfo.os,
-			version: this._nodeInfo.version,
-			nethash: this._nodeInfo.nethash,
-			wsPort: this._nodeInfo.wsPort,
-			height: nodeInfo.height,
-			options: nodeInfo.options ? nodeInfo.options : {},
+			...nodeInfo,
 		};
 
 		this._peerPool.applyNodeInfo(this._nodeInfo);
