@@ -80,6 +80,22 @@ const checkVotes = (transactionResponse, transaction) => {
 	return true;
 };
 
+const checkVoteTransactionAmount = (transactionResponse, transaction) => {
+	if (!exceptions.votes.includes(transaction.id)) {
+		return false;
+	}
+
+	if (!transactionResponse.errors.length > 1) {
+		return false;
+	}
+
+	if (transactionResponse.errors[0].dataPath !== '.amount') {
+		return false;
+	}
+
+	return true;
+};
+
 const checkRecipientLeadingZero = (transactionResponse, transaction) => {
 	if (!exceptions.recipientLeadingZero[transactionResponse.id]) {
 		return false;
@@ -151,6 +167,7 @@ const checkIfTransactionIsException = (transactionResponse, transaction) =>
 		checkRecipientExceedingUint64,
 		checkNullByte,
 		checkMultisig,
+		checkVoteTransactionAmount,
 	]
 		.map(fn => fn(transactionResponse, transaction))
 		.some(isException => isException);
