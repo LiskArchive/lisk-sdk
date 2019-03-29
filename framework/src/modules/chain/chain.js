@@ -120,7 +120,7 @@ module.exports = class Chain {
 
 			// System
 			this.logger.debug('Initiating system...');
-			const system = createSystemComponent(systemConfig, this.logger, storage);
+			this.system = createSystemComponent(systemConfig, this.logger, storage);
 
 			if (!this.options.config) {
 				throw Error('Failed to assign nethash from genesis block');
@@ -148,7 +148,7 @@ module.exports = class Chain {
 					storage,
 					cache,
 					logger: self.logger,
-					system,
+					system: this.system,
 				},
 				channel: this.channel,
 			};
@@ -207,14 +207,6 @@ module.exports = class Chain {
 					action.params.round,
 					action.params.source
 				),
-			getNetworkHeight: async action =>
-				promisify(this.scope.modules.peers.networkHeight)(
-					action.params.options
-				),
-			getAllTransactionsCount: async () =>
-				promisify(
-					this.scope.modules.transactions.shared.getTransactionsCount
-				)(),
 			updateForgingStatus: async action =>
 				this.scope.modules.delegates.updateForgingStatus(
 					action.params.publicKey,
@@ -233,9 +225,6 @@ module.exports = class Chain {
 				promisify(this.scope.modules.signatures.shared.postSignature)(
 					action.params.signature
 				),
-			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
-			loaderLoaded: async () => this.scope.modules.loader.loaded(),
-			loaderSyncing: async () => this.scope.modules.loader.syncing(),
 			getForgersPublicKeys: async () => {
 				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
 				const publicKeys = {};
@@ -259,15 +248,27 @@ module.exports = class Chain {
 					action.params.filters,
 					action.params.tx
 				),
-			getSlotTime: async action =>
-				action.params
-					? this.slots.getTime(action.params.time)
-					: this.slots.getTime(),
 			getSlotNumber: async action =>
 				action.params
 					? this.slots.getSlotNumber(action.params.epochTime)
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
+			getNodeStatus: async () => ({
+				broadhash: this.system.headers.broadhash,
+				consensus: this.scope.modules.peers.getLastConsensus(),
+				loaded: this.scope.modules.loader.loaded(),
+				syncing: this.scope.modules.loader.syncing(),
+				transactions: await promisify(
+					this.scope.modules.transactions.shared.getTransactionsCount
+				)(),
+				secondsSinceEpoch: this.slots.getTime(),
+				networkHeight: await promisify(this.scope.modules.peers.networkHeight)({
+					options: {
+						normalized: false,
+					},
+				}),
+				lastBlock: this.scope.modules.blocks.lastBlock.get(),
+			}),
 		};
 	}
 
