@@ -104,27 +104,13 @@ export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 const convertNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
 ): ProtocolNodeInfo => {
-	const {
-		height,
-		nethash,
-		version,
-		os,
-		wsPort,
-		httpPort,
-		nonce,
-		broadhash,
-		...options
-	} = nodeInfo;
+	const { httpPort, nonce, broadhash, ...options } = nodeInfo;
 
 	return {
-		height,
-		nethash,
-		version,
-		os,
-		wsPort,
+		...nodeInfo,
 		broadhash: broadhash ? (broadhash as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0,
 		nonce: nonce ? (nonce as string) : '',
+		httpPort: httpPort ? (httpPort as number) : 0,
 		options,
 	};
 };
