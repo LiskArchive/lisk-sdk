@@ -28,7 +28,7 @@ newrelicLisk.instrumentBackgroundJobs();
 // TOFIX: fix callbackMethods converted to async in #2579
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
-	'./components/cache/cache': {
+	'/framework/src/components/cache/cache': {
 		identifier: 'components.cache',
 		callbackMethods: [
 			'getJsonForKey',
@@ -37,43 +37,43 @@ const modulesToInstrument = {
 			'removeByPattern',
 		],
 	},
-	'./components/system.js': {
+	'/framework/src/components/system.js': {
 		identifier: 'components.system',
 		callbackMethods: ['update'],
 	},
-	'./helpers/sequence.js': {
+	'/framework/src/modules/chain/helpers/sequence.js': {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
 	},
-	'./submodules/blocks.js': {
+	'/framework/src/modules/chain/submodules/blocks.js': {
 		identifier: 'modules.blocks',
 		callbackMethods: ['shared.getBlocks'],
 	},
-	'./submodules/dapps.js': {
+	'/framework/src/modules/chain/submodules/dapps.js': {
 		identifier: 'modules.dapps',
 		callbackMethods: ['getDapps'],
 	},
-	'./submodules/delegates.js': {
+	'/framework/src/modules/chain/submodules/delegates.js': {
 		identifier: 'modules.delegates',
 		callbackMethods: ['getForgers', 'getDelegates'],
 	},
-	'./submodules/loader.js': {
+	'/framework/src/modules/chain/submodules/loader.js': {
 		identifier: 'modules.loader',
 		callbackMethods: ['getNetwork'],
 	},
-	'./submodules/peers.js': {
+	'/framework/src/modules/chain/submodules/peers.js': {
 		identifier: 'modules.peers',
 		callbackMethods: ['shared.getPeers'],
 	},
-	'./submodules/rounds.js': {
+	'/framework/src/modules/chain/submodules/rounds.js': {
 		identifier: 'modules.rounds',
 		callbackMethods: ['flush'],
 	},
-	'./submodules/signatures.js': {
+	'/framework/src/modules/chain/submodules/signatures.js': {
 		identifier: 'modules.signatures',
 		callbackMethods: ['shared.postSignature', 'shared.postSignatures'],
 	},
-	'./submodules/transactions.js': {
+	'/framework/src/modules/chain/submodules/transactions.js': {
 		identifier: 'modules.transactions',
 		callbackMethods: [
 			'shared.getTransactionsCount',
@@ -82,7 +82,7 @@ const modulesToInstrument = {
 			'shared.postTransactions',
 		],
 	},
-	'./submodules/transport.js': {
+	'/framework/src/modules/chain/submodules/transport.js': {
 		identifier: 'modules.transport',
 		callbackMethods: [
 			'broadcastHeaders',
