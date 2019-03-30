@@ -18,30 +18,30 @@
 const util = require('util');
 const rewire = require('rewire');
 const async = require('async');
-const ed = require('../../../src/modules/chain/helpers/ed.js');
+const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { createSystemComponent } = require('../../../src/components/system');
 const { StorageSandbox } = require('./storage_sandbox');
-const ZSchema = require('../../../src/modules/chain/helpers/z_schema.js');
+const { ZSchema } = require('../../../src/controller/helpers/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
 
 const promisifyParallel = util.promisify(async.parallel);
 let currentAppScope;
 
 const modulesInit = {
-	accounts: '../../../src/modules/chain/modules/accounts.js',
-	blocks: '../../../src/modules/chain/modules/blocks.js',
-	dapps: '../../../src/modules/chain/modules/dapps.js',
-	delegates: '../../../src/modules/chain/modules/delegates.js',
-	loader: '../../../src/modules/chain/modules/loader.js',
-	multisignatures: '../../../src/modules/chain/modules/multisignatures.js',
-	peers: '../../../src/modules/chain/modules/peers.js',
-	rounds: '../../../src/modules/chain/modules/rounds.js',
-	signatures: '../../../src/modules/chain/modules/signatures.js',
-	transactions: '../../../src/modules/chain/modules/transactions.js',
-	transport: '../../../src/modules/chain/modules/transport.js',
+	accounts: '../../../src/modules/chain/submodules/accounts',
+	blocks: '../../../src/modules/chain/submodules/blocks',
+	dapps: '../../../src/modules/chain/submodules/dapps',
+	delegates: '../../../src/modules/chain/submodules/delegates',
+	loader: '../../../src/modules/chain/submodules/loader',
+	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
+	peers: '../../../src/modules/chain/submodules/peers',
+	rounds: '../../../src/modules/chain/submodules/rounds',
+	signatures: '../../../src/modules/chain/submodules/signatures',
+	transactions: '../../../src/modules/chain/submodules/transactions',
+	transport: '../../../src/modules/chain/submodules/transport',
 };
 
 function init(options, cb) {
@@ -180,10 +180,7 @@ async function __init(sandbox, initScope) {
 		scope.webSocket = await initStepsForTest.createSocketCluster(scope);
 		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
-		scope.swagger = await initSteps.attachSwagger(scope);
 
-		// TODO: Identify why its used
-		scope.modules.swagger = scope.swagger;
 		// Ready to bind modules
 		scope.logic.peers.bindModules(scope.modules);
 
@@ -285,8 +282,7 @@ function cleanup(done) {
 const initStepsForTest = {
 	createSocketCluster: async () => {
 		const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-		const wsRPC = require('../../../src/modules/chain/api/ws/rpc/ws_rpc.js')
-			.wsRPC;
+		const wsRPC = require('../../../src/modules/chain/api/ws/rpc/ws_rpc').wsRPC;
 		const transport = require('../../../src/modules/chain/api/ws/transport');
 
 		wsRPC.clientsConnectionsMap = {};

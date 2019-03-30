@@ -22,10 +22,24 @@ const randomstring = require('randomstring');
 // TODO: Will be fixed in separate PR
 // eslint-disable-next-line import/no-unresolved
 const configSchema = require('../schema/config.js');
-const Z_schema = require('./z_schema.js');
-const deepFreeze = require('./deep_freeze_object.js');
+const { ZSchema } = require('../../../controller/helpers/validator');
 
-const rootPath = path.dirname(path.resolve(__filename, '..'));
+const validator = new ZSchema();
+const rootPath = path.dirname(path.resolve(__filename, '../../../../..'));
+
+const deepFreeze = function(o) {
+	Object.freeze(o);
+	Object.getOwnPropertyNames(o).forEach(prop => {
+		if (
+			o[prop] !== null &&
+			typeof o[prop] === 'object' &&
+			!Object.isFrozen(o[prop])
+		) {
+			deepFreeze(o[prop]);
+		}
+	});
+	return o;
+};
 
 /**
  * Description of the module.
@@ -74,9 +88,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 			? process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion
 			: packageJson.lisk.protocolVersion;
 
-	const genesisBlock = loadJSONFile(
-		`../../../../config/${network}/genesis_block.json`
-	);
+	const genesisBlock = loadJSONFile(`config/${network}/genesis_block.json`);
 
 	// TODO: Will be fixed in separate PR
 	// eslint-disable-next-line import/no-unresolved
@@ -86,12 +98,10 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	// TODO: Will be fixed in separate PR
 	// eslint-disable-next-line import/no-unresolved
 	const defaultExceptions = require('../../../../../config/default/exceptions.js');
-	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
+	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line
 
-	const defaultConfig = loadJSONFile('../../../../config/default/config.json');
-	const networkConfig = loadJSONFile(
-		`../../../../config/${network}/config.json`
-	);
+	const defaultConfig = loadJSONFile('config/default/config.json');
+	const networkConfig = loadJSONFile(`config/${network}/config.json`);
 
 	let customConfig = {};
 	if (program.config || process.env.LISK_CONFIG_FILE) {
@@ -171,11 +181,10 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		}
 	);
 
-	const validator = new Z_schema();
 	const valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {
-		console.error('Failed to validate config data', validator.getLastErrors());
+		console.error('Failed to validate config data', ZSchema.getLastErrors());
 		process.exit(1);
 	} else {
 		appConfig.genesisBlock = genesisBlock;
@@ -210,7 +219,7 @@ const getenv = (variable, defaultValue = null, isBoolean = false) => {
 
 function loadJSONFile(filePath) {
 	try {
-		filePath = path.resolve(rootPath, filePath);
+		filePath = path.join(rootPath, filePath);
 		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 	} catch (err) {
 		console.error(`Failed to load file: ${filePath}`);

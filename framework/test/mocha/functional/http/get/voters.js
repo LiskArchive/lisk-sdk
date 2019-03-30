@@ -14,15 +14,19 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const randomstring = require('randomstring');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	castVotes,
+	registerDelegate,
+} = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -111,6 +115,56 @@ describe('GET /api/voters', () => {
 							expectValidVotedDelegateResponse(res);
 						});
 				});
+			});
+		});
+
+		describe('with wrong input', () => {
+			it('using invalid field name should fail', async () => {
+				return votersEndpoint
+					.makeRequest(
+						{
+							whatever: accountFixtures.existingDelegate.address,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'whatever');
+					});
+			});
+
+			it('using empty valid parameter should fail', async () => {
+				return votersEndpoint
+					.makeRequest(
+						{
+							publicKey: '',
+						},
+						400
+					)
+					.then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
+			});
+
+			it('using partially invalid fields should fail', async () => {
+				return votersEndpoint
+					.makeRequest(
+						{
+							address: accountFixtures.existingDelegate.address,
+							limit: 'invalid',
+							offset: 'invalid',
+							sort: 'invalid',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+						expectSwaggerParamError(res, 'sort');
+					});
 			});
 		});
 
@@ -237,31 +291,56 @@ describe('GET /api/voters', () => {
 			});
 		});
 
+		describe('votes', () => {
+			it('should return total number of accounts that voted for the queried delegate', async () => {
+				let delegate;
+				let hasResult = true;
+				let votesCount = 0;
+
+				// The following loop is a workaround to get votes count as the number of votes will change each time the test runs
+				// REF.: https://github.com/LiskHQ/lisk/pull/2969
+				do {
+					// eslint-disable-next-line no-await-in-loop
+					const result = await votersEndpoint.makeRequest(
+						{
+							username: validVotedDelegate.delegateName,
+							limit: 1,
+							offset: votesCount,
+						},
+						200
+					);
+					delegate = result.body.data;
+					hasResult = delegate.voters.length > 0 ? ++votesCount : false;
+				} while (hasResult);
+
+				expect(delegate.votes).to.eql(votesCount);
+			});
+		});
+
 		describe('sort', () => {
 			const validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
 				const amount = new Bignum(FEES.DELEGATE)
 					.plus(FEES.VOTE)
-					.plus(FEES.SECOND_SIGNATURE);
-				const enrichExtraDelegateVoterTransaction = lisk.transaction.transfer({
+					.plus(FEES.SECOND_SIGNATURE)
+					.toString();
+				const enrichExtraDelegateVoterTransaction = transfer({
 					amount,
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: validExtraDelegateVoter.address,
 				});
 
-				const registerExtraVoterAsADelegateTransaction = lisk.transaction.registerDelegate(
-					{
-						passphrase: validExtraDelegateVoter.passphrase,
-						username: randomstring.generate({
-							length: 10,
-							charset: 'alphabetic',
-							capitalization: 'lowercase',
-						}),
-					}
-				);
+				const registerExtraVoterAsADelegateTransaction = registerDelegate({
+					passphrase: validExtraDelegateVoter.passphrase,
+					username: randomstring.generate({
+						length: 10,
+						charset: 'alphabetic',
+						capitalization: 'lowercase',
+					}),
+				});
 
-				const voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes({
+				const voteByExtraDelegateVoterTransaction = castVotes({
 					passphrase: validExtraDelegateVoter.passphrase,
 					votes: [`${validVotedDelegate.publicKey}`],
 				});
@@ -361,7 +440,9 @@ describe('GET /api/voters', () => {
 									validVotedDelegate.delegateName
 								);
 								expect(
-									_.map(res.body.data.voters, 'balance').sort()
+									_.map(res.body.data.voters, 'balance').sort((a, b) =>
+										new Bignum(a).minus(b).toNumber()
+									)
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
 					});
@@ -380,9 +461,10 @@ describe('GET /api/voters', () => {
 								expect(res.body.data.username).to.equal(
 									validVotedDelegate.delegateName
 								);
+
 								expect(
 									_.map(res.body.data.voters, 'balance')
-										.sort()
+										.sort((a, b) => new Bignum(a).minus(b).toNumber())
 										.reverse()
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});

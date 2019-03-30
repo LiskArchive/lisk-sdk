@@ -27,7 +27,6 @@ const errorCacheDisabled = 'Cache Disabled';
  * @see Parent: {@link components}
  * @requires redis
  * @requires util
- * @requires helpers/transaction_types
  * @param {Object} options - Cache options
  * @param {Object} logger
  */
@@ -42,14 +41,15 @@ class Cache {
 		// TODO: implement retry_strategy
 		// TOFIX: app crashes with FTL error when launchin app with CACHE_ENABLE=true
 		// but cache server is not available.
-		this.client = redis.createClient(this.options);
-
-		return new Promise((resolve, reject) => {
+		return new Promise(resolve => {
+			this.client = redis.createClient(this.options);
 			this.client.once('error', err => {
+				// Called if the "error" event occured before "ready" event
 				this.logger.warn('App was unable to connect to Cache server', err);
-				reject(err);
+				// Error handler needs to exist to ignore the error
+				this.client.on('error', () => {});
+				resolve();
 			});
-
 			this.client.once('ready', () => {
 				this._onReady();
 				resolve();
@@ -60,9 +60,6 @@ class Cache {
 	_onReady() {
 		// Called after "ready" Cache event
 		this.logger.info('App connected to Cache server');
-
-		// To avoid rejecting already resolved promise in bootstrap
-		this.client.removeAllListeners('error');
 
 		this.getAsync = promisify(this.client.get).bind(this.client);
 		this.setAsync = promisify(this.client.set).bind(this.client);

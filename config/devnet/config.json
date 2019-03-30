@@ -7,6 +7,7 @@
 		},
 		"storage": {
 			"database": "lisk_dev",
+			"user": "postgres",
 			"min": 1,
 			"max": 10,
 			"logFileName": "logs/devnet/lisk_db.log"
@@ -643,5 +644,8 @@
 				]
 			}
 		}
+	},
+	"ipc": {
+		"enabled": true
 	}
 }

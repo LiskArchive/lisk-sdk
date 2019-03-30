@@ -17,8 +17,9 @@
 
 const BigNumber = require('bignumber.js');
 const {
-	BaseEntity,
-} = require('../../../../../../../../src/components/storage/entities');
+	entities: { BaseEntity },
+	errors: { NonSupportedFilterTypeError, NonSupportedOptionError },
+} = require('../../../../../../../../src/components/storage');
 const {
 	Round,
 } = require('../../../../../../../../src/modules/chain/components/storage/entities');
@@ -26,10 +27,6 @@ const { StorageSandbox } = require('../../../../../../common/storage_sandbox');
 const seeder = require('../../../../../../common/storage_seed');
 const accountsFixtures = require('../../../../../../fixtures').accounts;
 const roundsFixtures = require('../../../../../../fixtures').rounds;
-const {
-	NonSupportedFilterTypeError,
-	NonSupportedOptionError,
-} = require('../../../../../../../../src/components/storage/errors');
 
 const checkTableExists = (adapter, tableName) =>
 	adapter
@@ -431,9 +428,11 @@ describe('Round', () => {
 			const randRoundB = new roundsFixtures.Round();
 			await RoundEntity.create([randRoundA, randRoundB]);
 			await RoundEntity.delete({ round: randRoundA.round });
-			expect(
-				await RoundEntity.getOne({ round: randRoundB.round }, { sort: 'round' })
-			).to.eql(randRoundB);
+			const resp = await RoundEntity.getOne(
+				{ round: randRoundB.round },
+				{ sort: 'round' }
+			);
+			expect(resp).to.eql(randRoundB);
 		});
 
 		it('should delete all records if no filter is specified', async () => {

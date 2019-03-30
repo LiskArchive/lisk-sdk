@@ -25,7 +25,7 @@ const registerProcessHooks = app => {
 			message: err.message,
 			stack: err.stack,
 		});
-		app.shutdown(1);
+		app.shutdown(1, err.message);
 	});
 
 	process.on('unhandledRejection', err => {
@@ -34,7 +34,7 @@ const registerProcessHooks = app => {
 			message: err.message,
 			stack: err.stack,
 		});
-		app.shutdown(1);
+		app.shutdown(1, err.message);
 	});
 
 	process.once('SIGTERM', () => app.shutdown(1));
@@ -258,7 +258,7 @@ class Application {
 
 		this.controller = new Controller(
 			this.label,
-			this.config.components,
+			{ components: this.config.components, ipc: this.config.ipc },
 			this.logger
 		);
 		return this.controller.load(this.getModules(), this.config.modules);
@@ -273,9 +273,9 @@ class Application {
 	 */
 	async shutdown(errorCode = 0, message = '') {
 		if (this.controller) {
-			await this.controller.cleanup();
+			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.log(`Shutting down with error code ${errorCode} ${message}`);
+		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
 	}
 
@@ -290,6 +290,11 @@ class Application {
 			nethash: this.genesisBlock.payloadHash,
 		};
 
+		// TODO: move this configuration to module especific config file
+		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
+			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
+			: ['httpApi'];
+
 		Object.keys(modules).forEach(alias => {
 			this.logger.info(`Validating module options with alias: ${alias}`);
 			this.config.modules[alias] = validator.validateWithDefaults(
@@ -301,6 +306,7 @@ class Application {
 			this.overrideModuleOptions(alias, {
 				genesisBlock: this.genesisBlock,
 				constants: this.constants,
+				loadAsChildProcess: childProcessModules.includes(alias),
 			});
 		});
 

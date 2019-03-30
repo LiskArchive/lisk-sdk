@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const apiCodes = require('../helpers/api_codes');
+const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
 const { MAX_VOTES_PER_ACCOUNT } = global.constants;
@@ -48,6 +48,12 @@ function VotersController(scope) {
  * @todo Add description for the function and the params
  */
 VotersController.getVoters = async function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let filters = {
@@ -111,7 +117,6 @@ VotersController.getVoters = async function(context, next) {
 			'address',
 			'balance',
 		]);
-		data.votes = parseInt(delegate.vote);
 
 		// TODO: Make sure we return empty string in case of null username
 		// This can be avoided when we fix the `isDelegate` inconsistency mentioned above.
@@ -125,6 +130,12 @@ VotersController.getVoters = async function(context, next) {
 		data.voters = _.map(voters, voter =>
 			_.pick(voter, ['address', 'publicKey', 'balance'])
 		);
+
+		const votersCount = await storage.entities.Account.count({
+			votedDelegatesPublicKeys_in: [delegate.publicKey],
+		});
+
+		data.votes = votersCount;
 
 		return next(null, {
 			data,

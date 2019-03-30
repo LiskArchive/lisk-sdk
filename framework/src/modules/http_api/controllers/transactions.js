@@ -16,8 +16,10 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
-// TODO Reference http_module for api_error.js and remove it from chain module
-const ApiError = require('../../../../src/modules/http_api/helpers/api_error');
+const ApiError = require('../api_error');
+const apiCodes = require('../api_codes');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private Fields
 let storage;
@@ -45,8 +47,12 @@ function transactionFormatter(transaction) {
 	result.senderId = result.senderId || '';
 	result.recipientId = result.recipientId || '';
 	result.recipientPublicKey = result.recipientPublicKey || '';
-	result.signSignature = result.signSignature || '';
+	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
+	if (transaction.type === TRANSACTION_TYPES.DELEGATE) {
+		result.asset.delegate.publicKey = result.senderPublicKey;
+		result.asset.delegate.address = result.senderId;
+	}
 
 	return result;
 }
@@ -75,7 +81,7 @@ TransactionsController.getTransactions = async function(context, next) {
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
-		height: params.height.value,
+		blockHeight: params.height.value,
 		timestamp_gte: params.fromTimestamp.value,
 		timestamp_lte: params.toTimestamp.value,
 		amount_gte: params.minAmount.value,
@@ -127,27 +133,27 @@ TransactionsController.getTransactions = async function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-TransactionsController.postTransaction = function(context, next) {
+TransactionsController.postTransaction = async function(context, next) {
 	const transaction = context.request.swagger.params.transaction.value;
+	let error;
 
-	return channel.invoke('chain:postTransaction', [
-		transaction,
-		(err, data) => {
-			if (err) {
-				if (err instanceof ApiError) {
-					context.statusCode = err.code;
-					delete err.code;
-				}
+	try {
+		const data = await channel.invoke('chain:postTransaction', { transaction });
 
-				return next(err);
-			}
-
+		if (data.success) {
 			return next(null, {
-				data: { message: data },
+				data: { message: 'Transaction(s) accepted' },
 				meta: { status: true },
 			});
-		},
-	]);
+		}
+
+		error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
+	} catch (err) {
+		error = new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR);
+	}
+
+	context.statusCode = error.code;
+	return next(error);
 };
 
 module.exports = TransactionsController;

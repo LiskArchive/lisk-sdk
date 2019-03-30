@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const { stringToByte } = require('../utils/inputSerializers');
+const { stringToByte } = require('../utils/input_serializers');
 const { NonSupportedOperationError } = require('../errors');
 const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
@@ -156,7 +156,7 @@ const sqlFiles = {
 class Block extends BaseEntity {
 	/**
 	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
+	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
 	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {

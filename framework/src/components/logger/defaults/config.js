@@ -4,6 +4,7 @@ const DefaultConfig = {
 		fileLogLevel: {
 			type: 'string',
 			default: 'info',
+			enum: ['trace', 'debug', 'log', 'info', 'warn', 'error', 'fatal', 'none'],
 		},
 		logFileName: {
 			type: 'string',
@@ -12,6 +13,7 @@ const DefaultConfig = {
 		consoleLogLevel: {
 			type: 'string',
 			default: 'none',
+			enum: ['trace', 'debug', 'log', 'info', 'warn', 'error', 'fatal', 'none'],
 		},
 	},
 	required: ['fileLogLevel', 'logFileName', 'consoleLogLevel'],

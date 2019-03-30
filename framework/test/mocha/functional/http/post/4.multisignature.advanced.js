@@ -14,15 +14,18 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	utils: transactionUtils,
+} = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
 const randomUtil = require('../../../common/utils/random');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
 const { NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
@@ -121,7 +124,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -134,7 +137,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -147,7 +150,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -160,7 +163,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -173,7 +176,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -186,7 +189,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.be.equal(
 							'Failed to verify multisignature: '
@@ -201,7 +204,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -244,7 +247,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.equal(
 							`Failed to verify multisignature: ${
@@ -270,7 +273,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.match(
 							/^Invalid transaction body - Failed to validate transaction schema: Array items are not unique \(indexes/
@@ -301,7 +304,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.match(
 							/^Invalid transaction body - Failed to validate transaction schema: Array items are not unique \(indexes/
@@ -407,17 +410,17 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it('requesting multisig group transaction from non author account', async () => {
 				const scenario = scenarios.requesterPublicKey;
 
-				const transaction = lisk.transaction.transfer({
-					amount: 1 * NORMALIZER,
+				const transaction = transfer({
+					amount: (1 * NORMALIZER).toString(),
 					passphrase: scenario.members[0].passphrase,
 					recipientId: randomUtil.account().address,
 				});
 				transaction.requesterPublicKey = scenario.account.publicKey;
-				transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+				transaction.id = transactionUtils.getTransactionId(transaction);
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal('Multisig request is not allowed');
 					badTransactions.push(transaction);

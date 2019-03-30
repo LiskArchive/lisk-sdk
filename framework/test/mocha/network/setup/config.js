@@ -120,18 +120,17 @@ const config = {
 					}`
 				);
 			}
-			const root = process.cwd();
 
 			pm2Config.apps.push({
 				exec_mode: 'fork',
 				script: 'src/index.js',
 				name: `node_${index}`,
-				args: ` -c ${root}/framework/test/mocha/network/configs/config.node-${index}.json`,
+				args: ` -c framework/test/mocha/network/configs/config.node-${index}.json`,
 				env: {
 					NODE_ENV: 'test',
 				},
-				error_file: `${root}/framework/test/mocha/network/logs/lisk-test-node-${index}.err.log`,
-				out_file: `${root}/framework/test/mocha/network/logs/lisk-test-node-${index}.out.log`,
+				error_file: `framework/test/mocha/network/logs/lisk-test-node-${index}.err.log`,
+				out_file: `framework/test/mocha/network/logs/lisk-test-node-${index}.out.log`,
 				configuration,
 			});
 			return pm2Config;

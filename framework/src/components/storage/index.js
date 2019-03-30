@@ -17,16 +17,19 @@
 const { config: DefaultConfig } = require('./defaults');
 const validator = require('../../controller/helpers/validator');
 const Storage = require('./storage');
-const { Account, Block, Transaction } = require('./entities');
+const adapters = require('./adapters');
+const entities = require('./entities');
+const utils = require('./utils');
+const errors = require('./errors');
 
 function createStorageComponent(options, logger) {
 	options = validator.validateWithDefaults(DefaultConfig, options);
 
 	const storage = new Storage(options, logger);
 
-	storage.registerEntity('Account', Account);
-	storage.registerEntity('Block', Block);
-	storage.registerEntity('Transaction', Transaction);
+	storage.registerEntity('Account', entities.Account);
+	storage.registerEntity('Block', entities.Block);
+	storage.registerEntity('Transaction', entities.Transaction);
 
 	return storage;
 }
@@ -34,4 +37,9 @@ function createStorageComponent(options, logger) {
 module.exports = {
 	defaults: DefaultConfig,
 	createStorageComponent,
+	adapters,
+	entities,
+	errors,
+	utils,
+	Storage,
 };

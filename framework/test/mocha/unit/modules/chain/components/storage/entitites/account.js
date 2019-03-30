@@ -16,14 +16,12 @@
 'use strict';
 
 const {
-	BaseEntity,
-} = require('../../../../../../../../src/components/storage/entities');
+	entities: { BaseEntity },
+	errors: { NonSupportedFilterTypeError },
+} = require('../../../../../../../../src/components/storage');
 const {
 	Account,
 } = require('../../../../../../../../src/modules/chain/components/storage/entities');
-const {
-	NonSupportedFilterTypeError,
-} = require('../../../../../../../../src/components/storage/errors');
 const storageSandbox = require('../../../../../../common/storage_sandbox');
 const seeder = require('../../../../../../common/storage_seed');
 const accountFixtures = require('../../../../../../fixtures').accounts;

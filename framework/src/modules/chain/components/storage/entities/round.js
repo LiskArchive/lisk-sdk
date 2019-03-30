@@ -17,8 +17,10 @@
 const path = require('path');
 const assert = require('assert');
 const { defaults, omit, pick } = require('lodash');
-const filterType = require('../../../../../components/storage/utils/filter_types');
-const BaseEntity = require('../../../../../components/storage/entities/base_entity');
+const {
+	entities: { BaseEntity },
+	utils: { filterTypes: { NUMBER, TEXT } },
+} = require('../../../../../components/storage');
 
 const defaultCreateValues = {};
 
@@ -95,13 +97,13 @@ class Round extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
-		this.addField('address', 'string', { filter: filterType.TEXT });
-		this.addField('amount', 'number', { filter: filterType.NUMBER });
+		this.addField('address', 'string', { filter: TEXT });
+		this.addField('amount', 'number', { filter: NUMBER });
 		this.addField('delegatePublicKey', 'string', {
-			filter: filterType.TEXT,
+			filter: TEXT,
 			fieldName: 'delegate',
 		});
-		this.addField('round', 'number', { filter: filterType.NUMBER });
+		this.addField('round', 'number', { filter: NUMBER });
 
 		const defaultSort = { sort: '' };
 		this.extendDefaultOptions(defaultSort);

@@ -14,8 +14,11 @@
 
 'use strict';
 
-require('../../../functional.js');
-const lisk = require('lisk-elements').default;
+require('../../../functional');
+const {
+	transfer,
+	registerSecondPassphrase,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../fixtures/accounts');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const randomUtil = require('../../../../common/utils/random');
@@ -28,6 +31,7 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 describe('GET /accounts', () => {
 	const account = randomUtil.account();
 	const accountsEndpoint = new SwaggerEndpoint('GET /accounts');
+	const constantsEndPoint = new SwaggerEndpoint('GET /node/constants 200');
 
 	describe('?', () => {
 		describe('address', () => {
@@ -179,12 +183,12 @@ describe('GET /accounts', () => {
 
 		describe('secondPublicKey', () => {
 			const secondPublicKeyAccount = randomUtil.account();
-			const creditTransaction = lisk.transaction.transfer({
+			const creditTransaction = transfer({
 				amount: FEES.SECOND_SIGNATURE,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPublicKeyAccount.address,
 			});
-			const signatureTransaction = lisk.transaction.registerSecondPassphrase({
+			const signatureTransaction = registerSecondPassphrase({
 				passphrase: secondPublicKeyAccount.passphrase,
 				secondPassphrase: secondPublicKeyAccount.secondPassphrase,
 			});
@@ -393,7 +397,28 @@ describe('GET /accounts', () => {
 				});
 		});
 
-		it('should return empty delegate property for a non delegate account', async () => {
+		it('should return correct delegate approval for a delegate account', async () => {
+			const promises = [
+				constantsEndPoint.makeRequest(),
+				accountsEndpoint.makeRequest(
+					{ address: accountFixtures.existingDelegate.address },
+					200
+				),
+			];
+
+			const [
+				{ body: { data: constansts } },
+				{ body: { data: [{ delegate }] } },
+			] = await Promise.all(promises);
+
+			const calculatedApproval = apiHelpers.calculateApproval(
+				delegate.vote,
+				constansts.supply
+			);
+			expect(delegate.approval).to.be.eql(calculatedApproval);
+		});
+
+		it('should return empty delegate property for a non delegate account', () => {
 			return accountsEndpoint
 				.makeRequest({ address: accountFixtures.genesis.address }, 200)
 				.then(res => {

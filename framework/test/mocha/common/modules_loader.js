@@ -17,14 +17,14 @@
 const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
-const Sequence = require('../../../src/modules/chain/helpers/sequence.js');
+const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
 const { createSystemComponent } = require('../../../src/components/system');
-const Z_schema = require('../../../src/modules/chain/helpers/z_schema.js');
+const { ZSchema } = require('../../../src/controller/helpers/validator');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const Transaction = require('../../../src/modules/chain/logic/transaction.js');
-const Account = require('../../../src/modules/chain/logic/account.js');
+const Transaction = require('../../../src/modules/chain/logic/transaction');
+const Account = require('../../../src/modules/chain/logic/account');
 
 const modulesLoader = new function() {
 	this.storage = null;
@@ -53,7 +53,7 @@ const modulesLoader = new function() {
 				sockets: express(),
 			},
 		},
-		schema: new Z_schema(),
+		schema: new ZSchema(),
 		ed,
 		bus: {
 			argsMessages: [],
@@ -251,22 +251,26 @@ const modulesLoader = new function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ accounts: require('../../../src/modules/chain/modules/accounts') },
-				{ blocks: require('../../../src/modules/chain/modules/blocks') },
-				{ delegates: require('../../../src/modules/chain/modules/delegates') },
-				{ loader: require('../../../src/modules/chain/modules/loader') },
+				{ accounts: require('../../../src/modules/chain/submodules/accounts') },
+				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
 				{
-					multisignatures: require('../../../src/modules/chain/modules/multisignatures'),
+					delegates: require('../../../src/modules/chain/submodules/delegates'),
 				},
-				{ peers: require('../../../src/modules/chain/modules/peers') },
-				{ rounds: require('../../../src/modules/chain/modules/rounds') },
+				{ loader: require('../../../src/modules/chain/submodules/loader') },
 				{
-					signatures: require('../../../src/modules/chain/modules/signatures'),
+					multisignatures: require('../../../src/modules/chain/submodules/multisignatures'),
+				},
+				{ peers: require('../../../src/modules/chain/submodules/peers') },
+				{ rounds: require('../../../src/modules/chain/submodules/rounds') },
+				{
+					signatures: require('../../../src/modules/chain/submodules/signatures'),
 				},
 				{
-					transactions: require('../../../src/modules/chain/modules/transactions'),
+					transactions: require('../../../src/modules/chain/submodules/transactions'),
 				},
-				{ transport: require('../../../src/modules/chain/modules/transport') },
+				{
+					transport: require('../../../src/modules/chain/submodules/transport'),
+				},
 			],
 			[
 				{
@@ -274,7 +278,7 @@ const modulesLoader = new function() {
 				},
 				{ account: require('../../../src/modules/chain/logic/account') },
 				{ block: require('../../../src/modules/chain/logic/block') },
-				{ peers: require('../../../src/modules/chain/logic/peers.js') },
+				{ peers: require('../../../src/modules/chain/logic/peers') },
 			],
 			scope || {},
 			cb

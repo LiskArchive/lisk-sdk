@@ -16,16 +16,27 @@
 
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
-const dappCategories = require('../helpers/dapp_categories.js');
-const transactionTypes = require('../helpers/transaction_types');
-const Bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum');
+const regexpTester = require('../helpers/regexp_tester');
 
-const { FEES } = global.constants;
+const { FEES, TRANSACTION_TYPES } = global.constants;
 
 const __scope = {};
 __scope.unconfirmedNames = {};
 __scope.unconfirmedLinks = {};
 __scope.unconfirmedAscii = {};
+
+const dappCategories = {
+	Education: 0,
+	Entertainment: 1,
+	Finance: 2,
+	Games: 3,
+	Miscellaneous: 4,
+	Networking: 5,
+	Science: 6,
+	Social: 7,
+	Utilities: 8,
+};
 
 /**
  * Main dapp logic. Initializes library.
@@ -35,7 +46,6 @@ __scope.unconfirmedAscii = {};
  * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires valid
- * @requires helpers/dapp_categories
  * @param {Object} scope
  * @param {Object} scope.components
  * @param {Storage} scope.components.storage
@@ -157,6 +167,13 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		);
 	}
 
+	if (regexpTester.isNullByteIncluded(transaction.asset.dapp.name)) {
+		return setImmediate(
+			cb,
+			'Application name has invalid character. Null character is not allowed.'
+		);
+	}
+
 	if (
 		transaction.asset.dapp.description &&
 		transaction.asset.dapp.description.length > 160
@@ -174,12 +191,29 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		);
 	}
 
+	if (
+		transaction.asset.dapp.description &&
+		regexpTester.isNullByteIncluded(transaction.asset.dapp.description)
+	) {
+		return setImmediate(
+			cb,
+			'Application description has invalid character. Null character is not allowed.'
+		);
+	}
+
 	if (transaction.asset.dapp.tags) {
 		let tags = transaction.asset.dapp.tags.split(',');
 
 		tags = tags.map(tag => tag.trim()).sort();
 
 		for (let i = 0; i < tags.length - 1; i++) {
+			if (regexpTester.isNullByteIncluded(tags[i])) {
+				return setImmediate(
+					cb,
+					'Application tags has invalid character. Null character is not allowed.'
+				);
+			}
+
 			if (tags[i + 1] === tags[i]) {
 				return setImmediate(
 					cb,
@@ -193,12 +227,12 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		{
 			dapp_name: transaction.asset.dapp.name,
 			id_ne: transaction.id,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		},
 		{
 			dapp_link: transaction.asset.dapp.link || null,
 			id_ne: transaction.id,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		},
 	];
 

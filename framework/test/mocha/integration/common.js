@@ -16,12 +16,19 @@
 
 const async = require('async');
 const Promise = require('bluebird');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerSecondPassphrase,
+	registerDelegate,
+	registerMultisignature,
+	castVotes,
+	createDapp,
+} = require('@liskhq/lisk-transactions');
 const slots = require('../../../src/modules/chain/helpers/slots');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const Bignum = require('../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../src/modules/chain/helpers/bignum');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -257,7 +264,8 @@ function getTransactionFromModule(library, filter, cb) {
 }
 
 function getUnconfirmedTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.shared.getUnconfirmedTransactions(
+	library.modules.transactions.shared.getTransactionsFromPool(
+		'unconfirmed',
 		filter,
 		(err, res) => {
 			cb(err, res);
@@ -266,7 +274,8 @@ function getUnconfirmedTransactionFromModule(library, filter, cb) {
 }
 
 function getMultisignatureTransactions(library, filter, cb) {
-	library.modules.transactions.shared.getMultisignatureTransactions(
+	library.modules.transactions.shared.getTransactionsFromPool(
+		'unsigned',
 		filter,
 		(err, res) => {
 			cb(err, res);
@@ -305,35 +314,35 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	}
 	switch (key) {
 		case 'SEND':
-			transaction = lisk.transaction.transfer({
-				amount: 1,
+			transaction = transfer({
+				amount: '1',
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				recipientId: randomUtil.account().address,
 			});
 			break;
 		case 'SIGNATURE':
-			transaction = lisk.transaction.registerSecondPassphrase({
+			transaction = registerSecondPassphrase({
 				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});
 			break;
 		case 'DELEGATE':
-			transaction = lisk.transaction.registerDelegate({
+			transaction = registerDelegate({
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				username: accountCopy.username,
 			});
 			break;
 		case 'VOTE':
-			transaction = lisk.transaction.castVotes({
+			transaction = castVotes({
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				votes: [accountFixtures.existingDelegate.publicKey],
 			});
 			break;
 		case 'MULTI':
-			transaction = lisk.transaction.registerMultisignature({
+			transaction = registerMultisignature({
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				keysgroup: [accountFixtures.existingDelegate.publicKey],
@@ -342,7 +351,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			});
 			break;
 		case 'DAPP':
-			transaction = lisk.transaction.createDapp({
+			transaction = createDapp({
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				options: randomUtil.guestbookDapp,

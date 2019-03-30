@@ -22,7 +22,7 @@ const typesRepresentatives = require('../../../../fixtures/types_representatives
 const modulesLoader = require('../../../../common/modules_loader');
 
 const InTransfer = rewire(
-	'../../../../../../src/modules/chain/logic/in_transfer.js'
+	'../../../../../../src/modules/chain/logic/in_transfer'
 );
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';

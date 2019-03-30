@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const wsRPC = require('../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
 	.wsRPC;
@@ -158,7 +158,7 @@ describe('WS transport blocks', () => {
 					JSON.stringify(res)
 				);
 				expect(res).to.be.undefined;
-				expect(err).to.equal('Missing required property: ids: ');
+				expect(err).to.equal('Missing required property: ids: #/');
 				done();
 			});
 		});

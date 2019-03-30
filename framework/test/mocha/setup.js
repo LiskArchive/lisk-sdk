@@ -153,7 +153,7 @@ _.mixin(
 					return sortFactor * -1;
 				}
 
-				// If second element is empty pull it upward
+				// If second element is empty pull it upwardå
 				if (_.isEmpty(a) && !_.isEmpty(b)) {
 					return sortFactor * 1;
 				}

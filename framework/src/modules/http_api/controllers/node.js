@@ -15,10 +15,9 @@
 'use strict';
 
 const _ = require('lodash');
-const checkIpInList = require('../helpers/check_ip_in_list.js');
-const apiCodes = require('../helpers/api_codes');
+const checkIpInList = require('../helpers/check_ip_in_list');
+const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
-const slots = require('../helpers/slots.js');
 
 const { EPOCH_TIME, FEES } = global.constants;
 
@@ -58,6 +57,12 @@ function NodeController(scope) {
  * @todo Add description for the function and the params
  */
 NodeController.getConstants = async (context, next) => {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	try {
 		const [lastBlock] = await library.components.storage.entities.Block.get(
 			{},
@@ -65,15 +70,15 @@ NodeController.getConstants = async (context, next) => {
 		);
 		const { height } = lastBlock;
 
-		const milestone = await library.channel.invoke('chain:calculateMilestone', [
+		const milestone = await library.channel.invoke('chain:calculateMilestone', {
 			height,
-		]);
-		const reward = await library.channel.invoke('chain:calculateReward', [
+		});
+		const reward = await library.channel.invoke('chain:calculateReward', {
 			height,
-		]);
-		const supply = await library.channel.invoke('chain:calculateSupply', [
+		});
+		const supply = await library.channel.invoke('chain:calculateSupply', {
 			height,
-		]);
+		});
 
 		const build = await library.channel.invoke('chain:getBuild');
 		const commit = await library.channel.invoke('chain:getLastCommit');
@@ -116,11 +121,11 @@ NodeController.getStatus = async (context, next) => {
 	try {
 		const networkHeight = await library.channel.invoke(
 			'chain:getNetworkHeight',
-			[
-				{
+			{
+				options: {
 					normalized: false,
 				},
-			]
+			}
 		);
 
 		const [lastBlock] = await library.components.storage.entities.Block.get(
@@ -136,12 +141,13 @@ NodeController.getStatus = async (context, next) => {
 		const transactions = await library.channel.invoke(
 			'chain:getAllTransactionsCount'
 		);
+		const slotTime = await library.channel.invoke('chain:getSlotTime');
 
 		const data = {
 			broadhash: library.components.system.headers.broadhash,
 			consensus: consensus || 0,
 			currentTime: Date.now(),
-			secondsSinceEpoch: slots.getTime(),
+			secondsSinceEpoch: slotTime,
 			height,
 			loaded,
 			networkHeight: networkHeight || 0,
@@ -199,11 +205,11 @@ NodeController.updateForgingStatus = async (context, next) => {
 	const forging = context.request.swagger.params.data.value.forging;
 
 	try {
-		const data = await library.channel.invoke('chain:updateForgingStatus', [
+		const data = await library.channel.invoke('chain:updateForgingStatus', {
 			publicKey,
 			password,
 			forging,
-		]);
+		});
 		return next(null, [data]);
 	} catch (err) {
 		context.statusCode = apiCodes.NOT_FOUND;
@@ -218,7 +224,7 @@ NodeController.updateForgingStatus = async (context, next) => {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getPooledTransactions = function(context, next) {
+NodeController.getPooledTransactions = async function(context, next) {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -228,12 +234,6 @@ NodeController.getPooledTransactions = function(context, next) {
 	const params = context.request.swagger.params;
 
 	const state = context.request.swagger.params.state.value;
-
-	const stateMap = {
-		unprocessed: 'getUnProcessedTransactions',
-		unconfirmed: 'getUnconfirmedTransactions',
-		unsigned: 'getMultisignatureTransactions',
-	};
 
 	let filters = {
 		id: params.id.value,
@@ -250,37 +250,34 @@ NodeController.getPooledTransactions = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	return library.channel.invoke(`chain:${stateMap[state]}`, [
-		_.clone(filters),
-		(err, data) => {
-			if (err) {
-				return next(err);
-			}
+	try {
+		const data = await library.channel.invoke('chain:getTransactionsFromPool', {
+			type: state,
+			filters: _.clone(filters),
+		});
 
-			const transactions = _.map(
-				_.cloneDeep(data.transactions),
-				transaction => {
-					transaction.senderId = transaction.senderId || '';
-					transaction.recipientId = transaction.recipientId || '';
-					transaction.recipientPublicKey = transaction.recipientPublicKey || '';
+		const transactions = _.map(_.cloneDeep(data.transactions), transaction => {
+			transaction.senderId = transaction.senderId || '';
+			transaction.recipientId = transaction.recipientId || '';
+			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
 
-					transaction.amount = transaction.amount.toString();
-					transaction.fee = transaction.fee.toString();
+			transaction.amount = transaction.amount.toString();
+			transaction.fee = transaction.fee.toString();
 
-					return transaction;
-				}
-			);
+			return transaction;
+		});
 
-			return next(null, {
-				data: transactions,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-					count: parseInt(data.count),
-				},
-			});
-		},
-	]);
+		return next(null, {
+			data: transactions,
+			meta: {
+				offset: filters.offset,
+				limit: filters.limit,
+				count: parseInt(data.count),
+			},
+		});
+	} catch (err) {
+		return next(err);
+	}
 };
 
 /**

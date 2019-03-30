@@ -16,7 +16,7 @@
 
 const assert = require('assert');
 const { filterGenerator } = require('./filters');
-const inputSerializers = require('./inputSerializers');
+const inputSerializers = require('./input_serializers');
 
 class Field {
 	/**

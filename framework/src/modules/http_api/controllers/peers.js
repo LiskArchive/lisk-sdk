@@ -15,6 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
+const swaggerHelper = require('../helpers/swagger');
 
 // Private Fields
 let channel;
@@ -40,6 +41,12 @@ function PeersController(scope) {
  * @todo Add description for the function and the params
  */
 PeersController.getPeers = async function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let filters = {
@@ -60,33 +67,32 @@ PeersController.getPeers = async function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	await channel.invoke('chain:getPeers', [
-		filters,
-		async (err, data) => {
-			if (err) {
-				return next(err);
-			}
+	try {
+		const data = await channel.invoke('chain:getPeers', {
+			parameters: filters,
+		});
 
-			const clonedData = _.cloneDeep(data);
-			const filteredData = clonedData.map(peer => {
-				const { updated, ...filtered } = peer;
-				return filtered;
-			});
+		const clonedData = _.cloneDeep(data);
+		const filteredData = clonedData.map(peer => {
+			const { updated, ...filtered } = peer;
+			return filtered;
+		});
 
-			const peersCount = await channel.invoke('chain:getPeersCountByFilter', [
-				_.cloneDeep(filters),
-			]);
+		const peersCount = await channel.invoke('chain:getPeersCountByFilter', {
+			parameters: _.cloneDeep(filters),
+		});
 
-			return next(null, {
-				data: filteredData,
-				meta: {
-					offset: filters.offset,
-					limit: filters.limit,
-					count: peersCount,
-				},
-			});
-		},
-	]);
+		return next(null, {
+			data: filteredData,
+			meta: {
+				offset: filters.offset,
+				limit: filters.limit,
+				count: peersCount,
+			},
+		});
+	} catch (err) {
+		return next(err);
+	}
 };
 
 module.exports = PeersController;

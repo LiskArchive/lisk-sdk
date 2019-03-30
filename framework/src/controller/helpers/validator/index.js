@@ -1,3 +1,4 @@
+const assert = require('assert');
 const Ajv = require('ajv');
 const { SchemaValidationError } = require('../../../errors');
 const formats = require('./formats');
@@ -29,7 +30,7 @@ Object.keys(formats).forEach(formatId => {
  *
  * @type {{loadSchema: module.exports.loadSchema, validate: (function(*=, *=): boolean)}}
  */
-module.exports = {
+const validatorInterface = {
 	/**
 	 * Load schema objects to cache and able to resolve the $ref
 	 *
@@ -80,4 +81,32 @@ module.exports = {
 	},
 
 	formats: Object.freeze(formats),
+
+	/**
+	 * Validate modules spec.
+	 *
+	 * @param {Object} moduleSpec - Module Class
+	 * @return {boolean}
+	 * @throws assert.AssertionError
+	 */
+	validateModuleSpec: moduleSpec => {
+		assert(moduleSpec.constructor.alias, 'Module alias is required.');
+		assert(moduleSpec.constructor.info.name, 'Module name is required.');
+		assert(moduleSpec.constructor.info.author, 'Module author is required.');
+		assert(moduleSpec.constructor.info.version, 'Module version is required.');
+		assert(moduleSpec.defaults, 'Module default options are required.');
+		assert(moduleSpec.events, 'Module events are required.');
+		assert(moduleSpec.actions, 'Module actions are required.');
+		assert(moduleSpec.load, 'Module load action is required.');
+		assert(moduleSpec.unload, 'Module unload actions is required.');
+
+		return true;
+	},
 };
+
+// TODO: Need to remove reference to this old validator
+validatorInterface.getValidator = () => ({
+	validate: (data, schema) => validatorInterface.validate(schema, data),
+});
+
+module.exports = validatorInterface;

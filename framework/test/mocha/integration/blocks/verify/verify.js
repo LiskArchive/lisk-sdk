@@ -15,21 +15,21 @@
 'use strict';
 
 const crypto = require('crypto');
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const rewire = require('rewire');
 const async = require('async');
 const Promise = require('bluebird');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
-const slots = require('../../../../../src/modules/chain/helpers/slots.js');
+const slots = require('../../../../../src/modules/chain/helpers/slots');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const blockVersion = require('../../../../../src/modules/chain/logic/block_version.js');
+const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
@@ -233,7 +233,7 @@ describe('blocks/verify', () => {
 
 		before(done => {
 			RewiredVerify = rewire(
-				'../../../../../src/modules/chain/modules/blocks/verify.js'
+				'../../../../../src/modules/chain/submodules/blocks/verify'
 			);
 			const verify = new RewiredVerify(
 				library.components.logger,
@@ -881,7 +881,6 @@ describe('blocks/verify', () => {
 					'trs WHERE "blockId" != \'6524861224470851795\'',
 					"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
 					'forks_stat',
-					'votes WHERE "transactionId" = \'17502993173215211070\'',
 				],
 				(table, seriesCb) => {
 					clearDatabaseTable(
@@ -1109,8 +1108,8 @@ describe('blocks/verify', () => {
 
 				it('should fail when transaction is already confirmed (fork:2)', done => {
 					const account = random.account();
-					const transaction = lisk.transaction.transfer({
-						amount: new Bignum(NORMALIZER).multipliedBy(1000),
+					const transaction = transfer({
+						amount: new Bignum(NORMALIZER).multipliedBy(1000).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});

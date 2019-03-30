@@ -21,6 +21,7 @@ module.exports = {
 			'NORMALIZER',
 			'REWARDS',
 			'TOTAL_AMOUNT',
+			'TRANSACTION_TYPES',
 			'UNCONFIRMED_TRANSACTION_TIMEOUT',
 			'EXPIRY_INTERVAL',
 		],
@@ -193,6 +194,19 @@ module.exports = {
 				default: '10000000000000000',
 				description:
 					'Total amount of LSK available in network before rewards milestone started',
+			},
+			TRANSACTION_TYPES: {
+				$ref: 'transactionTypes',
+				default: {
+					SEND: 0,
+					SIGNATURE: 1,
+					DELEGATE: 2,
+					VOTE: 3,
+					MULTI: 4,
+					DAPP: 5,
+					IN_TRANSFER: 6,
+					OUT_TRANSFER: 7,
+				},
 			},
 			UNCONFIRMED_TRANSACTION_TIMEOUT: {
 				type: 'integer',
@@ -391,6 +405,56 @@ module.exports = {
 				min: 1,
 				default: 3000000, // Distance between each milestone
 				description: 'Distance between each milestone',
+			},
+		},
+		additionalProperties: false,
+	},
+
+	transactionTypes: {
+		id: 'transactionTypes',
+		type: 'object',
+		required: [
+			'SEND',
+			'SIGNATURE',
+			'DELEGATE',
+			'VOTE',
+			'MULTI',
+			'DAPP',
+			'IN_TRANSFER',
+			'OUT_TRANSFER',
+		],
+		properties: {
+			SEND: {
+				type: 'integer',
+				enum: [0],
+			},
+			SIGNATURE: {
+				type: 'integer',
+				enum: [1],
+			},
+			DELEGATE: {
+				type: 'integer',
+				enum: [2],
+			},
+			VOTE: {
+				type: 'integer',
+				enum: [3],
+			},
+			MULTI: {
+				type: 'integer',
+				enum: [4],
+			},
+			DAPP: {
+				type: 'integer',
+				enum: [5],
+			},
+			IN_TRANSFER: {
+				type: 'integer',
+				enum: [6],
+			},
+			OUT_TRANSFER: {
+				type: 'integer',
+				enum: [7],
 			},
 		},
 		additionalProperties: false,

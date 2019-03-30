@@ -43,18 +43,16 @@ describe('components: cache', () => {
 	});
 
 	afterEach(async () => {
-		if (cache.isReady()) {
-			const result = await cache.flushDb();
-			return expect(result).to.equal('OK');
-		}
-		return true;
+		// Cache might be disabled in the tests,
+		// So next line makes sure it's enabled again.
+		cache.enable();
+		const result = await cache.flushDb();
+		return expect(result).to.equal('OK');
 	});
 
 	after(() => cache.quit());
 
 	describe('bootstrap', () => {});
-
-	describe('_onConnectionError', () => {});
 
 	describe('_onReady', () => {});
 
@@ -85,7 +83,7 @@ describe('components: cache', () => {
 		it('should not get any key when cache is not ready', async () => {
 			const key = '/api/transactions';
 
-			await cache.disable();
+			cache.disable();
 			try {
 				await cache.getJsonForKey(key);
 			} catch (getJsonForKeyErr) {
@@ -113,7 +111,7 @@ describe('components: cache', () => {
 				testObject: 'testValue',
 			};
 
-			await cache.disable();
+			cache.disable();
 			try {
 				await cache.setJsonForKey(key, value);
 			} catch (setJsonForKeyErr) {
@@ -149,7 +147,7 @@ describe('components: cache', () => {
 		it('should not delete any key when cache is not ready', async () => {
 			const key = '/api/transactions';
 
-			await cache.disable();
+			cache.disable();
 			try {
 				await cache.deleteJsonForKey(key);
 			} catch (deleteJsonForKeyErr) {
@@ -190,7 +188,7 @@ describe('components: cache', () => {
 		it('should not remove any key when cache is not ready', async () => {
 			const pattern = '/api/delegate*';
 
-			await cache.disable();
+			cache.disable();
 			try {
 				await cache.removeByPattern(pattern);
 			} catch (removeByPatternErr) {
@@ -221,7 +219,7 @@ describe('components: cache', () => {
 		});
 
 		it('should not remove any key when cache is not ready', async () => {
-			await cache.disable();
+			cache.disable();
 			try {
 				await cache.flushDb();
 			} catch (flushDbErr) {
