@@ -115,7 +115,7 @@ module.exports = class Chain {
 
 			// System
 			this.logger.debug('Initiating system...');
-			const system = createSystemComponent(systemConfig, this.logger, storage);
+			this.system = createSystemComponent(systemConfig, this.logger, storage);
 
 			if (!this.options.genesisBlock) {
 				throw Error('Failed to assign nethash from genesis block');
@@ -147,16 +147,10 @@ module.exports = class Chain {
 					storage,
 					cache,
 					logger: self.logger,
-					system,
+					system: this.system,
 				},
 				channel: this.channel,
 			};
-
-			// Lookup for peers ips from dns
-			scope.config.network.list = await lookupPeerIPs(
-				scope.config.network.list,
-				scope.config.network.enabled
-			);
 
 			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
 			await bootstrapCache(scope);
@@ -164,15 +158,29 @@ module.exports = class Chain {
 			scope.bus = await createBus();
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
-			scope.webSocket = await createSocketCluster(scope);
+
+			if (scope.config.peers.enabled) {
+				// Lookup for peers ips from dns
+				scope.config.peers.list = await lookupPeerIPs(
+					scope.config.peers.list,
+					scope.config.peers.enabled
+				);
+
+				// Listen to websockets
+				scope.webSocket = await createSocketCluster(scope);
+				await scope.webSocket.listen();
+			} else {
+				this.logger.info(
+					'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
+				);
+			}
+
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
 
-			// Listen to websockets
-			await scope.webSocket.listen();
 			self.logger.info('Modules ready and launched');
 
 			self.scope = scope;
@@ -198,14 +206,6 @@ module.exports = class Chain {
 					action.params.round,
 					action.params.source
 				),
-			getNetworkHeight: async action =>
-				promisify(this.scope.modules.peers.networkHeight)(
-					action.params.options
-				),
-			getAllTransactionsCount: async () =>
-				promisify(
-					this.scope.modules.transactions.shared.getTransactionsCount
-				)(),
 			updateForgingStatus: async action =>
 				this.scope.modules.delegates.updateForgingStatus(
 					action.params.publicKey,
@@ -254,15 +254,27 @@ module.exports = class Chain {
 					action.params.filters,
 					action.params.tx
 				),
-			getSlotTime: async action =>
-				action.params
-					? this.slots.getTime(action.params.time)
-					: this.slots.getTime(),
 			getSlotNumber: async action =>
 				action.params
 					? this.slots.getSlotNumber(action.params.epochTime)
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
+			getNodeStatus: async () => ({
+				broadhash: this.system.headers.broadhash,
+				consensus: this.scope.modules.peers.getLastConsensus(),
+				loaded: this.scope.modules.loader.loaded(),
+				syncing: this.scope.modules.loader.syncing(),
+				transactions: await promisify(
+					this.scope.modules.transactions.shared.getTransactionsCount
+				)(),
+				secondsSinceEpoch: this.slots.getTime(),
+				networkHeight: await promisify(this.scope.modules.peers.networkHeight)({
+					options: {
+						normalized: false,
+					},
+				}),
+				lastBlock: this.scope.modules.blocks.lastBlock.get(),
+			}),
 		};
 	}
 

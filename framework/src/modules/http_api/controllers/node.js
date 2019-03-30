@@ -41,7 +41,6 @@ let library;
 function NodeController(scope) {
 	library = {
 		components: {
-			system: scope.components.system,
 			storage: scope.components.storage,
 		},
 		config: scope.config,
@@ -119,36 +118,23 @@ NodeController.getConstants = async (context, next) => {
  */
 NodeController.getStatus = async (context, next) => {
 	try {
-		const networkHeight = await library.channel.invoke(
-			'chain:getNetworkHeight',
-			{
-				options: {
-					normalized: false,
-				},
-			}
-		);
-
-		const [lastBlock] = await library.components.storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
-
-		const { height } = lastBlock;
-		const consensus =
-			(await library.channel.invoke('chain:getLastConsensus')) || 0;
-		const loaded = await library.channel.invoke('chain:loaderLoaded');
-		const syncing = await library.channel.invoke('chain:loaderSyncing');
-		const transactions = await library.channel.invoke(
-			'chain:getAllTransactionsCount'
-		);
-		const slotTime = await library.channel.invoke('chain:getSlotTime');
+		const {
+			broadhash,
+			consensus,
+			secondsSinceEpoch,
+			loaded,
+			networkHeight,
+			syncing,
+			transactions,
+			lastBlock,
+		} = await library.channel.invoke('chain:getNodeStatus');
 
 		const data = {
-			broadhash: library.components.system.headers.broadhash,
+			broadhash,
 			consensus: consensus || 0,
 			currentTime: Date.now(),
-			secondsSinceEpoch: slotTime,
-			height,
+			secondsSinceEpoch,
+			height: lastBlock.height || 0,
 			loaded,
 			networkHeight: networkHeight || 0,
 			syncing,
