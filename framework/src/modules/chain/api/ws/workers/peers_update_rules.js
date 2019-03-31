@@ -17,13 +17,13 @@
 const Peer = require('../../../logic/peer');
 const failureCodes = require('../rpc/failure_codes');
 const PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
-const { getValidator } = require('../../../../../controller/helpers/validator');
+const { ZSchema } = require('../../../../../controller/helpers/validator');
 const definitions = require('../../../schema/definitions');
 const connectionsTable = require('./connections_table');
 const SlaveToMasterSender = require('./slave_to_master_sender');
 const Rules = require('./rules');
 
-const validator = getValidator();
+const validator = new ZSchema();
 
 let self;
 

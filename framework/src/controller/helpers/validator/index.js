@@ -2,6 +2,7 @@ const assert = require('assert');
 const Ajv = require('ajv');
 const { SchemaValidationError } = require('../../../errors');
 const formats = require('./formats');
+const ZSchema = require('./z_schema');
 
 const validator = new Ajv({
 	allErrors: true,
@@ -102,11 +103,9 @@ const validatorInterface = {
 
 		return true;
 	},
-};
 
-// TODO: Need to remove reference to this old validator
-validatorInterface.getValidator = () => ({
-	validate: (data, schema) => validatorInterface.validate(schema, data),
-});
+	// TODO: Old interface for validation, must be removed.
+	ZSchema,
+};
 
 module.exports = validatorInterface;

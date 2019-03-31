@@ -235,6 +235,14 @@ const DefaultConfig = {
 						'In format: { transaction_id: [signature1, signature2] } ',
 					default: {},
 				},
+				transactionWithNullByte: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+					default: [],
+				},
 			},
 			required: [
 				'blockRewards',
@@ -250,6 +258,7 @@ const DefaultConfig = {
 				'recipientLeadingZero',
 				'recipientExceedingUint64',
 				'duplicatedSignatures',
+				'transactionWithNullByte',
 			],
 			default: {
 				blockRewards: [],
@@ -265,6 +274,7 @@ const DefaultConfig = {
 				recipientLeadingZero: {},
 				recipientExceedingUint64: {},
 				duplicatedSignatures: {},
+				transactionWithNullByte: [],
 			},
 		},
 		network: {

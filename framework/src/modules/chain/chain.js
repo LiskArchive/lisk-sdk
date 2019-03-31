@@ -5,7 +5,7 @@ const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
 // eslint-disable-next-line import/order
-const { getValidator } = require('../../controller/helpers/validator');
+const { ZSchema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -132,7 +132,7 @@ module.exports = class Chain {
 				build: versionBuild,
 				config: self.options,
 				genesisBlock: { block: self.options.genesisBlock },
-				schema: getValidator(),
+				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
@@ -159,11 +159,11 @@ module.exports = class Chain {
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
 
-			if (scope.config.peers.enabled) {
+			if (scope.config.network.enabled) {
 				// Lookup for peers ips from dns
-				scope.config.peers.list = await lookupPeerIPs(
-					scope.config.peers.list,
-					scope.config.peers.enabled
+				scope.config.network.list = await lookupPeerIPs(
+					scope.config.network.list,
+					scope.config.network.enabled
 				);
 
 				// Listen to websockets
