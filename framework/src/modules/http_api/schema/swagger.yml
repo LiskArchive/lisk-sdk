@@ -2588,7 +2588,6 @@ definitions:
       - address
       - publicKey
       - balance
-      - unconfirmedBalance
     properties:
       address:
         type: string
@@ -2608,12 +2607,6 @@ definitions:
         type: string
         example: 1081560729258
         description: The current balance of the account in Beddows.
-      unconfirmedBalance:
-        type: string
-        example: 1081560729258
-        description: |
-          The current unconfirmed balance of the account in Beddows.
-          Includes unconfirmed transactions.
       secondPublicKey:
         type: string
         format: publicKey
@@ -2628,7 +2621,6 @@ definitions:
       - address
       - publicKey
       - balance
-      - unconfirmedBalance
       - min
       - lifetime
       - members
@@ -2651,12 +2643,6 @@ definitions:
         type: string
         example: 1081560729258
         description: The current balance of the account in Beddows.
-      unconfirmedBalance:
-        type: string
-        example: 1081560729258
-        description: |
-          The current unconfirmed balance of the account in Beddows.
-          Includes unconfirmed transactions.
       secondPublicKey:
         type: string
         format: publicKey
