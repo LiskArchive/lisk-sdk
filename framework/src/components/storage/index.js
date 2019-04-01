@@ -20,6 +20,17 @@ const entities = require('./entities');
 const utils = require('./utils');
 const errors = require('./errors');
 
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	const newrelic = require('newrelic');
+	const path = require('path');
+	const newrelicLisk = require('lisk-newrelic')(newrelic, {
+		exitOnFailure: true,
+		rootPath: path.dirname(__filename),
+	});
+
+	newrelicLisk.instrumentDatabase();
+}
+
 function createStorageComponent(options, logger) {
 	const storage = new Storage(options, logger);
 

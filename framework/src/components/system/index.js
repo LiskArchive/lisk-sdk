@@ -14,6 +14,19 @@
 
 'use strict';
 
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	const newrelic = require('newrelic');
+	const path = require('path');
+	const newrelicLisk = require('lisk-newrelic')(newrelic, {
+		exitOnFailure: true,
+		rootPath: path.dirname(__filename),
+	});
+
+	newrelicLisk.instrumentCallbackMethods('./system', 'components.system', [
+		'update',
+	]);
+}
+
 const System = require('./system');
 
 function createSystemComponent(config, logger, storage) {
