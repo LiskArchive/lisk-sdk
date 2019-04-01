@@ -317,7 +317,7 @@ class Application {
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 
-		this.logger.trace('Complied configurations', this.config);
+		this.logger.trace('Compiled configurations', this.config);
 	}
 }
 
