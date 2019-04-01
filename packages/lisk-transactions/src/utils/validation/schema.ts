@@ -88,6 +88,15 @@ export const baseTransaction = {
 			type: 'string',
 			format: 'id',
 		},
+		height: {
+			type: 'integer',
+			minimum: 0,
+		},
+		confirmations: {
+			type: 'integer',
+			minimum: 0,
+		},
+
 		amount: {
 			type: 'string',
 			format: 'amount',
