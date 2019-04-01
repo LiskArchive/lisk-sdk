@@ -14,14 +14,20 @@
 
 'use strict';
 
-const { config: DefaultConfig } = require('./defaults');
 const Logger = require('./logger');
+const { config: defaultConfig } = require('./defaults');
+const validator = require('../../controller/helpers/validator');
 
-function createLoggerComponent(config = {}) {
-	return new Logger(config).bootstrap();
+function createLoggerComponent(options = {}) {
+	const optionsWithDefaults = validator.validateWithDefaults(
+		defaultConfig,
+		options
+	);
+
+	return new Logger(optionsWithDefaults).bootstrap();
 }
 
 module.exports = {
-	defaults: DefaultConfig,
+	defaults: defaultConfig,
 	createLoggerComponent,
 };

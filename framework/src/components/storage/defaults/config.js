@@ -1,4 +1,4 @@
-const DefaultConfig = {
+const defaultConfig = {
 	type: 'object',
 	properties: {
 		host: {
@@ -62,4 +62,4 @@ const DefaultConfig = {
 	],
 };
 
-module.exports = DefaultConfig;
+module.exports = defaultConfig;

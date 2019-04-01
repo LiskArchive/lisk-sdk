@@ -16,22 +16,24 @@
 
 const constants = require('./constants');
 const Cache = require('./cache');
-const { config: DefaultConfig } = require('./defaults');
+const { config: defaultConfig } = require('./defaults');
 const validator = require('../../controller/helpers/validator');
 
 function createCacheComponent(options, logger) {
-	options = validator.validateWithDefaults(DefaultConfig, options);
+	const optionsWithDefaults = validator.validateWithDefaults(
+		defaultConfig,
+		options
+	);
 
 	// delete password key if it's value is null
-	const cacheConfigParam = { ...options };
-	if (cacheConfigParam.password === null) {
-		delete cacheConfigParam.password;
+	if (optionsWithDefaults.password === null) {
+		delete optionsWithDefaults.password;
 	}
-	return new Cache(cacheConfigParam, logger);
+	return new Cache(optionsWithDefaults, logger);
 }
 
 module.exports = {
-	defaults: DefaultConfig,
+	defaults: defaultConfig,
 	...constants,
 	createCacheComponent,
 };

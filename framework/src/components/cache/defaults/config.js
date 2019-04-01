@@ -1,4 +1,4 @@
-const DefaultConfig = {
+const defaultConfig = {
 	type: 'object',
 	properties: {
 		enabled: {
@@ -30,4 +30,4 @@ const DefaultConfig = {
 	required: ['enabled', 'host', 'port', 'db', 'password'],
 };
 
-module.exports = DefaultConfig;
+module.exports = defaultConfig;

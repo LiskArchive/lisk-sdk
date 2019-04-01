@@ -1,4 +1,4 @@
-const DefaultConfig = {
+const defaultConfig = {
 	type: 'object',
 	properties: {
 		fileLogLevel: {
@@ -19,4 +19,4 @@ const DefaultConfig = {
 	required: ['fileLogLevel', 'logFileName', 'consoleLogLevel'],
 };
 
-module.exports = DefaultConfig;
+module.exports = defaultConfig;

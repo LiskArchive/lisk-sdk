@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { config: DefaultConfig } = require('./defaults');
+const { config: defaultConfig } = require('./defaults');
 const validator = require('../../controller/helpers/validator');
 const Storage = require('./storage');
 const adapters = require('./adapters');
@@ -23,7 +23,7 @@ const utils = require('./utils');
 const errors = require('./errors');
 
 function createStorageComponent(options, logger) {
-	options = validator.validateWithDefaults(DefaultConfig, options);
+	options = validator.validateWithDefaults(defaultConfig, options);
 
 	const storage = new Storage(options, logger);
 
@@ -35,7 +35,7 @@ function createStorageComponent(options, logger) {
 }
 
 module.exports = {
-	defaults: DefaultConfig,
+	defaults: defaultConfig,
 	createStorageComponent,
 	adapters,
 	entities,

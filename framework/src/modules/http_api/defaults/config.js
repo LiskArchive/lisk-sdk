@@ -1,4 +1,4 @@
-const DefaultConfig = {
+const defaultConfig = {
 	type: 'object',
 	properties: {
 		httpPort: {
@@ -244,4 +244,4 @@ const DefaultConfig = {
 	},
 };
 
-module.exports = DefaultConfig;
+module.exports = defaultConfig;
