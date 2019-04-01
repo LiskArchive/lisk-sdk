@@ -13,56 +13,38 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { NETWORK } from '../../../utils/constants';
-import { flags as commonFlags } from '../../../utils/flags';
 import { stopDatabase } from '../../../utils/node/database';
 import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
 
-export interface Flags {
+interface Args {
 	readonly name: string;
-	readonly network: NETWORK;
-	readonly 'no-snapshot': boolean;
 }
 
 export default class DatabaseCommand extends BaseCommand {
-	static description = 'Stop Lisk Core Database';
-
-	static examples = [
-		'node:stop:database --name=mainnet_1.6',
-		'node:stop:database --network=testnet --name=testnet_1.6',
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
 	];
 
-	static flags = {
-		...BaseCommand.flags,
-		network: flagParser.string({
-			...commonFlags.network,
-			default: NETWORK.MAINNET,
-			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
-		}),
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
-		}),
-		'no-snapshot': flagParser.boolean({
-			...commonFlags.noSnapshot,
-			default: false,
-			allowNo: false,
-		}),
-	};
+	static description = 'Stop Lisk Database';
+
+	static examples = ['node:stop:database mainnet_1.6'];
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(DatabaseCommand);
-		const { name } = flags as Flags;
+		const { args } = this.parse(DatabaseCommand);
+		const { name } = args as Args;
 		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir } = pm2_env as Pm2Env;
+		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{
-				title: 'Stop Lisk Core Database',
-				task: async () => stopDatabase(installDir),
+				title: 'Stop Lisk Database',
+				task: async () => stopDatabase(installDir, network),
 			},
 		]);
 

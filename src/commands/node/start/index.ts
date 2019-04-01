@@ -13,62 +13,42 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { NETWORK } from '../../../utils/constants';
-import { flags as commonFlags } from '../../../utils/flags';
 import { restartApplication } from '../../../utils/node/pm2';
-import CacheCommand, { Flags } from './cache';
+import CacheCommand from './cache';
 import DatabaseCommand from './database';
 
-export default class StartCommand extends BaseCommand {
-	static description = 'Start Lisk Core';
+interface Args {
+	readonly name: string;
+}
 
-	static examples = [
-		'node:start --name=mainnet_1.6',
-		'node:start --network=testnet --name=testnet_1.6',
+export default class StartCommand extends BaseCommand {
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
 	];
 
-	static flags = {
-		...BaseCommand.flags,
-		network: flagParser.string({
-			...commonFlags.network,
-			default: NETWORK.MAINNET,
-			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
-		}),
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
-		}),
-	};
+	static description = 'Start Lisk';
+
+	static examples = ['node:start mainnet_1.6'];
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(StartCommand);
-		const { network, name } = flags as Flags;
+		const { args } = this.parse(StartCommand);
+		const { name } = args as Args;
+
+		await CacheCommand.run([name]);
+		await DatabaseCommand.run([name]);
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Core',
-				task: () =>
-					new Listr([
-						{
-							title: 'Cache',
-							task: async () =>
-								CacheCommand.run(['--network', network, '--name', name]),
-						},
-						{
-							title: 'Database',
-							task: async () =>
-								DatabaseCommand.run(['--network', network, '--name', name]),
-						},
-						{
-							title: 'Lisk Core',
-							task: async () => {
-								await restartApplication(name);
-							},
-						},
-					]),
+				title: 'Start Lisk Instance',
+				task: async () => {
+					await restartApplication(name);
+				},
 			},
 		]);
 		await tasks.run();

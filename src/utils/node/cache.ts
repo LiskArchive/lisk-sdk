@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { NETWORK, REDIS_PORTS } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { CacheConfig, getCacheConfig } from './config';
 
@@ -27,12 +28,12 @@ const REDIS_CLI = 'bin/redis-cli';
 
 export const isCacheRunning = async (
 	installDir: string,
-	network: string,
+	network: NETWORK,
 ): Promise<boolean> => {
 	try {
-		const { port }: CacheConfig = getCacheConfig(installDir, network);
+		const redisPort: number = REDIS_PORTS[network];
 		const { stdout }: ExecResult = await exec(
-			`cd ${installDir}; ${REDIS_CLI} -p ${port} ping`,
+			`cd ${installDir}; ${REDIS_CLI} -p ${redisPort} ping`,
 		);
 
 		return stdout.search('PONG') >= 0;
@@ -41,9 +42,13 @@ export const isCacheRunning = async (
 	}
 };
 
-export const startCache = async (installDir: string): Promise<string> => {
+export const startCache = async (
+	installDir: string,
+	network: NETWORK,
+): Promise<string> => {
+	const redisPort: number = REDIS_PORTS[network];
 	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; ${REDIS_BIN} ${REDIS_CONFIG}`,
+		`cd ${installDir}; ${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`,
 	);
 
 	if (stdout.trim() === '') {
@@ -53,19 +58,20 @@ export const startCache = async (installDir: string): Promise<string> => {
 	throw new Error(`${CACHE_START_FAILURE}: \n\n ${stderr}`);
 };
 
-const stopCommand = (installDir: string, network: string): string => {
-	const { port, password }: CacheConfig = getCacheConfig(installDir, network);
+const stopCommand = (installDir: string, network: NETWORK): string => {
+	const { password }: CacheConfig = getCacheConfig(installDir, network);
+	const redisPort: number = REDIS_PORTS[network];
 
 	if (password) {
-		return `${REDIS_CLI} -p ${port} -a ${password} shutdown`;
+		return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
 	}
 
-	return `${REDIS_CLI} -p ${port} shutdown`;
+	return `${REDIS_CLI} -p ${redisPort} shutdown`;
 };
 
 export const stopCache = async (
 	installDir: string,
-	network: string,
+	network: NETWORK,
 ): Promise<string> => {
 	const { stdout, stderr }: ExecResult = await exec(
 		`cd ${installDir}; ${stopCommand(installDir, network)}`,

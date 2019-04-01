@@ -10,6 +10,7 @@ import {
 	start,
 	stop,
 } from 'pm2';
+import { NETWORK, POSTGRES_PORTS, REDIS_PORTS } from '../constants';
 
 export type ProcessStatus =
 	| 'online'
@@ -20,11 +21,14 @@ export type ProcessStatus =
 	| 'one-launch-status';
 
 export interface Pm2Env {
-	readonly LISK_NETWORK: string;
+	readonly LISK_DB_PORT: string;
+	readonly LISK_NETWORK: NETWORK;
+	readonly LISK_REDIS_PORT: string;
 	readonly pm_cwd: string;
 	readonly pm_uptime: number;
 	readonly status: ProcessStatus;
 	readonly unstable_restarts: number;
+	readonly version: string;
 }
 
 const connectPM2 = async (): Promise<void> =>
@@ -41,10 +45,13 @@ const connectPM2 = async (): Promise<void> =>
 
 const startPM2 = async (
 	installPath: string,
-	network: string,
+	network: NETWORK,
 	name: string,
-): Promise<void> =>
-	new Promise<void>((resolve, reject) => {
+): Promise<void> => {
+	const dbPort = POSTGRES_PORTS[network].toString();
+	const redisPort = REDIS_PORTS[network].toString();
+
+	return new Promise<void>((resolve, reject) => {
 		start(
 			{
 				name,
@@ -52,6 +59,8 @@ const startPM2 = async (
 				cwd: installPath,
 				env: {
 					LISK_NETWORK: network,
+					LISK_DB_PORT: dbPort,
+					LISK_REDIS_PORT: redisPort,
 				},
 				pid: path.join(installPath, '/pids/lisk.app.pid'),
 				output: path.join(installPath, '/logs/lisk.app.log'),
@@ -75,6 +84,7 @@ const startPM2 = async (
 			},
 		);
 	});
+};
 
 const restartPM2 = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
@@ -148,7 +158,7 @@ const deleteProcess = async (process: string | number): Promise<void> =>
 
 export const registerApplication = async (
 	installPath: string,
-	network: string,
+	network: NETWORK,
 	name: string,
 ): Promise<void> => {
 	await connectPM2();

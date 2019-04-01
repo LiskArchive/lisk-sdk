@@ -17,7 +17,7 @@ import BaseCommand from '../../base';
 import { listApplication, Pm2Env } from '../../utils/node/pm2';
 
 export default class ListCommand extends BaseCommand {
-	static description = 'List status of installed Lisk Core instances';
+	static description = 'List status of installed Lisk instances';
 
 	static examples = ['node:list'];
 
@@ -29,14 +29,17 @@ export default class ListCommand extends BaseCommand {
 		const apps = await listApplication();
 		this.print(
 			apps.map(app => {
-				const { name, pm2_env } = app;
-				const { status, pm_uptime, unstable_restarts } = pm2_env as Pm2Env;
+				const { name, pm2_env, monit } = app;
+				const { status, LISK_NETWORK: network, version, LISK_DB_PORT: dbPort, LISK_REDIS_PORT: redisPort } = pm2_env as Pm2Env;
 
 				return {
 					name,
+					network,
+					version,
 					status,
-					uptime: new Date(pm_uptime).toISOString(),
-					restart_count: unstable_restarts,
+					dbPort,
+					redisPort,
+					...monit
 				};
 			}),
 		);

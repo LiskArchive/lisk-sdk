@@ -13,65 +13,59 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import BaseCommand from '../../base';
-import { NETWORK } from '../../utils/constants';
-import { flags as commonFlags } from '../../utils/flags';
+import { isCacheRunning, stopCache } from '../../utils/node/cache';
+import { stopDatabase } from '../../utils/node/database';
 import {
 	describeApplication,
 	Pm2Env,
 	unRegisterApplication,
 } from '../../utils/node/pm2';
-import StopCommand from './stop';
 
-interface Flags {
+interface Args {
 	readonly name: string;
-	readonly network: NETWORK;
 }
 
 export default class UnInstallCommand extends BaseCommand {
-	static description = 'UnInstall Lisk Core';
-
-	static examples = [
-		'node:uninstall --name=mainnet_1.6',
-		'node:uninstall --network=testnet --name=testnet_1.6',
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
 	];
 
-	static flags = {
-		...BaseCommand.flags,
-		network: flagParser.string({
-			...commonFlags.network,
-			default: NETWORK.MAINNET,
-			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
-		}),
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
-		}),
-	};
+	static description = 'UnInstall Lisk';
+
+	static examples = ['node:uninstall mainnet_1.6'];
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(UnInstallCommand);
-		const { network, name } = flags as Flags;
+		const { args } = this.parse(UnInstallCommand);
+		const { name } = args as Args;
 		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir } = pm2_env as Pm2Env;
+		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{
-				title: `UnInstall Lisk Core ${network} Installed as ${name}`,
+				title: `UnInstall Lisk ${network} Installed as ${name}`,
 				task: () =>
 					new Listr([
 						{
-							title: 'Stop Services',
-							task: async () =>
-								StopCommand.run(['--network', network, '--name', name]),
+							title: `Stop and UnRegister Lisk from PM2`,
+							task: async () => {
+								const isRunning = await isCacheRunning(installDir, network);
+								if (isRunning) {
+									await stopCache(installDir, network);
+								}
+								await stopDatabase(installDir, network);
+								await unRegisterApplication(name);
+							},
 						},
 						{
-							title: 'Remove Process and Directory',
-							task: async () => {
-								await unRegisterApplication(name);
+							title: `Remove Lisk ${network}`,
+							task: () => {
 								fsExtra.removeSync(installDir);
 							},
 						},

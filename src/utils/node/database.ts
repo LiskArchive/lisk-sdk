@@ -14,6 +14,7 @@
  *
  */
 import * as fs from 'fs';
+import { NETWORK, POSTGRES_PORTS } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { DbConfig, getDbConfig } from './config';
 
@@ -31,13 +32,17 @@ const DB_DATA = 'pgsql/data';
 const DB_LOG_FILE = 'logs/pgsql.log';
 const SH_LOG_FILE = 'logs/lisk.log';
 
-export const isDbInitialized = (installDir: string): boolean =>
+const isDbInitialized = (installDir: string): boolean =>
 	fs.existsSync(`${installDir}/${DB_DATA}`);
 
-export const isDbRunning = async (installDir: string): Promise<boolean> => {
+const isDbRunning = async (
+	installDir: string,
+	network: NETWORK,
+): Promise<boolean> => {
 	try {
+		const dbPort = POSTGRES_PORTS[network];
 		const { stdout }: ExecResult = await exec(
-			`cd ${installDir}; pg_ctl -D ${DB_DATA} status`,
+			`cd ${installDir}; pg_ctl -D ${DB_DATA} -o '-F -p ${dbPort}' status`,
 		);
 
 		return stdout.search('server is running') >= 0;
@@ -62,14 +67,18 @@ export const initDB = async (installDir: string): Promise<string> => {
 	throw new Error(`${DATABASE_START_FAILURE}: \n\n ${stderr}`);
 };
 
-export const startDatabase = async (installDir: string): Promise<string> => {
-	const isRunning = await isDbRunning(installDir);
+export const startDatabase = async (
+	installDir: string,
+	network: NETWORK,
+): Promise<string> => {
+	const isRunning = await isDbRunning(installDir, network);
 	if (isRunning) {
 		return DATABASE_START_SUCCESS;
 	}
 
+	const dbPort: number = POSTGRES_PORTS[network];
 	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} start >> ${SH_LOG_FILE}`,
+		`cd ${installDir}; pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} -o "-F -p ${dbPort}" start >> ${SH_LOG_FILE}`,
 	);
 
 	if (stdout.trim() === '' && !stderr) {
@@ -81,15 +90,16 @@ export const startDatabase = async (installDir: string): Promise<string> => {
 
 export const createUser = async (
 	installDir: string,
-	network: string,
+	network: NETWORK,
 ): Promise<string> => {
 	const { user, password }: DbConfig = getDbConfig(installDir, network);
+	const dbPort: number = POSTGRES_PORTS[network];
 
 	const { stdout, stderr }: ExecResult = await exec(
 		`cd ${installDir};
-    dropuser --if-exists ${user} >> ${SH_LOG_FILE};
-    createuser --createdb ${user} >> ${SH_LOG_FILE};
-    psql -qd postgres -c "ALTER USER ${user} WITH PASSWORD '${password}';" >> ${SH_LOG_FILE};
+    dropuser --if-exists ${user} -p ${dbPort} >> ${SH_LOG_FILE};
+    createuser --createdb ${user} -p ${dbPort} >> ${SH_LOG_FILE};
+    psql -qd postgres -p ${dbPort} -c "ALTER USER ${user} WITH PASSWORD '${password}';" >> ${SH_LOG_FILE};
     `,
 	);
 
@@ -102,13 +112,15 @@ export const createUser = async (
 
 export const createDatabase = async (
 	installDir: string,
-	network: string,
+	network: NETWORK,
 ): Promise<string> => {
 	const { database }: DbConfig = getDbConfig(installDir, network);
+	const dbPort: number = POSTGRES_PORTS[network];
+
 	const { stdout, stderr }: ExecResult = await exec(
 		`cd ${installDir};
-    dropdb --if-exists ${database} >> ${SH_LOG_FILE};
-    createdb ${database} >> ${SH_LOG_FILE};
+    dropdb --if-exists ${database} -p ${dbPort} >> ${SH_LOG_FILE};
+    createdb ${database} -p ${dbPort} >> ${SH_LOG_FILE};
     `,
 	);
 
@@ -119,8 +131,11 @@ export const createDatabase = async (
 	throw new Error(`${DATABASE_CREATE_FAILURE}: \n\n ${stderr}`);
 };
 
-export const stopDatabase = async (installDir: string): Promise<string> => {
-	const isRunning = await isDbRunning(installDir);
+export const stopDatabase = async (
+	installDir: string,
+	network: NETWORK,
+): Promise<string> => {
+	const isRunning = await isDbRunning(installDir, network);
 	if (!isRunning) {
 		return DATABASE_STATUS;
 	}

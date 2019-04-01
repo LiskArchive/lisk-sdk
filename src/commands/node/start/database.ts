@@ -13,56 +13,38 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { NETWORK } from '../../../utils/constants';
-import { flags as commonFlags } from '../../../utils/flags';
 import { startDatabase } from '../../../utils/node/database';
 import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
 
-export interface Flags {
+interface Args {
 	readonly name: string;
-	readonly network: NETWORK;
-	readonly 'no-snapshot': boolean;
 }
 
 export default class DatabaseCommand extends BaseCommand {
-	static description = 'Start Lisk Core Database';
-
-	static examples = [
-		'node:start:database --name=mainnet_1.6',
-		'node:start:database --network=testnet --name=testnet_1.6',
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
 	];
 
-	static flags = {
-		...BaseCommand.flags,
-		network: flagParser.string({
-			...commonFlags.network,
-			default: NETWORK.MAINNET,
-			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
-		}),
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
-		}),
-		'no-snapshot': flagParser.boolean({
-			...commonFlags.noSnapshot,
-			default: false,
-			allowNo: false,
-		}),
-	};
+	static description = 'Start Lisk Database';
+
+	static examples = ['node:start:database mainnet_1.6'];
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(DatabaseCommand);
-		const { name } = flags as Flags;
+		const { args } = this.parse(DatabaseCommand);
+		const { name } = args as Args;
 		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir } = pm2_env as Pm2Env;
+		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Core Database',
-				task: async () => startDatabase(installDir),
+				title: 'Start Lisk Database',
+				task: async () => startDatabase(installDir, network),
 			},
 		]);
 

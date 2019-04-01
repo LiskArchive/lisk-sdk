@@ -35,6 +35,7 @@ import {
 	liskTar,
 	validateNetwork,
 	validateNotARootUser,
+	validateVersion,
 	validURL,
 } from '../../utils/node/commons';
 import { defaultInstallationPath } from '../../utils/node/config';
@@ -50,11 +51,15 @@ import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
 	readonly installationPath: string;
-	readonly name: string;
+	readonly 'lisk-version': string;
 	readonly network: NETWORK;
 	readonly 'no-snapshot': boolean;
 	readonly releaseUrl: string;
 	readonly snapshotUrl: string;
+}
+
+interface Args {
+	readonly name: string;
 }
 
 interface Options {
@@ -66,7 +71,7 @@ interface Options {
 
 const validatePrerequisite = (installPath: string): void => {
 	if (!isSupportedOS()) {
-		throw new Error(`Lisk Core installation is not supported on ${os.type()}`);
+		throw new Error(`Lisk installation is not supported on ${os.type()}`);
 	}
 	if (fsExtra.pathExistsSync(installPath)) {
 		throw new Error(`Installation already exists in path ${installPath}`);
@@ -79,12 +84,10 @@ const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
 	validURL(snapshotUrl);
 };
 
-const installOptions = async ({
-	installationPath,
-	name,
-	network,
-	releaseUrl,
-}: Flags): Promise<Options> => {
+const installOptions = async (
+	{ installationPath, network, releaseUrl }: Flags,
+	name: string,
+): Promise<Options> => {
 	const installPath = liskInstall(installationPath);
 	const installDir = `${installPath}/${name}/`;
 	const latestURL = liskLatestUrl(releaseUrl, network);
@@ -103,12 +106,21 @@ const installOptions = async ({
 };
 
 export default class InstallCommand extends BaseCommand {
-	static description = 'Install Lisk Core';
+	static args = [
+		{
+			name: 'name',
+			description: 'Lisk installation directory name.',
+			required: true,
+		},
+	];
+
+	static description = 'Install Lisk';
 
 	static examples = [
-		'node:install --name=mainnet-1.6',
-		'node:install --network=testnet --name=testnet-1.6',
-		'node:install --network=betanet --name=betanet-2.0 --no-snapshot',
+		'node:install mainnet-latest',
+		'node:install --lisk-version=1.5 mainnet-1.5',
+		'node:install --network=testnet --lisk-version=1.5 testnet-1.5',
+		'node:install --network=betanet --no-snapshot betanet-2.0',
 	];
 
 	static flags = {
@@ -118,13 +130,12 @@ export default class InstallCommand extends BaseCommand {
 			default: NETWORK.MAINNET,
 			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
 		}),
+		'lisk-version': flagParser.string({
+			...commonFlags.liskVersion,
+		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
 			default: defaultInstallationPath,
-		}),
-		name: flagParser.string({
-			...commonFlags.name,
-			default: NETWORK.MAINNET,
 		}),
 		releaseUrl: flagParser.string({
 			...commonFlags.releaseUrl,
@@ -142,37 +153,46 @@ export default class InstallCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(InstallCommand);
+		const { args, flags } = this.parse(InstallCommand);
 		const {
-			name,
 			network,
 			snapshotUrl,
 			'no-snapshot': noSnapshot,
+			'lisk-version': liskVersion,
 		} = flags as Flags;
+		const { name }: Args = args;
+
 		const cacheDir = this.config.cacheDir;
 
 		const tasks = new Listr([
 			{
-				title: `Install Lisk Core ${network} as ${name}`,
+				title: `Install Lisk ${network} as ${name}`,
 				task: () =>
 					new Listr([
 						{
 							title: 'Prepare Install Options',
 							task: async ctx => {
-								const options: Options = await installOptions(flags as Flags);
+								const options: Options = await installOptions(
+									flags as Flags,
+									name,
+								);
 								ctx.options = options;
 							},
 						},
 						{
 							title: 'Validate root user, flags, prerequisites',
-							task: ctx => {
+							task: async ctx => {
 								validateNotARootUser();
 								validateFlags(flags as Flags);
 								validatePrerequisite(ctx.options.installDir);
+								if (liskVersion) {
+									await validateVersion(network, liskVersion);
+									ctx.options.version = liskVersion;
+								}
 							},
 						},
 						{
-							title: 'Download Lisk Core Release',
+							title: 'Download Lisk Release',
 							task: async ctx => {
 								const { version }: Options = ctx.options;
 								const releaseUrl = `${RELEASE_URL}/${network}/${version}`;
@@ -193,7 +213,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Extract Lisk Core',
+							title: 'Extract Lisk',
 							task: async ctx => {
 								const { installDir, version }: Options = ctx.options;
 								createDirectory(installDir);
@@ -206,14 +226,14 @@ export default class InstallCommand extends BaseCommand {
 								const { installDir }: Options = ctx.options;
 
 								await initDB(installDir);
-								await startDatabase(installDir);
+								await startDatabase(installDir, network);
 								await createUser(installDir, network);
 								await createDatabase(installDir, network);
-								await stopDatabase(installDir);
+								await stopDatabase(installDir, network);
 							},
 						},
 						{
-							title: 'Register Lisk Core',
+							title: 'Register Lisk',
 							task: async ctx => {
 								const { installDir }: Options = ctx.options;
 								await registerApplication(installDir, network, name);
