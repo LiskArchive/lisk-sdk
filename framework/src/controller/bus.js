@@ -179,10 +179,6 @@ class Bus extends EventEmitter2 {
 	 * @throws {Error} If event name does not exist to bus.
 	 */
 	publish(eventName, eventValue) {
-		if (!this.getEvents().includes(eventName)) {
-			throw new Error(`Event ${eventName} is not registered to bus.`);
-		}
-
 		// Communicate through event emitter
 		this.emit(eventName, eventValue);
 
