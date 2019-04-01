@@ -1,14 +1,4 @@
 const _ = require('lodash');
-const {
-	TransferTransaction,
-	SecondSignatureTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	MultisignatureTransaction,
-	DappTransaction,
-	InTransferTransaction,
-	OutTransferTransaction,
-} = require('@liskhq/lisk-transactions');
 
 const transferAsset = raw => {
 	if (raw.tf_data) {
@@ -112,18 +102,10 @@ const outTransferAsset = raw => {
 };
 
 class Transaction {
-	constructor() {
-		this.transactionClassMap = new Map([
-			[0, TransferTransaction],
-			[1, SecondSignatureTransaction],
-			[2, DelegateTransaction],
-			[3, VoteTransaction],
-			[4, MultisignatureTransaction],
-			[5, DappTransaction],
-			[6, InTransferTransaction],
-			[7, OutTransferTransaction],
-		]);
+	constructor(transactions) {
+		this.transactionClassMap = new Map();
 
+		// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
 		this.assetDbReadMap = new Map([
 			[0, transferAsset],
 			[1, signatureAsset],
@@ -134,6 +116,10 @@ class Transaction {
 			[6, inTransferAsset],
 			[7, outTransferAsset],
 		]);
+
+		Object.values(transactions).forEach((transaction, index) => {
+			this.transactionClassMap.set(index, transaction);
+		});
 	}
 
 	dbRead(raw) {

@@ -1,4 +1,11 @@
 const assert = require('assert');
+const {
+	TransferTransaction,
+	SecondSignatureTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
+} = require('@liskhq/lisk-transactions');
 const Controller = require('./controller');
 const defaults = require('./defaults');
 const version = require('../version');
@@ -123,6 +130,12 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
+		this.registerTransaction(TransferTransaction, 'transfer');
+		this.registerTransaction(SecondSignatureTransaction, 'secondSignature');
+		this.registerTransaction(DelegateTransaction, 'delegate');
+		this.registerTransaction(VoteTransaction, 'vote');
+		this.registerTransaction(MultisignatureTransaction, 'multisignature');
+
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
@@ -131,6 +144,7 @@ class Application {
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
+			registeredTransactions: this.getTransactions(),
 			loadAsChildProcess: childProcessModules.includes(ChainModule.alias),
 		});
 
