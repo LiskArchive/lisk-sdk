@@ -329,6 +329,7 @@ describe('Vote transaction class', () => {
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 			expect(errors[0].message).to.contain('is already voted.');
+			expect(errors[0].dataPath).equal('.asset.votes');
 		});
 
 		it('should return error when vote exceeds maximum votes', async () => {
@@ -345,6 +346,7 @@ describe('Vote transaction class', () => {
 			expect(errors[0].message).to.contains(
 				'Vote cannot exceed 101 but has 102.',
 			);
+			expect(errors[0].dataPath).equal('.asset.votes');
 		});
 	});
 

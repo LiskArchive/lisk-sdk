@@ -219,7 +219,11 @@ export class VoteTransaction extends BaseTransaction {
 					(voteAccount.username === undefined || voteAccount.username === ''))
 			) {
 				errors.push(
-					new TransactionError(`${vote} is not a delegate.`, this.id),
+					new TransactionError(
+						`${vote} is not a delegate.`,
+						this.id,
+						'.asset.votes',
+					),
 				);
 			}
 		});
@@ -230,12 +234,20 @@ export class VoteTransaction extends BaseTransaction {
 			// Check duplicate votes
 			if (action === PREFIX_UPVOTE && senderVotes.includes(publicKey)) {
 				errors.push(
-					new TransactionError(`${publicKey} is already voted.`, this.id),
+					new TransactionError(
+						`${publicKey} is already voted.`,
+						this.id,
+						'.asset.votes',
+					),
 				);
 				// Check non-existing unvotes
 			} else if (action === PREFIX_UNVOTE && !senderVotes.includes(publicKey)) {
 				errors.push(
-					new TransactionError(`${publicKey} is not voted.`, this.id),
+					new TransactionError(
+						`${publicKey} is not voted.`,
+						this.id,
+						'.asset.votes',
+					),
 				);
 			}
 		});
@@ -257,6 +269,7 @@ export class VoteTransaction extends BaseTransaction {
 						votedDelegatesPublicKeys.length
 					}.`,
 					this.id,
+					'.asset.votes',
 					votedDelegatesPublicKeys.length.toString(),
 					MAX_VOTE_PER_ACCOUNT,
 				),
@@ -292,6 +305,7 @@ export class VoteTransaction extends BaseTransaction {
 						votedDelegatesPublicKeys.length
 					}.`,
 					this.id,
+					'.asset.votes',
 					votedDelegatesPublicKeys.length.toString(),
 					MAX_VOTE_PER_ACCOUNT,
 				),
