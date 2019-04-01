@@ -42,7 +42,7 @@ const listen = async (
 	if (config.ssl.enabled) {
 		// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 		httpsServer.headersTimeout = config.options.limits.headersTimeout;
-		httpsServer.setTimeout(config.options.limits.serverTimeout);
+		httpsServer.setTimeout(config.options.limits.serverSetTimeout);
 		httpsServer.on('timeout', socket => {
 			logger.info(
 				`Disconnecting idle socket: ${socket.remoteAddress}:${

@@ -13,8 +13,17 @@ Object {
     "properties": Object {
       "components": Object {
         "properties": Object {
+          "cache": Object {
+            "type": "object",
+          },
           "logger": Object {
-            "$ref": "#/app/logger",
+            "type": "object",
+          },
+          "storage": Object {
+            "type": "object",
+          },
+          "system": Object {
+            "type": "object",
           },
         },
         "type": "object",
@@ -26,6 +35,29 @@ Object {
           },
         },
         "type": "object",
+      },
+      "minVersion": Object {
+        "format": "version",
+        "type": "string",
+      },
+      "modules": Object {
+        "properties": Object {
+          "chain": Object {
+            "type": "object",
+          },
+          "http_api": Object {
+            "type": "object",
+          },
+        },
+        "type": "object",
+      },
+      "protocolVersion": Object {
+        "format": "protocolVersion",
+        "type": "string",
+      },
+      "version": Object {
+        "format": "version",
+        "type": "string",
       },
     },
     "type": "object",
@@ -113,47 +145,6 @@ Object {
       "generatorPublicKey",
       "transactions",
       "blockSignature",
-    ],
-    "type": "object",
-  },
-  "logger": Object {
-    "$id": "#/app/logger",
-    "properties": Object {
-      "consoleLogLevel": Object {
-        "enum": Array [
-          "trace",
-          "debug",
-          "log",
-          "info",
-          "warn",
-          "error",
-          "fatal",
-          "none",
-        ],
-        "type": "string",
-      },
-      "echo": Object {
-        "type": "string",
-      },
-      "fileLogLevel": Object {
-        "enum": Array [
-          "trace",
-          "debug",
-          "log",
-          "info",
-          "warn",
-          "error",
-          "fatal",
-          "none",
-        ],
-        "type": "string",
-      },
-      "filename": Object {
-        "type": "string",
-      },
-    },
-    "required": Array [
-      "filename",
     ],
     "type": "object",
   },
