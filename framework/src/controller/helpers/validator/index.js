@@ -120,6 +120,9 @@ const validatorInterface = {
 		return true;
 	},
 
+	validator,
+	validatorWithDefaults,
+
 	// TODO: Old interface for validation, must be removed.
 	ZSchema,
 };
