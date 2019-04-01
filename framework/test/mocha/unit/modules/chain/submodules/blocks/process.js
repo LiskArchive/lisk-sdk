@@ -255,7 +255,7 @@ describe('blocks/process', () => {
 			expect(blocksProcessModule).to.be.an('object');
 			expect(blocksProcessModule.getCommonBlock).to.be.a('function');
 			expect(blocksProcessModule.loadBlocksOffset).to.be.a('function');
-			expect(blocksProcessModule.loadBlocksFromPeer).to.be.a('function');
+			expect(blocksProcessModule.loadBlocksFromNetwork).to.be.a('function');
 			expect(blocksProcessModule.generateBlock).to.be.a('function');
 			expect(blocksProcessModule.onReceiveBlock).to.be.a('function');
 			return expect(blocksProcessModule.onBind).to.be.a('function');
@@ -838,316 +838,6 @@ describe('blocks/process', () => {
 		});
 	});
 
-	describe('getCommonBlock', () => {
-		describe('modules.blocks.utils.getIdSequence', () => {
-			describe('when fails', () => {
-				beforeEach(() =>
-					modules.blocks.utils.getIdSequence.callsArgWith(
-						1,
-						'getIdSequence-ERR',
-						undefined
-					)
-				);
-
-				it('should call a callback with error', done => {
-					blocksProcessModule.getCommonBlock(
-						{ ip: 1, wsPort: 2 },
-						10,
-						(err, block) => {
-							expect(err).to.equal('getIdSequence-ERR');
-							expect(block).to.be.undefined;
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when succeeds', () => {
-				describe('peer.rpc.blocksCommon', () => {
-					describe('when fails', () => {
-						beforeEach(() =>
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
-								ids: 'ERR',
-							})
-						);
-
-						it('should call a callback with error', done => {
-							blocksProcessModule.getCommonBlock(
-								{ ip: 1, wsPort: 2 },
-								10,
-								(err, block) => {
-									expect(err).to.equal('rpc.blocksCommon-ERR');
-									expect(block).to.be.undefined;
-									done();
-								}
-							);
-						});
-
-						it('should call peers.remove', done => {
-							blocksProcessModule.getCommonBlock(
-								{ ip: 1, wsPort: 2 },
-								10,
-								async () => {
-									expect(modules.peers.remove).to.have.been.calledOnce;
-									done();
-								}
-							);
-						});
-					});
-
-					describe('when comparison failed because of receiving genesis block', () => {
-						beforeEach(() => {
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
-								ids: 'rpc.blocksCommon-Genesis',
-							});
-							return modules.blocks.chain.recoverChain.callsArgWith(
-								0,
-								null,
-								true
-							);
-						});
-
-						describe('when consensus is low', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(true));
-
-							it('should perform chain recovery', done => {
-								blocksProcessModule.getCommonBlock(
-									{ ip: 1, wsPort: 2 },
-									10,
-									(err, block) => {
-										expect(library.logic.peers.applyHeaders.calledOnce).to.be
-											.false;
-										expect(err).to.be.null;
-										expect(block).to.be.true;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.true;
-										done();
-									}
-								);
-							});
-						});
-
-						describe('when consensus is high', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(false));
-
-							it('should call a callback with error ', done => {
-								blocksProcessModule.getCommonBlock(
-									{ ip: 1, wsPort: 2 },
-									10,
-									(err, block) => {
-										expect(library.logic.peers.applyHeaders.calledOnce).to.be
-											.false;
-										expect(err).to.equal(
-											'Comparison failed - received genesis as common block'
-										);
-										expect(block).to.be.undefined;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.false;
-										done();
-									}
-								);
-							});
-						});
-					});
-
-					describe('when comparison failed', () => {
-						beforeEach(() => {
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
-								ids: 'rpc.blocksCommon-Empty',
-							});
-							return modules.blocks.chain.recoverChain.callsArgWith(
-								0,
-								null,
-								true
-							);
-						});
-
-						describe('when consensus is low', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(true));
-
-							it('should perform chain recovery', done => {
-								blocksProcessModule.getCommonBlock(
-									{ ip: 1, wsPort: 2 },
-									10,
-									(err, block) => {
-										expect(library.logic.peers.applyHeaders.calledOnce).to.be
-											.false;
-										expect(err).to.be.null;
-										expect(block).to.be.true;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.true;
-										done();
-									}
-								);
-							});
-						});
-
-						describe('when consensus is high', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(false));
-
-							it('should call a callback with error ', done => {
-								blocksProcessModule.getCommonBlock(
-									{ ip: 1, wsPort: 2 },
-									10,
-									(err, block) => {
-										expect(library.logic.peers.applyHeaders.calledOnce).to.be
-											.false;
-										expect(err).to.equal(
-											'Chain comparison failed with peer: ip:wsPort using ids: rpc.blocksCommon-Empty'
-										);
-										expect(block).to.be.undefined;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.false;
-										done();
-									}
-								);
-							});
-						});
-					});
-
-					describe('when succeeds', () => {
-						beforeEach(() =>
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
-								ids: 'OK',
-							})
-						);
-
-						describe('library.schema.validate', () => {
-							describe('when fails', () => {
-								beforeEach(() =>
-									library.schema.validate.callsArgWith(
-										2,
-										[{ message: 'schema.validate-ERR' }],
-										undefined
-									)
-								);
-
-								it('should call a callback with error', done => {
-									blocksProcessModule.getCommonBlock(
-										{ ip: 1, wsPort: 2 },
-										10,
-										(err, block) => {
-											expect(err).to.equal('schema.validate-ERR');
-											expect(block).to.be.undefined;
-											done();
-										}
-									);
-								});
-							});
-
-							describe('when succeeds', () => {
-								beforeEach(() =>
-									library.schema.validate.callsArgWith(2, null, {
-										ip: 1,
-										wsPort: 2,
-									})
-								);
-
-								describe('library.storage.entities.Block.isPersisted', () => {
-									describe('when fails', () => {
-										beforeEach(() =>
-											library.storage.entities.Block.isPersisted.rejects(
-												new Error('blocks.getCommonBlock-REJECTS')
-											)
-										);
-
-										it('should call a callback with error', done => {
-											blocksProcessModule.getCommonBlock(
-												{ ip: 1, wsPort: 2 },
-												10,
-												(err, block) => {
-													expect(err).to.equal('Blocks#getCommonBlock error');
-													expect(block).to.be.undefined;
-													expect(loggerStub.error.args[0][0]).to.contains(
-														'Error: blocks.getCommonBlock-REJECTS'
-													);
-													done();
-												}
-											);
-										});
-									});
-
-									describe('when comparison failed', () => {
-										beforeEach(() => {
-											library.storage.entities.Block.isPersisted.resolves(
-												false
-											);
-											return modules.blocks.chain.recoverChain.callsArgWith(
-												0,
-												null,
-												true
-											);
-										});
-
-										describe('when consensus is low', () => {
-											beforeEach(() =>
-												modules.transport.poorConsensus.returns(true)
-											);
-
-											it('should perform chain recovery', done => {
-												blocksProcessModule.getCommonBlock(
-													{ ip: 1, wsPort: 2 },
-													10,
-													(err, block) => {
-														expect(err).to.be.null;
-														expect(block).to.be.true;
-														expect(modules.blocks.chain.recoverChain.calledOnce)
-															.to.be.true;
-														done();
-													}
-												);
-											});
-										});
-
-										describe('when consensus is high', () => {
-											beforeEach(() =>
-												modules.transport.poorConsensus.returns(false)
-											);
-
-											it('should call a callback with error ', done => {
-												blocksProcessModule.getCommonBlock(
-													{ ip: 1, wsPort: 2 },
-													10,
-													(err, block) => {
-														expect(err).to.equal(
-															`Chain comparison failed with peer: ip:wsPort using block: ${JSON.stringify(
-																dummyCommonBlock
-															)}`
-														);
-														expect(block).to.be.undefined;
-														done();
-													}
-												);
-											});
-										});
-									});
-
-									describe('when succeeds', () => {
-										beforeEach(() =>
-											library.storage.entities.Block.isPersisted.resolves(true)
-										);
-
-										it('should return common block', done => {
-											blocksProcessModule.getCommonBlock(
-												{ ip: 1, wsPort: 2 },
-												10,
-												(err, block) => {
-													expect(err).to.be.null;
-													expect(block).to.deep.equal(dummyCommonBlock);
-													done();
-												}
-											);
-										});
-									});
-								});
-							});
-						});
-					});
-				});
-			});
-		});
-	});
-
 	describe('loadBlocksOffset', () => {
 		afterEach(() =>
 			expect(loggerStub.debug.args[0][0]).to.equal('Loading blocks offset')
@@ -1387,7 +1077,7 @@ describe('blocks/process', () => {
 		});
 	});
 
-	describe('loadBlocksFromPeer', () => {
+	describe('loadBlocksFromNetwork', () => {
 		afterEach(() => {
 			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
 			return expect(loggerStub.info.args[0][0]).to.equal(
@@ -1407,8 +1097,7 @@ describe('blocks/process', () => {
 						);
 
 						it('should call a callback with error', done => {
-							blocksProcessModule.loadBlocksFromPeer(
-								{ id: 1, string: 'test' },
+							blocksProcessModule.loadBlocksFromNetwork(
 								(err, lastBlock) => {
 									expect(err).to.equal('Error loading blocks: rpc.blocks-ERR');
 									expect(lastBlock).to.deep.equal({ id: 'ERR', peer: 'me' });
@@ -1418,8 +1107,7 @@ describe('blocks/process', () => {
 						});
 
 						it('should call modules.peers.remove', done => {
-							blocksProcessModule.loadBlocksFromPeer(
-								{ id: 1, string: 'test' },
+							blocksProcessModule.loadBlocksFromNetwork(
 								async () => {
 									expect(modules.peers.remove).to.have.been.calledOnce;
 									done();
@@ -1437,8 +1125,7 @@ describe('blocks/process', () => {
 						);
 
 						it('should call a callback with error', done => {
-							blocksProcessModule.loadBlocksFromPeer(
-								{ id: 1, string: 'test' },
+							blocksProcessModule.loadBlocksFromNetwork(
 								(err, lastBlock) => {
 									expect(err).to.equal(
 										'Error loading blocks: rpc.blocks-cb-ERR'
@@ -1465,8 +1152,7 @@ describe('blocks/process', () => {
 								beforeEach(() => library.schema.validate.returns(false));
 
 								it('should call a callback with error', done => {
-									blocksProcessModule.loadBlocksFromPeer(
-										{ id: 1, string: 'test' },
+									blocksProcessModule.loadBlocksFromNetwork(
 										(err, lastBlock) => {
 											expect(err).to.equal(
 												'Error loading blocks: Received invalid blocks data'
@@ -1491,8 +1177,7 @@ describe('blocks/process', () => {
 										);
 
 										it('should break processing and call a callback with no error', done => {
-											blocksProcessModule.loadBlocksFromPeer(
-												{ id: 1, string: 'test' },
+											blocksProcessModule.loadBlocksFromNetwork(
 												(err, lastBlock) => {
 													expect(err).to.be.null;
 													expect(lastBlock).to.deep.equal({
@@ -1515,8 +1200,7 @@ describe('blocks/process', () => {
 												);
 
 												it('should break processing and call a callback with no error', done => {
-													blocksProcessModule.loadBlocksFromPeer(
-														{ id: 1, string: 'test' },
+													blocksProcessModule.loadBlocksFromNetwork(
 														(err, lastBlock) => {
 															expect(err).to.be.null;
 															expect(lastBlock).to.deep.equal({
@@ -1549,8 +1233,7 @@ describe('blocks/process', () => {
 														);
 
 														it('should return immediate', done => {
-															blocksProcessModule.loadBlocksFromPeer(
-																{ id: 1, string: 'test' },
+															blocksProcessModule.loadBlocksFromNetwork(
 																(err, lastBlock) => {
 																	expect(err).to.be.null;
 																	expect(lastBlock).to.deep.equal({
@@ -1580,8 +1263,7 @@ describe('blocks/process', () => {
 																	);
 
 																	it('should call a callback with error', done => {
-																		blocksProcessModule.loadBlocksFromPeer(
-																			{ id: 1, string: 'test' },
+																		blocksProcessModule.loadBlocksFromNetwork(
 																			(err, lastBlock) => {
 																				expect(err).to.equal(
 																					'Error loading blocks: verify.processBlock-ERR'
@@ -1617,8 +1299,7 @@ describe('blocks/process', () => {
 																	);
 
 																	it('should return last valid block and no error', done => {
-																		blocksProcessModule.loadBlocksFromPeer(
-																			{ id: 1, string: 'test' },
+																		blocksProcessModule.loadBlocksFromNetwork(
 																			(err, lastBlock) => {
 																				expect(err).to.be.null;
 																				expect(lastBlock).to.deep.equal(
