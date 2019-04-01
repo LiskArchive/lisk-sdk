@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -23,7 +22,7 @@ const __private = {
 };
 
 /**
- * Initial state of the entire application.
+ * Initial state of the entire application:
  * - os
  * - version
  * - wsPort
@@ -36,8 +35,8 @@ const __private = {
  * - nonce
  *
  * @class
- * @requires crypto
  * @requires os
+ * @requires lodash
  * @param {Object} initialState - Initial state of the application
  * @param {Object} logger
  */
