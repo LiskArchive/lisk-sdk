@@ -227,6 +227,7 @@ class Controller {
 			JSON.stringify({ config: this.config, moduleOptions: options }),
 		];
 
+		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions = {};
 		const maxPort = 20000;
 		const minPort = 10000;
