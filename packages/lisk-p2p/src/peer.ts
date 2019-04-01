@@ -104,28 +104,13 @@ export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 const convertNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
 ): ProtocolNodeInfo => {
-	const {
-		height,
-		nethash,
-		version,
-		os,
-		wsPort,
-		httpPort,
-		nonce,
-		broadhash,
-		...options
-	} = nodeInfo;
+	const { httpPort, nonce, broadhash } = nodeInfo;
 
 	return {
-		height,
-		nethash,
-		version,
-		os,
-		wsPort,
+		...nodeInfo,
 		broadhash: broadhash ? (broadhash as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0,
 		nonce: nonce ? (nonce as string) : '',
-		options,
+		httpPort: httpPort ? (httpPort as number) : 0
 	};
 };
 
@@ -468,7 +453,7 @@ export class Peer extends EventEmitter {
 		const legacyNodeInfo = this._nodeInfo
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
-
+		
 		const connectTimeout = this._peerConfig.connectTimeout
 			? this._peerConfig.connectTimeout
 			: DEFAULT_CONNECT_TIMEOUT;
@@ -476,15 +461,13 @@ export class Peer extends EventEmitter {
 			? this._peerConfig.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
 
+		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: querystring.stringify({
 				...legacyNodeInfo,
-				options:
-					legacyNodeInfo && legacyNodeInfo.options
-						? JSON.stringify(legacyNodeInfo.options)
-						: undefined,
+				options: JSON.stringify(legacyNodeInfo),
 			}),
 			connectTimeout,
 			ackTimeout,
@@ -625,15 +608,13 @@ export const connectAndRequest = async (
 			const requestPacket = {
 				procedure,
 			};
+			// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 			const clientOptions: ClientOptionsUpdated = {
 				hostname: basicPeerInfo.ipAddress,
 				port: basicPeerInfo.wsPort,
 				query: querystring.stringify({
 					...legacyNodeInfo,
-					options:
-						legacyNodeInfo && legacyNodeInfo.options
-							? JSON.stringify(legacyNodeInfo.options)
-							: undefined,
+					options: JSON.stringify(legacyNodeInfo),
 				}),
 				connectTimeout: peerConfig
 					? peerConfig.connectTimeout

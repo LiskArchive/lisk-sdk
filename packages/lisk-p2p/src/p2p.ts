@@ -268,12 +268,7 @@ export class P2P extends EventEmitter {
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = {
-			os: this._nodeInfo.os,
-			version: this._nodeInfo.version,
-			nethash: this._nodeInfo.nethash,
-			wsPort: this._nodeInfo.wsPort,
-			height: nodeInfo.height,
-			options: nodeInfo.options ? nodeInfo.options : {},
+			...nodeInfo,
 		};
 
 		this._peerPool.applyNodeInfo(this._nodeInfo);
@@ -306,21 +301,30 @@ export class P2P extends EventEmitter {
 		this._peerPool.sendToPeers(message);
 	}
 
+	private _disconnectSocketDueToFailedHandshake(
+		socket: SCServerSocket,
+		statusCode: number,
+		closeReason: string,
+	): void {
+		socket.disconnect(statusCode, closeReason);
+		this.emit(
+			EVENT_FAILED_TO_ADD_INBOUND_PEER,
+			new PeerInboundHandshakeError(
+				closeReason,
+				statusCode,
+				socket.remoteAddress,
+				socket.request.url,
+			),
+		);
+	}
+
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
 				if (!socket.request.url) {
-					this.emit(
-						EVENT_FAILED_TO_ADD_INBOUND_PEER,
-						new PeerInboundHandshakeError(
-							INVALID_CONNECTION_URL_REASON,
-							INVALID_CONNECTION_URL_CODE,
-							socket.remoteAddress,
-							socket.request.url,
-						),
-					);
-					socket.disconnect(
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
 						INVALID_CONNECTION_URL_CODE,
 						INVALID_CONNECTION_URL_REASON,
 					);
@@ -334,18 +338,10 @@ export class P2P extends EventEmitter {
 					typeof queryObject.version !== 'string' ||
 					typeof queryObject.nethash !== 'string'
 				) {
-					socket.disconnect(
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
 						INVALID_CONNECTION_QUERY_CODE,
 						INVALID_CONNECTION_QUERY_REASON,
-					);
-					this.emit(
-						EVENT_FAILED_TO_ADD_INBOUND_PEER,
-						new PeerInboundHandshakeError(
-							INVALID_CONNECTION_QUERY_REASON,
-							INVALID_CONNECTION_QUERY_CODE,
-							socket.remoteAddress,
-							socket.request.url,
-						),
 					);
 
 					return;
@@ -353,14 +349,28 @@ export class P2P extends EventEmitter {
 
 				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 				const peerId = constructPeerId(socket.remoteAddress, wsPort);
-				const queryOptions =
-					typeof queryObject.options === 'string'
-						? JSON.parse(queryObject.options)
-						: undefined;
+
+				// tslint:disable-next-line no-let
+				let queryOptions;
+
+				try {
+					queryOptions =
+						typeof queryObject.options === 'string'
+							? JSON.parse(queryObject.options)
+							: undefined;
+				} catch (error) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						INVALID_CONNECTION_QUERY_CODE,
+						INVALID_CONNECTION_QUERY_REASON,
+					);
+
+					return;
+				}
 
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
-					...queryOptions,
 					...queryObject,
+					...queryOptions,
 					ipAddress: socket.remoteAddress,
 					wsPort,
 					height: queryObject.height ? +queryObject.height : 0,
@@ -378,15 +388,10 @@ export class P2P extends EventEmitter {
 							? errors.join(',')
 							: INCOMPATIBLE_PEER_UNKNOWN_REASON;
 
-					socket.disconnect(INCOMPATIBLE_PEER_CODE, incompatibilityReason);
-					this.emit(
-						EVENT_FAILED_TO_ADD_INBOUND_PEER,
-						new PeerInboundHandshakeError(
-							incompatibilityReason,
-							INCOMPATIBLE_PEER_CODE,
-							socket.remoteAddress,
-							socket.request.url,
-						),
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						INCOMPATIBLE_PEER_CODE,
+						incompatibilityReason,
 					);
 
 					return;
