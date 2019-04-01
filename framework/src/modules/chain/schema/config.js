@@ -45,9 +45,6 @@ module.exports = {
 			trustProxy: {
 				type: 'boolean',
 			},
-			topAccounts: {
-				type: 'boolean',
-			},
 			cacheEnabled: {
 				type: 'boolean',
 			},
@@ -368,7 +365,6 @@ module.exports = {
 			'logFileName',
 			'consoleLogLevel',
 			'trustProxy',
-			'topAccounts',
 			'db',
 			'api',
 			'peers',
