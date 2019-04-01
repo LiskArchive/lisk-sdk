@@ -40,18 +40,18 @@ function AccountsController(scope) {
 }
 
 function accountFormatter(totalSupply, account) {
-	const object = _.pick(account, [
+	const formattedAccount = _.pick(account, [
 		'address',
 		'publicKey',
 		'balance',
 		'u_balance',
 		'secondPublicKey',
 	]);
-	object.unconfirmedBalance = object.u_balance;
-	delete object.u_balance;
+	formattedAccount.unconfirmedBalance = formattedAccount.u_balance;
+	delete formattedAccount.u_balance;
 
 	if (account.isDelegate) {
-		object.delegate = _.pick(account, [
+		formattedAccount.delegate = _.pick(account, [
 			'username',
 			'vote',
 			'rewards',
@@ -61,19 +61,19 @@ function accountFormatter(totalSupply, account) {
 			'productivity',
 		]);
 
-		object.delegate.rank = parseInt(object.delegate.rank);
+		formattedAccount.delegate.rank = parseInt(formattedAccount.delegate.rank);
 
 		// Computed fields
-		object.delegate.approval = calculateApproval(
-			object.delegate.vote,
+		formattedAccount.delegate.approval = calculateApproval(
+			formattedAccount.delegate.vote,
 			totalSupply
 		);
 	}
 
-	object.publicKey = object.publicKey || '';
-	object.secondPublicKey = object.secondPublicKey || '';
+	formattedAccount.publicKey = formattedAccount.publicKey || '';
+	formattedAccount.secondPublicKey = formattedAccount.secondPublicKey || '';
 
-	return object;
+	return formattedAccount;
 }
 
 /**

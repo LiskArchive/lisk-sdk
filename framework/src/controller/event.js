@@ -65,10 +65,13 @@ class Event {
 	 * @return {module.Event}
 	 */
 	static deserialize(data) {
-		let object = null;
-		if (typeof data === 'string') object = JSON.parse(data);
-		else object = data;
-		return new Event(`${object.module}:${object.name}`, object.data);
+		let parsedEvent = null;
+		if (typeof data === 'string') parsedEvent = JSON.parse(data);
+		else parsedEvent = data;
+		return new Event(
+			`${parsedEvent.module}:${parsedEvent.name}`,
+			parsedEvent.data
+		);
 	}
 }
 
