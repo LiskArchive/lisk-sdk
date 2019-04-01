@@ -90,12 +90,13 @@ const composeProcessTransactionSteps = (step1, step2) => async transactions => {
  * @param {Object} config - config variable
  */
 class TransactionPool {
-	constructor(broadcastInterval, releaseLimit, logger, config) {
+	constructor(broadcastInterval, releaseLimit, logger, config, bus) {
 		this.maxTransactionsPerQueue = config.transactions.maxTransactionsPerQueue;
 		this.expiryInterval = EXPIRY_INTERVAL;
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 		this.logger = logger;
+		this.bus = bus;
 	}
 
 	/**
@@ -170,6 +171,9 @@ class TransactionPool {
 	subscribeEvents() {
 		this.pool.on(pool.EVENT_ADDED_TRANSACTIONS, ({ action, to, payload }) => {
 			if (payload.length > 0) {
+				payload.forEach(aTransaction =>
+					this.bus.message('unconfirmedTransaction', aTransaction, true)
+				);
 				this.logger.info(
 					`Transaction pool - added transactions ${
 						to ? `to ${to} queue` : ''
