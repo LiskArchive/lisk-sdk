@@ -5,6 +5,7 @@ const constantsSchema = require('../../../../../src/controller/schema/constants'
 const version = require('../../../../../src/version');
 
 jest.mock('../../../../../src/controller/helpers/validator');
+jest.mock('../../../../../src/components/logger');
 
 describe('Application', () => {
 	// Arrange
@@ -44,7 +45,7 @@ describe('Application', () => {
 				config
 			);
 
-			expect(config.components.logger.filename).toBe(
+			expect(config.components.logger.logFileName).toBe(
 				`${process.cwd()}/logs/${params.label}/lisk.log`
 			);
 		});

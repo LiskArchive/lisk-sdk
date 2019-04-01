@@ -92,7 +92,7 @@ class Application {
 
 		if (!config.components.logger) {
 			config.components.logger = {
-				filename: `${process.cwd()}/logs/${label}/lisk.log`,
+				logFileName: `${process.cwd()}/logs/${label}/lisk.log`,
 			};
 		}
 
