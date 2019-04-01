@@ -19,10 +19,7 @@ import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
-import {
-	TransactionError,
-	TransactionPendingError,
-} from '../src/errors';
+import { TransactionError, TransactionPendingError } from '../src/errors';
 import * as BigNum from '@liskhq/bignum';
 import {
 	addTransactionFields,
@@ -371,6 +368,30 @@ describe('Base transaction class', () => {
 				expectedBuffer,
 			);
 		});
+
+		it('should take first 8 bytes when recipientId exceeds 8 bytes buffer', async () => {
+			const rawTransaction = {
+				id: '393955899193580559',
+				type: 0,
+				timestamp: 33817764,
+				senderPublicKey:
+					'fe8f1a47180e7f318cb162b06470fbe259bc1d9d5359a8792cda3f087e49f72b',
+				recipientPublicKey: '',
+				senderId: '9961131544040416558L',
+				recipientId: '19961131544040416558L',
+				amount: '100000000',
+				fee: '10000000',
+				signature:
+					'02a806771711ecb9ffa676d8f6c85c5ffb87398cddbd0d55ae6c1e83f0e8e74c50490979e85633715b66d42090e9b37af918b1f823d706e900f5e2b72f876408',
+				signatures: [],
+				asset: {},
+			};
+			const tx = new TestTransaction(rawTransaction);
+			// 37 Bytes from 45 bytes corresponds to recipientId
+			expect(tx.getBytes().slice(37, 45)).to.eql(
+				new BigNum('1').toBuffer({ size: 8, endian: 'big' }),
+			);
+		});
 	});
 
 	describe('_validateSchema', () => {
@@ -649,7 +670,7 @@ describe('Base transaction class', () => {
 	describe('#addMultisignature', () => {
 		let transferFromMultiSigAccountTrs: TransferTransaction;
 		let multisigMember: SignatureObject;
-		beforeEach( async () => {
+		beforeEach(async () => {
 			storeAccountGetStub.returns(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction;
 			transferFromMultiSigAccountTrs = new TransferTransaction(rawTrs);
