@@ -407,6 +407,17 @@ class Account extends BaseEntity {
 			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
 			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
 		);
+
+		// To have deterministic pagination add extra sorting
+		if (parsedOptions.sort) {
+			parsedOptions.sort = _.flatten([
+				parsedOptions.sort,
+				'address:asc',
+			]).filter(Boolean);
+		} else {
+			parsedOptions.sort = ['address:asc'];
+		}
+
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
 		const params = {
