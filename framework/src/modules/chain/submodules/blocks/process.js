@@ -55,9 +55,11 @@ class Process {
 		schema,
 		storage,
 		sequence,
-		genesisBlock
+		genesisBlock,
+		channel
 	) {
 		library = {
+			channel,
 			logger,
 			schema,
 			storage,
@@ -241,108 +243,6 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 };
 
 /**
- * Performs chain comparison with remote peer.
- * WARNING: Can trigger chain recovery.
- *
- * @param {Peer} peer - Peer to perform chain comparison with
- * @param {number} height - Block height
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.res - Result object
- */
-Process.prototype.getCommonBlock = function(peer, height, cb) {
-	let comparisonFailed = false;
-
-	return async.waterfall(
-		[
-			function(waterCb) {
-				// Get IDs sequence (comma separated list)
-				modules.blocks.utils.getIdSequence(height, (err, res) =>
-					setImmediate(waterCb, err, res)
-				);
-			},
-			function(res, waterCb) {
-				const ids = res.ids;
-				// Perform request to supplied remote peer
-				peer = library.logic.peers.create(peer);
-				peer.rpc.blocksCommon({ ids }, (err, blocksCommonRes) => {
-					if (err) {
-						modules.peers.remove(peer);
-						return setImmediate(waterCb, err);
-					}
-
-					if (!blocksCommonRes.common) {
-						// FIXME: Need better checking here, is base on 'common' property enough?
-						comparisonFailed = true;
-						return setImmediate(
-							waterCb,
-							`Chain comparison failed with peer: ${
-								peer.string
-							} using ids: ${ids}`
-						);
-					}
-
-					return setImmediate(waterCb, null, blocksCommonRes.common);
-				});
-			},
-			function(common, waterCb) {
-				// Check if we received genesis block - before response validation, as genesis block have previousBlock = null
-				if (common && common.height === 1) {
-					comparisonFailed = true;
-					return setImmediate(
-						waterCb,
-						'Comparison failed - received genesis as common block'
-					);
-				}
-				// Validate remote peer response via schema
-				return library.schema.validate(common, definitions.CommonBlock, err => {
-					if (err) {
-						return setImmediate(waterCb, err[0].message);
-					}
-					return setImmediate(waterCb, null, common);
-				});
-			},
-			function(common, waterCb) {
-				// Check that block with ID, previousBlock and height exists in database
-				library.storage.entities.Block.isPersisted({
-					id: common.id,
-					previousBlockId: common.previousBlock,
-					height: common.height,
-				})
-					.then(isPersisted => {
-						if (isPersisted) {
-							// Block exists - it's common between our node and remote peer
-							return setImmediate(waterCb, null, common);
-						}
-
-						// Block doesn't exists - comparison failed
-						comparisonFailed = true;
-						return setImmediate(
-							waterCb,
-							`Chain comparison failed with peer: ${
-								peer.string
-							} using block: ${JSON.stringify(common)}`
-						);
-					})
-					.catch(err => {
-						// SQL error occurred
-						library.logger.error(err.stack);
-						return setImmediate(waterCb, 'Blocks#getCommonBlock error');
-					});
-			},
-		],
-		(err, res) => {
-			// If comparison failed and current consensus is low - perform chain recovery
-			if (comparisonFailed && modules.transport.poorConsensus()) {
-				return modules.blocks.chain.recoverChain(cb);
-			}
-			return setImmediate(cb, err, res);
-		}
-	);
-};
-
-/**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting,
  * see: loader.loadBlockChain (private).
  *
@@ -428,32 +328,33 @@ Process.prototype.loadBlocksOffset = function(
 };
 
 /**
- * Ask remote peer for blocks and process them.
+ * Ask the network for blocks and process them.
  *
- * @param {Peer} peer - Peer to perform chain comparison with
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.lastValidBlock - Normalized new last block
  */
-Process.prototype.loadBlocksFromPeer = function(peer, cb) {
+Process.prototype.loadBlocksFromNetwork = function(cb) {
 	let lastValidBlock = modules.blocks.lastBlock.get();
 
-	peer = library.logic.peers.create(peer);
-	library.logger.info(`Loading blocks from: ${peer.string}`);
+	library.logger.info('Loading blocks from the network');
 
-	function getFromPeer(seriesCb) {
-		peer.rpc.blocks(
-			{ lastBlockId: lastValidBlock.id, peer: library.logic.peers.me() },
-			(err, res) => {
-				err = err || res.error;
-				if (err) {
-					modules.peers.remove(peer);
-					return setImmediate(seriesCb, err);
-				}
-				return setImmediate(seriesCb, null, res.blocks);
-			}
-		);
+	async function getFromNetwork() {
+		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+		// TODO: Rename procedure to include target module name. E.g. chain:blocks
+		const result = await library.channel.invoke('network:request', {
+			procedure: 'blocks',
+			data: {
+				lastBlockId: lastValidBlock.id,
+			},
+		});
+
+		if (!result.data) {
+			throw new Error('Received an invalid blocks response from the network');
+		}
+
+		return result.data.blocks;
 	}
 
 	function validateBlocks(blocks, seriesCb) {
@@ -479,14 +380,8 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 					return setImmediate(eachSeriesCb);
 				}
 				// ...then process block
-				return processBlock(block, err => {
-					// Ban a peer if block validation fails
-					// Invalid peers won't get chosen in the next sync attempt
-					if (err) {
-						library.logic.peers.ban(peer);
-					}
-					return eachSeriesCb(err);
-				});
+				// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+				return processBlock(block, err => eachSeriesCb(err));
 			},
 			err => setImmediate(seriesCb, err)
 		);
@@ -499,7 +394,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 				// Update last valid block
 				lastValidBlock = block;
 				library.logger.info(
-					`Block ${block.id} loaded from: ${peer.string}`,
+					`Block ${block.id} loaded from the network`,
 					`height: ${block.height}`
 				);
 			} else {
@@ -516,7 +411,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 		});
 	}
 
-	async.waterfall([getFromPeer, validateBlocks, processBlocks], err => {
+	async.waterfall([getFromNetwork, validateBlocks, processBlocks], err => {
 		if (err) {
 			return setImmediate(
 				cb,
