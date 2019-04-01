@@ -110,7 +110,6 @@ class Blocks {
 		this.process = this.submodules.process;
 		this.utils = this.submodules.utils;
 		this.chain = this.submodules.chain;
-
 		self = this;
 
 		this.submodules.chain.saveGenesisBlock(err => setImmediate(cb, err, self));
@@ -339,10 +338,9 @@ Blocks.prototype.calculateNewBroadhash = async function() {
 				.toString('hex');
 			height = blocks[0].height;
 		}
-
 		return { broadhash, height };
 	} catch (err) {
-		this.logger.error(err.stack);
+		library.logger.error(err.stack);
 		return err;
 	}
 };
