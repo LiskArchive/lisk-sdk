@@ -66,8 +66,12 @@ class Event {
 	 */
 	static deserialize(data) {
 		let parsedEvent = null;
-		if (typeof data === 'string') parsedEvent = JSON.parse(data);
-		else parsedEvent = data;
+		if (typeof data === 'string') {
+			parsedEvent = JSON.parse(data);
+		} else {
+			parsedEvent = data;
+		}
+
 		return new Event(
 			`${parsedEvent.module}:${parsedEvent.name}`,
 			parsedEvent.data
