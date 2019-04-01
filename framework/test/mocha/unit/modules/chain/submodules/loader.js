@@ -342,6 +342,8 @@ describe('loader', () => {
 			let deleteBlocksAfterHeight;
 			let snapshotRound;
 
+			afterEach(() => sinonSandbox.restore());
+
 			it('and snapshot to end of round 1 when snapshotRound = 1 and 101 blocks available', done => {
 				snapshotRound = 1;
 				blocksAvailable = ACTIVE_DELEGATES;
