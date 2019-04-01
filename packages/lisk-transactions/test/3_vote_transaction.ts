@@ -279,18 +279,6 @@ describe('Vote transaction class', () => {
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.recipientId');
 		});
-
-		it('should return error when recipientPublicKey is empty', async () => {
-			const invalidTransaction = {
-				...validVoteTransactions[2],
-				recipientPublicKey: '',
-			};
-			const transaction = new VoteTransaction(invalidTransaction);
-
-			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.recipientPublicKey');
-		});
 	});
 
 	describe('#applyAsset', () => {

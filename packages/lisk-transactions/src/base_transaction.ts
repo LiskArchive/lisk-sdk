@@ -101,6 +101,8 @@ export abstract class BaseTransaction {
 	public readonly amount: BigNum;
 	public readonly recipientId: string;
 	public readonly blockId?: string;
+	public readonly height?: number;
+	public readonly confirmations?: number;
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
@@ -161,6 +163,11 @@ export abstract class BaseTransaction {
 		// Infinity is invalid for these types
 		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : Infinity;
 		this.type = typeof tx.type === 'number' ? tx.type : Infinity;
+
+		// Additional data not related to the protocol
+		this.confirmations = tx.confirmations;
+		this.blockId = tx.blockId;
+		this.height = tx.height;
 		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
 	}
 
@@ -188,6 +195,8 @@ export abstract class BaseTransaction {
 		const transaction = {
 			id: this.id,
 			blockId: this.blockId,
+			height: this.height,
+			confirmations: this.confirmations,
 			amount: this.amount.toString(),
 			type: this.type,
 			timestamp: this.timestamp,
@@ -445,7 +454,10 @@ export abstract class BaseTransaction {
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		const transactionRecipientID = this.recipientId
-			? bigNumberToBuffer(this.recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
+			? bigNumberToBuffer(
+					this.recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+			  ).slice(0, BYTESIZES.RECIPIENT_ID)
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 		const transactionAmount = this.amount.toBuffer({
