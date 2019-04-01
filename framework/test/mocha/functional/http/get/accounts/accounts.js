@@ -300,27 +300,23 @@ describe('GET /accounts', () => {
 				return accountsEndpoint.makeRequest({ sort: 'invalid' }, 400);
 			});
 
-			it('using no sort return accounts sorted by balance in asending order as default behavior', async () => {
-				return accountsEndpoint
-					.makeRequest({ sort: 'balance:asc' }, 200)
-					.then(res => {
-						const balances = _(res.body.data)
-							.map('balance')
-							.value();
-						expect(_.clone(balances).sort()).to.be.eql(balances);
-					});
+			it('using no sort return accounts sorted by both balance and address in asending order as default behavior', async () => {
+				return accountsEndpoint.makeRequest({}, 200).then(res => {
+					const balances = _.clone(res.body.data);
+					expect(
+						_.orderBy(balances, ['balance', 'address'], ['asc', 'asc'])
+					).to.be.eql(res.body.data);
+				});
 			});
 
 			it('using sort = balance:asc should return accounts in ascending order by balance', async () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc' }, 200)
 					.then(res => {
-						const balances = _.map(res.body.data, 'balance');
+						const balances = _.clone(res.body.data);
 						expect(
-							_(res.body.data)
-								.map('balance')
-								.sortNumbers()
-						).to.be.eql(balances);
+							_.orderBy(balances, ['balance', 'address'], ['asc', 'asc'])
+						).to.be.eql(res.body.data);
 					});
 			});
 
@@ -328,12 +324,10 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:desc' }, 200)
 					.then(res => {
-						const balances = _.map(res.body.data, 'balance');
+						const balances = _.clone(res.body.data);
 						expect(
-							_(res.body.data)
-								.map('balance')
-								.sortNumbers('desc')
-						).to.be.eql(balances);
+							_.orderBy(balances, ['balance', 'address'], ['desc', 'asc'])
+						).to.be.eql(res.body.data);
 					});
 			});
 		});

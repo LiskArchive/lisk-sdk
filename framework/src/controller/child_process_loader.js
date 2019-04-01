@@ -26,4 +26,9 @@ const loadModule = async () => {
 	channel.publish(`${moduleAlias}:loading:finished`);
 };
 
+// TODO: Removed after https://github.com/LiskHQ/lisk/issues/3210 is fixed
+process.on('disconnect', () => {
+	process.exit();
+});
+
 loadModule();
