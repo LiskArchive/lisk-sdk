@@ -70,7 +70,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		.option('-a, --address <ip>', 'listening host name or ip')
 		.option('-x, --peers [peers...]', 'peers list')
 		.option('-l, --log <level>', 'log level')
-		.option('-s, --snapshot <round>', 'verify snapshot')
+		.option('-s, --snapshot [round]', 'verify snapshot')
 		.option('--inspect-workers', 'inspect worker processes')
 		.option('--inspect-brokers', 'inspect broker processes');
 

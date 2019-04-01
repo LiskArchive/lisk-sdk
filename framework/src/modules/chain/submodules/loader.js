@@ -755,8 +755,14 @@ __private.createSnapshot = height => {
 	}
 
 	const snapshotRound = library.config.loading.snapshotRound;
+	if (!snapshotRound && Number.isNaN(parseInt(snapshotRound))) {
+		throw new Error(
+			'Unable to create snapshot, snapshot parameters should be an integer equal to or greater than zero'
+		);
+	}
+
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound = Number.isNaN(parseInt(snapshotRound))
+	const targetRound = snapshotRound
 		? totalRounds
 		: Math.min(totalRounds, snapshotRound);
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
