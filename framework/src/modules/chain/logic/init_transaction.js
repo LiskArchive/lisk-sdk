@@ -112,7 +112,7 @@ const outTransferAsset = raw => {
 };
 
 class Transaction {
-	constructor(cb) {
+	constructor() {
 		this.transactionClassMap = new Map([
 			[0, TransferTransaction],
 			[1, SecondSignatureTransaction],
@@ -123,6 +123,7 @@ class Transaction {
 			[6, InTransferTransaction],
 			[7, OutTransferTransaction],
 		]);
+
 		this.assetDbReadMap = new Map([
 			[0, transferAsset],
 			[1, signatureAsset],
@@ -133,10 +134,6 @@ class Transaction {
 			[6, inTransferAsset],
 			[7, outTransferAsset],
 		]);
-
-		if (cb) {
-			return setImmediate(cb, null, this);
-		}
 	}
 
 	dbRead(raw) {

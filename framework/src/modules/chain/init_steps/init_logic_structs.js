@@ -17,11 +17,7 @@ module.exports = async ({
 		});
 	});
 
-	const initTransactionLogic = await new Promise((resolve, reject) => {
-		new InitTransaction((err, object) => {
-			err ? reject(err) : resolve(object);
-		});
-	});
+	const initTransactionLogic = await new InitTransaction();
 
 	const blockLogic = await new Promise((resolve, reject) => {
 		new Block(ed, schema, initTransactionLogic, (err, object) => {
