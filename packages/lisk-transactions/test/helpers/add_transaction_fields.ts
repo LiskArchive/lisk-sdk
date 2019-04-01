@@ -15,7 +15,6 @@
 export const addTransactionFields = (transaction: any) => {
 	return {
 		...transaction,
-		blockId: undefined,
 		signSignature: transaction.signSignature
 			? transaction.signSignature
 			: undefined,

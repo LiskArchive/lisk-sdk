@@ -40,6 +40,8 @@ export interface TransactionJSON {
 	readonly fee: string | number;
 	readonly id?: string;
 	readonly blockId?: string;
+	readonly height?: number;
+	readonly confirmations?: number;
 	readonly recipientId: string | null;
 	readonly recipientPublicKey?: string;
 	readonly senderId?: string;

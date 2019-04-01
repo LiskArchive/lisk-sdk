@@ -27,12 +27,15 @@ const TRANSACTION_DAPP_TYPE = 5;
 export interface DappAsset {
 	readonly dapp: {
 		readonly category: number;
-		readonly description?: string;
-		readonly icon?: string;
 		readonly link: string;
 		readonly name: string;
-		readonly tags?: string;
 		readonly type: number;
+		// tslint:disable-next-line readonly-keyword
+		description?: string;
+		// tslint:disable-next-line readonly-keyword
+		icon?: string;
+		// tslint:disable-next-line readonly-keyword
+		tags?: string;
 	};
 }
 
@@ -97,6 +100,10 @@ export class DappTransaction extends BaseTransaction {
 			: {}) as Partial<TransactionJSON>;
 
 		this.asset = (tx.asset || { dapp: {} }) as DappAsset;
+		// If Optional field contains null, converts to undefined
+		this.asset.dapp.description = this.asset.dapp.description || undefined;
+		this.asset.dapp.icon = this.asset.dapp.icon || undefined;
+		this.asset.dapp.tags = this.asset.dapp.tags || undefined;
 		this.containsUniqueData = true;
 	}
 
