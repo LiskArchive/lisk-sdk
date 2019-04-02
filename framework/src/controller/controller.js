@@ -246,7 +246,19 @@ class Controller {
 			JSON.stringify({ config: this.config, moduleOptions: options }),
 		];
 
-		const child = child_process.fork(program, parameters);
+		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
+		const forkedProcessOptions = {};
+		const maxPort = 20000;
+		const minPort = 10000;
+		process.env.NODE_DEBUG
+			? (forkedProcessOptions.execArgv = [
+					`--inspect=${Math.floor(
+						Math.random() * (maxPort - minPort) + minPort
+					)}`,
+				])
+			: [];
+
+		const child = child_process.fork(program, parameters, forkedProcessOptions);
 
 		this.childrenList.push(child);
 
@@ -254,7 +266,6 @@ class Controller {
 			this.logger.error(
 				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
 			);
-
 			// Exits the main process with a failure code
 			process.exit(1);
 		});
