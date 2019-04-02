@@ -1,3 +1,7 @@
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
 const { createLoggerComponent } = require('../../components/logger');
 const { createCacheComponent } = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');

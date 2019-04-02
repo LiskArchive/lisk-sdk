@@ -1,3 +1,7 @@
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
 const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs');
