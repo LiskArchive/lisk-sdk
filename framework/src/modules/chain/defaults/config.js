@@ -57,11 +57,13 @@ const DefaultConfig = {
 		},
 		transactions: {
 			type: 'object',
-			maxTransactionsPerQueue: {
-				type: 'integer',
-				minimum: 100,
-				maximum: 5000,
-				default: 1000,
+			properties: {
+				maxTransactionsPerQueue: {
+					type: 'integer',
+					minimum: 100,
+					maximum: 5000,
+					default: 1000,
+				},
 			},
 			required: ['maxTransactionsPerQueue'],
 			default: {
@@ -297,6 +299,20 @@ const DefaultConfig = {
 				},
 				list: {
 					type: 'array',
+					items: {
+						type: 'object',
+						properties: {
+							ip: {
+								type: 'string',
+								format: 'ipOrFQDN',
+							},
+							wsPort: {
+								type: 'integer',
+								minimum: 1,
+								maximum: 65535,
+							},
+						},
+					},
 					default: [
 						{
 							ip: 'testnet-seed-01.lisk.io',
@@ -325,6 +341,10 @@ const DefaultConfig = {
 					properties: {
 						blackList: {
 							type: 'array',
+							items: {
+								type: 'string',
+								format: 'ip',
+							},
 							default: [],
 						},
 					},
