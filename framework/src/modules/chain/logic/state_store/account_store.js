@@ -4,13 +4,9 @@ const defaultAccount = {
 	publicKey: null,
 	secondPublicKey: null,
 	secondSignature: false,
-	u_secondSignature: false,
 	username: null,
-	u_username: null,
 	isDelegate: false,
-	u_isDelegate: false,
 	balance: '0',
-	u_balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
 	rank: null,
@@ -18,11 +14,8 @@ const defaultAccount = {
 	rewards: '0',
 	vote: '0',
 	nameExist: false,
-	u_nameExist: false,
 	multiMin: 0,
-	u_multiMin: 0,
 	multiLifetime: 0,
-	u_multiLifetime: 0,
 };
 
 class AccountStore {
@@ -133,8 +126,6 @@ class AccountStore {
 			({ updatedItem, updatedKeys }) => {
 				const filter = { [this.primaryKey]: updatedItem[this.primaryKey] };
 				const updatedData = _.pick(updatedItem, updatedKeys);
-				updatedData.u_balance = updatedData.balance;
-
 				return this.account.upsert(filter, updatedData, null, this.tx);
 			}
 		);

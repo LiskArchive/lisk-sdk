@@ -104,7 +104,9 @@ class ProcessTransactions {
 			...persistedTransactions.map(transaction => ({
 				id: transaction.id,
 				status: TransactionStatus.FAIL,
-				errors: [`Transaction is already confirmed: ${transaction.id}`],
+				errors: [
+					new Error(`Transaction is already confirmed: ${transaction.id}`),
+				],
 			})),
 		];
 
@@ -204,6 +206,17 @@ class ProcessTransactions {
 		return {
 			transactionsResponses,
 		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	async processSignature(transaction, signature) {
+		// Get data required for processing signature
+		const stateStore = library.logic.stateManager.createStore({
+			mutate: false,
+		});
+		await transaction.prepare(stateStore);
+		// Add multisignature to transaction and process
+		return transaction.addMultisignature(stateStore, signature);
 	}
 }
 

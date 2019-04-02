@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const async = require('async');
 
 // Private fields
@@ -50,6 +51,68 @@ function Multisignatures(cb, scope) {
 	setImmediate(cb, null, self);
 }
 
+// Public methods
+
+/**
+ * Main function for processing received signature, includes:
+ * - multisignature account creation
+ * - send from multisignature account
+ *
+ * @public
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {function} cb - Callback function
+ * @implements {library.balancesSequence.add} - All processing here is done through balancesSequence
+ * @returns {setImmediateCallback} cb, err
+ */
+Multisignatures.prototype.getTransactionAndProcessSignature = (
+	signature,
+	cb
+) => {
+	if (!signature) {
+		const message = 'Unable to process signature, signature not provided';
+		library.logger.error(message);
+		return setImmediate(cb, new Error(message));
+	}
+	// Grab transaction with corresponding ID from transaction pool
+	const transaction = modules.transactions.getMultisignatureTransaction(
+		signature.transactionId
+	);
+
+	if (!transaction) {
+		const message =
+			'Unable to process signature, corresponding transaction not found';
+		library.logger.error(message, { signature });
+		return setImmediate(cb, new Error(message));
+	}
+
+	return modules.processTransactions
+		.processSignature(transaction, signature)
+		.then(transactionResponse => {
+			if (
+				transactionResponse.status === TransactionStatus.FAIL &&
+				transactionResponse.errors.length > 0
+			) {
+				const message = `Error processing signature: ${
+					transactionResponse.errors[0].message
+				}`;
+				library.logger.error(message, { signature });
+				return setImmediate(cb, new Error(message));
+			}
+			// Emit events
+			library.channel.publish(
+				'chain:multisignatures:signature:change',
+				transaction.id
+			);
+			library.bus.message('signature', signature, true);
+
+			return setImmediate(cb);
+		})
+		.catch(err => setImmediate(cb, err));
+};
+
 /**
  * Description of getGroup.
  *
@@ -79,7 +142,6 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 						publicKey: account.publicKey,
 						secondPublicKey: account.secondPublicKey || '',
 						balance: account.balance,
-						unconfirmedBalance: account.balance,
 						min: account.multiMin,
 						lifetime: account.multiLifetime,
 						members: [],
@@ -137,6 +199,7 @@ Multisignatures.prototype.onBind = function(scope) {
 	modules = {
 		accounts: scope.modules.accounts,
 		transactions: scope.modules.transactions,
+		processTransactions: scope.modules.processTransactions,
 	};
 };
 

@@ -98,7 +98,7 @@ const updateRecipientRoundInformationWithAmountForTransaction = function(
 	let address;
 	if (transaction.type === TRANSACTION_TYPES.IN_TRANSFER) {
 		const dappTransaction = stateStore.transaction.get(
-			transaction.asset.inTrasfer.dappId
+			transaction.asset.inTransfer.dappId
 		);
 		address = dappTransaction.senderId;
 	}
