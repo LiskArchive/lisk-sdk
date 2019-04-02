@@ -171,9 +171,12 @@ class TransactionPool {
 	subscribeEvents() {
 		this.pool.on(pool.EVENT_ADDED_TRANSACTIONS, ({ action, to, payload }) => {
 			if (payload.length > 0) {
-				payload.forEach(aTransaction =>
-					this.bus.message('unconfirmedTransaction', aTransaction, true)
-				);
+				if (action === pool.ACTION_ADD_TRANSACTIONS) {
+					payload.forEach(aTransaction =>
+						this.bus.message('unconfirmedTransaction', aTransaction, true)
+					);
+				}
+
 				this.logger.info(
 					`Transaction pool - added transactions ${
 						to ? `to ${to} queue` : ''
