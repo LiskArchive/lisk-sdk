@@ -1,6 +1,6 @@
 const assert = require('assert');
+const randomstring = require('randomstring');
 const Controller = require('./controller');
-const defaults = require('./defaults');
 const version = require('../version');
 const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
@@ -84,7 +84,7 @@ class Application {
 		label,
 		genesisBlock,
 		constants = {},
-		config = { components: { logger: null } }
+		config = { components: { logger: null }, modules: {} }
 	) {
 		if (typeof label === 'function') {
 			label = label.call();
@@ -92,26 +92,30 @@ class Application {
 
 		if (!config.components.logger) {
 			config.components.logger = {
-				filename: `~/.lisk/${label}/lisk.log`,
+				logFileName: `${process.cwd()}/logs/${label}/lisk.log`,
 			};
 		}
-
-		// Provide global constants for controller used by z_schema
-		global.constants = constants;
 
 		validator.loadSchema(applicationSchema);
 		validator.loadSchema(constantsSchema);
 		validator.validate(applicationSchema.appLabel, label);
-		validator.validate(constantsSchema.constants, constants);
 		validator.validate(applicationSchema.config, config);
+		constants = validator.validateWithDefaults(
+			constantsSchema.constants,
+			constants
+		);
+
+		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
+		global.constants = constants;
+
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;
-		this.constants = Object.assign({}, defaults.constants, constants);
+		this.constants = constants;
 		this.label = label;
 		this.banner = `${label || 'LiskApp'} - Lisk Framework(${version})`;
-		this.config = config;
+		this.config = Object.assign({ components: {}, modules: {} }, config);
 		this.controller = null;
 
 		this.logger = createLoggerComponent(this.config.components.logger);
@@ -119,21 +123,8 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		// TODO: move this configuration to module especific config file
-		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
-			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: ['httpApi'];
-
-		this.registerModule(ChainModule, {
-			genesisBlock: this.genesisBlock,
-			constants: this.constants,
-			loadAsChildProcess: childProcessModules.includes(ChainModule.alias),
-		});
-
-		this.registerModule(HttpAPIModule, {
-			constants: this.constants,
-			loadAsChildProcess: childProcessModules.includes(HttpAPIModule.alias),
-		});
+		this.registerModule(ChainModule);
+		this.registerModule(HttpAPIModule);
 	}
 
 	/**
@@ -158,10 +149,11 @@ class Application {
 		);
 
 		const modules = this.getModules();
-		modules[moduleAlias] = {
-			klass: moduleKlass,
-			options: options || {},
-		};
+		modules[moduleAlias] = moduleKlass;
+		this.config.modules[moduleAlias] = Object.assign(
+			this.config.modules[moduleAlias] || {},
+			options
+		);
 		__private.modules.set(this, modules);
 	}
 
@@ -177,8 +169,11 @@ class Application {
 			Object.keys(modules).includes(alias),
 			`No module ${alias} is registered`
 		);
-		modules[alias].options = Object.assign({}, modules[alias].options, options);
-		__private.modules.set(this, modules);
+		this.config.modules[alias] = Object.assign(
+			{},
+			this.config.modules[alias],
+			options
+		);
 	}
 
 	/**
@@ -252,6 +247,8 @@ class Application {
 	async run() {
 		this.logger.info(`Starting the app - ${this.banner}`);
 		// Freeze every module and configuration so it would not interrupt the app execution
+		this._compileAndValidateConfigurations();
+
 		Object.freeze(this.genesisBlock);
 		Object.freeze(this.constants);
 		Object.freeze(this.label);
@@ -259,8 +256,12 @@ class Application {
 
 		registerProcessHooks(this);
 
-		this.controller = new Controller(this.label, this.config, this.logger);
-		return this.controller.load(this.getModules());
+		this.controller = new Controller(
+			this.label,
+			{ components: this.config.components, ipc: this.config.ipc },
+			this.logger
+		);
+		return this.controller.load(this.getModules(), this.config.modules);
 	}
 
 	/**
@@ -276,6 +277,47 @@ class Application {
 		}
 		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
+	}
+
+	_compileAndValidateConfigurations() {
+		const modules = this.getModules();
+
+		const sharedConfiguration = {
+			version: this.config.version,
+			minVersion: this.config.minVersion,
+			protocolVersion: this.config.protocolVersion,
+			nonce: randomstring.generate(16),
+			nethash: this.genesisBlock.payloadHash,
+		};
+
+		// TODO: move this configuration to module especific config file
+		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
+			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
+			: ['httpApi'];
+
+		Object.keys(modules).forEach(alias => {
+			this.logger.info(`Validating module options with alias: ${alias}`);
+			this.config.modules[alias] = validator.validateWithDefaults(
+				modules[alias].defaults,
+				this.config.modules[alias]
+			);
+
+			this.overrideModuleOptions(alias, sharedConfiguration);
+			this.overrideModuleOptions(alias, {
+				genesisBlock: this.genesisBlock,
+				constants: this.constants,
+				loadAsChildProcess: childProcessModules.includes(alias),
+			});
+		});
+
+		// TODO: Improve the hardcoded system component values
+		this.config.components.system = {
+			...sharedConfiguration,
+			wsPort: this.config.modules.chain.network.wsPort,
+			httpPort: this.config.modules.http_api.httpPort,
+		};
+
+		this.logger.trace('Compiled configurations', this.config);
 	}
 }
 

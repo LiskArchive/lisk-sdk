@@ -105,7 +105,7 @@ describe('Round', () => {
 
 	before(async () => {
 		storage = new StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_storage_custom_round_chain_module'
 		);
 		await storage.bootstrap();

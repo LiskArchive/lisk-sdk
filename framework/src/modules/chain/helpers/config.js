@@ -19,7 +19,9 @@ const path = require('path');
 const program = require('commander');
 const _ = require('lodash');
 const randomstring = require('randomstring');
-const configSchema = require('../schema/config');
+// TODO: Will be fixed in separate PR
+// eslint-disable-next-line import/no-unresolved
+const configSchema = require('../schema/config.js');
 const { ZSchema } = require('../../../controller/helpers/validator');
 
 const validator = new ZSchema();
@@ -36,7 +38,6 @@ const deepFreeze = function(o) {
 			deepFreeze(o[prop]);
 		}
 	});
-
 	return o;
 };
 
@@ -89,11 +90,15 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 	const genesisBlock = loadJSONFile(`config/${network}/genesis_block.json`);
 
-	const defaultConstants = require(`${rootPath}/config/default/constants`); // eslint-disable-line import/no-dynamic-require
-	const networkConstants = require(`${rootPath}/config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
+	// TODO: Will be fixed in separate PR
+	// eslint-disable-next-line import/no-unresolved
+	const defaultConstants = require('../../../../../config/default/constants.js');
+	const networkConstants = require(`../../../../../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultExceptions = require(`${rootPath}/config/default/exceptions`); // eslint-disable-line import/no-dynamic-require
-	const networkExceptions = require(`${rootPath}/config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
+	// TODO: Will be fixed in separate PR
+	// eslint-disable-next-line import/no-unresolved
+	const defaultExceptions = require('../../../../../config/default/exceptions.js');
+	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line
 
 	const defaultConfig = loadJSONFile('config/default/config.json');
 	const networkConfig = loadJSONFile(`config/${network}/config.json`);

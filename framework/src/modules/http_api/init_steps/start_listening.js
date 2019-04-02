@@ -24,9 +24,9 @@ const listen = async (
 	{ components: { logger }, config },
 	{ httpServer, httpsServer }
 ) => {
-	httpServer.headersTimeout = config.api.options.limits.headersTimeout;
+	httpServer.headersTimeout = config.options.limits.headersTimeout;
 	// Disconnect idle clients
-	httpServer.setTimeout(config.api.options.limits.serverSetTimeout);
+	httpServer.setTimeout(config.options.limits.serverSetTimeout);
 
 	httpServer.on('timeout', socket => {
 		logger.info(
@@ -39,10 +39,10 @@ const listen = async (
 
 	logger.info(`Lisk started: ${config.address}:${config.httpPort}`);
 
-	if (config.api.ssl.enabled) {
+	if (config.ssl.enabled) {
 		// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
-		httpsServer.headersTimeout = config.api.options.limits.headersTimeout;
-		httpsServer.setTimeout(config.api.options.limits.serverSetTimeout);
+		httpsServer.headersTimeout = config.options.limits.headersTimeout;
+		httpsServer.setTimeout(config.options.limits.serverSetTimeout);
 		httpsServer.on('timeout', socket => {
 			logger.info(
 				`Disconnecting idle socket: ${socket.remoteAddress}:${
@@ -54,13 +54,13 @@ const listen = async (
 
 		await startServer(
 			httpsServer,
-			config.api.ssl.options.port,
-			config.api.ssl.options.address
+			config.ssl.options.port,
+			config.ssl.options.address
 		);
 
 		logger.info(
-			`Lisk https started: ${config.api.ssl.options.address}:${
-				config.api.ssl.options.port
+			`Lisk https started: ${config.ssl.options.address}:${
+				config.ssl.options.port
 			}`
 		);
 	}

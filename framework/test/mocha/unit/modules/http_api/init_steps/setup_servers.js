@@ -38,13 +38,11 @@ describe('init_steps/setup_servers', () => {
 		config: {
 			coverage: false,
 			trustProxy: false,
-			api: {
-				ssl: {
-					enabled: false,
-					options: {
-						key: './ssl/lisk.key',
-						cert: './ssl/lisk.crt',
-					},
+			ssl: {
+				enabled: false,
+				options: {
+					key: './ssl/lisk.key',
+					cert: './ssl/lisk.crt',
 				},
 			},
 		},
@@ -125,7 +123,7 @@ describe('init_steps/setup_servers', () => {
 			setupServers.__set__('express', () => expressStub);
 
 			const clonedStub = _.cloneDeep(stub);
-			clonedStub.config.api.ssl.enabled = true;
+			clonedStub.config.ssl.enabled = true;
 
 			servers = setupServers(clonedStub);
 		});
@@ -146,10 +144,10 @@ describe('init_steps/setup_servers', () => {
 
 		it('should call readFileSync with correct parameters', async () => {
 			expect(fs.readFileSync).to.be.calledWithExactly(
-				stub.config.api.ssl.options.cert
+				stub.config.ssl.options.cert
 			);
 			expect(fs.readFileSync).to.be.calledWithExactly(
-				stub.config.api.ssl.options.key
+				stub.config.ssl.options.key
 			);
 		});
 	});

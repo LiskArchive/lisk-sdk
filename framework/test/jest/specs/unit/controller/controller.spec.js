@@ -66,9 +66,10 @@ describe('Controller Class', () => {
 				_loadModules: jest.spyOn(controller, '_loadModules'),
 			};
 			const modules = {};
+			const moduleOptions = {};
 
 			// Act
-			await controller.load(modules);
+			await controller.load(modules, moduleOptions);
 
 			// Assert
 			// Order of the functions matters in load method
@@ -78,7 +79,7 @@ describe('Controller Class', () => {
 			);
 			expect(spies._setupBus).toHaveBeenCalledAfter(spies._validatePidFile);
 			expect(spies._loadModules).toHaveBeenCalledAfter(spies._setupBus);
-			expect(spies._loadModules).toHaveBeenCalledWith(modules);
+			expect(spies._loadModules).toHaveBeenCalledWith(modules, moduleOptions);
 		});
 
 		// #region TODO channel.publish('lisk:ready')
@@ -198,30 +199,27 @@ describe('Controller Class', () => {
 			};
 
 			const modules = {
-				dummyModule1: {
-					klass: '#KLASS1',
-					options: '#OPTIONS1',
-				},
-				dummyModule2: {
-					klass: '#KLASS2',
-					options: '#OPTIONS2',
-				},
-				dummyModule3: {
-					klass: '#KLASS3',
-					options: '#OPTIONS3',
-				},
+				dummyModule1: '#KLASS1',
+				dummyModule2: '#KLASS2',
+				dummyModule3: '#KLASS3',
+			};
+
+			const moduleOptions = {
+				dummyModule1: '#OPTIONS1',
+				dummyModule2: '#OPTIONS2',
+				dummyModule3: '#OPTIONS3',
 			};
 
 			// Act
-			await controller._loadModules(modules);
+			await controller._loadModules(modules, moduleOptions);
 
 			// Assert
 			Object.keys(modules).forEach((alias, index) => {
 				expect(spies._loadInMemoryModule).toHaveBeenNthCalledWith(
 					index + 1,
 					alias,
-					modules[alias].klass,
-					modules[alias].options
+					modules[alias],
+					moduleOptions[alias]
 				);
 			});
 		});

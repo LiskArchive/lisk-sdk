@@ -48,9 +48,9 @@ module.exports = ({ components: { logger }, config }) => {
 	let privateKey;
 	let certificate;
 
-	if (config.api.ssl && config.api.ssl.enabled) {
-		privateKey = fs.readFileSync(config.api.ssl.options.key);
-		certificate = fs.readFileSync(config.api.ssl.options.cert);
+	if (config.ssl && config.ssl.enabled) {
+		privateKey = fs.readFileSync(config.ssl.options.key);
+		certificate = fs.readFileSync(config.ssl.options.cert);
 
 		httpsServer = https.createServer(
 			{

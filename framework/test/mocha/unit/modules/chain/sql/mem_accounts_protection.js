@@ -95,7 +95,7 @@ const queries = {
 describe('mem_accounts protection', () => {
 	before(done => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'mem_accounts_protection_test'
 		);
 

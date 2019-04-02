@@ -58,7 +58,7 @@ describe('Transaction', () => {
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_storage_custom_transaction_chain_module'
 		);
 		await storage.bootstrap();

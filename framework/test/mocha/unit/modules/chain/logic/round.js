@@ -51,7 +51,10 @@ describe('round', () => {
 		},
 	};
 
-	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
+	const storage = new TestStorageSandbox(
+		__testContext.config.components.storage,
+		storageStubs
+	);
 
 	const modules = {
 		accounts: {

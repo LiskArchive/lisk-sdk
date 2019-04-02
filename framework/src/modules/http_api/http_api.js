@@ -12,7 +12,7 @@ const {
 
 module.exports = class HttpApi {
 	constructor(channel, options) {
-		options.config.root = __dirname; // TODO: See wy root comes defined for the chain module.
+		options.root = __dirname; // TODO: See wy root comes defined for the chain module.
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
@@ -64,7 +64,7 @@ module.exports = class HttpApi {
 				storage,
 			},
 			channel: this.channel,
-			config: this.options.config,
+			config: this.options,
 		};
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
@@ -76,14 +76,13 @@ module.exports = class HttpApi {
 			httpServer,
 			httpsServer,
 			wsServer,
-			wssServer,
 		} = await setupServers(this.scope);
 		// Bootstrap Swagger and attaches it to Express app
 		await bootstrapSwagger(this.scope, expressApp);
 		// Start listening for HTTP(s) requests
 		await startListening(this.scope, { httpServer, httpsServer });
-		// Subsribe to channel events
-		subscribeToEvents(this.scope, { wsServer, wssServer });
+		// Subscribe to channel events
+		subscribeToEvents(this.scope, { wsServer });
 	}
 
 	async cleanup(code, error) {

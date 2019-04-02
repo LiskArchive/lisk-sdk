@@ -145,46 +145,6 @@ module.exports = {
 		additionalProperties: false,
 	},
 
-	logger: {
-		$id: '#/app/logger',
-		type: 'object',
-		required: ['filename'],
-		properties: {
-			filename: {
-				type: 'string',
-			},
-			fileLogLevel: {
-				type: 'string',
-				enum: [
-					'trace',
-					'debug',
-					'log',
-					'info',
-					'warn',
-					'error',
-					'fatal',
-					'none',
-				],
-			},
-			consoleLogLevel: {
-				type: 'string',
-				enum: [
-					'trace',
-					'debug',
-					'log',
-					'info',
-					'warn',
-					'error',
-					'fatal',
-					'none',
-				],
-			},
-			echo: {
-				type: 'string',
-			},
-		},
-	},
-
 	config: {
 		id: '#/app/config',
 		type: 'object',
@@ -200,10 +160,42 @@ module.exports = {
 			components: {
 				type: 'object',
 				properties: {
+					system: {
+						type: 'object',
+					},
 					logger: {
-						$ref: '#/app/logger',
+						type: 'object',
+					},
+					cache: {
+						type: 'object',
+					},
+					storage: {
+						type: 'object',
 					},
 				},
+			},
+			modules: {
+				type: 'object',
+				properties: {
+					chain: {
+						type: 'object',
+					},
+					http_api: {
+						type: 'object',
+					},
+				},
+			},
+			version: {
+				type: 'string',
+				format: 'version',
+			},
+			minVersion: {
+				type: 'string',
+				format: 'version',
+			},
+			protocolVersion: {
+				type: 'string',
+				format: 'protocolVersion',
 			},
 		},
 		additionalProperties: false,

@@ -63,6 +63,16 @@ Object {
         },
         "type": "object",
       },
+      "ipc": Object {
+        "additionalProperties": false,
+        "properties": Object {
+          "enabled": Object {
+            "default": false,
+            "type": "boolean",
+          },
+        },
+        "type": "object",
+      },
       "modules": Object {
         "items": Object {
           "$ref": "#/moduleConfig",

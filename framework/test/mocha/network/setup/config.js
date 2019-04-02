@@ -43,6 +43,8 @@ const SYNC_MODE_DEFAULT_ARGS = {
 	},
 };
 
+const DEFAULT_PEER_IP = '127.0.0.1';
+
 const devConfig = __testContext.config;
 
 const config = {
@@ -52,34 +54,44 @@ const config = {
 		// Generate config objects
 		const configurations = _.range(TOTAL_PEERS).map(index => {
 			const devConfigCopy = _.cloneDeep(devConfig);
-			devConfigCopy.ip = '127.0.0.1';
-			devConfigCopy.wsPort = 5000 + index;
-			devConfigCopy.httpPort = 4000 + index;
-			devConfigCopy.logFileName = `../logs/lisk_node_${index}.log`;
+
+			// Remove dynamic added items in the configuration for tests
+			delete devConfigCopy.nethash;
+			delete devConfigCopy.genesisBlock;
+			delete devConfigCopy.constants;
+			delete devConfigCopy.modules.chain.genesisBlock;
+			delete devConfigCopy.modules.chain.constants;
+			delete devConfigCopy.modules.http_api.genesisBlock;
+			delete devConfigCopy.modules.http_api.constants;
+
+			devConfigCopy.modules.chain.network.wsPort = 5000 + index;
+			devConfigCopy.modules.http_api.httpPort = 4000 + index;
+			devConfigCopy.components.logger.logFileName = `../logs/lisk_node_${index}.log`;
 			return devConfigCopy;
 		});
 
 		// Generate peers for each node
 		configurations.forEach(configuration => {
-			configuration.peers.list = config.generatePeers(
+			configuration.modules.chain.network.list = config.generatePeers(
 				configurations,
 				config.SYNC_MODES.ALL_TO_GROUP,
 				{
 					indices: _.range(10),
 				},
-				configuration.wsPort
+				configuration.modules.chain.network.wsPort
 			);
 		});
 
 		// Configuring nodes to forge with force or without
 		const delegatesMaxLength = Math.ceil(
-			devConfig.forging.delegates.length / (configurations.length - 1)
+			devConfig.modules.chain.forging.delegates.length /
+				(configurations.length - 1)
 		);
-		const delegates = _.clone(devConfig.forging.delegates);
+		const delegates = _.clone(devConfig.modules.chain.forging.delegates);
 
 		configurations.forEach((configuration, index) => {
-			configuration.forging.force = false;
-			configuration.forging.delegates = delegates.slice(
+			configuration.modules.chain.forging.force = false;
+			configuration.modules.chain.forging.delegates = delegates.slice(
 				index * delegatesMaxLength,
 				(index + 1) * delegatesMaxLength
 			);
@@ -90,7 +102,9 @@ const config = {
 	generatePM2Configs(configurations, callback) {
 		const configReducer = (pm2Config, configuration) => {
 			const index = pm2Config.apps.length;
-			configuration.db.database = `${configuration.db.database}_${index}`;
+			configuration.components.storage.database = `${
+				configuration.components.storage.database
+			}_${index}`;
 			try {
 				if (!fs.existsSync(`${__dirname}/../configs/`)) {
 					fs.mkdirSync(`${__dirname}/../configs/`);
@@ -158,10 +172,10 @@ const config = {
 				}
 				configurations.forEach(configuration => {
 					if (isPickedWithProbability(syncModeArgs.probability)) {
-						if (!(configuration.wsPort === currentPeer)) {
+						if (!(configuration.modules.chain.network.wsPort === currentPeer)) {
 							peersList.push({
-								ip: configuration.ip,
-								wsPort: configuration.wsPort,
+								ip: DEFAULT_PEER_IP,
+								wsPort: configuration.modules.chain.network.wsPort,
 							});
 						}
 					}
@@ -174,8 +188,8 @@ const config = {
 				}
 				peersList = [
 					{
-						ip: configurations[0].ip,
-						wsPort: configurations[0].wsPort,
+						ip: DEFAULT_PEER_IP,
+						wsPort: configurations[0].modules.chain.network.wsPort,
 					},
 				];
 				break;
@@ -187,8 +201,8 @@ const config = {
 				configurations.forEach((configuration, index) => {
 					if (syncModeArgs.indices.indexOf(index) !== -1) {
 						peersList.push({
-							ip: configuration.ip,
-							wsPort: configuration.wsPort,
+							ip: DEFAULT_PEER_IP,
+							wsPort: configuration.modules.chain.network.wsPort,
 						});
 					}
 				});

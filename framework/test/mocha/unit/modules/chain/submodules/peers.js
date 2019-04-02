@@ -448,8 +448,8 @@ describe('peers', () => {
 			let loggerDebugSpy;
 
 			before(done => {
-				originalFrozenPeersList = _.assign({}, scope.config.peers.list);
-				scope.config.peers.list = [
+				originalFrozenPeersList = _.assign({}, scope.config.network.list);
+				scope.config.network.list = [
 					{
 						ip: validPeer.ip,
 						wsPort: validPeer.wsPort,
@@ -460,7 +460,7 @@ describe('peers', () => {
 			});
 
 			after(() => {
-				scope.config.peers.list = originalFrozenPeersList;
+				scope.config.network.list = originalFrozenPeersList;
 				return loggerDebugSpy.restore();
 			});
 
@@ -759,15 +759,15 @@ describe('peers', () => {
 		let originalPeersList;
 
 		beforeEach(done => {
-			originalPeersList = PeersRewired.__get__('library.config.peers.list');
-			PeersRewired.__set__('library.config.peers.list', []);
+			originalPeersList = PeersRewired.__get__('library.config.network.list');
+			PeersRewired.__set__('library.config.network.list', []);
 			peersLogicMock.create = sinonSandbox.stub().returnsArg(0);
 			sinonSandbox.stub(peers, 'discover');
 			done();
 		});
 
 		afterEach(done => {
-			PeersRewired.__set__('library.config.peers.list', originalPeersList);
+			PeersRewired.__set__('library.config.network.list', originalPeersList);
 			peers.discover.restore();
 			done();
 		});
@@ -787,7 +787,7 @@ describe('peers', () => {
 							applyHeaders: sinonSandbox.stub(),
 						},
 					];
-					PeersRewired.__set__('library.config.peers.list', seedPeersList);
+					PeersRewired.__set__('library.config.network.list', seedPeersList);
 					peersLogicMock.upsert = sinonSandbox.spy();
 					// Call onBlockchainReady and wait 100ms
 					peers.onBlockchainReady();

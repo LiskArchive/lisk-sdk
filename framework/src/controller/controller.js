@@ -61,12 +61,12 @@ class Controller {
 	 * @param modules
 	 * @async
 	 */
-	async load(modules) {
+	async load(modules, moduleOptions) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._setupBus();
-		await this._loadModules(modules);
+		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
@@ -146,11 +146,12 @@ class Controller {
 		}
 	}
 
-	async _loadModules(modules) {
+	async _loadModules(modules, moduleOptions) {
 		// To perform operations in sequence and not using bluebird
 		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of Object.keys(modules)) {
-			const { klass, options } = modules[alias];
+			const klass = modules[alias];
+			const options = moduleOptions[alias];
 
 			if (options.loadAsChildProcess) {
 				if (this.config.ipc.enabled) {
@@ -171,11 +172,11 @@ class Controller {
 	}
 
 	async _loadInMemoryModule(alias, Klass, options) {
+		const moduleAlias = alias || Klass.alias;
+		const { name, version } = Klass.info;
+
 		const module = new Klass(options);
 		validateModuleSpec(module);
-
-		const moduleAlias = alias || module.constructor.alias;
-		const { name, version } = module.constructor.info;
 
 		this.logger.info(
 			`Loading module ${name}:${version} with alias "${moduleAlias}"`

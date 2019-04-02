@@ -51,6 +51,16 @@ module.exports = {
 				},
 				additionalProperties: false,
 			},
+			ipc: {
+				type: 'object',
+				additionalProperties: false,
+				properties: {
+					enabled: {
+						type: 'boolean',
+						default: false,
+					},
+				},
+			},
 		},
 		required: ['modules', 'components'],
 		additionalProperties: false,

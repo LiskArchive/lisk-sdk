@@ -274,36 +274,17 @@ NodeController.getPooledTransactions = async function(context, next) {
  * @private
  */
 async function _getForgingStatus(publicKey) {
-	const keyPairs = await library.channel.invoke('chain:getForgersPublicKeys');
-	const forgingDelegates = library.config.forging.delegates;
-	const forgersPublicKeys = {};
-
-	Object.keys(keyPairs).forEach(key => {
-		// Convert publicKey to buffer when received as object (ie.: { type: 'Buffer', data: [] })
-		// TODO: consider always returning as string
-		if (keyPairs[key].publicKey.type === 'Buffer') {
-			keyPairs[key].publicKey = Buffer.from(keyPairs[key].publicKey);
-		}
-
-		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
-	});
-
-	const fullList = forgingDelegates.map(forger => ({
-		forging: !!forgersPublicKeys[forger.publicKey],
-		publicKey: forger.publicKey,
-	}));
+	const fullList = await library.channel.invoke(
+		'chain:getForgingStatusForAllDelegates'
+	);
 
 	if (publicKey && !_.find(fullList, { publicKey })) {
 		return [];
 	}
 
-	if (_.find(fullList, { publicKey })) {
-		return [
-			{
-				publicKey,
-				forging: !!forgersPublicKeys[publicKey],
-			},
-		];
+	const result = _.find(fullList, { publicKey });
+	if (result) {
+		return [result];
 	}
 
 	return fullList;
