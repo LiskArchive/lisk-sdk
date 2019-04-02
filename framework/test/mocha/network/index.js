@@ -72,7 +72,7 @@ describe.skip(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1",
 		});
 	});
 });
-
+/* eslint-enable mocha/no-skipped-tests */
 process.on('unhandledRejection', err => {
 	throw err;
 });
