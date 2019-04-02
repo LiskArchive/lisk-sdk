@@ -41,6 +41,9 @@ const defaultConfig = {
 		},
 		logEvents: {
 			type: 'array',
+			items: {
+				type: 'string',
+			},
 			default: ['error'],
 		},
 		logFileName: {
