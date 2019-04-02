@@ -761,7 +761,7 @@ __private.createSnapshot = height => {
 		parseInt(snapshotRound) < 1
 	) {
 		throw new Error(
-			'Unable to create snapshot, "--snapshot" parameter should be an integer greater than zero'
+			'Unable to create snapshot, "--snapshot" parameter should be an integer greater than zero or empty which corresponds to all rounds'
 		);
 	}
 
