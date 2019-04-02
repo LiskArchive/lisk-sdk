@@ -167,7 +167,7 @@ class Transaction {
 		const assetDbRead = this.assetDbReadMap.get(transactionJSON.type);
 
 		if (!assetDbRead) {
-			throw `Unknown transaction type ${transactionJSON.type}`;
+			throw new Error(`Unknown transaction type ${transactionJSON.type}`);
 		}
 
 		const asset = assetDbRead(raw);

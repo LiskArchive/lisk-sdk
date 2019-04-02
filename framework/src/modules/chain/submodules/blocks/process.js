@@ -146,7 +146,11 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', err);
+				const error =
+					Array.isArray(err) && err.length > 0
+						? err.map(e => e.message).join(', ')
+						: err;
+				library.logger.error('Fork recovery failed', error);
 			}
 			return setImmediate(cb, err);
 		}
@@ -223,7 +227,11 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', err);
+				const error =
+					Array.isArray(err) && err.length > 0
+						? err.map(e => e.message).join(', ')
+						: err;
+				library.logger.error('Fork recovery failed', error);
 			}
 			return setImmediate(cb, err);
 		}

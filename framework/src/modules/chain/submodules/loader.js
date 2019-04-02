@@ -486,7 +486,7 @@ __private.loadBlockChain = function() {
 			if (matched) {
 				library.logger.info('Genesis block matched with database');
 			} else {
-				throw 'Failed to match genesis block with database';
+				throw new Error('Failed to match genesis block with database');
 			}
 		}
 	}
@@ -896,7 +896,9 @@ __private.loadBlocksFromNetwork = function(cb) {
 				waterErr => {
 					if (waterErr) {
 						failedAttemptsToLoad += 1;
-						library.logger.error(waterErr);
+						library.logger.error(
+							waterErr.message ? waterErr.message : waterErr
+						);
 					}
 					whilstCb();
 				}

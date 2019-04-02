@@ -234,10 +234,12 @@ class Block {
 		});
 		const report = this.scope.schema.validate(block, Block.prototype.schema);
 		if (!report) {
-			throw `Failed to validate block schema: ${this.scope.schema
-				.getLastErrors()
-				.map(err => err.message)
-				.join(', ')}`;
+			throw new Error(
+				`Failed to validate block schema: ${this.scope.schema
+					.getLastErrors()
+					.map(err => err.message)
+					.join(', ')}`
+			);
 		}
 		try {
 			const {
@@ -251,9 +253,7 @@ class Block {
 				throw invalidTransactionResponse.errors;
 			}
 		} catch (errors) {
-			const error =
-				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
-			throw error;
+			throw errors;
 		}
 
 		return block;

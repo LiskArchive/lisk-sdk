@@ -481,7 +481,7 @@ Transactions.prototype.getMergedTransactionList = function(reverse, limit) {
 Transactions.prototype.getTransactions = function(filters, cb) {
 	__private.list(filters, (err, data) => {
 		if (err) {
-			return setImmediate(cb, `Failed to get transactions: ${err}`);
+			return setImmediate(cb, new Error(`Failed to get transactions: ${err}`));
 		}
 		return setImmediate(cb, null, {
 			transactions: data.transactions,
