@@ -1,10 +1,10 @@
-const { Application } = require('../framework/src');
-
 // TODO: Remove the use this config helper
 const packageJSON = require('../package');
 const appConfig = require('../framework/src/modules/chain/helpers/config');
 
 const config = appConfig(packageJSON);
+
+const { Application } = require('../framework/src');
 
 const appName = () => `${config.network}-${config.httpPort}`;
 

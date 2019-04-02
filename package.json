@@ -1,6 +1,6 @@
 {
 	"name": "lisk",
-	"version": "1.6.0-alpha.3",
+	"version": "1.6.0-alpha.4",
 	"description": "Lisk blockchain application platform",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -71,7 +71,7 @@
 		"cors": "2.8.5",
 		"debug": "4.1.1",
 		"deep-diff": "1.0.2",
-		"eventemitter2": "=5.0.1",
+		"eventemitter2": "5.0.1",
 		"express": "4.16.4",
 		"express-domain-middleware": "0.1.0",
 		"express-query-int": "3.0.0",

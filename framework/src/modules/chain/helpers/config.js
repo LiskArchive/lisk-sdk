@@ -179,7 +179,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	const valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {
-		console.error('Failed to validate config data', ZSchema.getLastErrors());
+		console.error('Failed to validate config data', validator.getLastErrors());
 		process.exit(1);
 	} else {
 		appConfig.genesisBlock = genesisBlock;
