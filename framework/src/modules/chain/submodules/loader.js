@@ -758,10 +758,10 @@ __private.createSnapshot = height => {
 	// Negative number not possible as `commander` does not recognize this as valid flag (throws error)
 	if (
 		(!snapshotRound && Number.isNaN(parseInt(snapshotRound))) ||
-		parseInt(snapshotRound) < 0
+		parseInt(snapshotRound) < 1
 	) {
 		throw new Error(
-			'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+			'Unable to create snapshot, "--snapshot" parameter should be an integer greater than zero'
 		);
 	}
 
