@@ -111,14 +111,14 @@ const getByFilter = (peers, filter) => {
 
 	// Sorting
 	if (filter.sort) {
-		const sort_arr = String(filter.sort).split(':');
-		const auxSortField = _.includes(allowedFields, sort_arr[0])
-			? sort_arr[0]
+		const sortArray = String(filter.sort).split(':');
+		const auxSortField = _.includes(allowedFields, sortArray[0])
+			? sortArray[0]
 			: null;
-		const sort_field = sort_arr[0] ? auxSortField : null;
-		const sort_method = sort_arr.length === 2 ? sort_arr[1] !== 'desc' : true;
-		if (sort_field) {
-			peers.sort(sortPeers(sort_field, sort_method));
+		const sortField = sortArray[0] ? auxSortField : null;
+		const sortMethod = sortArray.length === 2 ? sortArray[1] !== 'desc' : true;
+		if (sortField) {
+			peers.sort(sortPeers(sortField, sortMethod));
 		}
 	} else {
 		// Sort randomly by default
