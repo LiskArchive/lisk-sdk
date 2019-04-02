@@ -315,7 +315,7 @@ Blocks.prototype.isLoaded = function() {
  */
 Blocks.prototype.calculateNewBroadhash = async function() {
 	try {
-		const state = library.applicationState.state;
+		const state = library.applicationState;
 		let broadhash;
 		let height;
 		const blocks = await library.storage.entities.Block.get(

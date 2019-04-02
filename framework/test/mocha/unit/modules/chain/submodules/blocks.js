@@ -78,19 +78,17 @@ describe('blocks', () => {
 		};
 
 		applicationStateStub = {
-			state: {
-				height: 1,
-				nethash: 'test broadhash',
-				version: '1.0.0-beta.3',
-				wsPort: '3001',
-				httpPort: '3000',
-				minVersion: '1.0.0-beta.0',
-				protocolVersion: '1.0',
-				nonce: 'test nonce',
-			},
+			height: 1,
+			nethash: 'test broadhash',
+			version: '1.0.0-beta.3',
+			wsPort: '3001',
+			httpPort: '3000',
+			minVersion: '1.0.0-beta.0',
+			protocolVersion: '1.0',
+			nonce: 'test nonce',
 		};
 
-		applicationStateStub.state.broadhash = applicationStateStub.state.nethash;
+		applicationStateStub.broadhash = applicationStateStub.nethash;
 
 		scope = {
 			components: { logger: loggerStub, storage: storageStub },
@@ -470,8 +468,8 @@ describe('blocks', () => {
 					broadhash,
 					height,
 				} = await blocksInstance.calculateNewBroadhash();
-				expect(broadhash).to.equal(applicationStateStub.state.nethash);
-				expect(height).to.equal(applicationStateStub.state.height);
+				expect(broadhash).to.equal(applicationStateStub.nethash);
+				expect(height).to.equal(applicationStateStub.height);
 			});
 		});
 
