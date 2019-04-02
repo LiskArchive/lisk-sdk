@@ -755,7 +755,10 @@ __private.createSnapshot = height => {
 	}
 
 	const snapshotRound = library.config.loading.snapshotRound;
-	if (!snapshotRound && Number.isNaN(parseInt(snapshotRound))) {
+	if (
+		(!snapshotRound && Number.isNaN(parseInt(snapshotRound))) ||
+		parseInt(snapshotRound) < 0
+	) {
 		throw new Error(
 			'Unable to create snapshot, snapshot parameters should be an integer equal to or greater than zero'
 		);
