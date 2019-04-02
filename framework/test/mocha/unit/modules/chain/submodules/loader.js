@@ -22,7 +22,6 @@ const { ACTIVE_DELEGATES } = __testContext.config.constants;
 describe('loader', () => {
 	let library;
 	let __private;
-	let blocks_module;
 
 	before(done => {
 		application.init(
@@ -30,7 +29,6 @@ describe('loader', () => {
 			(err, scope) => {
 				library = scope;
 				__private = library.rewiredModules.loader.__get__('__private');
-				blocks_module = library.modules.blocks;
 				done(err);
 			}
 		);
