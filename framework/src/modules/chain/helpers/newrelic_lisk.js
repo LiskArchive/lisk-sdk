@@ -27,7 +27,7 @@ newrelicLisk.instrumentBackgroundJobs();
 // TOFIX: fix callbackMethods converted to async in #2579
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
-	'./sequence': {
+	'./helpers/sequence.js': {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
 	},

@@ -22,7 +22,7 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 5) - dapp registrations with repeated values', () => {
+describe('integration test (type 5) - dapp registrations with repeated values', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -54,7 +54,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	const dappDuplicateLinkFail = randomUtil.application();
 	dappDuplicateLinkSuccess.link = dappDuplicateLinkFail.link;
 
-	localCommon.beforeBlock('system_5_5_dapps', lib => {
+	localCommon.beforeBlock('5_5_dapps', lib => {
 		library = lib;
 	});
 

@@ -22,7 +22,7 @@ const localCommon = require('./../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test - get unconfirmed transactions', () => {
+describe('integration test - get unconfirmed transactions', () => {
 	const account1 = randomUtil.account();
 	const account2 = randomUtil.account();
 	const transaction1 = transfer({
@@ -37,7 +37,7 @@ describe('system test - get unconfirmed transactions', () => {
 	});
 
 	let library;
-	localCommon.beforeBlock('system_get_transactions_unconfirmed', lib => {
+	localCommon.beforeBlock('get_transactions_unconfirmed', lib => {
 		library = lib;
 	});
 

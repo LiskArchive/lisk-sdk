@@ -25,7 +25,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
 
-describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
+describe('integration test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -45,7 +45,7 @@ describe('system test (type 1) - checking validated second signature registratio
 	});
 	dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_1_X_second_sign_validated', lib => {
+	localCommon.beforeBlock('1_X_second_sign_validated', lib => {
 		library = lib;
 	});
 

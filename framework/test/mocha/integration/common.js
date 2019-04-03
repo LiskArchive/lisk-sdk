@@ -278,8 +278,11 @@ function beforeBlock(type, cb) {
 		'init sandboxed application, credit account and register dapp',
 		done => {
 			application.init(
-				{ sandbox: { name: `lisk_test_${type}` } },
+				{ sandbox: { name: `lisk_test_integration_${type}` } },
 				(err, library) => {
+					if (err) {
+						return done(err);
+					}
 					cb(library);
 					return done();
 				}

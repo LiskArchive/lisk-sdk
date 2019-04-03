@@ -19,7 +19,6 @@ const randomstring = require('randomstring');
 const async = require('async');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const { createSystemComponent } = require('../../../src/components/system');
 const { ZSchema } = require('../../../src/controller/helpers/validator');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
@@ -33,11 +32,7 @@ const modulesLoader = new function() {
 		errorLevel: __testContext.config.fileLogLevel,
 		filename: __testContext.config.logFileName,
 	});
-	this.system = createSystemComponent(
-		__testContext.config,
-		this.logger,
-		this.storage
-	);
+
 	this.scope = {
 		lastCommit: '',
 		build: '',
@@ -45,7 +40,6 @@ const modulesLoader = new function() {
 		genesisBlock: { block: __testContext.config.genesisBlock },
 		components: {
 			logger: this.logger,
-			system: this.system,
 		},
 		network: {
 			expressApp: express(),
@@ -78,6 +72,20 @@ const modulesLoader = new function() {
 				this.logger.warn('Balance queue', current);
 			},
 		}),
+		channel: {
+			invoke: sinonSandbox.stub(),
+			publish: sinonSandbox.stub(),
+			suscribe: sinonSandbox.stub(),
+		},
+		applicationState: {
+			nethash: __testContext.nethash,
+			version: __testContext.version,
+			wsPort: __testContext.wsPort,
+			httpPort: __testContext.httpPort,
+			minVersion: __testContext.minVersion,
+			protocolVersion: __testContext.protocolVersion,
+			nonce: __testContext.nonce,
+		},
 	};
 
 	/**
@@ -123,12 +131,7 @@ const modulesLoader = new function() {
 				);
 				break;
 			case 'Peers':
-				new Logic(
-					scope.components.logger,
-					scope.config,
-					scope.components.system,
-					cb
-				);
+				new Logic(scope.components.logger, scope.config, scope.channel, cb);
 				break;
 			default:
 				console.info('no Logic case initLogic');

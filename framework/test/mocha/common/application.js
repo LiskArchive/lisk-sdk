@@ -22,7 +22,6 @@ const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
-const { createSystemComponent } = require('../../../src/components/system');
 const { StorageSandbox } = require('./storage_sandbox');
 const { ZSchema } = require('../../../src/controller/helpers/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
@@ -145,22 +144,30 @@ async function __init(sandbox, initScope) {
 					},
 				}),
 				channel: {
-					invoke() {},
-					publish() {},
-					subscribe() {},
+					invoke: sinonSandbox.stub(),
+					publish: sinonSandbox.stub(),
+					suscribe: sinonSandbox.stub(),
+					once: sinonSandbox.stub().callsArg(1),
+				},
+				applicationState: {
+					nethash: __testContext.nethash,
+					version: __testContext.version,
+					wsPort: __testContext.wsPort,
+					httpPort: __testContext.httpPort,
+					minVersion: __testContext.minVersion,
+					protocolVersion: __testContext.protocolVersion,
+					nonce: __testContext.nonce,
 				},
 			},
 			initScope
 		);
 
 		const cache = createCacheComponent(scope.config.redis, logger);
-		const system = createSystemComponent(scope.config, logger, storage);
 
 		scope.components = {
 			logger,
 			storage,
 			cache,
-			system,
 		};
 
 		await startStorage();
@@ -248,7 +255,10 @@ async function __init(sandbox, initScope) {
 }
 
 function cleanup(done) {
-	if (currentAppScope.components !== undefined) {
+	if (
+		Object.prototype.hasOwnProperty.call(currentAppScope, 'components') &&
+		currentAppScope.components !== undefined
+	) {
 		currentAppScope.components.cache.cleanup();
 	}
 	async.eachSeries(

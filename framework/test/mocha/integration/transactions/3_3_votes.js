@@ -21,9 +21,9 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 3) - voting with duplicate submissions', () => {
+describe('integration test (type 3) - voting with duplicate submissions', () => {
 	let library;
-	localCommon.beforeBlock('system_3_3_votes', lib => {
+	localCommon.beforeBlock('3_3_votes', lib => {
 		library = lib;
 	});
 

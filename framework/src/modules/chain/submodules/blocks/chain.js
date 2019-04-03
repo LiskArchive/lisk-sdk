@@ -56,7 +56,8 @@ class Chain {
 		storage,
 		genesisBlock,
 		bus,
-		balancesSequence
+		balancesSequence,
+		channel
 	) {
 		library = {
 			logger,
@@ -68,6 +69,7 @@ class Chain {
 				block,
 				initTransaction,
 			},
+			channel,
 		};
 		self = this;
 
@@ -483,7 +485,7 @@ Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
 __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 	return new Promise((resolve, reject) => {
 		// Load previous block from full_blocks_list table
-		// TODO: Can be inefficient, need performnce tests
+		// TODO: Can be inefficient, need performance tests
 		modules.blocks.utils.loadBlocksPart(
 			{ id: secondLastBlockId },
 			(err, blocks) => {
@@ -649,11 +651,26 @@ Chain.prototype.deleteLastBlock = function(cb) {
 					return seriesCb(err);
 				});
 			},
-			updateSystemHeaders(seriesCb) {
-				// Update our own headers: broadhash and height
-				return components.system
-					.update()
-					.then(() => seriesCb())
+			updateApplicationState(seriesCb) {
+				return library.storage.entities.Block.get(
+					{},
+					{
+						limit: 5,
+						sort: 'height:desc',
+					}
+				)
+					.then(blocks => {
+						// Listen for the update of step to move to next step
+						library.channel.once('lisk:state:updated', () => {
+							seriesCb();
+						});
+
+						// Update our application state: broadhash and height
+						return library.channel.invoke(
+							'lisk:updateApplicationState',
+							blocks
+						);
+					})
 					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
@@ -691,15 +708,14 @@ Chain.prototype.recoverChain = function(cb) {
 };
 
 /**
- * Handle modules & components initialization
+ * It assigns modules & components to private constants
  *
- * @param {modules} scope - Exposed modules
+ * @param {modules, components} scope - Exposed modules & components
  */
 Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
-		system: scope.components.system,
 	};
 
 	modules = {

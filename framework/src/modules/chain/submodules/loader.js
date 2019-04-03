@@ -941,11 +941,26 @@ __private.sync = function(cb) {
 			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
-			updateSystemHeaders(seriesCb) {
-				// Update our own headers: broadhash and height
-				return components.system
-					.update()
-					.then(() => seriesCb())
+			updateApplicationState(seriesCb) {
+				return library.storage.entities.Block.get(
+					{},
+					{
+						limit: 5,
+						sort: 'height:desc',
+					}
+				)
+					.then(blocks => {
+						// Listen for the update of step to move to next step
+						library.channel.once('lisk:state:updated', () => {
+							seriesCb();
+						});
+
+						// Update our application state: broadhash and height
+						return library.channel.invoke(
+							'lisk:updateApplicationState',
+							blocks
+						);
+					})
 					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
@@ -1142,16 +1157,15 @@ Loader.prototype.onPeersReady = function() {
 };
 
 /**
- * Assigns needed modules and components from scope to private constants.
+ * It assigns components & modules from scope to private constants.
  *
- * @param {modules} scope
+ * @param {components, modules} scope modules & components
  * @returns {function} Calling __private.loadBlockChain
  * @todo Add description for the params
  */
 Loader.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
-		system: scope.components.system,
 	};
 
 	modules = {
