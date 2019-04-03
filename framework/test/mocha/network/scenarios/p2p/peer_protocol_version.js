@@ -36,7 +36,9 @@ module.exports = function(
 	// One of the bi-directional monitoring connections should be down so
 	// we need to subtract 2.
 
-	describe('@p2p : peer Protocol Version', () => {
+	// TODO: Unskip this test once we have transitioned to the new config format.
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('@p2p : peer Protocol Version', () => {
 		const { protocolVersion: originalProtocolVersion } = __testContext.config;
 		let pm2NetworkConfig;
 
