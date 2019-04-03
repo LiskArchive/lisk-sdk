@@ -636,6 +636,19 @@ describe('round', () => {
 			const expectedBalance = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990199; // 1.7976931348623157e+308 / 101 (delegates num) + 100
 			return expect(res.balance).equal(expectedBalance);
 		});
+
+		it('should not mutate roundRewards if round exception exists', () => {
+			const [rewards_factor, fees_factor, fees_bonus] = [2, 2, 10000000];
+			global.exceptions.rounds = {
+				[scope.round]: { rewards_factor, fees_factor, fees_bonus },
+			};
+			const roundRewards = _.clone(validLocalScope.roundRewards);
+
+			round = new Round(validLocalScope, task);
+			round.rewardsAtRound(rewardsAt);
+
+			return expect(roundRewards).to.deep.equal(validLocalScope.roundRewards);
+		});
 	});
 
 	describe('applyRound', () => {

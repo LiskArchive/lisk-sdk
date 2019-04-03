@@ -303,7 +303,7 @@ class Round {
 	 */
 	rewardsAtRound(index) {
 		let roundFees = Math.floor(this.scope.roundFees) || 0;
-		const roundRewards = this.scope.roundRewards || [];
+		const roundRewards = [...this.scope.roundRewards] || [];
 
 		// Apply exception for round if required
 		if (exceptions.rounds[this.scope.round]) {
