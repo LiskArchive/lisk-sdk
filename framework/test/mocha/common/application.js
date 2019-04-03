@@ -253,7 +253,10 @@ async function __init(sandbox, initScope) {
 }
 
 function cleanup(done) {
-	if (currentAppScope.components !== undefined) {
+	if (
+		Object.prototype.hasOwnProperty.call(currentAppScope, 'components') &&
+		currentAppScope.components !== undefined
+	) {
 		currentAppScope.components.cache.cleanup();
 	}
 	async.eachSeries(
