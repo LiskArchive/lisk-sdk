@@ -37,7 +37,7 @@ describe('connect', () => {
 	let registerRPCSpy;
 	let registerSocketListenersSpy;
 	let loggerMock;
-	let peersHeadersMock;
+	let applicationStateMock;
 	let masterWAMPServerMock;
 
 	before('spy on connectSteps', async () => {
@@ -72,7 +72,9 @@ describe('connect', () => {
 			trace: sinonSandbox.stub(),
 		};
 
-		peersHeadersMock = {};
+		applicationStateMock = {
+			state: sinonSandbox.stub().returns({}),
+		};
 
 		masterWAMPServerMock = {
 			upgradeToWAMP: sinonSandbox.stub(),
@@ -104,7 +106,11 @@ describe('connect', () => {
 	describe('connect', () => {
 		describe('connectSteps order', () => {
 			beforeEach(async () => {
-				connectResult = connectRewired(validPeer, loggerMock, peersHeadersMock);
+				connectResult = connectRewired(
+					validPeer,
+					loggerMock,
+					applicationStateMock.state
+				);
 			});
 
 			it('should call all connectSteps', async () => {
@@ -150,13 +156,14 @@ describe('connect', () => {
 
 	describe('connectionSteps', () => {
 		let peerAsResult;
+		let stateMock;
 
 		describe('addConnectionOptions', () => {
-			let originalSystemHeaders;
+			let originalApplicationState;
 
 			beforeEach(async () => {
-				originalSystemHeaders = peersHeadersMock;
-				peersHeadersMock = {
+				originalApplicationState = applicationStateMock.state;
+				stateMock = {
 					protocolVersion: 'aProtocolVersion',
 					version: 'aVersion',
 					nonce: 'aNonce',
@@ -167,11 +174,11 @@ describe('connect', () => {
 				const addConnectionOptions = connectRewired.__get__(
 					'connectSteps.addConnectionOptions'
 				);
-				peerAsResult = addConnectionOptions(validPeer, peersHeadersMock);
+				peerAsResult = addConnectionOptions(validPeer, stateMock);
 			});
 
 			afterEach(async () => {
-				peersHeadersMock = originalSystemHeaders;
+				stateMock = originalApplicationState;
 			});
 
 			it('should add connectionOptions field to peer', async () =>
@@ -201,32 +208,32 @@ describe('connect', () => {
 				it('should contain protocolVersion if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.protocolVersion')
-						.to.eql(peersHeadersMock.protocolVersion));
+						.to.eql(stateMock.protocolVersion));
 
 				it('should contain version if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.version')
-						.to.eql(peersHeadersMock.version));
+						.to.eql(stateMock.version));
 
 				it('should contain nonce if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nonce')
-						.to.eql(peersHeadersMock.nonce));
+						.to.eql(stateMock.nonce));
 
 				it('should contain nethash if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.nethash')
-						.to.eql(peersHeadersMock.nethash));
+						.to.eql(stateMock.nethash));
 
 				it('should contain wsPort if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.wsPort')
-						.to.eql(peersHeadersMock.wsPort));
+						.to.eql(stateMock.wsPort));
 
 				it('should contain httpPort if present on peers headers', async () =>
 					expect(peerAsResult)
 						.to.have.nested.property('connectionOptions.query.httpPort')
-						.to.eql(peersHeadersMock.httpPort));
+						.to.eql(stateMock.httpPort));
 			});
 
 			it('should return [peer]', async () =>

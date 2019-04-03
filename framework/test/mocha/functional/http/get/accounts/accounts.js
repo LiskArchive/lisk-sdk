@@ -24,6 +24,7 @@ const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const randomUtil = require('../../../../common/utils/random');
 const waitFor = require('../../../../common/utils/wait_for');
 const apiHelpers = require('../../../../common/helpers/api');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -304,7 +305,13 @@ describe('GET /accounts', () => {
 				return accountsEndpoint.makeRequest({}, 200).then(res => {
 					const balances = _.clone(res.body.data);
 					expect(
-						_.orderBy(balances, ['balance', 'address'], ['asc', 'asc'])
+						balances.sort((a, b) => {
+							const aBignumBalance = new Bignum(a.balance);
+							return (
+								aBignumBalance.minus(b.balance) ||
+								a.address.localeCompare(b.address)
+							);
+						})
 					).to.be.eql(res.body.data);
 				});
 			});
@@ -315,7 +322,13 @@ describe('GET /accounts', () => {
 					.then(res => {
 						const balances = _.clone(res.body.data);
 						expect(
-							_.orderBy(balances, ['balance', 'address'], ['asc', 'asc'])
+							balances.sort((a, b) => {
+								const aBignumBalance = new Bignum(a.balance);
+								return (
+									aBignumBalance.minus(b.balance) ||
+									a.address.localeCompare(b.address)
+								);
+							})
 						).to.be.eql(res.body.data);
 					});
 			});
@@ -326,7 +339,13 @@ describe('GET /accounts', () => {
 					.then(res => {
 						const balances = _.clone(res.body.data);
 						expect(
-							_.orderBy(balances, ['balance', 'address'], ['desc', 'asc'])
+							balances.sort((a, b) => {
+								const bBignumBalance = new Bignum(b.balance);
+								return (
+									bBignumBalance.minus(a.balance) ||
+									a.address.localeCompare(b.address)
+								);
+							})
 						).to.be.eql(res.body.data);
 					});
 			});
