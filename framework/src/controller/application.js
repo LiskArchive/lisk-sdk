@@ -130,11 +130,13 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		this.registerTransaction(TransferTransaction, 'transfer');
-		this.registerTransaction(SecondSignatureTransaction, 'secondSignature');
-		this.registerTransaction(DelegateTransaction, 'delegate');
-		this.registerTransaction(VoteTransaction, 'vote');
-		this.registerTransaction(MultisignatureTransaction, 'multisignature');
+		this.registerTransaction(TransferTransaction, { transactionType: 0 });
+		this.registerTransaction(SecondSignatureTransaction, {
+			transactionType: 1,
+		});
+		this.registerTransaction(DelegateTransaction, { transactionType: 2 });
+		this.registerTransaction(VoteTransaction, { transactionType: 3 });
+		this.registerTransaction(MultisignatureTransaction, { transactionType: 4 });
 
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
@@ -205,21 +207,19 @@ class Application {
 	 * @param {constructor} Transaction - Transaction class
 	 * @param {string} alias - Will use this alias or fallback to `Transaction.alias`
 	 */
-	registerTransaction(Transaction, alias) {
-		assert(Transaction, 'Transaction is required');
-		assert(alias, 'Transaction is required');
-		assert(
-			typeof Transaction === 'function',
-			'Transaction should be constructor'
-		);
+	registerTransaction(Transaction, options = {}) {
+		const transactionType = options.transactionType;
+
 		// TODO: Validate the transaction is properly inherited from base class
+		assert(Transaction, 'Transaction is required');
+		assert(transactionType, 'options.transactionType is required');
 		assert(
-			!Object.keys(this.getTransactions()).includes(alias),
-			`A transaction with alias "${alias}" already registered.`
+			!Object.keys(this.getTransactions()).includes(transactionType),
+			`A transaction type "${transactionType}" is already registered.`
 		);
 
 		const transactions = this.getTransactions();
-		transactions[alias] = Object.freeze(Transaction);
+		transactions[transactionType] = Object.freeze(Transaction);
 		__private.transactions.set(this, transactions);
 	}
 

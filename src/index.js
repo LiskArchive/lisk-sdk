@@ -42,9 +42,9 @@ try {
 		},
 	});
 
-	app.registerTransaction(DappTransaction, 'dapp');
-	app.registerTransaction(InTransferTransaction, 'inTransfer');
-	app.registerTransaction(OutTransferTransaction, 'outTransfer');
+	app.registerTransaction(DappTransaction, { transactionType: 5 });
+	app.registerTransaction(InTransferTransaction, { transactionType: 6 });
+	app.registerTransaction(OutTransferTransaction, { transactionType: 7 });
 
 	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
 	app.overrideModuleOptions('httpApi', { config });

@@ -117,8 +117,11 @@ class Transaction {
 			[7, outTransferAsset],
 		]);
 
-		Object.values(transactions).forEach((transaction, index) => {
-			this.transactionClassMap.set(index, transaction);
+		Object.keys(transactions).forEach(transactionType => {
+			this.transactionClassMap.set(
+				transactionType,
+				transactions[transactionType]
+			);
 		});
 	}
 
