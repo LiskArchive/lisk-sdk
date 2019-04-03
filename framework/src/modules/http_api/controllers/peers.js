@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
 const { getByFilter, getCountByFilter } = require('../helpers/filter_peers');
-
+const swaggerHelper = require('../helpers/swagger');
 // Private Fields
 let channel;
 
