@@ -19,6 +19,7 @@ const async = require('async');
 const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots.js');
+const { convertErrorsToString } = require('../../helpers/error_handlers');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -490,8 +491,7 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 			{ id: secondLastBlockId },
 			(err, blocks) => {
 				if (err || !blocks.length) {
-					const error = Array.isArray(err) && err.length > 0 ? err[0] : err;
-					library.logger.error('Failed to get loadBlocksPart', error);
+					library.logger.error('Failed to get loadBlocksPart', convertErrorsToString(err));
 					return setImmediate(
 						reject,
 						err || new Error('previousBlock is null')

@@ -16,6 +16,7 @@
 
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 const jobsQueue = require('../helpers/jobs_queue');
 const slots = require('../helpers/slots');
 const definitions = require('../schema/definitions');
@@ -335,7 +336,7 @@ __private.loadTransactions = function(cb) {
 							err => {
 								if (err) {
 									// TODO: Validate if error propagation required
-									library.logger.debug(err);
+									library.logger.debug(convertErrorsToString(err));
 								}
 								return setImmediate(eachSeriesCb);
 							}
@@ -896,9 +897,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				waterErr => {
 					if (waterErr) {
 						failedAttemptsToLoad += 1;
-						library.logger.error(
-							waterErr.message ? waterErr.message : waterErr
-						);
+						library.logger.error(convertErrorsToString(waterErr));
 					}
 					whilstCb();
 				}

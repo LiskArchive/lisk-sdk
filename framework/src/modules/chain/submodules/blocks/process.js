@@ -17,6 +17,7 @@
 const _ = require('lodash');
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('../../helpers/error_handlers');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
 
@@ -146,11 +147,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				const error =
-					Array.isArray(err) && err.length > 0
-						? err.map(e => e.message).join(', ')
-						: err;
-				library.logger.error('Fork recovery failed', error);
+				library.logger.error('Fork recovery failed', convertErrorsToString(err));
 			}
 			return setImmediate(cb, err);
 		}
@@ -227,11 +224,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				const error =
-					Array.isArray(err) && err.length > 0
-						? err.map(e => e.message).join(', ')
-						: err;
-				library.logger.error('Fork recovery failed', error);
+				library.logger.error('Fork recovery failed', convertErrorsToString(err));
 			}
 			return setImmediate(cb, err);
 		}

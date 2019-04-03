@@ -331,7 +331,7 @@ class TransactionPool {
 		if (this.transactionInPool(transaction.id)) {
 			return setImmediate(
 				cb,
-				`Transaction is already processed: ${transaction.id}`
+				new Error(`Transaction is already processed: ${transaction.id}`)
 			);
 		}
 		return this.verifyTransactions([transaction]).then(
