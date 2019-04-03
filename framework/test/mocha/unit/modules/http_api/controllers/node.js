@@ -47,6 +47,10 @@ describe('node/api', () => {
 			},
 			config: configStub,
 			channel: channelStub,
+			applicationState: {
+				broadhash:
+					'176caf53295f73a5a67a1fb56f31445392a3b8e8f11ed6167f323813001eb73b',
+			},
 		};
 
 		new NodeController(library);
@@ -81,6 +85,13 @@ describe('node/api', () => {
 					library.channel
 				);
 			});
+
+			it('should assign applicationState', () => {
+				return expect(privateLibrary).to.have.property(
+					'applicationState',
+					library.applicationState
+				);
+			});
 		});
 	});
 
@@ -88,8 +99,6 @@ describe('node/api', () => {
 
 	describe('getStatus', () => {
 		const status = {
-			broadhash:
-				'176caf53295f73a5a67a1fb56f31445392a3b8e8f11ed6167f323813001eb73b',
 			consensus: 100,
 			secondsSinceEpoch: 89742345,
 			lastBlock: {

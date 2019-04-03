@@ -42,7 +42,7 @@ describe('rounds', () => {
 	// Set rewards start at 150-th block
 	REWARDS.OFFSET = 150;
 
-	localCommon.beforeBlock('lisk_functional_rounds', lib => {
+	localCommon.beforeBlock('rounds', lib => {
 		library = lib;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 

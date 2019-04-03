@@ -13,7 +13,6 @@ const { ZSchema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { createSystemComponent } = require('../../components/system');
 const {
 	lookupPeerIPs,
 	createBus,
@@ -78,9 +77,8 @@ module.exports = class Chain {
 			'cache'
 		);
 
-		const systemConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
-			'system'
+		this.applicationState = await this.channel.invoke(
+			'lisk:getApplicationState'
 		);
 
 		this.logger = createLoggerComponent(loggerConfig);
@@ -122,10 +120,6 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			// System
-			this.logger.debug('Initiating system...');
-			this.system = createSystemComponent(systemConfig, this.logger, storage);
-
 			if (!this.options.config) {
 				throw Error('Failed to assign nethash from genesis block');
 			}
@@ -152,9 +146,9 @@ module.exports = class Chain {
 					storage,
 					cache,
 					logger: self.logger,
-					system: this.system,
 				},
 				channel: this.channel,
+				applicationState: this.applicationState,
 			};
 
 			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
@@ -183,6 +177,11 @@ module.exports = class Chain {
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 			scope.logic.block.bindModules(scope.modules);
+
+			this.channel.subscribe('lisk:state:updated', event => {
+				Object.assign(scope.applicationState, event.data);
+			});
+
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
 
@@ -258,7 +257,6 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				broadhash: this.system.headers.broadhash,
 				consensus: this.scope.modules.peers.getLastConsensus(),
 				loaded: this.scope.modules.loader.loaded(),
 				syncing: this.scope.modules.loader.syncing(),

@@ -5,10 +5,10 @@ const Rx = require('rx');
 const localCommon = require('../common');
 const jobsQueue = require('../../../../src/modules/chain/helpers/jobs_queue');
 
-describe('system test (delegates) - synchronous tasks', () => {
+describe('integration test (delegates) - synchronous tasks', () => {
 	let library;
 
-	localCommon.beforeBlock('system_delegates_synchronous_tasks', lib => {
+	localCommon.beforeBlock('delegates_synchronous_tasks', lib => {
 		library = lib;
 	});
 

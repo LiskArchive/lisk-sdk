@@ -192,7 +192,7 @@ describe('blocks/verify', () => {
 		application.init(
 			{
 				sandbox: {
-					name: 'lisk_test_blocks_verify',
+					name: 'blocks_verify',
 				},
 			},
 			(err, scope) => {
