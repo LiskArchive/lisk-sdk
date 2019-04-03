@@ -434,7 +434,7 @@ describe('blocks', () => {
 	});
 
 	describe('calculateNewBroadhash()', () => {
-		describe('when there is a prolem getting blocks from the db', () => {
+		describe('when there is a problem getting blocks from the db', () => {
 			beforeEach(async () => {
 				storageStub.entities.Block.get.rejects(new Error('error'));
 			});

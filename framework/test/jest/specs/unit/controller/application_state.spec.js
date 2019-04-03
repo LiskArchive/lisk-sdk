@@ -64,11 +64,12 @@ describe('Application State', () => {
 			// Assert
 			expect(applicationState.logger).toBe(logger);
 			expect(applicationState.stateChannel).toBe(undefined);
+			expect(applicationState.state).toEqual(mockedState);
 		});
 	});
 
 	describe('#get state', () => {
-		it('should get the state', () => {
+		it('should call get state', () => {
 			// Arrange
 			const spy = jest.spyOn(applicationState, 'state', 'get');
 
@@ -102,96 +103,100 @@ describe('Application State', () => {
 	});
 
 	describe('#update', () => {
-		it('should return error if there is a problem in the channel', async () => {
+		describe('when there is an error', () => {
 			// Arrange
 			const newState = {
 				broadhash: 'xxx',
 				height: '10',
 			};
 			const errorMessage = 'Publish failure';
-			applicationState.channel = {
-				publish: jest
-					.fn()
-					.mockImplementationOnce(() =>
-						Promise.reject(new Error(errorMessage))
-					),
+
+			beforeEach(() => {
+				applicationState.channel = {
+					publish: jest
+						.fn()
+						.mockImplementation(() => Promise.reject(new Error(errorMessage))),
+				};
+			});
+
+			it('should return error', () => {
+				expect(applicationState.update(newState)).rejects.toThrow(errorMessage);
+			});
+
+			it('should log the error', async () => {
+				try {
+					await applicationState.update(newState);
+				} catch (error) {
+					expect(logger.error).toHaveBeenCalled();
+					expect(logger.error).toHaveBeenLastCalledWith(error.stack);
+				}
+			});
+		});
+	});
+
+	describe('when correct parameters are passed', () => {
+		let newState;
+		let result;
+		let spies;
+		let updatedState;
+
+		beforeEach(async () => {
+			// Arrange
+			newState = {
+				broadhash: 'newBroadhash',
+				height: '10',
 			};
-			try {
-				// Act
-				await applicationState.update(newState);
-			} catch (error) {
-				// Assert
-				expect(error).toBeInstanceOf(Error);
-				expect(error.message).toBe(errorMessage);
-			}
+			applicationState.channel = channel;
+			spies = {
+				get: jest.spyOn(applicationState, 'state', 'get'),
+			};
+
+			// Act
+			result = await applicationState.update(newState);
+			updatedState = applicationState.state;
 		});
 
-		describe('when correct parameters are passed', () => {
-			let newState;
-			let result;
-			let spies;
-			let updatedState;
+		afterEach(async () => {
+			// Clean
+			spies.get.mockRestore();
+		});
 
-			beforeEach(async () => {
-				// Arrange
-				newState = {
-					broadhash: 'newBroadhash',
-					height: '10',
-				};
-				applicationState.channel = channel;
-				spies = {
-					get: jest.spyOn(applicationState, 'state', 'get'),
-				};
+		it('should call get four times', async () => {
+			// Assert
+			expect(spies.get).toHaveBeenCalledTimes(4);
+		});
 
-				// Act
-				result = await applicationState.update(newState);
-				updatedState = applicationState.state;
-			});
+		it('should update broadhash', async () => {
+			// Assert
+			expect(updatedState.broadhash).toBe(newState.broadhash);
+		});
 
-			afterEach(async () => {
-				// Clean
-				spies.get.mockRestore();
-			});
+		it('should update height', async () => {
+			// Assert
+			expect(updatedState.height).toBe(newState.height);
+		});
 
-			it('should call get four times', async () => {
-				// Assert
-				expect(spies.get).toHaveBeenCalledTimes(4);
-			});
+		it('should print notification update in logs', async () => {
+			// Assert
+			expect(logger.debug).toHaveBeenCalled();
+			expect(logger.debug).toHaveBeenLastCalledWith(
+				'Application state',
+				updatedState
+			);
+		});
 
-			it('should update broadhash', async () => {
-				// Assert
-				expect(applicationState.state.broadhash).toBe(newState.broadhash);
-				expect(updatedState.broadhash).toBe(newState.broadhash);
-			});
+		it('should publish notification update on the channel', async () => {
+			// Assert
+			expect(channel.publish).toHaveBeenCalled();
+			expect(channel.publish).toHaveBeenLastCalledWith(
+				'lisk:state:updated',
+				updatedState
+			);
+		});
 
-			it('should update height', async () => {
-				// Assert
-				expect(applicationState.state.height).toBe(newState.height);
-				expect(updatedState.height).toBe(newState.height);
-			});
-
-			it('should print notification update in logs', async () => {
-				// Assert
-				expect(logger.debug).toHaveBeenCalled();
-				expect(logger.debug).toHaveBeenLastCalledWith(
-					'Application state',
-					updatedState
-				);
-			});
-
-			it('should publish notification update on the channel', async () => {
-				// Assert
-				expect(channel.publish).toHaveBeenCalled();
-				expect(channel.publish).toHaveBeenLastCalledWith(
-					'lisk:state:updated',
-					updatedState
-				);
-			});
-
-			it('should return true', async () => {
-				// Assert
-				expect(result).toBe(true);
-			});
+		it('should return true', async () => {
+			// Assert
+			expect(result).toBe(true);
 		});
 	});
 });
