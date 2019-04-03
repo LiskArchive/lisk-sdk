@@ -125,6 +125,7 @@ class Transaction {
 		});
 	}
 
+	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
 	dbRead(raw) {
 		if (!raw.t_id) {
 			return null;
