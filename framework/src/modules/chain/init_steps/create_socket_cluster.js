@@ -11,13 +11,6 @@ module.exports = async ({
 	modules: { transport },
 	components: { logger },
 }) => {
-	if (!config.peers.enabled) {
-		logger.info(
-			'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
-		);
-		return true;
-	}
-
 	const webSocketConfig = {
 		workers: 1,
 		port: config.wsPort,

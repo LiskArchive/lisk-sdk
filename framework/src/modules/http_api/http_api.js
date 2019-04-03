@@ -1,7 +1,10 @@
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
 const { createLoggerComponent } = require('../../components/logger');
 const { createCacheComponent } = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');
-const { createSystemComponent } = require('../../components/system');
 const {
 	bootstrapStorage,
 	setupServers,
@@ -57,18 +60,12 @@ module.exports = class HttpApi {
 
 		// System
 		this.logger.debug('Initiating system...');
-		const systemConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
-			'system'
-		);
-		const system = createSystemComponent(systemConfig, this.logger, storage);
 		// Setup scope
 		this.scope = {
 			components: {
 				cache,
 				logger: this.logger,
 				storage,
-				system,
 			},
 			channel: this.channel,
 			config: this.options.config,
