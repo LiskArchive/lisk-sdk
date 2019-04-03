@@ -115,16 +115,16 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 		{},
 		tx
 	)
-	.then(isPersisted => {
-		if (!isPersisted) {
-			return setImmediate(
-				cb,
-				`Application not found: ${transaction.asset.inTransfer.dappId}`
-			);
-		}
-		return setImmediate(cb);
-	})
-	.catch(err => setImmediate(cb, err));
+		.then(isPersisted => {
+			if (!isPersisted) {
+				return setImmediate(
+					cb,
+					`Application not found: ${transaction.asset.inTransfer.dappId}`
+				);
+			}
+			return setImmediate(cb);
+		})
+		.catch(err => setImmediate(cb, err));
 };
 
 /**

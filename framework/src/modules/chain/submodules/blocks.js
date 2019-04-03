@@ -68,7 +68,8 @@ class Blocks {
 				scope.logic.block,
 				scope.logic.transaction,
 				scope.components.storage,
-				scope.config
+				scope.config,
+				scope.channel
 			),
 			process: new BlocksProcess(
 				scope.components.logger,
@@ -95,7 +96,8 @@ class Blocks {
 				scope.components.storage,
 				scope.genesisBlock,
 				scope.bus,
-				scope.balancesSequence
+				scope.balancesSequence,
+				scope.channel
 			),
 		};
 
