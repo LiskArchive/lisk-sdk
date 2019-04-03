@@ -222,12 +222,16 @@ class Controller {
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [
-			modulePath,
-			JSON.stringify({ config: this.config, moduleOptions: options }),
-		];
+		const parameters = [modulePath];
 
 		const child = child_process.fork(program, parameters);
+
+		// TODO: Check which config and options are actually required to avoid sending large data
+		child.send({
+			loadModule: true,
+			config: this.config,
+			moduleOptions: options,
+		});
 
 		this.childrenList.push(child);
 
