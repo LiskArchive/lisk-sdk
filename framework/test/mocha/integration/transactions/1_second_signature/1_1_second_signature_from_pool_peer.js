@@ -26,11 +26,11 @@ const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - second signature transactions from pool and peer', () => {
+describe('integration test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_1_1_second_sign_from_pool_and_peer', lib => {
+	localCommon.beforeBlock('1_1_second_sign_from_pool_and_peer', lib => {
 		library = lib;
 		storage = lib.components.storage;
 	});
