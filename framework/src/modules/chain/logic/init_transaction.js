@@ -119,7 +119,7 @@ class Transaction {
 
 		Object.keys(transactions).forEach(transactionType => {
 			this.transactionClassMap.set(
-				transactionType,
+				Number(transactionType),
 				transactions[transactionType]
 			);
 		});
