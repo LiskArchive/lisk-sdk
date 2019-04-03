@@ -54,7 +54,7 @@ describe('integration test (type 5) - dapp registrations with repeated values', 
 	const dappDuplicateLinkFail = randomUtil.application();
 	dappDuplicateLinkSuccess.link = dappDuplicateLinkFail.link;
 
-	localCommon.beforeBlock('lisk_test_integration_5_5_dapps', lib => {
+	localCommon.beforeBlock('5_5_dapps', lib => {
 		library = lib;
 	});
 

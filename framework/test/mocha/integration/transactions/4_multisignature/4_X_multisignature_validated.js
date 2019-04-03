@@ -50,12 +50,9 @@ describe('integration test (type 4) - checking registered multisignature transac
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
-	localCommon.beforeBlock(
-		'lisk_test_integration_4_X_multisig_validated',
-		lib => {
-			library = lib;
-		}
-	);
+	localCommon.beforeBlock('4_X_multisig_validated', lib => {
+		library = lib;
+	});
 
 	before(done => {
 		localCommon.addTransactionsAndForge(

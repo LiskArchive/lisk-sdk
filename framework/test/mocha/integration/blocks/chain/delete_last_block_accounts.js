@@ -34,7 +34,7 @@ const transferOutOfDapp = () => {};
 
 describe('integration test (blocks) - chain/deleteLastBlock', () => {
 	let library;
-	localCommon.beforeBlock('lisk_test_integration_blocks_chain', lib => {
+	localCommon.beforeBlock('blocks_chain', lib => {
 		library = lib;
 	});
 

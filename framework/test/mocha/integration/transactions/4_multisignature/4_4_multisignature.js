@@ -54,7 +54,7 @@ describe('integration test (type 4) - double multisignature registrations', () =
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
-	localCommon.beforeBlock('lisk_test_integration_4_4_multisig', lib => {
+	localCommon.beforeBlock('4_4_multisig', lib => {
 		library = lib;
 	});
 

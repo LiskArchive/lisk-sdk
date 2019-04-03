@@ -26,17 +26,14 @@ describe('validateOwnChain', () => {
 	let Queries;
 	let addTransactionsAndForgePromise;
 
-	localCommon.beforeBlock(
-		'lisk_test_integration_validate_own_chain_more_than_two_rounds',
-		lib => {
-			library = lib;
-			Queries = new QueriesHelper(lib, lib.components.storage);
+	localCommon.beforeBlock('validate_own_chain_more_than_two_rounds', lib => {
+		library = lib;
+		Queries = new QueriesHelper(lib, lib.components.storage);
 
-			addTransactionsAndForgePromise = Promise.promisify(
-				localCommon.addTransactionsAndForge
-			);
-		}
-	);
+		addTransactionsAndForgePromise = Promise.promisify(
+			localCommon.addTransactionsAndForge
+		);
+	});
 
 	describe('forge 3 rounds (303 blocks) with version = 0', () => {
 		before(() => {

@@ -35,12 +35,9 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 	});
 	scenarios.regular.dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock(
-		'lisk_test_integration_4_X_multisig_unconfirmed',
-		lib => {
-			library = lib;
-		}
-	);
+	localCommon.beforeBlock('4_X_multisig_unconfirmed', lib => {
+		library = lib;
+	});
 
 	before(done => {
 		localCommon.addTransactionsAndForge(

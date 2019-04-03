@@ -38,12 +38,9 @@ describe('integration test - multi signature edge cases', () => {
 	const signer1 = randomUtil.account();
 	const signer2 = randomUtil.account();
 
-	localCommon.beforeBlock(
-		'lisk_test_integration_multisignature_edge_cases',
-		lib => {
-			library = lib;
-		}
-	);
+	localCommon.beforeBlock('multisignature_edge_cases', lib => {
+		library = lib;
+	});
 
 	before(
 		'forge new block crediting and registering multisignature transaction',

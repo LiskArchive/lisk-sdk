@@ -37,7 +37,7 @@ describe('inert transactions', () => {
 		delegateInertTransaction.id,
 	];
 
-	localCommon.beforeBlock('lisk_test_integration_inert_transactions', lib => {
+	localCommon.beforeBlock('inert_transactions', lib => {
 		library = lib;
 	});
 

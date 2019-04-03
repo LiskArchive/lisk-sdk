@@ -36,7 +36,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 		application.init(
 			{
 				sandbox: {
-					name: 'lisk_test_integration_blocks_process_on_receive_block',
+					name: 'blocks_process_on_receive_block',
 				},
 			},
 			(err, scope) => {

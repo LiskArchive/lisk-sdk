@@ -33,7 +33,7 @@ describe('duplicate_signatures', () => {
 	let addTransactionsAndForgePromise;
 	let transactionPool;
 
-	localCommon.beforeBlock('lisk_test_integration_duplicate_signatures', lib => {
+	localCommon.beforeBlock('duplicate_signatures', lib => {
 		library = lib;
 
 		addTransactionsAndForgePromise = Promise.promisify(

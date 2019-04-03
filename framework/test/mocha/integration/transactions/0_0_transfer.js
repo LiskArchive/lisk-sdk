@@ -23,7 +23,7 @@ const { NORMALIZER } = global.constants;
 
 describe('integration test (type 0) - double transfers', () => {
 	let library;
-	localCommon.beforeBlock('lisk_test_integration_0_0_transfer', lib => {
+	localCommon.beforeBlock('0_0_transfer', lib => {
 		library = lib;
 	});
 

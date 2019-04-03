@@ -27,12 +27,9 @@ const { NORMALIZER } = global.constants;
 
 describe('integration test (type 0) - address collision', () => {
 	let library;
-	localCommon.beforeBlock(
-		'lisk_test_integration_0_0_address_collision',
-		lib => {
-			library = lib;
-		}
-	);
+	localCommon.beforeBlock('0_0_address_collision', lib => {
+		library = lib;
+	});
 
 	const collision = {
 		address: '13555181540209512417L',

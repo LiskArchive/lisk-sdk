@@ -26,7 +26,7 @@ describe('block_version', () => {
 	let Queries;
 	let addTransactionsAndForgePromise;
 
-	localCommon.beforeBlock('lisk_test_integration_block_version', lib => {
+	localCommon.beforeBlock('block_version', lib => {
 		library = lib;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
