@@ -64,6 +64,9 @@ describe('account', () => {
 		application.init(
 			{ sandbox: { name: 'lisk_test_logic_accounts' } },
 			(err, scope) => {
+				if (err) {
+					done(err);
+				}
 				account = scope.logic.account;
 				done();
 			}

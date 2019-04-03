@@ -291,6 +291,9 @@ function beforeBlock(type, cb) {
 			application.init(
 				{ sandbox: { name: `lisk_test_${type}` } },
 				(err, library) => {
+					if (err) {
+						return done(err);
+					}
 					cb(library);
 					return done();
 				}

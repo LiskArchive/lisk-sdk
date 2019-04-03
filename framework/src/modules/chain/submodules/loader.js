@@ -756,17 +756,14 @@ __private.createSnapshot = height => {
 
 	const snapshotRound = library.config.loading.snapshotRound;
 	// Negative number not possible as `commander` does not recognize this as valid flag (throws error)
-	if (
-		(!snapshotRound && Number.isNaN(parseInt(snapshotRound))) ||
-		parseInt(snapshotRound) < 1
-	) {
+	if (Number.isNaN(parseInt(snapshotRound)) || parseInt(snapshotRound) < 1) {
 		throw new Error(
 			'Unable to create snapshot, "--snapshot" parameter should be an integer greater than zero or empty which corresponds to all rounds'
 		);
 	}
 
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound = snapshotRound
+	const targetRound = Number.isNaN(parseInt(snapshotRound))
 		? totalRounds
 		: Math.min(totalRounds, snapshotRound);
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
