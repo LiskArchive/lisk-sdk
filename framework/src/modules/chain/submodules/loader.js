@@ -192,7 +192,7 @@ __private.syncTimer = function() {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.loadSignatures = async function() {
+__private.getSignaturesFromNetwork = async function() {
 	library.logger.info('Loading signatures from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getSignatures
@@ -201,10 +201,9 @@ __private.loadSignatures = async function() {
 	});
 
 	const validate = promisify(library.schema.validate.bind(library.schema));
-
 	await validate(result, definitions.WSSignaturesResponse);
 
-	const signatures = result.signatures;
+	const { signatures } = result;
 	const sequenceAdd = promisify(library.sequence.add.bind(library.sequence));
 
 	await sequenceAdd(async addSequenceCb => {
@@ -240,7 +239,7 @@ __private.loadSignatures = async function() {
  * @todo Add description for the params
  * @todo Missing error propagation when calling balancesSequence.add
  */
-__private.loadTransactions = async function() {
+__private.getTransactionsFromNetwork = async function() {
 	library.logger.info('Loading transactions from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getTransactions
@@ -249,12 +248,7 @@ __private.loadTransactions = async function() {
 	});
 
 	const validate = promisify(library.schema.validate.bind(library.schema));
-
-	try {
-		await validate(result, definitions.WSTransactionsResponse);
-	} catch (validateErrors) {
-		throw validateErrors[0];
-	}
+	await validate(result, definitions.WSTransactionsResponse);
 
 	const transactions = result.transactions;
 
@@ -271,7 +265,7 @@ __private.loadTransactions = async function() {
 				transaction,
 			});
 
-			library.logger.warn(`Transaction ${transactionId} is not valid`);
+			library.logger.error(`Transaction ${transactionId} is not valid`);
 
 			// TODO: Invoke applyPenalty action on the Network module once it is implemented.
 
@@ -297,7 +291,7 @@ __private.loadTransactions = async function() {
 				);
 			});
 		} catch (error) {
-			library.logger.debug(error);
+			library.logger.error(error);
 			throw error;
 		}
 	}
@@ -798,9 +792,9 @@ __private.loadBlocksFromNetwork = function(cb) {
 						modules.blocks.process.loadBlocksFromNetwork(
 							(loadBlocksFromNetworkErr, lastValidBlock) => {
 								if (loadBlocksFromNetworkErr) {
-									return waterCb(`Failed to load blocks from the network. ${
-										loadBlocksFromNetworkErr
-									}`);
+									return waterCb(
+										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
+									);
 								}
 								__private.blocksToSync = lastValidBlock.height;
 								loaded = lastValidBlock.id === lastBlock.id;
@@ -955,7 +949,7 @@ Loader.prototype.onPeersReady = function() {
 					if (__private.loaded) {
 						return async.retry(
 							__private.retries,
-							__private.loadTransactions,
+							__private.getTransactionsFromNetwork,
 							err => {
 								if (err) {
 									library.logger.error('Unconfirmed transactions loader', err);
@@ -971,7 +965,7 @@ Loader.prototype.onPeersReady = function() {
 					if (__private.loaded) {
 						return async.retry(
 							__private.retries,
-							__private.loadSignatures,
+							__private.getSignaturesFromNetwork,
 							err => {
 								if (err) {
 									library.logger.error('Signatures loader', err);

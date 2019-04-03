@@ -43,14 +43,12 @@ module.exports = class Network {
 		// TODO: Nonce overwrite should be removed once the Network module has been fully integreated into core and the old peer system has been fully removed.
 		// We need this because the old peer system which runs in parallel will conflict with the new one if they share the same nonce.
 		const moduleNonce = randomstring.generate(16);
-		const sanitizeNodeInfo = nodeInfo => (
-			{
-				...nodeInfo,
-				state: 2, // TODO: Delete state property
-				nonce: moduleNonce,
-				wsPort: this.options.nodeInfo.wsPort,
-			}
-		);
+		const sanitizeNodeInfo = nodeInfo => ({
+			...nodeInfo,
+			state: 2, // TODO: Delete state property
+			nonce: moduleNonce,
+			wsPort: this.options.nodeInfo.wsPort,
+		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
 			await this.channel.invoke('chain:getNodeInfo')
@@ -98,11 +96,11 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_FAILED_TO_FETCH_PEER_INFO, error => {
-			this.logger.debug(error.message || error);
+			this.logger.error(error.message || error);
 		});
 
 		this.p2p.on(EVENT_FAILED_TO_PUSH_NODE_INFO, error => {
-			this.logger.debug(error.message || error);
+			this.logger.error(error.message || error);
 		});
 
 		this.p2p.on(EVENT_OUTBOUND_SOCKET_ERROR, error => {
@@ -122,7 +120,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_FAILED_PEER_INFO_UPDATE, error => {
-			this.logger.debug(error.message || error);
+			this.logger.error(error.message || error);
 		});
 
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
@@ -135,8 +133,9 @@ module.exports = class Network {
 			}
 			const hasTargetModule = hasNamespaceReg.test(request.procedure);
 			// If the request has no target module, default to chain (to support legacy protocol).
-			const sanitizedProcedure = hasTargetModule ?
-				request.procedure : `chain:${request.procedure}`;
+			const sanitizedProcedure = hasTargetModule
+				? request.procedure
+				: `chain:${request.procedure}`;
 			try {
 				const result = await this.channel.invoke(
 					sanitizedProcedure,
@@ -145,7 +144,7 @@ module.exports = class Network {
 				this.logger.info(`Responsed to peer request ${request.procedure}`);
 				request.end(result); // Send the response back to the peer.
 			} catch (error) {
-				this.logger.debug(
+				this.logger.error(
 					`Could not respond to peer request ${
 						request.procedure
 					} because of error: ${error.message || error.message}`
@@ -157,8 +156,9 @@ module.exports = class Network {
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
 			const hasSourceModule = hasNamespaceReg.test(packet.event);
 			// If the request has no source module, default to chain (to support legacy protocol).
-			const sanitizedEvent = hasSourceModule ?
-				packet.event : `chain:${packet.event}`;
+			const sanitizedEvent = hasSourceModule
+				? packet.event
+				: `chain:${packet.event}`;
 			this.logger.info(`Received inbound message for event ${packet.event}`);
 			this.channel.publish(`network:${sanitizedEvent}`, packet.data);
 		});

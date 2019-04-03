@@ -338,23 +338,23 @@ Process.prototype.loadBlocksOffset = function(
 Process.prototype.loadBlocksFromNetwork = function(cb) {
 	let lastValidBlock = modules.blocks.lastBlock.get();
 
-	library.logger.info('Loading blocks from the network');
+	library.logger.debug('Loading blocks from the network');
 
-	async function getFromNetwork() {
+	async function getBlocksFromNetwork() {
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		// TODO: Rename procedure to include target module name. E.g. chain:blocks
-		const result = await library.channel.invoke('network:request', {
+		const { data } = await library.channel.invoke('network:request', {
 			procedure: 'blocks',
 			data: {
 				lastBlockId: lastValidBlock.id,
 			},
 		});
 
-		if (!result.data) {
+		if (!data) {
 			throw new Error('Received an invalid blocks response from the network');
 		}
 
-		return result.data.blocks;
+		return data.blocks;
 	}
 
 	function validateBlocks(blocks, seriesCb) {
@@ -411,16 +411,19 @@ Process.prototype.loadBlocksFromNetwork = function(cb) {
 		});
 	}
 
-	async.waterfall([getFromNetwork, validateBlocks, processBlocks], err => {
-		if (err) {
-			return setImmediate(
-				cb,
-				`Error loading blocks: ${err.message || err}`,
-				lastValidBlock
-			);
+	async.waterfall(
+		[getBlocksFromNetwork, validateBlocks, processBlocks],
+		err => {
+			if (err) {
+				return setImmediate(
+					cb,
+					`Error loading blocks: ${err.message || err}`,
+					lastValidBlock
+				);
+			}
+			return setImmediate(cb, null, lastValidBlock);
 		}
-		return setImmediate(cb, null, lastValidBlock);
-	});
+	);
 };
 
 /**

@@ -241,15 +241,17 @@ module.exports = class Chain {
 					true,
 					global.constants.MAX_SHARED_TRANSACTIONS
 				);
-				const multisignatures = [];
-				transactions.forEach(transaction => {
-					if (transaction.signatures && transaction.signatures.length) {
-						multisignatures.push({
-							transaction: transaction.id,
-							signatures: transaction.signatures,
-						});
-					}
-				});
+				const multisignatures = transactions
+					.map(transaction => {
+						if (transaction.signatures && transaction.signatures.length) {
+							return {
+								transaction: transaction.id,
+								signatures: transaction.signatures,
+							};
+						}
+						return null;
+					})
+					.filter(transaction => transaction !== null);
 				return multisignatures;
 			},
 			postSignature: async action =>
@@ -311,20 +313,21 @@ module.exports = class Chain {
 							limit: 34, // 1977100 bytes
 							lastId: query.lastBlockId,
 						},
-						(err, data) => {
+						(error, data) => {
 							(data || []).forEach(block => {
-								if (block.tf_data) {
-									try {
-										block.tf_data = block.tf_data.toString('utf8');
-									} catch (e) {
-										this.logger.error(
-											'Transport->blocks: Failed to convert data field to UTF-8',
-											{ block, error: e }
-										);
-									}
+								if (!block.tf_data) {
+									return;
+								}
+								try {
+									block.tf_data = block.tf_data.toString('utf8');
+								} catch (e) {
+									this.logger.error(
+										'Transport->blocks: Failed to convert data field to UTF-8',
+										{ block, error: e }
+									);
 								}
 							});
-							if (err) {
+							if (error) {
 								// TODO: Reject here.
 								return resolve({ blocks: [] });
 							}
