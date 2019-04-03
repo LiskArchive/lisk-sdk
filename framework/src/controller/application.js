@@ -130,13 +130,19 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		this.registerTransaction(TransferTransaction, { transactionType: 0 });
-		this.registerTransaction(SecondSignatureTransaction, {
-			transactionType: 1,
-		});
-		this.registerTransaction(DelegateTransaction, { transactionType: 2 });
-		this.registerTransaction(VoteTransaction, { transactionType: 3 });
-		this.registerTransaction(MultisignatureTransaction, { transactionType: 4 });
+		const { TRANSACTION_TYPES } = constants;
+
+		this.registerTransaction(TRANSACTION_TYPES.SEND, TransferTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.SIGNATURE,
+			SecondSignatureTransaction
+		);
+		this.registerTransaction(TRANSACTION_TYPES.DELEGATE, DelegateTransaction);
+		this.registerTransaction(TRANSACTION_TYPES.VOTE, VoteTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.MULTI,
+			MultisignatureTransaction
+		);
 
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
@@ -207,12 +213,13 @@ class Application {
 	 * @param {constructor} Transaction - Transaction class
 	 * @param {string} alias - Will use this alias or fallback to `Transaction.alias`
 	 */
-	registerTransaction(Transaction, options = {}) {
-		const transactionType = options.transactionType;
-
+	registerTransaction(transactionType, Transaction) {
 		// TODO: Validate the transaction is properly inherited from base class
 		assert(Transaction, 'Transaction is required');
-		assert(transactionType, 'options.transactionType is required');
+		assert(
+			Number.isInteger(transactionType),
+			'Transaction Type has to be integer'
+		);
 		assert(
 			!Object.keys(this.getTransactions()).includes(transactionType),
 			`A transaction type "${transactionType}" is already registered.`

@@ -42,9 +42,13 @@ try {
 		},
 	});
 
-	app.registerTransaction(DappTransaction, { transactionType: 5 });
-	app.registerTransaction(InTransferTransaction, { transactionType: 6 });
-	app.registerTransaction(OutTransferTransaction, { transactionType: 7 });
+	const { TRANSACTION_TYPES } = config.constants;
+	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
+	app.registerTransaction(TRANSACTION_TYPES.IN_TRANSFER, InTransferTransaction);
+	app.registerTransaction(
+		TRANSACTION_TYPES.OUT_TRANSFER,
+		OutTransferTransaction
+	);
 
 	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
 	app.overrideModuleOptions('httpApi', { config });
