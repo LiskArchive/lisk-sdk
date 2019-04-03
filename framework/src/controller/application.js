@@ -96,7 +96,7 @@ class Application {
 
 		if (!config.components.logger) {
 			config.components.logger = {
-				filename: `~/.lisk/${label}/lisk.log`,
+				filename: `logs/${label}/lisk.log`,
 			};
 		}
 
